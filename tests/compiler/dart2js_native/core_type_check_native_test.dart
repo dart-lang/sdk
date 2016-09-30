@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
+
+var inscrutable = (int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 @Native("A")
 class A {}
@@ -30,11 +33,6 @@ function C() {};
 makeC = function() { return new C; }
 function D() {};
 makeD = function() { return new D; }
-
-self.nativeConstructor(A);
-self.nativeConstructor(B);
-self.nativeConstructor(C);
-self.nativeConstructor(D);
 """;
 
 checkTest(value, expectComparable, expectPattern) {
@@ -67,7 +65,7 @@ checkAll(check) {
     makeC(),
     makeD()
   ];
-  value(i) => confuse(things[i]);
+  value(i) => things[inscrutable(i)];
 
   check(value(0), false, false); // List
   check(value(1), true, false); // int
@@ -81,7 +79,6 @@ checkAll(check) {
 }
 
 main() {
-  nativeTesting();
   setup();
 
   checkAll(checkTest);

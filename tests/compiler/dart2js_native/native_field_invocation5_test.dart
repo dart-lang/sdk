@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 makeCC() native ;
 nativeFirst(x, y) native ;
@@ -11,7 +12,6 @@ void setup() native """
 function CC() {}
 makeCC = function() { return new CC; }
 nativeFirst = function(x, y) { return x; }
-self.nativeConstructor(CC);
 """;
 
 class C {
@@ -38,7 +38,6 @@ wrap(cb) {
 }
 
 main() {
-  nativeTesting();
   setup();
   var c = makeCC();
   c.init();

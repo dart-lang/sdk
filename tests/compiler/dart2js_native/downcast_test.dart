@@ -4,7 +4,8 @@
 
 // Test for downcasts on native classes.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 abstract class J {}
 
@@ -47,9 +48,6 @@ A.prototype.read = function() { return this._x; };
 A.prototype.write = function(x) { this._x = x; };
 makeA = function(){return new A};
 makeB = function(){return new B};
-
-self.nativeConstructor(A);
-self.nativeConstructor(B);
 """;
 
 class C {}
@@ -57,7 +55,6 @@ class C {}
 bool _check(a, b) => identical(a, b);
 
 main() {
-  nativeTesting();
   setup();
 
   var a1 = makeA();

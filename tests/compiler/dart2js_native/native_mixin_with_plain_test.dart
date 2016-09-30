@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 // Test that native classes and ordinary Dart classes can both use the same
 // ordinary Dart classes as a mixin.
@@ -45,13 +46,9 @@ function A() {this.aa = 'aa'}
 function B() {this.aa = 'bb'}
 makeA = function(){return new A;};
 makeB = function(){return new B;};
-
-self.nativeConstructor(A);
-self.nativeConstructor(B);
 """;
 
 main() {
-  nativeTesting();
   setup();
   var things = [makeA, makeB, () => new C(), () => new D(), () => new M()]
       .map((f) => f())

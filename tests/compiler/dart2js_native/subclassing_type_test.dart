@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'native_testing.dart';
-import 'dart:_js_helper' show setNativeSubclassDispatchRecord;
+import "package:expect/expect.dart";
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show Interceptor, findInterceptorForType;
 
 // Test that type checks and casts work for subclasses of native classes and

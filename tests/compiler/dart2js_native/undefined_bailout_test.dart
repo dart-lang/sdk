@@ -18,7 +18,8 @@
 // comparison does not work for undefined, which the DOM sometimes
 // returns.
 
-import "native_testing.dart";
+import "package:expect/expect.dart";
+import 'dart:_foreign_helper' show JS;
 
 var a = 42;
 var b = 0;

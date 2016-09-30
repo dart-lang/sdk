@@ -7,8 +7,8 @@
 //   identifier @JSName -> use @Native tag as 'scope' for @JSName.
 //   other @JSName -> use @JSName as an expression.
 
-import 'native_testing.dart';
-import 'dart:_js_helper' show convertDartClosureToJS;
+import "package:expect/expect.dart";
+import 'dart:_js_helper' show Native, JSName, convertDartClosureToJS;
 
 typedef int Callback(String s);
 
@@ -51,7 +51,6 @@ self.CC = CC;
 """;
 
 main() {
-  nativeTesting();
   setup();
 
   // TODO(sra): Investigate why this line is necessary to get a correctly

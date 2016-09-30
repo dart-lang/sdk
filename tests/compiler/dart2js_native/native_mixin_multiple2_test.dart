@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 // Test that native classes can access methods defined only by mixins.
 
@@ -29,12 +30,9 @@ makeB() native ;
 void setup() native """
 function B() {}
 makeB = function(){return new B;};
-
-self.nativeConstructor(B);
 """;
 
 main() {
-  nativeTesting();
   setup();
 
   B b = makeB();

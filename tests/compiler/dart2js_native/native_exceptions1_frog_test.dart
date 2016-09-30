@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'native_testing.dart';
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 // Test that hidden native exception classes can be marked as existing.
 //
@@ -56,15 +57,11 @@ A.prototype.op = function (x) {
   return  x / 2;
 };
 makeA = function(){return new A};
-
-self.nativeConstructor(E);
-self.nativeConstructor(A);
 """;
 
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 main() {
-  nativeTesting();
   setup1();
   setup2();
 

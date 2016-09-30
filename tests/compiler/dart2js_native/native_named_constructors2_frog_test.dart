@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 // Native class with named constructors and static methods.
 
@@ -29,11 +30,9 @@ void setup() native """
 function A(arg) { this._x = arg; }
 A.prototype.foo = function() { return this._x; };
 makeA = function(arg) { return new A(arg); }
-self.nativeConstructor(A);
 """;
 
 main() {
-  nativeTesting();
   setup();
   var a1 = new A(100);
   var a2 = new A.fromString('Hello');

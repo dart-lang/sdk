@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
+//import 'dart:_foreign_helper' show JS;
+//import 'dart:_js_helper' show Creates, setNativeSubclassDispatchRecord;
 
 // Test for dartNativeDispatchHooksTransformer, getTag hook.
 // Same as browser_compat_1_prepatched_test but with prepatching disabled.
@@ -40,10 +43,6 @@ makeT1A = function(){return new T1A;};
 makeT1B = function(){return new T1CrazyB;};
 makeT1C = function(){return new T1fakeA;};
 
-self.nativeConstructor(T1A);
-self.nativeConstructor(T1CrazyB);
-self.nativeConstructor(T1fakeA);
-
 var getTagCount = 0;
 getTagCallCount = function() { return getTagCount; }
 
@@ -73,9 +72,11 @@ function transformer1(hooks) {
 dartNativeDispatchHooksTransformer = [transformer1];
 ''';
 
+var inscrutable;
+
 main() {
-  nativeTesting();
   setup();
+  inscrutable = (x) => x;
 
   var t1a = makeT1A();
   var t1b = makeT1B();
@@ -87,9 +88,9 @@ main() {
 
   Expect.equals(3, getTagCallCount());
 
-  Expect.equals(true, confuse(t1a) is T1A, '$t1a is T1A');
-  Expect.equals(true, confuse(t1b) is T1B, '$t1b is T1B');
-  Expect.equals(true, confuse(t1c) is T1C, '$t1c is T1C');
+  Expect.equals(true, inscrutable(t1a) is T1A, '$t1a is T1A');
+  Expect.equals(true, inscrutable(t1b) is T1B, '$t1b is T1B');
+  Expect.equals(true, inscrutable(t1c) is T1C, '$t1c is T1C');
 
   Expect.equals(3, getTagCallCount());
 }

@@ -6,7 +6,9 @@
 
 library native_exception_test;
 
-import 'native_testing.dart';
+import 'dart:_foreign_helper' show JS;
+import 'dart:_js_helper';
+import 'package:expect/expect.dart';
 
 main() {
   var previous;

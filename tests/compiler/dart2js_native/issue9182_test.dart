@@ -5,7 +5,8 @@
 // Regression test for Issue 9182.  The generative constructor body function
 // should not have the interceptor calling convention.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 @Native("A")
 class Foo {
@@ -27,17 +28,16 @@ class Bar {
 void setup() native r"""
 function A(){}
 makeA = function() { return new A; };
-self.nativeConstructor(A);
 """;
 
 makeA() native ;
 
 main() {
-  nativeTesting();
   setup();
 
-  var foo = confuse(new Foo());
-  var bar = confuse(new Bar(30, 40));
+  var things = [new Foo(), new Bar(30, 40)];
+  var foo = things[0];
+  var bar = things[1];
 
   Expect.equals(123, foo.Bar()); // Ensure that Foo.Bar is used.
 

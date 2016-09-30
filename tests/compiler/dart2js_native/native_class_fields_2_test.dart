@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 // Verify that methods are not renamed to clash with native field names
 // that are known from the DOM (like x, y, z).
@@ -22,7 +23,7 @@ function getter() {
 
 function A(){
   var a = Object.create(
-      { constructor: A },
+      { constructor: { name: 'A'}},
       { x: { get: getter, configurable: false, writeable: false },
         y: { get: getter, configurable: false, writeable: false },
         z: { get: getter, configurable: false, writeable: false }
@@ -32,7 +33,6 @@ function A(){
 }
 
 makeA = function() { return new A; };
-self.nativeConstructor(A);
 """;
 
 A makeA() native ;
@@ -72,10 +72,9 @@ class B {
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 
 main() {
-  nativeTesting();
   setup();
-  confuse(new B()).a();
-  var x = confuse(makeA());
+  var both = [makeA(), new B()];
+  var x = both[inscrutable(0)];
   // Each of these will throw, because an instance of A doesn't have any of
   // these functions.  The important thing is that none of them have been
   // renamed to be called 'z' by the minifier, because then the getter will be

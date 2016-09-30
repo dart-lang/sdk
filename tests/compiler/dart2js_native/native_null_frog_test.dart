@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 // Test for values of some basic types.
 
@@ -23,11 +24,10 @@ A.prototype.returnUndefined = function() { return void 0; };
 A.prototype.returnEmptyString = function() { return ""; };
 A.prototype.returnZero = function() { return 0; };
 makeA = function(){return new A;};
-self.nativeConstructor(A);
 """;
 
-@NoInline()
-staticTests() {
+main() {
+  setup();
   A a = makeA();
   Expect.equals(null, a.returnNull());
   Expect.equals(null, a.returnUndefined());
@@ -38,25 +38,4 @@ staticTests() {
 
   Expect.isTrue(a.returnZero() is int);
   Expect.equals(0, a.returnZero());
-}
-
-@NoInline()
-dynamicTests() {
-  A a = makeA();
-  Expect.equals(null, confuse(a).returnNull());
-  Expect.equals(null, confuse(a).returnUndefined());
-
-  Expect.equals('', confuse(a).returnEmptyString());
-  Expect.isTrue(confuse(a).returnEmptyString().isEmpty);
-  Expect.isTrue(confuse(a).returnEmptyString() is String);
-
-  Expect.isTrue(confuse(a).returnZero() is int);
-  Expect.equals(0, confuse(a).returnZero());
-}
-
-main() {
-  nativeTesting();
-  setup();
-  staticTests();
-  dynamicTests();
 }

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
-import 'dart:_foreign_helper' show JS_INTERCEPTOR_CONSTANT;
+import "package:expect/expect.dart";
+import 'dart:_foreign_helper' show JS_INTERCEPTOR_CONSTANT, JS;
+import 'dart:_js_helper' show Native, Creates;
 import 'dart:_interceptors'
     show
         Interceptor,
@@ -69,9 +70,6 @@ makeQ = function(){return new QQQQ();};
 function RRRR(){}
 makeR = function(){return new RRRR();};
 
-self.nativeConstructor(PPPP);
-self.nativeConstructor(QQQQ);
-self.nativeConstructor(RRRR);
 """;
 
 expectTypeName(expectedName, s) {
@@ -160,7 +158,6 @@ testNative() {
 }
 
 main() {
-  nativeTesting();
   setup();
 
   testDistinctInterceptors();

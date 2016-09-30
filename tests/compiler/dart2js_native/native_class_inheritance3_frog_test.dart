@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "native_testing.dart";
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 // Test to see if resolving a hidden native class's method to noSuchMethod
 // interferes with subsequent resolving of the method.  This might happen if the
@@ -58,15 +59,9 @@ makeA2 = function(){return new A2};
 makeB2 = function(){return new B2};
 
 makeObject = function(){return new Object};
-
-self.nativeConstructor(A1);
-self.nativeConstructor(A2);
-self.nativeConstructor(B1);
-self.nativeConstructor(B2);
 """;
 
 main() {
-  nativeTesting();
   setup();
 
   var a1 = makeA1();

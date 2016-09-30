@@ -9,9 +9,9 @@
 // calling-convention for parts of the compiler, and the non-intercepted
 // convention for others, making this fail.
 
-import 'native_testing.dart';
-import 'dart:_js_helper';
-import 'dart:mirrors';
+import "package:expect/expect.dart";
+import "dart:_js_helper";
+import "dart:mirrors";
 
 @Native("A")
 class A {

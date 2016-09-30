@@ -6,7 +6,7 @@
 
 library main;
 
-import 'native_testing.dart';
+import "package:expect/expect.dart";
 import 'native_library_same_name_used_lib1.dart';
 
 void setup() native """
@@ -15,7 +15,6 @@ void setup() native """
   I.prototype.read = function() { return this._x; };
   I.prototype.write = function(x) { this._x = x; };
   makeI = function(){return new I};
-  self.nativeConstructor(I);
 """;
 
 // A pure Dart implementation of I.
@@ -32,7 +31,6 @@ class ProxyI implements I {
 }
 
 main() {
-  nativeTesting();
   setup();
 
   var a1 = makeI();
@@ -49,7 +47,4 @@ main() {
 
   Expect.isTrue(a1 is I, 'a1 is I');
   Expect.isFalse(a1 is ProxyI, 'a1 is ProxyI');
-
-  Expect.isTrue(confuse(a1) is I, 'a1 is I');
-  Expect.isFalse(confuse(a1) is ProxyI, 'a1 is ProxyI');
 }

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'native_testing.dart';
+import "dart:_js_helper";
+import "package:expect/expect.dart";
 
 // Make sure we can have a native with a name that is a JavaScript keyword.
 
@@ -18,15 +19,13 @@ function A() {}
 A.prototype.delete = function() { return 87; };
 
 makeA = function(){return new A;};
-self.nativeConstructor(A);
 """;
 
 main() {
-  nativeTesting();
   setup();
 
-  var a1 = confuse(makeA());
-  Expect.equals(87, a1.delete());
-  A a2 = makeA();
-  Expect.equals(87, a2.delete());
+  var a = makeA();
+  Expect.equals(87, a.delete());
+  A aa = a;
+  Expect.equals(87, aa.delete());
 }

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'native_testing.dart';
-import 'dart:_js_helper' show setNativeSubclassDispatchRecord;
+import "package:expect/expect.dart";
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors'
     show
         JSObject, // The interface, which may be re-exported by a
@@ -32,8 +32,6 @@ makeB = function(){return new BB();};
 
 function QQ(){}
 makeQ = function(){return new QQ();};
-
-self.nativeConstructor(QQ);
 """;
 
 class Is<T> {
@@ -95,7 +93,6 @@ dynamic_test() {
 }
 
 main() {
-  nativeTesting();
   setup();
 
   dynamic_test();

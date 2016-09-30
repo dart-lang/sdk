@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'native_testing.dart';
-import 'dart:_js_helper' show setNativeSubclassDispatchRecord;
+import "package:expect/expect.dart";
+import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show Interceptor, findInterceptorForType;
 
 // Test type checks.
@@ -121,49 +121,51 @@ testCastB(x) {
   Expect.identical(x, z);
 }
 
+var inscrutable;
+
 main() {
-  nativeTesting();
   setup();
+  inscrutable = (x) => x;
 
   setNativeSubclassDispatchRecord(getBPrototype(), findInterceptorForType(B));
 
-  var b = confuse(makeB());
+  var b = inscrutable(makeB());
 
-  confuse(testIsB)(b);
-  confuse(testIsA)(b);
-  confuse(testIsN)(b);
-  confuse(testIsM)(b);
-  confuse(testIsI)(b);
+  inscrutable(testIsB)(b);
+  inscrutable(testIsA)(b);
+  inscrutable(testIsN)(b);
+  inscrutable(testIsM)(b);
+  inscrutable(testIsI)(b);
 
-  confuse(new Checks<B>().isCheck)(b);
-  confuse(new Checks<A>().isCheck)(b);
-  confuse(new Checks<N>().isCheck)(b);
-  confuse(new Checks<M>().isCheck)(b);
-  confuse(new Checks<I>().isCheck)(b);
+  inscrutable(new Checks<B>().isCheck)(b);
+  inscrutable(new Checks<A>().isCheck)(b);
+  inscrutable(new Checks<N>().isCheck)(b);
+  inscrutable(new Checks<M>().isCheck)(b);
+  inscrutable(new Checks<I>().isCheck)(b);
 
   if (isCheckedMode()) {
-    confuse(testAssignB)(b);
-    confuse(testAssignA)(b);
-    confuse(testAssignN)(b);
-    confuse(testAssignM)(b);
-    confuse(testAssignI)(b);
+    inscrutable(testAssignB)(b);
+    inscrutable(testAssignA)(b);
+    inscrutable(testAssignN)(b);
+    inscrutable(testAssignM)(b);
+    inscrutable(testAssignI)(b);
 
-    confuse(testCastB)(b);
-    confuse(testCastA)(b);
-    confuse(testCastN)(b);
-    confuse(testCastM)(b);
-    confuse(testCastI)(b);
+    inscrutable(testCastB)(b);
+    inscrutable(testCastA)(b);
+    inscrutable(testCastN)(b);
+    inscrutable(testCastM)(b);
+    inscrutable(testCastI)(b);
 
-    confuse(new Checks<B>().assignCheck)(b);
-    confuse(new Checks<A>().assignCheck)(b);
-    confuse(new Checks<N>().assignCheck)(b);
-    confuse(new Checks<M>().assignCheck)(b);
-    confuse(new Checks<I>().assignCheck)(b);
+    inscrutable(new Checks<B>().assignCheck)(b);
+    inscrutable(new Checks<A>().assignCheck)(b);
+    inscrutable(new Checks<N>().assignCheck)(b);
+    inscrutable(new Checks<M>().assignCheck)(b);
+    inscrutable(new Checks<I>().assignCheck)(b);
 
-    confuse(new Checks<B>().castCheck)(b);
-    confuse(new Checks<A>().castCheck)(b);
-    confuse(new Checks<N>().castCheck)(b);
-    confuse(new Checks<M>().castCheck)(b);
-    confuse(new Checks<I>().castCheck)(b);
+    inscrutable(new Checks<B>().castCheck)(b);
+    inscrutable(new Checks<A>().castCheck)(b);
+    inscrutable(new Checks<N>().castCheck)(b);
+    inscrutable(new Checks<M>().castCheck)(b);
+    inscrutable(new Checks<I>().castCheck)(b);
   }
 }
