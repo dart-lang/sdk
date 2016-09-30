@@ -20,7 +20,7 @@ import 'js/js.dart' as jsAst;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'types/types.dart' show TypeMask;
-import 'universe/universe.dart' show ReceiverConstraint;
+import 'universe/world_builder.dart' show ReceiverConstraint;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 

@@ -19,7 +19,7 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
-import 'universe/universe.dart' show CodegenUniverse;
+import 'universe/world_builder.dart' show CodegenWorldBuilder;
 import 'util/util.dart';
 
 class ClosureTask extends CompilerTask {

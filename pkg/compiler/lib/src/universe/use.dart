@@ -24,7 +24,7 @@ import '../util/util.dart' show Hashing;
 import '../world.dart' show World;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'universe.dart' show ReceiverConstraint;
+import 'world_builder.dart' show ReceiverConstraint;
 
 enum DynamicUseKind { INVOKE, GET, SET, }
 

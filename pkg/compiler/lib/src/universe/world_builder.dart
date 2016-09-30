@@ -87,7 +87,7 @@ abstract class SelectorConstraints {
   bool needsNoSuchMethodHandling(Selector selector, World world);
 }
 
-/// A mutable [SelectorConstraints] used in [Universe].
+/// A mutable [SelectorConstraints] used in [WorldBuilder].
 abstract class UniverseSelectorConstraints extends SelectorConstraints {
   /// Adds [constraint] to these selector constraints. Return `true` if the set
   /// of potential receivers expanded due to the new constraint.
@@ -102,14 +102,11 @@ abstract class SelectorConstraintsStrategy {
   UniverseSelectorConstraints createSelectorConstraints(Selector selector);
 }
 
-/// The [Universe] is an auxiliary class used in the process of computing the
-/// [ClosedWorld]. The concepts here and in [ClosedWorld] are very similar -- in
-/// the same way that the "universe expands" you can think of this as a mutable
-/// world that is expanding as we visit and discover parts of the program.
-// TODO(sigmund): rename to "growing/expanding/mutable world"?
-// TODO(johnniwinther): Move common implementation to a [UniverseBase] when
+/// The [WorldBuilder] is an auxiliary class used in the process of computing
+/// the [ClosedWorld].
+// TODO(johnniwinther): Move common implementation to a [WorldBuilderBase] when
 // universes and worlds have been unified.
-abstract class Universe {
+abstract class WorldBuilder {
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
   /// super-call.
@@ -132,7 +129,7 @@ abstract class Universe {
   bool hasInvokedSetter(Element member, World world);
 }
 
-abstract class ResolutionUniverse implements Universe {
+abstract class ResolutionWorldBuilder implements WorldBuilder {
   /// Set of (live) local functions (closures) whose signatures reference type
   /// variables.
   ///
@@ -161,7 +158,7 @@ abstract class ResolutionUniverse implements Universe {
   Iterable<Element> get fieldSetters;
 }
 
-class ResolutionUniverseImpl implements ResolutionUniverse {
+class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
   /// a super-call.
@@ -233,7 +230,7 @@ class ResolutionUniverseImpl implements ResolutionUniverse {
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
-  ResolutionUniverseImpl(this.selectorConstraintsStrategy);
+  ResolutionWorldBuilderImpl(this.selectorConstraintsStrategy);
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
@@ -407,10 +404,10 @@ class ResolutionUniverseImpl implements ResolutionUniverse {
   }
 }
 
-/// Universe specific to codegen.
+/// World builder specific to codegen.
 ///
 /// This adds additional access to liveness of selectors and elements.
-abstract class CodegenUniverse implements Universe {
+abstract class CodegenWorldBuilder implements WorldBuilder {
   void forEachInvokedName(
       f(String name, Map<Selector, SelectorConstraints> selectors));
 
@@ -437,7 +434,7 @@ abstract class CodegenUniverse implements Universe {
   Iterable<FieldElement> get allReferencedStaticFields;
 }
 
-class CodegenUniverseImpl implements CodegenUniverse {
+class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
   /// a super-call.
@@ -482,7 +479,7 @@ class CodegenUniverseImpl implements CodegenUniverse {
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
-  CodegenUniverseImpl(this.selectorConstraintsStrategy);
+  CodegenWorldBuilderImpl(this.selectorConstraintsStrategy);
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a

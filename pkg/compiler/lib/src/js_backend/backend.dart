@@ -50,7 +50,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/universe.dart';
+import '../universe/world_builder.dart';
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart'

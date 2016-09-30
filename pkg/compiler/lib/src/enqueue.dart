@@ -32,7 +32,7 @@ import 'elements/elements.dart'
 import 'native/native.dart' as native;
 import 'types/types.dart' show TypeMaskStrategy;
 import 'universe/selector.dart' show Selector;
-import 'universe/universe.dart';
+import 'universe/world_builder.dart';
 import 'universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import 'universe/world_impact.dart'
@@ -71,7 +71,7 @@ class EnqueueTask extends CompilerTask {
 
 abstract class Enqueuer {
   EnqueueTask task;
-  Universe get universe;
+  WorldBuilder get universe;
   native.NativeEnqueuer nativeEnqueuer; // Set by EnqueueTask
   void forgetElement(Element element);
   void processInstantiatedClassMembers(ClassElement cls);
@@ -135,8 +135,8 @@ class ResolutionEnqueuer extends Enqueuer {
       new Map<String, Set<Element>>();
   final Set<ClassElement> _processedClasses = new Set<ClassElement>();
   Set<ClassElement> recentClasses = new Setlet<ClassElement>();
-  final ResolutionUniverseImpl _universe =
-      new ResolutionUniverseImpl(const TypeMaskStrategy());
+  final ResolutionWorldBuilderImpl _universe =
+      new ResolutionWorldBuilderImpl(const TypeMaskStrategy());
 
   static final TRACE_MIRROR_ENQUEUING =
       const bool.fromEnvironment("TRACE_MIRROR_ENQUEUING");
@@ -160,7 +160,7 @@ class ResolutionEnqueuer extends Enqueuer {
   // TODO(johnniwinther): Move this to [ResolutionEnqueuer].
   Resolution get resolution => compiler.resolution;
 
-  ResolutionUniverse get universe => _universe;
+  ResolutionWorldBuilder get universe => _universe;
 
   bool get queueIsEmpty => queue.isEmpty;
 

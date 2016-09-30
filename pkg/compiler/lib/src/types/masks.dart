@@ -12,7 +12,7 @@ import '../elements/elements.dart';
 import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/universe.dart'
+import '../universe/world_builder.dart'
     show
         ReceiverConstraint,
         UniverseSelectorConstraints,

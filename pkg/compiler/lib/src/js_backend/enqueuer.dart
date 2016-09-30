@@ -34,7 +34,7 @@ import '../native/native.dart' as native;
 import '../options.dart';
 import '../types/types.dart' show TypeMaskStrategy;
 import '../universe/selector.dart' show Selector;
-import '../universe/universe.dart';
+import '../universe/world_builder.dart';
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart'
@@ -54,8 +54,8 @@ class CodegenEnqueuer implements Enqueuer {
       new Map<String, Set<Element>>();
   final Set<ClassElement> _processedClasses = new Set<ClassElement>();
   Set<ClassElement> recentClasses = new Setlet<ClassElement>();
-  final CodegenUniverseImpl _universe =
-      new CodegenUniverseImpl(const TypeMaskStrategy());
+  final CodegenWorldBuilderImpl _universe =
+      new CodegenWorldBuilderImpl(const TypeMaskStrategy());
 
   static final TRACE_MIRROR_ENQUEUING =
       const bool.fromEnvironment("TRACE_MIRROR_ENQUEUING");
@@ -78,7 +78,7 @@ class CodegenEnqueuer implements Enqueuer {
     impactVisitor = new _EnqueuerImpactVisitor(this);
   }
 
-  CodegenUniverse get universe => _universe;
+  CodegenWorldBuilder get universe => _universe;
 
   Backend get backend => _compiler.backend;
 
