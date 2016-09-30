@@ -33,6 +33,7 @@ var tests = [
   smartNext,
   hasStoppedAtBreakpoint,
   smartNext,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   smartNext,
   hasStoppedAtBreakpoint,
