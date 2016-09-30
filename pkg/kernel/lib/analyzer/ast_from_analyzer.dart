@@ -687,6 +687,12 @@ class ExpressionScope extends TypeScope {
         new ast.Arguments(<ast.Expression>[new ast.StringLiteral(name)])));
   }
 
+  ast.Expression buildThrowFallThroughError() {
+    return new ast.Throw(new ast.ConstructorInvocation(
+        loader.getCoreClassConstructorReference('FallThroughError'),
+        new ast.Arguments.empty()));
+  }
+
   emitInvalidConstant([ErrorCode error]) {
     error ??= CompileTimeErrorCode.INVALID_CONSTANT;
     return emitCompileTimeError(error);
@@ -955,6 +961,18 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
     return makeBreakTarget(body, breakNode);
   }
 
+  static bool isBreakingExpression(ast.Expression node) {
+    return node is ast.Throw || node is ast.Rethrow;
+  }
+
+  static bool isBreakingStatement(ast.Statement node) {
+    return node is ast.BreakStatement ||
+        node is ast.ContinueSwitchStatement ||
+        node is ast.ReturnStatement ||
+        node is ast.ExpressionStatement &&
+            isBreakingExpression(node.expression);
+  }
+
   ast.Statement visitSwitchStatement(SwitchStatement node) {
     // Group all cases into case blocks.  Use parallel lists to collect the
     // intermediate terms until we are ready to create the AST nodes.
@@ -1002,6 +1020,16 @@ class StatementBuilder extends GeneralizingAstVisitor<ast.Statement> {
       var blockNodes = <ast.Statement>[];
       for (var statement in bodies[i]) {
         innerBuilder.buildBlockMember(statement, blockNodes);
+      }
+      if (blockNodes.isEmpty || !isBreakingStatement(blockNodes.last)) {
+        if (i < cases.length - 1) {
+          blockNodes.add(
+              new ast.ExpressionStatement(scope.buildThrowFallThroughError()));
+        } else {
+          var jump = new ast.BreakStatement(null);
+          blockNodes.add(jump);
+          breakNode.jumps.add(jump);
+        }
       }
       cases[i].body = new ast.Block(blockNodes)..parent = cases[i];
     }
