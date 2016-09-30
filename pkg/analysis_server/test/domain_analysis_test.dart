@@ -44,6 +44,7 @@ main() {
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
+        new MockPackageMapProvider(),
         null,
         serverPlugin,
         new AnalysisServerOptions(),
@@ -438,6 +439,7 @@ class AnalysisTestHelper {
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
+        new MockPackageMapProvider(),
         null,
         serverPlugin,
         new AnalysisServerOptions(),
@@ -709,6 +711,12 @@ main() {
   new A();
 }
 ''');
+    packageMapProvider.packageMap = {
+      'pkgA': [
+        resourceProvider.newFolder('$pkgA/lib'),
+        resourceProvider.newFolder('$pkgB/lib')
+      ]
+    };
     // add 'pkgA' and 'pkgB' as projects
     {
       resourceProvider.newFolder(projectPath);

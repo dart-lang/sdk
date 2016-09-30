@@ -15,7 +15,9 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -372,6 +374,26 @@ class Driver implements CommandLineStarter {
       builder.defaultPackagesDirectoryPath = options.packageRootPath;
       packageUriResolver = new PackageMapUriResolver(resourceProvider,
           builder.convertPackagesToMap(builder.createPackageMap('')));
+    } else if (options.packageConfigPath == null) {
+      // TODO(pq): remove?
+      if (packageInfo.packageMap == null) {
+        // Fall back to pub list-package-dirs.
+        PubPackageMapProvider pubPackageMapProvider =
+            new PubPackageMapProvider(resourceProvider, sdk);
+        file_system.Resource cwd = resourceProvider.getResource('.');
+        PackageMapInfo packageMapInfo =
+            pubPackageMapProvider.computePackageMap(cwd);
+        Map<String, List<file_system.Folder>> packageMap =
+            packageMapInfo.packageMap;
+
+        // Only create a packageUriResolver if pub list-package-dirs succeeded.
+        // If it failed, that's not a problem; it simply means we have no way
+        // to resolve packages.
+        if (packageMapInfo.packageMap != null) {
+          packageUriResolver =
+              new PackageMapUriResolver(resourceProvider, packageMap);
+        }
+      }
     }
 
     // Now, build our resolver list.

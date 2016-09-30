@@ -45,6 +45,7 @@ main() {
       server = new AnalysisServer(
           new MockServerChannel(),
           provider,
+          new MockPackageMapProvider(),
           null,
           serverPlugin,
           new AnalysisServerOptions(),

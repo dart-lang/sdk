@@ -24,6 +24,7 @@ import 'server_options_test.dart' as server_options;
 import 'services/test_all.dart' as services_all;
 import 'single_context_manager_test.dart' as single_context_manager_test;
 import 'socket_server_test.dart' as socket_server_test;
+import 'source/test_all.dart' as source_all;
 import 'src/test_all.dart' as src_all;
 import 'utils.dart';
 
@@ -53,6 +54,7 @@ main() {
     services_all.main();
     single_context_manager_test.main();
     socket_server_test.main();
+    source_all.main();
     src_all.main();
   });
 }

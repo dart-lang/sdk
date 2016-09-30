@@ -48,6 +48,7 @@ int findIdentifierLength(String search) {
 class AbstractAnalysisTest {
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
+  MockPackageMapProvider packageMapProvider;
   AnalysisServer server;
   RequestHandler handler;
 
@@ -128,6 +129,7 @@ class AbstractAnalysisTest {
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
+        packageMapProvider,
         index,
         serverPlugin,
         new AnalysisServerOptions(),
@@ -144,9 +146,8 @@ class AbstractAnalysisTest {
    */
   void createProject({Map<String, String> packageRoots}) {
     resourceProvider.newFolder(projectPath);
-    Request request = new AnalysisSetAnalysisRootsParams([projectPath], [],
-            packageRoots: packageRoots)
-        .toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams([projectPath], [], packageRoots: packageRoots).toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
@@ -205,6 +206,7 @@ class AbstractAnalysisTest {
   void setUp() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
+    packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = createAnalysisServer(index);
     handler = analysisHandler;
