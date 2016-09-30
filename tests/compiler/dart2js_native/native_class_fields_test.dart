@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 // Verify that native fields on classes are not renamed by the minifier.
 @Native("A")
@@ -25,7 +24,7 @@ function setter(x) {
 
 function A(){
   var a = Object.create(
-      { constructor: { name: 'A'}},
+      { constructor: A},
       { myLongPropertyName: { get: getter,
                               set: setter,
                               configurable: false,
@@ -37,16 +36,23 @@ function A(){
 }
 
 makeA = function(){return new A;};
+self.nativeConstructor(A);
 """;
 
 A makeA() native ;
 
 main() {
+  nativeTesting();
   setup();
   var a = makeA();
   a.myLongPropertyName = 21;
   int gotten = a.myLongPropertyName;
   Expect.equals(11, gotten);
+
+  // Force interceptor dispatch.
+  confuse(a).myLongPropertyName = 99;
+  gotten = confuse(a).myLongPropertyName;
+  Expect.equals(22, gotten);
 
   var a2 = makeA();
   if (a2 is A) {

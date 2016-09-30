@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 @Native("A")
 class A {
@@ -26,8 +25,8 @@ main() {
   b.foo = (x) => x + 1;
   b = nativeId(b); // Inferrer doesn't know if A has been instantiated.
   // At this point b could be A or B. The call to "foo" thus needs to go through
-  // an interceptor. Tests that the interceptor doesn't screw with retrieving
-  // the field and invoking the closure.
+  // an interceptor. Tests that the interceptor works for retrieving the field
+  // and invoking the closure.
   // Use a type-check to guarantee that b is a "B".
   if (b is B) {
     Expect.equals(499, b.foo(498));

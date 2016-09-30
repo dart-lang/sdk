@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 // Verify that we can have fields with names that start with g and s even
 // though those names are reserved for getters and setters in minified mode.
@@ -45,7 +44,7 @@ var descriptor = {
 
 function A(){
   var a = Object.create(
-      { constructor: { name: 'A'}},
+      { constructor: A },
       { bar: descriptor,
         g: descriptor,
         s: descriptor,
@@ -59,30 +58,46 @@ function A(){
 }
 
 makeA = function() { return new A; };
+self.nativeConstructor(A);
 """;
 
 A makeA() native ;
 
 class B {}
 
-int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
-
 main() {
+  nativeTesting();
   setup();
-  var both = [makeA(), new B()];
-  var foo = both[inscrutable(0)];
-  Expect.equals(42, foo.bar);
-  Expect.equals(42, foo.g);
-  Expect.equals(42, foo.s);
-  Expect.equals(42, foo.end);
-  Expect.equals(42, foo.gend);
-  Expect.equals(42, foo.send);
-  Expect.equals(271, foo.bar = 271);
-  Expect.equals(271, foo.g = 271);
-  Expect.equals(271, foo.s = 271);
-  Expect.equals(271, foo.end = 271);
-  Expect.equals(271, foo.gend = 271);
-  Expect.equals(271, foo.send = 271);
-  Expect.equals(6, foo.gettersCalled);
-  Expect.equals(6, foo.settersCalled);
+  confuse(new B());
+  var a = makeA();
+
+  Expect.equals(42, confuse(a).bar);
+  Expect.equals(42, confuse(a).g);
+  Expect.equals(42, confuse(a).s);
+  Expect.equals(42, confuse(a).end);
+  Expect.equals(42, confuse(a).gend);
+  Expect.equals(42, confuse(a).send);
+  Expect.equals(271, confuse(a).bar = 271);
+  Expect.equals(271, confuse(a).g = 271);
+  Expect.equals(271, confuse(a).s = 271);
+  Expect.equals(271, confuse(a).end = 271);
+  Expect.equals(271, confuse(a).gend = 271);
+  Expect.equals(271, confuse(a).send = 271);
+  Expect.equals(6, confuse(a).gettersCalled);
+  Expect.equals(6, confuse(a).settersCalled);
+
+  Expect.equals(42, a.bar);
+  Expect.equals(42, a.g);
+  Expect.equals(42, a.s);
+  Expect.equals(42, a.end);
+  Expect.equals(42, a.gend);
+  Expect.equals(42, a.send);
+  Expect.equals(271, a.bar = 271);
+  Expect.equals(271, a.g = 271);
+  Expect.equals(271, a.s = 271);
+  Expect.equals(271, a.end = 271);
+  Expect.equals(271, a.gend = 271);
+  Expect.equals(271, a.send = 271);
+  Expect.equals(12, a.gettersCalled);
+  Expect.equals(12, a.settersCalled);
 }

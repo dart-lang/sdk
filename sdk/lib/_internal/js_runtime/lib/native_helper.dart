@@ -449,13 +449,9 @@ applyHooksTransformer(transformer, hooks) {
 
 const _baseHooks = const JS_CONST(r'''
 function() {
-  function typeNameInChrome(o) {
-    var constructor = o.constructor;
-    if (constructor) {
-      var name = constructor.name;
-      if (name) return name;
-    }
-    var s = Object.prototype.toString.call(o);
+  var toStringFunction = Object.prototype.toString;
+  function getTag(o) {
+    var s = toStringFunction.call(o);
     return s.substring(8, s.length - 1);
   }
   function getUnknownTag(object, tag) {
@@ -463,7 +459,7 @@ function() {
     // here allows [getUnknownTag] to be tested on d8.
     if (/^HTML[A-Z].*Element$/.test(tag)) {
       // Check that it is not a simple JavaScript object.
-      var name = Object.prototype.toString.call(object);
+      var name = toStringFunction.call(object);
       if (name == "[object Object]") return null;
       return "HTMLElement";
     }
@@ -484,7 +480,7 @@ function() {
   var isBrowser = typeof navigator == "object";
 
   return {
-    getTag: typeNameInChrome,
+    getTag: getTag,
     getUnknownTag: isBrowser ? getUnknownTagGenericBrowser : getUnknownTag,
     prototypeForTag: prototypeForTag,
     discriminator: discriminator };

@@ -168,7 +168,16 @@ getNativeInterceptor(object) {
     }
   }
 
-  var interceptor = lookupAndCacheInterceptor(object);
+  // Check for cached UnknownJavaScriptObject. This avoids doing the slow
+  // dispatch-record based lookup for repeated js-interop classes.
+  var constructor = JS('', '#.constructor', object);
+  var interceptor = JS('', '#.get(#)', constructorToInterceptor, constructor);
+  if (interceptor != null) return interceptor;
+
+  // This takes care of dispatch-record based caching, but not constructor based
+  // caching of [UnknownJavaScriptObject]s.
+  interceptor = lookupAndCacheInterceptor(object);
+
   if (interceptor == null) {
     // JavaScript Objects created via object literals and `Object.create(null)`
     // are 'plain' Objects.  This test could be simplified and the dispatch path
@@ -180,6 +189,10 @@ getNativeInterceptor(object) {
     var proto = JS('', 'Object.getPrototypeOf(#)', object);
     if (JS('bool', '# == null || # === Object.prototype', proto, proto)) {
       return JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
+    } else if (JS('bool', 'typeof # == "function"', constructor)) {
+      interceptor = JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
+      JS('', '#.set(#, #)', constructorToInterceptor, constructor, interceptor);
+      return interceptor;
     } else {
       return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
     }
@@ -187,6 +200,9 @@ getNativeInterceptor(object) {
 
   return interceptor;
 }
+
+var constructorToInterceptor =
+    JS('', 'typeof(self.WeakMap) == "undefined" ? new Map() : new WeakMap()');
 
 /**
  * Data structure used to map a [Type] to the [Interceptor] and constructors for

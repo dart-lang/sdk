@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
+import 'native_testing.dart';
 import 'dart:_js_helper' show intTypeCheck;
 
 bool get inCheckedMode {
@@ -18,7 +18,7 @@ main() {
   var a = [];
   a.add(42);
   a.add('foo');
-  // By calling direclty [intTypeCheck] with an int, we're making the
+  // By calling directly [intTypeCheck] with an int, we're making the
   // type inferrer infer that the parameter type of [intTypeCheck] is
   // always an int, and therefore the method will be compiled to
   // never throw. So when the backend actually uses the helper for

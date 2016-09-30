@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 // This is a similar test to NativeCallArity1FrogTest, but makes sure
 // that subclasses also get the right number of arguments.
@@ -41,12 +40,14 @@ inherits(B, A);
 
 makeA = function(){return new A;};
 makeB = function(){return new B;};
+
+self.nativeConstructor(A);
+self.nativeConstructor(B);
 """;
 
 testDynamicContext() {
-  var things = [makeA(), makeB()];
-  var a = things[0];
-  var b = things[1];
+  var a = confuse(makeA());
+  var b = confuse(makeB());
 
   Expect.equals(0, a.foo());
   Expect.equals(1, a.foo(10));
@@ -91,6 +92,7 @@ testStaticContext() {
 }
 
 main() {
+  nativeTesting();
   setup();
   testDynamicContext();
   testStaticContext();

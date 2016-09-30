@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import 'native_testing.dart';
 
 // Test that compiler is cautious with optimizations on native fields.  The
 // motivation is that DOM properties are getters and setters with arbitrary
@@ -42,6 +41,8 @@ Object.defineProperty(Foo.prototype, 'ab', {
 });
 
 makeFoo = function() { return new Foo() }
+
+self.nativeConstructor(Foo);
 """;
 
 test1() {
@@ -84,6 +85,7 @@ test4() {
 }
 
 main() {
+  nativeTesting();
   setup();
   (test1)();
   (test2)();

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import 'native_testing.dart';
 
 // Check that native fields are not incorrectly renamed.
 
@@ -29,7 +28,7 @@ function setter(x) {
 
 function A(){
   var a = Object.create(
-      { constructor: { name: 'A'}},
+      { constructor: A },
       { myLongPropertyName: { get: getter,
                               set: setter,
                               configurable: false,
@@ -41,11 +40,14 @@ function A(){
 }
 
 makeA = function(){return new A;};
+
+self.nativeConstructor(A);
 """;
 
-A makeA() native ;
+/*A*/ makeA() native ;
 
 main() {
+  nativeTesting();
   setup();
   var a = makeA();
   a.myLongPropertyName = 21;
