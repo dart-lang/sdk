@@ -11,7 +11,7 @@ part of dart._interceptors;
  * argument added to each member.
  */
 @JsPeerInterface(name: 'Array')
-class JSArray<E> implements List<E>, JSIndexable {
+class JSArray<E> implements List<E>, JSIndexable<E> {
 
   const JSArray();
 
@@ -587,7 +587,7 @@ class JSArray<E> implements List<E>, JSIndexable {
  * these classes can have specialized implementations. Doing so will challenge
  * many assuptions in the JS backend.
  */
-class JSMutableArray<E> extends JSArray<E> implements JSMutableIndexable {}
+class JSMutableArray<E> extends JSArray<E> {}
 class JSFixedArray<E> extends JSMutableArray<E> {}
 class JSExtendableArray<E> extends JSMutableArray<E> {}
 class JSUnmodifiableArray<E> extends JSArray<E> {} // Already is JSIndexable.

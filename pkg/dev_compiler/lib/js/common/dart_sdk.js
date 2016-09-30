@@ -48,12 +48,14 @@
   let ListOfNameValuePair = () => (ListOfNameValuePair = dart.constFn(core.List$(_debugger.NameValuePair)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
   let JSArrayOfJsonMLFormatter = () => (JSArrayOfJsonMLFormatter = dart.constFn(_interceptors.JSArray$(_debugger.JsonMLFormatter)))();
+  let JSIndexable = () => (JSIndexable = dart.constFn(_interceptors.JSIndexable$()))();
   let JSArray = () => (JSArray = dart.constFn(_interceptors.JSArray$()))();
   let JSMutableArray = () => (JSMutableArray = dart.constFn(_interceptors.JSMutableArray$()))();
   let JSFixedArray = () => (JSFixedArray = dart.constFn(_interceptors.JSFixedArray$()))();
   let JSExtendableArray = () => (JSExtendableArray = dart.constFn(_interceptors.JSExtendableArray$()))();
   let JSUnmodifiableArray = () => (JSUnmodifiableArray = dart.constFn(_interceptors.JSUnmodifiableArray$()))();
   let ArrayIterator = () => (ArrayIterator = dart.constFn(_interceptors.ArrayIterator$()))();
+  let JSIndexableOfString = () => (JSIndexableOfString = dart.constFn(_interceptors.JSIndexable$(core.String)))();
   let MatchToString = () => (MatchToString = dart.constFn(dart.functionType(core.String, [core.Match])))();
   let StringToString = () => (StringToString = dart.constFn(dart.functionType(core.String, [core.String])))();
   let ComparableOfnum = () => (ComparableOfnum = dart.constFn(core.Comparable$(core.num)))();
@@ -3555,8 +3557,12 @@
     constructors: () => ({new: dart.definiteFunctionType(_interceptors.JSBool, [])})
   });
   dart.registerExtension(dart.global.Boolean, _interceptors.JSBool);
-  _interceptors.JSIndexable = class JSIndexable extends core.Object {};
-  _interceptors.JSMutableIndexable = class JSMutableIndexable extends _interceptors.JSIndexable {};
+  _interceptors.JSIndexable$ = dart.generic(E => {
+    class JSIndexable extends core.Object {}
+    dart.addTypeTests(JSIndexable);
+    return JSIndexable;
+  });
+  _interceptors.JSIndexable = JSIndexable();
   _interceptors.JSObject = class JSObject extends core.Object {};
   _interceptors.JavaScriptObject = class JavaScriptObject extends _interceptors.Interceptor {
     new() {
@@ -3619,6 +3625,7 @@
     let SetOfE = () => (SetOfE = dart.constFn(core.Set$(E)))();
     let ArrayIteratorOfE = () => (ArrayIteratorOfE = dart.constFn(_interceptors.ArrayIterator$(E)))();
     let ListMapViewOfE = () => (ListMapViewOfE = dart.constFn(_internal.ListMapView$(E)))();
+    let JSIndexableOfE = () => (JSIndexableOfE = dart.constFn(_interceptors.JSIndexable$(E)))();
     let ETobool = () => (ETobool = dart.constFn(dart.functionType(core.bool, [E])))();
     let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
     let EAndEToint = () => (EAndEToint = dart.constFn(dart.functionType(core.int, [E, E])))();
@@ -4176,7 +4183,7 @@
     }
     dart.setExtensionBaseClass(JSArray, dart.global.Array);
     dart.addTypeTests(JSArray);
-    JSArray[dart.implements] = () => [ListOfE(), _interceptors.JSIndexable];
+    JSArray[dart.implements] = () => [ListOfE(), JSIndexableOfE()];
     dart.setSignature(JSArray, {
       constructors: () => ({
         new: dart.definiteFunctionType(_interceptors.JSArray$(E), []),
@@ -4261,7 +4268,6 @@
         super.new();
       }
     }
-    JSMutableArray[dart.implements] = () => [_interceptors.JSMutableIndexable];
     return JSMutableArray;
   });
   _interceptors.JSMutableArray = JSMutableArray();
@@ -5337,7 +5343,7 @@
       return this[index];
     }
   };
-  _interceptors.JSString[dart.implements] = () => [core.String, _interceptors.JSIndexable];
+  _interceptors.JSString[dart.implements] = () => [core.String, JSIndexableOfString()];
   dart.setSignature(_interceptors.JSString, {
     constructors: () => ({new: dart.definiteFunctionType(_interceptors.JSString, [])}),
     getters: () => ({
@@ -11557,7 +11563,7 @@
     constructors: () => ({new: dart.definiteFunctionType(_js_helper.JSName, [core.String])}),
     fields: () => ({name: core.String})
   });
-  _js_helper.JavaScriptIndexingBehavior = class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {};
+  _js_helper.JavaScriptIndexingBehavior = class JavaScriptIndexingBehavior extends core.Object {};
   _js_helper.TypeErrorImplementation = class TypeErrorImplementation extends core.Error {
     new(value, actualType, expectedType) {
       this.message = dart.str`Type '${actualType}' is not a subtype ` + dart.str`of type '${expectedType}'`;

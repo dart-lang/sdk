@@ -11,7 +11,7 @@ part of dart._interceptors;
  * argument added to each member.
  */
 @JsPeerInterface(name: 'String')
-class JSString extends Interceptor implements String, JSIndexable {
+class JSString extends Interceptor implements String, JSIndexable<String> {
   const JSString();
 
   int codeUnitAt(int index) {
