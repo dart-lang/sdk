@@ -156,10 +156,7 @@ test_pack:lib/''');
     var context = contexts[0];
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(
-        source.fullName,
-        '/my/proj/sdk_ext/entry.dart'
-            .replaceAll('/', io.Platform.pathSeparator));
+    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
     // We can't find dart:core because we didn't list it in our
     // embedded_libs map.
     expect(context.sourceFactory.forUri('dart:core'), isNull);
@@ -2164,10 +2161,7 @@ linter:
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(
-        source.fullName,
-        '/my/proj/sdk_ext/entry.dart'
-            .replaceAll('/', io.Platform.pathSeparator));
+    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
   }
 
   test_embedder_options() async {
@@ -2258,10 +2252,7 @@ linter:
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(
-        source.fullName,
-        '/my/proj/sdk_ext/entry.dart'
-            .replaceAll('/', io.Platform.pathSeparator));
+    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
   }
 
   test_error_filter_analysis_option() async {
