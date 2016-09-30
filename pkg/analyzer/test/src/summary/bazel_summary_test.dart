@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/bazel_summary.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
@@ -42,8 +43,12 @@ class BazelResultProviderTest extends _BaseTest {
   @override
   void setUp() {
     super.setUp();
-    provider = new BazelResultProvider(
-        new SummaryProvider(resourceProvider, _getOutputFolder, context));
+    provider = new BazelResultProvider(new SummaryProvider(
+        resourceProvider,
+        '_.temp',
+        _getOutputFolder,
+        resourceProvider.getFolder('/tmp/dart/bazel/linked'),
+        context));
   }
 
   test_failure_inconsistent_directDependency() {
@@ -136,7 +141,44 @@ class SummaryProviderTest extends _BaseTest {
   @override
   void setUp() {
     super.setUp();
-    manager = new SummaryProvider(resourceProvider, _getOutputFolder, context);
+    _createManager();
+  }
+
+  test_getLinkedPackages_cached() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _setComponentFile(
+        'bbb',
+        'b.dart',
+        r'''
+import 'package:components.aaa/a.dart';
+class B extends A {}
+''');
+    _writeUnlinkedBundle('components.aaa');
+    _writeUnlinkedBundle('components.bbb');
+    Source source = _resolveUri('package:components.bbb/b.dart');
+
+    // Session 1.
+    // Create linked bundles and store them in files.
+    {
+      List<Package> packages = manager.getLinkedPackages(source);
+      expect(packages, hasLength(2));
+    }
+
+    // Session 2.
+    // Recreate manager (with disabled linking) and ask again.
+    {
+      _createManager(allowLinking: false);
+      List<Package> packages = manager.getLinkedPackages(source);
+      expect(packages, hasLength(2));
+    }
+  }
+
+  test_getLinkedPackages_cached_declaredVariables_export() {
+    _testImpl_getLinkedPackages_cached_declaredVariables('export');
+  }
+
+  test_getLinkedPackages_cached_declaredVariables_import() {
+    _testImpl_getLinkedPackages_cached_declaredVariables('import');
   }
 
   test_getLinkedPackages_null_inconsistent_directDependency() {
@@ -307,7 +349,7 @@ class C extends B {}
     expect(manager.getUnlinkedForUri(source2.uri), same(package));
   }
 
-  test_getUnlinkedForUri_inconsistent() {
+  test_getUnlinkedForUri_inconsistent_fileContent() {
     File file1 = _setComponentFile('aaa', 'a1.dart', 'class A1 {}');
     _setComponentFile('aaa', 'a2.dart', 'class A2 {}');
     _writeUnlinkedBundle('components.aaa');
@@ -317,6 +359,96 @@ class C extends B {}
     Source source2 = _resolveUri('package:components.aaa/a2.dart');
     expect(manager.getUnlinkedForUri(source1.uri), isNull);
     expect(manager.getUnlinkedForUri(source2.uri), isNull);
+  }
+
+  test_getUnlinkedForUri_inconsistent_majorVersion() {
+    _setComponentFile('aaa', 'a.dart', 'class A {}');
+    _writeUnlinkedBundle('components.aaa');
+    Source source = _resolveUri('package:components.aaa/a.dart');
+
+    // Create manager with a different major version.
+    // The unlinked bundle cannot be used.
+    _createManager(majorVersion: 12345);
+    Package package = manager.getUnlinkedForUri(source.uri);
+    expect(package, isNull);
+  }
+
+  void _createManager(
+      {bool allowLinking: true,
+      int majorVersion: PackageBundleAssembler.currentMajorVersion}) {
+    manager = new SummaryProvider(resourceProvider, '_.temp', _getOutputFolder,
+        resourceProvider.getFolder('/tmp/dart/bazel/linked'), context,
+        allowLinking: allowLinking, majorVersion: majorVersion);
+  }
+
+  void _testImpl_getLinkedPackages_cached_declaredVariables(
+      String importOrExport) {
+    _setComponentFile(
+        'aaa',
+        'user.dart',
+        '''
+    $importOrExport 'foo.dart'
+      if (dart.library.io) 'foo_io.dart'
+      if (dart.library.html) 'foo_html.dart';
+    ''');
+    _setComponentFile('aaa', 'foo.dart', 'class B {}');
+    _setComponentFile('aaa', 'foo_io.dart', 'class B {}');
+    _setComponentFile('aaa', 'foo_dart.dart', 'class B {}');
+    _writeUnlinkedBundle('components.aaa');
+    Source source = _resolveUri('package:components.aaa/user.dart');
+
+    void _assertDependencyInUser(PackageBundle bundle, String shortName) {
+      for (var i = 0; i < bundle.linkedLibraryUris.length; i++) {
+        if (bundle.linkedLibraryUris[i].endsWith('user.dart')) {
+          LinkedLibrary library = bundle.linkedLibraries[i];
+          expect(library.dependencies.map((d) => d.uri),
+              unorderedEquals(['', 'dart:core', shortName]));
+          return;
+        }
+      }
+      fail('Not found user.dart in $bundle');
+    }
+
+    // Session 1.
+    // Create linked bundles and store them in files.
+    {
+      List<Package> packages = manager.getLinkedPackages(source);
+      expect(packages, hasLength(1));
+      _assertDependencyInUser(packages.single.linked, 'foo.dart');
+    }
+
+    // Session 2.
+    // Recreate manager and don't allow it to perform new linking.
+    // Set a declared variable, which is not used in the package.
+    // We still can get the cached linked bundle.
+    {
+      context.declaredVariables.define('not.used.variable', 'baz');
+      _createManager(allowLinking: false);
+      List<Package> packages = manager.getLinkedPackages(source);
+      expect(packages, hasLength(1));
+      _assertDependencyInUser(packages.single.linked, 'foo.dart');
+    }
+
+    // Session 3.
+    // Recreate manager and don't allow it to perform new linking.
+    // Set the value of a referenced declared variable.
+    // So, we cannot use the previously cached linked bundle.
+    {
+      context.declaredVariables.define('dart.library.io', 'does-not-matter');
+      _createManager(allowLinking: false);
+      List<Package> packages = manager.getLinkedPackages(source);
+      expect(packages, isEmpty);
+    }
+
+    // Session 4.
+    // Enable new linking, and configure to use 'foo_html.dart'.
+    {
+      context.declaredVariables.define('dart.library.html', 'true');
+      _createManager(allowLinking: true);
+      List<Package> packages = manager.getLinkedPackages(source);
+      expect(packages, hasLength(1));
+      _assertDependencyInUser(packages.single.linked, 'foo_html.dart');
+    }
   }
 }
 

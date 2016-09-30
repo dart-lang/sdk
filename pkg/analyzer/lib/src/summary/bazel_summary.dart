@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
@@ -98,9 +99,22 @@ class Package {
  */
 class SummaryProvider {
   final ResourceProvider provider;
+  final String tempFileName;
   final GetOutputFolder getOutputFolder;
+  final Folder linkedCacheFolder;
   final AnalysisContext context;
   final PackageBundle sdkBundle;
+
+  /**
+   * If `true` (by default), then linking new bundles is allowed.
+   * Otherwise only using existing cached bundles can be used.
+   */
+  final bool allowLinking;
+
+  /**
+   * See [PackageBundleAssembler.currentMajorVersion].
+   */
+  final int majorVersion;
 
   /**
    * Mapping from bundle paths to corresponding [Package]s.  The packages in
@@ -119,7 +133,16 @@ class SummaryProvider {
    */
   final Map<Package, _LinkNode> packageToNodeMap = {};
 
-  SummaryProvider(this.provider, this.getOutputFolder, AnalysisContext context)
+  SummaryProvider(
+      this.provider,
+      this.tempFileName,
+      this.getOutputFolder,
+      this.linkedCacheFolder,
+      AnalysisContext context,
+      {@visibleForTesting
+          this.allowLinking: true,
+      @visibleForTesting
+          this.majorVersion: PackageBundleAssembler.currentMajorVersion})
       : context = context,
         sdkBundle = context.sourceFactory.dartSdk?.getLinkedBundle();
 
@@ -152,7 +175,15 @@ class SummaryProvider {
       return null;
     }
 
-    _link(nodes);
+    // Read existing cached linked bundles.
+    for (_LinkNode node in nodes) {
+      _readLinked(node);
+    }
+
+    // Link new packages, if allowed.
+    if (allowLinking) {
+      _link(nodes);
+    }
 
     // Create successfully linked packages.
     return nodes
@@ -191,6 +222,17 @@ class SummaryProvider {
     List<int> bytes = UTF8.encode(text);
     List<int> hashBytes = md5.convert(bytes).bytes;
     return hex.encode(hashBytes);
+  }
+
+  /**
+   * Return the name of the file for a linked bundle, in strong or spec mode.
+   */
+  String _getLinkedName(String hash) {
+    if (context.analysisOptions.strongMode) {
+      return 'linked_$hash.ds';
+    } else {
+      return 'linked_spec_$hash.ds';
+    }
   }
 
   /**
@@ -304,6 +346,28 @@ class SummaryProvider {
         });
         List<int> bytes = assembler.assemble().toBuffer();
         node.package._linked = new PackageBundle.fromBuffer(bytes);
+        _writeLinked(node, bytes);
+      }
+    }
+  }
+
+  /**
+   * Attempt to read the linked bundle that corresponds to the given [node]
+   * with all its transitive dependencies.
+   */
+  void _readLinked(_LinkNode node) {
+    String hash = node.linkedHash;
+    if (!node.isReady && hash != null) {
+      String fileName = _getLinkedName(hash);
+      File file = linkedCacheFolder.getChildAssumingFile(fileName);
+      // Try to read from the file system.
+      if (file.exists) {
+        try {
+          List<int> bytes = file.readAsBytesSync();
+          node.package._linked = new PackageBundle.fromBuffer(bytes);
+        } on FileSystemException {
+          // Ignore file system exceptions.
+        }
       }
     }
   }
@@ -317,6 +381,10 @@ class SummaryProvider {
     try {
       List<int> bytes = file.readAsBytesSync();
       PackageBundle bundle = new PackageBundle.fromBuffer(bytes);
+      // Check the major version.
+      if (bundle.majorVersion != majorVersion) {
+        return null;
+      }
       // Check for consistency, and fail if it's not.
       if (!_isUnlinkedBundleConsistent(bundle)) {
         return null;
@@ -325,6 +393,28 @@ class SummaryProvider {
       return new Package(file, bundle);
     } on FileSystemException {}
     return null;
+  }
+
+  /**
+   * Atomically write the given [bytes] into the file in the [folder].
+   */
+  void _writeAtomic(Folder folder, String fileName, List<int> bytes) {
+    String filePath = folder.getChildAssumingFile(fileName).path;
+    File tempFile = folder.getChildAssumingFile(tempFileName);
+    tempFile.writeAsBytesSync(bytes);
+    tempFile.renameSync(filePath);
+  }
+
+  /**
+   * If a new linked bundle was linked for the given [node], write the bundle
+   * into the memory cache and the file system.
+   */
+  void _writeLinked(_LinkNode node, List<int> bytes) {
+    String hash = node.linkedHash;
+    if (hash != null) {
+      String fileName = _getLinkedName(hash);
+      _writeAtomic(linkedCacheFolder, fileName, bytes);
+    }
   }
 }
 
@@ -339,6 +429,7 @@ class _LinkNode {
   Set<_LinkNode> transitiveDependencies;
 
   List<_LinkNode> _dependencies;
+  String _linkedHash;
 
   _LinkNode(this.linker, this.package);
 
@@ -390,6 +481,58 @@ class _LinkNode {
    * not have all required dependencies).
    */
   bool get isReady => package.linked != null || failed;
+
+  /**
+   * Return the hash string that corresponds to this linked bundle in the
+   * context of its SDK bundle and transitive dependencies.  Return `null` if
+   * the hash computation fails, because for example the full transitive
+   * dependencies cannot computed.
+   */
+  String get linkedHash {
+    if (_linkedHash == null && transitiveDependencies != null && !failed) {
+      ApiSignature signature = new ApiSignature();
+      // Add all unlinked API signatures.
+      List<String> signatures = <String>[];
+      signatures.add(linker.sdkBundle.apiSignature);
+      transitiveDependencies
+          .map((node) => node.package.unlinked.apiSignature)
+          .forEach(signatures.add);
+      signatures.sort();
+      signatures.forEach(signature.addString);
+      // Combine into a single hash.
+      appendDeclaredVariables(signature);
+      _linkedHash = signature.toHex();
+    }
+    return _linkedHash;
+  }
+
+  /**
+   * Append names and values of all referenced declared variables (even the
+   * ones without actually declared values) to the given [signature].
+   */
+  void appendDeclaredVariables(ApiSignature signature) {
+    Set<String> nameSet = new Set<String>();
+    for (_LinkNode node in transitiveDependencies) {
+      for (UnlinkedUnit unit in node.package.unlinked.unlinkedUnits) {
+        for (UnlinkedImport import in unit.imports) {
+          for (UnlinkedConfiguration configuration in import.configurations) {
+            nameSet.add(configuration.name);
+          }
+        }
+        for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
+          for (UnlinkedConfiguration configuration in export.configurations) {
+            nameSet.add(configuration.name);
+          }
+        }
+      }
+    }
+    List<String> sortedNameList = nameSet.toList()..sort();
+    signature.addInt(sortedNameList.length);
+    for (String name in sortedNameList) {
+      signature.addString(name);
+      signature.addString(linker.context.declaredVariables.get(name) ?? '');
+    }
+  }
 
   /**
    * Compute the set of existing transitive dependencies for this node.
