@@ -2564,10 +2564,6 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Ensure space for patching return sites for lazy deopt.
-  if (!FLAG_precompiled_mode && compiler->is_optimizing()) {
-    __ nop(ShortCallPattern::pattern_length_in_bytes());
-  }
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(catch_try_index(),
                                 try_index(),

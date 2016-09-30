@@ -293,13 +293,8 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
-  // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + ShortCallPattern::pattern_length_in_bytes() <= target);
-  *reinterpret_cast<uint8_t*>(start) = 0xE8;
-  ShortCallPattern call(start);
-  call.SetTargetAddress(target);
-  CPU::FlushICache(start, ShortCallPattern::pattern_length_in_bytes());
+void CodePatcher::InsertDeoptimizationCallAt(uword start) {
+  UNREACHABLE();
 }
 
 

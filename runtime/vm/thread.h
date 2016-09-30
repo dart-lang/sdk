@@ -92,6 +92,10 @@ class Zone;
     StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
     StubCode::ICCallThroughCode_entry()->code(), NULL)                         \
+  V(RawCode*, lazy_deopt_from_return_stub_,                                    \
+    StubCode::DeoptimizeLazyFromReturn_entry()->code(), NULL)                  \
+  V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
+    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)                   \
 
 #endif
 

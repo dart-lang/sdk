@@ -461,27 +461,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 }
 
 
-// TOS: return address + call-instruction-size (5 bytes).
 // EAX: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ popl(EBX);
-  __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
-  __ pushl(EBX);
+  // Return address for "call" to deopt stub.
+  __ pushl(Immediate(0xe1e1e1e1));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
 }
 
 
-// TOS: return address + call-instruction-size (5 bytes).
 // EAX: exception, must be preserved
 // EDX: stacktrace, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ popl(EBX);
-  __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
-  __ pushl(EBX);
+  // Return address for "call" to deopt stub.
+  __ pushl(Immediate(0xe1e1e1e1));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
