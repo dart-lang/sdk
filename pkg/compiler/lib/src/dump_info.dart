@@ -580,8 +580,9 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
             compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: new DateTime.now(),
         compilationDuration: compiler.measurer.wallClock.elapsed,
-        toJsonDuration: stopwatch.elapsedMilliseconds,
-        dumpInfoDuration: this.timing,
+        toJsonDuration:
+            new Duration(milliseconds: stopwatch.elapsedMilliseconds),
+        dumpInfoDuration: new Duration(milliseconds: this.timing),
         noSuchMethodEnabled: compiler.backend.enabledNoSuchMethod,
         minified: compiler.options.enableMinification);
 
