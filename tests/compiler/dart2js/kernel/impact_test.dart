@@ -76,10 +76,18 @@ main() {
   testForInTyped(null);
   testAsyncForIn(null);
   testAsyncForInTyped(null);
+  testTryCatch();
+  testTryCatchOn();
+  testTryCatchStackTrace();
+  testTryFinally();
   testTopLevelInvoke();
   testTopLevelInvokeTyped();
   testTopLevelFunctionTyped();
   testTopLevelFunctionGet();
+  testTopLevelGetterGet();
+  testTopLevelGetterGetTyped();
+  testTopLevelSetterSet();
+  testTopLevelSetterSetTyped();
   testTopLevelField();
   testTopLevelFieldLazy();
   testTopLevelFieldConst();
@@ -88,6 +96,7 @@ main() {
   testTopLevelFieldGeneric1();
   testTopLevelFieldGeneric2();
   testTopLevelFieldGeneric3();
+  testTopLevelFieldWrite();
   testDynamicInvoke(null);
   testDynamicGet(null);
   testDynamicSet(null);
@@ -189,6 +198,18 @@ testAsyncForIn(o) async {
 testAsyncForInTyped(o) async {
   await for (int e in o) {}
 }
+testTryCatch() {
+  try {} catch (e) {}
+}
+testTryCatchOn() {
+  try {} on String catch (e) {}
+}
+testTryCatchStackTrace() {
+  try {} catch (e, s) {}
+}
+testTryFinally() {
+  try {} finally {}
+}
 topLevelFunction1(a) {}
 topLevelFunction2(a, [b, c]) {}
 topLevelFunction3(a, {b, c}) {}
@@ -231,6 +252,14 @@ testTopLevelFunctionTyped() {
   topLevelFunctionTyped4(null);
 }
 testTopLevelFunctionGet() => topLevelFunction1;
+get topLevelGetter => 0;
+testTopLevelGetterGet() => topLevelGetter;
+int get topLevelGetterTyped => 0;
+testTopLevelGetterGetTyped() => topLevelGetterTyped;
+set topLevelSetter(_) {}
+testTopLevelSetterSet() => topLevelSetter = 0;
+void set topLevelSetterTyped(int value) {}
+testTopLevelSetterSetTyped() => topLevelSetterTyped = 0;
 
 var topLevelField;
 testTopLevelField() => topLevelField;
@@ -248,7 +277,7 @@ GenericClass<dynamic, dynamic> topLevelFieldGeneric2;
 testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
 GenericClass<int, String> topLevelFieldGeneric3;
 testTopLevelFieldGeneric3() => topLevelFieldGeneric3;
-
+testTopLevelFieldWrite() => topLevelField = 3;
 testDynamicInvoke(o) {
   o.f1(0);
   o.f2(1);

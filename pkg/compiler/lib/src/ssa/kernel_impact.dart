@@ -29,7 +29,7 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
   Kernel kernel = backend.kernelTask.kernel;
   KernelImpactBuilder builder =
       new KernelImpactBuilder(resolvedAst, compiler, kernel);
-  if (element.isFunction) {
+  if (element.isFunction || element.isGetter || element.isSetter) {
     ir.Procedure function = kernel.functions[element];
     if (function == null) {
       print("FOUND NULL FUNCTION: $element");
@@ -39,7 +39,7 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
   } else {
     ir.Field field = kernel.fields[element];
     if (field == null) {
-      print("FOUND NULL FUNCTION: $element");
+      print("FOUND NULL FIELD: $element");
     } else {
       return builder.buildField(field);
     }
@@ -93,8 +93,7 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   ResolutionImpact buildProcedure(ir.Procedure procedure) {
-    if (procedure.kind == ir.ProcedureKind.Method ||
-        procedure.kind == ir.ProcedureKind.Operator) {
+    if (procedure.kind != ir.ProcedureKind.Factory) {
       checkFunctionTypes(procedure.function);
       visitNode(procedure.function.body);
       switch (procedure.function.asyncMarker) {
@@ -280,6 +279,13 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
+  void visitStaticSet(ir.StaticSet node) {
+    visitNode(node.value);
+    Element element = astAdapter.getElement(node.target).declaration;
+    impactBuilder.registerStaticUse(new StaticUse.staticSet(element));
+  }
+
+  @override
   void visitMethodInvocation(ir.MethodInvocation invocation) {
     var receiver = invocation.receiver;
     if (receiver is ir.VariableGet &&
@@ -382,6 +388,32 @@ class KernelImpactBuilder extends ir.Visitor {
     }
     impactBuilder.registerDynamicUse(new DynamicUse(Selectors.current, null));
     impactBuilder.registerDynamicUse(new DynamicUse(Selectors.moveNext, null));
+  }
+
+  @override
+  void visitTryCatch(ir.TryCatch node) {
+    visitNode(node.body);
+    visitNodes(node.catches);
+  }
+
+  @override
+  void visitCatch(ir.Catch node) {
+    impactBuilder.registerFeature(Feature.CATCH_STATEMENT);
+    visitNode(node.exception);
+    if (node.stackTrace != null) {
+      impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
+    }
+    if (node.guard is! ir.DynamicType) {
+      impactBuilder.registerTypeUse(
+          new TypeUse.catchType(astAdapter.getDartType(node.guard)));
+    }
+    visitNode(node.body);
+  }
+
+  @override
+  void visitTryFinally(ir.TryFinally node) {
+    visitNode(node.body);
+    visitNode(node.finalizer);
   }
 
   // TODO(johnniwinther): Make this throw and visit child nodes explicitly
