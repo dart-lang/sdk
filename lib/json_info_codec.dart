@@ -145,8 +145,16 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
   }
 
   ProgramInfo parseProgram(Map json) => new ProgramInfo()
+    ..entrypoint = parseId(json['entrypoint'])
     ..size = json['size']
-    ..entrypoint = parseId(json['entrypoint']);
+    ..dart2jsVersion = json['dart2jsVersion']
+    ..compilationMoment = DateTime.parse(json['compilationMoment'])
+    ..compilationDuration =
+        new Duration(microseconds: json['compilationDuration'])
+    ..toJsonDuration = new Duration(microseconds: json['toJsonDuration'])
+    ..dumpInfoDuration = new Duration(microseconds: json['dumpInfoDuration'])
+    ..noSuchMethodEnabled = json['noSuchMethodEnabled']
+    ..minified = json['minified'];
 
   FunctionInfo parseFunction(Map json) {
     FunctionInfo result = parseId(json['id']);
@@ -297,9 +305,9 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
       'size': info.size,
       'dart2jsVersion': info.dart2jsVersion,
       'compilationMoment': '${info.compilationMoment}',
-      'compilationDuration': '${info.compilationDuration}',
-      'toJsonDuration': info.toJsonDuration,
-      'dumpInfoDuration': '${info.dumpInfoDuration}',
+      'compilationDuration': info.compilationDuration.inMicroseconds,
+      'toJsonDuration': info.toJsonDuration.inMicroseconds,
+      'dumpInfoDuration': info.dumpInfoDuration.inMicroseconds,
       'noSuchMethodEnabled': info.noSuchMethodEnabled,
       'minified': info.minified,
     };

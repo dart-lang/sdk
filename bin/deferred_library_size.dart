@@ -35,7 +35,7 @@ void printSizes(Map<String, int> sizeByImport, int programSize) {
   });
   // Sort by size, largest first.
   importSizes.sort((a, b) => b.size - a.size);
-  var longest = importSizes.fold('Percent of code deferred'.length,
+  int longest = importSizes.fold('Percent of code deferred'.length,
       (longest, importSize) => max(longest, importSize.import.length));
 
   _printRow(label, data, {int width: 15}) {

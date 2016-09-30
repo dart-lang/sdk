@@ -21,7 +21,7 @@ showCodeDistribution(AllInfo info,
     {bool filter(Info info), bool showLibrarySizes: false}) {
   var realTotal = info.program.size;
   if (filter == null) filter = (i) => true;
-  var reported = []
+  var reported = <BasicInfo>[]
     ..addAll(info.functions.where(filter))
     ..addAll(info.fields.where(filter));
 
@@ -69,9 +69,11 @@ showCodeDistribution(AllInfo info,
     dominatedSize[n] = size;
     return size;
   }
+
   helper(mainMethod);
   reported.forEach((n) => dominatedSize.putIfAbsent(n, () => n.size));
-  reported.sort((a, b) => (dominatedSize[b] + nodeData[b].maxSize) -
+  reported.sort((a, b) =>
+      (dominatedSize[b] + nodeData[b].maxSize) -
       (dominatedSize[a] + nodeData[a].maxSize));
 
   if (showLibrarySizes) {
@@ -129,6 +131,7 @@ class _SccData {
       max += n.size;
       n.deps.forEach(helper);
     }
+
     helper(this);
     _maxSize = max;
   }

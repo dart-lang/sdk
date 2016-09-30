@@ -123,14 +123,14 @@ class AllInfo {
   /// Major version indicating breaking changes in the format. A new version
   /// means that an old deserialization algorithm will not work with the new
   /// format.
-  final int version = 3;
+  final int version = 4;
 
   /// Minor version indicating non-breaking changes in the format. A change in
   /// this version number means that the json parsing in this library from a
   /// previous will continue to work after the change. This is typically
   /// increased when adding new entries to the file format.
   // Note: the dump-info.viewer app was written using a json parser version 3.2.
-  final int minorVersion = 6;
+  final int minorVersion = 0;
 
   AllInfo();
 
@@ -143,9 +143,8 @@ class ProgramInfo {
   String dart2jsVersion;
   DateTime compilationMoment;
   Duration compilationDuration;
-  // TODO(sigmund): use Duration.
-  int toJsonDuration;
-  int dumpInfoDuration;
+  Duration toJsonDuration;
+  Duration dumpInfoDuration;
   bool noSuchMethodEnabled;
   bool minified;
 
