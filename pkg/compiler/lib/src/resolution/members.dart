@@ -3665,6 +3665,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johnniwinther): Handle this (potentially) erroneous case.
       isValidAsConstant = false;
     }
+    if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
+      registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+    }
 
     redirectionTarget.computeType(resolution);
     FunctionSignature targetSignature = redirectionTarget.functionSignature;
@@ -3887,6 +3890,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johniwinther): Avoid registration of `type` in face of redirecting
       // factory constructors.
       registry.registerTypeUse(new TypeUse.instantiation(type));
+      InterfaceType interfaceType = type;
+      if (interfaceType.typeArguments.any((DartType type) => !type.isDynamic)) {
+        registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+      }
     }
 
     ResolutionResult resolutionResult = const NoneResult();

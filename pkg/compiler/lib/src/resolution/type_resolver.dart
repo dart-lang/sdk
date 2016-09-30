@@ -222,7 +222,6 @@ class TypeResolver {
             node, "Unexpected element kind ${element.kind}.");
       }
       if (addTypeVariableBoundsCheck) {
-        registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
         visitor.addDeferredAction(visitor.enclosingElement,
             () => checkTypeVariableBounds(node, type));
       }

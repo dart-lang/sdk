@@ -3738,7 +3738,7 @@ class SsaBuilder extends ast.Visitor
         new Map<DartType, Set<DartType>>();
     bool definitelyFails = false;
 
-    addTypeVariableBoundCheck(GenericType instance, DartType typeArgument,
+    void addTypeVariableBoundCheck(GenericType instance, DartType typeArgument,
         TypeVariableType typeVariable, DartType bound) {
       if (definitelyFails) return;
 

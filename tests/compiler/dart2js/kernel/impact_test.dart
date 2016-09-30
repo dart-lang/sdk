@@ -17,6 +17,7 @@ import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
+import 'package:expect/expect.dart';
 import '../memory_compiler.dart';
 import '../serialization/test_helper.dart';
 
@@ -60,7 +61,13 @@ main() {
   testTopLevelFunctionTyped();
   testTopLevelFunctionGet();
   testTopLevelField();
+  testTopLevelFieldLazy();
+  testTopLevelFieldConst();
+  testTopLevelFieldFinal();
   testTopLevelFieldTyped();
+  testTopLevelFieldGeneric1();
+  testTopLevelFieldGeneric2();
+  testTopLevelFieldGeneric3();
   testDynamicInvoke(null);
   testDynamicGet(null);
   testDynamicSet(null);
@@ -173,8 +180,21 @@ testTopLevelFunctionGet() => topLevelFunction1;
 
 var topLevelField;
 testTopLevelField() => topLevelField;
+var topLevelFieldLazy = topLevelFunction1(null);
+testTopLevelFieldLazy() => topLevelFieldLazy;
+const topLevelFieldConst = 0;
+testTopLevelFieldConst() => topLevelFieldConst;
+final topLevelFieldFinal = topLevelFunction1(null);
+testTopLevelFieldFinal() => topLevelFieldFinal;
 int topLevelFieldTyped;
 testTopLevelFieldTyped() => topLevelFieldTyped;
+GenericClass topLevelFieldGeneric1;
+testTopLevelFieldGeneric1() => topLevelFieldGeneric1;
+GenericClass<dynamic, dynamic> topLevelFieldGeneric2;
+testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
+GenericClass<int, String> topLevelFieldGeneric3;
+testTopLevelFieldGeneric3() => topLevelFieldGeneric3;
+
 testDynamicInvoke(o) {
   o.f1(0);
   o.f2(1);
@@ -296,6 +316,7 @@ void checkElement(Compiler compiler, AstElement element) {
   ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
   astImpact = laxImpact(element, astImpact);
   ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
+  Expect.isNotNull(kernelImpact, 'No impact computed for $element');
   testResolutionImpactEquivalence(
       astImpact, kernelImpact, const CheckStrategy());
 }
