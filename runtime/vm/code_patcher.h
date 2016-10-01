@@ -68,7 +68,7 @@ class CodePatcher : public AllStatic {
 
   static intptr_t InstanceCallSizeInBytes();
 
-  static void InsertDeoptimizationCallAt(uword start);
+  static void InsertDeoptimizationCallAt(uword start, uword target);
 
   static void PatchPoolPointerCallAt(uword return_address,
                                      const Code& code,

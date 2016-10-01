@@ -53,7 +53,6 @@ class StackFrame : public ValueObject {
 
   void set_pc(uword value) {
     *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize)) = value;
-    pc_ = value;
   }
 
   void set_pc_marker(RawCode* code) {
@@ -111,21 +110,8 @@ class StackFrame : public ValueObject {
   }
 
   uword GetCallerPc() const {
-    uword raw_pc = *(reinterpret_cast<uword*>(
+    return *(reinterpret_cast<uword*>(
         fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
-    ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint());
-    if (raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint()) {
-      uword fp = GetCallerFp();
-      MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
-          isolate()->pending_deopts();
-      for (intptr_t i = 0; i < pending_deopts->length(); i++) {
-        if ((*pending_deopts)[i].fp() == fp) {
-          return (*pending_deopts)[i].pc();
-        }
-      }
-      UNREACHABLE();
-    }
-    return raw_pc;
   }
 
   uword fp_;

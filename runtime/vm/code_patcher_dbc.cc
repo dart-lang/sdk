@@ -30,8 +30,9 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
 }
 
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start) {
-  CallPattern::InsertDeoptCallAt(start);
+void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
+  ASSERT(target == 0);  // Always 0 on DBC.
+  CallPattern::InsertDeoptCallAt(start, target);
 }
 
 

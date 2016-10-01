@@ -217,6 +217,24 @@ void NativeCallPattern::set_native_function(NativeFunction func) const {
 }
 
 
+void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
+  Instr* lui = Instr::At(pc + (0 * Instr::kInstrSize));
+  Instr* ori = Instr::At(pc + (1 * Instr::kInstrSize));
+  Instr* jr = Instr::At(pc + (2 * Instr::kInstrSize));
+  Instr* nop = Instr::At(pc + (3 * Instr::kInstrSize));
+  uint16_t target_lo = target_address & 0xffff;
+  uint16_t target_hi = target_address >> 16;
+
+  lui->SetImmInstrBits(LUI, ZR, T9, target_hi);
+  ori->SetImmInstrBits(ORI, T9, T9, target_lo);
+  jr->SetSpecialInstrBits(JALR, T9, ZR, RA);
+  nop->SetInstructionBits(Instr::kNopInstruction);
+
+  ASSERT(kDeoptCallLengthInBytes == 4 * Instr::kInstrSize);
+  CPU::FlushICache(pc, kDeoptCallLengthInBytes);
+}
+
+
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       data_pool_index_(-1),

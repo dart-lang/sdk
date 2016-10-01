@@ -123,12 +123,10 @@ DeoptContext::DeoptContext(const StackFrame* frame,
 
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     THR_Print(
-        "Deoptimizing (reason %d '%s') at "
-        "pc=%" Pp " fp=%" Pp " '%s' (count %d)\n",
+        "Deoptimizing (reason %d '%s') at pc %#" Px " '%s' (count %d)\n",
         deopt_reason(),
         DeoptReasonToCString(deopt_reason()),
         frame->pc(),
-        frame->fp(),
         function.ToFullyQualifiedCString(),
         function.deoptimization_counter());
   }
@@ -345,11 +343,11 @@ void DeoptContext::FillDestFrame() {
   if (FLAG_trace_deoptimization_verbose) {
     for (intptr_t i = 0; i < frame_size; i++) {
       intptr_t* to_addr = GetDestFrameAddressAt(i);
-      THR_Print("*%" Pd ". [%p] 0x%" Px " [%s]\n",
-                i,
-                to_addr,
-                *to_addr,
-                deopt_instructions[i + (len - frame_size)]->ToCString());
+      OS::PrintErr("*%" Pd ". [%p] 0x%" Px " [%s]\n",
+                   i,
+                   to_addr,
+                   *to_addr,
+                   deopt_instructions[i + (len - frame_size)]->ToCString());
     }
   }
 }
@@ -400,12 +398,12 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     intptr_t line, column;
     script.GetTokenLocation(token_pos, &line, &column);
     String& line_string = String::Handle(script.GetLine(line));
-    THR_Print("  Function: %s\n", top_function.ToFullyQualifiedCString());
+    OS::PrintErr("  Function: %s\n", top_function.ToFullyQualifiedCString());
     char line_buffer[80];
     OS::SNPrint(line_buffer, sizeof(line_buffer), "  Line %" Pd ": '%s'",
                 line, line_string.ToCString());
-    THR_Print("%s\n", line_buffer);
-    THR_Print("  Deopt args: %" Pd "\n", deopt_arg_count);
+    OS::PrintErr("%s\n", line_buffer);
+    OS::PrintErr("  Deopt args: %" Pd "\n", deopt_arg_count);
   }
 
   return deopt_arg_count;

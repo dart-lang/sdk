@@ -32,6 +32,21 @@ CallPattern::CallPattern(uword pc, const Code& code)
 }
 
 
+int CallPattern::DeoptCallPatternLengthInInstructions() {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
+    return 5;
+  } else {
+    ASSERT(version == ARMv7);
+    return 3;
+  }
+}
+
+int CallPattern::DeoptCallPatternLengthInBytes() {
+  return DeoptCallPatternLengthInInstructions() * Instr::kInstrSize;
+}
+
+
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
@@ -246,6 +261,49 @@ RawCode* CallPattern::TargetCode() const {
 
 void CallPattern::SetTargetCode(const Code& target_code) const {
   object_pool_.SetObjectAt(target_code_pool_index_, target_code);
+}
+
+
+void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
+  const ARMVersion version = TargetCPUFeatures::arm_version();
+  if ((version == ARMv5TE) || (version == ARMv6)) {
+    const uint32_t byte0 = (target_address & 0x000000ff);
+    const uint32_t byte1 = (target_address & 0x0000ff00) >> 8;
+    const uint32_t byte2 = (target_address & 0x00ff0000) >> 16;
+    const uint32_t byte3 = (target_address & 0xff000000) >> 24;
+
+    const uword mov_ip = 0xe3a0c400 | byte3;  // mov ip, (byte3 rot 4)
+    const uword or1_ip = 0xe38cc800 | byte2;  // orr ip, ip, (byte2 rot 8)
+    const uword or2_ip = 0xe38ccc00 | byte1;  // orr ip, ip, (byte1 rot 12)
+    const uword or3_ip = 0xe38cc000 | byte0;  // orr ip, ip, byte0
+    const uword blx_ip = 0xe12fff3c;
+
+    *reinterpret_cast<uword*>(pc + (0 * Instr::kInstrSize)) = mov_ip;
+    *reinterpret_cast<uword*>(pc + (1 * Instr::kInstrSize)) = or1_ip;
+    *reinterpret_cast<uword*>(pc + (2 * Instr::kInstrSize)) = or2_ip;
+    *reinterpret_cast<uword*>(pc + (3 * Instr::kInstrSize)) = or3_ip;
+    *reinterpret_cast<uword*>(pc + (4 * Instr::kInstrSize)) = blx_ip;
+
+    ASSERT(DeoptCallPatternLengthInBytes() == 5 * Instr::kInstrSize);
+    CPU::FlushICache(pc, DeoptCallPatternLengthInBytes());
+  } else {
+    ASSERT(version == ARMv7);
+    const uint16_t target_lo = target_address & 0xffff;
+    const uint16_t target_hi = target_address >> 16;
+
+    const uword movw_ip =
+        0xe300c000 | ((target_lo >> 12) << 16) | (target_lo & 0xfff);
+    const uword movt_ip =
+        0xe340c000 | ((target_hi >> 12) << 16) | (target_hi & 0xfff);
+    const uword blx_ip = 0xe12fff3c;
+
+    *reinterpret_cast<uword*>(pc + (0 * Instr::kInstrSize)) = movw_ip;
+    *reinterpret_cast<uword*>(pc + (1 * Instr::kInstrSize)) = movt_ip;
+    *reinterpret_cast<uword*>(pc + (2 * Instr::kInstrSize)) = blx_ip;
+
+    ASSERT(DeoptCallPatternLengthInBytes() == 3 * Instr::kInstrSize);
+    CPU::FlushICache(pc, DeoptCallPatternLengthInBytes());
+  }
 }
 
 

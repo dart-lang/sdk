@@ -17,7 +17,7 @@ class Instance;
 
 const char* DeoptReasonToCString(ICData::DeoptReasonId deopt_reason);
 
-void DeoptimizeAt(const Code& optimized_code, StackFrame* frame);
+void DeoptimizeAt(const Code& optimized_code, uword pc);
 void DeoptimizeFunctionsOnStack();
 
 double DartModulo(double a, double b);

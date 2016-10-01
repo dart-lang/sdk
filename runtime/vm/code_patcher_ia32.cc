@@ -177,8 +177,13 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
 }
 
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start) {
-  UNREACHABLE();
+void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
+  // The inserted call should not overlap the lazy deopt jump code.
+  ASSERT(start + CallPattern::pattern_length_in_bytes() <= target);
+  *reinterpret_cast<uint8_t*>(start) = 0xE8;
+  CallPattern call(start);
+  call.SetTargetAddress(target);
+  CPU::FlushICache(start, CallPattern::pattern_length_in_bytes());
 }
 
 

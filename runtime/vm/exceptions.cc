@@ -21,7 +21,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_deoptimization);
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 
@@ -129,7 +128,6 @@ static void BuildStackTrace(StacktraceBuilder* builder) {
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      ASSERT(code.ContainsInstructionAt(frame->pc()));
       offset = Smi::New(frame->pc() - code.PayloadStart());
       builder->AddFrame(code, offset);
     }
@@ -215,30 +213,6 @@ static void JumpToExceptionHandler(Thread* thread,
   NoSafepointScope no_safepoint;
   RawObject* raw_exception = exception_object.raw();
   RawObject* raw_stacktrace = stacktrace_object.raw();
-
-#if !defined(TARGET_ARCH_DBC)
-  MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
-      thread->isolate()->pending_deopts();
-  for (intptr_t i = pending_deopts->length() - 1; i >= 0; i--) {
-    if ((*pending_deopts)[i].fp() == frame_pointer) {
-      // Frame is scheduled for lazy deopt.
-      program_counter =
-          StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint();
-      if (FLAG_trace_deoptimization) {
-        THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
-                  frame_pointer);
-      }
-      break;
-    }
-  }
-  for (intptr_t i = pending_deopts->length() - 1; i >= 0; i--) {
-    // Leave the mapping at fp itself for use in DeoptimizeCopyFrame.
-    if ((*pending_deopts)[i].fp() < frame_pointer) {
-      pending_deopts->RemoveAt(i);
-    }
-  }
-#endif  // !DBC
-
 
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done

@@ -788,6 +788,9 @@ class FlowGraphCompiler : public ValueObject {
   // In future AddDeoptStub should be moved out of the instruction template.
   Environment* pending_deoptimization_env_;
 
+  intptr_t lazy_deopt_return_pc_offset_;
+  intptr_t lazy_deopt_throw_pc_offset_;
+
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
 
   Array& edge_counters_array_;

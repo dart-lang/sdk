@@ -76,7 +76,7 @@ void WeakCodeReferences::DisableCode() {
       code = frame->LookupDartCode();
       if (IsOptimizedCode(code_objects, code)) {
         ReportDeoptimization(code);
-        DeoptimizeAt(code, frame);
+        DeoptimizeAt(code, frame->pc());
       }
       frame = iterator.NextFrame();
     }

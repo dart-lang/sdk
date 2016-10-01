@@ -30,8 +30,10 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
 }
 
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start) {
-  UNREACHABLE();
+void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
+  // The inserted call should not overlap the lazy deopt jump code.
+  ASSERT(start + CallPattern::DeoptCallPatternLengthInBytes() <= target);
+  CallPattern::InsertDeoptCallAt(start, target);
 }
 
 

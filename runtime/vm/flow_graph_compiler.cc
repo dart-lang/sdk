@@ -225,6 +225,8 @@ FlowGraphCompiler::FlowGraphCompiler(
                 LookupClass(Symbols::List()))),
         parallel_move_resolver_(this),
         pending_deoptimization_env_(NULL),
+        lazy_deopt_return_pc_offset_(Code::kInvalidPc),
+        lazy_deopt_throw_pc_offset_(Code::kInvalidPc),
         deopt_id_to_ic_data_(NULL),
         edge_counters_array_(Array::ZoneHandle()),
         inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
@@ -1029,6 +1031,8 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
       pc_descriptors_list_->FinalizePcDescriptors(code.PayloadStart()));
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
   code.set_pc_descriptors(descriptors);
+  code.set_lazy_deopt_return_pc_offset(lazy_deopt_return_pc_offset_);
+  code.set_lazy_deopt_throw_pc_offset(lazy_deopt_throw_pc_offset_);
 }
 
 

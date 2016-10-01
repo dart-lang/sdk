@@ -57,7 +57,12 @@ class CallPattern : public ValueObject {
   RawCode* TargetCode() const;
   void SetTargetCode(const Code& code) const;
 
-  static void InsertDeoptCallAt(uword pc);
+  // This constant length is only valid for inserted call patterns used for
+  // lazy deoptimization. Regular call pattern may vary in length.
+  static int DeoptCallPatternLengthInBytes();
+  static int DeoptCallPatternLengthInInstructions();
+
+  static void InsertDeoptCallAt(uword pc, uword target_address);
 
  private:
   const ObjectPool& object_pool_;
