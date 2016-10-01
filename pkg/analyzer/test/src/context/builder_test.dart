@@ -663,6 +663,7 @@ analyzer:
     expect(actual.implicitCasts, expected.implicitCasts);
     expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(actual.trackCacheDependencies, expected.trackCacheDependencies);
+    expect(actual.disableCacheFlushing, expected.disableCacheFlushing);
     expect(actual.finerGrainedInvalidation, expected.finerGrainedInvalidation);
   }
 

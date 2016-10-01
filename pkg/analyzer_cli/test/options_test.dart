@@ -27,6 +27,7 @@ main() {
         expect(options.buildSummaryOutputSemantic, isNull);
         expect(options.buildSuppressExitCode, isFalse);
         expect(options.dartSdkPath, isNotNull);
+        expect(options.disableCacheFlushing, isFalse);
         expect(options.disableHints, isFalse);
         expect(options.lints, isFalse);
         expect(options.displayVersion, isFalse);
@@ -58,6 +59,12 @@ main() {
             .parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
         expect(options.definedVariables['foo'], equals('bar'));
         expect(options.definedVariables['bar'], isNull);
+      });
+
+      test('disable cache flushing', () {
+        CommandLineOptions options = CommandLineOptions
+            .parse(['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
+        expect(options.disableCacheFlushing, isTrue);
       });
 
       test('enable strict call checks', () {

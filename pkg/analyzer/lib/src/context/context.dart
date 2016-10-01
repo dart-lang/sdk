@@ -334,6 +334,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     this._options.strongMode = options.strongMode;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
+    this._options.disableCacheFlushing = options.disableCacheFlushing;
     this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;

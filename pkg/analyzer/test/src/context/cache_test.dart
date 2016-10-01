@@ -1287,7 +1287,10 @@ class UniversalCachePartitionTest extends CachePartitionTest {
 }
 
 class _InternalAnalysisContextMock extends TypedMock
-    implements InternalAnalysisContext {}
+    implements InternalAnalysisContext {
+  @override
+  final AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
+}
 
 /**
  * Keep the given [keepDescriptor], invalidate all the other results.

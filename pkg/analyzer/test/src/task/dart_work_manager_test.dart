@@ -12,6 +12,8 @@ import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisErrorInfoImpl,
+        AnalysisOptions,
+        AnalysisOptionsImpl,
         CacheState,
         ChangeNoticeImpl,
         InternalAnalysisContext;
@@ -825,6 +827,9 @@ class _InternalAnalysisContextMock extends TypedMock
   AnalysisCache analysisCache;
 
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
+
+  @override
+  final AnalysisOptions analysisOptions = new AnalysisOptionsImpl();
 
   @override
   final ReentrantSynchronousStream<InvalidatedResult> onResultInvalidated =

@@ -311,6 +311,9 @@ class Driver implements CommandLineStarter {
         options.buildSummaryInputs, _previousOptions.buildSummaryInputs)) {
       return false;
     }
+    if (options.disableCacheFlushing != _previousOptions.disableCacheFlushing) {
+      return false;
+    }
     return true;
   }
 
@@ -663,6 +666,7 @@ class Driver implements CommandLineStarter {
       CommandLineOptions options) {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
     contextOptions.trackCacheDependencies = false;
+    contextOptions.disableCacheFlushing = options.disableCacheFlushing;
     contextOptions.hint = !options.disableHints;
     contextOptions.enableInitializingFormalAccess =
         options.enableInitializingFormalAccess;

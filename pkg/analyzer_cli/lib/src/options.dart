@@ -74,6 +74,11 @@ class CommandLineOptions {
   /// A table mapping the names of defined variables to their values.
   final Map<String, String> definedVariables;
 
+  /// Whether to disable cache flushing.  This option can improve analysis
+  /// speed at the expense of memory usage.  It may also be useful for working
+  /// around bugs.
+  final bool disableCacheFlushing;
+
   /// Whether to report hints
   final bool disableHints;
 
@@ -171,6 +176,7 @@ class CommandLineOptions {
         dartSdkSummaryPath = args['dart-sdk-summary'],
         definedVariables = definedVariables,
         analysisOptionsFile = args['options'],
+        disableCacheFlushing = args['disable-cache-flushing'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
         enableInitializingFormalAccess = args['initializing-formal-access'],
@@ -314,6 +320,7 @@ class CommandLineOptions {
           help: 'Do not show hint results.',
           defaultsTo: false,
           negatable: false)
+      ..addFlag('disable-cache-flushing', defaultsTo: false, hide: true)
       ..addFlag('ignore-unrecognized-flags',
           help: 'Ignore unrecognized command line flags.',
           defaultsTo: false,

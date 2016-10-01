@@ -1072,6 +1072,17 @@ abstract class AnalysisOptions {
   bool get dart2jsHint;
 
   /**
+   * Return `true` if cache flushing should be disabled.  Setting this option to
+   * `true` can improve analysis speed at the expense of memory usage.  It may
+   * also be useful for working around bugs.
+   *
+   * This option should not be used when the analyzer is part of a long running
+   * process (such as the analysis server) because it has the potential to
+   * prevent memory from being reclaimed.
+   */
+  bool get disableCacheFlushing;
+
+  /**
    * Return `true` if the parser is to parse asserts in the initializer list of
    * a constructor.
    */
@@ -1305,6 +1316,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool trackCacheDependencies = true;
 
+  @override
+  bool disableCacheFlushing = false;
+
   /**
    * A flag indicating whether implicit casts are allowed in [strongMode]
    * (they are always allowed in Dart 1.0 mode).
@@ -1371,6 +1385,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       implicitDynamic = options.implicitDynamic;
     }
     trackCacheDependencies = options.trackCacheDependencies;
+    disableCacheFlushing = options.disableCacheFlushing;
     finerGrainedInvalidation = options.finerGrainedInvalidation;
   }
 
