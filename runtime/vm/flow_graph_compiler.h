@@ -213,37 +213,6 @@ class SlowPathCode : public ZoneAllocated {
 };
 
 
-class MegamorphicSlowPath : public SlowPathCode {
- public:
-  MegamorphicSlowPath(const ICData& ic_data,
-                      intptr_t argument_count,
-                      intptr_t deopt_id,
-                      TokenPosition token_pos,
-                      LocationSummary* locs,
-                      intptr_t try_index)
-    : SlowPathCode(),
-      ic_data_(ic_data),
-      argument_count_(argument_count),
-      deopt_id_(deopt_id),
-      token_pos_(token_pos),
-      locs_(locs),
-      try_index_(try_index) {}
-  virtual ~MegamorphicSlowPath() {}
-
- private:
-  virtual void EmitNativeCode(FlowGraphCompiler* comp);
-
-  const ICData& ic_data_;
-  intptr_t argument_count_;
-  intptr_t deopt_id_;
-  TokenPosition token_pos_;
-  LocationSummary* locs_;
-  const intptr_t try_index_;  // For try/catch ranges.
-
-  DISALLOW_COPY_AND_ASSIGN(MegamorphicSlowPath);
-};
-
-
 struct CidTarget {
   intptr_t cid;
   Function* target;

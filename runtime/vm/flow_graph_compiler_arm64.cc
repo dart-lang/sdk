@@ -27,18 +27,6 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 
-void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Assembler* assembler = compiler->assembler();
-#define __ assembler->
-  __ Bind(entry_label());
-  __ Comment("MegamorphicSlowPath");
-  compiler->EmitMegamorphicInstanceCall(ic_data_, argument_count_, deopt_id_,
-                                        token_pos_, locs_, try_index_);
-  __ b(exit_label());
-#undef __
-}
-
-
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.

@@ -1914,20 +1914,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
                       deopt_id, token_pos, locs, true);
       assembler()->Bind(&ok);
     } else {
-      // Instead of deoptimizing, do a megamorphic call when no matching
-      // cid found.
-      Label ok;
-      MegamorphicSlowPath* slow_path =
-        new MegamorphicSlowPath(ic_data, argument_count, deopt_id,
-                                token_pos, locs, CurrentTryIndex());
-      AddSlowPathCode(slow_path);
-      EmitTestAndCall(ic_data, argument_count, argument_names,
-                      slow_path->entry_label(),  // No cid match.
-                      &ok,                       // Found cid.
-                      deopt_id, token_pos, locs, false);
-
-      assembler()->Bind(slow_path->exit_label());
-      assembler()->Bind(&ok);
+      EmitSwitchableInstanceCall(ic_data, argument_count,
+                                 deopt_id, token_pos, locs);
     }
   }
 }

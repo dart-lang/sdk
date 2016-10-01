@@ -27,18 +27,6 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 
-void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Assembler* assembler = compiler->assembler();
-#define __ assembler->
-  __ Bind(entry_label());
-  __ Comment("MegamorphicSlowPath");
-  compiler->EmitMegamorphicInstanceCall(ic_data_, argument_count_, deopt_id_,
-                                        token_pos_, locs_, try_index_);
-  __ jmp(exit_label());
-#undef __
-}
-
-
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
