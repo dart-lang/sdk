@@ -123,7 +123,7 @@ class StackFrame : public ValueObject {
           return (*pending_deopts)[i].pc();
         }
       }
-      UNREACHABLE();
+      FATAL("Missing pending deopt entry");
     }
     return raw_pc;
   }

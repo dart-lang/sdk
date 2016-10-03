@@ -236,12 +236,6 @@ static void JumpToExceptionHandler(Thread* thread,
       break;
     }
   }
-  for (intptr_t i = pending_deopts->length() - 1; i >= 0; i--) {
-    // Leave the mapping at fp itself for use in DeoptimizeCopyFrame.
-    if ((*pending_deopts)[i].fp() < frame_pointer) {
-      pending_deopts->RemoveAt(i);
-    }
-  }
 #endif  // !DBC
 
 
