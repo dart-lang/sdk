@@ -680,6 +680,14 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       return null;
     }
     pathos.Context pathContext = resourceProvider.pathContext;
+    if (pathContext != pathos.context) {
+      // The only time this will be true is if pathContext == posix and
+      // pathos.context == windows, which only happens when running tests.
+      if (exec.startsWith(new RegExp('[a-zA-Z]:'))) {
+        exec = exec.substring(2);
+      }
+      exec = pathContext.fromUri(pathos.context.toUri(exec));
+    }
     // Might be "xcodebuild/ReleaseIA32/dart" with "sdk" sibling
     String outDir = pathContext.dirname(pathContext.dirname(exec));
     String sdkPath = pathContext.join(pathContext.dirname(outDir), "sdk");
