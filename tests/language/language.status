@@ -10,6 +10,7 @@ string_literals_test: Skip # Issue 27433
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
+generic_methods_type_expression_test: RuntimeError # Issue 25869
 
 # This is OK for now, but we may want to change the semantics to match the test.
 async_star_pause_test: Fail, OK
@@ -51,14 +52,14 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $checked ]
-# The generic functions tests fail in checked mode because the parsed type parameters
-# are ignored.
-generic_methods_function_type_test: RuntimeError # Issue 25869
-generic_methods_test: RuntimeError # Issue 25869
-generic_methods_new_test: RuntimeError # Issue 25869
-generic_local_functions_test: RuntimeError # Issue 25869
-generic_functions_test: RuntimeError # Issue 25869
-generic_methods_generic_function_parameter_test: RuntimeError # Issue 25869
+# These generic functions tests pass for the wrong reason in checked mode,
+# because the parsed type parameters are mapped to dynamic type.
+generic_methods_function_type_test: Pass # Issue 25869
+generic_methods_test: Pass # Issue 25869
+generic_methods_new_test: Pass # Issue 25869
+generic_local_functions_test: Pass # Issue 25869
+generic_functions_test: Pass # Issue 25869
+generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 

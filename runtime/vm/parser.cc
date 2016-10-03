@@ -11914,15 +11914,9 @@ AstNode* Parser::LoadTypeParameter(PrimaryNode* primary) {
     // TODO(regis): Verify that CaptureFunctionInstantiator() was already
     // called if necessary.
     // TODO(regis): Finalize type parameter and return as type node.
-    // For now, throw a type error.
-    Type& malformed_type = Type::ZoneHandle(Z);
-    malformed_type = ClassFinalizer::NewFinalizedMalformedType(
-        Error::Handle(Z),  // No previous error.
-        script_,
-        primary_pos,
-        "function type parameter '%s' not yet supported",
-        String::Handle(Z, type_parameter.name()).ToCString());
-    return ThrowTypeError(primary_pos, malformed_type);
+    // For now, map to dynamic type.
+    Type& type = Type::ZoneHandle(Z, Type::DynamicType());
+    return new(Z) TypeNode(primary_pos, type);
   }
 }
 
@@ -12383,15 +12377,8 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
                                                      NULL));
         if (!type_parameter.IsNull()) {
           // TODO(regis): Check for absence of type arguments.
-          // For now, return as malformed type.
-          Type& malformed_type = Type::ZoneHandle(Z);
-          malformed_type = ClassFinalizer::NewFinalizedMalformedType(
-              Error::Handle(Z),  // No previous error.
-              script_,
-              type->token_pos(),
-              "function type parameter '%s' not yet supported",
-              String::Handle(Z, type_parameter.name()).ToCString());
-          *type = malformed_type.raw();
+          // For now, resolve the function type parameter to dynamic.
+          *type = Type::DynamicType();
           return;
         }
       }
@@ -13001,15 +12988,9 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
           CaptureFunctionInstantiator();
         }
         // TODO(regis): Finalize type parameter and return as type node.
-        // For now, return as malformed type.
-        Type& malformed_type = Type::ZoneHandle(Z);
-        malformed_type = ClassFinalizer::NewFinalizedMalformedType(
-            Error::Handle(Z),  // No previous error.
-            script_,
-            ident_pos,
-            "function type parameter '%s' not yet supported",
-            ident.ToCString());
-        return new(Z) TypeNode(ident_pos, malformed_type);
+        // For now, map to dynamic type.
+        Type& type = Type::ZoneHandle(Z, Type::DynamicType());
+        return new(Z) TypeNode(ident_pos, type);
       }
     }
   }
