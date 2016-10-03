@@ -1119,7 +1119,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const StubEntry& stub_entry,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  __ BranchLinkPatchable(stub_entry);
+  __ BranchLink(stub_entry);
   AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
 }

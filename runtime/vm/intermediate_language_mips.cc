@@ -5755,8 +5755,9 @@ void AllocateObjectInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void DebugStepCheckInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(!compiler->is_optimizing());
-  compiler->GenerateCall(
-      token_pos(), *StubCode::DebugStepCheck_entry(), stub_kind_, locs());
+  __ BranchLinkPatchable(*StubCode::DebugStepCheck_entry());
+  compiler->AddCurrentDescriptor(stub_kind_, Thread::kNoDeoptId, token_pos());
+  compiler->RecordSafepoint(locs());
 }
 
 
