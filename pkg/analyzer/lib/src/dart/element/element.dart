@@ -8130,21 +8130,6 @@ abstract class TypeParameterizedElementMixin
   List<UnlinkedTypeParam> get unlinkedTypeParams;
 
   /**
-   * Determine the default value of type argument [i]. in most cases this will
-   * be `dynamic`, but sometimes it will be the bound of the ith type parameter.
-   */
-  DartType computeDefaultTypeArgument(int i) {
-    // If strong mode is off, or we can tell quickly from the summary that there
-    // is no bound, then the default type argument is `dynamic`; we don't have
-    // to call `typeParameters` to find that out.
-    if (!context.analysisOptions.strongMode ||
-        (unlinkedTypeParams != null && unlinkedTypeParams[i].bound == null)) {
-      return DynamicTypeImpl.instance;
-    }
-    return typeParameters[i].bound ?? DynamicTypeImpl.instance;
-  }
-
-  /**
    * Convert the given [index] into a type parameter type.
    */
   TypeParameterType getTypeParameterType(int index) {
