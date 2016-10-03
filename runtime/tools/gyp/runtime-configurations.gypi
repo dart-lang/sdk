@@ -10,6 +10,7 @@
     'dart_io_support%': 0,
     'dart_io_secure_socket%': 1,
     'asan%': 0,
+    'msan%': 0,
     # Intel VTune related variables.
     'dart_vtune_support%': 0,
     'conditions': [
