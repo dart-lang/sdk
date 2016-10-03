@@ -26,9 +26,6 @@ main() {
 @reflectiveTest
 class PrelinkerTest extends LinkedSummarizeAstTest {
   @override
-  bool get expectAbsoluteUrisInDependencies => false;
-
-  @override
   bool get skipFullyLinkedData => true;
 
   @override

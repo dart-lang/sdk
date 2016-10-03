@@ -134,9 +134,6 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   LinkerInputs linkerInputs;
 
   @override
-  bool get expectAbsoluteUrisInDependencies => false;
-
-  @override
   bool get skipFullyLinkedData => false;
 
   @override
