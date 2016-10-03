@@ -536,29 +536,27 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 }
 
 
-// LR: return address + call-instruction-size
 // R0: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ AddImmediate(LR, -CallPattern::DeoptCallPatternLengthInBytes());
   // Push zap value instead of CODE_REG for lazy deopt.
   __ LoadImmediate(IP, 0xf1f1f1f1);
   __ Push(IP);
+  // Return address for "call" to deopt stub.
+  __ LoadImmediate(LR, 0xe1e1e1e1);
+  __ ldr(CODE_REG, Address(THR, Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
 }
 
 
-// LR: return address + call-instruction-size
 // R0: exception, must be preserved
 // R1: stacktrace, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ AddImmediate(LR, -CallPattern::DeoptCallPatternLengthInBytes());
   // Push zap value instead of CODE_REG for lazy deopt.
   __ LoadImmediate(IP, 0xf1f1f1f1);
   __ Push(IP);
+  // Return address for "call" to deopt stub.
+  __ LoadImmediate(LR, 0xe1e1e1e1);
+  __ ldr(CODE_REG, Address(THR, Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 

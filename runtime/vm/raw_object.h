@@ -1165,10 +1165,6 @@ class RawCode : public RawObject {
   // Alive: If true, the embedded object pointers will be visited during GC.
   int32_t state_bits_;
 
-  // PC offsets for code patching.
-  NOT_IN_PRECOMPILED(int32_t lazy_deopt_return_pc_offset_);
-  NOT_IN_PRECOMPILED(int32_t lazy_deopt_throw_pc_offset_);
-
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
   const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }

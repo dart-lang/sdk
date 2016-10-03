@@ -67,18 +67,6 @@ CallPattern::CallPattern(uword pc, const Code& code)
 }
 
 
-int CallPattern::DeoptCallPatternLengthInInstructions() {
-  UNIMPLEMENTED();
-  return 0;
-}
-
-
-int CallPattern::DeoptCallPatternLengthInBytes() {
-  UNIMPLEMENTED();
-  return 0;
-}
-
-
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
@@ -181,7 +169,7 @@ void CallPattern::SetTargetCode(const Code& target_code) const {
 }
 
 
-void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
+void CallPattern::InsertDeoptCallAt(uword pc) {
   const uint8_t argc = Bytecode::IsCallOpcode(Bytecode::At(pc)) ?
       Bytecode::DecodeArgc(Bytecode::At(pc)) : 0;
   *reinterpret_cast<Instr*>(pc) = Bytecode::Encode(Bytecode::kDeopt, argc, 0);

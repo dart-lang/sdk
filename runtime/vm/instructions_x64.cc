@@ -12,13 +12,6 @@
 
 namespace dart {
 
-void ShortCallPattern::SetTargetAddress(uword target) const {
-  ASSERT(IsValid());
-  *reinterpret_cast<uint32_t*>(start() + 1) = target - start() - kLengthInBytes;
-  CPU::FlushICache(start() + 1, kWordSize);
-}
-
-
 bool DecodeLoadObjectFromPoolOrThread(uword pc,
                                       const Code& code,
                                       Object* obj) {

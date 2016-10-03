@@ -19,6 +19,7 @@
 #include "vm/os_thread.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
+#include "vm/growable_array.h"
 
 namespace dart {
 
@@ -68,6 +69,19 @@ class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
 class UserTag;
+
+
+class PendingLazyDeopt {
+ public:
+  PendingLazyDeopt(uword fp, uword pc) : fp_(fp), pc_(pc) { }
+  uword fp() { return fp_; }
+  uword pc() { return pc_; }
+  void set_pc(uword pc) { pc_ = pc; }
+
+ private:
+  uword fp_;
+  uword pc_;
+};
 
 
 class IsolateVisitor {
@@ -390,6 +404,9 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts() {
+    return pending_deopts_;
+  }
   bool IsDeoptimizing() const { return deopt_context_ != NULL; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
@@ -740,6 +757,7 @@ class Isolate : public BaseIsolate {
   Dart_GcPrologueCallback gc_prologue_callback_;
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_;
 
   bool is_service_isolate_;

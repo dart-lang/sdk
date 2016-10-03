@@ -4918,13 +4918,6 @@ class Code : public Object {
   }
   TokenPosition GetTokenIndexOfPC(uword pc) const;
 
-  enum {
-    kInvalidPc = -1
-  };
-
-  uword GetLazyDeoptReturnPc() const;
-  uword GetLazyDeoptThrowPc() const;
-
   // Find pc, return 0 if not found.
   uword GetPcForDeoptId(intptr_t deopt_id, RawPcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
@@ -4937,35 +4930,6 @@ class Code : public Object {
     return 0;
 #else
     return raw_ptr()->compile_timestamp_;
-#endif
-  }
-
-  intptr_t lazy_deopt_return_pc_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->lazy_deopt_return_pc_offset_;
-#endif
-  }
-  void set_lazy_deopt_return_pc_offset(intptr_t pc) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    StoreNonPointer(&raw_ptr()->lazy_deopt_return_pc_offset_, pc);
-#endif
-  }
-  intptr_t lazy_deopt_throw_pc_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->lazy_deopt_throw_pc_offset_;
-#endif
-  }
-  void set_lazy_deopt_throw_pc_offset(intptr_t pc) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    StoreNonPointer(&raw_ptr()->lazy_deopt_throw_pc_offset_, pc);
 #endif
   }
 
