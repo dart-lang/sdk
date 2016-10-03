@@ -3578,6 +3578,10 @@ C c;
     checkLibrary('''
 class C<T extends C<T>> {}
 C c;
+var c2 = new C();
+class B {
+  var c3 = new C();
+}
 ''');
   }
 
