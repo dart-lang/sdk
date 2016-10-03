@@ -52,20 +52,8 @@ class StatsPage extends PageWriter {
   @override
   void writeBody(StringSink sink) {
     writeMenu(sink);
-    sink.writeln('<div id="container">');
-    sink.writeln('  <div id="content">');
-    sink.writeln('    <div id="leftColumn">');
-    sink.writeln('      <div class="inset">');
-    _writeLeftColumn(sink);
-    sink.writeln('      </div>');
-    sink.writeln('    </div>');
-    sink.writeln('    <div id="rightColumn">');
-    sink.writeln('      <div class="inset">');
-    _writeRightColumn(sink);
-    sink.writeln('      </div>');
-    sink.writeln('    </div>');
-    sink.writeln('  </div>');
-    sink.writeln('</div>');
+    writeTwoColumns(
+        sink, 'leftColumn', _writeLeftColumn, 'rightColumn', _writeRightColumn);
   }
 
   /**
@@ -74,20 +62,7 @@ class StatsPage extends PageWriter {
    */
   void writeStyleSheet(StringSink sink) {
     super.writeStyleSheet(sink);
-    sink.writeln(r'''
-#leftColumn {
-  float: left;
-  height: 100%;
-  overflow: auto;
-  width: 50%;
-}
-#rightColumn {
-  float: right;
-  height: 100%;
-  overflow: auto;
-  width: 50%;
-}
-''');
+    writeTwoColumnStyles(sink, 'leftColumn', 'rightColumn');
   }
 
   /**

@@ -48,7 +48,11 @@ abstract class PageWriter {
    * Return an escaped version of the given [unsafe] text.
    */
   String escape(String unsafe) {
-    return htmlEscape.convert(unsafe);
+    // We double escape single quotes because the escaped characters are
+    // processed as part of reading the HTML, which means that single quotes
+    // end up terminating string literals too early when they appear in event
+    // handlers (which in turn leads to JavaScript syntax errors).
+    return htmlEscape.convert(unsafe).replaceAll('&#39;', '&amp;#39;');
   }
 
   /**
@@ -273,8 +277,8 @@ th.narrow {
    */
   void writeTwoColumns(StringSink sink, String leftColumnId,
       Writer writeLeftColumn, String rightColumnId, Writer writeRightColumn) {
-    sink.writeln('<div>');
-    sink.writeln('  <div>');
+    sink.writeln('<div id="container">');
+    sink.writeln('  <div id="content">');
     sink.writeln('    <div id="$leftColumnId">');
     sink.writeln('      <div class="inset">');
     writeLeftColumn(sink);

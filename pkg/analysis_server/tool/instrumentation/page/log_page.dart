@@ -20,6 +20,16 @@ class LogPage extends PageWriter {
   InstrumentationLog log;
 
   /**
+   * The id of the entry groups to be displayed.
+   */
+  EntryGroup selectedGroup;
+
+  /**
+   * The entries in the selected group.
+   */
+  List<LogEntry> entries;
+
+  /**
    * The index of the first entry to be written.
    */
   int pageStart = 0;
@@ -36,26 +46,16 @@ class LogPage extends PageWriter {
   int prefixLength;
 
   /**
-   * The number of each kind of log entry. Currently used only for debugging and
-   * should be removed.
-   */
-  Map<String, int> counts = new HashMap<String, int>();
-
-  /**
    * Initialize a newly created writer to write the content of the given
    * [instrumentationLog].
    */
-  LogPage(this.log) {
-    List<LogEntry> entries = log.logEntries;
-    prefixLength = computePrefixLength(entries);
-    for (LogEntry entry in entries) {
-      int count = counts.putIfAbsent(entry.kind, () => 0);
-      counts[entry.kind] = count + 1;
-    }
-  }
+  LogPage(this.log);
 
   @override
   void writeBody(StringSink sink) {
+    entries = log.entriesInGroup(selectedGroup);
+    prefixLength = computePrefixLength(entries);
+
     writeMenu(sink);
     writeTwoColumns(
         sink, 'leftColumn', _writeLeftColumn, 'rightColumn', _writeRightColumn);
@@ -88,6 +88,11 @@ function setDetails(detailsContent) {
   if (element != null) {
     element.innerHTML = detailsContent;
   }
+}
+function selectEntryGroup(pageStart) {
+  var element = document.getElementById("entryGroup");
+  var url = "/log?group=" + element.value;
+  window.location.assign(url);
 }
 ''');
   }
@@ -175,6 +180,8 @@ function setDetails(detailsContent) {
       description = '<span class="error">$description</span>';
     } else if (entry is ExceptionEntry) {
       description = '<span class="error">$description</span>';
+    } else if (entry is MalformedLogEntry) {
+      description = '<span class="error">$description</span>';
     }
     id = id == null ? '' : 'id="$id" ';
     clickHandler = '$clickHandler; setDetails(\'${escape(entry.details())}\')';
@@ -198,7 +205,6 @@ function setDetails(detailsContent) {
    * Write the entries in the instrumentation log to the given [sink].
    */
   void _writeLeftColumn(StringSink sink) {
-    List<LogEntry> entries = log.nonTaskEntries;
     int length = entries.length;
     int pageEnd =
         pageLength == null ? length : math.min(pageStart + pageLength, length);
@@ -207,6 +213,19 @@ function setDetails(detailsContent) {
     //
     sink.writeln('<div class="columnHeader">');
     sink.writeln('<div style="float: left">');
+    sink.writeln('<select id="entryGroup" onchange="selectEntryGroup()">');
+    for (EntryGroup group in EntryGroup.groups) {
+      sink.write('<option value="');
+      sink.write(group.id);
+      sink.write('"');
+      if (group == selectedGroup) {
+        sink.write(' selected');
+      }
+      sink.write('>');
+      sink.write(group.name);
+      sink.writeln('</option>');
+    }
+    sink.writeln('</select>');
     sink.writeln('Events $pageStart - ${pageEnd - 1} of ${length - 1}');
     sink.writeln('</div>');
 
@@ -216,7 +235,7 @@ function setDetails(detailsContent) {
     } else {
       sink.write('<button type="button">');
       sink.write(
-          '<a href="${WebServer.logPath}?start=${pageStart - pageLength}">');
+          '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart - pageLength}">');
       sink.write('<b>&lt;</b>');
       sink.writeln('</a></button>');
     }
@@ -226,7 +245,7 @@ function setDetails(detailsContent) {
     } else {
       sink.write('<button type="button">');
       sink.write(
-          '<a href="${WebServer.logPath}?start=${pageStart + pageLength}">');
+          '<a href="${WebServer.logPath}?group=${selectedGroup.id}&start=${pageStart + pageLength}">');
       sink.write('<b>&gt;</b>');
       sink.writeln('</a></button>');
     }
