@@ -1511,7 +1511,8 @@ class _UnitResynthesizer {
         constructorName = null;
       }
       elementAnnotation.annotationAst = AstFactory.annotation2(
-          typeName, constructorName, constExpr.argumentList);
+          typeName, constructorName, constExpr.argumentList)
+        ..element = constExpr.staticElement;
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');

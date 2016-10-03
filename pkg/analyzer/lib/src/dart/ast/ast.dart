@@ -283,7 +283,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   Element get element {
     if (_element != null) {
       return _element;
-    } else if (_name != null) {
+    } else if (_constructorName == null && _name != null) {
       return _name.staticElement;
     }
     return null;

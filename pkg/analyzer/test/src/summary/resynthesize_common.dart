@@ -542,18 +542,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         }
         compareConstAstLists(
             r.arguments?.arguments, o.arguments?.arguments, desc);
-        Element expectedElement = o.element;
-        if (oName is PrefixedIdentifier &&
-            o.constructorName != null &&
-            o.element != null) {
-          // Due to dartbug.com/25706, [o.element] incorrectly points to the
-          // class rather than the named constructor.  Hack around this.
-          // TODO(paulberry): when dartbug.com/25706 is fixed, remove this.
-          expectedElement = (expectedElement as ClassElement)
-              .getNamedConstructor(o.constructorName.name);
-          expect(expectedElement, isNotNull, reason: desc);
-        }
-        compareElements(r.element, expectedElement, desc);
+        compareElements(r.element, o.element, desc);
         // elementAnnotation should be null; it is only used in the full AST.
         expect(o.elementAnnotation, isNull);
         expect(r.elementAnnotation, isNull);
@@ -4492,7 +4481,6 @@ typedef F();''');
     checkLibrary('import "dart:async" as foo; @foo.bar.baz() class C {}');
   }
 
-  @failingTest // See dartbug.com/25706
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() {
     checkLibrary('import "dart:async" as foo; @foo.Future.bar() class C {}');
   }
