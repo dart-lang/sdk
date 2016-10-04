@@ -3372,10 +3372,14 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
             ASSERT(env != NULL);
             for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
               if (cdefs[env_idx] != NULL &&
+                  !cdefs[env_idx]->IsConstant() &&
                   env->ValueAt(env_idx)->BindsToConstant()) {
+                // If the recorded definition is not a constant, record this
+                // definition as the current constant definition.
                 cdefs[env_idx] = env->ValueAt(env_idx)->definition();
               }
               if (cdefs[env_idx] != env->ValueAt(env_idx)->definition()) {
+                // Non-constant definitions are reset to NULL.
                 cdefs[env_idx] = NULL;
               }
             }
