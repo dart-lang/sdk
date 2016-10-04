@@ -1061,9 +1061,12 @@ abstract class AnalysisOptions {
   AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate;
 
   /**
-   * Return the maximum number of sources for which AST structures should be
+   * DEPRECATED: Return the maximum number of sources for which AST structures should be
    * kept in the cache.
+   *
+   * This setting no longer has any effect.
    */
+  @deprecated
   int get cacheSize;
 
   /**
@@ -1225,8 +1228,11 @@ abstract class AnalysisOptions {
  */
 class AnalysisOptionsImpl implements AnalysisOptions {
   /**
-   * The maximum number of sources for which data should be kept in the cache.
+   * DEPRECATED: The maximum number of sources for which data should be kept in the cache.
+   *
+   * This constant no longer has any effect.
    */
+  @deprecated
   static const int DEFAULT_CACHE_SIZE = 64;
 
   static const int ENABLE_ASSERT_FLAG = 0x01;
@@ -1249,6 +1255,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       _analyzeAllFunctionBodies;
 
   @override
+  @deprecated
   int cacheSize = DEFAULT_CACHE_SIZE;
 
   @override
