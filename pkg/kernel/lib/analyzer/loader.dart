@@ -54,7 +54,7 @@ abstract class ReferenceLevelLoader {
   ast.Constructor getCoreClassConstructorReference(String className,
       {String constructorName, String library});
   ast.TypeParameter tryGetClassTypeParameter(TypeParameterElement element);
-  ast.Class getMixinApplicationClass(
+  ast.Class getSharedMixinApplicationClass(
       ast.Library library, ast.Class supertype, ast.Class mixin);
   bool get strongMode;
 }
@@ -212,6 +212,14 @@ class DartLoader implements ReferenceLevelLoader {
     return _classes.inverse[node];
   }
 
+  void addMixinClassToLibrary(ast.Class class_, ast.Library library) {
+    assert(class_.parent == null);
+    library.addClass(class_);
+    var map =
+        _mixinApplications.putIfAbsent(library, () => <String, ast.Class>{});
+    map[class_.name] = class_;
+  }
+
   /// Returns the IR for a class, at a temporary loading level.
   ///
   /// The returned class has the correct name, flags, type parameter arity,
@@ -219,8 +227,9 @@ class DartLoader implements ReferenceLevelLoader {
   ast.Class getClassReference(ClassElement element) {
     var classNode = _classes[element];
     if (classNode != null) return classNode;
-    _classes[element] = classNode =
-        new ast.Class(name: element.name, isAbstract: element.isAbstract,
+    _classes[element] = classNode = new ast.Class(
+        name: element.name,
+        isAbstract: element.isAbstract,
         fileUri: "file://${element.source.fullName}");
     classNode.level = ast.ClassLevel.Temporary;
     var library = getLibraryReference(element.library);
@@ -266,15 +275,38 @@ class DartLoader implements ReferenceLevelLoader {
     }
     if (element.supertype != null) {
       ast.InterfaceType supertype = scope.buildType(element.supertype);
+      bool useSharedMixin = true;
       for (var mixin in mixins) {
         var mixinType = scope.buildType(mixin);
         if (mixinType is ast.InterfaceType) {
-          var mixinClass = getMixinApplicationClass(
-              library, supertype.classNode, mixinType.classNode);
-          var typeArguments = <ast.DartType>[]
-            ..addAll(supertype.typeArguments)
-            ..addAll(mixinType.typeArguments);
-          supertype = new ast.InterfaceType(mixinClass, typeArguments);
+          if (useSharedMixin &&
+              areDistinctUnboundTypeVariables(supertype, mixinType)) {
+            // Use a shared mixin application class for this library.
+            var mixinClass = getSharedMixinApplicationClass(
+                scope.currentLibrary, supertype.classNode, mixinType.classNode);
+            supertype = new ast.InterfaceType(
+                mixinClass,
+                supertype.typeArguments.length > mixinType.typeArguments.length
+                    ? supertype.typeArguments
+                    : mixinType.typeArguments);
+          } else {
+            // Generate a new class specific for this mixin application.
+            var freshParameters =
+                getFreshTypeParameters(classNode.typeParameters);
+            var mixinClass = new ast.Class(
+                name: '${classNode.name}^${mixinType.classNode.name}',
+                isAbstract: true,
+                typeParameters: freshParameters.freshTypeParameters,
+                supertype: freshParameters.substitute(supertype),
+                mixedInType: freshParameters.substitute(mixinType));
+            mixinClass.level = ast.ClassLevel.Type;
+            supertype = new ast.InterfaceType(mixinClass,
+                classNode.typeParameters.map(makeTypeParameterType).toList());
+            addMixinClassToLibrary(mixinClass, classNode.enclosingLibrary);
+            // This class cannot be used from anywhere else, so don't try to
+            // generate shared mixin applications using it.
+            useSharedMixin = false;
+          }
         }
       }
       classNode.supertype = supertype;
@@ -452,9 +484,50 @@ class DartLoader implements ReferenceLevelLoader {
     return new ast.Name(name, getLibraryReference(element.library));
   }
 
-  /// Returns the canonical mixin application of [superclass] and [mixedInClass]
-  /// in the given [library].
-  ast.Class getMixinApplicationClass(
+  /// True if the two types have form `C<T1 ... Tm>` and `D<T1 ... Tn>`, and
+  /// `T1 ... TN` are distinct type variables with no upper bound, where
+  /// `N = max(m,n)`.
+  bool areDistinctUnboundTypeVariables(
+      ast.InterfaceType first, ast.InterfaceType second) {
+    var seen = new Set<ast.TypeParameter>();
+    if (first.typeArguments.length < second.typeArguments.length) {
+      var tmp = first;
+      first = second;
+      second = tmp;
+    }
+    for (int i = 0; i < first.typeArguments.length; ++i) {
+      var firstArg = first.typeArguments[i];
+      if (!(firstArg is ast.TypeParameterType &&
+          seen.add(firstArg.parameter) &&
+          firstArg.parameter.bound is ast.DynamicType)) {
+        return false;
+      }
+      if (i < second.typeArguments.length &&
+          firstArg != second.typeArguments[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Returns the canonical mixin application of two classes, instantiated with
+  /// the same list of unbound type variables.
+  ///
+  /// Given two classes:
+  ///     class C<C1 ... Cm>
+  ///     class D<D1 ... Dn>
+  ///
+  /// This creates or reuses a mixin application class in the library of form:
+  ///
+  ///     abstract class C&D<T1 ... TN> = C<T1 ... Tm> with D<T1 ... Tn>
+  ///
+  /// where `N = max(m,n)`.
+  ///
+  /// Such a class can in general contain type errors due to incompatible
+  /// inheritance from `C` and `D`.  This method therefore should only be called
+  /// if a mixin application `C<S1 ... Sm> with D<S1 ... Sn>` is seen, where
+  /// `S1 ... SN` are distinct, unbound type variables.
+  ast.Class getSharedMixinApplicationClass(
       ast.Library library, ast.Class superclass, ast.Class mixedInClass) {
     // TODO(asgerf): Avoid potential name clash due to associativity.
     // As it is, these mixins get the same name:
@@ -464,54 +537,24 @@ class DartLoader implements ReferenceLevelLoader {
     return _mixinApplications
         .putIfAbsent(library, () => <String, ast.Class>{})
         .putIfAbsent(name, () {
-      List<ast.TypeParameter> typeParameters = <ast.TypeParameter>[];
-      ast.InterfaceType makeSuper(ast.Class class_) {
-        if (class_.typeParameters.isEmpty) return class_.rawType;
-        // We need to copy over type parameters from the given super type,
-        // including its bounds.  We handle two cases separately:
-        //
-        //   1. The super class is derived from a ClassElement.
-        //      At this point, the IR node cannot be assumed to have its type
-        //      parameter bounds initialized.
-        //      Build the type parameters based on the element model.
-        //
-        //   2. The super class is a mixin application previously created here.
-        //      In this case, there does not exist a corresponding ClassElement.
-        //      However, we know the class has its type parameter bounds
-        //      already initialized since it was created here.
-        //      Copy the type parameters based on the IR of the super class.
-        //
-        ClassElement element = getClassElement(class_);
-        if (element != null) {
-          var scope = new TypeScope(this);
-          // Build type parameter objects and put them in our local scope.
-          for (var parameter in element.typeParameters) {
-            var parameterNode = new ast.TypeParameter(parameter.name);
-            scope.localTypeParameters[parameter] = parameterNode;
-            typeParameters.add(parameterNode);
-          }
-          // Build the bounds, with all the type parameters in scope.
-          for (var parameter in element.typeParameters) {
-            if (parameter.bound != null) {
-              var parameterNode = scope.getTypeParameterReference(parameter);
-              parameterNode.bound = scope.buildType(parameter.bound);
-            }
-          }
-          return scope.buildType(element.type);
-        } else {
-          // Build copies of the existing type parameters.
-          var parameters = getFreshTypeParameters(class_.typeParameters);
-          typeParameters.addAll(parameters.freshTypeParameters);
-          return parameters.substitute(class_.thisType);
-        }
-      }
-      var supertype = makeSuper(superclass);
-      var mixedInType = makeSuper(mixedInClass);
+      var fresh =
+          superclass.typeParameters.length >= mixedInClass.typeParameters.length
+              ? getFreshTypeParameters(superclass.typeParameters)
+              : getFreshTypeParameters(mixedInClass.typeParameters);
+      var typeArguments =
+          fresh.freshTypeParameters.map(makeTypeParameterType).toList();
+      var superArgs = typeArguments.length != superclass.typeParameters.length
+          ? typeArguments.sublist(0, superclass.typeParameters.length)
+          : typeArguments;
+      var mixinArgs = typeArguments.length != mixedInClass.typeParameters.length
+          ? typeArguments.sublist(0, mixedInClass.typeParameters.length)
+          : typeArguments;
       var result = new ast.Class(
           name: name,
-          typeParameters: typeParameters,
-          supertype: supertype,
-          mixedInType: mixedInType,
+          isAbstract: true,
+          typeParameters: fresh.freshTypeParameters,
+          supertype: new ast.InterfaceType(superclass, superArgs),
+          mixedInType: new ast.InterfaceType(mixedInClass, mixinArgs),
           fileUri: mixedInClass.fileUri);
       result.level = ast.ClassLevel.Type;
       library.addClass(result);

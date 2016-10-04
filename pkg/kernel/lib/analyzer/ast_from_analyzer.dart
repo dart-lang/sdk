@@ -2575,7 +2575,7 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     var function = scope.buildFunctionNode(node.parameters, node.body,
         typeParameters: types.freshTypeParameters,
         inferredReturnType: new ast.InterfaceType(classNode,
-            types.freshTypeParameters.map(_makeTypeParameterType).toList()));
+            types.freshTypeParameters.map(makeTypeParameterType).toList()));
     procedure.function = function..parent = procedure;
     handleNativeBody(node.body);
     if (node.redirectedConstructor != null) {
@@ -2672,7 +2672,7 @@ class _CompilationError {
 }
 
 /// Constructor alias for [ast.TypeParameterType], use instead of a closure.
-ast.DartType _makeTypeParameterType(ast.TypeParameter parameter) {
+ast.DartType makeTypeParameterType(ast.TypeParameter parameter) {
   return new ast.TypeParameterType(parameter);
 }
 

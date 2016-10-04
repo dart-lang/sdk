@@ -104,6 +104,16 @@ class CheckReferences extends RecursiveVisitor {
           'Parent pointer is set to ${node.parameter.parent}';
     }
   }
+
+  @override
+  visitInterfaceType(InterfaceType node) {
+    node.visitChildren(this);
+    if (node.typeArguments.length != node.classNode.typeParameters.length) {
+      throw 'Type $node provides ${node.typeArguments.length} type arguments '
+          'but the class declares ${node.classNode.typeParameters.length} '
+          'parameters. Found in $context.';
+    }
+  }
 }
 
 abstract class FakeNode implements TreeNode {}
