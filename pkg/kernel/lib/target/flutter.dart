@@ -3,11 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.target.flutter;
 
-import 'targets.dart';
 import '../ast.dart';
-import '../transformations/mixin_full_resolution.dart' as mix;
 import '../transformations/continuation.dart' as cont;
+import '../transformations/erasure.dart';
+import '../transformations/mixin_full_resolution.dart' as mix;
 import '../transformations/setup_builtin_library.dart' as setup_builtin_library;
+import 'targets.dart';
 
 class FlutterTarget extends Target {
   final TargetFlags flags;
@@ -54,5 +55,9 @@ class FlutterTarget extends Target {
     // Repair `_getMainClosure()` function in dart:{_builtin,ui} libraries.
     setup_builtin_library.transformProgram(program);
     setup_builtin_library.transformProgram(program, libraryUri: 'dart:ui');
+
+    if (strongMode) {
+      new Erasure().transform(program);
+    }
   }
 }

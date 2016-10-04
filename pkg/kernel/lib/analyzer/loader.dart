@@ -535,20 +535,17 @@ class DartLoader implements ReferenceLevelLoader {
     var element = context.computeLibraryElement(source);
     context.resolveCompilationUnit(source, element);
     _buildLibraryBody(element, node);
-    for (var unit in element.units) {
-      LineInfo lines;
-      for (var error in context.computeErrors(unit.source)) {
-        if (error.errorCode is CompileTimeErrorCode ||
-            error.errorCode is ParserErrorCode ||
-            error.errorCode is ScannerErrorCode ||
-            error.errorCode is StrongModeCode) {
-          if (error.errorCode == ParserErrorCode.CONST_FACTORY &&
-              node.importUri.scheme == 'dart') {
-            // Ignore warnings about 'const' factories in the patched SDK.
-            continue;
+    if (node.importUri.scheme != 'dart') {
+      for (var unit in element.units) {
+        LineInfo lines;
+        for (var error in context.computeErrors(unit.source)) {
+          if (error.errorCode is CompileTimeErrorCode ||
+              error.errorCode is ParserErrorCode ||
+              error.errorCode is ScannerErrorCode ||
+              error.errorCode is StrongModeCode) {
+            lines ??= context.computeLineInfo(source);
+            errors.add(formatErrorMessage(error, source.shortName, lines));
           }
-          lines ??= context.computeLineInfo(source);
-          errors.add(formatErrorMessage(error, source.shortName, lines));
         }
       }
     }
@@ -689,8 +686,8 @@ AnalysisOptions createAnalysisOptions(bool strongMode) {
   return new AnalysisOptionsImpl()
     ..strongMode = strongMode
     ..enableGenericMethods = strongMode
-    ..generateImplicitErrors = true
-    ..generateSdkErrors = true
+    ..generateImplicitErrors = false
+    ..generateSdkErrors = false
     ..preserveComments = false
     ..hint = false
     ..enableSuperMixins = true;

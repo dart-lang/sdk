@@ -1254,7 +1254,11 @@ class VariableGet extends Expression {
     promotedType?.accept(v);
   }
 
-  transformChildren(Transformer v) {}
+  transformChildren(Transformer v) {
+    if (promotedType != null) {
+      promotedType = v.visitDartType(promotedType);
+    }
+  }
 }
 
 /// Assign a local variable or function parameter.
@@ -1952,6 +1956,7 @@ class ConditionalExpression extends Expression {
     condition?.accept(v);
     then?.accept(v);
     otherwise?.accept(v);
+    staticType?.accept(v);
   }
 
   transformChildren(Transformer v) {
@@ -1966,6 +1971,9 @@ class ConditionalExpression extends Expression {
     if (otherwise != null) {
       otherwise = otherwise.accept(v);
       otherwise?.parent = this;
+    }
+    if (staticType != null) {
+      staticType = v.visitDartType(staticType);
     }
   }
 }
