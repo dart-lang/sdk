@@ -396,6 +396,9 @@ convert/utf85_test: Pass, Timeout
 # version.
 mirrors/accessor_cache_overflow_test: Skip
 
+[ $arch == simdbc64 ]
+math/double_pow_test: Fail # Issue #27481
+
 [ $hot_reload || $hot_reload_rollback ]
 async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: Pass, Fail # Closure identity
