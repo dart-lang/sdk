@@ -129,17 +129,6 @@ class BinaryPrinter extends Visitor {
     }
   }
 
-  void writeLibraryFile(Library library) {
-    writeMagicWord(Tag.LibraryFile);
-    _importTable = new LibraryImportTable(library);
-    _stringIndexer.addLibraryImports(_importTable);
-    _stringIndexer.build(library);
-    writeStringTable(_stringIndexer);
-    writeLibraryImportTable(_importTable);
-    writeNode(library);
-    _flush();
-  }
-
   void writeProgramFile(Program program) {
     writeMagicWord(Tag.ProgramFile);
     _importTable = new ProgramImportTable(program);
@@ -147,10 +136,7 @@ class BinaryPrinter extends Visitor {
     writeStringTable(_stringIndexer);
     writeUriToLineStarts(program);
     writeList(program.libraries, writeNode);
-    if (program.mainMethod == null) {
-      throw 'Cannot emit program without a main method';
-    }
-    writeMemberReference(program.mainMethod);
+    writeMemberReference(program.mainMethod, allowNull: true);
     _flush();
   }
 
@@ -268,7 +254,11 @@ class BinaryPrinter extends Visitor {
     }
   }
 
+  bool insideExternalLibrary = false;
+
   visitLibrary(Library node) {
+    insideExternalLibrary = node.isExternal;
+    writeByte(insideExternalLibrary ? 1 : 0);
     writeStringReference(node.name ?? '');
     writeStringReference('${node.importUri}');
     // TODO(jensj): We save (almost) the same URI twice.
@@ -289,9 +279,13 @@ class BinaryPrinter extends Visitor {
   }
 
   visitClass(Class node) {
+    int flags = node.isAbstract ? 1 : 0;
+    if (node.level == ClassLevel.Type) {
+      flags |= 0x2;
+    }
     if (node.isMixinApplication) {
       writeByte(Tag.MixinClass);
-      writeByte(node.isAbstract ? 1 : 0);
+      writeByte(flags);
       writeStringReference(node.name ?? '');
       writeUriReference(node.fileUri ?? '');
       writeAnnotationList(node.annotations);
@@ -304,7 +298,7 @@ class BinaryPrinter extends Visitor {
       _typeParameterIndexer.pop(node.typeParameters);
     } else {
       writeByte(Tag.NormalClass);
-      writeByte(node.isAbstract ? 1 : 0);
+      writeByte(flags);
       writeStringReference(node.name ?? '');
       writeUriReference(node.fileUri ?? '');
       writeAnnotationList(node.annotations);

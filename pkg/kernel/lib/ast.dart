@@ -14,33 +14,6 @@
 /// there are no direct invocations of a constructor on a abstract class.
 ///
 /// -----------------------------------------------------------------------
-///                                 NAMES
-/// -----------------------------------------------------------------------
-///
-/// We distinguish two kinds of names, **binding names** and **cosmetic names**.
-///
-/// Binding names are:
-/// - names used for dynamic dispatch
-/// - external member names
-/// - named parameter names
-///
-/// Cosmetic names are everything else, for example:
-/// - local variable names
-/// - positional parameter names
-/// - static member names (non-external)
-/// - constructor names (non-external)
-/// - class names
-/// - library names
-///
-/// Cosmetic names are only stored at the definition site of an object, e.g.
-/// a static method invocation does not store the name of the target method,
-/// only the method itself does.
-///
-/// Cosmetic names can sometimes be observed by introspection features like
-/// mirrors, they can show up in stack traces, and transformers may want to rely
-/// on them.  Cosmetic names may in general be `null` for synthetic objects.
-///
-/// -----------------------------------------------------------------------
 ///                           STATIC vs TOP-LEVEL
 /// -----------------------------------------------------------------------
 ///
@@ -171,9 +144,6 @@ class Library extends TreeNode implements Comparable<Library> {
   /// An absolute import path to this library.
   ///
   /// The [Uri] should have the `dart`, `package`, or `file` scheme.
-  //
-  // DESIGN TODO: Absolute `file` URIs are not ideal for serialization. We will
-  //   revise this when we implement modular compilation.
   Uri importUri;
 
   /// The uri of the source file this library was loaded from.
@@ -182,21 +152,22 @@ class Library extends TreeNode implements Comparable<Library> {
   /// If false, the library object is a placeholder for a library that has
   /// not been loaded yet.
   ///
-  /// The [importUri] is always set on an unloaded library, and can be used
-  /// as the key to load the library.
+  /// Classes of an external library are loaded at one of the [ClassLevel]s
+  /// other than [ClassLevel.Body].  Members in an external library have no
+  /// body, but have their typed interface present.
   ///
-  /// Unloaded libraries may contain arbitrary classes and members for use by
-  /// the frontend until the library is loaded.  Clients should not rely
-  /// on unloaded library objects being in any particular state.
-  bool isLoaded = true;
+  /// If the libary is non-external, then its classes are at [ClassLevel.Body]
+  /// and all members are loaded.
+  bool isExternal;
 
-  String name; // Cosmetic name.
+  String name;
   final List<Class> classes;
   final List<Procedure> procedures;
   final List<Field> fields;
 
   Library(this.importUri,
       {this.name,
+      this.isExternal: false,
       List<Class> classes,
       List<Procedure> procedures,
       List<Field> fields})
@@ -255,6 +226,41 @@ class Library extends TreeNode implements Comparable<Library> {
   String toString() => debugLibraryName(this);
 }
 
+/// The degree to which the contents of a class have been loaded into memory.
+///
+/// Each level imply the requirements of the previous ones.
+enum ClassLevel {
+  /// Temporary loading level for internal use by IR producers.  Consumers of
+  /// kernel code should not expect to see classes at this level.
+  Temporary,
+
+  /// The class may be used as a type, and it may contain members that are
+  /// referenced from this build unit.
+  ///
+  /// The type parameters and their bounds are present.
+  ///
+  /// There is no guarantee that all members are present.
+  ///
+  /// All supertypes of this class are at [Type] level or higher.
+  Type,
+
+  /// All instance members of the class are present.
+  ///
+  /// All supertypes of this class are at [Hierarchy] level or higher.
+  ///
+  /// This level exists so supertypes of a fully loaded class contain all the
+  /// members needed to detect override constraints.
+  Hierarchy,
+
+  /// All members of the class are fully loaded and are in the correct order.
+  ///
+  /// Annotations are present on classes and members.
+  ///
+  /// All supertypes of this class are at [Hierarchy] level or higher,
+  /// not necessarily at [Body] level.
+  Body,
+}
+
 /// Declaration of a regular class or a mixin application.
 ///
 /// Mixin applications may not contain fields or procedures, as they implicitly
@@ -262,6 +268,9 @@ class Library extends TreeNode implements Comparable<Library> {
 /// rule directly, as doing so can obstruct transformations.  It is possible to
 /// transform a mixin application to become a regular class, and vice versa.
 class Class extends TreeNode {
+  /// The degree to which the contents of the class have been loaded.
+  ClassLevel level = ClassLevel.Body;
+
   /// List of metadata annotations on the class.
   ///
   /// This defaults to an immutable empty list. Use [addAnnotation] to add
@@ -389,7 +398,12 @@ class Class extends TreeNode {
   accept(TreeVisitor v) => v.visitClass(this);
   acceptReference(Visitor v) => v.visitClassReference(this);
 
-  bool get isLoaded => enclosingLibrary.isLoaded;
+  /// If true, the class is part of an external library, that is, it is defined
+  /// in another build unit.  Only a subset of its members are present.
+  ///
+  /// These classes should be loaded at either [ClassLevel.Type] or
+  /// [ClassLevel.Hierarchy] level.
+  bool get isInExternalLibrary => enclosingLibrary.isExternal;
 
   InterfaceType _rawType;
   InterfaceType get rawType => _rawType ??= new InterfaceType(this);
@@ -481,7 +495,10 @@ abstract class Member extends TreeNode {
   accept(MemberVisitor v);
   acceptReference(MemberReferenceVisitor v);
 
-  bool get isLoaded => enclosingLibrary.isLoaded;
+  /// If true, the member is part of an external library, that is, it is defined
+  /// in another build unit.  Such members have no body or initializer present
+  /// in the IR.
+  bool get isInExternalLibrary => enclosingLibrary.isExternal;
 
   /// Returns true if this is an abstract procedure.
   bool get isAbstract => false;
@@ -498,6 +515,12 @@ abstract class Member extends TreeNode {
   /// True if this is a non-static field or procedure.
   bool get isInstanceMember;
 
+  /// True if the member has the `external` modifier, implying that the
+  /// implementation is provided by the backend, and is not necessarily written
+  /// in Dart.
+  ///
+  /// Members can have this modifier independently of whether the enclosing
+  /// library is external.
   bool get isExternal;
   void set isExternal(bool value);
 
@@ -703,8 +726,7 @@ class Field extends Member {
 /// Constructors do not take type parameters.  Type arguments from a constructor
 /// invocation should be matched with the type parameters declared in the class.
 ///
-/// For non-external constructors, the name is cosmetic.  For unnamed
-/// constructors, the name is an empty string (in a [Name]).
+/// For unnamed constructors, the name is an empty string (in a [Name]).
 class Constructor extends Member {
   int flags = 0;
   FunctionNode function;
@@ -781,9 +803,6 @@ class Constructor extends Member {
 ///
 /// Procedures can have the static, abstract, and/or external modifier, although
 /// only the static and external modifiers may be used together.
-///
-/// For static non-external procedures, the name is cosmetic and may be `null`
-/// but keep that the name may show up in stack traces.
 ///
 /// For non-static procedures the name is required for dynamic dispatch.
 /// For external procedures the name is required for identifying the external

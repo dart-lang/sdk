@@ -113,11 +113,4 @@ class BinaryLoader implements BinaryReferenceLoader {
     var bytes = new File(filename).readAsBytesSync();
     return new BinaryBuilder(this, bytes, filename).readProgramFile();
   }
-
-  TreeNode loadProgramOrLibrary(String filename) {
-    var uri = repository.normalizePath(filename);
-    var bytes = new File(filename).readAsBytesSync();
-    return new BinaryBuilder(this, bytes, filename).readProgramOrLibraryFile(
-        () => repository.getLibraryReference(uri));
-  }
 }

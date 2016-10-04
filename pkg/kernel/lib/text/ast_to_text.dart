@@ -174,6 +174,7 @@ class Printer extends Visitor<Null> {
   ImportTable importTable;
   int indentation = 0;
   int column = 0;
+  bool showExternal;
 
   static int SPACE = 0;
   static int WORD = 1;
@@ -182,14 +183,16 @@ class Printer extends Visitor<Null> {
 
   Printer(this.sink,
       {NameSystem syntheticNames,
+      this.showExternal,
       this.importTable,
       this.annotator: const InferredValueAnnotator()})
-      : this.syntheticNames = syntheticNames ?? new NameSystem() {}
+      : this.syntheticNames = syntheticNames ?? new NameSystem();
 
   Printer._inner(Printer parent, this.importTable)
       : sink = parent.sink,
         syntheticNames = parent.syntheticNames,
-        annotator = parent.annotator;
+        annotator = parent.annotator,
+        showExternal = parent.showExternal;
 
   String getLibraryName(Library node) {
     return node.name ?? syntheticNames.nameLibrary(node);
@@ -300,12 +303,17 @@ class Printer extends Visitor<Null> {
   void writeProgramFile(Program program) {
     ImportTable imports = new ProgramImportTable(program);
     var inner = new Printer._inner(this, imports);
-    endLine('program;');
     writeWord('main');
     writeSpaced('=');
     inner.writeMemberReference(program.mainMethod);
     endLine(';');
     for (var library in program.libraries) {
+      if (library.isExternal) {
+        if (!showExternal) {
+          continue;
+        }
+        writeWord('external');
+      }
       writeWord('library');
       if (library.name != null) {
         writeWord(library.name);
@@ -318,9 +326,6 @@ class Printer extends Visitor<Null> {
       writeSpaced('as');
       writeWord(prefix);
       endLine(' {');
-      if (!library.isLoaded) {
-        inner.endLine('<library is not loaded>');
-      }
       ++inner.indentation;
       library.classes.forEach(inner.writeNode);
       library.fields.forEach(inner.writeNode);

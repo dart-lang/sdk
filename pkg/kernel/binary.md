@@ -92,26 +92,12 @@ type Something<T> extends Option<T> {
   T value;
 }
 
-type LibraryFile {
-  MagicWord magic = 0x12345678;
-  StringTable strings;
-  ImportTable imports;
-  Library library;
-}
-
 type ProgramFile {
   MagicWord magic = 0x90ABCDEF;
   StringTable strings;
   UriLineStarts lineStartsMap;
   List<Library> library;
   LibraryProcedureReference mainMethod;
-}
-
-type ImportTable {
-  // Relative paths to files containing other libraries.
-  // The first entry is always an empty string. Index 0 is used to refer to
-  // the library itself.
-  List<String> importPaths;
 }
 
 type LibraryReference {
@@ -181,6 +167,7 @@ type Name {
 }
 
 type Library {
+  Byte flags (isExternal);
   StringReference name;
   // A URI with the dart, package, or file scheme.  For file URIs, the path
   // is an absolute path to the .dart file from which the library was created.
@@ -196,11 +183,19 @@ abstract type Node {
   Byte tag;
 }
 
+// A class can be represented at one of three levels: type, hierarchy, or body.
+//
+// If the enclosing library is external, a class is either at type or
+// hierarchy level, depending on its isTypeLevel flag.
+// If the enclosing library is not external, a class is always at body level.
+//
+// See ClassLevel in ast.dart for the details of each loading level.
+
 abstract type Class extends Node {}
 
 type NormalClass extends Class {
   Byte tag = 2;
-  Byte flags (isAbstract);
+  Byte flags (isAbstract, isTypeLevel);
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;
@@ -215,7 +210,7 @@ type NormalClass extends Class {
 
 type MixinClass extends Class {
   Byte tag = 3;
-  Byte flags (isAbstract);
+  Byte flags (isAbstract, isTypeLevel);
   StringReference name;
   // An absolute path URI to the .dart file from which the class was created.
   UriReference fileUri;

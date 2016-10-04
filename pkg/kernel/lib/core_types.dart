@@ -84,7 +84,13 @@ class _LibraryIndex {
 
   Class require(String name) {
     Class result = classes[name];
-    if (result == null) throw 'Missing class $name from ${library.name}';
+    if (result == null) {
+      if (library.isExternal) {
+        throw 'Missing class $name from external library ${library.name}';
+      } else {
+        throw 'Missing class $name from ${library.name}';
+      }
+    }
     return result;
   }
 }

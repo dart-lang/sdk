@@ -88,14 +88,14 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
   program.accept(new checks.CheckParentPointers());
 
   if (format == 'text') {
-    writeProgramToText(program, output);
+    writeProgramToText(program, path: output);
   } else {
     assert(format == 'bin');
     await writeProgramToBinary(program, output);
   }
 
   if (verbose) {
-    writeLibraryToText(program.mainMethod.parent as Library, null);
+    writeLibraryToText(program.mainMethod.parent as Library);
   }
 
   return CompilerOutcome.Ok;

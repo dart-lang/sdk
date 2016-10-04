@@ -22,7 +22,7 @@ class Repository {
       : this.workingDirectory = workingDirectory ?? Directory.current.path;
 
   /// Get the [Library] object for the library addresesd by [path]; possibly
-  /// unloaded.
+  /// as an external library.
   ///
   /// The [path] may be a relative or absolute file path, or a URI string with a
   /// `dart:`, `package:` or `file:` scheme.
@@ -69,7 +69,7 @@ class Repository {
   }
 
   Library _buildLibraryReference(Uri uri) {
-    var library = new Library(uri)..isLoaded = false;
+    var library = new Library(uri, isExternal: true);
     libraries.add(library);
     return library;
   }

@@ -61,10 +61,9 @@ abstract class ReferenceLevelLoader {
 
 class DartLoader implements ReferenceLevelLoader {
   final Repository repository;
-  final LoadMap<ClassElement, ast.Class> _classes =
-      new LoadMap<ClassElement, ast.Class>();
-  final LoadMap<Element, ast.Member> _members =
-      new LoadMap<Element, ast.Member>();
+  final Bimap<ClassElement, ast.Class> _classes =
+      new Bimap<ClassElement, ast.Class>();
+  final Bimap<Element, ast.Member> _members = new Bimap<Element, ast.Member>();
   final Map<TypeParameterElement, ast.TypeParameter> _classTypeParameters =
       <TypeParameterElement, ast.TypeParameter>{};
   final Map<ast.Library, Map<String, ast.Class>> _mixinApplications =
@@ -73,6 +72,12 @@ class DartLoader implements ReferenceLevelLoader {
   LibraryElement _dartCoreLibrary;
   final List errors = [];
   final List libraryElements = [];
+
+  /// Classes that have been referenced, and must be promoted to type level
+  /// so as not to expose partially initialized classes.
+  final List<ast.Class> temporaryClassWorklist = [];
+
+  LibraryElement _libraryBeingLoaded = null;
 
   bool get strongMode => context.analysisOptions.strongMode;
 
@@ -85,45 +90,83 @@ class DartLoader implements ReferenceLevelLoader {
         .getLibraryElement(context.sourceFactory.forUri2(node.importUri));
   }
 
+  String getLibraryName(LibraryElement element) {
+    return element.name.isEmpty ? null : element.name;
+  }
+
   ast.Library getLibraryReference(LibraryElement element) {
     return repository.getLibraryReference(element.source.uri)
+      ..name ??= getLibraryName(element)
       ..fileUri = "file://${element.source.fullName}";
   }
 
-  ast.Library getLibraryBody(LibraryElement element) {
-    var library = getLibraryReference(element);
-    if (!library.isLoaded) {
-      _buildLibraryBody(element, library);
-    }
-    return library;
+  void _buildTopLevelMember(ast.Member member, Element element) {
+    var astNode = element.computeNode();
+    assert(member.parent != null);
+    new MemberBodyBuilder(this, member, element).build(astNode);
+  }
+
+  /// True if [element] is in the process of being loaded by
+  /// [_buildLibraryBody].
+  ///
+  /// If this is the case, we should avoid adding new members to the classes
+  /// in the library, since the AST builder will rebuild the member lists.
+  bool isLibraryBeingLoaded(LibraryElement element) {
+    return _libraryBeingLoaded == element;
   }
 
   void _buildLibraryBody(LibraryElement element, ast.Library library) {
-    library.name = element.name.isEmpty ? null : element.name;
-    _mixinApplications[library] = <String, ast.Class>{};
+    assert(_libraryBeingLoaded == null);
+    _libraryBeingLoaded = element;
+    var classes = <ast.Class>[];
+    var procedures = <ast.Procedure>[];
+    var fields = <ast.Field>[];
+    void loadClass(ClassElement classElement) {
+      var node = getClassReference(classElement);
+      promoteToBodyLevel(node);
+      classes.add(node);
+    }
+    void loadProcedure(Element memberElement) {
+      var node = getMemberReference(memberElement);
+      _buildTopLevelMember(node, memberElement);
+      procedures.add(node);
+    }
+    void loadField(Element memberElement) {
+      var node = getMemberReference(memberElement);
+      _buildTopLevelMember(node, memberElement);
+      fields.add(node);
+    }
     for (var unit in element.units) {
-      for (var type in unit.types) {
-        library.addClass(getClassReference(type));
-      }
-      for (var type in unit.enums) {
-        library.addClass(getClassReference(type));
-      }
+      unit.types.forEach(loadClass);
+      unit.enums.forEach(loadClass);
       for (var accessor in unit.accessors) {
         if (!accessor.isSynthetic) {
-          library.addMember(getMemberReference(accessor));
+          loadProcedure(accessor);
         }
       }
       for (var function in unit.functions) {
-        library.addMember(getMemberReference(function));
+        loadProcedure(function);
       }
       for (var field in unit.topLevelVariables) {
         if (!field.isSynthetic) {
-          library.addMember(getMemberReference(field));
+          loadField(field);
         }
       }
     }
     libraryElements.add(element);
-    library.isLoaded = true;
+    _iterateWorklist();
+    // Ensure everything is stored in the original declaration order.
+    library.classes
+      ..clear()
+      ..addAll(classes)
+      ..addAll(_mixinApplications[library]?.values ?? const []);
+    library.fields
+      ..clear()
+      ..addAll(fields);
+    library.procedures
+      ..clear()
+      ..addAll(procedures);
+    _libraryBeingLoaded = null;
   }
 
   LibraryElement getDartCoreLibrary() {
@@ -169,38 +212,117 @@ class DartLoader implements ReferenceLevelLoader {
     return _classes.inverse[node];
   }
 
+  /// Returns the IR for a class, at a temporary loading level.
+  ///
+  /// The returned class has the correct name, flags, type parameter arity,
+  /// and enclosing library.
   ast.Class getClassReference(ClassElement element) {
-    return _classes.getReference(element, _buildClassReference);
-  }
-
-  ast.Class _buildClassReference(ClassElement element) {
-    var classNode = new ast.Class(
-        name: element.name,
-        isAbstract: element.isAbstract,
+    var classNode = _classes[element];
+    if (classNode != null) return classNode;
+    _classes[element] = classNode =
+        new ast.Class(name: element.name, isAbstract: element.isAbstract,
         fileUri: "file://${element.source.fullName}");
-    for (TypeParameterElement parameter in element.typeParameters) {
+    classNode.level = ast.ClassLevel.Temporary;
+    var library = getLibraryReference(element.library);
+    library.addClass(classNode);
+    // Initialize type parameter list without bounds.
+    for (var parameter in element.typeParameters) {
       var parameterNode = new ast.TypeParameter(parameter.name);
       _classTypeParameters[parameter] = parameterNode;
       classNode.typeParameters.add(parameterNode);
       parameterNode.parent = classNode;
     }
+    // Ensure the class is at least promoted to type level before exposing it
+    // to kernel consumers.
+    temporaryClassWorklist.add(classNode);
     return classNode;
   }
 
-  ast.Class getClassBody(ClassElement element) {
-    var classNode = getClassReference(element);
-    if (_classes.level[classNode] == LoadingLevel.Reference) {
-      _buildClassBody(element, classNode);
+  /// Ensures the supertypes and type parameter bounds have been generated for
+  /// the given class.
+  void promoteToTypeLevel(ast.Class classNode) {
+    if (classNode.level.index >= ast.ClassLevel.Type.index) return;
+    classNode.level = ast.ClassLevel.Type;
+    var element = getClassElement(classNode);
+    assert(element != null);
+    var library = getLibraryReference(element.library);
+    var scope = new ClassScope(this, library);
+    // Initialize bounds on type parameters.
+    for (int i = 0; i < classNode.typeParameters.length; ++i) {
+      var parameter = element.typeParameters[i];
+      var parameterNode = classNode.typeParameters[i];
+      parameterNode.bound = parameter.bound == null
+          ? const ast.DynamicType()
+          : scope.buildType(parameter.bound);
     }
-    return classNode;
+    // Initialize supertypes.
+    Iterable<InterfaceType> mixins = element.mixins;
+    if (element.isMixinApplication && mixins.isNotEmpty) {
+      var last = scope.buildType(mixins.last);
+      if (last is ast.InterfaceType) {
+        classNode.mixedInType = last;
+      }
+      mixins = mixins.take(mixins.length - 1);
+    }
+    if (element.supertype != null) {
+      ast.InterfaceType supertype = scope.buildType(element.supertype);
+      for (var mixin in mixins) {
+        var mixinType = scope.buildType(mixin);
+        if (mixinType is ast.InterfaceType) {
+          var mixinClass = getMixinApplicationClass(
+              library, supertype.classNode, mixinType.classNode);
+          var typeArguments = <ast.DartType>[]
+            ..addAll(supertype.typeArguments)
+            ..addAll(mixinType.typeArguments);
+          supertype = new ast.InterfaceType(mixinClass, typeArguments);
+        }
+      }
+      classNode.supertype = supertype;
+      for (var implementedType in element.interfaces) {
+        classNode.implementedTypes.add(scope.buildType(implementedType));
+      }
+    }
   }
 
-  void _buildClassBody(ClassElement element, ast.Class classNode) {
-    // Ensure that the enclosing library is loaded first.
-    var library = getLibraryBody(element.library);
-    assert(classNode.enclosingLibrary == library);
-    new ClassBodyBuilder(this, classNode, element).build(element.computeNode());
-    _classes.level[classNode] = LoadingLevel.Body;
+  void promoteToHierarchyLevel(ast.Class classNode) {
+    if (classNode.level.index >= ast.ClassLevel.Hierarchy.index) return;
+    promoteToTypeLevel(classNode);
+    classNode.level = ast.ClassLevel.Hierarchy;
+    var element = getClassElement(classNode);
+    if (element != null) {
+      // Ensure all instance members are at present.
+      for (var field in element.fields) {
+        if (!field.isStatic && !field.isSynthetic) {
+          getMemberReference(field);
+        }
+      }
+      for (var accessor in element.accessors) {
+        if (!accessor.isStatic && !accessor.isSynthetic) {
+          getMemberReference(accessor);
+        }
+      }
+      for (var method in element.methods) {
+        if (!method.isStatic && !method.isSynthetic) {
+          getMemberReference(method);
+        }
+      }
+    }
+    for (var supertype in classNode.supers) {
+      promoteToHierarchyLevel(supertype.classNode);
+    }
+  }
+
+  void promoteToBodyLevel(ast.Class classNode) {
+    if (classNode.level == ast.ClassLevel.Body) return;
+    promoteToHierarchyLevel(classNode);
+    classNode.level = ast.ClassLevel.Body;
+    var element = getClassElement(classNode);
+    if (element == null) return;
+    var astNode = element.computeNode();
+    // Clear out the member references that were put in the class.
+    // The AST builder will load them all put back in the right order.
+    classNode..fields.clear()..procedures.clear()..constructors.clear();
+    new ClassBodyBuilder(this, classNode, element).build(astNode);
   }
 
   ast.TypeParameter tryGetClassTypeParameter(TypeParameterElement element) {
@@ -212,24 +334,57 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   ast.Member getMemberReference(Element element) {
-    return _members.getReference(element, _buildMemberReference);
+    assert(element is! Member); // Use the "base element".
+    return _members[element] ??= _buildMemberReference(element);
   }
 
   ast.Member _buildMemberReference(Element element) {
-    assert(element is! Member); // Use the "base element".
+    var node = _buildOrphanedMemberReference(element);
+    // Set the parent pointer and store it in the enclosing class or library.
+    // If the enclosing library is being built from the AST, do not add the
+    // member, since the AST builder will put it in there.
+    var parent = element.enclosingElement;
+    if (parent is ClassElement) {
+      var class_ = getClassReference(parent);
+      node.parent = class_;
+      if (!isLibraryBeingLoaded(element.library)) {
+        class_.addMember(node);
+      }
+    } else {
+      var library = getLibraryReference(element.library);
+      node.parent = library;
+      if (!isLibraryBeingLoaded(element.library)) {
+        library.addMember(node);
+      }
+    }
+    return node;
+  }
+
+  ast.Member _buildOrphanedMemberReference(Element element) {
+    ClassElement classElement = element.enclosingElement is ClassElement
+        ? element.enclosingElement
+        : null;
+    TypeScope scope = classElement != null
+        ? new ClassScope(this, getLibraryReference(element.library))
+        : new TypeScope(this);
+    if (classElement != null) {
+      getClassReference(classElement);
+    }
     switch (element.kind) {
       case ElementKind.CONSTRUCTOR:
         ConstructorElement constructor = element;
         if (constructor.isFactory) {
           return new ast.Procedure(
-              _nameOfMember(constructor), ast.ProcedureKind.Factory, null,
+              _nameOfMember(constructor),
+              ast.ProcedureKind.Factory,
+              scope.buildFunctionInterface(constructor),
               isAbstract: false,
               isStatic: true,
               isExternal: constructor.isExternal,
               isConst: constructor.isConst,
               fileUri: "file://${element.source.fullName}");
         }
-        return new ast.Constructor(null,
+        return new ast.Constructor(scope.buildFunctionInterface(constructor),
             name: _nameOfMember(element),
             isConst: constructor.isConst,
             isExternal: constructor.isExternal);
@@ -241,6 +396,7 @@ class DartLoader implements ReferenceLevelLoader {
             isStatic: variable.isStatic,
             isFinal: variable.isFinal,
             isConst: variable.isConst,
+            type: scope.buildType(variable.type),
             fileUri: "file://${element.source.fullName}")
           ..fileOffset = element.nameOffset;
 
@@ -255,7 +411,9 @@ class DartLoader implements ReferenceLevelLoader {
         }
         ExecutableElement executable = element;
         return new ast.Procedure(
-            _nameOfMember(element), _procedureKindOf(executable), null,
+            _nameOfMember(element),
+            _procedureKindOf(executable),
+            scope.buildFunctionInterface(executable),
             isAbstract: executable.isAbstract,
             isStatic: executable.isStatic,
             isExternal: executable.isExternal,
@@ -264,29 +422,6 @@ class DartLoader implements ReferenceLevelLoader {
       default:
         throw 'Unexpected member kind: $element';
     }
-  }
-
-  ast.Member getMemberBody(Element element) {
-    var member = getMemberReference(element);
-    if (_members.level[member] == LoadingLevel.Reference) {
-      _buildMemberBody(element, member);
-    }
-    return member;
-  }
-
-  void _buildMemberBody(Element element, ast.Member member) {
-    // Ensure the enclosing library and class are loaded.
-    var libraryNode = getLibraryBody(element.library);
-    var enclosing = element.enclosingElement;
-    if (enclosing is ClassElement) {
-      var classNode = getClassBody(enclosing);
-      assert(classNode.parent == libraryNode);
-      assert(member.parent == classNode);
-    } else {
-      assert(member.parent == libraryNode);
-    }
-    new MemberBodyBuilder(this, member, element).build(element.computeNode());
-    _members.level[member] = LoadingLevel.Body;
   }
 
   ast.ProcedureKind _procedureKindOf(ExecutableElement element) {
@@ -326,7 +461,9 @@ class DartLoader implements ReferenceLevelLoader {
     //   (A with B) with C
     //   A with (B with C)
     String name = '${superclass.name}&${mixedInClass.name}';
-    return _mixinApplications[library].putIfAbsent(name, () {
+    return _mixinApplications
+        .putIfAbsent(library, () => <String, ast.Class>{})
+        .putIfAbsent(name, () {
       List<ast.TypeParameter> typeParameters = <ast.TypeParameter>[];
       ast.InterfaceType makeSuper(ast.Class class_) {
         if (class_.typeParameters.isEmpty) return class_.rawType;
@@ -334,9 +471,8 @@ class DartLoader implements ReferenceLevelLoader {
         // including its bounds.  We handle two cases separately:
         //
         //   1. The super class is derived from a ClassElement.
-        //      At this point, the IR node can only be assumed to be loaded as
-        //      a reference, meaning its type parameter bound are not yet
-        //      initialized.
+        //      At this point, the IR node cannot be assumed to have its type
+        //      parameter bounds initialized.
         //      Build the type parameters based on the element model.
         //
         //   2. The super class is a mixin application previously created here.
@@ -377,6 +513,7 @@ class DartLoader implements ReferenceLevelLoader {
           supertype: supertype,
           mixedInType: mixedInType,
           fileUri: mixedInClass.fileUri);
+      result.level = ast.ClassLevel.Type;
       library.addClass(result);
       return result;
     });
@@ -391,7 +528,8 @@ class DartLoader implements ReferenceLevelLoader {
   }
 
   void ensureLibraryIsLoaded(ast.Library node) {
-    if (node.isLoaded) return;
+    if (!node.isExternal) return;
+    node.isExternal = false;
     var source = context.sourceFactory.forUri2(node.importUri);
     assert(source != null);
     var element = context.computeLibraryElement(source);
@@ -428,22 +566,8 @@ class DartLoader implements ReferenceLevelLoader {
         ensureLibraryIsLoaded(getLibraryReference(library));
       }
     }
-    int libraryIndex = 0;
-    bool changed = true;
-    while (changed) {
-      changed = false;
-      while (libraryIndex < repository.libraries.length) {
-        ensureLibraryIsLoaded(repository.libraries[libraryIndex]);
-        ++libraryIndex;
-      }
-      while (_classes.referencedNodes.isNotEmpty) {
-        getClassBody(_classes.referencedNodes.removeLast());
-        changed = true;
-      }
-      while (_members.referencedNodes.isNotEmpty) {
-        getMemberBody(_members.referencedNodes.removeLast());
-        changed = true;
-      }
+    for (int i = 0; i < repository.libraries.length; ++i) {
+      ensureLibraryIsLoaded(repository.libraries[i]);
     }
   }
 
@@ -460,6 +584,13 @@ class DartLoader implements ReferenceLevelLoader {
       }
     }
     return list;
+  }
+
+  void _iterateWorklist() {
+    while (temporaryClassWorklist.isNotEmpty) {
+      var element = temporaryClassWorklist.removeLast();
+      promoteToTypeLevel(element);
+    }
   }
 
   ast.Program loadProgram(String mainLibrary, {Target target}) {
@@ -491,35 +622,18 @@ class DartLoader implements ReferenceLevelLoader {
   }
 }
 
-enum LoadingLevel {
-  /// A library, member, or class whose object has been created so it can
-  /// be referenced, but its contents have not been completely initialized.
-  ///
-  /// Classes contain their name and type parameter arity.
-  ///
-  /// Members contain their name and modifiers (abstract, static, etc).
-  ///
-  /// At this level, a class may be used in an [ast.InterfaceType].
-  Reference,
-
-  /// Everything is loaded.
-  Body,
-}
-
-class LoadMap<K, V> {
+class Bimap<K, V> {
   final Map<K, V> nodeMap = <K, V>{};
   final Map<V, K> inverse = <V, K>{};
-  final Map<V, LoadingLevel> level = <V, LoadingLevel>{};
-  final List<K> referencedNodes = <K>[];
 
-  V getReference(K key, V build(K key)) {
-    return nodeMap.putIfAbsent(key, () {
-      var result = build(key);
-      referencedNodes.add(key);
-      level[result] = LoadingLevel.Reference;
-      inverse[result] = key;
-      return result;
-    });
+  bool containsKey(K key) => nodeMap.containsKey(key);
+
+  V operator [](K key) => nodeMap[key];
+
+  void operator []=(K key, V value) {
+    assert(!nodeMap.containsKey(key));
+    nodeMap[key] = value;
+    inverse[value] = key;
   }
 }
 
@@ -540,7 +654,7 @@ class DartLoaderBatch {
         lastStrongMode != options.strongMode) {
       lastSdk = options.sdk;
       lastStrongMode = options.strongMode;
-      dartSdk = createDartSdk(options.sdk, options.strongMode);
+      dartSdk = createDartSdk(options.sdk, strongMode: options.strongMode);
     }
     if (packages == null ||
         lastPackagePath != options.packagePath ||
@@ -582,7 +696,7 @@ AnalysisOptions createAnalysisOptions(bool strongMode) {
     ..enableSuperMixins = true;
 }
 
-DartSdk createDartSdk(String path, bool strongMode) {
+DartSdk createDartSdk(String path, {bool strongMode}) {
   var resources = PhysicalResourceProvider.INSTANCE;
   return new FolderBasedDartSdk(resources, resources.getFolder(path))
     ..context
@@ -625,7 +739,7 @@ class CustomUriResolver extends UriResolver {
 
 AnalysisContext createContext(DartOptions options, Packages packages,
     {DartSdk dartSdk}) {
-  dartSdk ??= createDartSdk(options.sdk, options.strongMode);
+  dartSdk ??= createDartSdk(options.sdk, strongMode: options.strongMode);
 
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var resourceUriResolver = new ResourceUriResolver(resourceProvider);

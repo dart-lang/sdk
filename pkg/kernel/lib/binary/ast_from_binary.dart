@@ -170,53 +170,12 @@ class BinaryBuilder {
     }
   }
 
-  TreeNode readProgramOrLibraryFile(Library makeLibrary()) {
-    int magic = readMagicWord();
-    switch (magic) {
-      case Tag.LibraryFile:
-        var library = makeLibrary();
-        readUntaggedLibraryFile(library);
-        return library;
-      case Tag.ProgramFile:
-        return readUntaggedProgramFile();
-      default:
-        throw fail('This is not a binary dart file. '
-            'Magic number was: ${magic.toRadixString(16)}');
-    }
-  }
-
-  void readLibraryFile(Library library) {
-    int magic = readMagicWord();
-    if (magic != Tag.LibraryFile) {
-      if (magic == Tag.ProgramFile) {
-        throw fail('This is a program file, not a library.');
-      }
-      throw fail('This is not a binary dart file. '
-          'Magic number was: ${magic.toRadixString(16)}');
-    }
-    readUntaggedLibraryFile(library);
-  }
-
-  void readUntaggedLibraryFile(Library library) {
-    this._currentLibrary = library;
-    readStringTable();
-    readImportTable();
-    readLibrary();
-  }
-
   Program readProgramFile() {
     int magic = readMagicWord();
     if (magic != Tag.ProgramFile) {
-      if (magic == Tag.LibraryFile) {
-        throw fail('This is a library file, not a program.');
-      }
       throw fail('This is not a binary dart file. '
           'Magic number was: ${magic.toRadixString(16)}');
     }
-    return readUntaggedProgramFile();
-  }
-
-  Program readUntaggedProgramFile() {
     readStringTable();
     Map<String, List<int>> uriToLineStarts = readUriToLineStarts();
     importTable.length = readUInt();
@@ -227,7 +186,7 @@ class BinaryBuilder {
       _currentLibrary = importTable[i];
       readLibrary();
     }
-    var mainMethod = readMemberReference();
+    var mainMethod = readMemberReference(allowNull: true);
     return new Program(importTable, uriToLineStarts)..mainMethod = mainMethod;
   }
 
@@ -248,22 +207,6 @@ class BinaryBuilder {
       uriToLineStarts[uri] = lineStarts;
     }
     return uriToLineStarts;
-  }
-
-  void readImportTable() {
-    importTable.length = readUInt();
-    if (importTable.isEmpty) {
-      throw fail('File must contain at least one import (the self reference)');
-    }
-    String self = readStringReference();
-    if (!self.isEmpty) {
-      throw fail('First import must be empty (the self reference)');
-    }
-    importTable[0] = _currentLibrary;
-    for (int i = 1; i < importTable.length; ++i) {
-      var importPath = readStringReference();
-      importTable[i] = loader.getLibraryReference(_currentLibrary, importPath);
-    }
   }
 
   void _fillLazilyLoadedList(
@@ -336,6 +279,8 @@ class BinaryBuilder {
   }
 
   void readLibrary() {
+    int flags = readByte();
+    _currentLibrary.isExternal = (flags & 0x1) != 0;
     _currentLibrary.name = readStringOrNullIfEmpty();
     _currentLibrary.importUri = readImportUri();
     debugPath.add(_currentLibrary.name ??
@@ -376,6 +321,9 @@ class BinaryBuilder {
   void readNormalClass(Class node) {
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
+    node.level = _currentLibrary.isExternal
+        ? (flags & 0x2 != 0) ? ClassLevel.Type : ClassLevel.Hierarchy
+        : ClassLevel.Body;
     node.name = readStringOrNullIfEmpty();
     node.fileUri = readUriReference();
     node.annotations = readAnnotationList(node);
@@ -399,6 +347,9 @@ class BinaryBuilder {
   void readMixinClass(Class node) {
     int flags = readByte();
     node.isAbstract = flags & 0x1 != 0;
+    node.level = _currentLibrary.isExternal
+        ? (flags & 0x2 != 0) ? ClassLevel.Type : ClassLevel.Hierarchy
+        : ClassLevel.Body;
     node.name = readStringOrNullIfEmpty();
     node.fileUri = readUriReference();
     node.annotations = readAnnotationList(node);

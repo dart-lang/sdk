@@ -7,5 +7,5 @@ import 'package:kernel/kernel.dart';
 
 main(args) {
   var binary = loadProgramFromBinary(args[0]);
-  writeProgramToText(binary, args[1]);
+  writeProgramToText(binary, path: args[1]);
 }

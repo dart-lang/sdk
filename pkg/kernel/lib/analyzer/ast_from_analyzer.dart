@@ -17,7 +17,8 @@ import 'package:analyzer/src/generated/parser.dart';
 /// Provides reference-level access to libraries, classes, and members.
 ///
 /// "Reference level" objects are incomplete nodes that have no children but
-/// can be used for linking until the loader upgrades the node to "body level".
+/// can be used for linking until the loader promotes the node to a higher
+/// loading level.
 ///
 /// The [ReferenceScope] is the most restrictive scope in a hierarchy of scopes
 /// that provide increasing amounts of contextual information.  [TypeScope] is
@@ -399,10 +400,57 @@ class TypeScope extends ReferenceScope {
     }
     return null;
   }
+
+  ast.FunctionNode buildFunctionInterface(FunctionTypedElement element) {
+    var positional = <ast.VariableDeclaration>[];
+    var named = <ast.VariableDeclaration>[];
+    int requiredParameterCount = 0;
+    // Initialize type parameters in two passes: put them into scope,
+    // and compute the bounds afterwards while they are all in scope.
+    var typeParameters = <ast.TypeParameter>[];
+    for (var parameter in element.typeParameters) {
+      var parameterNode = new ast.TypeParameter(parameter.name);
+      typeParameters.add(parameterNode);
+      localTypeParameters[parameter] = parameterNode;
+    }
+    for (int i = 0; i < typeParameters.length; ++i) {
+      var parameter = element.typeParameters[i];
+      var parameterNode = typeParameters[i];
+      parameterNode.bound = parameter.bound == null
+          ? const ast.DynamicType()
+          : buildType(parameter.bound);
+    }
+    for (var parameter in element.parameters) {
+      var parameterNode = new ast.VariableDeclaration(parameter.name,
+          type: buildType(parameter.type));
+      switch (parameter.parameterKind) {
+        case ParameterKind.REQUIRED:
+          positional.add(parameterNode);
+          ++requiredParameterCount;
+          break;
+
+        case ParameterKind.POSITIONAL:
+          positional.add(parameterNode);
+          break;
+
+        case ParameterKind.NAMED:
+          named.add(parameterNode);
+          break;
+      }
+    }
+    var returnType = element is ConstructorElement
+        ? const ast.VoidType()
+        : buildType(element.returnType);
+    return new ast.FunctionNode(null,
+        typeParameters: typeParameters,
+        positionalParameters: positional,
+        namedParameters: named,
+        requiredParameterCount: requiredParameterCount,
+        returnType: returnType);
+  }
 }
 
 class ExpressionScope extends TypeScope {
-  /// The library containing the code, currently at body level.
   ast.Library currentLibrary;
   final Map<LocalElement, ast.VariableDeclaration> localVariables =
       <LocalElement, ast.VariableDeclaration>{};
@@ -412,6 +460,7 @@ class ExpressionScope extends TypeScope {
 
   ExpressionScope(ReferenceLevelLoader loader, this.currentLibrary)
       : super(loader) {
+    assert(currentLibrary != null);
     _expressionBuilder = new ExpressionBuilder(this);
     _statementBuilder = new StatementBuilder(this);
   }
@@ -462,6 +511,8 @@ class ExpressionScope extends TypeScope {
       {TypeName returnType,
       List<ast.TypeParameter> typeParameters,
       ast.DartType inferredReturnType}) {
+    // TODO(asgerf): This will in many cases rebuild the interface built by
+    //   TypeScope.buildFunctionInterface.
     var positional = <ast.VariableDeclaration>[];
     var named = <ast.VariableDeclaration>[];
     int requiredParameterCount = 0;
@@ -2208,9 +2259,7 @@ class InitializerBuilder extends GeneralizingAstVisitor<ast.Initializer> {
   }
 }
 
-/// Brings a class from reference level to body level.
-///
-/// The enclosing library is assumed to be at body level already.
+/// Brings a class from hierarchy level to body level.
 //
 // TODO(asgerf): Error recovery during class construction is currently handled
 //   locally, but this can in theory break global invariants in the kernel IR.
@@ -2255,80 +2304,34 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     }
   }
 
-  void addTypeParameterBounds(TypeParameterList typeParameters) {
-    if (typeParameters == null) return;
-    int index = 0;
-    for (var typeParameter in typeParameters.typeParameters) {
-      if (typeParameter.bound != null) {
-        currentClass.typeParameters[index].bound =
-            scope.buildTypeAnnotation(typeParameter.bound);
-      }
-      ++index;
-    }
-  }
-
-  void addImplementedClasses(ImplementsClause implementsClause) {
-    if (implementsClause == null) return;
-    for (var type in implementsClause.interfaces) {
-      ast.DartType typeNode = scope.buildTypeAnnotation(type);
-      if (typeNode is! ast.InterfaceType) {
-        log.warning('Invalid implemented type: $type in ${scope.location}');
-      } else {
-        currentClass.implementedTypes.add(typeNode);
-      }
-    }
-  }
-
-  ast.InterfaceType buildMixinType(
-      ast.InterfaceType baseType, Iterable<ast.DartType> mixins) {
-    var result = baseType;
-    for (var mixin in mixins) {
-      if (mixin is! ast.InterfaceType) {
-        log.warning('Invalid mixin application in ${scope.location}');
-        return result;
-      }
-      var mixinClass = scope.loader.getMixinApplicationClass(
-          scope.currentLibrary, result.classNode, mixin.classNode);
-      var typeArguments = <ast.DartType>[]
-        ..addAll(result.typeArguments)
-        ..addAll(mixin.typeArguments);
-      result = new ast.InterfaceType(mixinClass, typeArguments);
-    }
-    return result;
+  void _buildMemberBody(ast.Member member, Element element, AstNode node) {
+    new MemberBodyBuilder(scope.loader, member, element).build(node);
   }
 
   visitClassDeclaration(ClassDeclaration node) {
     addAnnotations(node.metadata);
     ast.Class classNode = currentClass;
-    addTypeParameterBounds(node.typeParameters);
-    // Build the super class reference and expand the 'with' clause into
-    // separate mixin classes.
-    bool isRootClass = node.element.supertype == null;
-    if (!isRootClass) {
-      ast.DartType superclass =
-          scope.buildOptionalTypeAnnotation(node.extendsClause?.superclass) ??
-              scope.getRootClassReference().rawType;
-      if (superclass is! ast.InterfaceType) {
-        classNode.supertype = scope.getRootClassReference().rawType;
-      } else {
-        if (node.withClause != null) {
-          superclass = buildMixinType(superclass,
-              node.withClause.mixinTypes.map(scope.buildTypeAnnotation));
-        }
-        classNode.supertype = superclass;
-      }
-    }
-    addImplementedClasses(node.implementsClause);
+    assert(classNode.members.isEmpty); // All members will be added here.
+
+    bool foundConstructor = false;
     for (var member in node.members) {
       if (member is FieldDeclaration) {
         for (var variable in member.fields.variables) {
-          classNode.addMember(scope.getMemberReference(variable.element));
+          var field = scope.getMemberReference(variable.element);
+          classNode.addMember(field);
+          _buildMemberBody(field, variable.element, variable);
         }
       } else {
-        classNode.addMember(scope.getMemberReference(member.element));
+        var memberNode = scope.getMemberReference(member.element);
+        classNode.addMember(memberNode);
+        _buildMemberBody(memberNode, member.element, member);
+        if (member is ConstructorDeclaration) {
+          foundConstructor = true;
+        }
       }
     }
-    if (classNode.constructors.isEmpty) {
+
+    if (!foundConstructor) {
       var defaultConstructor = scope.findDefaultConstructor(node.element);
       if (defaultConstructor != null) {
         assert(defaultConstructor.enclosingElement == node.element);
@@ -2336,7 +2339,35 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
           throw 'Non-synthetic default constructor not in list of members. '
               '${node} $element $defaultConstructor';
         }
-        classNode.addMember(scope.getMemberReference(defaultConstructor));
+        var memberNode = scope.getMemberReference(defaultConstructor);
+        classNode.addMember(memberNode);
+        buildDefaultConstructor(memberNode, defaultConstructor);
+      }
+    }
+  }
+
+  void buildDefaultConstructor(
+      ast.Constructor constructor, ConstructorElement element) {
+    var function = constructor.function;
+    function.body = new ast.EmptyStatement()..parent = function;
+    var class_ = element.enclosingElement;
+    if (class_.supertype != null) {
+      // DESIGN TODO: If the super class is a mixin application, we will link to
+      // a constructor not in the immediate super class.  This is a problem due
+      // to the fact that mixed-in fields come with initializers which need to
+      // be executed by a constructor.  The mixin transformer takes care of
+      // this by making forwarding constructors and the super initializers will
+      // be rewritten to use them (see `transformations/mixin_full_resolution`).
+      var superConstructor =
+          scope.findDefaultConstructor(class_.supertype.element);
+      var target = scope.resolveConstructor(superConstructor);
+      if (target == null) {
+        constructor.initializers
+            .add(new ast.InvalidInitializer()..parent = constructor);
+      } else {
+        var arguments = new ast.Arguments.empty();
+        constructor.initializers.add(
+            new ast.SuperInitializer(target, arguments)..parent = constructor);
       }
     }
   }
@@ -2350,7 +2381,6 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   visitEnumDeclaration(EnumDeclaration node) {
     addAnnotations(node.metadata);
     ast.Class classNode = currentClass;
-    classNode.supertype = new ast.InterfaceType(scope.getRootClassReference());
     var intType =
         new ast.InterfaceType(scope.loader.getCoreClassReference('int'));
     var indexFieldElement = element.fields.firstWhere(_isIndexField);
@@ -2399,25 +2429,31 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     addAnnotations(node.metadata);
     assert(node.withClause != null && node.withClause.mixinTypes.isNotEmpty);
     ast.Class classNode = currentClass;
-    addTypeParameterBounds(node.typeParameters);
-    var baseType = scope.buildTypeAnnotation(node.superclass);
-    if (node.withClause != null) {
-      var mixins = node.withClause.mixinTypes.map(scope.buildTypeAnnotation);
-      classNode.supertype =
-          buildMixinType(baseType, mixins.take(mixins.length - 1));
-      classNode.mixedInType = mixins.last is ast.InterfaceType
-          ? mixins.last
-          : scope.getRootClassReference().rawType;
-    } else {
-      classNode.supertype = baseType;
-      classNode.mixedInType = scope.getRootClassReference().rawType;
-    }
-    addImplementedClasses(node.implementsClause);
-    ClassElement element = node.element;
-    assert(element.isMixinApplication);
     for (var constructor in element.constructors) {
-      classNode.addMember(scope.getMemberReference(constructor));
+      var constructorNode = scope.getMemberReference(constructor);
+      classNode.addMember(constructorNode);
+      buildMixinConstructor(constructorNode, constructor);
     }
+  }
+
+  void buildMixinConstructor(
+      ast.Constructor constructor, ConstructorElement element) {
+    var function = constructor.function;
+    function.body = new ast.EmptyStatement()..parent = function;
+    // Call the corresponding constructor in super class.
+    ClassElement classElement = element.enclosingElement;
+    var targetConstructor = classElement.supertype.element.constructors
+        .firstWhere((c) => c.name == element.name);
+    var positionalArguments = constructor.function.positionalParameters
+        .map(_makeVariableGet)
+        .toList();
+    var namedArguments = constructor.function.namedParameters
+        .map(_makeNamedExpressionFrom)
+        .toList();
+    constructor.initializers.add(new ast.SuperInitializer(
+        scope.getMemberReference(targetConstructor),
+        new ast.Arguments(positionalArguments, named: namedArguments))
+      ..parent = constructor);
   }
 
   visitNode(AstNode node) {
@@ -2426,8 +2462,6 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
 }
 
 /// Brings a member from reference level to body level.
-///
-/// The enclosing library and class are assumed to be at body level already.
 class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
   final MemberScope scope;
   final Element element;
@@ -2437,31 +2471,12 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       ReferenceLevelLoader loader, ast.Member member, this.element)
       : scope = new MemberScope(loader, member);
 
-  static bool _isClassElement(Element element) {
-    return element is ClassElement;
-  }
-
   void build(AstNode node) {
     if (node != null) {
       node.accept(this);
-      return;
+    } else {
+      buildBrokenMember();
     }
-    Element element = this.element; // Allow type promotion.
-    ClassElement enclosingClass = element.getAncestor(_isClassElement);
-    if (element is ConstructorElement && enclosingClass.isMixinApplication) {
-      buildMixinConstructor(element);
-      return;
-    }
-    if (element is ConstructorElement && element.isDefaultConstructor) {
-      buildDefaultConstructor(element);
-      return;
-    }
-    if (enclosingClass != null &&
-        enclosingClass.isEnum &&
-        element.name == 'values') {
-      return; // Built when enclosing enum class is built.
-    }
-    buildBrokenMember();
   }
 
   /// Builds an empty member.
@@ -2477,76 +2492,6 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       member.function = new ast.FunctionNode(new ast.InvalidStatement())
         ..parent = member;
     }
-  }
-
-  void buildDefaultConstructor(ConstructorElement element) {
-    ast.Constructor constructor = currentMember;
-    constructor.function = new ast.FunctionNode(new ast.EmptyStatement(),
-        returnType: const ast.VoidType())..parent = constructor;
-    var class_ = element.enclosingElement;
-    if (class_.supertype != null) {
-      // DESIGN TODO: If the super class is a mixin application, we will link to
-      // a constructor not in the immediate super class.  This is a problem due
-      // to the fact that mixed-in fields come with initializers which need to
-      // be executed by a constructor.  The mixin transformer takes care of
-      // this by making forwarding constructors and the super initializers will
-      // be rewritten to use them (see `transformations/mixin_full_resolution`).
-      var superConstructor =
-          scope.findDefaultConstructor(class_.supertype.element);
-      var target = scope.resolveConstructor(superConstructor);
-      if (target == null) {
-        constructor.initializers
-            .add(new ast.InvalidInitializer()..parent = constructor);
-      } else {
-        var arguments = new ast.Arguments.empty();
-        constructor.initializers.add(
-            new ast.SuperInitializer(target, arguments)..parent = constructor);
-      }
-    }
-  }
-
-  void buildMixinConstructor(ConstructorElement element) {
-    ast.Constructor constructor = currentMember;
-    ClassElement classElement = element.enclosingElement;
-    // Find corresponding constructor in super class.
-    var targetConstructor = classElement.supertype.element.constructors
-        .firstWhere((c) => c.name == element.name);
-    var positionalParameters = <ast.VariableDeclaration>[];
-    var namedParameters = <ast.VariableDeclaration>[];
-    var positionalArguments = <ast.Expression>[];
-    var namedArguments = <ast.NamedExpression>[];
-    int requiredParameterCount = 0;
-    for (var parameter in element.parameters) {
-      var variable = new ast.VariableDeclaration(parameter.name,
-          type: scope.getInferredVariableType(parameter));
-      var argument = new ast.VariableGet(variable);
-      switch (parameter.parameterKind) {
-        case ParameterKind.REQUIRED:
-          ++requiredParameterCount;
-          positionalParameters.add(variable);
-          positionalArguments.add(argument);
-          break;
-
-        case ParameterKind.POSITIONAL:
-          positionalParameters.add(variable);
-          positionalArguments.add(argument);
-          break;
-
-        case ParameterKind.NAMED:
-          namedParameters.add(variable);
-          namedArguments.add(new ast.NamedExpression(parameter.name, argument));
-          break;
-      }
-    }
-    constructor.function = new ast.FunctionNode(new ast.EmptyStatement(),
-        positionalParameters: positionalParameters,
-        namedParameters: namedParameters,
-        requiredParameterCount: requiredParameterCount,
-        returnType: const ast.VoidType())..parent = constructor;
-    constructor.initializers.add(new ast.SuperInitializer(
-        scope.getMemberReference(targetConstructor),
-        new ast.Arguments(positionalArguments, named: namedArguments))
-      ..parent = constructor);
   }
 
   void addAnnotations(List<Annotation> annotations) {
@@ -2708,10 +2653,6 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
             scope.buildOptionalTypeParameterList(function.typeParameters))
       ..parent = procedure;
     handleNativeBody(function.body);
-  }
-
-  visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    // Nothing to do.  These members are fully built at reference level.
   }
 
   visitNode(AstNode node) {

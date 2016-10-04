@@ -118,6 +118,5 @@ class Tag {
 
   static const int SpecializedIntLiteralBias = 3;
 
-  static const int LibraryFile = 0x12345678;
   static const int ProgramFile = 0x90ABCDEF;
 }

@@ -66,7 +66,10 @@ ArgParser parser = new ArgParser(allowTrailingOptions: true)
       abbr: 'D',
       allowMultiple: true,
       help: 'Define an environment variable.',
-      hide: true);
+      hide: true)
+  ..addFlag('show-external',
+      help: 'When printing a library as text, also print its dependencies\n'
+          'on external libraries.');
 
 String getUsage() => """
 Usage: dartk [options] FILE
@@ -263,7 +266,6 @@ Future<CompilerOutcome> batchMain(
   var customUriMappings = parseCustomUriMappings(options['url-mapping']);
   var repository = new Repository();
 
-  Library library;
   Program program;
 
   var watch = new Stopwatch()..start();
@@ -286,9 +288,7 @@ Future<CompilerOutcome> batchMain(
   }
 
   if (file.endsWith('.dill')) {
-    var node = loadProgramOrLibraryFromBinary(file, repository);
-    library = node is Library ? node : null;
-    program = node is Program ? node : null;
+    program = loadProgramFromBinary(file, repository);
     getLoadedFiles = () => [file];
   } else {
     DartOptions dartOptions = new DartOptions(
@@ -304,8 +304,9 @@ Future<CompilerOutcome> batchMain(
     if (options['link']) {
       program = loader.loadProgram(file, target: target);
     } else {
-      library = loader.loadLibrary(file);
-      loader.loadEverything();
+      var library = loader.loadLibrary(file);
+      assert(library == repository.getLibrary(file));
+      program = new Program(repository.libraries);
     }
     errors = loader.errors;
     if (errors.isNotEmpty) {
@@ -339,13 +340,8 @@ Future<CompilerOutcome> batchMain(
     new File(outputDependencies).writeAsStringSync(getLoadedFiles().join('\n'));
   }
 
-  assert(program != null || library != null);
-  assert(library == null ||
-      program == null ||
-      program.libraries.contains(library));
-
   // Apply target-specific transformations.
-  if (target != null && program != null && canContinueCompilation) {
+  if (target != null && options['link'] && canContinueCompilation) {
     target.transformProgram(program);
     sanityCheck();
   }
@@ -360,18 +356,11 @@ Future<CompilerOutcome> batchMain(
   if (canContinueCompilation) {
     switch (format) {
       case 'text':
-        if (program != null) {
-          writeProgramToText(program, outputFile);
-        } else {
-          writeLibraryToText(library, outputFile);
-        }
+        writeProgramToText(program,
+            path: outputFile, showExternal: options['show-external']);
         break;
       case 'bin':
-        if (program != null) {
-          ioFuture = writeProgramToBinary(program, outputFile);
-        } else {
-          ioFuture = writeLibraryToBinary(library, outputFile);
-        }
+        ioFuture = writeProgramToBinary(program, outputFile);
         break;
     }
   }
