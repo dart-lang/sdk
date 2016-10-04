@@ -13,7 +13,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
 /**
@@ -29,17 +29,18 @@ class MemoryResourceProvider implements ResourceProvider {
       new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
 
-  final Context _pathContext;
+  final pathos.Context _pathContext;
 
   @override
   final AbsolutePathContext absolutePathContext;
 
-  MemoryResourceProvider({bool isWindows: false})
-      : _pathContext = isWindows ? windows : posix,
-        absolutePathContext = new AbsolutePathContext(isWindows);
+  MemoryResourceProvider({pathos.Context context})
+      : _pathContext = context ?? pathos.context,
+        absolutePathContext = new AbsolutePathContext(
+            pathos.Style.platform == pathos.Style.windows);
 
   @override
-  Context get pathContext => _pathContext;
+  pathos.Context get pathContext => _pathContext;
 
   /**
    * Delete the file with the given path.
@@ -324,7 +325,8 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
-  Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
+  Uri toUri() =>
+      new Uri.file(path, windows: _provider.pathContext == pathos.windows);
 
   @override
   void writeAsBytesSync(List<int> bytes) {
@@ -399,7 +401,8 @@ class _MemoryFile extends _MemoryResource implements File {
   File resolveSymbolicLinksSync() => this;
 
   @override
-  Uri toUri() => new Uri.file(path, windows: _provider.pathContext == windows);
+  Uri toUri() =>
+      new Uri.file(path, windows: _provider.pathContext == pathos.windows);
 
   @override
   void writeAsBytesSync(List<int> bytes) {
@@ -497,7 +500,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Uri toUri() =>
-      new Uri.directory(path, windows: _provider.pathContext == windows);
+      new Uri.directory(path, windows: _provider.pathContext == pathos.windows);
 }
 
 /**

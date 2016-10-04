@@ -120,7 +120,7 @@ abstract class AnalysisOptionsProviderTest {
   String get optionsFileName;
 
   void setUp() {
-    var rawProvider = new MemoryResourceProvider(isWindows: isWindows);
+    var rawProvider = new MemoryResourceProvider();
     resourceProvider = new TestResourceProvider(rawProvider);
     pathTranslator = new TestPathTranslator(rawProvider);
   }

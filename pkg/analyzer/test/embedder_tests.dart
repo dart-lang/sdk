@@ -22,8 +22,7 @@ abstract class EmbedderRelatedTest {
   ResourceProvider resourceProvider;
 
   buildResourceProvider() {
-    MemoryResourceProvider rawProvider =
-        new MemoryResourceProvider(isWindows: isWindows);
+    MemoryResourceProvider rawProvider = new MemoryResourceProvider();
     resourceProvider = new TestResourceProvider(rawProvider);
     pathTranslator = new TestPathTranslator(rawProvider)
       ..newFolder('/home/.pub-cache/empty')
