@@ -190,15 +190,23 @@ class Server {
 
       List fsNameList;
       List fsPathList;
+      List fsPathBase64List;
       Object fsName;
       Object fsPath;
 
       try {
         // Extract the fs name and fs path from the request headers.
         fsNameList = request.headers['dev_fs_name'];
-        fsPathList = request.headers['dev_fs_path'];
         fsName = fsNameList[0];
-        fsPath = fsPathList[0];
+
+        fsPathList = request.headers['dev_fs_path'];
+        fsPathBase64List = request.headers['dev_fs_path_b64'];
+        // If the 'dev_fs_path_b64' header field was sent, use that instead.
+        if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
+          fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
+        } else {
+          fsPath = fsPathList[0];
+        }
       } catch (e) { /* ignore */ }
 
       String result;
