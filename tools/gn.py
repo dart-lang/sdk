@@ -45,12 +45,17 @@ def target_cpu_for_arch(arch, os):
     return 'arm64' if os == 'android' else 'x64'
   return arch
 
+def host_os_for_gn(os):
+  if os.startswith('macos'):
+    return 'mac'
+  if os.startswith('win'):
+    return 'win'
+  return os
+
 def to_gn_args(args):
   gn_args = {}
 
-  host_os = HOST_OS
-  if HOST_OS == 'macos':
-    host_os = 'mac'
+  host_os = host_os_for_gn(HOST_OS)
   if args.os == 'host':
     gn_args['target_os'] = host_os
   else:
@@ -63,8 +68,11 @@ def to_gn_args(args):
   # TODO(zra): This is for the observatory, which currently builds using the
   # checked-in sdk. If/when the observatory no longer builds with the
   # checked-in sdk, this can be removed.
+  pub = 'pub'
+  if host_os == 'win':
+    pub = pub + ".bat"
   gn_args['dart_host_pub_exe'] = os.path.join(
-      DART_ROOT, 'tools', 'sdks', host_os, 'dart-sdk', 'bin', 'pub')
+      DART_ROOT, 'tools', 'sdks', host_os, 'dart-sdk', 'bin', pub)
 
   # For Fuchsia support, the default is to not compile in the root
   # certificates.
@@ -84,7 +92,10 @@ def to_gn_args(args):
   # 'is_debug', 'is_release' and 'is_product'.
   gn_args['dart_runtime_mode'] = 'develop'
 
-  gn_args['is_clang'] = args.clang and args.os not in ['android']
+  if host_os == 'win':
+    gn_args['is_clang'] = False
+  else:
+    gn_args['is_clang'] = args.clang and args.os not in ['android']
 
   if args.target_sysroot:
     gn_args['target_sysroot'] = args.target_sysroot

@@ -3,23 +3,25 @@
 # BSD-style license that can be found in the LICENSE file.
 
 config("libdart_vm_config") {
-  # TODO(zra, jamesr): This check can go away after some problems with the
-  # fuchsia toolchain definition are fixed.
-  if (!defined(is_fuchsia) || !is_fuchsia) {
-    libs = [ "dl" ]
-
-    if (!is_android) {
-      libs += [ "pthread" ]
-
-      if (is_linux) {
-        libs += [ "rt" ]
-      }
-    }
-  } else {
+  if (defined(is_fuchsia) && is_fuchsia) {
     libs = [
       "magenta",
       "runtime",
     ]
+  } else if (is_win) {
+    libs = [
+      "advapi32.lib",
+      "shell32.lib",
+      "dbghelp.lib",
+    ]
+  } else {
+    libs = [ "dl" ]
+    if (!is_android) {
+      libs += [ "pthread"]
+    }
+    if (is_linux) {
+      libs += [ "rt" ]
+    }
   }
 }
 

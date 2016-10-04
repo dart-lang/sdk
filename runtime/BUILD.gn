@@ -153,36 +153,38 @@ config("dart_config") {
     defines += ["NDEBUG"]
   }
 
-  cflags = [
-    "-Werror",
-    "-Wall",
-    "-Wextra", # Also known as -W.
-    "-Wno-unused-parameter",
-    "-Wnon-virtual-dtor",
-    "-Wvla",
-    "-Wno-conversion-null",
-    "-Woverloaded-virtual",
-    "-g3",
-    "-ggdb3",
-    "-fno-rtti",
-    "-fno-exceptions",
-  ]
+  if (!is_win) {
+    cflags = [
+      "-Werror",
+      "-Wall",
+      "-Wextra", # Also known as -W.
+      "-Wno-unused-parameter",
+      "-Wnon-virtual-dtor",
+      "-Wvla",
+      "-Wno-conversion-null",
+      "-Woverloaded-virtual",
+      "-g3",
+      "-ggdb3",
+      "-fno-rtti",
+      "-fno-exceptions",
+    ]
 
-  if (dart_debug) {
-    cflags += [
-      "-O1",
-    ]
-  } else {
-    cflags += [
-      "-O3",
-    ]
-  }
+    if (dart_debug) {
+      cflags += [
+        "-O1",
+      ]
+    } else {
+      cflags += [
+        "-O3",
+      ]
+    }
 
-  if (defined(is_asan) && is_asan) {
-    ldflags = [
-      "-Wl,-u_sanitizer_options_link_helper",
-      "-fsanitize=address",
-    ]
+    if (defined(is_asan) && is_asan) {
+      ldflags = [
+        "-Wl,-u_sanitizer_options_link_helper",
+        "-fsanitize=address",
+      ]
+    }
   }
 }
 

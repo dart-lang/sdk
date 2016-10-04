@@ -29,8 +29,11 @@ template("invoke_dart") {
 
     dart_out_dir = get_label_info(
         "$relative_dart_root/runtime/bin:dart($host_toolchain)", "root_out_dir")
-    # TODO(zra): Add platform specific executable suffix (e.g. .exe on win)
-    dart = rebase_path("$dart_out_dir/dart")
+    if (is_win) {
+      dart = rebase_path("$dart_out_dir/dart.exe")
+    } else {
+      dart = rebase_path("$dart_out_dir/dart")
+    }
 
     inputs = [
       dart,

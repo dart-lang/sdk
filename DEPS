@@ -44,7 +44,7 @@ vars = {
   "barback_tag" : "@0.15.2+9",
   "bazel_worker_tag": "@0.1.1",
   "boolean_selector_tag" : "@1.0.2",
-  "boringssl_gen_rev": "@922830c0aad900dd3d143eef1ba06faa83fe263b",
+  "boringssl_gen_rev": "@62c20247d582444cb2804f9ea4e3abaa6e47f6a5",
   "boringssl_rev" : "@8d343b44bbab829d1a28fdef650ca95f7db4412e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
@@ -560,6 +560,12 @@ hooks = [
     'name': 'gn_clang',
     'pattern': '.',
     'action': ['python', 'sdk/tools/clang/scripts/update.py', '--if-needed'],
+  },
+  {
+    # Update the Windows toolchain if necessary.
+    'name': 'win_toolchain',
+    'pattern': '.',
+    'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
   },
   {
     "pattern": ".",
