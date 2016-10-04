@@ -34,7 +34,8 @@ class MemoryResourceProvider implements ResourceProvider {
   @override
   final AbsolutePathContext absolutePathContext;
 
-  MemoryResourceProvider({pathos.Context context})
+  MemoryResourceProvider(
+      {pathos.Context context, @deprecated bool isWindows: false})
       : _pathContext = context ?? pathos.context,
         absolutePathContext = new AbsolutePathContext(
             pathos.Style.platform == pathos.Style.windows);

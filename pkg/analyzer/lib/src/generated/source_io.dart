@@ -10,6 +10,7 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/generated/source.dart';
 
@@ -508,8 +509,7 @@ class PackageUriResolver extends UriResolver {
    * Convert the given file path to a "file:" URI.  On Windows, this transforms
    * backslashes to forward slashes.
    */
-  String _toFileUri(String filePath) =>
-      JavaFile.pathContext.toUri(filePath).toString();
+  String _toFileUri(String filePath) => path.context.toUri(filePath).toString();
 
   /**
    * Return `true` if the given URI is a `package` URI.
