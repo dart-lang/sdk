@@ -25,8 +25,8 @@ class ResourceUriResolverTest {
   void setUp() {
     provider = new MemoryResourceProvider();
     resolver = new ResourceUriResolver(provider);
-    provider.newFile('/test.dart', '');
-    provider.newFolder('/folder');
+    provider.newFile(provider.convertPath('/test.dart'), '');
+    provider.newFolder(provider.convertPath('/folder'));
   }
 
   void test_creation() {
@@ -35,15 +35,15 @@ class ResourceUriResolverTest {
   }
 
   void test_resolveAbsolute_file() {
-    var uri = new Uri(scheme: 'file', path: '/test.dart');
+    var uri = provider.pathContext.toUri(provider.convertPath('/test.dart'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(source.exists(), isTrue);
-    expect(source.fullName, '/test.dart');
+    expect(source.fullName, provider.convertPath('/test.dart'));
   }
 
   void test_resolveAbsolute_folder() {
-    var uri = new Uri(scheme: 'file', path: '/folder');
+    var uri = provider.pathContext.toUri(provider.convertPath('/folder'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
@@ -61,7 +61,7 @@ class ResourceUriResolverTest {
   }
 
   void test_restoreAbsolute() {
-    var uri = new Uri(scheme: 'file', path: '/test.dart');
+    var uri = provider.pathContext.toUri(provider.convertPath('/test.dart'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);

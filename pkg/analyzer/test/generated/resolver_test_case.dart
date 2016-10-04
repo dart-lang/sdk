@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -481,8 +480,7 @@ class ResolverTestCase extends EngineTestCase {
    * source to the analysis context. The file path must be absolute.
    */
   Source cacheSource(String filePath, String contents) {
-    Source source =
-        PhysicalResourceProvider.INSTANCE.getFile(filePath).createSource();
+    Source source = resourceProvider.getFile(filePath).createSource();
     analysisContext2.setContents(source, contents);
     return source;
   }
@@ -520,8 +518,7 @@ class ResolverTestCase extends EngineTestCase {
    * give it an empty content. Return the source that was created.
    */
   Source createNamedSource(String fileName) {
-    Source source =
-        PhysicalResourceProvider.INSTANCE.getFile(fileName).createSource();
+    Source source = resourceProvider.getFile(fileName).createSource();
     analysisContext2.setContents(source, '');
     return source;
   }

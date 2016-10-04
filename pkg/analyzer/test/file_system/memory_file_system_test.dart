@@ -49,7 +49,8 @@ class FileTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
   void test_delete() {
-    File file = provider.newFile('/foo/file.txt', 'content');
+    File file =
+        provider.newFile(provider.convertPath('/foo/file.txt'), 'content');
     expect(file.exists, isTrue);
     // delete
     file.delete();
@@ -57,7 +58,7 @@ class FileTest {
   }
 
   void test_equals_beforeAndAfterCreate() {
-    String path = '/file.txt';
+    String path = provider.convertPath('/file.txt');
     File file1 = provider.getResource(path);
     provider.newFile(path, 'contents');
     File file2 = provider.getResource(path);
@@ -65,37 +66,39 @@ class FileTest {
   }
 
   void test_equals_false() {
-    File fileA = provider.getResource('/fileA.txt');
-    File fileB = provider.getResource('/fileB.txt');
+    File fileA = provider.getResource(provider.convertPath('/fileA.txt'));
+    File fileB = provider.getResource(provider.convertPath('/fileB.txt'));
     expect(fileA == new Object(), isFalse);
     expect(fileA == fileB, isFalse);
   }
 
   void test_equals_true() {
-    File file = provider.getResource('/file.txt');
+    File file = provider.getResource(provider.convertPath('/file.txt'));
     expect(file == file, isTrue);
   }
 
   void test_exists_false() {
-    File file = provider.getResource('/file.txt');
+    File file = provider.getResource(provider.convertPath('/file.txt'));
     expect(file, isNotNull);
     expect(file.exists, isFalse);
   }
 
   void test_exists_true() {
-    provider.newFile('/foo/file.txt', 'qwerty');
-    File file = provider.getResource('/foo/file.txt');
+    String path = provider.convertPath('/foo/file.txt');
+    provider.newFile(path, 'qwerty');
+    File file = provider.getResource(path);
     expect(file, isNotNull);
     expect(file.exists, isTrue);
   }
 
   void test_fullName() {
-    File file = provider.getResource('/foo/bar/file.txt');
-    expect(file.path, '/foo/bar/file.txt');
+    String path = provider.convertPath('/foo/bar/file.txt');
+    File file = provider.getResource(path);
+    expect(file.path, path);
   }
 
   void test_hashCode() {
-    String path = '/foo/bar/file.txt';
+    String path = provider.convertPath('/foo/bar/file.txt');
     File file1 = provider.getResource(path);
     provider.newFile(path, 'contents');
     File file2 = provider.getResource(path);
@@ -103,14 +106,14 @@ class FileTest {
   }
 
   void test_isOrContains() {
-    String path = '/foo/bar/file.txt';
+    String path = provider.convertPath('/foo/bar/file.txt');
     File file = provider.getResource(path);
     expect(file.isOrContains(path), isTrue);
-    expect(file.isOrContains('/foo/bar'), isFalse);
+    expect(file.isOrContains(provider.convertPath('/foo/bar')), isFalse);
   }
 
   void test_modificationStamp_doesNotExist() {
-    String path = '/foo/bar/file.txt';
+    String path = provider.convertPath('/foo/bar/file.txt');
     File file = provider.newFile(path, 'qwerty');
     provider.deleteFile(path);
     expect(() {
@@ -119,21 +122,22 @@ class FileTest {
   }
 
   void test_modificationStamp_exists() {
-    String path = '/foo/bar/file.txt';
+    String path = provider.convertPath('/foo/bar/file.txt');
     File file = provider.newFile(path, 'qwerty');
     expect(file.modificationStamp, isNonNegative);
   }
 
   void test_parent() {
-    provider.newFile('/foo/bar/file.txt', 'content');
-    File file = provider.getResource('/foo/bar/file.txt');
+    String path = provider.convertPath('/foo/bar/file.txt');
+    provider.newFile(path, 'content');
+    File file = provider.getResource(path);
     Resource parent = file.parent;
     expect(parent, new isInstanceOf<Folder>());
-    expect(parent.path, equals('/foo/bar'));
+    expect(parent.path, equals(provider.convertPath('/foo/bar')));
   }
 
   void test_readAsBytesSync_doesNotExist() {
-    File file = provider.getResource('/test.bin');
+    File file = provider.getResource(provider.convertPath('/test.bin'));
     expect(() {
       file.readAsBytesSync();
     }, throwsA(_isFileSystemException));
@@ -141,25 +145,26 @@ class FileTest {
 
   void test_readAsBytesSync_exists() {
     List<int> bytes = <int>[1, 2, 3, 4, 5];
-    File file = provider.newFileWithBytes('/file.bin', bytes);
+    File file =
+        provider.newFileWithBytes(provider.convertPath('/file.bin'), bytes);
     expect(file.readAsBytesSync(), bytes);
   }
 
   void test_readAsStringSync_doesNotExist() {
-    File file = provider.getResource('/test.txt');
+    File file = provider.getResource(provider.convertPath('/test.txt'));
     expect(() {
       file.readAsStringSync();
     }, throwsA(_isFileSystemException));
   }
 
   void test_readAsStringSync_exists() {
-    File file = provider.newFile('/file.txt', 'abc');
+    File file = provider.newFile(provider.convertPath('/file.txt'), 'abc');
     expect(file.readAsStringSync(), 'abc');
   }
 
   void test_renameSync_newDoesNotExist() {
-    String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/new-file.txt';
+    String oldPath = provider.convertPath('/foo/bar/file.txt');
+    String newPath = provider.convertPath('/foo/bar/new-file.txt');
     File file = provider.newFile(oldPath, 'text');
     File newFile = file.renameSync(newPath);
     expect(file.path, oldPath);
@@ -170,8 +175,8 @@ class FileTest {
   }
 
   void test_renameSync_newExists_file() {
-    String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/new-file.txt';
+    String oldPath = provider.convertPath('/foo/bar/file.txt');
+    String newPath = provider.convertPath('/foo/bar/new-file.txt');
     File file = provider.newFile(oldPath, 'text');
     provider.newFile(newPath, 'new text');
     File newFile = file.renameSync(newPath);
@@ -183,8 +188,8 @@ class FileTest {
   }
 
   void test_renameSync_newExists_folder() {
-    String oldPath = '/foo/bar/file.txt';
-    String newPath = '/foo/bar/baz';
+    String oldPath = provider.convertPath('/foo/bar/file.txt');
+    String newPath = provider.convertPath('/foo/bar/baz');
     File file = provider.newFile(oldPath, 'text');
     provider.newFolder(newPath);
     expect(() {
@@ -195,29 +200,31 @@ class FileTest {
   }
 
   void test_resolveSymbolicLinksSync() {
-    File file = provider.newFile('/test.txt', 'text');
+    File file = provider.newFile(provider.convertPath('/test.txt'), 'text');
     expect(file.resolveSymbolicLinksSync(), file);
   }
 
   void test_shortName() {
-    File file = provider.getResource('/foo/bar/file.txt');
+    File file = provider.getResource(provider.convertPath('/foo/bar/file.txt'));
     expect(file.shortName, 'file.txt');
   }
 
   void test_toString() {
-    File file = provider.getResource('/foo/bar/file.txt');
-    expect(file.toString(), '/foo/bar/file.txt');
+    String path = provider.convertPath('/foo/bar/file.txt');
+    File file = provider.getResource(path);
+    expect(file.toString(), path);
   }
 
   void test_toUri() {
-    String path = '/foo/file.txt';
+    String path = provider.convertPath('/foo/file.txt');
     File file = provider.newFile(path, '');
-    expect(file.toUri(), new Uri.file(path, windows: false));
+    expect(file.toUri(), provider.pathContext.toUri(path));
   }
 
   void test_writeAsBytesSync_existing() {
     List<int> content = <int>[1, 2];
-    File file = provider.newFileWithBytes('/foo/file.bin', content);
+    File file = provider.newFileWithBytes(
+        provider.convertPath('/foo/file.bin'), content);
     expect(file.readAsBytesSync(), content);
     // write new bytes
     content = <int>[10, 20];
@@ -226,7 +233,7 @@ class FileTest {
   }
 
   void test_writeAsBytesSync_new() {
-    File file = provider.getFile('/foo/file.bin');
+    File file = provider.getFile(provider.convertPath('/foo/file.bin'));
     expect(file.exists, false);
     // write new bytes
     List<int> content = <int>[10, 20];
@@ -237,7 +244,8 @@ class FileTest {
 
   void test_writeAsStringSync_existing() {
     String content = 'ab';
-    File file = provider.newFile('/foo/file.txt', content);
+    File file =
+        provider.newFile(provider.convertPath('/foo/file.txt'), content);
     expect(file.readAsStringSync(), content);
     // write new bytes
     content = 'CD';
@@ -246,7 +254,7 @@ class FileTest {
   }
 
   void test_writeAsStringSync_new() {
-    File file = provider.getFile('/foo/file.txt');
+    File file = provider.getFile(provider.convertPath('/foo/file.txt'));
     expect(file.exists, false);
     // write new bytes
     String content = 'ef';
@@ -258,36 +266,43 @@ class FileTest {
 
 @reflectiveTest
 class FolderTest {
-  static const String path = '/foo/bar';
-
   MemoryResourceProvider provider = new MemoryResourceProvider();
+  String path;
   Folder folder;
 
   void setUp() {
+    path = provider.convertPath('/foo/bar');
     folder = provider.newFolder(path);
   }
 
   void test_canonicalizePath() {
-    expect(folder.canonicalizePath('baz'), equals('/foo/bar/baz'));
-    expect(folder.canonicalizePath('/baz'), equals('/baz'));
-    expect(folder.canonicalizePath('../baz'), equals('/foo/baz'));
-    expect(folder.canonicalizePath('/a/b/../c'), equals('/a/c'));
-    expect(folder.canonicalizePath('./baz'), equals('/foo/bar/baz'));
-    expect(folder.canonicalizePath('/a/b/./c'), equals('/a/b/c'));
+    expect(folder.canonicalizePath(provider.convertPath('baz')),
+        equals(provider.convertPath('/foo/bar/baz')));
+    expect(folder.canonicalizePath(provider.convertPath('/baz')),
+        equals(provider.convertPath('/baz')));
+    expect(folder.canonicalizePath(provider.convertPath('../baz')),
+        equals(provider.convertPath('/foo/baz')));
+    expect(folder.canonicalizePath(provider.convertPath('/a/b/../c')),
+        equals(provider.convertPath('/a/c')));
+    expect(folder.canonicalizePath(provider.convertPath('./baz')),
+        equals(provider.convertPath('/foo/bar/baz')));
+    expect(folder.canonicalizePath(provider.convertPath('/a/b/./c')),
+        equals(provider.convertPath('/a/b/c')));
   }
 
   void test_contains() {
-    expect(folder.contains('/foo/bar/aaa.txt'), isTrue);
-    expect(folder.contains('/foo/bar/aaa/bbb.txt'), isTrue);
-    expect(folder.contains('/baz.txt'), isFalse);
-    expect(folder.contains('/foo/bar'), isFalse);
+    expect(folder.contains(provider.convertPath('/foo/bar/aaa.txt')), isTrue);
+    expect(
+        folder.contains(provider.convertPath('/foo/bar/aaa/bbb.txt')), isTrue);
+    expect(folder.contains(provider.convertPath('/baz.txt')), isFalse);
+    expect(folder.contains(provider.convertPath('/foo/bar')), isFalse);
   }
 
   void test_delete() {
-    Folder folder = provider.newFolder('/foo');
-    Folder barFolder = provider.newFolder('/foo/bar');
-    File aFile = provider.newFile('/foo/bar/a.txt', '');
-    File bFile = provider.newFile('/foo/b.txt', '');
+    Folder folder = provider.newFolder(provider.convertPath('/foo'));
+    Folder barFolder = provider.newFolder(provider.convertPath('/foo/bar'));
+    File aFile = provider.newFile(provider.convertPath('/foo/bar/a.txt'), '');
+    File bFile = provider.newFile(provider.convertPath('/foo/b.txt'), '');
     expect(folder.exists, isTrue);
     expect(barFolder.exists, isTrue);
     expect(aFile.exists, isTrue);
@@ -301,7 +316,7 @@ class FolderTest {
   }
 
   void test_equal_false() {
-    String path2 = '/foo/baz';
+    String path2 = provider.convertPath('/foo/baz');
     Folder folder2 = provider.newFolder(path2);
     expect(folder == folder2, isFalse);
   }
@@ -318,14 +333,14 @@ class FolderTest {
   }
 
   void test_getChild_file() {
-    provider.newFile('/foo/bar/file.txt', 'content');
+    provider.newFile(provider.convertPath('/foo/bar/file.txt'), 'content');
     File child = folder.getChild('file.txt');
     expect(child, isNotNull);
     expect(child.exists, isTrue);
   }
 
   void test_getChild_folder() {
-    provider.newFolder('/foo/bar/baz');
+    provider.newFolder(provider.convertPath('/foo/bar/baz'));
     Folder child = folder.getChild('baz');
     expect(child, isNotNull);
     expect(child.exists, isTrue);
@@ -338,14 +353,14 @@ class FolderTest {
   }
 
   void test_getChildAssumingFile_file() {
-    provider.newFile('/foo/bar/name', 'content');
+    provider.newFile(provider.convertPath('/foo/bar/name'), 'content');
     File child = folder.getChildAssumingFile('name');
     expect(child, isNotNull);
     expect(child.exists, isTrue);
   }
 
   void test_getChildAssumingFile_folder() {
-    provider.newFolder('/foo/bar/name');
+    provider.newFolder(provider.convertPath('/foo/bar/name'));
     File child = folder.getChildAssumingFile('name');
     expect(child, isNotNull);
     expect(child.exists, isFalse);
@@ -358,14 +373,14 @@ class FolderTest {
   }
 
   void test_getChildAssumingFolder_file() {
-    provider.newFile('/foo/bar/foldername', 'content');
+    provider.newFile(provider.convertPath('/foo/bar/foldername'), 'content');
     Folder child = folder.getChildAssumingFolder('foldername');
     expect(child, isNotNull);
     expect(child.exists, isFalse);
   }
 
   void test_getChildAssumingFolder_folder() {
-    provider.newFolder('/foo/bar/foldername');
+    provider.newFolder(provider.convertPath('/foo/bar/foldername'));
     Folder child = folder.getChildAssumingFolder('foldername');
     expect(child, isNotNull);
     expect(child.exists, isTrue);
@@ -379,9 +394,9 @@ class FolderTest {
   }
 
   void test_getChildren_exists() {
-    provider.newFile('/foo/bar/a.txt', 'aaa');
-    provider.newFolder('/foo/bar/bFolder');
-    provider.newFile('/foo/bar/c.txt', 'ccc');
+    provider.newFile(provider.convertPath('/foo/bar/a.txt'), 'aaa');
+    provider.newFolder(provider.convertPath('/foo/bar/bFolder'));
+    provider.newFile(provider.convertPath('/foo/bar/c.txt'), 'ccc');
     // prepare 3 children
     List<Resource> children = folder.getChildren();
     expect(children, hasLength(3));
@@ -406,36 +421,40 @@ class FolderTest {
   }
 
   void test_isOrContains() {
-    expect(folder.isOrContains('/foo/bar'), isTrue);
-    expect(folder.isOrContains('/foo/bar/aaa.txt'), isTrue);
-    expect(folder.isOrContains('/foo/bar/aaa/bbb.txt'), isTrue);
-    expect(folder.isOrContains('/baz.txt'), isFalse);
+    expect(folder.isOrContains(provider.convertPath('/foo/bar')), isTrue);
+    expect(
+        folder.isOrContains(provider.convertPath('/foo/bar/aaa.txt')), isTrue);
+    expect(folder.isOrContains(provider.convertPath('/foo/bar/aaa/bbb.txt')),
+        isTrue);
+    expect(folder.isOrContains(provider.convertPath('/baz.txt')), isFalse);
   }
 
   void test_parent() {
     Resource parent1 = folder.parent;
     expect(parent1, new isInstanceOf<Folder>());
-    expect(parent1.path, equals('/foo'));
+    expect(parent1.path, equals(provider.convertPath('/foo')));
     Resource parent2 = parent1.parent;
     expect(parent2, new isInstanceOf<Folder>());
-    expect(parent2.path, equals('/'));
+    expect(parent2.path, equals(provider.convertPath('/')));
     expect(parent2.parent, isNull);
   }
 
   void test_toUri() {
-    String path = '/foo/directory';
+    String path = provider.convertPath('/foo/directory');
     Folder folder = provider.newFolder(path);
-    expect(folder.toUri(), new Uri.directory(path, windows: false));
+    expect(folder.toUri(), provider.pathContext.toUri(path));
   }
 }
 
 @reflectiveTest
 class MemoryFileSourceExistingTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
+  String path;
   Source source;
 
   setUp() {
-    File file = provider.newFile('/foo/test.dart', 'library test;');
+    path = provider.convertPath('/foo/test.dart');
+    File file = provider.newFile(path, 'library test;');
     source = file.createSource();
   }
 
@@ -445,32 +464,36 @@ class MemoryFileSourceExistingTest {
   }
 
   void test_encoding() {
-    expect(source.encoding, 'file:///foo/test.dart');
+    String expected = 'file:///foo/test.dart';
+    if (provider.pathContext == windows) {
+      expected = 'file:///C:/foo/test.dart';
+    }
+    expect(source.encoding, expected);
   }
 
   void test_equals_false_differentFile() {
-    File fileA = provider.newFile('/foo/a.dart', '');
-    File fileB = provider.newFile('/foo/b.dart', '');
+    File fileA = provider.newFile(provider.convertPath('/foo/a.dart'), '');
+    File fileB = provider.newFile(provider.convertPath('/foo/b.dart'), '');
     Source sourceA = fileA.createSource();
     Source sourceB = fileB.createSource();
     expect(sourceA == sourceB, isFalse);
   }
 
   void test_equals_false_notMemorySource() {
-    File file = provider.newFile('/foo/test.dart', '');
+    File file = provider.newFile(path, '');
     Source source = file.createSource();
     expect(source == new Object(), isFalse);
   }
 
   void test_equals_true_sameFile() {
-    File file = provider.newFile('/foo/test.dart', '');
+    File file = provider.newFile(path, '');
     Source sourceA = file.createSource();
     Source sourceB = file.createSource();
     expect(sourceA == sourceB, isTrue);
   }
 
   void test_equals_true_self() {
-    File file = provider.newFile('/foo/test.dart', '');
+    File file = provider.newFile(path, '');
     Source source = file.createSource();
     expect(source == source, isTrue);
   }
@@ -480,7 +503,7 @@ class MemoryFileSourceExistingTest {
   }
 
   void test_fullName() {
-    expect(source.fullName, '/foo/test.dart');
+    expect(source.fullName, path);
   }
 
   void test_hashCode() {
@@ -488,12 +511,17 @@ class MemoryFileSourceExistingTest {
   }
 
   void test_resolveRelative() {
-    Uri relative = resolveRelativeUri(source.uri, new Uri.file('bar/baz.dart'));
-    expect(relative.path, '/foo/bar/baz.dart');
+    Uri relative = resolveRelativeUri(
+        source.uri,
+        provider.pathContext
+            .toUri(provider.pathContext.join('bar', 'baz.dart')));
+    expect(relative,
+        provider.pathContext.toUri(provider.convertPath('/foo/bar/baz.dart')));
   }
 
   void test_resolveRelative_dart() {
-    File file = provider.newFile('/sdk/lib/core/core.dart', '');
+    File file =
+        provider.newFile(provider.convertPath('/sdk/lib/core/core.dart'), '');
     Source source = file.createSource(Uri.parse('dart:core'));
     Uri resolved = resolveRelativeUri(source.uri, Uri.parse('int.dart'));
     expect(resolved.toString(), 'dart:core/int.dart');
@@ -507,10 +535,12 @@ class MemoryFileSourceExistingTest {
 @reflectiveTest
 class MemoryFileSourceNotExistingTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
+  String path;
   Source source;
 
   setUp() {
-    File file = provider.getResource('/foo/test.dart');
+    path = provider.convertPath('/foo/test.dart');
+    File file = provider.getResource(path);
     source = file.createSource();
   }
 
@@ -521,7 +551,11 @@ class MemoryFileSourceNotExistingTest {
   }
 
   void test_encoding() {
-    expect(source.encoding, 'file:///foo/test.dart');
+    String expected = 'file:///foo/test.dart';
+    if (provider.pathContext == windows) {
+      expected = 'file:///C:/foo/test.dart';
+    }
+    expect(source.encoding, expected);
   }
 
   void test_exists() {
@@ -529,7 +563,7 @@ class MemoryFileSourceNotExistingTest {
   }
 
   void test_fullName() {
-    expect(source.fullName, '/foo/test.dart');
+    expect(source.fullName, path);
   }
 
   void test_modificationStamp() {
@@ -537,8 +571,12 @@ class MemoryFileSourceNotExistingTest {
   }
 
   void test_resolveRelative() {
-    Uri relative = resolveRelativeUri(source.uri, new Uri.file('bar/baz.dart'));
-    expect(relative.path, '/foo/bar/baz.dart');
+    Uri relative = resolveRelativeUri(
+        source.uri,
+        provider.pathContext
+            .toUri(provider.pathContext.join('bar', 'baz.dart')));
+    expect(relative,
+        provider.pathContext.toUri(provider.convertPath('/foo/bar/baz.dart')));
   }
 
   void test_shortName() {
@@ -551,7 +589,7 @@ class MemoryResourceProviderTest {
   MemoryResourceProvider provider = new MemoryResourceProvider();
 
   void test_deleteFile_folder() {
-    String path = '/my/file';
+    String path = provider.convertPath('/my/file');
     provider.newFolder(path);
     expect(() {
       provider.deleteFile(path);
@@ -560,7 +598,7 @@ class MemoryResourceProviderTest {
   }
 
   void test_deleteFile_notExistent() {
-    String path = '/my/file';
+    String path = provider.convertPath('/my/file');
     expect(() {
       provider.deleteFile(path);
     }, throwsA(new isInstanceOf<ArgumentError>()));
@@ -570,7 +608,7 @@ class MemoryResourceProviderTest {
   }
 
   void test_deleteFile_success() {
-    String path = '/my/file';
+    String path = provider.convertPath('/my/file');
     provider.newFile(path, 'contents');
     Resource file = provider.getResource(path);
     expect(file, new isInstanceOf<File>());
@@ -580,7 +618,7 @@ class MemoryResourceProviderTest {
   }
 
   test_getModificationTimes() async {
-    File file = provider.newFile('/test.dart', '');
+    File file = provider.newFile(provider.convertPath('/test.dart'), '');
     Source source = file.createSource();
     List<int> times = await provider.getModificationTimes([source]);
     expect(times, [source.modificationStamp]);
@@ -598,7 +636,7 @@ class MemoryResourceProviderTest {
   }
 
   void test_modifyFile_isFolder() {
-    String path = '/my/file';
+    String path = provider.convertPath('/my/file');
     provider.newFolder(path);
     expect(() {
       provider.modifyFile(path, 'contents');
@@ -607,7 +645,7 @@ class MemoryResourceProviderTest {
   }
 
   void test_modifyFile_notExistent() {
-    String path = '/my/file';
+    String path = provider.convertPath('/my/file');
     expect(() {
       provider.modifyFile(path, 'contents');
     }, throwsA(new isInstanceOf<ArgumentError>()));
@@ -617,7 +655,7 @@ class MemoryResourceProviderTest {
   }
 
   void test_modifyFile_success() {
-    String path = '/my/file';
+    String path = provider.convertPath('/my/file');
     provider.newFile(path, 'contents 1');
     Resource file = provider.getResource(path);
     expect(file, new isInstanceOf<File>());
@@ -628,7 +666,7 @@ class MemoryResourceProviderTest {
   }
 
   void test_newFileWithBytes() {
-    String path = '/my/file';
+    String path = provider.convertPath('/my/file');
     List<int> bytes = <int>[1, 2, 3, 4, 5];
     provider.newFileWithBytes(path, bytes);
     File file = provider.getResource(path);
@@ -638,15 +676,16 @@ class MemoryResourceProviderTest {
   }
 
   void test_newFolder_alreadyExists_asFile() {
-    provider.newFile('/my/file', 'qwerty');
+    provider.newFile(provider.convertPath('/my/file'), 'qwerty');
     expect(() {
-      provider.newFolder('/my/file');
+      provider.newFolder(provider.convertPath('/my/file'));
     }, throwsA(new isInstanceOf<ArgumentError>()));
   }
 
   void test_newFolder_alreadyExists_asFolder() {
-    Folder folder = provider.newFolder('/my/folder');
-    Folder newFolder = provider.newFolder('/my/folder');
+    String path = provider.convertPath('/my/folder');
+    Folder folder = provider.newFolder(path);
+    Folder newFolder = provider.newFolder(path);
     expect(newFolder, folder);
   }
 
@@ -663,11 +702,11 @@ class MemoryResourceProviderTest {
   }
 
   test_watch_createFile() {
-    String rootPath = '/my/path';
+    String rootPath = provider.convertPath('/my/path');
     provider.newFolder(rootPath);
     return _watchingFolder(rootPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
-      String path = posix.join(rootPath, 'foo');
+      String path = provider.pathContext.join(rootPath, 'foo');
       provider.newFile(path, 'contents');
       return _delayed(() {
         expect(changesReceived, hasLength(1));
@@ -678,9 +717,9 @@ class MemoryResourceProviderTest {
   }
 
   test_watch_deleteFile() {
-    String rootPath = '/my/path';
+    String rootPath = provider.convertPath('/my/path');
     provider.newFolder(rootPath);
-    String path = posix.join(rootPath, 'foo');
+    String path = provider.pathContext.join(rootPath, 'foo');
     provider.newFile(path, 'contents 1');
     return _watchingFolder(rootPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
@@ -694,9 +733,9 @@ class MemoryResourceProviderTest {
   }
 
   test_watch_modifyFile() {
-    String rootPath = '/my/path';
+    String rootPath = provider.convertPath('/my/path');
     provider.newFolder(rootPath);
-    String path = posix.join(rootPath, 'foo');
+    String path = provider.pathContext.join(rootPath, 'foo');
     provider.newFile(path, 'contents 1');
     return _watchingFolder(rootPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
@@ -710,11 +749,11 @@ class MemoryResourceProviderTest {
   }
 
   test_watch_modifyFile_inSubDir() {
-    String rootPath = '/my/path';
+    String rootPath = provider.convertPath('/my/path');
     provider.newFolder(rootPath);
-    String subdirPath = posix.join(rootPath, 'foo');
+    String subdirPath = provider.pathContext.join(rootPath, 'foo');
     provider.newFolder(subdirPath);
-    String path = posix.join(rootPath, 'bar');
+    String path = provider.pathContext.join(rootPath, 'bar');
     provider.newFile(path, 'contents 1');
     return _watchingFolder(rootPath, (changesReceived) {
       expect(changesReceived, hasLength(0));

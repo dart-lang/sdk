@@ -36,9 +36,9 @@ class MemoryResourceProvider implements ResourceProvider {
 
   MemoryResourceProvider(
       {pathos.Context context, @deprecated bool isWindows: false})
-      : _pathContext = context ?? pathos.context,
-        absolutePathContext = new AbsolutePathContext(
-            pathos.Style.platform == pathos.Style.windows);
+      : _pathContext = (context ??= pathos.context),
+        absolutePathContext =
+            new AbsolutePathContext(context.style == pathos.Style.windows);
 
   @override
   pathos.Context get pathContext => _pathContext;
@@ -417,10 +417,6 @@ class _MemoryFile extends _MemoryResource implements File {
   File resolveSymbolicLinksSync() => this;
 
   @override
-  Uri toUri() =>
-      new Uri.file(path, windows: _provider.pathContext == pathos.windows);
-
-  @override
   void writeAsBytesSync(List<int> bytes) {
     _provider._setFileContent(this, bytes);
   }
@@ -513,10 +509,6 @@ class _MemoryFolder extends _MemoryResource implements Folder {
 
   @override
   Folder resolveSymbolicLinksSync() => this;
-
-  @override
-  Uri toUri() =>
-      new Uri.directory(path, windows: _provider.pathContext == pathos.windows);
 }
 
 /**
@@ -570,4 +562,7 @@ abstract class _MemoryResource implements Resource {
 
   @override
   String toString() => path;
+
+  @override
+  Uri toUri() => _provider.pathContext.toUri(path);
 }
