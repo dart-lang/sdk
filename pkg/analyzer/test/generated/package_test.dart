@@ -32,16 +32,6 @@ const String pubspecName = 'pubspec.yaml';
 
 @reflectiveTest
 class DependencyFinderTest extends ResolverTestCase {
-  /**
-   * The resource provider to be used by tests.
-   */
-  MemoryResourceProvider resourceProvider;
-
-  @override
-  void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-  }
-
   void test_transitiveDependenciesFor_circularDependencies() {
     String packageA = '/pub-cache/a-1.0';
     String packageB = '/pub-cache/b-1.0';
@@ -212,16 +202,6 @@ class PackageDescriptionTest extends ResolverTestCase {
 
 @reflectiveTest
 class PackageManagerTest extends ResolverTestCase {
-  /**
-   * The resource provider to be used by tests.
-   */
-  MemoryResourceProvider resourceProvider;
-
-  @override
-  void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-  }
-
   void test_getContext() {
     String packageA = '/pub-cache/a-1.0';
     String packageB1 = '/pub-cache/b-1.0';

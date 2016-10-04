@@ -62,7 +62,7 @@ class JS {
   const JS([String js]) { }
 }
 '''
-    });
+    }, resourceProvider: resourceProvider);
   }
 
   void test_abstractSuperMemberReference_getter() {

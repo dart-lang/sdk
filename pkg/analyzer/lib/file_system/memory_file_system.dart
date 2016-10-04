@@ -44,6 +44,21 @@ class MemoryResourceProvider implements ResourceProvider {
   pathos.Context get pathContext => _pathContext;
 
   /**
+   * Convert the given posix [path] to conform to this provider's path context.
+   *
+   * This is a utility method for testing; paths passed in to other methods in
+   * this class are never converted automatically.
+   */
+  String convertPath(String path) {
+    if (pathContext == pathos.windows &&
+        path.startsWith(pathos.posix.separator)) {
+      path = r'C:' +
+          path.replaceAll(pathos.posix.separator, pathos.windows.separator);
+    }
+    return path;
+  }
+
+  /**
    * Delete the file with the given path.
    */
   void deleteFile(String path) {

@@ -144,16 +144,6 @@ class IncrementalResolverTest extends ResolverTestCase {
   LibraryElement library;
   CompilationUnit unit;
 
-  @override
-  void reset() {
-    analysisContext2 = AnalysisContextFactory.contextWithCore();
-  }
-
-  @override
-  void resetWithOptions(AnalysisOptions options) {
-    AnalysisContextFactory.contextWithCoreAndOptions(options);
-  }
-
   void setUp() {
     super.setUp();
     logging.logger = logging.NULL_LOGGER;
