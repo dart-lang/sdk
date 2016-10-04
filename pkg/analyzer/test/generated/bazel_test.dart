@@ -27,15 +27,15 @@ class BazelFileUriResolverTest {
 
   void setUp() {
     provider = new MemoryResourceProvider();
-    workspace = provider.newFolder('/workspace');
+    workspace = provider.newFolder(provider.convertPath('/workspace'));
     buildDirs = [
-      provider.newFolder('/workspace/one'),
-      provider.newFolder('/workspace/two')
+      provider.newFolder(provider.convertPath('/workspace/one')),
+      provider.newFolder(provider.convertPath('/workspace/two'))
     ];
     resolver = new BazelFileUriResolver(provider, workspace, buildDirs);
-    provider.newFile('/workspace/test.dart', '');
-    provider.newFile('/workspace/one/gen1.dart', '');
-    provider.newFile('/workspace/two/gen2.dart', '');
+    provider.newFile(provider.convertPath('/workspace/test.dart'), '');
+    provider.newFile(provider.convertPath('/workspace/one/gen1.dart'), '');
+    provider.newFile(provider.convertPath('/workspace/two/gen2.dart'), '');
   }
 
   void test_creation() {
@@ -47,39 +47,43 @@ class BazelFileUriResolverTest {
   }
 
   void test_resolveAbsolute_file() {
-    var uri = new Uri(scheme: 'file', path: '/workspace/test.dart');
+    var uri = provider.pathContext
+        .toUri(provider.convertPath('/workspace/test.dart'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(source.exists(), isTrue);
-    expect(source.fullName, '/workspace/test.dart');
+    expect(source.fullName, provider.convertPath('/workspace/test.dart'));
   }
 
   void test_resolveAbsolute_folder() {
-    var uri = new Uri(scheme: 'file', path: '/workspace');
+    var uri = provider.pathContext.toUri(provider.convertPath('/workspace'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_generated_file_does_not_exist_three() {
-    var uri = new Uri(scheme: 'file', path: '/workspace/gen3.dart');
+    var uri = provider.pathContext
+        .toUri(provider.convertPath('/workspace/gen3.dart'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_generated_file_exists_one() {
-    var uri = new Uri(scheme: 'file', path: '/workspace/gen1.dart');
+    var uri = provider.pathContext
+        .toUri(provider.convertPath('/workspace/gen1.dart'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(source.exists(), isTrue);
-    expect(source.fullName, '/workspace/one/gen1.dart');
+    expect(source.fullName, provider.convertPath('/workspace/one/gen1.dart'));
   }
 
   void test_resolveAbsolute_generated_file_exists_two() {
-    var uri = new Uri(scheme: 'file', path: '/workspace/gen2.dart');
+    var uri = provider.pathContext
+        .toUri(provider.convertPath('/workspace/gen2.dart'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(source.exists(), isTrue);
-    expect(source.fullName, '/workspace/two/gen2.dart');
+    expect(source.fullName, provider.convertPath('/workspace/two/gen2.dart'));
   }
 
   void test_resolveAbsolute_notFile_dartUri() {
@@ -95,7 +99,8 @@ class BazelFileUriResolverTest {
   }
 
   void test_restoreAbsolute() {
-    var uri = new Uri(scheme: 'file', path: '/workspace/test.dart');
+    var uri = provider.pathContext
+        .toUri(provider.convertPath('/workspace/test.dart'));
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(resolver.restoreAbsolute(source), uri);
