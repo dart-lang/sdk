@@ -2039,9 +2039,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
     }
   }
 #else  // !DBC
-  uword lazy_deopt_entry =
-      StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint();
-  if (frame->pc() == lazy_deopt_entry) {
+  if (frame->IsMarkedForLazyDeopt()) {
     // Deopt already scheduled.
     if (FLAG_trace_deoptimization) {
       THR_Print("Lazy deopt already scheduled for fp=%" Pp "\n", frame->fp());
@@ -2049,9 +2047,22 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   } else {
     uword deopt_pc = frame->pc();
     ASSERT(optimized_code.ContainsInstructionAt(deopt_pc));
+
+    // N.B.: Update the pending deopt table before updating the frame. The
+    // profiler may attempt a stack walk in between.
+    MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
+        thread->isolate()->pending_deopts();
+    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
+      ASSERT((*pending_deopts)[i].fp() != frame->fp());
+    }
     PendingLazyDeopt pair(frame->fp(), deopt_pc);
-    thread->isolate()->pending_deopts()->Add(pair);
-    frame->set_pc(lazy_deopt_entry);
+    pending_deopts->Add(pair);
+
+#if defined(DEBUG)
+    ValidateFrames();
+#endif
+
+    frame->MarkForLazyDeopt();
 
     if (FLAG_trace_deoptimization) {
       THR_Print("Lazy deopt scheduled for fp=%" Pp ", pc=%" Pp "\n",
@@ -2160,27 +2171,37 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
     uword deopt_pc = 0;
     MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
         isolate->pending_deopts();
-    for (intptr_t i = pending_deopts->length() - 1; i >= 0; i--) {
+    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
       if ((*pending_deopts)[i].fp() == caller_frame->fp()) {
         deopt_pc = (*pending_deopts)[i].pc();
         break;
       }
     }
+#if defined(DEBUG)
+    // Check for conflicting entries.
+    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
+      if ((*pending_deopts)[i].fp() == caller_frame->fp()) {
+        ASSERT((*pending_deopts)[i].pc() == deopt_pc);
+      }
+    }
+#endif
+    if (FLAG_trace_deoptimization) {
+      THR_Print("Lazy deopt fp=%" Pp " pc=%" Pp "\n",
+                caller_frame->fp(), deopt_pc);
+    }
+    ASSERT(deopt_pc != 0);
+
+    // N.B.: Update frame before updating pending deopt table. The profiler
+    // may attempt a stack walk in between.
+    caller_frame->set_pc(deopt_pc);
+    ASSERT(caller_frame->pc() == deopt_pc);
+    ASSERT(optimized_code.ContainsInstructionAt(caller_frame->pc()));
+
     for (intptr_t i = pending_deopts->length() - 1; i >= 0; i--) {
       if ((*pending_deopts)[i].fp() <= caller_frame->fp()) {
         pending_deopts->RemoveAt(i);
       }
     }
-    if (FLAG_trace_deoptimization) {
-      THR_Print("Lazy deopt fp=%" Pp " pc=%" Pp "\n",
-                caller_frame->fp(), deopt_pc);
-      THR_Print("%" Pd " pending lazy deopts\n",
-                pending_deopts->length());
-    }
-    ASSERT(deopt_pc != 0);
-    caller_frame->set_pc(deopt_pc);
-    ASSERT(caller_frame->pc() == deopt_pc);
-    ASSERT(optimized_code.ContainsInstructionAt(caller_frame->pc()));
   } else {
     if (FLAG_trace_deoptimization) {
       THR_Print("Eager deopt fp=%" Pp " pc=%" Pp "\n",
@@ -2268,11 +2289,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
   {
     // We may rendezvous for a safepoint at entry or GC from the allocations
     // below. Check the stack is walkable.
-    StackFrameIterator frames_iterator(StackFrameIterator::kValidateFrames);
-    StackFrame* frame = frames_iterator.NextFrame();
-    while (frame != NULL) {
-      frame = frames_iterator.NextFrame();
-    }
+    ValidateFrames();
   }
 #endif
   DeoptContext* deopt_context = isolate->deopt_context();

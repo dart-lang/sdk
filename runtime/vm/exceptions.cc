@@ -219,22 +219,57 @@ static void JumpToExceptionHandler(Thread* thread,
 #if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
-  for (intptr_t i = pending_deopts->length() - 1; i >= 0; i--) {
-    if ((*pending_deopts)[i].fp() == frame_pointer) {
-      // Frame is scheduled for lazy deopt.
+  if (pending_deopts->length() > 0) {
+    // Check if the target frame is scheduled for lazy deopt.
+    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
+      if ((*pending_deopts)[i].fp() == frame_pointer) {
+        // Deopt should now resume in the catch handler instead of after the
+        // call.
+        (*pending_deopts)[i].set_pc(program_counter);
 
-      // Deopt should now resume in the catch handler instead of after the call.
-      (*pending_deopts)[i].set_pc(program_counter);
-
-      // Jump to the deopt stub instead of the catch handler.
-      program_counter =
-          StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint();
-      if (FLAG_trace_deoptimization) {
-        THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
-                  frame_pointer);
+        // Jump to the deopt stub instead of the catch handler.
+        program_counter =
+            StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint();
+        if (FLAG_trace_deoptimization) {
+          THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
+                    frame_pointer);
+        }
+        break;
       }
-      break;
     }
+
+    // We may be jumping over frames scheduled for lazy deopt. Remove these
+    // frames from the pending deopt table, but only after unmarking them so
+    // any stack walk that happens before the stack is unwound will still work.
+    {
+      DartFrameIterator frames(thread);
+      StackFrame* frame = frames.NextFrame();
+      while ((frame != NULL) && (frame->fp() < frame_pointer)) {
+        if (frame->IsMarkedForLazyDeopt()) {
+          frame->UnmarkForLazyDeopt();
+        }
+        frame = frames.NextFrame();
+      }
+    }
+
+#if defined(DEBUG)
+    ValidateFrames();
+#endif
+
+    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
+      if ((*pending_deopts)[i].fp() < frame_pointer) {
+        if (FLAG_trace_deoptimization) {
+          THR_Print("Lazy deopt skipped due to throw for "
+                    "fp=%" Pp ", pc=%" Pp "\n",
+                    (*pending_deopts)[i].fp(), (*pending_deopts)[i].pc());
+        }
+        pending_deopts->RemoveAt(i);
+      }
+    }
+
+#if defined(DEBUG)
+    ValidateFrames();
+#endif
   }
 #endif  // !DBC
 
