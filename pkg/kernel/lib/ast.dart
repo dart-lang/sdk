@@ -149,8 +149,8 @@ class Library extends TreeNode implements Comparable<Library> {
   /// The uri of the source file this library was loaded from.
   String fileUri;
 
-  /// If false, the library object is a placeholder for a library that has
-  /// not been loaded yet.
+  /// If true, the library is part of another build unit and its contents
+  /// are only partially loaded.
   ///
   /// Classes of an external library are loaded at one of the [ClassLevel]s
   /// other than [ClassLevel.Body].  Members in an external library have no
