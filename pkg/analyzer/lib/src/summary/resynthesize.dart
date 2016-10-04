@@ -1389,6 +1389,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  bool inheritsCovariant(int slot) {
+    return _unitResynthesizer.parametersInheritingCovariant.contains(slot);
+  }
+
+  @override
   bool isInConstCycle(int slot) {
     return _unitResynthesizer.constCycles.contains(slot);
   }
@@ -1454,6 +1459,12 @@ class _UnitResynthesizer {
    */
   Set<int> constCycles;
 
+  /**
+   * Set of slot ids corresponding to parameters that inherit `@covariant`
+   * behavior.
+   */
+  Set<int> parametersInheritingCovariant;
+
   int numLinkedReferences;
   int numUnlinkedReferences;
 
@@ -1482,6 +1493,8 @@ class _UnitResynthesizer {
       linkedTypeMap[t.slot] = t;
     }
     constCycles = linkedUnit.constCycles.toSet();
+    parametersInheritingCovariant =
+        linkedUnit.parametersInheritingCovariant.toSet();
     numLinkedReferences = linkedUnit.references.length;
     numUnlinkedReferences = unlinkedUnit.references.length;
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);

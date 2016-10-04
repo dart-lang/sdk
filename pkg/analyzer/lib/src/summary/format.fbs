@@ -1079,6 +1079,13 @@ table LinkedUnit {
   constCycles:[uint] (id: 2);
 
   /**
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
+   * corresponding to parameters that inherit `@covariant` behavior from a base
+   * class.
+   */
+  parametersInheritingCovariant:[uint] (id: 3);
+
+  /**
    * Information about the resolution of references within the compilation
    * unit.  Each element of [UnlinkedUnit.references] has a corresponding
    * element in this list (at the same index).  If this list has additional
@@ -2014,6 +2021,16 @@ table UnlinkedParam {
    * field.
    */
   inferredTypeSlot:uint (id: 2);
+
+  /**
+   * If this is a parameter of an instance method, a nonzero slot id which is
+   * unique within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then this parameter inherits
+   * `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  inheritsCovariantSlot:uint (id: 14);
 
   /**
    * The synthetic initializer function of the parameter.  Absent if the variable

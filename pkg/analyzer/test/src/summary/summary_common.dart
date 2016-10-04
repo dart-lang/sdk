@@ -5799,6 +5799,49 @@ int foo(int a, String b) => 0;
     expect(executable.parameters, isEmpty);
   }
 
+  test_executable_param_of_constructor_no_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { C(x); }').executables[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, 0);
+  }
+
+  test_executable_param_of_local_function_no_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { m() { f(x) {} } }')
+            .executables[0]
+            .localFunctions[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, 0);
+  }
+
+  test_executable_param_of_method_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { m(x) {} }').executables[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, isNot(0));
+  }
+
+  test_executable_param_of_param_no_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { m(f(x)) {} }').executables[0];
+    expect(executable.parameters[0].parameters[0].inheritsCovariantSlot, 0);
+  }
+
+  test_executable_param_of_setter_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { void set s(x) {} }').executables[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, isNot(0));
+  }
+
+  test_executable_param_of_static_method_no_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { static m(x) {} }').executables[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, 0);
+  }
+
+  test_executable_param_of_top_level_function_no_covariance() {
+    UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
+    expect(executable.parameters[0].inheritsCovariantSlot, 0);
+  }
+
   test_executable_param_order() {
     UnlinkedExecutable executable = serializeExecutableText('f(x, y) {}');
     expect(executable.parameters, hasLength(2));

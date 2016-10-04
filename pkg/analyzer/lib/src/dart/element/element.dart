@@ -6837,12 +6837,7 @@ class ParameterElementImpl extends VariableElementImpl
    */
   int _visibleRangeLength = -1;
 
-  /**
-   * True if this parameter inherits from a covariant parameter. This happens
-   * when it overrides a method in a supertype that has a corresponding
-   * covariant parameter.
-   */
-  bool inheritsCovariant = false;
+  bool _inheritsCovariant = false;
 
   /**
    * Initialize a newly created parameter element to have the given [name] and
@@ -6965,6 +6960,28 @@ class ParameterElementImpl extends VariableElementImpl
   void set hasImplicitType(bool hasImplicitType) {
     assert(_unlinkedParam == null);
     super.hasImplicitType = hasImplicitType;
+  }
+
+  /**
+   * True if this parameter inherits from a covariant parameter. This happens
+   * when it overrides a method in a supertype that has a corresponding
+   * covariant parameter.
+   */
+  bool get inheritsCovariant {
+    if (_unlinkedParam != null) {
+      return enclosingUnit.resynthesizerContext
+          .inheritsCovariant(_unlinkedParam.inheritsCovariantSlot);
+    } else {
+      return _inheritsCovariant;
+    }
+  }
+
+  /**
+   * Record whether or not this parameter inherits from a covariant parameter.
+   */
+  void set inheritsCovariant(bool value) {
+    assert(_unlinkedParam == null);
+    _inheritsCovariant = value;
   }
 
   @override
@@ -7736,6 +7753,11 @@ abstract class ResynthesizerContext {
    * Build explicit top-level variables.
    */
   UnitExplicitTopLevelVariables buildTopLevelVariables();
+
+  /**
+   * Return `true` if the given parameter [slot] inherits `@covariant` behavior.
+   */
+  bool inheritsCovariant(int slot);
 
   /**
    * Return `true` if the given const constructor [slot] is a part of a cycle.
