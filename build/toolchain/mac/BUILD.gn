@@ -7,7 +7,6 @@
 # Linux.
 
 import("../goma.gni")
-import("//build/config/ios/ios_sdk.gni")
 import("//build/config/mac/mac_sdk.gni")
 
 assert(host_os == "mac")
@@ -206,32 +205,6 @@ template("mac_toolchain") {
       }
     }
   }
-}
-
-# Toolchain used for iOS device targets.
-mac_toolchain("ios_clang_arm") {
-  toolchain_cpu = "arm"
-  toolchain_os = "mac"
-  prefix = rebase_path("//third_party/llvm-build/Release+Asserts/bin",
-                       root_build_dir)
-  cc = "${goma_prefix}$prefix/clang"
-  cxx = "${goma_prefix}$prefix/clang++"
-  ld = cxx
-  is_clang = true
-  sysroot_flags = "-isysroot $ios_device_sdk_path -miphoneos-version-min=$ios_deployment_target"
-}
-
-# Toolchain used for iOS simulator targets.
-mac_toolchain("ios_clang_x64") {
-  toolchain_cpu = "x64"
-  toolchain_os = "mac"
-  prefix = rebase_path("//third_party/llvm-build/Release+Asserts/bin",
-                       root_build_dir)
-  cc = "${goma_prefix}$prefix/clang"
-  cxx = "${goma_prefix}$prefix/clang++"
-  ld = cxx
-  is_clang = true
-  sysroot_flags = "-isysroot $ios_simulator_sdk_path -mios-simulator-version-min=$ios_deployment_target"
 }
 
 # Toolchain used for Mac host targets.

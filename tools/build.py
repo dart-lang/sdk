@@ -77,6 +77,10 @@ def BuildOptions():
       help='Name of the devenv.com/msbuild executable on Windows (varies for '
            'different versions of Visual Studio)',
       default=vs_executable)
+  result.add_option("--gn",
+      help='Build with GN/Ninja',
+      default=False,
+      action='store_true')
   return result
 
 
@@ -389,70 +393,83 @@ def NotifyBuildDone(build_config, success, start):
     os.system(command)
 
 
+def BuildNinjaCommand(options, target, target_os, mode, arch):
+  out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+  command = ['ninja', '-C', out_dir]
+  if options.verbose:
+    command += ['-v']
+  command += [target]
+  return command
+
+
 filter_xcodebuild_output = False
 def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
   global filter_xcodebuild_output
   start_time = time.time()
-  os.environ['DART_BUILD_MODE'] = mode
+  args = []
   build_config = utils.GetBuildConf(mode, arch, target_os)
-  if HOST_OS == 'macos':
-    filter_xcodebuild_output = True
-    project_file = 'dart.xcodeproj'
-    if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
-      project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
-    args = ['xcodebuild',
-            '-project',
-            project_file,
-            '-target',
-            target,
-            '-configuration',
-            build_config,
-            'SYMROOT=%s' % os.path.abspath('xcodebuild')
-            ]
-  elif HOST_OS == 'win32':
-    project_file = 'dart.sln'
-    if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
-      project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
-    # Select a platform suffix to pass to devenv.
-    if arch == 'ia32':
-      platform_suffix = 'Win32'
-    elif arch == 'x64':
-      platform_suffix = 'x64'
-    else:
-      print 'Unsupported arch for MSVC build: %s' % arch
-      return 1
-    config_name = '%s|%s' % (build_config, platform_suffix)
-    if target == 'all':
-      args = [options.devenv + os.sep + options.executable,
-              '/build',
-              config_name,
-              project_file
-             ]
-    else:
-      args = [options.devenv + os.sep + options.executable,
-              '/build',
-              config_name,
-              '/project',
-              target,
-              project_file
-             ]
+  if options.gn:
+    args = BuildNinjaCommand(options, target, target_os, mode, arch)
   else:
-    make = 'make'
-    if HOST_OS == 'freebsd':
-      make = 'gmake'
-      # work around lack of flock
-      os.environ['LINK'] = '$(CXX)'
-    args = [make,
-            '-j',
-            options.j,
-            'BUILDTYPE=' + build_config,
-            ]
-    if target_os != HOST_OS:
-      args += ['builddir_name=' + utils.GetBuildDir(HOST_OS)]
-    if options.verbose:
-      args += ['V=1']
+    os.environ['DART_BUILD_MODE'] = mode
+    if HOST_OS == 'macos':
+      filter_xcodebuild_output = True
+      project_file = 'dart.xcodeproj'
+      if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
+        project_file = 'dart-%s.xcodeproj' % CurrentDirectoryBaseName()
+      args = ['xcodebuild',
+              '-project',
+              project_file,
+              '-target',
+              target,
+              '-configuration',
+              build_config,
+              'SYMROOT=%s' % os.path.abspath('xcodebuild')
+              ]
+    elif HOST_OS == 'win32':
+      project_file = 'dart.sln'
+      if os.path.exists('dart-%s.gyp' % CurrentDirectoryBaseName()):
+        project_file = 'dart-%s.sln' % CurrentDirectoryBaseName()
+      # Select a platform suffix to pass to devenv.
+      if arch == 'ia32':
+        platform_suffix = 'Win32'
+      elif arch == 'x64':
+        platform_suffix = 'x64'
+      else:
+        print 'Unsupported arch for MSVC build: %s' % arch
+        return 1
+      config_name = '%s|%s' % (build_config, platform_suffix)
+      if target == 'all':
+        args = [options.devenv + os.sep + options.executable,
+                '/build',
+                config_name,
+                project_file
+               ]
+      else:
+        args = [options.devenv + os.sep + options.executable,
+                '/build',
+                config_name,
+                '/project',
+                target,
+                project_file
+               ]
+    else:
+      make = 'make'
+      if HOST_OS == 'freebsd':
+        make = 'gmake'
+        # work around lack of flock
+        os.environ['LINK'] = '$(CXX)'
+      args = [make,
+              '-j',
+              options.j,
+              'BUILDTYPE=' + build_config,
+              ]
+      if target_os != HOST_OS:
+        args += ['builddir_name=' + utils.GetBuildDir(HOST_OS)]
+      if options.verbose:
+        args += ['V=1']
 
-    args += [target]
+      args += [target]
 
   toolsOverride = None
   if override_tools:
@@ -500,9 +517,6 @@ def BuildCrossSdk(options, target_os, mode, arch):
   # Then, build the runtime for the target arch.
   if BuildOneConfig(options, 'runtime', target_os, mode, arch, True) != 0:
     return 1
-
-  # TODO(zra): verify that no platform specific details leak into the snapshots
-  # created for pub, dart2js, etc.
 
   # Copy dart-sdk from the host build products dir to the target build
   # products dir, and copy the dart binary for target to the sdk bin/ dir.

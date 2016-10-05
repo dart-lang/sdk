@@ -4,19 +4,22 @@
 # found in the LICENSE file.
 
 import argparse
+import multiprocessing
+import os
 import subprocess
 import sys
-import os
+import time
 import utils
 
 HOST_OS = utils.GuessOS()
 HOST_ARCH = utils.GuessArchitecture()
-HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 
-def get_out_dir(args):
-  return utils.GetBuildRoot(HOST_OS, args.mode, args.arch, args.os)
+
+def get_out_dir(mode, arch, target_os):
+  return utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+
 
 def to_command_line(gn_args):
   def merge(key, value):
@@ -25,6 +28,7 @@ def to_command_line(gn_args):
     return '%s="%s"' % (key, value)
   return [merge(x, y) for x, y in gn_args.iteritems()]
 
+
 def host_cpu_for_arch(arch):
   if arch in ['ia32', 'arm', 'armv6', 'armv5te', 'mips',
               'simarm', 'simarmv6', 'simarmv5te', 'simmips', 'simdbc']:
@@ -32,7 +36,8 @@ def host_cpu_for_arch(arch):
   if arch in ['x64', 'arm64', 'simarm64', 'simdbc64']:
     return 'x64'
 
-def target_cpu_for_arch(arch, os):
+
+def target_cpu_for_arch(arch, target_os):
   if arch in ['ia32', 'simarm', 'simarmv6', 'simarmv5te', 'simmips']:
     return 'x86'
   if arch in ['simarm64']:
@@ -40,30 +45,32 @@ def target_cpu_for_arch(arch, os):
   if arch == 'mips':
     return 'mipsel'
   if arch == 'simdbc':
-    return 'arm' if os == 'android' else 'x86'
+    return 'arm' if target_os == 'android' else 'x86'
   if arch == 'simdbc64':
-    return 'arm64' if os == 'android' else 'x64'
+    return 'arm64' if target_os == 'android' else 'x64'
   return arch
 
-def host_os_for_gn(os):
-  if os.startswith('macos'):
-    return 'mac'
-  if os.startswith('win'):
-    return 'win'
-  return os
 
-def to_gn_args(args):
+def host_os_for_gn(host_os):
+  if host_os.startswith('macos'):
+    return 'mac'
+  if host_os.startswith('win'):
+    return 'win'
+  return host_os
+
+
+def to_gn_args(args, mode, arch, target_os):
   gn_args = {}
 
   host_os = host_os_for_gn(HOST_OS)
-  if args.os == 'host':
+  if target_os == 'host':
     gn_args['target_os'] = host_os
   else:
-    gn_args['target_os'] = args.os
+    gn_args['target_os'] = target_os
 
-  gn_args['dart_target_arch'] = args.arch
-  gn_args['target_cpu'] = target_cpu_for_arch(args.arch, args.os)
-  gn_args['host_cpu'] = host_cpu_for_arch(args.arch)
+  gn_args['dart_target_arch'] = arch
+  gn_args['target_cpu'] = target_cpu_for_arch(arch, target_os)
+  gn_args['host_cpu'] = host_cpu_for_arch(arch)
 
   # TODO(zra): This is for the observatory, which currently builds using the
   # checked-in sdk. If/when the observatory no longer builds with the
@@ -82,10 +89,10 @@ def to_gn_args(args):
 
   gn_args['dart_use_tcmalloc'] = gn_args['target_os'] == 'linux'
 
-  gn_args['is_debug'] = args.mode == 'debug'
-  gn_args['is_release'] = args.mode == 'release'
-  gn_args['is_product'] = args.mode == 'product'
-  gn_args['dart_debug'] = args.mode == 'debug'
+  gn_args['is_debug'] = mode == 'debug'
+  gn_args['is_release'] = mode == 'release'
+  gn_args['is_product'] = mode == 'product'
+  gn_args['dart_debug'] = mode == 'debug'
 
   # This setting is only meaningful for Flutter. Standalone builds of the VM
   # should leave this set to 'develop', which causes the build to defer to
@@ -117,37 +124,125 @@ def to_gn_args(args):
 
   return gn_args
 
+
+def process_os_option(os_name):
+  if os_name == 'host':
+    return HOST_OS
+  return os_name
+
+
+def process_options(args):
+  if args.arch == 'all':
+    args.arch = 'ia32,x64,simarm,simarm64,simmips,simdbc64'
+  if args.mode == 'all':
+    args.mode = 'debug,release,product'
+  if args.os == 'all':
+    args.os = 'host,android'
+  args.mode = args.mode.split(',')
+  args.arch = args.arch.split(',')
+  args.os = args.os.split(',')
+  for mode in args.mode:
+    if not mode in ['debug', 'release', 'product']:
+      print "Unknown mode %s" % mode
+      return False
+  for arch in args.arch:
+    archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
+             'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
+             'simdbc', 'simdbc64', 'armsimdbc']
+    if not arch in archs:
+      print "Unknown arch %s" % arch
+      return False
+  oses = [process_os_option(os_name) for os_name in args.os]
+  for os_name in oses:
+    if not os_name in ['android', 'freebsd', 'linux', 'macos', 'win32']:
+      print "Unknown os %s" % os_name
+      return False
+    if os_name != HOST_OS:
+      if os_name != 'android':
+        print "Unsupported target os %s" % os_name
+        return False
+      if not HOST_OS in ['linux']:
+        print ("Cross-compilation to %s is not supported on host os %s."
+               % (os_name, HOST_OS))
+        return False
+      if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'mips',
+                      'simdbc', 'simdbc64']:
+        print ("Cross-compilation to %s is not supported for architecture %s."
+               % (os_name, arch))
+        return False
+  return True
+
+
 def parse_args(args):
   args = args[1:]
-  parser = argparse.ArgumentParser(description='A script run` gn gen`.')
+  parser = argparse.ArgumentParser(description='A script to run `gn gen`.')
 
+  parser.add_argument("-v", "--verbose",
+      help='Verbose output.',
+      default=False, action="store_true")
   parser.add_argument('--mode', '-m',
       type=str,
-      choices=['debug', 'release', 'product'],
+      help='Build variants (comma-separated).',
+      metavar='[all,debug,release,product]',
       default='debug')
   parser.add_argument('--os',
       type=str,
-      choices=['host', 'android'],
+      help='Target OSs (comma-separated).',
+      metavar='[all,host,android]',
       default='host')
   parser.add_argument('--arch', '-a',
       type=str,
-      choices=['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
-               'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',
-               'simdbc', 'simdbc64'],
+      help='Target architectures (comma-separated).',
+      metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
+              'simmips,mips,simarm64,arm64,simdbc,armsimdbc]',
       default='x64')
+  parser.add_argument('--goma',
+      help='Use goma',
+      default=True,
+      action='store_true')
+  parser.add_argument('--no-goma',
+      help='Disable goma',
+      dest='goma',
+      action='store_false')
+  parser.add_argument('--clang',
+      help='Use Clang',
+      default=True,
+      action='store_true')
+  parser.add_argument('--no-clang',
+      help='Disable Clang',
+      dest='clang',
+      action='store_false')
+  parser.add_argument('--target-sysroot', '-s',
+      type=str,
+      help='Path to the toolchain sysroot')
+  parser.add_argument('--toolchain-prefix', '-t',
+      type=str,
+      help='Path to the toolchain prefix')
+  parser.add_argument('--workers', '-w',
+      type=int,
+      help='Number of simultaneous GN invocations',
+      dest='workers',
+      default=multiprocessing.cpu_count())
 
-  parser.add_argument('--goma', default=True, action='store_true')
-  parser.add_argument('--no-goma', dest='goma', action='store_false')
+  options = parser.parse_args(args)
+  if not process_options(options):
+    parser.print_help()
+    return None
+  return options
 
-  parser.add_argument('--clang', default=True, action='store_true')
-  parser.add_argument('--no-clang', dest='clang', action='store_false')
 
-  parser.add_argument('--target-sysroot', '-s', type=str)
-  parser.add_argument('--toolchain-prefix', '-t', type=str)
+def run_command(command):
+  try:
+    subprocess.check_output(
+        command, cwd=DART_ROOT, stderr=subprocess.STDOUT)
+    return 0
+  except subprocess.CalledProcessError as e:
+    return ("Command failed: " + ' '.join(command) + "\n" +
+            "output: " + e.output)
 
-  return parser.parse_args(args)
 
 def main(argv):
+  starttime = time.time()
   args = parse_args(argv)
 
   if sys.platform.startswith(('cygwin', 'win')):
@@ -157,19 +252,38 @@ def main(argv):
   elif sys.platform.startswith('linux'):
      subdir = 'linux64'
   else:
-    raise Error('Unknown platform: ' + sys.platform)
+    print 'Unknown platform: ' + sys.platform
+    return 1
 
-  command = [
-    '%s/buildtools/%s/gn' % (DART_ROOT, subdir),
-    'gen',
-    '--check'
-  ]
-  gn_args = to_command_line(to_gn_args(args))
-  out_dir = get_out_dir(args)
-  print "gn gen --check in %s" % out_dir
-  command.append(out_dir)
-  command.append('--args=%s' % ' '.join(gn_args))
-  return subprocess.call(command, cwd=DART_ROOT)
+  commands = []
+  for target_os in args.os:
+    for mode in args.mode:
+      for arch in args.arch:
+        command = [
+          '%s/buildtools/%s/gn' % (DART_ROOT, subdir),
+          'gen',
+          '--check'
+        ]
+        gn_args = to_command_line(to_gn_args(args, mode, arch, target_os))
+        out_dir = get_out_dir(mode, arch, target_os)
+        if args.verbose:
+          print "gn gen --check in %s" % out_dir
+        command.append(out_dir)
+        command.append('--args=%s' % ' '.join(gn_args))
+        commands.append(command)
+
+  pool = multiprocessing.Pool(args.workers)
+  results = pool.map(run_command, commands, chunksize=1)
+  for r in results:
+    if r != 0:
+      print r.strip()
+      return 1
+
+  endtime = time.time()
+  if args.verbose:
+    print "GN Time: " + str(endtime - starttime) + " seconds"
+  return 0
+
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
