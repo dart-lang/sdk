@@ -393,8 +393,23 @@ def NotifyBuildDone(build_config, success, start):
     os.system(command)
 
 
+def RunGN(target_os, mode, arch):
+  gn_command = ['tools/gn.py',
+    '-m', mode,
+    '-a', arch,
+    '--os', target_os,
+    '-v',
+  ]
+  process = subprocess.Popen(gn_command)
+  process.wait()
+  if process.returncode != 0:
+    print ("Tried to run GN, but it failed. Try running it manually: \n\t$ " +
+           ' '.join(gn_command))
+
 def BuildNinjaCommand(options, target, target_os, mode, arch):
   out_dir = utils.GetBuildRoot(HOST_OS, mode, arch, target_os)
+  if not os.path.exists(out_dir):
+    RunGN(target_os, mode, arch)
   command = ['ninja', '-C', out_dir]
   if options.verbose:
     command += ['-v']
@@ -471,21 +486,20 @@ def BuildOneConfig(options, target, target_os, mode, arch, override_tools):
 
       args += [target]
 
-  toolsOverride = None
-  if override_tools:
-    toolsOverride = SetTools(arch, target_os, options)
-  if toolsOverride:
-    for k, v in toolsOverride.iteritems():
-      args.append(  k + "=" + v)
-      if options.verbose:
-        print k + " = " + v
-    if not os.path.isfile(toolsOverride['CC.target']):
-      if arch == 'arm':
-        print arm_cc_error
-      else:
-        print "Couldn't find compiler: %s" % toolsOverride['CC.target']
-      return 1
-
+    toolsOverride = None
+    if override_tools:
+      toolsOverride = SetTools(arch, target_os, options)
+    if toolsOverride:
+      for k, v in toolsOverride.iteritems():
+        args.append(  k + "=" + v)
+        if options.verbose:
+          print k + " = " + v
+      if not os.path.isfile(toolsOverride['CC.target']):
+        if arch == 'arm':
+          print arm_cc_error
+        else:
+          print "Couldn't find compiler: %s" % toolsOverride['CC.target']
+        return 1
 
   print ' '.join(args)
   process = None

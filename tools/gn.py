@@ -99,10 +99,12 @@ def to_gn_args(args, mode, arch, target_os):
   # 'is_debug', 'is_release' and 'is_product'.
   gn_args['dart_runtime_mode'] = 'develop'
 
-  if host_os == 'win':
-    gn_args['is_clang'] = False
-  else:
-    gn_args['is_clang'] = args.clang and args.os not in ['android']
+  # TODO(zra): Investigate using clang with these configurations.
+  has_clang = (host_os != 'win'
+               and args.os not in ['android']
+               and not gn_args['target_cpu'].startswith('arm')
+               and not gn_args['target_cpu'].startswith('mips'))
+  gn_args['is_clang'] = args.clang and has_clang
 
   if args.target_sysroot:
     gn_args['target_sysroot'] = args.target_sysroot
@@ -281,7 +283,7 @@ def main(argv):
 
   endtime = time.time()
   if args.verbose:
-    print "GN Time: " + str(endtime - starttime) + " seconds"
+    print ("GN Time: %.3f seconds" % (endtime - starttime))
   return 0
 
 
