@@ -19,6 +19,7 @@
 #include <fcntl.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
+#include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/code_observers.h"
 #include "vm/dart.h"
@@ -321,6 +322,7 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
 
 
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
+  MSAN_UNPOISON(str, size);
   int retval = vsnprintf(str, size, format, args);
   if (retval < 0) {
     FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);

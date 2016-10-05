@@ -18,6 +18,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/memory_sanitizer.h"
 
 // Return the error from the containing function if handle is in error handle.
 #define RETURN_IF_ERROR(handle)                                                \
@@ -927,6 +928,7 @@ Dart_Handle DartUtils::NewError(const char* format, ...) {
   va_end(args);
 
   char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
+  MSAN_UNPOISON(buffer, (len + 1));
   va_list args2;
   va_start(args2, format);
   vsnprintf(buffer, (len + 1), format, args2);

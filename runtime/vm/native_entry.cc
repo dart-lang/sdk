@@ -10,6 +10,7 @@
 #include "vm/code_patcher.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"
 #include "vm/safepoint.h"

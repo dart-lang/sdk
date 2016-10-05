@@ -839,6 +839,11 @@ class Isolate : public BaseIsolate {
   Monitor* spawn_count_monitor_;
   intptr_t spawn_count_;
 
+#define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
+  type metric_##variable##_;
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
+#undef ISOLATE_METRIC_VARIABLE
+
   // Has a reload ever been attempted?
   bool has_attempted_reload_;
   intptr_t no_reload_scope_depth_;  // we can only reload when this is 0.
@@ -846,11 +851,6 @@ class Isolate : public BaseIsolate {
   intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_;
   int64_t last_reload_timestamp_;
-
-#define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
-  type metric_##variable##_;
-  ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
-#undef ISOLATE_METRIC_VARIABLE
 
 
   static Dart_IsolateCreateCallback create_callback_;

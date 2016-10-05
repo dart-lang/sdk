@@ -839,6 +839,10 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
+#define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
+      metric_##variable##_(),
+      ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
+#undef ISOLATE_METRIC_CONSTRUCTORS
       has_attempted_reload_(false),
       no_reload_scope_depth_(0),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),

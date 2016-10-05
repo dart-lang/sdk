@@ -142,6 +142,8 @@ class NativeArguments {
   }
 
   RawObject* ReturnValue() const {
+    // Tell MemorySanitizer the retval_ was initialized (by generated code).
+    MSAN_UNPOISON(retval_, kWordSize);
     return *retval_;
   }
 
