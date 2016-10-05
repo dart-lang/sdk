@@ -36,6 +36,7 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       'assert_with_type_test_or_cast_test': skip_fail,
       'assertion_test': skip_fail,
       'async_await_test_none_multi': 'unittest',
+      'async_await_test_02_multi': 'unittest',
       'async_await_test_03_multi': skip_fail,  // Flaky on travis (#634)
       'async_star_await_pauses_test': skip_fail,
 
@@ -390,9 +391,7 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       // newer SDKs.
       'html_escape_test': ['skip'],
 
-      // TODO(rnystrom): If this test is enabled, karma gets confused and
-      // disconnects randomly.
-      'json_lib_test': skip_fail,
+      'json_lib_test': 'unittest',
 
       'json_utf8_chunk_test': skip_timeout,
       'latin1_test': skip_timeout,
@@ -757,7 +756,6 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
 
   let languageTestPattern =
       new RegExp('gen/codegen_output/(.*)/([^/]*_test[^/]*)');
-  html_config.useHtmlConfiguration();
   // We need to let Dart unittest control when tests are run not mocha.
   // mocha.allowUncaught(true);
   for (let testFile of allTestFiles) {
@@ -840,17 +838,27 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
     }
   }
 
-  // TODO(jmesserly): unitttest tests are currently broken
-  // https://github.com/dart-lang/dev_compiler/issues/631
-  return;
-
   let mochaOnError;
   // We run these tests in a mocha test wrapper to avoid the confusing failure
   // case of dart unittests being interleaved with mocha tests.
   // In practice we are really just suppressing all mocha test behavior while
   // Dart unittests run and then re-enabling it when the dart tests complete.
+  html_config.useHtmlConfiguration();
   test('run all dart unittests', function(done) { // 'function' to allow `this.timeout`
     if (unittest_tests.length == 0) return done();
+
+    // TODO(vsm): We're using an old deprecated version of unittest.
+    // We need to migrate all tests (in the SDK itself) off of
+    // unittest.
+
+    // All unittests need to be explicitly marked as such above.  If
+    // not, the unittest framework will be run in a 'normal' test and
+    // left in an inconsistent state at this point triggering spurious
+    // failures.  This check ensures we're not in such a state.  If it fails,
+    // we've likely added a new unittest and need to categorize it as such.
+    if (unittest.src__test_environment.environment.testCases[dart_sdk.dartx.length] != 0) {
+      return done(new Error('Unittest framework in an invalid state'));
+    }
 
     this.timeout(100000000);
     this.enableTimeouts(false);
