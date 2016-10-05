@@ -35,7 +35,9 @@ fi
 readonly CHROME_CANARY_DIR=$HOME/.chrome/canary
 readonly CHROME_CANARY_BIN=$CHROME_CANARY_DIR/$CHROME_NAME/$CHROME_RELATIVE_BIN
 readonly CHROME_CANARY_REV_FILE=$CHROME_CANARY_DIR/VERSION
-readonly CHROME_REV=$(curl -s ${CHROME_URL}/LAST_CHANGE)
+# FIXME(vsm): The latest chromium segfaults on travis and my local linux box.
+# readonly CHROME_REV=$(curl -s ${CHROME_URL}/LAST_CHANGE)
+readonly CHROME_REV=423167
 
 function getCanary() {
   local existing_version=""
