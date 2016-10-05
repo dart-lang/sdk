@@ -394,10 +394,13 @@ def NotifyBuildDone(build_config, success, start):
 
 
 def RunGN(target_os, mode, arch):
-  gn_command = ['tools/gn.py',
+  gn_os = 'host' if target_os == HOST_OS else target_os
+  gn_command = [
+    'python',
+    os.path.join(DART_ROOT, 'tools', 'gn.py'),
     '-m', mode,
     '-a', arch,
-    '--os', target_os,
+    '--os', gn_os,
     '-v',
   ]
   process = subprocess.Popen(gn_command)
