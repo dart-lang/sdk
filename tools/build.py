@@ -44,6 +44,13 @@ the Dart repo root,
 
 unless you really intend to use a non-default Makefile.""" % DART_ROOT
 
+DART_USE_GN = "DART_USE_GN"
+
+
+def use_gn():
+  return DART_USE_GN in os.environ
+
+
 def BuildOptions():
   result = optparse.OptionParser(usage=usage)
   result.add_option("-m", "--mode",
@@ -79,7 +86,7 @@ def BuildOptions():
       default=vs_executable)
   result.add_option("--gn",
       help='Build with GN/Ninja',
-      default=False,
+      default=use_gn(),
       action='store_true')
   return result
 
