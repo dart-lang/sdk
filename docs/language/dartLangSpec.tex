@@ -6943,6 +6943,9 @@ A {\em part header} begins with  \PART{} \OF{}  followed by the name of the libr
 \LMHash{}
 Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart system to attempt to compile the contents of the URI that is the value of $s$. The top-level declarations at that URI are then compiled by the Dart compiler in the scope of the current library. It is a compile-time error if the contents of the URI are not a valid part declaration. It is a static warning if the referenced part declaration $p$ names a library other than the current library as the library to which $p$ belongs.
 
+\LMHash{}
+It's a compile-time error if the same library contains two part directives with the same URI.
+
 \subsection{Scripts}
 \LMLabel{scripts}
 
