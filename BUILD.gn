@@ -66,8 +66,8 @@ action("create_sdk") {
     "utils/pub",
   ]
 
-  sdk_lib_files = exec_script("tools/list_files.py",
-      ["\\.dart\$", rebase_path("sdk/lib")],
+  sdk_lib_files = exec_script("tools/list_dart_files.py",
+      [rebase_path("sdk/lib")],
       "list lines")
 
   preamble_files = exec_script("tools/list_files.py",
