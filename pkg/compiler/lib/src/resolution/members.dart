@@ -4602,7 +4602,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         reporter.reportErrorMessage(
             switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
-      if (cases.isNotEmpty) {
+      if (cases.isNotEmpty && switchCase.statements.isNotEmpty) {
         Node last = switchCase.statements.last;
         if (last.asBreakStatement() == null &&
             last.asContinueStatement() == null &&
