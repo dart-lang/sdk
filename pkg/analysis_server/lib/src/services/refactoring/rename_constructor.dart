@@ -40,7 +40,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     RefactoringStatus result = new RefactoringStatus();
-    _analyzePossibleConflicts(result);
     return new Future.value(result);
   }
 
@@ -48,6 +47,9 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   RefactoringStatus checkNewName() {
     RefactoringStatus result = super.checkNewName();
     result.addStatus(validateConstructorName(newName));
+    if (newName != null) {
+      _analyzePossibleConflicts(result);
+    }
     return result;
   }
 
@@ -70,8 +72,13 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    // check if there are members with "newName" in the same ClassElement
     ClassElement parentClass = element.enclosingElement;
+    // Check if the "newName" is the name of the enclosing class.
+    if (parentClass.name == newName) {
+      result.addError('The constructor should not have the same name '
+          'as the name of the enclosing class.');
+    }
+    // check if there are members with "newName" in the same ClassElement
     for (Element newNameMember in getChildren(parentClass, newName)) {
       String message = format(
           "Class '{0}' already declares {1} with name '{2}'.",
