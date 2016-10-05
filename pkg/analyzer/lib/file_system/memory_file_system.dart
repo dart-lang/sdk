@@ -50,7 +50,7 @@ class MemoryResourceProvider implements ResourceProvider {
    * this class are never converted automatically.
    */
   String convertPath(String path) {
-    if (pathContext == pathos.windows &&
+    if (pathContext.style == pathos.windows.style &&
         path.startsWith(pathos.posix.separator)) {
       path = r'C:' +
           path.replaceAll(pathos.posix.separator, pathos.windows.separator);
@@ -339,10 +339,6 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   File resolveSymbolicLinksSync() {
     return throw new FileSystemException(path, "File does not exist");
   }
-
-  @override
-  Uri toUri() =>
-      new Uri.file(path, windows: _provider.pathContext == pathos.windows);
 
   @override
   void writeAsBytesSync(List<int> bytes) {

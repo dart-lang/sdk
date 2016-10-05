@@ -465,7 +465,7 @@ class MemoryFileSourceExistingTest {
 
   void test_encoding() {
     String expected = 'file:///foo/test.dart';
-    if (provider.pathContext == windows) {
+    if (provider.pathContext.style == windows.style) {
       expected = 'file:///C:/foo/test.dart';
     }
     expect(source.encoding, expected);
@@ -552,7 +552,7 @@ class MemoryFileSourceNotExistingTest {
 
   void test_encoding() {
     String expected = 'file:///foo/test.dart';
-    if (provider.pathContext == windows) {
+    if (provider.pathContext.style == windows.style) {
       expected = 'file:///C:/foo/test.dart';
     }
     expect(source.encoding, expected);
