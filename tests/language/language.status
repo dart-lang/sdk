@@ -107,6 +107,7 @@ initializing_formal_access_test: Skip
 initializing_formal_capture_test: Skip
 initializing_formal_final_test: Skip
 initializing_formal_type_test: Skip
+initializing_formal_promotion_test: Skip
 
 # Experimental feature: Syntactic support for generic methods.
 # Skip these in dartium, because the test framework can't pass VM flags to
