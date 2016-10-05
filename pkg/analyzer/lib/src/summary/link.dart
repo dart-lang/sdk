@@ -606,14 +606,14 @@ class ClassElementForLink_Class extends ClassElementForLink
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     int numTypeParameters = _unlinkedClass.typeParameters.length;
     if (numTypeParameters != 0) {
-      return new InterfaceTypeImpl.elementWithNameAndArgs(this, name, () {
-        List<DartType> typeArguments = new List<DartType>(numTypeParameters);
-        for (int i = 0; i < numTypeParameters; i++) {
-          typeArguments[i] =
-              getTypeArgument(i) ?? computeDefaultTypeArgument(i);
-        }
-        return typeArguments;
-      });
+      List<DartType> typeArguments =
+          new List<DartType>.generate(numTypeParameters, getTypeArgument);
+      if (typeArguments.contains(null)) {
+        return context.typeSystem.instantiateToBounds(this.type);
+      } else {
+        return new InterfaceTypeImpl.elementWithNameAndArgs(
+            this, name, () => typeArguments);
+      }
     } else {
       return _type ??= new InterfaceTypeImpl(this);
     }
@@ -3177,12 +3177,15 @@ class FunctionTypeAliasElementForLink extends Object
       DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
     int numTypeParameters = _unlinkedTypedef.typeParameters.length;
     if (numTypeParameters != 0) {
-      List<DartType> typeArguments = new List<DartType>(numTypeParameters);
-      for (int i = 0; i < numTypeParameters; i++) {
-        typeArguments[i] = getTypeArgument(i) ?? computeDefaultTypeArgument(i);
+      List<DartType> typeArguments =
+          new List<DartType>.generate(numTypeParameters, getTypeArgument);
+      if (typeArguments.contains(null)) {
+        return context.typeSystem
+            .instantiateToBounds(new FunctionTypeImpl.forTypedef(this));
+      } else {
+        return new FunctionTypeImpl.elementWithNameAndArgs(
+            this, name, typeArguments, true);
       }
-      return new FunctionTypeImpl.elementWithNameAndArgs(
-          this, name, typeArguments, true);
     } else {
       return _type ??= new FunctionTypeImpl.forTypedef(this);
     }
@@ -4406,6 +4409,9 @@ abstract class ReferenceableElementForLink implements Element {
    * Otherwise return `null`.
    */
   TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
+  ElementLocation get location => new ElementLocationImpl.con1(this);
 
   /**
    * Return the type indicated by this element when it is used in a
