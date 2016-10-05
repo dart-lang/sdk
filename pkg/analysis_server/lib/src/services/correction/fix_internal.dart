@@ -69,9 +69,13 @@ class DartFixContextImpl extends FixContextImpl implements DartFixContext {
  */
 class DefaultFixContributor extends DartFixContributor {
   @override
-  Future<List<Fix>> internalComputeFixes(DartFixContext context) {
-    FixProcessor processor = new FixProcessor(context);
-    return processor.compute();
+  Future<List<Fix>> internalComputeFixes(DartFixContext context) async {
+    try {
+      FixProcessor processor = new FixProcessor(context);
+      return processor.compute();
+    } on CancelCorrectionException {
+      return Fix.EMPTY_LIST;
+    }
   }
 }
 
@@ -135,7 +139,12 @@ class FixProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Fix>> compute() async {
-    utils = new CorrectionUtils(unit);
+    try {
+      utils = new CorrectionUtils(unit);
+    } catch (e) {
+      throw new CancelCorrectionException(exception: e);
+    }
+
     errorOffset = error.offset;
     errorLength = error.length;
     errorEnd = errorOffset + errorLength;
