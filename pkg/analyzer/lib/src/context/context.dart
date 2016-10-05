@@ -290,6 +290,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.enableAssertMessage != options.enableAssertMessage ||
         this._options.enableInitializingFormalAccess !=
             options.enableInitializingFormalAccess ||
+        this._options.enableLazyAssignmentOperators !=
+            options.enableLazyAssignmentOperators ||
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
             : false) ||
@@ -321,6 +323,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableInitializingFormalAccess =
         options.enableInitializingFormalAccess;
+    this._options.enableLazyAssignmentOperators =
+        options.enableLazyAssignmentOperators;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
     this._options.hint = options.hint;

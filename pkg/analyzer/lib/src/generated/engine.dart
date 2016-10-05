@@ -1237,10 +1237,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   static const int ENABLE_ASSERT_FLAG = 0x01;
   static const int ENABLE_GENERIC_METHODS_FLAG = 0x02;
-  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x04;
-  static const int ENABLE_STRONG_MODE_FLAG = 0x08;
-  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x10;
-  static const int ENABLE_SUPER_MIXINS_FLAG = 0x20;
+  static const int ENABLE_LAZY_ASSIGNMENT_OPERATORS = 0x04;
+  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x08;
+  static const int ENABLE_STRONG_MODE_FLAG = 0x10;
+  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x20;
+  static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
 
   /**
    * The default list of non-nullable type names.
@@ -1374,6 +1375,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableInitializingFormalAccess = options.enableInitializingFormalAccess;
+    enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
     generateImplicitErrors = options.generateImplicitErrors;
@@ -1445,15 +1447,17 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   int encodeCrossContextOptions() =>
       (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
       (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
+      (enableLazyAssignmentOperators ? ENABLE_LAZY_ASSIGNMENT_OPERATORS : 0) |
       (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
+      (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
       (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
-      (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0) |
-      (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0);
+      (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
 
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableAssertMessage = options.enableAssertMessage;
     enableGenericMethods = options.enableGenericMethods;
+    enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
     strongMode = options.strongMode;
@@ -1487,17 +1491,20 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
       add('genericMethods');
     }
+    if (encoding & ENABLE_LAZY_ASSIGNMENT_OPERATORS > 0) {
+      add('lazyAssignmentOperators');
+    }
     if (encoding & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
       add('strictCallChecks');
+    }
+    if (encoding & ENABLE_SUPER_MIXINS_FLAG > 0) {
+      add('superMixins');
     }
     if (encoding & ENABLE_STRONG_MODE_FLAG > 0) {
       add('strongMode');
     }
     if (encoding & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
       add('strongModeHints');
-    }
-    if (encoding & ENABLE_SUPER_MIXINS_FLAG > 0) {
-      add('superMixins');
     }
     return buffer.toString();
   }
