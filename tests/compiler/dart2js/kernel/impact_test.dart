@@ -15,6 +15,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
+import 'package:compiler/src/universe/call_structure.dart';
 import 'package:compiler/src/universe/feature.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'package:expect/expect.dart';
@@ -62,6 +63,10 @@ main() {
   testIsNotGeneric(null);
   testIsNotGenericRaw(null);
   testIsNotGenericDynamic(null);
+  testIsTypedef(null);
+  testIsTypedefGeneric(null);
+  testIsTypedefGenericRaw(null);
+  testIsTypedefGenericDynamic(null);
   testAs(null);
   testAsGeneric(null);
   testAsGenericRaw(null);
@@ -80,6 +85,8 @@ main() {
   testTryCatchOn();
   testTryCatchStackTrace();
   testTryFinally();
+  testSwitchWithoutFallthrough(null);
+  testSwitchWithFallthrough(null);
   testTopLevelInvoke();
   testTopLevelInvokeTyped();
   testTopLevelFunctionTyped();
@@ -166,6 +173,10 @@ testIsNot(o) => o is! Class;
 testIsNotGeneric(o) => o is! GenericClass<int, String>;
 testIsNotGenericRaw(o) => o is! GenericClass;
 testIsNotGenericDynamic(o) => o is! GenericClass<dynamic, dynamic>;
+testIsTypedef(o) => o is Typedef;
+testIsTypedefGeneric(o) => o is GenericTypedef<int, String>;
+testIsTypedefGenericRaw(o) => o is GenericTypedef;
+testIsTypedefGenericDynamic(o) => o is GenericTypedef<dynamic, dynamic>;
 testAs(o) => o as Class;
 testAsGeneric(o) => o as GenericClass<int, String>;
 testAsGenericRaw(o) => o as GenericClass;
@@ -209,6 +220,31 @@ testTryCatchStackTrace() {
 }
 testTryFinally() {
   try {} finally {}
+}
+testSwitchWithoutFallthrough(o) {
+  switch (o) {
+  case 0:
+  case 1:
+    o = 2;
+    break;
+  case 2:
+    o = 3;
+    return;
+  case 3:
+  default:
+  }
+}
+testSwitchWithFallthrough(o) {
+  switch (o) {
+  case 0:
+  case 1:
+    o = 2;
+  case 2:
+    o = 3;
+    return;
+  case 3:
+  default:
+  }
 }
 topLevelFunction1(a) {}
 topLevelFunction2(a, [b, c]) {}
@@ -376,6 +412,8 @@ class GenericClass<X, Y> {
   factory GenericClass.fact() => null;
   factory GenericClass.redirect() = GenericClass.generative;
 }
+typedef Typedef();
+typedef X GenericTypedef<X, Y>(Y y);
 ''',
 };
 
@@ -411,7 +449,7 @@ void checkLibrary(Compiler compiler, LibraryElement library) {
 
 void checkElement(Compiler compiler, AstElement element) {
   ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
-  astImpact = laxImpact(element, astImpact);
+  astImpact = laxImpact(compiler, element, astImpact);
   ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
   Expect.isNotNull(kernelImpact, 'No impact computed for $element');
   testResolutionImpactEquivalence(
@@ -420,18 +458,23 @@ void checkElement(Compiler compiler, AstElement element) {
 
 /// Lax the precision of [impact] to meet expectancy of the corresponding impact
 /// generated from kernel.
-ResolutionImpact laxImpact(AstElement element, ResolutionImpact impact) {
+ResolutionImpact laxImpact(
+    Compiler compiler, AstElement element, ResolutionImpact impact) {
   ResolutionWorldImpactBuilder builder =
       new ResolutionWorldImpactBuilder('Lax impact of ${element}');
   impact.staticUses.forEach(builder.registerStaticUse);
   impact.dynamicUses.forEach(builder.registerDynamicUse);
-  impact.typeUses.forEach(builder.registerTypeUse);
+  for (TypeUse typeUse in impact.typeUses) {
+    if (typeUse.type.isTypedef) {
+      typeUse = new TypeUse.internal(typeUse.type.unaliased, typeUse.kind);
+    }
+    builder.registerTypeUse(typeUse);
+  }
   impact.constantLiterals.forEach(builder.registerConstantLiteral);
   impact.constSymbolNames.forEach(builder.registerConstSymbolName);
   impact.listLiterals.forEach(builder.registerListLiteral);
   impact.mapLiterals.forEach(builder.registerMapLiteral);
   for (Feature feature in impact.features) {
-    builder.registerFeature(feature);
     switch (feature) {
       case Feature.STRING_INTERPOLATION:
       case Feature.STRING_JUXTAPOSITION:
@@ -440,7 +483,20 @@ ResolutionImpact laxImpact(AstElement element, ResolutionImpact impact) {
         builder.registerFeature(Feature.STRING_INTERPOLATION);
         builder.registerFeature(Feature.STRING_JUXTAPOSITION);
         break;
+      case Feature.FALL_THROUGH_ERROR:
+        LibraryElement library =
+            compiler.libraryLoader.lookupLibrary(Uris.dart_core);
+        ClassElement cls =
+            library.implementation.localLookup('FallThroughError');
+        ConstructorElement constructor = cls.lookupConstructor('');
+        builder.registerTypeUse(new TypeUse.instantiation(cls.thisType));
+        builder.registerStaticUse(new StaticUse.constructorInvoke(
+            constructor, CallStructure.NO_ARGS));
+        builder.registerFeature(Feature.THROW_EXPRESSION);
+        break;
       default:
+        builder.registerFeature(feature);
+        break;
     }
   }
   impact.nativeData.forEach(builder.registerNativeData);

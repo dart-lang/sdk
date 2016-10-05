@@ -4602,6 +4602,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         reporter.reportErrorMessage(
             switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
+      if (cases.isNotEmpty) {
+        Node last = switchCase.statements.last;
+        if (last.asBreakStatement() == null &&
+            last.asContinueStatement() == null &&
+            last.asThrow() == null &&
+            last.asReturn() == null) {
+          registry.registerFeature(Feature.FALL_THROUGH_ERROR);
+        }
+      }
     }
 
     addDeferredAction(enclosingElement, () {
@@ -4623,7 +4632,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     });
     // TODO(15575): We should warn if we can detect a fall through
     // error.
-    registry.registerFeature(Feature.FALL_THROUGH_ERROR);
     return const NoneResult();
   }
 

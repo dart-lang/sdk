@@ -22,6 +22,7 @@ import 'package:kernel/frontend/accessors.dart'
 import 'package:kernel/transformations/flags.dart';
 
 import '../common.dart';
+import '../common/names.dart';
 import '../constants/expressions.dart'
     show
         BoolFromEnvironmentConstantExpression,
@@ -145,7 +146,6 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show Link;
 import 'error.dart' show KernelError;
-import 'fall_through_visitor.dart' show fallsThrough;
 import 'kernel.dart' show ConstructorTarget, Kernel;
 import 'unavailable.dart' show UnavailableVisitor;
 import 'unresolved.dart' show UnresolvedVisitor;
@@ -995,6 +995,15 @@ class KernelVisitor extends Object
     return new ir.SwitchCase(expressions, null, isDefault: node.isDefaultCase);
   }
 
+  /// Returns true if [node] would let execution reach the next node (aka
+  /// fall-through in switch cases).
+  bool fallsThrough(ir.Statement node) {
+    return !(node is ir.BreakStatement ||
+        node is ir.ReturnStatement ||
+        node is ir.ContinueSwitchStatement ||
+        (node is ir.ExpressionStatement && node.expression is ir.Throw));
+  }
+
   @override
   ir.Statement visitSwitchStatement(SwitchStatement node) {
     ir.Expression expression = visitForValue(node.expression);
@@ -1026,18 +1035,18 @@ class KernelVisitor extends Object
           hasVariableDeclaration = true;
         }
       }
-      if (!isLastCase &&
-          (statements.isEmpty || fallsThrough(statements.last))) {
-        statements.add(new ir.ExpressionStatement(new ir.Throw(
-            new ir.StaticInvocation(kernel.getFallThroughErrorBuilder(),
-                new ir.Arguments.empty()))));
+      if (statements.isEmpty || fallsThrough(statements.last)) {
+        if (isLastCase) {
+          statements.add(new ir.BreakStatement(
+              getBreakTarget(elements.getTargetDefinition(node))));
+        } else {
+          statements.add(new ir.ExpressionStatement(new ir.Throw(
+              new ir.ConstructorInvocation(
+                  kernel.getFallThroughErrorConstructor(),
+                  new ir.Arguments.empty()))));
+        }
       }
-      ir.Statement body;
-      if (!hasVariableDeclaration && statements.length == 1) {
-        body = statements.single;
-      } else {
-        body = new ir.Block(statements);
-      }
+      ir.Statement body = new ir.Block(statements);
       irCase.body = body;
       body.parent = irCase;
     }
@@ -2042,13 +2051,23 @@ class KernelVisitor extends Object
     } else if (function.isConstructor) {
       // TODO(johnniwinther): Clean this up pending kernel issue #28.
       ConstructorElement constructor = function;
-      if (constructor.isDefaultConstructor) {
+      if (bodyNode == null || bodyNode.asEmptyStatement() != null) {
         body = new ir.EmptyStatement();
-      } else if (bodyNode != null && bodyNode.asEmptyStatement() == null) {
+      } else {
         body = buildStatementInBlock(bodyNode);
       }
     } else if (bodyNode != null) {
-      body = buildStatementInBlock(bodyNode);
+      Return returnStatement = bodyNode.asReturn();
+      if ((function.isSetter || function.name == Names.INDEX_SET_NAME.text) &&
+          returnStatement != null) {
+        // Avoid encoding the implicit return of setters with arrow body:
+        //    set setter(value) => this.value = value;
+        //    operator []=(index, value) => this[index] = value;
+        body = new ir.ExpressionStatement(
+            visitForEffect(returnStatement.expression));
+      } else {
+        body = buildStatementInBlock(bodyNode);
+      }
     }
     return associateElement(
         new ir.FunctionNode(body,

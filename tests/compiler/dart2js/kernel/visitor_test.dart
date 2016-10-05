@@ -7,6 +7,7 @@
 
 import 'dart:io';
 import 'package:compiler/src/compiler.dart' show Compiler;
+import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/backend.dart' show JavaScriptBackend;
 import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:kernel/ast.dart';
@@ -22,6 +23,8 @@ const String TESTCASE_DIR = 'third_party/pkg/kernel/testcases/';
 const List<String> SKIP_TESTS = const <String>[];
 
 main(List<String> arguments) {
+  Compiler compiler = compilerFor(
+      options: [Flags.analyzeOnly, Flags.analyzeMain, Flags.useKernel]);
   Directory directory = new Directory('${TESTCASE_DIR}/input');
   for (FileSystemEntity file in directory.listSync()) {
     if (file is File && file.path.endsWith('.dart')) {
@@ -33,16 +36,13 @@ main(List<String> arguments) {
       }
 
       test(name, () async {
-        var result = await runCompiler(
-            entryPoint: file.absolute.uri,
-            options: [Flags.analyzeOnly, Flags.useKernel]);
-        Compiler compiler = result.compiler;
+        LibraryElement library = await compiler.analyzeUri(file.absolute.uri);
         JavaScriptBackend backend = compiler.backend;
         StringBuffer buffer = new StringBuffer();
-        Program program = backend.kernelTask.program;
+        Program program = backend.kernelTask.buildProgram(library);
         new MixinFullResolution().transform(program);
         new Printer(buffer).writeLibraryFile(
-            backend.kernelTask.program.mainMethod.enclosingLibrary);
+            program.mainMethod.enclosingLibrary);
         String actual = buffer.toString();
         String expected =
             new File('${TESTCASE_DIR}/spec-mode/$name.baseline.txt')

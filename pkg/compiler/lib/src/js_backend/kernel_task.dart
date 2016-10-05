@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../compiler.dart';
+import '../common/names.dart';
+import '../elements/elements.dart';
 import '../kernel/kernel.dart';
 import 'package:kernel/ast.dart' as ir;
 
@@ -25,8 +27,16 @@ class KernelTask {
   ///
   /// May enqueue more elements to the resolution queue.
   void buildKernelIr() {
-    program =
-        new ir.Program(kernel.libraryDependencies(_compiler.options.entryPoint))
-          ..mainMethod = kernel.functionToIr(_compiler.mainFunction);
+    program = buildProgram(_compiler.mainApp);
+  }
+
+  /// Builds the kernel IR program for the main function exported from
+  /// [library].
+  ///
+  /// May enqueue more elements to the resolution queue.
+  ir.Program buildProgram(LibraryElement library) {
+    return new ir.Program(kernel.libraryDependencies(library.canonicalUri))
+      ..mainMethod = kernel.functionToIr(
+          library.findExported(Identifiers.main));
   }
 }

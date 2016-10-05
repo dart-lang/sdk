@@ -27,9 +27,6 @@ const Map<String, List/*<String|MessageKind>*/ > WHITE_LIST = const {
     "Library 'package:async/async.dart' doesn't export a "
         "'ForkableStream' declaration.",
   ],
-  "/utils.dart": const [
-    "Duplicated library name 'utils'.",
-  ],
 };
 
 const List<String> SKIP_LIST = const <String>[

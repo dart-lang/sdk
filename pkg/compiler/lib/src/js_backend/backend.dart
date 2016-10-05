@@ -2370,7 +2370,7 @@ class JavaScriptBackend extends Backend {
       enabledNoSuchMethod = true;
     }
 
-    if (compiler.options.useKernel) {
+    if (compiler.options.useKernel && compiler.mainApp != null) {
       kernelTask.buildKernelIr();
     }
 
