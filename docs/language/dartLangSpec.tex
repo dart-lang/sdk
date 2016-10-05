@@ -592,7 +592,9 @@ An asynchronous constructor would, by definition, never return an instance of th
 One could allow modifiers for factories. A factory for \code{Future} could be modified by \ASYNC{}, a factory for \code{Stream} could be modified by \ASYNC* and a factory for \code{Iterable} could be modified by \SYNC*. No other scenario makes sense because the object returned by the factory would be of the wrong type. This situation is very unusual so it is not worth making an exception to the general rule for constructors in order to allow it.
 }
 \LMHash{}
-It is a static warning if the declared return type of a function marked \ASYNC{} may not be assigned to \code{Future}. It is a static warning if the declared return type of a function marked \SYNC* may not be assigned to \code{Iterable}. It is a static warning if the declared return type of  a function marked \ASYNC* may not be assigned to \code{Stream}.
+It is a static warning if the declared return type of a function marked \ASYNC{} is not a supertype of \code{Future$<$\mbox{$T$}$>$} for some type $T$.
+It is a static warning if the declared return type of a function marked \SYNC* is not a supertype of \code{Iterable$<$\mbox{$T$}$>$} for some type $T$.
+It is a static warning if the declared return type of a function marked \ASYNC* is not a supertype of \code{Stream$<$\mbox{$T$}$>$} for some type $T$.
 
 \subsection{Function Declarations}
 \LMLabel{functionDeclarations}
