@@ -17,7 +17,6 @@ if (is_win) {
 }
 
 import("//build/toolchain/ccache.gni")
-import("//build/config/sanitizers/sanitizers.gni")
 
 # default_include_dirs ---------------------------------------------------------
 #
@@ -92,44 +91,20 @@ config("compiler") {
       ]
     }
     if (is_asan) {
-      asan_blacklist_path =
-          rebase_path("//tools/memory/asan/blacklist.txt", root_build_dir)
-      cflags += [
-        "-fsanitize=address",
-        "-fsanitize-blacklist=$asan_blacklist_path",
-      ]
-      if (is_mac) {
-        cflags += [ "-mllvm -asan-globals=0" ]  # http://crbug.com/352073
-        # TODO(GYP): deal with mac_bundles.
-      }
+      cflags += [ "-fsanitize=address" ]
+      ldflags += [ "-fsanitize=address" ]
     }
     if (is_lsan) {
       cflags += [ "-fsanitize=leak" ]
+      ldflags += [ "-fsanitize=leak" ]
     }
     if (is_tsan) {
-      tsan_blacklist_path =
-          rebase_path("//tools/memory/tsan_v2/ignores.txt", root_build_dir)
-      cflags += [
-        "-fsanitize=thread",
-        "-fsanitize-blacklist=$tsan_blacklist_path",
-      ]
+      cflags += [ "-fsanitize=thread" ]
+      ldflags += [ "-fsanitize=thread" ]
     }
     if (is_msan) {
-      msan_blacklist_path =
-          rebase_path("//tools/msan/blacklist.txt", root_build_dir)
-      cflags += [
-        "-fsanitize=memory",
-        "-fsanitize-memory-track-origins=$msan_track_origins",
-        "-fsanitize-blacklist=$msan_blacklist_path",
-      ]
-    }
-
-    if (use_custom_libcxx) {
-      cflags_cc += [ "-nostdinc++" ]
-      include_dirs = [
-        "//buildtools/third_party/libc++/trunk/include",
-        "//buildtools/third_party/libc++abi/trunk/include",
-      ]
+      cflags += [ "-fsanitize=memory" ]
+      ldflags += [ "-fsanitize=memory" ]
     }
   }
 

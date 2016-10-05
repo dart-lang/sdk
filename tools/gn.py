@@ -87,7 +87,9 @@ def to_gn_args(args, mode, arch, target_os):
 
   gn_args['dart_zlib_path'] = "//runtime/bin/zlib"
 
-  gn_args['dart_use_tcmalloc'] = gn_args['target_os'] == 'linux'
+  # Use tcmalloc only when targeting Linux and when not using ASAN.
+  gn_args['dart_use_tcmalloc'] = (gn_args['target_os'] == 'linux'
+                                  and not args.asan)
 
   gn_args['is_debug'] = mode == 'debug'
   gn_args['is_release'] = mode == 'release'
@@ -105,6 +107,8 @@ def to_gn_args(args, mode, arch, target_os):
                and not gn_args['target_cpu'].startswith('arm')
                and not gn_args['target_cpu'].startswith('mips'))
   gn_args['is_clang'] = args.clang and has_clang
+
+  gn_args['is_asan'] = args.asan and gn_args['is_clang']
 
   if args.target_sysroot:
     gn_args['target_sysroot'] = args.target_sysroot
@@ -198,6 +202,10 @@ def parse_args(args):
       metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
               'simmips,mips,simarm64,arm64,simdbc,armsimdbc]',
       default='x64')
+  parser.add_argument('--asan',
+      help='Build with ASAN',
+      default=False,
+      action='store_true')
   parser.add_argument('--goma',
       help='Use goma',
       default=True,
