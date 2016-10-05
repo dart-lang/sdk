@@ -179,6 +179,19 @@ def process_options(args):
   return True
 
 
+def os_has_ide(host_os):
+  return host_os.startswith('win') or host_os.startswith('mac')
+
+
+def ide_switch(host_os):
+  if host_os.startswith('win'):
+    return '--ide=vs'
+  elif host_os.startswith('mac'):
+    return '--ide=xcode'
+  else:
+    return '--ide=json'
+
+
 def parse_args(args):
   args = args[1:]
   parser = argparse.ArgumentParser(description='A script to run `gn gen`.')
@@ -222,6 +235,10 @@ def parse_args(args):
       help='Disable Clang',
       dest='clang',
       action='store_false')
+  parser.add_argument('--ide',
+      help='Generate an IDE file.',
+      default=os_has_ide(HOST_OS),
+      action='store_true')
   parser.add_argument('--target-sysroot', '-s',
       type=str,
       help='Path to the toolchain sysroot')
@@ -278,6 +295,8 @@ def main(argv):
         out_dir = get_out_dir(mode, arch, target_os)
         if args.verbose:
           print "gn gen --check in %s" % out_dir
+        if args.ide:
+          command.append(ide_switch(HOST_OS))
         command.append(out_dir)
         command.append('--args=%s' % ' '.join(gn_args))
         commands.append(command)
