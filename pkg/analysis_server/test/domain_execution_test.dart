@@ -28,10 +28,8 @@ import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
 import 'operation/operation_queue_test.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ExecutionDomainTest);
   });

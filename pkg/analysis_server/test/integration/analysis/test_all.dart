@@ -6,7 +6,6 @@ library test.integration.analysis.all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'analysis_options_test.dart' as analysis_options_test;
 import 'error_test.dart' as error_test;
 import 'get_errors_after_analysis_test.dart' as get_errors_after_analysis_test;
@@ -31,7 +30,6 @@ import 'update_content_test.dart' as update_content_test;
  * Utility for manually running all integration tests.
  */
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     analysis_options_test.main();
     error_test.main();

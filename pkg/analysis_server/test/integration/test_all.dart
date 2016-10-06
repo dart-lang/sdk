@@ -6,7 +6,6 @@ library test.integration.all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'analysis/test_all.dart' as analysis_test_all;
 import 'completion/test_all.dart' as completion_test_all;
 import 'search/test_all.dart' as search_test_all;
@@ -16,7 +15,6 @@ import 'server/test_all.dart' as server_test_all;
  * Utility for manually running all integration tests.
  */
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     analysis_test_all.main();
     completion_test_all.main();

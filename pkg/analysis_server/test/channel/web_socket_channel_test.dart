@@ -12,10 +12,8 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 
 import '../mocks.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   group('WebSocketChannel', () {
     setUp(WebSocketChannelTest.setUp);
     test('close', WebSocketChannelTest.close);

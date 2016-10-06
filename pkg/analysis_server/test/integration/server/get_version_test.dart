@@ -6,11 +6,9 @@ library test.integration.server.get.version;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(Test);
   });

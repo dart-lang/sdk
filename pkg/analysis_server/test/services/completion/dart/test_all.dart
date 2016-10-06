@@ -6,7 +6,6 @@ library test.services.completion.dart;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../utils.dart';
 import 'arglist_contributor_test.dart' as arglist_test;
 import 'combinator_contributor_test.dart' as combinator_test;
 import 'common_usage_sorter_test.dart' as common_usage_test;
@@ -32,7 +31,6 @@ import 'variable_name_contributor_test.dart' as variable_name_contributor_test;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     arglist_test.main();
     combinator_test.main();

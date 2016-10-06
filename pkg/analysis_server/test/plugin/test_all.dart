@@ -5,7 +5,6 @@ library test.plugin.analysis_contributor;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'protocol_dart_test.dart' as protocol_dart_test;
 import 'set_analysis_domain_test.dart' as set_analysis_domain_test;
 
@@ -13,7 +12,6 @@ import 'set_analysis_domain_test.dart' as set_analysis_domain_test;
  * Utility for manually running all tests.
  */
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     protocol_dart_test.main();
     set_analysis_domain_test.main();

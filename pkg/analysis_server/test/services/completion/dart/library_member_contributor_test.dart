@@ -9,11 +9,9 @@ import 'package:analysis_server/src/services/completion/dart/library_member_cont
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryMemberContributorTest);
   });

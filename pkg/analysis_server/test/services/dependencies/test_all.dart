@@ -6,13 +6,11 @@ library test.services.dependencies;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'library_dependencies_test.dart' as library_dependencies;
 import 'reachable_source_collector_test.dart' as reachable_source_collector;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     library_dependencies.main();
     reachable_source_collector.main();

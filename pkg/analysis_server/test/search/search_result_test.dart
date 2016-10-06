@@ -9,10 +9,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
-
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchResultKindTest);
   });

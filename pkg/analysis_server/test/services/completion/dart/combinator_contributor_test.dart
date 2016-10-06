@@ -10,11 +10,9 @@ import 'package:analysis_server/src/services/completion/dart/combinator_contribu
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(CombinatorContributorTest);
   });

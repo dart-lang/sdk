@@ -10,10 +10,8 @@ import 'dart:collection';
 import 'package:test/test.dart';
 
 import 'completion_test_support.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
   CompletionTestBuilder builder = new CompletionTestBuilder();
   builder.buildAll();
 }

@@ -16,11 +16,7 @@ import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 
-import '../utils.dart';
-
 main() {
-  initializeTestEnvironment();
-
   group('CachingPubPackageMapProvider', () {
     MemoryResourceProvider resProvider;
     _MockPubListRunner mockRunner;

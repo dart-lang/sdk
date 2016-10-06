@@ -8,10 +8,7 @@ import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:test/test.dart' hide isEmpty;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
-
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(StringsTest);
   });

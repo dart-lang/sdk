@@ -14,10 +14,8 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 
 import '../mocks.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   group('ByteStreamClientChannel', () {
     setUp(ByteStreamClientChannelTest.setUp);
     test('close', ByteStreamClientChannelTest.close);

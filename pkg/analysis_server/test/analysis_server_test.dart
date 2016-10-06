@@ -29,10 +29,8 @@ import 'package:typed_mock/typed_mock.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisServerTest);
   });

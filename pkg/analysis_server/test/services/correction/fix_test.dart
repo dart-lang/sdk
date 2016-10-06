@@ -23,10 +23,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
 import '../../abstract_single_unit.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(FixProcessorTest);
     defineReflectiveTests(LintFixTest);

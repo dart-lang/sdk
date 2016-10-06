@@ -26,13 +26,11 @@ import 'single_context_manager_test.dart' as single_context_manager_test;
 import 'socket_server_test.dart' as socket_server_test;
 import 'source/test_all.dart' as source_all;
 import 'src/test_all.dart' as src_all;
-import 'utils.dart';
 
 /**
  * Utility for manually running all tests.
  */
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     analysis_all.main();
     analysis_server_test.main();

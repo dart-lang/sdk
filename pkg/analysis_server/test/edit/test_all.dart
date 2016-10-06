@@ -6,7 +6,6 @@ library test.edit.all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'assists_test.dart' as assists_test;
 import 'fixes_test.dart' as fixes_test;
 import 'format_test.dart' as format_test;
@@ -18,7 +17,6 @@ import 'sort_members_test.dart' as sort_members_test;
  * Utility for manually running all tests.
  */
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     assists_test.main();
     fixes_test.main();

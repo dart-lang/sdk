@@ -10,10 +10,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
-
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ChangeTest);
     defineReflectiveTests(EditTest);

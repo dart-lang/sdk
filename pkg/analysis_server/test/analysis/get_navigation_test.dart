@@ -10,11 +10,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'notification_navigation_test.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
   });

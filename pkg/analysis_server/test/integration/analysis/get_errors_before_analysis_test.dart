@@ -6,11 +6,9 @@ library test.integration.analysis.get.errors.before.analysis;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'get_errors.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(Test);
   });

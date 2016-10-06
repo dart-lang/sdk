@@ -4,7 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'index_test.dart' as index_test;
 import 'index_unit_test.dart' as index_unit_test;
 
@@ -12,7 +11,6 @@ import 'index_unit_test.dart' as index_unit_test;
  * Utility for manually running all tests.
  */
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     index_test.main();
     index_unit_test.main();

@@ -11,11 +11,9 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'abstract_search_domain.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementReferencesTest);
     defineReflectiveTests(_NoSearchEngine);

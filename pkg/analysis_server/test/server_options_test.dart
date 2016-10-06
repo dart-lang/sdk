@@ -10,16 +10,12 @@ library analysis_server.test.server_options;
 import 'package:analysis_server/src/server_options.dart';
 import 'package:test/test.dart';
 
-import 'utils.dart';
-
 void main() {
-  initializeTestEnvironment();
-
   group('server_options', () {
     test('basic - []', () {
       var options = new ServerOptions.fromContents('''# ignored
 foo: bar
-baz: padded
+baz: ${"padded   "}
 ''');
       expect(options['foo'], equals('bar'));
       expect(options['baz'], equals('padded'));

@@ -17,13 +17,11 @@ import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'utils.dart';
 
 main() {
   AnalysisServer server;
   ServerDomainHandler handler;
 
-  initializeTestEnvironment();
 
   setUp(() {
     var serverChannel = new MockServerChannel();

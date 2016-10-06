@@ -4,11 +4,9 @@
 
 library test.source;
 
-import '../utils.dart';
 import 'caching_put_package_map_provider_test.dart' as caching_provider_test;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   caching_provider_test.main();
 }

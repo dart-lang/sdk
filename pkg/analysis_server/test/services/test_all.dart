@@ -6,7 +6,6 @@ library test.services;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'completion/test_all.dart' as completion_all;
 import 'correction/test_all.dart' as correction_all;
 import 'dependencies/test_all.dart' as dependencies_all;
@@ -17,7 +16,6 @@ import 'search/test_all.dart' as search_all;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     completion_all.main();
     correction_all.main();

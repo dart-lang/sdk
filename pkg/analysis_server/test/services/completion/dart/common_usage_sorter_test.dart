@@ -14,10 +14,8 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../domain_completion_util.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(CommonUsageSorterTest);
   });

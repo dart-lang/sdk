@@ -6,13 +6,11 @@ library test.services.completion;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'completion_target_test.dart' as completion_target_test;
 import 'dart/test_all.dart' as dart_contributor_tests;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     completion_target_test.main();
     dart_contributor_tests.main();

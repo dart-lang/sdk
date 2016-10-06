@@ -14,11 +14,9 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../mock_sdk.dart';
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainGetErrorsTest);
   });

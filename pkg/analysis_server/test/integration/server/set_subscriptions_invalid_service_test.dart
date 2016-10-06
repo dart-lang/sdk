@@ -7,11 +7,9 @@ library test.integration.server.set.subscriptions.invalid.service;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(Test);
   });
