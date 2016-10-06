@@ -148,7 +148,8 @@ class DartLoader implements ReferenceLevelLoader {
         loadProcedure(function);
       }
       for (var field in unit.topLevelVariables) {
-        if (!field.isSynthetic) {
+        // Ignore fields inserted through error recovery.
+        if (!field.isSynthetic && field.name != '') {
           loadField(field);
         }
       }

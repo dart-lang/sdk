@@ -2317,6 +2317,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     for (var member in node.members) {
       if (member is FieldDeclaration) {
         for (var variable in member.fields.variables) {
+          // Ignore fields inserted through error recovery.
+          if (variable.isSynthetic || variable.length == 0) continue;
           var field = scope.getMemberReference(variable.element);
           classNode.addMember(field);
           _buildMemberBody(field, variable.element, variable);
