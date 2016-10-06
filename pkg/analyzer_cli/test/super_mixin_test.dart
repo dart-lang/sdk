@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:analyzer_cli/src/driver.dart' show Driver, errorSink, outSink;
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'utils.dart';
 

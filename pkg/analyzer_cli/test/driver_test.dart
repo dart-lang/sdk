@@ -19,7 +19,7 @@ import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
 
 import 'utils.dart';
@@ -51,8 +51,6 @@ main() {
   setUp(() => _setUp());
 
   tearDown(() => _tearDown());
-
-  initializeTestEnvironment();
 
   group('Driver', () {
     group('options', () {
