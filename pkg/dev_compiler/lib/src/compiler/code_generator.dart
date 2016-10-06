@@ -3872,6 +3872,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     JS.Expression emitNew() {
       JS.Expression ctor;
       bool isFactory = false;
+      bool isNative = false;
       if (element == null) {
         // TODO(jmesserly): this only happens if we had a static error.
         // Should we generate a throw instead?
@@ -3884,9 +3885,12 @@ class CodeGenerator extends GeneralizingAstVisitor
       } else {
         ctor = _emitConstructorName(element, type, name);
         isFactory = element.isFactory;
+        var classElem = element.enclosingElement;
+        isNative = _isJSNative(classElem);
       }
       var args = _visit(argumentList) as List<JS.Expression>;
-      return isFactory ? new JS.Call(ctor, args) : new JS.New(ctor, args);
+      // Native factory constructors are JS constructors - use new here.
+      return isFactory && !isNative ? new JS.Call(ctor, args) : new JS.New(ctor, args);
     }
 
     if (element != null && _isObjectLiteral(element.enclosingElement)) {
@@ -3900,6 +3904,9 @@ class CodeGenerator extends GeneralizingAstVisitor
     return findAnnotation(classElem, isPublicJSAnnotation) != null &&
         findAnnotation(classElem, isJSAnonymousAnnotation) != null;
   }
+
+  bool _isJSNative(ClassElement classElem) =>
+      findAnnotation(classElem, isPublicJSAnnotation) != null;
 
   JS.Expression _emitObjectLiteral(ArgumentList argumentList) {
     var args = _visit(argumentList) as List<JS.Expression>;
