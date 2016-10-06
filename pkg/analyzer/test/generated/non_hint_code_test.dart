@@ -14,7 +14,9 @@ import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(NonHintCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NonHintCodeTest);
+  });
 }
 
 @reflectiveTest

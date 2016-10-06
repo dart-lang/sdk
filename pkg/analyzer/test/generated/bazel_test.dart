@@ -7,15 +7,17 @@ library analyzer.test.generated.bazel_test;
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(BazelWorkspaceTest);
-  defineReflectiveTests(BazelFileUriResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(BazelWorkspaceTest);
+    defineReflectiveTests(BazelFileUriResolverTest);
+  });
 }
 
 @reflectiveTest

@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'analysis_context_factory.dart';
 import 'test_support.dart';

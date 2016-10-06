@@ -7,14 +7,15 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'summarize_ast_test.dart';
 
 main() {
-  groupSep = ' | ';
-  defineReflectiveTests(LinkerUnitTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LinkerUnitTest);
+  });
 }
 
 @reflectiveTest

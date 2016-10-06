@@ -7,14 +7,16 @@ library analyzer.test.source.sdk_ext_test;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(SdkExtUriResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SdkExtUriResolverTest);
+  });
 }
 
 @reflectiveTest

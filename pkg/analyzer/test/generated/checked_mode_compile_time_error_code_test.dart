@@ -13,7 +13,9 @@ import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CheckedModeCompileTimeErrorCodeTest);
+  });
 }
 
 @reflectiveTest

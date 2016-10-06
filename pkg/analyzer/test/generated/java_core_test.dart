@@ -5,7 +5,7 @@
 library analyzer.test.generated.java_core_test;
 
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../utils.dart';
 

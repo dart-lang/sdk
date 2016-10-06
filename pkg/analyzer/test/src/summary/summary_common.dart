@@ -17,7 +17,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:path/path.dart' show posix;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../context/mock_sdk.dart';
 

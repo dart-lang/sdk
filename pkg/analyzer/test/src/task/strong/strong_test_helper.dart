@@ -19,7 +19,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:source_span/source_span.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -123,18 +123,16 @@ CompilationUnit checkFile(String content) {
   return check();
 }
 
-void initStrongModeTests() {
-  setUp(() {
-    AnalysisEngine.instance.processRequiredPlugins();
-    files = new MemoryResourceProvider();
-    _checkCalled = false;
-  });
+void doSetUp() {
+  AnalysisEngine.instance.processRequiredPlugins();
+  files = new MemoryResourceProvider();
+  _checkCalled = false;
+}
 
-  tearDown(() {
-    // This is a sanity check, in case only addFile is called.
-    expect(_checkCalled, true, reason: 'must call check() method in test case');
-    files = null;
-  });
+void doTearDown() {
+  // This is a sanity check, in case only addFile is called.
+  expect(_checkCalled, true, reason: 'must call check() method in test case');
+  files = null;
 }
 
 SourceSpanWithContext _createSpanHelper(

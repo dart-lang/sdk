@@ -12,7 +12,9 @@ import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(ErrorSuppressionTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ErrorSuppressionTest);
+  });
 }
 
 @reflectiveTest

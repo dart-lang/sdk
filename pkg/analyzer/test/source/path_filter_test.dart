@@ -6,7 +6,7 @@ library analyzer.test.source.path_filter_test;
 
 import 'package:analyzer/source/path_filter.dart';
 import 'package:path/path.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../utils.dart';
 

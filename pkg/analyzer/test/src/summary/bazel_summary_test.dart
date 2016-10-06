@@ -21,16 +21,16 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(BazelResultProviderTest);
-  defineReflectiveTests(SummaryProviderTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(BazelResultProviderTest);
+    defineReflectiveTests(SummaryProviderTest);
+  });
 }
 
 const OUT_ROOT = '$SRC_ROOT/bazel-bin';

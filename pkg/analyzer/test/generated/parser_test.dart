@@ -15,19 +15,21 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart' hide Configuration;
 
 import '../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(ComplexParserTest);
-  defineReflectiveTests(ErrorParserTest);
-  defineReflectiveTests(NonErrorParserTest);
-  defineReflectiveTests(RecoveryParserTest);
-  defineReflectiveTests(SimpleParserTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ComplexParserTest);
+    defineReflectiveTests(ErrorParserTest);
+    defineReflectiveTests(NonErrorParserTest);
+    defineReflectiveTests(RecoveryParserTest);
+    defineReflectiveTests(SimpleParserTest);
+  });
 }
 
 /**

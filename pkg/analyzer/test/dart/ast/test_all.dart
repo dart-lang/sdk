@@ -4,7 +4,7 @@
 
 library analyzer.test.dart.ast.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../utils.dart';
 import 'ast_test.dart' as ast;
@@ -13,8 +13,8 @@ import 'visitor_test.dart' as visitor;
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
-  group('ast tests', () {
+  defineReflectiveSuite(() {
     ast.main();
     visitor.main();
-  });
+  }, name: 'ast');
 }

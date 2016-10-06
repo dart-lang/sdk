@@ -15,8 +15,8 @@ import 'package:analyzer/src/task/options.dart'
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
@@ -25,10 +25,12 @@ import '../context/abstract_context.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(ContextConfigurationTest);
-  defineReflectiveTests(GenerateNewOptionsErrorsTaskTest);
-  defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
-  defineReflectiveTests(OptionsFileValidatorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ContextConfigurationTest);
+    defineReflectiveTests(GenerateNewOptionsErrorsTaskTest);
+    defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
+    defineReflectiveTests(OptionsFileValidatorTest);
+  });
 }
 
 isInstanceOf isGenerateOptionsErrorsTask =

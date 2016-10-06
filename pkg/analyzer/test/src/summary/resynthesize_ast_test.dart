@@ -21,8 +21,8 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/task/dart.dart' show PARSED_UNIT;
 import 'package:analyzer/task/general.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../context/abstract_context.dart';
 import '../task/strong/inferred_type_test.dart';
@@ -30,10 +30,11 @@ import 'resynthesize_common.dart';
 import 'summary_common.dart';
 
 main() {
-  groupSep = ' | ';
-  defineReflectiveTests(ResynthesizeAstSpecTest);
-  defineReflectiveTests(ResynthesizeAstStrongTest);
-  defineReflectiveTests(AstInferredTypeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ResynthesizeAstSpecTest);
+    defineReflectiveTests(ResynthesizeAstStrongTest);
+    defineReflectiveTests(AstInferredTypeTest);
+  });
 }
 
 @reflectiveTest

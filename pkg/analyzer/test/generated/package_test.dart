@@ -5,14 +5,13 @@
 library analyzer.test.generated.package_test;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/package.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:package_config/packages.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../src/context/mock_sdk.dart';
 import '../utils.dart';
@@ -20,9 +19,11 @@ import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(DependencyFinderTest);
-  defineReflectiveTests(PackageDescriptionTest);
-  defineReflectiveTests(PackageManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DependencyFinderTest);
+    defineReflectiveTests(PackageDescriptionTest);
+    defineReflectiveTests(PackageManagerTest);
+  });
 }
 
 /**

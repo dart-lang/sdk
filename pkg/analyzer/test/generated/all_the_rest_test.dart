@@ -35,8 +35,8 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:path/path.dart';
 import 'package:source_span/source_span.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'parser_test.dart';
@@ -45,26 +45,28 @@ import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(ContentCacheTest);
-  // ignore: deprecated_member_use
-  defineReflectiveTests(CustomUriResolverTest);
-  defineReflectiveTests(DartUriResolverTest);
-  // ignore: deprecated_member_use
-  defineReflectiveTests(DirectoryBasedDartSdkTest);
-  // ignore: deprecated_member_use
-  defineReflectiveTests(DirectoryBasedSourceContainerTest);
-  defineReflectiveTests(ElementBuilderTest);
-  defineReflectiveTests(ElementLocatorTest);
-  defineReflectiveTests(EnumMemberBuilderTest);
-  defineReflectiveTests(ErrorReporterTest);
-  defineReflectiveTests(ErrorSeverityTest);
-  defineReflectiveTests(ExitDetectorTest);
-  defineReflectiveTests(ExitDetectorTest2);
-  defineReflectiveTests(FileBasedSourceTest);
-  defineReflectiveTests(ResolveRelativeUriTest);
-  // ignore: deprecated_member_use
-  defineReflectiveTests(SDKLibrariesReaderTest);
-  defineReflectiveTests(UriKindTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ContentCacheTest);
+    // ignore: deprecated_member_use
+    defineReflectiveTests(CustomUriResolverTest);
+    defineReflectiveTests(DartUriResolverTest);
+    // ignore: deprecated_member_use
+    defineReflectiveTests(DirectoryBasedDartSdkTest);
+    // ignore: deprecated_member_use
+    defineReflectiveTests(DirectoryBasedSourceContainerTest);
+    defineReflectiveTests(ElementBuilderTest);
+    defineReflectiveTests(ElementLocatorTest);
+    defineReflectiveTests(EnumMemberBuilderTest);
+    defineReflectiveTests(ErrorReporterTest);
+    defineReflectiveTests(ErrorSeverityTest);
+    defineReflectiveTests(ExitDetectorTest);
+    defineReflectiveTests(ExitDetectorTest2);
+    defineReflectiveTests(FileBasedSourceTest);
+    defineReflectiveTests(ResolveRelativeUriTest);
+    // ignore: deprecated_member_use
+    defineReflectiveTests(SDKLibrariesReaderTest);
+    defineReflectiveTests(UriKindTest);
+  });
 }
 
 /**

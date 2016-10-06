@@ -21,8 +21,8 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'analysis_context_factory.dart';
@@ -30,7 +30,9 @@ import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(InheritanceManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(InheritanceManagerTest);
+  });
 }
 
 @reflectiveTest

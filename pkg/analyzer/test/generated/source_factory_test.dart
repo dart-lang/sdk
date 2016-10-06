@@ -19,16 +19,18 @@ import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(SourceFactoryTest);
   runPackageMapTests();
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SourceFactoryTest);
+  });
 }
 
 Source createSource({String path, String uri}) =>

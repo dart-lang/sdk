@@ -7,14 +7,13 @@ library analyzer.test.file_system.resource_uri_resolver_test;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ResourceUriResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ResourceUriResolverTest);
+  });
 }
 
 @reflectiveTest

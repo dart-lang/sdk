@@ -14,15 +14,17 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(IncrementalCompilationUnitElementBuilderTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(IncrementalCompilationUnitElementBuilderTest);
+  });
 }
 
 @reflectiveTest

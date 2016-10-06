@@ -4,7 +4,7 @@
 
 library analyzer.test.source.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../utils.dart';
 import 'analysis_options_provider_test.dart' as analysis_options_provider_test;
@@ -19,7 +19,7 @@ import 'sdk_ext_test.dart' as sdk_ext_test;
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
-  group('source', () {
+  defineReflectiveSuite(() {
     analysis_options_provider_test.main();
     config_test.main();
     embedder_test.main();
@@ -28,5 +28,5 @@ main() {
     package_map_resolver_test.main();
     path_filter_test.main();
     sdk_ext_test.main();
-  });
+  }, name: 'source');
 }

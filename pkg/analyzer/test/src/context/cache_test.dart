@@ -16,21 +16,23 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(AnalysisCacheTest);
-  defineReflectiveTests(CacheEntryTest);
-  defineReflectiveTests(CacheFlushManagerTest);
-  defineReflectiveTests(SdkCachePartitionTest);
-  defineReflectiveTests(UniversalCachePartitionTest);
-  defineReflectiveTests(ResultDataTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisCacheTest);
+    defineReflectiveTests(CacheEntryTest);
+    defineReflectiveTests(CacheFlushManagerTest);
+    defineReflectiveTests(SdkCachePartitionTest);
+    defineReflectiveTests(UniversalCachePartitionTest);
+    defineReflectiveTests(ResultDataTest);
+  });
 }
 
 AnalysisCache createCache({AnalysisContext context}) {

@@ -5,7 +5,7 @@
 library analyzer.test.parse_compilation_unit_test;
 
 import 'package:analyzer/analyzer.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'utils.dart';
 

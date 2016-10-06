@@ -31,8 +31,8 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
 
 import '../../generated/engine_test.dart';
@@ -42,8 +42,10 @@ import 'abstract_context.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(AnalysisContextImplTest);
-  defineReflectiveTests(LimitedInvalidateTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisContextImplTest);
+    defineReflectiveTests(LimitedInvalidateTest);
+  });
 }
 
 @reflectiveTest

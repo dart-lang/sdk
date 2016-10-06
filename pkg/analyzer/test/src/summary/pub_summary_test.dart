@@ -11,16 +11,16 @@ import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart' hide ERROR;
 
-import '../../utils.dart';
 import '../context/abstract_context.dart';
 import '../context/mock_sdk.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(PubSummaryManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(PubSummaryManagerTest);
+  });
 }
 
 @reflectiveTest

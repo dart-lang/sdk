@@ -6,7 +6,7 @@ library analyzer.test.generated.java_io_test;
 
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../utils.dart';
 

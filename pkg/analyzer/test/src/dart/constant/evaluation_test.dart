@@ -21,8 +21,8 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:path/path.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../../generated/resolver_test_case.dart';
 import '../../../generated/test_support.dart';
@@ -30,9 +30,11 @@ import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(ConstantValueComputerTest);
-  defineReflectiveTests(ConstantVisitorTest);
-  defineReflectiveTests(StrongConstantValueComputerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConstantValueComputerTest);
+    defineReflectiveTests(ConstantVisitorTest);
+    defineReflectiveTests(StrongConstantValueComputerTest);
+  });
 }
 
 /**

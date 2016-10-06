@@ -18,24 +18,26 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(AstClonerTest);
-  defineReflectiveTests(NodeReplacerTest);
-  defineReflectiveTests(LineInfoTest);
-  defineReflectiveTests(SourceRangeTest);
-  defineReflectiveTests(BooleanArrayTest);
-  defineReflectiveTests(DirectedGraphTest);
-  defineReflectiveTests(MultipleMapIteratorTest);
-  defineReflectiveTests(SingleMapIteratorTest);
-  defineReflectiveTests(TokenMapTest);
-  defineReflectiveTests(StringUtilitiesTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AstClonerTest);
+    defineReflectiveTests(NodeReplacerTest);
+    defineReflectiveTests(LineInfoTest);
+    defineReflectiveTests(SourceRangeTest);
+    defineReflectiveTests(BooleanArrayTest);
+    defineReflectiveTests(DirectedGraphTest);
+    defineReflectiveTests(MultipleMapIteratorTest);
+    defineReflectiveTests(SingleMapIteratorTest);
+    defineReflectiveTests(TokenMapTest);
+    defineReflectiveTests(StringUtilitiesTest);
+  });
 }
 
 class AstCloneComparator extends AstComparator {

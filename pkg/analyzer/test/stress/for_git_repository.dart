@@ -27,7 +27,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
   new StressTest().run();

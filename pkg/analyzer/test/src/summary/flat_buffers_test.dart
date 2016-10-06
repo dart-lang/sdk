@@ -7,12 +7,13 @@ library test.src.summary.flat_buffers_test;
 import 'dart:typed_data';
 
 import 'package:analyzer/src/summary/flat_buffers.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 main() {
-  groupSep = ' | ';
-  defineReflectiveTests(BuilderTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(BuilderTest);
+  });
 }
 
 @reflectiveTest

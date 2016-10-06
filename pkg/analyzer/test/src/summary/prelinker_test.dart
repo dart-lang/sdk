@@ -8,14 +8,14 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'summarize_ast_test.dart';
 import 'summary_common.dart';
 
 main() {
-  groupSep = ' | ';
-  defineReflectiveTests(PrelinkerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(PrelinkerTest);
+  });
 }
 
 /**

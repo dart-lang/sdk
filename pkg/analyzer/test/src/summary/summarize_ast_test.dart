@@ -18,14 +18,15 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'summary_common.dart';
 
 main() {
-  groupSep = ' | ';
-  defineReflectiveTests(LinkedSummarizeAstSpecTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LinkedSummarizeAstSpecTest);
+  });
 }
 
 @reflectiveTest
