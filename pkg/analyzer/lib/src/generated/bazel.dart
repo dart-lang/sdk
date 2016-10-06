@@ -91,9 +91,9 @@ class BazelWorkspace {
       Folder parent = folder.parent;
 
       // Found the READONLY folder, must be a git-based workspace.
-      if (readonlySuffix != null) {
+      if (readonlySuffix != null && parent != null) {
         Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
-        if (parent != null && readonlyFolder.exists) {
+        if (readonlyFolder.exists) {
           String root = folder.path;
           String readonly = readonlyFolder.path;
           return new BazelWorkspace._(
@@ -119,7 +119,7 @@ class BazelWorkspace {
       // Go up the folder.
       folder = parent;
       if (folder == null) {
-        return null;
+        return new BazelWorkspace._(provider, path, null, null, null);
       }
     }
   }
@@ -139,14 +139,14 @@ class BazelWorkspace {
     try {
       String relative = context.relative(absolutePath, from: root);
       // genfiles
-      {
+      if (genfiles != null) {
         File file = provider.getFile(context.join(genfiles, relative));
         if (file.exists) {
           return file;
         }
       }
       // bin
-      {
+      if (bin != null) {
         File file = provider.getFile(context.join(bin, relative));
         if (file.exists) {
           return file;

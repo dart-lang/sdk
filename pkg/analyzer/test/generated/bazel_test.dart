@@ -144,10 +144,14 @@ class BazelWorkspaceTest extends _BaseTest {
     expect(workspace.genfiles, _p('/workspace/bazel-genfiles'));
   }
 
-  void test_factory_null_notInWorkspace() {
+  void test_factory_notInWorkspace() {
     BazelWorkspace workspace =
         new BazelWorkspace(provider, _p('/workspace/my/module'));
-    expect(workspace, isNull);
+    expect(workspace, isNotNull);
+    expect(workspace.root, _p('/workspace/my/module'));
+    expect(workspace.readonly, isNull);
+    expect(workspace.bin, isNull);
+    expect(workspace.genfiles, isNull);
   }
 
   void test_factory_symlinkPrefix() {
