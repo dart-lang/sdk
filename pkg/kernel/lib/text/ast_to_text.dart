@@ -966,7 +966,6 @@ class Printer extends Visitor<Null> {
     for (var statement in node.body.statements) {
       statement.accept(this);
     }
-    endLine();
     write('$spaces   => ');
     writeExpression(node.value);
     endLine();
@@ -976,7 +975,7 @@ class Printer extends Visitor<Null> {
     state = savedState;
     column = savedColumn;
 
-    write('}| ');
+    write('}|');
   }
 
   defaultExpression(Expression node) {
@@ -1135,7 +1134,7 @@ class Printer extends Visitor<Null> {
 
   visitForStatement(ForStatement node) {
     writeIndentation();
-    writeWord('for');
+    writeSpaced('for');
     writeSymbol('(');
     writeList(node.variables, writeVariableDeclaration);
     writeComma(';');
@@ -1150,7 +1149,7 @@ class Printer extends Visitor<Null> {
 
   visitForInStatement(ForInStatement node) {
     writeIndentation();
-    writeWord('for');
+    writeSpaced('for');
     writeSymbol('(');
     writeVariableDeclaration(node.variable, useVarKeyword: true);
     writeSpaced('in');

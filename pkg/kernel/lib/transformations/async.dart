@@ -83,27 +83,31 @@ class ExpressionLifter extends Transformer {
 
   ExpressionLifter(this.continuationRewriter);
 
+  Block blockOf(List<Statement> stmts) => new Block(stmts.reversed.toList());
+
   /// Rewrite a toplevel expression (toplevel wrt. a statement).
   Expression rewrite(Expression expression) {
-    var hadSeenAwait = seenAwait;
+    assert(statements.isEmpty);
+    assert(nameIndex == 0);
     seenAwait = false;
-    var result = delimit(() => expression.accept(this));
-    seenAwait = seenAwait || hadSeenAwait;
+    var result = expression.accept(this);
+    nameIndex = 0;
+    if (statements.isNotEmpty) {
+      result = new BlockExpression(blockOf(statements), result);
+      statements = <Statement>[];
+    }
     return result;
   }
 
-  // Perform an action with a fresh list of statements so that it cannot emit
-  // statements into the 'outer' list, and wrap any emitted statements in a
-  // block expression.
-  Expression delimit(Expression action()) {
-    var saved = statements;
-    statements = <Statement>[];
+  // Perform an action with a given list of statements so that it cannot emit
+  // statements into the 'outer' list.
+  Expression delimit(Expression action(), List<Statement> inner) {
+    var index = nameIndex;
+    var outer = statements;
+    statements = inner;
     Expression result = action();
-    if (statements.isNotEmpty) {
-      result =
-          new BlockExpression(new Block(statements.reversed.toList()), result);
-    }
-    statements = saved;
+    nameIndex = index;
+    statements = outer;
     return result;
   }
 
@@ -283,30 +287,121 @@ class ExpressionLifter extends Transformer {
 
   // Control flow.
   TreeNode visitLogicalExpression(LogicalExpression expr) {
-    return transform(expr, () {
-      expr.right = delimit(() => expr.right.accept(this))..parent = expr;
-      var rightAwait = seenAwait;
+    var shouldName = seenAwait;
 
-      seenAwait = false;
-      expr.left = expr.left.accept(this)..parent = expr;
-      seenAwait = seenAwait || rightAwait;
-    });
+    // Right is delimited because it is conditionally evaluated.
+    var rightStatements = <Statement>[];
+    seenAwait = false;
+    expr.right = delimit(() => expr.right.accept(this), rightStatements)
+        ..parent = expr;
+    var rightAwait = seenAwait;
+
+    if (rightStatements.isEmpty) {
+      // Easy case: right did not emit any statements.
+      seenAwait = shouldName;
+      return transform(expr, () {
+        expr.left = expr.left.accept(this)..parent = expr;
+        seenAwait = seenAwait || rightAwait;
+      });
+    }
+
+    // If right has emitted statements we will produce a temporary t and emit
+    // for && (there is an analogous case for ||):
+    //
+    // t = [left] == true;
+    // if (t) {
+    //   t = [right] == true;
+    // }
+
+    // Recall that statements are emitted in reverse order, so first emit the if
+    // statement, then the assignment of [left] == true, and then translate left
+    // so any statements it emits occur after in the accumulated list (that is,
+    // so they occur before in the corresponding block).
+    var rightBody = blockOf(rightStatements);
+    var result = allocateTemporary(nameIndex);
+    rightBody.statements.add(new ExpressionStatement(
+        new VariableSet(
+            result,
+            new MethodInvocation(
+                expr.right,
+                new Name('=='),
+                new Arguments(<Expression>[new BoolLiteral(true)])))));
+    var then, otherwise;
+    if (expr.operator == '&&') {
+      then = rightBody;
+      otherwise = null;
+    } else {
+      then = new EmptyStatement();
+      otherwise = rightBody;
+    }
+    statements.add(new IfStatement(new VariableGet(result), then, otherwise));
+
+    var test =
+        new MethodInvocation(
+            expr.left,
+            new Name('=='),
+            new Arguments(<Expression>[new BoolLiteral(true)]));
+    statements.add(
+        new ExpressionStatement(new VariableSet(result, test)));
+
+    seenAwait = false;
+    test.receiver = test.receiver.accept(this)..parent = test;
+
+    ++nameIndex;
+    seenAwait = seenAwait || rightAwait;
+    return new VariableGet(result);
   }
 
   TreeNode visitConditionalExpression(ConditionalExpression expr) {
-    return transform(expr, () {
-      expr.then = delimit(() => expr.then.accept(this))..parent = expr;
-      var leftAwait = seenAwait;
+    // Then and otherwise are delimited because they are conditionally
+    // evaluated.
+    var shouldName = seenAwait;
 
-      seenAwait = false;
-      expr.otherwise =
-          delimit(() => expr.otherwise.accept(this))..parent = expr;
-      var rightAwait = seenAwait;
+    var thenStatements = <Statement>[];
+    seenAwait = false;
+    expr.then = delimit(() => expr.then.accept(this), thenStatements)
+        ..parent = expr;
+    var thenAwait = seenAwait;
 
-      seenAwait = false;
-      expr.condition = expr.condition.accept(this)..parent = expr;
-      seenAwait = seenAwait || leftAwait || rightAwait;
-    });
+    var otherwiseStatements = <Statement>[];
+    seenAwait = false;
+    expr.otherwise = delimit(() => expr.otherwise.accept(this),
+        otherwiseStatements)..parent = expr;
+    var otherwiseAwait = seenAwait;
+
+    if (thenStatements.isEmpty && otherwiseStatements.isEmpty) {
+      // Easy case: neither then nor otherwise emitted any statements.
+      seenAwait = shouldName;
+      return transform(expr, () {
+        expr.condition = expr.condition.accept(this)..parent = expr;
+        seenAwait = seenAwait || thenAwait || otherwiseAwait;
+      });
+    }
+
+    // If then or otherwise has emitted statements we will produce a temporary t
+    // and emit:
+    //
+    // if ([condition]) {
+    //   t = [left];
+    // } else {
+    //   t = [right];
+    // }
+    var result = allocateTemporary(nameIndex);
+    var thenBody = blockOf(thenStatements);
+    var otherwiseBody = blockOf(otherwiseStatements);
+    thenBody.statements.add(
+        new ExpressionStatement(new VariableSet(result, expr.then)));
+    otherwiseBody.statements.add(
+        new ExpressionStatement(new VariableSet(result, expr.otherwise)));
+    var branch = new IfStatement(expr.condition, thenBody, otherwiseBody);
+    statements.add(branch);
+
+    seenAwait = false;
+    branch.condition = branch.condition.accept(this)..parent = branch;
+
+    ++nameIndex;
+    seenAwait = seenAwait || thenAwait || otherwiseAwait;
+    return new VariableGet(result);
   }
 
   // Others.
