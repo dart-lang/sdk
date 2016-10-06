@@ -33,7 +33,7 @@ vars = {
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
 
-  "gperftools_revision": "@7822b5b0b9fa7e016e1f6b46ea86f26f4691a457",
+  "gperftools_revision": "@02eeed29df112728564a5dde6417fa4622b57a06",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.5",
