@@ -31,7 +31,7 @@ vars = {
   "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
 
   # Revisions of GN related dependencies.
-  "buildtools_revision": "@3d2e47bf14e4e67816a53e304dea422fa18f9180",
+  "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
 
   "gperftools_revision": "@7822b5b0b9fa7e016e1f6b46ea86f26f4691a457",
 
