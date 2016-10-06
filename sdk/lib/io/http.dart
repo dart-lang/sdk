@@ -149,7 +149,7 @@ abstract class HttpStatus {
  * about the streaming qualities of an HttpServer.
  * Pausing the subscription of the stream, pauses at the OS level.
  *
- * * The [http_server](https://pub.dartlang.org/packages/http_server)
+ * * The [shelf](https://pub.dartlang.org/packages/shelf)
  * package on pub.dartlang.org contains a set of high-level classes that,
  * together with this class, makes it easy to provide content through HTTP
  * servers.
