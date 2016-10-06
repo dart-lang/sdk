@@ -41,7 +41,6 @@ import '../../utils.dart';
 import 'abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisContextImplTest);
     defineReflectiveTests(LimitedInvalidateTest);

@@ -13,11 +13,9 @@ import 'package:html/dom.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(DartScriptsTaskTest);
     defineReflectiveTests(HtmlErrorsTaskTest);

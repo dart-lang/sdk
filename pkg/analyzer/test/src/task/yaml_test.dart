@@ -12,11 +12,9 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
-import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ParseYamlTaskTest);
   });

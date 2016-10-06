@@ -12,12 +12,10 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(HintCodeTest);
   });

@@ -24,10 +24,8 @@ import '../../../generated/analysis_context_factory.dart'
     show AnalysisContextHelper;
 import '../../../generated/resolver_test_case.dart';
 import '../../../generated/test_support.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementAnnotationImplTest);
     defineReflectiveTests(FieldElementImplTest);

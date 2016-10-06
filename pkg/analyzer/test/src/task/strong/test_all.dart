@@ -6,13 +6,11 @@ library analyzer.test.src.task.strong.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../utils.dart';
 import 'checker_test.dart' as checker_test;
 import 'inferred_type_test.dart' as inferred_type_test;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     checker_test.main();
     inferred_type_test.main();

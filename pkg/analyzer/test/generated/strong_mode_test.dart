@@ -18,7 +18,6 @@ import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(StrongModeDownwardsInferenceTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);

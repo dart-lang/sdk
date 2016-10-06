@@ -6,12 +6,10 @@ library analyzer.test.src.dart.ast.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../utils.dart';
 import 'utilities_test.dart' as utilities;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     utilities.main();
   }, name: 'ast');

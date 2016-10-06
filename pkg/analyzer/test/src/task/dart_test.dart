@@ -35,7 +35,6 @@ import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(BuildCompilationUnitElementTaskTest);
     defineReflectiveTests(BuildDirectiveElementsTaskTest);

@@ -8,10 +8,7 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import '../utils.dart';
-
 main() {
-  initializeTestEnvironment();
   group('JavaFile', () {
     group('toURI', () {
       test('forAbsolute', () {

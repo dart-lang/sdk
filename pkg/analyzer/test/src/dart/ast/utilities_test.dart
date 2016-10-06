@@ -21,10 +21,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/parser_test.dart' show ParserTestCase;
 import '../../../generated/test_support.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantEvaluatorTest);
     defineReflectiveTests(NodeLocatorTest);

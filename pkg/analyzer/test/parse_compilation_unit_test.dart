@@ -7,10 +7,7 @@ library analyzer.test.parse_compilation_unit_test;
 import 'package:analyzer/analyzer.dart';
 import 'package:test/test.dart';
 
-import 'utils.dart';
-
 void main() {
-  initializeTestEnvironment();
   test("parses a valid compilation unit successfully", () {
     var unit = parseCompilationUnit("void main() => print('Hello, world!');");
     expect(unit.toString(), equals("void main() => print('Hello, world!');"));

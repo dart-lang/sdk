@@ -26,10 +26,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/resolver_test_case.dart';
 import '../../../generated/test_support.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantValueComputerTest);
     defineReflectiveTests(ConstantVisitorTest);

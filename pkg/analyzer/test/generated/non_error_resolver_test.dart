@@ -14,12 +14,10 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(NonErrorResolverTest);
   });

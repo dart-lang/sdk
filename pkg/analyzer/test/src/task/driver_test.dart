@@ -16,11 +16,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 
 import '../../generated/test_support.dart';
-import '../../utils.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriverTest);
     defineReflectiveTests(CycleAwareDependencyWalkerTest);

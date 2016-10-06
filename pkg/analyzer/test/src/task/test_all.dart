@@ -6,7 +6,6 @@ library analyzer.test.src.task.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'dart_test.dart' as dart_test;
 import 'dart_work_manager_test.dart' as dart_work_manager_test;
 import 'driver_test.dart' as driver_test;
@@ -26,7 +25,6 @@ import 'yaml_test.dart' as yaml_test;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     dart_test.main();
     dart_work_manager_test.main();

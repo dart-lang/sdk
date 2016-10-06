@@ -8,10 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
-
-void initializeTestEnvironment([path.Context context]) {}
 
 /**
  * The type of an assertion which asserts properties of [T]s.

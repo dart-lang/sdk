@@ -8,10 +8,7 @@ import 'package:analyzer/source/path_filter.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
-import '../utils.dart';
-
 main() {
-  initializeTestEnvironment();
   String root(String path) => context.absolute(context.normalize(path));
   group('PathFilterTest', () {
     setUp(() {});

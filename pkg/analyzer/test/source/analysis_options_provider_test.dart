@@ -15,10 +15,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../resource_utils.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisOptionsProviderOldTest);
     defineReflectiveTests(AnalysisOptionsProviderNewTest);

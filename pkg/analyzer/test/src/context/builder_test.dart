@@ -23,11 +23,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../embedder_tests.dart';
 import '../../generated/test_support.dart';
-import '../../utils.dart';
 import 'mock_sdk.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ContextBuilderTest);
     defineReflectiveTests(EmbedderYamlLocatorTest);

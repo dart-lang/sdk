@@ -11,10 +11,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/src/utils.dart';
 
-import 'utils.dart';
-
 void main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(CancelableCompleterTests);
     defineReflectiveTests(CancelableFutureTests);

@@ -14,11 +14,9 @@ import 'instrumentation/test_all.dart' as instrumentation;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
 import 'source/test_all.dart' as source;
 import 'src/test_all.dart' as src;
-import 'utils.dart';
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     cancelable_future_test.main();
     context.main();

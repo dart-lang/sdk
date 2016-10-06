@@ -22,11 +22,9 @@ import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
   runPackageMapTests();
   defineReflectiveSuite(() {
     defineReflectiveTests(SourceFactoryTest);

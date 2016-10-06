@@ -8,10 +8,8 @@ import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:path/path.dart' as path;
 
 import 'resource_utils.dart';
-import 'utils.dart';
 
 abstract class EmbedderRelatedTest {
   final String emptyPath = '/home/.pub-cache/empty';
@@ -46,12 +44,10 @@ embedded_libs:
   }
 
   void setUp() {
-    initializeTestEnvironment(path.context);
     buildResourceProvider();
   }
 
   void tearDown() {
-    initializeTestEnvironment();
     clearResourceProvider();
   }
 }

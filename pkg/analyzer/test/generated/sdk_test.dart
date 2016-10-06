@@ -10,11 +10,9 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/context/mock_sdk.dart';
-import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(DartSdkManagerTest);
     defineReflectiveTests(SdkDescriptionTest);

@@ -7,10 +7,7 @@ library analyzer.test.generated.java_core_test;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:test/test.dart';
 
-import '../utils.dart';
-
 main() {
-  initializeTestEnvironment();
   group('Character', () {
     group('isLetter', () {
       test('digits', () {

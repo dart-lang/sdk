@@ -24,10 +24,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/engine_test.dart';
 import '../../../generated/test_support.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantFinderTest);
     defineReflectiveTests(ReferenceFinderTest);

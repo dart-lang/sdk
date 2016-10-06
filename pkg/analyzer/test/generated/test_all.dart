@@ -6,7 +6,6 @@ library analyzer.test.generated.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'all_the_rest_test.dart' as all_the_rest;
 import 'bazel_test.dart' as bazel_test;
 import 'checked_mode_compile_time_error_code_test.dart'
@@ -40,7 +39,6 @@ import 'utilities_test.dart' as utilities_test;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     all_the_rest.main();
     bazel_test.main();

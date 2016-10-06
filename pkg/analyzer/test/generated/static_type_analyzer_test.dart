@@ -26,13 +26,11 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(StaticTypeAnalyzerTest);
     defineReflectiveTests(StaticTypeAnalyzer2Test);

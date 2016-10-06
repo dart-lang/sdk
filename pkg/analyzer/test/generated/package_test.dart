@@ -14,11 +14,9 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/context/mock_sdk.dart';
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(DependencyFinderTest);
     defineReflectiveTests(PackageDescriptionTest);

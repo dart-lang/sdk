@@ -21,11 +21,9 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
   defineReflectiveSuite(() {
     defineReflectiveTests(AstClonerTest);
     defineReflectiveTests(NodeReplacerTest);
