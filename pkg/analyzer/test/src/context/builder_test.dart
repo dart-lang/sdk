@@ -65,6 +65,11 @@ class ContextBuilderTest extends EngineTestCase {
    */
   String defaultSdkPath = null;
 
+  Uri convertedDirectoryUri(String directoryPath) {
+    return new Uri.directory(resourceProvider.convertPath(directoryPath),
+        windows: pathContext.style == path.windows.style);
+  }
+
   void createDefaultSdk(Folder sdkDir) {
     defaultSdkPath = pathContext.join(sdkDir.path, 'default', 'sdk');
     String librariesFilePath = pathContext.join(defaultSdkPath, 'lib',
@@ -113,11 +118,11 @@ const Map<String, LibraryInfo> libraries = const {
 
   void test_convertPackagesToMap_packages() {
     String fooName = 'foo';
-    String fooPath = '/pkg/foo';
-    Uri fooUri = new Uri.directory(fooPath);
+    String fooPath = resourceProvider.convertPath('/pkg/foo');
+    Uri fooUri = pathContext.toUri(fooPath);
     String barName = 'bar';
-    String barPath = '/pkg/bar';
-    Uri barUri = new Uri.directory(barPath);
+    String barPath = resourceProvider.convertPath('/pkg/bar');
+    Uri barUri = pathContext.toUri(barPath);
 
     MapPackages packages = new MapPackages({fooName: fooUri, barName: barUri});
     Map<String, List<Folder>> result = builder.convertPackagesToMap(packages);
@@ -151,7 +156,7 @@ const Map<String, LibraryInfo> libraries = const {
 
   void test_createPackageMap_fromPackageDirectory_explicit() {
     // Use a package directory that is outside the project directory.
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     String projectPath = pathContext.join(rootPath, 'project');
     String packageDirPath = pathContext.join(rootPath, 'packages');
     String fooName = 'foo';
@@ -168,13 +173,13 @@ const Map<String, LibraryInfo> libraries = const {
     expect(packages, isNotNull);
     Map<String, Uri> map = packages.asMap();
     expect(map, hasLength(2));
-    expect(map[fooName], new Uri.directory(fooPath));
-    expect(map[barName], new Uri.directory(barPath));
+    expect(map[fooName], convertedDirectoryUri(fooPath));
+    expect(map[barName], convertedDirectoryUri(barPath));
   }
 
   void test_createPackageMap_fromPackageDirectory_inRoot() {
     // Use a package directory that is inside the project directory.
-    String projectPath = '/root/project';
+    String projectPath = resourceProvider.convertPath('/root/project');
     String packageDirPath = pathContext.join(projectPath, 'packages');
     String fooName = 'foo';
     String fooPath = pathContext.join(packageDirPath, fooName);
@@ -187,21 +192,23 @@ const Map<String, LibraryInfo> libraries = const {
     expect(packages, isNotNull);
     Map<String, Uri> map = packages.asMap();
     expect(map, hasLength(2));
-    expect(map[fooName], new Uri.directory(fooPath));
-    expect(map[barName], new Uri.directory(barPath));
+    expect(map[fooName], convertedDirectoryUri(fooPath));
+    expect(map[barName], convertedDirectoryUri(barPath));
   }
 
   void test_createPackageMap_fromPackageFile_explicit() {
     // Use a package file that is outside the project directory's hierarchy.
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     String projectPath = pathContext.join(rootPath, 'project');
     String packageFilePath = pathContext.join(rootPath, 'child', '.packages');
     resourceProvider.newFolder(projectPath);
+    Uri fooUri = convertedDirectoryUri('/pkg/foo');
+    Uri barUri = convertedDirectoryUri('/pkg/bar');
     createFile(
         packageFilePath,
-        r'''
-foo:/pkg/foo
-bar:/pkg/bar
+        '''
+foo:$fooUri
+bar:$barUri
 ''');
 
     builder.defaultPackageFilePath = packageFilePath;
@@ -209,60 +216,64 @@ bar:/pkg/bar
     expect(packages, isNotNull);
     Map<String, Uri> map = packages.asMap();
     expect(map, hasLength(2));
-    expect(map['foo'], new Uri.directory('/pkg/foo'));
-    expect(map['bar'], new Uri.directory('/pkg/bar'));
+    expect(map['foo'], fooUri);
+    expect(map['bar'], barUri);
   }
 
   void test_createPackageMap_fromPackageFile_inParentOfRoot() {
     // Use a package file that is inside the parent of the project directory.
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     String projectPath = pathContext.join(rootPath, 'project');
     String packageFilePath = pathContext.join(rootPath, '.packages');
     resourceProvider.newFolder(projectPath);
+    Uri fooUri = convertedDirectoryUri('/pkg/foo');
+    Uri barUri = convertedDirectoryUri('/pkg/bar');
     createFile(
         packageFilePath,
-        r'''
-foo:/pkg/foo
-bar:/pkg/bar
+        '''
+foo:$fooUri
+bar:$barUri
 ''');
 
     Packages packages = builder.createPackageMap(projectPath);
     expect(packages, isNotNull);
     Map<String, Uri> map = packages.asMap();
     expect(map, hasLength(2));
-    expect(map['foo'], new Uri.directory('/pkg/foo'));
-    expect(map['bar'], new Uri.directory('/pkg/bar'));
+    expect(map['foo'], fooUri);
+    expect(map['bar'], barUri);
   }
 
   void test_createPackageMap_fromPackageFile_inRoot() {
     // Use a package file that is inside the project directory.
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     String projectPath = pathContext.join(rootPath, 'project');
     String packageFilePath = pathContext.join(projectPath, '.packages');
     resourceProvider.newFolder(projectPath);
+    Uri fooUri = convertedDirectoryUri('/pkg/foo');
+    Uri barUri = convertedDirectoryUri('/pkg/bar');
     createFile(
         packageFilePath,
-        r'''
-foo:/pkg/foo
-bar:/pkg/bar
+        '''
+foo:$fooUri
+bar:$barUri
 ''');
 
     Packages packages = builder.createPackageMap(projectPath);
     expect(packages, isNotNull);
     Map<String, Uri> map = packages.asMap();
     expect(map, hasLength(2));
-    expect(map['foo'], new Uri.directory('/pkg/foo'));
-    expect(map['bar'], new Uri.directory('/pkg/bar'));
+    expect(map['foo'], fooUri);
+    expect(map['bar'], barUri);
   }
 
   void test_createPackageMap_none() {
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     Packages packages = builder.createPackageMap(rootPath);
     expect(packages, same(Packages.noPackages));
   }
 
   void test_createSourceFactory_fileProvider() {
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     Folder rootFolder = resourceProvider.getFolder(rootPath);
     createDefaultSdk(rootFolder);
     String projectPath = pathContext.join(rootPath, 'project');
@@ -284,7 +295,7 @@ b:${pathContext.toUri(packageB)}
   }
 
   void test_createSourceFactory_noProvider_packages_embedder_extensions() {
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     Folder rootFolder = resourceProvider.getFolder(rootPath);
     createDefaultSdk(rootFolder);
     String projectPath = pathContext.join(rootPath, 'project');
@@ -332,7 +343,7 @@ embedded_libs:
   }
 
   void test_createSourceFactory_noProvider_packages_embedder_noExtensions() {
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     Folder rootFolder = resourceProvider.getFolder(rootPath);
     createDefaultSdk(rootFolder);
     String projectPath = pathContext.join(rootPath, 'project');
@@ -374,7 +385,7 @@ embedded_libs:
   }
 
   void test_createSourceFactory_noProvider_packages_noEmbedder_noExtensions() {
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     Folder rootFolder = resourceProvider.getFolder(rootPath);
     createDefaultSdk(rootFolder);
     String projectPath = pathContext.join(rootPath, 'project');
@@ -393,7 +404,8 @@ b:${pathContext.toUri(packageB)}
 
     Source dartSource = factory.forUri('dart:core');
     expect(dartSource, isNotNull);
-    expect(dartSource.fullName, '$defaultSdkPath/lib/core/core.dart');
+    expect(dartSource.fullName,
+        pathContext.join(defaultSdkPath, 'lib', 'core', 'core.dart'));
 
     Source packageSource = factory.forUri('package:a/a.dart');
     expect(packageSource, isNotNull);
@@ -401,7 +413,7 @@ b:${pathContext.toUri(packageB)}
   }
 
   void test_createSourceFactory_packageProvider() {
-    String rootPath = '/root';
+    String rootPath = resourceProvider.convertPath('/root');
     Folder rootFolder = resourceProvider.getFolder(rootPath);
     createDefaultSdk(rootFolder);
     String projectPath = pathContext.join(rootPath, 'project');
@@ -477,8 +489,9 @@ b:${pathContext.toUri(packageB)}
     builder.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableGenericMethods = true;
-    String path = '/some/directory/path';
-    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(
         filePath,
         '''
@@ -499,8 +512,9 @@ linter:
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableSuperMixins = true;
     expected.enableGenericMethods = true;
-    String path = '/some/directory/path';
-    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(
         filePath,
         '''
@@ -530,8 +544,9 @@ analyzer:
   }
 
   void test_getAnalysisOptions_invalid() {
-    String path = '/some/directory/path';
-    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(filePath, ';');
 
     AnalysisEngine engine = AnalysisEngine.instance;
@@ -551,8 +566,9 @@ analyzer:
   }
 
   void test_getAnalysisOptions_noDefault_noOverrides() {
-    String path = '/some/directory/path';
-    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(
         filePath,
         '''
@@ -569,8 +585,9 @@ linter:
   void test_getAnalysisOptions_noDefault_overrides() {
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableSuperMixins = true;
-    String path = '/some/directory/path';
-    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(
         filePath,
         '''
@@ -585,8 +602,8 @@ analyzer:
   }
 
   void test_getOptionsFile_explicit() {
-    String path = '/some/directory/path';
-    String filePath = '/options/analysis.yaml';
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath = resourceProvider.convertPath('/options/analysis.yaml');
     resourceProvider.newFile(filePath, '');
 
     builder.defaultAnalysisOptionsFilePath = filePath;
@@ -596,10 +613,10 @@ analyzer:
   }
 
   void test_getOptionsFile_inParentOfRoot_new() {
-    String parentPath = '/some/directory';
-    String path = '$parentPath/path';
+    String parentPath = resourceProvider.convertPath('/some/directory');
+    String path = pathContext.join(parentPath, 'path');
     String filePath =
-        '$parentPath/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+        pathContext.join(parentPath, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(filePath, '');
 
     File result = builder.getOptionsFile(path);
@@ -608,9 +625,10 @@ analyzer:
   }
 
   void test_getOptionsFile_inParentOfRoot_old() {
-    String parentPath = '/some/directory';
-    String path = '$parentPath/path';
-    String filePath = '$parentPath/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+    String parentPath = resourceProvider.convertPath('/some/directory');
+    String path = pathContext.join(parentPath, 'path');
+    String filePath =
+        pathContext.join(parentPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE);
     resourceProvider.newFile(filePath, '');
 
     File result = builder.getOptionsFile(path);
@@ -619,8 +637,9 @@ analyzer:
   }
 
   void test_getOptionsFile_inRoot_new() {
-    String path = '/some/directory/path';
-    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}';
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     resourceProvider.newFile(filePath, '');
 
     File result = builder.getOptionsFile(path);
@@ -629,8 +648,9 @@ analyzer:
   }
 
   void test_getOptionsFile_inRoot_old() {
-    String path = '/some/directory/path';
-    String filePath = '$path/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}';
+    String path = resourceProvider.convertPath('/some/directory/path');
+    String filePath =
+        pathContext.join(path, AnalysisEngine.ANALYSIS_OPTIONS_FILE);
     resourceProvider.newFile(filePath, '');
 
     File result = builder.getOptionsFile(path);
@@ -643,7 +663,6 @@ analyzer:
     // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
     expect(actual.analyzeFunctionBodiesPredicate,
         same(expected.analyzeFunctionBodiesPredicate));
-    expect(actual.cacheSize, expected.cacheSize);
     expect(actual.dart2jsHint, expected.dart2jsHint);
     expect(actual.enableAssertMessage, expected.enableAssertMessage);
     expect(actual.enableStrictCallChecks, expected.enableStrictCallChecks);

@@ -93,7 +93,7 @@ class FileSourceTest {
   void test_getEncoding() {
     SourceFactory factory =
         new SourceFactory([new ResourceUriResolver(resourceProvider)]);
-    String fullPath = "/does/not/exist.dart";
+    String fullPath = resourceProvider.convertPath("/does/not/exist.dart");
     File file = resourceProvider.getFile(fullPath);
     FileSource source = new FileSource(file);
     expect(factory.fromEncoding(source.encoding), source);

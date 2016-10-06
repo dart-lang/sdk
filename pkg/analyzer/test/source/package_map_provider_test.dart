@@ -21,11 +21,10 @@ main() {
 
 @reflectiveTest
 class PubPackageMapProviderTest {
-  static const String projectPath = '/path/to/project';
-
   DartSdk sdk;
   MemoryResourceProvider resourceProvider;
   PubPackageMapProvider packageMapProvider;
+  String projectPath;
   Folder projectFolder;
 
   PackageMapInfo parsePackageMap(Map obj) {
@@ -37,6 +36,7 @@ class PubPackageMapProviderTest {
     sdk = new FolderBasedDartSdk(resourceProvider,
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     packageMapProvider = new PubPackageMapProvider(resourceProvider, sdk);
+    projectPath = resourceProvider.convertPath('/path/to/project');
     projectFolder = resourceProvider.newFolder(projectPath);
   }
 
@@ -47,12 +47,15 @@ class PubPackageMapProviderTest {
     });
     PackageMapInfo info = packageMapProvider.computePackageMap(projectFolder);
     expect(info.packageMap, isNull);
-    expect(info.dependencies, unorderedEquals(['$projectPath/pubspec.lock']));
+    expect(
+        info.dependencies,
+        unorderedEquals(
+            [resourceProvider.pathContext.join(projectPath, 'pubspec.lock')]));
   }
 
   void test_parsePackageMap_dontIgnoreNonExistingFolder() {
     String packageName = 'foo';
-    String folderPath = '/path/to/folder';
+    String folderPath = resourceProvider.convertPath('/path/to/folder');
     Map<String, List<Folder>> result = parsePackageMap({
       'packages': {packageName: folderPath}
     }).packageMap;
@@ -64,8 +67,10 @@ class PubPackageMapProviderTest {
   }
 
   void test_parsePackageMap_handleDependencies() {
-    String path1 = '/path/to/folder1/pubspec.lock';
-    String path2 = '/path/to/folder2/pubspec.lock';
+    String path1 =
+        resourceProvider.convertPath('/path/to/folder1/pubspec.lock');
+    String path2 =
+        resourceProvider.convertPath('/path/to/folder2/pubspec.lock');
     resourceProvider.newFile(path1, '...');
     resourceProvider.newFile(path2, '...');
     Set<String> dependencies = parsePackageMap({
@@ -79,7 +84,7 @@ class PubPackageMapProviderTest {
 
   void test_parsePackageMap_normalFolder() {
     String packageName = 'foo';
-    String folderPath = '/path/to/folder';
+    String folderPath = resourceProvider.convertPath('/path/to/folder');
     resourceProvider.newFolder(folderPath);
     Map<String, List<Folder>> result = parsePackageMap({
       'packages': {packageName: folderPath}
@@ -93,8 +98,8 @@ class PubPackageMapProviderTest {
 
   void test_parsePackageMap_packageMapsToList() {
     String packageName = 'foo';
-    String folderPath1 = '/path/to/folder1';
-    String folderPath2 = '/path/to/folder2';
+    String folderPath1 = resourceProvider.convertPath('/path/to/folder1');
+    String folderPath2 = resourceProvider.convertPath('/path/to/folder2');
     resourceProvider.newFolder(folderPath1);
     resourceProvider.newFolder(folderPath2);
     Map<String, List<Folder>> result = parsePackageMap({
@@ -112,7 +117,7 @@ class PubPackageMapProviderTest {
   }
 
   void test_parsePackageMap_relativePahInPackages() {
-    String packagePath = '/path/to/package';
+    String packagePath = resourceProvider.convertPath('/path/to/package');
     String relativePackagePath = '../package';
     String packageName = 'foo';
     resourceProvider.newFolder(projectPath);
@@ -126,7 +131,8 @@ class PubPackageMapProviderTest {
   }
 
   void test_parsePackageMap_relativePathInDependencies() {
-    String dependencyPath = '/path/to/pubspec.lock';
+    String dependencyPath =
+        resourceProvider.convertPath('/path/to/pubspec.lock');
     String relativeDependencyPath = '../pubspec.lock';
     resourceProvider.newFolder(projectPath);
     resourceProvider.newFile(dependencyPath, 'contents');

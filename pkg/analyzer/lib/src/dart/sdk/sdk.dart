@@ -681,10 +681,11 @@ class FolderBasedDartSdk extends AbstractDartSdk {
     }
     pathos.Context pathContext = resourceProvider.pathContext;
     if (pathContext.style != pathos.context.style) {
-      // This will only be true if pathContext == posix and
-      // pathos.context == windows, which only happens when running tests.
+      // This will only happen when running tests.
       if (exec.startsWith(new RegExp('[a-zA-Z]:'))) {
         exec = exec.substring(2);
+      } else if (resourceProvider is MemoryResourceProvider) {
+        exec = resourceProvider.convertPath(exec);
       }
       exec = pathContext.fromUri(pathos.context.toUri(exec));
     }

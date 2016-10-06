@@ -32,9 +32,9 @@ const String pubspecName = 'pubspec.yaml';
 @reflectiveTest
 class DependencyFinderTest extends ResolverTestCase {
   void test_transitiveDependenciesFor_circularDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
+    String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
+    String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
     resourceProvider.newFile(
         '$packageA/$pubspecName',
         '''
@@ -90,10 +90,10 @@ class DependencyFinderTest extends ResolverTestCase {
   }
 
   void test_transitiveDependenciesFor_overlappingDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
-    String packageD = '/pub-cache/d-1.0';
+    String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
+    String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
+    String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
+    String packageD = resourceProvider.convertPath('/pub-cache/d-1.0');
     resourceProvider.newFile(
         '$packageA/$pubspecName',
         '''
@@ -128,9 +128,9 @@ class DependencyFinderTest extends ResolverTestCase {
   }
 
   void test_transitiveDependenciesFor_simpleDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
+    String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
+    String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
     resourceProvider.newFile(
         '$packageA/$pubspecName',
         '''
@@ -202,10 +202,10 @@ class PackageDescriptionTest extends ResolverTestCase {
 @reflectiveTest
 class PackageManagerTest extends ResolverTestCase {
   void test_getContext() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB1 = '/pub-cache/b-1.0';
-    String packageB2 = '/pub-cache/b-2.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
+    String packageB1 = resourceProvider.convertPath('/pub-cache/b-1.0');
+    String packageB2 = resourceProvider.convertPath('/pub-cache/b-2.0');
+    String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
     resourceProvider.newFile(
         '$packageA/$pubspecName',
         '''
