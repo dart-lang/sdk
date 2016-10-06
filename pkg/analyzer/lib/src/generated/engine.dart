@@ -1368,7 +1368,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
-    cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableAssertInitializer = options.enableAssertInitializer;
     enableAssertMessage = options.enableAssertMessage;

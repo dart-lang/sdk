@@ -501,7 +501,6 @@ class AnalysisContextHelper {
     if (options == null) {
       options = new AnalysisOptionsImpl();
     }
-    options.cacheSize = 256;
     context = AnalysisContextFactory.contextWithCoreAndOptions(options,
         resourceProvider: resourceProvider);
   }

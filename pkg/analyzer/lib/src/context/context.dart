@@ -308,10 +308,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableSuperMixins != options.enableSuperMixins;
-    int cacheSize = options.cacheSize;
-    if (this._options.cacheSize != cacheSize) {
-      this._options.cacheSize = cacheSize;
-    }
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
     this._options.generateImplicitErrors = options.generateImplicitErrors;
