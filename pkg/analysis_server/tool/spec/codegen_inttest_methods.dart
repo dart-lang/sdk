@@ -104,7 +104,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln("import 'package:analysis_server/plugin/protocol/protocol.dart';");
     writeln(
         "import 'package:analysis_server/src/protocol/protocol_internal.dart';");
-    writeln("import 'package:unittest/unittest.dart';");
+    writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln("import 'protocol_matchers.dart';");
