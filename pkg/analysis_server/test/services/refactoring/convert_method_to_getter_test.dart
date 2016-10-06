@@ -17,7 +17,9 @@ import 'abstract_refactoring.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(ConvertMethodToGetterTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertMethodToGetterTest);
+  });
 }
 
 @reflectiveTest

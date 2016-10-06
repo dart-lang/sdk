@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/web_socket_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../mocks.dart';
 import '../utils.dart';

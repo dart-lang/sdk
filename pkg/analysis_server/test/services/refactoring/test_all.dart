@@ -4,7 +4,7 @@
 
 library test.services.refactoring;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../utils.dart';
 import 'convert_getter_to_method_test.dart' as convert_getter_to_method_test;
@@ -26,7 +26,7 @@ import 'rename_unit_member_test.dart' as rename_unit_member_test;
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
-  group('refactoring', () {
+  defineReflectiveSuite(() {
     convert_getter_to_method_test.main();
     convert_method_to_getter_test.main();
     extract_local_test.main();
@@ -42,5 +42,5 @@ main() {
     rename_library_test.main();
     rename_local_test.main();
     rename_unit_member_test.main();
-  });
+  }, name: 'refactoring');
 }

@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../mocks.dart';
 import '../utils.dart';

@@ -4,8 +4,4 @@
 
 library analysis_server.test.utils;
 
-import 'package:unittest/unittest.dart';
-
-void initializeTestEnvironment() {
-  groupSep = ' | ';
-}
+void initializeTestEnvironment() {}

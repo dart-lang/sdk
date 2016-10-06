@@ -11,7 +11,9 @@ import '../integration_tests.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(Test);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(Test);
+  });
 }
 
 @reflectiveTest

@@ -5,7 +5,6 @@
 library test.context.directory.manager;
 
 import 'dart:collection';
-import 'dart:io' as io;
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/error/error.dart';
@@ -28,8 +27,8 @@ import 'package:linter/src/rules/avoid_as.dart';
 import 'package:path/path.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
@@ -37,9 +36,11 @@ import 'utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(AbstractContextManagerTest);
-  defineReflectiveTests(ContextManagerWithNewOptionsTest);
-  defineReflectiveTests(ContextManagerWithOldOptionsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AbstractContextManagerTest);
+    defineReflectiveTests(ContextManagerWithNewOptionsTest);
+    defineReflectiveTests(ContextManagerWithOldOptionsTest);
+  });
 }
 
 @reflectiveTest

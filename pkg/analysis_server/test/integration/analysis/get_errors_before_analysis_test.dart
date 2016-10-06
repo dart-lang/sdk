@@ -11,7 +11,9 @@ import 'get_errors.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(Test);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(Test);
+  });
 }
 
 @reflectiveTest

@@ -14,7 +14,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../utils.dart';
 

@@ -12,7 +12,7 @@ import 'dart:io';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:path/path.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';

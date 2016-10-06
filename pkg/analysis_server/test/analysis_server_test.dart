@@ -23,9 +23,9 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
@@ -33,7 +33,9 @@ import 'utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(AnalysisServerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisServerTest);
+  });
 }
 
 @reflectiveTest

@@ -4,7 +4,7 @@
 
 library test.edit.all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../utils.dart';
 import 'assists_test.dart' as assists_test;
@@ -19,12 +19,12 @@ import 'sort_members_test.dart' as sort_members_test;
  */
 main() {
   initializeTestEnvironment();
-  group('edit', () {
+  defineReflectiveSuite(() {
     assists_test.main();
     fixes_test.main();
     format_test.main();
     organize_directives_test.main();
     refactoring_test.main();
     sort_members_test.main();
-  });
+  }, name: 'edit');
 }

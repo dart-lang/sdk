@@ -4,7 +4,7 @@
 
 library test.integration.analysis.all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../utils.dart';
 import 'analysis_options_test.dart' as analysis_options_test;
@@ -32,7 +32,7 @@ import 'update_content_test.dart' as update_content_test;
  */
 main() {
   initializeTestEnvironment();
-  group('analysis', () {
+  defineReflectiveSuite(() {
     analysis_options_test.main();
     error_test.main();
     get_errors_after_analysis_test.main();
@@ -51,5 +51,5 @@ main() {
     reanalyze_test.main();
     update_content_test.main();
     update_content_list_test.main();
-  });
+  }, name: 'analysis');
 }

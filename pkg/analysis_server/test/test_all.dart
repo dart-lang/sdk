@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis/test_all.dart' as analysis_all;
 import 'analysis_server_test.dart' as analysis_server_test;
@@ -33,7 +33,7 @@ import 'utils.dart';
  */
 main() {
   initializeTestEnvironment();
-  group('analysis_server', () {
+  defineReflectiveSuite(() {
     analysis_all.main();
     analysis_server_test.main();
     channel_test.main();
@@ -56,5 +56,5 @@ main() {
     socket_server_test.main();
     source_all.main();
     src_all.main();
-  });
+  }, name: 'analisys_server');
 }

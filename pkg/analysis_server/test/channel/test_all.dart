@@ -4,7 +4,7 @@
 
 library test.channel.all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../utils.dart';
 import 'byte_stream_channel_test.dart' as byte_stream_channel_test;

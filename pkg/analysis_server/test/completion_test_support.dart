@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'domain_completion_test.dart';
 

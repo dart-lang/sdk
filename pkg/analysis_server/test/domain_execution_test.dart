@@ -20,9 +20,9 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:plugin/manager.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
@@ -32,7 +32,9 @@ import 'utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(ExecutionDomainTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ExecutionDomainTest);
+  });
   group('ExecutionDomainHandler', () {
     MemoryResourceProvider provider = new MemoryResourceProvider();
     AnalysisServer server;

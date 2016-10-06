@@ -4,7 +4,7 @@
 
 library test.src;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../utils.dart';
 import 'utilities/test_all.dart' as utilities_all;
@@ -14,7 +14,7 @@ import 'utilities/test_all.dart' as utilities_all;
  */
 main() {
   initializeTestEnvironment();
-  group('analysis_server', () {
+  defineReflectiveSuite(() {
     utilities_all.main();
-  });
+  }, name: 'analysis_server');
 }

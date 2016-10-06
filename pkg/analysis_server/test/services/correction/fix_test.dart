@@ -18,8 +18,8 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import '../../abstract_single_unit.dart';
@@ -27,8 +27,10 @@ import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(FixProcessorTest);
-  defineReflectiveTests(LintFixTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(FixProcessorTest);
+    defineReflectiveTests(LintFixTest);
+  });
 }
 
 typedef bool AnalysisErrorFilter(AnalysisError error);

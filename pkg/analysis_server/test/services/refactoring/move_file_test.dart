@@ -19,7 +19,9 @@ import 'abstract_refactoring.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(MoveFileTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(MoveFileTest);
+  });
 }
 
 @reflectiveTest

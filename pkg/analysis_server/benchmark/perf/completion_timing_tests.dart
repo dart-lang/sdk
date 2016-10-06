@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../../test/utils.dart';
 import 'performance_tests.dart';

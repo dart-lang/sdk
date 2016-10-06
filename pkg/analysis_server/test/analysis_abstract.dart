@@ -22,7 +22,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';

@@ -16,7 +16,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/manager.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mocks.dart';
 import 'utils.dart';

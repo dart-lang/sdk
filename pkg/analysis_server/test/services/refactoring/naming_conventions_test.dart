@@ -15,7 +15,9 @@ import 'abstract_refactoring.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(NamingConventionsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NamingConventionsTest);
+  });
 }
 
 @reflectiveTest

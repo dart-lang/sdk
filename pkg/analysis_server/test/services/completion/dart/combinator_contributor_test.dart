@@ -15,7 +15,9 @@ import 'completion_contributor_util.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(CombinatorContributorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CombinatorContributorTest);
+  });
 }
 
 @reflectiveTest

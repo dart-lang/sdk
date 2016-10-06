@@ -4,7 +4,7 @@
 
 library test.services.correction;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../utils.dart';
 import 'assist_test.dart' as assist_test;
@@ -22,7 +22,7 @@ import 'util_test.dart' as util_test;
 /// Utility for manually running all tests.
 main() {
   initializeTestEnvironment();
-  group('correction', () {
+  defineReflectiveSuite(() {
     assist_test.main();
     change_test.main();
     fix_test.main();
@@ -34,5 +34,5 @@ main() {
     status_test.main();
     strings_test.main();
     util_test.main();
-  });
+  }, name: 'correction');
 }

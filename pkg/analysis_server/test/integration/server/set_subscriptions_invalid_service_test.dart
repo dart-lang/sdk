@@ -4,15 +4,17 @@
 
 library test.integration.server.set.subscriptions.invalid.service;
 
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(Test);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(Test);
+  });
 }
 
 @reflectiveTest

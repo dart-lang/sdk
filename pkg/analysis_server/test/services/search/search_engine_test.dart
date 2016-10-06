@@ -13,15 +13,17 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
 import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(SearchEngineImplTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SearchEngineImplTest);
+  });
 }
 
 class ExpectedMatch {

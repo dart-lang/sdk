@@ -9,7 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'performance_tests.dart';
 

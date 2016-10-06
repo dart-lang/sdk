@@ -5,7 +5,7 @@
 library test.operation;
 
 import 'package:analysis_server/src/operation/operation.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../utils.dart';
 

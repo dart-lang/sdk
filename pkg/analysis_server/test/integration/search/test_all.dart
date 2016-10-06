@@ -4,7 +4,7 @@
 
 library test.integration.search.all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../utils.dart';
 import 'get_type_hierarchy_test.dart' as get_type_hierarchy_test;
@@ -14,7 +14,7 @@ import 'get_type_hierarchy_test.dart' as get_type_hierarchy_test;
  */
 main() {
   initializeTestEnvironment();
-  group('search', () {
+  defineReflectiveSuite(() {
     get_type_hierarchy_test.main();
-  });
+  }, name: 'search');
 }
