@@ -20097,19 +20097,21 @@ bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
 
 
 bool String::Equals(const int32_t* utf32_array, intptr_t len) const {
-  CodePointIterator it(*this);
-  intptr_t i = 0;
-  bool has_more = it.Next();
-  while (has_more && (i < len)) {
-    if ((it.Current() != static_cast<int32_t>(utf32_array[i]))) {
-      return false;
+  if (len < 0) return false;
+  intptr_t j = 0;
+  for (intptr_t i = 0; i < len; ++i) {
+    if (Utf::IsSupplementary(utf32_array[i])) {
+      uint16_t encoded[2];
+      Utf16::Encode(utf32_array[i], &encoded[0]);
+      if (j + 1 >= Length()) return false;
+      if (CharAt(j++) != encoded[0]) return false;
+      if (CharAt(j++) != encoded[1]) return false;
+    } else {
+      if (j >= Length()) return false;
+      if (CharAt(j++) != utf32_array[i]) return false;
     }
-    // Advance both streams forward.
-    ++i;
-    has_more = it.Next();
   }
-  // Strings are only true iff we reached the end in both streams.
-  return (i == len) && !has_more;
+  return j == Length();
 }
 
 
