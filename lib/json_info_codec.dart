@@ -7,10 +7,10 @@ part of dart2js_info.info;
 
 // TODO(sigmund): add unit tests.
 class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
-  Map<String, Info> registry;
+  Map<String, Info> registry = <String, Info>{};
 
   AllInfo convert(Map<String, dynamic> json) {
-    registry = <String, Info>{};
+    registry.clear();
 
     var result = new AllInfo();
     var elements = json['elements'];
@@ -19,15 +19,13 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     result.classes.addAll((elements['class'] as Map).values.map(parseClass));
     result.functions
         .addAll((elements['function'] as Map).values.map(parseFunction));
+    result.closures
+        .addAll((elements['closure'] as Map).values.map(parseClosure));
     result.fields.addAll((elements['field'] as Map).values.map(parseField));
     result.typedefs
         .addAll((elements['typedef'] as Map).values.map(parseTypedef));
-
-    // TODO(sigmund): remove null check on next breaking version
-    var constants = elements['constant'];
-    if (constants != null) {
-      result.constants.addAll((constants as Map).values.map(parseConstant));
-    }
+    result.constants
+        .addAll((elements['constant'] as Map).values.map(parseConstant));
 
     var idMap = <String, Info>{};
     for (var f in result.functions) {
@@ -208,11 +206,23 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
         isExternal: json['external'] == true);
   }
 
+  ClosureInfo parseClosure(Map json) {
+    ClosureInfo result = parseId(json['id']);
+    return result
+      ..name = json['name']
+      ..parent = parseId(json['parent'])
+      ..outputUnit = parseId(json['outputUnit'])
+      ..size = json['size']
+      ..function = parseId(json['function']);
+  }
+
   Info parseId(String serializedId) => registry.putIfAbsent(serializedId, () {
         if (serializedId == null) {
           return null;
         } else if (serializedId.startsWith('function/')) {
           return new FunctionInfo._(serializedId);
+        } else if (serializedId.startsWith('closure/')) {
+          return new ClosureInfo._(serializedId);
         } else if (serializedId.startsWith('library/')) {
           return new LibraryInfo._(serializedId);
         } else if (serializedId.startsWith('class/')) {
@@ -249,13 +259,15 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     var jsonTypedefs = _visitList(info.typedefs);
     var jsonFields = _visitList(info.fields);
     var jsonConstants = _visitList(info.constants);
+    var jsonClosures = _visitList(info.closures);
     return {
       'library': jsonLibraries,
       'class': jsonClasses,
       'function': jsonFunctions,
       'typedef': jsonTypedefs,
       'field': jsonFields,
-      'constant': jsonConstants
+      'constant': jsonConstants,
+      'closure': jsonClosures,
     };
   }
 
@@ -431,6 +443,11 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
         // Note: version 3.2 of dump-info serializes `uses` in a section called
         // `holding` at the top-level.
       });
+  }
+
+  Map visitClosure(ClosureInfo info) {
+    return _visitBasicInfo(info)
+      ..addAll({'function': info.function.serializedId});
   }
 
   visitTypedef(TypedefInfo info) => _visitBasicInfo(info)..['type'] = info.type;

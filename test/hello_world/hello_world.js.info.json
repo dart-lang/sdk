@@ -1452,7 +1452,7 @@
         "name": "message",
         "size": 0,
         "outputUnit": "outputUnit/0",
-        "coverageId": "4090",
+        "coverageId": "4087",
         "parent": "class/143",
         "children": [],
         "inferredType": "Value mask: [\"Intercepted function with no arguments.\"] type: [exact=JSString]",
@@ -1802,7 +1802,8 @@
         "type": "E"
       }
     },
-    "constant": {}
+    "constant": {},
+    "closure": {}
   },
   "holding": {
     "function/0": [
@@ -1846,21 +1847,21 @@
       "id": "outputUnit/0",
       "kind": "outputUnit",
       "name": null,
-      "size": 10124,
+      "size": 10116,
       "imports": [
         null
       ]
     }
   ],
-  "dump_version": 4,
+  "dump_version": 5,
   "deferredFiles": {},
   "dump_minor_version": "0",
   "program": {
     "entrypoint": "function/0",
-    "size": 10124,
+    "size": 10116,
     "dart2jsVersion": null,
-    "compilationMoment": "2016-09-30 16:14:58.038530",
-    "compilationDuration": 2726976,
+    "compilationMoment": "2016-10-06 10:14:59.145665",
+    "compilationDuration": 2729236,
     "toJsonDuration": 4000,
     "dumpInfoDuration": 0,
     "noSuchMethodEnabled": false,

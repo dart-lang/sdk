@@ -67,7 +67,7 @@ validateSize(AllInfo info, String debugLibName) {
     _fail('$percent% size missing: $accounted (all libs + consts) '
         '< $realTotal (total)');
   }
-  var missingTotal = tracker.missing.values.fold(0, (a, b) => a + b);
+  int missingTotal = tracker.missing.values.fold(0, (a, b) => a + b);
   if (missingTotal > 0) {
     var percent = (missingTotal * 100 / realTotal).toStringAsFixed(2);
     _fail('$percent% size missing in libraries (sum of elements > lib.size)');

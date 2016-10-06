@@ -104,6 +104,9 @@ class AllInfo {
   // and we'll include it only once in the output.
   List<ConstantInfo> constants = <ConstantInfo>[];
 
+  /// Information about closures anywhere in the program.
+  List<ClosureInfo> closures = <ClosureInfo>[];
+
   /// Information about output units (should be just one entry if not using
   /// deferred loading).
   List<OutputUnitInfo> outputUnits = <OutputUnitInfo>[];
@@ -123,7 +126,7 @@ class AllInfo {
   /// Major version indicating breaking changes in the format. A new version
   /// means that an old deserialization algorithm will not work with the new
   /// format.
-  final int version = 4;
+  final int version = 5;
 
   /// Minor version indicating non-breaking changes in the format. A change in
   /// this version number means that the json parsing in this library from a
@@ -263,7 +266,7 @@ class FieldInfo extends BasicInfo with CodeInfo {
   String inferredType;
 
   /// Nested closures seen in the field initializer.
-  List<FunctionInfo> closures;
+  List<ClosureInfo> closures;
 
   /// The actual generated code for the field.
   String code;
@@ -321,7 +324,7 @@ class FunctionInfo extends BasicInfo with CodeInfo {
   FunctionModifiers modifiers;
 
   /// Nested closures that appear within the body of this function.
-  List<FunctionInfo> closures;
+  List<ClosureInfo> closures;
 
   /// The type of this function.
   String type;
@@ -371,6 +374,22 @@ class FunctionInfo extends BasicInfo with CodeInfo {
   dynamic accept(InfoVisitor visitor) => visitor.visitFunction(this);
 }
 
+/// Information about a closure, also known as a local function.
+class ClosureInfo extends BasicInfo {
+  static int _ids = 0;
+
+  /// The function that is wrapped by this closure.
+  FunctionInfo function;
+
+  ClosureInfo(
+      {String name, OutputUnitInfo outputUnit, int size: 0, this.function})
+      : super(InfoKind.closure, _ids++, name, outputUnit, size, null);
+
+  ClosureInfo._(String serializedId) : super._fromId(serializedId);
+
+  dynamic accept(InfoVisitor visitor) => visitor.visitClosure(this);
+}
+
 /// Information about how a dependency is used.
 class DependencyInfo {
   /// The dependency, either a FunctionInfo or FieldInfo.
@@ -407,7 +426,7 @@ class FunctionModifiers {
       this.isExternal: false});
 }
 
-/// Possible values of the `kind` field in the serialied infos.
+/// Possible values of the `kind` field in the serialized infos.
 enum InfoKind {
   library,
   clazz,
@@ -416,6 +435,7 @@ enum InfoKind {
   constant,
   outputUnit,
   typedef,
+  closure,
 }
 
 String kindToString(InfoKind kind) {
@@ -434,6 +454,8 @@ String kindToString(InfoKind kind) {
       return 'outputUnit';
     case InfoKind.typedef:
       return 'typedef';
+    case InfoKind.closure:
+      return 'closure';
     default:
       return null;
   }
@@ -461,6 +483,8 @@ InfoKind kindFromString(String kind) {
       return InfoKind.outputUnit;
     case 'typedef':
       return InfoKind.typedef;
+    case 'closure':
+      return InfoKind.closure;
     default:
       return null;
   }
@@ -476,6 +500,7 @@ abstract class InfoVisitor<T> {
   T visitConstant(ConstantInfo info);
   T visitFunction(FunctionInfo info);
   T visitTypedef(TypedefInfo info);
+  T visitClosure(ClosureInfo info);
   T visitOutput(OutputUnitInfo info);
 }
 
@@ -508,15 +533,18 @@ class RecursiveInfoVisitor extends InfoVisitor<Null> {
   }
 
   visitField(FieldInfo info) {
-    info.closures.forEach(visitFunction);
+    info.closures.forEach(visitClosure);
   }
 
   visitConstant(ConstantInfo info) {}
 
   visitFunction(FunctionInfo info) {
-    info.closures.forEach(visitFunction);
+    info.closures.forEach(visitClosure);
   }
 
   visitTypedef(TypedefInfo info) {}
   visitOutput(OutputUnitInfo info) {}
+  visitClosure(ClosureInfo info) {
+    visitFunction(info.function);
+  }
 }
