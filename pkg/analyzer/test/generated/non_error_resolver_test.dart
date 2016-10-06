@@ -1709,6 +1709,19 @@ Map _globalMap = {
     verify([source]);
   }
 
+  void test_duplicatePart() {
+    addNamedSource('/part1.dart', 'part of lib;');
+    addNamedSource('/part2.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_dynamicIdentifier() {
     Source source = addSource(r'''
 main() {

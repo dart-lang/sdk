@@ -1510,6 +1510,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     LibraryIdentifier libraryNameNode = null;
     String partsLibraryName = _UNKNOWN_LIBRARY_NAME;
     bool hasPartDirective = false;
+    Set<String> seenPartUris = new Set<String>();
     FunctionElement entryPoint =
         _findEntryPoint(definingCompilationUnitElement);
     List<Directive> directivesToResolve = <Directive>[];
@@ -1532,6 +1533,17 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
           partElement.uriOffset = partUri.offset;
           partElement.uriEnd = partUri.end;
           partElement.uri = directive.uriContent;
+          //
+          // Validate that the part URI is unique in the library.
+          //
+          if (!seenPartUris.add(directive.uriContent)) {
+            errors.add(new AnalysisError(
+                librarySource,
+                partUri.offset,
+                partUri.length,
+                CompileTimeErrorCode.DUPLICATE_PART,
+                [directive.uriContent]));
+          }
           //
           // Validate that the part contains a part-of directive with the same
           // name as the library.

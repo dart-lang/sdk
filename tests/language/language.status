@@ -299,3 +299,6 @@ assert_initializer_test/none: pass
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
+
+[$runtime == vm && $compiler == none]
+duplicate_part_test/01: MissingCompileTimeError # Issue 27516

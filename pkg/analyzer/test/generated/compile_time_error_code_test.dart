@@ -1959,6 +1959,18 @@ main() {
     verify([source]);
   }
 
+  void test_duplicatePart() {
+    addNamedSource('/part.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part.dart';
+part 'part.dart';
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_PART]);
+    verify([source]);
+  }
+
   void test_exportInternalLibrary() {
     Source source = addSource("export 'dart:_interceptors';");
     computeLibrarySourceErrors(source);
