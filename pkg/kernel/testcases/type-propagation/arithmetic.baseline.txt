@@ -8,7 +8,7 @@ static method foo(core::int/core::int* {int} x, core::int/core::int* {int} y) �
 }
 static method loop(core::List<dynamic>/core::List* {other} xs) → void/Null {
   core::int/core::int* {int} _ = xs.length;
-  for(core::int/core::num* {int,double} i = 0; i.<(xs.length); i = i.+(1)) {
+  for (core::int/core::num* {int,double} i = 0; i.<(xs.length); i = i.+(1)) {
   }
 }
 static method main() → dynamic/Null {

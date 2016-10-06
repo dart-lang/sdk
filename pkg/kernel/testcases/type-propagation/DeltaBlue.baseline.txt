@@ -261,7 +261,7 @@ class Planner extends core::Object {
     ;
   method incrementalAdd(self::Constraint/core::Object+ {*} c) → void/Null {
     core::int/core::num* {int,double} mark = this.newMark();
-    for(self::Constraint/self::Constraint+ {null,other} overridden = c.satisfy(mark); !overridden.==(null); overridden = overridden.satisfy(mark))
+    for (self::Constraint/self::Constraint+ {null,other} overridden = c.satisfy(mark); !overridden.==(null); overridden = overridden.satisfy(mark))
       ;
   }
   method incrementalRemove(self::Constraint/self::Constraint+ {other} c) → void/Null {
@@ -271,7 +271,7 @@ class Planner extends core::Object {
     core::List<self::Constraint>/core::List* {other} unsatisfied = this.removePropagateFrom(out);
     self::Strength/core::Object+ {*} strength = self::REQUIRED;
     do {
-      for(core::int/core::num* {int,double} i = 0; i.<(unsatisfied.length); i = i.+(1)) {
+      for (core::int/core::num* {int,double} i = 0; i.<(unsatisfied.length); i = i.+(1)) {
         self::Constraint/core::Object+ {*} u = unsatisfied.[](i);
         if(u.strength.==(strength))
           this.incrementalAdd(u);
@@ -298,7 +298,7 @@ class Planner extends core::Object {
   }
   method extractPlanFromConstraints(core::List<self::Constraint>/core::List* {other} constraints) → self::Plan/self::Plan! {other} {
     core::List<self::Constraint>/core::List* {other} sources = <self::Constraint>[];
-    for(core::int/core::num* {int,double} i = 0; i.<(constraints.length); i = i.+(1)) {
+    for (core::int/core::num* {int,double} i = 0; i.<(constraints.length); i = i.+(1)) {
       self::Constraint/core::Object+ {*} c = constraints.[](i);
       if(c.isInput() && c.isSatisfied())
         sources.add(c);
@@ -326,13 +326,13 @@ class Planner extends core::Object {
     core::List<self::Variable>/core::List* {other} todo = <self::Variable>[out];
     while (todo.length.>(0)) {
       self::Variable/core::Object+ {*} v = todo.removeLast();
-      for(core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
+      for (core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
         self::Constraint/core::Object+ {*} c = v.constraints.[](i);
         if(!c.isSatisfied())
           unsatisfied.add(c);
       }
       self::Constraint/self::Constraint+ {null,other} determining = v.determinedBy;
-      for(core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
+      for (core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
         self::Constraint/core::Object+ {*} next = v.constraints.[](i);
         if(!next.==(determining) && next.isSatisfied()) {
           next.recalculate();
@@ -344,7 +344,7 @@ class Planner extends core::Object {
   }
   method addConstraintsConsumingTo(self::Variable/self::Variable! {null,other} v, core::List<self::Constraint>/core::List* {other} coll) → void/Null {
     self::Constraint/self::Constraint+ {null,other} determining = v.determinedBy;
-    for(core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
+    for (core::int/core::num* {int,double} i = 0; i.<(v.constraints.length); i = i.+(1)) {
       self::Constraint/core::Object+ {*} c = v.constraints.[](i);
       if(!c.==(determining) && c.isSatisfied())
         coll.add(c);
@@ -362,7 +362,7 @@ class Plan extends core::Object {
   method size() → core::int/core::int* {int}
     return this.list.length;
   method execute() → void/Null {
-    for(core::int/core::num* {int,double} i = 0; i.<(this.list.length); i = i.+(1)) {
+    for (core::int/core::num* {int,double} i = 0; i.<(this.list.length); i = i.+(1)) {
       this.list.[](i).execute();
     }
   }
@@ -386,7 +386,7 @@ static method chainTest(core::int/core::int* {int} n) → void/Null {
   self::Variable/self::Variable! {null,other} prev = null;
   self::Variable/self::Variable! {null,other} first = null;
   self::Variable/self::Variable! {null,other} last = null;
-  for(core::int/core::num* {int,double} i = 0; i.<=(n); i = i.+(1)) {
+  for (core::int/core::num* {int,double} i = 0; i.<=(n); i = i.+(1)) {
     self::Variable/self::Variable! {other} v = new self::Variable::•("v${i}", 0);
     if(!prev.==(null))
       new self::EqualityConstraint::•(prev, v, self::REQUIRED);
@@ -399,7 +399,7 @@ static method chainTest(core::int/core::int* {int} n) → void/Null {
   new self::StayConstraint::•(last, self::STRONG_DEFAULT);
   self::EditConstraint/self::EditConstraint! {other} edit = new self::EditConstraint::•(first, self::PREFERRED);
   self::Plan/self::Plan! {other} plan = self::planner.extractPlanFromConstraints(<self::Constraint>[edit]);
-  for(core::int/core::num* {int,double} i = 0; i.<(100); i = i.+(1)) {
+  for (core::int/core::num* {int,double} i = 0; i.<(100); i = i.+(1)) {
     first.value = i;
     plan.execute();
     if(!last.value.==(i)) {
@@ -415,7 +415,7 @@ static method projectionTest(core::int/core::int* {int} n) → void/Null {
   self::Variable/self::Variable! {null,other} src = null;
   self::Variable/self::Variable! {null,other} dst = null;
   core::List<self::Variable>/core::List* {other} dests = <self::Variable>[];
-  for(core::int/core::num* {int,double} i = 0; i.<(n); i = i.+(1)) {
+  for (core::int/core::num* {int,double} i = 0; i.<(n); i = i.+(1)) {
     src = new self::Variable::•("src", i);
     dst = new self::Variable::•("dst", i);
     dests.add(dst);
@@ -429,12 +429,12 @@ static method projectionTest(core::int/core::int* {int} n) → void/Null {
   if(!src.value.==(5))
     core::print("Projection 2 failed");
   self::change(scale, 5);
-  for(core::int/core::num* {int,double} i = 0; i.<(n.-(1)); i = i.+(1)) {
+  for (core::int/core::num* {int,double} i = 0; i.<(n.-(1)); i = i.+(1)) {
     if(!dests.[](i).value.==(i.*(5).+(1000)))
       core::print("Projection 3 failed");
   }
   self::change(offset, 2000);
-  for(core::int/core::num* {int,double} i = 0; i.<(n.-(1)); i = i.+(1)) {
+  for (core::int/core::num* {int,double} i = 0; i.<(n.-(1)); i = i.+(1)) {
     if(!dests.[](i).value.==(i.*(5).+(2000)))
       core::print("Projection 4 failed");
   }
@@ -442,7 +442,7 @@ static method projectionTest(core::int/core::int* {int} n) → void/Null {
 static method change(self::Variable/self::Variable! {null,other} v, core::int/core::int* {int} newValue) → void/Null {
   self::EditConstraint/self::EditConstraint! {other} edit = new self::EditConstraint::•(v, self::PREFERRED);
   self::Plan/self::Plan! {other} plan = self::planner.extractPlanFromConstraints(<self::EditConstraint>[edit]);
-  for(core::int/core::num* {int,double} i = 0; i.<(10); i = i.+(1)) {
+  for (core::int/core::num* {int,double} i = 0; i.<(10); i = i.+(1)) {
     v.value = newValue;
     plan.execute();
   }
