@@ -155,6 +155,9 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
                                String contextName, var context,
                                var typeArguments) {}''',
   'checkMalformedType': 'checkMalformedType(value, message) {}',
+  'checkInt': 'checkInt(value) {}',
+  'checkNum': 'checkNum(value) {}',
+  'checkString': 'checkString(value) {}',
   'Closure': 'abstract class Closure implements Function { }',
   'closureFromTearOff':
       r'''closureFromTearOff(receiver, functions, reflectionInfo,

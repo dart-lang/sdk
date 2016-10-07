@@ -952,13 +952,30 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
     propagateConstantValueToUses(node);
-    if (node.element == backend.helpers.checkConcurrentModificationError) {
+    Element element = node.element;
+
+    if (element == backend.helpers.checkConcurrentModificationError) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {
           HConstant constant = firstArgument;
           if (constant.constant.isTrue) return constant;
         }
+      }
+    } else if (element == backend.helpers.checkInt) {
+      if (node.inputs.length == 1) {
+        HInstruction argument = node.inputs[0];
+        if (argument.isInteger(compiler)) return argument;
+      }
+    } else if (element == backend.helpers.checkNum) {
+      if (node.inputs.length == 1) {
+        HInstruction argument = node.inputs[0];
+        if (argument.isNumber(compiler)) return argument;
+      }
+    } else if (element == backend.helpers.checkString) {
+      if (node.inputs.length == 1) {
+        HInstruction argument = node.inputs[0];
+        if (argument.isString(compiler)) return argument;
       }
     }
     return node;
