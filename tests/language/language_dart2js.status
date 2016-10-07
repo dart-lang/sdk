@@ -84,16 +84,17 @@ generic_functions_test: CompileTimeError # DartOptions not passed to compiler.
 generic_local_functions_test: CompileTimeError # DartOptions not passed to compiler.
 generic_methods_test: CompileTimeError # DartOptions not passed to compiler.
 generic_sends_test: CompileTimeError # DartOptions not passed to compiler.
-generic_methods_new_test: CompiletimeError # DartOptions not passed to compiler.
-generic_methods_function_type_test: CompiletimeError # DartOptions not passed to compiler.
-generic_methods_type_expression_test: CompiletimeError # DartOptions not passed to compiler.
-generic_methods_generic_function_parameter_test: CompiletimeError # DartOptions not passed to compiler.
+generic_methods_new_test: CompileTimeError # DartOptions not passed to compiler.
+generic_methods_function_type_test: CompileTimeError # DartOptions not passed to compiler.
+generic_methods_type_expression_test: CompileTimeError # DartOptions not passed to compiler.
+generic_methods_generic_function_parameter_test: CompileTimeError # DartOptions not passed to compiler.
 
 # Experimental feature: Use initializing formals in initializers and constructor body.
-initializing_formal_access_test: CompiletimeError # DartOptions not passed to compiler.
-initializing_formal_capture_test: CompiletimeError # DartOptions not passed to compiler.
-initializing_formal_final_test: CompiletimeError # DartOptions not passed to compiler.
-initializing_formal_type_test: CompiletimeError # DartOptions not passed to compiler.
+initializing_formal_access_test: CompileTimeError # DartOptions not passed to compiler.
+initializing_formal_capture_test: CompileTimeError # DartOptions not passed to compiler.
+initializing_formal_final_test: CompileTimeError # DartOptions not passed to compiler.
+initializing_formal_promotion_test: CompileTimeError # DartOptions not passed to compiler.
+initializing_formal_type_test: CompileTimeError # DartOptions not passed to compiler.
 
 library_env_test/has_no_io_support: Pass # Issue 27398
 library_env_test/has_io_support: RuntimeError # Issue 27398
@@ -264,6 +265,9 @@ round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735
+
+[ $compiler == dart2js && $runtime == chrome && $system == windows ]
+string_literals_test: RuntimeError # Issue 27533
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
 # Safari codegen bug, fixed on some versions of Safari 7.1 (Version 7.1 (9537.85.10.17.1))
