@@ -106,7 +106,8 @@ def to_gn_args(args, mode, arch, target_os):
   # don't use clang in that configuration.
   has_clang = (host_os != 'win'
                and args.os not in ['android']
-               and not (gn_args['target_os'] == 'linux' and arch == 'ia32')
+               and not (gn_args['target_os'] == 'linux' and
+                        gn_args['host_cpu'] == 'x86')
                and not gn_args['target_cpu'].startswith('arm')
                and not gn_args['target_cpu'].startswith('mips'))
   gn_args['is_clang'] = args.clang and has_clang
