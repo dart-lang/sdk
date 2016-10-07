@@ -194,9 +194,6 @@ regress_22443_test: Skip
 ct_const2_test: Skip # Incompatible flag: --compile_all
 hello_dart_test: Skip # Incompatible flag: --compile_all
 
-[ $runtime == dart_app ]
-number_identity_test: RuntimeError # Issue 26873
-
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
 deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
