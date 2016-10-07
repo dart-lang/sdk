@@ -348,11 +348,18 @@ class IfNullOperation implements BinaryOperation {
   apply(left, right) => left ?? right;
 }
 
-class CodeUnitAtOperation implements BinaryOperation {
-  String get name => 'charCodeAt';
+abstract class CodeUnitAtOperation implements BinaryOperation {
+  final String name = 'charCodeAt';
   const CodeUnitAtOperation();
-  ConstantValue fold(ConstantValue left, ConstantValue right) => null;
   apply(left, right) => left.codeUnitAt(right);
+}
+
+class CodeUnitAtConstantOperation extends CodeUnitAtOperation {
+  const CodeUnitAtConstantOperation();
+  ConstantValue fold(ConstantValue left, ConstantValue right) {
+    // 'a'.codeUnitAt(0) is not a constant expression.
+    return null;
+  }
 }
 
 class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
@@ -368,14 +375,6 @@ class CodeUnitAtRuntimeOperation extends CodeUnitAtOperation {
       int value = string.codeUnitAt(index);
       return DART_CONSTANT_SYSTEM.createInt(value);
     }
-    return null;
-  }
-}
-
-class UnfoldedUnaryOperation implements UnaryOperation {
-  final String name;
-  const UnfoldedUnaryOperation(this.name);
-  ConstantValue fold(ConstantValue constant) {
     return null;
   }
 }
@@ -410,8 +409,7 @@ class DartConstantSystem extends ConstantSystem {
   final shiftRight = const ShiftRightOperation();
   final subtract = const SubtractOperation();
   final truncatingDivide = const TruncatingDivideOperation();
-  final codeUnitAt = const CodeUnitAtOperation();
-  final round = const UnfoldedUnaryOperation('round');
+  final codeUnitAt = const CodeUnitAtConstantOperation();
 
   const DartConstantSystem();
 

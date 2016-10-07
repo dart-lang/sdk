@@ -165,37 +165,12 @@ class JavaScriptIdentityOperation implements BinaryOperation {
   apply(left, right) => identical(left, right);
 }
 
-class JavaScriptRoundOperation implements UnaryOperation {
-  const JavaScriptRoundOperation();
-  String get name => DART_CONSTANT_SYSTEM.round.name;
-  ConstantValue fold(ConstantValue constant) {
-    // Be careful to round() only values that do not throw on either the host or
-    // target platform.
-    if (constant.isInt) {
-      IntConstantValue intConstant = constant;
-      int value = intConstant.primitiveValue;
-      if (value >= -double.MAX_FINITE && value <= double.MAX_FINITE) {
-        return JAVA_SCRIPT_CONSTANT_SYSTEM
-            .convertToJavaScriptConstant(constant);
-      }
-    }
-    if (constant.isDouble) {
-      DoubleConstantValue doubleConstant = constant;
-      double value = doubleConstant.primitiveValue;
-      if (!value.isNaN && value.isFinite) {
-        return JAVA_SCRIPT_CONSTANT_SYSTEM
-            .convertToJavaScriptConstant(new IntConstantValue(value.round()));
-      }
-    }
-    return null;
-  }
-}
-
 /**
  * Constant system following the semantics for Dart code that has been
  * compiled to JavaScript.
  */
 class JavaScriptConstantSystem extends ConstantSystem {
+  final int BITS31 = 0x8FFFFFFF;
   final int BITS32 = 0xFFFFFFFF;
 
   final add = const JavaScriptAddOperation();
@@ -228,7 +203,6 @@ class JavaScriptConstantSystem extends ConstantSystem {
   final truncatingDivide = const JavaScriptBinaryArithmeticOperation(
       const TruncatingDivideOperation());
   final codeUnitAt = const CodeUnitAtRuntimeOperation();
-  final round = const JavaScriptRoundOperation();
 
   const JavaScriptConstantSystem();
 

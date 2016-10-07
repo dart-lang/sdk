@@ -54,7 +54,6 @@ abstract class ConstantSystem {
   BinaryOperation get truncatingDivide;
 
   BinaryOperation get codeUnitAt;
-  UnaryOperation get round;
 
   const ConstantSystem();
 
