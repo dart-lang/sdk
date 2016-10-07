@@ -106,8 +106,8 @@ class BazelWorkspace {
   final String root;
 
   /**
-   * The absolute path to the optional `READONLY` folder if a git-based
-   * workspace, or `null`.
+   * The absolute path to the optional read only workspace root, in the
+   * `READONLY` folder if a git-based workspace, or `null`.
    */
   final String readonly;
 
@@ -179,9 +179,12 @@ class BazelWorkspace {
    *
    * Return `null` if the workspace does not have `bazel-genfiles` or
    * `blaze-genfiles` folders, so we don't know where to search generated files.
+   *
+   * Return `null` if there is a folder 'foo' with the sibling `READONLY`
+   * folder, but there is corresponding folder 'foo' in `READONLY`, i.e. the
+   * corresponding readonly workspace root.
    */
-  static BazelWorkspace find(ResourceProvider provider, String path,
-      {String readonlySuffix}) {
+  static BazelWorkspace find(ResourceProvider provider, String path) {
     Context context = provider.pathContext;
 
     // Ensure that the path is absolute and normalized.
@@ -197,22 +200,22 @@ class BazelWorkspace {
         return null;
       }
 
-      // Found the READONLY folder, must be a git-based workspace.
-      if (readonlySuffix != null) {
-        Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
-        if (readonlyFolder.exists) {
-          String root = folder.path;
-          String readonly = readonlyFolder.path;
+      // Found the READONLY folder, might be a git-based workspace.
+      Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
+      if (readonlyFolder.exists) {
+        String root = folder.path;
+        String readonlyRoot =
+            context.join(readonlyFolder.path, folder.shortName);
+        if (provider.getFolder(readonlyRoot).exists) {
           String symlinkPrefix = _findSymlinkPrefix(provider, root);
-          if (symlinkPrefix == null) {
-            return null;
+          if (symlinkPrefix != null) {
+            return new BazelWorkspace._(
+                provider,
+                root,
+                readonlyRoot,
+                context.join(root, '$symlinkPrefix-bin'),
+                context.join(root, '$symlinkPrefix-genfiles'));
           }
-          return new BazelWorkspace._(
-              provider,
-              root,
-              context.join(readonly, readonlySuffix),
-              context.join(root, '$symlinkPrefix-bin'),
-              context.join(root, '$symlinkPrefix-genfiles'));
         }
       }
 
