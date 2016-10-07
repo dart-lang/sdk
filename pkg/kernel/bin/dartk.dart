@@ -261,7 +261,6 @@ Future<CompilerOutcome> batchMain(
 
   String format = options['format'] ?? defaultFormat();
   String outputFile = options['out'] ?? defaultOutput();
-  bool strongMode = options['strong'];
 
   var customUriMappings = parseCustomUriMappings(options['url-mapping']);
   var repository = new Repository();
@@ -272,7 +271,7 @@ Future<CompilerOutcome> batchMain(
   List<String> loadedFiles;
   Function getLoadedFiles;
   List errors = const [];
-  TargetFlags targetFlags = new TargetFlags(strongMode: strongMode);
+  TargetFlags targetFlags = new TargetFlags(strongMode: options['strong']);
   Target target = getTarget(options['target'], targetFlags);
 
   var declaredVariables = <String, String>{};
@@ -292,7 +291,8 @@ Future<CompilerOutcome> batchMain(
     getLoadedFiles = () => [file];
   } else {
     DartOptions dartOptions = new DartOptions(
-        strongMode: strongMode,
+        strongMode: target.strongMode,
+        strongModeSdk: target.strongModeSdk,
         sdk: options['sdk'],
         packagePath: packagePath,
         customUriMappings: customUriMappings,

@@ -19,6 +19,11 @@ class VmTarget extends Target {
 
   bool get strongMode => flags.strongMode;
 
+  /// The VM patch files are not strong mode clean, so we adopt a hybrid mode
+  /// where the SDK is internally unchecked, but trusted to satisfy the types
+  /// declared on its interface.
+  bool get strongModeSdk => false;
+
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to

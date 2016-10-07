@@ -47,6 +47,9 @@ abstract class Target {
 
   bool get strongMode;
 
+  /// If true, the SDK should be loaded in strong mode.
+  bool get strongModeSdk => strongMode;
+
   void transformProgram(Program program);
 
   String toString() => 'Target($name)';

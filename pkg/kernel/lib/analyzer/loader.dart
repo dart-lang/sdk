@@ -28,20 +28,26 @@ import 'ast_from_analyzer.dart';
 
 /// Options passed to the Dart frontend.
 class DartOptions {
+  /// True if user code should be loaded in strong mode.
   bool strongMode;
+  /// True if the Dart SDK should be loaded in strong mode.
+  bool strongModeSdk;
   String sdk;
   String packagePath;
   Map<Uri, Uri> customUriMappings;
   Map<String, String> declaredVariables;
 
   DartOptions(
-      {this.strongMode: false,
+      {bool strongMode: false,
+      bool strongModeSdk,
       this.sdk,
       this.packagePath,
       Map<Uri, Uri> customUriMappings,
       Map<String, String> declaredVariables})
       : this.customUriMappings = customUriMappings ?? <Uri, Uri>{},
-        this.declaredVariables = declaredVariables ?? <String, String>{};
+        this.declaredVariables = declaredVariables ?? <String, String>{},
+        this.strongMode = strongMode,
+        this.strongModeSdk = strongModeSdk ?? strongMode;
 }
 
 abstract class ReferenceLevelLoader {
@@ -695,7 +701,7 @@ class DartLoaderBatch {
         lastStrongMode != options.strongMode) {
       lastSdk = options.sdk;
       lastStrongMode = options.strongMode;
-      dartSdk = createDartSdk(options.sdk, strongMode: options.strongMode);
+      dartSdk = createDartSdk(options.sdk, strongMode: options.strongModeSdk);
     }
     if (packages == null ||
         lastPackagePath != options.packagePath ||
@@ -780,7 +786,7 @@ class CustomUriResolver extends UriResolver {
 
 AnalysisContext createContext(DartOptions options, Packages packages,
     {DartSdk dartSdk}) {
-  dartSdk ??= createDartSdk(options.sdk, strongMode: options.strongMode);
+  dartSdk ??= createDartSdk(options.sdk, strongMode: options.strongModeSdk);
 
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var resourceUriResolver = new ResourceUriResolver(resourceProvider);

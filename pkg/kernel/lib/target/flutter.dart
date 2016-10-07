@@ -17,6 +17,8 @@ class FlutterTarget extends Target {
   FlutterTarget(this.flags);
 
   bool get strongMode => flags.strongMode;
+  
+  bool get strongModeSdk => false;
 
   String get name => 'flutter';
 
