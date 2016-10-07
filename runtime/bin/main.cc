@@ -1785,6 +1785,9 @@ void main(int argc, char** argv) {
   }
 #endif
 
+  if (gen_snapshot_kind == kAppJITAfterRun) {
+    vm_options.AddArgument("--fields_may_be_reset");
+  }
   if ((gen_snapshot_kind == kAppAOT) || is_noopt) {
     vm_options.AddArgument("--precompilation");
   }

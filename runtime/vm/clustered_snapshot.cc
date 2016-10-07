@@ -522,6 +522,7 @@ class FunctionSerializationCluster : public SerializationCluster {
       s->Push(func->ptr()->code_);
     } else if (s->kind() == Snapshot::kAppWithJIT) {
       NOT_IN_PRECOMPILED(s->Push(func->ptr()->unoptimized_code_));
+      s->Push(func->ptr()->code_);
       s->Push(func->ptr()->ic_data_array_);
     }
   }
@@ -550,6 +551,7 @@ class FunctionSerializationCluster : public SerializationCluster {
         s->WriteRef(func->ptr()->code_);
       } else if (s->kind() == Snapshot::kAppWithJIT) {
         NOT_IN_PRECOMPILED(s->WriteRef(func->ptr()->unoptimized_code_));
+        s->WriteRef(func->ptr()->code_);
         s->WriteRef(func->ptr()->ic_data_array_);
       }
 
@@ -624,6 +626,7 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       } else if (kind == Snapshot::kAppWithJIT) {
         NOT_IN_PRECOMPILED(func->ptr()->unoptimized_code_ =
             reinterpret_cast<RawCode*>(d->ReadRef()));
+        func->ptr()->code_ = reinterpret_cast<RawCode*>(d->ReadRef());
         func->ptr()->ic_data_array_ = reinterpret_cast<RawArray*>(d->ReadRef());
       }
 
@@ -671,8 +674,8 @@ class FunctionDeserializationCluster : public DeserializationCluster {
       Code& code = Code::Handle(zone);
       for (intptr_t i = start_index_; i < stop_index_; i++) {
         func ^= refs.At(i);
-        code ^= func.unoptimized_code();
-        if (!code.IsNull()) {
+        code ^= func.CurrentCode();
+        if (func.HasCode() && !code.IsDisabled()) {
           func.SetInstructions(code);
           func.set_was_compiled(true);
         } else {
@@ -899,6 +902,9 @@ class FieldSerializationCluster : public SerializationCluster {
       // Write out the guarded list length.
       s->Push(field->ptr()->guarded_list_length_);
     }
+    if (kind == Snapshot::kAppWithJIT) {
+      s->Push(field->ptr()->dependent_code_);
+    }
   }
 
   void WriteAlloc(Serializer* s) {
@@ -945,6 +951,9 @@ class FieldSerializationCluster : public SerializationCluster {
       if (kind != Snapshot::kAppNoJIT) {
         // Write out the guarded list length.
         s->WriteRef(field->ptr()->guarded_list_length_);
+      }
+      if (kind == Snapshot::kAppWithJIT) {
+        s->WriteRef(field->ptr()->dependent_code_);
       }
 
       if (kind != Snapshot::kAppNoJIT) {
@@ -1484,6 +1493,13 @@ class CodeSerializationCluster : public SerializationCluster {
     s->Push(code->ptr()->exception_handlers_);
     s->Push(code->ptr()->pc_descriptors_);
     s->Push(code->ptr()->stackmaps_);
+
+    if (s->kind() == Snapshot::kAppWithJIT) {
+      s->Push(code->ptr()->deopt_info_array_);
+      s->Push(code->ptr()->static_calls_target_table_);
+      NOT_IN_PRODUCT(s->Push(code->ptr()->inlined_metadata_));
+      NOT_IN_PRODUCT(s->Push(code->ptr()->return_address_metadata_));
+    }
   }
 
   void WriteAlloc(Serializer* s) {
@@ -1511,27 +1527,32 @@ class CodeSerializationCluster : public SerializationCluster {
         // No disabled code in precompilation.
         NOT_IN_PRECOMPILED(ASSERT(
             code->ptr()->instructions_ == code->ptr()->active_instructions_));
-      } else {
-        ASSERT(kind == Snapshot::kAppWithJIT);
-        // We never include optimized code in JIT precompilation. Deoptimization
-        // requires code patching and we cannot patch code that is shared
-        // between isolates and should not mutate memory allocated by the
-        // embedder.
-        bool is_optimized = Code::PtrOffBits::decode(code->ptr()->state_bits_);
-        if (is_optimized) {
-          FATAL("Cannot include optimized code in a JIT snapshot");
-        }
       }
 
       RawInstructions* instr = code->ptr()->instructions_;
       int32_t text_offset = s->GetTextOffset(instr, code);
       s->Write<int32_t>(text_offset);
+      if (s->kind() == Snapshot::kAppWithJIT) {
+        // TODO(rmacnak): Fix references to disabled code before serializing.
+        if (code->ptr()->active_instructions_ != code->ptr()->instructions_) {
+          instr = code->ptr()->active_instructions_;
+          text_offset = s->GetTextOffset(instr, code);
+        }
+        s->Write<int32_t>(text_offset);
+      }
 
       s->WriteRef(code->ptr()->object_pool_);
       s->WriteRef(code->ptr()->owner_);
       s->WriteRef(code->ptr()->exception_handlers_);
       s->WriteRef(code->ptr()->pc_descriptors_);
       s->WriteRef(code->ptr()->stackmaps_);
+
+      if (s->kind() == Snapshot::kAppWithJIT) {
+        s->WriteRef(code->ptr()->deopt_info_array_);
+        s->WriteRef(code->ptr()->static_calls_target_table_);
+        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->inlined_metadata_));
+        NOT_IN_PRODUCT(s->WriteRef(code->ptr()->return_address_metadata_));
+      }
 
       s->Write<int32_t>(code->ptr()->state_bits_);
     }
@@ -1575,6 +1596,19 @@ class CodeDeserializationCluster : public DeserializationCluster {
           Instructions::CheckedEntryPoint(instr);
       NOT_IN_PRECOMPILED(code->ptr()->active_instructions_ = instr);
       code->ptr()->instructions_ = instr;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (d->kind() == Snapshot::kAppWithJIT) {
+        int32_t text_offset = d->Read<int32_t>();
+        RawInstructions* instr = reinterpret_cast<RawInstructions*>(
+            d->GetInstructionsAt(text_offset) + kHeapObjectTag);
+        code->ptr()->active_instructions_ = instr;
+        code->ptr()->entry_point_ = Instructions::UncheckedEntryPoint(instr);
+        code->ptr()->checked_entry_point_ =
+            Instructions::CheckedEntryPoint(instr);
+      }
+#endif  // !DART_PRECOMPILED_RUNTIME
+
       code->ptr()->object_pool_ =
           reinterpret_cast<RawObjectPool*>(d->ReadRef());
       code->ptr()->owner_ = d->ReadRef();
@@ -1586,16 +1620,33 @@ class CodeDeserializationCluster : public DeserializationCluster {
           reinterpret_cast<RawArray*>(d->ReadRef());
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-      code->ptr()->deopt_info_array_ = Array::null();
-      code->ptr()->static_calls_target_table_ = Array::null();
+      if (d->kind() == Snapshot::kAppWithJIT) {
+        code->ptr()->deopt_info_array_ =
+            reinterpret_cast<RawArray*>(d->ReadRef());
+        code->ptr()->static_calls_target_table_ =
+            reinterpret_cast<RawArray*>(d->ReadRef());
+#if defined(PRODUCT)
+        code->ptr()->inlined_metadata_ = Array::null();
+        code->ptr()->return_address_metadata_ = Object::null();
+#else
+        code->ptr()->inlined_metadata_ =
+            reinterpret_cast<RawArray*>(d->ReadRef());
+        code->ptr()->return_address_metadata_ = d->ReadRef();
+#endif
+      } else {
+        code->ptr()->deopt_info_array_ = Array::null();
+        code->ptr()->static_calls_target_table_ = Array::null();
+        code->ptr()->inlined_metadata_ = Array::null();
+        code->ptr()->return_address_metadata_ = Object::null();
+      }
+
       code->ptr()->var_descriptors_ = LocalVarDescriptors::null();
-      code->ptr()->inlined_metadata_ = Array::null();
       code->ptr()->code_source_map_ = CodeSourceMap::null();
       code->ptr()->comments_ = Array::null();
-      code->ptr()->return_address_metadata_ = Object::null();
 
       code->ptr()->compile_timestamp_ = 0;
-#endif
+#endif  // !DART_PRECOMPILED_RUNTIME
+
       code->ptr()->state_bits_ = d->Read<int32_t>();
     }
   }
@@ -3896,6 +3947,86 @@ class RegExpDeserializationCluster : public DeserializationCluster {
 
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class WeakPropertySerializationCluster : public SerializationCluster {
+ public:
+  WeakPropertySerializationCluster() { }
+  virtual ~WeakPropertySerializationCluster() { }
+
+  void Trace(Serializer* s, RawObject* object) {
+    RawWeakProperty* property = WeakProperty::RawCast(object);
+    objects_.Add(property);
+
+    RawObject** from = property->from();
+    RawObject** to = property->to();
+    for (RawObject** p = from; p <= to; p++) {
+      s->Push(*p);
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    s->WriteCid(kWeakPropertyCid);
+    intptr_t count = objects_.length();
+    s->Write<int32_t>(count);
+    for (intptr_t i = 0; i < count; i++) {
+      RawWeakProperty* property = objects_[i];
+      s->AssignRef(property);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      RawWeakProperty* property = objects_[i];
+      RawObject** from = property->from();
+      RawObject** to = property->to();
+      for (RawObject** p = from; p <= to; p++) {
+        s->WriteRef(*p);
+      }
+    }
+  }
+
+ private:
+  GrowableArray<RawWeakProperty*> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+
+class WeakPropertyDeserializationCluster : public DeserializationCluster {
+ public:
+  WeakPropertyDeserializationCluster() { }
+  virtual ~WeakPropertyDeserializationCluster() { }
+
+  void ReadAlloc(Deserializer* d) {
+    start_index_ = d->next_index();
+    PageSpace* old_space = d->heap()->old_space();
+    intptr_t count = d->Read<int32_t>();
+    for (intptr_t i = 0; i < count; i++) {
+      d->AssignRef(AllocateUninitialized(old_space,
+                                         WeakProperty::InstanceSize()));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d) {
+    bool is_vm_object = d->isolate() == Dart::vm_isolate();
+
+    for (intptr_t id = start_index_; id < stop_index_; id++) {
+      RawWeakProperty* property =
+          reinterpret_cast<RawWeakProperty*>(d->Ref(id));
+      Deserializer::InitializeHeader(property, kWeakPropertyCid,
+                                     WeakProperty::InstanceSize(),
+                                     is_vm_object);
+      RawObject** from = property->from();
+      RawObject** to = property->to();
+      for (RawObject** p = from; p <= to; p++) {
+        *p = d->ReadRef();
+      }
+    }
+  }
+};
+
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class LinkedHashMapSerializationCluster : public SerializationCluster {
  public:
   LinkedHashMapSerializationCluster() { }
@@ -4371,6 +4502,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
       return new (Z) GrowableObjectArraySerializationCluster();
     case kStacktraceCid: return new (Z) StacktraceSerializationCluster();
     case kRegExpCid: return new (Z) RegExpSerializationCluster();
+    case kWeakPropertyCid: return new (Z) WeakPropertySerializationCluster();
     case kLinkedHashMapCid: return new (Z) LinkedHashMapSerializationCluster();
     case kArrayCid:
       return new (Z) ArraySerializationCluster(kArrayCid);
@@ -4696,6 +4828,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) GrowableObjectArrayDeserializationCluster();
     case kStacktraceCid: return new (Z) StacktraceDeserializationCluster();
     case kRegExpCid: return new (Z) RegExpDeserializationCluster();
+    case kWeakPropertyCid: return new (Z) WeakPropertyDeserializationCluster();
     case kLinkedHashMapCid:
       return new (Z) LinkedHashMapDeserializationCluster();
     case kArrayCid:
