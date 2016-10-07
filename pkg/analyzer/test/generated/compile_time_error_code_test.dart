@@ -1959,7 +1959,19 @@ main() {
     verify([source]);
   }
 
-  void test_duplicatePart() {
+  void test_duplicatePart_sameSource() {
+    addNamedSource('/part.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part.dart';
+part 'foo/../part.dart';
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_PART]);
+    verify([source]);
+  }
+
+  void test_duplicatePart_sameUri() {
     addNamedSource('/part.dart', 'part of lib;');
     Source source = addSource(r'''
 library lib;
