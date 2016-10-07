@@ -4,6 +4,7 @@
 
 library analyzer.src.generated.bazel;
 
+import 'dart:collection';
 import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
@@ -34,6 +35,56 @@ class BazelFileUriResolver extends ResourceUriResolver {
       return file.createSource(actualUri ?? uri);
     }
     return null;
+  }
+}
+
+/**
+ * The [UriResolver] that can resolve `package` URIs in [BazelWorkspace].
+ */
+class BazelPackageUriResolver extends UriResolver {
+  final BazelWorkspace _workspace;
+  final Context _context;
+
+  /**
+   * The cache of absolute [Uri]s to [Source]s mappings.
+   */
+  final Map<Uri, Source> _sourceCache = new HashMap<Uri, Source>();
+
+  BazelPackageUriResolver(BazelWorkspace workspace)
+      : _workspace = workspace,
+        _context = workspace.provider.pathContext;
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    return _sourceCache.putIfAbsent(uri, () {
+      if (uri.scheme != 'package') {
+        return null;
+      }
+      String uriPath = uri.path;
+      int slash = uriPath.indexOf('/');
+
+      // If the path either starts with a slash or has no slash, it is invalid.
+      if (slash < 1) {
+        return null;
+      }
+
+      String packageName = uriPath.substring(0, slash);
+      String fileUriPart = uriPath.substring(slash + 1);
+      String filePath = fileUriPart.replaceAll('/', _context.separator);
+
+      if (packageName.indexOf('.') == -1) {
+        String path =
+            _context.join('third_party', 'dart', packageName, 'lib', filePath);
+        File file = _workspace.getFile(path);
+        return file?.createSource(uri);
+      } else {
+        String packagePath = packageName.replaceAll('.', _context.separator);
+        String path =
+            _context.join(_workspace.root, packagePath, 'lib', filePath);
+        File file = _workspace.findFile(path);
+        return file?.createSource(uri);
+      }
+    });
   }
 }
 
@@ -129,7 +180,7 @@ class BazelWorkspace {
 
   /**
    * Return the file with the given [absolutePath], looking first into
-   * directories for generated files: `bazel-bin` and `bazel-genfiles`, and
+   * directories for generated files: `bazel-genfiles` and `bazel-bin`, and
    * then into the workspace root. The file in the workspace root is returned
    * even if it does not exist. Return `null` if the given [absolutePath] is
    * not in the workspace [root].
@@ -164,5 +215,13 @@ class BazelWorkspace {
     } catch (_) {
       return null;
     }
+  }
+
+  /**
+   * Return the file for the given [pathInWorkspace]. The file is returned even
+   * if it does not exist.
+   */
+  File getFile(String pathInWorkspace) {
+    return provider.getFile(provider.pathContext.join(root, pathInWorkspace));
   }
 }

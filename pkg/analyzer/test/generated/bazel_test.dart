@@ -12,8 +12,9 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BazelWorkspaceTest);
     defineReflectiveTests(BazelFileUriResolverTest);
+    defineReflectiveTests(BazelPackageUriResolverTest);
+    defineReflectiveTests(BazelWorkspaceTest);
   });
 }
 
@@ -93,6 +94,98 @@ class BazelFileUriResolverTest extends _BaseTest {
     String absolutePath = provider.convertPath(absolutePosixPath);
     Uri uri = provider.pathContext.toUri(absolutePath);
     return resolver.resolveAbsolute(uri);
+  }
+}
+
+@reflectiveTest
+class BazelPackageUriResolverTest extends _BaseTest {
+  BazelWorkspace workspace;
+  BazelPackageUriResolver resolver;
+
+  void setUp() {
+    provider.newFile(_p('/workspace/WORKSPACE'), '');
+    workspace = new BazelWorkspace(provider, _p('/workspace'));
+    resolver = new BazelPackageUriResolver(workspace);
+    provider.newFile(_p('/workspace/my/foo/lib/foo1.dart'), '');
+    provider.newFile(_p('/workspace/my/foo/lib/gen1.dart'), '');
+    provider.newFile(_p('/workspace/my/foo/lib/gen2.dart'), '');
+    provider.newFile(_p('/workspace/my/foo/lib/src/foo4.dart'), '');
+    provider.newFile(_p('/workspace/third_party/dart/bar/lib/bar1.dart'), '');
+    provider.newFile(
+        _p('/workspace/third_party/dart/bar/lib/src/bar2.dart'), '');
+    provider.newFile(_p('/workspace/bazel-bin/my/foo/lib/gen1.dart'), '');
+    provider.newFile(_p('/workspace/bazel-genfiles/my/foo/lib/gen2.dart'), '');
+    provider.newFile(_p('/workspace/bazel-genfiles/my/foo/lib/gen3.dart'), '');
+  }
+
+  void test_resolveAbsolute_inBazelBin() {
+    _assertResolve(
+        'package:my.foo/gen1.dart', '/workspace/bazel-bin/my/foo/lib/gen1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_inBazelGenfiles() {
+    _assertResolve('package:my.foo/gen2.dart',
+        '/workspace/bazel-genfiles/my/foo/lib/gen2.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_inBazelGenfiles_notInWorkspace() {
+    _assertResolve('package:my.foo/gen3.dart',
+        '/workspace/bazel-genfiles/my/foo/lib/gen3.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_inWorkspace_doesNotExist() {
+    _assertResolve('package:my.foo/doesNotExist.dart',
+        '/workspace/my/foo/lib/doesNotExist.dart',
+        exists: false);
+  }
+
+  void test_resolveAbsolute_inWorkspace_exists() {
+    _assertResolve(
+        'package:my.foo/foo1.dart', '/workspace/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_null_noSlash() {
+    Source source = resolver.resolveAbsolute(Uri.parse('package:foo'));
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_null_notPackage() {
+    Source source = resolver.resolveAbsolute(Uri.parse('dart:async'));
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_null_startsWithSlash() {
+    Source source =
+        resolver.resolveAbsolute(Uri.parse('package:/foo/bar.dart'));
+    expect(source, isNull);
+  }
+
+  void test_resolveAbsolute_thirdParty_doesNotExist() {
+    _assertResolve('package:baz/baz1.dart',
+        '/workspace/third_party/dart/baz/lib/baz1.dart',
+        exists: false);
+  }
+
+  void test_resolveAbsolute_thirdParty_exists() {
+    _assertResolve('package:bar/bar1.dart',
+        '/workspace/third_party/dart/bar/lib/bar1.dart',
+        exists: true);
+    _assertResolve('package:bar/src/bar2.dart',
+        '/workspace/third_party/dart/bar/lib/src/bar2.dart',
+        exists: true);
+  }
+
+  void _assertResolve(String uriStr, String posixPath, {bool exists: true}) {
+    Uri uri = Uri.parse(uriStr);
+    Source source = resolver.resolveAbsolute(uri);
+    expect(source, isNotNull);
+    expect(source.fullName, _p(posixPath));
+    expect(source.uri, uri);
+    expect(source.exists(), exists);
   }
 }
 
