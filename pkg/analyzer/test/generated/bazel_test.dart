@@ -25,6 +25,7 @@ class BazelFileUriResolverTest extends _BaseTest {
 
   void setUp() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
+    provider.newFolder(_p('/workspace/bazel-genfiles'));
     workspace = BazelWorkspace.find(provider, _p('/workspace'));
     resolver = new BazelFileUriResolver(workspace);
     provider.newFile(_p('/workspace/test.dart'), '');
@@ -104,6 +105,7 @@ class BazelPackageUriResolverTest extends _BaseTest {
 
   void setUp() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
+    provider.newFolder(_p('/workspace/bazel-genfiles'));
     workspace = BazelWorkspace.find(provider, _p('/workspace'));
     resolver = new BazelPackageUriResolver(workspace);
     provider.newFile(_p('/workspace/my/foo/lib/foo1.dart'), '');
@@ -191,6 +193,17 @@ class BazelPackageUriResolverTest extends _BaseTest {
 
 @reflectiveTest
 class BazelWorkspaceTest extends _BaseTest {
+  void test_factory_null_noWorkspaceMarkers_inRoot() {
+    BazelWorkspace workspace = BazelWorkspace.find(provider, _p('/'));
+    expect(workspace, isNull);
+  }
+
+  void test_factory_null_noWorkspaceMarkers_inRoot_withReadonly() {
+    BazelWorkspace workspace =
+        BazelWorkspace.find(provider, _p('/'), readonlySuffix: 'READONLY');
+    expect(workspace, isNull);
+  }
+
   void test_find_fail_notAbsolute() {
     expect(() => BazelWorkspace.find(provider, _p('not_absolute')),
         throwsArgumentError);
@@ -199,6 +212,7 @@ class BazelWorkspaceTest extends _BaseTest {
   void test_find_hasReadonlyFolder() {
     provider.newFolder(_p('/Users/user/test/READONLY/prime'));
     provider.newFolder(_p('/Users/user/test/prime'));
+    provider.newFolder(_p('/Users/user/test/prime/bazel-genfiles'));
     BazelWorkspace workspace = BazelWorkspace.find(
         provider, _p('/Users/user/test/prime/my/module'),
         readonlySuffix: 'prime');
@@ -208,8 +222,22 @@ class BazelWorkspaceTest extends _BaseTest {
     expect(workspace.genfiles, _p('/Users/user/test/prime/bazel-genfiles'));
   }
 
+  void test_find_hasReadonlyFolder_blaze() {
+    provider.newFolder(_p('/Users/user/test/READONLY/prime'));
+    provider.newFolder(_p('/Users/user/test/prime'));
+    provider.newFolder(_p('/Users/user/test/prime/blaze-genfiles'));
+    BazelWorkspace workspace = BazelWorkspace.find(
+        provider, _p('/Users/user/test/prime/my/module'),
+        readonlySuffix: 'prime');
+    expect(workspace.root, _p('/Users/user/test/prime'));
+    expect(workspace.readonly, _p('/Users/user/test/READONLY/prime'));
+    expect(workspace.bin, _p('/Users/user/test/prime/blaze-bin'));
+    expect(workspace.genfiles, _p('/Users/user/test/prime/blaze-genfiles'));
+  }
+
   void test_find_hasWorkspaceFile() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
+    provider.newFolder(_p('/workspace/bazel-genfiles'));
     BazelWorkspace workspace =
         BazelWorkspace.find(provider, _p('/workspace/my/module'));
     expect(workspace.root, _p('/workspace'));
@@ -220,6 +248,7 @@ class BazelWorkspaceTest extends _BaseTest {
 
   void test_find_hasWorkspaceFile_forModuleInWorkspace() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
+    provider.newFolder(_p('/workspace/bazel-genfiles'));
     BazelWorkspace workspace =
         BazelWorkspace.find(provider, _p('/workspace/my/module'));
     expect(workspace.root, _p('/workspace'));
@@ -230,12 +259,22 @@ class BazelWorkspaceTest extends _BaseTest {
 
   void test_find_hasWorkspaceFile_forWorkspace() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
-    provider.newFolder(_p('/workspace/bazel-bin'));
+    provider.newFolder(_p('/workspace/bazel-genfiles'));
     BazelWorkspace workspace = BazelWorkspace.find(provider, _p('/workspace'));
     expect(workspace.root, _p('/workspace'));
     expect(workspace.readonly, isNull);
     expect(workspace.bin, _p('/workspace/bazel-bin'));
     expect(workspace.genfiles, _p('/workspace/bazel-genfiles'));
+  }
+
+  void test_find_hasWorkspaceFile_forWorkspace_blaze() {
+    provider.newFile(_p('/workspace/WORKSPACE'), '');
+    provider.newFolder(_p('/workspace/blaze-genfiles'));
+    BazelWorkspace workspace = BazelWorkspace.find(provider, _p('/workspace'));
+    expect(workspace.root, _p('/workspace'));
+    expect(workspace.readonly, isNull);
+    expect(workspace.bin, _p('/workspace/blaze-bin'));
+    expect(workspace.genfiles, _p('/workspace/blaze-genfiles'));
   }
 
   void test_find_null_noWorkspaceMarkers() {
@@ -255,14 +294,11 @@ class BazelWorkspaceTest extends _BaseTest {
     expect(workspace, isNull);
   }
 
-  void test_find_symlinkPrefix() {
+  void test_find_null_symlinkPrefix() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
-    BazelWorkspace workspace = BazelWorkspace.find(provider, _p('/workspace'),
-        symlinkPrefix: 'foobar');
-    expect(workspace.root, _p('/workspace'));
-    expect(workspace.readonly, isNull);
-    expect(workspace.bin, _p('/workspace/foobar-bin'));
-    expect(workspace.genfiles, _p('/workspace/foobar-genfiles'));
+    BazelWorkspace workspace =
+        BazelWorkspace.find(provider, _p('/workspace/my/module'));
+    expect(workspace, isNull);
   }
 
   void test_findFile_hasReadonlyFolder() {

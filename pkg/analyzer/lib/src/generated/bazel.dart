@@ -177,11 +177,11 @@ class BazelWorkspace {
    * Return `null` if a workspace markers, such as the `WORKSPACE` file, or
    * the sibling `READONLY` folder cannot be found.
    *
-   * The [symlinkPrefix] is the prefix for names of symlinks like `bazel-bin`,
-   * `bazel-genfiles`, etc.
+   * Return `null` if the workspace does not have `bazel-genfiles` or
+   * `blaze-genfiles` folders, so we don't know where to search generated files.
    */
   static BazelWorkspace find(ResourceProvider provider, String path,
-      {String symlinkPrefix: 'bazel', String readonlySuffix}) {
+      {String readonlySuffix}) {
     Context context = provider.pathContext;
 
     // Ensure that the path is absolute and normalized.
@@ -203,6 +203,10 @@ class BazelWorkspace {
         if (readonlyFolder.exists) {
           String root = folder.path;
           String readonly = readonlyFolder.path;
+          String symlinkPrefix = _findSymlinkPrefix(provider, root);
+          if (symlinkPrefix == null) {
+            return null;
+          }
           return new BazelWorkspace._(
               provider,
               root,
@@ -215,6 +219,10 @@ class BazelWorkspace {
       // Found the WORKSPACE file, must be a non-git workspace.
       if (folder.getChildAssumingFile(_WORKSPACE).exists) {
         String root = folder.path;
+        String symlinkPrefix = _findSymlinkPrefix(provider, root);
+        if (symlinkPrefix == null) {
+          return null;
+        }
         return new BazelWorkspace._(
             provider,
             root,
@@ -226,5 +234,21 @@ class BazelWorkspace {
       // Go up the folder.
       folder = parent;
     }
+  }
+
+  /**
+   * Return the symlink prefix for folders `X-bin` or `X-genfiles` by probing
+   * the internal `blaze-genfiles` and `bazel-genfiles`. Return `null` if
+   * neither of the folders exists.
+   */
+  static String _findSymlinkPrefix(ResourceProvider provider, String root) {
+    Context context = provider.pathContext;
+    if (provider.getFolder(context.join(root, 'blaze-genfiles')).exists) {
+      return 'blaze';
+    }
+    if (provider.getFolder(context.join(root, 'bazel-genfiles')).exists) {
+      return 'bazel';
+    }
+    return null;
   }
 }
