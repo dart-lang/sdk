@@ -3249,12 +3249,10 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     CompilationUnit unit = getRequiredInput(RESOLVED_UNIT_INPUT);
-
     //
     // Generate lints.
     //
     List<AstVisitor> visitors = <AstVisitor>[];
-
     bool timeVisits = analysisOptions.enableTiming;
     List<Linter> linters = getLints(context);
     int length = linters.length;
@@ -3269,10 +3267,9 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
         visitors.add(visitor);
       }
     }
-
-    DelegatingAstVisitor dv = new DelegatingAstVisitor(visitors);
-    unit.accept(dv);
-
+    AstVisitor visitor = new ExceptionHandlingDelegatingAstVisitor(
+        visitors, ExceptionHandlingDelegatingAstVisitor.logException);
+    unit.accept(visitor);
     //
     // Record outputs.
     //
