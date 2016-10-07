@@ -25,7 +25,7 @@ class BazelFileUriResolverTest extends _BaseTest {
 
   void setUp() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
-    workspace = new BazelWorkspace(provider, _p('/workspace'));
+    workspace = BazelWorkspace.find(provider, _p('/workspace'));
     resolver = new BazelFileUriResolver(workspace);
     provider.newFile(_p('/workspace/test.dart'), '');
     provider.newFile(_p('/workspace/bazel-bin/gen1.dart'), '');
@@ -104,7 +104,7 @@ class BazelPackageUriResolverTest extends _BaseTest {
 
   void setUp() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
-    workspace = new BazelWorkspace(provider, _p('/workspace'));
+    workspace = BazelWorkspace.find(provider, _p('/workspace'));
     resolver = new BazelPackageUriResolver(workspace);
     provider.newFile(_p('/workspace/my/foo/lib/foo1.dart'), '');
     provider.newFile(_p('/workspace/my/foo/lib/gen1.dart'), '');
@@ -191,15 +191,15 @@ class BazelPackageUriResolverTest extends _BaseTest {
 
 @reflectiveTest
 class BazelWorkspaceTest extends _BaseTest {
-  void test_factory_fail_notAbsolute() {
-    expect(() => new BazelWorkspace(provider, _p('not_absolute')),
+  void test_find_fail_notAbsolute() {
+    expect(() => BazelWorkspace.find(provider, _p('not_absolute')),
         throwsArgumentError);
   }
 
-  void test_factory_hasReadonlyFolder() {
+  void test_find_hasReadonlyFolder() {
     provider.newFolder(_p('/Users/user/test/READONLY/prime'));
     provider.newFolder(_p('/Users/user/test/prime'));
-    BazelWorkspace workspace = new BazelWorkspace(
+    BazelWorkspace workspace = BazelWorkspace.find(
         provider, _p('/Users/user/test/prime/my/module'),
         readonlySuffix: 'prime');
     expect(workspace.root, _p('/Users/user/test/prime'));
@@ -208,49 +208,57 @@ class BazelWorkspaceTest extends _BaseTest {
     expect(workspace.genfiles, _p('/Users/user/test/prime/bazel-genfiles'));
   }
 
-  void test_factory_hasWorkspaceFile() {
+  void test_find_hasWorkspaceFile() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
     BazelWorkspace workspace =
-        new BazelWorkspace(provider, _p('/workspace/my/module'));
+        BazelWorkspace.find(provider, _p('/workspace/my/module'));
     expect(workspace.root, _p('/workspace'));
     expect(workspace.readonly, isNull);
     expect(workspace.bin, _p('/workspace/bazel-bin'));
     expect(workspace.genfiles, _p('/workspace/bazel-genfiles'));
   }
 
-  void test_factory_hasWorkspaceFile_forModuleInWorkspace() {
+  void test_find_hasWorkspaceFile_forModuleInWorkspace() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
     BazelWorkspace workspace =
-        new BazelWorkspace(provider, _p('/workspace/my/module'));
+        BazelWorkspace.find(provider, _p('/workspace/my/module'));
     expect(workspace.root, _p('/workspace'));
     expect(workspace.readonly, isNull);
     expect(workspace.bin, _p('/workspace/bazel-bin'));
     expect(workspace.genfiles, _p('/workspace/bazel-genfiles'));
   }
 
-  void test_factory_hasWorkspaceFile_forWorkspace() {
+  void test_find_hasWorkspaceFile_forWorkspace() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
-    BazelWorkspace workspace = new BazelWorkspace(provider, _p('/workspace'));
+    provider.newFolder(_p('/workspace/bazel-bin'));
+    BazelWorkspace workspace = BazelWorkspace.find(provider, _p('/workspace'));
     expect(workspace.root, _p('/workspace'));
     expect(workspace.readonly, isNull);
     expect(workspace.bin, _p('/workspace/bazel-bin'));
     expect(workspace.genfiles, _p('/workspace/bazel-genfiles'));
   }
 
-  void test_factory_notInWorkspace() {
+  void test_find_null_noWorkspaceMarkers() {
     BazelWorkspace workspace =
-        new BazelWorkspace(provider, _p('/workspace/my/module'));
-    expect(workspace, isNotNull);
-    expect(workspace.root, _p('/workspace/my/module'));
-    expect(workspace.readonly, isNull);
-    expect(workspace.bin, isNull);
-    expect(workspace.genfiles, isNull);
+        BazelWorkspace.find(provider, _p('/workspace/my/module'));
+    expect(workspace, isNull);
   }
 
-  void test_factory_symlinkPrefix() {
-    provider.newFile(_p('/workspace/WORKSPACE'), '');
+  void test_find_null_noWorkspaceMarkers_inRoot() {
+    BazelWorkspace workspace = BazelWorkspace.find(provider, _p('/'));
+    expect(workspace, isNull);
+  }
+
+  void test_find_null_noWorkspaceMarkers_inRoot_withReadonly() {
     BazelWorkspace workspace =
-        new BazelWorkspace(provider, _p('/workspace'), symlinkPrefix: 'foobar');
+        BazelWorkspace.find(provider, _p('/'), readonlySuffix: 'READONLY');
+    expect(workspace, isNull);
+  }
+
+  void test_find_symlinkPrefix() {
+    provider.newFile(_p('/workspace/WORKSPACE'), '');
+    BazelWorkspace workspace = BazelWorkspace.find(provider, _p('/workspace'),
+        symlinkPrefix: 'foobar');
     expect(workspace.root, _p('/workspace'));
     expect(workspace.readonly, isNull);
     expect(workspace.bin, _p('/workspace/foobar-bin'));
@@ -269,7 +277,7 @@ class BazelWorkspaceTest extends _BaseTest {
         _p('/Users/user/test/prime/bazel-genfiles/my/module/test3.dart'), '');
     provider.newFile(
         _p('/Users/user/test/READONLY/prime/other/module/test4.dart'), '');
-    BazelWorkspace workspace = new BazelWorkspace(
+    BazelWorkspace workspace = BazelWorkspace.find(
         provider, _p('/Users/user/test/prime/my/module'),
         readonlySuffix: 'prime');
     expect(
@@ -302,7 +310,7 @@ class BazelWorkspaceTest extends _BaseTest {
     provider.newFile(_p('/workspace/bazel-bin/my/module/test2.dart'), '');
     provider.newFile(_p('/workspace/bazel-genfiles/my/module/test3.dart'), '');
     BazelWorkspace workspace =
-        new BazelWorkspace(provider, _p('/workspace/my/module'));
+        BazelWorkspace.find(provider, _p('/workspace/my/module'));
     expect(workspace.findFile(_p('/workspace/my/module/test1.dart')).path,
         _p('/workspace/my/module/test1.dart'));
     expect(workspace.findFile(_p('/workspace/my/module/test2.dart')).path,

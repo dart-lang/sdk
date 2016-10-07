@@ -121,66 +121,12 @@ class BazelWorkspace {
    */
   final String genfiles;
 
-  /**
-   * Create a new Bazel workspace that contains the given [path].
-   *
-   * The [symlinkPrefix] is the prefix for names of symlinks like `bazel-bin`,
-   * `bazel-genfiles`, etc.
-   */
-  factory BazelWorkspace(ResourceProvider provider, String path,
-      {String symlinkPrefix: 'bazel', String readonlySuffix}) {
-    Context context = provider.pathContext;
-
-    // Ensure that the path is absolute and normalized.
-    if (!context.isAbsolute(path)) {
-      throw new ArgumentError('not absolute: $path');
-    }
-    path = context.normalize(path);
-
-    Folder folder = provider.getFolder(path);
-    while (true) {
-      Folder parent = folder.parent;
-
-      // Found the READONLY folder, must be a git-based workspace.
-      if (readonlySuffix != null && parent != null) {
-        Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
-        if (readonlyFolder.exists) {
-          String root = folder.path;
-          String readonly = readonlyFolder.path;
-          return new BazelWorkspace._(
-              provider,
-              root,
-              context.join(readonly, readonlySuffix),
-              context.join(root, '$symlinkPrefix-bin'),
-              context.join(root, '$symlinkPrefix-genfiles'));
-        }
-      }
-
-      // Found the WORKSPACE file, must be a non-git workspace.
-      if (folder.getChildAssumingFile(_WORKSPACE).exists) {
-        String root = folder.path;
-        return new BazelWorkspace._(
-            provider,
-            root,
-            null,
-            context.join(root, '$symlinkPrefix-bin'),
-            context.join(root, '$symlinkPrefix-genfiles'));
-      }
-
-      // Go up the folder.
-      folder = parent;
-      if (folder == null) {
-        return new BazelWorkspace._(provider, path, null, null, null);
-      }
-    }
-  }
-
   BazelWorkspace._(
       this.provider, this.root, this.readonly, this.bin, this.genfiles);
 
   /**
    * Return the file with the given [absolutePath], looking first into
-   * directories for generated files: `bazel-genfiles` and `bazel-bin`, and
+   * directories for generated files: `bazel-bin` and `bazel-genfiles`, and
    * then into the workspace root. The file in the workspace root is returned
    * even if it does not exist. Return `null` if the given [absolutePath] is
    * not in the workspace [root].
@@ -223,5 +169,62 @@ class BazelWorkspace {
    */
   File getFile(String pathInWorkspace) {
     return provider.getFile(provider.pathContext.join(root, pathInWorkspace));
+  }
+
+  /**
+   * Find the Bazel workspace that contains the given [path].
+   *
+   * Return `null` if a workspace markers, such as the `WORKSPACE` file, or
+   * the sibling `READONLY` folder cannot be found.
+   *
+   * The [symlinkPrefix] is the prefix for names of symlinks like `bazel-bin`,
+   * `bazel-genfiles`, etc.
+   */
+  static BazelWorkspace find(ResourceProvider provider, String path,
+      {String symlinkPrefix: 'bazel', String readonlySuffix}) {
+    Context context = provider.pathContext;
+
+    // Ensure that the path is absolute and normalized.
+    if (!context.isAbsolute(path)) {
+      throw new ArgumentError('not absolute: $path');
+    }
+    path = context.normalize(path);
+
+    Folder folder = provider.getFolder(path);
+    while (true) {
+      Folder parent = folder.parent;
+      if (parent == null) {
+        return null;
+      }
+
+      // Found the READONLY folder, must be a git-based workspace.
+      if (readonlySuffix != null) {
+        Folder readonlyFolder = parent.getChildAssumingFolder(_READONLY);
+        if (readonlyFolder.exists) {
+          String root = folder.path;
+          String readonly = readonlyFolder.path;
+          return new BazelWorkspace._(
+              provider,
+              root,
+              context.join(readonly, readonlySuffix),
+              context.join(root, '$symlinkPrefix-bin'),
+              context.join(root, '$symlinkPrefix-genfiles'));
+        }
+      }
+
+      // Found the WORKSPACE file, must be a non-git workspace.
+      if (folder.getChildAssumingFile(_WORKSPACE).exists) {
+        String root = folder.path;
+        return new BazelWorkspace._(
+            provider,
+            root,
+            null,
+            context.join(root, '$symlinkPrefix-bin'),
+            context.join(root, '$symlinkPrefix-genfiles'));
+      }
+
+      // Go up the folder.
+      folder = parent;
+    }
   }
 }
