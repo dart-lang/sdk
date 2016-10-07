@@ -7876,7 +7876,6 @@ void Field::EvaluateInitializer() const {
                                   : Instance::Cast(value));
     return;
   } else if (StaticValue() == Object::transition_sentinel().raw()) {
-    SetStaticValue(Object::null_instance());
     const Array& ctor_args = Array::Handle(Array::New(1));
     const String& field_name = String::Handle(name());
     ctor_args.SetAt(0, field_name);
