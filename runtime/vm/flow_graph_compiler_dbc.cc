@@ -271,7 +271,13 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 
 void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ Move(0, -(1 + kParamEndSlotFromFp));
-  __ LoadField(0, 0, offset / kWordSize);
+  ASSERT(offset % kWordSize == 0);
+  if (Utils::IsInt(8, offset/ kWordSize)) {
+    __ LoadField(0, 0, offset / kWordSize);
+  } else {
+    __ LoadFieldExt(0, 0);
+    __ Nop(offset / kWordSize);
+  }
   __ Return(0);
 }
 
@@ -279,7 +285,13 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
 void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ Move(0, -(2 + kParamEndSlotFromFp));
   __ Move(1, -(1 + kParamEndSlotFromFp));
-  __ StoreField(0, offset / kWordSize, 1);
+  ASSERT(offset % kWordSize == 0);
+  if (Utils::IsInt(8, offset/ kWordSize)) {
+    __ StoreField(0, offset / kWordSize, 1);
+  } else {
+    __ StoreFieldExt(0, 1);
+    __ Nop(offset / kWordSize);
+  }
   __ LoadConstant(0, Object::Handle());
   __ Return(0);
 }

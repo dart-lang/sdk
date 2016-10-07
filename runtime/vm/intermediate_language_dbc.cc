@@ -1028,7 +1028,12 @@ EMIT_NATIVE_CODE(StoreInstanceField, 2) {
   if (compiler->is_optimizing()) {
     const Register value = locs()->in(1).reg();
     const Register instance = locs()->in(0).reg();
-    __ StoreField(instance, offset_in_bytes() / kWordSize, value);
+    if (Utils::IsInt(8, offset_in_bytes() / kWordSize)) {
+      __ StoreField(instance, offset_in_bytes() / kWordSize, value);
+    } else {
+      __ StoreFieldExt(instance, value);
+      __ Nop(offset_in_bytes() / kWordSize);
+    }
   } else {
     __ StoreFieldTOS(offset_in_bytes() / kWordSize);
   }
@@ -1040,7 +1045,12 @@ EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     const Register result = locs()->out(0).reg();
     const Register instance = locs()->in(0).reg();
-    __ LoadField(result, instance, offset_in_bytes() / kWordSize);
+    if (Utils::IsInt(8, offset_in_bytes() / kWordSize)) {
+      __ LoadField(result, instance, offset_in_bytes() / kWordSize);
+    } else {
+      __ LoadFieldExt(result, instance);
+      __ Nop(offset_in_bytes() / kWordSize);
+    }
   } else {
     __ LoadFieldTOS(offset_in_bytes() / kWordSize);
   }

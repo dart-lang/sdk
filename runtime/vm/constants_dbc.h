@@ -396,6 +396,12 @@ namespace dart {
 //
 //    Store value FP[rC] into object FP[rA] at offset (in words) B.
 //
+//  - StoreFieldExt rA, rD
+//
+//    Store value FP[rD] into object FP[rA] at offset (in words)
+//    stored in the following Nop instruction. Used to access fields with
+//    large offsets.
+//
 //  - StoreFieldTOS D
 //
 //    Store value SP[0] into object SP[-1] at offset (in words) D.
@@ -403,6 +409,12 @@ namespace dart {
 //  - LoadField rA, rB, C
 //
 //    Load value at offset (in words) C from object FP[rB] into FP[rA].
+//
+//  - LoadFieldExt rA, rD
+//
+//    Load value from object FP[rD] at offset (in words) stored in the
+//    following Nop instruction into FP[rA]. Used to access fields with
+//    large offsets.
 //
 //  - LoadUntagged rA, rB, C
 //
@@ -758,8 +770,10 @@ namespace dart {
   V(LoadIndexedOneByteString,    A_B_C, reg, reg, reg) \
   V(LoadIndexedTwoByteString,    A_B_C, reg, reg, reg) \
   V(StoreField,                  A_B_C, reg, num, reg) \
+  V(StoreFieldExt,                 A_D, reg, reg, ___) \
   V(StoreFieldTOS,                   D, num, ___, ___) \
   V(LoadField,                   A_B_C, reg, reg, num) \
+  V(LoadFieldExt,                  A_D, reg, reg, ___) \
   V(LoadUntagged,                A_B_C, reg, reg, num) \
   V(LoadFieldTOS,                    D, num, ___, ___) \
   V(BooleanNegateTOS,                0, ___, ___, ___) \

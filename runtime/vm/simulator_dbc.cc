@@ -2367,7 +2367,20 @@ RawObject* Simulator::Call(const Code& code,
     const uint16_t value_reg = rC;
 
     RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
-    RawObject* value = reinterpret_cast<RawObject*>(FP[value_reg]);
+    RawObject* value = FP[value_reg];
+
+    instance->StorePointer(
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+        value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreFieldExt, A_D);
+    // The offset is stored in the following nop-instruction which is skipped.
+    const uint16_t offset_in_words = Bytecode::DecodeD(*pc++);
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
+    RawObject* value = FP[rD];
 
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
@@ -2392,6 +2405,16 @@ RawObject* Simulator::Call(const Code& code,
     BYTECODE(LoadField, A_B_C);
     const uint16_t instance_reg = rB;
     const uint16_t offset_in_words = rC;
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
+    FP[rA] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadFieldExt, A_D);
+    // The offset is stored in the following nop-instruction which is skipped.
+    const uint16_t offset_in_words = Bytecode::DecodeD(*pc++);
+    const uint16_t instance_reg = rD;
     RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
     FP[rA] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
     DISPATCH();
