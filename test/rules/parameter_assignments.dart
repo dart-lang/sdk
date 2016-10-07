@@ -13,7 +13,13 @@ void ok(String parameter) {
 }
 
 class A {
-    void badFunction(int parameter) { // LINT
+  int get x => 0;
+
+  set x(int value) { // LINT
+    value = 5;
+  }
+
+  void badFunction(int parameter) { // LINT
     parameter = 4;
   }
 
