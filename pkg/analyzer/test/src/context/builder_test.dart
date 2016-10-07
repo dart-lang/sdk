@@ -268,6 +268,7 @@ bar:$barUri
 
   void test_createPackageMap_none() {
     String rootPath = resourceProvider.convertPath('/root');
+    resourceProvider.newFolder(rootPath);
     Packages packages = builder.createPackageMap(rootPath);
     expect(packages, same(Packages.noPackages));
   }

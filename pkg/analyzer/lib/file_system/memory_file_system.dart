@@ -95,7 +95,13 @@ class MemoryResourceProvider implements ResourceProvider {
   File getFile(String path) => new _MemoryFile(this, path);
 
   @override
-  Folder getFolder(String path) => newFolder(path);
+  Folder getFolder(String path) {
+    path = pathContext.normalize(path);
+    if (!pathContext.isAbsolute(path)) {
+      throw new ArgumentError("Path must be absolute : $path");
+    }
+    return new _MemoryFolder(this, path);
+  }
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
@@ -542,7 +548,7 @@ abstract class _MemoryResource implements Resource {
     if (parentPath == path) {
       return null;
     }
-    return _provider.getResource(parentPath);
+    return _provider.getFolder(parentPath);
   }
 
   @override

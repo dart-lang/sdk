@@ -623,6 +623,23 @@ class MemoryResourceProviderTest {
     expect(times, [source.modificationStamp]);
   }
 
+  test_getFolder_existing() async {
+    String path = provider.convertPath('/foo/bar');
+    provider.newFolder(path);
+    Folder folder = provider.getFolder(path);
+    expect(folder, isNotNull);
+    expect(folder.path, path);
+    expect(folder.exists, isTrue);
+  }
+
+  test_getFolder_notExisting() async {
+    String path = provider.convertPath('/foo/bar');
+    Folder folder = provider.getFolder(path);
+    expect(folder, isNotNull);
+    expect(folder.path, path);
+    expect(folder.exists, isFalse);
+  }
+
   void test_getStateLocation_uniqueness() {
     String idOne = 'one';
     Folder folderOne = provider.getStateLocation(idOne);

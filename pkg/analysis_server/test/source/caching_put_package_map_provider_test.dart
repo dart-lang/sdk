@@ -68,10 +68,11 @@ main() {
     }
 
     CachingPubPackageMapProvider newPkgProvider() {
+      Folder sdkFolder = resProvider
+          .newFolder(resProvider.convertPath('/Users/user/dart-sdk'));
       return new CachingPubPackageMapProvider(
           resProvider,
-          new FolderBasedDartSdk(
-              resProvider, FolderBasedDartSdk.defaultSdkDirectory(resProvider)),
+          new FolderBasedDartSdk(resProvider, sdkFolder),
           mockRunner.runPubList,
           mockWriteFile);
     }

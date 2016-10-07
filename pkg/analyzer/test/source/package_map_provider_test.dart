@@ -33,8 +33,9 @@ class PubPackageMapProviderTest {
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
-    sdk = new FolderBasedDartSdk(resourceProvider,
-        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
+    Folder sdkFolder = resourceProvider
+        .newFolder(resourceProvider.convertPath('/Users/user/dart-sdk'));
+    sdk = new FolderBasedDartSdk(resourceProvider, sdkFolder);
     packageMapProvider = new PubPackageMapProvider(resourceProvider, sdk);
     projectPath = resourceProvider.convertPath('/path/to/project');
     projectFolder = resourceProvider.newFolder(projectPath);
