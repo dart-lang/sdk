@@ -13,6 +13,7 @@ import 'analyzer.dart';
 import 'loader.dart';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 
 /// Provides reference-level access to libraries, classes, and members.
 ///
@@ -49,8 +50,8 @@ class ReferenceScope {
   }
 
   static Element getBaseElement(Element element) {
-    if (element is Member) {
-      return element.baseElement;
+    while (element is Member) {
+      element = (element as Member).baseElement;
     }
     return element;
   }
@@ -1642,59 +1643,34 @@ class ExpressionBuilder
     }
   }
 
-  ConstructorElement resolveConstantConstructor(
-      ConstructorElement element, ast.Arguments arguments) {
+  /// Follows any number of redirecting factories, returning the effective
+  /// target or `null` if a cycle is found.
+  ///
+  /// The returned element is a [Member] if the type arguments to the effective
+  /// target are different from the original arguments.
+  ConstructorElement getEffectiveFactoryTarget(ConstructorElement element) {
     ConstructorElement anchor = null;
-    int anchorLifetime = 1;
-    // Ensure class parameters are considered in scope when following
-    // redirecting factories.
-    var classScope = new ClassScope(scope.loader, scope.currentLibrary);
-    while (true) {
-      if (!element.isConst) {
-        return scope
-            .emitInvalidConstant(CompileTimeErrorCode.CONST_WITH_NON_CONST);
-      }
-      ConstructorDeclaration node = element.computeNode();
-      assert(node != null);
-      if (node.redirectedConstructor == null) {
-        return node.element;
-      }
-      // Update the type arguments inplace on the [arguments] node.
-      if (node.redirectedConstructor.type.typeArguments != null) {
-        ast.InterfaceType type =
-            classScope.buildType(node.redirectedConstructor.type.type);
-        var targetClass = scope.getClassReference(element.enclosingElement);
-        if (targetClass.typeParameters.length != arguments.types.length) {
-          return scope.emitInvalidConstant();
-        }
-        type = substitutePairwise(
-            type, targetClass.typeParameters, arguments.types);
-        arguments.types
-          ..clear()
-          ..addAll(type.typeArguments);
-      } else {
-        arguments.types.clear();
-      }
-      element = node.redirectedConstructor.staticElement;
-      if (element == null) return null; // Unresolved.
-      if (anchor == element) return null; // Cyclic redirection.
-      if (anchorLifetime & ++anchorLifetime == 0) {
-        // Move the anchor every 2^Nth step.
-        anchor = element;
+    int n = 1;
+    while (element.isFactory && element.redirectedConstructor != null) {
+      element = element.redirectedConstructor;
+      var base = ReferenceScope.getBaseElement(element);
+      if (base == anchor) return null; // Cyclic redirection.
+      if (n & ++n == 0) {
+        anchor = base;
       }
     }
+    return element;
   }
 
   ast.Expression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
-    TypeName type = node.constructorName.type;
-    var element = node.staticElement;
+    ConstructorElement element = node.staticElement;
+    ClassElement classElement = element?.enclosingElement;
     List<ast.DartType> inferTypeArguments() {
       var inferredType = scope.getInferredType(node);
       if (inferredType is ast.InterfaceType) {
         return inferredType.typeArguments.toList();
       }
-      var classElement = element?.enclosingElement;
       int numberOfTypeArguments =
           classElement == null ? 0 : classElement.typeParameters.length;
       return new List<ast.DartType>.filled(
@@ -1702,12 +1678,8 @@ class ExpressionBuilder
           growable: true);
     }
     var arguments = buildArguments(node.argumentList,
-        explicitTypeArguments: type.typeArguments,
+        explicitTypeArguments: node.constructorName.type.typeArguments,
         inferTypeArguments: inferTypeArguments);
-    // Constant factory calls are resolved to their effective targets.
-    if (element is ConstructorElement && element.isFactory && node.isConst) {
-      element = resolveConstantConstructor(element, arguments);
-    }
     ast.Expression noSuchMethodError() {
       return node.isConst
           ? scope.emitInvalidConstant()
@@ -1718,12 +1690,25 @@ class ExpressionBuilder
     if (element == null) {
       return noSuchMethodError();
     }
+    assert(classElement != null);
+    var redirect = getEffectiveFactoryTarget(element);
+    if (redirect == null) {
+      return scope.buildThrowCompileTimeError(
+          CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT.message);
+    }
+    if (redirect != element) {
+      ast.InterfaceType returnType = scope.buildType(redirect.returnType);
+      arguments.types
+        ..clear()
+        ..addAll(returnType.typeArguments);
+      element = redirect;
+      classElement = element.enclosingElement;
+    }
+    element = ReferenceScope.getBaseElement(element);
     if (node.isConst && !element.isConst) {
       return scope
           .emitInvalidConstant(CompileTimeErrorCode.CONST_WITH_NON_CONST);
     }
-    var classElement = element.enclosingElement;
-    assert(classElement != null);
     if (classElement.isEnum) {
       return scope.emitCompileTimeError(CompileTimeErrorCode.INSTANTIATE_ENUM);
     }
@@ -2308,6 +2293,17 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     new MemberBodyBuilder(scope.loader, member, element).build(node);
   }
 
+  /// True if the given class member should not be emitted, and does not
+  /// correspond to any Kernel member.
+  ///
+  /// This is true for redirecting factories with a resolved target. These are
+  /// always bypassed at the call site.
+  bool _isIgnoredMember(ClassMember node) {
+    return node is ConstructorDeclaration &&
+        node.factoryKeyword != null &&
+        node.element.redirectedConstructor != null;
+  }
+
   visitClassDeclaration(ClassDeclaration node) {
     addAnnotations(node.metadata);
     ast.Class classNode = currentClass;
@@ -2315,6 +2311,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
 
     bool foundConstructor = false;
     for (var member in node.members) {
+      if (_isIgnoredMember(member)) continue;
       if (member is FieldDeclaration) {
         for (var variable in member.fields.variables) {
           // Ignore fields inserted through error recovery.
@@ -2581,45 +2578,19 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     procedure.function = function..parent = procedure;
     handleNativeBody(node.body);
     if (node.redirectedConstructor != null) {
-      assert(function.body == null);
-      ConstructorElement targetElement =
-          node.redirectedConstructor.staticElement;
-      ast.Member target = targetElement?.isFactory ?? false
-          ? scope.resolveConcreteMethod(targetElement)
-          : scope.resolveConstructor(targetElement);
-      var positional =
-          function.positionalParameters.map(_makeVariableGet).toList();
-      var named =
-          function.namedParameters.map(_makeNamedExpressionFrom).toList();
-      List<ast.DartType> typeArguments = scope.buildOptionalTypeArgumentList(
-          node.redirectedConstructor.type.typeArguments);
-      if (typeArguments == null && targetElement != null) {
-        // If no type arguments were given, fill in 'dynamic'.
-        ClassElement targetClass = targetElement.enclosingElement;
-        typeArguments = new List<ast.DartType>.filled(
-            targetClass.typeParameters.length, const ast.DynamicType(),
-            growable: true);
+      // Redirecting factories with resolved targets don't show up here.
+      assert(node.element.redirectedConstructor == null);
+      var function = procedure.function;
+      var name = node.redirectedConstructor.type.name.name;
+      if (node.redirectedConstructor.name != null) {
+        name += '.' + node.redirectedConstructor.name.name;
       }
-      var arguments =
-          new ast.Arguments(positional, named: named, types: typeArguments);
-      if (targetElement != null &&
-          !targetElement.isFactory &&
-          targetElement.enclosingElement.isAbstract) {
-        function.body = new ast.ExpressionStatement(
-            scope.buildThrowAbstractClassInstantiationError(
-                targetElement.enclosingElement.name))..parent = function;
-      } else if (target == null ||
-          !scope.areArgumentsCompatible(targetElement, arguments)) {
-        function.body = new ast.ExpressionStatement(
-            scope.buildThrowNoSuchMethodError(new ast.NullLiteral(),
-                '${node.redirectedConstructor}', arguments,
-                candidateTarget: targetElement))..parent = function;
-      } else {
-        var invocation = target is ast.Constructor
-            ? new ast.ConstructorInvocation(target, arguments)
-            : new ast.StaticInvocation(target, arguments);
-        function.body = new ast.ReturnStatement(invocation)..parent = function;
-      }
+      // TODO(asgerf): Sometimes a TypeError should be thrown.
+      function.body = new ast.ExpressionStatement(
+          scope.buildThrowNoSuchMethodError(
+              new ast.NullLiteral(),
+              name,
+              new ast.Arguments.empty()))..parent = function;
     }
   }
 

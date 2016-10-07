@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 library kernel.target.vm;
 
-import 'targets.dart';
 import '../ast.dart';
-import '../transformations/mixin_full_resolution.dart' as mix;
 import '../transformations/continuation.dart' as cont;
 import '../transformations/erasure.dart';
+import '../transformations/mixin_full_resolution.dart' as mix;
+import '../transformations/sanitize_for_vm.dart';
 import '../transformations/setup_builtin_library.dart' as setup_builtin_library;
+import 'targets.dart';
 
 /// Specializes the kernel IR to the Dart VM.
 class VmTarget extends Target {
@@ -54,5 +55,7 @@ class VmTarget extends Target {
     if (strongMode) {
       new Erasure().transform(program);
     }
+
+    new SanitizeForVM().transform(program);
   }
 }
