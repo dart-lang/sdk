@@ -123,7 +123,17 @@ defineRuleUnitTests() {
       testEach(bad, isKeyWord, isFalse);
     });
     group('identifiers', () {
-      var good = ['foo', '_if', '_', 'f2', 'fooBar', 'foo_bar'];
+      var good = [
+        'foo',
+        '_if',
+        '_',
+        'f2',
+        'fooBar',
+        'foo_bar',
+        '\$foo',
+        'foo\$Bar',
+        'foo\$'
+      ];
       testEach(good, isValidDartIdentifier, isTrue);
       var bad = ['if', '42', '3', '2f'];
       testEach(bad, isValidDartIdentifier, isFalse);
@@ -144,6 +154,8 @@ defineRuleUnitTests() {
           'FB',
           'F1',
           'FooBar1',
+          '\$Foo',
+          'Bar\$',
           'Foo\$Generated',
           'Foo\$Generated\$Bar'
         ];
@@ -203,6 +215,8 @@ defineRuleUnitTests() {
         'F',
         '__x',
         '___x',
+        '\$foo',
+        'bar\$',
         'foo\$Generated',
         'foo\$Generated\$Bar'
       ];
