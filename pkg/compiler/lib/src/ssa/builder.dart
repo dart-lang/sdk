@@ -816,7 +816,7 @@ class SsaBuilder extends ast.Visitor
     assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, instanceType, compiler);
     localsHandler.closureData =
-        compiler.closureToClassMapper.computeClosureToClassMapping(resolvedAst);
+        compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
     returnLocal = new SyntheticLocal("result", function);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(compiler));
 
@@ -990,8 +990,8 @@ class SsaBuilder extends ast.Visitor
       ResolvedAst oldResolvedAst = resolvedAst;
       resolvedAst = callee.resolvedAst;
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      ClosureClassMap newClosureData = compiler.closureToClassMapper
-          .computeClosureToClassMapping(resolvedAst);
+      ClosureClassMap newClosureData =
+          compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
       localsHandler.closureData = newClosureData;
       if (resolvedAst.kind == ResolvedAstKind.PARSED) {
         localsHandler.enterScope(resolvedAst.node, callee);
@@ -1163,8 +1163,7 @@ class SsaBuilder extends ast.Visitor
           resolvedAst = fieldResolvedAst;
           // In case the field initializer uses closures, run the
           // closure to class mapper.
-          compiler.closureToClassMapper
-              .computeClosureToClassMapping(resolvedAst);
+          compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
           inlinedFrom(fieldResolvedAst, () => right.accept(this));
           resolvedAst = savedResolvedAst;
           fieldValues[member] = pop();
@@ -1322,8 +1321,8 @@ class SsaBuilder extends ast.Visitor
       }
       bodyCallInputs.add(newObject);
       ast.Node node = constructorResolvedAst.node;
-      ClosureClassMap parameterClosureData =
-          compiler.closureToClassMapper.getMappingForNestedFunction(node);
+      ClosureClassMap parameterClosureData = compiler.closureToClassMapper
+          .getClosureToClassMapping(constructorResolvedAst);
 
       FunctionSignature functionSignature = body.functionSignature;
       // Provide the parameters to the generative constructor body.
@@ -1906,8 +1905,9 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitFunctionExpression(ast.FunctionExpression node) {
-    ClosureClassMap nestedClosureData =
-        compiler.closureToClassMapper.getMappingForNestedFunction(node);
+    LocalFunctionElement methodElement = elements[node];
+    ClosureClassMap nestedClosureData = compiler.closureToClassMapper
+        .getClosureToClassMapping(methodElement.resolvedAst);
     assert(nestedClosureData != null);
     assert(nestedClosureData.closureClassElement != null);
     ClosureClassElement closureClassElement =
@@ -1931,7 +1931,6 @@ class SsaBuilder extends ast.Visitor
     push(new HCreate(closureClassElement, capturedVariables, type)
       ..sourceInformation = sourceInformationBuilder.buildCreate(node));
 
-    Element methodElement = nestedClosureData.closureElement;
     registry?.registerInstantiatedClosure(methodElement);
   }
 

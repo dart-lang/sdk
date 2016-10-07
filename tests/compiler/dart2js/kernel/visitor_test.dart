@@ -41,8 +41,8 @@ main(List<String> arguments) {
         StringBuffer buffer = new StringBuffer();
         Program program = backend.kernelTask.buildProgram(library);
         new MixinFullResolution().transform(program);
-        new Printer(buffer).writeLibraryFile(
-            program.mainMethod.enclosingLibrary);
+        new Printer(buffer)
+            .writeLibraryFile(program.mainMethod.enclosingLibrary);
         String actual = buffer.toString();
         String expected =
             new File('${TESTCASE_DIR}/spec-mode/$name.baseline.txt')

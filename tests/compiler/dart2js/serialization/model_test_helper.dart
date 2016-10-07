@@ -72,11 +72,7 @@ Future checkModels(Uri entryPoint,
         memorySourceFiles: sourceFiles, options: [Flags.analyzeOnly]);
     compilerNormal.resolution.retainCachesForTesting = true;
     await compilerNormal.run(entryPoint);
-    compilerNormal.phase = Compiler.PHASE_DONE_RESOLVING;
-    compilerNormal.openWorld.closeWorld();
-    compilerNormal.backend.onResolutionComplete();
-    compilerNormal.deferredLoadTask
-        .onResolutionComplete(compilerNormal.mainFunction);
+    compilerNormal.closeResolution();
     return compilerNormal;
   });
 
@@ -88,11 +84,7 @@ Future checkModels(Uri entryPoint,
         options: [Flags.analyzeOnly]);
     compilerDeserialized.resolution.retainCachesForTesting = true;
     await compilerDeserialized.run(entryPoint);
-    compilerDeserialized.phase = Compiler.PHASE_DONE_RESOLVING;
-    compilerDeserialized.openWorld.closeWorld();
-    compilerDeserialized.backend.onResolutionComplete();
-    compilerDeserialized.deferredLoadTask
-        .onResolutionComplete(compilerDeserialized.mainFunction);
+    compilerDeserialized.closeResolution();
     return compilerDeserialized;
   });
 
@@ -195,15 +187,16 @@ Future checkModels(Uri entryPoint,
 void checkElements(
     Compiler compiler1, Compiler compiler2, Element element1, Element element2,
     {bool verbose: false}) {
+  if (element1.isAbstract) return;
   if (element1.isFunction ||
       element1.isConstructor ||
       (element1.isField && element1.isInstanceMember)) {
     AstElement astElement1 = element1;
     AstElement astElement2 = element2;
     ClosureClassMap closureData1 = compiler1.closureToClassMapper
-        .computeClosureToClassMapping(astElement1.resolvedAst);
+        .getClosureToClassMapping(astElement1.resolvedAst);
     ClosureClassMap closureData2 = compiler2.closureToClassMapper
-        .computeClosureToClassMapping(astElement2.resolvedAst);
+        .getClosureToClassMapping(astElement2.resolvedAst);
 
     checkElementIdentities(
         closureData1,

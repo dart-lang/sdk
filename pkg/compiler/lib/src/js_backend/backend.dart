@@ -2166,9 +2166,15 @@ class JavaScriptBackend extends Backend {
         });
         // 3) all members, including fields via getter/setters (if resolved)
         cls.forEachClassMember((Member member) {
-          if (resolution.hasBeenProcessed(member.element)) {
+          MemberElement element = member.element;
+          if (resolution.hasBeenProcessed(element)) {
             memberNames.add(member.name);
-            reflectableMembers.add(member.element);
+            reflectableMembers.add(element);
+            element.nestedClosures
+                .forEach((SynthesizedCallMethodElementX callFunction) {
+              reflectableMembers.add(callFunction);
+              reflectableMembers.add(callFunction.closureClass);
+            });
           }
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)

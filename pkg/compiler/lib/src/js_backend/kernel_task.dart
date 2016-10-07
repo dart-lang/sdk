@@ -36,7 +36,7 @@ class KernelTask {
   /// May enqueue more elements to the resolution queue.
   ir.Program buildProgram(LibraryElement library) {
     return new ir.Program(kernel.libraryDependencies(library.canonicalUri))
-      ..mainMethod = kernel.functionToIr(
-          library.findExported(Identifiers.main));
+      ..mainMethod =
+          kernel.functionToIr(library.findExported(Identifiers.main));
   }
 }

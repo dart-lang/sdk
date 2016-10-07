@@ -724,14 +724,8 @@ abstract class Compiler implements LibraryLoaderListener {
           return;
         }
         assert(mainFunction != null);
-        phase = PHASE_DONE_RESOLVING;
 
-        openWorld.closeWorld();
-        // Compute whole-program-knowledge that the backend needs. (This might
-        // require the information computed in [world.populate].)
-        backend.onResolutionComplete();
-
-        deferredLoadTask.onResolutionComplete(mainFunction);
+        closeResolution();
 
         reporter.log('Inferring types...');
         globalInference.runGlobalTypeInference(mainFunction);
@@ -766,6 +760,22 @@ abstract class Compiler implements LibraryLoaderListener {
 
         checkQueues();
       });
+
+  /// Perform the steps needed to fully end the resolution phase.
+  void closeResolution() {
+    phase = PHASE_DONE_RESOLVING;
+
+    openWorld.closeWorld();
+    // Compute whole-program-knowledge that the backend needs. (This might
+    // require the information computed in [world.closeWorld].)
+    backend.onResolutionComplete();
+
+    deferredLoadTask.onResolutionComplete(mainFunction);
+
+    // TODO(johnniwinther): Move this after rti computation but before
+    // reflection members computation, and (re-)close the world afterwards.
+    closureToClassMapper.createClosureClasses();
+  }
 
   void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {
     void enqueueAll(Element element) {
