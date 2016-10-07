@@ -1153,7 +1153,7 @@ class RawCode : public RawObject {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
 #else
-    return reinterpret_cast<RawObject**>(&ptr()->return_address_metadata_);
+    return reinterpret_cast<RawObject**>(&ptr()->comments_);
 #endif
   }
 
