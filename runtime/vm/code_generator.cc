@@ -2048,20 +2048,13 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
     uword deopt_pc = frame->pc();
     ASSERT(optimized_code.ContainsInstructionAt(deopt_pc));
 
-    // N.B.: Update the pending deopt table before updating the frame. The
-    // profiler may attempt a stack walk in between.
-    MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
-        thread->isolate()->pending_deopts();
-    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
-      ASSERT((*pending_deopts)[i].fp() != frame->fp());
-    }
-    PendingLazyDeopt pair(frame->fp(), deopt_pc);
-    pending_deopts->Add(pair);
-
 #if defined(DEBUG)
     ValidateFrames();
 #endif
 
+    // N.B.: Update the pending deopt table before updating the frame. The
+    // profiler may attempt a stack walk in between.
+    thread->isolate()->AddPendingDeopt(frame->fp(), deopt_pc);
     frame->MarkForLazyDeopt();
 
     if (FLAG_trace_deoptimization) {
@@ -2168,40 +2161,18 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
 #if !defined(TARGET_ARCH_DBC)
   if (is_lazy_deopt) {
-    uword deopt_pc = 0;
-    MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
-        isolate->pending_deopts();
-    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
-      if ((*pending_deopts)[i].fp() == caller_frame->fp()) {
-        deopt_pc = (*pending_deopts)[i].pc();
-        break;
-      }
-    }
-#if defined(DEBUG)
-    // Check for conflicting entries.
-    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
-      if ((*pending_deopts)[i].fp() == caller_frame->fp()) {
-        ASSERT((*pending_deopts)[i].pc() == deopt_pc);
-      }
-    }
-#endif
+    uword deopt_pc = isolate->FindPendingDeopt(caller_frame->fp());
     if (FLAG_trace_deoptimization) {
       THR_Print("Lazy deopt fp=%" Pp " pc=%" Pp "\n",
                 caller_frame->fp(), deopt_pc);
     }
-    ASSERT(deopt_pc != 0);
 
     // N.B.: Update frame before updating pending deopt table. The profiler
     // may attempt a stack walk in between.
     caller_frame->set_pc(deopt_pc);
     ASSERT(caller_frame->pc() == deopt_pc);
     ASSERT(optimized_code.ContainsInstructionAt(caller_frame->pc()));
-
-    for (intptr_t i = pending_deopts->length() - 1; i >= 0; i--) {
-      if ((*pending_deopts)[i].fp() <= caller_frame->fp()) {
-        pending_deopts->RemoveAt(i);
-      }
-    }
+    isolate->ClearPendingDeoptsAtOrBelow(caller_frame->fp());
   } else {
     if (FLAG_trace_deoptimization) {
       THR_Print("Eager deopt fp=%" Pp " pc=%" Pp "\n",

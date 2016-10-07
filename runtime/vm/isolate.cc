@@ -1907,6 +1907,45 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
 }
 
 
+void Isolate::AddPendingDeopt(uword fp, uword pc) {
+  // GrowableArray::Add is not atomic and may be interrupt by a profiler
+  // stack walk.
+  MallocGrowableArray<PendingLazyDeopt>* old_pending_deopts = pending_deopts_;
+  MallocGrowableArray<PendingLazyDeopt>* new_pending_deopts
+      = new MallocGrowableArray<PendingLazyDeopt>(
+          old_pending_deopts->length() + 1);
+  for (intptr_t i = 0; i < old_pending_deopts->length(); i++) {
+    ASSERT((*old_pending_deopts)[i].fp() != fp);
+    new_pending_deopts->Add((*old_pending_deopts)[i]);
+  }
+  PendingLazyDeopt deopt(fp, pc);
+  new_pending_deopts->Add(deopt);
+
+  pending_deopts_ = new_pending_deopts;
+  delete old_pending_deopts;
+}
+
+
+uword Isolate::FindPendingDeopt(uword fp) const {
+  for (intptr_t i = 0; i < pending_deopts_->length(); i++) {
+    if ((*pending_deopts_)[i].fp() == fp) {
+      return (*pending_deopts_)[i].pc();
+    }
+  }
+  FATAL("Missing pending deopt entry");
+  return 0;
+}
+
+
+void Isolate::ClearPendingDeoptsAtOrBelow(uword fp) const {
+  for (intptr_t i = pending_deopts_->length() - 1; i >= 0; i--) {
+    if ((*pending_deopts_)[i].fp() <= fp) {
+      pending_deopts_->RemoveAt(i);
+    }
+  }
+}
+
+
 #ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   switch (pi) {

@@ -133,15 +133,7 @@ class StackFrame : public ValueObject {
         fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
     ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint());
     if (raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint()) {
-      uword fp = GetCallerFp();
-      MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
-          isolate()->pending_deopts();
-      for (intptr_t i = 0; i < pending_deopts->length(); i++) {
-        if ((*pending_deopts)[i].fp() == fp) {
-          return (*pending_deopts)[i].pc();
-        }
-      }
-      FATAL("Missing pending deopt entry");
+      return isolate()->FindPendingDeopt(GetCallerFp());
     }
     return raw_pc;
   }

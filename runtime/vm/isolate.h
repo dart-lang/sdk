@@ -404,7 +404,10 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
-  MallocGrowableArray<PendingLazyDeopt>* pending_deopts() {
+  void AddPendingDeopt(uword fp, uword pc);
+  uword FindPendingDeopt(uword fp) const;
+  void ClearPendingDeoptsAtOrBelow(uword fp) const;
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts() const {
     return pending_deopts_;
   }
   bool IsDeoptimizing() const { return deopt_context_ != NULL; }
