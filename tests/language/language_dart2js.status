@@ -266,7 +266,7 @@ round_test: Pass, Fail, OK # Fixed in ff 35. Common JavaScript engine Math.round
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 await_future_test: Pass, Timeout # Issue 26735
 
-[ $compiler == dart2js && $runtime == chrome && $system == windows ]
+[ $compiler == dart2js && ($runtime == chrome || $runtime == ff) && $system == windows ]
 string_literals_test: RuntimeError # Issue 27533
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]

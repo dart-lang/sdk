@@ -325,7 +325,7 @@ element_animate_test/timing_dict: RuntimeError # Issue 26730
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
-element_types_test/supported_details: Fail
+element_classes_test: RuntimeError # Issue 27535
 element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_object: Fail

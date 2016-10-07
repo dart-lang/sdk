@@ -4156,6 +4156,7 @@ WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Ti
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
+LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
