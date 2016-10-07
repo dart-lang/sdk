@@ -365,6 +365,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.annotate_overrides) {
         _addLintFixAddOverrideAnnotation();
       }
+      if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
+        _addLintRemoveInterpolationBraces();
+      }
     }
     // done
     return fixes;
@@ -2289,6 +2292,18 @@ class FixProcessor {
     _addFix(DartFixKind.LINT_ADD_OVERRIDE, []);
   }
 
+  void _addLintRemoveInterpolationBraces() {
+    AstNode node = this.node;
+    if (node is InterpolationExpression) {
+      Token right = node.rightBracket;
+      if (node.expression != null && right != null) {
+        _addReplaceEdit(rf.rangeStartStart(node, node.expression), r'$');
+        _addRemoveEdit(rf.rangeToken(right));
+        _addFix(DartFixKind.LINT_REMOVE_INTERPOLATION_BRACES, []);
+      }
+    }
+  }
+
   /**
    * Prepares proposal for creating function corresponding to the given
    * [FunctionType].
@@ -2905,6 +2920,8 @@ class FixProcessor {
  */
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
+  static const String unnecessary_brace_in_string_interp =
+      'unnecessary_brace_in_string_interp';
 }
 
 /**
