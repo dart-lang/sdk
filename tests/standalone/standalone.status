@@ -318,9 +318,6 @@ package/scenarios/packages_option_only/packages_option_only_test: Skip
 # TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
 full_coverage_test: Skip
 
-[ $arch == simdbc64 ]
-io/test_extension_test: Fail # Issue #27480
-
 # SIMDBC interpreter doesn't support lazy linking of natives.
 link_natives_lazily_test: SkipByDesign
 
