@@ -24,6 +24,7 @@ EventHandlerImplementation::EventHandlerImplementation() {
   if (status != NO_ERROR) {
     FATAL1("mx_msgpipe_create failed: %s\n", mx_strstatus(status));
   }
+  shutdown_ = false;
 }
 
 
