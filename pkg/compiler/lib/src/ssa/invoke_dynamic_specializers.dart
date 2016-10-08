@@ -43,57 +43,37 @@ class InvokeDynamicSpecializer {
   Operation operation(ConstantSystem constantSystem) => null;
 
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
-    if (selector.isIndex) {
-      return const IndexSpecializer();
-    } else if (selector.isIndexSet) {
-      return const IndexAssignSpecializer();
-    } else if (selector.isOperator) {
-      if (selector.name == 'unary-') {
-        return const UnaryNegateSpecializer();
-      } else if (selector.name == '~') {
-        return const BitNotSpecializer();
-      } else if (selector.name == '+') {
-        return const AddSpecializer();
-      } else if (selector.name == '-') {
-        return const SubtractSpecializer();
-      } else if (selector.name == '*') {
-        return const MultiplySpecializer();
-      } else if (selector.name == '/') {
-        return const DivideSpecializer();
-      } else if (selector.name == '~/') {
-        return const TruncatingDivideSpecializer();
-      } else if (selector.name == '%') {
-        return const ModuloSpecializer();
-      } else if (selector.name == '>>') {
-        return const ShiftRightSpecializer();
-      } else if (selector.name == '<<') {
-        return const ShiftLeftSpecializer();
-      } else if (selector.name == '&') {
-        return const BitAndSpecializer();
-      } else if (selector.name == '|') {
-        return const BitOrSpecializer();
-      } else if (selector.name == '^') {
-        return const BitXorSpecializer();
-      } else if (selector.name == '==') {
-        return const EqualsSpecializer();
-      } else if (selector.name == '<') {
-        return const LessSpecializer();
-      } else if (selector.name == '<=') {
-        return const LessEqualSpecializer();
-      } else if (selector.name == '>') {
-        return const GreaterSpecializer();
-      } else if (selector.name == '>=') {
-        return const GreaterEqualSpecializer();
-      }
-    } else if (selector.isCall) {
-      if (selector.argumentCount == 1 && selector.namedArguments.length == 0) {
-        if (selector.name == 'codeUnitAt') {
-          return const CodeUnitAtSpecializer();
-        }
-      }
-      if (selector.argumentCount == 0 && selector.namedArguments.length == 0) {
-        if (selector.name == 'round') {
-          return const RoundSpecializer();
+    if (selector.isIndex) return const IndexSpecializer();
+    if (selector.isIndexSet) return const IndexAssignSpecializer();
+    String name = selector.name;
+    if (selector.isOperator) {
+      if (name == 'unary-') return const UnaryNegateSpecializer();
+      if (name == '~') return const BitNotSpecializer();
+      if (name == '+') return const AddSpecializer();
+      if (name == '-') return const SubtractSpecializer();
+      if (name == '*') return const MultiplySpecializer();
+      if (name == '/') return const DivideSpecializer();
+      if (name == '~/') return const TruncatingDivideSpecializer();
+      if (name == '%') return const ModuloSpecializer();
+      if (name == '>>') return const ShiftRightSpecializer();
+      if (name == '<<') return const ShiftLeftSpecializer();
+      if (name == '&') return const BitAndSpecializer();
+      if (name == '|') return const BitOrSpecializer();
+      if (name == '^') return const BitXorSpecializer();
+      if (name == '==') return const EqualsSpecializer();
+      if (name == '<') return const LessSpecializer();
+      if (name == '<=') return const LessEqualSpecializer();
+      if (name == '>') return const GreaterSpecializer();
+      if (name == '>=') return const GreaterEqualSpecializer();
+      return const InvokeDynamicSpecializer();
+    }
+    if (selector.isCall) {
+      if (selector.namedArguments.length == 0) {
+        int argumentCount = selector.argumentCount;
+        if (argumentCount == 0) {
+          if (name == 'round') return const RoundSpecializer();
+        } else if (argumentCount == 1) {
+          if (name == 'codeUnitAt') return const CodeUnitAtSpecializer();
         }
       }
     }
@@ -761,6 +741,13 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       HInvokeDynamic instruction, Compiler compiler) {
     // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
     // bounds checking optimizations as for HIndex.
+    HInstruction receiver = instruction.getDartReceiver(compiler);
+    if (receiver.isStringOrNull(compiler)) {
+      // Even if there is no builtin equivalent instruction, we know
+      // String.codeUnitAt does not have any side effect (other than throwing),
+      // and that it can be GVN'ed.
+      clearAllSideEffects(instruction);
+    }
     return null;
   }
 }
