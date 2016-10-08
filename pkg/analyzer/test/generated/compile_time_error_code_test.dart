@@ -6169,7 +6169,7 @@ main() {
 
     // Check that the file is represented as missing.
     Source target =
-        analysisContext2.getSourcesWithFullName("/target.dart").first;
+        analysisContext2.getSourcesWithFullName(resourceProvider.convertPath("/target.dart")).first;
     expect(analysisContext2.getModificationStamp(target), -1);
 
     // Add an overlay in the same way as AnalysisServer.

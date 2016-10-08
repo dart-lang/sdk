@@ -33,9 +33,6 @@ main() {
   });
 }
 
-const OUT_ROOT = '$SRC_ROOT/bazel-bin';
-const SRC_ROOT = '/company/src/user/project/root';
-
 @reflectiveTest
 class BazelResultProviderTest extends _BaseTest {
   BazelResultProvider provider;
@@ -47,7 +44,8 @@ class BazelResultProviderTest extends _BaseTest {
         resourceProvider,
         '_.temp',
         _getOutputFolder,
-        resourceProvider.getFolder('/tmp/dart/bazel/linked'),
+        resourceProvider
+            .getFolder(resourceProvider.convertPath('/tmp/dart/bazel/linked')),
         context));
   }
 
@@ -453,24 +451,31 @@ class C extends B {}
 }
 
 class _BaseTest extends AbstractContextTest {
+  String sourceRoot;
+  String outRoot;
+
   @override
   void setUp() {
     super.setUp();
     // Include a 'package' URI resolver.
+    sourceRoot = resourceProvider.convertPath('/company/src/user/project/root');
+    outRoot = resourceProvider.pathContext.join(sourceRoot, 'bazel-bin');
     sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
-      new _TestPackageResolver(resourceProvider)
+      new _TestPackageResolver(resourceProvider, sourceRoot)
     ], null, resourceProvider);
     context.sourceFactory = sourceFactory;
   }
 
   Folder _getOutputFolder(Uri absoluteUri) {
+    var pathContext = resourceProvider.pathContext;
     if (absoluteUri.scheme == 'package') {
       List<String> segments = absoluteUri.pathSegments;
       if (segments.isNotEmpty) {
         String packageName = segments.first;
-        String path = OUT_ROOT + '/' + packageName.replaceAll('.', '/');
+        String path = pathContext.join(
+            outRoot, packageName.replaceAll('.', pathContext.separator));
         return resourceProvider.getFolder(path);
       }
     }
@@ -482,20 +487,24 @@ class _BaseTest extends AbstractContextTest {
   }
 
   File _setComponentFile(String componentName, String fileName, String code) {
-    String path = '$SRC_ROOT/components/$componentName/lib/$fileName';
+    String path = resourceProvider.pathContext
+        .join(sourceRoot, 'components', componentName, 'lib', fileName);
     return resourceProvider.newFile(path, code);
   }
 
   void _writeUnlinkedBundle(String packageName) {
-    String packagePath = packageName.replaceAll('.', '/');
+    var pathContext = resourceProvider.pathContext;
+    String packagePath = packageName.replaceAll('.', pathContext.separator);
     PackageBundleBuilder unlinkedBundle = _computeUnlinkedBundle(
         resourceProvider,
         packageName,
-        resourceProvider.getFolder(SRC_ROOT + '/' + packagePath + '/lib'),
+        resourceProvider
+            .getFolder(pathContext.join(sourceRoot, packagePath, 'lib')),
         true);
     String shortName = packageName.substring(packageName.lastIndexOf('.') + 1);
     resourceProvider.newFileWithBytes(
-        '$OUT_ROOT/$packagePath/$shortName.full.ds', unlinkedBundle.toBuffer());
+        pathContext.join(outRoot, packagePath, shortName) + '.full.ds',
+        unlinkedBundle.toBuffer());
   }
 
   static PackageBundleBuilder _computeUnlinkedBundle(ResourceProvider provider,
@@ -571,8 +580,9 @@ class _BaseTest extends AbstractContextTest {
 
 class _TestPackageResolver implements UriResolver {
   final ResourceProvider resourceProvider;
+  final String sourceRoot;
 
-  _TestPackageResolver(this.resourceProvider);
+  _TestPackageResolver(this.resourceProvider, this.sourceRoot);
 
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
@@ -582,7 +592,7 @@ class _TestPackageResolver implements UriResolver {
         pathos.Context pathContext = resourceProvider.pathContext;
         String packageName = segments.first;
         String folderPath = pathContext.join(
-            SRC_ROOT, packageName.replaceAll('.', pathContext.separator));
+            sourceRoot, packageName.replaceAll('.', pathContext.separator));
         String path = pathContext.join(
             folderPath, 'lib', pathContext.joinAll(segments.skip(1)));
         return resourceProvider.getFile(path).createSource(uri);

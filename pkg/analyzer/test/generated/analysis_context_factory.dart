@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:test/test.dart';
 
@@ -489,24 +488,24 @@ class AnalysisContextForTests extends AnalysisContextImpl {
  * Helper for creating and managing single [AnalysisContext].
  */
 class AnalysisContextHelper {
-  ResourceProvider resourceProvider;
+  MemoryResourceProvider resourceProvider;
   AnalysisContext context;
 
   /**
    * Creates new [AnalysisContext] using [AnalysisContextFactory].
    */
   AnalysisContextHelper(
-      [AnalysisOptionsImpl options, ResourceProvider provider]) {
+      [AnalysisOptionsImpl options, MemoryResourceProvider provider]) {
     resourceProvider = provider ?? new MemoryResourceProvider();
-    if (options == null) {
-      options = new AnalysisOptionsImpl();
-    }
-    context = AnalysisContextFactory.contextWithCoreAndOptions(options,
+    context = AnalysisContextFactory.contextWithCoreAndOptions(
+        options ?? new AnalysisOptionsImpl(),
         resourceProvider: resourceProvider);
   }
 
   Source addSource(String path, String code) {
-    Source source = new FileSource(resourceProvider.getFile(path));
+    Source source = resourceProvider
+        .getFile(resourceProvider.convertPath(path))
+        .createSource();
     if (path.endsWith(".dart") || path.endsWith(".html")) {
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(source);

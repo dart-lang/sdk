@@ -274,7 +274,8 @@ class FolderBasedDartSdkTest {
 
   FolderBasedDartSdk _createDartSdk() {
     resourceProvider = new MemoryResourceProvider();
-    Folder sdkDirectory = resourceProvider.getFolder('/sdk');
+    Folder sdkDirectory =
+        resourceProvider.getFolder(resourceProvider.convertPath('/sdk'));
     _createFile(sdkDirectory,
         ['lib', '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'],
         content: _librariesFileContent());
