@@ -34,6 +34,12 @@ class InvokeDynamicSpecializer {
     return null;
   }
 
+  void clearAllSideEffects(HInstruction instruction) {
+    instruction.sideEffects.clearAllSideEffects();
+    instruction.sideEffects.clearAllDependencies();
+    instruction.setUseGvn();
+  }
+
   Operation operation(ConstantSystem constantSystem) => null;
 
   static InvokeDynamicSpecializer lookupSpecializer(Selector selector) {
@@ -83,6 +89,11 @@ class InvokeDynamicSpecializer {
       if (selector.argumentCount == 1 && selector.namedArguments.length == 0) {
         if (selector.name == 'codeUnitAt') {
           return const CodeUnitAtSpecializer();
+        }
+      }
+      if (selector.argumentCount == 0 && selector.namedArguments.length == 0) {
+        if (selector.name == 'round') {
+          return const RoundSpecializer();
         }
       }
     }
@@ -217,12 +228,6 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
       clearAllSideEffects(instruction);
     }
     return null;
-  }
-
-  void clearAllSideEffects(HInstruction instruction) {
-    instruction.sideEffects.clearAllSideEffects();
-    instruction.sideEffects.clearAllDependencies();
-    instruction.setUseGvn();
   }
 
   bool inputsArePositiveIntegers(HInstruction instruction, Compiler compiler) {
@@ -756,6 +761,25 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       HInvokeDynamic instruction, Compiler compiler) {
     // TODO(sra): Implement a builtin HCodeUnitAt instruction and the same index
     // bounds checking optimizations as for HIndex.
+    return null;
+  }
+}
+
+class RoundSpecializer extends InvokeDynamicSpecializer {
+  const RoundSpecializer();
+
+  UnaryOperation operation(ConstantSystem constantSystem) {
+    return constantSystem.round;
+  }
+
+  HInstruction tryConvertToBuiltin(
+      HInvokeDynamic instruction, Compiler compiler) {
+    HInstruction receiver = instruction.getDartReceiver(compiler);
+    if (receiver.isNumberOrNull(compiler)) {
+      // Even if there is no builtin equivalent instruction, we know the
+      // instruction does not have any side effect, and that it can be GVN'ed.
+      clearAllSideEffects(instruction);
+    }
     return null;
   }
 }

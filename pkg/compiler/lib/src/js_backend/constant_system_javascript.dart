@@ -165,12 +165,50 @@ class JavaScriptIdentityOperation implements BinaryOperation {
   apply(left, right) => identical(left, right);
 }
 
+class JavaScriptRoundOperation implements UnaryOperation {
+  const JavaScriptRoundOperation();
+  String get name => DART_CONSTANT_SYSTEM.round.name;
+  ConstantValue fold(ConstantValue constant) {
+    // Be careful to round() only values that do not throw on either the host or
+    // target platform.
+    ConstantValue tryToRound(num value) {
+      // Due to differences between browsers, only 'round' easy cases. Avoid
+      // cases where nudging the value up or down changes the answer.
+      // 13 digits is safely within the ~15 digit precision of doubles.
+      const severalULP = 0.0000000000001;
+      // Use 'roundToDouble()' to avoid exceptions on rounding the nudged value.
+      double rounded = value.roundToDouble();
+      double rounded1 = (value * (1.0 + severalULP)).roundToDouble();
+      double rounded2 = (value * (1.0 - severalULP)).roundToDouble();
+      if (rounded != rounded1 || rounded != rounded2) return null;
+      return JAVA_SCRIPT_CONSTANT_SYSTEM
+          .convertToJavaScriptConstant(new IntConstantValue(value.round()));
+    }
+
+    if (constant.isInt) {
+      IntConstantValue intConstant = constant;
+      int value = intConstant.primitiveValue;
+      if (value >= -double.MAX_FINITE && value <= double.MAX_FINITE) {
+        return tryToRound(value);
+      }
+    }
+    if (constant.isDouble) {
+      DoubleConstantValue doubleConstant = constant;
+      double value = doubleConstant.primitiveValue;
+      // NaN and infinities will throw.
+      if (value.isNaN) return null;
+      if (value.isInfinite) return null;
+      return tryToRound(value);
+    }
+    return null;
+  }
+}
+
 /**
  * Constant system following the semantics for Dart code that has been
  * compiled to JavaScript.
  */
 class JavaScriptConstantSystem extends ConstantSystem {
-  final int BITS31 = 0x8FFFFFFF;
   final int BITS32 = 0xFFFFFFFF;
 
   final add = const JavaScriptAddOperation();
@@ -203,6 +241,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   final truncatingDivide = const JavaScriptBinaryArithmeticOperation(
       const TruncatingDivideOperation());
   final codeUnitAt = const CodeUnitAtRuntimeOperation();
+  final round = const JavaScriptRoundOperation();
 
   const JavaScriptConstantSystem();
 
