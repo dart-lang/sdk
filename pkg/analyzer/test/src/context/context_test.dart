@@ -2718,8 +2718,10 @@ int a = 0;''');
 
   void test_validateCacheConsistency_deletedFile() {
     MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
-    var fileA = resourceProvider.newFile('/a.dart', "");
-    var fileB = resourceProvider.newFile('/b.dart', "import 'a.dart';");
+    String pathA = resourceProvider.convertPath('/a.dart');
+    String pathB = resourceProvider.convertPath('/b.dart');
+    var fileA = resourceProvider.newFile(pathA, "");
+    var fileB = resourceProvider.newFile(pathB, "import 'a.dart';");
     Source sourceA = fileA.createSource();
     Source sourceB = fileB.createSource();
     context.applyChanges(
@@ -2727,7 +2729,7 @@ int a = 0;''');
     // analyze everything
     _analyzeAll_assertFinished();
     // delete a.dart
-    resourceProvider.deleteFile(resourceProvider.convertPath('/a.dart'));
+    resourceProvider.deleteFile(pathA);
     // analysis should eventually stop
     _analyzeAll_assertFinished();
   }

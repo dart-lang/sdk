@@ -236,6 +236,9 @@ class MemoryResourceProvider implements ResourceProvider {
   void _checkFileAtPath(String path) {
     _MemoryResource resource = _pathToResource[path];
     if (resource is! _MemoryFile) {
+      if (resource == null) {
+        throw new ArgumentError('File expected at "$path" but does not exist');
+      }
       throw new ArgumentError(
           'File expected at "$path" but ${resource.runtimeType} found');
     }

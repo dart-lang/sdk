@@ -927,10 +927,13 @@ part 'part.dart';
   }
 
   test_perform_invalidUri_part() {
+    String invalidUri = resourceProvider.pathContext.separator == '/'
+        ? '//////////'
+        : '\\\\\\\\\\\\';
     _performBuildTask({
       '/lib.dart': '''
 library lib;
-part '//////////';
+part '$invalidUri';
 '''
     });
     expect(libraryElement.parts, isEmpty);

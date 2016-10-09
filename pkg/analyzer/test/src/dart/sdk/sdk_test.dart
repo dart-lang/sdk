@@ -357,7 +357,9 @@ class SdkExtensionFinderTest {
 
   test_create_noSdkExtPackageMap() {
     var resolver = new SdkExtensionFinder({
-      'fox': <Folder>[resourceProvider.getResource('/empty')]
+      'fox': <Folder>[
+        resourceProvider.getResource(resourceProvider.convertPath('/empty'))
+      ]
     });
     expect(resolver.urlMappings.length, equals(0));
   }
