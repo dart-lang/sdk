@@ -339,18 +339,21 @@ class MockSdk implements DartSdk {
    */
   PackageBundle _bundle;
 
-  MockSdk({bool dartAsync: true, resource.ResourceProvider resourceProvider})
+  MockSdk(
+      {bool dartAsync: true, resource.MemoryResourceProvider resourceProvider})
       : provider = resourceProvider ?? new resource.MemoryResourceProvider(),
         sdkLibraries = dartAsync ? _LIBRARIES : [_LIB_CORE],
         uriMap = dartAsync ? FULL_URI_MAP : NO_ASYNC_URI_MAP {
     for (_MockSdkLibrary library in sdkLibraries) {
-      provider.newFile(library.path, library.content);
+      provider.newFile(provider.convertPath(library.path), library.content);
       library.parts.forEach((String path, String content) {
-        provider.newFile(path, content);
+        provider.newFile(provider.convertPath(path), content);
       });
     }
     provider.newFile(
-        '/_internal/sdk_library_metadata/lib/libraries.dart', librariesContent);
+        provider
+            .convertPath('/_internal/sdk_library_metadata/lib/libraries.dart'),
+        librariesContent);
   }
 
   @override
@@ -381,7 +384,8 @@ class MockSdk implements DartSdk {
       String libraryPath = library.path;
       if (filePath.replaceAll('\\', '/') == libraryPath) {
         try {
-          resource.File file = provider.getResource(uri.path);
+          resource.File file =
+              provider.getResource(provider.convertPath(filePath));
           Uri dartUri = Uri.parse(library.shortName);
           return file.createSource(dartUri);
         } catch (exception) {
@@ -392,7 +396,8 @@ class MockSdk implements DartSdk {
         String pathInLibrary = filePath.substring(libraryPath.length + 1);
         String path = '${library.shortName}/$pathInLibrary';
         try {
-          resource.File file = provider.getResource(uri.path);
+          resource.File file =
+              provider.getResource(provider.convertPath(filePath));
           Uri dartUri = new Uri(scheme: 'dart', path: path);
           return file.createSource(dartUri);
         } catch (exception) {
@@ -429,11 +434,10 @@ class MockSdk implements DartSdk {
   Source mapDartUri(String dartUri) {
     String path = uriMap[dartUri];
     if (path != null) {
-      resource.File file = provider.getResource(path);
+      resource.File file = provider.getResource(provider.convertPath(path));
       Uri uri = new Uri(scheme: 'dart', path: dartUri.substring(5));
       return file.createSource(uri);
     }
-
     // If we reach here then we tried to use a dartUri that's not in the
     // table above.
     return null;
@@ -447,6 +451,7 @@ class MockSdk implements DartSdk {
     assert(_analysisContext == null);
     String path = FULL_URI_MAP[uri];
     assert(path != null);
+    path = provider.convertPath(path);
     String content = provider.getFile(path).readAsStringSync();
     String newContent = updateContent(content);
     provider.updateFile(path, newContent);

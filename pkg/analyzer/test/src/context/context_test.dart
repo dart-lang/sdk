@@ -320,7 +320,7 @@ int b = aa;''';
   }
 
   void test_applyChanges_changedSource_updateModificationTime() {
-    String path = '/test.dart';
+    String path = resourceProvider.convertPath('/test.dart');
     File file = resourceProvider.newFile(path, 'var V = 1;');
     Source source = file.createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
@@ -1117,7 +1117,7 @@ part of lib;
     String newCode = r'''
 import 'dart:async';
 ''';
-    String path = '/test.dart';
+    String path = resourceProvider.convertPath('/test.dart');
     Source source = resourceProvider.newFile(path, oldCode).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     context.resolveCompilationUnit2(source, source);
@@ -1143,7 +1143,7 @@ main() {}
 import 'dart:async';
 main() {}
 ''';
-    String path = '/test.dart';
+    String path = resourceProvider.convertPath('/test.dart');
     Source source = resourceProvider.newFile(path, oldCode).createSource();
     context.applyChanges(new ChangeSet()..addedSource(source));
     context.resolveCompilationUnit2(source, source);
@@ -1752,7 +1752,8 @@ main() {}''');
     // 3. Notify the context, and because this is the first time when we
     //    update the content cache, we don't know "originalContents".
     // The source must be invalidated, because it has different contents now.
-    resourceProvider.updateFile('/test.dart', newCode);
+    resourceProvider.updateFile(
+        resourceProvider.convertPath('/test.dart'), newCode);
     contentCache.setContents(source, newCode);
     context.handleContentsChanged(source, null, newCode, true);
     expect(context.getResolvedCompilationUnit2(source, source), isNull);
@@ -1901,7 +1902,7 @@ main() {}''');
 
   void test_parseCompilationUnit_nonExistentSource() {
     Source source = newSource('/test.dart');
-    resourceProvider.deleteFile('/test.dart');
+    resourceProvider.deleteFile(resourceProvider.convertPath('/test.dart'));
     try {
       context.parseCompilationUnit(source);
       fail("Expected AnalysisException because file does not exist");
@@ -2359,9 +2360,13 @@ library expectedToFindSemicolon
     addSource('/test.dart', 'main() {}');
     _analyzeAll_assertFinished();
     // verify
-    expect(libraryElementUris, contains('file:///test.dart'));
-    expect(parsedUnitUris, contains('file:///test.dart'));
-    expect(resolvedUnitUris, contains('file:///test.dart'));
+    String testUri = resourceProvider
+        .getFile(resourceProvider.convertPath('/test.dart'))
+        .toUri()
+        .toString();
+    expect(libraryElementUris, contains(testUri));
+    expect(parsedUnitUris, contains(testUri));
+    expect(resolvedUnitUris, contains(testUri));
   }
 
   void test_performAnalysisTask_switchPackageVersion() {
@@ -2722,7 +2727,7 @@ int a = 0;''');
     // analyze everything
     _analyzeAll_assertFinished();
     // delete a.dart
-    resourceProvider.deleteFile('/a.dart');
+    resourceProvider.deleteFile(resourceProvider.convertPath('/a.dart'));
     // analysis should eventually stop
     _analyzeAll_assertFinished();
   }
@@ -3674,7 +3679,7 @@ main() {
 ''');
     _performPendingAnalysisTasks();
     resourceProvider.updateFile(
-        '/a.dart',
+        resourceProvider.convertPath('/a.dart'),
         r'''
 class A2 {}
 class B {}

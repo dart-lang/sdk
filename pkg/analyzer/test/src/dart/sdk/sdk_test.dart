@@ -341,10 +341,10 @@ class SdkExtensionFinderTest {
 
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
-    resourceProvider.newFolder('/empty');
-    resourceProvider.newFolder('/tmp');
+    resourceProvider.newFolder(resourceProvider.convertPath('/empty'));
+    resourceProvider.newFolder(resourceProvider.convertPath('/tmp'));
     resourceProvider.newFile(
-        '/tmp/_sdkext',
+        resourceProvider.convertPath('/tmp/_sdkext'),
         r'''
 {
   "dart:fox": "slippy.dart",

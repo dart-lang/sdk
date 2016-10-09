@@ -62,8 +62,8 @@ CompilationUnit check(
     List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES}) {
   _checkCalled = true;
 
-  expect(files.getFile(files.convertPath('/main.dart')).exists, true,
-      reason: '`/main.dart` is missing');
+  File mainFile = files.getFile(files.convertPath('/main.dart'));
+  expect(mainFile.exists, true, reason: '`/main.dart` is missing');
 
   var uriResolver = new _TestUriResolver(files);
   // Enable task model strong mode
@@ -74,13 +74,13 @@ CompilationUnit check(
   options.implicitCasts = implicitCasts;
   options.implicitDynamic = implicitDynamic;
   options.nonnullableTypes = nonnullableTypes;
-  var mockSdk = new MockSdk();
+  var mockSdk = new MockSdk(resourceProvider: files);
   (mockSdk.context.analysisOptions as AnalysisOptionsImpl).strongMode = true;
   context.sourceFactory =
       new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
 
   // Run the checker on /main.dart.
-  Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
+  Source mainSource = uriResolver.resolveAbsolute(mainFile.toUri());
   var initialLibrary = context.resolveCompilationUnit2(mainSource, mainSource);
 
   var collector = new _ErrorCollector(context);
@@ -400,7 +400,8 @@ class _TestUriResolver extends ResourceUriResolver {
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (uri.scheme == 'package') {
-      return (provider.getResource('/packages/' + uri.path) as File)
+      return (provider.getResource(
+              provider.convertPath('/packages/' + uri.path)) as File)
           .createSource(uri);
     }
     return super.resolveAbsolute(uri, actualUri);
