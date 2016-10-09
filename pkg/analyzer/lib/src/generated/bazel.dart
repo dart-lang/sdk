@@ -73,9 +73,9 @@ class BazelPackageUriResolver extends UriResolver {
       String filePath = fileUriPart.replaceAll('/', _context.separator);
 
       if (packageName.indexOf('.') == -1) {
-        String path =
-            _context.join('third_party', 'dart', packageName, 'lib', filePath);
-        File file = _workspace.getFile(path);
+        String path = _context.join(_workspace.root, 'third_party', 'dart',
+            packageName, 'lib', filePath);
+        File file = _workspace.findFile(path);
         return file?.createSource(uri);
       } else {
         String packagePath = packageName.replaceAll('.', _context.separator);
@@ -161,14 +161,6 @@ class BazelWorkspace {
     } catch (_) {
       return null;
     }
-  }
-
-  /**
-   * Return the file for the given [pathInWorkspace]. The file is returned even
-   * if it does not exist.
-   */
-  File getFile(String pathInWorkspace) {
-    return provider.getFile(provider.pathContext.join(root, pathInWorkspace));
   }
 
   /**

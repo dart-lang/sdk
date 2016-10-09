@@ -103,82 +103,303 @@ class BazelPackageUriResolverTest extends _BaseTest {
   BazelWorkspace workspace;
   BazelPackageUriResolver resolver;
 
-  void setUp() {
-    provider.newFile(_p('/workspace/WORKSPACE'), '');
-    provider.newFolder(_p('/workspace/bazel-genfiles'));
-    workspace = BazelWorkspace.find(provider, _p('/workspace'));
-    resolver = new BazelPackageUriResolver(workspace);
-    provider.newFile(_p('/workspace/my/foo/lib/foo1.dart'), '');
-    provider.newFile(_p('/workspace/my/foo/lib/gen1.dart'), '');
-    provider.newFile(_p('/workspace/my/foo/lib/gen2.dart'), '');
-    provider.newFile(_p('/workspace/my/foo/lib/src/foo4.dart'), '');
-    provider.newFile(_p('/workspace/third_party/dart/bar/lib/bar1.dart'), '');
-    provider.newFile(
-        _p('/workspace/third_party/dart/bar/lib/src/bar2.dart'), '');
-    provider.newFile(_p('/workspace/bazel-bin/my/foo/lib/gen1.dart'), '');
-    provider.newFile(_p('/workspace/bazel-genfiles/my/foo/lib/gen2.dart'), '');
-    provider.newFile(_p('/workspace/bazel-genfiles/my/foo/lib/gen3.dart'), '');
-  }
-
-  void test_resolveAbsolute_inBazelBin() {
+  void test_resolveAbsolute_bin() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/my/foo/lib/foo1.dart',
+      '/workspace/bazel-bin/my/foo/lib/foo1.dart'
+    ]);
     _assertResolve(
-        'package:my.foo/gen1.dart', '/workspace/bazel-bin/my/foo/lib/gen1.dart',
+        'package:my.foo/foo1.dart', '/workspace/bazel-bin/my/foo/lib/foo1.dart',
         exists: true);
   }
 
-  void test_resolveAbsolute_inBazelGenfiles() {
-    _assertResolve('package:my.foo/gen2.dart',
-        '/workspace/bazel-genfiles/my/foo/lib/gen2.dart',
-        exists: true);
-  }
-
-  void test_resolveAbsolute_inBazelGenfiles_notInWorkspace() {
-    _assertResolve('package:my.foo/gen3.dart',
-        '/workspace/bazel-genfiles/my/foo/lib/gen3.dart',
-        exists: true);
-  }
-
-  void test_resolveAbsolute_inWorkspace_doesNotExist() {
-    _assertResolve('package:my.foo/doesNotExist.dart',
-        '/workspace/my/foo/lib/doesNotExist.dart',
-        exists: false);
-  }
-
-  void test_resolveAbsolute_inWorkspace_exists() {
+  void test_resolveAbsolute_bin_notInWorkspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/bazel-bin/my/foo/lib/foo1.dart'
+    ]);
     _assertResolve(
-        'package:my.foo/foo1.dart', '/workspace/my/foo/lib/foo1.dart',
+        'package:my.foo/foo1.dart', '/workspace/bazel-bin/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_genfiles() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/my/foo/lib/foo1.dart',
+      '/workspace/bazel-genfiles/my/foo/lib/foo1.dart'
+    ]);
+    _assertResolve('package:my.foo/foo1.dart',
+        '/workspace/bazel-genfiles/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_genfiles_notInWorkspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/bazel-genfiles/my/foo/lib/foo1.dart'
+    ]);
+    _assertResolve('package:my.foo/foo1.dart',
+        '/workspace/bazel-genfiles/my/foo/lib/foo1.dart',
         exists: true);
   }
 
   void test_resolveAbsolute_null_noSlash() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
     Source source = resolver.resolveAbsolute(Uri.parse('package:foo'));
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_null_notPackage() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
     Source source = resolver.resolveAbsolute(Uri.parse('dart:async'));
     expect(source, isNull);
   }
 
   void test_resolveAbsolute_null_startsWithSlash() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/my/foo/lib/bar.dart',
+    ]);
     Source source =
         resolver.resolveAbsolute(Uri.parse('package:/foo/bar.dart'));
     expect(source, isNull);
   }
 
+  void test_resolveAbsolute_readonly_bin() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/READONLY/prime/my/foo/lib/foo1.dart',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+      '/Users/user/test/prime/bazel-bin/my/foo/lib/foo1.dart',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:my.foo/foo1.dart',
+        '/Users/user/test/prime/bazel-bin/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_readonly_bin_notInWorkspace() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+      '/Users/user/test/prime/bazel-bin/my/foo/lib/foo1.dart',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:my.foo/foo1.dart',
+        '/Users/user/test/prime/bazel-bin/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_readonly_genfiles() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/READONLY/prime/my/foo/lib/foo1.dart',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+      '/Users/user/test/prime/bazel-genfiles/my/foo/lib/foo1.dart',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:my.foo/foo1.dart',
+        '/Users/user/test/prime/bazel-genfiles/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_readonly_genfiles_notInWorkspace() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+      '/Users/user/test/prime/bazel-genfiles/my/foo/lib/foo1.dart',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:my.foo/foo1.dart',
+        '/Users/user/test/prime/bazel-genfiles/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_readonly_thirdParty_bin() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+      '/Users/user/test/prime/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:foo/foo1.dart',
+        '/Users/user/test/prime/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_readonly_thirdParty_genfiles() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+      '/Users/user/test/prime/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:foo/foo1.dart',
+        '/Users/user/test/prime/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_readonly_thirdParty_workspace_doesNotExist() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:foo/foo2.dart',
+        '/Users/user/test/prime/third_party/dart/foo/lib/foo2.dart',
+        exists: false);
+  }
+
+  void test_resolveAbsolute_readonly_thirdParty_workspace_exists() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:foo/foo1.dart',
+        '/Users/user/test/READONLY/prime/third_party/dart/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_readonly_workspace_doesNotExist() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:my.foo/foo1.dart',
+        '/Users/user/test/prime/my/foo/lib/foo1.dart',
+        exists: false);
+  }
+
+  void test_resolveAbsolute_readonly_workspace_exists() {
+    _addResources([
+      '/Users/user/test/READONLY/prime/',
+      '/Users/user/test/READONLY/prime/my/foo/lib/foo1.dart',
+      '/Users/user/test/prime/bazel-genfiles/',
+      '/Users/user/test/prime/my/module/',
+    ], workspacePath: '/Users/user/test/prime/my/module');
+    _assertResolve('package:my.foo/foo1.dart',
+        '/Users/user/test/READONLY/prime/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_thirdParty_bin() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/third_party/dart/foo/lib/foo1.dart',
+      '/workspace/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+    ]);
+    _assertResolve('package:foo/foo1.dart',
+        '/workspace/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_thirdParty_bin_notInWorkspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+    ]);
+    _assertResolve('package:foo/foo1.dart',
+        '/workspace/bazel-bin/third_party/dart/foo/lib/foo1.dart',
+        exists: true);
+  }
+
   void test_resolveAbsolute_thirdParty_doesNotExist() {
-    _assertResolve('package:baz/baz1.dart',
-        '/workspace/third_party/dart/baz/lib/baz1.dart',
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/third_party/dart/foo/lib/foo1.dart',
+    ]);
+    _assertResolve('package:foo/foo2.dart',
+        '/workspace/third_party/dart/foo/lib/foo2.dart',
         exists: false);
   }
 
   void test_resolveAbsolute_thirdParty_exists() {
-    _assertResolve('package:bar/bar1.dart',
-        '/workspace/third_party/dart/bar/lib/bar1.dart',
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/third_party/dart/foo/lib/foo1.dart',
+    ]);
+    _assertResolve('package:foo/foo1.dart',
+        '/workspace/third_party/dart/foo/lib/foo1.dart',
         exists: true);
-    _assertResolve('package:bar/src/bar2.dart',
-        '/workspace/third_party/dart/bar/lib/src/bar2.dart',
+  }
+
+  void test_resolveAbsolute_thirdParty_genfiles() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/third_party/dart/foo/lib/foo1.dart',
+      '/workspace/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+    ]);
+    _assertResolve('package:foo/foo1.dart',
+        '/workspace/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
         exists: true);
+  }
+
+  void test_resolveAbsolute_thirdParty_genfiles_notInWorkspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+    ]);
+    _assertResolve('package:foo/foo1.dart',
+        '/workspace/bazel-genfiles/third_party/dart/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void test_resolveAbsolute_workspace_doesNotExist() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+    ]);
+    _assertResolve('package:my.foo/doesNotExist.dart',
+        '/workspace/my/foo/lib/doesNotExist.dart',
+        exists: false);
+  }
+
+  void test_resolveAbsolute_workspace_exists() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/my/foo/lib/foo1.dart',
+    ]);
+    _assertResolve(
+        'package:my.foo/foo1.dart', '/workspace/my/foo/lib/foo1.dart',
+        exists: true);
+  }
+
+  void _addResources(List<String> paths, {String workspacePath: '/workspace'}) {
+    for (String path in paths) {
+      if (path.endsWith('/')) {
+        provider.newFolder(_p(path.substring(0, path.length - 1)));
+      } else {
+        provider.newFile(_p(path), '');
+      }
+    }
+    workspace = BazelWorkspace.find(provider, _p(workspacePath));
+    resolver = new BazelPackageUriResolver(workspace);
   }
 
   void _assertResolve(String uriStr, String posixPath, {bool exists: true}) {
