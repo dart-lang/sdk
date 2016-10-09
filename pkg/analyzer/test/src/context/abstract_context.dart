@@ -126,7 +126,8 @@ class AbstractContextTest {
   DartSdk createDartSdk() => new MockSdk(resourceProvider: resourceProvider);
 
   Source newSource(String path, [String content = '']) {
-    File file = resourceProvider.newFile(path, content);
+    File file =
+        resourceProvider.newFile(resourceProvider.convertPath(path), content);
     return file.createSource();
   }
 

@@ -46,7 +46,7 @@ bool _checkCalled;
 /// For a single file, you may also use [checkFile].
 void addFile(String content, {String name: '/main.dart'}) {
   name = name.replaceFirst('^package:', '/packages/');
-  files.newFile(name, content);
+  files.newFile(files.convertPath(name), content);
 }
 
 /// Run the checker on a program, staring from '/main.dart', and verifies that
@@ -62,7 +62,7 @@ CompilationUnit check(
     List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES}) {
   _checkCalled = true;
 
-  expect(files.getFile('/main.dart').exists, true,
+  expect(files.getFile(files.convertPath('/main.dart')).exists, true,
       reason: '`/main.dart` is missing');
 
   var uriResolver = new _TestUriResolver(files);

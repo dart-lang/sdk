@@ -369,16 +369,22 @@ class SdkExtensionFinderTest {
 
   test_create_sdkExtPackageMap() {
     var resolver = new SdkExtensionFinder({
-      'fox': <Folder>[resourceProvider.getResource('/tmp')]
+      'fox': <Folder>[
+        resourceProvider.getResource(resourceProvider.convertPath('/tmp'))
+      ]
     });
     // We have four mappings.
     Map<String, String> urlMappings = resolver.urlMappings;
     expect(urlMappings.length, equals(4));
     // Check that they map to the correct paths.
-    expect(urlMappings['dart:fox'], equals("/tmp/slippy.dart"));
-    expect(urlMappings['dart:bear'], equals("/tmp/grizzly.dart"));
-    expect(urlMappings['dart:relative'], equals("/relative.dart"));
-    expect(urlMappings['dart:deep'], equals("/tmp/deep/directory/file.dart"));
+    expect(urlMappings['dart:fox'],
+        equals(resourceProvider.convertPath("/tmp/slippy.dart")));
+    expect(urlMappings['dart:bear'],
+        equals(resourceProvider.convertPath("/tmp/grizzly.dart")));
+    expect(urlMappings['dart:relative'],
+        equals(resourceProvider.convertPath("/relative.dart")));
+    expect(urlMappings['dart:deep'],
+        equals(resourceProvider.convertPath("/tmp/deep/directory/file.dart")));
   }
 }
 
