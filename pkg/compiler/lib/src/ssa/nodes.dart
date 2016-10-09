@@ -1913,8 +1913,14 @@ class HForeignCode extends HForeign {
   accept(HVisitor visitor) => visitor.visitForeignCode(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() =>
-      canBeNull() ? throwBehavior.canThrow : throwBehavior.onNonNull.canThrow;
+  bool canThrow() {
+    if (inputs.length > 0) {
+      return inputs.first.canBeNull()
+          ? throwBehavior.canThrow
+          : throwBehavior.onNonNull.canThrow;
+    }
+    return throwBehavior.canThrow;
+  }
 
   bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
 
