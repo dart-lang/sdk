@@ -3445,12 +3445,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.setSelector(node, setterSelector);
         registry.setOperatorSelectorInComplexSendSet(node, operatorSelector);
 
-        registry.registerDynamicUse(new DynamicUse(operatorSelector, null));
-
         SendStructure sendStructure;
         if (operator.kind == AssignmentOperatorKind.IF_NULL) {
+          registry.registerConstantLiteral(new NullConstantExpression());
+          registry.registerDynamicUse(new DynamicUse(Selectors.equals, null));
           sendStructure = new SetIfNullStructure(semantics);
         } else {
+          registry.registerDynamicUse(new DynamicUse(operatorSelector, null));
           sendStructure = new CompoundStructure(semantics, operator);
         }
         registry.registerSendStructure(node, sendStructure);

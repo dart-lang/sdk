@@ -73,6 +73,8 @@ main() {
   testAsGenericRaw(null);
   testAsGenericDynamic(null);
   testThrow();
+  testIfNull(null);
+  testSetIfNull(null);
   testSyncStar();
   testAsync();
   testAsyncStar();
@@ -137,6 +139,10 @@ main() {
   testConstRedirectingFactoryInvokeGeneric();
   testConstRedirectingFactoryInvokeGenericRaw();
   testConstRedirectingFactoryInvokeGenericDynamic();
+  testImplicitConstructor();
+  testFactoryConstructor();
+  testDefaultValuesPositional();
+  testDefaultValuesNamed();
 }
 
 testEmpty() {}
@@ -187,6 +193,8 @@ testAsGeneric(o) => o as GenericClass<int, String>;
 testAsGenericRaw(o) => o as GenericClass;
 testAsGenericDynamic(o) => o as GenericClass<dynamic, dynamic>;
 testThrow() => throw '';
+testIfNull(o) => o ?? 42;
+testSetIfNull(o) => o ??= 42;
 
 testSyncStar() sync* {}
 testAsync() async {}
@@ -417,6 +425,14 @@ testConstRedirectingFactoryInvokeGenericRaw() {
 testConstRedirectingFactoryInvokeGenericDynamic() {
   const GenericClass<dynamic, dynamic>.redirect();
 }
+class ClassImplicitConstructor {}
+testImplicitConstructor() => new ClassImplicitConstructor();
+class ClassFactoryConstructor {
+  factory ClassFactoryConstructor() => null;
+}
+testFactoryConstructor() => new ClassFactoryConstructor();
+testDefaultValuesPositional([bool value = false]) {}
+testDefaultValuesNamed({bool value: false}) {}
 ''',
   'helper.dart': '''
 class Class {
@@ -455,7 +471,10 @@ main(List<String> args) {
 void checkLibrary(Compiler compiler, LibraryElement library) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
-      // TODO(johnniwinther): Handle class members.
+      ClassElement cls = element;
+      cls.forEachLocalMember((AstElement member) {
+        checkElement(compiler, member);
+      });
     } else if (element.isTypedef) {
       // Skip typedefs.
     } else {

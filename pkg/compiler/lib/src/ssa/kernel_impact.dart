@@ -30,22 +30,33 @@ ResolutionImpact build(Compiler compiler, ResolvedAst resolvedAst) {
   Kernel kernel = backend.kernelTask.kernel;
   KernelImpactBuilder builder =
       new KernelImpactBuilder(resolvedAst, compiler, kernel);
-  if (element.isFunction || element.isGetter || element.isSetter) {
+  if (element.isFunction ||
+      element.isGetter ||
+      element.isSetter ||
+      element.isFactoryConstructor) {
     ir.Procedure function = kernel.functions[element];
     if (function == null) {
-      print("FOUND NULL FUNCTION: $element");
+      throw "FOUND NULL FUNCTION: $element";
     } else {
       return builder.buildProcedure(function);
     }
-  } else {
+  } else if (element.isGenerativeConstructor) {
+    ir.Constructor constructor = kernel.functions[element];
+    if (constructor == null) {
+      throw "FOUND NULL CONSTRUCTOR: $element";
+    } else {
+      return builder.buildConstructor(constructor);
+    }
+  } else if (element.isField) {
     ir.Field field = kernel.fields[element];
     if (field == null) {
-      print("FOUND NULL FIELD: $element");
+      throw "FOUND NULL FIELD: $element";
     } else {
       return builder.buildField(field);
     }
+  } else {
+    throw new UnsupportedError("Unsupported element: $element");
   }
-  return null;
 }
 
 class KernelImpactBuilder extends ir.Visitor {
@@ -73,11 +84,21 @@ class KernelImpactBuilder extends ir.Visitor {
     return type;
   }
 
-  /// Add a checked-mode type use of return type and parameters of [node].
-  void checkFunctionTypes(ir.FunctionNode node) {
-    checkType(node.returnType);
-    node.positionalParameters.forEach((v) => checkType(v.type));
-    node.namedParameters.forEach((v) => checkType(v.type));
+  /// Add checked-mode type use for the parameter type and constant for the
+  /// default value of [parameter].
+  void handleParameter(ir.VariableDeclaration parameter) {
+    checkType(parameter.type);
+    visitNode(parameter.initializer);
+  }
+
+  /// Add checked-mode type use for parameter and return types, and add
+  /// constants for default values.
+  void handleSignature(ir.FunctionNode node, {bool checkReturnType: true}) {
+    if (checkReturnType) {
+      checkType(node.returnType);
+    }
+    node.positionalParameters.forEach(handleParameter);
+    node.namedParameters.forEach(handleParameter);
   }
 
   ResolutionImpact buildField(ir.Field field) {
@@ -93,31 +114,31 @@ class KernelImpactBuilder extends ir.Visitor {
     return impactBuilder;
   }
 
+  ResolutionImpact buildConstructor(ir.Constructor constructor) {
+    handleSignature(constructor.function, checkReturnType: false);
+    visitNodes(constructor.initializers);
+    visitNode(constructor.function.body);
+    return impactBuilder;
+  }
+
   ResolutionImpact buildProcedure(ir.Procedure procedure) {
-    if (procedure.kind != ir.ProcedureKind.Factory) {
-      checkFunctionTypes(procedure.function);
-      visitNode(procedure.function.body);
-      switch (procedure.function.asyncMarker) {
-        case ir.AsyncMarker.Sync:
-          break;
-        case ir.AsyncMarker.SyncStar:
-          impactBuilder.registerFeature(Feature.SYNC_STAR);
-          break;
-        case ir.AsyncMarker.Async:
-          impactBuilder.registerFeature(Feature.ASYNC);
-          break;
-        case ir.AsyncMarker.AsyncStar:
-          impactBuilder.registerFeature(Feature.ASYNC_STAR);
-          break;
-        case ir.AsyncMarker.SyncYielding:
-          compiler.reporter.internalError(resolvedAst.element,
-              "Unexpected async marker: ${procedure.function.asyncMarker}");
-      }
-    } else {
-      compiler.reporter.internalError(
-          resolvedAst.element,
-          "Unable to compute resolution impact for this kind of Kernel "
-          "procedure: ${procedure.kind}");
+    handleSignature(procedure.function);
+    visitNode(procedure.function.body);
+    switch (procedure.function.asyncMarker) {
+      case ir.AsyncMarker.Sync:
+        break;
+      case ir.AsyncMarker.SyncStar:
+        impactBuilder.registerFeature(Feature.SYNC_STAR);
+        break;
+      case ir.AsyncMarker.Async:
+        impactBuilder.registerFeature(Feature.ASYNC);
+        break;
+      case ir.AsyncMarker.AsyncStar:
+        impactBuilder.registerFeature(Feature.ASYNC_STAR);
+        break;
+      case ir.AsyncMarker.SyncYielding:
+        compiler.reporter.internalError(resolvedAst.element,
+            "Unexpected async marker: ${procedure.function.asyncMarker}");
     }
     return impactBuilder;
   }
@@ -237,6 +258,14 @@ class KernelImpactBuilder extends ir.Visitor {
   }
 
   @override
+  void visitSuperInitializer(ir.SuperInitializer node) {
+    Element target = astAdapter.getElement(node.target).declaration;
+    _visitArguments(node.arguments);
+    impactBuilder.registerStaticUse(new StaticUse.superConstructorInvoke(
+        target, astAdapter.getCallStructure(node.arguments)));
+  }
+
+  @override
   void visitStaticInvocation(ir.StaticInvocation node) {
     Element target = astAdapter.getElement(node.target).declaration;
     if (target.isFactoryConstructor) {
@@ -337,7 +366,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitFunctionDeclaration(ir.FunctionDeclaration node) {
     impactBuilder
         .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
-    checkFunctionTypes(node.function);
+    handleSignature(node.function);
     visitNode(node.function.body);
   }
 
@@ -345,7 +374,7 @@ class KernelImpactBuilder extends ir.Visitor {
   void visitFunctionExpression(ir.FunctionExpression node) {
     impactBuilder
         .registerStaticUse(new StaticUse.closure(astAdapter.getElement(node)));
-    checkFunctionTypes(node.function);
+    handleSignature(node.function);
     visitNode(node.function.body);
   }
 
