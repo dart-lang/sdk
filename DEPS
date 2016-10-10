@@ -57,7 +57,7 @@ vars = {
   "dart2js_info_tag" : "@0.2.7+1",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.10",
-  "dartdoc_tag" : "@v0.9.7+3",
+  "dartdoc_tag" : "@v0.9.7+6",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@0.1.0",
   "glob_tag": "@1.1.3",
