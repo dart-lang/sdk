@@ -14,12 +14,5 @@
   int get hashCode => _HASH_CODE;
   int get _identityHashCode => _HASH_CODE;
 
-  @patch noSuchMethod(Invocation invocation) {
-    String name = internal.Symbol.getName(invocation.memberName);
-    if (invocation.isMethod)
-      throw new NullDereferenceError('$name() was called on a null value.');
-    throw new NullDereferenceError('$name was accessed on a null value.');
-  }
-
   String toString() => 'null';
 }

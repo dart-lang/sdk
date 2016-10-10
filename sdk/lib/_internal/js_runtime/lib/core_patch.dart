@@ -65,18 +65,6 @@ class Object {
   Type get runtimeType => getRuntimeType(this);
 }
 
-// Patch for Null implementation
-@patch
-class Null {
-  @patch
-  dynamic noSuchMethod(Invocation invocation) {
-    String name = _symbolToString(invocation.memberName);
-    if (invocation.isMethod)
-      throw new NullDereferenceError('$name() was called on a null value.');
-    throw new NullDereferenceError('$name was accessed on a null value.');
-  }
-}
-
 // Patch for Function implementation.
 @patch
 class Function {

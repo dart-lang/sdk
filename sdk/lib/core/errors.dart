@@ -120,24 +120,6 @@ class NullThrownError extends Error {
 }
 
 /**
- * Error thrown when attempting to dereference [:null:].
- */
-class NullDereferenceError extends Error implements NoSuchMethodError {
-  /** Message describing the problem. */
-  final message;
-
-  /**
-   * The [message] optionally describes the circumstances
-   * under which [:null:] was dereferenced.
-   */
-  NullDereferenceError([this.message]);
-
-  String toString() {
-    return "Cannot dereference null.${ message != null ? ' $message' : ''}";
-  }
-}
-
-/**
  * Error thrown when a function is passed an unacceptable argument.
  */
 class ArgumentError extends Error {

@@ -16,8 +16,6 @@ class Null {
     throw new UnsupportedError('class Null cannot be instantiated');
   }
 
-  external dynamic noSuchMethod(Invocation invocation);
-
   /** Returns the string `"null"`. */
   String toString() => "null";
 }
