@@ -3886,11 +3886,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (!isInvalid) {
       // [constructor] might be the implementation element
       // and only declaration elements may be registered.
-      registry.registerStaticUse(new StaticUse.constructorInvoke(
-          constructor.declaration, callStructure));
       // TODO(johniwinther): Avoid registration of `type` in face of redirecting
       // factory constructors.
-      registry.registerTypeUse(new TypeUse.instantiation(type));
+      registry.registerStaticUse(node.isConst
+          ? new StaticUse.constConstructorInvoke(
+              constructor.declaration, callStructure, type)
+          : new StaticUse.typedConstructorInvoke(
+              constructor.declaration, callStructure, type));
       InterfaceType interfaceType = type;
       if (interfaceType.typeArguments.any((DartType type) => !type.isDynamic)) {
         registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);

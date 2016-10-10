@@ -596,6 +596,10 @@ class ResolutionEnqueuer extends Enqueuer {
       case StaticUseKind.SUPER_TEAR_OFF:
       case StaticUseKind.GENERAL:
         break;
+      case StaticUseKind.CONSTRUCTOR_INVOKE:
+      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        registerTypeUse(new TypeUse.instantiation(staticUse.type));
+        break;
     }
     if (addElement) {
       addToWorkList(element);
@@ -608,7 +612,6 @@ class ResolutionEnqueuer extends Enqueuer {
       case TypeUseKind.INSTANTIATION:
         registerInstantiatedType(type);
         break;
-      case TypeUseKind.INSTANTIATION:
       case TypeUseKind.IS_CHECK:
       case TypeUseKind.AS_CAST:
       case TypeUseKind.CATCH_TYPE:

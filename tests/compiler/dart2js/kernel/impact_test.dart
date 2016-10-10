@@ -11,6 +11,7 @@ import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/resolution/registry.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
@@ -132,6 +133,10 @@ main() {
   testRedirectingFactoryInvokeGeneric();
   testRedirectingFactoryInvokeGenericRaw();
   testRedirectingFactoryInvokeGenericDynamic();
+  testConstRedirectingFactoryInvoke();
+  testConstRedirectingFactoryInvokeGeneric();
+  testConstRedirectingFactoryInvokeGenericRaw();
+  testConstRedirectingFactoryInvokeGenericDynamic();
 }
 
 testEmpty() {}
@@ -400,17 +405,29 @@ testRedirectingFactoryInvokeGenericRaw() {
 testRedirectingFactoryInvokeGenericDynamic() {
   new GenericClass<dynamic, dynamic>.redirect();
 }
+testConstRedirectingFactoryInvoke() {
+  const Class.redirect();
+}
+testConstRedirectingFactoryInvokeGeneric() {
+  const GenericClass<int, String>.redirect();
+}
+testConstRedirectingFactoryInvokeGenericRaw() {
+  const GenericClass.redirect();
+}
+testConstRedirectingFactoryInvokeGenericDynamic() {
+  const GenericClass<dynamic, dynamic>.redirect();
+}
 ''',
   'helper.dart': '''
 class Class {
-  Class.generative();
+  const Class.generative();
   factory Class.fact() => null;
-  factory Class.redirect() = Class.generative;
+  const factory Class.redirect() = Class.generative;
 }
 class GenericClass<X, Y> {
-  GenericClass.generative();
+  const GenericClass.generative();
   factory GenericClass.fact() => null;
-  factory GenericClass.redirect() = GenericClass.generative;
+  const factory GenericClass.redirect() = GenericClass<X, Y>.generative;
 }
 typedef Typedef();
 typedef X GenericTypedef<X, Y>(Y y);
@@ -462,7 +479,21 @@ ResolutionImpact laxImpact(
     Compiler compiler, AstElement element, ResolutionImpact impact) {
   ResolutionWorldImpactBuilder builder =
       new ResolutionWorldImpactBuilder('Lax impact of ${element}');
-  impact.staticUses.forEach(builder.registerStaticUse);
+  for (StaticUse staticUse in impact.staticUses) {
+    switch (staticUse.kind) {
+      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        ConstructorElement constructor = staticUse.element;
+        ConstructorElement effectiveTarget = constructor.effectiveTarget;
+        DartType effectiveTargetType =
+            constructor.computeEffectiveTargetType(staticUse.type);
+        builder.registerStaticUse(new StaticUse.constConstructorInvoke(
+            effectiveTarget, null, effectiveTargetType));
+        break;
+      default:
+        builder.registerStaticUse(staticUse);
+        break;
+    }
+  }
   impact.dynamicUses.forEach(builder.registerDynamicUse);
   for (TypeUse typeUse in impact.typeUses) {
     if (typeUse.type.isTypedef) {
@@ -479,7 +510,7 @@ ResolutionImpact laxImpact(
       case Feature.STRING_INTERPOLATION:
       case Feature.STRING_JUXTAPOSITION:
         // These are both converted into a string concatenation in kernel so
-        // we cannot tell the diferrence.
+        // we cannot tell the difference.
         builder.registerFeature(Feature.STRING_INTERPOLATION);
         builder.registerFeature(Feature.STRING_JUXTAPOSITION);
         break;
@@ -489,9 +520,8 @@ ResolutionImpact laxImpact(
         ClassElement cls =
             library.implementation.localLookup('FallThroughError');
         ConstructorElement constructor = cls.lookupConstructor('');
-        builder.registerTypeUse(new TypeUse.instantiation(cls.thisType));
-        builder.registerStaticUse(new StaticUse.constructorInvoke(
-            constructor, CallStructure.NO_ARGS));
+        builder.registerStaticUse(new StaticUse.typedConstructorInvoke(
+            constructor, CallStructure.NO_ARGS, cls.thisType));
         builder.registerFeature(Feature.THROW_EXPRESSION);
         break;
       default:

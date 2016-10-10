@@ -2957,14 +2957,21 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (StaticUse staticUse in worldImpact.staticUses) {
-      if (staticUse.kind == StaticUseKind.CLOSURE) {
-        registerBackendImpact(transformed, impacts.closure);
-        LocalFunctionElement closure = staticUse.element;
-        if (closure.type.containsTypeVariables) {
-          resolutionEnqueuer.universe.closuresWithFreeTypeVariables
-              .add(closure);
-          registerBackendImpact(transformed, impacts.computeSignature);
-        }
+      switch (staticUse.kind) {
+        case StaticUseKind.CLOSURE:
+          registerBackendImpact(transformed, impacts.closure);
+          LocalFunctionElement closure = staticUse.element;
+          if (closure.type.containsTypeVariables) {
+            resolutionEnqueuer.universe.closuresWithFreeTypeVariables
+                .add(closure);
+            registerBackendImpact(transformed, impacts.computeSignature);
+          }
+          break;
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+          registerRequiredType(staticUse.type);
+          break;
+        default:
       }
     }
 
@@ -3150,11 +3157,18 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (StaticUse staticUse in impact.staticUses) {
-      if (staticUse.kind == StaticUseKind.CLOSURE) {
-        LocalFunctionElement closure = staticUse.element;
-        if (backend.methodNeedsRti(closure)) {
-          registerBackendImpact(transformed, impacts.computeSignature);
-        }
+      switch (staticUse.kind) {
+        case StaticUseKind.CLOSURE:
+          LocalFunctionElement closure = staticUse.element;
+          if (backend.methodNeedsRti(closure)) {
+            registerBackendImpact(transformed, impacts.computeSignature);
+          }
+          break;
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+          backend.lookupMapAnalysis.registerInstantiatedType(staticUse.type);
+          break;
+        default:
       }
     }
 

@@ -71,6 +71,8 @@ enum StaticUseKind {
   FIELD_GET,
   FIELD_SET,
   CLOSURE,
+  CONSTRUCTOR_INVOKE,
+  CONST_CONSTRUCTOR_INVOKE,
 }
 
 /// Statically known use of an [Element].
@@ -80,11 +82,14 @@ class StaticUse {
   final Element element;
   final StaticUseKind kind;
   final int hashCode;
+  final DartType type;
 
-  StaticUse.internal(Element element, StaticUseKind kind)
+  StaticUse.internal(Element element, StaticUseKind kind,
+      [DartType type = null])
       : this.element = element,
         this.kind = kind,
-        this.hashCode = Hashing.objectHash(element, Hashing.objectHash(kind)) {
+        this.type = type,
+        this.hashCode = Hashing.objectsHash(element, kind, type) {
     assert(invariant(element, element.isDeclaration,
         message: "Static use element $element must be "
             "the declaration element."));
@@ -209,6 +214,28 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
+  /// Constructor invocation of [element] with the given [callStructure] on
+  /// [type].
+  factory StaticUse.typedConstructorInvoke(
+      ConstructorElement element, CallStructure callStructure, DartType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    // TODO(johnniwinther): Use the [callStructure].
+    return new StaticUse.internal(
+        element, StaticUseKind.CONSTRUCTOR_INVOKE, type);
+  }
+
+  /// Constant constructor invocation of [element] with the given
+  /// [callStructure] on [type].
+  factory StaticUse.constConstructorInvoke(
+      ConstructorElement element, CallStructure callStructure, DartType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    // TODO(johnniwinther): Use the [callStructure].
+    return new StaticUse.internal(
+        element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE, type);
+  }
+
   /// Constructor redirection to [element].
   factory StaticUse.constructorRedirect(ConstructorElement element) {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
@@ -253,10 +280,10 @@ class StaticUse {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StaticUse) return false;
-    return element == other.element && kind == other.kind;
+    return element == other.element && kind == other.kind && type == other.type;
   }
 
-  String toString() => 'StaticUse($element,$kind)';
+  String toString() => 'StaticUse($element,$kind,$type)';
 }
 
 enum TypeUseKind {

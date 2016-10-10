@@ -15,6 +15,7 @@ import '../kernel/kernel.dart';
 import '../kernel/kernel_debug.dart';
 import '../kernel/kernel_visitor.dart';
 import '../resolution/registry.dart' show ResolutionWorldImpactBuilder;
+import '../universe/call_structure.dart';
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
@@ -215,19 +216,21 @@ class KernelImpactBuilder extends ir.Visitor {
 
   @override
   void visitConstructorInvocation(ir.ConstructorInvocation node) {
-    handleNew(node, node.target);
+    handleNew(node, node.target, isConst: node.isConst);
   }
 
-  void handleNew(ir.InvocationExpression node, ir.Member target) {
+  void handleNew(ir.InvocationExpression node, ir.Member target,
+      {bool isConst: false}) {
     _visitArguments(node.arguments);
     Element element = astAdapter.getElement(target).declaration;
-    impactBuilder.registerStaticUse(new StaticUse.constructorInvoke(
-        element, astAdapter.getCallStructure(node.arguments)));
     ClassElement cls = astAdapter.getElement(target.enclosingClass);
     List<DartType> typeArguments =
         astAdapter.getDartTypes(node.arguments.types);
-    impactBuilder.registerTypeUse(
-        new TypeUse.instantiation(new InterfaceType(cls, typeArguments)));
+    InterfaceType type = new InterfaceType(cls, typeArguments);
+    CallStructure callStructure = astAdapter.getCallStructure(node.arguments);
+    impactBuilder.registerStaticUse(isConst
+        ? new StaticUse.constConstructorInvoke(element, callStructure, type)
+        : new StaticUse.typedConstructorInvoke(element, callStructure, type));
     if (typeArguments.any((DartType type) => !type.isDynamic)) {
       impactBuilder.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }

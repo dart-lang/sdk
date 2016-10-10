@@ -373,6 +373,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       case StaticUseKind.GENERAL:
       case StaticUseKind.STATIC_TEAR_OFF:
       case StaticUseKind.FIELD_GET:
+      case StaticUseKind.CONSTRUCTOR_INVOKE:
+      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         break;
       case StaticUseKind.CLOSURE:
         allClosures.add(element);
@@ -647,6 +649,8 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.GENERAL:
       case StaticUseKind.CLOSURE:
       case StaticUseKind.FIELD_GET:
+      case StaticUseKind.CONSTRUCTOR_INVOKE:
+      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         break;
     }
   }
