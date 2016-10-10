@@ -14,6 +14,7 @@ import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -70,12 +71,14 @@ class ContextBuilder {
    * The resolver provider used to create a package: URI resolver, or `null` if
    * the normal (Package Specification DEP) lookup mechanism is to be used.
    */
+  @deprecated
   ResolverProvider packageResolverProvider;
 
   /**
    * The resolver provider used to create a file: URI resolver, or `null` if
    * the normal file URI resolver is to be used.
    */
+  @deprecated
   ResolverProvider fileResolverProvider;
 
   /**
@@ -220,38 +223,24 @@ class ContextBuilder {
     return findPackagesFromFile(rootDirectoryPath);
   }
 
-  SourceFactory createSourceFactory(
-      String rootDirectoryPath, AnalysisOptions options) {
-    Folder _folder = null;
-    Folder folder() {
-      return _folder ??= resourceProvider.getFolder(rootDirectoryPath);
+  SourceFactory createSourceFactory(String rootPath, AnalysisOptions options) {
+    BazelWorkspace bazelWorkspace =
+        BazelWorkspace.find(resourceProvider, rootPath);
+    if (bazelWorkspace != null) {
+      List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(findSdk(null, options)),
+        new BazelPackageUriResolver(bazelWorkspace),
+        new BazelFileUriResolver(bazelWorkspace)
+      ];
+      return new SourceFactory(resolvers, null, resourceProvider);
     }
 
-    UriResolver fileResolver;
-    if (fileResolverProvider != null) {
-      fileResolver = fileResolverProvider(folder());
-    }
-    fileResolver ??= new ResourceUriResolver(resourceProvider);
-    if (packageResolverProvider != null) {
-      UriResolver packageResolver = packageResolverProvider(folder());
-      if (packageResolver != null) {
-        // TODO(brianwilkerson) This doesn't support either embedder files or
-        // sdk extensions because we don't have a way to get the package map
-        // from the resolver.
-        List<UriResolver> resolvers = <UriResolver>[
-          new DartUriResolver(findSdk(null, options)),
-          packageResolver,
-          fileResolver
-        ];
-        return new SourceFactory(resolvers, null, resourceProvider);
-      }
-    }
-    Packages packages = createPackageMap(rootDirectoryPath);
+    Packages packages = createPackageMap(rootPath);
     Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
     List<UriResolver> resolvers = <UriResolver>[
       new DartUriResolver(findSdk(packageMap, options)),
       new PackageMapUriResolver(resourceProvider, packageMap),
-      fileResolver
+      new ResourceUriResolver(resourceProvider)
     ];
     return new SourceFactory(resolvers, packages, resourceProvider);
   }

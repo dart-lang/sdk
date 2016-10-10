@@ -7,9 +7,9 @@ library analyzer.test.src.context.context_builder_test;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/plugin/options.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -273,26 +273,22 @@ bar:$barUri
     expect(packages, same(Packages.noPackages));
   }
 
-  void test_createSourceFactory_fileProvider() {
-    String rootPath = resourceProvider.convertPath('/root');
-    Folder rootFolder = resourceProvider.getFolder(rootPath);
-    createDefaultSdk(rootFolder);
-    String projectPath = pathContext.join(rootPath, 'project');
-    String packageFilePath = pathContext.join(projectPath, '.packages');
-    String packageA = pathContext.join(rootPath, 'pkgs', 'a');
-    String packageB = pathContext.join(rootPath, 'pkgs', 'b');
-    createFile(
-        packageFilePath,
-        '''
-a:${pathContext.toUri(packageA)}
-b:${pathContext.toUri(packageB)}
-''');
+  void test_createSourceFactory_bazelWorkspace_fileProvider() {
+    String _p(String path) => resourceProvider.convertPath(path);
+
+    String projectPath = _p('/workspace/my/module');
+    resourceProvider.newFile(_p('/workspace/WORKSPACE'), '');
+    resourceProvider.newFolder(_p('/workspace/bazel-bin'));
+    resourceProvider.newFolder(_p('/workspace/bazel-genfiles'));
+    resourceProvider.newFolder(projectPath);
+
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    UriResolver resolver = new ResourceUriResolver(resourceProvider);
-    builder.fileResolverProvider = (folder) => resolver;
     SourceFactoryImpl factory =
         builder.createSourceFactory(projectPath, options);
-    expect(factory.resolvers, contains(same(resolver)));
+    expect(factory.resolvers,
+        contains(predicate((r) => r is BazelFileUriResolver)));
+    expect(factory.resolvers,
+        contains(predicate((r) => r is BazelPackageUriResolver)));
   }
 
   void test_createSourceFactory_noProvider_packages_embedder_extensions() {
@@ -411,19 +407,6 @@ b:${pathContext.toUri(packageB)}
     Source packageSource = factory.forUri('package:a/a.dart');
     expect(packageSource, isNotNull);
     expect(packageSource.fullName, pathContext.join(packageA, 'a.dart'));
-  }
-
-  void test_createSourceFactory_packageProvider() {
-    String rootPath = resourceProvider.convertPath('/root');
-    Folder rootFolder = resourceProvider.getFolder(rootPath);
-    createDefaultSdk(rootFolder);
-    String projectPath = pathContext.join(rootPath, 'project');
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    UriResolver resolver = new PackageMapUriResolver(resourceProvider, {});
-    builder.packageResolverProvider = (folder) => resolver;
-    SourceFactoryImpl factory =
-        builder.createSourceFactory(projectPath, options);
-    expect(factory.resolvers, contains(same(resolver)));
   }
 
   void test_declareVariables_emptyMap() {
