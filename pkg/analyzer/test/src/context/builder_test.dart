@@ -96,7 +96,8 @@ const Map<String, LibraryInfo> libraries = const {
     resourceProvider = new MemoryResourceProvider();
     pathContext = resourceProvider.pathContext;
     new MockSdk(resourceProvider: resourceProvider);
-    sdkManager = new DartSdkManager('/sdk', false, (_) {
+    sdkManager =
+        new DartSdkManager(resourceProvider.convertPath('/sdk'), false, (_) {
       fail('Should not be used to create an SDK');
     });
     contentCache = new ContentCache();
