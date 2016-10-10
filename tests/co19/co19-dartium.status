@@ -11,6 +11,8 @@ LayoutTests/fast/forms/input-value-sanitization_t01: RuntimeError # 45 roll
 LayoutTests/fast/writing-mode/broken-ideographic-font_t01: Skip # Timing out on the bots. Please triage this failure.
 LayoutTests/fast/writing-mode/flipped-blocks-hit-test-overflow_t01: Pass, RuntimeError # Issue 21605
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
+LibTest/collection/ListBase/ListBase_class_A01_t02: Skip # Timing out on the bots. Please triage this failure.
+WebPlatformTest/custom-elements/concepts/type_A07_t01: Skip # Timing out on the bots. Please triage this failure.
 
 [ $compiler == none && $runtime == dartium && $system == windows ]
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605

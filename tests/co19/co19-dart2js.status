@@ -541,7 +541,7 @@ Language/Metadata/compilation_t10: Pass # mirrors not supported, fails for the w
 Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the wrong reason
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 
-[ $compiler == dart2js && ($runtime == jsshell || ($fast_startup && $runtime == safari))]
+[ $compiler == dart2js && ($runtime == jsshell || ($minified && $runtime == d8) || ($fast_startup && $runtime == safari))]
 LibTest/isolate/Isolate/spawn_A04_t04: Fail # please triage
 
 [ $compiler == dart2js && $fast_startup && $runtime == jsshell ]
@@ -6714,6 +6714,7 @@ LayoutTests/fast/canvas/canvas-blending-text_t01: RuntimeError # Please triage t
 LayoutTests/fast/canvas/canvas-blending-transforms_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-clip-rule_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-composite-canvas_t01: Pass, RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-composite-image_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentColor_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is not implemented
 LayoutTests/fast/canvas/canvas-ellipse-360-winding_t01: RuntimeError # Please triage this failure
@@ -8076,12 +8077,12 @@ LayoutTests/fast/xsl/transformToFragment-XML-declaration_t01: RuntimeError # Ple
 LayoutTests/fast/xsl/xslt-fragment-in-empty-doc_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-string-parameters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please triage this failure
-LibTest/async/Future/doWhile_A05_t01: RuntimeError # Please triage this failure
+LibTest/async/Future/doWhile_A05_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
 LibTest/async/Future/forEach_A04_t02: RuntimeError # Please triage this failure
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
-LibTest/async/Stream/timeout_A01_t01: RuntimeError # Please triage this failure
-LibTest/async/Stream/timeout_A03_t01: RuntimeError # Please triage this failure
-LibTest/async/Stream/timeout_A04_t01: RuntimeError # Please triage this failure
+LibTest/async/Stream/timeout_A01_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
+LibTest/async/Stream/timeout_A03_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
+LibTest/async/Stream/timeout_A04_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
 LibTest/async/StreamController/StreamController.broadcast_A04_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Timer/Timer_A01_t01: Pass, RuntimeError # Please triage this failure
