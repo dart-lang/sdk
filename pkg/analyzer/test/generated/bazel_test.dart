@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:typed_mock/typed_mock.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -390,6 +391,53 @@ class BazelPackageUriResolverTest extends _BaseTest {
         exists: true);
   }
 
+  void test_restoreAbsolute_noPackageName_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/lib/foo1.dart',
+      '/workspace/foo/lib/foo2.dart',
+    ]);
+    _assertRestore('/workspace/lib/foo1.dart', null);
+    _assertRestore('/workspace/foo/lib/foo2.dart', null);
+  }
+
+  void test_restoreAbsolute_noPathInLib_bin() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/bazel-bin/my/foo/lib/foo1.dart',
+    ]);
+    _assertRestore('/workspace/bazel-bin', null);
+    _assertRestore('/workspace/bazel-bin/my', null);
+    _assertRestore('/workspace/bazel-bin/my/foo', null);
+    _assertRestore('/workspace/bazel-bin/my/foo/lib', null);
+  }
+
+  void test_restoreAbsolute_noPathInLib_genfiles() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/bazel-genfiles/my/foo/lib/foo1.dart',
+    ]);
+    _assertRestore('/workspace/bazel-genfiles', null);
+    _assertRestore('/workspace/bazel-genfiles/my', null);
+    _assertRestore('/workspace/bazel-genfiles/my/foo', null);
+    _assertRestore('/workspace/bazel-genfiles/my/foo/lib', null);
+  }
+
+  void test_restoreAbsolute_noPathInLib_workspace() {
+    _addResources([
+      '/workspace/WORKSPACE',
+      '/workspace/bazel-genfiles/',
+      '/workspace/my/foo/lib/foo1.dart',
+    ]);
+    _assertRestore('/workspace', null);
+    _assertRestore('/workspace/my', null);
+    _assertRestore('/workspace/my/foo', null);
+    _assertRestore('/workspace/my/foo/lib', null);
+  }
+
   void _addResources(List<String> paths, {String workspacePath: '/workspace'}) {
     for (String path in paths) {
       if (path.endsWith('/')) {
@@ -402,13 +450,26 @@ class BazelPackageUriResolverTest extends _BaseTest {
     resolver = new BazelPackageUriResolver(workspace);
   }
 
-  void _assertResolve(String uriStr, String posixPath, {bool exists: true}) {
+  void _assertResolve(String uriStr, String posixPath,
+      {bool exists: true, bool restore: true}) {
     Uri uri = Uri.parse(uriStr);
     Source source = resolver.resolveAbsolute(uri);
     expect(source, isNotNull);
     expect(source.fullName, _p(posixPath));
     expect(source.uri, uri);
     expect(source.exists(), exists);
+    // If enabled, test also "restoreAbsolute".
+    if (restore) {
+      Uri uri = resolver.restoreAbsolute(source);
+      expect(uri.toString(), uriStr);
+    }
+  }
+
+  void _assertRestore(String posixPath, String expectedUri) {
+    String path = _p(posixPath);
+    _MockSource source = new _MockSource(path);
+    Uri uri = resolver.restoreAbsolute(source);
+    expect(uri?.toString(), expectedUri);
   }
 }
 
@@ -576,4 +637,9 @@ class _BaseTest {
    * Return the [provider] specific path for the given Posix [path].
    */
   String _p(String path) => provider.convertPath(path);
+}
+
+class _MockSource extends TypedMock implements Source {
+  final String fullName;
+  _MockSource(this.fullName);
 }

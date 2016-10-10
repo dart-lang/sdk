@@ -10,6 +10,7 @@ import 'dart:core';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart';
 
 /**
@@ -85,6 +86,53 @@ class BazelPackageUriResolver extends UriResolver {
         return file?.createSource(uri);
       }
     });
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    Context context = _workspace.provider.pathContext;
+    String path = source.fullName;
+
+    Uri restore(String root, String path) {
+      if (root != null && context.isWithin(root, path)) {
+        String relative = context.relative(path, from: root);
+        List<String> components = context.split(relative);
+        if (components.length >= 1 && components[0] == 'third_party') {
+          if (components.length > 4 &&
+              components[1] == 'dart' &&
+              components[3] == 'lib') {
+            String packageName = components[2];
+            String pathInLib = components.skip(4).join('/');
+            return FastUri.parse('package:$packageName/$pathInLib');
+          }
+        } else {
+          for (int i = 2; i < components.length - 1; i++) {
+            String component = components[i];
+            if (component == 'lib') {
+              String packageName = components.getRange(0, i).join('.');
+              String pathInLib = components.skip(i + 1).join('/');
+              return FastUri.parse('package:$packageName/$pathInLib');
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    // Search in each root.
+    for (String root in [
+      _workspace.bin,
+      _workspace.genfiles,
+      _workspace.readonly,
+      _workspace.root
+    ]) {
+      Uri uri = restore(root, path);
+      if (uri != null) {
+        return uri;
+      }
+    }
+
+    return null;
   }
 }
 
