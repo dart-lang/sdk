@@ -19,10 +19,10 @@ class BasicClassHierarchy implements ClassHierarchy {
   final Map<Class, Map<Name, Member>> gettersAndCalls =
       <Class, Map<Name, Member>>{};
   final Map<Class, Map<Name, Member>> setters = <Class, Map<Name, Member>>{};
-  final Map<Class, Map<Name, Member>> interfaceGettersAndCalls =
-      <Class, Map<Name, Member>>{};
-  final Map<Class, Map<Name, Member>> interfaceSetters =
-      <Class, Map<Name, Member>>{};
+  final Map<Class, Map<Name, List<Member>>> interfaceGettersAndCalls =
+      <Class, Map<Name, List<Member>>>{};
+  final Map<Class, Map<Name, List<Member>>> interfaceSetters =
+      <Class, Map<Name, List<Member>>>{};
   final List<Class> classes = <Class>[];
   final Map<Class, int> classIndex = <Class, int>{};
 
@@ -48,16 +48,15 @@ class BasicClassHierarchy implements ClassHierarchy {
     for (var member in class_.mixin.members) {
       for (var supertype in class_.supers) {
         if (member.hasGetter) {
-          var superMember =
-              getInterfaceMember(supertype.classNode, member.name);
-          if (superMember != null) {
+          for (var superMember
+              in getInterfaceMembersByName(supertype.classNode, member.name)) {
             report(member, superMember, false);
           }
         }
         if (member.hasSetter) {
-          var superMember = getInterfaceMember(supertype.classNode, member.name,
-              setter: true);
-          if (superMember != null) {
+          for (var superMember in getInterfaceMembersByName(
+              supertype.classNode, member.name,
+              setter: true)) {
             report(member, superMember, true);
           }
         }
@@ -69,17 +68,17 @@ class BasicClassHierarchy implements ClassHierarchy {
       for (var member in getDispatchTargets(class_, setters: setter)) {
         // Report overriding inheritable members.
         for (var supertype in class_.supers) {
-          var supermember = getInterfaceMember(supertype.classNode, member.name,
-              setter: setter);
-          if (supermember != null) {
-            report(member, supermember, setter);
+          for (var superMember in getInterfaceMembersByName(
+              supertype.classNode, member.name,
+              setter: setter)) {
+            report(member, superMember, setter);
           }
         }
         // Report overriding declared abstract members.
         if (!class_.isAbstract && member.enclosingClass != class_.mixin) {
-          var declaredMember =
-              getInterfaceMember(class_, member.name, setter: setter);
-          if (declaredMember != null) {
+          for (var declaredMember in getInterfaceMembersByName(
+              class_, member.name,
+              setter: setter)) {
             report(member, declaredMember, setter);
           }
         }
@@ -153,34 +152,41 @@ class BasicClassHierarchy implements ClassHierarchy {
     }
   }
 
+  void mergeMaps(
+      Map<Name, List<Member>> source, Map<Name, List<Member>> destination) {
+    for (var name in source.keys) {
+      destination.putIfAbsent(name, () => <Member>[]).addAll(source[name]);
+    }
+  }
+
   void buildInterfaceTable(Class node) {
     if (interfaceGettersAndCalls.containsKey(node)) return;
-    interfaceGettersAndCalls[node] = <Name, Member>{};
-    interfaceSetters[node] = <Name, Member>{};
+    interfaceGettersAndCalls[node] = <Name, List<Member>>{};
+    interfaceSetters[node] = <Name, List<Member>>{};
     void inheritFrom(InterfaceType type) {
       if (type == null) return;
       buildInterfaceTable(type.classNode);
-      interfaceGettersAndCalls[node]
-          .addAll(interfaceGettersAndCalls[type.classNode]);
-      interfaceSetters[node].addAll(interfaceSetters[type.classNode]);
+      mergeMaps(interfaceGettersAndCalls[type.classNode],
+          interfaceGettersAndCalls[node]);
+      mergeMaps(interfaceSetters[type.classNode], interfaceSetters[node]);
     }
-    node.implementedTypes.reversed.forEach(inheritFrom);
-    inheritFrom(node.mixedInType);
     inheritFrom(node.supertype);
+    inheritFrom(node.mixedInType);
+    node.implementedTypes.forEach(inheritFrom);
     // Overwrite map entries with declared members.
     for (Procedure procedure in node.mixin.procedures) {
       if (procedure.isStatic) continue;
       if (procedure.kind == ProcedureKind.Setter) {
-        interfaceSetters[node][procedure.name] = procedure;
+        interfaceSetters[node][procedure.name] = <Member>[procedure];
       } else {
-        interfaceGettersAndCalls[node][procedure.name] = procedure;
+        interfaceGettersAndCalls[node][procedure.name] = <Member>[procedure];
       }
     }
     for (Field field in node.mixin.fields) {
       if (field.isStatic) continue;
-      interfaceGettersAndCalls[node][field.name] = field;
+      interfaceGettersAndCalls[node][field.name] = <Member>[field];
       if (!field.isFinal) {
-        interfaceSetters[node][field.name] = field;
+        interfaceSetters[node][field.name] = <Member>[field];
       }
     }
   }
@@ -211,16 +217,26 @@ class BasicClassHierarchy implements ClassHierarchy {
         : gettersAndCalls[class_].values;
   }
 
+  Member tryFirst(List<Member> members) {
+    return (members == null || members.isEmpty) ? null : members[0];
+  }
+
   Member getInterfaceMember(Class class_, Name name, {bool setter: false}) {
-    return setter
+    return tryFirst(getInterfaceMembersByName(class_, name, setter: setter));
+  }
+
+  Iterable<Member> getInterfaceMembersByName(Class class_, Name name,
+      {bool setter: false}) {
+    var iterable = setter
         ? interfaceSetters[class_][name]
         : interfaceGettersAndCalls[class_][name];
+    return iterable == null ? const <Member>[] : iterable;
   }
 
   Iterable<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     return setters
-        ? interfaceSetters[class_].values
-        : interfaceGettersAndCalls[class_].values;
+        ? interfaceSetters[class_].values.expand((x) => x)
+        : interfaceGettersAndCalls[class_].values.expand((x) => x);
   }
 
   int getClassIndex(Class node) {

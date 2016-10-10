@@ -133,7 +133,11 @@ class ClassHierarchy {
   /// Returns the list of members denoting the interface for [class_], which
   /// may include abstract members.
   ///
-  /// See [getInterfaceMember].
+  /// The list may contain multiple members with a given name.  This happens
+  /// when members are inherited through different supertypes and not overridden
+  /// in the class.
+  ///
+  /// Also see [getInterfaceMember].
   List<Member> getInterfaceMembers(Class class_, {bool setters: false}) {
     return _buildInterfaceMembers(class_, _infoFor[class_], setters: setters);
   }
@@ -216,11 +220,12 @@ class ClassHierarchy {
       } else if (comparison > 0) {
         ++j;
       } else {
-        ++i;
-        ++j;
         if (!identical(declared, inherited)) {
           callback(declared, inherited, isSetter);
         }
+        // A given declared member may override multiple interface members,
+        // so only move past the interface member.
+        ++j;
       }
     }
   }
@@ -253,6 +258,12 @@ class ClassHierarchy {
     // Run a downward traversal from the root, compute preorder numbers for
     // each class, and build their subtype sets as interval lists.
     _topDownSortVisit(_infoFor[rootClass]);
+
+    for (int i = 0; i < classes.length; ++i) {
+      var class_ = classes[i];
+      _buildInterfaceMembers(class_, _infoFor[class_], setters: true);
+      _buildInterfaceMembers(class_, _infoFor[class_], setters: false);
+    }
   }
 
   /// Upwards traversal of the class hierarchy that orders classes so super
@@ -341,28 +352,21 @@ class ClassHierarchy {
     List<Member> members =
         setters ? info.interfaceSetters : info.interfaceGettersAndCalls;
     if (members != null) return members;
-    members = <Member>[];
-    for (Procedure member in classNode.mixin.procedures) {
-      if (member.isStatic) continue;
-      if (setters != member.isSetter) continue;
-      members.add(member);
-    }
-    for (Field member in classNode.mixin.fields) {
-      if (member.isStatic) continue;
-      if (setters && member.isFinal) continue;
-      members.add(member);
-    }
-    members.sort(_compareMembers);
+    List<Member> allInheritedMembers = <Member>[];
+    List<Member> declared =
+        setters ? info.declaredSetters : info.declaredGettersAndCalls;
     void inheritFrom(InterfaceType type) {
       if (type == null) return;
       List<Member> inherited = _buildInterfaceMembers(
           type.classNode, _infoFor[type.classNode],
           setters: setters);
-      members = _inheritMembers(members, inherited);
+      inherited = _getUnshadowedInheritedMembers(declared, inherited);
+      allInheritedMembers = _merge(allInheritedMembers, inherited);
     }
     inheritFrom(classNode.supertype);
     inheritFrom(classNode.mixedInType);
     classNode.implementedTypes.forEach(inheritFrom);
+    members = _inheritMembers(declared, allInheritedMembers);
     if (setters) {
       info.interfaceSetters = members;
     } else {
@@ -375,7 +379,8 @@ class ClassHierarchy {
   /// members and inherited instance members.
   ///
   /// Both lists must be sorted by name beforehand.
-  List<Member> _inheritMembers(List<Member> declared, List<Member> inherited,
+  static List<Member> _inheritMembers(
+      List<Member> declared, List<Member> inherited,
       {bool skipAbstractMembers: false}) {
     List<Member> result = <Member>[]
       ..length = declared.length + inherited.length;
@@ -412,6 +417,75 @@ class ClassHierarchy {
     }
     while (j < inherited.length) {
       result[storeIndex++] = inherited[j++];
+    }
+    result.length = storeIndex;
+    return result;
+  }
+
+  /// Returns the subset of members in [inherited] for which a member with the
+  /// same name does not occur in [declared].
+  ///
+  /// The input lists must be sorted, and the returned list is sorted.
+  static List<Member> _getUnshadowedInheritedMembers(
+      List<Member> declared, List<Member> inherited) {
+    List<Member> result = <Member>[]..length = inherited.length;
+    int storeIndex = 0;
+    int i = 0, j = 0;
+    while (i < declared.length && j < inherited.length) {
+      Member declaredMember = declared[i];
+      Member inheritedMember = inherited[j];
+      int comparison = _compareMembers(declaredMember, inheritedMember);
+      if (comparison < 0) {
+        ++i;
+      } else if (comparison > 0) {
+        result[storeIndex++] = inheritedMember;
+        ++j;
+      } else {
+        // Move past the shadowed member, but retain the declared member, as
+        // it may shadow multiple members.
+        ++j;
+      }
+    }
+    // If the list of declared members is exhausted, copy over the remains of
+    // the inherited members.
+    while (j < inherited.length) {
+      result[storeIndex++] = inherited[j++];
+    }
+    result.length = storeIndex;
+    return result;
+  }
+
+  /// Merges two sorted lists.
+  ///
+  /// If a given member occurs in both lists, the merge will attempt to exclude
+  /// the duplicate member, but is not strictly guaranteed to do so.
+  static List<Member> _merge(List<Member> first, List<Member> second) {
+    if (first.isEmpty) return second;
+    if (second.isEmpty) return first;
+    List<Member> result = <Member>[]..length = first.length + second.length;
+    int storeIndex = 0;
+    int i = 0, j = 0;
+    while (i < first.length && j < second.length) {
+      Member firstMember = first[i];
+      Member secondMember = second[j];
+      int compare = _compareMembers(firstMember, secondMember);
+      if (compare <= 0) {
+        result[storeIndex++] = firstMember;
+        ++i;
+        // If the same member occurs in both lists, skip the duplicate.
+        if (identical(firstMember, secondMember)) {
+          ++j;
+        }
+      } else {
+        result[storeIndex++] = secondMember;
+        ++j;
+      }
+    }
+    while (i < first.length) {
+      result[storeIndex++] = first[i++];
+    }
+    while (j < second.length) {
+      result[storeIndex++] = second[j++];
     }
     result.length = storeIndex;
     return result;
@@ -633,6 +707,9 @@ int _intervalListSize(Uint32List intervalList) {
   return size;
 }
 
+/// Returns the member with the given name, or `null` if no member has the
+/// name.  In case the list contains multiple members with the given name,
+/// the one that occurs first in the list is returned.
 Member _findMemberByName(List<Member> members, Name name) {
   int low = 0, high = members.length - 1;
   while (low <= high) {
@@ -643,6 +720,9 @@ Member _findMemberByName(List<Member> members, Name name) {
       high = mid - 1;
     } else if (comparison > 0) {
       low = mid + 1;
+    } else if (high != mid) {
+      // Ensure we find the first element of the given name.
+      high = mid;
     } else {
       return pivot;
     }

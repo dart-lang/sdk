@@ -639,11 +639,20 @@ class Builder {
     Class node = hierarchy.classes[index];
     int variable = externalClassVariables[index];
     int externalObject = externalClassValues[index];
+    Name previousName = null;
     for (Member member in hierarchy.getInterfaceMembers(node, setters: false)) {
+      // Do not generate an interface member for a given name more than once.
+      // This can happen if a class inherits two methods through different
+      // inheritance paths.
+      if (member.name == previousName) continue;
+      previousName = member.name;
       _buildExternalInterfaceMember(node, member, externalObject, variable,
           isSetter: false);
     }
+    previousName = null;
     for (Member member in hierarchy.getInterfaceMembers(node, setters: true)) {
+      if (member.name == previousName) continue;
+      previousName = member.name;
       _buildExternalInterfaceMember(node, member, externalObject, variable,
           isSetter: true);
     }
