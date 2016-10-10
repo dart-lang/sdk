@@ -391,8 +391,6 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       // newer SDKs.
       'html_escape_test': ['skip'],
 
-      'json_lib_test': 'unittest',
-
       'json_utf8_chunk_test': skip_timeout,
       'latin1_test': skip_timeout,
 

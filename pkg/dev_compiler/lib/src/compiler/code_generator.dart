@@ -3890,7 +3890,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       }
       var args = _visit(argumentList) as List<JS.Expression>;
       // Native factory constructors are JS constructors - use new here.
-      return isFactory && !isNative ? new JS.Call(ctor, args) : new JS.New(ctor, args);
+      return isFactory && !isNative
+          ? new JS.Call(ctor, args)
+          : new JS.New(ctor, args);
     }
 
     if (element != null && _isObjectLiteral(element.enclosingElement)) {

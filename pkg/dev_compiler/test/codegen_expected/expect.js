@@ -208,6 +208,36 @@ define(['dart_sdk'], function(dart_sdk) {
       }
       expect.Expect._fail(sb.toString());
     }
+    static deepEquals(expected, actual) {
+      if (dart.equals(expected, actual)) return;
+      if (core.List.is(expected) && core.List.is(actual)) {
+        let n = dart.notNull(expected[dartx.length]) < dart.notNull(actual[dartx.length]) ? expected[dartx.length] : actual[dartx.length];
+        for (let i = 0; i < dart.notNull(n); i++) {
+          expect.Expect.deepEquals(expected[dartx.get](i), actual[dartx.get](i));
+        }
+        if (expected[dartx.length] != actual[dartx.length]) {
+          expect.Expect._fail('Expect.deepEquals(list length, ' + dart.str`expected: <${expected[dartx.length]}>, actual: <${actual[dartx.length]}>) ` + 'fails: Next element <' + dart.str`${dart.notNull(expected[dartx.length]) > dart.notNull(n) ? expected[dartx.get](n) : actual[dartx.get](n)}>`);
+        }
+      } else if (core.Map.is(expected) && core.Map.is(actual)) {
+        for (let key of expected[dartx.keys]) {
+          if (!dart.test(actual[dartx.containsKey](key))) {
+            expect.Expect._fail(dart.str`Expect.deepEquals(missing expected key: <${key}>) fails`);
+          }
+          expect.Expect.deepEquals(expected[dartx.get](key), actual[dartx.get](key));
+        }
+        for (let key of actual[dartx.keys]) {
+          if (!dart.test(expected[dartx.containsKey](key))) {
+            expect.Expect._fail(dart.str`Expect.deepEquals(unexpected key: <${key}>) fails`);
+          }
+        }
+      } else if (typeof expected == 'string' && typeof actual == 'string') {
+        let stringDifference = expect.Expect._stringDifference(expected, actual);
+        dart.assert(stringDifference != null);
+        expect.Expect._fail(dart.str`Expect.deepEquals(${stringDifference}) fails.`);
+      } else {
+        expect.Expect._fail(dart.str`Expect.deepEquals(expected: <${expected}>, actual: <${actual}>) ` + "fails.");
+      }
+    }
     static throws(f, check, reason) {
       if (check === void 0) check = null;
       if (reason === void 0) reason = null;
@@ -253,11 +283,12 @@ define(['dart_sdk'], function(dart_sdk) {
       mapEquals: dart.definiteFunctionType(dart.void, [core.Map, core.Map], [core.String]),
       stringEquals: dart.definiteFunctionType(dart.void, [core.String, core.String], [core.String]),
       setEquals: dart.definiteFunctionType(dart.void, [core.Iterable, core.Iterable], [core.String]),
+      deepEquals: dart.definiteFunctionType(dart.void, [core.Object, core.Object]),
       throws: dart.definiteFunctionType(dart.void, [VoidTovoid()], [expect._CheckExceptionFn, core.String]),
       _getMessage: dart.definiteFunctionType(core.String, [core.String]),
       _fail: dart.definiteFunctionType(dart.void, [core.String])
     }),
-    names: ['_truncateString', '_stringDifference', 'equals', 'isTrue', 'isFalse', 'isNull', 'isNotNull', 'identical', 'fail', 'approxEquals', 'notEquals', 'listEquals', 'mapEquals', 'stringEquals', 'setEquals', 'throws', '_getMessage', '_fail']
+    names: ['_truncateString', '_stringDifference', 'equals', 'isTrue', 'isFalse', 'isNull', 'isNotNull', 'identical', 'fail', 'approxEquals', 'notEquals', 'listEquals', 'mapEquals', 'stringEquals', 'setEquals', 'deepEquals', 'throws', '_getMessage', '_fail']
   });
   expect._identical = function(a, b) {
     return core.identical(a, b);
