@@ -35,7 +35,7 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/resolution.dart' show AnalyzableElementX;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart' as ast;
-import 'universe/use.dart' show StaticUse, TypeUse, TypeUseKind;
+import 'universe/use.dart' show StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import 'universe/world_impact.dart'
     show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 import 'util/setlet.dart' show Setlet;
@@ -330,6 +330,13 @@ class DeferredLoadTask extends CompilerTask {
             worldImpact,
             new WorldImpactVisitorImpl(visitStaticUse: (StaticUse staticUse) {
               elements.add(staticUse.element);
+              switch (staticUse.kind) {
+                case StaticUseKind.CONSTRUCTOR_INVOKE:
+                case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+                  collectTypeDependencies(staticUse.type);
+                  break;
+                default:
+              }
             }, visitTypeUse: (TypeUse typeUse) {
               DartType type = typeUse.type;
               switch (typeUse.kind) {
