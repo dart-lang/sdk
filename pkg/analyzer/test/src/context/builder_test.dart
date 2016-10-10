@@ -96,7 +96,7 @@ const Map<String, LibraryInfo> libraries = const {
     resourceProvider = new MemoryResourceProvider();
     pathContext = resourceProvider.pathContext;
     new MockSdk(resourceProvider: resourceProvider);
-    sdkManager = new DartSdkManager('/', false, (_) {
+    sdkManager = new DartSdkManager('/sdk', false, (_) {
       fail('Should not be used to create an SDK');
     });
     contentCache = new ContentCache();
@@ -482,6 +482,29 @@ b:${pathContext.toUri(packageB)}
   void test_findSdk_noPackageMap() {
     DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
     expect(sdk, isNotNull);
+  }
+
+  void test_findSdk_noPackageMap_html_spec() {
+    DartSdk sdk = builder.findSdk(null, new AnalysisOptionsImpl());
+    expect(sdk, isNotNull);
+    Source htmlSource = sdk.mapDartUri('dart:html');
+    expect(
+        htmlSource.fullName,
+        resourceProvider
+            .convertPath('/sdk/lib/html/dartium/html_dartium.dart'));
+    expect(htmlSource.exists(), isTrue);
+  }
+
+  void test_findSdk_noPackageMap_html_strong() {
+    DartSdk sdk =
+        builder.findSdk(null, new AnalysisOptionsImpl()..strongMode = true);
+    expect(sdk, isNotNull);
+    Source htmlSource = sdk.mapDartUri('dart:html');
+    expect(
+        htmlSource.fullName,
+        resourceProvider
+            .convertPath('/sdk/lib/html/dart2js/html_dart2js.dart'));
+    expect(htmlSource.exists(), isTrue);
   }
 
   void test_getAnalysisOptions_default_noOverrides() {

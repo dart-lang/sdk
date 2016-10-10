@@ -20,7 +20,9 @@ const Map<String, LibraryInfo> libraries = const {
   "collection": const LibraryInfo("collection/collection.dart"),
   "convert": const LibraryInfo("convert/convert.dart"),
   "core": const LibraryInfo("core/core.dart"),
-  "html": const LibraryInfo("html/dartium/html_dartium.dart"),
+  "html": const LibraryInfo(
+    "html/dartium/html_dartium.dart",
+    dart2jsPath: "html/dart2js/html_dart2js.dart"),
   "math": const LibraryInfo("math/math.dart"),
   "_foreign_helper": const LibraryInfo("_internal/js_runtime/lib/foreign_helper.dart"),
 };
@@ -265,7 +267,15 @@ JS(String typeDescription, String codeTemplate,
 {}
 ''');
 
-const _MockSdkLibrary _LIB_HTML = const _MockSdkLibrary(
+const _MockSdkLibrary _LIB_HTML_DART2JS = const _MockSdkLibrary(
+    'dart:html',
+    '$sdkRoot/lib/html/dart2js/html_dart2js.dart',
+    '''
+library dart.html;
+class HtmlElement {}
+''');
+
+const _MockSdkLibrary _LIB_HTML_DARTIUM = const _MockSdkLibrary(
     'dart:html',
     '$sdkRoot/lib/html/dartium/html_dartium.dart',
     '''
@@ -303,7 +313,8 @@ const List<SdkLibrary> _LIBRARIES = const [
   _LIB_CONVERT,
   _LIB_FOREIGN_HELPER,
   _LIB_MATH,
-  _LIB_HTML,
+  _LIB_HTML_DART2JS,
+  _LIB_HTML_DARTIUM,
 ];
 
 class MockSdk implements DartSdk {
@@ -351,8 +362,8 @@ class MockSdk implements DartSdk {
       });
     }
     provider.newFile(
-        provider
-            .convertPath('/_internal/sdk_library_metadata/lib/libraries.dart'),
+        provider.convertPath(
+            '$sdkRoot/lib/_internal/sdk_library_metadata/lib/libraries.dart'),
         librariesContent);
   }
 
