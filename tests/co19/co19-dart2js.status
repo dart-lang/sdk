@@ -541,8 +541,8 @@ Language/Metadata/compilation_t10: Pass # mirrors not supported, fails for the w
 Language/Metadata/compilation_t11: Pass # mirrors not supported, fails for the wrong reason
 WebPlatformTest/shadow-dom/testcommon: Fail # mirrors not supported
 
-[ $compiler == dart2js && ($runtime == jsshell || ($minified && $runtime == d8) || ($fast_startup && $runtime == safari))]
-LibTest/isolate/Isolate/spawn_A04_t04: Fail # please triage
+[ $compiler == dart2js && ($runtime == jsshell || ($fast_startup && ($runtime == safari || ($minified && $runtime == d8))))]
+LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 
 [ $compiler == dart2js && $fast_startup && $runtime == jsshell ]
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Fail # please triage
