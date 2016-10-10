@@ -588,9 +588,8 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       'math_test': skip_fail,
       'math2_test': skip_fail,
       'pi_test': skip_timeout,
-      'point_test': ['unittest', 'skip', 'fail'],
       'random_big_test': skip_fail,
-      'rectangle_test': 'unittest',
+      'rectangle_test': fail, // TODO(rnystrom): #27551
     },
 
     'lib/typed_data': {

@@ -37387,7 +37387,8 @@
       }
       ['=='](other) {
         if (!RectangleOfnum().is(other)) return false;
-        return dart.equals(this[dartx.left], dart.dload(other, 'left')) && dart.equals(this[dartx.top], dart.dload(other, 'top')) && dart.equals(this[dartx.right], dart.dload(other, 'right')) && dart.equals(this[dartx.bottom], dart.dload(other, 'bottom'));
+        let otherRect = RectangleOfnum().as(other);
+        return this[dartx.left] == otherRect[dartx.left] && this[dartx.top] == otherRect[dartx.top] && this[dartx.right] == otherRect[dartx.right] && this[dartx.bottom] == otherRect[dartx.bottom];
       }
       get hashCode() {
         return math._JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.right]), dart.hashCode(this[dartx.bottom]));

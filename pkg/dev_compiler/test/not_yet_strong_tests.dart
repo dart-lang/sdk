@@ -2470,7 +2470,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'lib/html/webgl_1_test',
   'lib/html/window_nosuchmethod_test',
   'lib/html/wrapping_collections_test',
-  'lib/math/rectangle_test',
   // TODO(jmesserly): these are both under "dart:html" as well.
   'js_test',
   'js_util_test'
