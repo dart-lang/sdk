@@ -1495,8 +1495,7 @@ void Precompiler::CollectDynamicFunctionNames() {
     }
   }
 
-  // Locate all entries with one function only, and whose owner is neither
-  // subclassed nor implemented.
+  // Locate all entries with one function only
   Table::Iterator iter(&table);
   String& key = String::Handle(Z);
   UniqueFunctionsSet functions_set(HashTables::New<UniqueFunctionsSet>(20));
@@ -1508,9 +1507,7 @@ void Precompiler::CollectDynamicFunctionNames() {
     if (farray.Length() == 1) {
       function ^= farray.At(0);
       cls = function.Owner();
-      if (!CHA::IsImplemented(cls) && !CHA::HasSubclasses(cls)) {
-        functions_set.Insert(function);
-      }
+      functions_set.Insert(function);
     }
   }
 

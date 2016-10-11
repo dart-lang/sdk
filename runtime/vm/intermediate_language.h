@@ -2827,7 +2827,8 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
         token_kind_(token_kind),
         arguments_(arguments),
         argument_names_(argument_names),
-        checked_argument_count_(checked_argument_count) {
+        checked_argument_count_(checked_argument_count),
+        has_unique_selector_(false) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
@@ -2864,6 +2865,11 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   const Array& argument_names() const { return argument_names_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
+  bool has_unique_selector() const { return has_unique_selector_; }
+  void set_has_unique_selector(bool b) {
+    has_unique_selector_ = b;
+  }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
@@ -2888,6 +2894,7 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
   const Array& argument_names_;
   const intptr_t checked_argument_count_;
+  bool has_unique_selector_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
@@ -2910,6 +2917,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
   bool with_checks() const { return with_checks_; }
+  void set_with_checks(bool b) { with_checks_ = b; }
   bool complete() const { return complete_; }
   virtual TokenPosition token_pos() const {
     return instance_call_->token_pos();
@@ -2941,7 +2949,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  private:
   InstanceCallInstr* instance_call_;
   const ICData& ic_data_;
-  const bool with_checks_;
+  bool with_checks_;
   const bool complete_;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);

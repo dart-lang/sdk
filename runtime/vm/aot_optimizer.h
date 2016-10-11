@@ -17,16 +17,9 @@ class RawBool;
 
 class AotOptimizer : public FlowGraphVisitor {
  public:
-  AotOptimizer(
-      FlowGraph* flow_graph,
-      bool use_speculative_inlining,
-      GrowableArray<intptr_t>* inlining_black_list)
-      : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        flow_graph_(flow_graph),
-        use_speculative_inlining_(use_speculative_inlining),
-        inlining_black_list_(inlining_black_list) {
-    ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
-  }
+  AotOptimizer(FlowGraph* flow_graph,
+               bool use_speculative_inlining,
+               GrowableArray<intptr_t>* inlining_black_list);
   virtual ~AotOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -45,6 +38,8 @@ class AotOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
+  virtual void VisitPolymorphicInstanceCall(
+      PolymorphicInstanceCallInstr* instr);
   virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);
 
   void InsertBefore(Instruction* next,
@@ -141,6 +136,8 @@ class AotOptimizer : public FlowGraphVisitor {
   const bool use_speculative_inlining_;
 
   GrowableArray<intptr_t>* inlining_black_list_;
+
+  bool has_unique_no_such_method_;
 
   DISALLOW_COPY_AND_ASSIGN(AotOptimizer);
 };
