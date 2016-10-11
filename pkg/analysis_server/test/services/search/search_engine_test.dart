@@ -617,6 +617,23 @@ main(A<int> a) {
     await _verifyReferences(method, expected);
   }
 
+  test_searchReferences_null_noUnitElement() async {
+    _indexTestUnit('''
+class A {
+  m() {}
+}
+main(A a) {
+  a.m();
+}
+''');
+    MethodElement method = findElement('m');
+    List<SearchMatch> matches = await searchEngine.searchReferences(method);
+    expect(matches, hasLength(1));
+    // Set the source contents, so the element is invalidated.
+    context.setContents(testSource, '');
+    expect(matches.single.element, isNull);
+  }
+
   test_searchReferences_ParameterElement_ofConstructor() async {
     _indexTestUnit('''
 class C {
