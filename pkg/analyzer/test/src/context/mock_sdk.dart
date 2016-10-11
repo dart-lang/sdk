@@ -498,6 +498,9 @@ class _MockSdkLibrary implements SdkLibrary {
 
   @override
   bool get isVmLibrary => throw new UnimplementedError();
+
+  @override
+  List<String> getPatches(int platform) => const <String>[];
 }
 
 /**
