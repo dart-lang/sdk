@@ -419,7 +419,9 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
                   List<String> paths = <String>[];
                   pathsListLiteral.elements.forEach((Expression pathExpr) {
                     if (pathExpr is SimpleStringLiteral) {
-                      paths.add(pathExpr.value);
+                      String path = pathExpr.value;
+                      _validatePatchPath(path);
+                      paths.add(path);
                     } else {
                       throw new ArgumentError(
                           'The "patch" argument items must be simple strings.');
@@ -451,6 +453,24 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<Object> {
       _librariesMap.setLibrary(libraryName, library);
     }
     return null;
+  }
+
+  /**
+   * Validate the given [path] to a patch file. Throw [ArgumentError] if not a
+   * valid path: is absolute, or contains `..`.
+   */
+  void _validatePatchPath(String path) {
+    if (path.contains(r'\')) {
+      throw new ArgumentError('The path to a patch file must be posix: $path');
+    }
+    if (path.contains('..')) {
+      throw new ArgumentError(
+          'The path to a patch file cannot contain "..": $path');
+    }
+    if (path.startsWith('/')) {
+      throw new ArgumentError(
+          'The path to a patch file cannot be absolute: $path');
+    }
   }
 
   /**

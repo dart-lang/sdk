@@ -527,6 +527,21 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     }, throwsArgumentError);
   }
 
+  void test_readFrom_patches_invalid_path_hasDotDot() {
+    _assertPatchPathIsInvalid('foo/../bar.dart');
+    _assertPatchPathIsInvalid('../foo/bar.dart');
+    _assertPatchPathIsInvalid('foo/bar..dart');
+  }
+
+  void test_readFrom_patches_invalid_path_isAbsolute() {
+    _assertPatchPathIsInvalid('/foo.dart');
+    _assertPatchPathIsInvalid('/foo/bar.dart');
+  }
+
+  void test_readFrom_patches_invalid_path_notPosix() {
+    _assertPatchPathIsInvalid(r'foo\bar.dart');
+  }
+
   void test_readFrom_patches_invalid_platformCombinator() {
     expect(() {
       new SdkLibrariesReader(false).readFromFile(
@@ -570,6 +585,20 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(library.shortName, 'dart:my');
     expect(library.getPatches(SdkLibraryImpl.VM_PLATFORM), isEmpty);
     expect(library.getPatches(SdkLibraryImpl.DART2JS_PLATFORM), isEmpty);
+  }
+
+  void _assertPatchPathIsInvalid(String patchPath) {
+    expect(() {
+      new SdkLibrariesReader(false).readFromFile(
+          resourceProvider.getFile('/libs.dart'),
+          '''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'foo' : const LibraryInfo(
+    'foo/foo.dart',
+    patches: {
+      VM_PLATFORM: [r'$patchPath']}),
+};''');
+    }, throwsArgumentError);
   }
 }
 
