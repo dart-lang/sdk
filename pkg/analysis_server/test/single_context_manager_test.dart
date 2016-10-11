@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' hide equals;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';

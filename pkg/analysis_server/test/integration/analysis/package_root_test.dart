@@ -5,7 +5,7 @@
 library test.integration.analysis.packageRoot;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' hide equals;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
