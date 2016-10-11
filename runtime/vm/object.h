@@ -4129,17 +4129,17 @@ class Instructions : public Object {
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kCheckedEntryOffset = 23;
-  static const intptr_t kUncheckedEntryOffset = 44;
-#elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kCheckedEntryOffset = 12;
-  static const intptr_t kUncheckedEntryOffset = 36;
-#elif defined(TARGET_ARCH_ARM64)
-  static const intptr_t kCheckedEntryOffset = 24;
-  static const intptr_t kUncheckedEntryOffset = 48;
-#elif defined(TARGET_ARCH_MIPS)
   static const intptr_t kCheckedEntryOffset = 16;
-  static const intptr_t kUncheckedEntryOffset = 56;
+  static const intptr_t kUncheckedEntryOffset = 38;
+#elif defined(TARGET_ARCH_ARM)
+  static const intptr_t kCheckedEntryOffset = 8;
+  static const intptr_t kUncheckedEntryOffset = 32;
+#elif defined(TARGET_ARCH_ARM64)
+  static const intptr_t kCheckedEntryOffset = 16;
+  static const intptr_t kUncheckedEntryOffset = 40;
+#elif defined(TARGET_ARCH_MIPS)
+  static const intptr_t kCheckedEntryOffset = 12;
+  static const intptr_t kUncheckedEntryOffset = 52;
 #elif defined(TARGET_ARCH_DBC)
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;

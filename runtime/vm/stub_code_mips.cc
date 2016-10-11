@@ -2371,6 +2371,7 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
 // Called from the monomorphic checked entry.
 //  T0: receiver
 void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+  __ lw(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
   __ EnterStubFrame();
   __ Push(T0);  // Preserve receiver.
 

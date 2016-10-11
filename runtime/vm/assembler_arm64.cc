@@ -1244,8 +1244,6 @@ void Assembler::NoMonomorphicCheckedEntry() {
   brk(0);
   brk(0);
   brk(0);
-  brk(0);
-  brk(0);
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
 }
 
@@ -1257,10 +1255,8 @@ void Assembler::MonomorphicCheckedEntry() {
 
   Label immediate, have_cid, miss;
   Bind(&miss);
-  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
-  ldr(IP0, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
   br(IP0);
-  brk(0);
 
   Bind(&immediate);
   movz(R4, Immediate(kSmiCid), 0);
