@@ -222,6 +222,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   SubtypeTestCache& test_cache = SubtypeTestCache::Handle();
   if (!dst_type.IsVoidType() && dst_type.IsInstantiated()) {
     test_cache = SubtypeTestCache::New();
+  } else if (!dst_type.IsInstantiated() &&
+             (dst_type.IsTypeParameter() || dst_type.IsType())) {
+    test_cache = SubtypeTestCache::New();
   }
 
   if (is_optimizing()) {
