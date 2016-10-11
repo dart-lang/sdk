@@ -531,6 +531,11 @@ namespace dart {
 //    Assert that SP[-3] is assignable to variable named SP[0] of type
 //    SP[-1] with type arguments SP[-2] using SubtypeTestCache PP[D].
 //
+//  - BadTypeError
+//
+//    If SP[-3] is non-null, throws a BadType error by calling into the runtime.
+//    Assumes that the stack is arranged the same as for AssertAssignable.
+//
 //  - AssertBoolean A
 //
 //    Assert that TOS is a boolean (A = 1) or that TOS is not null (A = 0).
@@ -791,6 +796,7 @@ namespace dart {
   V(InstantiateType,                 D, lit, ___, ___) \
   V(InstantiateTypeArgumentsTOS,   A_D, num, lit, ___) \
   V(InstanceOf,                      A, num, ___, ___) \
+  V(BadTypeError,                    0, ___, ___, ___) \
   V(AssertAssignable,                D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
   V(TestSmi,                       A_D, reg, reg, ___) \

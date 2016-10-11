@@ -230,7 +230,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   }
   __ PushConstant(dst_type);
   __ PushConstant(dst_name);
-  __ AssertAssignable(__ AddConstant(test_cache));
+
+  if (dst_type.IsMalformedOrMalbounded()) {
+    __ BadTypeError();
+  } else {
+    __ AssertAssignable(__ AddConstant(test_cache));
+  }
+
   if (is_optimizing()) {
     // Register allocator does not think that our first input (also used as
     // output) needs to be kept alive across the call because that is how code

@@ -2672,21 +2672,25 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(BadTypeError, 0);  // Stack: instance, type args, type, name
+    RawObject** args = SP - 3;
+    if (args[0] != null_value) {
+      SP[1] = args[0];  // instance.
+      SP[2] = args[3];  // name.
+      SP[3] = args[2];  // type.
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments native_args(thread, 3, SP + 1, SP - 3);
+      INVOKE_RUNTIME(DRT_BadTypeError, native_args);
+      UNREACHABLE();
+    }
+    SP -= 3;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AssertAssignable, A_D);  // Stack: instance, type args, type, name
     RawObject** args = SP - 3;
     if (args[0] != null_value) {
-      const AbstractType& dst_type =
-          AbstractType::Handle(static_cast<RawAbstractType*>(args[2]));
-      if (dst_type.IsMalformedOrMalbounded()) {
-        SP[1] = args[0];  // instance.
-        SP[2] = args[3];  // name.
-        SP[3] = args[2];  // type.
-        Exit(thread, FP, SP + 4, pc);
-        NativeArguments native_args(thread, 3, SP + 1, SP - 3);
-        INVOKE_RUNTIME(DRT_BadTypeError, native_args);
-        UNREACHABLE();
-      }
-
       RawSubtypeTestCache* cache =
           static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rD));
       if (cache != null_value) {
