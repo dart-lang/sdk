@@ -406,7 +406,11 @@ class Printer extends Visitor<Null> {
   }
 
   void writeType(DartType type) {
-    type.accept(this);
+    if (type == null) {
+      print('<No DartType>');
+    } else {
+      type.accept(this);
+    }
   }
 
   void writeOptionalType(DartType type) {
@@ -1414,10 +1418,8 @@ class Printer extends Visitor<Null> {
 
   visitTypeParameter(TypeParameter node) {
     writeWord(getTypeParameterName(node));
-    if (node.bound is! DynamicType) {
-      writeSpaced('extends');
-      writeType(node.bound);
-    }
+    writeSpaced('extends');
+    writeType(node.bound);
   }
 
   defaultNode(Node node) {

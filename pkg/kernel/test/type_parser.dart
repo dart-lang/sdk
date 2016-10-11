@@ -260,6 +260,8 @@ class DartTypeParser {
     if (next == Token.Colon) {
       scanToken();
       typeParameter.bound = parseType();
+    } else {
+      typeParameter.bound = new InterfaceType(lookupType('Object'));
     }
     return typeParameter;
   }

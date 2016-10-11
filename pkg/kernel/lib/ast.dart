@@ -3383,7 +3383,7 @@ class TypeParameter extends TreeNode {
   /// The bound on the type variable, or [DynamicType] if none was given.
   DartType bound;
 
-  TypeParameter([this.name, this.bound = const DynamicType()]);
+  TypeParameter([this.name, this.bound]);
 
   accept(TreeVisitor v) => v.visitTypeParameter(this);
 

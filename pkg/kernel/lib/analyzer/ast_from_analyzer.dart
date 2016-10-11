@@ -300,6 +300,8 @@ class TypeScope extends ReferenceScope {
 
   bool get allowClassTypeParameters => false;
 
+  ast.DartType get defaultTypeParameterBound => getRootClassReference().rawType;
+
   ast.TypeParameter getTypeParameterReference(TypeParameterElement element) {
     return localTypeParameters[element] ??
         loader.tryGetClassTypeParameter(element) ??
@@ -309,9 +311,8 @@ class TypeScope extends ReferenceScope {
   ast.TypeParameter makeTypeParameter(TypeParameterElement element,
       {ast.DartType bound}) {
     var typeParameter = getTypeParameterReference(element);
-    if (bound != null) {
-      typeParameter.bound = bound;
-    }
+    assert(bound != null);
+    typeParameter.bound = bound;
     return typeParameter;
   }
 
@@ -387,7 +388,8 @@ class TypeScope extends ReferenceScope {
   ast.TypeParameter buildTypeParameter(TypeParameter node) {
     return makeTypeParameter(node.element,
         bound:
-            buildOptionalTypeAnnotation(node.bound) ?? const ast.DynamicType());
+            buildOptionalTypeAnnotation(node.bound) ??
+            defaultTypeParameterBound);
   }
 
   ConstructorElement findDefaultConstructor(ClassElement class_) {
@@ -418,7 +420,7 @@ class TypeScope extends ReferenceScope {
       var parameter = element.typeParameters[i];
       var parameterNode = typeParameters[i];
       parameterNode.bound = parameter.bound == null
-          ? const ast.DynamicType()
+          ? defaultTypeParameterBound
           : buildType(parameter.bound);
     }
     for (var parameter in element.parameters) {
@@ -2113,7 +2115,7 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
       List<TypeParameterElement> boundVariables) {
     return scope.makeTypeParameter(typeParameter,
         bound: typeParameter.bound == null
-            ? const ast.DynamicType()
+            ? scope.defaultTypeParameterBound
             : convertType(typeParameter.bound, boundVariables));
   }
 

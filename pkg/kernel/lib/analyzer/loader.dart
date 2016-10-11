@@ -268,7 +268,7 @@ class DartLoader implements ReferenceLevelLoader {
       var parameter = element.typeParameters[i];
       var parameterNode = classNode.typeParameters[i];
       parameterNode.bound = parameter.bound == null
-          ? const ast.DynamicType()
+          ? scope.defaultTypeParameterBound
           : scope.buildType(parameter.bound);
     }
     // Initialize supertypes.
