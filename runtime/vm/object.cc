@@ -14562,7 +14562,7 @@ RawStackmap* Code::GetStackmap(
       return map->raw();  // We found a stack map for this frame.
     }
   }
-  ASSERT(!is_optimized());
+  ASSERT(!is_optimized() || (pc_offset == Instructions::kUncheckedEntryOffset));
   return Stackmap::null();
 }
 

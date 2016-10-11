@@ -10,6 +10,17 @@
 
 namespace dart {
 
+#if defined(TESTING) || defined(DEBUG)
+void VerifyOnTransition() {
+  Thread* thread = Thread::Current();
+  TransitionGeneratedToVM transition(thread);
+  thread->isolate()->heap()->WaitForSweeperTasks();
+  SafepointOperationScope safepoint_scope(thread);
+  VerifyPointersVisitor::VerifyPointers();
+  thread->isolate()->heap()->Verify();
+}
+#endif
+
 
 // Add function to a class and that class to the class dictionary so that
 // frame walking can be used.
