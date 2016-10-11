@@ -2690,7 +2690,11 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(AssertAssignable, A_D);  // Stack: instance, type args, type, name
     RawObject** args = SP - 3;
-    if (args[0] != null_value) {
+    const bool may_be_smi = (rA == 1);
+    const bool is_smi =
+        ((reinterpret_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
+    const bool smi_ok = is_smi && may_be_smi;
+    if (!smi_ok && (args[0] != null_value)) {
       RawSubtypeTestCache* cache =
           static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rD));
       if (cache != null_value) {

@@ -526,10 +526,11 @@ namespace dart {
 //    (A = 1) a subtype of SP[-1] using SubtypeTestCache SP[0], with result
 //    placed at top of stack.
 //
-//  - AssertAssignable D
+//  - AssertAssignable A, D
 //
 //    Assert that SP[-3] is assignable to variable named SP[0] of type
 //    SP[-1] with type arguments SP[-2] using SubtypeTestCache PP[D].
+//    If A is 1, then the instance may be a Smi.
 //
 //  - BadTypeError
 //
@@ -797,7 +798,7 @@ namespace dart {
   V(InstantiateTypeArgumentsTOS,   A_D, num, lit, ___) \
   V(InstanceOf,                      A, num, ___, ___) \
   V(BadTypeError,                    0, ___, ___, ___) \
-  V(AssertAssignable,                D, num, lit, ___) \
+  V(AssertAssignable,              A_D, num, lit, ___) \
   V(AssertBoolean,                   A, num, ___, ___) \
   V(TestSmi,                       A_D, reg, reg, ___) \
   V(TestCids,                      A_D, reg, num, ___) \

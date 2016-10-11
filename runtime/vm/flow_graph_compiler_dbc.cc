@@ -234,7 +234,20 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   if (dst_type.IsMalformedOrMalbounded()) {
     __ BadTypeError();
   } else {
-    __ AssertAssignable(__ AddConstant(test_cache));
+    bool may_be_smi = false;
+    if (!dst_type.IsVoidType() && dst_type.IsInstantiated()) {
+      const Class& type_class = Class::Handle(zone(), dst_type.type_class());
+      if (type_class.NumTypeArguments() == 0) {
+        const Class& smi_class = Class::Handle(zone(), Smi::Class());
+        may_be_smi = smi_class.IsSubtypeOf(TypeArguments::Handle(zone()),
+                                           type_class,
+                                           TypeArguments::Handle(zone()),
+                                           NULL,
+                                           NULL,
+                                           Heap::kOld);
+      }
+    }
+    __ AssertAssignable(may_be_smi ? 1 : 0, __ AddConstant(test_cache));
   }
 
   if (is_optimizing()) {
