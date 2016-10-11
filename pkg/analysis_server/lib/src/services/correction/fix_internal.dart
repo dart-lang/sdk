@@ -139,6 +139,12 @@ class FixProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Fix>> compute() async {
+    // If the source was changed between the constructor and running
+    // this asynchronous method, it is not safe to use the unit.
+    if (context.getModificationStamp(unitSource) != fileStamp) {
+      return const <Fix>[];
+    }
+
     try {
       utils = new CorrectionUtils(unit);
     } catch (e) {

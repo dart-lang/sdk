@@ -87,6 +87,12 @@ class AssistProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Assist>> compute() async {
+    // If the source was changed between the constructor and running
+    // this asynchronous method, it is not safe to use the unit.
+    if (analysisContext.getModificationStamp(source) != fileStamp) {
+      return const <Assist>[];
+    }
+
     try {
       utils = new CorrectionUtils(unit);
     } catch (e) {
