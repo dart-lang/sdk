@@ -66,6 +66,11 @@ abstract class AbstractDartSdk implements DartSdk {
   PackageBundle _sdkBundle;
 
   /**
+   * Return the analysis options for this SDK analysis context.
+   */
+  AnalysisOptions get analysisOptions => _analysisOptions;
+
+  /**
    * Set the [options] for this SDK analysis context.  Throw [StateError] if the
    * context has been already created.
    */

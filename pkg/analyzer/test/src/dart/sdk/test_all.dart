@@ -6,11 +6,13 @@ library analyzer.test.src.dart.sdk.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'patch_test.dart' as patch_test;
 import 'sdk_test.dart' as sdk;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
+    patch_test.main();
     sdk.main();
   }, name: 'sdk');
 }
