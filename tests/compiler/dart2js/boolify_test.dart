@@ -18,6 +18,6 @@ foo() {
 
 main() {
   asyncTest(() => compile(TEST, entry: 'foo', check: (String generated) {
-    Expect.isTrue(generated.contains('foo() !== true)'));
-  }));
+        Expect.isTrue(generated.contains('foo() !== true)'));
+      }));
 }

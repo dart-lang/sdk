@@ -205,8 +205,12 @@ abstract class AbstractAnalysisServerIntegrationTest
   /**
    * Start [server].
    */
-  Future startServer({int servicesPort, bool checked: true}) =>
-      server.start(servicesPort: servicesPort, checked: checked);
+  Future startServer(
+          {bool checked: true, int diagnosticPort, int servicesPort}) =>
+      server.start(
+          checked: checked,
+          diagnosticPort: diagnosticPort,
+          servicesPort: servicesPort);
 
   /**
    * After every test, the server is stopped and [sourceDirectory] is deleted.
@@ -597,11 +601,12 @@ class Server {
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
   Future start(
-      {bool debugServer: false,
+      {bool checked: true,
+      bool debugServer: false,
       int diagnosticPort,
       bool profileServer: false,
+      String sdkPath,
       int servicesPort,
-      bool checked: true,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -612,6 +617,9 @@ class Server {
         findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
     String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
     List<String> arguments = [];
+    //
+    // Add VM arguments.
+    //
     if (debugServer) {
       arguments.add('--debug');
     }
@@ -628,13 +636,25 @@ class Server {
     if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
+    if (Platform.packageConfig != null) {
+      arguments.add('--packages=${Platform.packageConfig}');
+    }
     if (checked) {
       arguments.add('--checked');
     }
+    //
+    // Add the server executable.
+    //
     arguments.add(serverPath);
+    //
+    // Add server arguments.
+    //
     if (diagnosticPort != null) {
       arguments.add('--port');
       arguments.add(diagnosticPort.toString());
+    }
+    if (sdkPath != null) {
+      arguments.add('--sdk=$sdkPath');
     }
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');

@@ -22,7 +22,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'codegen_helpers.dart';
 import 'nodes.dart';
 import 'variable_allocator.dart';
@@ -1656,21 +1656,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      if (compiler.world.isInstantiated(enclosing)) {
-        return new TypeMask.nonNullExact(enclosing.declaration, compiler.world);
+      if (compiler.closedWorld.isInstantiated(enclosing)) {
+        return new TypeMask.nonNullExact(
+            enclosing.declaration, compiler.closedWorld);
       } else {
         // The element is mixed in so a non-null subtype mask is the most
         // precise we have.
-        assert(invariant(node, compiler.world.isUsedAsMixin(enclosing),
+        assert(invariant(node, compiler.closedWorld.isUsedAsMixin(enclosing),
             message: "Element ${node.element} from $enclosing expected "
                 "to be mixed in."));
         return new TypeMask.nonNullSubtype(
-            enclosing.declaration, compiler.world);
+            enclosing.declaration, compiler.closedWorld);
       }
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.
-    return compiler.world.extendMaskIfReachesAll(selector, mask);
+    return compiler.closedWorld.extendMaskIfReachesAll(selector, mask);
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {
@@ -1931,25 +1932,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     registerForeignTypes(node);
   }
 
-  visitForeignNew(HForeignNew node) {
+  visitCreate(HCreate node) {
     js.Expression jsClassReference =
         backend.emitter.constructorAccess(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs, start: 0);
     push(new js.New(jsClassReference, arguments)
         .withSourceInformation(node.sourceInformation));
-    registerForeignTypes(node);
-    // We also use ForeignNew to instantiate closure classes that belong to
+    // We also use HCreate to instantiate closure classes that belong to
     // function expressions. We have to register their use here, as otherwise
     // code for them might not be emitted.
     if (node.element.isClosure) {
       registry.registerInstantiatedClass(node.element);
     }
-    if (node.instantiatedTypes == null) {
-      return;
-    }
-    node.instantiatedTypes.forEach((type) {
-      registry.registerInstantiation(type);
-    });
+    node.instantiatedTypes?.forEach(registry.registerInstantiation);
   }
 
   js.Expression newLiteralBool(
@@ -2709,18 +2704,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression generateReceiverOrArgumentTypeTest(
       HInstruction input, TypeMask checkedType) {
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     TypeMask inputType = input.instructionType;
     // Figure out if it is beneficial to turn this into a null check.
     // V8 generally prefers 'typeof' checks, but for integers and
     // indexable primitives we cannot compile this test into a single
     // typeof check so the null check is cheaper.
-    bool isIntCheck = checkedType.containsOnlyInt(classWorld);
+    bool isIntCheck = checkedType.containsOnlyInt(closedWorld);
     bool turnIntoNumCheck = isIntCheck && input.isIntegerOrNull(compiler);
     bool turnIntoNullCheck = !turnIntoNumCheck &&
         (checkedType.nullable() == inputType) &&
         (isIntCheck ||
-            checkedType.satisfies(helpers.jsIndexableClass, classWorld));
+            checkedType.satisfies(helpers.jsIndexableClass, closedWorld));
 
     if (turnIntoNullCheck) {
       use(input);
@@ -2730,15 +2725,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // input is !int
       checkBigInt(input, '!==', input.sourceInformation);
       return pop();
-    } else if (turnIntoNumCheck || checkedType.containsOnlyNum(classWorld)) {
+    } else if (turnIntoNumCheck || checkedType.containsOnlyNum(closedWorld)) {
       // input is !num
       checkNum(input, '!==', input.sourceInformation);
       return pop();
-    } else if (checkedType.containsOnlyBool(classWorld)) {
+    } else if (checkedType.containsOnlyBool(closedWorld)) {
       // input is !bool
       checkBool(input, '!==', input.sourceInformation);
       return pop();
-    } else if (checkedType.containsOnlyString(classWorld)) {
+    } else if (checkedType.containsOnlyString(closedWorld)) {
       // input is !string
       checkString(input, '!==', input.sourceInformation);
       return pop();
@@ -2749,11 +2744,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitTypeConversion(HTypeConversion node) {
     if (node.isArgumentTypeCheck || node.isReceiverTypeCheck) {
-      ClassWorld classWorld = compiler.world;
+      ClosedWorld closedWorld = compiler.closedWorld;
       // An int check if the input is not int or null, is not
       // sufficient for doing an argument or receiver check.
       assert(compiler.options.trustTypeAnnotations ||
-          !node.checkedType.containsOnlyInt(classWorld) ||
+          !node.checkedType.containsOnlyInt(closedWorld) ||
           node.checkedInput.isIntegerOrNull(compiler));
       js.Expression test = generateReceiverOrArgumentTypeTest(
           node.checkedInput, node.checkedType);
@@ -2855,6 +2850,89 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
+    use(node.inputs[0]);
+    js.Expression receiver = pop();
+    push(js.js(r'#.#', [receiver, backend.namer.rtiFieldName]));
+  }
+
+  void visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
+    TypeVariableElement element = node.variable.element;
+
+    int index = element.index;
+    HInstruction object = node.object;
+    use(object);
+    js.Expression receiver = pop();
+
+    if (typeVariableAccessNeedsSubstitution(element, object.instructionType)) {
+      js.Expression typeName =
+          js.quoteName(backend.namer.runtimeTypeName(element.enclosingClass));
+      Element helperElement = helpers.getRuntimeTypeArgument;
+      registry.registerStaticUse(
+          new StaticUse.staticInvoke(helperElement, CallStructure.THREE_ARGS));
+      js.Expression helper =
+          backend.emitter.staticFunctionAccess(helperElement);
+      push(js.js(
+          r'#(#, #, #)', [helper, receiver, typeName, js.js.number(index)]));
+    } else {
+      Element helperElement = helpers.getTypeArgumentByIndex;
+      registry.registerStaticUse(
+          new StaticUse.staticInvoke(helperElement, CallStructure.TWO_ARGS));
+      js.Expression helper =
+          backend.emitter.staticFunctionAccess(helperElement);
+      push(js.js(r'#(#, #)', [helper, receiver, js.js.number(index)]));
+    }
+  }
+
+  void visitTypeInfoExpression(HTypeInfoExpression node) {
+    List<js.Expression> arguments = <js.Expression>[];
+    for (HInstruction input in node.inputs) {
+      use(input);
+      arguments.add(pop());
+    }
+
+    switch (node.kind) {
+      case TypeInfoExpressionKind.COMPLETE:
+        int index = 0;
+        js.Expression result = backend.rtiEncoder.getTypeRepresentation(
+            node.dartType, (TypeVariableType variable) => arguments[index++]);
+        assert(index == node.inputs.length);
+        push(result);
+        return;
+
+      case TypeInfoExpressionKind.INSTANCE:
+        // We expect only flat types for the INSTANCE representation.
+        assert(
+            node.dartType == (node.dartType.element as ClassElement).thisType);
+        registry.registerInstantiatedClass(coreClasses.listClass);
+        push(new js.ArrayInitializer(arguments)
+            .withSourceInformation(node.sourceInformation));
+    }
+  }
+
+  bool typeVariableAccessNeedsSubstitution(
+      TypeVariableElement element, TypeMask receiverMask) {
+    ClassElement cls = element.enclosingClass;
+    ClosedWorld closedWorld = compiler.closedWorld;
+
+    // See if the receiver type narrows the set of classes to ones that can be
+    // indexed.
+    // TODO(sra): Currently the only convenient query is [singleClass]. We
+    // should iterate over all the concrete classes in [receiverMask].
+    ClassElement receiverClass = receiverMask.singleClass(closedWorld);
+    if (receiverClass != null) {
+      if (backend.rti.isTrivialSubstitution(receiverClass, cls)) {
+        return false;
+      }
+    }
+
+    if (closedWorld.isUsedAsMixin(cls)) return true;
+
+    return closedWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
+      return !backend.rti.isTrivialSubstitution(subclass, cls);
+    });
+  }
+
   void visitReadTypeVariable(HReadTypeVariable node) {
     TypeVariableElement element = node.dartType.element;
     Element helperElement = helpers.convertRtiToRuntimeType;
@@ -2868,8 +2946,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         js.Expression receiver = pop();
         js.Expression helper =
             backend.emitter.staticFunctionAccess(helperElement);
-        push(js.js(r'#(#.$builtinTypeInfo && #.$builtinTypeInfo[#])',
-            [helper, receiver, receiver, js.js.number(index)]));
+        js.Expression rtiFieldName = backend.namer.rtiFieldName;
+        push(js.js(r'#(#.# && #.#[#])', [
+          helper,
+          receiver,
+          rtiFieldName,
+          receiver,
+          rtiFieldName,
+          js.js.number(index)
+        ]));
       } else {
         backend.emitter.registerReadTypeVariable(element);
         push(js.js(

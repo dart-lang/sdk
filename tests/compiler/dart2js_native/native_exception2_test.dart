@@ -11,10 +11,9 @@ import 'native_exception_test.dart' as other;
 import 'dart:_js_helper';
 
 @Native("NativeClass")
-class NativeClass {
-}
+class NativeClass {}
 
-makeNativeClass() native;
+makeNativeClass() native ;
 
 setup() native """
 function NativeClass() {}

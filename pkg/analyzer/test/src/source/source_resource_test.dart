@@ -7,21 +7,20 @@ library analyzer.test.src.source.source_resource_test;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 import '../context/mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(FileSourceTest);
+  defineReflectiveTests(FileSourceTest);
 }
 
 @reflectiveTest
@@ -126,8 +125,7 @@ class FileSourceTest {
     UriResolver resolver = new DartUriResolver(sdk);
     SourceFactory factory = new SourceFactory([resolver]);
     // resolve dart:core
-    Source result =
-        resolver.resolveAbsolute(parseUriWithException("dart:async"));
+    Source result = resolver.resolveAbsolute(Uri.parse("dart:async"));
     expect(result, isNotNull);
     expect(result.isInSystemLibrary, isTrue);
     // system libraries reference only other system libraries
@@ -162,8 +160,7 @@ class FileSourceTest {
     File file = resourceProvider.getFile("/a/b/test.dart");
     FileSource source = new FileSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/lib.dart");
   }
@@ -178,8 +175,7 @@ class FileSourceTest {
     File file = resourceProvider.getFile("/a/b/test.dart");
     FileSource source = new FileSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("c/lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/c/lib.dart");
   }
@@ -193,16 +189,14 @@ class FileSourceTest {
     File file = resourceProvider.getFile("/a/b/test.dart");
     FileSource source = new FileSource(file);
     expect(source, isNotNull);
-    Uri relative =
-        resolveRelativeUri(source.uri, parseUriWithException("../c/lib.dart"));
+    Uri relative = resolveRelativeUri(source.uri, Uri.parse("../c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/c/lib.dart");
   }
 
   void test_system() {
     File file = resourceProvider.getFile("/does/not/exist.dart");
-    FileSource source =
-        new FileSource(file, parseUriWithException("dart:core"));
+    FileSource source = new FileSource(file, Uri.parse("dart:core"));
     expect(source, isNotNull);
     expect(source.fullName, file.path);
     expect(source.isInSystemLibrary, isTrue);

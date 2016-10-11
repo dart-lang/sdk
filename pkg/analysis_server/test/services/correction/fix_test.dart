@@ -12,9 +12,10 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -151,8 +152,10 @@ bool test() {
    * Configures the [SourceFactory] to have the `my_pkg` package in
    * `/packages/my_pkg/lib` folder.
    */
-  void _configureMyPkg(String myLibCode) {
-    provider.newFile('/packages/my_pkg/lib/my_lib.dart', myLibCode);
+  void _configureMyPkg(Map<String, String> pathToCode) {
+    pathToCode.forEach((path, code) {
+      provider.newFile('/packages/my_pkg/lib/$path', code);
+    });
     // configure SourceFactory
     Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
@@ -161,7 +164,11 @@ bool test() {
     context.sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
     // force 'my_pkg' resolution
-    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
+    addSource(
+        '/tmp/other.dart',
+        pathToCode.keys
+            .map((path) => "import 'package:my_pkg/$path';")
+            .join('\n'));
   }
 
   AnalysisError _findErrorToFix() {
@@ -1869,7 +1876,7 @@ part 'my_part.dart';
         Uri.parse('package:my/test.dart'));
     // configure SourceFactory
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'my': [provider.getResource('/my/lib')],
+      'my': <Folder>[provider.getResource('/my/lib')],
     });
     context.sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
@@ -3081,12 +3088,8 @@ Future main() async {
 ''');
   }
 
-  test_importLibraryPackage_withClass() async {
-    _configureMyPkg('''
-library my_lib;
-class Test {}
-''');
-    // try to find a fix
+  test_importLibraryPackage_preferDirectOverExport() async {
+    _configureMyPkg({'b.dart': 'class Test {}', 'a.dart': "export 'b.dart';"});
     resolveTestUnit('''
 main() {
   Test test = null;
@@ -3094,9 +3097,47 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
-import 'package:my_pkg/my_lib.dart';
+import 'package:my_pkg/b.dart';
+
+main() {
+  Test test = null;
+}
+''');
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT2,
+        '''
+import 'package:my_pkg/a.dart';
+
+main() {
+  Test test = null;
+}
+''');
+  }
+
+  test_importLibraryPackage_preferPublicOverPrivate() async {
+    _configureMyPkg(
+        {'src/a.dart': 'class Test {}', 'b.dart': "export 'src/a.dart';"});
+    resolveTestUnit('''
+main() {
+  Test test = null;
+}
+''');
+    performAllAnalysisTasks();
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT2,
+        '''
+import 'package:my_pkg/b.dart';
+
+main() {
+  Test test = null;
+}
+''');
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT3,
+        '''
+import 'package:my_pkg/src/a.dart';
 
 main() {
   Test test = null;
@@ -3120,7 +3161,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3154,7 +3195,7 @@ main () {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'a.dart';
 import 'b.dart' show Two;
@@ -3180,7 +3221,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import '../lib.dart';
 
@@ -3205,7 +3246,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import '../lib/sub/folder/lib.dart';
 
@@ -3230,7 +3271,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3254,7 +3295,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3280,7 +3321,7 @@ class A {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3307,7 +3348,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3331,7 +3372,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3537,7 +3578,7 @@ main() {
 }
 ''');
     performAllAnalysisTasks();
-    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT);
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SHOW,
         '''
@@ -3923,7 +3964,7 @@ import '../foo/bar/lib.dart';
   }
 
   test_replaceImportUri_package() async {
-    _configureMyPkg('');
+    _configureMyPkg({'my_lib.dart': ''});
     resolveTestUnit('''
 import 'no/matter/my_lib.dart';
 ''');
@@ -3967,6 +4008,23 @@ class A {
   const A();
 }
 const a = const A();
+''');
+  }
+
+  test_undefinedClass_useSimilar_BAD_prefixed() async {
+    resolveTestUnit('''
+import 'dart:async' as c;
+main() {
+  c.Fture v = null;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CHANGE_TO,
+        '''
+import 'dart:async' as c;
+main() {
+  c.Future v = null;
+}
 ''');
   }
 
@@ -4367,6 +4425,33 @@ main() {
   print(0);
 }
 ''');
+  }
+
+  test_undefinedFunction_useSimilar_prefixed_fromImport() async {
+    resolveTestUnit('''
+import 'dart:core' as c;
+main() {
+  c.prnt(42);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CHANGE_TO,
+        '''
+import 'dart:core' as c;
+main() {
+  c.print(42);
+}
+''');
+  }
+
+  test_undefinedFunction_useSimilar_prefixed_ignoreLocal() async {
+    resolveTestUnit('''
+import 'dart:async' as c;
+main() {
+  c.main();
+}
+''');
+    await assertNoFix(DartFixKind.CHANGE_TO);
   }
 
   test_undefinedFunction_useSimilar_thisLibrary() async {

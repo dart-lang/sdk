@@ -4323,10 +4323,6 @@ class _SimpleUri implements Uri {
         base._schemeCache);
     }
     // Merge paths.
-    if (base._uri.startsWith("../", base._pathStart)) {
-      // Complex rare case, go slow.
-      return _toNonSimple().resolveUri(ref);
-    }
 
     // The RFC 3986 algorithm merges the base path without its final segment
     // (anything after the final "/", or everything if the base path doesn't
@@ -4341,39 +4337,53 @@ class _SimpleUri implements Uri {
     String refUri = ref._uri;
     int baseStart = base._pathStart;
     int baseEnd = base._queryStart;
+    while (baseUri.startsWith("../", baseStart)) baseStart += 3;
     int refStart = ref._pathStart;
     int refEnd = ref._queryStart;
-    int backCount = 1;
 
-    int slashCount = 0;
-
-    // Count leading ".." segments in reference path.
+    /// Count of leading ".." segments in reference path.
+    /// The count is decremented when the segment is matched with a
+    /// segment of the base path, and both are then omitted from the result.
+    int backCount = 0;
+    /// Count "../" segments and advance `refStart` to after the segments.
     while (refStart + 3 <= refEnd && refUri.startsWith("../", refStart)) {
       refStart += 3;
       backCount += 1;
     }
 
     // Extra slash inserted between base and reference path parts if
-    // the base path contains any slashes.
+    // the base path contains any slashes, or empty string if none.
     // (We could use a slash from the base path in most cases, but not if
     // we remove the entire base path).
     String insert = "";
+
+    /// Remove segments from the base path.
+    /// Start with the segment trailing the last slash,
+    /// then remove segments for each leading "../" segment
+    /// from the reference path, or as many of them as are available.
     while (baseEnd > baseStart) {
       baseEnd--;
       int char = baseUri.codeUnitAt(baseEnd);
       if (char == _SLASH) {
         insert = "/";
-        backCount--;
         if (backCount == 0) break;
+        backCount--;
       }
     }
-    // If the base URI has no scheme or authority (`_pathStart == 0`)
-    // and a relative path, and we reached the beginning of the path,
-    // we have a special case.
-    if (baseEnd == 0 && !base.hasAbsolutePath) {
-      // Non-RFC 3986 behavior when resolving a purely relative path on top of
-      // another relative path: Don't make the result absolute.
+
+    if (baseEnd == baseStart && !base.hasScheme && !base.hasAbsolutePath) {
+      // If the base is *just* a relative path (no scheme or authority),
+      // then merging with another relative path doesn't follow the
+      // RFC-3986 behavior.
+      // Don't need to check `base.hasAuthority` since the base path is
+      // non-empty - if there is an authority, a non-empty path is absolute.
+
+      // We reached the start of the base path, and want to stay relative,
+      // so don't insert a slash.
       insert = "";
+      // If we reached the start of the base path with more "../" left over
+      // in the reference path, include those segments in the result.
+      refStart -= backCount * 3;
     }
 
     var delta = baseEnd - refStart + insert.length;

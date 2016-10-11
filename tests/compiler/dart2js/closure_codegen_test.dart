@@ -67,9 +67,9 @@ Future closureBailout(bool minify, String prefix) {
 
 main() {
   asyncTest(() => Future.wait([
-    closureInvocation(false, "call"),
-    closureInvocation(true, ""),
-    closureBailout(false, "call"),
-    closureBailout(true, ""),
-  ]));
+        closureInvocation(false, "call"),
+        closureInvocation(true, ""),
+        closureBailout(false, "call"),
+        closureBailout(true, ""),
+      ]));
 }

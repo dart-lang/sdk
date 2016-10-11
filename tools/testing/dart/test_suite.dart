@@ -302,7 +302,8 @@ abstract class TestSuite {
 
     if (configuration['hot_reload'] || configuration['hot_reload_rollback']) {
       // Handle reload special cases.
-      if (expectations.contains(Expectation.COMPILETIME_ERROR)) {
+      if (expectations.contains(Expectation.COMPILETIME_ERROR) ||
+          testCase.hasCompileError || testCase.expectCompileError) {
         // Running a test that expects a compilation error with hot reloading
         // is redundant with a regular run of the test.
         return;
@@ -956,6 +957,7 @@ class StandardTestSuite extends TestSuite {
     // pubspec.yaml file and if so, create a custom package root for it.
     List<Command> baseCommands = <Command>[];
     Path packageRoot;
+    Path packages;
     if (configuration['use_repository_packages'] ||
         configuration['use_public_packages']) {
       Path pubspecYamlFile = _findPubspecYamlFile(filePath);
@@ -969,15 +971,17 @@ class StandardTestSuite extends TestSuite {
         }
       }
     }
-    if (configuration['package_root'] != null) {
-      packageRoot = new Path(configuration['package_root']);
-      optionsFromFile['packageRoot'] = packageRoot.toNativePath();
+    if (optionsFromFile['packageRoot'] == null &&
+        optionsFromFile['packages'] == null) {
+      if (configuration['package_root'] != null) {
+        packageRoot = new Path(configuration['package_root']);
+        optionsFromFile['packageRoot'] = packageRoot.toNativePath();
+      }
+      if (configuration['packages'] != null) {
+        Path packages = new Path(configuration['packages']);
+        optionsFromFile['packages'] = packages.toNativePath();
+      }
     }
-    if (configuration['packages'] != null) {
-      Path packages = new Path(configuration['packages']);
-      optionsFromFile['packages'] = packages.toNativePath();
-    }
-
     if (new CompilerConfiguration(configuration).hasCompiler &&
         expectCompileError(info)) {
       // If a compile-time error is expected, and we're testing a
@@ -995,11 +999,11 @@ class StandardTestSuite extends TestSuite {
           multiHtmlTestExpectations[fullTestName] =
               testExpectations.expectations(fullTestName);
         }
-        enqueueBrowserTest(baseCommands, packageRoot, info, testName,
+        enqueueBrowserTest(baseCommands, packageRoot, packages, info, testName,
             multiHtmlTestExpectations);
       } else {
         enqueueBrowserTest(
-            baseCommands, packageRoot, info, testName, expectations);
+            baseCommands, packageRoot, packages, info, testName, expectations);
       }
     } else {
       enqueueStandardTest(baseCommands, info, testName, expectations);
@@ -1200,7 +1204,7 @@ class StandardTestSuite extends TestSuite {
    * compilation and many browser runs).
    */
   void enqueueBrowserTest(List<Command> baseCommands, Path packageRoot,
-      TestInformation info, String testName, expectations) {
+      Path packages, TestInformation info, String testName, expectations) {
     RegExp badChars = new RegExp('[-=/]');
     List VmOptionsList = getVmOptions(info.optionsFromFile);
     bool multipleOptions = VmOptionsList.length > 1;
@@ -1208,14 +1212,15 @@ class StandardTestSuite extends TestSuite {
       String optionsName =
           multipleOptions ? vmOptions.join('-').replaceAll(badChars, '') : '';
       String tempDir = createOutputDirectory(info.filePath, optionsName);
-      enqueueBrowserTestWithOptions(baseCommands, packageRoot, info, testName,
-          expectations, vmOptions, tempDir);
+      enqueueBrowserTestWithOptions(baseCommands, packageRoot, packages,
+          info, testName, expectations, vmOptions, tempDir);
     }
   }
 
   void enqueueBrowserTestWithOptions(
       List<Command> baseCommands,
       Path packageRoot,
+      Path packages,
       TestInformation info,
       String testName,
       expectations,
@@ -1583,14 +1588,16 @@ class StandardTestSuite extends TestSuite {
 
   String packagesArgument(String packageRootFromFile,
                              String packagesFromFile) {
-    if (packagesFromFile != null) {
-      return "--packages=$packagesFromFile";
-    }
-    if (packageRootFromFile == "none") {
+    if (packageRootFromFile == 'none' ||
+        packagesFromFile == 'none') {
       return null;
+    } else if (packagesFromFile != null) {
+      return '--packages=$packagesFromFile';
+    } else if (packageRootFromFile != null) {
+      return '--package-root=$packageRootFromFile';
+    } else {
+    return null;
     }
-    packageRootFromFile ??= "$buildDir/packages/";
-    return "--package-root=$packageRootFromFile";
   }
 
   /**
@@ -1711,26 +1718,30 @@ class StandardTestSuite extends TestSuite {
 
     matches = packageRootRegExp.allMatches(contents);
     for (var match in matches) {
-      if (packageRoot != null) {
+      if (packageRoot != null || packages != null) {
         throw new Exception(
-            'More than one "// PackageRoot=" line in test $filePath');
+            'More than one "// Package... line in test $filePath');
       }
       packageRoot = match[1];
       if (packageRoot != 'none') {
-        // PackageRoot=none means that no package-root option should be given.
+        // PackageRoot=none means that no packages or package-root option
+        // should be given. Any other value overrides package-root and
+        // removes any packages option.  Don't use with // Packages=.
         packageRoot = '${filePath.directoryPath.join(new Path(packageRoot))}';
       }
     }
 
     matches = packagesRegExp.allMatches(contents);
     for (var match in matches) {
-      if (packages != null) {
+      if (packages != null || packageRoot != null) {
         throw new Exception(
-            'More than one "// Packages=" line in test $filePath');
+            'More than one "// Package..." line in test $filePath');
       }
       packages = match[1];
       if (packages != 'none') {
-        // Packages=none means that no packages option should be given.
+        // Packages=none means that no packages or package-root option
+        // should be given. Any other value overrides packages and removes
+        // any package-root option. Don't use with // PackageRoot=.
         packages = '${filePath.directoryPath.join(new Path(packages))}';
       }
     }
@@ -1843,7 +1854,7 @@ class PKGTestSuite extends StandardTestSuite {
             recursive: true);
 
   void enqueueBrowserTest(List<Command> baseCommands, Path packageRoot,
-      TestInformation info, String testName, expectations) {
+      packages, TestInformation info, String testName, expectations) {
     String runtime = configuration['runtime'];
     Path filePath = info.filePath;
     Path dir = filePath.directoryPath;
@@ -1852,7 +1863,7 @@ class PKGTestSuite extends StandardTestSuite {
     File customHtml = new File(customHtmlPath.toNativePath());
     if (!customHtml.existsSync()) {
       super.enqueueBrowserTest(
-          baseCommands, packageRoot, info, testName, expectations);
+          baseCommands, packageRoot, packages, info, testName, expectations);
     } else {
       Path relativeHtml = customHtmlPath.relativeTo(TestUtils.dartDir);
       List<Command> commands = []..addAll(baseCommands);
@@ -2279,6 +2290,9 @@ class TestUtils {
     }
     if (compiler == "dart2js" && configuration["cps_ir"]) {
       args.add("--use-cps-ir");
+    }
+    if (compiler == "dart2js" && configuration["fast_startup"]) {
+      args.add("--fast-startup");
     }
     if (compiler == "dart2analyzer") {
       args.add("--show-package-warnings");

@@ -9,7 +9,6 @@
       'type': 'none',
       'dependencies': [
         '../../runtime/dart-runtime.gyp:dart',
-        '../../pkg/pkg.gyp:pkg_packages',
         '../../pkg/pkg_files.gyp:pkg_files_stamp'
       ],
       'actions': [
@@ -18,7 +17,6 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
-            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
           ],
           'outputs': [
@@ -26,8 +24,8 @@
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
+            '--packages=../../.packages',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/analysis_server.dart.snapshot',
-            '--package-root=<(PRODUCT_DIR)/packages/',
             '../../pkg/analysis_server/bin/server.dart',
           ],
         },

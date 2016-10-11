@@ -21,6 +21,9 @@ class FileInstrumentationServer implements InstrumentationServer {
   }
 
   @override
+  String get sessionId => '';
+
+  @override
   void log(String message) {
     _sink.writeln(message);
   }

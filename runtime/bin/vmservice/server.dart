@@ -51,9 +51,18 @@ class WebSocketClient extends Client {
       return;
     }
     try {
-      socket.add(result);
-    } catch (_) {
+      if (result is String || result is Uint8List) {
+        socket.add(result);  // String or binary message.
+      } else {
+        // String message as external Uint8List.
+        assert(result is List);
+        Uint8List cstring = result[0];
+        socket.addUtf8Text(cstring);
+      }
+    } catch (e, st) {
       print("Ignoring error posting over WebSocket.");
+      print(e);
+      print(st);
     }
   }
 
@@ -79,14 +88,23 @@ class HttpRequestClient extends Client {
     close();
   }
 
-  void post(String result) {
+  void post(dynamic result) {
     if (result == null) {
       close();
       return;
     }
-    request.response..headers.contentType = jsonContentType
-                    ..write(result)
-                    ..close();
+    HttpResponse response = request.response;
+    // We closed the connection for bad origins earlier.
+    response.headers.add('Access-Control-Allow-Origin', '*');
+    response.headers.contentType = jsonContentType;
+    if (result is String) {
+      response.write(result);
+    } else {
+      assert(result is List);
+      Uint8List cstring = result[0];  // Already in UTF-8.
+      response.add(cstring);
+    }
+    response.close();
     close();
   }
 
@@ -106,7 +124,6 @@ class Server {
   final String _ip;
   final int _port;
   final bool _originCheckDisabled;
-  final List<String> _allowedOrigins = <String>[];
   HttpServer _server;
   bool get running => _server != null;
   bool _displayMessages = false;
@@ -115,22 +132,27 @@ class Server {
     _displayMessages = (_ip != '127.0.0.1' || _port != 8181);
   }
 
-  void _addOrigin(String host, String port) {
-    if (port == null) {
-      String origin = 'http://$host';
-      _allowedOrigins.add(origin);
-    } else {
-      String origin = 'http://$host:$port';
-      _allowedOrigins.add(origin);
-    }
-  }
-
   bool _isAllowedOrigin(String origin) {
-    for (String allowedOrigin in _allowedOrigins) {
-      if (origin.startsWith(allowedOrigin)) {
-        return true;
-      }
+    Uri uri;
+    try {
+      uri = Uri.parse(origin);
+    } catch (_) {
+      return false;
     }
+
+    // Explicitly add localhost and 127.0.0.1 on any port (necessary for
+    // adb port forwarding).
+    if ((uri.host == 'localhost') ||
+        (uri.host == '127.0.0.1')) {
+      return true;
+    }
+
+    if ((uri.port == _server.port) &&
+        ((uri.host == _server.address.address) ||
+         (uri.host == _server.address.host))) {
+      return true;
+    }
+
     return false;
   }
 
@@ -239,23 +261,13 @@ class Server {
       return new Future.value(this);
     }
 
-    // Clear allowed origins.
-    _allowedOrigins.clear();
-
     var address = new InternetAddress(_ip);
     // Startup HTTP server.
     return HttpServer.bind(address, _port).then((s) {
       _server = s;
       _server.listen(_requestHandler, cancelOnError: true);
-      var ip = _server.address.address.toString();
-      var port = _server.port.toString();
-      // Add the numeric ip and host name to our allowed origins.
-      _addOrigin(ip, port);
-      _addOrigin(_server.address.host.toString(), port);
-      // Explicitly add localhost and 127.0.0.1 on any port (necessary for
-      // adb port forwarding).
-      _addOrigin('127.0.0.1', null);
-      _addOrigin('localhost', null);
+      var ip = _server.address.address;
+      var port = _server.port;
       if (_displayMessages) {
         print('Observatory listening on http://$ip:$port');
       }

@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -711,6 +710,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         needsComma = true;
       }
     }
+
     void startOptionalParameters() {
       if (needsComma) {
         buffer.write(", ");
@@ -759,7 +759,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   @override
   FunctionTypeImpl instantiate(List<DartType> argumentTypes) {
     if (argumentTypes.length != typeFormals.length) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != "
           "typeFormals.length (${typeFormals.length})");
     }
@@ -797,14 +797,17 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     return relate(
         this,
         type,
-        (DartType t, DartType s) =>
+        (DartType t, DartType s, _, __) =>
             (t as TypeImpl).isMoreSpecificThan(s, withDynamic),
         new TypeSystemImpl().instantiateToBounds);
   }
 
   @override
   bool isSubtypeOf(DartType type) {
-    return relate(this, type, (DartType t, DartType s) => t.isAssignableTo(s),
+    return relate(
+        this,
+        type,
+        (DartType t, DartType s, _, __) => t.isAssignableTo(s),
         new TypeSystemImpl().instantiateToBounds);
   }
 
@@ -838,7 +841,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // substituting once.
     assert(this.prunedTypedefs == null);
     if (argumentTypes.length != parameterTypes.length) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     Element element = this.element;
@@ -966,17 +969,18 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    *
    * Used for the various relations on function types which have the same
    * structural rules for handling optional parameters and arity, but use their
-   * own relation for comparing corresponding paramaters or return types.
+   * own relation for comparing corresponding parameters or return types.
    *
    * If [returnRelation] is omitted, uses [parameterRelation] for both.
    */
   static bool relate(
       FunctionType t,
       DartType other,
-      bool parameterRelation(DartType t, DartType s),
+      bool parameterRelation(
+          DartType t, DartType s, bool tIsCovariant, bool sIsCovariant),
       DartType instantiateToBounds(DartType t),
       {bool returnRelation(DartType t, DartType s)}) {
-    returnRelation ??= parameterRelation;
+    returnRelation ??= (t, s) => parameterRelation(t, s, false, false);
 
     // Trivial base cases.
     if (other == null) {
@@ -1014,12 +1018,39 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     // Test the parameter types.
-    List<DartType> tRequired = t.normalParameterTypes;
-    List<DartType> sRequired = s.normalParameterTypes;
-    List<DartType> tOptional = t.optionalParameterTypes;
-    List<DartType> sOptional = s.optionalParameterTypes;
-    Map<String, DartType> tNamed = t.namedParameterTypes;
-    Map<String, DartType> sNamed = s.namedParameterTypes;
+
+    // TODO(jmesserly): this could be implemented with less allocation if we
+    // wanted, by taking advantage of the fact that positional arguments must
+    // appear before named ones.
+    var tRequired = <ParameterElement>[];
+    var tOptional = <ParameterElement>[];
+    var tNamed = <String, ParameterElement>{};
+    for (var p in t.parameters) {
+      var kind = p.parameterKind;
+      if (kind == ParameterKind.REQUIRED) {
+        tRequired.add(p);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        tOptional.add(p);
+      } else {
+        assert(kind == ParameterKind.NAMED);
+        tNamed[p.name] = p;
+      }
+    }
+
+    var sRequired = <ParameterElement>[];
+    var sOptional = <ParameterElement>[];
+    var sNamed = <String, ParameterElement>{};
+    for (var p in s.parameters) {
+      var kind = p.parameterKind;
+      if (kind == ParameterKind.REQUIRED) {
+        sRequired.add(p);
+      } else if (kind == ParameterKind.POSITIONAL) {
+        sOptional.add(p);
+      } else {
+        assert(kind == ParameterKind.NAMED);
+        sNamed[p.name] = p;
+      }
+    }
 
     // If one function has positional and the other has named parameters,
     // they don't relate.
@@ -1037,19 +1068,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // For each named parameter in s, make sure we have a corresponding one
     // that relates.
     for (String key in sNamed.keys) {
-      var tParamType = tNamed[key];
-      if (tParamType == null) {
+      var tParam = tNamed[key];
+      if (tParam == null) {
         return false;
       }
-      if (!parameterRelation(tParamType, sNamed[key])) {
+      var sParam = sNamed[key];
+      if (!parameterRelation(
+          tParam.type, sParam.type, tParam.isCovariant, sParam.isCovariant)) {
         return false;
       }
     }
 
     // Make sure all of the positional parameters (both required and optional)
     // relate to each other.
-    List<DartType> tPositional = tRequired;
-    List<DartType> sPositional = sRequired;
+    var tPositional = tRequired;
+    var sPositional = sRequired;
 
     if (tOptional.isNotEmpty) {
       tPositional = tPositional.toList()..addAll(tOptional);
@@ -1070,7 +1103,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     for (int i = 0; i < sPositional.length; i++) {
-      if (!parameterRelation(tPositional[i], sPositional[i])) {
+      var tParam = tPositional[i];
+      var sParam = sPositional[i];
+      if (!parameterRelation(
+          tParam.type, sParam.type, tParam.isCovariant, sParam.isCovariant)) {
         return false;
       }
     }
@@ -1849,7 +1885,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
     if (argumentTypes.length != parameterTypes.length) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     if (argumentTypes.length == 0 || typeArguments.length == 0) {
@@ -1936,6 +1972,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         visitedClasses.remove(type.element);
       }
     }
+
     recurse(this);
     return result;
   }
@@ -1959,7 +1996,25 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     List<InterfaceType> s = _intersection(si, sj);
     return computeTypeAtMaxUniqueDepth(s);
   }
-  
+
+  /**
+   * Return the length of the longest inheritance path from the given [type] to
+   * Object.
+   *
+   * See [computeLeastUpperBound].
+   */
+  static int computeLongestInheritancePathToObject(InterfaceType type) =>
+      _computeLongestInheritancePathToObject(
+          type, 0, new HashSet<ClassElement>());
+
+  /**
+   * Returns the set of all superinterfaces of the given [type].
+   *
+   * See [computeLeastUpperBound].
+   */
+  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) =>
+      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
+
   /**
    * Return the type from the [types] list that has the longest inheritence path
    * to Object of unique length.
@@ -1994,24 +2049,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     assert(false);
     return null;
   }
-
-  /**
-   * Return the length of the longest inheritance path from the given [type] to
-   * Object.
-   *
-   * See [computeLeastUpperBound].
-   */
-  static int computeLongestInheritancePathToObject(InterfaceType type) =>
-      _computeLongestInheritancePathToObject(
-          type, 0, new HashSet<ClassElement>());
-
-  /**
-   * Returns the set of all superinterfaces of the given [type].
-   *
-   * See [computeLeastUpperBound].
-   */
-  static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) =>
-      _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
 
   /**
    * If there is a single type which is at least as specific as all of the
@@ -2187,7 +2224,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     ClassElement firstElement = firstType.element;
     ClassElement secondElement = secondType.element;
     if (firstElement != secondElement) {
-      throw new IllegalArgumentException('The same elements expected, but '
+      throw new ArgumentError('The same elements expected, but '
           '$firstElement and $secondElement are given.');
     }
     if (firstType == secondType) {

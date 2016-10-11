@@ -8,6 +8,7 @@ import 'package:sdk_library_metadata/libraries.dart';
 import 'analyze_helper.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
+
 /**
  * Map of white-listed warnings and errors.
  *
@@ -18,8 +19,7 @@ import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
  * the error/warning message in the list of white-listings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
-const Map<String, List<String>> WHITE_LIST = const {
-};
+const Map<String, List<String>> WHITE_LIST = const {};
 
 void main() {
   var uriList = new List<Uri>();

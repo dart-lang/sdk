@@ -135,7 +135,7 @@ class ProcessCommand extends Command {
 
   String get reproductionCommand {
     var env = new StringBuffer();
-    environmentOverrides.forEach((key, value) =>
+    environmentOverrides?.forEach((key, value) =>
         (io.Platform.operatingSystem == 'windows')
             ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
             : env.write('$key=${escapeCommandLineArgument(value)} '));
@@ -1854,8 +1854,39 @@ class RunningProcess {
           void timeoutHandler() {
             timedOut = true;
             if (process != null) {
-              if (!process.kill()) {
-                DebugLogger.error("Unable to kill ${process.pid}");
+              if (io.Platform.isLinux) {
+                // Try to print stack traces of the timed out process.
+                io.Process.run('eu-stack', ['-p ${process.pid}'])
+                .then((result) {
+                  io.stdout.write(result.stdout);
+                  io.stderr.write(result.stderr);
+                })
+                .catchError(
+                    (error) => print("Error when printing stack trace: $error"))
+                .whenComplete(() {
+                  if (!process.kill()) {
+                    DebugLogger.error("Unable to kill ${process.pid}");
+                  }
+                });
+              } else if (io.Platform.isMacOS) {
+                // Try to print stack traces of the timed out process.
+                io.Process.run('/usr/bin/sample',
+                               ['${process.pid}', '1', '1', '-mayDie'])
+                .then((result) {
+                  io.stdout.write(result.stdout);
+                  io.stderr.write(result.stderr);
+                })
+                .catchError(
+                    (error) => print("Error when printing stack trace: $error"))
+                .whenComplete(() {
+                  if (!process.kill()) {
+                    DebugLogger.error("Unable to kill ${process.pid}");
+                  }
+                });
+              } else {
+                if (!process.kill()) {
+                  DebugLogger.error("Unable to kill ${process.pid}");
+                }
               }
             }
           }
@@ -2912,7 +2943,7 @@ class ProcessQueue {
         cancelDebugTimer();
         _debugTimer = new Timer(debugTimerDuration, () {
           print("The debug timer of test.dart expired. Please report this issue"
-              " to ricow/whesse and provide the following information:");
+              " to whesse@ and provide the following information:");
           print("");
           print("Graph is sealed: ${_graph.isSealed}");
           print("");

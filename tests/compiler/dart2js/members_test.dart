@@ -8,18 +8,10 @@ import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 import 'type_test_helper.dart';
 import 'package:compiler/src/dart_types.dart';
-import "package:compiler/src/elements/elements.dart" show
-    Element,
-    ClassElement,
-    MemberSignature,
-    Name,
-    PublicName,
-    Member;
-import "package:compiler/src/resolution/class_members.dart" show
-    MembersCreator,
-    DeclaredMember,
-    ErroneousMember,
-    SyntheticMember;
+import "package:compiler/src/elements/elements.dart"
+    show Element, ClassElement, MemberSignature, Name, PublicName, Member;
+import "package:compiler/src/resolution/class_members.dart"
+    show MembersCreator, DeclaredMember, ErroneousMember, SyntheticMember;
 
 void main() {
   testClassMembers();
@@ -30,13 +22,11 @@ void main() {
 }
 
 MemberSignature getMember(InterfaceType cls, String name,
-                          {bool isSetter: false,
-                           int checkType: CHECK_INTERFACE}) {
-  Name memberName =
-      new Name(name, cls.element.library, isSetter: isSetter);
+    {bool isSetter: false, int checkType: CHECK_INTERFACE}) {
+  Name memberName = new Name(name, cls.element.library, isSetter: isSetter);
   MemberSignature member = checkType == CHECK_CLASS
-        ? cls.element.lookupClassMember(memberName)
-        : cls.element.lookupInterfaceMember(memberName);
+      ? cls.element.lookupClassMember(memberName)
+      : cls.element.lookupInterfaceMember(memberName);
   if (member != null) {
     Expect.equals(memberName, member.name);
   }
@@ -45,10 +35,13 @@ MemberSignature getMember(InterfaceType cls, String name,
 
 /// Check interface member only.
 const int CHECK_INTERFACE = 0;
+
 /// Check class member only.
 const int CHECK_CLASS = 1;
+
 /// Check that there is no class member for the interface member.
 const int NO_CLASS_MEMBER = 2;
+
 /// Check that the interface member is also a class member.
 const int ALSO_CLASS_MEMBER = 3;
 
@@ -73,18 +66,17 @@ const int ALSO_CLASS_MEMBER = 3;
  * If [isClassMember] is `true` it is checked that the member is also a class
  * member.
  */
-MemberSignature checkMember(InterfaceType cls,
-                      String name,
-                      {bool isStatic: false,
-                       bool isSetter: false,
-                       bool isGetter: false,
-                       InterfaceType declarer,
-                       DartType type,
-                       FunctionType functionType,
-                       InterfaceType inheritedFrom,
-                       List<InterfaceType> synthesizedFrom,
-                       List<InterfaceType> erroneousFrom,
-                       int checkType: ALSO_CLASS_MEMBER}) {
+MemberSignature checkMember(InterfaceType cls, String name,
+    {bool isStatic: false,
+    bool isSetter: false,
+    bool isGetter: false,
+    InterfaceType declarer,
+    DartType type,
+    FunctionType functionType,
+    InterfaceType inheritedFrom,
+    List<InterfaceType> synthesizedFrom,
+    List<InterfaceType> erroneousFrom,
+    int checkType: ALSO_CLASS_MEMBER}) {
   String memberKind = checkType == CHECK_CLASS ? 'class' : 'interface';
   MemberSignature member =
       getMember(cls, name, isSetter: isSetter, checkType: checkType);
@@ -102,20 +94,22 @@ MemberSignature checkMember(InterfaceType cls,
     DeclaredMember inherited = checkType == CHECK_CLASS
         ? inheritedFrom.element.lookupClassMember(memberName)
         : inheritedFrom.element.lookupInterfaceMember(memberName);
-    Expect.isNotNull(inherited,
-        "No $memberKind member '$memberName' in $inheritedFrom.");
+    Expect.isNotNull(
+        inherited, "No $memberKind member '$memberName' in $inheritedFrom.");
     Expect.equals(inherited.inheritFrom(inheritedFrom), member);
   } else {
     if (erroneousFrom != null || synthesizedFrom != null) {
-      Expect.notEquals(checkType, CHECK_CLASS,
+      Expect.notEquals(
+          checkType,
+          CHECK_CLASS,
           "Arguments 'erroneousFrom' and 'synthesizedFrom' only apply "
           "to interface members.");
       if (synthesizedFrom != null) {
-        Expect.isTrue(member is SyntheticMember,
-            "Member '$member' is not synthesized.");
+        Expect.isTrue(
+            member is SyntheticMember, "Member '$member' is not synthesized.");
       } else {
-        Expect.isTrue(member is ErroneousMember,
-            "Member '$member' is not erroneous.");
+        Expect.isTrue(
+            member is ErroneousMember, "Member '$member' is not erroneous.");
       }
       Set<MemberSignature> members = new Set<MemberSignature>();
       List from = synthesizedFrom != null ? synthesizedFrom : erroneousFrom;
@@ -128,7 +122,9 @@ MemberSignature checkMember(InterfaceType cls,
       Expect.setEquals(members, member.declarations);
     } else if (declarer != null) {
       DeclaredMember declared = member;
-      Expect.equals(declarer, declared.declarer,
+      Expect.equals(
+          declarer,
+          declared.declarer,
           "Unexpected declarer '${declared.declarer}' of $memberKind member "
           "'$member'. Expected '${declarer}'.");
     } else {
@@ -145,7 +141,7 @@ MemberSignature checkMember(InterfaceType cls,
     if (functionType != null) {
       if (type == null) {
         Expect.equals(member.type, member.functionType,
-          "Unexpected type of $memberKind member '$member'.");
+            "Unexpected type of $memberKind member '$member'.");
       }
       Expect.equals(functionType, member.functionType,
           "Unexpected member type of $memberKind member '$member'.");
@@ -155,7 +151,7 @@ MemberSignature checkMember(InterfaceType cls,
 }
 
 void checkMemberCount(InterfaceType cls, int expectedCount,
-                      {bool interfaceMembers: true}) {
+    {bool interfaceMembers: true}) {
   int count = 0;
   if (interfaceMembers) {
     cls.element.forEachInterfaceMember((_) => count++);
@@ -166,7 +162,9 @@ void checkMemberCount(InterfaceType cls, int expectedCount,
 }
 
 void testClassMembers() {
-  asyncTest(() => TypeEnvironment.create(r"""
+  asyncTest(() => TypeEnvironment
+          .create(
+              r"""
     abstract class A {
       int field;
       final finalField = 0;
@@ -190,181 +188,220 @@ void testClassMembers() {
     class C<S> extends B<S> {}
     class D extends C<int> {}
     class E extends D {}
-    """, useMockCompiler: false).then((env) {
+    """,
+              useMockCompiler: false)
+          .then((env) {
+        InterfaceType bool_ = env['bool'];
+        InterfaceType String_ = env['String'];
+        InterfaceType num_ = env['num'];
+        InterfaceType int_ = env['int'];
+        DynamicType dynamic_ = env['dynamic'];
+        VoidType void_ = env['void'];
+        InterfaceType Type_ = env['Type'];
+        InterfaceType Invocation_ = env['Invocation'];
 
-    InterfaceType bool_ = env['bool'];
-    InterfaceType String_ = env['String'];
-    InterfaceType num_ = env['num'];
-    InterfaceType int_ = env['int'];
-    DynamicType dynamic_ = env['dynamic'];
-    VoidType void_ = env['void'];
-    InterfaceType Type_ = env['Type'];
-    InterfaceType Invocation_ = env['Invocation'];
+        InterfaceType Object_ = env['Object'];
+        checkMemberCount(Object_, 5 /*declared*/, interfaceMembers: true);
+        checkMemberCount(Object_, 5 /*declared*/, interfaceMembers: false);
 
-    InterfaceType Object_ = env['Object'];
-    checkMemberCount(Object_, 5 /*declared*/, interfaceMembers: true);
-    checkMemberCount(Object_, 5 /*declared*/, interfaceMembers: false);
+        checkMember(Object_, '==',
+            functionType: env.functionType(bool_, [dynamic_]));
+        checkMember(Object_, 'hashCode',
+            isGetter: true,
+            type: int_,
+            functionType: env.functionType(int_, []));
+        checkMember(Object_, 'noSuchMethod',
+            functionType: env.functionType(dynamic_, [Invocation_]));
+        checkMember(Object_, 'runtimeType',
+            isGetter: true,
+            type: Type_,
+            functionType: env.functionType(Type_, []));
+        checkMember(Object_, 'toString',
+            functionType: env.functionType(String_, []));
 
-    checkMember(Object_, '==',
-                functionType: env.functionType(bool_, [dynamic_]));
-    checkMember(Object_, 'hashCode',
-                isGetter: true,
-                type: int_, functionType: env.functionType(int_, []));
-    checkMember(Object_, 'noSuchMethod',
-                functionType: env.functionType(dynamic_, [Invocation_]));
-    checkMember(Object_, 'runtimeType',
-                isGetter: true,
-                type: Type_, functionType: env.functionType(Type_, []));
-    checkMember(Object_, 'toString',
-                functionType: env.functionType(String_, []));
+        InterfaceType A = env['A'];
+        MembersCreator.computeAllClassMembers(env.resolution, A.element);
 
-    InterfaceType A = env['A'];
-    MembersCreator.computeAllClassMembers(env.resolution, A.element);
+        checkMemberCount(A, 5 /*inherited*/ + 9 /*non-static declared*/,
+            interfaceMembers: true);
+        checkMemberCount(
+            A,
+            5 /*inherited*/ +
+                9 /*non-abstract declared*/ +
+                3 /* abstract declared */,
+            interfaceMembers: false);
 
-    checkMemberCount(A, 5 /*inherited*/ + 9 /*non-static declared*/,
-                     interfaceMembers: true);
-    checkMemberCount(A, 5 /*inherited*/ + 9 /*non-abstract declared*/ +
-                        3 /* abstract declared */,
-                     interfaceMembers: false);
+        checkMember(A, '==', inheritedFrom: Object_);
+        checkMember(A, 'hashCode', inheritedFrom: Object_);
+        checkMember(A, 'noSuchMethod', inheritedFrom: Object_);
+        checkMember(A, 'runtimeType', inheritedFrom: Object_);
+        checkMember(A, 'toString', inheritedFrom: Object_);
 
-    checkMember(A, '==', inheritedFrom: Object_);
-    checkMember(A, 'hashCode', inheritedFrom: Object_);
-    checkMember(A, 'noSuchMethod', inheritedFrom: Object_);
-    checkMember(A, 'runtimeType', inheritedFrom: Object_);
-    checkMember(A, 'toString', inheritedFrom: Object_);
+        checkMember(A, 'field',
+            isGetter: true,
+            type: int_,
+            functionType: env.functionType(int_, []));
+        checkMember(A, 'field',
+            isSetter: true,
+            type: int_,
+            functionType: env.functionType(void_, [int_]));
+        checkMember(A, 'finalField',
+            isGetter: true,
+            type: dynamic_,
+            functionType: env.functionType(dynamic_, []));
+        checkMember(A, 'staticField',
+            isGetter: true,
+            isStatic: true,
+            checkType: CHECK_CLASS,
+            type: dynamic_,
+            functionType: env.functionType(dynamic_, []));
+        checkMember(A, 'staticField',
+            isSetter: true,
+            isStatic: true,
+            checkType: CHECK_CLASS,
+            type: dynamic_,
+            functionType: env.functionType(void_, [dynamic_]));
 
-    checkMember(A, 'field', isGetter: true,
-                type: int_, functionType: env.functionType(int_, []));
-    checkMember(A, 'field', isSetter: true,
-                type: int_, functionType: env.functionType(void_, [int_]));
-    checkMember(A, 'finalField', isGetter: true,
-                type: dynamic_, functionType: env.functionType(dynamic_, []));
-    checkMember(A, 'staticField', isGetter: true, isStatic: true,
-                checkType: CHECK_CLASS,
-                type: dynamic_, functionType: env.functionType(dynamic_, []));
-    checkMember(A, 'staticField', isSetter: true, isStatic: true,
-                checkType: CHECK_CLASS, type: dynamic_,
-                functionType: env.functionType(void_, [dynamic_]));
+        checkMember(A, 'getter',
+            isGetter: true,
+            type: int_,
+            functionType: env.functionType(int_, []));
+        checkMember(A, 'abstractGetter',
+            isGetter: true,
+            type: dynamic_,
+            functionType: env.functionType(dynamic_, []));
+        checkMember(A, 'setter',
+            isSetter: true,
+            type: int_,
+            functionType: env.functionType(void_, [int_]));
+        checkMember(A, 'abstractSetter',
+            isSetter: true,
+            type: dynamic_,
+            functionType: env.functionType(dynamic_, [dynamic_]));
 
-    checkMember(A, 'getter', isGetter: true,
-                type: int_, functionType: env.functionType(int_, []));
-    checkMember(A, 'abstractGetter', isGetter: true,
-                type: dynamic_, functionType: env.functionType(dynamic_, []));
-    checkMember(A, 'setter', isSetter: true,
-                type: int_, functionType: env.functionType(void_, [int_]));
-    checkMember(A, 'abstractSetter', isSetter: true,
-                type: dynamic_,
-                functionType: env.functionType(dynamic_, [dynamic_]));
+        checkMember(A, 'method', functionType: env.functionType(dynamic_, []));
+        checkMember(A, 'abstractMethod',
+            functionType: env.functionType(dynamic_, []));
+        checkMember(A, 'staticMethod',
+            checkType: CHECK_CLASS,
+            isStatic: true,
+            functionType: env.functionType(dynamic_, []));
 
-    checkMember(A, 'method', functionType: env.functionType(dynamic_, []));
-    checkMember(A, 'abstractMethod',
-                functionType: env.functionType(dynamic_, []));
-    checkMember(A, 'staticMethod',
-                checkType: CHECK_CLASS,
-                isStatic: true, functionType: env.functionType(dynamic_, []));
+        ClassElement B = env.getElement('B');
+        MembersCreator.computeAllClassMembers(env.resolution, B);
+        InterfaceType B_this = B.thisType;
+        TypeVariableType B_T = B_this.typeArguments.first;
+        checkMemberCount(B_this, 4 /*inherited*/ + 4 /*non-static declared*/,
+            interfaceMembers: true);
+        checkMemberCount(B_this, 4 /*inherited*/ + 5 /*declared*/,
+            interfaceMembers: false);
 
-    ClassElement B = env.getElement('B');
-    MembersCreator.computeAllClassMembers(env.resolution, B);
-    InterfaceType B_this = B.thisType;
-    TypeVariableType B_T = B_this.typeArguments.first;
-    checkMemberCount(B_this, 4 /*inherited*/ + 4 /*non-static declared*/,
-                     interfaceMembers: true);
-    checkMemberCount(B_this, 4 /*inherited*/ + 5 /*declared*/,
-                     interfaceMembers: false);
+        checkMember(B_this, '==', inheritedFrom: Object_);
+        checkMember(B_this, 'hashCode', inheritedFrom: Object_);
+        checkMember(B_this, 'noSuchMethod', inheritedFrom: Object_);
+        checkMember(B_this, 'runtimeType', inheritedFrom: Object_);
 
-    checkMember(B_this, '==', inheritedFrom: Object_);
-    checkMember(B_this, 'hashCode', inheritedFrom: Object_);
-    checkMember(B_this, 'noSuchMethod', inheritedFrom: Object_);
-    checkMember(B_this, 'runtimeType', inheritedFrom: Object_);
+        checkMember(B_this, 'field',
+            isGetter: true, type: B_T, functionType: env.functionType(B_T, []));
+        checkMember(B_this, 'field',
+            isSetter: true,
+            type: B_T,
+            functionType: env.functionType(void_, [B_T]));
+        checkMember(B_this, 'method',
+            functionType: env.functionType(void_, [B_T]));
+        checkMember(B_this, 'staticMethod',
+            checkType: CHECK_CLASS,
+            isStatic: true,
+            functionType: env.functionType(dynamic_, []));
+        checkMember(B_this, 'toString',
+            functionType:
+                env.functionType(dynamic_, [], optionalParameters: [B_T]));
 
-    checkMember(B_this, 'field', isGetter: true,
-                type: B_T, functionType: env.functionType(B_T, []));
-    checkMember(B_this, 'field', isSetter: true,
-                type: B_T, functionType: env.functionType(void_, [B_T]));
-    checkMember(B_this, 'method', functionType: env.functionType(void_, [B_T]));
-    checkMember(B_this, 'staticMethod',
-                checkType: CHECK_CLASS,
-                isStatic: true, functionType: env.functionType(dynamic_, []));
-    checkMember(B_this, 'toString',
-                functionType: env.functionType(dynamic_, [],
-                                               optionalParameters: [B_T]));
+        ClassElement C = env.getElement('C');
+        MembersCreator.computeAllClassMembers(env.resolution, C);
+        InterfaceType C_this = C.thisType;
+        TypeVariableType C_S = C_this.typeArguments.first;
+        checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: true);
+        checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: false);
+        InterfaceType B_S = instantiate(B, [C_S]);
 
-    ClassElement C = env.getElement('C');
-    MembersCreator.computeAllClassMembers(env.resolution, C);
-    InterfaceType C_this = C.thisType;
-    TypeVariableType C_S = C_this.typeArguments.first;
-    checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: true);
-    checkMemberCount(C_this, 8 /*inherited*/, interfaceMembers: false);
-    InterfaceType B_S = instantiate(B, [C_S]);
+        checkMember(C_this, '==', inheritedFrom: Object_);
+        checkMember(C_this, 'hashCode', inheritedFrom: Object_);
+        checkMember(C_this, 'noSuchMethod', inheritedFrom: Object_);
+        checkMember(C_this, 'runtimeType', inheritedFrom: Object_);
 
-    checkMember(C_this, '==', inheritedFrom: Object_);
-    checkMember(C_this, 'hashCode', inheritedFrom: Object_);
-    checkMember(C_this, 'noSuchMethod', inheritedFrom: Object_);
-    checkMember(C_this, 'runtimeType', inheritedFrom: Object_);
+        checkMember(C_this, 'field',
+            isGetter: true,
+            declarer: B_S,
+            type: C_S,
+            functionType: env.functionType(C_S, []));
+        checkMember(C_this, 'field',
+            isSetter: true,
+            declarer: B_S,
+            type: C_S,
+            functionType: env.functionType(void_, [C_S]));
+        checkMember(C_this, 'method',
+            declarer: B_S, functionType: env.functionType(void_, [C_S]));
+        checkMember(C_this, 'toString',
+            declarer: B_S,
+            functionType:
+                env.functionType(dynamic_, [], optionalParameters: [C_S]));
 
-    checkMember(C_this, 'field', isGetter: true,
-                declarer: B_S,
-                type: C_S, functionType: env.functionType(C_S, []));
-    checkMember(C_this, 'field', isSetter: true,
-                 declarer: B_S,
-                 type: C_S, functionType: env.functionType(void_, [C_S]));
-    checkMember(C_this, 'method',
-                declarer: B_S,
-                functionType: env.functionType(void_, [C_S]));
-    checkMember(C_this, 'toString',
-                declarer: B_S,
-                functionType: env.functionType(dynamic_, [],
-                                               optionalParameters: [C_S]));
+        InterfaceType D = env['D'];
+        MembersCreator.computeAllClassMembers(env.resolution, D.element);
+        checkMemberCount(D, 8 /*inherited*/, interfaceMembers: true);
+        checkMemberCount(D, 8 /*inherited*/, interfaceMembers: false);
+        InterfaceType B_int = instantiate(B, [int_]);
 
-    InterfaceType D = env['D'];
-    MembersCreator.computeAllClassMembers(env.resolution, D.element);
-    checkMemberCount(D, 8 /*inherited*/, interfaceMembers: true);
-    checkMemberCount(D, 8 /*inherited*/, interfaceMembers: false);
-    InterfaceType B_int = instantiate(B, [int_]);
+        checkMember(D, '==', inheritedFrom: Object_);
+        checkMember(D, 'hashCode', inheritedFrom: Object_);
+        checkMember(D, 'noSuchMethod', inheritedFrom: Object_);
+        checkMember(D, 'runtimeType', inheritedFrom: Object_);
 
-    checkMember(D, '==', inheritedFrom: Object_);
-    checkMember(D, 'hashCode', inheritedFrom: Object_);
-    checkMember(D, 'noSuchMethod', inheritedFrom: Object_);
-    checkMember(D, 'runtimeType', inheritedFrom: Object_);
+        checkMember(D, 'field',
+            isGetter: true,
+            declarer: B_int,
+            type: int_,
+            functionType: env.functionType(int_, []));
+        checkMember(D, 'field',
+            isSetter: true,
+            declarer: B_int,
+            type: int_,
+            functionType: env.functionType(void_, [int_]));
+        checkMember(D, 'method',
+            declarer: B_int, functionType: env.functionType(void_, [int_]));
+        checkMember(D, 'toString',
+            declarer: B_int,
+            functionType:
+                env.functionType(dynamic_, [], optionalParameters: [int_]));
 
-    checkMember(D, 'field', isGetter: true,
-                declarer: B_int,
-                type: int_, functionType: env.functionType(int_, []));
-    checkMember(D, 'field', isSetter: true,
-                declarer: B_int,
-                type: int_, functionType: env.functionType(void_, [int_]));
-    checkMember(D, 'method',
-                declarer: B_int,
-                functionType: env.functionType(void_, [int_]));
-    checkMember(D, 'toString',
-                declarer: B_int,
-                functionType: env.functionType(dynamic_, [],
-                                               optionalParameters: [int_]));
+        InterfaceType E = env['E'];
+        MembersCreator.computeAllClassMembers(env.resolution, E.element);
+        checkMemberCount(E, 8 /*inherited*/, interfaceMembers: true);
+        checkMemberCount(E, 8 /*inherited*/, interfaceMembers: false);
 
-    InterfaceType E = env['E'];
-    MembersCreator.computeAllClassMembers(env.resolution, E.element);
-    checkMemberCount(E, 8 /*inherited*/, interfaceMembers: true);
-    checkMemberCount(E, 8 /*inherited*/, interfaceMembers: false);
+        checkMember(E, '==', inheritedFrom: Object_);
+        checkMember(E, 'hashCode', inheritedFrom: Object_);
+        checkMember(E, 'noSuchMethod', inheritedFrom: Object_);
+        checkMember(E, 'runtimeType', inheritedFrom: Object_);
 
-    checkMember(E, '==', inheritedFrom: Object_);
-    checkMember(E, 'hashCode', inheritedFrom: Object_);
-    checkMember(E, 'noSuchMethod', inheritedFrom: Object_);
-    checkMember(E, 'runtimeType', inheritedFrom: Object_);
-
-    checkMember(E, 'field', isGetter: true,
-                declarer: B_int,
-                type: int_, functionType: env.functionType(int_, []));
-    checkMember(E, 'field', isSetter: true,
-                declarer: B_int,
-                type: int_, functionType: env.functionType(void_, [int_]));
-    checkMember(E, 'method',
-                declarer: B_int,
-                functionType: env.functionType(void_, [int_]));
-    checkMember(E, 'toString',
-                declarer: B_int,
-                functionType: env.functionType(dynamic_, [],
-                                               optionalParameters: [int_]));
-  }));
+        checkMember(E, 'field',
+            isGetter: true,
+            declarer: B_int,
+            type: int_,
+            functionType: env.functionType(int_, []));
+        checkMember(E, 'field',
+            isSetter: true,
+            declarer: B_int,
+            type: int_,
+            functionType: env.functionType(void_, [int_]));
+        checkMember(E, 'method',
+            declarer: B_int, functionType: env.functionType(void_, [int_]));
+        checkMember(E, 'toString',
+            declarer: B_int,
+            functionType:
+                env.functionType(dynamic_, [], optionalParameters: [int_]));
+      }));
 }
 
 void testInterfaceMembers() {
@@ -413,102 +450,99 @@ void testInterfaceMembers() {
     }
     abstract class D implements A, B, C {}
     """).then((env) {
+        DynamicType dynamic_ = env['dynamic'];
+        VoidType void_ = env['void'];
+        InterfaceType num_ = env['num'];
+        InterfaceType int_ = env['int'];
 
-    DynamicType dynamic_ = env['dynamic'];
-    VoidType void_ = env['void'];
-    InterfaceType num_ = env['num'];
-    InterfaceType int_ = env['int'];
+        InterfaceType A = env['A'];
+        InterfaceType B = env['B'];
+        InterfaceType C = env['C'];
+        InterfaceType D = env['D'];
 
-    InterfaceType A = env['A'];
-    InterfaceType B = env['B'];
-    InterfaceType C = env['C'];
-    InterfaceType D = env['D'];
+        // Ensure that members have been computed on all classes.
+        MembersCreator.computeAllClassMembers(env.resolution, D.element);
 
-    // Ensure that members have been computed on all classes.
-    MembersCreator.computeAllClassMembers(env.resolution, D.element);
+        // A: num method1()
+        // B: int method1()
+        // D: dynamic method1() -- synthesized from A and B.
+        checkMember(D, 'method1',
+            synthesizedFrom: [A, B],
+            functionType: env.functionType(dynamic_, []),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: num method1()
-    // B: int method1()
-    // D: dynamic method1() -- synthesized from A and B.
-    checkMember(D, 'method1',
-        synthesizedFrom: [A, B],
-        functionType: env.functionType(dynamic_ , []),
-        checkType: NO_CLASS_MEMBER);
+        // A: void method2()
+        // B: int method2()
+        // D: int method2() -- inherited from B
+        checkMember(D, 'method2', inheritedFrom: B, checkType: NO_CLASS_MEMBER);
 
-    // A: void method2()
-    // B: int method2()
-    // D: int method2() -- inherited from B
-    checkMember(D, 'method2', inheritedFrom: B, checkType: NO_CLASS_MEMBER);
+        // A: void method3()
+        // B: num method3()
+        // C: int method3()
+        // D: dynamic method3() -- synthesized from A, B, and C.
+        checkMember(D, 'method3',
+            synthesizedFrom: [A, B, C],
+            functionType: env.functionType(dynamic_, []),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: void method3()
-    // B: num method3()
-    // C: int method3()
-    // D: dynamic method3() -- synthesized from A, B, and C.
-    checkMember(D, 'method3',
-        synthesizedFrom: [A, B, C],
-        functionType: env.functionType(dynamic_ , []),
-        checkType: NO_CLASS_MEMBER);
+        // A: void method4()
+        // B: num method4()
+        // C: num method4()
+        // D: num method4() -- synthesized from B and C.
+        checkMember(D, 'method4',
+            synthesizedFrom: [B, C],
+            functionType: env.functionType(num_, []),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: void method4()
-    // B: num method4()
-    // C: num method4()
-    // D: num method4() -- synthesized from B and C.
-    checkMember(D, 'method4',
-        synthesizedFrom: [B, C],
-        functionType: env.functionType(num_, []),
-        checkType: NO_CLASS_MEMBER);
+        // A: method5(a)
+        // B: method5([a])
+        // D: method5([a]) -- inherited from B
+        checkMember(D, 'method5', inheritedFrom: B, checkType: NO_CLASS_MEMBER);
 
-    // A: method5(a)
-    // B: method5([a])
-    // D: method5([a]) -- inherited from B
-    checkMember(D, 'method5', inheritedFrom: B, checkType: NO_CLASS_MEMBER);
+        // A: method6(a)
+        // B: method6([a, b])
+        // D: method6([a, b]) -- inherited from B
+        checkMember(D, 'method6', inheritedFrom: B, checkType: NO_CLASS_MEMBER);
 
-    // A: method6(a)
-    // B: method6([a, b])
-    // D: method6([a, b]) -- inherited from B
-    checkMember(D, 'method6', inheritedFrom: B, checkType: NO_CLASS_MEMBER);
+        // A: method7(a)
+        // B: method7(a, [b])
+        // D: method7(a, [b]) -- inherited from B
+        checkMember(D, 'method7', inheritedFrom: B, checkType: NO_CLASS_MEMBER);
 
-    // A: method7(a)
-    // B: method7(a, [b])
-    // D: method7(a, [b]) -- inherited from B
-    checkMember(D, 'method7', inheritedFrom: B, checkType: NO_CLASS_MEMBER);
+        // A: method8(a, b)
+        // B: method8([a])
+        // D: method8([a, b]) -- synthesized from A and B.
+        checkMember(D, 'method8',
+            synthesizedFrom: [A, B],
+            functionType: env.functionType(dynamic_, [],
+                optionalParameters: [dynamic_, dynamic_]),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: method8(a, b)
-    // B: method8([a])
-    // D: method8([a, b]) -- synthesized from A and B.
-    checkMember(D, 'method8',
-        synthesizedFrom: [A, B],
-        functionType: env.functionType(
-            dynamic_, [], optionalParameters: [dynamic_, dynamic_]),
-        checkType: NO_CLASS_MEMBER);
+        // A: method9(a, b, c)
+        // B: method9(a, [b])
+        // D: method9(a, [b, c]) -- synthesized from A and B.
+        checkMember(D, 'method9',
+            synthesizedFrom: [A, B],
+            functionType: env.functionType(dynamic_, [dynamic_],
+                optionalParameters: [dynamic_, dynamic_]),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: method9(a, b, c)
-    // B: method9(a, [b])
-    // D: method9(a, [b, c]) -- synthesized from A and B.
-    checkMember(D, 'method9',
-        synthesizedFrom: [A, B],
-        functionType: env.functionType(
-            dynamic_, [dynamic_], optionalParameters: [dynamic_, dynamic_]),
-        checkType: NO_CLASS_MEMBER);
+        // A: method10(a, {b, c})
+        // B: method10(a, {c, d})
+        // D: method10(a, {b, c, d}) -- synthesized from A and B.
+        checkMember(D, 'method10',
+            synthesizedFrom: [A, B],
+            functionType: env.functionType(dynamic_, [dynamic_],
+                namedParameters: {'b': dynamic_, 'c': dynamic_, 'd': dynamic_}),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: method10(a, {b, c})
-    // B: method10(a, {c, d})
-    // D: method10(a, {b, c, d}) -- synthesized from A and B.
-    checkMember(D, 'method10',
-        synthesizedFrom: [A, B],
-        functionType: env.functionType(dynamic_, [dynamic_],
-                                       namedParameters: {'b': dynamic_,
-                                                         'c': dynamic_,
-                                                         'd': dynamic_}),
-        checkType: NO_CLASS_MEMBER);
-
-    // A: method11(a, {b, c})
-    // B: method11(a, b, {c, d})
-    // D: method11(a, [b], {c, d}) -- synthesized from A and B.
-    // TODO(johnniwinther): Change to check synthesized member when function
-    // types with both optional and named parameters are supported.
-    Expect.isNull(getMember(D, 'method11'));
-    /*checkMember(D, 'method11',
+        // A: method11(a, {b, c})
+        // B: method11(a, b, {c, d})
+        // D: method11(a, [b], {c, d}) -- synthesized from A and B.
+        // TODO(johnniwinther): Change to check synthesized member when function
+        // types with both optional and named parameters are supported.
+        Expect.isNull(getMember(D, 'method11'));
+        /*checkMember(D, 'method11',
         synthesizedFrom: [A, B],
         functionType: env.functionType(dynamic_, [dynamic_],
                                        optionalParameters: [dynamic_],
@@ -516,58 +550,62 @@ void testInterfaceMembers() {
                                                          'd': dynamic_,}),
         checkType: NO_CLASS_MEMBER);*/
 
-    // A: num get getter1
-    // B: num get getter1
-    // D: num get getter1 -- synthesized from A and B.
-    checkMember(D, 'getter1',
-        isGetter: true,
-        synthesizedFrom: [A, B], type: num_,
-        functionType: env.functionType(num_ , []),
-        checkType: NO_CLASS_MEMBER);
+        // A: num get getter1
+        // B: num get getter1
+        // D: num get getter1 -- synthesized from A and B.
+        checkMember(D, 'getter1',
+            isGetter: true,
+            synthesizedFrom: [A, B],
+            type: num_,
+            functionType: env.functionType(num_, []),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: num get getter2
-    // B: int get getter2
-    // D: dynamic get getter2 -- synthesized from A and B.
-    checkMember(D, 'getter2',
-        isGetter: true,
-        synthesizedFrom: [A, B], type: dynamic_,
-        functionType: env.functionType(dynamic_ , []),
-        checkType: NO_CLASS_MEMBER);
+        // A: num get getter2
+        // B: int get getter2
+        // D: dynamic get getter2 -- synthesized from A and B.
+        checkMember(D, 'getter2',
+            isGetter: true,
+            synthesizedFrom: [A, B],
+            type: dynamic_,
+            functionType: env.functionType(dynamic_, []),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: void set setter1(num _)
-    // B: void set setter1(num _)
-    // D: void set setter1(num _) -- synthesized from A and B.
-    checkMember(D, 'setter1',
-        isSetter: true,
-        synthesizedFrom: [A, B], type: num_,
-        functionType: env.functionType(void_ , [num_]),
-        checkType: NO_CLASS_MEMBER);
+        // A: void set setter1(num _)
+        // B: void set setter1(num _)
+        // D: void set setter1(num _) -- synthesized from A and B.
+        checkMember(D, 'setter1',
+            isSetter: true,
+            synthesizedFrom: [A, B],
+            type: num_,
+            functionType: env.functionType(void_, [num_]),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: void set setter2(num _)
-    // B: set setter2(num _)
-    // D: dynamic set setter2(dynamic _) -- synthesized from A and B.
-    checkMember(D, 'setter2',
-        isSetter: true,
-        synthesizedFrom: [A, B], type: dynamic_,
-        functionType: env.functionType(dynamic_ , [dynamic_]),
-        checkType: NO_CLASS_MEMBER);
+        // A: void set setter2(num _)
+        // B: set setter2(num _)
+        // D: dynamic set setter2(dynamic _) -- synthesized from A and B.
+        checkMember(D, 'setter2',
+            isSetter: true,
+            synthesizedFrom: [A, B],
+            type: dynamic_,
+            functionType: env.functionType(dynamic_, [dynamic_]),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: void set setter3(num _)
-    // B: void set setter3(int _)
-    // D: dynamic set setter3(dynamic _) -- synthesized from A and B.
-    checkMember(D, 'setter3',
-        isSetter: true,
-        synthesizedFrom: [A, B], type: dynamic_,
-        functionType: env.functionType(dynamic_ , [dynamic_]),
-        checkType: NO_CLASS_MEMBER);
+        // A: void set setter3(num _)
+        // B: void set setter3(int _)
+        // D: dynamic set setter3(dynamic _) -- synthesized from A and B.
+        checkMember(D, 'setter3',
+            isSetter: true,
+            synthesizedFrom: [A, B],
+            type: dynamic_,
+            functionType: env.functionType(dynamic_, [dynamic_]),
+            checkType: NO_CLASS_MEMBER);
 
-    // A: get getterAndMethod
-    // B: getterAndMethod()
-    // D: nothing inherited
-    checkMember(D, 'getterAndMethod',
-        erroneousFrom: [A, B],
-        checkType: NO_CLASS_MEMBER);
-  }));
+        // A: get getterAndMethod
+        // B: getterAndMethod()
+        // D: nothing inherited
+        checkMember(D, 'getterAndMethod',
+            erroneousFrom: [A, B], checkType: NO_CLASS_MEMBER);
+      }));
 }
 
 void testClassVsInterfaceMembers() {
@@ -582,46 +620,44 @@ void testClassVsInterfaceMembers() {
     }
     abstract class C extends A implements B {}
     """).then((env) {
+        DynamicType dynamic_ = env['dynamic'];
+        VoidType void_ = env['void'];
+        InterfaceType num_ = env['num'];
+        InterfaceType int_ = env['int'];
 
-    DynamicType dynamic_ = env['dynamic'];
-    VoidType void_ = env['void'];
-    InterfaceType num_ = env['num'];
-    InterfaceType int_ = env['int'];
+        InterfaceType A = env['A'];
+        InterfaceType B = env['B'];
+        InterfaceType C = env['C'];
 
-    InterfaceType A = env['A'];
-    InterfaceType B = env['B'];
-    InterfaceType C = env['C'];
+        // Ensure that members have been computed on all classes.
+        MembersCreator.computeAllClassMembers(env.resolution, C.element);
 
-    // Ensure that members have been computed on all classes.
-    MembersCreator.computeAllClassMembers(env.resolution, C.element);
+        // A: method1()
+        // B: method1()
+        // C class: method1() -- inherited from A.
+        // C interface: dynamic method1() -- synthesized from A and B.
+        MemberSignature interfaceMember = checkMember(C, 'method1',
+            checkType: CHECK_INTERFACE,
+            synthesizedFrom: [A, B],
+            functionType: env.functionType(dynamic_, []));
+        MemberSignature classMember =
+            checkMember(C, 'method1', checkType: CHECK_CLASS, inheritedFrom: A);
+        Expect.notEquals(interfaceMember, classMember);
 
-    // A: method1()
-    // B: method1()
-    // C class: method1() -- inherited from A.
-    // C interface: dynamic method1() -- synthesized from A and B.
-    MemberSignature interfaceMember =
-        checkMember(C, 'method1', checkType: CHECK_INTERFACE,
-                    synthesizedFrom: [A, B],
-                    functionType: env.functionType(dynamic_ , []));
-    MemberSignature classMember =
-        checkMember(C, 'method1', checkType: CHECK_CLASS, inheritedFrom: A);
-    Expect.notEquals(interfaceMember, classMember);
-
-    // A: method2()
-    // B: method2(a)
-    // C class: method2() -- inherited from A.
-    // C interface: dynamic method2([a]) -- synthesized from A and B.
-    interfaceMember =
-        checkMember(C, 'method2', checkType: CHECK_INTERFACE,
-                    synthesizedFrom: [A, B],
-                    functionType: env.functionType(dynamic_ , [],
-                        optionalParameters: [dynamic_]));
-    classMember =
-        checkMember(C, 'method2', checkType: CHECK_CLASS, inheritedFrom: A);
-    Expect.notEquals(interfaceMember, classMember);
-  }));
+        // A: method2()
+        // B: method2(a)
+        // C class: method2() -- inherited from A.
+        // C interface: dynamic method2([a]) -- synthesized from A and B.
+        interfaceMember = checkMember(C, 'method2',
+            checkType: CHECK_INTERFACE,
+            synthesizedFrom: [A, B],
+            functionType:
+                env.functionType(dynamic_, [], optionalParameters: [dynamic_]));
+        classMember =
+            checkMember(C, 'method2', checkType: CHECK_CLASS, inheritedFrom: A);
+        Expect.notEquals(interfaceMember, classMember);
+      }));
 }
-
 
 void testMixinMembers() {
   asyncTest(() => TypeEnvironment.create(r"""
@@ -638,71 +674,67 @@ void testMixinMembers() {
     }
     abstract class C<U, V> extends Object with A<U> implements B<V> {}
     """).then((env) {
+        DynamicType dynamic_ = env['dynamic'];
+        VoidType void_ = env['void'];
+        InterfaceType num_ = env['num'];
+        InterfaceType int_ = env['int'];
 
-    DynamicType dynamic_ = env['dynamic'];
-    VoidType void_ = env['void'];
-    InterfaceType num_ = env['num'];
-    InterfaceType int_ = env['int'];
+        ClassElement A = env.getElement('A');
+        ClassElement B = env.getElement('B');
+        ClassElement C = env.getElement('C');
+        InterfaceType C_this = C.thisType;
+        TypeVariableType C_U = C_this.typeArguments[0];
+        TypeVariableType C_V = C_this.typeArguments[1];
+        InterfaceType A_U = instantiate(A, [C_U]);
+        InterfaceType B_V = instantiate(B, [C_V]);
 
-    ClassElement A = env.getElement('A');
-    ClassElement B = env.getElement('B');
-    ClassElement C = env.getElement('C');
-    InterfaceType C_this = C.thisType;
-    TypeVariableType C_U = C_this.typeArguments[0];
-    TypeVariableType C_V = C_this.typeArguments[1];
-    InterfaceType A_U = instantiate(A, [C_U]);
-    InterfaceType B_V = instantiate(B, [C_V]);
+        // Ensure that members have been computed on all classes.
+        MembersCreator.computeAllClassMembers(env.resolution, C);
 
-    // Ensure that members have been computed on all classes.
-    MembersCreator.computeAllClassMembers(env.resolution, C);
+        // A: method1()
+        // B: method1()
+        // C class: method1() -- inherited from A.
+        // C interface: dynamic method1() -- synthesized from A and B.
+        MemberSignature interfaceMember = checkMember(C_this, 'method1',
+            checkType: CHECK_INTERFACE,
+            synthesizedFrom: [A_U, B_V],
+            functionType: env.functionType(dynamic_, []));
+        MemberSignature classMember = checkMember(C_this, 'method1',
+            checkType: CHECK_CLASS, inheritedFrom: A_U);
+        Expect.notEquals(interfaceMember, classMember);
 
-    // A: method1()
-    // B: method1()
-    // C class: method1() -- inherited from A.
-    // C interface: dynamic method1() -- synthesized from A and B.
-    MemberSignature interfaceMember =
-        checkMember(C_this, 'method1', checkType: CHECK_INTERFACE,
-                    synthesizedFrom: [A_U, B_V],
-                    functionType: env.functionType(dynamic_ , []));
-    MemberSignature classMember =
-        checkMember(C_this, 'method1', checkType: CHECK_CLASS,
-                    inheritedFrom: A_U);
-    Expect.notEquals(interfaceMember, classMember);
+        // A: method2()
+        // B: method2(a)
+        // C class: method2() -- inherited from A.
+        // C interface: dynamic method2([a]) -- synthesized from A and B.
+        interfaceMember = checkMember(C_this, 'method2',
+            checkType: CHECK_INTERFACE,
+            synthesizedFrom: [A_U, B_V],
+            functionType:
+                env.functionType(dynamic_, [], optionalParameters: [dynamic_]));
+        classMember = checkMember(C_this, 'method2',
+            checkType: CHECK_CLASS, inheritedFrom: A_U);
+        Expect.notEquals(interfaceMember, classMember);
 
-    // A: method2()
-    // B: method2(a)
-    // C class: method2() -- inherited from A.
-    // C interface: dynamic method2([a]) -- synthesized from A and B.
-    interfaceMember =
-        checkMember(C_this, 'method2', checkType: CHECK_INTERFACE,
-                    synthesizedFrom: [A_U, B_V],
-                    functionType: env.functionType(dynamic_ , [],
-                        optionalParameters: [dynamic_]));
-    classMember =
-        checkMember(C_this, 'method2', checkType: CHECK_CLASS,
-                    inheritedFrom: A_U);
-    Expect.notEquals(interfaceMember, classMember);
+        // A: method3(U a)
+        // B: method3(V a)
+        // C class: method3(U a) -- inherited from A.
+        // C interface: dynamic method3(a) -- synthesized from A and B.
+        interfaceMember = checkMember(C_this, 'method3',
+            checkType: CHECK_INTERFACE,
+            synthesizedFrom: [A_U, B_V],
+            functionType: env.functionType(dynamic_, [dynamic_]));
+        classMember = checkMember(C_this, 'method3',
+            checkType: CHECK_CLASS, inheritedFrom: A_U);
+        Expect.notEquals(interfaceMember, classMember);
 
-    // A: method3(U a)
-    // B: method3(V a)
-    // C class: method3(U a) -- inherited from A.
-    // C interface: dynamic method3(a) -- synthesized from A and B.
-    interfaceMember =
-        checkMember(C_this, 'method3', checkType: CHECK_INTERFACE,
-                    synthesizedFrom: [A_U, B_V],
-                    functionType: env.functionType(dynamic_ , [dynamic_]));
-    classMember =
-        checkMember(C_this, 'method3', checkType: CHECK_CLASS,
-                    inheritedFrom: A_U);
-    Expect.notEquals(interfaceMember, classMember);
-
-    // A: method4(U a)
-    // B: --
-    // C class: method4(U a) -- inherited from A.
-    // C interface: method4(U a) -- inherited from A.
-    checkMember(C_this, 'method4', checkType: ALSO_CLASS_MEMBER,
-                inheritedFrom: A_U);
-  }));
+        // A: method4(U a)
+        // B: --
+        // C class: method4(U a) -- inherited from A.
+        // C interface: method4(U a) -- inherited from A.
+        checkMember(C_this, 'method4',
+            checkType: ALSO_CLASS_MEMBER, inheritedFrom: A_U);
+      }));
 }
 
 void testMixinMembersWithoutImplements() {
@@ -714,21 +746,21 @@ void testMixinMembersWithoutImplements() {
     }
     abstract class C extends Object with B {}
     """).then((env) {
+        DynamicType dynamic_ = env['dynamic'];
+        VoidType void_ = env['void'];
+        InterfaceType num_ = env['num'];
+        InterfaceType int_ = env['int'];
 
-    DynamicType dynamic_ = env['dynamic'];
-    VoidType void_ = env['void'];
-    InterfaceType num_ = env['num'];
-    InterfaceType int_ = env['int'];
+        InterfaceType A = env['A'];
+        InterfaceType B = env['B'];
+        InterfaceType C = env['C'];
 
-    InterfaceType A = env['A'];
-    InterfaceType B = env['B'];
-    InterfaceType C = env['C'];
+        // Ensure that members have been computed on all classes.
+        MembersCreator.computeAllClassMembers(env.resolution, C.element);
 
-    // Ensure that members have been computed on all classes.
-    MembersCreator.computeAllClassMembers(env.resolution, C.element);
-
-    checkMember(C, 'm', checkType: NO_CLASS_MEMBER,
-                inheritedFrom: A,
-                functionType: env.functionType(dynamic_ , []));
-  }));
+        checkMember(C, 'm',
+            checkType: NO_CLASS_MEMBER,
+            inheritedFrom: A,
+            functionType: env.functionType(dynamic_, []));
+      }));
 }

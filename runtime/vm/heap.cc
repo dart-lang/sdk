@@ -35,8 +35,6 @@ Heap::Heap(Isolate* isolate,
       old_space_(this, max_old_gen_words, max_external_words),
       barrier_(new Monitor()),
       barrier_done_(new Monitor()),
-      finalization_tasks_lock_(new Monitor()),
-      finalization_tasks_(0),
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false) {
@@ -53,7 +51,6 @@ Heap::Heap(Isolate* isolate,
 Heap::~Heap() {
   delete barrier_;
   delete barrier_done_;
-  delete finalization_tasks_lock_;
 
   for (int sel = 0;
        sel < kNumWeakSelectors;
@@ -92,18 +89,18 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   // If we are in the process of running a sweep, wait for the sweeper to free
   // memory.
   Thread* thread = Thread::Current();
-  {
-    MonitorLocker ml(old_space_.tasks_lock());
-    addr = old_space_.TryAllocate(size, type);
-    while ((addr == 0) && (old_space_.tasks() > 0)) {
-      ml.WaitWithSafepointCheck(thread);
-      addr = old_space_.TryAllocate(size, type);
-    }
-  }
-  if (addr != 0) {
-    return addr;
-  }
   if (thread->CanCollectGarbage()) {
+    {
+      MonitorLocker ml(old_space_.tasks_lock());
+      addr = old_space_.TryAllocate(size, type);
+      while ((addr == 0) && (old_space_.tasks() > 0)) {
+        ml.WaitWithSafepointCheck(thread);
+        addr = old_space_.TryAllocate(size, type);
+      }
+    }
+    if (addr != 0) {
+      return addr;
+    }
     // All GC tasks finished without allocating successfully. Run a full GC.
     CollectAllGarbage();
     addr = old_space_.TryAllocate(size, type);
@@ -521,45 +518,33 @@ void Heap::Init(Isolate* isolate,
 }
 
 
-void Heap::GetMergedAddressRange(uword* start, uword* end) const {
-  if (new_space_.CapacityInWords() != 0) {
-    uword new_start;
-    uword new_end;
-    new_space_.StartEndAddress(&new_start, &new_end);
-    *start = Utils::Minimum(new_start, *start);
-    *end = Utils::Maximum(new_end, *end);
-  }
-  if (old_space_.CapacityInWords() != 0) {
-    uword old_start;
-    uword old_end;
-    old_space_.StartEndAddress(&old_start, &old_end);
-    *start = Utils::Minimum(old_start, *start);
-    *end = Utils::Maximum(old_end, *end);
-  }
-  ASSERT(*start <= *end);
+void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
+  new_space_.AddRegionsToObjectSet(set);
+  old_space_.AddRegionsToObjectSet(set);
 }
 
 
 ObjectSet* Heap::CreateAllocatedObjectSet(
+    Zone* zone,
     MarkExpectation mark_expectation) const {
-  uword start = static_cast<uword>(-1);
-  uword end = 0;
-  Isolate* vm_isolate = Dart::vm_isolate();
-  vm_isolate->heap()->GetMergedAddressRange(&start, &end);
-  this->GetMergedAddressRange(&start, &end);
+  ObjectSet* allocated_set = new(zone) ObjectSet(zone);
 
-  ObjectSet* allocated_set = new ObjectSet(start, end);
+  this->AddRegionsToObjectSet(allocated_set);
   {
     VerifyObjectVisitor object_visitor(
         isolate(), allocated_set, mark_expectation);
     this->VisitObjects(&object_visitor);
   }
+
+  Isolate* vm_isolate = Dart::vm_isolate();
+  vm_isolate->heap()->AddRegionsToObjectSet(allocated_set);
   {
     // VM isolate heap is premarked.
     VerifyObjectVisitor vm_object_visitor(
         isolate(), allocated_set, kRequireMarked);
     vm_isolate->heap()->VisitObjects(&vm_object_visitor);
   }
+
   return allocated_set;
 }
 
@@ -571,10 +556,12 @@ bool Heap::Verify(MarkExpectation mark_expectation) const {
 
 
 bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
-  ObjectSet* allocated_set = CreateAllocatedObjectSet(mark_expectation);
+  StackZone stack_zone(Thread::Current());
+  ObjectSet* allocated_set = CreateAllocatedObjectSet(stack_zone.GetZone(),
+                                                      mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
   VisitObjectPointers(&visitor);
-  delete allocated_set;
+
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
 }

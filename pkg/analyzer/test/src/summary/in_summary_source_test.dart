@@ -10,13 +10,12 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
-
-import '../../reflective_tests.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(InSummarySourceTest);
+  defineReflectiveTests(InSummarySourceTest);
 }
 
 @reflectiveTest

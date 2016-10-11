@@ -24,21 +24,16 @@ main(List<String> args) {
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       await check(serializedData, entryPoint,
-                  sourceFiles:  {'main.dart': 'main() {}'},
-                  verbose: arguments.verbose);
+          sourceFiles: {'main.dart': 'main() {}'}, verbose: arguments.verbose);
     }
   });
 }
 
-Future check(
-  SerializedData serializedData,
-  Uri entryPoint,
-  {Map<String, String> sourceFiles: const <String, String>{},
-   bool verbose: false}) async {
-
-  Compiler compilerNormal = compilerFor(
-      memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeAll]);
+Future check(SerializedData serializedData, Uri entryPoint,
+    {Map<String, String> sourceFiles: const <String, String>{},
+    bool verbose: false}) async {
+  Compiler compilerNormal =
+      compilerFor(memorySourceFiles: sourceFiles, options: [Flags.analyzeAll]);
   compilerNormal.resolution.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
 

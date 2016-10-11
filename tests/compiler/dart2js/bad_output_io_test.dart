@@ -9,16 +9,14 @@ library dart2js.test.bad_output_io;
 import 'dart:io' show exit;
 import 'package:expect/expect.dart';
 
-import 'package:compiler/compiler.dart'
-       show Diagnostic;
+import 'package:compiler/compiler.dart' show Diagnostic;
 import 'package:compiler/src/dart2js.dart'
-       show exitFunc, compileFunc, compile, diagnosticHandler;
+    show exitFunc, compileFunc, compile, diagnosticHandler;
 import 'package:compiler/src/source_file_provider.dart'
-       show FormattingDiagnosticHandler;
+    show FormattingDiagnosticHandler;
 
 class CollectingFormattingDiagnosticHandler
     implements FormattingDiagnosticHandler {
-
   final provider = null;
   bool showWarnings = true;
   bool showHints = true;
@@ -34,7 +32,7 @@ class CollectingFormattingDiagnosticHandler
   final messages = [];
 
   void info(var message, [kind]) {
-   messages.add([message, kind]);
+    messages.add([message, kind]);
   }
 
   @override

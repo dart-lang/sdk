@@ -24,7 +24,7 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
 import '../util/characters.dart';
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'backend.dart';
 import 'backend_helpers.dart';
 import 'constant_system_javascript.dart';
@@ -391,6 +391,9 @@ class Namer {
 
   jsAst.Name get staticsPropertyName =>
       _staticsPropertyName ??= new StringBackedName('static');
+
+  jsAst.Name _rtiFieldName;
+  jsAst.Name get rtiFieldName => _rtiFieldName ??= new StringBackedName(r'$ti');
 
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
@@ -850,8 +853,8 @@ class Namer {
     // mangle the field names of classes extending native classes.
     // Methods on such classes are stored on the interceptor, not the instance,
     // so only fields have the potential to clash with a native property name.
-    ClassWorld classWorld = compiler.world;
-    if (classWorld.isUsedAsMixin(enclosingClass) ||
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (closedWorld.isUsedAsMixin(enclosingClass) ||
         _isShadowingSuperField(element) ||
         _isUserClassExtendingNative(enclosingClass)) {
       String proposeName() => '${enclosingClass.name}_${element.name}';

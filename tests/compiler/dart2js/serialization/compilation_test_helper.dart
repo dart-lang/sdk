@@ -26,10 +26,12 @@ main(List<String> args) {
         await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
-      await compile(
-          entryPoint,
-          resolutionInputs: serializedData.toUris(),
-          sourceFiles: serializedData.toMemorySourceFiles());
+      SerializationResult result = await serialize(entryPoint,
+          memorySourceFiles: serializedData.toMemorySourceFiles(),
+          resolutionInputs: serializedData.toUris());
+      await compile(entryPoint,
+          resolutionInputs: result.serializedData.toUris(),
+          sourceFiles: result.serializedData.toMemorySourceFiles());
     } else {
       Uri entryPoint = Uri.parse('memory:main.dart');
       await arguments.forEachTest(serializedData, TESTS, compile);
@@ -38,20 +40,19 @@ main(List<String> args) {
   });
 }
 
-Future compile(
-    Uri entryPoint,
+Future compile(Uri entryPoint,
     {Map<String, String> sourceFiles: const <String, String>{},
-     List<Uri> resolutionInputs,
-     int index,
-     Test test,
-     bool verbose: false}) async {
+    List<Uri> resolutionInputs,
+    int index,
+    Test test,
+    bool verbose: false}) async {
   String testDescription = test != null ? test.name : '${entryPoint}';
   String id = index != null ? '$index: ' : '';
   String title = '${id}${testDescription}';
   OutputCollector outputCollector = new OutputCollector();
   await measure(title, 'compile', () async {
     List<String> options = [];
-    if (test.checkedMode) {
+    if (test != null && test.checkedMode) {
       options.add(Flags.enableCheckedMode);
     }
     await runCompiler(
@@ -65,4 +66,3 @@ Future compile(
     print(outputCollector.getOutput('', 'js'));
   }
 }
-

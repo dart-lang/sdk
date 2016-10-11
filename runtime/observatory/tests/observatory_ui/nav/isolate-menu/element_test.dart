@@ -4,14 +4,13 @@
 
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/isolate_menu.dart';
 import '../../mocks.dart';
 
 main() {
   NavIsolateMenuElement.tag.ensureRegistration();
 
-  final tag = NavMenuElement.tag.name;
+  final tag = '.nav-menu_label > a';
 
   EventRepositoryMock events;
   final ref = const IsolateRefMock(id: 'i-id', name: 'old-name');
@@ -35,10 +34,10 @@ main() {
     final e = new NavIsolateMenuElement(ref, events);
     document.body.append(e);
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
+    expect(e.children.length, isNonZero, reason: 'has elements');
     e.remove();
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isZero, reason: 'is empty');
+    expect(e.children.length, isZero, reason: 'is empty');
   });
   group('updates', () {
     test('are correctly listen', () async {
@@ -55,14 +54,11 @@ main() {
       final e = new NavIsolateMenuElement(ref, events);
       document.body.append(e);
       await e.onRendered.first;
-      expect((e.shadowRoot.querySelector(tag) as NavMenuElement)
-             .label.contains(ref.name), isTrue);
+      expect(e.querySelector(tag).text.contains(ref.name), isTrue);
       events.add(new IsolateUpdateEventMock(isolate: obj));
       await e.onRendered.first;
-      expect((e.shadowRoot.querySelector(tag) as NavMenuElement)
-             .label.contains(ref.name), isFalse);
-      expect((e.shadowRoot.querySelector(tag) as NavMenuElement)
-            .label.contains(obj.name), isTrue);
+      expect(e.querySelector(tag).text.contains(ref.name), isFalse);
+      expect(e.querySelector(tag).text.contains(obj.name), isTrue);
       e.remove();
     });
   });

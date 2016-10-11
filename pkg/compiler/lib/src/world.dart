@@ -5,7 +5,7 @@
 library dart2js.world;
 
 import 'closure.dart' show SynthesizedCallMethodElementX;
-import 'common/backend_api.dart' show Backend;
+import 'common/backend_api.dart' show BackendClasses;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'core_types.dart' show CoreClasses;
@@ -18,15 +18,19 @@ import 'elements/elements.dart'
         MixinApplicationElement,
         TypedefElement,
         VariableElement;
+import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'ordered_typeset.dart';
-import 'types/types.dart' as ti;
+import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
 import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
 import 'util/util.dart' show Link;
 
-/// The [ClassWorld] represents the information known about a program when
+/// Common superinterface for [OpenWorld] and [ClosedWorld].
+abstract class World {}
+
+/// The [ClosedWorld] represents the information known about a program when
 /// compiling with closed-world semantics.
 ///
 /// Given the entrypoint of an application, we can track what's reachable from
@@ -34,34 +38,12 @@ import 'util/util.dart' show Link;
 /// JavaScript types are touched, what language features are used, and so on.
 /// This precise knowledge about what's live in the program is later used in
 /// optimizations and other compiler decisions during code generation.
-abstract class ClassWorld {
-  // TODO(johnniwinther): Refine this into a `BackendClasses` interface.
-  Backend get backend;
+abstract class ClosedWorld implements World {
+  /// Access to core classes used by the backend.
+  BackendClasses get backendClasses;
 
-  // TODO(johnniwinther): Remove the need for this getter.
-  @deprecated
-  Compiler get compiler;
-
-  /// The [ClassElement] for the [Object] class defined in 'dart:core'.
-  ClassElement get objectClass;
-
-  /// The [ClassElement] for the [Function] class defined in 'dart:core'.
-  ClassElement get functionClass;
-
-  /// The [ClassElement] for the [bool] class defined in 'dart:core'.
-  ClassElement get boolClass;
-
-  /// The [ClassElement] for the [num] class defined in 'dart:core'.
-  ClassElement get numClass;
-
-  /// The [ClassElement] for the [int] class defined in 'dart:core'.
-  ClassElement get intClass;
-
-  /// The [ClassElement] for the [double] class defined in 'dart:core'.
-  ClassElement get doubleClass;
-
-  /// The [ClassElement] for the [String] class defined in 'dart:core'.
-  ClassElement get stringClass;
+  /// Access to core classes used in the Dart language.
+  CoreClasses get coreClasses;
 
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
@@ -75,9 +57,6 @@ abstract class ClassWorld {
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls);
-
-  /// Returns `true` if the class world is closed.
-  bool get isClosed;
 
   /// Return `true` if [x] is a subclass of [y].
   bool isSubclassOf(ClassElement x, ClassElement y);
@@ -167,12 +146,75 @@ abstract class ClassWorld {
   /// of [superclass].
   bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement mixin);
 
+  /// Returns `true` if [cls] or any superclass mixes in [mixin].
+  bool isSubclassOfMixinUseOf(ClassElement cls, ClassElement mixin);
+
+  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
+  /// of a mixin application of [y].
+  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassElement x, ClassElement y);
+
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
 
-  /// Returns `true` if closed-world assumptions can be made, that is,
-  /// incremental compilation isn't enabled.
-  bool get hasClosedWorldAssumption;
+  /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
+  /// of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClosedWorld].
+  ClassHierarchyNode getClassHierarchyNode(ClassElement cls);
+
+  /// Returns [ClassSet] for [cls] used to model the extends and implements
+  /// relations of known classes.
+  ///
+  /// This method is only provided for testing. For queries on classes, use the
+  /// methods defined in [ClosedWorld].
+  ClassSet getClassSet(ClassElement cls);
+
+  // TODO(johnniwinther): Find a better strategy for caching these.
+  @deprecated
+  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
+
+  /// Returns the [FunctionSet] containing all live functions in the closed
+  /// world.
+  FunctionSet get allFunctions;
+
+  /// Returns `true` if the field [element] is known to be effectively final.
+  bool fieldNeverChanges(Element element);
+
+  /// Extends the receiver type [mask] for calling [selector] to take live
+  /// `noSuchMethod` handlers into account.
+  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask);
+
+  /// Returns all resolved typedefs.
+  Iterable<TypedefElement> get allTypedefs;
+
+  /// Returns the single [Element] that matches a call to [selector] on a
+  /// receiver of type [mask]. If multiple targets exist, `null` is returned.
+  Element locateSingleElement(Selector selector, TypeMask mask);
+
+  /// Returns the single field that matches a call to [selector] on a
+  /// receiver of type [mask]. If multiple targets exist or the single target
+  /// is not a field, `null` is returned.
+  VariableElement locateSingleField(Selector selector, TypeMask mask);
+
+  /// Returns the side effects of executing [element].
+  SideEffects getSideEffectsOfElement(Element element);
+
+  /// Returns the side effects of calling [selector] on a receiver of type
+  /// [mask].
+  SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask);
+
+  /// Returns `true` if [element] is guaranteed not to throw an exception.
+  bool getCannotThrow(Element element);
+
+  /// Returns `true` if [element] is called in a loop.
+  // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
+  bool isCalledInLoop(Element element);
+
+  /// Returns `true` if [element] might be passed to `Function.apply`.
+  // TODO(johnniwinther): Is this 'passed invocation target` or
+  // `passed as argument`?
+  bool getMightBePassedToApply(Element element);
 
   /// Returns a string representation of the closed world.
   ///
@@ -180,20 +222,62 @@ abstract class ClassWorld {
   String dump([ClassElement cls]);
 }
 
-class World implements ClassWorld {
-  ClassElement get objectClass => coreClasses.objectClass;
-  ClassElement get functionClass => coreClasses.functionClass;
-  ClassElement get boolClass => coreClasses.boolClass;
-  ClassElement get numClass => coreClasses.numClass;
-  ClassElement get intClass => coreClasses.intClass;
-  ClassElement get doubleClass => coreClasses.doubleClass;
-  ClassElement get stringClass => coreClasses.stringClass;
-  ClassElement get nullClass => coreClasses.nullClass;
+/// Interface for computing side effects and uses of elements. This is used
+/// during type inference to compute the [ClosedWorld] for code generation.
+abstract class ClosedWorldRefiner {
+  /// Registers the side [effects] of executing [element].
+  void registerSideEffects(Element element, SideEffects effects);
 
-  /// Cache of [ti.FlatTypeMask]s grouped by the 8 possible values of the
-  /// [ti.FlatTypeMask.flags] property.
-  List<Map<ClassElement, ti.TypeMask>> canonicalizedTypeMasks =
-      new List<Map<ClassElement, ti.TypeMask>>.filled(8, null);
+  /// Registers the executing of [element] as without side effects.
+  void registerSideEffectsFree(Element element);
+
+  /// Returns the currently known side effects of executing [element].
+  SideEffects getCurrentlyKnownSideEffects(Element element);
+
+  /// Registers that [element] might be passed to `Function.apply`.
+  // TODO(johnniwinther): Is this 'passed invocation target` or
+  // `passed as argument`?
+  void registerMightBePassedToApply(Element element);
+
+  /// Returns `true` if [element] might be passed to `Function.apply` given the
+  /// currently inferred information.
+  bool getCurrentlyKnownMightBePassedToApply(Element element);
+
+  /// Registers that [element] is called in a loop.
+  // TODO(johnniwinther): Is this 'potentially called' or 'known to be called'?
+  void addFunctionCalledInLoop(Element element);
+
+  /// Registers that [element] is guaranteed not to throw an exception.
+  void registerCannotThrow(Element element);
+
+  /// Adds the closure class [cls] to the inference world. The class is
+  /// considered directly instantiated.
+  void registerClosureClass(ClassElement cls);
+}
+
+abstract class OpenWorld implements World {
+  /// Called to add [cls] to the set of known classes.
+  ///
+  /// This ensures that class hierarchy queries can be performed on [cls] and
+  /// classes that extend or implement it.
+  void registerClass(ClassElement cls);
+
+  void registerUsedElement(Element element);
+  void registerTypedef(TypedefElement typedef);
+
+  ClosedWorld closeWorld();
+
+  /// Returns an iterable over all mixin applications that mixin [cls].
+  Iterable<MixinApplicationElement> allMixinUsesOf(ClassElement cls);
+}
+
+class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
+  bool _closed = false;
+
+  /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
+  /// `FlatTypeMask.flags` property.
+  List<Map<ClassElement, TypeMask>> canonicalizedTypeMasks =
+      new List<Map<ClassElement, TypeMask>>.filled(8, null);
 
   bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
     return invariant(cls, cls.isDeclaration,
@@ -211,23 +295,25 @@ class World implements ClassWorld {
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
   /// instance of [y].
   bool isSubtypeOf(ClassElement x, ClassElement y) {
+    assert(isClosed);
     assert(checkInvariants(x));
     assert(checkInvariants(y, mustBeInstantiated: false));
 
-    if (y == objectClass) return true;
-    if (x == objectClass) return false;
+    if (y == coreClasses.objectClass) return true;
+    if (x == coreClasses.objectClass) return false;
     if (x.asInstanceOf(y) != null) return true;
-    if (y != functionClass) return false;
+    if (y != coreClasses.functionClass) return false;
     return x.callType != null;
   }
 
   /// Return `true` if [x] is a (non-strict) subclass of [y].
   bool isSubclassOf(ClassElement x, ClassElement y) {
+    assert(isClosed);
     assert(checkInvariants(x));
     assert(checkInvariants(y));
 
-    if (y == objectClass) return true;
-    if (x == objectClass) return false;
+    if (y == coreClasses.objectClass) return true;
+    if (x == coreClasses.objectClass) return false;
     while (x != null && x.hierarchyDepth >= y.hierarchyDepth) {
       if (x == y) return true;
       x = x.superclass;
@@ -237,30 +323,35 @@ class World implements ClassWorld {
 
   @override
   bool isInstantiated(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
     return node != null && node.isInstantiated;
   }
 
   @override
   bool isDirectlyInstantiated(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
     return node != null && node.isDirectlyInstantiated;
   }
 
   @override
   bool isIndirectlyInstantiated(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
     return node != null && node.isIndirectlyInstantiated;
   }
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls) {
-    return compiler.resolverWorld.isImplemented(cls);
+    assert(isClosed);
+    return _compiler.resolverWorld.isImplemented(cls);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
   /// [cls] possibly including [cls] itself, if it is live.
   Iterable<ClassElement> subclassesOf(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     if (hierarchy == null) return const <ClassElement>[];
     return hierarchy.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED);
@@ -269,6 +360,7 @@ class World implements ClassWorld {
   /// Returns an iterable over the directly instantiated classes that extend
   /// [cls] _not_ including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
     return subclasses.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED,
@@ -278,6 +370,7 @@ class World implements ClassWorld {
   /// Returns the number of live classes that extend [cls] _not_
   /// including [cls] itself.
   int strictSubclassCount(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return 0;
     return subclasses.instantiatedSubclassCount;
@@ -287,6 +380,7 @@ class World implements ClassWorld {
   /// itself.
   void forEachStrictSubclassOf(
       ClassElement cls, IterationStep f(ClassElement cls)) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return;
     subclasses.forEachSubclass(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
@@ -296,6 +390,7 @@ class World implements ClassWorld {
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
   bool anyStrictSubclassOf(ClassElement cls, bool predicate(ClassElement cls)) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
@@ -306,6 +401,7 @@ class World implements ClassWorld {
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// possibly including [cls] itself, if it is live.
   Iterable<ClassElement> subtypesOf(ClassElement cls) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) {
       return const <ClassElement>[];
@@ -317,6 +413,7 @@ class World implements ClassWorld {
   /// Returns an iterable over the directly instantiated that implement [cls]
   /// _not_ including [cls].
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) {
       return const <ClassElement>[];
@@ -329,6 +426,7 @@ class World implements ClassWorld {
   /// Returns the number of live classes that implement [cls] _not_
   /// including [cls] itself.
   int strictSubtypeCount(ClassElement cls) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return 0;
     return classSet.instantiatedSubtypeCount;
@@ -338,6 +436,7 @@ class World implements ClassWorld {
   /// itself.
   void forEachStrictSubtypeOf(
       ClassElement cls, IterationStep f(ClassElement cls)) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return;
     classSet.forEachSubtype(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
@@ -347,6 +446,7 @@ class World implements ClassWorld {
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
   bool anyStrictSubtypeOf(ClassElement cls, bool predicate(ClassElement cls)) {
+    assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return false;
     return classSet.anySubtype(
@@ -356,6 +456,7 @@ class World implements ClassWorld {
 
   /// Returns `true` if [a] and [b] have any known common subtypes.
   bool haveAnyCommonSubtypes(ClassElement a, ClassElement b) {
+    assert(isClosed);
     ClassSet classSetA = _classSets[a.declaration];
     ClassSet classSetB = _classSets[b.declaration];
     if (classSetA == null || classSetB == null) return false;
@@ -372,6 +473,7 @@ class World implements ClassWorld {
   /// Returns `true` if any directly instantiated class other than [cls] extends
   /// [cls].
   bool hasAnyStrictSubclass(ClassElement cls) {
+    assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return false;
     return subclasses.isIndirectlyInstantiated;
@@ -386,8 +488,9 @@ class World implements ClassWorld {
   /// Returns `true` if all directly instantiated classes that implement [cls]
   /// extend it.
   bool hasOnlySubclasses(ClassElement cls) {
+    assert(isClosed);
     // TODO(johnniwinther): move this to ClassSet?
-    if (cls == objectClass) return true;
+    if (cls == coreClasses.objectClass) return true;
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) {
       // Vacuously true.
@@ -398,6 +501,10 @@ class World implements ClassWorld {
 
   @override
   ClassElement getLubOfInstantiatedSubclasses(ClassElement cls) {
+    assert(isClosed);
+    if (_backend.isJsInterop(cls)) {
+      return _backend.helpers.jsJavaScriptObjectClass;
+    }
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     return hierarchy != null
         ? hierarchy.getLubOfInstantiatedSubclasses()
@@ -406,12 +513,17 @@ class World implements ClassWorld {
 
   @override
   ClassElement getLubOfInstantiatedSubtypes(ClassElement cls) {
+    assert(isClosed);
+    if (_backend.isJsInterop(cls)) {
+      return _backend.helpers.jsJavaScriptObjectClass;
+    }
     ClassSet classSet = _classSets[cls.declaration];
     return classSet != null ? classSet.getLubOfInstantiatedSubtypes() : null;
   }
 
   /// Returns an iterable over the common supertypes of the [classes].
   Iterable<ClassElement> commonSupertypesOf(Iterable<ClassElement> classes) {
+    assert(isClosed);
     Iterator<ClassElement> iterator = classes.iterator;
     if (!iterator.moveNext()) return const <ClassElement>[];
 
@@ -435,7 +547,7 @@ class World implements ClassWorld {
     List<ClassElement> commonSupertypes = <ClassElement>[];
     OUTER:
     for (Link<DartType> link = typeSet[depth];
-        link.head.element != objectClass;
+        link.head.element != coreClasses.objectClass;
         link = link.tail) {
       ClassElement cls = link.head.element;
       for (Link<OrderedTypeSet> link = otherTypeSets;
@@ -447,7 +559,7 @@ class World implements ClassWorld {
       }
       commonSupertypes.add(cls);
     }
-    commonSupertypes.add(objectClass);
+    commonSupertypes.add(coreClasses.objectClass);
     return commonSupertypes;
   }
 
@@ -488,12 +600,14 @@ class World implements ClassWorld {
 
   /// Returns `true` if [cls] is mixed into a live class.
   bool isUsedAsMixin(ClassElement cls) {
+    assert(isClosed);
     return !mixinUsesOf(cls).isEmpty;
   }
 
   /// Returns `true` if any live class that mixes in [cls] implements [type].
   bool hasAnySubclassOfMixinUseThatImplements(
       ClassElement cls, ClassElement type) {
+    assert(isClosed);
     return mixinUsesOf(cls)
         .any((use) => hasAnySubclassThatImplements(use, type));
   }
@@ -501,24 +615,58 @@ class World implements ClassWorld {
   /// Returns `true` if any live class that mixes in [mixin] is also a subclass
   /// of [superclass].
   bool hasAnySubclassThatMixes(ClassElement superclass, ClassElement mixin) {
+    assert(isClosed);
     return mixinUsesOf(mixin).any((each) => each.isSubclassOf(superclass));
+  }
+
+  /// Returns `true` if [cls] or any superclass mixes in [mixin].
+  bool isSubclassOfMixinUseOf(ClassElement cls, ClassElement mixin) {
+    assert(isClosed);
+    if (isUsedAsMixin(mixin)) {
+      ClassElement current = cls.declaration;
+      mixin = mixin.declaration;
+      while (current != null) {
+        current = current.declaration;
+        if (current.isMixinApplication) {
+          MixinApplicationElement application = current;
+          if (application.mixin.declaration == mixin) return true;
+        }
+        current = current.superclass;
+      }
+    }
+    return false;
+  }
+
+  /// Returns `true` if every subtype of [x] is a subclass of [y] or a subclass
+  /// of a mixin application of [y].
+  bool everySubtypeIsSubclassOfOrMixinUseOf(ClassElement x, ClassElement y) {
+    assert(isClosed);
+    x = x.declaration;
+    y = y.declaration;
+    Map<ClassElement, bool> secondMap =
+        _subtypeCoveredByCache[x] ??= <ClassElement, bool>{};
+    return secondMap[y] ??= subtypesOf(x).every((ClassElement cls) =>
+        isSubclassOf(cls, y) || isSubclassOfMixinUseOf(cls, y));
   }
 
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(
       ClassElement superclass, ClassElement type) {
+    assert(isClosed);
     Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
     if (subclasses == null) return false;
     return subclasses.contains(type);
   }
 
-  final Compiler compiler;
-  Backend get backend => compiler.backend;
+  final Compiler _compiler;
+  BackendClasses get backendClasses => _backend.backendClasses;
+  JavaScriptBackend get _backend => _compiler.backend;
+  CommonMasks get commonMasks => _compiler.commonMasks;
   final FunctionSet allFunctions;
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
-  final Set<TypedefElement> allTypedefs = new Set<TypedefElement>();
+  final Set<TypedefElement> _allTypedefs = new Set<TypedefElement>();
 
   final Map<ClassElement, Set<MixinApplicationElement>> _mixinUses =
       new Map<ClassElement, Set<MixinApplicationElement>>();
@@ -533,6 +681,9 @@ class World implements ClassWorld {
       <ClassElement, ClassHierarchyNode>{};
   final Map<ClassElement, ClassSet> _classSets = <ClassElement, ClassSet>{};
 
+  final Map<ClassElement, Map<ClassElement, bool>> _subtypeCoveredByCache =
+      <ClassElement, Map<ClassElement, bool>>{};
+
   final Set<Element> sideEffectsFreeElements = new Set<Element>();
 
   final Set<Element> elementsThatCannotThrow = new Set<Element>();
@@ -542,42 +693,49 @@ class World implements ClassWorld {
 
   final Set<Element> alreadyPopulated;
 
-  bool get isClosed => compiler.phase > Compiler.PHASE_RESOLVING;
-
-  // Used by selectors.
-  bool isForeign(Element element) {
-    return compiler.backend.isForeign(element);
-  }
+  bool get isClosed => _closed;
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {
     return _typesImplementedBySubclasses[cls.declaration];
   }
 
-  World(Compiler compiler)
+  WorldImpl(Compiler compiler)
       : allFunctions = new FunctionSet(compiler),
-        this.compiler = compiler,
+        this._compiler = compiler,
         alreadyPopulated = compiler.cacheStrategy.newSet();
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CoreClasses get coreClasses => _compiler.coreClasses;
 
-  DiagnosticReporter get reporter => compiler.reporter;
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   /// Called to add [cls] to the set of known classes.
   ///
   /// This ensures that class hierarchy queries can be performed on [cls] and
   /// classes that extend or implement it.
-  void registerClass(ClassElement cls, {bool isDirectlyInstantiated: false}) {
+  void registerClass(ClassElement cls) => _registerClass(cls);
+
+  void registerClosureClass(ClassElement cls) {
+    _registerClass(cls, isDirectlyInstantiated: true);
+  }
+
+  void _registerClass(ClassElement cls, {bool isDirectlyInstantiated: false}) {
     _ensureClassSet(cls);
     if (isDirectlyInstantiated) {
       _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
     }
   }
 
+  void registerTypedef(TypedefElement typdef) {
+    _allTypedefs.add(typdef);
+  }
+
+  Iterable<TypedefElement> get allTypedefs => _allTypedefs;
+
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
   /// of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
+  /// methods defined in [ClosedWorld].
   ClassHierarchyNode getClassHierarchyNode(ClassElement cls) {
     return _classHierarchyNodes[cls.declaration];
   }
@@ -597,7 +755,7 @@ class World implements ClassWorld {
   /// relations of known classes.
   ///
   /// This method is only provided for testing. For queries on classes, use the
-  /// methods defined in [ClassWorld].
+  /// methods defined in [ClosedWorld].
   ClassSet getClassSet(ClassElement cls) {
     return _classSets[cls.declaration];
   }
@@ -650,12 +808,12 @@ class World implements ClassWorld {
     }
   }
 
-  void populate() {
+  ClosedWorld closeWorld() {
     /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     /// properties of the [ClassHierarchyNode] for [cls].
 
     void addSubtypes(ClassElement cls) {
-      if (compiler.options.hasIncrementalSupport &&
+      if (_compiler.options.hasIncrementalSupport &&
           !alreadyPopulated.add(cls)) {
         return;
       }
@@ -684,7 +842,10 @@ class World implements ClassWorld {
     // classes: if the superclass of these classes require RTI, then
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
-    compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
+    _compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
+
+    _closed = true;
+    return this;
   }
 
   @override
@@ -710,7 +871,7 @@ class World implements ClassWorld {
     users.add(mixinApplication);
   }
 
-  bool hasAnyUserDefinedGetter(Selector selector, ti.TypeMask mask) {
+  bool hasAnyUserDefinedGetter(Selector selector, TypeMask mask) {
     return allFunctions.filter(selector, mask).any((each) => each.isGetter);
   }
 
@@ -720,23 +881,23 @@ class World implements ClassWorld {
     }
   }
 
-  VariableElement locateSingleField(Selector selector, ti.TypeMask mask) {
+  VariableElement locateSingleField(Selector selector, TypeMask mask) {
     Element result = locateSingleElement(selector, mask);
     return (result != null && result.isField) ? result : null;
   }
 
-  Element locateSingleElement(Selector selector, ti.TypeMask mask) {
-    mask = mask == null ? compiler.typesTask.dynamicType : mask;
-    return mask.locateSingleElement(selector, mask, compiler);
+  Element locateSingleElement(Selector selector, TypeMask mask) {
+    mask ??= commonMasks.dynamicType;
+    return mask.locateSingleElement(selector, _compiler);
   }
 
-  ti.TypeMask extendMaskIfReachesAll(Selector selector, ti.TypeMask mask) {
+  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
     bool canReachAll = true;
     if (mask != null) {
-      canReachAll = compiler.enabledInvokeOn &&
+      canReachAll = _compiler.enabledInvokeOn &&
           mask.needsNoSuchMethodHandling(selector, this);
     }
-    return canReachAll ? compiler.typesTask.dynamicType : mask;
+    return canReachAll ? commonMasks.dynamicType : mask;
   }
 
   void addFunctionCalledInLoop(Element element) {
@@ -749,7 +910,7 @@ class World implements ClassWorld {
 
   bool fieldNeverChanges(Element element) {
     if (!element.isField) return false;
-    if (backend.isNative(element)) {
+    if (_backend.isNative(element)) {
       // Some native fields are views of data that may be changed by operations.
       // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
       // TODO(sra): Refine the effect classification so that native effects are
@@ -761,8 +922,8 @@ class World implements ClassWorld {
       return true;
     }
     if (element.isInstanceMember) {
-      return !compiler.resolverWorld.hasInvokedSetter(element, this) &&
-          !compiler.resolverWorld.fieldSetters.contains(element);
+      return !_compiler.resolverWorld.hasInvokedSetter(element, this) &&
+          !_compiler.resolverWorld.fieldSetters.contains(element);
     }
     return false;
   }
@@ -781,6 +942,11 @@ class World implements ClassWorld {
     });
   }
 
+  @override
+  SideEffects getCurrentlyKnownSideEffects(Element element) {
+    return getSideEffectsOfElement(element);
+  }
+
   void registerSideEffects(Element element, SideEffects effects) {
     if (sideEffectsFreeElements.contains(element)) return;
     sideEffects[element.declaration] = effects;
@@ -791,7 +957,7 @@ class World implements ClassWorld {
     sideEffectsFreeElements.add(element);
   }
 
-  SideEffects getSideEffectsOfSelector(Selector selector, ti.TypeMask mask) {
+  SideEffects getSideEffectsOfSelector(Selector selector, TypeMask mask) {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
@@ -840,5 +1006,8 @@ class World implements ClassWorld {
     return functionsThatMightBePassedToApply.contains(element);
   }
 
-  bool get hasClosedWorldAssumption => !compiler.options.hasIncrementalSupport;
+  @override
+  bool getCurrentlyKnownMightBePassedToApply(Element element) {
+    return getMightBePassedToApply(element);
+  }
 }

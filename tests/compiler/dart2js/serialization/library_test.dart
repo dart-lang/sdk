@@ -53,24 +53,18 @@ main(List<String> arguments) {
     entryPoint = Uris.dart_core;
   }
   asyncTest(() async {
-    Compiler compiler = await compilerFor(
-        entryPoint: entryPoint, options: [Flags.analyzeAll]);
+    Compiler compiler =
+        await compilerFor(entryPoint: entryPoint, options: [Flags.analyzeAll]);
     compiler.serialization.supportSerialization = true;
     await compiler.run(entryPoint);
-    List<SerializedData> data =
-        createData(compiler,
-                   outPath: outPath,
-                   prettyPrint: prettyPrint,
-                   shardCount: shardCount);
+    List<SerializedData> data = createData(compiler,
+        outPath: outPath, prettyPrint: prettyPrint, shardCount: shardCount);
     await testAnalysis(compiler, data, entryPoint);
   });
 }
 
-List<SerializedData> createData(
-    Compiler compiler,
-    {String outPath,
-     bool prettyPrint,
-     int shardCount: 3}) {
+List<SerializedData> createData(Compiler compiler,
+    {String outPath, bool prettyPrint, int shardCount: 3}) {
   Iterable<LibraryElement> libraries1 = compiler.libraryLoader.libraries;
   if (shardCount < 1 || shardCount > libraries1.length) {
     shardCount = libraries1.length;
@@ -92,8 +86,7 @@ List<SerializedData> createData(
   List<SerializedData> data = <SerializedData>[];
   for (int shard = 0; shard < shardCount; shard++) {
     List<LibraryElement> libraries = librarySplits[shard];
-    Serializer serializer =
-        compiler.serialization.createSerializer(libraries);
+    Serializer serializer = compiler.serialization.createSerializer(libraries);
     String text = serializer.toText(const JsonSerializationEncoder());
     String outText = text;
     if (prettyPrint) {
@@ -117,9 +110,7 @@ List<SerializedData> createData(
 }
 
 Future testAnalysis(
-    Compiler compiler1,
-    List<SerializedData> data,
-    Uri entryPoint) async {
+    Compiler compiler1, List<SerializedData> data, Uri entryPoint) async {
   Map<String, String> memorySourceFiles = <String, String>{};
   List<Uri> resolutionInputs = <Uri>[];
   for (int index = 0; index < data.length; index++) {

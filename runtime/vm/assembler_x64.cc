@@ -3702,9 +3702,9 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   // if it is a Smi, which will be ignored.
   LoadClassId(result, object);
 
-  movq(object, Immediate(kSmiCid));
+  movq(TMP, Immediate(kSmiCid));
   // If object is a Smi, move the Smi cid into result. o/w leave alone.
-  cmoveq(result, object);
+  cmoveq(result, TMP);
 }
 
 
@@ -3767,7 +3767,7 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
 
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
   "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-  "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"
+  "r8", "r9", "r10", "r11", "r12", "r13", "thr", "pp"
 };
 
 

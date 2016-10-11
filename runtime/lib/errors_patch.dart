@@ -35,6 +35,12 @@ class _AssertionError extends Error implements AssertionError {
     }
   }
 
+  static void _checkConstAssertion(bool condition, int start, int end) {
+    if (!condition) {
+      _throwNew(start, end);
+    }
+  }
+
   String toString() {
     if (_url == null) {
       return _failedAssertion;
@@ -351,4 +357,11 @@ class _InternalError {
     }
     return msg_buf.toString();
   }
+}
+
+
+class _CompileTimeError extends Error {
+  final String _errorMsg;
+  _CompileTimeError(this._errorMsg);
+  String toString() => _errorMsg;
 }

@@ -13,39 +13,38 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../generated/analysis_context_factory.dart'
     show AnalysisContextHelper;
 import '../../../generated/resolver_test_case.dart';
 import '../../../generated/test_support.dart';
-import '../../../reflective_tests.dart';
 import '../../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(ElementAnnotationImplTest);
-  runReflectiveTests(FieldElementImplTest);
-  runReflectiveTests(FunctionTypeImplTest);
-  runReflectiveTests(InterfaceTypeImplTest);
-  runReflectiveTests(LocalVariableElementImplTest);
-  runReflectiveTests(TypeParameterTypeImplTest);
-  runReflectiveTests(VoidTypeImplTest);
-  runReflectiveTests(ClassElementImplTest);
-  runReflectiveTests(CompilationUnitElementImplTest);
-  runReflectiveTests(ElementLocationImplTest);
-  runReflectiveTests(ElementImplTest);
-  runReflectiveTests(LibraryElementImplTest);
-  runReflectiveTests(MethodElementImplTest);
-  runReflectiveTests(MultiplyDefinedElementImplTest);
-  runReflectiveTests(ParameterElementImplTest);
-  runReflectiveTests(PropertyAccessorElementImplTest);
-  runReflectiveTests(TopLevelVariableElementImplTest);
+  defineReflectiveTests(ElementAnnotationImplTest);
+  defineReflectiveTests(FieldElementImplTest);
+  defineReflectiveTests(FunctionTypeImplTest);
+  defineReflectiveTests(InterfaceTypeImplTest);
+  defineReflectiveTests(LocalVariableElementImplTest);
+  defineReflectiveTests(TypeParameterTypeImplTest);
+  defineReflectiveTests(VoidTypeImplTest);
+  defineReflectiveTests(ClassElementImplTest);
+  defineReflectiveTests(CompilationUnitElementImplTest);
+  defineReflectiveTests(ElementLocationImplTest);
+  defineReflectiveTests(ElementImplTest);
+  defineReflectiveTests(LibraryElementImplTest);
+  defineReflectiveTests(MethodElementImplTest);
+  defineReflectiveTests(MultiplyDefinedElementImplTest);
+  defineReflectiveTests(ParameterElementImplTest);
+  defineReflectiveTests(PropertyAccessorElementImplTest);
+  defineReflectiveTests(TopLevelVariableElementImplTest);
 }
 
 @reflectiveTest
@@ -2756,15 +2755,17 @@ class InterfaceTypeImplTest extends EngineTestCase {
     expect(typeA.getMethod(methodName), same(methodM));
   }
 
-  void test_getMethod_parameterized() {
+  void test_getMethod_parameterized_doesNotUseTypeParameter() {
     //
-    // class A<E> { E m(E p) {} }
+    // class A<E> { void m() {} }
+    // class B {}
     //
     ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
+    InterfaceType typeB = ElementFactory.classElement2("B").type;
     DartType typeE = classA.type.typeArguments[0];
     String methodName = "m";
     MethodElementImpl methodM =
-        ElementFactory.methodElement(methodName, typeE, [typeE]);
+        ElementFactory.methodElement(methodName, typeB, []);
     classA.methods = <MethodElement>[methodM];
     methodM.type = new FunctionTypeImpl(methodM);
     //
@@ -2776,10 +2777,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     MethodElement method = typeAI.getMethod(methodName);
     expect(method, isNotNull);
     FunctionType methodType = method.type;
-    expect(methodType.returnType, same(typeI));
-    List<DartType> parameterTypes = methodType.normalParameterTypes;
-    expect(parameterTypes, hasLength(1));
-    expect(parameterTypes[0], same(typeI));
+    expect(methodType.typeParameters, [same(typeE.element)]);
+    expect(methodType.typeArguments, [same(typeI)]);
   }
 
   void test_getMethod_parameterized_flushCached_whenVersionChanges() {
@@ -2805,6 +2804,34 @@ class InterfaceTypeImplTest extends EngineTestCase {
     // Methods list is flushed on version change.
     classA.version++;
     expect(typeAI.methods.single, isNot(same(method)));
+  }
+
+  void test_getMethod_parameterized_usesTypeParameter() {
+    //
+    // class A<E> { E m(E p) {} }
+    //
+    ClassElementImpl classA = ElementFactory.classElement2("A", ["E"]);
+    DartType typeE = classA.type.typeArguments[0];
+    String methodName = "m";
+    MethodElementImpl methodM =
+        ElementFactory.methodElement(methodName, typeE, [typeE]);
+    classA.methods = <MethodElement>[methodM];
+    methodM.type = new FunctionTypeImpl(methodM);
+    //
+    // A<I>
+    //
+    InterfaceType typeI = ElementFactory.classElement2("I").type;
+    InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
+    typeAI.typeArguments = <DartType>[typeI];
+    MethodElement method = typeAI.getMethod(methodName);
+    expect(method, isNotNull);
+    FunctionType methodType = method.type;
+    expect(methodType.typeParameters, [same(typeE.element)]);
+    expect(methodType.typeArguments, [same(typeI)]);
+    expect(methodType.returnType, same(typeI));
+    List<DartType> parameterTypes = methodType.normalParameterTypes;
+    expect(parameterTypes, hasLength(1));
+    expect(parameterTypes[0], same(typeI));
   }
 
   void test_getMethod_unimplemented() {
@@ -3843,81 +3870,6 @@ class LibraryElementImplTest extends EngineTestCase {
         unorderedEquals(<CompilationUnitElement>[unitLib, unitA, unitB]));
   }
 
-  void test_getVisibleLibraries_cycle() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    libraryA.imports = <ImportElementImpl>[
-      ElementFactory.importFor(library, null)
-    ];
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(libraries, unorderedEquals(<LibraryElement>[library, libraryA]));
-  }
-
-  void test_getVisibleLibraries_directExports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    library.exports = <ExportElementImpl>[ElementFactory.exportFor(libraryA)];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(libraries, unorderedEquals(<LibraryElement>[library]));
-  }
-
-  void test_getVisibleLibraries_directImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(libraries, unorderedEquals(<LibraryElement>[library, libraryA]));
-  }
-
-  void test_getVisibleLibraries_indirectExports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
-    libraryA.exports = <ExportElementImpl>[ElementFactory.exportFor(libraryAA)];
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null)
-    ];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(libraries,
-        unorderedEquals(<LibraryElement>[library, libraryA, libraryAA]));
-  }
-
-  void test_getVisibleLibraries_indirectImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    LibraryElementImpl libraryA = ElementFactory.library(context, "A");
-    LibraryElementImpl libraryAA = ElementFactory.library(context, "AA");
-    LibraryElementImpl libraryB = ElementFactory.library(context, "B");
-    libraryA.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryAA, null)
-    ];
-    library.imports = <ImportElementImpl>[
-      ElementFactory.importFor(libraryA, null),
-      ElementFactory.importFor(libraryB, null)
-    ];
-    List<LibraryElement> libraries = library.visibleLibraries;
-    expect(
-        libraries,
-        unorderedEquals(
-            <LibraryElement>[library, libraryA, libraryAA, libraryB]));
-  }
-
-  void test_getVisibleLibraries_noImports() {
-    AnalysisContext context = createAnalysisContext();
-    LibraryElementImpl library = ElementFactory.library(context, "app");
-    expect(
-        library.visibleLibraries, unorderedEquals(<LibraryElement>[library]));
-  }
-
   void test_invalidateLibraryCycles_withHandle() {
     AnalysisContext context = createAnalysisContext();
     context.sourceFactory = new SourceFactory([]);
@@ -3934,18 +3886,6 @@ class LibraryElementImplTest extends EngineTestCase {
     library.libraryCycle; // Force computation of the cycle.
 
     library.invalidateLibraryCycles();
-  }
-
-  void test_isUpToDate() {
-    AnalysisContext context = createAnalysisContext();
-    context.sourceFactory = new SourceFactory([]);
-    LibraryElement library = ElementFactory.library(context, "foo");
-    context.setContents(library.definingCompilationUnit.source, "sdfsdff");
-    // Assert that we are not up to date if the target has an old time stamp.
-    expect(library.isUpToDate(0), isFalse);
-    // Assert that we are up to date with a target modification time in the
-    // future.
-    expect(library.isUpToDate(JavaSystem.currentTimeMillis() + 1000), isTrue);
   }
 
   void test_setImports() {
@@ -4076,8 +4016,11 @@ abstract class A {
 @reflectiveTest
 class MultiplyDefinedElementImplTest extends EngineTestCase {
   void test_fromElements_conflicting() {
-    Element firstElement = ElementFactory.localVariableElement2("xx");
-    Element secondElement = ElementFactory.localVariableElement2("yy");
+    TopLevelVariableElement firstElement =
+        ElementFactory.topLevelVariableElement2('xx');
+    TopLevelVariableElement secondElement =
+        ElementFactory.topLevelVariableElement2('yy');
+    _addToLibrary([firstElement, secondElement]);
     Element result = MultiplyDefinedElementImpl.fromElements(
         null, firstElement, secondElement);
     EngineTestCase.assertInstanceOf(
@@ -4086,15 +4029,19 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
         (result as MultiplyDefinedElement).conflictingElements;
     expect(elements, hasLength(2));
     for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement,
-          LocalVariableElement, elements[i]);
+      EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
+          TopLevelVariableElement, elements[i]);
     }
   }
 
   void test_fromElements_multiple() {
-    Element firstElement = ElementFactory.localVariableElement2("xx");
-    Element secondElement = ElementFactory.localVariableElement2("yy");
-    Element thirdElement = ElementFactory.localVariableElement2("zz");
+    TopLevelVariableElement firstElement =
+        ElementFactory.topLevelVariableElement2('xx');
+    TopLevelVariableElement secondElement =
+        ElementFactory.topLevelVariableElement2('yy');
+    TopLevelVariableElement thirdElement =
+        ElementFactory.topLevelVariableElement2('zz');
+    _addToLibrary([firstElement, secondElement, thirdElement]);
     Element result = MultiplyDefinedElementImpl.fromElements(
         null,
         MultiplyDefinedElementImpl.fromElements(
@@ -4106,15 +4053,25 @@ class MultiplyDefinedElementImplTest extends EngineTestCase {
         (result as MultiplyDefinedElement).conflictingElements;
     expect(elements, hasLength(3));
     for (int i = 0; i < elements.length; i++) {
-      EngineTestCase.assertInstanceOf((obj) => obj is LocalVariableElement,
-          LocalVariableElement, elements[i]);
+      EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
+          TopLevelVariableElement, elements[i]);
     }
   }
 
   void test_fromElements_nonConflicting() {
-    Element element = ElementFactory.localVariableElement2("xx");
+    TopLevelVariableElement element =
+        ElementFactory.topLevelVariableElement2('xx');
+    _addToLibrary([element]);
     expect(MultiplyDefinedElementImpl.fromElements(null, element, element),
         same(element));
+  }
+
+  void _addToLibrary(List<TopLevelVariableElement> variables) {
+    CompilationUnitElementImpl compilationUnit =
+        ElementFactory.compilationUnit('lib.dart');
+    LibraryElementImpl library = ElementFactory.library(null, 'lib');
+    library.definingCompilationUnit = compilationUnit;
+    compilationUnit.topLevelVariables = variables;
   }
 }
 
@@ -4318,7 +4275,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     expect(type.isMoreSpecificThan(ElementFactory.object.type), isTrue);
   }
 
-  void test_isMoreSpecificThan_typeArguments_resursive() {
+  void test_isMoreSpecificThan_typeArguments_recursive() {
     ClassElementImpl classS = ElementFactory.classElement2("A");
     TypeParameterElementImpl typeParameterU =
         new TypeParameterElementImpl.forNode(AstFactory.identifier3("U"));

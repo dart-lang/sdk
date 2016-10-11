@@ -27,7 +27,7 @@ class C {
   noSuchMethod(x) => "${getName(x)}:${x.positionalArguments}";
 }
 
-makeA() native;
+makeA() native ;
 
 setup() native """
   function A() {}

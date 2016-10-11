@@ -7,9 +7,9 @@ library analyzer.task.model;
 import 'dart:collection';
 import 'dart:developer';
 
+import 'package:analyzer/error/error.dart' show AnalysisError;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart' show AnalysisError;
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/driver.dart';
@@ -284,6 +284,7 @@ abstract class AnalysisTask {
       // There was no cycle.
       return false;
     }
+
     if (cycle.length > 0) {
       traverse(cycle[0]);
     }

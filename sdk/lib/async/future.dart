@@ -287,32 +287,56 @@ abstract class Future<T> {
       }
     }
 
-    // As each future completes, put its value into the corresponding
-    // position in the list of values.
-    for (Future future in futures) {
-      int pos = remaining++;
-      future.then((Object/*=T*/ value) {
-        remaining--;
-        if (values != null) {
-          values[pos] = value;
-          if (remaining == 0) {
-            result._completeWithValue(values);
+    try {
+      // As each future completes, put its value into the corresponding
+      // position in the list of values.
+      for (Future future in futures) {
+        int pos = remaining;
+        future.then((Object/*=T*/ value) {
+          remaining--;
+          if (values != null) {
+            values[pos] = value;
+            if (remaining == 0) {
+              result._completeWithValue(values);
+            }
+          } else {
+            if (cleanUp != null && value != null) {
+              // Ensure errors from cleanUp are uncaught.
+              new Future.sync(() { cleanUp(value); });
+            }
+            if (remaining == 0 && !eagerError) {
+              result._completeError(error, stackTrace);
+            }
           }
-        } else {
-          if (cleanUp != null && value != null) {
-            // Ensure errors from cleanUp are uncaught.
-            new Future.sync(() { cleanUp(value); });
-          }
-          if (remaining == 0 && !eagerError) {
-            result._completeError(error, stackTrace);
-          }
-        }
-      }, onError: handleError);
+        }, onError: handleError);
+        // Increment the 'remaining' after the call to 'then'.
+        // If that call throws, we don't expect any future callback from
+        // the future, and we also don't increment remaining.
+        remaining++;
+      }
+      if (remaining == 0) {
+        return new Future.value(const []);
+      }
+      values = new List/*<T>*/(remaining);
+    } catch (e, st) {
+      // The error must have been thrown while iterating over the futures
+      // list, or while installing a callback handler on the future.
+      if (remaining == 0 || eagerError) {
+        // Throw a new Future.error.
+        // Don't just call `result._completeError` since that would propagate
+        // the error too eagerly, not giving the callers time to install
+        // error handlers.
+        // Also, don't use `_asyncCompleteError` since that one doesn't give
+        // zones the chance to intercept the error.
+        return new Future.error(e, st);
+      } else {
+        // Don't allocate a list for values, thus indicating that there was an
+        // error.
+        // Set error to the caught exception.
+        error = e;
+        stackTrace = st;
+      }
     }
-    if (remaining == 0) {
-      return new Future.value(const []);
-    }
-    values = new List/*<T>*/(remaining);
     return result;
   }
 

@@ -224,6 +224,8 @@ class ErroneousElementX extends ElementX
 
   bool get isCyclicRedirection => false;
 
+  bool get isDefaultConstructor => false;
+
   bool get isMalformed => true;
 
   PrefixElement get redirectionDeferredPrefix => null;
@@ -2236,6 +2238,8 @@ abstract class ConstructorElementX extends FunctionElementX
   // TODO(johnniwinther): This should also return true for cyclic redirecting
   // generative constructors.
   bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
+
+  bool get isDefaultConstructor => false;
 
   /// These fields are set by the post process queue when checking for cycles.
   ConstructorElement effectiveTargetInternal;

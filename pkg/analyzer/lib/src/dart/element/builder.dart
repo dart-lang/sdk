@@ -11,11 +11,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -168,7 +169,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   Object visitExportDirective(ExportDirective node) {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
-    Source exportedSource = node.source;
+    Source exportedSource = node.selectedSource;
     int exportedTime = sourceModificationTimeMap[exportedSource] ?? -1;
     // The exported source will be null if the URI in the export
     // directive was invalid.
@@ -181,7 +182,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         exportElement.uriOffset = uriLiteral.offset;
         exportElement.uriEnd = uriLiteral.end;
       }
-      exportElement.uri = node.uriContent;
+      exportElement.uri = node.selectedUriContent;
       exportElement.combinators = _buildCombinators(node);
       exportElement.exportedLibrary = exportedLibrary;
       setElementDocumentationComment(exportElement, node);
@@ -210,7 +211,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   Object visitImportDirective(ImportDirective node) {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
-    Source importedSource = node.source;
+    Source importedSource = node.selectedSource;
     int importedTime = sourceModificationTimeMap[importedSource] ?? -1;
     // The imported source will be null if the URI in the import
     // directive was invalid.
@@ -226,7 +227,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         importElement.uriOffset = uriLiteral.offset;
         importElement.uriEnd = uriLiteral.end;
       }
-      importElement.uri = node.uriContent;
+      importElement.uri = node.selectedUriContent;
       importElement.deferred = node.deferredKeyword != null;
       importElement.combinators = _buildCombinators(node);
       importElement.importedLibrary = importedLibrary;

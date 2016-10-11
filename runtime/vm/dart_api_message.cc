@@ -1186,9 +1186,8 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
         return false;
       }
 
-      Utf8::Type type;
+      Utf8::Type type = Utf8::kLatin1;
       intptr_t len = Utf8::CodeUnitCount(utf8_str, utf8_len, &type);
-      ASSERT(len > 0);
       if (len > String::kMaxElements) {
         return false;
       }

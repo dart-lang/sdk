@@ -8,12 +8,11 @@ import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
 typedef HtmlElement VirtualCollectionCreateCallback();
-typedef void VirtualCollectionUpdateCallback(HtmlElement el, dynamic item,
-    int index);
+typedef void VirtualCollectionUpdateCallback(
+    HtmlElement el, dynamic item, int index);
 
 class VirtualCollectionElement extends HtmlElement implements Renderable {
-  static const tag =
-      const Tag<VirtualCollectionElement>('virtual-collection');
+  static const tag = const Tag<VirtualCollectionElement>('virtual-collection');
 
   RenderingScheduler<VirtualCollectionElement> _r;
 
@@ -24,6 +23,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   VirtualCollectionCreateCallback _createHeader;
   VirtualCollectionUpdateCallback _update;
   double _itemHeight;
+  double _headerHeight = 0.0;
   int _top;
   double _height;
   List _items;
@@ -38,9 +38,9 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _r.dirty();
   }
 
-
   factory VirtualCollectionElement(VirtualCollectionCreateCallback create,
-      VirtualCollectionUpdateCallback update, {Iterable items: const [],
+      VirtualCollectionUpdateCallback update,
+      {Iterable items: const [],
       VirtualCollectionCreateCallback createHeader,
       RenderingQueue queue}) {
     assert(create != null);
@@ -67,7 +67,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _onResizeSubscription = window.onResize.listen(_onResize);
   }
 
- @override
+  @override
   detached() {
     super.detached();
     _r.disable(notify: true);
@@ -76,9 +76,9 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
     _onResizeSubscription.cancel();
   }
 
-  final DivElement _header = new DivElement()..classes = const ['header'];
-  final DivElement _scroller = new DivElement()..classes = const ['scroller'];
-  final DivElement _shifter = new DivElement()..classes = const ['shifter'];
+  final DivElement _header = new DivElement()..classes = ['header'];
+  final DivElement _scroller = new DivElement()..classes = ['scroller'];
+  final DivElement _shifter = new DivElement()..classes = ['shifter'];
 
   dynamic getItemFromElement(HtmlElement element) {
     final el_index = _shifter.children.indexOf(element);
@@ -86,7 +86,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
       return null;
     }
     final item_index =
-      _top + el_index - (_shifter.children.length * _inverse_preload).floor();
+        _top + el_index - (_shifter.children.length * _inverse_preload).floor();
     if (0 <= item_index && item_index < items.length) {
       return _items[item_index];
     }
@@ -97,6 +97,7 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   /// 1/preload_size of the number of items in the visble area.
   /// See shared.css for the "top:-25%;".
   static const int _preload = 2;
+
   /// L = length of all the elements loaded
   /// l = length of the visible area
   ///
@@ -106,26 +107,44 @@ class VirtualCollectionElement extends HtmlElement implements Renderable {
   /// tail = l / _preload = L * 1 / (_preload + 2) = L * _inverse_preload
   static const double _inverse_preload = 1 / (_preload + 2);
 
+  var _takeIntoView;
+
+  void takeIntoView(item) {
+    _takeIntoView = item;
+    _r.dirty();
+  }
+
   void render() {
     if (children.isEmpty) {
       children = [
         _scroller
           ..children = [
-            _shifter
-              ..children = [_create()]
+            _shifter..children = [_create()]
           ],
       ];
       if (_createHeader != null) {
         _header.children = [_createHeader()];
         _scroller.children.insert(0, _header);
+        _headerHeight = _header.children[0].getBoundingClientRect().height;
       }
       _itemHeight = _shifter.children[0].getBoundingClientRect().height;
       _height = getBoundingClientRect().height;
     }
+
+    if (_takeIntoView != null) {
+      final index = items.indexOf(_takeIntoView);
+      if (index >= 0) {
+        final minScrollTop = _itemHeight * (index + 1) - _height;
+        final maxScrollTop = _itemHeight * index;
+        scrollTop = ((maxScrollTop - minScrollTop) / 2 + minScrollTop).floor();
+      }
+      _takeIntoView = null;
+    }
+
     final top = (scrollTop / _itemHeight).floor();
 
     _header.style.top = '${scrollTop}px';
-    _scroller.style.height = '${_itemHeight*(_items.length)}px';
+    _scroller.style.height = '${_itemHeight*(_items.length)+_headerHeight}px';
     final tail_length = (_height / _itemHeight / _preload).ceil();
     final length = tail_length * 2 + tail_length * _preload;
 

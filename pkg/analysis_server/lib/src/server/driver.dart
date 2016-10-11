@@ -386,7 +386,7 @@ class Driver implements ServerStarter {
     analysisServerOptions.enablePubSummaryManager =
         results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
-        results[FINER_GRAINED_INVALIDATION];
+        true /*results[FINER_GRAINED_INVALIDATION]*/;
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
@@ -425,8 +425,8 @@ class Driver implements ServerStarter {
     SdkCreator defaultSdkCreator = (AnalysisOptions options) {
       PhysicalResourceProvider resourceProvider =
           PhysicalResourceProvider.INSTANCE;
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
-          FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+          resourceProvider, resourceProvider.getFolder(defaultSdkPath));
       sdk.analysisOptions = options;
       sdk.useSummary = useSummaries;
       return sdk;

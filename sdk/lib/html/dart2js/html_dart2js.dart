@@ -31129,7 +31129,7 @@ class StashedPortCollection extends EventTarget {
  * For more examples of using this API, see
  * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
  * For details on using the Map API, see the
- * [Maps](http://www.dartlang.org/docs/library-tour/#maps-aka-dictionaries-or-hashes)
+ * [Maps](https://www.dartlang.org/guides/libraries/library-tour#maps)
  * section of the library tour.
  */
 @DomName('Storage')

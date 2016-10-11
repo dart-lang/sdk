@@ -25,8 +25,12 @@ class Closure {
   }
 
   nestedClosure() {
-    var f = () { return x; };
-    return () { return f() + 2; };
+    var f = () {
+      return x;
+    };
+    return () {
+      return f() + 2;
+    };
   }
 }
 

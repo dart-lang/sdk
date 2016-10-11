@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 import 'dart:_vmservice';
 
 part 'loader.dart';

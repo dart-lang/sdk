@@ -4,13 +4,14 @@
 
 import "package:expect/expect.dart";
 import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
-import 'dart:_interceptors' show
-    JSObject,                 // The interface, which may be re-exported by a
-                              // js-interop library.
-    JavaScriptObject,         //   The interceptor abstract class.
-    PlainJavaScriptObject,    //     The interceptor concrete class.
-    UnknownJavaScriptObject,  //     The interceptor concrete class.
-    Interceptor;
+import 'dart:_interceptors'
+    show
+        JSObject, // The interface, which may be re-exported by a
+        // js-interop library.
+        JavaScriptObject, //   The interceptor abstract class.
+        PlainJavaScriptObject, //     The interceptor concrete class.
+        UnknownJavaScriptObject, //     The interceptor concrete class.
+        Interceptor;
 
 // Test for JavaScript objects from outside the Dart program.  Although we only
 // export the interface [JSObject] to user level code, this test makes sure we
@@ -19,9 +20,9 @@ import 'dart:_interceptors' show
 @Native('QQ')
 class Q {}
 
-makeA() native;
-makeB() native;
-makeQ() native;
+makeA() native ;
+makeB() native ;
+makeQ() native ;
 
 void setup() native r"""
 makeA = function(){return {hello: 123};};
@@ -42,13 +43,13 @@ static_test() {
   Expect.isTrue(x is JSObject);
   Expect.isTrue(x is JavaScriptObject);
   Expect.isTrue(x is PlainJavaScriptObject);
-  Expect.isTrue(x is !UnknownJavaScriptObject);
+  Expect.isTrue(x is! UnknownJavaScriptObject);
   Expect.equals(JSObject, x.runtimeType);
 
   x = makeB();
   Expect.isTrue(x is JSObject);
   Expect.isTrue(x is JavaScriptObject);
-  Expect.isTrue(x is !PlainJavaScriptObject);
+  Expect.isTrue(x is! PlainJavaScriptObject);
   Expect.isTrue(x is UnknownJavaScriptObject);
   Expect.equals(JSObject, x.runtimeType);
 

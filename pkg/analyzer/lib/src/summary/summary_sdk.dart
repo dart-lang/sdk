@@ -39,7 +39,8 @@ class SdkSummaryResultProvider extends ResynthesizerResultProvider {
   @override
   bool compute(CacheEntry entry, ResultDescriptor result) {
     if (result == TYPE_PROVIDER) {
-      entry.setValue(result, typeProvider, TargetedResult.EMPTY_LIST);
+      entry.setValue(result as ResultDescriptor<TypeProvider>, typeProvider,
+          TargetedResult.EMPTY_LIST);
       return true;
     }
     return super.compute(entry, result);

@@ -91,9 +91,9 @@ name:value
 name2:value2
 """,
       {
-    "AA": {"name": "value"},
-    "BB": {"name": "value", "name2": "value2"}
-  });
+        "AA": {"name": "value"},
+        "BB": {"name": "value", "name2": "value2"}
+      });
 
   // Ok, file not ending in newline.
   test(
@@ -101,8 +101,8 @@ name2:value2
 [AA]
 name:value""",
       {
-    "A": {"name": "value"}
-  });
+        "A": {"name": "value"}
+      });
 
   // Ok, whitespace is trimmed away.
   test(

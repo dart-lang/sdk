@@ -1027,6 +1027,8 @@ abstract class AbstractTypeRelation
 
   bool invalidTypeVariableBounds(DartType bound, DartType s);
 
+  bool invalidCallableType(DartType callType, DartType s);
+
   /// Handle as dynamic for both subtype and more specific relation to avoid
   /// spurious errors from malformed types.
   bool visitMalformedType(MalformedType t, DartType s) => true;
@@ -1050,10 +1052,19 @@ abstract class AbstractTypeRelation
 
     if (s is InterfaceType) {
       InterfaceType instance = t.asInstanceOf(s.element);
-      return instance != null && checkTypeArguments(instance, s);
-    } else {
-      return false;
+      if (instance != null && checkTypeArguments(instance, s)) {
+        return true;
+      }
     }
+
+    if (s == coreTypes.functionType && t.element.callType != null) {
+      return true;
+    } else if (s is FunctionType) {
+      FunctionType callType = t.callType;
+      return callType != null && !invalidCallableType(callType, s);
+    }
+
+    return false;
   }
 
   bool visitFunctionType(FunctionType t, DartType s) {
@@ -1223,6 +1234,10 @@ class MoreSpecificVisitor extends AbstractTypeRelation {
   bool invalidTypeVariableBounds(DartType bound, DartType s) {
     return !isMoreSpecific(bound, s);
   }
+
+  bool invalidCallableType(DartType callType, DartType s) {
+    return !isMoreSpecific(callType, s);
+  }
 }
 
 /**
@@ -1255,16 +1270,8 @@ class SubtypeVisitor extends MoreSpecificVisitor {
     return !isSubtype(bound, s);
   }
 
-  bool visitInterfaceType(InterfaceType t, DartType s) {
-    if (super.visitInterfaceType(t, s)) return true;
-
-    if (s == coreTypes.functionType && t.element.callType != null) {
-      return true;
-    } else if (s is FunctionType) {
-      FunctionType callType = t.callType;
-      return callType != null && isSubtype(callType, s);
-    }
-    return false;
+  bool invalidCallableType(DartType callType, DartType s) {
+    return !isSubtype(callType, s);
   }
 }
 

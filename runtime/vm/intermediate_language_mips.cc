@@ -12,6 +12,7 @@
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_range_analysis.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -278,7 +279,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
-    compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
+    compiler->AddDeoptIndexAtCall(deopt_id_after);
   }
   // Add deoptimization continuation point after the call and before the
   // arguments are removed.
@@ -1772,13 +1773,11 @@ LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Zone* zone,
     // We need temporaries for field object.
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
-  } else {
-    LocationSummary* summary = new(zone) LocationSummary(
-        zone, kNumInputs, 0, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    return summary;
   }
-  UNREACHABLE();
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, 0, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  return summary;
 }
 
 
@@ -2669,20 +2668,33 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Ensure space for patching return sites for lazy deopt.
+  if (!FLAG_precompiled_mode && compiler->is_optimizing()) {
+    for (intptr_t i = 0;
+      i < CallPattern::kDeoptCallLengthInInstructions;
+      ++i) {
+      __ nop();
+    }
+  }
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(catch_try_index(),
                                 try_index(),
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_,
                                 needs_stacktrace());
-  // Restore pool pointer.
-  __ RestoreCodePointer();
-  __ LoadPoolPointer();
-
+  // On lazy deoptimization we patch the optimized code here to enter the
+  // deoptimization stub.
+  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id);
+  } else {
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   deopt_id,
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
-
   // Restore SP from FP as we are coming from a throw and the code for
   // popping arguments has not been run.
   const intptr_t fp_sp_dist =
@@ -4063,15 +4075,6 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
-  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
-    const intptr_t kNumInputs = 1;
-    const intptr_t kNumTemps = 0;
-    LocationSummary* summary = new(zone) LocationSummary(
-        zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::FpuRegisterLocation(D6));
-    summary->set_out(0, Location::FpuRegisterLocation(D0));
-    return summary;
-  }
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
          (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
@@ -4092,7 +4095,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     DRegister result = locs()->out(0).fpu_reg();
     __ muld(result, val, val);
   } else {
-    __ CallRuntime(TargetFunction(), InputCount());
+    UNREACHABLE();
   }
 }
 

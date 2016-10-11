@@ -1349,8 +1349,7 @@ export 'dart:!1''',
           "1+dart:math",
           "1-dart:_chrome",
           "1-dart:_collection.dev"
-        ],
-        failingTests: '1');
+        ]);
 
     buildTests(
         'testCompletion_export_noStringLiteral_noSemicolon',
@@ -1497,8 +1496,7 @@ import 'dart:!1''',
           "1+dart:math",
           "1-dart:_chrome",
           "1-dart:_collection.dev"
-        ],
-        failingTests: '1');
+        ]);
 
     buildTests(
         'testCompletion_import_hasStringLiteral_noSemicolon',
@@ -2664,7 +2662,7 @@ class Q {
           "8-null"
         ],
         failingTests: '234567'); //TODO(jwren) 234 failing as correct selection
-        // offset assertions can't be passed into buildTests(..)
+    // offset assertions can't be passed into buildTests(..)
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
@@ -2850,7 +2848,7 @@ class A {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test035', '''class Y {final x='hi';mth() {x.!1length;}}''',
-        <String>["1+length"]);
+        <String>["1+length"], failingTests: '1');
 
     // TODO(scheglov) decide what to do with Type for untyped field (not
     // supported by the new store)
@@ -2905,8 +2903,8 @@ class A<Z extends X> {
         failingTests: '2');
 
     // test analysis of untyped fields and top-level vars
-    buildTests('test039', '''class X{}var x = null as !1X;''',
-        <String>["1-void"]);
+    buildTests(
+        'test039', '''class X{}var x = null as !1X;''', <String>["1-void"]);
 
     // test arg lists with named params
     buildTests('test040', '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1)!2;}''',

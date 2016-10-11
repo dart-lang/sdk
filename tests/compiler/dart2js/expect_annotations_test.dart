@@ -61,68 +61,64 @@ main() {
         'AssumeDynamicClass is unresolved.');
 
     void testTypeMatch(FunctionElement function, TypeMask expectedParameterType,
-                       TypeMask expectedReturnType, TypesInferrer inferrer) {
+        TypeMask expectedReturnType, TypesInferrer inferrer) {
       for (ParameterElement parameter in function.parameters) {
         TypeMask type = inferrer.getTypeOfElement(parameter);
-        Expect.equals(expectedParameterType, simplify(type, compiler),
-            "$parameter");
+        Expect.equals(
+            expectedParameterType, simplify(type, compiler), "$parameter");
       }
       if (expectedReturnType != null) {
         TypeMask type = inferrer.getReturnTypeOfElement(function);
-        Expect.equals(expectedReturnType, simplify(type, compiler),
-            "$function");
+        Expect.equals(
+            expectedReturnType, simplify(type, compiler), "$function");
       }
     }
 
     void test(String name,
-              {bool expectNoInline: false,
-               bool expectTrustTypeAnnotations: false,
-               TypeMask expectedParameterType: null,
-               TypeMask expectedReturnType: null,
-               bool expectAssumeDynamic: false}) {
-       Element method = compiler.mainApp.find(name);
-       Expect.isNotNull(method);
-       Expect.equals(
-           expectNoInline,
-           backend.annotations.noInline(method),
-           "Unexpected annotation of @NoInline on '$method'.");
-       Expect.equals(
-           expectTrustTypeAnnotations,
-           backend.annotations.trustTypeAnnotations(method),
-           "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
-       Expect.equals(
-           expectAssumeDynamic,
-           backend.annotations.assumeDynamic(method),
-           "Unexpected annotation of @AssumeDynamic on '$method'.");
-       TypesInferrer inferrer = compiler.typesTask.typesInferrer;
-       if (expectTrustTypeAnnotations && expectedParameterType != null) {
-         testTypeMatch(method, expectedParameterType, expectedReturnType,
-             inferrer);
-       } else if (expectAssumeDynamic) {
-         testTypeMatch(method, compiler.typesTask.dynamicType, null, inferrer);
-       }
+        {bool expectNoInline: false,
+        bool expectTrustTypeAnnotations: false,
+        TypeMask expectedParameterType: null,
+        TypeMask expectedReturnType: null,
+        bool expectAssumeDynamic: false}) {
+      Element method = compiler.mainApp.find(name);
+      Expect.isNotNull(method);
+      Expect.equals(expectNoInline, backend.annotations.noInline(method),
+          "Unexpected annotation of @NoInline on '$method'.");
+      Expect.equals(
+          expectTrustTypeAnnotations,
+          backend.annotations.trustTypeAnnotations(method),
+          "Unexpected annotation of @TrustTypeAnnotations on '$method'.");
+      Expect.equals(
+          expectAssumeDynamic,
+          backend.annotations.assumeDynamic(method),
+          "Unexpected annotation of @AssumeDynamic on '$method'.");
+      TypesInferrer inferrer = compiler.globalInference.typesInferrer;
+      if (expectTrustTypeAnnotations && expectedParameterType != null) {
+        testTypeMatch(
+            method, expectedParameterType, expectedReturnType, inferrer);
+      } else if (expectAssumeDynamic) {
+        testTypeMatch(method, compiler.commonMasks.dynamicType, null, inferrer);
+      }
     }
 
-    TypeMask jsStringType = compiler.typesTask.stringType;
-    TypeMask jsIntType = compiler.typesTask.intType;
+    TypeMask jsStringType = compiler.commonMasks.stringType;
+    TypeMask jsIntType = compiler.commonMasks.intType;
     TypeMask coreStringType = new TypeMask.subtype(
-        compiler.coreClasses.stringClass, compiler.world);
+        compiler.coreClasses.stringClass, compiler.closedWorld);
 
     test('method');
     test('methodAssumeDynamic', expectAssumeDynamic: true);
     test('methodTrustTypeAnnotations',
-        expectTrustTypeAnnotations: true,
-        expectedParameterType: jsStringType);
+        expectTrustTypeAnnotations: true, expectedParameterType: jsStringType);
     test('methodNoInline', expectNoInline: true);
     test('methodNoInlineTrustTypeAnnotations',
-         expectNoInline: true,
-         expectTrustTypeAnnotations: true,
-         expectedParameterType: jsStringType,
-         expectedReturnType: jsIntType);
+        expectNoInline: true,
+        expectTrustTypeAnnotations: true,
+        expectedParameterType: jsStringType,
+        expectedReturnType: jsIntType);
     test('methodAssumeDynamicTrustTypeAnnotations',
-         expectAssumeDynamic: true,
-         expectTrustTypeAnnotations: true,
-         expectedParameterType: coreStringType);
-
+        expectAssumeDynamic: true,
+        expectTrustTypeAnnotations: true,
+        expectedParameterType: coreStringType);
   });
 }

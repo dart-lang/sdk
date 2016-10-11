@@ -675,17 +675,17 @@ class Elements {
   }
 
   static bool isNumberOrStringSupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.coreLibrary;
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
     return (element == coreLibrary.find('Comparable'));
   }
 
   static bool isStringOnlySupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.coreLibrary;
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
     return element == coreLibrary.find('Pattern');
   }
 
   static bool isListSupertype(Element element, Compiler compiler) {
-    LibraryElement coreLibrary = compiler.coreLibrary;
+    LibraryElement coreLibrary = compiler.commonElements.coreLibrary;
     return element == coreLibrary.find('Iterable');
   }
 
@@ -794,15 +794,16 @@ class Elements {
 
   static bool isConstructorOfTypedArraySubclass(
       Element element, Compiler compiler) {
-    if (compiler.typedDataLibrary == null) return false;
+    if (compiler.commonElements.typedDataLibrary == null) return false;
     if (!element.isConstructor) return false;
     ConstructorElement constructor = element.implementation;
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
-    return cls.library == compiler.typedDataLibrary &&
+    return cls.library == compiler.commonElements.typedDataLibrary &&
         compiler.backend.isNative(cls) &&
-        compiler.world.isSubtypeOf(cls, compiler.typedDataClass) &&
-        compiler.world.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
+        compiler.closedWorld
+            .isSubtypeOf(cls, compiler.commonElements.typedDataClass) &&
+        compiler.closedWorld.isSubtypeOf(cls, compiler.coreClasses.listClass) &&
         constructor.name == '';
   }
 
@@ -1174,6 +1175,7 @@ abstract class AbstractFieldElement extends Element {
 
 abstract class FunctionSignature {
   FunctionType get type;
+  DartType get returnType;
   List<DartType> get typeVariables;
   List<FormalElement> get requiredParameters;
   List<FormalElement> get optionalParameters;
@@ -1375,6 +1377,9 @@ abstract class ConstructorElement extends FunctionElement
   /// Class `E` has a synthesized constructor, `E.c`, whose defining constructor
   /// is `C.c`.
   ConstructorElement get definingConstructor;
+
+  /// Returns `true` if this constructor is an implicit default constructor.
+  bool get isDefaultConstructor;
 
   /// The constant constructor defining the binding of fields if `const`,
   /// `null` otherwise.

@@ -2,33 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@deprecated
 library analyzer.test.source.embedder_test;
 
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:path/path.dart' as path;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
+import '../embedder_tests.dart';
 import '../resource_utils.dart';
-import '../utils.dart';
 
 main() {
-  runReflectiveTests(DartUriResolverTest);
-  runReflectiveTests(EmbedderSdkTest);
-  runReflectiveTests(EmbedderUriResolverTest);
+  defineReflectiveTests(DartUriResolverTest);
+  defineReflectiveTests(EmbedderSdkTest);
+  defineReflectiveTests(EmbedderUriResolverTest);
 }
 
 @reflectiveTest
 class DartUriResolverTest extends EmbedderRelatedTest {
   void test_embedderYaml() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
     DartUriResolver resolver = new DartUriResolver(sdk);
@@ -40,51 +39,11 @@ class DartUriResolverTest extends EmbedderRelatedTest {
     }
 
     // Check that they map to the correct paths.
-    expectResolved('dart:core', '/tmp/core.dart');
-    expectResolved('dart:fox', '/tmp/slippy.dart');
-    expectResolved('dart:bear', '/tmp/grizzly.dart');
-    expectResolved('dart:relative', '/relative.dart');
-    expectResolved('dart:deep', '/tmp/deep/directory/file.dart');
-  }
-}
-
-abstract class EmbedderRelatedTest {
-  TestPathTranslator pathTranslator;
-  ResourceProvider resourceProvider;
-
-  buildResourceProvider() {
-    MemoryResourceProvider rawProvider =
-        new MemoryResourceProvider(isWindows: isWindows);
-    resourceProvider = new TestResourceProvider(rawProvider);
-    pathTranslator = new TestPathTranslator(rawProvider)
-      ..newFolder('/empty')
-      ..newFolder('/tmp')
-      ..newFile(
-          '/tmp/_embedder.yaml',
-          r'''
-embedded_libs:
-  "dart:core" : "core.dart"
-  "dart:fox": "slippy.dart"
-  "dart:bear": "grizzly.dart"
-  "dart:relative": "../relative.dart"
-  "dart:deep": "deep/directory/file.dart"
-  "fart:loudly": "nomatter.dart"
-''');
-  }
-
-  clearResourceProvider() {
-    resourceProvider = null;
-    pathTranslator = null;
-  }
-
-  void setUp() {
-    initializeTestEnvironment(path.context);
-    buildResourceProvider();
-  }
-
-  void tearDown() {
-    initializeTestEnvironment();
-    clearResourceProvider();
+    expectResolved('dart:core', '$foxLib/core.dart');
+    expectResolved('dart:fox', '$foxLib/slippy.dart');
+    expectResolved('dart:bear', '$foxLib/grizzly.dart');
+    expectResolved('dart:relative', '$foxPath/relative.dart');
+    expectResolved('dart:deep', '$foxLib/deep/directory/file.dart');
   }
 }
 
@@ -92,7 +51,7 @@ embedded_libs:
 class EmbedderSdkTest extends EmbedderRelatedTest {
   void test_creation() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
 
@@ -101,7 +60,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_fromFileUri() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
 
@@ -113,26 +72,26 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       expect(source.fullName, posixToOSPath(posixPath));
     }
 
-    expectSource('/tmp/slippy.dart', 'dart:fox');
-    expectSource('/tmp/deep/directory/file.dart', 'dart:deep');
-    expectSource('/tmp/deep/directory/part.dart', 'dart:deep/part.dart');
+    expectSource('$foxLib/slippy.dart', 'dart:fox');
+    expectSource('$foxLib/deep/directory/file.dart', 'dart:deep');
+    expectSource('$foxLib/deep/directory/part.dart', 'dart:deep/part.dart');
   }
 
   void test_getSdkLibrary() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
 
     SdkLibrary lib = sdk.getSdkLibrary('dart:fox');
     expect(lib, isNotNull);
-    expect(lib.path, posixToOSPath('/tmp/slippy.dart'));
+    expect(lib.path, posixToOSPath('$foxLib/slippy.dart'));
     expect(lib.shortName, 'dart:fox');
   }
 
   void test_mapDartUri() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(locator.embedderYamls);
 
@@ -143,10 +102,10 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       expect(source.fullName, posixToOSPath(posixPath));
     }
 
-    expectSource('dart:core', '/tmp/core.dart');
-    expectSource('dart:fox', '/tmp/slippy.dart');
-    expectSource('dart:deep', '/tmp/deep/directory/file.dart');
-    expectSource('dart:deep/part.dart', '/tmp/deep/directory/part.dart');
+    expectSource('dart:core', '$foxLib/core.dart');
+    expectSource('dart:fox', '$foxLib/slippy.dart');
+    expectSource('dart:deep', '$foxLib/deep/directory/file.dart');
+    expectSource('dart:deep/part.dart', '$foxLib/deep/directory/part.dart');
   }
 }
 
@@ -154,7 +113,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 class EmbedderUriResolverTest extends EmbedderRelatedTest {
   void test_embedderYaml() {
     var locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     var resolver = new EmbedderUriResolver(locator.embedderYamls);
 
@@ -167,11 +126,11 @@ class EmbedderUriResolverTest extends EmbedderRelatedTest {
     // We have five mappings.
     expect(resolver, hasLength(5));
     // Check that they map to the correct paths.
-    expectResolved('dart:core', '/tmp/core.dart');
-    expectResolved('dart:fox', '/tmp/slippy.dart');
-    expectResolved('dart:bear', '/tmp/grizzly.dart');
-    expectResolved('dart:relative', '/relative.dart');
-    expectResolved('dart:deep', '/tmp/deep/directory/file.dart');
+    expectResolved('dart:core', '$foxLib/core.dart');
+    expectResolved('dart:fox', '$foxLib/slippy.dart');
+    expectResolved('dart:bear', '$foxLib/grizzly.dart');
+    expectResolved('dart:relative', '$foxPath/relative.dart');
+    expectResolved('dart:deep', '$foxLib/deep/directory/file.dart');
   }
 
   void test_nullEmbedderYamls() {
@@ -181,7 +140,7 @@ class EmbedderUriResolverTest extends EmbedderRelatedTest {
 
   void test_restoreAbsolute() {
     var locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     var resolver = new EmbedderUriResolver(locator.embedderYamls);
 

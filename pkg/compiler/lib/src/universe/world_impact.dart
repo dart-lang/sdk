@@ -17,7 +17,7 @@ import 'use.dart' show DynamicUse, StaticUse, TypeUse;
 ///
 /// The impact object can be computed locally by inspecting just the resolution
 /// information of that element alone. The compiler uses [Universe] and
-/// [ClassWorld] to combine the information discovered in the impact objects of
+/// [World] to combine the information discovered in the impact objects of
 /// all elements reachable in an application.
 class WorldImpact {
   const WorldImpact();
@@ -61,12 +61,18 @@ class WorldImpact {
   }
 }
 
-class WorldImpactBuilder {
+abstract class WorldImpactBuilder {
+  void registerDynamicUse(DynamicUse dynamicUse);
+  void registerTypeUse(TypeUse typeUse);
+  void registerStaticUse(StaticUse staticUse);
+}
+
+class WorldImpactBuilderImpl extends WorldImpact implements WorldImpactBuilder {
   // TODO(johnniwinther): Do we benefit from lazy initialization of the
   // [Setlet]s?
-  Setlet<DynamicUse> _dynamicUses;
-  Setlet<StaticUse> _staticUses;
-  Setlet<TypeUse> _typeUses;
+  Set<DynamicUse> _dynamicUses;
+  Set<StaticUse> _staticUses;
+  Set<TypeUse> _typeUses;
 
   void registerDynamicUse(DynamicUse dynamicUse) {
     assert(dynamicUse != null);
@@ -105,9 +111,60 @@ class WorldImpactBuilder {
   }
 }
 
+/// [WorldImpactBuilder] that can create and collect a sequence of
+/// [WorldImpact]s.
+class StagedWorldImpactBuilder implements WorldImpactBuilder {
+  final bool collectImpacts;
+  WorldImpactBuilderImpl _currentBuilder;
+  List<WorldImpactBuilderImpl> _builders = <WorldImpactBuilderImpl>[];
+
+  StagedWorldImpactBuilder({this.collectImpacts: false});
+
+  void _ensureBuilder() {
+    if (_currentBuilder == null) {
+      _currentBuilder = new WorldImpactBuilderImpl();
+      if (collectImpacts) {
+        _builders.add(_currentBuilder);
+      }
+    }
+  }
+
+  @override
+  void registerTypeUse(TypeUse typeUse) {
+    _ensureBuilder();
+    _currentBuilder.registerTypeUse(typeUse);
+  }
+
+  @override
+  void registerDynamicUse(DynamicUse dynamicUse) {
+    _ensureBuilder();
+    _currentBuilder.registerDynamicUse(dynamicUse);
+  }
+
+  @override
+  void registerStaticUse(StaticUse staticUse) {
+    _ensureBuilder();
+    _currentBuilder.registerStaticUse(staticUse);
+  }
+
+  /// Returns the [WorldImpact] built so far with this builder. The builder
+  /// is reset, and if [collectImpacts] is `true` the impact is cached for
+  /// [worldImpacts].
+  WorldImpact flush() {
+    if (_currentBuilder == null) return const WorldImpact();
+    WorldImpact worldImpact = _currentBuilder;
+    _currentBuilder = null;
+    return worldImpact;
+  }
+
+  /// If [collectImpacts] is `true` this returns all [WorldImpact]s built with
+  /// this builder.
+  Iterable<WorldImpact> get worldImpacts => _builders;
+}
+
 /// Mutable implementation of [WorldImpact] used to transform
 /// [ResolutionImpact] or [CodegenImpact] to [WorldImpact].
-class TransformedWorldImpact implements WorldImpact {
+class TransformedWorldImpact implements WorldImpact, WorldImpactBuilder {
   final WorldImpact worldImpact;
 
   Setlet<StaticUse> _staticUses;

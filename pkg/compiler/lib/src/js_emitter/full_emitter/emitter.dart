@@ -1106,8 +1106,10 @@ class Emitter implements js_emitter.Emitter {
       }
     }
 
-    String libraryName = (!compiler.options.enableMinification ||
-        backend.mustRetainLibraryNames) ? library.libraryName : "";
+    String libraryName =
+        (!compiler.options.enableMinification || backend.mustRetainLibraryNames)
+            ? library.libraryName
+            : "";
 
     jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 
@@ -2112,7 +2114,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
-    if (compiler.mirrorsLibrary != null) options.add('mirrors');
+    if (compiler.commonElements.mirrorsLibrary != null) options.add('mirrors');
     if (compiler.options.useContentSecurityPolicy) options.add("CSP");
     return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
   }
@@ -2148,7 +2150,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   void invalidateCaches() {
     if (!compiler.options.hasIncrementalSupport) return;
     if (cachedElements.isEmpty) return;
-    for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
+    for (Element element in backend.codegenEnqueuer.newlyEnqueuedElements) {
       if (element.isInstanceMember) {
         cachedClassBuilders.remove(element.enclosingClass);
 

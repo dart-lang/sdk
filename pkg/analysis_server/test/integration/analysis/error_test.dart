@@ -45,7 +45,7 @@ class Test extends Object with C {
   void foo() {}
 }
 abstract class B {
-  void foo();
+  void foo() {}
 }
 abstract class C extends B {
   void bar() {
@@ -79,7 +79,7 @@ class Test extends Object with C {
   void foo() {}
 }
 abstract class B {
-  void foo();
+  void foo() {}
 }
 abstract class C extends B {
   void bar() {

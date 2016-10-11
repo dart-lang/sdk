@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // DartOptions=--generic-method-syntax
+// VMOptions=--generic-method-syntax
 
 /// Dart test on the usage of method type arguments in a function typed
 /// parameter declaration.

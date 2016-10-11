@@ -78,6 +78,7 @@ static const char* commandline_packages_file = NULL;
 // Global flag that is used to indicate that we want to compile all the
 // dart functions and not run anything.
 static bool compile_all = false;
+static bool parse_all = false;
 
 
 // Global flag that is used to indicate that we want to use blobs/mmap instead
@@ -324,6 +325,17 @@ static bool ProcessCompileAllOption(const char* arg,
 }
 
 
+static bool ProcessParseAllOption(const char* arg,
+                                  CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  parse_all = true;
+  return true;
+}
+
+
 static bool ProcessUseBlobsOption(const char* arg,
                                   CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
@@ -494,6 +506,43 @@ static bool ProcessShortSocketWriteOption(const char* arg,
 }
 
 
+#if !defined(TARGET_OS_MACOS)
+extern const char* commandline_root_certs_file;
+extern const char* commandline_root_certs_cache;
+
+static bool ProcessRootCertsFileOption(const char* arg,
+                                       CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '-') {
+    return false;
+  }
+  if (commandline_root_certs_cache != NULL) {
+    Log::PrintErr("Only one of --root-certs-file and --root-certs-cache "
+                  "may be specified");
+    return false;
+  }
+  commandline_root_certs_file = arg;
+  return true;
+}
+
+
+static bool ProcessRootCertsCacheOption(const char* arg,
+                                       CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '-') {
+    return false;
+  }
+  if (commandline_root_certs_file != NULL) {
+    Log::PrintErr("Only one of --root-certs-file and --root-certs-cache "
+                  "may be specified");
+    return false;
+  }
+  commandline_root_certs_cache = arg;
+  return true;
+}
+#endif  // !defined(TARGET_OS_MACOS)
+
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
@@ -510,6 +559,7 @@ static struct {
 
   // VM specific options to the standalone dart program.
   { "--compile_all", ProcessCompileAllOption },
+  { "--parse_all", ProcessParseAllOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--disable-service-origin-check", ProcessDisableServiceOriginCheckOption },
   { "--observe", ProcessObserveOption },
@@ -522,6 +572,10 @@ static struct {
   { "--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption },
   { "--short_socket_read", ProcessShortSocketReadOption },
   { "--short_socket_write", ProcessShortSocketWriteOption },
+#if !defined(TARGET_OS_MACOS)
+  { "--root-certs-file=", ProcessRootCertsFileOption },
+  { "--root-certs-cache=", ProcessRootCertsCacheOption },
+#endif  // !defined(TARGET_OS_MACOS)
   { NULL, NULL }
 };
 
@@ -960,6 +1014,15 @@ static void PrintUsage() {
 "--enable-vm-service[=<port>[/<bind-address>]]\n"
 "  enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181, default bind address is 127.0.0.1).\n"
+#if !defined(TARGET_OS_MACOS)
+"\n"
+"--root-certs-file=<path>\n"
+"  The path to a file containing the trusted root certificates to use for\n"
+"  secure socket connections.\n"
+"--root-certs-cache=<path>\n"
+"  The path to a cache directory containing the trusted root certificates to\n"
+"  use for secure socket connections.\n"
+#endif  // !defined(TARGET_OS_MACOS)
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
@@ -1465,6 +1528,15 @@ bool RunMainIsolate(const char* script_name,
       CHECK_RESULT(result);
     }
 
+    if (parse_all) {
+      result = Dart_ParseAll();
+      CHECK_RESULT(result);
+      Dart_ExitScope();
+      // Shutdown the isolate.
+      Dart_ShutdownIsolate();
+      return false;
+    }
+
     if (is_noopt || (gen_snapshot_kind == kAppAOT)) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
         { "dart:_builtin", "::", "_getMainClosure" },
@@ -1473,6 +1545,7 @@ bool RunMainIsolate(const char* script_name,
         { "dart:_builtin", "::", "_resolveInWorkingDirectory" },
         { "dart:_builtin", "::", "_setWorkingDirectory" },
         { "dart:_builtin", "::", "_setPackageRoot" },
+        { "dart:_builtin", "::", "_setPackagesMap" },
         { "dart:_builtin", "::", "_libraryFilePath" },
         { "dart:io", "::", "_makeUint8ListView" },
         { "dart:io", "::", "_makeDatagram" },

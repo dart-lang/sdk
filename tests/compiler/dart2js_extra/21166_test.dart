@@ -8,9 +8,10 @@
 var a = [];
 
 void doStuff() {
-  if (a.length) { // This triggers a TypeConversion to bool in checked mode.
+  if (a.length) {
+    // This triggers a TypeConversion to bool in checked mode.
     var element = a[0]; // This triggers a bounds check but a.length will have
-    a.remove(element);  // type [empty].
+    a.remove(element); // type [empty].
   }
 }
 
@@ -21,5 +22,3 @@ main() {
     doStuff(); // This is expected to fail but not crash the compiler.
   } catch (_) {}
 }
-
-

@@ -4,7 +4,6 @@
 
 library analyzer.test.src.context.mock_sdk;
 
-import 'package:analyzer/dart/element/element.dart' show LibraryElement;
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
 import 'package:analyzer/src/context/cache.dart';
@@ -13,8 +12,7 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
-import 'package:analyzer/src/summary/summarize_elements.dart'
-    show PackageBundleAssembler;
+import 'package:analyzer/src/summary/summary_file_builder.dart';
 
 const String librariesContent = r'''
 const Map<String, LibraryInfo> libraries = const {
@@ -223,6 +221,7 @@ abstract class Iterable<E> {
 class List<E> implements Iterable<E> {
   List();
   void add(E value) {}
+  void addAll(Iterable<E> iterable) {}
   E operator [](int index) => null;
   void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
@@ -248,12 +247,10 @@ external bool identical(Object a, Object b);
 
 void print(Object object) {}
 
-const proxy = const _Proxy();
 class _Proxy { const _Proxy(); }
+const Object proxy = const _Proxy();
 
-class _Override {
-  const _Override();
-}
+class _Override { const _Override(); }
 const Object override = const _Override();
 ''');
 
@@ -409,14 +406,12 @@ class MockSdk implements DartSdk {
   @override
   PackageBundle getLinkedBundle() {
     if (_bundle == null) {
-      PackageBundleAssembler assembler = new PackageBundleAssembler();
-      for (SdkLibrary sdkLibrary in sdkLibraries) {
-        String uriStr = sdkLibrary.shortName;
-        Source source = mapDartUri(uriStr);
-        LibraryElement libraryElement = context.computeLibraryElement(source);
-        assembler.serializeLibraryElement(libraryElement);
-      }
-      List<int> bytes = assembler.assemble().toBuffer();
+      List<Source> librarySources = sdkLibraries
+          .map((SdkLibrary library) => mapDartUri(library.shortName))
+          .toList();
+      List<int> bytes = new SummaryBuilder(
+              librarySources, context, context.analysisOptions.strongMode)
+          .build();
       _bundle = new PackageBundle.fromBuffer(bytes);
     }
     return _bundle;

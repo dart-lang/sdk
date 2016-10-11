@@ -10,15 +10,14 @@ import "package:expect/expect.dart";
 
 @Native("NativeA")
 class A {
-  foo() native;
+  foo() native ;
 }
 
 @Native("NativeB")
-class B extends A {
-}
+class B extends A {}
 
-A makeA() native;
-B makeB() native;
+A makeA() native ;
+B makeB() native ;
 
 void setup() native """
 function inherits(child, parent) {
@@ -39,7 +38,6 @@ NativeA.prototype.foo = function() { return 42; };
 makeA = function(){return new NativeA;};
 makeB = function(){return new NativeB;};
 """;
-
 
 main() {
   setup();

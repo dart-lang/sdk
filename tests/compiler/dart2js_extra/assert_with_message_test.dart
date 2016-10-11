@@ -5,9 +5,9 @@
 
 import "package:expect/expect.dart";
 
-@AssumeDynamic() @NoInline()
+@AssumeDynamic()
+@NoInline()
 confuse(x) => x;
-
 
 testFalse(name, fault) {
   try {
@@ -21,20 +21,27 @@ testFalse(name, fault) {
 }
 
 test1() {
-  testFalse('constant false', () { assert(false, 'Mumble'); });
+  testFalse('constant false', () {
+    assert(false, 'Mumble');
+  });
 }
 
 test2() {
-  testFalse('constant function', () { assert(() => false, 'Mumble'); });
+  testFalse('constant function', () {
+    assert(() => false, 'Mumble');
+  });
 }
 
 test3() {
-  testFalse('variable false', () { assert(confuse(false), 'Mumble'); });
+  testFalse('variable false', () {
+    assert(confuse(false), 'Mumble');
+  });
 }
 
 test4() {
-  testFalse('variable function',
-      () { assert(confuse(() => false), 'Mumble'); });
+  testFalse('variable function', () {
+    assert(confuse(() => false), 'Mumble');
+  });
 }
 
 testTypeErrors() {
@@ -42,16 +49,22 @@ testTypeErrors() {
     try {
       fault();
     } catch (e) {
-      Expect.isTrue(e is TypeError,
-          'name: <<$e>> (${e.runtimeType}) is TypeError');
+      Expect.isTrue(
+          e is TypeError, 'name: <<$e>> (${e.runtimeType}) is TypeError');
       return;
     }
     Expect.fail('Expected assert to throw');
   }
 
-  check('constant type error', () { assert(null, 'Mumble'); });
-  check('variable type error', () { assert(confuse(null), 'Mumble'); });
-  check('function type error', () { assert(confuse(() => null), 'Mumble'); });
+  check('constant type error', () {
+    assert(null, 'Mumble');
+  });
+  check('variable type error', () {
+    assert(confuse(null), 'Mumble');
+  });
+  check('function type error', () {
+    assert(confuse(() => null), 'Mumble');
+  });
 }
 
 testMessageEffect1() {

@@ -65,7 +65,15 @@ class B extends A {
   B.three() : super.oneOptionalArgument(1, b: 2);
 
   B();
-  B_one() { super.twoOptArgs(a: 1, b: 2); }
-  B_two() { super.twoOptArgs(b: 2, a: 1); }
-  B_three() { super.oneOptArg(1, b: 2); }
+  B_one() {
+    super.twoOptArgs(a: 1, b: 2);
+  }
+
+  B_two() {
+    super.twoOptArgs(b: 2, a: 1);
+  }
+
+  B_three() {
+    super.oneOptArg(1, b: 2);
+  }
 }

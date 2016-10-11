@@ -57,6 +57,7 @@ abstract class CompilerConfiguration {
     bool useBlobs = configuration['use_blobs'];
     bool hotReload = configuration['hot_reload'];
     bool hotReloadRollback = configuration['hot_reload_rollback'];
+    bool useFastStartup = configuration['fast_startup'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -74,6 +75,7 @@ abstract class CompilerConfiguration {
             useCps: useCps,
             useSdk: useSdk,
             isCsp: isCsp,
+            useFastStartup: useFastStartup,
             extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
       case 'dart2app':
@@ -264,6 +266,7 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   final bool isCsp;
   final bool useCps;
+  final bool useFastStartup;
   final List<String> extraDart2jsOptions;
   // We cache the extended environment to save memory.
   static Map<String, String> cpsFlagCache;
@@ -276,6 +279,7 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       bool useSdk,
       bool this.useCps,
       bool this.isCsp,
+      bool this.useFastStartup,
       this.extraDart2jsOptions})
       : super('dart2js',
             isDebug: isDebug,

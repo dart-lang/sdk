@@ -243,6 +243,10 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   allocation_args.SetAt(3, Bool::False());  // Not a super invocation.
   const Object& invocation_mirror = Object::Handle(
       InvokeFunction(allocation_function, allocation_args));
+  if (invocation_mirror.IsError()) {
+    Exceptions::PropagateError(Error::Cast(invocation_mirror));
+    UNREACHABLE();
+  }
 
   // Now use the invocation mirror object and invoke NoSuchMethod.
   const int kNumArguments = 2;

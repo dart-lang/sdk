@@ -516,14 +516,18 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   bool visitLocalFunctionElement(
       LocalFunctionElement element1, LocalFunctionElement element2) {
     // TODO(johnniwinther): Define an equivalence on locals.
-    return checkMembers(element1.memberContext, element2.memberContext);
+    return strategy.test(
+            element1, element2, 'name', element1.name, element2.name) &&
+        checkMembers(element1.memberContext, element2.memberContext);
   }
 
   @override
   bool visitLocalVariableElement(
       LocalVariableElement element1, LocalVariableElement element2) {
     // TODO(johnniwinther): Define an equivalence on locals.
-    return checkMembers(element1.memberContext, element2.memberContext);
+    return strategy.test(
+            element1, element2, 'name', element1.name, element2.name) &&
+        checkMembers(element1.memberContext, element2.memberContext);
   }
 
   bool visitAbstractFieldElement(

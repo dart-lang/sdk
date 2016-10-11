@@ -42,7 +42,6 @@
     'object_patch.dart',
     'regexp.cc',
     'regexp_patch.dart',
-    'resource_patch.dart',
     'stacktrace.cc',
     'stacktrace.dart',
     'stacktrace.h',

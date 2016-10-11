@@ -371,10 +371,16 @@ Breakpoint* BreakpointLocation::AddSingleShot(Debugger* dbg) {
 Breakpoint* BreakpointLocation::AddPerClosure(Debugger* dbg,
                                               const Instance& closure,
                                               bool for_over_await) {
-  Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
-    if (bpt->IsPerClosure() && bpt->closure() == closure.raw()) break;
-    bpt = bpt->next();
+  Breakpoint* bpt = NULL;
+  // Do not reuse existing breakpoints for stepping over await clauses.
+  // A second async step-over command will set a new breakpoint before
+  // the existing one gets deleted when first async step-over resumes.
+  if (!for_over_await) {
+    bpt = breakpoints();
+    while (bpt != NULL) {
+      if (bpt->IsPerClosure() && (bpt->closure() == closure.raw())) break;
+      bpt = bpt->next();
+    }
   }
   if (bpt == NULL) {
     bpt = new Breakpoint(dbg->nextId(), this);
@@ -972,7 +978,12 @@ RawObject* ActivationFrame::GetReceiver() {
 }
 
 
-bool IsPrivateVariableName(const String& var_name) {
+static bool IsSyntheticVariableName(const String& var_name) {
+  return (var_name.Length() >= 1) && (var_name.CharAt(0) == ':');
+}
+
+
+static bool IsPrivateVariableName(const String& var_name) {
   return (var_name.Length() >= 1) && (var_name.CharAt(0) == '_');
 }
 
@@ -989,7 +1000,7 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore;
     VariableAt(i, &name, &ignore, &ignore, &value);
-    if (!name.Equals(Symbols::This())) {
+    if (!name.Equals(Symbols::This()) && !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
         name = String::ScrubName(name);
       }
@@ -1045,7 +1056,11 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
                                         bool full) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
-  jsobj->AddLocation(script, TokenPos());
+  TokenPosition pos = TokenPos();
+  if (pos.IsSynthetic()) {
+    pos = pos.FromSynthetic();
+  }
+  jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
   if (full) {
@@ -2598,9 +2613,6 @@ bool Debugger::IsDebuggable(const Function& func) {
   if (!func.is_debuggable()) {
     return false;
   }
-  if (ServiceIsolate::IsRunning()) {
-    return true;
-  }
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
   return lib.IsDebuggable();
@@ -2669,7 +2681,7 @@ RawError* Debugger::PauseStepping() {
     // There is an "interesting frame" set. Only pause at appropriate
     // locations in this frame.
     if (IsCalleeFrameOf(stepping_fp_, frame->fp())) {
-      // We are i n a callee of the frame we're interested in.
+      // We are in a callee of the frame we're interested in.
       // Ignore this stepping break.
       return Error::null();
     } else if (IsCalleeFrameOf(frame->fp(), stepping_fp_)) {
@@ -2846,10 +2858,6 @@ void Debugger::PauseDeveloper(const String& msg) {
   // breakpoint or exception event.
   if (ignore_breakpoints_ || IsPaused()) {
     return;
-  }
-
-  if (!NeedsDebugEvents()) {
-    OS::Print("Hit debugger!");
   }
 
   DebuggerStackTrace* stack_trace = CollectStackTrace();

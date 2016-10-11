@@ -1,3 +1,129 @@
+## 1.20.0 - 2016-10-11
+
+### Dart VM
+
+* We have improved the way that the VM locates the native code library for a
+  native extension (e.g. `dart-ext:` import). We have updated this
+  [article on native extensions](https://www.dartlang.org/articles/dart-vm/native-extensions)
+  to reflect the VM's improved behavior.
+
+* Linux builds of the VM will now use the `tcmalloc` library for memory
+  allocation. This has the advantages of better debugging and profiling support
+  and faster small allocations, with the cost of slightly larger initial memory
+  footprint, and slightly slower large allocations.
+
+* We have improved the way the VM searches for trusted root certificates for
+  secure socket connections on Linux. First, the VM will look for trusted root
+  certificates in standard locations on the file system
+  (`/etc/pki/tls/certs/ca-bundle.crt` followed by `/etc/ssl/certs`), and only if
+  these do not exist will it fall back on the builtin trusted root certificates.
+  This behavior can be overridden on Linux with the new flags
+  `--root-certs-file` and `--root-certs-cache`. The former is the path to a file
+  containing the trusted root certificates, and the latter is the path to a
+  directory containing root certificate files hashed using `c_rehash`.
+
+* The VM now throws a catchable `Error` when method compilation fails. This
+  allows easier debugging of syntax errors, especially when testing.
+
+### Core library changes
+
+* `dart:core`: Remove deprecated `Resource` class.
+  Use the class in `package:resource` instead.
+* `dart:async`
+  * `Future.wait` now catches synchronous errors and returns them in the
+    returned Future.
+  * More aggressively returns a `Future` on `Stream.cancel` operations.
+    Discourages to return `null` from `cancel`.
+  * Fixes a few bugs where the cancel future wasn't passed through
+    transformations.
+* `dart:io`
+  * Added `WebSocket.addUtf8Text` to allow sending a pre-encoded text message
+    without a round-trip UTF-8 conversion.
+
+### Strong Mode
+
+* Breaking change - it is an error if a generic type parameter cannot be
+    inferred (SDK issue [26992](https://github.com/dart-lang/sdk/issues/26992)).
+
+    ```dart
+    class Cup<T> {
+      Cup(T t);
+    }
+    main() {
+      // Error because:
+      // - if we choose Cup<num> it is not assignable to `cOfInt`,
+      // - if we choose Cup<int> then `n` is not assignable to int.
+      num n;
+      C<int> cOfInt = new C(n);
+    }
+    ```
+
+* New feature - use `@checked` to override a method and tighten a parameter
+    type (SDK issue [25578](https://github.com/dart-lang/sdk/issues/25578)).
+
+    ```dart
+    import 'package:meta/meta.dart' show checked;
+    class View {
+      addChild(View v) {}
+    }
+    class MyView extends View {
+      // this override is legal, it will check at runtime if we actually
+      // got a MyView.
+      addChild(@checked MyView v) {}
+    }
+    main() {
+      dynamic mv = new MyView();
+      mv.addChild(new View()); // runtime error
+    }
+    ```
+
+* New feature - use `@virtual` to allow field overrides in strong mode
+    (SDK issue [27384](https://github.com/dart-lang/sdk/issues/27384)).
+
+    ```dart
+    import 'package:meta/meta.dart' show virtual;
+    class Base {
+      @virtual int x;
+    }
+    class Derived extends Base {
+      int x;
+
+      // Expose the hidden storage slot:
+      int get superX => super.x;
+      set superX(int v) { super.x = v; }
+    }
+    ```
+
+* Breaking change - infer list and map literals from the context type as well as
+    their values, consistent with generic methods and instance creation
+    (SDK issue [27151](https://github.com/dart-lang/sdk/issues/27151)).
+
+    ```dart
+    import 'dart:async';
+    main() async {
+      var b = new Future<B>.value(new B());
+      var c = new Future<C>.value(new C());
+      var/*infer List<Future<A>>*/ list = [b, c];
+      var/*infer List<A>*/ result = await Future.wait(list);
+    }
+    class A {}
+    class B extends A {}
+    class C extends A {}
+    ```
+
+### Tool changes
+
+* `dartfmt` - upgraded to v0.2.10
+    * Don't crash on annotations before parameters with trailing commas.
+    * Always split enum declarations if they end in a trailing comma.
+    * Add `--set-exit-if-changed` to set the exit code on a change.
+
+* Pub
+  * Pub no longer generates a `packages/` directory by default.  Instead, it
+    generates a `.packages` file, called a package spec. To generate
+    a `packages/` directory in addition to the package spec, use the
+    `--packages-dir` flag with `pub get`, `pub upgrade`, and `pub downgrade`.
+
 ## 1.19.1 - 2016-09-08
 
 Patch release, resolves one issue:

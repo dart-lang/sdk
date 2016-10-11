@@ -5,6 +5,8 @@
 library analyzer.test.src.task.dart_work_manager_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/error/error.dart' show AnalysisError;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
@@ -13,8 +15,6 @@ import 'package:analyzer/src/generated/engine.dart'
         CacheState,
         ChangeNoticeImpl,
         InternalAnalysisContext;
-import 'package:analyzer/src/generated/error.dart' show AnalysisError;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -23,16 +23,16 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(DartWorkManagerTest);
+  defineReflectiveTests(DartWorkManagerTest);
 }
 
 @reflectiveTest
@@ -357,11 +357,13 @@ class DartWorkManagerTest {
     when(context.aboutToComputeResult(anyObject, CONTAINING_LIBRARIES))
         .thenInvoke((CacheEntry entry, ResultDescriptor result) {
       if (entry.target == part1) {
-        entry.setValue(result, <Source>[library1, library2], []);
+        entry.setValue(result as ResultDescriptor<List<Source>>,
+            <Source>[library1, library2], []);
         return true;
       }
       if (entry.target == part2) {
-        entry.setValue(result, <Source>[library2], []);
+        entry.setValue(
+            result as ResultDescriptor<List<Source>>, <Source>[library2], []);
         return true;
       }
       return false;
@@ -655,7 +657,7 @@ class DartWorkManagerTest {
     when(context.prioritySources).thenReturn(<Source>[]);
     when(context.shouldErrorsBeAnalyzed(anyObject)).thenReturn(false);
     // library1 parts
-    manager.resultsComputed(library1, {
+    manager.resultsComputed(library1, <ResultDescriptor, dynamic>{
       INCLUDED_PARTS: [part1, part2],
       SOURCE_KIND: SourceKind.LIBRARY
     });
@@ -665,7 +667,7 @@ class DartWorkManagerTest {
     expect(manager.libraryPartsMap[library1], [part1, part2]);
     expect(manager.libraryPartsMap[library2], isNull);
     // library2 parts
-    manager.resultsComputed(library2, {
+    manager.resultsComputed(library2, <ResultDescriptor, dynamic>{
       INCLUDED_PARTS: [part2, part3],
       SOURCE_KIND: SourceKind.LIBRARY
     });
@@ -787,8 +789,10 @@ class DartWorkManagerTest {
     Source part = new TestSource('part.dart');
     expect(manager.libraryPartsMap, isEmpty);
     // part.dart parsed, no changes is the map of libraries
-    manager.resultsComputed(
-        part, {SOURCE_KIND: SourceKind.PART, INCLUDED_PARTS: <Source>[]});
+    manager.resultsComputed(part, <ResultDescriptor, dynamic>{
+      SOURCE_KIND: SourceKind.PART,
+      INCLUDED_PARTS: <Source>[]
+    });
     expect(manager.libraryPartsMap, isEmpty);
   }
 

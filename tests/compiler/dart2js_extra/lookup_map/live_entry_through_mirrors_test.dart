@@ -8,11 +8,15 @@ import 'package:lookup_map/lookup_map.dart';
 import 'package:expect/expect.dart';
 import 'dart:mirrors';
 
-class A{}
-class B{}
+class A {}
+
+class B {}
+
 const map = const LookupMap(const [
-    A, "the-text-for-A",
-    B, "the-text-for-B",
+  A,
+  "the-text-for-A",
+  B,
+  "the-text-for-B",
 ]);
 
 main() {
@@ -22,8 +26,8 @@ main() {
 
   // `B` is used via mirrors. Because no @MirrorsUsed was found that's enough to
   // retain the entry.
-  LibraryMirror lib = currentMirrorSystem().findLibrary(
-      #live_entry_through_mirrors_test);
+  LibraryMirror lib =
+      currentMirrorSystem().findLibrary(#live_entry_through_mirrors_test);
   ClassMirror bClass = lib.declarations[#B];
   Expect.equals(map[bClass.reflectedType], "the-text-for-B");
 }

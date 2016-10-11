@@ -11,18 +11,18 @@ import 'package:analyzer/src/generated/package.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:package_config/packages.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../src/context/mock_sdk.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(DependencyFinderTest);
-  runReflectiveTests(PackageDescriptionTest);
-  runReflectiveTests(PackageManagerTest);
+  defineReflectiveTests(DependencyFinderTest);
+  defineReflectiveTests(PackageDescriptionTest);
+  defineReflectiveTests(PackageManagerTest);
 }
 
 /**
@@ -171,7 +171,7 @@ class PackageDescriptionTest extends ResolverTestCase {
     DartSdk sdk = new MockSdk();
     AnalysisOptionsImpl options1 = new AnalysisOptionsImpl();
     AnalysisOptionsImpl options2 = new AnalysisOptionsImpl();
-    options2.enableAsync = !options1.enableAsync;
+    options2.enableGenericMethods = !options1.enableGenericMethods;
     PackageDescription first = new PackageDescription(packageId, sdk, options1);
     PackageDescription second =
         new PackageDescription(packageId, sdk, options2);

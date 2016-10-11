@@ -12,8 +12,8 @@ get always => new DateTime.now().millisecondsSinceEpoch > 42;
 
 // gA and gB have type [null|num], so they compile to a receiver check, and
 // argument check and then the operation.
-var gA;  // [null|num]
-var gB;  // [null|num]
+var gA; // [null|num]
+var gB; // [null|num]
 
 foo1(a, b) {
   // The checks on a and b are not equivalent, so can't be merged.
@@ -24,7 +24,9 @@ foo1(a, b) {
   }
 }
 
-call1() { return foo1(gA, gB); }
+call1() {
+  return foo1(gA, gB);
+}
 
 test1() {
   gA = 1;
@@ -41,9 +43,8 @@ test1() {
 
   gA = null;
   gB = 2;
-  Expect.throws(call1, (e) => e is ArgumentError,  'foo1($gA, $gB) AE');
+  Expect.throws(call1, (e) => e is ArgumentError, 'foo1($gA, $gB) AE');
 }
-
 
 foo2a(a, b) {
   // The common receiver check on [a] cannot be merged because the operation
@@ -66,14 +67,19 @@ foo2b(a, b) {
   }
 }
 
-call2a() { return foo2a(gA, gB); }
-call2b() { return foo2b(gA, gB); }
+call2a() {
+  return foo2a(gA, gB);
+}
+
+call2b() {
+  return foo2b(gA, gB);
+}
 
 checkNSME(text) {
   return (e) {
     Expect.isTrue(e is NoSuchMethodError,
         'expecting NoSuchMethodError, got "${e.runtimeType}"');
-    Expect.isTrue('$e'.contains(text),  '"$e".contains("$text")');
+    Expect.isTrue('$e'.contains(text), '"$e".contains("$text")');
     return e is NoSuchMethodError;
   };
 }
@@ -96,8 +102,8 @@ test2() {
 
   gA = null;
   gB = 2;
-  Expect.throws(call2a, checkNSME(r'$and'),  'foo2($gA, $gB) NSME');
-  Expect.throws(call2b, checkNSME(r'$xor'),  'foo2($gA, $gB) NSME');
+  Expect.throws(call2a, checkNSME(r'$and'), 'foo2($gA, $gB) NSME');
+  Expect.throws(call2b, checkNSME(r'$xor'), 'foo2($gA, $gB) NSME');
 }
 
 main() {

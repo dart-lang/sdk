@@ -12,6 +12,7 @@
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_range_analysis.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -2563,17 +2564,26 @@ LocationSummary* CatchBlockEntryInstr::MakeLocationSummary(Zone* zone,
 
 
 void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Ensure space for patching return sites for lazy deopt.
+  if (!FLAG_precompiled_mode && compiler->is_optimizing()) {
+    __ nop(ShortCallPattern::pattern_length_in_bytes());
+  }
   __ Bind(compiler->GetJumpLabel(this));
   compiler->AddExceptionHandler(catch_try_index(),
                                 try_index(),
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_,
                                 needs_stacktrace());
-
-  // Restore the pool pointer.
-  __ RestoreCodePointer();
-  __ LoadPoolPointer(PP);
-
+  // On lazy deoptimization we patch the optimized code here to enter the
+  // deoptimization stub.
+  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id);
+  } else {
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   deopt_id,
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -4747,22 +4757,6 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
-  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
-    // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
-    // double arguments and XMM0 to return the result. Unfortunately
-    // currently we can't specify these registers because ParallelMoveResolver
-    // assumes that XMM0 is free at all times.
-    // TODO(vegorov): allow XMM0 to be used.
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new(zone) LocationSummary(
-        zone, InputCount(), kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
-    // R13 is chosen because it is callee saved so we do not need to back it
-    // up before calling into the runtime.
-    summary->set_temp(0, Location::RegisterLocation(R13));
-    summary->set_out(0, Location::FpuRegisterLocation(XMM1));
-    return summary;
-  }
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
          (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
@@ -4787,16 +4781,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mulsd(value_reg, value_reg);
     ASSERT(value_reg == locs()->out(0).fpu_reg());
   } else {
-    ASSERT((kind() == MathUnaryInstr::kSin) ||
-           (kind() == MathUnaryInstr::kCos));
-    // Save RSP.
-    __ movq(locs()->temp(0).reg(), RSP);
-    __ ReserveAlignedFrameSpace(0);
-    __ movaps(XMM0, locs()->in(0).fpu_reg());
-    __ CallRuntime(TargetFunction(), InputCount());
-    __ movaps(locs()->out(0).fpu_reg(), XMM0);
-    // Restore RSP.
-    __ movq(RSP, locs()->temp(0).reg());
+    UNREACHABLE();
   }
 }
 
@@ -6532,7 +6517,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
-    compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
+    compiler->AddDeoptIndexAtCall(deopt_id_after);
   }
   // Add deoptimization continuation point after the call and before the
   // arguments are removed.

@@ -115,8 +115,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   }
 
   FieldInfo visitFieldElement(FieldElement element, _) {
-    TypeMask inferredType =
-        compiler.typesTask.getGuaranteedTypeOfElement(element);
+    TypeMask inferredType = compiler.globalInference.results.typeOf(element);
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
 
@@ -257,7 +256,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       signature.forEachParameter((parameter) {
         parameters.add(new ParameterInfo(
             parameter.name,
-            '${compiler.typesTask.getGuaranteedTypeOfElement(parameter)}',
+            '${compiler.globalInference.results.typeOf(parameter)}',
             '${parameter.node.type}'));
       });
     }
@@ -266,12 +265,13 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     // TODO(sigmund): why all these checks?
     if (element.isInstanceMember &&
         !element.isAbstract &&
-        compiler.world.allFunctions.contains(element)) {
+        compiler.closedWorld.allFunctions.contains(element)) {
       returnType = '${element.type.returnType}';
     }
     String inferredReturnType =
-        '${compiler.typesTask.getGuaranteedReturnTypeOfElement(element)}';
-    String sideEffects = '${compiler.world.getSideEffectsOfElement(element)}';
+        '${compiler.globalInference.results.returnTypeOf(element)}';
+    String sideEffects =
+        '${compiler.closedWorld.getSideEffectsOfElement(element)}';
 
     int inlinedCount = compiler.dumpInfoTask.inlineCount[element];
     if (inlinedCount == null) inlinedCount = 0;
@@ -321,6 +321,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
       // emitter is used it will fail here.
       JavaScriptBackend backend = compiler.backend;
       full.Emitter emitter = backend.emitter.emitter;
+      assert(outputUnit.name != null || outputUnit.isMainOutput);
       OutputUnitInfo info = new OutputUnitInfo(
           outputUnit.name, emitter.outputBuffers[outputUnit].length);
       info.imports.addAll(outputUnit.imports
@@ -438,7 +439,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         element,
         impact,
         new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
-          selections.addAll(compiler.world.allFunctions
+          selections.addAll(compiler.closedWorld.allFunctions
               .filter(dynamicUse.selector, dynamicUse.mask)
               .map((e) => new Selection(e, dynamicUse.mask)));
         }, visitStaticUse: (staticUse) {

@@ -6,10 +6,9 @@ import "dart:_js_helper";
 import "package:expect/expect.dart";
 
 @Native("A")
-class A {
-}
+class A {}
 
-makeA() native;
+makeA() native ;
 
 void setup() native """
 function A() {};
@@ -22,29 +21,25 @@ class B {
   // the only occurence of 'foo', Frog does not bother mangling the
   // call sites. It thinks all calls will either go to this method, or
   // throw a NoSuchMethodError.
-  foo() { return 42; }
+  foo() {
+    return 42;
+  }
 }
 
 typedContext() {
-  var things = [ makeA(), new B() ];
+  var things = [makeA(), new B()];
   A a = things[0];
-  Expect.throws(() => a.foo(),
-                (e) => e is NoSuchMethodError);
-  Expect.throws(() => a.foo,
-                (e) => e is NoSuchMethodError);
-  Expect.throws(() => a.foo = 4,
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => a.foo(), (e) => e is NoSuchMethodError);
+  Expect.throws(() => a.foo, (e) => e is NoSuchMethodError);
+  Expect.throws(() => a.foo = 4, (e) => e is NoSuchMethodError);
 }
 
 untypedContext() {
-  var things = [ makeA(), new B() ];
+  var things = [makeA(), new B()];
   var a = things[0];
-  Expect.throws(() => a.foo(),
-                (e) => e is NoSuchMethodError);
-  Expect.throws(() => a.foo,
-                (e) => e is NoSuchMethodError);
-  Expect.throws(() => a.foo = 4,
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => a.foo(), (e) => e is NoSuchMethodError);
+  Expect.throws(() => a.foo, (e) => e is NoSuchMethodError);
+  Expect.throws(() => a.foo = 4, (e) => e is NoSuchMethodError);
 }
 
 main() {

@@ -9,7 +9,7 @@ import '../compile_time_constants.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../core_types.dart' show CoreClasses, CoreTypes, CommonElements;
 import '../dart_types.dart' show DartType, Types;
 import '../elements/elements.dart'
     show
@@ -38,15 +38,13 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../universe/feature.dart';
 import 'backend_api.dart';
-import 'work.dart' show ItemCompilationContext, WorkItem;
+import 'work.dart' show WorkItem;
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
   bool _isAnalyzed = false;
 
-  ResolutionWorkItem(
-      AstElement element, ItemCompilationContext compilationContext)
-      : super(element, compilationContext);
+  ResolutionWorkItem(AstElement element) : super(element);
 
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     WorldImpact impact = compiler.analyze(this, world);
@@ -69,7 +67,6 @@ class ResolutionImpact extends WorldImpact {
 
   Iterable<dynamic> get nativeData => const <dynamic>[];
 }
-
 
 /// Interface for the accessing the front-end analysis.
 // TODO(johnniwinther): Find a better name for this.
@@ -101,6 +98,10 @@ abstract class Target {
     return null;
   }
 
+  /// Returns `true` if [element] is a default implementation of `noSuchMethod`
+  /// used by the target.
+  bool isDefaultNoSuchMethod(MethodElement element);
+
   /// Returns the default superclass for the given [element] in this target.
   ClassElement defaultSuperclass(ClassElement element);
 
@@ -122,6 +123,7 @@ abstract class Resolution implements Frontend {
   DiagnosticReporter get reporter;
   CoreClasses get coreClasses;
   CoreTypes get coreTypes;
+  CommonElements get commonElements;
   Types get types;
   Target get target;
   ResolverTask get resolver;
@@ -131,17 +133,10 @@ abstract class Resolution implements Frontend {
   ConstantEnvironment get constants;
   MirrorUsageAnalyzerTask get mirrorUsageAnalyzerTask;
 
-  // TODO(het): Move all elements into common/elements.dart
-  LibraryElement get coreLibrary;
-  FunctionElement get identicalFunction;
-  ClassElement get mirrorSystemClass;
-  FunctionElement get mirrorSystemGetNameFunction;
-  ConstructorElement get mirrorsUsedConstructor;
-  ConstructorElement get symbolConstructor;
-
-  // TODO(het): This is only referenced in a test...
-  /// The constant for the [proxy] variable defined in dart:core.
-  ConstantValue get proxyConstant;
+  /// Whether internally we computed the constant for the [proxy] variable
+  /// defined in dart:core (used only for testing).
+  // TODO(sigmund): delete, we need a better way to test this.
+  bool get wasProxyConstantComputedTestingOnly;
 
   /// If set to `true` resolution caches will not be cleared. Use this only for
   /// testing.
@@ -163,16 +158,12 @@ abstract class Resolution implements Frontend {
   /// Resolve [element] if it has not already been resolved.
   void ensureResolved(Element element);
 
-  /// Called whenever a class has been resolved.
-  void onClassResolved(ClassElement element);
-
   /// Registers that [element] has a compile time error.
   ///
   /// The error itself is given in [message].
   void registerCompileTimeError(Element element, DiagnosticMessage message);
 
-  ResolutionWorkItem createWorkItem(
-      Element element, ItemCompilationContext compilationContext);
+  ResolutionWorkItem createWorkItem(Element element);
 
   /// Returns `true` if [element] as a fully computed [ResolvedAst].
   bool hasResolvedAst(ExecutableElement element);

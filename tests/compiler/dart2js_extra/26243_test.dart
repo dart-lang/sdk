@@ -35,6 +35,6 @@ void main() {
   foo();
   bar();
   baz();
-  Expect.listEquals(['foo 0 1', 'bar 0 1', 'baz-notry 0 1', 'baz-try 0 1'],
-      trace);
+  Expect.listEquals(
+      ['foo 0 1', 'bar 0 1', 'baz-notry 0 1', 'baz-try 0 1'], trace);
 }

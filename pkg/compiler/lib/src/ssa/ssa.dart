@@ -4,4 +4,55 @@
 
 library ssa;
 
-export 'builder.dart' show SsaFunctionCompiler;
+import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/tasks.dart' show CompilerTask;
+import '../elements/elements.dart' show Element, FunctionElement;
+import '../io/source_information.dart';
+import '../js/js.dart' as js;
+import '../js_backend/backend.dart' show JavaScriptBackend, FunctionCompiler;
+
+import 'builder.dart';
+import 'builder_kernel.dart';
+import 'codegen.dart';
+import 'nodes.dart';
+import 'optimize.dart';
+
+class SsaFunctionCompiler implements FunctionCompiler {
+  final SsaCodeGeneratorTask generator;
+  final SsaBuilderTask builder;
+  final SsaKernelBuilderTask builderKernel;
+  final SsaOptimizerTask optimizer;
+  final JavaScriptBackend backend;
+  final bool useKernel;
+
+  SsaFunctionCompiler(JavaScriptBackend backend,
+      SourceInformationStrategy sourceInformationFactory, this.useKernel)
+      : generator = new SsaCodeGeneratorTask(backend, sourceInformationFactory),
+        builder = new SsaBuilderTask(backend, sourceInformationFactory),
+        builderKernel =
+            new SsaKernelBuilderTask(backend, sourceInformationFactory),
+        optimizer = new SsaOptimizerTask(backend),
+        backend = backend;
+
+  /// Generates JavaScript code for `work.element`.
+  /// Using the ssa builder, optimizer and codegenerator.
+  js.Fun compile(CodegenWorkItem work) {
+    HGraph graph = useKernel ? builderKernel.build(work) : builder.build(work);
+    optimizer.optimize(work, graph);
+    Element element = work.element;
+    js.Expression result = generator.generateCode(work, graph);
+    if (element is FunctionElement) {
+      // TODO(sigmund): replace by kernel transformer when `useKernel` is true.
+      result = backend.rewriteAsync(element, result);
+    }
+    return result;
+  }
+
+  Iterable<CompilerTask> get tasks {
+    return <CompilerTask>[
+      useKernel ? builderKernel : builder,
+      optimizer,
+      generator
+    ];
+  }
+}

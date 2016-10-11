@@ -14,7 +14,7 @@ import "package:expect/expect.dart";
 
 class A<T> {
   const A();
-  void add(T x) { }
+  void add(T x) {}
   T elementAt(int index) => index == 0 ? 42 : 'string';
 
   // This call get:elementAt has a known receiver type, so is is potentially
@@ -29,7 +29,7 @@ class A<T> {
 var getAddOfA = (a) => a.getAdd();
 var getElementAtOfA = (a) => a.getElementAt();
 
-var getAdd1 = (a) => a.add;  // receiver has unknown type here.
+var getAdd1 = (a) => a.add; // receiver has unknown type here.
 
 var getAdd2 = (a) {
   // Call needs to be indirect to avoid inlining.
@@ -37,14 +37,13 @@ var getAdd2 = (a) {
   return a.add;
 };
 
-var getElementAt1 = (a) => a.elementAt;  // receiver has unknown type here.
+var getElementAt1 = (a) => a.elementAt; // receiver has unknown type here.
 
 var getElementAt2 = (a) {
   // Call needs to be indirect to avoid inlining.
   if (a is A) return getElementAtOfA(a);
   return a.elementAt;
 };
-
 
 typedef void IntToVoid(int x);
 typedef void StringToVoid(String x);
@@ -71,7 +70,6 @@ var methods = {
   'getElementAt2': (x) => getElementAt2(x),
 };
 
-
 main() {
   inscrutable = (x) => x;
 
@@ -95,9 +93,7 @@ main() {
         var description = '$object';
         checkers.forEach((checkName, checkFn) {
           bool answer = trueCheckNames.contains(checkName);
-          Expect.equals(
-              answer,
-              checkFn(methodFn(object)),
+          Expect.equals(answer, checkFn(methodFn(object)),
               '$methodName($description) is $checkName');
         });
       }
@@ -116,8 +112,13 @@ main() {
   check(m, objectsLst, []);
 
   m = ['getElementAt1', 'getElementAt2'];
-  check(m, objectsDyn, ['IntToInt', 'IntToString', 'IntToVoid', 'IntToT<int>',
-          'IntToT<String>']);
+  check(m, objectsDyn, [
+    'IntToInt',
+    'IntToString',
+    'IntToVoid',
+    'IntToT<int>',
+    'IntToT<String>'
+  ]);
   check(m, objectsInt, ['IntToInt', 'IntToVoid', 'IntToT<int>']);
   check(m, objectsStr, ['IntToString', 'IntToVoid', 'IntToT<String>']);
   check(m, objectsLst, ['IntToVoid']);

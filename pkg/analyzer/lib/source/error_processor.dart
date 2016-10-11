@@ -4,9 +4,12 @@
 
 library analyzer.source.error_processor;
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/task/options.dart'
+    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/src/task/options.dart';
 import 'package:yaml/yaml.dart';
 

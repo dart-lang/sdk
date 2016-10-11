@@ -19,10 +19,9 @@ BackgroundFinalizer::BackgroundFinalizer(Isolate* isolate,
     isolate_(isolate),
     queue_(queue) {
   ASSERT(FLAG_background_finalization);
-  MonitorLocker ml(isolate->heap()->finalization_tasks_lock());
-  isolate->heap()->set_finalization_tasks(
-      isolate->heap()->finalization_tasks() + 1);
-  ml.Notify();
+  PageSpace* old_space = isolate->heap()->old_space();
+  MonitorLocker ml(old_space->tasks_lock());
+  old_space->set_tasks(old_space->tasks() + 1);
 }
 
 
@@ -46,10 +45,10 @@ void BackgroundFinalizer::Run() {
   Thread::ExitIsolateAsHelper();
 
   {
-    Heap* heap = isolate_->heap();
-    MonitorLocker ml(heap->finalization_tasks_lock());
-    heap->set_finalization_tasks(heap->finalization_tasks() - 1);
-    ml.Notify();
+    PageSpace* old_space = isolate_->heap()->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    old_space->set_tasks(old_space->tasks() - 1);
+    ml.NotifyAll();
   }
 }
 

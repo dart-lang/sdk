@@ -11,8 +11,16 @@
 */*/*/*/packages/*/*: Skip
 */*/*/*/*/packages/*/*: Skip
 
+# Don't run dev_compiler tests
+dev_compiler/test/*: Skip
+
 # Analyzer2dart is not maintained anymore.
 analyzer2dart/test/*: Skip
+
+dart_messages/test/dart_messages_test: Skip  # Requires a package root.
+
+[ $compiler == dart2analyzer ]
+dev_compiler/gen/*: SkipByDesign
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 mutation_observer: Skip # Issue 21149

@@ -1776,7 +1776,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   void analyzeVariableInitializer(
       Spannable spannable, DartType declaredType, Node initializer) {
     if (initializer == null) return;
-    
+
     DartType expressionType = analyzeNonVoid(initializer);
     checkAssignable(spannable, expressionType, declaredType);
   }
@@ -1791,9 +1791,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           message: 'expected identifier or initialization');
       if (definition is SendSet) {
         SendSet initialization = definition;
-        analyzeVariableInitializer(
-            initialization.assignmentOperator,
-            type,
+        analyzeVariableInitializer(initialization.assignmentOperator, type,
             initialization.arguments.head);
         // TODO(sigmund): explore inferring a type for `var` using the RHS (like
         // DDC does), for example:

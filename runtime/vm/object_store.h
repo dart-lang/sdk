@@ -116,6 +116,13 @@ class ObjectStore {
     string_type_ = value.raw();
   }
 
+  RawClass* compiletime_error_class() const {
+    return compiletime_error_class_;
+  }
+  void set_compiletime_error_class(const Class& value) {
+    compiletime_error_class_ = value.raw();
+  }
+
   RawClass* future_class() const { return future_class_; }
   void set_future_class(const Class& value) {
     future_class_ = value.raw();
@@ -532,6 +539,7 @@ class ObjectStore {
   V(RawType*, int32x4_type_)                                                   \
   V(RawType*, float64x2_type_)                                                 \
   V(RawType*, string_type_)                                                    \
+  V(RawClass*, compiletime_error_class_)                                       \
   V(RawClass*, future_class_)                                                  \
   V(RawClass*, completer_class_)                                               \
   V(RawClass*, stream_iterator_class_)                                         \

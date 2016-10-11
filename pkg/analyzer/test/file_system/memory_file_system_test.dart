@@ -5,7 +5,7 @@
 library analyzer.test.file_system.memory_file_system_test;
 
 import 'dart:async';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -13,20 +13,20 @@ import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(FileSystemExceptionTest);
-  runReflectiveTests(FileTest);
-  runReflectiveTests(FolderTest);
-  runReflectiveTests(MemoryFileSourceExistingTest);
-  runReflectiveTests(MemoryFileSourceNotExistingTest);
-  runReflectiveTests(MemoryResourceProviderTest);
+  defineReflectiveTests(FileSystemExceptionTest);
+  defineReflectiveTests(FileTest);
+  defineReflectiveTests(FolderTest);
+  defineReflectiveTests(MemoryFileSourceExistingTest);
+  defineReflectiveTests(MemoryFileSourceNotExistingTest);
+  defineReflectiveTests(MemoryResourceProviderTest);
 }
 
 var _isFile = new isInstanceOf<File>();
@@ -194,6 +194,11 @@ class FileTest {
     expect(file.exists, isTrue);
   }
 
+  void test_resolveSymbolicLinksSync() {
+    File file = provider.newFile('/test.txt', 'text');
+    expect(file.resolveSymbolicLinksSync(), file);
+  }
+
   void test_shortName() {
     File file = provider.getResource('/foo/bar/file.txt');
     expect(file.shortName, 'file.txt');
@@ -211,20 +216,43 @@ class FileTest {
   }
 
   void test_writeAsBytesSync_existing() {
-    File file = provider.newFileWithBytes('/foo/file.bin', <int>[1, 2]);
-    expect(file.readAsBytesSync(), <int>[1, 2]);
+    List<int> content = <int>[1, 2];
+    File file = provider.newFileWithBytes('/foo/file.bin', content);
+    expect(file.readAsBytesSync(), content);
     // write new bytes
-    file.writeAsBytesSync(<int>[10, 20]);
-    expect(file.readAsBytesSync(), <int>[10, 20]);
+    content = <int>[10, 20];
+    file.writeAsBytesSync(content);
+    expect(file.readAsBytesSync(), content);
   }
 
   void test_writeAsBytesSync_new() {
     File file = provider.getFile('/foo/file.bin');
     expect(file.exists, false);
     // write new bytes
-    file.writeAsBytesSync(<int>[10, 20]);
+    List<int> content = <int>[10, 20];
+    file.writeAsBytesSync(content);
     expect(file.exists, true);
-    expect(file.readAsBytesSync(), <int>[10, 20]);
+    expect(file.readAsBytesSync(), content);
+  }
+
+  void test_writeAsStringSync_existing() {
+    String content = 'ab';
+    File file = provider.newFile('/foo/file.txt', content);
+    expect(file.readAsStringSync(), content);
+    // write new bytes
+    content = 'CD';
+    file.writeAsStringSync(content);
+    expect(file.readAsStringSync(), content);
+  }
+
+  void test_writeAsStringSync_new() {
+    File file = provider.getFile('/foo/file.txt');
+    expect(file.exists, false);
+    // write new bytes
+    String content = 'ef';
+    file.writeAsStringSync(content);
+    expect(file.exists, true);
+    expect(file.readAsStringSync(), content);
   }
 }
 

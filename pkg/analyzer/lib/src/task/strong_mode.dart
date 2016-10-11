@@ -121,8 +121,9 @@ class InstanceMemberInferrer {
     DartType parameterType = null;
     int length = overriddenTypes.length;
     for (int i = 0; i < length; i++) {
-      DartType type = _getTypeOfCorrespondingParameter(
+      ParameterElement matchingParam = _getCorrespondingParameter(
           parameter, index, overriddenTypes[i].parameters);
+      var type = matchingParam?.type ?? typeProvider.dynamicType;
       if (parameterType == null) {
         parameterType = type;
       } else if (parameterType != type) {
@@ -156,45 +157,38 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Given a method, return the type of the parameter in the method that
-   * corresponds to the given [parameter]. If the parameter is positional, then
+   * Given a method, return the parameter in the method that corresponds to the
+   * given [parameter]. If the parameter is positional, then
    * it appears at the given [index] in its enclosing element's list of
    * parameters.
    */
-  DartType _getTypeOfCorrespondingParameter(ParameterElement parameter,
+  ParameterElement _getCorrespondingParameter(ParameterElement parameter,
       int index, List<ParameterElement> methodParameters) {
     //
     // Find the corresponding parameter.
     //
-    ParameterElement matchingParameter = null;
     if (parameter.parameterKind == ParameterKind.NAMED) {
       //
       // If we're looking for a named parameter, only a named parameter with
       // the same name will be matched.
       //
-      matchingParameter = methodParameters.lastWhere(
+      return methodParameters.lastWhere(
           (ParameterElement methodParameter) =>
               methodParameter.parameterKind == ParameterKind.NAMED &&
               methodParameter.name == parameter.name,
           orElse: () => null);
-    } else {
-      //
-      // If we're looking for a positional parameter we ignore the difference
-      // between required and optional parameters.
-      //
-      if (index < methodParameters.length) {
-        matchingParameter = methodParameters[index];
-        if (matchingParameter.parameterKind == ParameterKind.NAMED) {
-          matchingParameter = null;
-        }
-      }
     }
     //
-    // Then return the type of the parameter.
+    // If we're looking for a positional parameter we ignore the difference
+    // between required and optional parameters.
     //
-    return matchingParameter == null
-        ? typeProvider.dynamicType
-        : matchingParameter.type;
+    if (index < methodParameters.length) {
+      var matchingParameter = methodParameters[index];
+      if (matchingParameter.parameterKind != ParameterKind.NAMED) {
+        return matchingParameter;
+      }
+    }
+    return null;
   }
 
   /**
@@ -311,10 +305,14 @@ class InstanceMemberInferrer {
     int length = parameters.length;
     for (int i = 0; i < length; ++i) {
       ParameterElement parameter = parameters[i];
-      if (parameter is ParameterElementImpl && parameter.hasImplicitType) {
-        parameter.type = _computeParameterType(parameter, i, overriddenTypes);
-        if (element is PropertyAccessorElement) {
-          _updateSyntheticVariableType(element);
+      if (parameter is ParameterElementImpl) {
+        _inferParameterCovariance(parameter, i, overriddenTypes);
+
+        if (parameter.hasImplicitType) {
+          parameter.type = _computeParameterType(parameter, i, overriddenTypes);
+          if (element is PropertyAccessorElement) {
+            _updateSyntheticVariableType(element);
+          }
         }
       }
     }
@@ -325,9 +323,19 @@ class InstanceMemberInferrer {
    * which no type was provided, infer the type of the field.
    */
   void _inferField(FieldElement fieldElement) {
-    if (!fieldElement.isSynthetic &&
-        !fieldElement.isStatic &&
-        fieldElement.hasImplicitType) {
+    if (fieldElement.isSynthetic || fieldElement.isStatic) {
+      return;
+    }
+    List<ExecutableElement> overriddenSetters =
+        inheritanceManager.lookupOverrides(
+            fieldElement.enclosingElement, fieldElement.name + '=');
+    var setter = fieldElement.setter;
+    if (setter != null && overriddenSetters.isNotEmpty) {
+      _inferParameterCovariance(
+          setter.parameters[0], 0, overriddenSetters.map((s) => s.type));
+    }
+
+    if (fieldElement.hasImplicitType) {
       //
       // First look for overridden getters with the same name as the field.
       //
@@ -337,9 +345,7 @@ class InstanceMemberInferrer {
       if (overriddenGetters.isNotEmpty && _onlyGetters(overriddenGetters)) {
         newType =
             _computeReturnType(overriddenGetters.map((e) => e.returnType));
-        List<ExecutableElement> overriddenSetters =
-            inheritanceManager.lookupOverrides(
-                fieldElement.enclosingElement, fieldElement.name + '=');
+
         if (!_isCompatible(newType, overriddenSetters)) {
           newType = null;
         }
@@ -371,6 +377,17 @@ class InstanceMemberInferrer {
     if (field != null && element.hasImplicitType) {
       (element as FieldFormalParameterElementImpl).type = field.type;
     }
+  }
+
+  /**
+   * If a parameter is covariant, any parameters that override it are too.
+   */
+  void _inferParameterCovariance(ParameterElementImpl parameter, int index,
+      Iterable<FunctionType> overriddenTypes) {
+    parameter.inheritsCovariant = overriddenTypes.any((f) {
+      var param = _getCorrespondingParameter(parameter, index, f.parameters);
+      return param != null && param.isCovariant;
+    });
   }
 
   /**

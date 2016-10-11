@@ -11,6 +11,7 @@
 #include "vm/debugger.h"
 #include "vm/flags.h"
 #include "vm/log.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -146,7 +147,7 @@ static bool FindExceptionHandler(Thread* thread,
                                  bool* needs_stacktrace) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
+  if (frame == NULL) return false;  // No Dart frame.
   bool handler_pc_set = false;
   *needs_stacktrace = false;
   bool is_catch_all = false;
@@ -327,6 +328,15 @@ static void ThrowExceptionHelper(Thread* thread,
                                           &handler_sp,
                                           &handler_fp,
                                           &handler_needs_stacktrace);
+    if (handler_pc == 0) {
+      // No Dart frame.
+      ASSERT(incoming_exception.raw() ==
+             isolate->object_store()->out_of_memory());
+      const UnhandledException& error = UnhandledException::Handle(
+          zone, isolate->object_store()->preallocated_unhandled_exception());
+      thread->long_jump_base()->Jump(1, error);
+      UNREACHABLE();
+    }
     if (handler_needs_stacktrace) {
       BuildStackTrace(&frame_builder);
     }
@@ -640,6 +650,13 @@ void Exceptions::ThrowRangeError(const char* argument_name,
 }
 
 
+void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, String::Handle(error.FormatMessage()));
+  Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
+}
+
+
 RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   const String* class_name = NULL;
@@ -713,6 +730,11 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kCyclicInitializationError:
       library = Library::CoreLibrary();
       class_name = &Symbols::CyclicInitializationError();
+      break;
+    case kCompileTimeError:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::_CompileTimeError();
+      break;
   }
 
   return DartLibraryCalls::InstanceCreate(library,

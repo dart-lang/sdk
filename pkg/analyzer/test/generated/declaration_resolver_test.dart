@@ -13,18 +13,18 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(DeclarationResolverMetadataTest);
-  runReflectiveTests(DeclarationResolverTest);
-  runReflectiveTests(StrongModeDeclarationResolverTest);
+  defineReflectiveTests(DeclarationResolverMetadataTest);
+  defineReflectiveTests(DeclarationResolverTest);
+  defineReflectiveTests(StrongModeDeclarationResolverTest);
 }
 
 CompilationUnit _cloneResolveUnit(CompilationUnit unit) {

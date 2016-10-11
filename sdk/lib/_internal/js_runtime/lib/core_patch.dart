@@ -19,7 +19,6 @@ import 'dart:_js_helper' show checkInt,
                               patch_lazy,
                               patch_startup,
                               Primitives,
-                              readHttp,
                               stringJoinUnchecked,
                               getTraceFromException;
 
@@ -640,12 +639,6 @@ class _Uri {
   }
 }
 
-@patch
-class Resource {
-  @patch
-  const factory Resource(String uri) = _Resource;
-}
-
 Uri _resolvePackageUri(Uri packageUri) {
   assert(packageUri.scheme == "package");
   if (packageUri.hasAuthority) {
@@ -653,92 +646,6 @@ Uri _resolvePackageUri(Uri packageUri) {
   }
   var resolved = Uri.base.resolve("packages/${packageUri.path}");
   return resolved;
-}
-
-class _Resource implements Resource {
-  final String _location;
-
-  const _Resource(String uri) : _location = uri;
-
-  Uri get uri => Uri.base.resolve(_location);
-
-  Stream<List<int>> openRead() {
-    Uri uri = this.uri;
-    if (uri.scheme == "package") {
-      uri = _resolvePackageUri(uri);
-    }
-    if (uri.scheme == "http" || uri.scheme == "https") {
-      return _readAsStream(uri);
-    }
-    throw new StateError("Unable to find resource, unknown scheme: $_location");
-  }
-
-  Future<List<int>> readAsBytes() {
-    Uri uri = this.uri;
-    if (uri.scheme == "package") {
-      uri = _resolvePackageUri(uri);
-    }
-    if (uri.scheme == "http" || uri.scheme == "https") {
-      return _readAsBytes(uri);
-    }
-    throw new StateError("Unable to find resource, unknown scheme: $_location");
-  }
-
-  Future<String> readAsString({Encoding encoding: UTF8}) {
-    Uri uri = this.uri;
-    if (uri.scheme == "package") {
-      uri = _resolvePackageUri(uri);
-    }
-    if (uri.scheme == "http" || uri.scheme == "https") {
-      return _readAsString(uri, encoding);
-    }
-    throw new StateError("Unable to find resource, unknown scheme: $_location");
-  }
-
-  // TODO(het): Use a streaming XHR request instead of returning the entire
-  // payload in one event.
-  Stream<List<int>> _readAsStream(Uri uri) {
-    var controller = new StreamController.broadcast();
-    // We only need to implement the listener as there is no way to provide
-    // back pressure into the channel.
-    controller.onListen = () {
-      // Once there is a listener, we kick off the loading of the resource.
-      _readAsBytes(uri).then((value) {
-        // The resource loading implementation sends all of the data in a
-        // single message. So the stream will only get a single value posted.
-        controller.add(value);
-        controller.close();
-      },
-      onError: (e, s) {
-        // In case the future terminates with an error we propagate it to the
-        // stream.
-        controller.addError(e, s);
-        controller.close();
-      });
-    };
-
-    return controller.stream;
-  }
-
-  Future<List<int>> _readAsBytes(Uri uri) {
-    return readHttp('$uri').then((data) {
-      if (data is NativeUint8List) return data;
-      if (data is String) return data.codeUnits;
-      throw new StateError(
-          "Unable to read Resource, data could not be decoded");
-    });
-  }
-
-  Future<String> _readAsString(Uri uri, Encoding encoding) {
-    return readHttp('$uri').then((data) {
-      if (data is String) return data;
-      if (data is NativeUint8List) {
-        return encoding.decode(data);
-      };
-      throw new StateError(
-          "Unable to read Resource, data could not be decoded");
-    });
-  }
 }
 
 @patch

@@ -39,11 +39,13 @@ main() {
       bool rendered = false;
       final e = new ClassTreeElement(vm, isolate, events, notifications,
           new ClassRepositoryMock(
-              object: expectAsync(() async {
+              object: expectAsync((i) async {
+                expect(i, equals(isolate));
                 expect(rendered, isFalse);
                 return object;
               }, count: 1),
-              getter: expectAsync((id) async {
+              getter: expectAsync((i, id) async {
+                expect(i, equals(isolate));
                 expect(ids.contains(id), isTrue);
                 switch (id) {
                   case child1_id: return child1;

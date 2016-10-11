@@ -663,6 +663,17 @@ Expression stepUpNamedExpression(Expression expression) {
   return expression;
 }
 
+/**
+ * Describes the location for a newly created [ClassMember].
+ */
+class ClassMemberLocation {
+  final String prefix;
+  final int offset;
+  final String suffix;
+
+  ClassMemberLocation(this.prefix, this.offset, this.suffix);
+}
+
 class CorrectionUtils {
   final CompilationUnit unit;
 
@@ -1214,6 +1225,15 @@ class CorrectionUtils {
       _invertCondition0(expression)._source;
 
   /**
+   * Return `true` if the given [classDeclaration] has open '{' and close '}'
+   * at the same line, e.g. `class X {}`.
+   */
+  bool isClassWithEmptyBody(ClassDeclaration classDeclaration) {
+    return getLineThis(classDeclaration.leftBracket.offset) ==
+        getLineThis(classDeclaration.rightBracket.offset);
+  }
+
+  /**
    * @return <code>true</code> if selection range contains only whitespace or comments
    */
   bool isJustWhitespaceOrComment(SourceRange range) {
@@ -1224,6 +1244,57 @@ class CorrectionUtils {
     }
     // may be comment
     return TokenUtils.getTokens(trimmedText).isEmpty;
+  }
+
+  ClassMemberLocation prepareNewClassMemberLocation(
+      ClassDeclaration classDeclaration,
+      bool shouldSkip(ClassMember existingMember)) {
+    String indent = getIndent(1);
+    // Find the last target member.
+    ClassMember targetMember = null;
+    List<ClassMember> members = classDeclaration.members;
+    for (ClassMember member in members) {
+      if (shouldSkip(member)) {
+        targetMember = member;
+      } else {
+        break;
+      }
+    }
+    // After the last target member.
+    if (targetMember != null) {
+      return new ClassMemberLocation(
+          endOfLine + endOfLine + indent, targetMember.end, '');
+    }
+    // At the beginning of the class.
+    String suffix = members.isNotEmpty || isClassWithEmptyBody(classDeclaration)
+        ? endOfLine
+        : '';
+    return new ClassMemberLocation(
+        endOfLine + indent, classDeclaration.leftBracket.end, suffix);
+  }
+
+  ClassMemberLocation prepareNewConstructorLocation(
+      ClassDeclaration classDeclaration) {
+    return prepareNewClassMemberLocation(
+        classDeclaration,
+        (member) =>
+            member is FieldDeclaration || member is ConstructorDeclaration);
+  }
+
+  ClassMemberLocation prepareNewFieldLocation(
+      ClassDeclaration classDeclaration) {
+    return prepareNewClassMemberLocation(
+        classDeclaration, (member) => member is FieldDeclaration);
+  }
+
+  ClassMemberLocation prepareNewGetterLocation(
+      ClassDeclaration classDeclaration) {
+    return prepareNewClassMemberLocation(
+        classDeclaration,
+        (member) =>
+            member is FieldDeclaration ||
+            member is ConstructorDeclaration ||
+            member is MethodDeclaration && member.isGetter);
   }
 
   /**

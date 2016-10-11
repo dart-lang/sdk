@@ -21,7 +21,7 @@ class FlowGraph;
 
 class Intrinsifier : public AllStatic {
  public:
-  static void Intrinsify(const ParsedFunction& parsed_function,
+  static bool Intrinsify(const ParsedFunction& parsed_function,
                          FlowGraphCompiler* compiler);
 #if defined(DART_NO_SNAPSHOT)
   static void InitializeState();

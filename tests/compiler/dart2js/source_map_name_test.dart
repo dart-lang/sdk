@@ -73,9 +73,7 @@ main() {
 
 check(Element element, String expectedName) {
   String name = computeElementNameForSourceMaps(element);
-  Expect.equals(
-      expectedName,
-      name,
+  Expect.equals(expectedName, name,
       "Unexpected name '$name' for $element, expected '$expectedName'.");
 }
 
@@ -101,8 +99,7 @@ main() {
     }
 
     void checkName(String expectedName,
-                   [List<String> expectedClosureNames,
-                    String lookupName]) {
+        [List<String> expectedClosureNames, String lookupName]) {
       if (lookupName == null) {
         lookupName = expectedName;
       }
@@ -111,8 +108,8 @@ main() {
       if (element.isConstructor) {
         var constructorBody =
             element.enclosingClass.lookupBackendMember(element.name);
-        Expect.isNotNull(element,
-                         "Constructor body '${element.name}' not found.");
+        Expect.isNotNull(
+            element, "Constructor body '${element.name}' not found.");
         check(constructorBody, expectedName);
       }
 
@@ -130,37 +127,29 @@ main() {
 
     checkName('toplevelField');
     checkName('toplevelMethod');
-    checkName('toplevelAnonymous',
-              ['toplevelAnonymous.<anonymous function>']);
-    checkName('toplevelLocal',
-              ['toplevelLocal.localMethod']);
+    checkName('toplevelAnonymous', ['toplevelAnonymous.<anonymous function>']);
+    checkName('toplevelLocal', ['toplevelLocal.localMethod']);
     checkName('Class');
     checkName('main');
 
     checkName('Class.staticField');
     checkName('Class.staticMethod');
     checkName('Class.staticAnonymous',
-              ['Class.staticAnonymous.<anonymous function>']);
-    checkName('Class.staticLocal',
-              ['Class.staticLocal.localMethod']);
+        ['Class.staticAnonymous.<anonymous function>']);
+    checkName('Class.staticLocal', ['Class.staticLocal.localMethod']);
 
-    checkName('Class',
-              ['Class.<anonymous function>'],
-              'Class.');
-    checkName('Class.named',
-              ['Class.named.localMethod']);
+    checkName('Class', ['Class.<anonymous function>'], 'Class.');
+    checkName('Class.named', ['Class.named.localMethod']);
 
     checkName('Class.instanceField');
     checkName('Class.instanceMethod');
     checkName('Class.instanceAnonymous',
-              ['Class.instanceAnonymous.<anonymous function>']);
-    checkName('Class.instanceLocal',
-              ['Class.instanceLocal.localMethod']);
-    checkName('Class.instanceNestedLocal',
-              ['Class.instanceNestedLocal.localMethod',
-               'Class.instanceNestedLocal.localMethod.<anonymous function>',
-               'Class.instanceNestedLocal.localMethod.nestedLocalMethod']);
-
-
+        ['Class.instanceAnonymous.<anonymous function>']);
+    checkName('Class.instanceLocal', ['Class.instanceLocal.localMethod']);
+    checkName('Class.instanceNestedLocal', [
+      'Class.instanceNestedLocal.localMethod',
+      'Class.instanceNestedLocal.localMethod.<anonymous function>',
+      'Class.instanceNestedLocal.localMethod.nestedLocalMethod'
+    ]);
   });
 }

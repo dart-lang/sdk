@@ -4,7 +4,8 @@
 
 part of mocks;
 
-typedef Future<M.Instance> InstanceRepositoryMockCallback(String id);
+typedef Future<M.Instance> InstanceRepositoryMockCallback(M.IsolateRef isolate,
+                                                          String id);
 
 class InstanceRepositoryMock implements M.InstanceRepository {
   final InstanceRepositoryMockCallback _get;
@@ -12,9 +13,9 @@ class InstanceRepositoryMock implements M.InstanceRepository {
   InstanceRepositoryMock({InstanceRepositoryMockCallback getter})
     : _get = getter;
 
-  Future<M.Instance> get(String id, {int count}){
+  Future<M.Instance> get(M.IsolateRef isolate, String id, {int count}){
     if (_get != null) {
-      return _get(id);
+      return _get(isolate, id);
     }
     return new Future.value(null);
   }

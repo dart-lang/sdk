@@ -8,21 +8,19 @@ import "package:expect/expect.dart";
 // Test that native classes and plain classes can access methods defined only by
 // the same mixin.
 
-
-class D extends Object with M1, M2, M3 {
-}
+class D extends Object with M1, M2, M3 {}
 
 class E extends D {
   foo() => 'E.foo';
 }
 
-class M1 { }
+class M1 {}
 
 class M2 {
   foo() => 'M2.foo';
 }
 
-class M3 { }
+class M3 {}
 
 @Native("A")
 class A {
@@ -37,9 +35,9 @@ class C extends B {
   foo() => 'C.foo';
 }
 
-makeA() native;
-makeB() native;
-makeC() native;
+makeA() native ;
+makeB() native ;
+makeC() native ;
 
 void setup() native """
 function A() {}

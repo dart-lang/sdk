@@ -24,12 +24,17 @@ class IsolateMock implements M.Isolate {
   final Map counters;
   final M.HeapSpace newSpace;
   final M.HeapSpace oldSpace;
+  final M.IsolateStatus status;
+  final M.DebugEvent pauseEvent;
+  final M.LibraryRef rootLibrary;
+  final M.FunctionRef entry;
 
   const IsolateMock({this.id: 'i-id', this.number, this.name: 'i-name',
                      this.startTime, this.runnable: true,
                      this.libraries: const [], this.error,
                      this.extensionRPCs: const [], this.counters: const {},
                      this.newSpace: const HeapSpaceMock(),
-                     this.oldSpace: const HeapSpaceMock()});
-  // TODO(cbernaschina) add other properties.
+                     this.oldSpace: const HeapSpaceMock(),
+                     this.status: M.IsolateStatus.loading, this.pauseEvent,
+                     this.rootLibrary, this.entry});
 }

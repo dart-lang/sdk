@@ -56,9 +56,9 @@ var tests = [
     return field.load().then((_) {
       return field.staticValue.load().then((Instance block) {
         expect(block.isClosure, isTrue);
-        expect(block.context.isContext, isTrue);
-        expect(block.context.length, equals(0));
-        return block.context.load().then((Context ctxt) {
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(0));
+        return block.closureContext.load().then((Context ctxt) {
           expect(ctxt.parentContext, isNull);
         });
       });
@@ -71,11 +71,12 @@ var tests = [
     return field.load().then((_) {
       return field.staticValue.load().then((Instance block) {
         expect(block.isClosure, isTrue);
-        expect(block.context.isContext, isTrue);
-        expect(block.context.length, equals(1));
-        return block.context.load().then((Context ctxt) {
-          expect(ctxt.variables.single['value'].isString, isTrue);
-          expect(ctxt.variables.single['value'].valueAsString, equals('I could be copied into the block'));
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
+          expect(ctxt.variables.single.value.asValue.isString, isTrue);
+          expect(ctxt.variables.single.value.asValue.valueAsString,
+              equals('I could be copied into the block'));
           expect(ctxt.parentContext.isContext, isTrue);
           expect(ctxt.parentContext.length, equals(0));
           return ctxt.parentContext.load().then((Context outerCtxt) {
@@ -92,11 +93,11 @@ var tests = [
     return field.load().then((_) {
       return field.staticValue.load().then((Instance block) {
         expect(block.isClosure, isTrue);
-        expect(block.context.isContext, isTrue);
-        expect(block.context.length, equals(1));
-        return block.context.load().then((ctxt) {
-          expect(ctxt.variables.single['value'].isInt, isTrue);
-          expect(ctxt.variables.single['value'].valueAsString, equals('43'));
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
+          expect(ctxt.variables.single.value.asValue.isInt, isTrue);
+          expect(ctxt.variables.single.value.asValue.valueAsString, equals('43'));
           expect(ctxt.parentContext.isContext, isTrue);
           expect(ctxt.parentContext.length, equals(0));
           return ctxt.parentContext.load().then((Context outerCtxt) {
@@ -113,16 +114,18 @@ var tests = [
     return field.load().then((_) {
       return field.staticValue.load().then((Instance block) {
         expect(block.isClosure, isTrue);
-        expect(block.context.isContext, isTrue);
-        expect(block.context.length, equals(1));
-        return block.context.load().then((Context ctxt) {
-          expect(ctxt.variables.single['value'].isInt, isTrue);
-          expect(ctxt.variables.single['value'].valueAsString, equals('4201'));
+        expect(block.closureContext.isContext, isTrue);
+        expect(block.closureContext.length, equals(1));
+        return block.closureContext.load().then((Context ctxt) {
+          expect(ctxt.variables.single.value.asValue.isInt, isTrue);
+          expect(ctxt.variables.single.value.asValue.valueAsString,
+              equals('4201'));
           expect(ctxt.parentContext.isContext, isTrue);
           expect(ctxt.parentContext.length, equals(1));
           return ctxt.parentContext.load().then((Context outerCtxt) {
-            expect(outerCtxt.variables.single['value'].isInt, isTrue);
-            expect(outerCtxt.variables.single['value'].valueAsString, equals('421'));
+            expect(outerCtxt.variables.single.value.asValue.isInt, isTrue);
+            expect(outerCtxt.variables.single.value.asValue.valueAsString,
+                equals('421'));
             expect(outerCtxt.parentContext.isContext, isTrue);
             expect(outerCtxt.parentContext.length, equals(0));
             return outerCtxt.parentContext.load().then((Context outerCtxt2) {

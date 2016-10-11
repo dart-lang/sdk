@@ -1,4 +1,3 @@
-
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16,7 +15,7 @@ class Meta {
 }
 
 class A {
-  @Meta() 
+  @Meta()
   reflectableThing(int a, [int b = 9, int c = 42]) => a + b + c;
   nonReflectableThing(int a, [int b = 4, int c = 21]) => a + b + c;
 }
@@ -27,7 +26,8 @@ tryCall(object, symbol, values, expected) {
   Expect.equals(result, expected);
 }
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 hide(x) => x;
 
 main() {
@@ -44,7 +44,7 @@ main() {
   Expect.throws(() => tryCall(a, #nonReflectableThing, [1], 1 + 4 + 21));
   Expect.throws(() => tryCall(a, #nonReflectableThing, [1, 5], 1 + 5 + 21));
   Expect.throws(() => tryCall(a, #nonReflectableThing, [1, 13, 7], 1 + 13 + 7));
-  // Trigger generation of all declarations and check they only contain a 
+  // Trigger generation of all declarations and check they only contain a
   // a single entry.
   var declarations = reflect(a).type.declarations;
   Expect.equals(1, declarations.keys.length);

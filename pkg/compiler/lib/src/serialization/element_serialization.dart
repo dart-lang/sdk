@@ -12,6 +12,7 @@ import '../diagnostics/messages.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show
+        AmbiguousImportX,
         DeferredLoaderGetterElementX,
         ErroneousElementX,
         WarnOnUseElementX,
@@ -59,6 +60,7 @@ enum SerializedElementKind {
   DEFERRED_LOAD_LIBRARY,
   LOCAL_VARIABLE,
   WARN_ON_USE,
+  AMBIGUOUS,
   EXTERNAL_LIBRARY,
   EXTERNAL_LIBRARY_MEMBER,
   EXTERNAL_CLASS_MEMBER,
@@ -89,6 +91,7 @@ const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
   const ExportSerializer(),
   const LocalVariableSerializer(),
   const WarnOnUseSerializer(),
+  const AmbiguousSerializer(),
 ];
 
 /// Interface for a function that can serialize a set of element kinds.
@@ -815,6 +818,28 @@ class WarnOnUseSerializer implements ElementSerializer {
   }
 }
 
+class AmbiguousSerializer implements ElementSerializer {
+  const AmbiguousSerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isAmbiguous) {
+      return SerializedElementKind.AMBIGUOUS;
+    }
+    return null;
+  }
+
+  void serialize(AmbiguousImportX element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
+    // TODO(johnniwinther): Also support [DuplicateElementX] if serialization
+    // of code with compile-time errors is supported.
+    encoder.setElement(Key.ENCLOSING, element.enclosingElement);
+    encoder.setElement(Key.EXISTING, element.existingElement);
+    encoder.setElement(Key.NEW, element.newElement);
+    encoder.setEnum(Key.MESSAGE_KIND, element.messageKind);
+    serializeMessageArguments(encoder, Key.ARGUMENTS, element.messageArguments);
+  }
+}
+
 /// Utility class for deserializing [Element]s.
 ///
 /// This is used by the [Deserializer].
@@ -912,6 +937,16 @@ class ElementDeserializer {
             deserializeWrappedMessage(decoder, Key.WARNING);
         WrappedMessage info = deserializeWrappedMessage(decoder, Key.INFO);
         return new WarnOnUseElementX(warning, info, enclosing, element);
+      case SerializedElementKind.AMBIGUOUS:
+        Element enclosingElement = decoder.getElement(Key.ENCLOSING);
+        Element existingElement = decoder.getElement(Key.EXISTING);
+        Element newElement = decoder.getElement(Key.NEW);
+        MessageKind messageKind =
+            decoder.getEnum(Key.MESSAGE_KIND, MessageKind.values);
+        Map messageArguments =
+            deserializeMessageArguments(decoder, Key.ARGUMENTS);
+        return new AmbiguousImportX(messageKind, messageArguments,
+            enclosingElement, existingElement, newElement);
       case SerializedElementKind.EXTERNAL_LIBRARY:
       case SerializedElementKind.EXTERNAL_LIBRARY_MEMBER:
       case SerializedElementKind.EXTERNAL_CLASS_MEMBER:

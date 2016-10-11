@@ -11,6 +11,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -20,8 +22,6 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -31,19 +31,19 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
 
 import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 import 'abstract_context.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(AnalysisContextImplTest);
-  runReflectiveTests(LimitedInvalidateTest);
+  defineReflectiveTests(AnalysisContextImplTest);
+  defineReflectiveTests(LimitedInvalidateTest);
 }
 
 @reflectiveTest
@@ -398,8 +398,7 @@ main() {
     // it is already overridden in the content cache.
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
-    ApplyChangesStatus changesStatus = context.applyChanges(changeSet);
-    expect(changesStatus.hasChanges, isFalse);
+    context.applyChanges(changeSet);
     expect(context.sourcesNeedingProcessing, hasLength(0));
   }
 
@@ -1943,7 +1942,7 @@ class ClassA {}''');
     CompilationUnit unit = context.computeResult(scripts[0], PARSED_UNIT);
     ImportDirective importNode = unit.directives[0] as ImportDirective;
     expect(importNode.uriContent, isNotNull);
-    expect(importNode.source, libSource);
+    expect(importNode.uriSource, libSource);
   }
 
   void test_performAnalysisTask_addPart() {
@@ -2476,7 +2475,6 @@ class ClassTwo {
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
-    entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
 
     context.resolveCompilationUnit2(source, source);
@@ -2496,9 +2494,6 @@ class ClassTwo {
     LibraryElement library = compilationUnit.element.library;
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-    List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries,
-        ["dart.core", "dart.async", "dart.math", "libA", "libB"]);
   }
 
   void test_resolveCompilationUnit_import_relative_cyclic() {
@@ -2511,9 +2506,6 @@ class ClassTwo {
     LibraryElement library = compilationUnit.element.library;
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
-    List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries,
-        ["dart.core", "dart.async", "dart.math", "libA", "libB"]);
   }
 
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
@@ -2720,7 +2712,7 @@ int a = 0;''');
     expect(context.sourcesNeedingProcessing.contains(source), isFalse);
   }
 
-  void test_validateCacheConsistency_deletedSource() {
+  void test_validateCacheConsistency_deletedFile() {
     MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
     var fileA = resourceProvider.newFile('/a.dart', "");
     var fileB = resourceProvider.newFile('/b.dart', "import 'a.dart';");
@@ -2884,6 +2876,34 @@ class LimitedInvalidateTest extends AbstractContextTest {
     options.incremental = true;
     options.finerGrainedInvalidation = true;
     context.analysisOptions = options;
+  }
+
+  void test_applyChanges_changedSource_removeFile() {
+    File file = resourceProvider.newFile('/test.dart', 'main() {}');
+    Source source = file.createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    // Analyze all.
+    _performPendingAnalysisTasks();
+    expect(context.getResolvedCompilationUnit2(source, source), isNotNull);
+    // Delete the file, but tell the context that it is changed.
+    // This might happen as a race condition.
+    // Or it might be a mishandling of file notification events.
+    file.delete();
+    context.applyChanges(new ChangeSet()..changedSource(source));
+    // All the analysis results are gone.
+    void noResolvedUnits() {
+      LibrarySpecificUnit unit = new LibrarySpecificUnit(source, source);
+      RESOLVED_UNIT_RESULTS.forEach((result) {
+        expect(context.getResult(unit, result), isNull);
+      });
+    }
+
+    noResolvedUnits();
+    // Analyze again.
+    // The source does not exist, so still no resolution.
+    _performPendingAnalysisTasks();
+    noResolvedUnits();
+    expect(context.getModificationStamp(source), -1);
   }
 
   void test_class_addMethod_useAsHole_inTopLevelVariable() {
@@ -3797,10 +3817,10 @@ main() {
     {
       Expression argument = find42();
       expect(argument.staticParameterElement, isNull);
-      expect(argument.propagatedParameterElement, isNotNull);
     }
+
     // Update a.dart: add type annotation for 'a'.
-    // '42' has 'staticParameterElement', but not 'propagatedParameterElement'.
+    // '42' has 'staticParameterElement'.
     context.setContents(
         a,
         r'''
@@ -3816,10 +3836,10 @@ main() {
     {
       Expression argument = find42();
       expect(argument.staticParameterElement, isNotNull);
-      expect(argument.propagatedParameterElement, isNull);
     }
+
     // Update a.dart: remove type annotation for 'a'.
-    // '42' has 'propagatedParameterElement', but not 'staticParameterElement'.
+    // '42' doesn't have 'staticParameterElement'.
     context.setContents(
         a,
         r'''
@@ -3835,7 +3855,6 @@ main() {
     {
       Expression argument = find42();
       expect(argument.staticParameterElement, isNull);
-      expect(argument.propagatedParameterElement, isNotNull);
     }
   }
 
@@ -4622,6 +4641,31 @@ class B2 {}
 ''');
     _assertValidAllLibraryUnitResults(b);
     _assertValid(b, LIBRARY_ERRORS_READY);
+  }
+
+  void test_sequence_useAnyResolvedUnit_needsLibraryElement() {
+    Source a = addSource(
+        '/a.dart',
+        r'''
+class A {}
+class B {}
+''');
+    // Perform analysis until we get RESOLVED_UNIT1.
+    // But it does not have 'library' set, so `unitElement.context` is `null`.
+    LibrarySpecificUnit aUnitTarget = new LibrarySpecificUnit(a, a);
+    while (context.getResult(aUnitTarget, RESOLVED_UNIT1) == null) {
+      context.performAnalysisTask();
+    }
+    // There was a bug with exception in incremental element builder.
+    // We should not attempt to use `unitElement.context`.
+    // It calls `unitElement.library`, which might be not set yet.
+    context.setContents(
+        a,
+        r'''
+class A {}
+class B2 {}
+''');
+    // OK, no exceptions.
   }
 
   void test_unusedName_class_add() {

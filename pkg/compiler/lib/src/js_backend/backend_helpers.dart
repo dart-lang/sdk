@@ -347,8 +347,9 @@ class BackendHelpers {
 
     // [LinkedHashMap] is reexported from dart:collection and can therefore not
     // be loaded from dart:core in [onLibraryScanned].
-    mapLiteralClass = compiler.coreLibrary.find('LinkedHashMap');
-    assert(invariant(compiler.coreLibrary, mapLiteralClass != null,
+    mapLiteralClass = compiler.commonElements.coreLibrary.find('LinkedHashMap');
+    assert(invariant(
+        compiler.commonElements.coreLibrary, mapLiteralClass != null,
         message: "Element 'LinkedHashMap' not found in 'dart:core'."));
 
     // TODO(kasperl): Some tests do not define the special JSArray
@@ -488,10 +489,6 @@ class BackendHelpers {
     return findHelper('getTypeArgumentByIndex');
   }
 
-  Element get copyTypeArguments {
-    return findHelper('copyTypeArguments');
-  }
-
   Element get computeSignature {
     return findHelper('computeSignature');
   }
@@ -625,7 +622,7 @@ class BackendHelpers {
   }
 
   Element get syncCompleterConstructor {
-    ClassElement classElement = find(compiler.asyncLibrary, "Completer");
+    ClassElement classElement = find(asyncLibrary, "Completer");
     classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("sync");
   }
@@ -642,7 +639,7 @@ class BackendHelpers {
   }
 
   Element get streamIteratorConstructor {
-    ClassElement classElement = find(compiler.asyncLibrary, "StreamIterator");
+    ClassElement classElement = find(asyncLibrary, "StreamIterator");
     classElement.ensureResolved(resolution);
     return classElement.lookupConstructor("");
   }

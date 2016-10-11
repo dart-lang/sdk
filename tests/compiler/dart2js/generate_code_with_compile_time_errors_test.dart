@@ -27,9 +27,9 @@ main() {
 };
 
 test(List<String> options,
-     {bool expectedOutput,
-      bool expectedCodeGenerated,
-      bool expectHint: false}) async {
+    {bool expectedOutput,
+    bool expectedCodeGenerated,
+    bool expectHint: false}) async {
   DiagnosticCollector collector = new DiagnosticCollector();
   OutputCollector outputCollector = new OutputCollector();
   CompilationResult result = await runCompiler(
@@ -38,18 +38,11 @@ test(List<String> options,
       outputProvider: outputCollector,
       options: options);
   Compiler compiler = result.compiler;
-  Expect.isFalse(
-      result.isSuccess,
-      "Expected compilation failure.");
+  Expect.isFalse(result.isSuccess, "Expected compilation failure.");
   Expect.isTrue(
-      collector.warnings.isEmpty,
-      "Unexpected warnings: ${collector.warnings}");
-  Expect.isFalse(
-      collector.errors.isEmpty,
-      "Expected compile-time errors.");
-  Expect.equals(
-      expectHint,
-      collector.hints.isNotEmpty,
+      collector.warnings.isEmpty, "Unexpected warnings: ${collector.warnings}");
+  Expect.isFalse(collector.errors.isEmpty, "Expected compile-time errors.");
+  Expect.equals(expectHint, collector.hints.isNotEmpty,
       "Unexpected hints: ${collector.warnings}");
 
   JavaScriptBackend backend = compiler.backend;
@@ -70,21 +63,12 @@ test(List<String> options,
 
 void main() {
   asyncTest(() async {
-    await test(
-       [],
-       expectedCodeGenerated: false,
-       expectedOutput: false);
-    await test(
-       ['--test-mode'],
-       expectedCodeGenerated: false,
-       expectedOutput: false);
-    await test(
-       ['--generate-code-with-compile-time-errors'],
-       expectedCodeGenerated: true,
-       expectedOutput: true);
-    await test(
-       ['--generate-code-with-compile-time-errors', '--test-mode'],
-       expectedCodeGenerated: true,
-       expectedOutput: false);
+    await test([], expectedCodeGenerated: false, expectedOutput: false);
+    await test(['--test-mode'],
+        expectedCodeGenerated: false, expectedOutput: false);
+    await test(['--generate-code-with-compile-time-errors'],
+        expectedCodeGenerated: true, expectedOutput: true);
+    await test(['--generate-code-with-compile-time-errors', '--test-mode'],
+        expectedCodeGenerated: true, expectedOutput: false);
   });
 }

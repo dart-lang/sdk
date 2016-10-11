@@ -8,8 +8,9 @@ import "package:expect/expect.dart";
 // Test for dartExperimentalFixupGetTag.
 
 @Native("A")
-class Foo { // There is one native class with dispatch tag 'A'.
-  token() native;
+class Foo {
+  // There is one native class with dispatch tag 'A'.
+  token() native ;
 }
 
 void setup() native r"""
@@ -35,8 +36,8 @@ makeA = function() { return new A; };
 makeB = function() { return new B; };
 """;
 
-makeA() native;
-makeB() native;
+makeA() native ;
+makeB() native ;
 
 main() {
   setup();

@@ -94,6 +94,6 @@ void main() {
 
   test('throw 123', MUST);
   test('throw #', MUST);
-  test('throw #.x', MUST);        // Could be better: is also an NSM guard.
+  test('throw #.x', MUST); // Could be better: is also an NSM guard.
   test('throw #.x = 123', MUST);
 }

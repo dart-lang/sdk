@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/codegen.dart' show CodegenWorkItem;
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../common/names.dart' show Selectors;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
@@ -19,7 +20,7 @@ import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
+import '../world.dart' show ClosedWorld;
 import 'interceptor_simplifier.dart';
 import 'nodes.dart';
 import 'types.dart';
@@ -49,25 +50,25 @@ class SsaOptimizerTask extends CompilerTask {
     }
 
     ConstantSystem constantSystem = compiler.backend.constantSystem;
-    JavaScriptItemCompilationContext context = work.compilationContext;
     bool trustPrimitives = compiler.options.trustPrimitives;
+    CodegenRegistry registry = work.registry;
+    Set<HInstruction> boundsChecked = new Set<HInstruction>();
+    SsaCodeMotion codeMotion;
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
         // Run trivial instruction simplification first to optimize
         // some patterns useful for type conversion.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
+        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
         new SsaTypeConversionInserter(compiler),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(compiler),
         // After type propagation, more instructions can be
         // simplified.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
         new SsaTypePropagator(compiler),
         // Run a dead code eliminator before LICM because dead
         // interceptors are often in the way of LICM'able instructions.
@@ -76,37 +77,36 @@ class SsaOptimizerTask extends CompilerTask {
         // After GVN, some instructions might need their type to be
         // updated because they now have different inputs.
         new SsaTypePropagator(compiler),
-        new SsaCodeMotion(),
+        codeMotion = new SsaCodeMotion(),
         new SsaLoadElimination(compiler),
         new SsaRedundantPhiEliminator(),
         new SsaDeadPhiEliminator(),
         new SsaTypePropagator(compiler),
-        new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
+        new SsaValueRangeAnalyzer(compiler, constantSystem, this),
         // Previous optimizations may have generated new
         // opportunities for instruction simplification.
-        new SsaInstructionSimplifier(constantSystem, backend, this, work),
-        new SsaCheckInserter(
-            trustPrimitives, backend, work, context.boundsChecked),
+        new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+        new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
       ];
       phases.forEach(runPhase);
 
       // Simplifying interceptors is not strictly just an optimization, it is
       // required for implementation correctness because the code generator
       // assumes it is always performed.
-      runPhase(new SsaSimplifyInterceptors(compiler, constantSystem, work));
+      runPhase(
+          new SsaSimplifyInterceptors(compiler, constantSystem, work.element));
 
       SsaDeadCodeEliminator dce = new SsaDeadCodeEliminator(compiler, this);
       runPhase(dce);
-      if (dce.eliminatedSideEffects) {
+      if (codeMotion.movedCode || dce.eliminatedSideEffects) {
         phases = <OptimizationPhase>[
           new SsaTypePropagator(compiler),
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
-          new SsaValueRangeAnalyzer(compiler, constantSystem, this, work),
-          new SsaInstructionSimplifier(constantSystem, backend, this, work),
-          new SsaCheckInserter(
-              trustPrimitives, backend, work, context.boundsChecked),
-          new SsaSimplifyInterceptors(compiler, constantSystem, work),
+          new SsaValueRangeAnalyzer(compiler, constantSystem, this),
+          new SsaInstructionSimplifier(constantSystem, backend, this, registry),
+          new SsaCheckInserter(trustPrimitives, backend, boundsChecked),
+          new SsaSimplifyInterceptors(compiler, constantSystem, work.element),
           new SsaDeadCodeEliminator(compiler, this),
         ];
       } else {
@@ -114,7 +114,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaTypePropagator(compiler),
           // Run the simplifier to remove unneeded type checks inserted by
           // type propagation.
-          new SsaInstructionSimplifier(constantSystem, backend, this, work),
+          new SsaInstructionSimplifier(constantSystem, backend, this, registry),
         ];
       }
       phases.forEach(runPhase);
@@ -127,7 +127,7 @@ class SsaOptimizerTask extends CompilerTask {
 /// of identifying gvn-able lengths and mis-identifies some unions of fixed
 /// length indexables (see TODO) as not fixed length.
 bool isFixedLength(mask, Compiler compiler) {
-  ClassWorld classWorld = compiler.world;
+  ClosedWorld closedWorld = compiler.closedWorld;
   JavaScriptBackend backend = compiler.backend;
   if (mask.isContainer && mask.length != null) {
     // A container on which we have inferred the length.
@@ -136,7 +136,7 @@ bool isFixedLength(mask, Compiler compiler) {
   // TODO(sra): Recognize any combination of fixed length indexables.
   if (mask.containsOnly(backend.helpers.jsFixedArrayClass) ||
       mask.containsOnly(backend.helpers.jsUnmodifiableArrayClass) ||
-      mask.containsOnlyString(classWorld) ||
+      mask.containsOnlyString(closedWorld) ||
       backend.isTypedArray(mask)) {
     return true;
   }
@@ -156,14 +156,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   final String name = "SsaInstructionSimplifier";
   final JavaScriptBackend backend;
-  final CodegenWorkItem work;
   final ConstantSystem constantSystem;
+  final CodegenRegistry registry;
   HGraph graph;
   Compiler get compiler => backend.compiler;
   final SsaOptimizerTask optimizer;
 
   SsaInstructionSimplifier(
-      this.constantSystem, this.backend, this.optimizer, this.work);
+      this.constantSystem, this.backend, this.optimizer, this.registry);
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -192,7 +192,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           // If we can replace [instruction] with [replacement], then
           // [replacement]'s type can be narrowed.
           TypeMask newType = replacement.instructionType
-              .intersection(instruction.instructionType, compiler.world);
+              .intersection(instruction.instructionType, compiler.closedWorld);
           replacement.instructionType = newType;
         }
 
@@ -247,9 +247,26 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitParameterValue(HParameterValue node) {
+    // [HParameterValue]s are either the value of the parameter (in fully SSA
+    // converted code), or the mutable variable containing the value (in
+    // incompletely SSA converted code, e.g. methods containing exceptions).
+    //
     // If the parameter is used as a mutable variable we cannot replace the
     // variable with a value.
-    if (node.usedAsVariable()) return node;
+    //
+    // If the parameter is used as a mutable variable but never written, first
+    // convert to a value parameter.
+
+    if (node.usedAsVariable()) {
+      if (!node.usedBy.every((user) => user is HLocalGet)) return node;
+      // Trivial SSA-conversion. Replace all HLocalGet instructions with the
+      // parameter.
+      for (HLocalGet user in node.usedBy.toList()) {
+        user.block.rewrite(user, node);
+        user.block.remove(user);
+      }
+    }
+
     propagateConstantValueToUses(node);
     return node;
   }
@@ -268,7 +285,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
-    if (!mask.contains(helpers.jsBoolClass, compiler.world)) {
+    if (!mask.contains(helpers.jsBoolClass, compiler.closedWorld)) {
       return graph.addConstantBool(false, compiler);
     }
     return node;
@@ -318,14 +335,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
       Element element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       TypeMask actualType = node.instructionType;
-      ClassWorld classWorld = compiler.world;
+      ClosedWorld closedWorld = compiler.closedWorld;
       TypeMask resultType = backend.positiveIntType;
       // If we already have computed a more specific type, keep that type.
       if (HInstruction.isInstanceOf(
-          actualType, helpers.jsUInt31Class, classWorld)) {
+          actualType, helpers.jsUInt31Class, closedWorld)) {
         resultType = backend.uint31Type;
       } else if (HInstruction.isInstanceOf(
-          actualType, helpers.jsUInt32Class, classWorld)) {
+          actualType, helpers.jsUInt32Class, closedWorld)) {
         resultType = backend.uint32Type;
       }
       HFieldGet result = new HFieldGet(element, actualReceiver, resultType,
@@ -358,10 +375,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     TypeMask mask = node.mask;
     HInstruction input = node.inputs[1];
 
-    World world = compiler.world;
+    ClosedWorld world = compiler.closedWorld;
 
     bool applies(Element element) {
-      return selector.applies(element, world) &&
+      return selector.applies(element) &&
           (mask == null || mask.canHit(element, selector, world));
     }
 
@@ -410,7 +427,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return result;
       }
     } else if (selector.isGetter) {
-      if (selector.applies(helpers.jsIndexableLength, world)) {
+      if (selector.applies(helpers.jsIndexableLength)) {
         HInstruction optimized = tryOptimizeLengthInterceptedGetter(node);
         if (optimized != null) return optimized;
       }
@@ -428,7 +445,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     TypeMask receiverType = node.getDartReceiver(compiler).instructionType;
     Element element =
-        compiler.world.locateSingleElement(node.selector, receiverType);
+        compiler.closedWorld.locateSingleElement(node.selector, receiverType);
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null &&
         element.isFunction
@@ -627,7 +644,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
-      if (leftType.isDisjoint(rightType, compiler.world)) {
+      if (leftType.isDisjoint(rightType, compiler.closedWorld)) {
         return makeFalse();
       }
     }
@@ -718,7 +735,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return graph.addConstantBool(true, compiler);
     }
 
-    ClassWorld classWorld = compiler.world;
+    ClosedWorld closedWorld = compiler.closedWorld;
     HInstruction expression = node.expression;
     if (expression.isInteger(compiler)) {
       if (element == coreClasses.intClass ||
@@ -762,13 +779,13 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // raw type.
     } else if (!RuntimeTypes.hasTypeArguments(type)) {
       TypeMask expressionMask = expression.instructionType;
-      assert(TypeMask.assertIsNormalized(expressionMask, classWorld));
+      assert(TypeMask.assertIsNormalized(expressionMask, closedWorld));
       TypeMask typeMask = (element == coreClasses.nullClass)
-          ? new TypeMask.subtype(element, classWorld)
-          : new TypeMask.nonNullSubtype(element, classWorld);
-      if (expressionMask.union(typeMask, classWorld) == typeMask) {
+          ? new TypeMask.subtype(element, closedWorld)
+          : new TypeMask.nonNullSubtype(element, closedWorld);
+      if (expressionMask.union(typeMask, closedWorld) == typeMask) {
         return graph.addConstantBool(true, compiler);
-      } else if (expressionMask.isDisjoint(typeMask, compiler.world)) {
+      } else if (expressionMask.isDisjoint(typeMask, compiler.closedWorld)) {
         return graph.addConstantBool(false, compiler);
       }
     }
@@ -799,11 +816,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction removeIfCheckAlwaysSucceeds(HCheck node, TypeMask checkedType) {
-    ClassWorld classWorld = compiler.world;
-    if (checkedType.containsAll(classWorld)) return node;
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (checkedType.containsAll(closedWorld)) return node;
     HInstruction input = node.checkedInput;
     TypeMask inputType = input.instructionType;
-    return inputType.isInMask(checkedType, classWorld) ? input : node;
+    return inputType.isInMask(checkedType, closedWorld) ? input : node;
   }
 
   HInstruction removeCheck(HCheck node) => node.checkedInput;
@@ -811,15 +828,14 @@ class SsaInstructionSimplifier extends HBaseVisitor
   VariableElement findConcreteFieldForDynamicAccess(
       HInstruction receiver, Selector selector) {
     TypeMask receiverType = receiver.instructionType;
-    return compiler.world.locateSingleField(selector, receiverType);
+    return compiler.closedWorld.locateSingleField(selector, receiverType);
   }
 
   HInstruction visitFieldGet(HFieldGet node) {
     if (node.isNullCheck) return node;
     var receiver = node.receiver;
     if (node.element == helpers.jsIndexableLength) {
-      JavaScriptItemCompilationContext context = work.compilationContext;
-      if (context.allocatedFixedLists.contains(receiver)) {
+      if (graph.allocatedFixedLists.contains(receiver)) {
         // TODO(ngeoffray): checking if the second input is an integer
         // should not be necessary but it currently makes it easier for
         // other optimizations to reason about a fixed length constructor
@@ -890,7 +906,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
-    bool isAssignable = !compiler.world.fieldNeverChanges(field);
+    bool isAssignable = !compiler.closedWorld.fieldNeverChanges(field);
 
     TypeMask type;
     if (backend.isNative(field.enclosingClass)) {
@@ -998,39 +1014,235 @@ class SsaInstructionSimplifier extends HBaseVisitor
   HInstruction visitStringify(HStringify node) {
     HInstruction input = node.inputs[0];
     if (input.isString(compiler)) return input;
-    if (input.isConstant()) {
+
+    HInstruction tryConstant() {
+      if (!input.isConstant()) return null;
       HConstant constant = input;
-      if (!constant.constant.isPrimitive) return node;
+      if (!constant.constant.isPrimitive) return null;
       if (constant.constant.isInt) {
         // Only constant-fold int.toString() when Dart and JS results the same.
         // TODO(18103): We should be able to remove this work-around when issue
         // 18103 is resolved by providing the correct string.
         IntConstantValue intConstant = constant.constant;
         // Very conservative range.
-        if (!intConstant.isUInt32()) return node;
+        if (!intConstant.isUInt32()) return null;
       }
       PrimitiveConstantValue primitive = constant.constant;
       return graph.addConstant(
           constantSystem.createString(primitive.toDartString()), compiler);
     }
-    return node;
+
+    HInstruction tryToString() {
+      // If the `toString` method is guaranteed to return a string we can call
+      // it directly. Keep the stringifier for primitives (since they have fast
+      // path code in the stringifier) and for classes requiring interceptors
+      // (since SsaInstructionSimplifier runs after SsaSimplifyInterceptors).
+      if (input.canBePrimitive(compiler)) return null;
+      if (input.canBeNull()) return null;
+      Selector selector = Selectors.toString_;
+      TypeMask toStringType = TypeMaskFactory.inferredTypeForSelector(
+          selector, input.instructionType, compiler);
+      ClosedWorld closedWorld = compiler.closedWorld;
+      if (!toStringType.containsOnlyString(closedWorld)) return null;
+      // All intercepted classes extend `Interceptor`, so if the receiver can't
+      // be a class extending `Interceptor` then it can be called directly.
+      if (new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld)
+          .isDisjoint(input.instructionType, closedWorld)) {
+        HInstruction result = new HInvokeDynamicMethod(
+            selector,
+            input.instructionType, // receiver mask.
+            <HInstruction>[input, input], // [interceptor, receiver].
+            toStringType)..sourceInformation = node.sourceInformation;
+        return result;
+      }
+      return null;
+    }
+
+    return tryConstant() ?? tryToString() ?? node;
   }
 
   HInstruction visitOneShotInterceptor(HOneShotInterceptor node) {
     return handleInterceptedCall(node);
   }
+
+  bool needsSubstitutionForTypeVariableAccess(ClassElement cls) {
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (closedWorld.isUsedAsMixin(cls)) return true;
+
+    return closedWorld.anyStrictSubclassOf(cls, (ClassElement subclass) {
+      return !backend.rti.isTrivialSubstitution(subclass, cls);
+    });
+  }
+
+  HInstruction visitTypeInfoExpression(HTypeInfoExpression node) {
+    // Identify the case where the type info expression would be of the form:
+    //
+    //  [getTypeArgumentByIndex(this, 0), .., getTypeArgumentByIndex(this, k)]
+    //
+    // and k is the number of type arguments of 'this'.  We can simply copy the
+    // list from 'this'.
+    HInstruction tryCopyInfo() {
+      if (node.kind != TypeInfoExpressionKind.INSTANCE) return null;
+
+      HInstruction source;
+      int expectedIndex = 0;
+
+      for (HInstruction argument in node.inputs) {
+        if (argument is HTypeInfoReadVariable) {
+          HInstruction nextSource = argument.object;
+          if (nextSource is HThis) {
+            if (source == null) {
+              source = nextSource;
+              ClassElement contextClass =
+                  nextSource.sourceElement.enclosingClass;
+              if (node.inputs.length != contextClass.typeVariables.length) {
+                return null;
+              }
+              if (needsSubstitutionForTypeVariableAccess(contextClass)) {
+                return null;
+              }
+            }
+            if (nextSource != source) return null;
+            // Check that the index is the one we expect.
+            int index = argument.variable.element.index;
+            if (index != expectedIndex++) return null;
+          } else {
+            // TODO(sra): Handle non-this cases (i.e. inlined code). Some
+            // non-this cases will have a TypeMask that does not need
+            // substitution, even though the general case does, e.g. inlining a
+            // method on an exact class.
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+
+      if (source == null) return null;
+      return new HTypeInfoReadRaw(source, backend.dynamicType);
+    }
+
+    // TODO(sra): Consider fusing type expression trees with no type variables,
+    // as these could be represented like constants.
+
+    return tryCopyInfo() ?? node;
+  }
+
+  HInstruction visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
+    TypeVariableType variable = node.variable;
+    HInstruction object = node.object;
+
+    HInstruction finishGroundType(InterfaceType groundType) {
+      InterfaceType typeAtVariable =
+          groundType.asInstanceOf(variable.element.enclosingClass);
+      if (typeAtVariable != null) {
+        int index = variable.element.index;
+        DartType typeArgument = typeAtVariable.typeArguments[index];
+        HInstruction replacement = new HTypeInfoExpression(
+            TypeInfoExpressionKind.COMPLETE,
+            typeArgument,
+            const <HInstruction>[],
+            backend.dynamicType);
+        return replacement;
+      }
+      return node;
+    }
+
+    /// Read the type variable from an allocation of type [createdClass], where
+    /// [selectTypeArgumentFromObjectCreation] extracts the type argument from
+    /// the allocation for factory constructor call.
+    HInstruction finishSubstituted(ClassElement createdClass,
+        HInstruction selectTypeArgumentFromObjectCreation(int index)) {
+      HInstruction instructionForTypeVariable(TypeVariableType tv) {
+        return selectTypeArgumentFromObjectCreation(
+            createdClass.thisType.typeArguments.indexOf(tv));
+      }
+
+      DartType type = createdClass.thisType
+          .asInstanceOf(variable.element.enclosingClass)
+          .typeArguments[variable.element.index];
+      if (type is TypeVariableType) {
+        return instructionForTypeVariable(type);
+      }
+      List<HInstruction> arguments = <HInstruction>[];
+      type.forEachTypeVariable((v) {
+        arguments.add(instructionForTypeVariable(v));
+      });
+      HInstruction replacement = new HTypeInfoExpression(
+          TypeInfoExpressionKind.COMPLETE,
+          type,
+          arguments,
+          backend.dynamicType);
+      return replacement;
+    }
+
+    // Type variable evaluated in the context of a constant can be replaced with
+    // a ground term type.
+    if (object is HConstant) {
+      ConstantValue value = object.constant;
+      if (value is ConstructedConstantValue) {
+        return finishGroundType(value.type);
+      }
+      return node;
+    }
+
+    // Look for an allocation with type information and re-write type variable
+    // as a function of the type parameters of the allocation.  This effectively
+    // store-forwards a type variable read through an allocation.
+
+    // Match:
+    //
+    //     HCreate(ClassElement,
+    //       [arg_i,
+    //        ...,
+    //        HTypeInfoExpression(t_0, t_1, t_2, ...)]);
+    //
+    // The `t_i` are the values of the type parameters of ClassElement.
+
+    if (object is HCreate) {
+      void registerInstantiations() {
+        // Forwarding the type variable references might cause the HCreate to
+        // become dead. This breaks the algorithm for generating the per-type
+        // runtime type information, so we instantiate them here in case the
+        // HCreate becomes dead.
+        object.instantiatedTypes?.forEach(registry.registerInstantiation);
+      }
+
+      if (object.hasRtiInput) {
+        HInstruction typeInfo = object.rtiInput;
+        if (typeInfo is HTypeInfoExpression) {
+          registerInstantiations();
+          return finishSubstituted(
+              object.element, (int index) => typeInfo.inputs[index]);
+        }
+      } else {
+        // Non-generic type (which extends or mixes in a generic type, for
+        // example CodeUnits extends UnmodifiableListBase<int>).  Also used for
+        // raw-type when the type parameters are elided.
+        registerInstantiations();
+        return finishSubstituted(
+            object.element,
+            // If there are type arguments, all type arguments are 'dynamic'.
+            (int i) => graph.addConstantNull(compiler));
+      }
+    }
+
+    // TODO(sra): Factory constructors pass type arguments after the value
+    // arguments. The [selectTypeArgumentFromObjectCreation] argument of
+    // [finishSubstituted] indexes into these type arguments.
+
+    return node;
+  }
 }
 
 class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   final Set<HInstruction> boundsChecked;
-  final CodegenWorkItem work;
   final bool trustPrimitives;
   final JavaScriptBackend backend;
   final String name = "SsaCheckInserter";
   HGraph graph;
 
-  SsaCheckInserter(
-      this.trustPrimitives, this.backend, this.work, this.boundsChecked);
+  SsaCheckInserter(this.trustPrimitives, this.backend, this.boundsChecked);
 
   BackendHelpers get helpers => backend.helpers;
 
@@ -1743,6 +1955,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
   final String name = "SsaCodeMotion";
 
+  bool movedCode = false;
   List<ValueSet> values;
 
   void visitGraph(HGraph graph) {
@@ -1779,6 +1992,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
             if (toRewrite != instruction) {
               successor.rewriteWithBetterUser(toRewrite, instruction);
               successor.remove(toRewrite);
+              movedCode = true;
             }
           }
         }
@@ -1822,6 +2036,7 @@ class SsaCodeMotion extends HBaseVisitor implements OptimizationPhase {
       } else {
         block.rewriteWithBetterUser(current, existing);
         block.remove(current);
+        movedCode = true;
       }
     }
   }
@@ -1871,7 +2086,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
     if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
 
     TypeMask convertedType =
-        new TypeMask.nonNullSubtype(element, compiler.world);
+        new TypeMask.nonNullSubtype(element, compiler.closedWorld);
     HInstruction input = instruction.expression;
 
     for (HIf ifUser in ifUsers) {
@@ -2020,7 +2235,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
         instruction.element, receiver, instruction.inputs.last);
   }
 
-  void visitForeignNew(HForeignNew instruction) {
+  void visitCreate(HCreate instruction) {
     memorySet.registerAllocation(instruction);
     if (shouldTrackInitialValues(instruction)) {
       int argumentIndex = 0;
@@ -2035,7 +2250,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.killAffectedBy(instruction);
   }
 
-  bool shouldTrackInitialValues(HForeignNew instruction) {
+  bool shouldTrackInitialValues(HCreate instruction) {
     // Don't track initial field values of an allocation that are
     // unprofitable. We search the chain of single uses in allocations for a
     // limited depth.
@@ -2052,15 +2267,15 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
       HInstruction use = instruction.usedBy.single;
       // When the only use is an allocation, the allocation becomes the only
       // heap alias for the current instruction.
-      if (use is HForeignNew) return interestingUse(use, heapDepth + 1);
+      if (use is HCreate) return interestingUse(use, heapDepth + 1);
       if (use is HLiteralList) return interestingUse(use, heapDepth + 1);
       if (use is HInvokeStatic) {
         // Assume the argument escapes. All we do with our initial allocation is
         // have it escape or store it into an object that escapes.
         return false;
-        // TODO(sra): Handle more functions. `setRuntimeTypeInfo` does not
-        // actually kill it's input, but we don't make use of that elsewhere so
-        // there is not point in checking here.
+        // TODO(sra): Handle library functions that we know do not modify or
+        // leak the inputs. For example `setRuntimeTypeInfo` is used to mark
+        // list literals with type information.
       }
       if (use is HPhi) {
         // The initial allocation (it's only alias) gets merged out of the model
@@ -2106,6 +2321,8 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   void visitLiteralList(HLiteralList instruction) {
     memorySet.registerAllocation(instruction);
     memorySet.killAffectedBy(instruction);
+    // TODO(sra): Set initial keyed values.
+    // TODO(sra): Set initial length.
   }
 
   void visitIndex(HIndex instruction) {
@@ -2125,10 +2342,31 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.registerKeyedValueUpdate(
         receiver, instruction.index, instruction.value);
   }
+
+  // Pure operations that do not escape their inputs.
+  void visitBinaryArithmetic(HBinaryArithmetic instruction) {}
+  void visitConstant(HConstant instruction) {}
+  void visitIf(HIf instruction) {}
+  void visitInterceptor(HInterceptor instruction) {}
+  void visitIs(HIs instruction) {}
+  void visitIsViaInterceptor(HIsViaInterceptor instruction) {}
+  void visitNot(HNot instruction) {}
+  void visitParameterValue(HParameterValue instruction) {}
+  void visitRelational(HRelational instruction) {}
+  void visitStringConcat(HStringConcat instruction) {}
+  void visitTypeKnown(HTypeKnown instruction) {}
+  void visitTypeInfoReadRaw(HTypeInfoReadRaw instruction) {}
+  void visitTypeInfoReadVariable(HTypeInfoReadVariable instruction) {}
+  void visitTypeInfoExpression(HTypeInfoExpression instruction) {}
 }
 
 /**
  * Holds values of memory places.
+ *
+ * Generally, values that name a place (a receiver) have type refinements and
+ * other checks removed to ensure that checks and type refinements do not
+ * confuse aliasing.  Values stored into a memory place keep the type
+ * refinements to help further optimizations.
  */
 class MemorySet {
   final Compiler compiler;
@@ -2172,15 +2410,15 @@ class MemorySet {
     // Typed arrays of different types might have a shared buffer.
     if (couldBeTypedArray(first) && couldBeTypedArray(second)) return true;
     return !first.instructionType
-        .isDisjoint(second.instructionType, compiler.world);
+        .isDisjoint(second.instructionType, compiler.closedWorld);
   }
 
   bool isFinal(Element element) {
-    return compiler.world.fieldNeverChanges(element);
+    return compiler.closedWorld.fieldNeverChanges(element);
   }
 
   bool isConcrete(HInstruction instruction) {
-    return instruction is HForeignNew ||
+    return instruction is HCreate ||
         instruction is HConstant ||
         instruction is HLiteralList;
   }
@@ -2194,25 +2432,28 @@ class MemorySet {
    * Returns whether [receiver] escapes the current function.
    */
   bool escapes(HInstruction receiver) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     return !nonEscapingReceivers.contains(receiver);
   }
 
   void registerAllocation(HInstruction instruction) {
+    assert(instruction == instruction.nonCheck());
     nonEscapingReceivers.add(instruction);
   }
 
   /**
-   * Sets `receiver.element` to contain [value]. Kills all potential
-   * places that may be affected by this update.
+   * Sets `receiver.element` to contain [value]. Kills all potential places that
+   * may be affected by this update.
    */
   void registerFieldValueUpdate(
       Element element, HInstruction receiver, HInstruction value) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     if (backend.isNative(element)) {
       return; // TODO(14955): Remove this restriction?
     }
     // [value] is being set in some place in memory, we remove it from
     // the non-escaping set.
-    nonEscapingReceivers.remove(value);
+    nonEscapingReceivers.remove(value.nonCheck());
     Map<HInstruction, HInstruction> map =
         fieldValues.putIfAbsent(element, () => <HInstruction, HInstruction>{});
     map.forEach((key, value) {
@@ -2226,6 +2467,7 @@ class MemorySet {
    */
   void registerFieldValue(
       Element element, HInstruction receiver, HInstruction value) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     if (backend.isNative(element)) {
       return; // TODO(14955): Remove this restriction?
     }
@@ -2235,27 +2477,26 @@ class MemorySet {
   }
 
   /**
-   * Returns the value stored in `receiver.element`. Returns null if
-   * we don't know.
+   * Returns the value stored in `receiver.element`. Returns `null` if we don't
+   * know.
    */
   HInstruction lookupFieldValue(Element element, HInstruction receiver) {
+    assert(receiver == null || receiver == receiver.nonCheck());
     Map<HInstruction, HInstruction> map = fieldValues[element];
     return (map == null) ? null : map[receiver];
   }
 
   /**
-   * Kill all places that may be affected by this [instruction]. Also
-   * update the set of non-escaping objects in case [instruction] has
-   * non-escaping objects in its inputs.
+   * Kill all places that may be affected by this [instruction]. Also update the
+   * set of non-escaping objects in case [instruction] has non-escaping objects
+   * in its inputs.
    */
   void killAffectedBy(HInstruction instruction) {
-    // Even if [instruction] does not have side effects, it may use
-    // non-escaping objects and store them in a new object, which
-    // make these objects escaping.
-    // TODO(ngeoffray): We need a new side effect flag to know whether
-    // an instruction allocates an object.
+    // Even if [instruction] does not have side effects, it may use non-escaping
+    // objects and store them in a new object, which make these objects
+    // escaping.
     instruction.inputs.forEach((input) {
-      nonEscapingReceivers.remove(input);
+      nonEscapingReceivers.remove(input.nonCheck());
     });
 
     if (instruction.sideEffects.changesInstanceProperty() ||
@@ -2306,7 +2547,7 @@ class MemorySet {
    */
   void registerKeyedValueUpdate(
       HInstruction receiver, HInstruction index, HInstruction value) {
-    nonEscapingReceivers.remove(value);
+    nonEscapingReceivers.remove(value.nonCheck());
     keyedValues.forEach((key, values) {
       if (mayAlias(receiver, key)) {
         // Typed arrays that are views of the same buffer may have different
@@ -2337,8 +2578,8 @@ class MemorySet {
       HBasicBlock block, int predecessorIndex) {
     if (first == null || second == null) return null;
     if (first == second) return first;
-    TypeMask phiType =
-        second.instructionType.union(first.instructionType, compiler.world);
+    TypeMask phiType = second.instructionType
+        .union(first.instructionType, compiler.closedWorld);
     if (first is HPhi && first.block == block) {
       HPhi phi = first;
       phi.addInput(second);

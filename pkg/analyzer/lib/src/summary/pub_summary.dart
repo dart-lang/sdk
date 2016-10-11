@@ -4,19 +4,18 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -28,8 +27,16 @@ import 'package:analyzer/src/summary/summarize_ast.dart'
 import 'package:analyzer/src/summary/summarize_elements.dart'
     show PackageBundleAssembler;
 import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pathos;
+
+/**
+ * Return the raw string value of the variable with the given [name],
+ * or `null` of the variable is not defined.
+ */
+typedef String _GetDeclaredVariable(String name);
 
 /**
  * Unlinked and linked information about a [PubPackage].
@@ -82,6 +89,17 @@ class PubSummaryManager {
   static const UNLINKED_NAME = 'unlinked.ds';
   static const UNLINKED_SPEC_NAME = 'unlinked_spec.ds';
 
+  /**
+   * If `true` (by default), then linking new bundles is allowed.
+   * Otherwise only using existing cached bundles can be used.
+   */
+  final bool allowLinking;
+
+  /**
+   * See [PackageBundleAssembler.currentMajorVersion].
+   */
+  final int majorVersion;
+
   final ResourceProvider resourceProvider;
 
   /**
@@ -119,7 +137,10 @@ class PubSummaryManager {
    */
   Completer _onUnlinkedCompleteCompleter;
 
-  PubSummaryManager(this.resourceProvider, this.tempFileName);
+  PubSummaryManager(this.resourceProvider, this.tempFileName,
+      {@visibleForTesting this.allowLinking: true,
+      @visibleForTesting this.majorVersion:
+          PackageBundleAssembler.currentMajorVersion});
 
   /**
    * The [Future] that completes when computing of all scheduled unlinked
@@ -137,86 +158,6 @@ class PubSummaryManager {
    * Return the [pathos.Context] corresponding to the [resourceProvider].
    */
   pathos.Context get pathContext => resourceProvider.pathContext;
-
-  /**
-   * Compute and return the linked bundle for the SDK extension for the given
-   * [context], or `null` if none of the packages has an SDK extension.  At most
-   * one extension library is supported, if more than one is found, then an
-   * error will be logged, and `null` returned.
-   */
-  PackageBundle computeSdkExtension(
-      AnalysisContext context, PackageBundle sdkBundle) {
-    // Prepare SDK extension library files.
-    String libUriStr;
-    String libPath;
-    {
-      Map<String, List<Folder>> packageMap = context.sourceFactory.packageMap;
-      SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
-      Map<String, String> sdkExtMappings = extFinder.urlMappings;
-      if (sdkExtMappings.length == 1) {
-        libUriStr = sdkExtMappings.keys.first;
-        libPath = sdkExtMappings.values.first;
-      } else if (sdkExtMappings.length > 1) {
-        AnalysisEngine.instance.logger
-            .logError('At most one _sdkext file is supported, '
-                'with at most one extension library. $sdkExtMappings found.');
-        return null;
-      } else {
-        return null;
-      }
-    }
-    // Compute the extension unlinked bundle.
-    bool strong = context.analysisOptions.strongMode;
-    PackageBundleAssembler assembler = new PackageBundleAssembler();
-    try {
-      File libFile = resourceProvider.getFile(libPath);
-      Uri libUri = FastUri.parse(libUriStr);
-      Source libSource = libFile.createSource(libUri);
-      CompilationUnit libraryUnit = _parse(libSource, strong);
-      // Add the library unit.
-      assembler.addUnlinkedUnit(libSource, serializeAstUnlinked(libraryUnit));
-      // Add part units.
-      for (Directive directive in libraryUnit.directives) {
-        if (directive is PartDirective) {
-          Source partSource;
-          {
-            String partUriStr = directive.uri.stringValue;
-            Uri partUri = resolveRelativeUri(libUri, FastUri.parse(partUriStr));
-            pathos.Context pathContext = resourceProvider.pathContext;
-            String partPath =
-                pathContext.join(pathContext.dirname(libPath), partUriStr);
-            File partFile = resourceProvider.getFile(partPath);
-            partSource = partFile.createSource(partUri);
-          }
-          CompilationUnit partUnit = _parse(partSource, strong);
-          assembler.addUnlinkedUnit(partSource, serializeAstUnlinked(partUnit));
-        }
-      }
-      // Add the SDK and the unlinked extension bundle.
-      PackageBundleBuilder unlinkedBuilder = assembler.assemble();
-      SummaryDataStore store = new SummaryDataStore(const <String>[]);
-      store.addBundle(null, sdkBundle);
-      store.addBundle(null, unlinkedBuilder);
-      // Link the extension bundle.
-      Map<String, LinkedLibraryBuilder> linkedLibraries =
-          link([libUriStr].toSet(), (String absoluteUri) {
-        return store.linkedMap[absoluteUri];
-      }, (String absoluteUri) {
-        return store.unlinkedMap[absoluteUri];
-      }, strong);
-      if (linkedLibraries.length != 1) {
-        return null;
-      }
-      // Append linked libraries into the assembler.
-      linkedLibraries.forEach((uri, library) {
-        assembler.addLinkedLibrary(uri, library);
-      });
-      List<int> bytes = assembler.assemble().toBuffer();
-      return new PackageBundle.fromBuffer(bytes);
-    } on FileSystemException {
-      return null;
-    }
-  }
 
   /**
    * Complete when the unlinked bundles for the package with the given [name]
@@ -241,18 +182,13 @@ class PubSummaryManager {
   List<LinkedPubPackage> getLinkedBundles(AnalysisContext context) {
 //    Stopwatch timer = new Stopwatch()..start();
 
-    PackageBundle sdkBundle = context.sourceFactory.dartSdk.getLinkedBundle();
+    _GetDeclaredVariable getDeclaredVariable = context.declaredVariables.get;
+    SourceFactory sourceFactory = context.sourceFactory;
+    _ListedPackages listedPackages = new _ListedPackages(sourceFactory);
+
+    PackageBundle sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     if (sdkBundle == null) {
       return const <LinkedPubPackage>[];
-    }
-
-    // Prepare all SDK bundles.
-    List<PackageBundle> sdkBundles = <PackageBundle>[sdkBundle];
-    {
-      PackageBundle extension = computeSdkExtension(context, sdkBundle);
-      if (extension != null) {
-        sdkBundles.add(extension);
-      }
     }
 
     bool strong = context.analysisOptions.strongMode;
@@ -270,50 +206,59 @@ class PubSummaryManager {
     }
 
     // Create graph nodes for packages.
-    List<_LinkedNode> nodes = <_LinkedNode>[];
-    Map<String, _LinkedNode> packageToNode = <String, _LinkedNode>{};
+    List<_LinkNode> nodes = <_LinkNode>[];
+    Map<String, _LinkNode> packageToNode = <String, _LinkNode>{};
     unlinkedBundles.forEach((package, unlinked) {
-      _LinkedNode node =
-          new _LinkedNode(sdkBundles, package, unlinked, packageToNode);
+      _LinkNode node = new _LinkNode(sdkBundle, getDeclaredVariable,
+          listedPackages, package, unlinked, packageToNode);
       nodes.add(node);
       packageToNode[package.name] = node;
     });
 
+    // Compute transitive dependencies, mark some nodes as failed.
+    for (_LinkNode node in nodes) {
+      node.computeTransitiveDependencies();
+    }
+
     // Attempt to read existing linked bundles.
-    for (_LinkedNode node in nodes) {
+    for (_LinkNode node in nodes) {
       _readLinked(node, strong);
     }
 
-    // Fill the store with bundles.
-    // Append linked SDK bundles.
-    // Append unlinked and (if read from a cache) linked package bundles.
-    SummaryDataStore store = new SummaryDataStore(const <String>[]);
-    sdkBundles.forEach((bundle) => store.addBundle(null, bundle));
-    for (_LinkedNode node in nodes) {
-      store.addBundle(null, node.unlinked);
-      if (node.linked != null) {
-        store.addBundle(null, node.linked);
+    // Link new bundles, if allowed.
+    if (allowLinking) {
+      // Fill the store with bundles.
+      // Append the linked SDK bundle.
+      // Append unlinked and (if read from a cache) linked package bundles.
+      SummaryDataStore store = new SummaryDataStore(const <String>[]);
+      store.addBundle(null, sdkBundle);
+      for (_LinkNode node in nodes) {
+        store.addBundle(null, node.unlinked);
+        if (node.linked != null) {
+          store.addBundle(null, node.linked);
+        }
       }
-    }
 
-    // Link each package node.
-    for (_LinkedNode node in nodes) {
-      if (!node.isEvaluated) {
-        new _LinkedWalker(store, strong).walk(node);
+      // Link each package node.
+      for (_LinkNode node in nodes) {
+        if (!node.isEvaluated) {
+          new _LinkWalker(getDeclaredVariable, listedPackages, store, strong)
+              .walk(node);
+        }
       }
-    }
 
-    // Write newly linked bundles.
-    for (_LinkedNode node in nodes) {
-      _writeLinked(node, strong);
+      // Write newly linked bundles.
+      for (_LinkNode node in nodes) {
+        _writeLinked(node, strong);
+      }
     }
 
     // Create successfully linked packages.
     List<LinkedPubPackage> linkedPackages = <LinkedPubPackage>[];
-    for (_LinkedNode node in nodes) {
+    for (_LinkNode node in nodes) {
       if (node.linked != null) {
         linkedPackages.add(new LinkedPubPackage(
-            node.package, node.unlinked, node.linked, node._linkedHash));
+            node.package, node.unlinked, node.linked, node.linkedHash));
       }
     }
 
@@ -425,7 +370,9 @@ class PubSummaryManager {
 
     try {
       addDartFiles(libFolder);
-      List<int> bytes = assembler.assemble().toBuffer();
+      PackageBundleBuilder bundleWriter = assembler.assemble();
+      bundleWriter.majorVersion = majorVersion;
+      List<int> bytes = bundleWriter.toBuffer();
       String fileName = _getUnlinkedName(strong);
       _writeAtomic(package.folder, fileName, bytes);
     } on FileSystemException {
@@ -465,28 +412,84 @@ class PubSummaryManager {
     if (bundle != null) {
       return bundle;
     }
+
     // Try to read from the file system.
     String fileName = _getUnlinkedName(strong);
-    File unlinkedFile = package.folder.getChildAssumingFile(fileName);
-    if (unlinkedFile.exists) {
+    File file = package.folder.getChildAssumingFile(fileName);
+    if (file.exists) {
       try {
-        List<int> bytes = unlinkedFile.readAsBytesSync();
+        List<int> bytes = file.readAsBytesSync();
         bundle = new PackageBundle.fromBuffer(bytes);
-        unlinkedBundleMap[package] = bundle;
-        // TODO(scheglov) if not in the pub cache, check for consistency
-        return bundle;
       } on FileSystemException {
         // Ignore file system exceptions.
       }
     }
+
+    // Verify compatibility and consistency.
+    bool isInPubCache = isPathInPubCache(pathContext, package.folder.path);
+    if (bundle != null &&
+        bundle.majorVersion == majorVersion &&
+        (isInPubCache || _isConsistent(package, bundle))) {
+      unlinkedBundleMap[package] = bundle;
+      return bundle;
+    }
+
     // Schedule computation in the background, if in the pub cache.
-    if (isPathInPubCache(pathContext, package.folder.path)) {
+    if (isInPubCache) {
       if (seenPackages.add(package)) {
         _scheduleUnlinked(package);
       }
     }
-    // The bundle is for available.
+
+    // The bundle is not available.
     return null;
+  }
+
+  /**
+   * Return `true` if content hashes for the [package] library files are the
+   * same the hashes in the unlinked [bundle].
+   */
+  bool _isConsistent(PubPackage package, PackageBundle bundle) {
+    List<String> actualHashes = <String>[];
+
+    /**
+     * If the given [file] is a Dart file, add its content hash.
+     */
+    void hashDartFile(File file) {
+      String path = file.path;
+      if (AnalysisEngine.isDartFileName(path)) {
+        List<int> fileBytes = file.readAsBytesSync();
+        List<int> hashBytes = md5.convert(fileBytes).bytes;
+        String hashHex = hex.encode(hashBytes);
+        actualHashes.add(hashHex);
+      }
+    }
+
+    /**
+     * Visit the [folder] recursively.
+     */
+    void hashDartFiles(Folder folder) {
+      List<Resource> children = folder.getChildren();
+      for (Resource child in children) {
+        if (child is File) {
+          hashDartFile(child);
+        } else if (child is Folder) {
+          hashDartFiles(child);
+        }
+      }
+    }
+
+    // Recursively compute hashes of the `lib` folder Dart files.
+    try {
+      hashDartFiles(package.libFolder);
+    } on FileSystemException {
+      return false;
+    }
+
+    // Compare sorted actual and bundle unit hashes.
+    List<String> bundleHashes = bundle.unlinkedUnitHashes.toList()..sort();
+    actualHashes.sort();
+    return listsEqual(actualHashes, bundleHashes);
   }
 
   /**
@@ -509,9 +512,9 @@ class PubSummaryManager {
 
   /**
    * Attempt to find the linked bundle that corresponds to the given [node]
-   * with all its transitive dependencies and put it into [_LinkedNode.linked].
+   * with all its transitive dependencies and put it into [_LinkNode.linked].
    */
-  void _readLinked(_LinkedNode node, bool strong) {
+  void _readLinked(_LinkNode node, bool strong) {
     String hash = node.linkedHash;
     if (hash != null) {
       String fileName = _getLinkedName(hash, strong);
@@ -570,7 +573,7 @@ class PubSummaryManager {
    * If a new linked bundle was linked for the given [node], write the bundle
    * into the memory cache and the file system.
    */
-  void _writeLinked(_LinkedNode node, bool strong) {
+  void _writeLinked(_LinkNode node, bool strong) {
     String hash = node.linkedHash;
     if (hash != null && node.linkedNewBytes != null) {
       String fileName = _getLinkedName(hash, strong);
@@ -617,50 +620,54 @@ class PubSummaryManager {
 /**
  * Specialization of [Node] for linking packages in proper dependency order.
  */
-class _LinkedNode extends Node<_LinkedNode> {
-  final List<PackageBundle> sdkBundles;
+class _LinkNode extends Node<_LinkNode> {
+  final PackageBundle sdkBundle;
+  final _GetDeclaredVariable getDeclaredVariable;
+  final _ListedPackages listedPackages;
   final PubPackage package;
   final PackageBundle unlinked;
-  final Map<String, _LinkedNode> packageToNode;
+  final Map<String, _LinkNode> packageToNode;
 
+  bool failed = false;
+  Set<_LinkNode> transitiveDependencies;
   String _linkedHash;
 
   List<int> linkedNewBytes;
   PackageBundle linked;
 
-  _LinkedNode(this.sdkBundles, this.package, this.unlinked, this.packageToNode);
+  _LinkNode(this.sdkBundle, this.getDeclaredVariable, this.listedPackages,
+      this.package, this.unlinked, this.packageToNode);
 
   @override
-  bool get isEvaluated => linked != null;
+  bool get isEvaluated => linked != null || failed;
 
   /**
    * Return the hash string that corresponds to this linked bundle in the
-   * context of its [sdkBundles] and transitive dependencies.  Return `null` if
+   * context of its [sdkBundle] and transitive dependencies.  Return `null` if
    * the hash computation fails, because for example the full transitive
    * dependencies cannot computed.
    */
   String get linkedHash {
-    if (_linkedHash == null) {
+    if (_linkedHash == null && transitiveDependencies != null) {
+      ApiSignature signature = new ApiSignature();
+      // Add all unlinked API signatures.
       List<String> signatures = <String>[];
-      Set<_LinkedNode> transitiveDependencies = computeTransitiveDependencies();
-      sdkBundles
-          .map((sdkBundle) => sdkBundle.apiSignature)
-          .forEach(signatures.add);
+      signatures.add(sdkBundle.apiSignature);
       transitiveDependencies
           .map((node) => node.unlinked.apiSignature)
           .forEach(signatures.add);
       signatures.sort();
-      // Combine sorted unlinked API signatures into a single hash.
-      ApiSignature signature = new ApiSignature();
       signatures.forEach(signature.addString);
+      // Combine into a single hash.
+      _appendDeclaredVariables(signature);
       _linkedHash = signature.toHex();
     }
     return _linkedHash;
   }
 
   @override
-  List<_LinkedNode> computeDependencies() {
-    Set<_LinkedNode> dependencies = new Set<_LinkedNode>();
+  List<_LinkNode> computeDependencies() {
+    Set<_LinkNode> dependencies = new Set<_LinkNode>();
 
     void appendDependency(String uriStr) {
       Uri uri = FastUri.parse(uriStr);
@@ -671,10 +678,15 @@ class _LinkedNode extends Node<_LinkedNode> {
         // The SDK linked bundle is precomputed before linking packages.
       } else if (uriStr.startsWith('package:')) {
         String package = PubSummaryManager.getPackageName(uriStr);
-        _LinkedNode packageNode = packageToNode[package];
+        _LinkNode packageNode = packageToNode[package];
+        if (packageNode == null && listedPackages.isListed(uriStr)) {
+          failed = true;
+        }
         if (packageNode != null) {
           dependencies.add(packageNode);
         }
+      } else {
+        failed = true;
       }
     }
 
@@ -693,27 +705,56 @@ class _LinkedNode extends Node<_LinkedNode> {
   }
 
   /**
-   * Return the set of existing transitive dependencies for this node, skipping
-   * any missing dependencies.  Only [unlinked] is used, so this method can be
-   * called before linking.
+   * Compute the set of existing transitive dependencies for this node.
+   * If any `package` dependency cannot be resolved, but it is one of the
+   * [listedPackages] then set [failed] to `true`.
+   * Only [unlinked] is used, so this method can be called before linking.
    */
-  Set<_LinkedNode> computeTransitiveDependencies() {
-    Set<_LinkedNode> allDependencies = new Set<_LinkedNode>();
-    _appendDependencies(allDependencies);
-    return allDependencies;
+  void computeTransitiveDependencies() {
+    if (transitiveDependencies == null) {
+      transitiveDependencies = new Set<_LinkNode>();
+
+      void appendDependencies(_LinkNode node) {
+        if (transitiveDependencies.add(node)) {
+          node.dependencies.forEach(appendDependencies);
+        }
+      }
+
+      appendDependencies(this);
+      if (transitiveDependencies.any((node) => node.failed)) {
+        failed = true;
+      }
+    }
   }
 
   @override
   String toString() => package.toString();
 
   /**
-   * Append this node and its dependencies to [allDependencies] recursively.
+   * Append names and values of all referenced declared variables (even the
+   * ones without actually declared values) to the given [signature].
    */
-  void _appendDependencies(Set<_LinkedNode> allDependencies) {
-    if (allDependencies.add(this)) {
-      for (_LinkedNode dependency in dependencies) {
-        dependency._appendDependencies(allDependencies);
+  void _appendDeclaredVariables(ApiSignature signature) {
+    Set<String> nameSet = new Set<String>();
+    for (_LinkNode node in transitiveDependencies) {
+      for (UnlinkedUnit unit in node.unlinked.unlinkedUnits) {
+        for (UnlinkedImport import in unit.imports) {
+          for (UnlinkedConfiguration configuration in import.configurations) {
+            nameSet.add(configuration.name);
+          }
+        }
+        for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
+          for (UnlinkedConfiguration configuration in export.configurations) {
+            nameSet.add(configuration.name);
+          }
+        }
       }
+    }
+    List<String> sortedNameList = nameSet.toList()..sort();
+    signature.addInt(sortedNameList.length);
+    for (String name in sortedNameList) {
+      signature.addString(name);
+      signature.addString(getDeclaredVariable(name) ?? '');
     }
   }
 }
@@ -721,21 +762,24 @@ class _LinkedNode extends Node<_LinkedNode> {
 /**
  * Specialization of [DependencyWalker] for linking packages.
  */
-class _LinkedWalker extends DependencyWalker<_LinkedNode> {
+class _LinkWalker extends DependencyWalker<_LinkNode> {
+  final _GetDeclaredVariable getDeclaredVariable;
+  final _ListedPackages listedPackages;
   final SummaryDataStore store;
   final bool strong;
 
-  _LinkedWalker(this.store, this.strong);
+  _LinkWalker(
+      this.getDeclaredVariable, this.listedPackages, this.store, this.strong);
 
   @override
-  void evaluate(_LinkedNode node) {
+  void evaluate(_LinkNode node) {
     evaluateScc([node]);
   }
 
   @override
-  void evaluateScc(List<_LinkedNode> scc) {
-    Map<String, _LinkedNode> uriToNode = <String, _LinkedNode>{};
-    for (_LinkedNode node in scc) {
+  void evaluateScc(List<_LinkNode> scc) {
+    Map<String, _LinkNode> uriToNode = <String, _LinkNode>{};
+    for (_LinkNode node in scc) {
       for (String uri in node.unlinked.unlinkedUnitUris) {
         uriToNode[uri] = node;
       }
@@ -743,13 +787,13 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
     Set<String> libraryUris = uriToNode.keys.toSet();
     // Perform linking.
     Map<String, LinkedLibraryBuilder> linkedLibraries =
-        link(libraryUris, (String absoluteUri) {
-      return store.linkedMap[absoluteUri];
-    }, (String absoluteUri) {
-      return store.unlinkedMap[absoluteUri];
-    }, strong);
+        link(libraryUris, (String uri) {
+      return store.linkedMap[uri];
+    }, (String uri) {
+      return store.unlinkedMap[uri];
+    }, getDeclaredVariable, strong);
     // Assemble linked bundles and put them into the store.
-    for (_LinkedNode node in scc) {
+    for (_LinkNode node in scc) {
       PackageBundleAssembler assembler = new PackageBundleAssembler();
       linkedLibraries.forEach((uri, linkedLibrary) {
         if (identical(uriToNode[uri], node)) {
@@ -761,5 +805,30 @@ class _LinkedWalker extends DependencyWalker<_LinkedNode> {
       node.linked = new PackageBundle.fromBuffer(bytes);
       store.addBundle(null, node.linked);
     }
+  }
+}
+
+/**
+ * The set of package names that are listed in the `.packages` file of a
+ * context.  These are the only packages, references to which can
+ * be possibly resolved in the context.  Nodes that reference a `package:` URI
+ * without the unlinked bundle, so without the node, cannot be linked.
+ */
+class _ListedPackages {
+  final Set<String> names = new Set<String>();
+
+  _ListedPackages(SourceFactory sourceFactory) {
+    Map<String, List<Folder>> map = sourceFactory.packageMap;
+    if (map != null) {
+      names.addAll(map.keys);
+    }
+  }
+
+  /**
+   * Check whether the given `package:` [uri] is listed in the package map.
+   */
+  bool isListed(String uri) {
+    String package = PubSummaryManager.getPackageName(uri);
+    return names.contains(package);
   }
 }

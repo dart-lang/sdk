@@ -28,11 +28,10 @@ testExamples(MessageKind kind) async {
     }
     DiagnosticCollector collector = new DiagnosticCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: example,
-        diagnosticHandler: collector);
+        memorySourceFiles: example, diagnosticHandler: collector);
     Expect.isTrue(result.isSuccess);
-    Expect.isTrue(
-        collector.errors.any((message) => message.messageKind == kind));
+    Expect
+        .isTrue(collector.errors.any((message) => message.messageKind == kind));
     Compiler compiler = result.compiler;
     JavaScriptBackend backend = compiler.backend;
     Expect.isNotNull(backend.generatedCode[compiler.mainFunction]);

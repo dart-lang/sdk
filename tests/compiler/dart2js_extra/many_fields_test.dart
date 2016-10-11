@@ -25,7 +25,7 @@ class A {
   var fieldD2 = 0x2000;
   var fieldD3 = 0x4000;
   var fieldD4 = 0x8000;
-  
+
   var fieldXA1 = 0x1;
   var fieldXA2 = 0x2;
   var fieldXA3 = 0x4;
@@ -45,7 +45,7 @@ class A {
   var fieldXD2 = 0x20;
   var fieldXD3 = 0x40;
   var fieldXD4 = 0x80;
-  
+
   var fieldYA1 = 0x1;
   var fieldYA2 = 0x200;
   var fieldYA3 = 0x400;
@@ -135,8 +135,7 @@ class D extends B with C {
 }
 
 // Mix in the mixin into the full implementation, shadowing some fields.
-class E extends A with C {
-}
+class E extends A with C {}
 
 // Another mixin for block C.
 class F {
@@ -162,29 +161,61 @@ class F {
 }
 
 // Use two mixins in a single class.
-class G extends B with C, F {
-}
+class G extends B with C, F {}
 
 bool checkFields(cls) {
-  var blockA = 
-    cls.fieldA1 ^ cls.fieldA2 ^ cls.fieldA3 ^ cls.fieldA4 ^
-    cls.fieldB1 ^ cls.fieldB2 ^ cls.fieldB3 ^ cls.fieldB4 ^
-    cls.fieldC1 ^ cls.fieldC2 ^ cls.fieldC3 ^ cls.fieldC4 ^
-    cls.fieldD1 ^ cls.fieldD2 ^ cls.fieldD3 ^ cls.fieldD4;
-  var blockB =
-    cls.fieldXA1 ^ cls.fieldXA2 ^ cls.fieldXA3 ^ cls.fieldXA4 ^
-    cls.fieldXB1 ^ cls.fieldXB2 ^ cls.fieldXB3 ^ cls.fieldXB4 ^
-    cls.fieldXC1 ^ cls.fieldXC2 ^ cls.fieldXC3 ^ cls.fieldXC4 ^
-    cls.fieldXD1 ^ cls.fieldXD2 ^ cls.fieldXD3 ^ cls.fieldXD4;
-  var blockC =
-    cls.fieldYA1 ^ cls.fieldYA2 ^ cls.fieldYA3 ^ cls.fieldYA4 ^
-    cls.fieldYB1 ^ cls.fieldYB2 ^ cls.fieldYB3 ^ cls.fieldYB4 ^
-    cls.fieldYC1 ^ cls.fieldYC2 ^ cls.fieldYC3 ^ cls.fieldYC4 ^
-    cls.fieldYD1 ^ cls.fieldYD2 ^ cls.fieldYD3 ^ cls.fieldYD4;
+  var blockA = cls.fieldA1 ^
+      cls.fieldA2 ^
+      cls.fieldA3 ^
+      cls.fieldA4 ^
+      cls.fieldB1 ^
+      cls.fieldB2 ^
+      cls.fieldB3 ^
+      cls.fieldB4 ^
+      cls.fieldC1 ^
+      cls.fieldC2 ^
+      cls.fieldC3 ^
+      cls.fieldC4 ^
+      cls.fieldD1 ^
+      cls.fieldD2 ^
+      cls.fieldD3 ^
+      cls.fieldD4;
+  var blockB = cls.fieldXA1 ^
+      cls.fieldXA2 ^
+      cls.fieldXA3 ^
+      cls.fieldXA4 ^
+      cls.fieldXB1 ^
+      cls.fieldXB2 ^
+      cls.fieldXB3 ^
+      cls.fieldXB4 ^
+      cls.fieldXC1 ^
+      cls.fieldXC2 ^
+      cls.fieldXC3 ^
+      cls.fieldXC4 ^
+      cls.fieldXD1 ^
+      cls.fieldXD2 ^
+      cls.fieldXD3 ^
+      cls.fieldXD4;
+  var blockC = cls.fieldYA1 ^
+      cls.fieldYA2 ^
+      cls.fieldYA3 ^
+      cls.fieldYA4 ^
+      cls.fieldYB1 ^
+      cls.fieldYB2 ^
+      cls.fieldYB3 ^
+      cls.fieldYB4 ^
+      cls.fieldYC1 ^
+      cls.fieldYC2 ^
+      cls.fieldYC3 ^
+      cls.fieldYC4 ^
+      cls.fieldYD1 ^
+      cls.fieldYD2 ^
+      cls.fieldYD3 ^
+      cls.fieldYD4;
   return blockA == 0xFFFF && blockB == 0x0000 && blockC == 0x1111;
 }
 
-main () {
+main() {
   var instances = [new A(), new D(), new E(), new G()];
   for (var instance in instances) {
     Expect.isTrue(checkFields(instance));

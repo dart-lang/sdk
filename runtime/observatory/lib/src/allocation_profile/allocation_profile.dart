@@ -14,11 +14,11 @@ class AllocationProfile implements M.AllocationProfile {
   final Iterable<ClassHeapStats> members;
 
   AllocationProfile(S.ServiceMap map)
-    : lastAccumulatorReset = _intString2DateTime(map[_lastAccumulatorReset]),
-      lastServiceGC = _intString2DateTime(map[_lastServiceGC]),
-      oldSpace = new S.HeapSpace()..update(map['heaps']['old']),
-      newSpace = new S.HeapSpace()..update(map['heaps']['new']),
-      members = map['members'].map(_convertMember).toList();
+      : lastAccumulatorReset = _intString2DateTime(map[_lastAccumulatorReset]),
+        lastServiceGC = _intString2DateTime(map[_lastServiceGC]),
+        oldSpace = new S.HeapSpace()..update(map['heaps']['old']),
+        newSpace = new S.HeapSpace()..update(map['heaps']['new']),
+        members = map['members'].map(_convertMember).toList();
 
   static DateTime _intString2DateTime(String milliseconds) {
     if ((milliseconds == null) || milliseconds == '') {
@@ -41,9 +41,9 @@ class ClassHeapStats implements M.ClassHeapStats {
   final int promotedBytes;
 
   ClassHeapStats(S.ServiceMap map)
-    : clazz = map['class'],
-      oldSpace = new S.Allocations()..update(map['old']),
-      newSpace = new S.Allocations()..update(map['new']),
-      promotedInstances = map['promotedInstances'],
-      promotedBytes = map['promotedBytes'];
+      : clazz = map['class'],
+        oldSpace = new S.Allocations()..update(map['old']),
+        newSpace = new S.Allocations()..update(map['new']),
+        promotedInstances = map['promotedInstances'],
+        promotedBytes = map['promotedBytes'];
 }

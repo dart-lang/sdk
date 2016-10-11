@@ -751,7 +751,8 @@ class InstructionsWriter : public ZoneAllocated {
   int32_t GetObjectOffsetFor(RawObject* raw_object);
 
   virtual void Write() = 0;
-  virtual intptr_t binary_size() = 0;
+  virtual intptr_t text_size() = 0;
+  virtual intptr_t data_size() = 0;
 
  protected:
   struct InstructionsData {
@@ -798,27 +799,40 @@ class AssemblyInstructionsWriter : public InstructionsWriter {
                              intptr_t initial_size)
     : InstructionsWriter(),
       assembly_stream_(assembly_buffer, alloc, initial_size),
-      binary_size_(0) {
+      text_size_(0),
+      data_size_(0) {
   }
 
   virtual void Write();
-  virtual intptr_t binary_size() { return binary_size_; }
+  virtual intptr_t text_size() { return text_size_; }
+  virtual intptr_t data_size() { return data_size_; }
 
   intptr_t AssemblySize() const { return assembly_stream_.bytes_written(); }
 
  private:
-  void WriteWordLiteral(uword value) {
+  void WriteWordLiteralText(uword value) {
     // Padding is helpful for comparing the .S with --disassemble.
 #if defined(ARCH_IS_64_BIT)
     assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
 #else
     assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
 #endif
-    binary_size_ += sizeof(value);
+    text_size_ += sizeof(value);
+  }
+
+  void WriteWordLiteralData(uword value) {
+    // Padding is helpful for comparing the .S with --disassemble.
+#if defined(ARCH_IS_64_BIT)
+    assembly_stream_.Print(".quad 0x%0.16" Px "\n", value);
+#else
+    assembly_stream_.Print(".long 0x%0.8" Px "\n", value);
+#endif
+    data_size_ += sizeof(value);
   }
 
   WriteStream assembly_stream_;
-  intptr_t binary_size_;
+  intptr_t text_size_;
+  intptr_t data_size_;
 
   DISALLOW_COPY_AND_ASSIGN(AssemblyInstructionsWriter);
 };
@@ -836,9 +850,8 @@ class BlobInstructionsWriter : public InstructionsWriter {
   }
 
   virtual void Write();
-  virtual intptr_t binary_size() {
-    return InstructionsBlobSize() + RodataBlobSize();
-  }
+  virtual intptr_t text_size() { return InstructionsBlobSize(); }
+  virtual intptr_t data_size() { return RodataBlobSize(); }
 
   intptr_t InstructionsBlobSize() const {
     return instructions_blob_stream_.bytes_written();

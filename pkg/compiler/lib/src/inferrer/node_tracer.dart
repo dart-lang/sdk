@@ -333,7 +333,8 @@ abstract class TracerVisitor<T extends TypeInformation>
    */
   bool isParameterOfListAddingMethod(Element element) {
     if (!element.isRegularParameter) return false;
-    if (element.enclosingClass != compiler.backend.listImplementation) {
+    if (element.enclosingClass !=
+        compiler.backend.backendClasses.listImplementation) {
       return false;
     }
     Element method = element.enclosingElement;
@@ -349,7 +350,8 @@ abstract class TracerVisitor<T extends TypeInformation>
    */
   bool isParameterOfMapAddingMethod(Element element) {
     if (!element.isRegularParameter) return false;
-    if (element.enclosingClass != compiler.backend.mapImplementation) {
+    if (element.enclosingClass !=
+        compiler.backend.backendClasses.mapImplementation) {
       return false;
     }
     Element method = element.enclosingElement;

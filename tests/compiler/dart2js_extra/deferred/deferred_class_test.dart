@@ -13,7 +13,9 @@ isError(e) => e is Error;
 
 main() {
   var x;
-  Expect.throws(() { x = new lib.MyClass(); }, isError);
+  Expect.throws(() {
+    x = new lib.MyClass();
+  }, isError);
   Expect.isNull(x);
   int counter = 0;
   asyncStart();
@@ -36,6 +38,8 @@ main() {
   });
   Expect.equals(0, counter);
   Expect.isNull(x);
-  Expect.throws(() { x = new lib.MyClass(); }, isError);
+  Expect.throws(() {
+    x = new lib.MyClass();
+  }, isError);
   Expect.isNull(x);
 }

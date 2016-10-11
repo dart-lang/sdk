@@ -30,6 +30,9 @@ class SkippedCodeFunctions : public ZoneAllocated {
   }
 
   void DetachCode() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     intptr_t unoptimized_code_count = 0;
     intptr_t current_code_count = 0;
     for (int i = 0; i < skipped_code_functions_.length(); i++) {
@@ -76,6 +79,7 @@ class SkippedCodeFunctions : public ZoneAllocated {
     }
     // Clean up.
     skipped_code_functions_.Clear();
+#endif  // !DART_PRECOMPILED_RUNTIME
   }
 
  private:

@@ -11,7 +11,7 @@ import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -40,16 +40,16 @@ class SsaSimplifyInterceptors extends HBaseVisitor
   final String name = "SsaSimplifyInterceptors";
   final ConstantSystem constantSystem;
   final Compiler compiler;
-  final CodegenWorkItem work;
+  final Element element;
   HGraph graph;
 
-  SsaSimplifyInterceptors(this.compiler, this.constantSystem, this.work);
+  SsaSimplifyInterceptors(this.compiler, this.constantSystem, this.element);
 
   JavaScriptBackend get backend => compiler.backend;
 
   BackendHelpers get helpers => backend.helpers;
 
-  ClassWorld get classWorld => compiler.world;
+  ClosedWorld get closedWorld => compiler.closedWorld;
 
   void visitGraph(HGraph graph) {
     this.graph = graph;
@@ -109,8 +109,8 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     // All intercepted classes extend `Interceptor`, so if the receiver can't be
     // a class extending `Interceptor` then it can be called directly.
-    return new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, classWorld)
-        .isDisjoint(receiver.instructionType, classWorld);
+    return new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld)
+        .isDisjoint(receiver.instructionType, closedWorld);
   }
 
   HInstruction tryComputeConstantInterceptor(
@@ -129,7 +129,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
 
     // If we just happen to be in an instance method of the constant
     // interceptor, `this` is a shorter alias.
-    if (constantInterceptor == work.element.enclosingClass &&
+    if (constantInterceptor == element.enclosingClass &&
         graph.thisInstruction != null) {
       return graph.thisInstruction;
     }
@@ -145,17 +145,17 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       if (type.isNull) {
         return helpers.jsNullClass;
       }
-    } else if (type.containsOnlyInt(classWorld)) {
+    } else if (type.containsOnlyInt(closedWorld)) {
       return helpers.jsIntClass;
-    } else if (type.containsOnlyDouble(classWorld)) {
+    } else if (type.containsOnlyDouble(closedWorld)) {
       return helpers.jsDoubleClass;
-    } else if (type.containsOnlyBool(classWorld)) {
+    } else if (type.containsOnlyBool(closedWorld)) {
       return helpers.jsBoolClass;
-    } else if (type.containsOnlyString(classWorld)) {
+    } else if (type.containsOnlyString(closedWorld)) {
       return helpers.jsStringClass;
-    } else if (type.satisfies(helpers.jsArrayClass, classWorld)) {
+    } else if (type.satisfies(helpers.jsArrayClass, closedWorld)) {
       return helpers.jsArrayClass;
-    } else if (type.containsOnlyNum(classWorld) &&
+    } else if (type.containsOnlyNum(closedWorld) &&
         !interceptedClasses.contains(helpers.jsIntClass) &&
         !interceptedClasses.contains(helpers.jsDoubleClass)) {
       // If the method being intercepted is not defined in [int] or [double] we
@@ -174,7 +174,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       // for a subclass or call methods defined on a subclass.  Provided the
       // code is completely insensitive to the specific instance subclasses, we
       // can use the non-leaf class directly.
-      ClassElement element = type.singleClass(classWorld);
+      ClassElement element = type.singleClass(closedWorld);
       if (element != null && backend.isNative(element)) {
         return element;
       }
@@ -300,12 +300,16 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       return false;
     }
 
+    // If it is a conditional constant interceptor and was not strengthened to a
+    // constant interceptor then there is nothing more we can do.
+    if (node.isConditionalConstantInterceptor) return false;
+
     // Do we have an 'almost constant' interceptor?  The receiver could be
     // `null` but not any other JavaScript falsy value, `null` values cause
     // `NoSuchMethodError`s, and if the receiver was not null we would have a
     // constant interceptor `C`.  Then we can use `(receiver && C)` for the
     // interceptor.
-    if (receiver.canBeNull() && !node.isConditionalConstantInterceptor) {
+    if (receiver.canBeNull()) {
       if (!interceptedClasses.contains(helpers.jsNullClass)) {
         // Can use `(receiver && C)` only if receiver is either null or truthy.
         if (!(receiver.canBePrimitiveNumber(compiler) ||

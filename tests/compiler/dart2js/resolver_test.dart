@@ -23,9 +23,8 @@ import 'parser_helper.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
-Node buildInitialization(String name) =>
-  parseBodyCode('$name = 1',
-      (parser, tokens) => parser.parseOptionallyInitializedIdentifier(tokens));
+Node buildInitialization(String name) => parseBodyCode('$name = 1',
+    (parser, tokens) => parser.parseOptionallyInitializedIdentifier(tokens));
 
 createLocals(List variables) {
   var locals = <Node>[];
@@ -64,39 +63,39 @@ Future testLocals(List variables) {
 
 main() {
   asyncTest(() => Future.forEach([
-    testLocalsOne,
-    testLocalsTwo,
-    testLocalsThree,
-    testLocalsFour,
-    testLocalsFive,
-    testParametersOne,
-    testFor,
-    testTypeAnnotation,
-    testSuperclass,
-    // testVarSuperclass, // The parser crashes with 'class Foo extends var'.
-    // testOneInterface, // Generates unexpected error message.
-    // testTwoInterfaces, // Generates unexpected error message.
-    testFunctionExpression,
-    testNewExpression,
-    testTopLevelFields,
-    testClassHierarchy,
-    testEnumDeclaration,
-    testInitializers,
-    testThis,
-    testSuperCalls,
-    testSwitch,
-    testTypeVariables,
-    testToString,
-    testIndexedOperator,
-    testIncrementsAndDecrements,
-    testOverrideHashCodeCheck,
-    testSupertypeOrder,
-    testConstConstructorAndNonFinalFields,
-    testCantAssignMethods,
-    testCantAssignFinalAndConsts,
-    testAwaitHint,
-    testConstantExpressions,
-  ], (f) => f()));
+        testLocalsOne,
+        testLocalsTwo,
+        testLocalsThree,
+        testLocalsFour,
+        testLocalsFive,
+        testParametersOne,
+        testFor,
+        testTypeAnnotation,
+        testSuperclass,
+        // testVarSuperclass, // The parser crashes with 'class Foo extends var'.
+        // testOneInterface, // Generates unexpected error message.
+        // testTwoInterfaces, // Generates unexpected error message.
+        testFunctionExpression,
+        testNewExpression,
+        testTopLevelFields,
+        testClassHierarchy,
+        testEnumDeclaration,
+        testInitializers,
+        testThis,
+        testSuperCalls,
+        testSwitch,
+        testTypeVariables,
+        testToString,
+        testIndexedOperator,
+        testIncrementsAndDecrements,
+        testOverrideHashCodeCheck,
+        testSupertypeOrder,
+        testConstConstructorAndNonFinalFields,
+        testCantAssignMethods,
+        testCantAssignFinalAndConsts,
+        testAwaitHint,
+        testConstantExpressions,
+      ], (f) => f()));
 }
 
 Future testSupertypeOrder() {
@@ -120,9 +119,9 @@ class C extends B implements L1 {}
       ClassElement classC = compiler.mainApp.find("C");
       Expect.equals('[ I2, I1, Object ]', classA.allSupertypes.toString());
       Expect.equals('[ A, J2, J1, I2, I1, K2, K1, Object ]',
-                    classB.allSupertypes.toString());
+          classB.allSupertypes.toString());
       Expect.equals('[ B, L1, A, J2, J1, I2, I1, K2, K1, Object ]',
-                    classC.allSupertypes.toString());
+          classC.allSupertypes.toString());
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""
@@ -135,8 +134,8 @@ class Bar extends Foo implements X<Bar> {}
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length);
       Expect.equals(1, collector.errors.length);
-      Expect.equals(MessageKind.MULTI_INHERITANCE,
-                    collector.errors.first.message.kind);
+      Expect.equals(
+          MessageKind.MULTI_INHERITANCE, collector.errors.first.message.kind);
       Expect.equals(0, collector.crashes.length);
     }),
   ]);
@@ -147,8 +146,8 @@ Future testTypeVariables() {
     VariableDefinitions definition = parseStatement(text);
     visitor.visit(definition.type);
     InterfaceType type = visitor.registry.mapping.getType(definition.type);
-    Expect.equals(definition.type.typeArguments.slowLength(),
-                  type.typeArguments.length);
+    Expect.equals(
+        definition.type.typeArguments.slowLength(), type.typeArguments.length);
     int index = 0;
     for (DartType argument in type.typeArguments) {
       Expect.equals(true, index < expectedElements.length);
@@ -164,22 +163,18 @@ Future testTypeVariables() {
       compiler.parseScript('class Foo<T, U> {}');
       ClassElement foo = compiler.mainApp.find('Foo');
       matchResolvedTypes(visitor, 'Foo<int, String> x;', 'Foo',
-                         [compiler.coreClasses.intClass,
-                          compiler.coreClasses.stringClass]);
-      matchResolvedTypes(visitor, 'Foo<Foo, Foo> x;', 'Foo',
-                         [foo, foo]);
+          [compiler.coreClasses.intClass, compiler.coreClasses.stringClass]);
+      matchResolvedTypes(visitor, 'Foo<Foo, Foo> x;', 'Foo', [foo, foo]);
     }),
-
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript('class Foo<T, U> {}');
       compiler.resolveStatement('Foo<notype, int> x;');
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(1, collector.warnings.length);
       Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
-                    collector.warnings.first.message.kind);
+          collector.warnings.first.message.kind);
       Expect.equals(0, collector.errors.length);
     }),
-
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript('class Foo<T, U> {}');
       compiler.resolveStatement('var x = new Foo<notype, int>();');
@@ -187,15 +182,14 @@ Future testTypeVariables() {
       Expect.equals(1, collector.warnings.length);
       Expect.equals(0, collector.errors.length);
       Expect.equals(MessageKind.CANNOT_RESOLVE_TYPE,
-                    collector.warnings.first.message.kind);
+          collector.warnings.first.message.kind);
     }),
-
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript('class Foo<T> {'
-                           '  Foo<T> t;'
-                           '  foo(Foo<T> f) {}'
-                           '  bar() { g(Foo<T> f) {}; g(); }'
-                           '}');
+          '  Foo<T> t;'
+          '  foo(Foo<T> f) {}'
+          '  bar() { g(Foo<T> f) {}; g(); }'
+          '}');
       ClassElement foo = compiler.mainApp.find('Foo');
       foo.ensureResolved(compiler.resolution);
       MemberElement tMember = foo.lookupLocalMember('t');
@@ -226,8 +220,7 @@ Future testSuperCalls() {
         compiler.resolution,
         fooB,
         new ResolutionRegistry(
-            compiler.backend,
-            new CollectingTreeElements(fooB)),
+            compiler.backend, new CollectingTreeElements(fooB)),
         scope: new MockTypeVariablesScope(classB.buildScope()));
     FunctionExpression node =
         (fooB as FunctionElementX).parseNode(compiler.parsingContext);
@@ -253,12 +246,12 @@ Future testSwitch() {
     Expect.equals(0, collector.warnings.length);
     Expect.equals(1, collector.errors.length);
     Expect.equals(MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL,
-                  collector.errors.first.message.kind);
+        collector.errors.first.message.kind);
     Expect.equals(2, collector.infos.length);
     Expect.equals(MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-                  collector.infos.first.message.kind);
+        collector.infos.first.message.kind);
     Expect.equals(MessageKind.SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
-                  collector.infos.elementAt(1).message.kind);
+        collector.infos.elementAt(1).message.kind);
   });
 }
 
@@ -290,7 +283,7 @@ Future testThis() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(1, collector.errors.length);
       Expect.equals(MessageKind.NO_INSTANCE_AVAILABLE,
-                    collector.errors.first.message.kind);
+          collector.errors.first.message.kind);
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("class Foo { static foo() { return this; } }");
@@ -310,37 +303,66 @@ Future testThis() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(1, collector.errors.length);
       Expect.equals(MessageKind.NO_INSTANCE_AVAILABLE,
-                    collector.errors.first.message.kind);
+          collector.errors.first.message.kind);
     }),
   ]);
 }
 
 Future testLocalsOne() {
   return Future.forEach([
-      () => testLocals([["foo", false]]),
-      () => testLocals([["foo", false], ["bar", false]]),
-      () => testLocals([["foo", false], ["bar", false], ["foobar", false]]),
-
-      () => testLocals([["foo", true]]),
-      () => testLocals([["foo", false], ["bar", true]]),
-      () => testLocals([["foo", true], ["bar", true]]),
-
-      () => testLocals([["foo", false], ["bar", false], ["foobar", true]]),
-      () => testLocals([["foo", false], ["bar", true], ["foobar", true]]),
-      () => testLocals([["foo", true], ["bar", true], ["foobar", true]]),
-
-      () => testLocals([["foo", false], ["foo", false]])
-          .then((MockCompiler compiler) {
-      DiagnosticCollector collector = compiler.diagnosticCollector;
-      Expect.equals(1, collector.errors.length);
-      Expect.equals(
-          new Message(
-              MessageTemplate.TEMPLATES[MessageKind.DUPLICATE_DEFINITION],
-              {'name': 'foo'}, false),
-          collector.errors.first.message);
-    })], (f) => f());
+    () => testLocals([
+          ["foo", false]
+        ]),
+    () => testLocals([
+          ["foo", false],
+          ["bar", false]
+        ]),
+    () => testLocals([
+          ["foo", false],
+          ["bar", false],
+          ["foobar", false]
+        ]),
+    () => testLocals([
+          ["foo", true]
+        ]),
+    () => testLocals([
+          ["foo", false],
+          ["bar", true]
+        ]),
+    () => testLocals([
+          ["foo", true],
+          ["bar", true]
+        ]),
+    () => testLocals([
+          ["foo", false],
+          ["bar", false],
+          ["foobar", true]
+        ]),
+    () => testLocals([
+          ["foo", false],
+          ["bar", true],
+          ["foobar", true]
+        ]),
+    () => testLocals([
+          ["foo", true],
+          ["bar", true],
+          ["foobar", true]
+        ]),
+    () => testLocals([
+          ["foo", false],
+          ["foo", false]
+        ]).then((MockCompiler compiler) {
+          DiagnosticCollector collector = compiler.diagnosticCollector;
+          Expect.equals(1, collector.errors.length);
+          Expect.equals(
+              new Message(
+                  MessageTemplate.TEMPLATES[MessageKind.DUPLICATE_DEFINITION],
+                  {'name': 'foo'},
+                  false),
+              collector.errors.first.message);
+        })
+  ], (f) => f());
 }
-
 
 Future testLocalsTwo() {
   return MockCompiler.create((MockCompiler compiler) {
@@ -400,20 +422,20 @@ Future testLocalsFive() {
     List statements1 = thenPart.statements.nodes.toList();
     Node def1 = statements1[0].definitions.nodes.head;
     Node id1 = statements1[1].expression;
-    Expect.equals(visitor.registry.mapping[def1],
-                  visitor.registry.mapping[id1]);
+    Expect.equals(
+        visitor.registry.mapping[def1], visitor.registry.mapping[id1]);
 
     Block elsePart = tree.elsePart;
     List statements2 = elsePart.statements.nodes.toList();
     Node def2 = statements2[0].definitions.nodes.head;
     Node id2 = statements2[1].expression;
-    Expect.equals(visitor.registry.mapping[def2],
-                  visitor.registry.mapping[id2]);
+    Expect.equals(
+        visitor.registry.mapping[def2], visitor.registry.mapping[id2]);
 
-    Expect.notEquals(visitor.registry.mapping[def1],
-                     visitor.registry.mapping[def2]);
-    Expect.notEquals(visitor.registry.mapping[id1],
-                     visitor.registry.mapping[id2]);
+    Expect.notEquals(
+        visitor.registry.mapping[def1], visitor.registry.mapping[def2]);
+    Expect.notEquals(
+        visitor.registry.mapping[id1], visitor.registry.mapping[id2]);
   });
 }
 
@@ -434,8 +456,8 @@ Future testParametersOne() {
     Return ret = body.statements.nodes.head;
     Send use = ret.expression;
     Expect.equals(ElementKind.PARAMETER, visitor.registry.mapping[use].kind);
-    Expect.equals(visitor.registry.mapping[param],
-                  visitor.registry.mapping[use]);
+    Expect.equals(
+        visitor.registry.mapping[param], visitor.registry.mapping[use]);
   });
 }
 
@@ -488,7 +510,7 @@ checkIdentifier(Element expected, Node node, Element actual) {
 
 checkSend(Element expected, Node node, Element actual) {
   Expect.isTrue(node is Send, node.toDebugString());
-  Expect.isTrue(node is !SendSet, node.toDebugString());
+  Expect.isTrue(node is! SendSet, node.toDebugString());
   Expect.equals(expected, actual);
 }
 
@@ -509,8 +531,7 @@ Future testTypeAnnotation() {
     Expect.equals(1, collector.warnings.length);
 
     Expect.equals(
-        new Message(
-            MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
+        new Message(MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
             {'typeName': 'Foo'}, false),
         collector.warnings.first.message);
     collector.clear();
@@ -537,7 +558,8 @@ Future testSuperclass() {
       Expect.equals(1, collector.errors.length);
       var cannotResolveBar = new Message(
           MessageTemplate.TEMPLATES[MessageKind.CANNOT_EXTEND_MALFORMED],
-          {'className': 'Foo', 'malformedType': 'Bar'}, false);
+          {'className': 'Foo', 'malformedType': 'Bar'},
+          false);
       Expect.equals(cannotResolveBar, collector.errors.first.message);
       collector.clear();
     }),
@@ -549,8 +571,8 @@ Future testSuperclass() {
 
       ClassElement fooElement = compiler.mainApp.find('Foo');
       ClassElement barElement = compiler.mainApp.find('Bar');
-      Expect.equals(barElement.computeType(compiler.resolution),
-                    fooElement.supertype);
+      Expect.equals(
+          barElement.computeType(compiler.resolution), fooElement.supertype);
       Expect.isTrue(fooElement.interfaces.isEmpty);
       Expect.isTrue(barElement.interfaces.isEmpty);
     }),
@@ -564,8 +586,7 @@ Future testVarSuperclass() {
     DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.equals(1, collector.errors.length);
     Expect.equals(
-        new Message(
-            MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
+        new Message(MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
             {'typeName': 'var'}, false),
         collector.errors.first.message);
     collector.clear();
@@ -579,8 +600,7 @@ Future testOneInterface() {
     DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.equals(1, collector.errors.length);
     Expect.equals(
-        new Message(
-            MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
+        new Message(MessageTemplate.TEMPLATES[MessageKind.CANNOT_RESOLVE_TYPE],
             {'typeName': 'bar'}, false),
         collector.errors.first.message);
     collector.clear();
@@ -593,8 +613,7 @@ Future testOneInterface() {
         compiler.resolution,
         null,
         new ResolutionRegistry(
-            compiler.backend,
-            new CollectingTreeElements(null)));
+            compiler.backend, new CollectingTreeElements(null)));
     compiler.resolveStatement("Foo bar;");
 
     ClassElement fooElement = compiler.mainApp.find('Foo');
@@ -604,15 +623,14 @@ Future testOneInterface() {
     Expect.isTrue(barElement.interfaces.isEmpty);
 
     Expect.equals(barElement.computeType(compiler.resolution),
-                  fooElement.interfaces.head);
+        fooElement.interfaces.head);
     Expect.equals(1, length(fooElement.interfaces));
   });
 }
 
 Future testTwoInterfaces() {
   return MockCompiler.create((MockCompiler compiler) {
-    compiler.parseScript(
-        """abstract class I1 {}
+    compiler.parseScript("""abstract class I1 {}
            abstract class I2 {}
            class C implements I1, I2 {}""");
     compiler.resolveStatement("Foo bar;");
@@ -695,13 +713,12 @@ Future testTopLevelFields() {
   });
 }
 
-Future resolveConstructor(
-    String script, String statement, String className,
+Future resolveConstructor(String script, String statement, String className,
     String constructor, int expectedElementCount,
     {List expectedWarnings: const [],
-     List expectedErrors: const [],
-     List expectedInfos: const [],
-     Map<String, String> corelib}) {
+    List expectedErrors: const [],
+    List expectedInfos: const [],
+    Map<String, String> corelib}) {
   MockCompiler compiler = new MockCompiler.internal(coreSource: corelib);
   return compiler.init().then((_) {
     compiler.parseScript(script);
@@ -714,8 +731,7 @@ Future resolveConstructor(
         compiler.resolution,
         element,
         new ResolutionRegistry(
-            compiler.backend,
-            new CollectingTreeElements(element)),
+            compiler.backend, new CollectingTreeElements(element)),
         scope: classElement.buildScope());
     new InitializerResolver(visitor, element, tree).resolveInitializers();
     visitor.visit(tree.body);
@@ -741,7 +757,7 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(1, collector.errors.length);
       Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
-                    collector.errors.first.message.kind);
+          collector.errors.first.message.kind);
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""class A extends B {}
@@ -753,9 +769,9 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(2, collector.errors.length);
       Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
-                    collector.errors.first.message.kind);
+          collector.errors.first.message.kind);
       Expect.equals(MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR,
-                    collector.errors.elementAt(1).message.kind);
+          collector.errors.elementAt(1).message.kind);
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""abstract class A extends B {}
@@ -768,7 +784,7 @@ Future testClassHierarchy() {
       Expect.equals(0, collector.warnings.length);
       Expect.equals(1, collector.errors.length);
       Expect.equals(MessageKind.CYCLIC_CLASS_HIERARCHY,
-                    collector.errors.first.message.kind);
+          collector.errors.first.message.kind);
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""class A extends B {}
@@ -783,7 +799,7 @@ Future testClassHierarchy() {
       ClassElement aElement = compiler.mainApp.find("A");
       Link<DartType> supertypes = aElement.allSupertypes;
       Expect.equals(<String>['B', 'C', 'Object'].toString(),
-                    asSortedStrings(supertypes).toString());
+          asSortedStrings(supertypes).toString());
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""class A<T> {}
@@ -800,9 +816,14 @@ Future testClassHierarchy() {
       ClassElement aElement = compiler.mainApp.find("C");
       Link<DartType> supertypes = aElement.allSupertypes;
       // Object is once per inheritance path, that is from both A and I.
-      Expect.equals(<String>['A<int>', 'B<bool, String>',
-                             'I<bool, List<String>>', 'Object'].toString(),
-                    asSortedStrings(supertypes).toString());
+      Expect.equals(
+          <String>[
+            'A<int>',
+            'B<bool, String>',
+            'I<bool, List<String>>',
+            'Object'
+          ].toString(),
+          asSortedStrings(supertypes).toString());
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""class A<T> {}
@@ -817,7 +838,7 @@ Future testClassHierarchy() {
       ClassElement aElement = compiler.mainApp.find("E");
       Link<DartType> supertypes = aElement.allSupertypes;
       Expect.equals(<String>['A<E>', 'D', 'Object'].toString(),
-                    asSortedStrings(supertypes).toString());
+          asSortedStrings(supertypes).toString());
     }),
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""class A<T> {}
@@ -828,8 +849,8 @@ Future testClassHierarchy() {
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length);
       Expect.equals(1, collector.errors.length);
-      Expect.equals(MessageKind.MULTI_INHERITANCE,
-                    collector.errors.first.message.kind);
+      Expect.equals(
+          MessageKind.MULTI_INHERITANCE, collector.errors.first.message.kind);
       Expect.equals(0, collector.crashes.length);
     }),
   ]);
@@ -845,11 +866,10 @@ Future testEnumDeclaration() {
       compiler.resolver.resolve(mainElement);
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length,
-                    'Unexpected warnings: ${collector.warnings}');
-      Expect.equals(1, collector.errors.length,
-                    'Unexpected errors: ${collector.errors}');
+          'Unexpected warnings: ${collector.warnings}');
+      Expect.equals(
+          1, collector.errors.length, 'Unexpected errors: ${collector.errors}');
     }),
-
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
                               main() { Enum e = Enum.A; }""");
@@ -857,11 +877,10 @@ Future testEnumDeclaration() {
       compiler.resolver.resolve(mainElement);
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length,
-                    'Unexpected warnings: ${collector.warnings}');
-      Expect.equals(0, collector.errors.length,
-                    'Unexpected errors: ${collector.errors}');
+          'Unexpected warnings: ${collector.warnings}');
+      Expect.equals(
+          0, collector.errors.length, 'Unexpected errors: ${collector.errors}');
     }),
-
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
                               main() { Enum e = Enum.B; }""");
@@ -869,13 +888,12 @@ Future testEnumDeclaration() {
       compiler.resolver.resolve(mainElement);
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(1, collector.warnings.length,
-                    'Unexpected warnings: ${collector.warnings}');
-      Expect.equals(MessageKind.UNDEFINED_GETTER,
-                    collector.warnings.first.message.kind);
-      Expect.equals(0, collector.errors.length,
-                    'Unexpected errors: ${collector.errors}');
+          'Unexpected warnings: ${collector.warnings}');
+      Expect.equals(
+          MessageKind.UNDEFINED_GETTER, collector.warnings.first.message.kind);
+      Expect.equals(
+          0, collector.errors.length, 'Unexpected errors: ${collector.errors}');
     }),
-
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
                               main() { List values = Enum.values; }""");
@@ -883,11 +901,10 @@ Future testEnumDeclaration() {
       compiler.resolver.resolve(mainElement);
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length,
-                    'Unexpected warnings: ${collector.warnings}');
-      Expect.equals(0, collector.errors.length,
-                    'Unexpected errors: ${collector.errors}');
+          'Unexpected warnings: ${collector.warnings}');
+      Expect.equals(
+          0, collector.errors.length, 'Unexpected errors: ${collector.errors}');
     }),
-
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
                               main() { new Enum(0, ''); }""");
@@ -895,13 +912,12 @@ Future testEnumDeclaration() {
       compiler.resolver.resolve(mainElement);
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length,
-                    'Unexpected warnings: ${collector.warnings}');
-      Expect.equals(1, collector.errors.length,
-                    'Unexpected errors: ${collector.errors}');
+          'Unexpected warnings: ${collector.warnings}');
+      Expect.equals(
+          1, collector.errors.length, 'Unexpected errors: ${collector.errors}');
       Expect.equals(MessageKind.CANNOT_INSTANTIATE_ENUM,
-                    collector.errors.first.message.kind);
+          collector.errors.first.message.kind);
     }),
-
     MockCompiler.create((MockCompiler compiler) {
       compiler.parseScript("""enum Enum { A }
                               main() { const Enum(0, ''); }""");
@@ -909,11 +925,11 @@ Future testEnumDeclaration() {
       compiler.resolver.resolve(mainElement);
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length,
-                    'Unexpected warnings: ${collector.warnings}');
-      Expect.equals(1, collector.errors.length,
-                    'Unexpected errors: ${collector.errors}');
+          'Unexpected warnings: ${collector.warnings}');
+      Expect.equals(
+          1, collector.errors.length, 'Unexpected errors: ${collector.errors}');
       Expect.equals(MessageKind.CANNOT_INSTANTIATE_ENUM,
-                    collector.errors.first.message.kind);
+          collector.errors.first.message.kind);
     }),
   ]);
 }
@@ -921,16 +937,14 @@ Future testEnumDeclaration() {
 Future testInitializers() {
   return Future.forEach([
     () {
-      String script =
-          """class A {
+      String script = """class A {
                     int foo; int bar;
                     A() : this.foo = 1, bar = 2;
                   }""";
       return resolveConstructor(script, "A a = new A();", "A", "", 2);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                int foo; A a;
                A() : a.foo = 1;
              }""";
@@ -939,8 +953,7 @@ Future testInitializers() {
           expectedErrors: [MessageKind.INVALID_RECEIVER_IN_INITIALIZER]);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                int foo;
                A() : this.foo = 1, this.foo = 2;
              }""";
@@ -949,17 +962,14 @@ Future testInitializers() {
           expectedErrors: [MessageKind.DUPLICATE_INITIALIZER]);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                A() : this.foo = 1;
              }""";
       return resolveConstructor(script, "A a = new A();", "A", "", 1,
-          expectedWarnings: [],
-          expectedErrors: [MessageKind.CANNOT_RESOLVE]);
+          expectedWarnings: [], expectedErrors: [MessageKind.CANNOT_RESOLVE]);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                int foo;
                int bar;
                A() : this.foo = bar;
@@ -969,8 +979,7 @@ Future testInitializers() {
           expectedErrors: [MessageKind.NO_INSTANCE_AVAILABLE]);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                int foo() => 42;
                A() : foo();
              }""";
@@ -979,8 +988,7 @@ Future testInitializers() {
           expectedErrors: [MessageKind.CONSTRUCTOR_CALL_EXPECTED]);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                int i;
                A.a() : this.b(0);
                A.b(int i);
@@ -988,20 +996,19 @@ Future testInitializers() {
       return resolveConstructor(script, "A a = new A.a();", "A", "a", 1);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                int i;
                A.a() : i = 42, this(0);
                A(int i);
              }""";
       return resolveConstructor(script, "A a = new A.a();", "A", "a", 2,
           expectedWarnings: [],
-          expectedErrors:
-              [MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER]);
+          expectedErrors: [
+            MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER
+          ]);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                int i;
                A(i);
              }
@@ -1011,8 +1018,7 @@ Future testInitializers() {
       return resolveConstructor(script, "B a = new B();", "B", "", 1);
     },
     () {
-      String script =
-          """class A {
+      String script = """class A {
                int i;
                A(i);
              }
@@ -1025,10 +1031,11 @@ Future testInitializers() {
     },
     () {
       String script = "";
-      final INVALID_OBJECT =
-          const { 'Object': 'class Object { Object() : super(); }' };
-      return resolveConstructor(script,
-          "Object o = new Object();", "Object", "", 1,
+      final INVALID_OBJECT = const {
+        'Object': 'class Object { Object() : super(); }'
+      };
+      return resolveConstructor(
+          script, "Object o = new Object();", "Object", "", 1,
           expectedWarnings: [],
           expectedErrors: [MessageKind.SUPER_INITIALIZER_IN_OBJECT],
           corelib: INVALID_OBJECT);
@@ -1064,12 +1071,24 @@ Future testConstantExpressions() {
     'const <int>[0, 1, 2]': const ['0', '1', '2', 'const <int>[0, 1, 2]'],
     'const {}': const ['const {}'],
     'const <String, int>{}': const ['const <String, int>{}'],
-    'const {"a": 0, "b": 1, "c": 2}':
-        const ['"a"', '0', '"b"', '1', '"c"', '2',
-               'const {"a": 0, "b": 1, "c": 2}'],
-    'const <String, int>{"a": 0, "b": 1, "c": 2}':
-        const ['"a"', '0', '"b"', '1', '"c"', '2',
-               'const <String, int>{"a": 0, "b": 1, "c": 2}'],
+    'const {"a": 0, "b": 1, "c": 2}': const [
+      '"a"',
+      '0',
+      '"b"',
+      '1',
+      '"c"',
+      '2',
+      'const {"a": 0, "b": 1, "c": 2}'
+    ],
+    'const <String, int>{"a": 0, "b": 1, "c": 2}': const [
+      '"a"',
+      '0',
+      '"b"',
+      '1',
+      '"c"',
+      '2',
+      'const <String, int>{"a": 0, "b": 1, "c": 2}'
+    ],
   };
   return Future.forEach(testedConstants.keys, (String constant) {
     return MockCompiler.create((MockCompiler compiler) {
@@ -1082,11 +1101,15 @@ Future testConstantExpressions() {
       List<ConstantExpression> constants = elements.constants;
       String constantsText =
           '[${constants.map((c) => c.toDartText()).join(', ')}]';
-      Expect.equals(expectedConstants.length, constants.length,
+      Expect.equals(
+          expectedConstants.length,
+          constants.length,
           "Expected ${expectedConstants.length} constants for `${constant}` "
           "found $constantsText.");
       for (int index = 0; index < expectedConstants.length; index++) {
-        Expect.equals(expectedConstants[index], constants[index].toDartText(),
+        Expect.equals(
+            expectedConstants[index],
+            constants[index].toDartText(),
             "Expected ${expectedConstants} for `$constant`, "
             "found $constantsText.");
       }
@@ -1121,15 +1144,14 @@ checkMemberResolved(compiler, className, memberName) {
   ClassElement cls = findElement(compiler, className);
   Element memberElement = cls.lookupLocalMember(memberName);
   Expect.isNotNull(memberElement);
-  Expect.isTrue(
-      compiler.enqueuer.resolution.hasBeenProcessed(memberElement));
+  Expect.isTrue(compiler.enqueuer.resolution.hasBeenProcessed(memberElement));
 }
 
 testToString() {
   final script = r"class C { toString() => 'C'; } main() { '${new C()}'; }";
   asyncTest(() => compileScript(script).then((compiler) {
-    checkMemberResolved(compiler, 'C', 'toString');
-  }));
+        checkMemberResolved(compiler, 'C', 'toString');
+      }));
 }
 
 operatorName(op, isUnary) {
@@ -1144,9 +1166,9 @@ testIndexedOperator() {
       }
       main() { var c = new C(); c[0]++; }""";
   asyncTest(() => compileScript(script).then((compiler) {
-    checkMemberResolved(compiler, 'C', operatorName('[]', false));
-    checkMemberResolved(compiler, 'C', operatorName('[]=', false));
-  }));
+        checkMemberResolved(compiler, 'C', operatorName('[]', false));
+        checkMemberResolved(compiler, 'C', operatorName('[]=', false));
+      }));
 }
 
 testIncrementsAndDecrements() {
@@ -1166,11 +1188,11 @@ testIncrementsAndDecrements() {
         --d;
       }""";
   asyncTest(() => compileScript(script).then((compiler) {
-    checkMemberResolved(compiler, 'A', operatorName('+', false));
-    checkMemberResolved(compiler, 'B', operatorName('+', false));
-    checkMemberResolved(compiler, 'C', operatorName('-', false));
-    checkMemberResolved(compiler, 'D', operatorName('-', false));
-  }));
+        checkMemberResolved(compiler, 'A', operatorName('+', false));
+        checkMemberResolved(compiler, 'B', operatorName('+', false));
+        checkMemberResolved(compiler, 'C', operatorName('-', false));
+        checkMemberResolved(compiler, 'D', operatorName('-', false));
+      }));
 }
 
 testOverrideHashCodeCheck() {
@@ -1186,26 +1208,26 @@ testOverrideHashCodeCheck() {
         new A() == new B();
       }""";
   asyncTest(() => compileScript(script).then((compiler) {
-    DiagnosticCollector collector = compiler.diagnosticCollector;
-    Expect.equals(0, collector.warnings.length);
-    Expect.equals(0, collector.infos.length);
-    Expect.equals(1, collector.hints.length);
-    Expect.equals(MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
-                  collector.hints.first.message.kind);
-    Expect.equals(0, collector.errors.length);
-  }));
+        DiagnosticCollector collector = compiler.diagnosticCollector;
+        Expect.equals(0, collector.warnings.length);
+        Expect.equals(0, collector.infos.length);
+        Expect.equals(1, collector.hints.length);
+        Expect.equals(MessageKind.OVERRIDE_EQUALS_NOT_HASH_CODE,
+            collector.hints.first.message.kind);
+        Expect.equals(0, collector.errors.length);
+      }));
 }
 
 testConstConstructorAndNonFinalFields() {
   void expect(compiler, List errors, List infos) {
     DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.equals(errors.length, collector.errors.length);
-    for (int i = 0 ; i < errors.length ; i++) {
+    for (int i = 0; i < errors.length; i++) {
       Expect.equals(errors[i], collector.errors.elementAt(i).message.kind);
     }
     Expect.equals(0, collector.warnings.length);
     Expect.equals(infos.length, collector.infos.length);
-    for (int i = 0 ; i < infos.length ; i++) {
+    for (int i = 0; i < infos.length; i++) {
       Expect.equals(infos[i], collector.infos.elementAt(i).message.kind);
     }
   }
@@ -1219,10 +1241,9 @@ testConstConstructorAndNonFinalFields() {
         new A(0);
       }""";
   asyncTest(() => compileScript(script1).then((compiler) {
-    expect(compiler,
-           [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS],
-           [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD]);
-  }));
+        expect(compiler, [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS],
+            [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD]);
+      }));
 
   final script2 = r"""
       class A {
@@ -1235,41 +1256,52 @@ testConstConstructorAndNonFinalFields() {
         new A(0, 1);
       }""";
   asyncTest(() => compileScript(script2).then((compiler) {
-    expect(compiler,
-        [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS],
-        [MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
-         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
-         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
-         MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD]);
-  }));
+        expect(compiler, [
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS
+        ], [
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
+          MessageKind.CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD
+        ]);
+      }));
 }
 
 testCantAssignMethods() {
   // Can't override local functions
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() {
         mname() { mname = 2; };
         mname();
       }
-      ''', [MessageKind.ASSIGNING_METHOD]);
+      ''',
+      [MessageKind.ASSIGNING_METHOD]);
 
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() {
         mname() { };
         mname = 3;
       }
-      ''', [MessageKind.ASSIGNING_METHOD]);
+      ''',
+      [MessageKind.ASSIGNING_METHOD]);
 
   // Can't override top-level functions
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       m() {}
       main() { m = 4; }
-      ''', [MessageKind.ASSIGNING_METHOD,
-            // TODO(johnniwinther): Avoid duplicate warnings.
-            MessageKind.NOT_ASSIGNABLE]);
+      ''',
+      [
+        MessageKind.ASSIGNING_METHOD,
+        // TODO(johnniwinther): Avoid duplicate warnings.
+        MessageKind.NOT_ASSIGNABLE
+      ]);
 
   // Can't override instance methods
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() { new B().bar(); }
       class B {
         mname() {}
@@ -1277,8 +1309,10 @@ testCantAssignMethods() {
           mname = () => null;
         }
       }
-      ''', [MessageKind.UNDEFINED_SETTER]);
-  checkWarningOn('''
+      ''',
+      [MessageKind.UNDEFINED_SETTER]);
+  checkWarningOn(
+      '''
       main() { new B().bar(); }
       class B {
         mname() {}
@@ -1286,10 +1320,12 @@ testCantAssignMethods() {
           this.mname = () => null;
         }
       }
-      ''', [MessageKind.UNDEFINED_SETTER]);
+      ''',
+      [MessageKind.UNDEFINED_SETTER]);
 
   // Can't override super methods
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() { new B().bar(); }
       class A {
         mname() {}
@@ -1299,12 +1335,16 @@ testCantAssignMethods() {
           super.mname = () => 6;
         }
       }
-      ''', [MessageKind.ASSIGNING_METHOD_IN_SUPER,
-            // TODO(johnniwinther): Avoid duplicate warnings.
-            MessageKind.UNDEFINED_SETTER]);
+      ''',
+      [
+        MessageKind.ASSIGNING_METHOD_IN_SUPER,
+        // TODO(johnniwinther): Avoid duplicate warnings.
+        MessageKind.UNDEFINED_SETTER
+      ]);
 
   // But index operators should be OK
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() { new B().bar(); }
       class B {
         operator[]=(x, y) {}
@@ -1312,8 +1352,10 @@ testCantAssignMethods() {
           this[1] = 3; // This is OK
         }
       }
-      ''', []);
-  checkWarningOn('''
+      ''',
+      []);
+  checkWarningOn(
+      '''
       main() { new B().bar(); }
       class A {
         operator[]=(x, y) {}
@@ -1323,53 +1365,67 @@ testCantAssignMethods() {
           super[1] = 3; // This is OK
         }
       }
-      ''', []);
+      ''',
+      []);
 }
 
 testCantAssignFinalAndConsts() {
   // Can't write final or const locals.
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() {
         final x = 1;
         x = 2;
       }
-      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
-  checkWarningOn('''
+      ''',
+      [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
+  checkWarningOn(
+      '''
       main() {
         const x = 1;
         x = 2;
       }
-      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
-  checkWarningOn('''
+      ''',
+      [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
+  checkWarningOn(
+      '''
       final x = 1;
       main() { x = 3; }
-      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
+      ''',
+      [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
 
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       const x = 1;
       main() { x = 3; }
-      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
+      ''',
+      [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
 
   // Detect assignments to final fields:
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() => new B().m();
       class B {
         final x = 1;
         m() { x = 2; }
       }
-      ''', [MessageKind.UNDEFINED_SETTER]);
+      ''',
+      [MessageKind.UNDEFINED_SETTER]);
 
   // ... even if 'this' is explicit:
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() => new B().m();
       class B {
         final x = 1;
         m() { this.x = 2; }
       }
-      ''', [MessageKind.UNDEFINED_SETTER]);
+      ''',
+      [MessageKind.UNDEFINED_SETTER]);
 
   // ... and in super class:
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() => new B().m();
       class A {
         final x = 1;
@@ -1377,12 +1433,16 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''', [MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
-            // TODO(johnniwinther): Avoid duplicate warnings.
-            MessageKind.UNDEFINED_SETTER]);
+      ''',
+      [
+        MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
+        // TODO(johnniwinther): Avoid duplicate warnings.
+        MessageKind.UNDEFINED_SETTER
+      ]);
 
   // But non-final fields are OK:
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() => new B().m();
       class A {
         int x = 1;
@@ -1390,10 +1450,12 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''', []);
+      ''',
+      []);
 
   // Check getter without setter.
-  checkWarningOn('''
+  checkWarningOn(
+      '''
       main() => new B().m();
       class A {
         get x => 1;
@@ -1401,25 +1463,31 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''', [MessageKind.UNDEFINED_SUPER_SETTER,
-            // TODO(johnniwinther): Avoid duplicate warnings.
-            MessageKind.UNDEFINED_SETTER]);
+      ''',
+      [
+        MessageKind.UNDEFINED_SUPER_SETTER,
+        // TODO(johnniwinther): Avoid duplicate warnings.
+        MessageKind.UNDEFINED_SETTER
+      ]);
 }
 
 /// Helper to test that [script] produces all the given [warnings].
 checkWarningOn(String script, List<MessageKind> warnings) {
   Expect.isTrue(warnings.length >= 0 && warnings.length <= 2);
   asyncTest(() => compileScript(script).then((compiler) {
-    DiagnosticCollector collector = compiler.diagnosticCollector;
-    Expect.equals(0, collector.errors.length,
-        'Unexpected errors in\n$script\n${collector.errors}');
-    Expect.equals(warnings.length, collector.warnings.length,
-        'Unexpected warnings in\n$script\n'
-        'Expected:$warnings\nFound:${collector.warnings}');
-    for (int i = 0; i < warnings.length; i++) {
-      Expect.equals(warnings[i], collector.warnings.elementAt(i).message.kind);
-    }
-  }));
+        DiagnosticCollector collector = compiler.diagnosticCollector;
+        Expect.equals(0, collector.errors.length,
+            'Unexpected errors in\n$script\n${collector.errors}');
+        Expect.equals(
+            warnings.length,
+            collector.warnings.length,
+            'Unexpected warnings in\n$script\n'
+            'Expected:$warnings\nFound:${collector.warnings}');
+        for (int i = 0; i < warnings.length; i++) {
+          Expect.equals(
+              warnings[i], collector.warnings.elementAt(i).message.kind);
+        }
+      }));
 }
 
 testAwaitHint() {
@@ -1427,36 +1495,45 @@ testAwaitHint() {
     var prefix = className == null
         ? "Cannot resolve 'await'"
         : "No member named 'await' in class '$className'";
-    var where = functionName == null
-        ? 'the enclosing function' : "'$functionName'";
+    var where =
+        functionName == null ? 'the enclosing function' : "'$functionName'";
     asyncTest(() => compileScript(script).then((compiler) {
-      DiagnosticCollector collector = compiler.diagnosticCollector;
-      Expect.equals(0, collector.errors.length);
-      Expect.equals(1, collector.warnings.length);
-      Expect.equals("$prefix.\n"
-          "Did you mean to add the 'async' marker to $where?",
-          '${collector.warnings.first.message}');
-    }));
+          DiagnosticCollector collector = compiler.diagnosticCollector;
+          Expect.equals(0, collector.errors.length);
+          Expect.equals(1, collector.warnings.length);
+          Expect.equals(
+              "$prefix.\n"
+              "Did you mean to add the 'async' marker to $where?",
+              '${collector.warnings.first.message}');
+        }));
   }
+
   check('main() { await -3; }', functionName: 'main');
   check('main() { () => await -3; }');
   check('foo() => await -3; main() => foo();', functionName: 'foo');
-  check('''
+  check(
+      '''
     class A {
       m() => await - 3;
     }
     main() => new A().m();
-  ''', className: 'A', functionName: 'm');
-  check('''
+  ''',
+      className: 'A',
+      functionName: 'm');
+  check(
+      '''
     class A {
       static m() => await - 3;
     }
     main() => A.m();
-  ''', functionName: 'm');
-  check('''
+  ''',
+      functionName: 'm');
+  check(
+      '''
     class A {
       m() => () => await - 3;
     }
     main() => new A().m();
-  ''', className: 'A');
+  ''',
+      className: 'A');
 }

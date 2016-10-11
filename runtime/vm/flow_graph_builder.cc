@@ -2656,30 +2656,6 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 }
 
 
-static bool IsNativeListFactory(const Function& function) {
-  switch (function.recognized_kind()) {
-    case MethodRecognizer::kTypedData_Int8Array_factory:
-    case MethodRecognizer::kTypedData_Uint8Array_factory:
-    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
-    case MethodRecognizer::kTypedData_Int16Array_factory:
-    case MethodRecognizer::kTypedData_Uint16Array_factory:
-    case MethodRecognizer::kTypedData_Int32Array_factory:
-    case MethodRecognizer::kTypedData_Uint32Array_factory:
-    case MethodRecognizer::kTypedData_Int64Array_factory:
-    case MethodRecognizer::kTypedData_Uint64Array_factory:
-    case MethodRecognizer::kTypedData_Float32Array_factory:
-    case MethodRecognizer::kTypedData_Float64Array_factory:
-    case MethodRecognizer::kTypedData_Float32x4Array_factory:
-    case MethodRecognizer::kTypedData_Int32x4Array_factory:
-    case MethodRecognizer::kTypedData_Float64x2Array_factory:
-      return true;
-    default:
-      break;
-  }
-  return false;
-}
-
-
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
@@ -2692,9 +2668,6 @@ void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
                              node->arguments()->names(),
                              arguments,
                              owner()->ic_data_array());
-  if (node->function().is_native() && IsNativeListFactory(node->function())) {
-    call->set_is_native_list_factory(true);
-  }
   if (node->function().recognized_kind() != MethodRecognizer::kUnknown) {
     call->set_result_cid(MethodRecognizer::ResultCid(node->function()));
   }
@@ -3613,10 +3586,14 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   // call. Exception: don't do this when assigning to or from internal
   // variables, or for generated code that has no source position.
   if (FLAG_support_debugger) {
-    if ((node->value()->IsLiteralNode() ||
-        (node->value()->IsLoadLocalNode() &&
-            !node->value()->AsLoadLocalNode()->local().IsInternal()) ||
-        node->value()->IsClosureNode()) &&
+    AstNode* rhs = node->value();
+    if (rhs->IsAssignableNode()) {
+      rhs = rhs->AsAssignableNode()->expr();
+    }
+    if ((rhs->IsLiteralNode() ||
+         (rhs->IsLoadLocalNode() &&
+          !rhs->AsLoadLocalNode()->local().IsInternal()) ||
+         rhs->IsClosureNode()) &&
         !node->local().IsInternal() &&
         node->token_pos().IsDebugPause()) {
       AddInstruction(new(Z) DebugStepCheckInstr(
@@ -3731,6 +3708,23 @@ Definition* EffectGraphVisitor::BuildStoreStaticField(
     StoreStaticFieldNode* node,
     bool result_is_needed,
     TokenPosition token_pos) {
+  if (FLAG_support_debugger) {
+    // If the right hand side is an expression that does not contain
+    // a safe point for the debugger to stop, add an explicit stub
+    // call.
+    AstNode* rhs = node->value();
+    if (rhs->IsAssignableNode()) {
+      rhs = rhs->AsAssignableNode()->expr();
+    }
+    if ((rhs->IsLiteralNode() ||
+         rhs->IsLoadLocalNode() ||
+         rhs->IsClosureNode()) &&
+         node->token_pos().IsDebugPause()) {
+      AddInstruction(new(Z) DebugStepCheckInstr(
+          node->token_pos(), RawPcDescriptors::kRuntimeCall));
+    }
+  }
+
   ValueGraphVisitor for_value(owner());
   node->value()->Visit(&for_value);
   Append(for_value);
@@ -4252,6 +4246,24 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
 
 void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   InlineBailout("EffectGraphVisitor::VisitTryCatchNode (exception)");
+  CatchClauseNode* catch_block = node->catch_block();
+  SequenceNode* finally_block = node->finally_block();
+  if ((finally_block != NULL) && (finally_block->length() == 0)) {
+    SequenceNode* catch_sequence = catch_block->sequence();
+    if (catch_sequence->length() == 1) {
+      // Check for a single rethrow statement. This only matches the synthetic
+      // catch-clause generated for try-finally.
+      ThrowNode* throw_node = catch_sequence->NodeAt(0)->AsThrowNode();
+      if ((throw_node != NULL) && (throw_node->stacktrace() != NULL)) {
+        // Empty finally-block in a try-finally can be optimized away.
+        EffectGraphVisitor for_try(owner());
+        node->try_block()->Visit(&for_try);
+        Append(for_try);
+        return;
+      }
+    }
+  }
+
   const intptr_t original_handler_index = owner()->try_index();
   const intptr_t try_handler_index = node->try_index();
   ASSERT(try_handler_index != original_handler_index);
@@ -4281,9 +4293,6 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   // We are done generating code for the try block.
   owner()->set_try_index(original_handler_index);
 
-  CatchClauseNode* catch_block = node->catch_block();
-  SequenceNode* finally_block = node->finally_block();
-
   // If there is a finally block, it is the handler for code in the catch
   // block.
   const intptr_t catch_handler_index = (finally_block == NULL)
@@ -4312,7 +4321,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                   try_handler_index,
                                   catch_block->exception_var(),
                                   catch_block->stacktrace_var(),
-                                  catch_block->needs_stacktrace());
+                                  catch_block->needs_stacktrace(),
+                                  Thread::Current()->GetNextDeoptId());
   owner()->AddCatchEntry(catch_entry);
   AppendFragment(catch_entry, for_catch);
 
@@ -4358,7 +4368,8 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
                                     catch_handler_index,
                                     catch_block->exception_var(),
                                     catch_block->stacktrace_var(),
-                                    catch_block->needs_stacktrace());
+                                    catch_block->needs_stacktrace(),
+                                    Thread::Current()->GetNextDeoptId());
     owner()->AddCatchEntry(finally_entry);
     AppendFragment(finally_entry, for_finally);
   }
@@ -4589,10 +4600,12 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
                       FLAG_profile_vm);
   if (FLAG_support_ast_printer && FLAG_print_ast) {
     // Print the function ast before IL generation.
-    AstPrinter::PrintFunctionNodes(parsed_function());
+    AstPrinter ast_printer;
+    ast_printer.PrintFunctionNodes(parsed_function());
   }
   if (FLAG_support_ast_printer && FLAG_print_scopes) {
-    AstPrinter::PrintFunctionScope(parsed_function());
+    AstPrinter ast_printer;
+    ast_printer.PrintFunctionScope(parsed_function());
   }
   TargetEntryInstr* normal_entry =
       new(Z) TargetEntryInstr(AllocateBlockId(),

@@ -14,7 +14,6 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:path/path.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -41,6 +40,7 @@ main() {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
+    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -48,7 +48,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('', false, (_) => new MockSdk()),
+        new DartSdkManager('/', false, (_) => sdk),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
   });
@@ -250,7 +250,9 @@ testUpdateContent() {
     return helper.onAnalysisComplete.then((_) {
       Request request = new Request('0', ANALYSIS_UPDATE_CONTENT, {
         'files': {
-          helper.testFile: {TYPE: 'foo',}
+          helper.testFile: {
+            TYPE: 'foo',
+          }
         }
       });
       Response response = helper.handler.handleRequest(request);
@@ -382,40 +384,6 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
     }
   }
 
-  test_packageMapDependencies() async {
-    // Prepare a source file that has errors because it refers to an unknown
-    // package.
-    String pkgFile = '/packages/pkgA/libA.dart';
-    resourceProvider.newFile(
-        pkgFile,
-        '''
-library lib_a;
-class A {}
-''');
-    addTestFile('''
-import 'package:pkgA/libA.dart';
-f(A a) {
-}
-''');
-    String pkgDependency = posix.join(projectPath, 'package_dep');
-    resourceProvider.newFile(pkgDependency, 'contents');
-    packageMapProvider.dependencies.add(pkgDependency);
-    // Create project and wait for analysis
-    createProject();
-    await waitForTasksFinished();
-    expect(filesErrors[testFile], isNotEmpty);
-    // Add the package to the package map and tickle the package dependency.
-    packageMapProvider.packageMap = {
-      'pkgA': [resourceProvider.getResource('/packages/pkgA')]
-    };
-    resourceProvider.modifyFile(pkgDependency, 'new contents');
-    // Give the server time to notice the file has changed, then let
-    // analysis complete. There should now be no error.
-    await pumpEventQueue();
-    await waitForTasksFinished();
-    expect(filesErrors[testFile], isEmpty);
-  }
-
   test_setRoots_packages() {
     // prepare package
     String pkgFile = '/packages/pkgA/libA.dart';
@@ -425,9 +393,8 @@ f(A a) {
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] = [
-      resourceProvider.getResource('/packages/pkgA')
-    ];
+    resourceProvider.newFile(
+        '/project/.packages', 'pkgA:file:///packages/pkgA');
     addTestFile('''
 import 'package:pkgA/libA.dart';
 main(A a) {
@@ -468,6 +435,7 @@ class AnalysisTestHelper {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
+    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -475,7 +443,7 @@ class AnalysisTestHelper {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('', false, (_) => new MockSdk()),
+        new DartSdkManager('/', false, (_) => sdk),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
@@ -704,9 +672,8 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap = {
-      'pkgA': [(resourceProvider.newFolder('/packages/pkgA/lib'))]
-    };
+    resourceProvider.newFile(
+        '/project/.packages', 'pkgA:file:///packages/pkgA/lib');
     //
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -774,9 +741,7 @@ main() {
 library lib_a;
 class A {}
 ''');
-    packageMapProvider.packageMap = {
-      'pkgA': [(resourceProvider.newFolder('/packages/pkgA/lib'))]
-    };
+    resourceProvider.newFile('/project/.packages', 'pkgA:/packages/pkgA/lib');
     //
     addTestFile('// no "pkgA" reference');
     createProject();

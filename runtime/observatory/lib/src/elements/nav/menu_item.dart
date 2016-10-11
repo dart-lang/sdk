@@ -8,46 +8,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class NavMenuItemElement extends HtmlElement implements Renderable {
-  static final StyleElement _style = () {
-      var style = new StyleElement();
-      style.text = '''li.nav-menu-item {
-                        float: none;
-                        border-top: 1px solid #677;
-                        border-bottom: 1px solid #556; position: relative;
-                      }
-                      li.nav-menu-item:hover {
-                        background: #455;
-                      }
-                      li.nav-menu-item > a {
-                        display: block;
-                        padding: 12px 12px;
-                        color: white;
-                        text-decoration: none;
-                      }
-                      li.nav-menu-item > ul {
-                        display: none;
-                        position: absolute;
-                        top:0;
-                        left: 100%;
-                        list-style: none;
-                        padding: 0;
-                        margin-left: 0;
-                        width: auto;
-                        z-index: 1000;
-                        font: 400 16px \'Montserrat\', sans-serif;
-                        color: white;
-                        background: #567;
-                      }
-                      li.nav-menu-item > ul:after {
-                        content: ""; clear: both; display: block;
-                      }
-                      li.nav-menu-item:hover > ul {
-                        display: block;
-                      }''';
-      return style;
-  }();
-
-  static const tag = const Tag<NavMenuItemElement>('nav-menu-item-wrapped');
+  static const tag = const Tag<NavMenuItemElement>('nav-menu-item');
 
   RenderingScheduler _r;
 
@@ -55,16 +16,21 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
 
   String _label;
   String _link;
+  Iterable<Element> _content = const [];
 
   String get label => _label;
   String get link => _link;
-  
+  Iterable<Element> get content => _content;
+
   set label(String value) => _label = _r.checkAndReact(_label, value);
   set link(String value) => _link = _r.checkAndReact(_link, value);
+  set content(Iterable<Element> value) {
+    _content = value.toList();
+    _r.dirty();
+  }
 
-
-  factory NavMenuItemElement(String label, {String link,
-                             RenderingQueue queue}) {
+  factory NavMenuItemElement(String label,
+      {String link, RenderingQueue queue}) {
     assert(label != null);
     NavMenuItemElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
@@ -73,7 +39,7 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  NavMenuItemElement.created() : super.created() { createShadowRoot(); }
+  NavMenuItemElement.created() : super.created();
 
   @override
   void attached() {
@@ -85,21 +51,16 @@ class NavMenuItemElement extends HtmlElement implements Renderable {
   void detached() {
     super.detached();
     _r.disable(notify: true);
-    shadowRoot.children = [];
+    children = [];
   }
 
   void render() {
-    shadowRoot.children = [
-      _style.clone(true),
+    children = [
       new LIElement()
         ..classes = ['nav-menu-item']
         ..children = [
-          new AnchorElement(href: link)
-            ..text = label,
-          new UListElement()
-            ..children = [
-              new ContentElement()
-            ]
+          new AnchorElement(href: link)..text = label,
+          new UListElement()..children = _content
         ]
     ];
   }

@@ -1,9 +1,0 @@
-# The test runner logic depends on `package:yaml`, because it is not structured
-# as a pub package, we generated this file manually to contain all of yaml's
-# transitive dependencies.
-charcode:../third_party/pkg/charcode/lib/
-collection:../third_party/pkg/collection/lib/
-path:../third_party/pkg/path/lib/
-source_span:../third_party/pkg/source_span/lib/
-string_scanner:../third_party/pkg/string_scanner/lib/
-yaml:../third_party/pkg/yaml/lib/

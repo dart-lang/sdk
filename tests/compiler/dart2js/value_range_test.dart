@@ -16,7 +16,7 @@ const int ONE_ZERO_CHECK = 5;
 const int BELOW_ZERO_CHECK = 6;
 
 final List TESTS = [
-"""
+  """
 main() {
   var a = new List();
   var sum = 0;
@@ -26,9 +26,8 @@ main() {
   return sum;
 }
 """,
-REMOVED,
-
-"""
+  REMOVED,
+  """
 main(value) {
   var a = new List();
   var sum = 0;
@@ -38,9 +37,8 @@ main(value) {
   return sum;
 }
 """,
-ABOVE_ZERO,
-
-"""
+  ABOVE_ZERO,
+  """
 main(check) {
   // Make sure value is an int.
   var value = check ? 42 : 54;
@@ -52,89 +50,78 @@ main(check) {
   return sum;
 }
 """,
-REMOVED,
-
-"""
+  REMOVED,
+  """
 main() {
   var a = new List();
   return a[0];
 }
 """,
-KEPT,
-
-"""
+  KEPT,
+  """
 main() {
   var a = new List();
   return a.removeLast();
 }
 """,
-KEPT,
-
-"""
+  KEPT,
+  """
 main() {
   var a = new List(4);
   return a[0];
 }
 """,
-REMOVED,
-
-"""
+  REMOVED,
+  """
 main() {
   var a = new List(4);
   return a.removeLast();
 }
 """,
-REMOVED,
-
-"""
+  REMOVED,
+  """
 main(value) {
   var a = new List(value);
   return a[value];
 }
 """,
-KEPT,
-
-"""
+  KEPT,
+  """
 main(value) {
   var a = new List(1024);
   return a[1023 & value];
 }
 """,
-REMOVED,
-
-"""
+  REMOVED,
+  """
 main(value) {
   var a = new List(1024);
   return a[1024 & value];
 }
 """,
-ABOVE_ZERO,
-
-"""
+  ABOVE_ZERO,
+  """
 main(value) {
   var a = new List();
   return a[1];
 }
 """,
-ABOVE_ZERO,
-
-"""
+  ABOVE_ZERO,
+  """
 main(value, call) {
   var a = new List();
   return a[value] + call() + a[value];
 }
 """,
-ONE_ZERO_CHECK,
-
-"""
+  ONE_ZERO_CHECK,
+  """
 main(value) {
   var a = new List();
   return a[1] + a[0];
 }
 """,
-ONE_CHECK,
-
-"""
+  ONE_CHECK,
+  """
 main() {
   var a = new List();
   var sum = 0;
@@ -144,9 +131,8 @@ main() {
   return sum;
 }
 """,
-REMOVED,
-
-"""
+  REMOVED,
+  """
 main() {
   var a = new List();
   var sum = 0;
@@ -156,9 +142,8 @@ main() {
   return sum;
 }
 """,
-REMOVED,
-
-"""
+  REMOVED,
+  """
 main(value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
@@ -169,9 +154,8 @@ main(value) {
   return a[value];
 }
 """,
-REMOVED,
-
-"""
+  REMOVED,
+  """
 main(value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
@@ -184,8 +168,8 @@ main(value) {
   }
 }
 """,
-REMOVED,
-"""
+  REMOVED,
+  """
 main(value) {
   value = value is int ? value as int : 42;
   int sum = ~value;
@@ -196,8 +180,8 @@ main(value) {
   return a[value];
 }
 """,
-REMOVED,
-"""
+  REMOVED,
+  """
 main(value) {
   var a = new List(4);
   var sum = 0;
@@ -208,8 +192,8 @@ main(value) {
   return sum;
 }
 """,
-REMOVED,
-"""
+  REMOVED,
+  """
 main(value) {
   var a = new List(5);
   var sum = 0;
@@ -220,8 +204,8 @@ main(value) {
   return sum;
 }
 """,
-REMOVED,
-"""
+  REMOVED,
+  """
 main(value) {
   var a = new List(6);
   var sum = 0;
@@ -232,8 +216,8 @@ main(value) {
   return sum;
 }
 """,
-BELOW_ZERO_CHECK,
-"""
+  BELOW_ZERO_CHECK,
+  """
 main(value) {
   var a = new List(7);
   var sum = 0;
@@ -244,8 +228,8 @@ main(value) {
   return sum;
 }
 """,
-BELOW_ZERO_CHECK,
-"""
+  BELOW_ZERO_CHECK,
+  """
 main(value) {
   var a = new List(7);
   var sum = 0;
@@ -255,16 +239,14 @@ main(value) {
   return sum;
 }
 """,
-BELOW_ZERO_CHECK,
+  BELOW_ZERO_CHECK,
 ];
 
 // TODO(ahe): It would probably be better if this test used the real
 // core library sources, as its purpose is to detect failure to
 // optimize fixed-sized arrays.
 Future expect(String code, int kind) {
-  return compile(
-      code,
-      check: (String generated) {
+  return compile(code, check: (String generated) {
     switch (kind) {
       case REMOVED:
         Expect.isTrue(!generated.contains('ioore'));
@@ -304,7 +286,6 @@ Future expect(String code, int kind) {
     }
   });
 }
-
 
 main() {
   int i = 0;

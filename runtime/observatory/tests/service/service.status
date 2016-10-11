@@ -13,6 +13,11 @@ evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
 evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
 isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 
+# Debugger location tests are slow in debug mode.
+[ $mode == debug ]
+debugger_location_second_test: Pass, Slow
+debugger_location_test: Pass, Slow
+
 # Disable on simulators.
 [ $arch == simarm || $arch == simmips || $arch == simarm64 ]
 *: SkipSlow
@@ -24,10 +29,6 @@ isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign
-*: StaticWarning # https://github.com/dart-lang/observe/issues/85
-address_mapper_test: Pass # https://github.com/dart-lang/observe/issues/85
-command_test: Pass # https://github.com/dart-lang/observe/issues/85
-read_stream_test: Pass # https://github.com/dart-lang/observe/issues/85
 get_isolate_after_language_error_test: SkipByDesign
 
 [ $arch == arm ]
@@ -38,6 +39,7 @@ process_service_test: Pass, Fail # Issue 24344
 
 [ $runtime == vm ]
 coverage_test: Pass, Slow
+developer_extension_test: Pass, Fail # Issue 27225
 
 # Service protocol is not supported in product mode.
 [ $mode == product ]

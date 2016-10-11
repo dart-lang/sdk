@@ -9,10 +9,10 @@ import "package:expect/expect.dart";
 
 @Native("A")
 class A {
-  int delete() native;
+  int delete() native ;
 }
 
-A makeA() native;
+A makeA() native ;
 
 void setup() native """
 function A() {}
@@ -20,7 +20,6 @@ A.prototype.delete = function() { return 87; };
 
 makeA = function(){return new A;};
 """;
-
 
 main() {
   setup();

@@ -26,16 +26,17 @@ main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    String generated = compiler.assembledCode;
-    RegExp regexp = new RegExp(r"get\$foo");
-    Iterator matches = regexp.allMatches(generated).iterator;
-    checkNumberOfMatches(matches, 1);
-    var cls = findElement(compiler, 'A');
-    Expect.isNotNull(cls);
-    String name = 'foo';
-    var element = cls.lookupLocalMember(name);
-    Expect.isNotNull(element);
-    Selector selector = new Selector.getter(new PublicName(name));
-    Expect.isFalse(compiler.world.hasAnyUserDefinedGetter(selector, null));
-  }));
+        String generated = compiler.assembledCode;
+        RegExp regexp = new RegExp(r"get\$foo");
+        Iterator matches = regexp.allMatches(generated).iterator;
+        checkNumberOfMatches(matches, 1);
+        var cls = findElement(compiler, 'A');
+        Expect.isNotNull(cls);
+        String name = 'foo';
+        var element = cls.lookupLocalMember(name);
+        Expect.isNotNull(element);
+        Selector selector = new Selector.getter(new PublicName(name));
+        Expect.isFalse(
+            compiler.closedWorld.hasAnyUserDefinedGetter(selector, null));
+      }));
 }

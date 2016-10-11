@@ -6,8 +6,8 @@
 /// analysis options file.
 library analyzer.plugin.options;
 
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:plugin/plugin.dart';
 import 'package:yaml/yaml.dart';

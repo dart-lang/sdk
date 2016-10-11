@@ -19,6 +19,7 @@ void check2(String name, name1, f1, name2, f2) {
     }
     Expect.fail('should throw: $name.$part');
   }
+
   var e1 = trap(name1, f1);
   var e2 = trap(name2, f2);
   var s1 = '$e1';
@@ -53,12 +54,12 @@ class IntPlusNull {
   }
 
   static f5() {
-    var a = confuse(true) ? 1 : 2;  // Small int with unknown value.
+    var a = confuse(true) ? 1 : 2; // Small int with unknown value.
     return a + confuse(null);
   }
 
   static f6() {
-    var a = confuse(true) ? 1 : 2;  // Small int with unknown value.
+    var a = confuse(true) ? 1 : 2; // Small int with unknown value.
     return a + null;
   }
 
@@ -117,7 +118,7 @@ class IntPlusString {
   }
 
   static f3() {
-    var a = confuse(true) ? 1 : 2;  // Small int with unknown value.
+    var a = confuse(true) ? 1 : 2; // Small int with unknown value.
     return a + confuse('a');
   }
 
@@ -130,7 +131,7 @@ class IntPlusString {
   }
 
   static f6() {
-    var a = confuse(true) ? 1 : 2;  // Small int with unknown value.
+    var a = confuse(true) ? 1 : 2; // Small int with unknown value.
     return a + 'a';
   }
 

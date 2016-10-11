@@ -539,6 +539,10 @@ class Object {
     return unhandled_exception_class_;
   }
   static RawClass* unwind_error_class() { return unwind_error_class_; }
+  static RawClass* singletargetcache_class() {
+    return singletargetcache_class_;
+  }
+  static RawClass* unlinkedcall_class() { return unlinkedcall_class_; }
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* megamorphic_cache_class() {
     return megamorphic_cache_class_;
@@ -790,6 +794,8 @@ class Object {
   static RawClass* deopt_info_class_;  // Class of DeoptInfo.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
+  static RawClass* singletargetcache_class_;  // Class of SingleTargetCache.
+  static RawClass* unlinkedcall_class_;  // Class of UnlinkedCall.
   static RawClass* icdata_class_;  // Class of ICData.
   static RawClass* megamorphic_cache_class_;  // Class of MegamorphiCache.
   static RawClass* subtypetestcache_class_;  // Class of SubtypeTestCache.
@@ -1012,7 +1018,7 @@ class Class : public Object {
   intptr_t NumOwnTypeArguments() const;
 
   // Return true if this class declares type parameters.
-  bool IsGeneric() const;
+  bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
 
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
@@ -1820,6 +1826,59 @@ class PatchClass : public Object {
 };
 
 
+class SingleTargetCache : public Object {
+ public:
+  RawCode* target() const { return raw_ptr()->target_; }
+  void set_target(const Code& target) const;
+  static intptr_t target_offset() {
+    return OFFSET_OF(RawSingleTargetCache, target_);
+  }
+
+#define DEFINE_NON_POINTER_FIELD_ACCESSORS(type, name)                         \
+  type name() const { return raw_ptr()->name##_; }                             \
+  void set_##name(type value) const {                                          \
+    StoreNonPointer(&raw_ptr()->name##_, value);                               \
+  }                                                                            \
+  static intptr_t name##_offset() {                                            \
+    return OFFSET_OF(RawSingleTargetCache, name##_);                           \
+  }                                                                            \
+
+DEFINE_NON_POINTER_FIELD_ACCESSORS(uword, entry_point);
+DEFINE_NON_POINTER_FIELD_ACCESSORS(intptr_t, lower_limit);
+DEFINE_NON_POINTER_FIELD_ACCESSORS(intptr_t, upper_limit);
+#undef DEFINE_NON_POINTER_FIELD_ACCESSORS
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawSingleTargetCache));
+  }
+
+  static RawSingleTargetCache* New();
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache, Object);
+  friend class Class;
+};
+
+
+class UnlinkedCall : public Object {
+ public:
+  RawString* target_name() const { return raw_ptr()->target_name_; }
+  void set_target_name(const String& target_name) const;
+  RawArray* args_descriptor() const { return raw_ptr()->args_descriptor_; }
+  void set_args_descriptor(const Array& args_descriptor) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawUnlinkedCall));
+  }
+
+  static RawUnlinkedCall* New();
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall, Object);
+  friend class Class;
+};
+
+
 // Object holding information about an IC: test classes and their
 // corresponding targets. The owner of the ICData can be either the function
 // or the original ICData object. In case of background compilation we
@@ -1848,7 +1907,12 @@ class ICData : public Object {
   intptr_t NumArgsTested() const;
 
   intptr_t deopt_id() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return -1;
+#else
     return raw_ptr()->deopt_id_;
+#endif
   }
 
   bool IsImmutable() const;
@@ -2031,6 +2095,7 @@ class ICData : public Object {
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
   bool AllReceiversAreNumbers() const;
   bool HasOneTarget() const;
+  bool HasOnlyDispatcherTargets() const;
   bool HasReceiverClassId(intptr_t class_id) const;
 
   static RawICData* New(const Function& owner,
@@ -2066,11 +2131,7 @@ class ICData : public Object {
                              GrowableArray<intptr_t>* second) const;
 
   void PrintToJSONArray(const JSONArray& jsarray,
-                        TokenPosition token_pos,
-                        bool is_static_call) const;
-  void PrintToJSONArrayNew(const JSONArray& jsarray,
-                           TokenPosition token_pos,
-                           bool is_static_call) const;
+                        TokenPosition token_pos) const;
 
   // Initialize the preallocated empty ICData entry arrays.
   static void InitOnce();
@@ -2249,6 +2310,24 @@ class Function : public Object {
   RawArray* parameter_names() const { return raw_ptr()->parameter_names_; }
   void set_parameter_names(const Array& value) const;
 
+  // The type parameters (and their bounds) are specified as an array of
+  // TypeParameter.
+  RawTypeArguments* type_parameters() const {
+      return raw_ptr()->type_parameters_;
+  }
+  void set_type_parameters(const TypeArguments& value) const;
+  intptr_t NumTypeParameters(Thread* thread) const;
+
+  // Return a TypeParameter if the type_name is a type parameter of this
+  // function or of one of its parent functions.
+  // Unless NULL, adjust function_level accordingly (in and out parameter).
+  // Return null otherwise.
+  RawTypeParameter* LookupTypeParameter(const String& type_name,
+                                        intptr_t* function_level) const;
+
+  // Return true if this function declares type parameters.
+  bool IsGeneric() const { return NumTypeParameters(Thread::Current()) > 0; }
+
   // Not thread-safe; must be called in the main thread.
   // Sets function's code and code's function.
   void InstallOptimizedCode(const Code& code, bool is_osr) const;
@@ -2272,7 +2351,13 @@ class Function : public Object {
     return raw_ptr()->code_;
   }
 
-  RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
+  RawCode* unoptimized_code() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return static_cast<RawCode*>(Object::null());
+#else
+    return raw_ptr()->unoptimized_code_;
+#endif
+  }
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
 
@@ -2406,12 +2491,28 @@ class Function : public Object {
   }
   bool IsInFactoryScope() const;
 
-  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  TokenPosition token_pos() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return TokenPosition();
+#else
+    return raw_ptr()->token_pos_;
+#endif
+  }
   void set_token_pos(TokenPosition value) const;
 
-  TokenPosition end_token_pos() const { return raw_ptr()->end_token_pos_; }
+  TokenPosition end_token_pos() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return TokenPosition();
+#else
+    return raw_ptr()->end_token_pos_;
+#endif
+}
   void set_end_token_pos(TokenPosition value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     StoreNonPointer(&raw_ptr()->end_token_pos_, value);
+#endif
   }
 
   intptr_t num_fixed_parameters() const {
@@ -2449,48 +2550,86 @@ class Function : public Object {
   intptr_t NumImplicitParameters() const;
 
   static intptr_t usage_counter_offset() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return 0;
+#else
     return OFFSET_OF(RawFunction, usage_counter_);
+#endif
   }
   intptr_t usage_counter() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
     return raw_ptr()->usage_counter_;
+#endif
   }
   void set_usage_counter(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     // TODO(Srdjan): Assert that this is thread-safe, i.e., only
     // set from mutator-thread or while at a safepoint (e.g., during marking).
     StoreNonPointer(&raw_ptr()->usage_counter_, value);
+#endif
   }
 
   int8_t deoptimization_counter() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
     return raw_ptr()->deoptimization_counter_;
+#endif
   }
   void set_deoptimization_counter(int8_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     ASSERT(value >= 0);
     StoreNonPointer(&raw_ptr()->deoptimization_counter_, value);
+#endif
   }
 
   static const intptr_t kMaxInstructionCount = (1 << 16) - 1;
   intptr_t optimized_instruction_count() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return 0;
+#else
     return raw_ptr()->optimized_instruction_count_;
+#endif
   }
   void set_optimized_instruction_count(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     ASSERT(value >= 0);
     if (value > kMaxInstructionCount) {
       value = kMaxInstructionCount;
     }
     StoreNonPointer(&raw_ptr()->optimized_instruction_count_,
                     static_cast<uint16_t>(value));
+#endif
   }
 
   intptr_t optimized_call_site_count() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
     return raw_ptr()->optimized_call_site_count_;
+#endif
   }
   void set_optimized_call_site_count(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     ASSERT(value >= 0);
     if (value > kMaxInstructionCount) {
       value = kMaxInstructionCount;
     }
     StoreNonPointer(&raw_ptr()->optimized_call_site_count_,
                     static_cast<uint16_t>(value));
+#endif
   }
 
   bool IsOptimizable() const;
@@ -2750,9 +2889,20 @@ class Function : public Object {
   // VM instantiation. It is independent from presence of type feedback
   // (ic_data_array) and code, which may be loaded from a snapshot.
   void set_was_compiled(bool value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     StoreNonPointer(&raw_ptr()->was_compiled_, value ? 1 : 0);
+#endif
   }
-  bool was_compiled() const { return raw_ptr()->was_compiled_ == 1; }
+  bool was_compiled() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return true;
+#else
+    return raw_ptr()->was_compiled_ == 1;
+#endif
+  }
 
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.
@@ -3729,6 +3879,7 @@ class Library : public Object {
 
   // Eagerly compile all classes and functions in the library.
   static RawError* CompileAll();
+  static RawError* ParseAll(Thread* thread);
 
 #if defined(DART_NO_SNAPSHOT)
   // Checks function fingerprints. Prints mismatches and aborts if
@@ -4469,7 +4620,12 @@ class DeoptInfo : public AllStatic {
 class Code : public Object {
  public:
   RawInstructions* active_instructions() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return NULL;
+#else
     return raw_ptr()->active_instructions_;
+#endif
   }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
@@ -4537,12 +4693,20 @@ class Code : public Object {
   }
 
   RawCodeSourceMap* code_source_map() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return CodeSourceMap::null();
+#else
     return raw_ptr()->code_source_map_;
+#endif
   }
 
   void set_code_source_map(const CodeSourceMap& code_source_map) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     ASSERT(code_source_map.IsOld());
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
+#endif
   }
 
   // Used during reloading (see object_reload.cc). Calls Reset on all ICDatas
@@ -4553,7 +4717,12 @@ class Code : public Object {
 
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return NULL;
+#else
     return raw_ptr()->deopt_info_array_;
+#endif
   }
   void set_deopt_info_array(const Array& array) const;
 
@@ -4573,7 +4742,12 @@ class Code : public Object {
 
   void set_static_calls_target_table(const Array& value) const;
   RawArray* static_calls_target_table() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return NULL;
+#else
     return raw_ptr()->static_calls_target_table_;
+#endif
   }
 
   RawTypedData* GetDeoptInfoAtPc(uword pc,
@@ -4624,7 +4798,12 @@ class Code : public Object {
   void set_comments(const Comments& comments) const;
 
   RawObject* return_address_metadata() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return NULL;
+#else
     return raw_ptr()->return_address_metadata_;
+#endif
   }
   // Sets |return_address_metadata|.
   void SetPrologueOffset(intptr_t offset) const;
@@ -4659,11 +4838,20 @@ class Code : public Object {
   void DumpInlinedIntervals() const;
 
   RawLocalVarDescriptors* var_descriptors() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+    return NULL;
+#else
     return raw_ptr()->var_descriptors_;
+#endif
   }
   void set_var_descriptors(const LocalVarDescriptors& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     ASSERT(value.IsOld());
     StorePointer(&raw_ptr()->var_descriptors_, value.raw());
+#endif
   }
 
   // Will compute local var descriptors is necessary.
@@ -4734,24 +4922,51 @@ class Code : public Object {
     kInvalidPc = -1
   };
 
-  uword GetLazyDeoptPc() const;
+  uword GetLazyDeoptReturnPc() const;
+  uword GetLazyDeoptThrowPc() const;
 
   // Find pc, return 0 if not found.
   uword GetPcForDeoptId(intptr_t deopt_id, RawPcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
-  RawString* Name() const;
-  RawString* QualifiedName() const;
+  const char* Name() const;
+  const char* QualifiedName() const;
 
   int64_t compile_timestamp() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
     return raw_ptr()->compile_timestamp_;
+#endif
   }
 
-  intptr_t lazy_deopt_pc_offset() const {
-    return raw_ptr()->lazy_deopt_pc_offset_;
+  intptr_t lazy_deopt_return_pc_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    return raw_ptr()->lazy_deopt_return_pc_offset_;
+#endif
   }
-  void set_lazy_deopt_pc_offset(intptr_t pc) const {
-    StoreNonPointer(&raw_ptr()->lazy_deopt_pc_offset_, pc);
+  void set_lazy_deopt_return_pc_offset(intptr_t pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    StoreNonPointer(&raw_ptr()->lazy_deopt_return_pc_offset_, pc);
+#endif
+  }
+  intptr_t lazy_deopt_throw_pc_offset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return 0;
+#else
+    return raw_ptr()->lazy_deopt_throw_pc_offset_;
+#endif
+  }
+  void set_lazy_deopt_throw_pc_offset(intptr_t pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
+    StoreNonPointer(&raw_ptr()->lazy_deopt_throw_pc_offset_, pc);
+#endif
   }
 
   bool IsAllocationStubCode() const;
@@ -4815,7 +5030,11 @@ class Code : public Object {
   static const intptr_t kEntrySize = sizeof(int32_t);  // NOLINT
 
   void set_compile_timestamp(int64_t timestamp) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    UNREACHABLE();
+#else
     StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);
+#endif
   }
 
   void SetActiveInstructions(RawInstructions* instructions) const;
@@ -5045,6 +5264,7 @@ class MegamorphicCache : public Object {
  private:
   friend class Class;
   friend class MegamorphicCacheTable;
+  friend class Precompiler;
 
   static RawMegamorphicCache* New();
 
@@ -5184,6 +5404,8 @@ class LanguageError : public Error {
 
   virtual const char* ToErrorCString() const;
 
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+
  private:
   RawError* previous_error() const {
     return raw_ptr()->previous_error_;
@@ -5193,7 +5415,6 @@ class LanguageError : public Error {
   RawScript* script() const { return raw_ptr()->script_; }
   void set_script(const Script& value) const;
 
-  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   void set_token_pos(TokenPosition value) const;
 
   bool report_after_token() const { return raw_ptr()->report_after_token_; }
@@ -5600,10 +5821,6 @@ class AbstractType : public Instance {
     return BuildName(kUserVisibleName);
   }
 
-  // Same as user visible name, but including the URI of each occuring type.
-  // Used to report errors involving types with identical names.
-  virtual RawString* UserVisibleNameWithURI() const;
-
   // Returns a formatted list of occuring types with their URI.
   virtual RawString* EnumerateURIs() const;
 
@@ -5940,9 +6157,19 @@ class TypeParameter : public AbstractType {
   virtual bool HasResolvedTypeClass() const { return false; }
   classid_t parameterized_class_id() const;
   RawClass* parameterized_class() const;
+  RawFunction* parameterized_function() const {
+    return raw_ptr()->parameterized_function_;
+  }
+  bool IsClassTypeParameter() const {
+    return parameterized_class_id() != kIllegalCid;
+  }
+  bool IsFunctionTypeParameter() const {
+    return parameterized_function() != Function::null();
+  }
   RawString* name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
+  intptr_t parent_level() const { return raw_ptr()->parent_level_; }
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
   void set_bound(const AbstractType& value) const;
   // Returns true if bounded_type is below upper_bound, otherwise return false
@@ -5986,7 +6213,9 @@ class TypeParameter : public AbstractType {
     return RoundedAllocationSize(sizeof(RawTypeParameter));
   }
 
+  // Only one of parameterized_class and parameterized_function is non-null.
   static RawTypeParameter* New(const Class& parameterized_class,
+                               const Function& parameterized_function,
                                intptr_t index,
                                const String& name,
                                const AbstractType& bound,
@@ -5997,8 +6226,10 @@ class TypeParameter : public AbstractType {
   void SetHash(intptr_t value) const;
 
   void set_parameterized_class(const Class& value) const;
+  void set_parameterized_function(const Function& value) const;
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
+  void set_parent_level(uint8_t value) const;
   void set_type_state(int8_t state) const;
 
   static RawTypeParameter* New();
@@ -6680,7 +6911,7 @@ class String : public Instance {
   // an Array object or a regular Object so that it can be traversed during
   // garbage collection.
   RawString* MakeExternal(void* array,
-                          intptr_t length,
+                          intptr_t external_size,
                           void* peer,
                           Dart_PeerFinalizer cback) const;
 
@@ -6745,7 +6976,7 @@ class String : public Instance {
   static RawString* EscapeSpecialCharacters(const String& str);
   // Encodes 'str' for use in an Internationalized Resource Identifier (IRI),
   // a generalization of URI (percent-encoding). See RFC 3987.
-  static RawString* EncodeIRI(const String& str);
+  static const char* EncodeIRI(const String& str);
   // Returns null if 'str' is not a valid encoding.
   static RawString* DecodeIRI(const String& str);
   static RawString* Concat(const String& str1,
@@ -6936,6 +7167,7 @@ class OneByteString : public AllStatic {
                                               Heap::Space space);
 
   static void SetPeer(const String& str,
+                      intptr_t external_size,
                       void* peer,
                       Dart_PeerFinalizer cback);
 
@@ -7051,6 +7283,7 @@ class TwoByteString : public AllStatic {
                                      Heap::Space space);
 
   static void SetPeer(const String& str,
+                      intptr_t external_size,
                       void* peer,
                       Dart_PeerFinalizer cback);
 
@@ -7896,7 +8129,9 @@ class ExternalTypedData : public Instance {
 #undef TYPED_GETTER_SETTER
 
   FinalizablePersistentHandle* AddFinalizer(
-      void* peer, Dart_WeakPersistentHandleFinalizer callback) const;
+      void* peer,
+      Dart_WeakPersistentHandleFinalizer callback,
+      intptr_t external_size) const;
 
   static intptr_t length_offset() {
     return OFFSET_OF(RawExternalTypedData, length_);

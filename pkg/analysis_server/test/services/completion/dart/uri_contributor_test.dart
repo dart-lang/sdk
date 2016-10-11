@@ -96,6 +96,15 @@ class UriContributorTest extends DartCompletionContributorTest {
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_import3() async {
+    addTestSource('import "^ import');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 7);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
   test_import_dart() async {
     addTestSource('import "d^" import');
     await computeSuggestions();
@@ -316,6 +325,58 @@ class UriContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  test_import_without_any_quotes() async {
+    addTestSource('import ^ import');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNoSuggestions();
+  }
+
+  test_import_without_any_quotes_eof() async {
+    addTestSource('import ^');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertNoSuggestions();
+  }
+
+  test_import_without_closing_quote_eof() async {
+    addTestSource('import "^');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  test_import_without_closing_quote_eof2() async {
+    addTestSource('import "^d');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 1);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  test_import_without_closing_quote_eof3() async {
+    addTestSource('import "d^');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
+    assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
+    assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
+  }
+
+  test_import_without_closing_quote_eof4() async {
+    addTestSource('import "d^"');
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset - 1);
+    expect(replacementLength, 1);
     assertSuggest('dart:', csKind: CompletionSuggestionKind.IMPORT);
     assertSuggest('package:', csKind: CompletionSuggestionKind.IMPORT);
   }

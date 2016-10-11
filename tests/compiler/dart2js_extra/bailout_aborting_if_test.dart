@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-bar() => {'bar' : 21};
+bar() => {'bar': 21};
 foo() => 'bar';
 
 main() {

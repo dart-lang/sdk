@@ -6,13 +6,13 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.16.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.17.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
       development.  Changes to the API will be accompanied by an update to the
       protocol version number according to the principles of semantic
-      versioning <a href="http://semver.org/">http://semver.org/</a>.
+      versioning (<a href="http://semver.org/">semver.org</a>).
     </p>
     <h2>Overview</h2>
     <p>
@@ -118,7 +118,7 @@
     </p>
     <h3>Eventual Consistency</h3>
     <p>
-      TBD
+      TODO: TBD
     </p>
     <h3>Domains</h3>
     <p>
@@ -242,6 +242,10 @@
          <field name="pid">
            <ref>int</ref>
            <p>The process id of the analysis server process.</p>
+         </field>
+         <field name="sessionId" optional="true">
+           <ref>String</ref>
+           <p>The session id for this session.</p>
          </field>
         </params>
       </notification>
@@ -422,7 +426,7 @@
           <field name="sources">
             <map>
               <key><ref>String</ref></key>
-              <value><list>><ref>String</ref></list></value>
+              <value><list><ref>String</ref></list></value>
             </map>
             <p>
               A mapping from source URIs to directly reachable source URIs. For example,
@@ -3093,6 +3097,12 @@
               element.
             </p>
           </field>
+          <field name="isDeprecated" optional="true">
+            <ref>bool</ref>
+            <p>
+              True if the referenced element is deprecated.
+            </p>
+          </field>
           <field name="parameter" optional="true">
             <ref>String</ref>
             <p>
@@ -3607,10 +3617,40 @@
           returned by the refactoring requests.
         </p>
         <enum>
-          <value><code>INFO</code></value>
-          <value><code>WARNING</code></value>
-          <value><code>ERROR</code></value>
-          <value><code>FATAL</code></value>
+          <value>
+            <code>INFO</code>
+            <p>A minor code problem. No example, because it is not used yet.
+            </p>
+          </value>
+          <value>
+            <code>WARNING</code>
+            <p>A minor code problem. For example names of local variables
+              should be camel case and start with a lower case letter. Staring
+              the name of a variable with an upper case is OK from the language
+              point of view, but it is nice to warn the user.
+            </p>
+          </value>
+          <value>
+            <code>ERROR</code>
+            <p>The refactoring technically can be performed, but there is a
+              logical problem. For example the name of a local variable being
+              extracted conflicts with another name in the scope, or
+              duplicate parameter names in the method being extracted, or
+              a conflict between a parameter name and a local variable, etc.
+              In some cases the location of the problem is also provided, so
+              the IDE can show user the location and the problem, and let the
+              user decide whether she wants to perform the refactoring. For
+              example the name conflict might be expected, and the user wants
+              to fix it afterwards.
+            </p>
+          </value>
+          <value>
+            <code>FATAL</code>
+            <p>A fatal error, which prevents performing the refactoring.
+              For example the name of a local variable being extracted is not a
+              valid identifier, or selection is not a valid expression.
+            </p>
+          </value>
         </enum>
       </type>
       <type name="RemoveContentOverlay">
@@ -4503,7 +4543,7 @@
       produced by the server and the data that is returned with each.
     </p>
     <p>
-      TBD
+      TODO: TBD
     </p>
     <h2 class="domain"><a name="index">Index</a></h2>
     <index></index>

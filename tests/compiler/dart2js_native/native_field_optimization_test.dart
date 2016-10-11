@@ -17,7 +17,7 @@ class Foo {
   var ab;
 }
 
-Foo makeFoo() native;
+Foo makeFoo() native ;
 
 void setup() native """
 function Foo() { this.i = 0; }
@@ -43,7 +43,6 @@ Object.defineProperty(Foo.prototype, 'ab', {
 
 makeFoo = function() { return new Foo() }
 """;
-
 
 test1() {
   var f = makeFoo();

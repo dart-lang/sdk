@@ -4,8 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, ICDataRef;
+import 'package:observatory/models.dart' as M show IsolateRef, ICDataRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -53,7 +52,8 @@ class ICDataRefElement extends HtmlElement implements Renderable {
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _icdata))
         ..children = [
-          new SpanElement()..classes = ['emphatize']
+          new SpanElement()
+            ..classes = ['emphasize']
             ..text = 'ICData',
           new SpanElement()..text = ' (${_icdata.selector})'
         ]

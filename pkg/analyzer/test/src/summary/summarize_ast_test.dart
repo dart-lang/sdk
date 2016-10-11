@@ -7,9 +7,9 @@ library analyzer.test.src.summary.summarize_ast_test;
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -18,14 +18,14 @@ import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LinkedSummarizeAstSpecTest);
+  defineReflectiveTests(LinkedSummarizeAstSpecTest);
 }
 
 @reflectiveTest
@@ -61,18 +61,6 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
   @failingTest
   test_closure_executable_with_unimported_return_type() {
     super.test_closure_executable_with_unimported_return_type();
-  }
-
-  @override
-  @failingTest
-  test_field_propagated_type_final_immediate() {
-    super.test_field_propagated_type_final_immediate();
-  }
-
-  @override
-  @failingTest
-  test_fully_linked_references_follow_other_references() {
-    super.test_fully_linked_references_follow_other_references();
   }
 
   @override
@@ -119,18 +107,6 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
 
   @override
   @failingTest
-  test_linked_reference_reuse() {
-    super.test_linked_reference_reuse();
-  }
-
-  @override
-  @failingTest
-  test_linked_type_dependency_reuse() {
-    super.test_linked_type_dependency_reuse();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_inGenericClass() {
     super.test_syntheticFunctionType_inGenericClass();
   }
@@ -139,42 +115,6 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
   @failingTest
   test_syntheticFunctionType_inGenericFunction() {
     super.test_syntheticFunctionType_inGenericFunction();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_noArguments() {
-    super.test_syntheticFunctionType_noArguments();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_withArguments() {
-    super.test_syntheticFunctionType_withArguments();
-  }
-
-  @override
-  @failingTest
-  test_unused_type_parameter() {
-    super.test_unused_type_parameter();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagated_type_final_immediate() {
-    super.test_variable_propagated_type_final_immediate();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagated_type_new_reference() {
-    super.test_variable_propagated_type_new_reference();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagated_type_omit_dynamic() {
-    super.test_variable_propagated_type_omit_dynamic();
   }
 }
 
@@ -191,8 +131,7 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   @override
   List<UnlinkedUnit> unlinkedUnits;
 
-  @override
-  bool get checkAstDerivedData => true;
+  LinkerInputs linkerInputs;
 
   @override
   bool get expectAbsoluteUrisInDependencies => false;
@@ -206,9 +145,13 @@ abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
   @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
     Map<String, UnlinkedUnitBuilder> uriToUnit = this._filesToLink.uriToUnit;
-    LinkerInputs linkerInputs = createLinkerInputs(text);
-    linked = link(linkerInputs.linkedLibraries, linkerInputs.getDependency,
-        linkerInputs.getUnit, strongMode)[linkerInputs.testDartUri.toString()];
+    linkerInputs = createLinkerInputs(text);
+    linked = link(
+        linkerInputs.linkedLibraries,
+        linkerInputs.getDependency,
+        linkerInputs.getUnit,
+        (name) => null,
+        strongMode)[linkerInputs.testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[linkerInputs.unlinkedDefiningUnit];
@@ -256,6 +199,10 @@ class LinkerInputs {
       this._dependentUnlinkedUnits);
 
   Set<String> get linkedLibraries => _uriToUnit.keys.toSet();
+
+  String getDeclaredVariable(String name) {
+    return null;
+  }
 
   LinkedLibrary getDependency(String absoluteUri) {
     Map<String, LinkedLibrary> sdkLibraries =
@@ -319,7 +266,8 @@ abstract class SummaryLinkerTest {
     return null;
   }
 
-  LinkerInputs createLinkerInputs(String text, {String path: '/test.dart', String uri}) {
+  LinkerInputs createLinkerInputs(String text,
+      {String path: '/test.dart', String uri}) {
     uri ??= absUri(path);
     Uri testDartUri = Uri.parse(uri);
     CompilationUnit unit = _parseText(text);
@@ -352,6 +300,7 @@ abstract class SummaryLinkerTest {
         linkerInputs.linkedLibraries,
         linkerInputs.getDependency,
         linkerInputs.getUnit,
+        linkerInputs.getDeclaredVariable,
         true);
     linkedLibraries.forEach(assembler.addLinkedLibrary);
     linkerInputs._uriToUnit.forEach((String uri, UnlinkedUnit unit) {

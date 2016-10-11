@@ -16,7 +16,6 @@ main() {
       class C {}
       class D {}
       class E {}''',
-
     'const keys': r'''
       import 'package:lookup_map/lookup_map.dart';
       class Key { final name; const Key(this.name); }
@@ -25,7 +24,6 @@ main() {
       const C = const Key("C");
       const D = const Key("D");
       const E = const Key("E");''',
-
     'mixed keys': r'''
       import 'package:lookup_map/lookup_map.dart';
       class Key { final name; const Key(this.name); }

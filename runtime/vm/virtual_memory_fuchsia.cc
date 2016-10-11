@@ -7,6 +7,7 @@
 
 #include "vm/virtual_memory.h"
 
+#include <magenta/process.h>
 #include <magenta/syscalls.h>
 #include <unistd.h>  // NOLINT
 
@@ -25,7 +26,7 @@ void VirtualMemory::InitOnce() {
 
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
-  mx_handle_t vmo = mx_vm_object_create(size);
+  mx_handle_t vmo = mx_vmo_create(size);
   if (vmo <= 0) {
     return NULL;
   }
@@ -37,7 +38,8 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
                    MX_VM_FLAG_PERM_WRITE |
                    MX_VM_FLAG_PERM_EXECUTE;
   uintptr_t addr;
-  mx_status_t status = mx_process_vm_map(0, vmo, 0, size, &addr, prot);
+  mx_status_t status = mx_process_map_vm(
+      mx_process_self(), vmo, 0, size, &addr, prot);
   if (status != NO_ERROR) {
     mx_handle_close(vmo);
     FATAL("VirtualMemory::ReserveInternal FAILED");
@@ -53,8 +55,9 @@ VirtualMemory::~VirtualMemory() {
   if (!embedder_allocated()) {
     // TODO(zra): Use reserved_size_.
     // Issue MG-162.
-    mx_status_t status = mx_process_vm_unmap(
-        0, reinterpret_cast<uintptr_t>(address()), 0 /*reserved_size_*/);
+    uintptr_t addr = reinterpret_cast<uintptr_t>(address());
+    mx_status_t status = mx_process_unmap_vm(
+        mx_process_self(), addr, 0 /*reserved_size_*/);
     if (status != NO_ERROR) {
       FATAL("VirtualMemory::~VirtualMemory: unamp FAILED");
     }

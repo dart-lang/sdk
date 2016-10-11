@@ -426,6 +426,10 @@ class WhereIterable<E> extends Iterable<E> {
   WhereIterable(this._iterable, bool this._f(E element));
 
   Iterator<E> get iterator => new WhereIterator<E>(_iterable.iterator, _f);
+
+  // Specialization of [Iterable.map] to non-EfficientLength.
+  Iterable/*<T>*/ map/*<T>*/(/*=T*/ f(E element)) =>
+     new MappedIterable<E, dynamic/*=T*/>._(this, f);
 }
 
 class WhereIterator<E> extends Iterator<E> {

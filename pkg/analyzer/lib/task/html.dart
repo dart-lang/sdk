@@ -4,7 +4,7 @@
 
 library analyzer.task.html;
 
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart';

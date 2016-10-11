@@ -52,16 +52,16 @@ foo(a) {
 
 main() {
   asyncTest(() => Future.wait([
-    // Make sure we don't introduce a new variable.
-    compileAndDoNotMatch(FIB, 'fib', new RegExp("var $anyIdentifier =")),
+        // Make sure we don't introduce a new variable.
+        compileAndDoNotMatch(FIB, 'fib', new RegExp("var $anyIdentifier =")),
 
-    compileAndDoNotMatch(BAR, 'bar', new RegExp("isLeaf")),
+        compileAndDoNotMatch(BAR, 'bar', new RegExp("isLeaf")),
 
-    compile(TEST, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('else'));
-      // Regression check to ensure that there is no floating variable
-      // expression.
-      Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
-    }),
-  ]));
+        compile(TEST, entry: 'foo', check: (String generated) {
+          Expect.isFalse(generated.contains('else'));
+          // Regression check to ensure that there is no floating variable
+          // expression.
+          Expect.isFalse(new RegExp('^[ ]*a;').hasMatch(generated));
+        }),
+      ]));
 }

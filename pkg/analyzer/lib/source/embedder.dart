@@ -6,12 +6,12 @@
 library analyzer.source.embedder;
 
 import 'dart:collection' show HashMap;
-import 'dart:core' hide Resource;
+import 'dart:core';
+import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart'
     show PackageMapProvider;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
@@ -75,7 +75,7 @@ class EmbedderSdk extends AbstractDartSdk {
       srcPath = library.path;
     } else {
       String libraryPath = library.path;
-      int index = libraryPath.lastIndexOf(JavaFile.separator);
+      int index = libraryPath.lastIndexOf(io.Platform.pathSeparator);
       if (index == -1) {
         index = libraryPath.lastIndexOf('/');
         if (index == -1) {
@@ -85,11 +85,11 @@ class EmbedderSdk extends AbstractDartSdk {
       String prefix = libraryPath.substring(0, index + 1);
       srcPath = '$prefix$relativePath';
     }
-    String filePath = srcPath.replaceAll('/', JavaFile.separator);
+    String filePath = srcPath.replaceAll('/', io.Platform.pathSeparator);
     try {
       JavaFile file = new JavaFile(filePath);
-      return new FileBasedSource(file, parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return new FileBasedSource(file, Uri.parse(dartUri));
+    } on FormatException {
       return null;
     }
   }

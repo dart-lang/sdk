@@ -5,7 +5,7 @@ library analyzer.src.error;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
 
 /// The maximum line length when printing extracted source code when converting
 /// an [AnalyzerError] to a string.

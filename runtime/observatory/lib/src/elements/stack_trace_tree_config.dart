@@ -8,10 +8,7 @@ import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 
-enum ProfileTreeMode {
-  code,
-  function,
-}
+enum ProfileTreeMode { code, function, }
 
 class StackTraceTreeConfigChangedEvent {
   final StackTraceTreeConfigElement element;
@@ -25,7 +22,7 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
   RenderingScheduler<StackTraceTreeConfigElement> _r;
 
   Stream<RenderedEvent<StackTraceTreeConfigElement>> get onRendered =>
-                                                                  _r.onRendered;
+      _r.onRendered;
 
   StreamController<StackTraceTreeConfigChangedEvent> _onModeChange =
       new StreamController<StackTraceTreeConfigChangedEvent>.broadcast();
@@ -64,8 +61,11 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
       _direction = _r.checkAndReact(_direction, value);
   set filter(String value) => _filter = _r.checkAndReact(_filter, value);
 
-  factory StackTraceTreeConfigElement({bool showMode: true,
-      bool showDirection: true, bool showFilter: true, String filter: '',
+  factory StackTraceTreeConfigElement(
+      {bool showMode: true,
+      bool showDirection: true,
+      bool showFilter: true,
+      String filter: '',
       ProfileTreeMode mode: ProfileTreeMode.function,
       M.ProfileTreeDirection direction: M.ProfileTreeDirection.exclusive,
       RenderingQueue queue}) {
@@ -96,19 +96,23 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
 
   @override
   void detached() {
-    super.detached(); _r.disable(notify: true);
+    super.detached();
+    _r.disable(notify: true);
     children = const [];
   }
 
   void render() {
     children = [
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = [
           new HeadingElement.h2()..text = 'Tree display',
           new HRElement(),
-          new DivElement()..classes = ['row']
+          new DivElement()
+            ..classes = ['row']
             ..children = [
-              new DivElement()..classes = ['memberList']
+              new DivElement()
+                ..classes = ['memberList']
                 ..children = _createMembers()
             ]
         ]
@@ -118,100 +122,133 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
   List<Element> _createMembers() {
     var members = <Element>[];
     if (_showMode) {
-      members.add(
-        new DivElement()..classes = ['memberItem']
-          ..children = [
-            new DivElement()..classes = ['memberName']..text = 'Mode',
-            new DivElement()..classes = ['memberValue']
-              ..children = _createModeSelect()
-          ]
-      );
+      members.add(new DivElement()
+        ..classes = ['memberItem']
+        ..children = [
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'Mode',
+          new DivElement()
+            ..classes = ['memberValue']
+            ..children = _createModeSelect()
+        ]);
     }
     if (_showDirection) {
-      members.add(
-        new DivElement()..classes = ['memberItem']
-          ..children = [
-            new DivElement()..classes = ['memberName']
-              ..text = 'Call Tree Direction',
-            new SpanElement()..classes = ['memberValue']
-              ..children = _createDirectionSelect()
-          ]
-      );
+      members.add(new DivElement()
+        ..classes = ['memberItem']
+        ..children = [
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'Call Tree Direction',
+          new SpanElement()
+            ..classes = ['memberValue']
+            ..children = _createDirectionSelect()
+        ]);
     }
     if (showFilter) {
-      members.add(
-        new DivElement()..classes = ['memberItem']
-          ..children = [
-            new DivElement()..classes = ['memberName']
-              ..text = 'Call Tree Filter'
-              ..title = 'case-sensitive substring match',
-            new SpanElement()..classes = ['memberValue']
-              ..children = _createFilter()
-          ]
-      );
+      members.add(new DivElement()
+        ..classes = ['memberItem']
+        ..children = [
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'Call Tree Filter'
+            ..title = 'case-sensitive substring match',
+          new SpanElement()
+            ..classes = ['memberValue']
+            ..children = _createFilter()
+        ]);
     }
     return members;
+  }
+
+  String get modeDescription {
+    if (_mode == ProfileTreeMode.function) {
+      return 'Inlined frames expanded.';
+    } else {
+      return 'Inlined frames not expanded.';
+    }
   }
 
   List<Element> _createModeSelect() {
     var s;
     return [
-      s = new SelectElement()..classes = ['mode-select']
+      s = new SelectElement()
+        ..classes = ['mode-select']
         ..value = modeToString(_mode)
         ..children = ProfileTreeMode.values.map((mode) {
-            return new OptionElement(value : modeToString(mode),
-                selected: _mode == mode)
-              ..text = modeToString(mode);
-          }).toList(growable: false)
+          return new OptionElement(
+              value: modeToString(mode),
+              selected: _mode == mode)..text = modeToString(mode);
+        }).toList(growable: false)
         ..onChange.listen((_) {
-            _mode = ProfileTreeMode.values[s.selectedIndex];
-          })
+          _mode = ProfileTreeMode.values[s.selectedIndex];
+          _r.dirty();
+        })
         ..onChange.map(_toEvent).listen(_triggerModeChange),
+      new SpanElement()
+        ..text = ' $modeDescription'
     ];
+  }
+
+  String get directionDescription {
+    if (_direction == M.ProfileTreeDirection.inclusive) {
+      return 'Tree is rooted at "main". Child nodes are callees.';
+    } else {
+      return 'Tree is rooted at top-of-stack. Child nodes are callers.';
+    }
   }
 
   List<Element> _createDirectionSelect() {
     var s;
     return [
-      s = new SelectElement()..classes = ['direction-select']
+      s = new SelectElement()
+        ..classes = ['direction-select']
         ..value = directionToString(_direction)
         ..children = M.ProfileTreeDirection.values.map((direction) {
-            return new OptionElement(value: directionToString(direction),
-                selected: _direction == direction)
-              ..text = directionToString(direction);
-          }).toList(growable: false)
+          return new OptionElement(
+              value: directionToString(direction),
+              selected: _direction == direction)
+            ..text = directionToString(direction);
+        }).toList(growable: false)
         ..onChange.listen((_) {
-            _direction = M.ProfileTreeDirection.values[s.selectedIndex];
-          })
+          _direction = M.ProfileTreeDirection.values[s.selectedIndex];
+          _r.dirty();
+        })
         ..onChange.map(_toEvent).listen(_triggerDirectionChange),
-      new SpanElement()..text = 'Tree is rooted at ' +
-          (_direction == 'Down' ? '"main"' : 'function / code') +
-          '. Child nodes are callers.'
+      new SpanElement()
+        ..text = ' $directionDescription'
     ];
   }
 
-  List<Element> _createFilter(){
+  List<Element> _createFilter() {
     var t;
     return [
-      t = new TextInputElement()..placeholder = 'Search filter'
-          ..value = filter
-          ..onChange.listen((_) { _filter = t.value; })
-          ..onChange.map(_toEvent).listen(_triggerFilterChange)
+      t = new TextInputElement()
+        ..placeholder = 'Search filter'
+        ..value = filter
+        ..onChange.listen((_) {
+          _filter = t.value;
+        })
+        ..onChange.map(_toEvent).listen(_triggerFilterChange)
     ];
   }
 
   static String modeToString(ProfileTreeMode mode) {
     switch (mode) {
-      case ProfileTreeMode.code: return 'Code';
-      case ProfileTreeMode.function: return 'Function';
+      case ProfileTreeMode.code:
+        return 'Code';
+      case ProfileTreeMode.function:
+        return 'Function';
     }
     throw new Exception('Unknown ProfileTreeMode');
   }
 
   static String directionToString(M.ProfileTreeDirection direction) {
     switch (direction) {
-      case M.ProfileTreeDirection.inclusive: return 'Top down';
-      case M.ProfileTreeDirection.exclusive: return 'Bottom up';
+      case M.ProfileTreeDirection.inclusive:
+        return 'Top down';
+      case M.ProfileTreeDirection.exclusive:
+        return 'Bottom up';
     }
     throw new Exception('Unknown ProfileTreeDirection');
   }
@@ -223,6 +260,4 @@ class StackTraceTreeConfigElement extends HtmlElement implements Renderable {
   void _triggerModeChange(e) => _onModeChange.add(e);
   void _triggerDirectionChange(e) => _onDirectionChange.add(e);
   void _triggerFilterChange(e) => _onFilterChange.add(e);
-
-
 }

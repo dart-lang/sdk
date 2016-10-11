@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // DartOptions=--generic-method-syntax
+// VMOptions=--generic-method-syntax
 
 /// Dart test on the usage of method type arguments in object creation. With
 /// '--generic-method-syntax', the type argument is available at runtime,
@@ -21,6 +22,8 @@ C<T> f1<T>(T t) => new C<T>(t);
 
 List<T> f2<T>(T t) => <T>[t];
 
+Map<T, String> f3<T>(T t) => <T, String>{t: 'hi'};
+
 main() {
   C c = f1<int>(42);
   List i = f2<String>("Hello!");
@@ -28,4 +31,9 @@ main() {
   Expect.isTrue(i is List<String> && i is List<int>); // List<dynamic>.
   Expect.equals(c.e, 42);
   Expect.equals(i[0], "Hello!");
+
+  Map m1 = f3<int>(1);
+  Expect.isTrue(m1 is Map<int, String> && m1 is Map<String, String>);
+  Expect.isFalse(m1 is Map<int, int>);
+  Expect.equals('hi', m1[1]);
 }

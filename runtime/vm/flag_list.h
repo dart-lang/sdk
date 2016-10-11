@@ -94,6 +94,8 @@ P(getter_setter_ratio, int, 13,                                                \
   "Ratio of getter/setter usage used for double field unboxing heuristics")    \
 P(guess_icdata_cid, bool, true,                                                \
   "Artificially create type feedback for arithmetic etc. operations")          \
+P(huge_method_cutoff_in_tokens, int, 20000,                                    \
+  "Huge method cutoff in tokens: Disables optimizations for huge methods.")    \
 P(interpret_irregexp, bool, USING_DBC,                                         \
   "Use irregexp bytecode interpreter")                                         \
 P(lazy_dispatchers, bool, true,                                                \
@@ -134,8 +136,6 @@ P(precompiled_mode, bool, false,                                               \
   "Precompilation compiler mode")                                              \
 C(precompiled_runtime, true, false, bool, false,                               \
   "Precompiled runtime mode")                                                  \
-R(print_ssa_liveness, false, bool, false,                                      \
-  "Print liveness for ssa variables.")                                         \
 R(print_ssa_liveranges, false, bool, false,                                    \
   "Print live ranges after allocation.")                                       \
 C(print_stop_message, false, false, bool, false,                               \

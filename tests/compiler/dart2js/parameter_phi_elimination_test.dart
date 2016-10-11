@@ -17,7 +17,6 @@ bool baz(int a, int b) {
 }
 """;
 
-
 main() {
   compile(SOURCE, entry: "baz");
 }

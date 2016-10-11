@@ -82,42 +82,28 @@ class StepTraceListener extends TraceListener
         js.Switch switchNode = node;
         text = ['switch(', switchNode.key, ') ...'];
         break;
-
     }
-    createTraceStep(
-        kind,
-        node,
+    createTraceStep(kind, node,
         offset: offset,
-        sourceLocation: getSourceLocation(
-            sourceInformation, sourcePositionKind),
+        sourceLocation:
+            getSourceLocation(sourceInformation, sourcePositionKind),
         text: text);
   }
 
-  void createTraceStep(
-      StepKind kind,
-      js.Node node,
-      {Offset offset,
-       List text,
-       String note,
-       SourceLocation sourceLocation}) {
+  void createTraceStep(StepKind kind, js.Node node,
+      {Offset offset, List text, String note, SourceLocation sourceLocation}) {
     int id = steppableMap.length;
 
     if (text == null) {
       text = [node];
     }
 
-    TraceStep step = new TraceStep(
-        kind,
-        id,
-        node,
-        offset,
-        text,
-        sourceLocation);
+    TraceStep step =
+        new TraceStep(kind, id, node, offset, text, sourceLocation);
     graph.addStep(step);
 
     steppableMap[node] = step;
   }
-
 
   void pushBranch(BranchKind kind, [value]) {
     var branch;

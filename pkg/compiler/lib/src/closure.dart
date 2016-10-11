@@ -19,7 +19,7 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
-import 'universe/universe.dart' show Universe;
+import 'universe/universe.dart' show CodegenUniverse;
 import 'util/util.dart';
 
 class ClosureTask extends CompilerTask {
@@ -515,14 +515,6 @@ class ClosureClassMap {
     });
     capturingScopes.values.forEach((ClosureScope scope) {
       scope.forEachCapturedVariable(f);
-    });
-  }
-
-  void removeMyselfFrom(Universe universe) {
-    freeVariableMap.values.forEach((e) {
-      universe.closurizedMembers.remove(e);
-      universe.fieldSetters.remove(e);
-      universe.fieldGetters.remove(e);
     });
   }
 }
@@ -1054,8 +1046,7 @@ class ClosureTranslator extends Visitor {
     ClosureClassElement globalizedElement =
         new ClosureClassElement(node, closureName, compiler, element);
     // Extend [globalizedElement] as an instantiated class in the closed world.
-    compiler.world
-        .registerClass(globalizedElement, isDirectlyInstantiated: true);
+    compiler.inferenceWorld.registerClosureClass(globalizedElement);
     FunctionElement callElement = new SynthesizedCallMethodElementX(
         Identifiers.call, element, globalizedElement, node, elements);
     backend.maybeMarkClosureAsNeededForReflection(

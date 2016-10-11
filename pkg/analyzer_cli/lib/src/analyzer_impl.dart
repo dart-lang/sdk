@@ -8,17 +8,17 @@ import 'dart:collection';
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
-import 'package:analyzer_cli/src/incremental_analyzer.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as pathos;
 
@@ -38,8 +38,6 @@ class AnalyzerImpl {
   final int startTime;
 
   final AnalysisContext context;
-
-  final IncrementalAnalysisSession incrementalSession;
 
   /// Accumulated analysis statistics.
   final AnalysisStats stats;
@@ -63,8 +61,8 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String _selfPackageName;
 
-  AnalyzerImpl(this.context, this.incrementalSession, this.librarySource,
-      this.options, this.stats, this.startTime);
+  AnalyzerImpl(this.context, this.librarySource, this.options, this.stats,
+      this.startTime);
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
   ErrorSeverity get maxErrorSeverity {
@@ -138,7 +136,6 @@ class AnalyzerImpl {
     var units = new Set<CompilationUnitElement>();
     var libraries = new Set<LibraryElement>();
     addLibrarySources(library, libraries, units);
-    incrementalSession?.setAnalyzedSources(sources);
   }
 
   /// Setup local fields such as the analysis context for analysis.

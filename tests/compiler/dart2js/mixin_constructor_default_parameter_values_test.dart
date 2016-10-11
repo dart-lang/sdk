@@ -43,4 +43,3 @@ const Map MEMORY_SOURCE_FILES = const {
 main() {
   asyncTest(() => runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES));
 }
-

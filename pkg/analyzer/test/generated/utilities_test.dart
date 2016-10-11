@@ -12,31 +12,30 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(AstClonerTest);
-  runReflectiveTests(NodeReplacerTest);
-  runReflectiveTests(LineInfoTest);
-  runReflectiveTests(SourceRangeTest);
-  runReflectiveTests(BooleanArrayTest);
-  runReflectiveTests(DirectedGraphTest);
-  runReflectiveTests(MultipleMapIteratorTest);
-  runReflectiveTests(SingleMapIteratorTest);
-  runReflectiveTests(TokenMapTest);
-  runReflectiveTests(StringUtilitiesTest);
+  defineReflectiveTests(AstClonerTest);
+  defineReflectiveTests(NodeReplacerTest);
+  defineReflectiveTests(LineInfoTest);
+  defineReflectiveTests(SourceRangeTest);
+  defineReflectiveTests(BooleanArrayTest);
+  defineReflectiveTests(DirectedGraphTest);
+  defineReflectiveTests(MultipleMapIteratorTest);
+  defineReflectiveTests(SingleMapIteratorTest);
+  defineReflectiveTests(TokenMapTest);
+  defineReflectiveTests(StringUtilitiesTest);
 }
 
 class AstCloneComparator extends AstComparator {
@@ -1455,12 +1454,7 @@ class DirectedGraphTest extends EngineTestCase {
   void test_findCycleContaining_null() {
     DirectedGraph<DirectedGraphTest_Node> graph =
         new DirectedGraph<DirectedGraphTest_Node>();
-    try {
-      graph.findCycleContaining(null);
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {
-      // Expected
-    }
+    expect(() => graph.findCycleContaining(null), throwsArgumentError);
   }
 
   void test_findCycleContaining_singleton() {
@@ -2524,21 +2518,15 @@ class LineInfoTest {
   }
 
   void test_creation_empty() {
-    try {
+    expect(() {
       new LineInfo(<int>[]);
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {
-      // Expected
-    }
+    }, throwsArgumentError);
   }
 
   void test_creation_null() {
-    try {
+    expect(() {
       new LineInfo(null);
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {
-      // Expected
-    }
+    }, throwsArgumentError);
   }
 
   void test_firstLine() {
@@ -2899,24 +2887,11 @@ class MultipleMapIteratorTest extends EngineTestCase {
     Map<String, String> map = new HashMap<String, String>();
     MultipleMapIterator<String, String> iterator = _iterator(<Map>[map]);
     expect(iterator.moveNext(), isFalse);
-    try {
-      iterator.key;
-      fail("Expected NoSuchElementException");
-    } on NoSuchElementException {
-      // Expected
-    }
-    try {
-      iterator.value;
-      fail("Expected NoSuchElementException");
-    } on NoSuchElementException {
-      // Expected
-    }
-    try {
-      iterator.value = "x";
-      fail("Expected NoSuchElementException");
-    } on NoSuchElementException {
-      // Expected
-    }
+    expect(() => iterator.key, throwsStateError);
+    expect(() => iterator.value, throwsStateError);
+    expect(() {
+      iterator.value = 'x';
+    }, throwsStateError);
   }
 
   void test_singleMap_multiple() {
@@ -3904,24 +3879,11 @@ class SingleMapIteratorTest extends EngineTestCase {
     SingleMapIterator<String, String> iterator =
         new SingleMapIterator<String, String>(map);
     expect(iterator.moveNext(), isFalse);
-    try {
-      iterator.key;
-      fail("Expected NoSuchElementException");
-    } on NoSuchElementException {
-      // Expected
-    }
-    try {
-      iterator.value;
-      fail("Expected NoSuchElementException");
-    } on NoSuchElementException {
-      // Expected
-    }
-    try {
-      iterator.value = "x";
-      fail("Expected NoSuchElementException");
-    } on NoSuchElementException {
-      // Expected
-    }
+    expect(() => iterator.key, throwsStateError);
+    expect(() => iterator.value, throwsStateError);
+    expect(() {
+      iterator.value = 'x';
+    }, throwsStateError);
     expect(iterator.moveNext(), isFalse);
   }
 
@@ -4214,12 +4176,9 @@ class StringUtilitiesTest {
   }
 
   void test_printListOfQuotedNames_empty() {
-    try {
+    expect(() {
       StringUtilities.printListOfQuotedNames(new List<String>(0));
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {
-      // Expected
-    }
+    }, throwsArgumentError);
   }
 
   void test_printListOfQuotedNames_five() {
@@ -4230,21 +4189,15 @@ class StringUtilitiesTest {
   }
 
   void test_printListOfQuotedNames_null() {
-    try {
+    expect(() {
       StringUtilities.printListOfQuotedNames(null);
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {
-      // Expected
-    }
+    }, throwsArgumentError);
   }
 
   void test_printListOfQuotedNames_one() {
-    try {
+    expect(() {
       StringUtilities.printListOfQuotedNames(<String>["a"]);
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {
-      // Expected
-    }
+    }, throwsArgumentError);
   }
 
   void test_printListOfQuotedNames_three() {

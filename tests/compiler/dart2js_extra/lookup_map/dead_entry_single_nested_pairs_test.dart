@@ -4,11 +4,14 @@
 
 import 'package:lookup_map/lookup_map.dart';
 import 'package:expect/expect.dart';
-class A{}
-class B{}
+
+class A {}
+
+class B {}
+
 const map = const LookupMap(const [], const [
-    const LookupMap.pair(A, "the-text-for-A"),
-    const LookupMap.pair(B, "the-text-for-B"),
+  const LookupMap.pair(A, "the-text-for-A"),
+  const LookupMap.pair(B, "the-text-for-B"),
 ]);
 
 main() {

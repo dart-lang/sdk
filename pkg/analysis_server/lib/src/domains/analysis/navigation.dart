@@ -10,9 +10,9 @@ import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart'
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
 
 /**

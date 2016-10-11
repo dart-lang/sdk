@@ -5,6 +5,7 @@
 // Test for correct hidden native class when abstract class has same name.
 
 library main;
+
 import "package:expect/expect.dart";
 import 'native_library_same_name_used_lib1.dart';
 
@@ -20,8 +21,13 @@ void setup() native """
 
 class ProxyI implements I {
   ProxyI b;
-  ProxyI read() { return b; }
-  write(ProxyI x) { b = x; }
+  ProxyI read() {
+    return b;
+  }
+
+  write(ProxyI x) {
+    b = x;
+  }
 }
 
 main() {
@@ -33,12 +39,12 @@ main() {
   var b2 = new ProxyI();
   var ob = new Object();
 
-  Expect.isFalse(ob is I,      'ob is I');
+  Expect.isFalse(ob is I, 'ob is I');
   Expect.isFalse(ob is ProxyI, 'ob is ProxyI');
 
-  Expect.isTrue(b1 is I,       'b1 is I');
-  Expect.isTrue(b1 is ProxyI,  'b1 is ProxyI');
+  Expect.isTrue(b1 is I, 'b1 is I');
+  Expect.isTrue(b1 is ProxyI, 'b1 is ProxyI');
 
-  Expect.isTrue(a1 is I,       'a1 is I');
+  Expect.isTrue(a1 is I, 'a1 is I');
   Expect.isFalse(a1 is ProxyI, 'a1 is ProxyI');
 }

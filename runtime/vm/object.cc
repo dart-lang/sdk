@@ -51,8 +51,6 @@ namespace dart {
 
 DEFINE_FLAG(int, huge_method_cutoff_in_code_size, 200000,
     "Huge method cutoff in unoptimized code size (in bytes).");
-DEFINE_FLAG(int, huge_method_cutoff_in_tokens, 20000,
-    "Huge method cutoff in tokens: Disables optimizations for huge methods.");
 DEFINE_FLAG(bool, overlap_type_arguments, true,
     "When possible, partially or fully overlap the type arguments of a type "
     "with the type arguments of its super type.");
@@ -153,6 +151,9 @@ RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::singletargetcache_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::unlinkedcall_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::megamorphic_cache_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
@@ -653,6 +654,12 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<ContextScope>();
   context_scope_class_ = cls.raw();
 
+  cls = Class::New<SingleTargetCache>();
+  singletargetcache_class_ = cls.raw();
+
+  cls = Class::New<UnlinkedCall>();
+  unlinkedcall_class_ = cls.raw();
+
   cls = Class::New<ICData>();
   icdata_class_ = cls.raw();
 
@@ -994,6 +1001,8 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
   SET_CLASS_NAME(context, Context);
   SET_CLASS_NAME(context_scope, ContextScope);
+  SET_CLASS_NAME(singletargetcache, SingleTargetCache);
+  SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
   SET_CLASS_NAME(icdata, ICData);
   SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
   SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
@@ -2420,11 +2429,6 @@ intptr_t Class::NumOwnTypeArguments() const {
 }
 
 
-bool Class::IsGeneric() const {
-  return NumTypeParameters() != 0;
-}
-
-
 intptr_t Class::NumTypeArguments() const {
   // Return cached value if already calculated.
   if (num_type_arguments() != kUnknownNumTypeArguments) {
@@ -2479,8 +2483,6 @@ void Class::set_super_type(const AbstractType& value) const {
 }
 
 
-// Return a TypeParameter if the type_name is a type parameter of this class.
-// Return null otherwise.
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   ASSERT(!type_name.IsNull());
   Thread* thread = Thread::Current();
@@ -3429,6 +3431,8 @@ NOT_IN_PRODUCT(
       return Symbols::Context().raw();
     case kContextScopeCid:
       return Symbols::ContextScope().raw();
+    case kSingleTargetCacheCid:
+      return Symbols::SingleTargetCache().raw();
     case kICDataCid:
       return Symbols::ICData().raw();
     case kMegamorphicCacheCid:
@@ -4548,7 +4552,7 @@ static uint32_t FinalizeHash(uint32_t hash, intptr_t hashbits) {
   hash += hash << 3;
   hash ^= hash >> 11;  // Logical shift, unsigned hash.
   hash += hash << 15;
-  hash &= ((static_cast<intptr_t>(1) << hashbits) - 1);
+  hash &= ((static_cast<uintptr_t>(1) << hashbits) - 1);
   return (hash == 0) ? 1 : hash;
 }
 
@@ -5293,9 +5297,13 @@ bool Function::HasCode() const {
 
 
 void Function::ClearCode() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(Thread::Current()->IsMutatorThread());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   SetInstructions(Code::Handle(StubCode::LazyCompile_entry()->code()));
+#endif
 }
 
 
@@ -5367,9 +5375,13 @@ void Function::SwitchToLazyCompiledUnoptimizedCode() const {
 
 
 void Function::set_unoptimized_code(const Code& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(value.IsNull() || !value.is_optimized());
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
+#endif
 }
 
 
@@ -5489,6 +5501,12 @@ RawFunction* Function::parent_function() const {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     return ClosureData::Cast(obj).parent_function();
+  } else if (IsSignatureFunction()) {
+    const Object& obj = Object::Handle(raw_ptr()->data_);
+    // Parent function may be null or data_ may already be set to function type.
+    if (!obj.IsNull() && obj.IsFunction()) {
+      return Function::Cast(obj).raw();
+    }
   }
   return Function::null();
 }
@@ -5499,6 +5517,9 @@ void Function::set_parent_function(const Function& value) const {
     const Object& obj = Object::Handle(raw_ptr()->data_);
     ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_parent_function(value);
+    return;
+  } else if (IsSignatureFunction()) {
+    set_data(value);  // Temporarily set during parsing only.
     return;
   }
   UNREACHABLE();
@@ -5847,6 +5868,62 @@ void Function::set_parameter_names(const Array& value) const {
 }
 
 
+void Function::set_type_parameters(const TypeArguments& value) const {
+  StorePointer(&raw_ptr()->type_parameters_, value.raw());
+}
+
+
+intptr_t Function::NumTypeParameters(Thread* thread) const {
+  if (type_parameters() == TypeArguments::null()) {
+    return 0;
+  }
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  type_params = type_parameters();
+  return type_params.Length();
+}
+
+
+RawTypeParameter* Function::LookupTypeParameter(
+    const String& type_name, intptr_t* function_level) const {
+  ASSERT(!type_name.IsNull());
+  Thread* thread = Thread::Current();
+  REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
+  REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  REUSABLE_FUNCTION_HANDLESCOPE(thread);
+  TypeArguments& type_params = thread->TypeArgumentsHandle();
+  TypeParameter&  type_param = thread->TypeParameterHandle();
+  String& type_param_name = thread->StringHandle();
+  Function& function = thread->FunctionHandle();
+
+  function ^= this->raw();
+  intptr_t parent_level = -1;
+  while (!function.IsNull()) {
+    type_params ^= function.type_parameters();
+    if (!type_params.IsNull()) {
+      parent_level++;
+      const intptr_t num_type_params = type_params.Length();
+      for (intptr_t i = 0; i < num_type_params; i++) {
+        type_param ^= type_params.TypeAt(i);
+        type_param_name = type_param.name();
+        if (type_param_name.Equals(type_name)) {
+          if (parent_level > 0) {
+            // TODO(regis): Clone type parameter and set parent_level.
+          }
+          return type_param.raw();
+        }
+      }
+    }
+    function ^= function.parent_function();
+    if (function_level != NULL) {
+      (*function_level)--;
+    }
+  }
+  return TypeParameter::null();
+}
+
+
 void Function::set_kind(RawFunction::Kind value) const {
   set_kind_tag(KindBits::update(value, raw_ptr()->kind_tag_));
 }
@@ -5865,8 +5942,12 @@ void Function::set_recognized_kind(MethodRecognizer::Kind value) const {
 
 
 void Function::set_token_pos(TokenPosition token_pos) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(!token_pos.IsClassifying() || IsMethodExtractor());
   StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
+#endif
 }
 
 
@@ -5901,12 +5982,12 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::IsOptimizable() const {
+  if (FLAG_precompiled_mode) {
+    return true;
+  }
   if (is_native()) {
     // Native methods don't need to be optimized.
     return false;
-  }
-  if (FLAG_precompiled_mode) {
-    return true;
   }
   const intptr_t function_length = end_token_pos().Pos() - token_pos().Pos();
   if (is_optimizable() && (script() != Script::null()) &&
@@ -6521,16 +6602,16 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
-  result.set_was_compiled(false);
+  NOT_IN_PRECOMPILED(result.set_was_compiled(false));
   result.set_owner(owner);
-  result.set_token_pos(token_pos);
-  result.set_end_token_pos(token_pos);
+  NOT_IN_PRECOMPILED(result.set_token_pos(token_pos));
+  NOT_IN_PRECOMPILED(result.set_end_token_pos(token_pos));
   result.set_num_fixed_parameters(0);
   result.set_num_optional_parameters(0);
-  result.set_usage_counter(0);
-  result.set_deoptimization_counter(0);
-  result.set_optimized_instruction_count(0);
-  result.set_optimized_call_site_count(0);
+  NOT_IN_PRECOMPILED(result.set_usage_counter(0));
+  NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
+  NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
+  NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
@@ -7470,13 +7551,14 @@ void Field::InitializeNew(const Field& result,
   // Use field guards if they are enabled and the isolate has never reloaded.
   // TODO(johnmccutchan): The reload case assumes the worst case (everything is
   // dynamic and possibly null). Attempt to relax this later.
-  const bool use_field_guards =
-      FLAG_use_field_guards && !isolate->HasAttemptedReload();
-  result.set_guarded_cid(use_field_guards ? kIllegalCid : kDynamicCid);
-  result.set_is_nullable(use_field_guards ? false : true);
+  const bool use_guarded_cid =
+      FLAG_precompiled_mode ||
+      (FLAG_use_field_guards && !isolate->HasAttemptedReload());
+  result.set_guarded_cid(use_guarded_cid ? kIllegalCid : kDynamicCid);
+  result.set_is_nullable(use_guarded_cid ? false : true);
   result.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   // Presently, we only attempt to remember the list length for final fields.
-  if (is_final && use_field_guards) {
+  if (is_final && use_guarded_cid) {
     result.set_guarded_list_length(Field::kUnknownFixedLength);
   } else {
     result.set_guarded_list_length(Field::kNoFixedLength);
@@ -8315,7 +8397,7 @@ RawTokenStream* TokenStream::New(intptr_t len) {
       zone,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data, len, Heap::kOld));
-  stream.AddFinalizer(data, DataFinalizer);
+  stream.AddFinalizer(data, DataFinalizer, len);
   const TokenStream& result = TokenStream::Handle(zone, TokenStream::New());
   result.SetStream(stream);
   return result.raw();
@@ -8508,7 +8590,8 @@ RawTokenStream* TokenStream::New(const String& source,
       zone,
       ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
                              data.GetStream(), data.Length(), Heap::kOld));
-  stream.AddFinalizer(data.GetStream(), DataFinalizer);
+  intptr_t external_size = data.Length();
+  stream.AddFinalizer(data.GetStream(), DataFinalizer, external_size);
   const TokenStream& result = TokenStream::Handle(zone, New());
   result.SetPrivateKey(private_key);
   {
@@ -10400,6 +10483,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   ASSERT(thread->IsMutatorThread());
   // Force the url to have a hash code.
   url.Hash();
+  const bool dart_scheme = url.StartsWith(Symbols::DartScheme());
+  const bool dart_private_scheme =
+      dart_scheme && url.StartsWith(Symbols::DartSchemePrivate());
   const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
@@ -10423,8 +10509,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.set_native_entry_symbol_resolver(NULL);
   result.set_is_in_fullsnapshot(false);
   result.StoreNonPointer(&result.raw_ptr()->corelib_imported_, true);
-  result.set_debuggable(false);
-  result.set_is_dart_scheme(url.StartsWith(Symbols::DartScheme()));
+  result.set_debuggable(!dart_private_scheme);
+  result.set_is_dart_scheme(dart_scheme);
   result.StoreNonPointer(&result.raw_ptr()->load_state_,
                          RawLibrary::kAllocated);
   result.StoreNonPointer(&result.raw_ptr()->index_, -1);
@@ -11336,6 +11422,51 @@ RawError* Library::CompileAll() {
 }
 
 
+RawError* Library::ParseAll(Thread* thread) {
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
+  Isolate* isolate = thread->isolate();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  Class& cls = Class::Handle(zone);
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      error = cls.EnsureIsFinalized(thread);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      error = Compiler::ParseAllFunctions(cls);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+    }
+  }
+
+  // Inner functions get added to the closures array. As part of compilation
+  // more closures can be added to the end of the array. Compile all the
+  // closures until we have reached the end of the "worklist".
+  const GrowableObjectArray& closures = GrowableObjectArray::Handle(zone,
+      Isolate::Current()->object_store()->closure_functions());
+  Function& func = Function::Handle(zone);
+  for (int i = 0; i < closures.Length(); i++) {
+    func ^= closures.At(i);
+    if (!func.HasCode()) {
+      error = Compiler::ParseFunction(thread, func);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      func.ClearICDataArray();
+      func.ClearCode();
+    }
+  }
+  return error.raw();
+}
+
+
 // Return Function::null() if function does not exist in libs.
 RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
                                   const char* class_name,
@@ -11395,6 +11526,7 @@ void Library::CheckFunctionFingerprints() {
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::InternalLibrary()));
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS2);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
   INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
@@ -11793,8 +11925,8 @@ RawScript* CodeSourceMap::ScriptForPCOffset(const Code& code,
 void CodeSourceMap::Dump(const CodeSourceMap& code_source_map,
                          const Code& code,
                          const Function& function) {
-  const String& code_name = String::Handle(code.QualifiedName());
-  THR_Print("Dumping Code Source Map for %s\n", code_name.ToCString());
+  const char* code_name = code.QualifiedName();
+  THR_Print("Dumping Code Source Map for %s\n", code_name);
   if (code_source_map.Length() == 0) {
     THR_Print("<empty>\n");
     return;
@@ -11817,7 +11949,7 @@ void CodeSourceMap::Dump(const CodeSourceMap& code_source_map,
       THR_Print("%#-*" Px "\t%s\t%s\n", addr_width,
                 pc_offset,
                 tp.ToCString(),
-                code_name.ToCString());
+                code_name);
       continue;
     }
     const String& uri = String::Handle(current_script.url());
@@ -12493,6 +12625,57 @@ bool DeoptInfo::VerifyDecompression(const GrowableArray<DeoptInstr*>& original,
 }
 
 
+void SingleTargetCache::set_target(const Code& value) const {
+  StorePointer(&raw_ptr()->target_, value.raw());
+}
+
+
+const char* SingleTargetCache::ToCString() const {
+  return "SingleTargetCache";
+}
+
+
+RawSingleTargetCache* SingleTargetCache::New() {
+  SingleTargetCache& result = SingleTargetCache::Handle();
+  {
+    // IC data objects are long living objects, allocate them in old generation.
+    RawObject* raw = Object::Allocate(SingleTargetCache::kClassId,
+                                      SingleTargetCache::InstanceSize(),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_target(Code::Handle());
+  result.set_entry_point(0);
+  result.set_lower_limit(kIllegalCid);
+  result.set_upper_limit(kIllegalCid);
+  return result.raw();
+}
+
+
+void UnlinkedCall::set_target_name(const String& value) const {
+  StorePointer(&raw_ptr()->target_name_, value.raw());
+}
+
+
+void UnlinkedCall::set_args_descriptor(const Array& value) const {
+  StorePointer(&raw_ptr()->args_descriptor_, value.raw());
+}
+
+
+const char* UnlinkedCall::ToCString() const {
+  return "UnlinkedCall";
+}
+
+
+RawUnlinkedCall* UnlinkedCall::New() {
+  RawObject* raw = Object::Allocate(UnlinkedCall::kClassId,
+                                    UnlinkedCall::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawUnlinkedCall*>(raw);
+}
+
+
 void ICData::ResetSwitchable(Zone* zone) const {
   ASSERT(NumArgsTested() == 1);
   set_ic_data_array(Array::Handle(zone, CachedEmptyICDataArray(1)));
@@ -12562,8 +12745,12 @@ void ICData::set_arguments_descriptor(const Array& value) const {
 
 
 void ICData::set_deopt_id(intptr_t value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(value <= kMaxInt32);
   StoreNonPointer(&raw_ptr()->deopt_id_, value);
+#endif
 }
 
 
@@ -13376,6 +13563,20 @@ bool ICData::HasOneTarget() const {
 }
 
 
+bool ICData::HasOnlyDispatcherTargets() const {
+  const intptr_t len = NumberOfChecks();
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < len; i++) {
+    target = GetTargetAt(i);
+    if (!target.IsNoSuchMethodDispatcher() &&
+        !target.IsInvokeFieldDispatcher()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 void ICData::GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
                                    GrowableArray<intptr_t>* second) const {
   ASSERT(NumArgsTested() == 2);
@@ -13461,7 +13662,7 @@ RawICData* ICData::NewDescriptor(Zone* zone,
   result.set_owner(owner);
   result.set_target_name(target_name);
   result.set_arguments_descriptor(arguments_descriptor);
-  result.set_deopt_id(deopt_id);
+  NOT_IN_PRECOMPILED(result.set_deopt_id(deopt_id));
   result.set_state_bits(0);
 #if defined(TAG_IC_DATA)
   result.set_tag(-1);
@@ -13649,13 +13850,21 @@ void Code::set_stackmaps(const Array& maps) const {
 
 
 void Code::set_deopt_info_array(const Array& array) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(array.IsOld());
   StorePointer(&raw_ptr()->deopt_info_array_, array.raw());
+#endif
 }
 
 
 void Code::set_static_calls_target_table(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   StorePointer(&raw_ptr()->static_calls_target_table_, value.raw());
+#endif
 #if defined(DEBUG)
   // Check that the table is sorted by pc offsets.
   // FlowGraphCompiler::AddStaticCallTarget adds pc-offsets to the table while
@@ -13718,6 +13927,9 @@ RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
 
 
 intptr_t Code::BinarySearchInSCallTable(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   NoSafepointScope no_safepoint;
   const Array& table = Array::Handle(raw_ptr()->static_calls_target_table_);
   RawObject* key = reinterpret_cast<RawObject*>(Smi::New(pc - PayloadStart()));
@@ -13735,11 +13947,16 @@ intptr_t Code::BinarySearchInSCallTable(uword pc) const {
       return real_index;
     }
   }
+#endif
   return -1;
 }
 
 
 RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return Function::null();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   if (i < 0) {
     return Function::null();
@@ -13749,10 +13966,15 @@ RawFunction* Code::GetStaticCallTargetFunctionAt(uword pc) const {
   Function& function = Function::Handle();
   function ^= array.At(i + kSCallTableFunctionEntry);
   return function.raw();
+#endif
 }
 
 
 RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+  return Code::null();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   if (i < 0) {
     return Code::null();
@@ -13762,10 +13984,14 @@ RawCode* Code::GetStaticCallTargetCodeAt(uword pc) const {
   Code& code = Code::Handle();
   code ^= array.At(i + kSCallTableCodeEntry);
   return code.raw();
+#endif
 }
 
 
 void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
   const Array& array =
@@ -13773,10 +13999,14 @@ void Code::SetStaticCallTargetCodeAt(uword pc, const Code& code) const {
   ASSERT(code.IsNull() ||
          (code.function() == array.At(i + kSCallTableFunctionEntry)));
   array.SetAt(i + kSCallTableCodeEntry, code);
+#endif
 }
 
 
 void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   const intptr_t i = BinarySearchInSCallTable(pc);
   ASSERT(i >= 0);
   const Array& array =
@@ -13790,6 +14020,7 @@ void Code::SetStubCallTargetCodeAt(uword pc, const Code& code) const {
   }
 #endif
   array.SetAt(i + kSCallTableCodeEntry, code);
+#endif
 }
 
 
@@ -13810,26 +14041,41 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
 
 
 const Code::Comments& Code::comments() const  {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  Comments* comments = new Code::Comments(Array::Handle());
+#else
   Comments* comments = new Code::Comments(Array::Handle(raw_ptr()->comments_));
+#endif
   return *comments;
 }
 
 
 void Code::set_comments(const Code::Comments& comments) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(comments.comments_.IsOld());
   StorePointer(&raw_ptr()->comments_, comments.comments_.raw());
+#endif
 }
 
 
 void Code::SetPrologueOffset(intptr_t offset) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   ASSERT(offset >= 0);
   StoreSmi(
       reinterpret_cast<RawSmi* const *>(&raw_ptr()->return_address_metadata_),
       Smi::New(offset));
+#endif
 }
 
 
 intptr_t Code::GetPrologueOffset() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return -1;
+#else
   const Object& object = Object::Handle(raw_ptr()->return_address_metadata_);
   // In the future we may put something other than a smi in
   // |return_address_metadata_|.
@@ -13837,20 +14083,28 @@ intptr_t Code::GetPrologueOffset() const {
     return -1;
   }
   return Smi::Cast(object).Value();
+#endif
 }
 
 
 RawArray* Code::GetInlinedIntervals() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIntervalsIndex));
+#endif
 }
 
 
 void Code::SetInlinedIntervals(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13860,20 +14114,28 @@ void Code::SetInlinedIntervals(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIntervalsIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedIdToFunction() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIdToFunctionIndex));
+#endif
 }
 
 
 void Code::SetInlinedIdToFunction(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13883,20 +14145,28 @@ void Code::SetInlinedIdToFunction(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIdToFunctionIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedIdToTokenPos() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedIdToTokenPosIndex));
+#endif
 }
 
 
 void Code::SetInlinedIdToTokenPos(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13906,20 +14176,28 @@ void Code::SetInlinedIdToTokenPos(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedIdToTokenPosIndex, value);
+#endif
 }
 
 
 RawArray* Code::GetInlinedCallerIdMap() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Array::null();
+#else
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
     return metadata.raw();
   }
   return reinterpret_cast<RawArray*>(
       metadata.At(RawCode::kInlinedCallerIdMapIndex));
+#endif
 }
 
 
 void Code::SetInlinedCallerIdMap(const Array& value) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   if (raw_ptr()->inlined_metadata_ == Array::null()) {
     StorePointer(&raw_ptr()->inlined_metadata_,
                  Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
@@ -13929,6 +14207,7 @@ void Code::SetInlinedCallerIdMap(const Array& value) const {
   ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
   metadata.SetAt(RawCode::kInlinedCallerIdMapIndex, value);
+#endif
 }
 
 
@@ -13950,7 +14229,8 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_alive(false);
     result.set_comments(Comments::New(0));
     result.set_compile_timestamp(0);
-    result.set_lazy_deopt_pc_offset(kInvalidPc);
+    result.set_lazy_deopt_return_pc_offset(kInvalidPc);
+    result.set_lazy_deopt_throw_pc_offset(kInvalidPc);
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -14160,12 +14440,12 @@ const char* Code::ToCString() const {
     const char* name = StubCode::NameOfStub(UncheckedEntryPoint());
     return zone->PrintToString("[stub: %s]", name);
   } else {
-    return zone->PrintToString("Code entry:%" Px, UncheckedEntryPoint());
+    return zone->PrintToString("Code entry: 0x%" Px, UncheckedEntryPoint());
   }
 }
 
 
-RawString* Code::Name() const {
+const char* Code::Name() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsNull()) {
     // Regular stub.
@@ -14175,7 +14455,7 @@ RawString* Code::Name() const {
     ASSERT(name != NULL);
     char* stub_name = OS::SCreate(zone,
         "%s%s", Symbols::StubPrefix().ToCString(), name);
-    return Symbols::New(thread, stub_name, strlen(stub_name));
+    return stub_name;
   } else if (obj.IsClass()) {
     // Allocation stub.
     Thread* thread = Thread::Current();
@@ -14183,19 +14463,23 @@ RawString* Code::Name() const {
     const Class& cls = Class::Cast(obj);
     String& cls_name = String::Handle(zone, cls.ScrubbedName());
     ASSERT(!cls_name.IsNull());
-    return Symbols::FromConcat(thread, Symbols::AllocationStubFor(), cls_name);
+    char* stub_name = OS::SCreate(zone,
+        "%s%s", Symbols::AllocationStubFor().ToCString(), cls_name.ToCString());
+    return stub_name;
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
-    return Function::Cast(obj).UserVisibleName();  // Same as scrubbed name.
+    // Same as scrubbed name.
+    return String::Handle(Function::Cast(obj).UserVisibleName()).ToCString();
   }
 }
 
 
-RawString* Code::QualifiedName() const {
+const char* Code::QualifiedName() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsFunction()) {
-    return Function::Cast(obj).QualifiedScrubbedName();
+    return String::Handle(
+        Function::Cast(obj).QualifiedScrubbedName()).ToCString();
   }
   return Name();
 }
@@ -14245,6 +14529,9 @@ void Code::DisableStubCode() const {
 
 
 void Code::SetActiveInstructions(RawInstructions* instructions) const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  UNREACHABLE();
+#else
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
@@ -14253,12 +14540,19 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
                   Instructions::UncheckedEntryPoint(instructions));
   StoreNonPointer(&raw_ptr()->checked_entry_point_,
                   Instructions::CheckedEntryPoint(instructions));
+#endif
 }
 
 
-uword Code::GetLazyDeoptPc() const {
-  return (lazy_deopt_pc_offset() != kInvalidPc)
-      ? PayloadStart() + lazy_deopt_pc_offset() : 0;
+uword Code::GetLazyDeoptReturnPc() const {
+  return (lazy_deopt_return_pc_offset() != kInvalidPc)
+      ? PayloadStart() + lazy_deopt_return_pc_offset() : 0;
+}
+
+
+uword Code::GetLazyDeoptThrowPc() const {
+  return (lazy_deopt_throw_pc_offset() != kInvalidPc)
+      ? PayloadStart() + lazy_deopt_throw_pc_offset() : 0;
 }
 
 
@@ -15300,11 +15594,11 @@ RawInstance* Instance::CheckAndCanonicalize(Thread* thread,
   const Class& cls = Class::Handle(zone, this->clazz());
   {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    result ^= cls.LookupCanonicalInstance(zone, *this);
+    if (!result.IsNull()) {
+      return result.raw();
+    }
     if (IsNew()) {
-      result ^= cls.LookupCanonicalInstance(zone, *this);
-      if (!result.IsNull()) {
-        return result.raw();
-      }
       ASSERT((isolate == Dart::vm_isolate()) || !InVMHeap());
       // Create a canonical object in old space.
       result ^= Object::Clone(*this, Heap::kOld);
@@ -15326,12 +15620,6 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
   const Class& cls = Class::Handle(zone, this->clazz());
   SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
   result ^= cls.LookupCanonicalInstance(zone, *this);
-  // TODO(johnmccutchan) : Temporary workaround for issue (26988).
-  if ((result.raw() != raw()) &&
-      isolate->HasAttemptedReload() &&
-      (GetClassId() == kImmutableArrayCid)) {
-    return true;
-  }
   return (result.raw() == this->raw());
 }
 #endif  // DEBUG
@@ -16093,32 +16381,6 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
-  return Symbols::FromConcatAll(thread, pieces);
-}
-
-
-// Same as user visible name, but including the URI of each occuring type.
-// Used to report errors involving types with identical names.
-//
-// e.g.
-//   MyClass<String>     -> MyClass<String> where
-//                            MyClass is from my_uri
-//                            String is from dart:core
-//   MyClass<dynamic, T> -> MyClass<dynamic, T> where
-//                            MyClass is from my_uri
-//                            T of OtherClass is from other_uri
-//   (MyClass) => int    -> (MyClass) => int where
-//                            MyClass is from my_uri
-//                            int is from dart:core
-RawString* AbstractType::UserVisibleNameWithURI() const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  GrowableHandlePtrArray<const String> pieces(zone, 3);
-  pieces.Add(String::Handle(zone, BuildName(kUserVisibleName)));
-  if (!IsDynamicType() && !IsVoidType()) {
-    pieces.Add(Symbols::SpaceWhereNewLine());
-    pieces.Add(String::Handle(zone, EnumerateURIs()));
-  }
   return Symbols::FromConcatAll(thread, pieces);
 }
 
@@ -17559,6 +17821,11 @@ RawClass* TypeParameter::parameterized_class() const {
 }
 
 
+void TypeParameter::set_parameterized_function(const Function& value) const {
+  StorePointer(&raw_ptr()->parameterized_function_, value.raw());
+}
+
+
 void TypeParameter::set_index(intptr_t value) const {
   ASSERT(value >= 0);
   ASSERT(Utils::IsInt(16, value));
@@ -17669,6 +17936,7 @@ RawAbstractType* TypeParameter::CloneUnfinalized() const {
   }
   // No need to clone bound, as it is not part of the finalization state.
   return TypeParameter::New(Class::Handle(parameterized_class()),
+                            Function::Handle(parameterized_function()),
                             index(),
                             String::Handle(name()),
                             AbstractType::Handle(bound()),
@@ -17688,7 +17956,9 @@ RawAbstractType* TypeParameter::CloneUninstantiated(
   const intptr_t new_index = index() +
       new_owner.NumTypeArguments() - old_owner.NumTypeArguments();
   AbstractType& upper_bound = AbstractType::Handle(bound());
+  ASSERT(parameterized_function() == Function::null());
   clone = TypeParameter::New(new_owner,
+                             Function::Handle(),
                              new_index,
                              String::Handle(name()),
                              upper_bound,  // Not cloned yet.
@@ -17739,12 +18009,15 @@ RawTypeParameter* TypeParameter::New() {
 
 
 RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
+                                     const Function& parameterized_function,
                                      intptr_t index,
                                      const String& name,
                                      const AbstractType& bound,
                                      TokenPosition token_pos) {
+  ASSERT(parameterized_class.IsNull() != parameterized_function.IsNull());
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
+  result.set_parameterized_function(parameterized_function);
   result.set_index(index);
   result.set_name(name);
   result.set_bound(bound);
@@ -17762,6 +18035,11 @@ void TypeParameter::set_token_pos(TokenPosition token_pos) const {
 }
 
 
+void TypeParameter::set_parent_level(uint8_t value) const {
+  StoreNonPointer(&raw_ptr()->parent_level_, value);
+}
+
+
 void TypeParameter::set_type_state(int8_t state) const {
   ASSERT((state == RawTypeParameter::kAllocated) ||
          (state == RawTypeParameter::kBeingFinalized) ||
@@ -17771,19 +18049,32 @@ void TypeParameter::set_type_state(int8_t state) const {
 
 
 const char* TypeParameter::ToCString() const {
-  const char* format =
-      "TypeParameter: name %s; index: %d; class: %s; bound: %s";
   const char* name_cstr = String::Handle(Name()).ToCString();
-  const Class& cls = Class::Handle(parameterized_class());
-  const char* cls_cstr =
-      cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
   const AbstractType& upper_bound = AbstractType::Handle(bound());
   const char* bound_cstr = String::Handle(upper_bound.Name()).ToCString();
-  intptr_t len = OS::SNPrint(
-      NULL, 0, format, name_cstr, index(), cls_cstr, bound_cstr) + 1;
-  char* chars = Thread::Current()->zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr, bound_cstr);
-  return chars;
+  if (IsFunctionTypeParameter()) {
+    const char* format = "TypeParameter: name %s; index: %d; parent_level: %d, "
+        "function: %s; bound: %s";
+    const Function& function = Function::Handle(parameterized_function());
+    const char* fun_cstr = String::Handle(function.name()).ToCString();
+    intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index(),
+                               parent_level(), fun_cstr, bound_cstr) + 1;
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, name_cstr, index(), parent_level(),
+                fun_cstr, bound_cstr);
+    return chars;
+  } else {
+    const char* format =
+        "TypeParameter: name %s; index: %d; class: %s; bound: %s";
+    const Class& cls = Class::Handle(parameterized_class());
+    const char* cls_cstr =
+        cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
+    intptr_t len = OS::SNPrint(
+        NULL, 0, format, name_cstr, index(), cls_cstr, bound_cstr) + 1;
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
+    OS::SNPrint(chars, len, format, name_cstr, index(), cls_cstr, bound_cstr);
+    return chars;
+  }
 }
 
 
@@ -20172,7 +20463,7 @@ static int32_t MergeHexCharacters(int32_t c1, int32_t c2) {
 }
 
 
-RawString* String::EncodeIRI(const String& str) {
+const char* String::EncodeIRI(const String& str) {
   const intptr_t len = Utf8::Length(str);
   Zone* zone = Thread::Current()->zone();
   uint8_t* utf8 = zone->Alloc<uint8_t>(len);
@@ -20184,27 +20475,22 @@ RawString* String::EncodeIRI(const String& str) {
       num_escapes += 2;
     }
   }
-  const String& dststr = String::Handle(
-      OneByteString::New(len + num_escapes, Heap::kNew));
-  {
-    intptr_t index = 0;
-    for (int i = 0; i < len; ++i) {
-      uint8_t byte = utf8[i];
-      if (!IsURISafeCharacter(byte)) {
-        OneByteString::SetCharAt(dststr, index, '%');
-        OneByteString::SetCharAt(dststr, index + 1,
-                                 GetHexCharacter(byte >> 4));
-        OneByteString::SetCharAt(dststr, index + 2,
-                                 GetHexCharacter(byte & 0xF));
-        index += 3;
-      } else {
-        ASSERT(byte <= 127);
-        OneByteString::SetCharAt(dststr, index, byte);
-        index += 1;
-      }
+  intptr_t cstr_len = len + num_escapes + 1;
+  char* cstr = zone->Alloc<char>(cstr_len);
+  intptr_t index = 0;
+  for (int i = 0; i < len; ++i) {
+    uint8_t byte = utf8[i];
+    if (!IsURISafeCharacter(byte)) {
+      cstr[index++] = '%';
+      cstr[index++] = GetHexCharacter(byte >> 4);
+      cstr[index++] = GetHexCharacter(byte & 0xF);
+    } else {
+      ASSERT(byte <= 127);
+      cstr[index++] = byte;
     }
   }
-  return dststr.raw();
+  cstr[index] = '\0';
+  return cstr;
 }
 
 
@@ -20439,11 +20725,10 @@ void String::ToUTF8(uint8_t* utf8_array, intptr_t array_len) const {
 static FinalizablePersistentHandle* AddFinalizer(
     const Object& referent,
     void* peer,
-    Dart_WeakPersistentHandleFinalizer callback) {
+    Dart_WeakPersistentHandleFinalizer callback,
+    intptr_t external_size) {
   ASSERT((callback != NULL && peer != NULL) ||
          (callback == NULL && peer == NULL));
-  // TODO(19482): Make API consistent for external size of strings/typed data.
-  const intptr_t external_size = 0;
   return FinalizablePersistentHandle::New(Isolate::Current(),
                                           referent,
                                           peer,
@@ -20453,7 +20738,7 @@ static FinalizablePersistentHandle* AddFinalizer(
 
 
 RawString* String::MakeExternal(void* array,
-                                intptr_t length,
+                                intptr_t external_size,
                                 void* peer,
                                 Dart_PeerFinalizer cback) const {
   ASSERT(FLAG_support_externalizable_strings);
@@ -20464,7 +20749,7 @@ RawString* String::MakeExternal(void* array,
     NoSafepointScope no_safepoint;
     ASSERT(array != NULL);
     intptr_t str_length = this->Length();
-    ASSERT(length >= (str_length * this->CharSize()));
+    ASSERT(external_size >= (str_length * this->CharSize()));
     intptr_t class_id = raw()->GetClassId();
 
     ASSERT(!InVMHeap());
@@ -20543,7 +20828,7 @@ RawString* String::MakeExternal(void* array,
       finalizer = ExternalTwoByteString::Finalize;
     }
   }  // NoSafepointScope
-  AddFinalizer(result, external_data, finalizer);
+  AddFinalizer(result, external_data, finalizer, external_size);
   return this->raw();
 }
 
@@ -20992,13 +21277,14 @@ RawOneByteString* OneByteString::SubStringUnchecked(const String& str,
 
 
 void OneByteString::SetPeer(const String& str,
+                            intptr_t external_size,
                             void* peer,
                             Dart_PeerFinalizer cback) {
   ASSERT(!str.IsNull() && str.IsOneByteString());
   ASSERT(peer != NULL);
   ExternalStringData<uint8_t>* ext_data =
       new ExternalStringData<uint8_t>(NULL, peer, cback);
-  AddFinalizer(str, ext_data, OneByteString::Finalize);
+  AddFinalizer(str, ext_data, OneByteString::Finalize, external_size);
   Isolate::Current()->heap()->SetPeer(str.raw(), peer);
 }
 
@@ -21203,13 +21489,14 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
 
 
 void TwoByteString::SetPeer(const String& str,
+                            intptr_t external_size,
                             void* peer,
                             Dart_PeerFinalizer cback) {
   ASSERT(!str.IsNull() && str.IsTwoByteString());
   ASSERT(peer != NULL);
   ExternalStringData<uint16_t>* ext_data =
       new ExternalStringData<uint16_t>(NULL, peer, cback);
-  AddFinalizer(str, ext_data, TwoByteString::Finalize);
+  AddFinalizer(str, ext_data, TwoByteString::Finalize, external_size);
   Isolate::Current()->heap()->SetPeer(str.raw(), peer);
 }
 
@@ -21247,7 +21534,9 @@ RawExternalOneByteString* ExternalOneByteString::New(
     result.SetHash(0);
     SetExternalData(result, external_data);
   }
-  AddFinalizer(result, external_data, ExternalOneByteString::Finalize);
+  intptr_t external_size = len;
+  AddFinalizer(result, external_data, ExternalOneByteString::Finalize,
+               external_size);
   return ExternalOneByteString::raw(result);
 }
 
@@ -21285,7 +21574,9 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     result.SetHash(0);
     SetExternalData(result, external_data);
   }
-  AddFinalizer(result, external_data, ExternalTwoByteString::Finalize);
+  intptr_t external_size = len * 2;
+  AddFinalizer(result, external_data, ExternalTwoByteString::Finalize,
+               external_size);
   return ExternalTwoByteString::raw(result);
 }
 
@@ -21361,6 +21652,7 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
 
 uword Array::ComputeCanonicalTableHash() const {
   ASSERT(!IsNull());
+  NoSafepointScope no_safepoint;
   intptr_t len = Length();
   uword hash = len;
   uword value = reinterpret_cast<uword>(GetTypeArguments());
@@ -22079,8 +22371,10 @@ const char* TypedData::ToCString() const {
 
 
 FinalizablePersistentHandle* ExternalTypedData::AddFinalizer(
-    void* peer, Dart_WeakPersistentHandleFinalizer callback) const {
-  return dart::AddFinalizer(*this, peer, callback);
+    void* peer,
+    Dart_WeakPersistentHandleFinalizer callback,
+    intptr_t external_size) const {
+  return dart::AddFinalizer(*this, peer, callback, external_size);
 }
 
 

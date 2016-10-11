@@ -105,7 +105,8 @@ void testSimpleConnectFail(SecurityContext context, bool cancelOnError) {
       Expect.fail("No server connection expected.");
     },
     onError: (error) {
-      Expect.isTrue(error is HandshakeException);
+      Expect.isTrue(error is SocketException ||
+                    error is HandshakeException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         asyncEnd();

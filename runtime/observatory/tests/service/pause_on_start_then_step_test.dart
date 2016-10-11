@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
@@ -32,7 +33,7 @@ var tests = [
   print('Subscribed.  Pause event is ${isolate.pauseEvent}');
 
   if (isolate.pauseEvent != null &&
-      isolate.pauseEvent.kind == ServiceEvent.kPauseStart) {
+      isolate.pauseEvent is M.PauseStartEvent) {
     // Wait for the isolate to hit PauseStart.
     subscription.cancel();
     print('Subscription cancelled.');

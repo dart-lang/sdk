@@ -34,17 +34,12 @@ bool listsEqual(List a, List b) {
 }
 
 /**
- * The class `BooleanArray` defines methods for operating on integers as if they were arrays
- * of booleans. These arrays can be indexed by either integers or by enumeration constants.
+ * Methods for operating on integers as if they were arrays of booleans. These
+ * arrays can be indexed by either integers or by enumeration constants.
  */
 class BooleanArray {
   /**
-   * Return the value of the element at the given index.
-   *
-   * @param array the array being accessed
-   * @param index the index of the element being accessed
-   * @return the value of the element at the given index
-   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
+   * Return the value of the element of the given [array] at the given [index].
    */
   static bool get(int array, int index) {
     _checkIndex(index);
@@ -53,22 +48,13 @@ class BooleanArray {
 
   /**
    * Return the value of the element at the given index.
-   *
-   * @param array the array being accessed
-   * @param index the index of the element being accessed
-   * @return the value of the element at the given index
-   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
+  @deprecated
   static bool getEnum(int array, Enum index) => get(array, index.ordinal);
 
   /**
-   * Set the value of the element at the given index to the given value.
-   *
-   * @param array the array being modified
-   * @param index the index of the element being set
-   * @param value the value to be assigned to the element
-   * @return the updated value of the array
-   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
+   * Set the value of the element of the given [array] at the given [index] to
+   * the given [value].
    */
   static int set(int array, int index, bool value) {
     _checkIndex(index);
@@ -81,21 +67,14 @@ class BooleanArray {
 
   /**
    * Set the value of the element at the given index to the given value.
-   *
-   * @param array the array being modified
-   * @param index the index of the element being set
-   * @param value the value to be assigned to the element
-   * @return the updated value of the array
-   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
    */
+  @deprecated
   static int setEnum(int array, Enum index, bool value) =>
       set(array, index.ordinal, value);
 
   /**
-   * Throw an exception if the index is not within the bounds allowed for an integer-encoded array
-   * of boolean values.
-   *
-   * @throws IndexOutOfBoundsException if the index is not between zero (0) and 31, inclusive
+   * Throw an exception if the index is not within the bounds allowed for an
+   * integer-encoded array of boolean values.
    */
   static void _checkIndex(int index) {
     if (index < 0 || index > 30) {
@@ -203,7 +182,7 @@ class DirectedGraph<N> {
    */
   List<N> findCycleContaining(N node) {
     if (node == null) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     DirectedGraph_SccFinder<N> finder = new DirectedGraph_SccFinder<N>(this);
     return finder.componentContaining(node);
@@ -570,7 +549,7 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   K get key {
     if (_currentIterator == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     return _currentIterator.key;
   }
@@ -578,7 +557,7 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   V get value {
     if (_currentIterator == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     return _currentIterator.value;
   }
@@ -586,7 +565,7 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   void set value(V newValue) {
     if (_currentIterator == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     _currentIterator.value = newValue;
   }
@@ -672,7 +651,7 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   K get key {
     if (_currentKey == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     return _currentKey;
   }
@@ -680,7 +659,7 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   V get value {
     if (_currentKey == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     if (_currentValue == null) {
       _currentValue = _map[_currentKey];
@@ -691,7 +670,7 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
   @override
   void set value(V newValue) {
     if (_currentKey == null) {
-      throw new NoSuchElementException();
+      throw new StateError('No element');
     }
     _currentValue = newValue;
     _map[_currentKey] = newValue;

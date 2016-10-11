@@ -7,8 +7,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/js_backend/js_backend.dart'
-       show JavaScriptBackend;
+import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 import 'output_collector.dart';
@@ -17,14 +16,14 @@ void main() {
   asyncTest(() async {
     OutputCollector collector = new OutputCollector();
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        outputProvider: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
     String mainOutput = collector.getOutput('', 'js');
-    String deferredOutput =  collector.getOutput('out_1', 'part.js');
+    String deferredOutput = collector.getOutput('out_1', 'part.js');
     JavaScriptBackend backend = compiler.backend;
     String isPrefix = backend.namer.operatorIsPrefix;
-    Expect.isTrue(deferredOutput.contains('${isPrefix}A: 1'),
+    Expect.isTrue(
+        deferredOutput.contains('${isPrefix}A: 1'),
         "Deferred output doesn't contain '${isPrefix}A: 1':\n"
         "$deferredOutput");
     Expect.isFalse(mainOutput.contains('${isPrefix}A: 1'));
@@ -34,7 +33,8 @@ void main() {
 // We force additional runtime type support to be output for A by instantiating
 // it with a type argument, and testing for the type. The extra support should
 // go to the deferred hunk.
-const Map MEMORY_SOURCE_FILES = const {"main.dart": """
+const Map MEMORY_SOURCE_FILES = const {
+  "main.dart": """
 import 'lib.dart' deferred as lib show f, A, instance;
 
 void main() {
@@ -42,7 +42,8 @@ void main() {
     print(lib.f(lib.instance));
   });
 }
-""", "lib.dart": """
+""",
+  "lib.dart": """
 class A<T> {}
 
 class B<T> implements A<T> {}
@@ -52,4 +53,5 @@ B<B> instance = new B<B>();
 bool f (Object o) {
   return o is A<A>;
 }
-""",};
+""",
+};

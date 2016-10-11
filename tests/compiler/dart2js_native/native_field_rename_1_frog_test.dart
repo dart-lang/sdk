@@ -11,12 +11,12 @@ import 'dart:_js_helper' show Native, JSName;
 
 @Native("A")
 class A {
-  int key;                    //  jsname is 'key'
+  int key; //  jsname is 'key'
   int getKey() => key;
 }
 
 class B {
-  int key;                    //  jsname is not 'key'
+  int key; //  jsname is not 'key'
   B([this.key = 222]);
   int getKey() => key;
 }
@@ -24,16 +24,15 @@ class B {
 @Native("X")
 class X {
   @JSName('key')
-  int native_key_method() native;
+  int native_key_method() native ;
   // This should cause B.key to be renamed, but not A.key.
 
   @JSName('key')
-  int key() native;
+  int key() native ;
 }
 
-A makeA() native;
-X makeX() native;
-
+A makeA() native ;
+X makeX() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
@@ -57,7 +56,6 @@ testDynamic() {
   Expect.equals(222, b.key);
   Expect.equals(111, a.getKey());
   Expect.equals(222, b.getKey());
-
 
   Expect.equals(666, x.native_key_method());
   Expect.equals(666, x.key());

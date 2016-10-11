@@ -15,7 +15,6 @@ class A {
   int method(int z) => myLongPropertyName;
 }
 
-
 // This code is inside the setup function, so the function names are not
 // accessible, but the makeA variable is global through the magic of JS scoping.
 // The contents of this are of course not analyzable by the compiler.
@@ -44,7 +43,7 @@ function A(){
 makeA = function(){return new A;};
 """;
 
-A makeA() native;
+A makeA() native ;
 
 main() {
   setup();

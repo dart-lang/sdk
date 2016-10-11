@@ -29,6 +29,8 @@ abstract class VM implements VMRef {
   /// The process id for the VM.
   int get pid;
 
+  int get maxRSS;
+
   /// The time that the VM started in milliseconds since the epoch.
   ///
   /// Suitable to pass to DateTime.fromMillisecondsSinceEpoch.

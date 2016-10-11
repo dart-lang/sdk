@@ -288,8 +288,8 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
 
   @override
   void tearDown() {
-    super.tearDown();
     _disposeExecutionContext();
+    super.tearDown();
   }
 
   void test_mapUri_file() {

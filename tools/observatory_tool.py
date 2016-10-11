@@ -21,7 +21,16 @@ IGNORE_PATTERNS = shutil.ignore_patterns(
     '*.concat.js',
     '*.scriptUrls',
     '*.precompiled.js',
-    'main.*',
+    'bower.json',
+    'package.json',
+    'CustomElements.*',
+    'dart_support.*',
+    'interop_support.*',
+    'HTMLImports.*',
+    'MutationObserver.*',
+    'ShadowDOM.*',
+    'webcomponents.*',
+    'webcomponents-lite.js',
     'unittest*',
     '*_buildLogs*',
     '*.log',
@@ -39,7 +48,6 @@ def CreateTimestampFile(options):
 
 def BuildArguments():
   result = argparse.ArgumentParser(usage=usage)
-  result.add_argument("--package-root", help="package root", default=None)
   result.add_argument("--dart-executable", help="dart executable", default=None)
   result.add_argument("--pub-executable", help="pub executable", default=None)
   result.add_argument("--directory", help="observatory root", default=None)
@@ -104,9 +112,8 @@ def ProcessOptions(options, args):
         pass
     options.pub_snapshot = None
 
-    # We need a dart executable and a package root.
-    return (options.package_root is not None and
-            options.dart_executable is not None)
+    # We need a dart executable.
+    return (options.dart_executable is not None)
 
 def ChangeDirectory(directory):
   os.chdir(directory);
@@ -129,7 +136,6 @@ in the tools/observatory_tool.py script.
 def PubCommand(dart_executable,
                pub_executable,
                pub_snapshot,
-               pkg_root,
                command,
                silent):
   with open(os.devnull, 'wb') as silent_sink:
@@ -139,7 +145,7 @@ def PubCommand(dart_executable,
       executable = [utils.CheckedInSdkExecutable(), pub_snapshot]
     else:
       DisplayBootstrapWarning()
-      executable = [dart_executable, '--package-root=' + pkg_root, PUB_PATH]
+      executable = [dart_executable, PUB_PATH]
       # Prevent the bootstrap Dart executable from running in regular
       # development flow.
       # REMOVE THE FOLLOWING LINE TO USE the dart_bootstrap binary.
@@ -175,14 +181,12 @@ def ExecuteCommand(options, args):
     return PubCommand(options.dart_executable,
                       options.pub_executable,
                       options.pub_snapshot,
-                      options.package_root,
                       ['get', '--offline'],
                       options.silent)
   elif (cmd == 'build'):
     return PubCommand(options.dart_executable,
                       options.pub_executable,
                       options.pub_snapshot,
-                      options.package_root,
                       ['build',
                        '-DOBS_VER=' + utils.GetVersion(),
                        '--output', args[0]],
@@ -203,8 +207,6 @@ def main():
     parser.print_help()
     return 1
   # Calculate absolute paths before changing directory.
-  if (options.package_root != None):
-    options.package_root = os.path.abspath(options.package_root)
   if (options.dart_executable != None):
     options.dart_executable = os.path.abspath(options.dart_executable)
   if (options.pub_executable != None):

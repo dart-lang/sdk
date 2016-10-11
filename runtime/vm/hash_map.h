@@ -168,13 +168,14 @@ typename KeyValueTrait::Value
 template<typename KeyValueTrait, typename B, typename Allocator>
 typename KeyValueTrait::Pair*
     BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
-  const typename KeyValueTrait::Pair kNoPair = typename KeyValueTrait::Pair();
+  const typename KeyValueTrait::Value kNoValue =
+      KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
   if (array_index_ < map_.array_size_) {
     // If we're not in the middle of a list, find the next array slot.
     if (list_index_ == kNil) {
-      while ((map_.array_[array_index_].kv == kNoPair) &&
-             (array_index_ < map_.array_size_)) {
+      while (KeyValueTrait::ValueOf(map_.array_[array_index_].kv) == kNoValue &&
+             array_index_ < map_.array_size_) {
         array_index_++;
       }
       if (array_index_ < map_.array_size_) {

@@ -40,7 +40,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -590,15 +589,6 @@ abstract class Element implements AnalysisTarget {
   String get displayName;
 
   /**
-   * Return the source range of the documentation comment for this element,
-   * or `null` if this element does not or cannot have a documentation.
-   *
-   * Deprecated.  Use [documentationComment] instead.
-   */
-  @deprecated
-  SourceRange get docRange;
-
-  /**
    * Return the content of the documentation comment (including delimiters) for
    * this element, or `null` if this element does not or cannot have
    * documentation.
@@ -873,12 +863,11 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
 }
 
 /**
- * The enumeration `ElementKind` defines the various kinds of elements in the
- * element model.
+ * The kind of elements in the element model.
  *
  * Clients may not extend, implement or mix-in this class.
  */
-class ElementKind extends Enum<ElementKind> {
+class ElementKind implements Comparable<ElementKind> {
   static const ElementKind CLASS = const ElementKind('CLASS', 0, "class");
 
   static const ElementKind COMPILATION_UNIT =
@@ -963,6 +952,16 @@ class ElementKind extends Enum<ElementKind> {
   ];
 
   /**
+   * The name of this element kind.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the element kind.
+   */
+  final int ordinal;
+
+  /**
    * The name displayed in the UI for this kind of element.
    */
   final String displayName;
@@ -970,8 +969,16 @@ class ElementKind extends Enum<ElementKind> {
   /**
    * Initialize a newly created element kind to have the given [displayName].
    */
-  const ElementKind(String name, int ordinal, this.displayName)
-      : super(name, ordinal);
+  const ElementKind(this.name, this.ordinal, this.displayName);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(ElementKind other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 
   /**
    * Return the kind of the given [element], or [ERROR] if the element is
@@ -1174,6 +1181,11 @@ abstract class FieldElement
    * Return {@code true} if this element is an enum constant.
    */
   bool get isEnumConstant;
+
+  /**
+   * Returns `true` if this field can be overridden in strong mode.
+   */
+  bool get isVirtual;
 
   @override
   AstNode computeNode();
@@ -1491,11 +1503,6 @@ abstract class LibraryElement implements Element {
   List<CompilationUnitElement> get units;
 
   /**
-   * Return a list containing all directly and indirectly imported libraries.
-   */
-  List<LibraryElement> get visibleLibraries;
-
-  /**
    * Return a list containing all of the imports that share the given [prefix],
    * or an empty array if there are no such imports.
    */
@@ -1506,13 +1513,6 @@ abstract class LibraryElement implements Element {
    * `null` if this library does not define a class with the given name.
    */
   ClassElement getType(String className);
-
-  /**
-   * Return `true` if this library is up to date with respect to the given
-   * [timeStamp]. If any transitively referenced Source is newer than the time
-   * stamp, this method returns false.
-   */
-  bool isUpToDate(int timeStamp);
 }
 
 /**
@@ -1632,6 +1632,12 @@ abstract class ParameterElement
    * Return the Dart code of the default value, or `null` if no default value.
    */
   String get defaultValueCode;
+
+  /**
+   * Return `true` if this parameter is covariant, meaning it is allowed to have
+   * a narrower type in an override.
+   */
+  bool get isCovariant;
 
   /**
    * Return `true` if this parameter is an initializing formal parameter.

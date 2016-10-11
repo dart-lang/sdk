@@ -85,14 +85,42 @@ testEncodeDecodeQueryComponent(String orig,
 }
 
 testUriPerRFCs() {
-  final urisSample = "http://a/b/c/d;p?q";
-  Uri base = Uri.parse(urisSample);
+  // Convert a Uri to a guaranteed "non simple" URI with the same content.
+  toComplex(Uri uri) {
+    Uri complex = new Uri(
+      scheme: uri.scheme,
+      userInfo: uri.hasAuthority ? uri.userInfo : null,
+      host: uri.hasAuthority ? uri.host : null,
+      port: uri.hasAuthority ? uri.port : null,
+      path: uri.path,
+      query: uri.hasQuery ? uri.query : null,
+      fragment: uri.hasFragment ? uri.fragment : null,
+    );
+    assert(complex.toString() == uri.toString());
+    return complex;
+  }
+
+  Uri base;
+  Uri complexBase;
+  // Sets the [base] and [complexBase] to the parse of the URI and a
+  // guaranteed non-simple version of the same URI.
+  setBase(String uri) {
+    base = Uri.parse(uri);
+    complexBase = toComplex(base);
+  }
+
   testResolve(expect, relative) {
     String name = "$base << $relative";
     Expect.stringEquals(expect, base.resolve(relative).toString(), name);
+
+    Expect.stringEquals(expect, complexBase.resolve(relative).toString(),
+                        name + " (complex base)");
   }
 
   // From RFC 3986.
+  final urisSample = "http://a/b/c/d;p?q";
+  setBase(urisSample);
+
   testResolve("g:h",                   "g:h");
   testResolve("http://a/b/c/g",        "g");
   testResolve("http://a/b/c/g",        "./g");
@@ -139,47 +167,66 @@ testUriPerRFCs() {
   // Additional tests (not from RFC 3986).
   testResolve("http://a/b/g;p/h;s",    "../g;p/h;s");
 
-  base = Uri.parse("s:a/b");
+  setBase("s:a/b");
   testResolve("s:a/c", "c");
   testResolve("s:/c", "../c");
 
-  base = Uri.parse("S:a/b");
+  setBase("S:a/b");
   testResolve("s:a/c", "c");
   testResolve("s:/c", "../c");
 
-  base = Uri.parse("s:foo");
+  setBase("s:foo");
   testResolve("s:bar", "bar");
   testResolve("s:bar", "../bar");
 
-  base = Uri.parse("S:foo");
+  setBase("S:foo");
   testResolve("s:bar", "bar");
   testResolve("s:bar", "../bar");
 
   // Special-case (deliberate non-RFC behavior).
-  base = Uri.parse("foo/bar");
+  setBase("foo/bar");
   testResolve("foo/baz", "baz");
   testResolve("baz", "../baz");
 
-  base = Uri.parse("s:/foo");
+  setBase("s:/foo");
   testResolve("s:/bar", "bar");
   testResolve("s:/bar", "../bar");
 
-  base = Uri.parse("S:/foo");
+  setBase("S:/foo");
   testResolve("s:/bar", "bar");
   testResolve("s:/bar", "../bar");
 
   // Test non-URI base (no scheme, no authority, relative path).
-  base = Uri.parse("a/b/c?_#_");
+  setBase("a/b/c?_#_");
   testResolve("a/b/g?q#f", "g?q#f");
   testResolve("./", "../..");
   testResolve("../", "../../..");
   testResolve("a/b/", ".");
   testResolve("c", "../../c");  // Deliberate non-RFC behavior.
-  base = Uri.parse("../../a/b/c?_#_");  // Initial ".." in base url.
+  setBase("../../a/b/c?_#_");  // Initial ".." in base url.
   testResolve("../../a/d", "../d");
+  testResolve("../../d", "../../d");
   testResolve("../../../d", "../../../d");
+  setBase("../../a/b");
+  testResolve("../../a/d", "d");
+  testResolve("../../d", "../d");
+  testResolve("../../../d", "../../d");
+  setBase("../../a");
+  testResolve("../../d", "d");
+  testResolve("../../../d", "../d");
+  testResolve("../../../../d", "../../d");
 
-  base = Uri.parse("s://h/p?q#f");  // A simple base.
+  // Absoluyte path, not scheme or authority.
+  setBase("/a");
+  testResolve("/b", "b");
+  testResolve("/b", "../b");
+  testResolve("/b", "../../b");
+  setBase("/a/b");
+  testResolve("/a/c", "c");
+  testResolve("/c", "../c");
+  testResolve("/c", "../../c");
+
+  setBase("s://h/p?q#f");  // A simple base.
   // Simple references:
   testResolve("s2://h2/P?Q#F", "s2://h2/P?Q#F");
   testResolve("s://h2/P?Q#F", "//h2/P?Q#F");
@@ -195,7 +242,7 @@ testUriPerRFCs() {
   testResolve("s://h/p?Q#F%20", "?Q#F%20");
   testResolve("s://h/p?q#F%20", "#F%20");
 
-  base = Uri.parse("s://h/p1/p2/p3");  // A simple base with a path.
+  setBase("s://h/p1/p2/p3");  // A simple base with a path.
   testResolve("s://h/p1/p2/", ".");
   testResolve("s://h/p1/p2/", "./");
   testResolve("s://h/p1/", "..");
@@ -206,7 +253,7 @@ testUriPerRFCs() {
   testResolve("s://h/", "../../../..");
   testResolve("s://h/", "../../../../");
 
-  base = Uri.parse("s://h/p?q#f%20");  // A non-simpe base.
+  setBase("s://h/p?q#f%20");  // A non-simpe base.
   // Simple references:
   testResolve("s2://h2/P?Q#F", "s2://h2/P?Q#F");
   testResolve("s://h2/P?Q#F", "//h2/P?Q#F");
@@ -222,7 +269,7 @@ testUriPerRFCs() {
   testResolve("s://h/p?Q#F%20", "?Q#F%20");
   testResolve("s://h/p?q#F%20", "#F%20");
 
-  base = Uri.parse("S://h/p1/p2/p3");  // A non-simple base with a path.
+  setBase("S://h/p1/p2/p3");  // A non-simple base with a path.
   testResolve("s://h/p1/p2/", ".");
   testResolve("s://h/p1/p2/", "./");
   testResolve("s://h/p1/", "..");
@@ -233,7 +280,7 @@ testUriPerRFCs() {
   testResolve("s://h/", "../../../..");
   testResolve("s://h/", "../../../../");
 
-  base = Uri.parse("../../../");  // A simple relative path.
+  setBase("../../../");  // A simple relative path.
   testResolve("../../../a", "a");
   testResolve("../../../../a", "../a");
   testResolve("../../../a%20", "a%20");
@@ -242,8 +289,7 @@ testUriPerRFCs() {
   // Tests covering the branches of the merge algorithm in RFC 3986
   // with both simple and complex base URIs.
   for (var b in ["s://a/pa/pb?q#f", "s://a/pa/pb?q#f%20"]) {
-    var origBase = Uri.parse(b);
-    base = origBase;
+    setBase(b);
 
     // if defined(R.scheme) then ...
     testResolve("s2://a2/p2?q2#f2", "s2://a2/p2?q2#f2");
@@ -271,40 +317,40 @@ testUriPerRFCs() {
     // (Cover the merge function and the remove-dot-fragments functions too).
 
     // If base has authority and empty path ...
-    var emptyPathBase = Uri.parse(b.replaceFirst("/pa/pb", ""));
-    base = emptyPathBase;
+    var emptyPathBase = b.replaceFirst("/pa/pb", "");
+    setBase(emptyPathBase);
     testResolve("s://a/p2?q2#f2", "p2?q2#f2");
     testResolve("s://a/p2#f2", "p2#f2");
     testResolve("s://a/p2", "p2");
 
-    base = origBase;
+    setBase(b);
     // otherwise
     // (Cover both no authority and non-empty path and both).
-    var noAuthEmptyPathBase = Uri.parse(b.replaceFirst("//a/pa/pb", ""));
-    var noAuthAbsPathBase = Uri.parse(b.replaceFirst("//a", ""));
-    var noAuthRelPathBase = Uri.parse(b.replaceFirst("//a/", ""));
-    var noAuthRelSinglePathBase = Uri.parse(b.replaceFirst("//a/pa/", ""));
+    var noAuthEmptyPathBase = b.replaceFirst("//a/pa/pb", "");
+    var noAuthAbsPathBase = b.replaceFirst("//a", "");
+    var noAuthRelPathBase = b.replaceFirst("//a/", "");
+    var noAuthRelSinglePathBase = b.replaceFirst("//a/pa/", "");
 
     testResolve("s://a/pa/p2?q2#f2", "p2?q2#f2");
     testResolve("s://a/pa/p2#f2", "p2#f2");
     testResolve("s://a/pa/p2", "p2");
 
-    base = noAuthEmptyPathBase;
+    setBase(noAuthEmptyPathBase);
     testResolve("s:p2?q2#f2", "p2?q2#f2");
     testResolve("s:p2#f2", "p2#f2");
     testResolve("s:p2", "p2");
 
-    base = noAuthAbsPathBase;
+    setBase(noAuthAbsPathBase);
     testResolve("s:/pa/p2?q2#f2", "p2?q2#f2");
     testResolve("s:/pa/p2#f2", "p2#f2");
     testResolve("s:/pa/p2", "p2");
 
-    base = noAuthRelPathBase;
+    setBase(noAuthRelPathBase);
     testResolve("s:pa/p2?q2#f2", "p2?q2#f2");
     testResolve("s:pa/p2#f2", "p2#f2");
     testResolve("s:pa/p2", "p2");
 
-    base = noAuthRelSinglePathBase;
+    setBase(noAuthRelSinglePathBase);
     testResolve("s:p2?q2#f2", "p2?q2#f2");
     testResolve("s:p2#f2", "p2#f2");
     testResolve("s:p2", "p2");
@@ -314,7 +360,7 @@ testUriPerRFCs() {
     // A. if input buffer starts with "../" or "./".
     // This only happens if base has only a single (may be empty) segment and
     // no slash.
-    base = emptyPathBase;
+    setBase(emptyPathBase);
     testResolve("s://a/p2", "../p2");
     testResolve("s://a/", "../");
     testResolve("s://a/", "..");
@@ -324,7 +370,7 @@ testUriPerRFCs() {
     testResolve("s://a/p2", "../../p2");
     testResolve("s://a/p2", "../../././p2");
 
-    base = noAuthRelSinglePathBase;
+    setBase(noAuthRelSinglePathBase);
     testResolve("s:p2", "../p2");
     testResolve("s:", "../");
     testResolve("s:", "..");
@@ -337,31 +383,30 @@ testUriPerRFCs() {
     // B. if input buffer starts with "/./" or is "/.". replace with "/".
     // (The URI implementation removes the "." path segments when parsing,
     // so this case isn't handled by merge).
-    base = origBase;
+    setBase(b);
     testResolve("s://a/pa/p2", "./p2");
 
     // C. if input buffer starts with "/../" or is "/..", replace with "/"
     // and remove preceeding segment.
     testResolve("s://a/p2", "../p2");
-    var longPathBase = Uri.parse(b.replaceFirst("/pb", "/pb/pc/pd"));
-    base = longPathBase;
+    var longPathBase = b.replaceFirst("/pb", "/pb/pc/pd");
+    setBase(longPathBase);
     testResolve("s://a/pa/pb/p2", "../p2");
     testResolve("s://a/pa/p2", "../../p2");
     testResolve("s://a/p2", "../../../p2");
     testResolve("s://a/p2", "../../../../p2");
-    var noAuthRelLongPathBase =
-        Uri.parse(b.replaceFirst("//a/pa/pb", "pa/pb/pc/pd"));
-    base = noAuthRelLongPathBase;
+    var noAuthRelLongPathBase = b.replaceFirst("//a/pa/pb", "pa/pb/pc/pd");
+    setBase(noAuthRelLongPathBase);
     testResolve("s:pa/pb/p2", "../p2");
     testResolve("s:pa/p2", "../../p2");
     testResolve("s:/p2", "../../../p2");
     testResolve("s:/p2", "../../../../p2");
 
     // D. if the input buffer contains only ".." or ".", remove it.
-    base = noAuthEmptyPathBase;
+    setBase(noAuthEmptyPathBase);
     testResolve("s:", "..");
     testResolve("s:", ".");
-    base = noAuthRelSinglePathBase;
+    setBase(noAuthRelSinglePathBase);
     testResolve("s:", "..");
     testResolve("s:", ".");
   }

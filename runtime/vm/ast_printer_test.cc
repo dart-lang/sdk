@@ -21,21 +21,22 @@ TEST_CASE(AstPrinter) {
                         String::ZoneHandle(Symbols::New(thread, "wurscht")),
                         Type::ZoneHandle(Type::DynamicType()));
   v->set_index(5);
+  AstPrinter ast_printer;
   LoadLocalNode* ll = new LoadLocalNode(kPos, v);
   ReturnNode* r = new ReturnNode(kPos, ll);
-  AstPrinter::PrintNode(r);
+  ast_printer.PrintNode(r);
 
   AstNode* l = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3)));
   ReturnNode* rl = new ReturnNode(kPos, l);
-  AstPrinter::PrintNode(rl);
+  ast_printer.PrintNode(rl);
 
-  AstPrinter::PrintNode(new ReturnNode(kPos));
+  ast_printer.PrintNode(new ReturnNode(kPos));
 
-  AstPrinter::PrintNode(new BinaryOpNode(kPos,
-                          Token::kADD,
-                          new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))),
-                          new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(5)))));
-  AstPrinter::PrintNode(new UnaryOpNode(kPos, Token::kNEGATE, ll));
+  ast_printer.PrintNode(new BinaryOpNode(kPos,
+                        Token::kADD,
+                        new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))),
+                        new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(5)))));
+  ast_printer.PrintNode(new UnaryOpNode(kPos, Token::kNEGATE, ll));
 }
 
 #endif  // !PRODUCT

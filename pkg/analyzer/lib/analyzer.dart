@@ -7,22 +7,25 @@ library analyzer;
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/file_system/file_system.dart' hide File;
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/error.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/file_system/file_system.dart' hide File;
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:path/path.dart' as pathos;
 
 export 'package:analyzer/dart/ast/ast.dart';
 export 'package:analyzer/dart/ast/visitor.dart';
+export 'package:analyzer/error/error.dart';
+export 'package:analyzer/error/listener.dart';
 export 'package:analyzer/src/dart/ast/utilities.dart';
 export 'package:analyzer/src/error.dart';
-export 'package:analyzer/src/generated/error.dart';
+export 'package:analyzer/src/error/codes.dart';
 export 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// Parses a string of Dart code into an AST.

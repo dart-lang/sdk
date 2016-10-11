@@ -23,10 +23,12 @@ void main() {
 }
 """;
 
+// TODO(johnniwinther): Find out why this doesn't work without the `as num`
+// cast.
 const String NUM_PLUS_ZERO = """
 int foo(x) => x;
 void main() {
-  var x = foo(0);
+  var x = foo(0) as num;
   return x + 0;
 }
 """;
@@ -38,7 +40,6 @@ void main() {
   return 0 + x;
 }
 """;
-
 
 const String INT_TIMES_ONE = """
 int foo(x) => x;
@@ -79,14 +80,13 @@ main() {
   var oneTimes = new RegExp(r"1 \*");
 
   asyncTest(() => Future.wait([
-    compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero),
-    compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus),
-    // TODO(johnniwinther): Find out why this doesn't work without [useMock].
-    compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero, useMock: true),
-    compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus),
-    compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne),
-    compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes),
-    compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne),
-    compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes),
-  ]));
+        compileAndDoNotMatch(INT_PLUS_ZERO, 'main', plusZero),
+        compileAndDoNotMatch(ZERO_PLUS_INT, 'main', zeroPlus),
+        compileAndMatch(NUM_PLUS_ZERO, 'main', plusZero),
+        compileAndMatch(ZERO_PLUS_NUM, 'main', zeroPlus),
+        compileAndDoNotMatch(INT_TIMES_ONE, 'main', timesOne),
+        compileAndDoNotMatch(ONE_TIMES_INT, 'main', oneTimes),
+        compileAndDoNotMatch(NUM_TIMES_ONE, 'main', timesOne),
+        compileAndDoNotMatch(ONE_TIMES_NUM, 'main', oneTimes),
+      ]));
 }

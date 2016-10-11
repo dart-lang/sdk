@@ -61,9 +61,9 @@ void writeSnapshotFile(var path, var content) {
     writer.close();
 }
 
-Future createSnapshot(var dart_file, var packageRoot) {
+Future createSnapshot(var dart_file) {
   return Process.run(Platform.executable,
-                     ["--package-root=$packageRoot",
+                     ["--packages=../../.packages",
                       "--snapshot=$dart_file.snapshot",
                       dart_file])
       .then((result) {
@@ -80,11 +80,9 @@ Future createSnapshot(var dart_file, var packageRoot) {
  * Takes the following arguments:
  * --output_dir=val     The full path to the output_dir.
  * --dart2js_main=val   The path to the dart2js main script relative to root.
- * --package-root=val   The package-root used to find packages for the snapshot.
  */
 void main(List<String> arguments) {
-  var validArguments = ["--output_dir", "--dart2js_main",
-                        "--package_root"];
+  var validArguments = ["--output_dir", "--dart2js_main"];
   var args = {};
   for (var argument in arguments) {
     var argumentSplit = argument.split("=");
@@ -96,7 +94,6 @@ void main(List<String> arguments) {
   }
   if (!args.containsKey("dart2js_main")) throw "Please specify dart2js_main";
   if (!args.containsKey("output_dir")) throw "Please specify output_dir";
-  if (!args.containsKey("package_root")) throw "Please specify package_root";
 
   var scriptFile = Uri.base.resolveUri(Platform.script);
   var path = scriptFile.resolve(".");
@@ -104,13 +101,13 @@ void main(List<String> arguments) {
   getSnapshotGenerationFile(args, rootPath).then((result) {
     var wrapper = "${args['output_dir']}/utils_wrapper.dart";
     writeSnapshotFile(wrapper, result);
-    createSnapshot(wrapper, args["package_root"]);
+    createSnapshot(wrapper);
   });
 
   getDart2jsSnapshotGenerationFile(args, rootPath).then((result) {
     var wrapper = "${args['output_dir']}/dart2js.dart";
     writeSnapshotFile(wrapper, result);
-    createSnapshot(wrapper, args["package_root"]);
+    createSnapshot(wrapper);
   });
 
 }

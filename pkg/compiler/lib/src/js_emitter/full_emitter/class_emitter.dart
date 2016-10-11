@@ -35,6 +35,9 @@ class ClassEmitter extends CodeEmitterHelper {
     builder.superName = superName;
     emitConstructorsForCSP(cls);
     emitFields(cls, builder);
+    if (cls.hasRtiField) {
+      builder.addField(namer.rtiFieldName);
+    }
     emitCheckedClassSetters(cls, builder);
     emitClassGettersSettersForCSP(cls, builder);
     emitInstanceMembers(cls, builder);
@@ -69,8 +72,8 @@ class ClassEmitter extends CodeEmitterHelper {
 
     ClassElement classElement = cls.element;
 
-    jsAst.Expression constructorAst =
-        _stubGenerator.generateClassConstructor(classElement, fieldNames);
+    jsAst.Expression constructorAst = _stubGenerator.generateClassConstructor(
+        classElement, fieldNames, cls.hasRtiField);
 
     jsAst.Name constructorName = namer.className(classElement);
     OutputUnit outputUnit =

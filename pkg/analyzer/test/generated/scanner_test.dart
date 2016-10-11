@@ -5,23 +5,24 @@
 library analyzer.test.generated.scanner_test;
 
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(CharSequenceReaderTest);
-  runReflectiveTests(KeywordStateTest);
-  runReflectiveTests(ScannerTest);
-  runReflectiveTests(TokenTypeTest);
+  defineReflectiveTests(CharSequenceReaderTest);
+  defineReflectiveTests(KeywordStateTest);
+  defineReflectiveTests(ScannerTest);
+  defineReflectiveTests(TokenTypeTest);
 }
 
 class CharacterRangeReaderTest extends EngineTestCase {

@@ -11,10 +11,8 @@ import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/instance_ref.dart';
 
 class FieldRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<FieldRefElement>('field-ref-wrapped',
-                                                dependencies: const [
-                                                  InstanceRefElement.tag
-                                                ]);
+  static const tag = const Tag<FieldRefElement>('field-ref',
+      dependencies: const [InstanceRefElement.tag]);
 
   RenderingScheduler<FieldRefElement> _r;
 
@@ -27,8 +25,9 @@ class FieldRefElement extends HtmlElement implements Renderable {
   M.IsolateRef get isolate => _isolate;
   M.FieldRef get field => _field;
 
-  factory FieldRefElement(M.IsolateRef isolate, M.FieldRef field,
-      M.InstanceRepository instances, {RenderingQueue queue}) {
+  factory FieldRefElement(
+      M.IsolateRef isolate, M.FieldRef field, M.InstanceRepository instances,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(field != null);
     assert(instances != null);
@@ -68,7 +67,7 @@ class FieldRefElement extends HtmlElement implements Renderable {
       header += 'final ';
     } else if (_field.isConst) {
       header += 'const ';
-    } else if (_field.declaredType.name == 'dynamic'){
+    } else if (_field.declaredType.name == 'dynamic') {
       header += 'var ';
     }
     if (_field.declaredType.name == 'dynamic') {
@@ -77,7 +76,7 @@ class FieldRefElement extends HtmlElement implements Renderable {
         new AnchorElement(href: Uris.inspect(_isolate, object: _field))
           ..text = _field.name
       ];
-    }else {
+    } else {
       children = [
         new SpanElement()..text = header,
         new InstanceRefElement(_isolate, _field.declaredType, _instances,

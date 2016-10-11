@@ -129,4 +129,28 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
   return result;
 }
 
+
+static void ParseAll(Thread* thread, Dart_Handle* result) {
+  ASSERT(thread != NULL);
+  const Error& error = Error::Handle(thread->zone(),
+                                     Library::ParseAll(thread));
+  if (error.IsNull()) {
+    *result = Api::Success();
+  } else {
+    *result = Api::NewHandle(thread, error.raw());
+  }
+}
+
+
+DART_EXPORT Dart_Handle Dart_ParseAll() {
+  DARTSCOPE(Thread::Current());
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
+  if (::Dart_IsError(result)) {
+    return result;
+  }
+  CHECK_CALLBACK_STATE(T);
+  ParseAll(T, &result);
+  return result;
+}
+
 }  // namespace dart

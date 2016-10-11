@@ -23,7 +23,6 @@ if (!self.dartDeferredLibraryLoader) {
 }
 """;
 
-
 runTest() async {
   setup();
   await def.loadLibrary();

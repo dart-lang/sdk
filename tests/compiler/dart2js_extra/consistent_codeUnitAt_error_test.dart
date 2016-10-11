@@ -20,6 +20,7 @@ void check2(String name, name1, f1, name2, f2) {
     }
     Expect.fail('should throw: $name.$part');
   }
+
   var e1 = trap(name1, f1);
   var e2 = trap(name2, f2);
   var s1 = '$e1';
@@ -33,20 +34,19 @@ void check(String name, f1, f2, [f3, f4]) {
   if (f4 != null) check2(name, 'f1', f1, 'f4', f4);
 }
 
-
 class TooHigh {
   static f1() {
-    return confuse('AB').codeUnitAt(3);  // dynamic receiver.
+    return confuse('AB').codeUnitAt(3); // dynamic receiver.
   }
 
   static f2() {
-    var a = confuse(true) ? 'AB' : 'ABCDE';  // String with unknown length.
+    var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
     var i = confuse(3);
     return a.codeUnitAt(i);
   }
 
   static f3() {
-    var a = confuse(true) ? 'AB' : 'ABCDE';  // String with unknown length.
+    var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
     return a.codeUnitAt(3);
   }
 
@@ -57,23 +57,23 @@ class TooHigh {
 
 class Negative {
   static f1() {
-    return confuse('AB').codeUnitAt(-3);  // dynamic receiver.
+    return confuse('AB').codeUnitAt(-3); // dynamic receiver.
   }
 
   static f2() {
-    var a = confuse(true) ? 'AB' : 'ABCDE';  // String with unknown length.
+    var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
     var i = confuse(-3);
     return a.codeUnitAt(i);
   }
 
   static f3() {
-    var a = confuse(true) ? 'AB' : 'ABCDE';  // String with unknown length.
+    var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
     var i = confuse(true) ? -3 : 0;
     return a.codeUnitAt(i);
   }
 
   static f4() {
-    var a = confuse(true) ? 'AB' : 'ABCDE';  // String with unknown length.
+    var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
     return a.codeUnitAt(-3);
   }
 
@@ -84,17 +84,17 @@ class Negative {
 
 class Empty {
   static f1() {
-    return confuse('').codeUnitAt(0);  // dynamic receiver.
+    return confuse('').codeUnitAt(0); // dynamic receiver.
   }
 
   static f2() {
-    var a = confuse(true) ? '' : 'ABCDE';  // Empty String with unknown length.
+    var a = confuse(true) ? '' : 'ABCDE'; // Empty String with unknown length.
     var i = confuse(true) ? 0 : 1;
     return a.codeUnitAt(i);
   }
 
   static f3() {
-    var a = confuse(true) ? '' : 'ABCDE';  // Empty String with unknown length.
+    var a = confuse(true) ? '' : 'ABCDE'; // Empty String with unknown length.
     return a.codeUnitAt(0);
   }
 
@@ -105,17 +105,17 @@ class Empty {
 
 class BadType {
   static f1() {
-    return confuse('AB').codeUnitAt('a');  // dynamic receiver.
+    return confuse('AB').codeUnitAt('a'); // dynamic receiver.
   }
 
   static f2() {
-    var a = confuse(true) ? 'AB' : 'ABCDE';  // String with unknown length.
+    var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
     var i = confuse('a');
     return a.codeUnitAt(i);
   }
 
   static f3() {
-    var a = confuse(true) ? 'AB' : 'ABCDE';  // String with unknown length.
+    var a = confuse(true) ? 'AB' : 'ABCDE'; // String with unknown length.
     return a.codeUnitAt('a');
   }
 

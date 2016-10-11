@@ -47,7 +47,7 @@ class NativeEnqueuer {
   void handleMethodAnnotations(Element method) {}
 
   /// Returns whether native classes are being used.
-  bool hasInstantiatedNativeClasses() => false;
+  bool get hasInstantiatedNativeClasses => false;
 
   /// Emits a summary information using the [log] function.
   void logSummary(log(message)) {}
@@ -73,7 +73,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   final Set<LibraryElement> processedLibraries;
 
-  bool hasInstantiatedNativeClasses() => !registeredClasses.isEmpty;
+  bool get hasInstantiatedNativeClasses => !registeredClasses.isEmpty;
 
   final Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
 
@@ -483,8 +483,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
           backend.registerInstantiatedType(type, world, registry);
         } else if (type == coreTypes.boolType) {
           backend.registerInstantiatedType(type, world, registry);
-        } else if (compiler.types
-            .isSubtype(type, backend.listImplementation.rawType)) {
+        } else if (compiler.types.isSubtype(
+            type, backend.backendClasses.listImplementation.rawType)) {
           backend.registerInstantiatedType(type, world, registry);
         }
         // TODO(johnniwinther): Improve spec string precision to handle type

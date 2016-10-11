@@ -19,7 +19,6 @@ import 'engine_test.dart' as engine_test;
 import 'error_suppression_test.dart' as error_suppression_test;
 import 'hint_code_test.dart' as hint_code_test;
 import 'incremental_resolver_test.dart' as incremental_resolver_test;
-import 'incremental_scanner_test.dart' as incremental_scanner_test;
 import 'inheritance_manager_test.dart' as inheritance_manager_test;
 import 'java_core_test.dart' as java_core_test;
 import 'java_io_test.dart' as java_io_test;
@@ -36,6 +35,7 @@ import 'static_type_warning_code_test.dart' as static_type_warning_code_test;
 import 'static_warning_code_test.dart' as static_warning_code_test;
 import 'strong_mode_test.dart' as strong_mode_test;
 import 'type_system_test.dart' as type_system_test;
+import 'utilities_dart_test.dart' as utilities_dart_test;
 import 'utilities_test.dart' as utilities_test;
 
 /// Utility for manually running all tests.
@@ -53,7 +53,6 @@ main() {
     error_suppression_test.main();
     hint_code_test.main();
     incremental_resolver_test.main();
-    incremental_scanner_test.main();
     inheritance_manager_test.main();
     java_core_test.main();
     java_io_test.main();
@@ -70,6 +69,7 @@ main() {
     static_warning_code_test.main();
     strong_mode_test.main();
     type_system_test.main();
+    utilities_dart_test.main();
     utilities_test.main();
   });
 }

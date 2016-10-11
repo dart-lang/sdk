@@ -18,10 +18,11 @@ class VMMock implements M.VM {
   final String hostCPU;
   final String version;
   final int pid;
+  final int maxRSS;
   final DateTime startTime;
   final Iterable<M.IsolateRef> isolates;
 
   const VMMock({this.name: 'vm-name', this.displayName: 'vm-display-name',
       this.architectureBits, this.targetCPU, this.hostCPU, this.version,
-      this.pid, this.startTime, this.isolates : const []});
+      this.pid: 0, this.maxRSS: 0, this.startTime, this.isolates : const []});
 }

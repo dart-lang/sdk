@@ -4,12 +4,13 @@
 
 library analyzer.test.src.task.strong.checker_test;
 
-import '../../../reflective_tests.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
 import 'strong_test_helper.dart';
 
 void main() {
   initStrongModeTests();
-  runReflectiveTests(CheckerTest);
+  defineReflectiveTests(CheckerTest);
 }
 
 @reflectiveTest
@@ -164,8 +165,7 @@ abstract class I1 {
 abstract class Base implements I1 {}
 
 class T1 extends Base {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -186,7 +186,7 @@ class T1 extends Base {
     // not reported technically because if the class is concrete,
     // it should implement all its interfaces and hence it is
     // sufficient to check overrides against it.
-    m(/*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+    m(B a) {}
 }
 ''');
   }
@@ -202,8 +202,7 @@ abstract class I1 {
 abstract class I2 implements I1 {}
 
 class T1 implements I2 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -219,8 +218,7 @@ abstract class M1 {
 abstract class I2 extends Object with M1 {}
 
 class T1 implements I2 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -236,8 +234,7 @@ abstract class I1 {
 abstract class I2 extends I1 {}
 
 class T1 implements I2 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -268,12 +265,15 @@ class D {
   D operator +(D d) => null;
 }
 
+class SubA extends A {}
+class SubSubA extends SubA {}
+
 foo() => new A();
 
 test() {
   int x = 0;
   x += 5;
-  /*error:STATIC_TYPE_ERROR*/x += /*error:INVALID_ASSIGNMENT*/3.14;
+  x += /*error:INVALID_ASSIGNMENT*/3.14;
 
   double y = 0.0;
   y += 5;
@@ -284,12 +284,12 @@ test() {
   z += 3.14;
 
   x = /*info:DOWN_CAST_IMPLICIT*/x + z;
-  x += /*info:DOWN_CAST_IMPLICIT*/z;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/x += z;
   y = y + z;
   y += z;
 
   dynamic w = 42;
-  x += /*info:DYNAMIC_CAST*/w;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/x += /*info:DYNAMIC_CAST*/w;
   y += /*info:DYNAMIC_CAST*/w;
   z += /*info:DYNAMIC_CAST*/w;
 
@@ -305,13 +305,17 @@ test() {
   a += b;
   a += /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/a;
   a -= b;
-  /*error:STATIC_TYPE_ERROR*/b -= /*error:INVALID_ASSIGNMENT*/b;
+  b -= /*error:INVALID_ASSIGNMENT*/b;
   a <<= b;
   a >>= b;
   a &= b;
   a ^= b;
   a |= b;
   /*info:DYNAMIC_INVOKE*/c += b;
+
+  SubA sa;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/sa += b;
+  SubSubA ssa = /*info:ASSIGNMENT_CAST,info:DOWN_CAST_IMPLICIT_ASSIGN*/sa += b;
 
   var d = new D();
   a[b] += d;
@@ -322,6 +326,72 @@ test() {
   /*info:DYNAMIC_INVOKE,info:DYNAMIC_INVOKE*/c[b] += d;
 }
 ''');
+  }
+
+  void test_constantGenericTypeArg_explict() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26141
+    checkFile('''
+abstract class Equality<R> {}
+abstract class EqualityBase<R> implements Equality<R> {
+  final C<R> c = const C<R>();
+  const EqualityBase();
+}
+class DefaultEquality<S> extends EqualityBase<S> {
+  const DefaultEquality();
+}
+class SetEquality<T> implements Equality<T> {
+  final Equality<T> field = const DefaultEquality<T>();
+  const SetEquality([Equality<T> inner = const DefaultEquality<T>()]);
+}
+class C<Q> {
+  final List<Q> list = const <Q>[];
+  final Map<Q, Iterable<Q>> m =  const <Q, Iterable<Q>>{};
+  const C();
+}
+main() {
+  const SetEquality<String>();
+}
+    ''');
+  }
+
+  void test_constantGenericTypeArg_infer() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/26141
+    checkFile('''
+abstract class Equality<Q> {}
+abstract class EqualityBase<R> implements Equality<R> {
+  final C<R> c = /*info:INFERRED_TYPE_ALLOCATION*/const C();
+  const EqualityBase();
+}
+class DefaultEquality<S> extends EqualityBase<S> {
+  const DefaultEquality();
+}
+class SetEquality<T> implements Equality<T> {
+  final Equality<T> field = const DefaultEquality();
+  const SetEquality([Equality<T> inner = const DefaultEquality()]);
+}
+class C<Q> {
+  final List<Q> list = /*info:INFERRED_TYPE_LITERAL*/const [];
+  final Map<Q, Iterable<Q>> m =  /*info:INFERRED_TYPE_LITERAL*/const {};
+  const C();
+}
+main() {
+  const SetEquality<String>();
+}
+    ''');
+  }
+
+  void test_compoundAssignment_returnsDynamic() {
+    checkFile(r'''
+class Foo {
+  operator +(other) => null;
+}
+
+main() {
+  var foo = new Foo();
+  foo = /*info:DYNAMIC_CAST*/foo + 1;
+  /*info:DYNAMIC_CAST*/foo += 1;
+}
+    ''');
   }
 
   void test_constructorInvalid() {
@@ -427,7 +497,7 @@ void main() {
   (/*info:DYNAMIC_INVOKE*/b2("hello"));
 
   dynamic a1 = new B();
-  (/*info:DYNAMIC_INVOKE*/a1./*info:UNDEFINED_GETTER*/x);
+  (/*info:DYNAMIC_INVOKE*/a1.x);
   a1.toString();
   (/*info:DYNAMIC_INVOKE*/a1.toString(42));
   var toStringClosure = a1.toString;
@@ -448,6 +518,121 @@ void main() {
   baz().hashCode;
 }
 ''');
+  }
+
+  void test_covariantOverride() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  num f(num x) => x;
+}
+class D extends C {
+  int f(@checked int x) => x;
+}
+class E extends D {
+  int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+}
+class F extends E {
+  int f(@checked int x) => x;
+}
+class G extends E implements D {}
+
+class D_error extends C {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(int x) => x;
+}
+class E_error extends D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+class F_error extends E {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+class G_error extends E implements D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(@checked double x) => 0;
+}
+    ''');
+  }
+
+  void test_covariantOverride_fields() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class A {
+  get foo => '';
+  set foo(_) {}
+}
+
+class B extends A {
+  @checked num foo;
+}
+class C extends A {
+  @checked @virtual num foo;
+}
+class D extends C {
+  @virtual int foo;
+}
+class E extends D {
+  @virtual /*error:INVALID_METHOD_OVERRIDE*/num foo;
+}
+    ''');
+  }
+
+  void test_covariantOverride_leastUpperBound() {
+    _addMetaLibrary();
+    checkFile(r'''
+import "meta.dart";
+abstract class Top {}
+abstract class Left implements Top {}
+abstract class Right implements Top {}
+abstract class Bottom implements Left, Right {}
+
+abstract class TakesLeft {
+  m(Left x);
+}
+abstract class TakesRight {
+  m(Right x);
+}
+abstract class TakesTop implements TakesLeft, TakesRight {
+  m(Top x); // works today
+}
+abstract class TakesBottom implements TakesLeft, TakesRight {
+  // LUB(Left, Right) == Top, so this is an implicit cast from Top to Bottom.
+  m(@checked Bottom x);
+}
+    ''');
+  }
+
+  void test_covariantOverride_markerIsInherited() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  num f(@checked num x) => x;
+}
+class D extends C {
+  int f(int x) => x;
+}
+class E extends D {
+  int f(Object x) => /*info:DOWN_CAST_IMPLICIT*/x;
+}
+class F extends E {
+  int f(int x) => x;
+}
+class G extends E implements D {}
+
+class D_error extends C {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(String x) => 0;
+}
+class E_error extends D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+class F_error extends E {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+class G_error extends E implements D {
+  /*error:INVALID_METHOD_OVERRIDE*/int f(double x) => 0;
+}
+    ''');
   }
 
   void test_dynamicInvocation() {
@@ -474,13 +659,13 @@ void main() {
     int x;
     double y;
     x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
-    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE, info:INVALID_ASSIGNMENT*/f.col(3.0);
+    x = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f.col(3.0);
     y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f(3);
     y = /*info:DYNAMIC_CAST, info:DYNAMIC_INVOKE*/f.col(3.0);
     /*info:DYNAMIC_INVOKE*/f(3.0);
     // Through type propagation, we know f is actually a B, hence the
     // hint.
-    /*info:DYNAMIC_INVOKE*/f.col(/*info:ARGUMENT_TYPE_NOT_ASSIGNABLE*/3);
+    /*info:DYNAMIC_INVOKE*/f.col(3);
   }
   {
     A f = new B();
@@ -492,10 +677,10 @@ void main() {
   }
   {
     dynamic g = new B();
-    /*info:DYNAMIC_INVOKE*/g.call(/*info:ARGUMENT_TYPE_NOT_ASSIGNABLE*/32.0);
+    /*info:DYNAMIC_INVOKE*/g.call(32.0);
     /*info:DYNAMIC_INVOKE*/g.col(42.0);
     /*info:DYNAMIC_INVOKE*/g.foo(42.0);
-    /*info:DYNAMIC_INVOKE*/g./*info:UNDEFINED_GETTER*/x;
+    /*info:DYNAMIC_INVOKE*/g.x;
     A f = new B();
     /*info:DYNAMIC_INVOKE*/f.col(42.0);
     /*info:DYNAMIC_INVOKE*/f.foo(42.0);
@@ -537,14 +722,14 @@ class Child extends Base {
   /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/A f1; // invalid for getter
   /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/C f2; // invalid for setter
   /*error:INVALID_FIELD_OVERRIDE*/var f3;
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/dynamic f4;
+  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/dynamic f4;
 }
 
 class Child2 implements Base {
   /*error:INVALID_METHOD_OVERRIDE*/A f1; // invalid for getter
   /*error:INVALID_METHOD_OVERRIDE*/C f2; // invalid for setter
   var f3;
-  /*error:INVALID_METHOD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/dynamic f4;
+  /*error:INVALID_METHOD_OVERRIDE*/dynamic f4;
 }
 ''');
   }
@@ -598,6 +783,36 @@ class H implements F {
  ''');
   }
 
+  void test_fieldOverride_virtual() {
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+class C {
+  @virtual int x;
+}
+class OverrideGetter extends C {
+  int get x => 42;
+}
+class OverrideSetter extends C {
+  set x(int v) {}
+}
+class OverrideBoth extends C {
+  int get x => 42;
+  set x(int v) {}
+}
+class OverrideWithField extends C {
+  int x;
+
+  // expose the hidden storage slot
+  int get superX => super.x;
+  set superX(int v) { super.x = v; }
+}
+class VirtualNotInherited extends OverrideWithField {
+  /*error:INVALID_FIELD_OVERRIDE*/int x;
+}
+    ''');
+  }
+
   void test_fieldSetterOverride() {
     checkFile('''
 class A {}
@@ -622,7 +837,7 @@ class Child extends Base {
   /*error:INVALID_FIELD_OVERRIDE*/void set f1(A value) {}
   /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/void set f2(C value) {}
   /*error:INVALID_FIELD_OVERRIDE*/void set f3(value) {}
-  /*error:INVALID_FIELD_OVERRIDE,error:INVALID_METHOD_OVERRIDE*/void set f4(dynamic value) {}
+  /*error:INVALID_FIELD_OVERRIDE*/void set f4(dynamic value) {}
   /*error:INVALID_FIELD_OVERRIDE*/set f5(B value) {}
 }
 
@@ -636,7 +851,7 @@ class Child2 implements Base {
   void set f1(A value) {}
   /*error:INVALID_METHOD_OVERRIDE*/void set f2(C value) {}
   void set f3(value) {}
-  /*error:INVALID_METHOD_OVERRIDE*/void set f4(dynamic value) {}
+  void set f4(dynamic value) {}
   set f5(B value) {}
 }
 ''');
@@ -1189,9 +1404,9 @@ void main() {
     left = /*error:INVALID_ASSIGNMENT*/right;
     left = bot;
 
-    right = /*info:INVALID_ASSIGNMENT,warning:DOWN_CAST_COMPOSITE*/top;
+    right = /*warning:DOWN_CAST_COMPOSITE*/top;
     right = /*error:INVALID_ASSIGNMENT*/left;
-    right = /*info:INVALID_ASSIGNMENT*/right;
+    right = right;
     right = bot;
 
     bot = /*warning:DOWN_CAST_COMPOSITE*/top;
@@ -1787,8 +2002,7 @@ class Base<T extends B> {
 }
 
 class Derived<S extends A> extends Base<B> {
-  /*error:INVALID_METHOD_OVERRIDE*/S
-      /*error:INVALID_METHOD_OVERRIDE_RETURN_TYPE*/foo() => null;
+  /*error:INVALID_METHOD_OVERRIDE*/S foo() => null;
 }
 
 class Derived2<S extends B> extends Base<B> {
@@ -1809,16 +2023,16 @@ main() {
   x = foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/('1', '2', '3');
   foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
   x = foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/('1');
-  x = /*info:DYNAMIC_CAST*/foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(1, 2, 3);
-  x = /*info:DYNAMIC_CAST*/foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(1);
+  x = /*error:COULD_NOT_INFER*/foo/*error:EXTRA_POSITIONAL_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2, 3);
+  x = /*error:COULD_NOT_INFER*/foo/*error:NOT_ENOUGH_REQUIRED_ARGUMENTS*/(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/1);
 
   // named arguments
   bar(y: 1, x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
   x = bar(/*error:UNDEFINED_NAMED_PARAMETER*/z: '1', x: '2', y: '3');
   bar(y: 1);
   x = bar(x: '1', /*error:UNDEFINED_NAMED_PARAMETER*/z: 42);
-  x = /*info:DYNAMIC_CAST*/bar(y: 1, x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
-  x = /*info:DYNAMIC_CAST*/bar(x: 1);
+  x = /*error:COULD_NOT_INFER*/bar(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/y: 1, /*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/x: 2, /*error:UNDEFINED_NAMED_PARAMETER*/z: 3);
+  x = /*error:COULD_NOT_INFER*/bar(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/x: 1);
 }
 ''');
   }
@@ -1993,6 +2207,7 @@ void main/*<S>*/() {
     ''');
     check(implicitDynamic: false);
   }
+
   void test_implicitDynamic_listLiteral() {
     addFile(r'''
 
@@ -2173,58 +2388,6 @@ dynamic y1 = (<dynamic>[])[0];
     check(implicitDynamic: false);
   }
 
-  void test_constantGenericTypeArg_infer() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    checkFile('''
-abstract class Equality<Q> {}
-abstract class EqualityBase<R> implements Equality<R> {
-  final C<R> c = /*info:INFERRED_TYPE_ALLOCATION*/const C();
-  const EqualityBase();
-}
-class DefaultEquality<S> extends EqualityBase<S> {
-  const DefaultEquality();
-}
-class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = const DefaultEquality();
-  const SetEquality([Equality<T> inner = const DefaultEquality()]);
-}
-class C<Q> {
-  final List<Q> list = /*info:INFERRED_TYPE_LITERAL*/const [];
-  final Map<Q, Iterable<Q>> m =  /*info:INFERRED_TYPE_LITERAL*/const {};
-  const C();
-}
-main() {
-  const SetEquality<String>();
-}
-    ''');
-  }
-
-  void test_constantGenericTypeArg_explict() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26141
-    checkFile('''
-abstract class Equality<R> {}
-abstract class EqualityBase<R> implements Equality<R> {
-  final C<R> c = const C<R>();
-  const EqualityBase();
-}
-class DefaultEquality<S> extends EqualityBase<S> {
-  const DefaultEquality();
-}
-class SetEquality<T> implements Equality<T> {
-  final Equality<T> field = const DefaultEquality<T>();
-  const SetEquality([Equality<T> inner = const DefaultEquality<T>()]);
-}
-class C<Q> {
-  final List<Q> list = const <Q>[];
-  final Map<Q, Iterable<Q>> m =  const <Q, Iterable<Q>>{};
-  const C();
-}
-main() {
-  const SetEquality<String>();
-}
-    ''');
-  }
-
   void test_invalidOverrides_baseClassOverrideToChildInterface() {
     checkFile('''
 class A {}
@@ -2253,43 +2416,37 @@ class Base {
 }
 
 class T1 extends Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B get
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE*/f => null;
+  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B get f => null;
 }
 
 class T2 extends Base {
   /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/set f(
-      /*error:INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE*/B b) => null;
+      B b) => null;
 }
 
 class T3 extends Base {
   /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/final B
-      /*warning:FINAL_NOT_INITIALIZED, error:INVALID_GETTER_OVERRIDE_RETURN_TYPE*/f;
+      /*warning:FINAL_NOT_INITIALIZED*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE, error:INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE*/f;
+  /*error:INVALID_FIELD_OVERRIDE, error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B f;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T5 implements Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/B get
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE*/f => null;
+  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/B get f => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T6 implements Base {
-  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/set f(
-      /*error:INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE*/B b) => null;
+  /*warning:MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE, error:INVALID_METHOD_OVERRIDE*/set f(B b) => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE*/T7 implements Base {
-  /*error:INVALID_METHOD_OVERRIDE*/final B
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE*/f = null;
+  /*error:INVALID_METHOD_OVERRIDE*/final B f = null;
 }
 class T8 implements Base {
   // two: one for the getter one for the setter.
-  /*error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B
-      /*error:INVALID_GETTER_OVERRIDE_RETURN_TYPE, error:INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE*/f;
+  /*error:INVALID_METHOD_OVERRIDE, error:INVALID_METHOD_OVERRIDE*/B f;
 }
 ''');
   }
@@ -2304,8 +2461,7 @@ class Base {
 }
 
 class Test extends Base {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-        /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -2320,8 +2476,7 @@ abstract class I {
 }
 
 class T1 implements I {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -2340,8 +2495,7 @@ class Parent extends Grandparent {
 
 class Test extends Parent {
     // Reported only once
-    /*error:INVALID_METHOD_OVERRIDE*/m(
-        /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+    /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -2355,8 +2509,7 @@ class Grandparent {
     m(A a) {}
 }
 class Parent extends Grandparent {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 class Test extends Parent {
@@ -2378,8 +2531,7 @@ class Parent extends Grandparent {
 }
 
 class Test extends Parent {
-    /*error:INVALID_METHOD_OVERRIDE*/m(
-          /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+    /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
     /*error:INVALID_FIELD_OVERRIDE*/int x;
 }
 ''');
@@ -2910,8 +3062,7 @@ class Base {
 // Note: no error reported in `extends Base` to avoid duplicating
 // the error in T1.
 class T1 extends Base implements I1 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 // If there is no error in the class, we do report the error at
@@ -2937,8 +3088,7 @@ class M {
 }
 
 class T1 extends Object with M implements I1 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 class /*error:INCONSISTENT_METHOD_INHERITANCE*/T2
@@ -2963,8 +3113,7 @@ abstract class I2 implements I1 {
 class Base {}
 
 class T1 implements I2 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 ''');
   }
@@ -3019,11 +3168,42 @@ abstract class C {
   n(B b);
 }
 abstract class D extends C {
-  /*error:INVALID_METHOD_OVERRIDE*/m(/*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B b);
+  /*error:INVALID_METHOD_OVERRIDE*/m(B b);
   n(A a);
 }
     ''');
     check(implicitCasts: false);
+  }
+
+  void test_overrideNarrowsType_noDuplicateError() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25232
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+abstract class A { void test(A arg) { } }
+abstract class B extends A {
+  /*error:INVALID_METHOD_OVERRIDE*/void test(B arg) { }
+}
+abstract class X implements A { }
+class C extends B with X { }
+
+// We treat "implements A" as asking for another check.
+// This feels inconsistent to me.
+class D /*error:INVALID_METHOD_OVERRIDE_FROM_BASE*/extends B implements A { }
+    ''');
+  }
+
+  void test_overrideNarrowsType_legalWithChecked() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25232
+    _addMetaLibrary();
+    checkFile(r'''
+import 'meta.dart';
+abstract class A { void test(A arg) { } }
+abstract class B extends A { void test(@checked B arg) { } }
+abstract class X implements A { }
+class C extends B with X { }
+class D extends B implements A { }
+    ''');
   }
 
   void test_privateOverride() {
@@ -3045,8 +3225,7 @@ class GrandChild extends main.Child {
   /*error:INVALID_FIELD_OVERRIDE*/var _f3;
   var _f4;
 
-  /*error:INVALID_METHOD_OVERRIDE*/String
-      /*error:INVALID_METHOD_OVERRIDE_RETURN_TYPE*/_m1() => null;
+  /*error:INVALID_METHOD_OVERRIDE*/String _m1() => null;
 }
 ''',
         name: '/helper.dart');
@@ -3204,15 +3383,15 @@ class F {
 class G extends F {
   /*error:INVALID_METHOD_OVERRIDE*/void set f(ToVoid<int> x) {}
   void set g(ToVoid<dynamic> x) {}
-  void set h(int x) {}
-  /*error:INVALID_METHOD_OVERRIDE*/void set i(dynamic x) {}
+  /*error:INVALID_METHOD_OVERRIDE*/void set h(int x) {}
+  void set i(dynamic x) {}
 }
 
 class H implements F {
   /*error:INVALID_METHOD_OVERRIDE*/void set f(ToVoid<int> x) {}
   void set g(ToVoid<dynamic> x) {}
-  void set h(int x) {}
-  /*error:INVALID_METHOD_OVERRIDE*/void set i(dynamic x) {}
+  /*error:INVALID_METHOD_OVERRIDE*/void set h(int x) {}
+  void set i(dynamic x) {}
 }
  ''');
   }
@@ -3253,7 +3432,7 @@ class Child extends Base {
   void set f1(A value) {}
   /*error:INVALID_METHOD_OVERRIDE*/void set f2(C value) {}
   void set f3(value) {}
-  /*error:INVALID_METHOD_OVERRIDE*/void set f4(dynamic value) {}
+  void set f4(dynamic value) {}
   set f5(B value) {}
 }
 ''');
@@ -3304,8 +3483,7 @@ abstract class I1 {
 }
 
 abstract class Base implements I1 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 class T1 extends Base {
@@ -3329,8 +3507,7 @@ abstract class I1 {
 }
 
 class Base implements I1 {
-  /*error:INVALID_METHOD_OVERRIDE*/m(
-      /*error:INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE*/B a) {}
+  /*error:INVALID_METHOD_OVERRIDE*/m(B a) {}
 }
 
 class T1 extends Base {
@@ -3689,11 +3866,14 @@ class A {
   A operator -(int x) => null;
   A operator -() => null;
 }
+class B extends A {}
+class C extends B {}
 
 foo() => new A();
 
 test() {
   A a = new A();
+  B b = new B();
   var c = foo();
   dynamic d;
 
@@ -3715,6 +3895,17 @@ test() {
   a--;
   (/*info:DYNAMIC_INVOKE*/d++);
   (/*info:DYNAMIC_INVOKE*/d--);
+
+  ++/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b;
+  --/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/b++;
+  /*info:DOWN_CAST_IMPLICIT_ASSIGN*/b--;
+
+  takesC(C c) => null;
+  takesC(/*info:DOWN_CAST_IMPLICIT*/++/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b);
+  takesC(/*info:DOWN_CAST_IMPLICIT*/--/*info:DOWN_CAST_IMPLICIT_ASSIGN*/b);
+  takesC(/*info:DOWN_CAST_IMPLICIT,info:DOWN_CAST_IMPLICIT_ASSIGN*/b++);
+  takesC(/*info:DOWN_CAST_IMPLICIT,info:DOWN_CAST_IMPLICIT_ASSIGN*/b--);
 }''');
   }
 
@@ -3753,4 +3944,15 @@ void main () {
 }
 ''');
   }
+}
+
+void _addMetaLibrary() {
+  addFile(r'''
+library meta;
+class _Checked { const _Checked(); }
+const Object checked = const _Checked();
+
+class _Virtual { const _Virtual(); }
+const Object virtual = const _Virtual();
+    ''', name: '/meta.dart');
 }

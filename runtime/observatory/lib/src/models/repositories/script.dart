@@ -5,5 +5,5 @@
 part of models;
 
 abstract class ScriptRepository {
-  Future<Script> get(String id);
+  Future<Script> get(IsolateRef isolate, String id);
 }

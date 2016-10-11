@@ -11,9 +11,8 @@ import 'dart:math' as math;
 
 import 'package:logging/logging.dart';
 import 'package:observatory/cpu_profile.dart';
+import 'package:observatory/event.dart' show createEventFromServiceEvent;
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/object_graph.dart';
 import 'package:observatory/tracer.dart';
-import 'package:observe/observe.dart';
 
 part 'src/service/object.dart';

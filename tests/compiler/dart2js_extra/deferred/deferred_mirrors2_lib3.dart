@@ -6,9 +6,7 @@ library lib3;
 
 import 'deferred_mirrors2_lib4.dart';
 
-@MirrorsUsed(targets: const [
-    'lib3'
-])
+@MirrorsUsed(targets: const ['lib3'])
 import 'dart:mirrors';
 
 class R {

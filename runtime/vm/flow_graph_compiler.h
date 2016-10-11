@@ -536,7 +536,7 @@ class FlowGraphCompiler : public ValueObject {
   uint16_t ToEmbeddableCid(intptr_t cid, Instruction* instruction);
 #endif  // defined(TARGET_ARCH_DBC)
 
-  void AddDeoptIndexAtCall(intptr_t deopt_id, TokenPosition token_pos);
+  void AddDeoptIndexAtCall(intptr_t deopt_id);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
 
@@ -705,9 +705,6 @@ class FlowGraphCompiler : public ValueObject {
                                                    Label* is_instance_lbl,
                                                    Label* is_not_instance_lbl);
 
-  // Returns true if checking against this type is a direct class id comparison.
-  bool TypeCheckAsClassEquality(const AbstractType& type);
-
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 
   void CopyParameters();
@@ -822,7 +819,8 @@ class FlowGraphCompiler : public ValueObject {
   // In future AddDeoptStub should be moved out of the instruction template.
   Environment* pending_deoptimization_env_;
 
-  intptr_t lazy_deopt_pc_offset_;
+  intptr_t lazy_deopt_return_pc_offset_;
+  intptr_t lazy_deopt_throw_pc_offset_;
 
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
 

@@ -5,7 +5,7 @@
 library analyzer.test.resource_utils;
 
 import 'dart:async';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -77,6 +77,9 @@ class TestPathTranslator {
 
   File newFile(String posixPath, String content) =>
       _provider.newFile(posixToOSPath(posixPath), content);
+
+  File newFileWithBytes(String posixPath, List<int> bytes) =>
+      _provider.newFileWithBytes(posixToOSPath(posixPath), bytes);
 
   Folder newFolder(String posixPath) =>
       _provider.newFolder(posixToOSPath(posixPath));

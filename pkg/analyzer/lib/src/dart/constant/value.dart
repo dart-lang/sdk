@@ -12,8 +12,8 @@ import 'dart:collection';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/utilities_general.dart';
 
@@ -240,7 +240,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.stringType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("add returned a ${result.runtimeType}");
+    throw new StateError("add returned a ${result.runtimeType}");
   }
 
   /**
@@ -339,7 +339,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("divide returned a ${result.runtimeType}");
+    throw new StateError("divide returned a ${result.runtimeType}");
   }
 
   /**
@@ -508,7 +508,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("minus returned a ${result.runtimeType}");
+    throw new StateError("minus returned a ${result.runtimeType}");
   }
 
   /**
@@ -528,7 +528,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("negated returned a ${result.runtimeType}");
+    throw new StateError("negated returned a ${result.runtimeType}");
   }
 
   /**
@@ -589,8 +589,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException(
-        "remainder returned a ${result.runtimeType}");
+    throw new StateError("remainder returned a ${result.runtimeType}");
   }
 
   /**
@@ -647,7 +646,7 @@ class DartObjectImpl implements DartObject {
       return new DartObjectImpl(typeProvider.numType, result);
     }
     // We should never get here.
-    throw new IllegalStateException("times returned a ${result.runtimeType}");
+    throw new StateError("times returned a ${result.runtimeType}");
   }
 
   @override
@@ -1231,9 +1230,9 @@ class DynamicState extends InstanceState {
 }
 
 /**
- * A run-time exception that would be thrown during the evaluation of Dart code.
+ * Exception that would be thrown during the evaluation of Dart code.
  */
-class EvaluationException extends JavaException {
+class EvaluationException {
   /**
    * The error code associated with the exception.
    */

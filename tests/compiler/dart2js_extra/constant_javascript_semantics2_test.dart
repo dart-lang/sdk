@@ -16,12 +16,11 @@ foo() {
   if (inscrutable(i) == 0) {
     i = 0x100000001;
   }
-  i = 0xFFFFFFFFF & i;  // In JS semantics [:i:] will be truncated to 32 bits.
+  i = 0xFFFFFFFFF & i; // In JS semantics [:i:] will be truncated to 32 bits.
   i = 0x100000001 - i;
   return a[i];
 }
 
 main() {
-  Expect.throws(() => foo(),
-                (e) => e is RangeError);
+  Expect.throws(() => foo(), (e) => e is RangeError);
 }

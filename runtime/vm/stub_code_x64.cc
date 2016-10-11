@@ -261,7 +261,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ pushq(Immediate(0));
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popq(CODE_REG);  // Get Code object result.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -284,7 +284,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ pushq(Immediate(0));
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popq(CODE_REG);  // Get Code object.
   __ popq(R10);  // Restore arguments descriptor array.
@@ -304,7 +304,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ movq(CODE_REG, Address(THR, Thread::fix_allocation_stub_code_offset()));
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ pushq(Immediate(0));
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   __ popq(CODE_REG);  // Get Code object.
   __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
@@ -385,6 +385,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
       kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - RAX);
+  const intptr_t saved_exception_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - RAX);
+  const intptr_t saved_stacktrace_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - RDX);
   // Result in RAX is preserved as part of pushing all registers below.
 
   // Push registers in their enumeration order: lowest register number at
@@ -408,15 +412,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // Pass address of saved registers block.
   __ movq(CallingConventions::kArg1Reg, RSP);
-  __ movq(CallingConventions::kArg2Reg, Immediate(kind == kLazyDeopt ? 1 : 0));
+  bool is_lazy = (kind == kLazyDeoptFromReturn) ||
+                 (kind == kLazyDeoptFromThrow);
+  __ movq(CallingConventions::kArg2Reg, Immediate(is_lazy ? 1 : 0));
   __ ReserveAlignedFrameSpace(0);  // Ensure stack is aligned before the call.
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (RAX) is stack-size (FP - SP) in bytes.
 
-  const bool preserve_result = (kind == kLazyDeopt);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX temporarily.
     __ movq(RBX, Address(RBP, saved_result_slot_from_fp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into RBX temporarily.
+    __ movq(RBX, Address(RBP, saved_exception_slot_from_fp * kWordSize));
+    __ movq(RDX, Address(RBP, saved_stacktrace_slot_from_fp * kWordSize));
   }
 
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
@@ -432,16 +441,24 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // is no need to set the correct PC marker or load PP, since they get patched.
   __ EnterStubFrame();
 
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ pushq(RBX);  // Preserve result as first local.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ pushq(RBX);  // Preserve exception as first local.
+    __ pushq(RDX);  // Preserve stacktrace as second local.
   }
   __ ReserveAlignedFrameSpace(0);
   // Pass last FP as a parameter.
   __ movq(CallingConventions::kArg1Reg, RBP);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into RBX.
     __ movq(RBX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore exception into RBX.
+    __ movq(RBX, Address(RBP, kFirstLocalSlotFromFp * kWordSize));
+    // Restore stacktrace into RDX.
+    __ movq(RDX, Address(RBP, (kFirstLocalSlotFromFp - 1) * kWordSize));
   }
   // Code above cannot cause GC.
   // There is a Dart Frame on the stack. We must restore PP and leave frame.
@@ -453,8 +470,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
   __ EnterStubFrame();
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ pushq(RBX);  // Preserve exception.
+    __ pushq(RDX);  // Preserve stacktrace.
   }
   __ pushq(Immediate(Smi::RawValue(0)));  // Space for the result.
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
@@ -462,8 +482,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // of the bottom-most frame. They were used as materialization arguments.
   __ popq(RBX);
   __ SmiUntag(RBX);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ popq(RAX);  // Restore result.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ popq(RDX);  // Restore stacktrace.
+    __ popq(RAX);  // Restore exception.
   }
   __ LeaveStubFrame();
 
@@ -476,7 +499,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
 // TOS: return address + call-instruction-size (5 bytes).
 // RAX: result, must be preserved
-void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
+void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Correct return address to point just after the call that is being
   // deoptimized.
   __ popq(RBX);
@@ -484,7 +507,22 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
   __ pushq(Immediate(0xf1f1f1f1));
   __ pushq(RBX);
-  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
+}
+
+
+// TOS: return address + call-instruction-size (5 bytes).
+// RAX: exception, must be preserved
+// RDX: stacktrace, must be preserved
+void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
+  // Correct return address to point just after the call that is being
+  // deoptimized.
+  __ popq(RBX);
+  __ subq(RBX, Immediate(ShortCallPattern::pattern_length_in_bytes()));
+  // Push zap value instead of CODE_REG for lazy deopt.
+  __ pushq(Immediate(0xf1f1f1f1));
+  __ pushq(RBX);
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
 
@@ -505,7 +543,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ movq(RDI, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(
       RBP, RDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
-  __ PushObject(Object::null_object());  // Setup space on stack for result.
+  __ pushq(Immediate(0));  // Setup space on stack for result.
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // ICData/MegamorphicCache.
   __ pushq(R10);  // Arguments descriptor array.
@@ -535,7 +573,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushq(R10);
 
   // Space for the result of the runtime call.
-  __ PushObject(Object::null_object());
+  __ pushq(Immediate(0));
   __ pushq(RAX);  // Receiver.
   __ pushq(RBX);  // IC data.
   __ pushq(R10);  // Arguments descriptor.
@@ -682,7 +720,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // calling into the runtime.
   __ EnterStubFrame();
   // Setup space on stack for return value.
-  __ PushObject(Object::null_object());
+  __ pushq(Immediate(0));
   __ pushq(R10);  // Array length as Smi.
   __ pushq(RBX);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
@@ -1168,8 +1206,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ movq(R13, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
   __ movq(RAX, Address(RBP, R13, TIMES_4, kParamEndSlotFromFp * kWordSize));
 
-  __ LoadObject(R12, Object::null_object());
-  __ pushq(R12);  // Setup space on stack for result from noSuchMethod.
+  __ pushq(Immediate(0));  // Result slot.
   __ pushq(RAX);  // Receiver.
   __ pushq(R10);  // Arguments descriptor array.
 
@@ -1400,7 +1437,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
 
   __ Comment("IC miss");
-  __ LoadObject(R13, Object::null_object());
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
   __ movq(RAX, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
@@ -1408,7 +1444,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ EnterStubFrame();
   __ pushq(R10);  // Preserve arguments descriptor array.
   __ pushq(RBX);  // Preserve IC data object.
-  __ pushq(R13);  // Setup space on stack for result (target code object).
+  __ pushq(Immediate(0));  // Result slot.
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ movq(RCX, Address(RAX, -kWordSize * i));
@@ -1667,14 +1703,10 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 // TOS(0): return address (Dart code).
 void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
-  // Preserve IC data.
-  __ pushq(RBX);
-  // Room for result. Debugger stub returns address of the
-  // unpatched runtime stub.
-  __ LoadObject(R12, Object::null_object());
-  __ pushq(R12);  // Room for result.
+  __ pushq(RBX);  // Preserve IC data.
+  __ pushq(Immediate(0));  // Result slot.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popq(CODE_REG);  // Address of original.
+  __ popq(CODE_REG);  // Original stub.
   __ popq(RBX);  // Restore IC data.
   __ LeaveStubFrame();
 
@@ -1686,12 +1718,9 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
-  // Room for result. Debugger stub returns address of the
-  // unpatched runtime stub.
-  __ LoadObject(R12, Object::null_object());
-  __ pushq(R12);  // Room for result.
+  __ pushq(Immediate(0));  // Result slot.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popq(CODE_REG);  // Address of original.
+  __ popq(CODE_REG);  // Original stub.
   __ LeaveStubFrame();
 
   __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
@@ -1874,6 +1903,9 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   // Clear top exit frame.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()),
           Immediate(0));
+  // Restore the pool pointer.
+  __ RestoreCodePointer();
+  __ LoadPoolPointer(PP);
   __ jmp(CallingConventions::kArg1Reg);  // Jump to the exception handler code.
 }
 
@@ -1883,10 +1915,9 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // R10: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
-  __ LoadObject(R12, Object::null_object());
-  __ pushq(R10);
-  __ pushq(R12);  // Setup space on stack for return value.
-  __ pushq(RDI);
+  __ pushq(R10);  // Preserve args descriptor.
+  __ pushq(Immediate(0));  // Result slot.
+  __ pushq(RDI);  // Arg0: function to optimize
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popq(RAX);  // Disard argument.
   __ popq(CODE_REG);  // Get Code object.
@@ -2011,10 +2042,10 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 // Called from megamorphic calls.
 //  RDI: receiver
 //  RBX: MegamorphicCache (preserved)
-// Result:
+// Passed to target:
 //  CODE_REG: target Code
 //  R10: arguments descriptor
-void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   // Jump if receiver is a smi.
@@ -2084,10 +2115,10 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 // Called from switchable IC calls.
 //  RDI: receiver
 //  RBX: ICData (preserved)
-// Result:
+// Passed to target:
 //  CODE_REG: target Code object
 //  R10: arguments descriptor
-void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   Label loop, found, miss;
@@ -2127,7 +2158,7 @@ void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   Label loop, found, miss;
@@ -2167,14 +2198,78 @@ void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
 }
 
 
+//  RDI: receiver
+//  RBX: UnlinkedCall
+void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
+  __ EnterStubFrame();
+  __ pushq(RDI);  // Preserve receiver.
+
+  __ pushq(Immediate(0));  // Result slot.
+  __ pushq(RDI);           // Arg0: Receiver
+  __ pushq(RBX);           // Arg1: UnlinkedCall
+  __ CallRuntime(kUnlinkedCallRuntimeEntry, 2);
+  __ popq(RBX);
+  __ popq(RBX);
+  __ popq(RBX);  // result = IC
+
+  __ popq(RDI);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ movq(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ jmp(RCX);
+}
+
+
+// Called from switchable IC calls.
+//  RDI: receiver
+//  RBX: SingleTargetCache
+// Passed to target::
+//  CODE_REG: target Code object
+void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
+  Label miss;
+  __ LoadClassIdMayBeSmi(RAX, RDI);
+  __ movl(R9, FieldAddress(RBX, SingleTargetCache::lower_limit_offset()));
+  __ movl(R10, FieldAddress(RBX, SingleTargetCache::upper_limit_offset()));
+  __ cmpq(RAX, R9);
+  __ j(LESS, &miss, Assembler::kNearJump);
+  __ cmpq(RAX, R10);
+  __ j(GREATER, &miss, Assembler::kNearJump);
+  __ movq(RCX, FieldAddress(RBX, SingleTargetCache::entry_point_offset()));
+  __ movq(CODE_REG, FieldAddress(RBX, SingleTargetCache::target_offset()));
+  __ jmp(RCX);
+
+  __ Bind(&miss);
+  __ EnterStubFrame();
+  __ pushq(RDI);  // Preserve receiver.
+
+  __ pushq(Immediate(0));  // Result slot.
+  __ pushq(RDI);           // Arg0: Receiver
+  __ CallRuntime(kSingleTargetMissRuntimeEntry, 1);
+  __ popq(RBX);
+  __ popq(RBX);  // result = IC
+
+  __ popq(RDI);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ movq(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ jmp(RCX);
+}
+
+
 // Called from the monomorphic checked entry.
 //  RDI: receiver
 void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ pushq(RDI);  // Preserve receiver.
 
-  __ PushObject(Object::null_object());  // Result.
-  __ pushq(RDI);                         // Arg0: Receiver
+  __ pushq(Immediate(0));  // Result slot.
+  __ pushq(RDI);           // Arg0: Receiver
   __ CallRuntime(kMonomorphicMissRuntimeEntry, 1);
   __ popq(RBX);
   __ popq(RBX);  // result = IC

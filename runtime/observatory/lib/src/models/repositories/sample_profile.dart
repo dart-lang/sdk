@@ -4,20 +4,9 @@
 
 part of models;
 
-enum SampleProfileTag {
-  userVM,
-  userOnly,
-  vmUser,
-  vmOnly,
-  none
-}
+enum SampleProfileTag { userVM, userOnly, vmUser, vmOnly, none }
 
-enum SampleProfileLoadingStatus {
-  disabled,
-  fetching,
-  loading,
-  loaded
-}
+enum SampleProfileLoadingStatus { disabled, fetching, loading, loaded }
 
 bool isSampleProcessRunning(SampleProfileLoadingStatus status) {
   switch (status) {
@@ -42,11 +31,14 @@ abstract class SampleProfileLoadingProgress {
 }
 
 abstract class ClassSampleProfileRepository {
-  Stream<SampleProfileLoadingProgressEvent> get(ClassRef cls,
-      SampleProfileTag tag, {bool clear: false});
+  Stream<SampleProfileLoadingProgressEvent> get(
+      IsolateRef isolate, ClassRef cls, SampleProfileTag tag);
+  Future enable(IsolateRef isolate, ClassRef cls);
+  Future disable(IsolateRef isolate, ClassRef cls);
 }
 
 abstract class IsolateSampleProfileRepository {
-  Stream<SampleProfileLoadingProgressEvent> get(IsolateRef cls,
-      SampleProfileTag tag, {bool clear: false, bool forceFetch: false});
+  Stream<SampleProfileLoadingProgressEvent> get(
+      IsolateRef isolate, SampleProfileTag tag,
+      {bool clear: false, bool forceFetch: false});
 }

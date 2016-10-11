@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
@@ -16,22 +17,20 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(SourcesChangedEventTest);
+  defineReflectiveTests(SourcesChangedEventTest);
 }
 
 /**
@@ -81,7 +80,7 @@ class CompilationUnitMock extends TypedMock implements CompilationUnit {}
 class MockSourceFactory extends SourceFactoryImpl {
   MockSourceFactory() : super([]);
   Source resolveUri(Source containingSource, String containedUri) {
-    throw new JavaIOException();
+    throw new UnimplementedError();
   }
 }
 
@@ -132,14 +131,6 @@ class SourcesChangedEventTest {
     assertEvent(event, changedSources: [source]);
   }
 
-  void test_deleted() {
-    var source = new StringSource('', '/test.dart');
-    var changeSet = new ChangeSet();
-    changeSet.deletedSource(source);
-    var event = new SourcesChangedEvent(changeSet);
-    assertEvent(event, wereSourcesRemovedOrDeleted: true);
-  }
-
   void test_empty() {
     var changeSet = new ChangeSet();
     var event = new SourcesChangedEvent(changeSet);
@@ -151,16 +142,16 @@ class SourcesChangedEventTest {
     var changeSet = new ChangeSet();
     changeSet.removedSource(source);
     var event = new SourcesChangedEvent(changeSet);
-    assertEvent(event, wereSourcesRemovedOrDeleted: true);
+    assertEvent(event, wereSourcesRemoved: true);
   }
 
   static void assertEvent(SourcesChangedEvent event,
       {bool wereSourcesAdded: false,
       List<Source> changedSources: Source.EMPTY_LIST,
-      bool wereSourcesRemovedOrDeleted: false}) {
+      bool wereSourcesRemoved: false}) {
     expect(event.wereSourcesAdded, wereSourcesAdded);
     expect(event.changedSources, changedSources);
-    expect(event.wereSourcesRemovedOrDeleted, wereSourcesRemovedOrDeleted);
+    expect(event.wereSourcesRemoved, wereSourcesRemoved);
   }
 }
 
@@ -178,7 +169,7 @@ class SourcesChangedListener {
     SourcesChangedEventTest.assertEvent(actual,
         wereSourcesAdded: wereSourcesAdded,
         changedSources: changedSources,
-        wereSourcesRemovedOrDeleted: wereSourcesRemovedOrDeleted);
+        wereSourcesRemoved: wereSourcesRemovedOrDeleted);
   }
 
   void assertNoMoreEvents() {
@@ -275,6 +266,15 @@ class TestAnalysisContext implements InternalAnalysisContext {
   Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents {
     fail("Unexpected invocation of analyzedSources");
     return null;
+  }
+
+  bool get isActive {
+    fail("Unexpected invocation of isActive");
+    return false;
+  }
+
+  void set isActive(bool isActive) {
+    fail("Unexpected invocation of isActive");
   }
 
   @override
@@ -393,7 +393,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
+  void applyChanges(ChangeSet changeSet) {
     fail("Unexpected invocation of applyChanges");
     return null;
   }

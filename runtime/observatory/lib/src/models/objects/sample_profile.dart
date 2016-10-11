@@ -4,16 +4,15 @@
 
 part of models;
 
-enum ProfileTreeDirection {
-  inclusive,
-  exclusive
-}
+enum ProfileTreeDirection { inclusive, exclusive }
 
 abstract class SampleProfile {
   int get sampleCount;
   int get stackDepth;
   double get sampleRate;
   double get timeSpan;
+  Iterable<ProfileCode> get codes;
+  Iterable<ProfileFunction> get functions;
 
   FunctionCallTree loadFunctionTree(ProfileTreeDirection direction);
   CodeCallTree loadCodeTree(ProfileTreeDirection direction);
@@ -26,10 +25,14 @@ abstract class Profile {
 
 abstract class ProfileCode extends Profile {
   CodeRef get code;
+  Map<ProfileCode, int> get callers;
+  Map<ProfileCode, int> get callees;
 }
 
 abstract class ProfileFunction extends Profile {
   FunctionRef get function;
+  Map<ProfileFunction, int> get callers;
+  Map<ProfileFunction, int> get callees;
 }
 
 typedef bool CallTreeNodeFilter(CallTreeNode);

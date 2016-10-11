@@ -39,14 +39,7 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set DART2JS=%DART_ROOT%\pkg\compiler\lib\src\dart2js.dart
 
-rem DART_CONFIGURATION defaults to ReleaseX64
-if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
-
-set BUILD_DIR=%DART_ROOT%\out\%DART_CONFIGURATION%
-
-set PACKAGE_ROOT=%BUILD_DIR%\packages
-
-"%DART%" %EXTRA_VM_OPTIONS% "--package-root=%PACKAGE_ROOT%" "%DART2JS%" %EXTRA_OPTIONS% %*
+"%DART%" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%DART2JS%" %EXTRA_OPTIONS% %*
 
 endlocal
 

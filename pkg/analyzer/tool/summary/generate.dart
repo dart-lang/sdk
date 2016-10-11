@@ -24,6 +24,7 @@ import 'dart:io' hide File;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/codegen/tools.dart';
@@ -119,7 +120,7 @@ class _CodeGenerator {
         }
       }
       Map<int, String> idsUsed = <int, String>{};
-      for (idlModel.FieldDeclaration field in cls.fields) {
+      for (idlModel.FieldDeclaration field in cls.allFields) {
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
         if (type.isList) {
@@ -568,19 +569,19 @@ class _CodeGenerator {
           out();
           outDoc(field.documentation);
           constructorParams.add('$typeStr $fieldName');
-          out('void set $fieldName($typeStr _value) {');
+          out('void set $fieldName($typeStr value) {');
           indent(() {
             String stateFieldName = '_' + fieldName;
             // Validate that int(s) are non-negative.
             if (fieldType.typeName == 'int') {
               if (!fieldType.isList) {
-                out('assert(_value == null || _value >= 0);');
+                out('assert(value == null || value >= 0);');
               } else {
-                out('assert(_value == null || _value.every((e) => e >= 0));');
+                out('assert(value == null || value.every((e) => e >= 0));');
               }
             }
             // Set the value.
-            out('$stateFieldName = _value;');
+            out('this.$stateFieldName = value;');
           });
           out('}');
         }

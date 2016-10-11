@@ -4,16 +4,17 @@
 
 library analyzer.test.generated.non_hint_code_test;
 
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(NonHintCodeTest);
+  defineReflectiveTests(NonHintCodeTest);
 }
 
 @reflectiveTest
@@ -235,6 +236,25 @@ f() {}
 @deprecated
 g() {
   f();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_deprecatedMemberUse_inDeprecatedLibrary() {
+    Source source = addSource(r'''
+@deprecated
+library lib;
+
+@deprecated
+f() {}
+
+class C {
+  m() {
+    f();
+  }
 }
 ''');
     computeLibrarySourceErrors(source);

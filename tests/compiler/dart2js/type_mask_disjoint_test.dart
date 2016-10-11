@@ -36,83 +36,82 @@ main() {
 
 Uri uri = new Uri(scheme: 'source');
 var compiler = compilerFor(CODE, uri);
-var world = compiler.world;
+var world = compiler.closedWorld;
 
 main() {
   asyncTest(() => compiler.run(uri).then((_) {
+        // Empty
+        check(' ! ', ' ! '); // both non-null
+        check(' ! ', '   '); // one non-null
+        check('   ', ' ! '); // one non-null
+        check('   ', '   ', areDisjoint: false); // null is common
 
-    // Empty
-    check(' ! ', ' ! ');  // both non-null
-    check(' ! ', '   ');  // one non-null
-    check('   ', ' ! ');  // one non-null
-    check('   ', '   ', areDisjoint: false); // null is common
+        // Exact
+        check('A!=', 'A!=', areDisjoint: false);
+        check('A!=', 'B!=');
+        check('A!=', 'E!=');
+        check('A =', 'E =', areDisjoint: false); // null is common
+        check('M!=', 'K!=');
+        check('M!=', 'A!=');
 
-    // Exact
-    check('A!=', 'A!=', areDisjoint: false);
-    check('A!=', 'B!=');
-    check('A!=', 'E!=');
-    check('A =', 'E =', areDisjoint: false); // null is common
-    check('M!=', 'K!=');
-    check('M!=', 'A!=');
+        // Exact with subclass
+        check('A!=', 'A!<', areDisjoint: false);
+        check('B!=', 'A!<', areDisjoint: false);
+        check('A!=', 'B!<');
+        check('A!=', 'E!<');
+        check('A =', 'E!<');
+        check('A =', 'E <', areDisjoint: false);
+        check('M!=', 'K!<', areDisjoint: false);
+        check('M!=', 'A!<');
 
-    // Exact with subclass
-    check('A!=', 'A!<', areDisjoint: false);
-    check('B!=', 'A!<', areDisjoint: false);
-    check('A!=', 'B!<');
-    check('A!=', 'E!<');
-    check('A =', 'E!<');
-    check('A =', 'E <', areDisjoint: false);
-    check('M!=', 'K!<', areDisjoint: false);
-    check('M!=', 'A!<');
+        // Exact with subtype
+        check('A!=', 'A!*', areDisjoint: false);
+        check('B!=', 'A!*', areDisjoint: false);
+        check('A!=', 'B!*');
+        check('A!=', 'E!*');
+        check('A!=', 'I!*');
+        check('J!=', 'H!*', areDisjoint: false);
+        check('M!=', 'K!*', areDisjoint: false);
+        check('M!=', 'A!*', areDisjoint: false);
 
-    // Exact with subtype
-    check('A!=', 'A!*', areDisjoint: false);
-    check('B!=', 'A!*', areDisjoint: false);
-    check('A!=', 'B!*');
-    check('A!=', 'E!*');
-    check('A!=', 'I!*');
-    check('J!=', 'H!*', areDisjoint: false);
-    check('M!=', 'K!*', areDisjoint: false);
-    check('M!=', 'A!*', areDisjoint: false);
+        // Subclass with subclass
+        check('A!<', 'A!<', areDisjoint: false);
+        check('A!<', 'B!<', areDisjoint: false);
+        check('A!<', 'E!<');
+        check('A!<', 'H!<');
+        check('D!<', 'I!<');
+        check('H!<', 'I!*', areDisjoint: false);
 
-    // Subclass with subclass
-    check('A!<', 'A!<', areDisjoint: false);
-    check('A!<', 'B!<', areDisjoint: false);
-    check('A!<', 'E!<');
-    check('A!<', 'H!<');
-    check('D!<', 'I!<');
-    check('H!<', 'I!*', areDisjoint: false);
+        // Subclass with subtype
+        check('A!<', 'A!*', areDisjoint: false);
+        check('A!<', 'B!*', areDisjoint: false);
+        check('A!<', 'E!*');
+        check('A!<', 'H!*');
+        check('D!<', 'I!*', areDisjoint: false);
 
-    // Subclass with subtype
-    check('A!<', 'A!*', areDisjoint: false);
-    check('A!<', 'B!*', areDisjoint: false);
-    check('A!<', 'E!*');
-    check('A!<', 'H!*');
-    check('D!<', 'I!*', areDisjoint: false);
+        // Subtype with subtype
+        check('A!*', 'A!*', areDisjoint: false);
+        check('A!*', 'B!*', areDisjoint: false);
+        check('A!*', 'E!*');
+        check('A!*', 'H!*', areDisjoint: false);
+        check('D!*', 'I!*', areDisjoint: false);
 
-    // Subtype with subtype
-    check('A!*', 'A!*', areDisjoint: false);
-    check('A!*', 'B!*', areDisjoint: false);
-    check('A!*', 'E!*');
-    check('A!*', 'H!*', areDisjoint: false);
-    check('D!*', 'I!*', areDisjoint: false);
+        // Unions!
+        checkUnions(['B!=', 'C!='], ['A!=']);
+        checkUnions(['B!=', 'C!='], ['A =']);
+        checkUnions(['B!=', 'C ='], ['A ='], areDisjoint: false);
 
-    // Unions!
-    checkUnions(['B!=', 'C!='], ['A!=']);
-    checkUnions(['B!=', 'C!='], ['A =']);
-    checkUnions(['B!=', 'C ='], ['A ='], areDisjoint: false);
+        checkUnions(['B!=', 'C!='], ['A!<'], areDisjoint: false);
+        checkUnions(['B!=', 'C!='], ['B!='], areDisjoint: false);
+        checkUnions(['A!<', 'E!<'], ['C!='], areDisjoint: false);
+        checkUnions(['A!<', 'E!<'], ['F!='], areDisjoint: false);
 
-    checkUnions(['B!=', 'C!='], ['A!<'], areDisjoint: false);
-    checkUnions(['B!=', 'C!='], ['B!='], areDisjoint: false);
-    checkUnions(['A!<', 'E!<'], ['C!='], areDisjoint: false);
-    checkUnions(['A!<', 'E!<'], ['F!='], areDisjoint: false);
-
-    checkUnions(['A!=', 'E!='], ['C!=', 'F!=']);
-    checkUnions(['A!=', 'E!='], ['A!=', 'F!='], areDisjoint: false);
-    checkUnions(['B!=', 'E!='], ['A!<', 'F!='], areDisjoint: false);
-    checkUnions(['A!<', 'E!<'], ['C!=', 'F!='], areDisjoint: false);
-    checkUnions(['A!=', 'E!='], ['C!=', 'F!=']);
-  }));
+        checkUnions(['A!=', 'E!='], ['C!=', 'F!=']);
+        checkUnions(['A!=', 'E!='], ['A!=', 'F!='], areDisjoint: false);
+        checkUnions(['B!=', 'E!='], ['A!<', 'F!='], areDisjoint: false);
+        checkUnions(['A!<', 'E!<'], ['C!=', 'F!='], areDisjoint: false);
+        checkUnions(['A!=', 'E!='], ['C!=', 'F!=']);
+      }));
 }
 
 /// Checks the expectation of `isDisjoint` for two mask. Also checks that the
@@ -137,7 +136,6 @@ check(String typeMaskDescriptor1, String typeMaskDescriptor2,
       areDisjoint: areDisjoint);
 }
 
-
 checkUnions(List descriptors1, List descriptors2, {areDisjoint: true}) {
   print('[$descriptors1] & [$descriptors2]');
   var m1 = new TypeMask.unionOf(descriptors1.map(maskOf).toList(), world);
@@ -160,28 +158,27 @@ Map _elementCache = {};
 ///   "Type =" - nullable exact Type
 ///   "Type!<" - non-null subclass of Type
 ///   "Type!*" - non-null subtype of Type
-TypeMask maskOf(String descriptor) =>
-  _maskCache.putIfAbsent(descriptor, () {
-    Expect.isTrue(descriptor.length >= 3);
-    var type = descriptor.substring(0, descriptor.length - 2);
-    bool isNullable = descriptor[descriptor.length - 2] != '!';
-    bool isExact = descriptor[descriptor.length - 1] == '=';
-    bool isSubclass = descriptor[descriptor.length - 1] == '<';
-    bool isSubtype = descriptor[descriptor.length - 1] == '*';
+TypeMask maskOf(String descriptor) => _maskCache.putIfAbsent(descriptor, () {
+      Expect.isTrue(descriptor.length >= 3);
+      var type = descriptor.substring(0, descriptor.length - 2);
+      bool isNullable = descriptor[descriptor.length - 2] != '!';
+      bool isExact = descriptor[descriptor.length - 1] == '=';
+      bool isSubclass = descriptor[descriptor.length - 1] == '<';
+      bool isSubtype = descriptor[descriptor.length - 1] == '*';
 
-    if (type == " ") {
-      Expect.isFalse(isExact || isSubclass || isSubtype);
-      return isNullable ? new TypeMask.empty() : new TypeMask.nonNullEmpty();
-    }
+      if (type == " ") {
+        Expect.isFalse(isExact || isSubclass || isSubtype);
+        return isNullable ? new TypeMask.empty() : new TypeMask.nonNullEmpty();
+      }
 
-    Expect.isTrue(isExact || isSubclass || isSubtype);
-    var element = _elementCache.putIfAbsent(type,
-        () => type == " " ? null : findElement(compiler, type));
+      Expect.isTrue(isExact || isSubclass || isSubtype);
+      var element = _elementCache.putIfAbsent(
+          type, () => type == " " ? null : findElement(compiler, type));
 
-    var mask = isExact
-        ? new TypeMask.nonNullExact(element, world)
-        : (isSubclass
-            ? new TypeMask.nonNullSubclass(element, world)
-            : new TypeMask.nonNullSubtype(element, world));
-    return isNullable ? mask.nullable() : mask;
-  });
+      var mask = isExact
+          ? new TypeMask.nonNullExact(element, world)
+          : (isSubclass
+              ? new TypeMask.nonNullSubclass(element, world)
+              : new TypeMask.nonNullSubtype(element, world));
+      return isNullable ? mask.nullable() : mask;
+    });

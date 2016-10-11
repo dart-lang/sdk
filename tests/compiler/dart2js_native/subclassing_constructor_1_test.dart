@@ -5,8 +5,8 @@
 import "package:expect/expect.dart";
 import 'dart:_foreign_helper' show JS;
 import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
-import 'dart:_interceptors' show
-    findInterceptorForType, findConstructorForNativeSubclassType;
+import 'dart:_interceptors'
+    show findInterceptorForType, findConstructorForNativeSubclassType;
 
 // Test that subclasses of native classes can be initialized by calling the
 // 'upgrade' constructor.
@@ -17,9 +17,9 @@ var log;
 
 @Native("A")
 class A {
-  final a1 = log(101);  // Only initialized IF named constructor called.
-  final a2;             // Initialized by native constructor.
-  final a3;             // Initialized only by A.two.
+  final a1 = log(101); // Only initialized IF named constructor called.
+  final a2; // Initialized by native constructor.
+  final a3; // Initialized only by A.two.
   var a4 = log(104);
 
   A.one();
@@ -44,7 +44,10 @@ class B extends A {
 
   B.one() : super.one();
 
-  B.two() : b1 = log(201), super.two(), b3 = log(203) {
+  B.two()
+      : b1 = log(201),
+        super.two(),
+        b3 = log(203) {
     log('body(B.two)');
   }
 
@@ -53,11 +56,10 @@ class B extends A {
   get increment => 20;
 }
 
-
-makeB() native;
+makeB() native ;
 
 @Creates('=Object')
-getBPrototype() native;
+getBPrototype() native ;
 
 void setup() native r"""
 function B() { this.a2 = 102; }
@@ -66,7 +68,6 @@ makeB = function(){return new B;};
 
 getBPrototype = function(){return B.prototype;};
 """;
-
 
 test_one() {
   trace = [];
@@ -111,8 +112,7 @@ test_two() {
   Expect.equals(202, b.b2);
   Expect.equals(203, b.b3);
 
-  Expect.equals(
-      '[202, 201, 101, 104, 103, 203, body(A.two), 124, body(B.two)]',
+  Expect.equals('[202, 201, 101, 104, 103, 203, body(A.two), 124, body(B.two)]',
       '$trace');
 }
 

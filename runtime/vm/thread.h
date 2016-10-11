@@ -51,6 +51,7 @@ class String;
 class TimelineStream;
 class TypeArguments;
 class TypeParameter;
+class TypeRangeCache;
 class Zone;
 
 #define REUSABLE_HANDLE_LIST(V)                                                \
@@ -90,7 +91,7 @@ class Zone;
   V(RawCode*, monomorphic_miss_stub_,                                          \
     StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
-    StubCode::ICLookupThroughCode_entry()->code(), NULL)                       \
+    StubCode::ICCallThroughCode_entry()->code(), NULL)                         \
 
 #endif
 
@@ -109,8 +110,8 @@ class Zone;
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
-  V(uword, megamorphic_lookup_checked_entry_,                                  \
-    StubCode::MegamorphicLookup_entry()->CheckedEntryPoint(), 0)               \
+  V(uword, megamorphic_call_checked_entry_,                                    \
+    StubCode::MegamorphicCall_entry()->CheckedEntryPoint(), 0)                 \
 
 #endif
 
@@ -258,6 +259,8 @@ class Thread : public BaseThread {
   // The topmost zone used for allocation in this thread.
   Zone* zone() const { return zone_; }
 
+  bool ZoneIsOwnedByThread(Zone* zone) const;
+
   // The reusable api local scope for this thread.
   ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
   void set_api_reusable_scope(ApiLocalScope* value) {
@@ -300,6 +303,11 @@ class Thread : public BaseThread {
     cha_ = value;
   }
 
+  TypeRangeCache* type_range_cache() const { return type_range_cache_; }
+  void set_type_range_cache(TypeRangeCache* value) {
+    type_range_cache_ = value;
+  }
+
   int32_t no_callback_scope_depth() const {
     return no_callback_scope_depth_;
   }
@@ -328,6 +336,9 @@ class Thread : public BaseThread {
 
   uword top_exit_frame_info() const {
     return top_exit_frame_info_;
+  }
+  void set_top_exit_frame_info(uword top_exit_frame_info) {
+    top_exit_frame_info_ = top_exit_frame_info;
   }
   static intptr_t top_exit_frame_info_offset() {
     return OFFSET_OF(Thread, top_exit_frame_info_);
@@ -689,6 +700,7 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   // Compiler state:
   CHA* cha_;
+  TypeRangeCache* type_range_cache_;
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 
@@ -725,10 +737,6 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
   void set_zone(Zone* zone) {
     zone_ = zone;
-  }
-
-  void set_top_exit_frame_info(uword top_exit_frame_info) {
-    top_exit_frame_info_ = top_exit_frame_info;
   }
 
   void set_safepoint_state(uint32_t value) {

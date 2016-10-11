@@ -6,14 +6,13 @@ library library_ref_element;
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, LibraryRef;
+import 'package:observatory/models.dart' as M show IsolateRef, LibraryRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class LibraryRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<LibraryRefElement>('library-ref-wrapped');
+  static const tag = const Tag<LibraryRefElement>('library-ref');
 
   RenderingScheduler<LibraryRefElement> _r;
 

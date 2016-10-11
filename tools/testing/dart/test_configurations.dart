@@ -132,11 +132,12 @@ Future testConfigurations(List<Map> configurations) async {
       // server for cross-domain tests can be found by calling
       // getCrossOriginPortNumber().
       var servers = new TestingServers(
-          new Path(TestUtils.buildDir(conf)),
+          TestUtils.buildDir(conf),
           useContentSecurityPolicy,
           conf['runtime'],
           null,
-          conf['package_root']);
+          conf['package_root'],
+          conf['packages']);
       serverFutures.add(servers.startServers(conf['local_ip'],
           port: conf['test_server_port'],
           crossOriginPort: conf['test_server_cross_origin_port']));

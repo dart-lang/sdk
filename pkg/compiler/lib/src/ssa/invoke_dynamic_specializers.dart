@@ -10,7 +10,7 @@ import '../js_backend/js_backend.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../world.dart' show World;
+import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 import 'types.dart';
 
@@ -660,7 +660,7 @@ class EqualsSpecializer extends RelationalSpecializer {
     if (right.isConstantNull() || left.isPrimitiveOrNull(compiler)) {
       return newBuiltinVariant(instruction, compiler);
     }
-    World world = compiler.world;
+    ClosedWorld world = compiler.closedWorld;
     JavaScriptBackend backend = compiler.backend;
     Iterable<Element> matches =
         world.allFunctions.filter(instruction.selector, instructionType);

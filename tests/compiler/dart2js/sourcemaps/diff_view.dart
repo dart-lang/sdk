@@ -90,15 +90,11 @@ main(List<String> args) async {
       output = AnnotatedOutput.loadOutput(loadFrom[i]);
     } else {
       print('Compiling ${options[i].join(' ')} $filename');
-      CodeLinesResult result = await computeCodeLines(
-          options[i], filename);
+      CodeLinesResult result = await computeCodeLines(options[i], filename);
       OutputStructure structure = OutputStructure.parse(result.codeLines);
       computeEntityCodeSources(result, structure);
       output = new AnnotatedOutput(
-          filename,
-          options[i],
-          structure,
-          result.coverage.getCoverageReport());
+          filename, options[i], structure, result.coverage.getCoverageReport());
     }
     if (saveTo.containsKey(i)) {
       AnnotatedOutput.saveOutput(output, saveTo[i]);
@@ -107,13 +103,10 @@ main(List<String> args) async {
   }
 
   List<DiffBlock> blocks = createDiffBlocks(
-      outputs.map((o) => o.structure).toList(),
-      sourceFileManager);
+      outputs.map((o) => o.structure).toList(), sourceFileManager);
 
-  outputDiffView(
-      out, outputs, blocks,
-      showMarkers: showAnnotations,
-      showSourceMapped: showAnnotations);
+  outputDiffView(out, outputs, blocks,
+      showMarkers: showAnnotations, showSourceMapped: showAnnotations);
 }
 
 /// Attaches [CodeSource]s to the entities in [structure] using the
@@ -142,10 +135,7 @@ class CodeLineAnnotationJsonStrategy implements JsonStrategy {
   }
 
   Annotation decodeAnnotation(Map json) {
-    return new Annotation(
-        json['id'],
-        json['codeOffset'],
-        json['title'],
+    return new Annotation(json['id'], json['codeOffset'], json['title'],
         data: CodeLineAnnotation.fromJson(json['data'], this));
   }
 
@@ -196,8 +186,8 @@ class AnnotatedOutput {
   }
 
   static AnnotatedOutput loadOutput(filename) {
-    AnnotatedOutput output = AnnotatedOutput.fromJson(
-        JSON.decode(new File(filename).readAsStringSync()));
+    AnnotatedOutput output = AnnotatedOutput
+        .fromJson(JSON.decode(new File(filename).readAsStringSync()));
     print('Output loaded from $filename');
     return output;
   }
@@ -212,11 +202,8 @@ class AnnotatedOutput {
 }
 
 void outputDiffView(
-    String out,
-    List<AnnotatedOutput> outputs,
-    List<DiffBlock> blocks,
-    {bool showMarkers: true,
-     bool showSourceMapped: true}) {
+    String out, List<AnnotatedOutput> outputs, List<DiffBlock> blocks,
+    {bool showMarkers: true, bool showSourceMapped: true}) {
   assert(outputs[0].filename == outputs[1].filename);
   bool usePre = true;
 
@@ -479,7 +466,6 @@ as mapped through source-maps.">
   </span>
 ''');
 
-
   /// Marker to alternate output colors.
   bool alternating = false;
 
@@ -501,7 +487,8 @@ as mapped through source-maps.">
   }
 
   List<DiffColumn> columns = [column_js0, column_js1, column_dart]
-      .where((c) => allColumns.contains(c)).toList();
+      .where((c) => allColumns.contains(c))
+      .toList();
 
   sb.write('''
 </div>
@@ -535,8 +522,7 @@ as mapped through source-maps.">
         alternating = !alternating;
         break;
       case DiffKind.IDENTICAL:
-        className =
-            '${ClassNames.cell} ${ClassNames.identical(alternating)}';
+        className = '${ClassNames.cell} ${ClassNames.identical(alternating)}';
         alternating = !alternating;
         break;
     }
@@ -548,7 +534,7 @@ as mapped through source-maps.">
           includeAnnotation: (Annotation annotation) {
             CodeLineAnnotation data = annotation.data;
             return data.annotationType == AnnotationType.WITH_SOURCE_INFO ||
-                   data.annotationType == AnnotationType.ADDITIONAL_SOURCE_INFO;
+                data.annotationType == AnnotationType.ADDITIONAL_SOURCE_INFO;
           },
           getAnnotationData: getAnnotationData,
           getLineData: getLineData);
@@ -623,12 +609,8 @@ class CodeLinesResult {
   final SourceFileManager sourceFileManager;
   final CodeSources codeSources;
 
-  CodeLinesResult(
-      this.codeLines,
-      this.coverage,
-      this.elementMap,
-      this.sourceFileManager,
-      this.codeSources);
+  CodeLinesResult(this.codeLines, this.coverage, this.elementMap,
+      this.sourceFileManager, this.codeSources);
 }
 
 class CodeSources {
@@ -636,10 +618,7 @@ class CodeSources {
   Map<Uri, Map<Interval, CodeSource>> uriCodeSourceMap =
       <Uri, Map<Interval, CodeSource>>{};
 
-  CodeSources(
-    SourceMapProcessor processor,
-    SourceMaps sourceMaps) {
-
+  CodeSources(SourceMapProcessor processor, SourceMaps sourceMaps) {
     CodeSource computeCodeSource(Element element) {
       return codeSourceMap.putIfAbsent(element, () {
         CodeSource codeSource = codeSourceFromElement(element);
@@ -656,13 +635,13 @@ class CodeSources {
                 CodeSource existingCodeSource = intervals[existingInterval];
                 intervals.remove(existingInterval);
                 if (existingInterval.from < interval.from) {
-                  Interval preInterval = new Interval(
-                      existingInterval.from, interval.from);
+                  Interval preInterval =
+                      new Interval(existingInterval.from, interval.from);
                   intervals[preInterval] = existingCodeSource;
                 }
                 if (interval.to < existingInterval.to) {
-                  Interval postInterval = new Interval(
-                      interval.to, existingInterval.to);
+                  Interval postInterval =
+                      new Interval(interval.to, existingInterval.to);
                   intervals[postInterval] = existingCodeSource;
                 }
               }
@@ -686,15 +665,15 @@ class CodeSources {
       });
     }
 
-    for (LibraryElement library in
-             sourceMaps.compiler.libraryLoader.libraries) {
+    for (LibraryElement library
+        in sourceMaps.compiler.libraryLoader.libraries) {
       library.forEachLocalMember(computeCodeSource);
       library.implementation.forEachLocalMember(computeCodeSource);
     }
 
     uriCodeSourceMap.forEach((Uri uri, Map<Interval, CodeSource> intervals) {
-      List<Interval> sortedKeys = intervals.keys.toList()..sort(
-          (i1, i2) => i1.from.compareTo(i2.from));
+      List<Interval> sortedKeys = intervals.keys.toList()
+        ..sort((i1, i2) => i1.from.compareTo(i2.from));
       Map<Interval, CodeSource> sortedintervals = <Interval, CodeSource>{};
       sortedKeys.forEach((Interval interval) {
         sortedintervals[interval] = intervals[interval];
@@ -724,8 +703,7 @@ class CodeSources {
 
 /// Compute [CodeLine]s and [Coverage] for [filename] using the given [options].
 Future<CodeLinesResult> computeCodeLines(
-    List<String> options,
-    String filename) async {
+    List<String> options, String filename) async {
   SourceMapProcessor processor = new SourceMapProcessor(filename);
   SourceMaps sourceMaps =
       await processor.process(options, perElement: true, forMain: true);
@@ -743,9 +721,9 @@ Future<CodeLinesResult> computeCodeLines(
   /// Create a [CodeLineAnnotation] for [codeOffset].
   void addCodeLineAnnotation(
       {AnnotationType annotationType,
-       int codeOffset,
-       List<SourceLocation> locations: const <SourceLocation>[],
-       String stepInfo}) {
+      int codeOffset,
+      List<SourceLocation> locations: const <SourceLocation>[],
+      String stepInfo}) {
     if (annotationType == AnnotationType.WITHOUT_SOURCE_INFO ||
         annotationType == AnnotationType.UNUSED_SOURCE_INFO) {
       locations = [];
@@ -763,8 +741,9 @@ Future<CodeLinesResult> computeCodeLines(
         codeLocations: codeLocations,
         codeSources: codeSourceList,
         stepInfo: stepInfo);
-    codeLineAnnotationMap.putIfAbsent(
-        codeOffset, () => <CodeLineAnnotation>[]).add(data);
+    codeLineAnnotationMap
+        .putIfAbsent(codeOffset, () => <CodeLineAnnotation>[])
+        .add(data);
   }
 
   String code = info.code;
@@ -775,9 +754,9 @@ Future<CodeLinesResult> computeCodeLines(
   /// Add an annotation for [codeOffset] pointing to [locations].
   void addSourceLocations(
       {AnnotationType annotationType,
-       int codeOffset,
-       List<SourceLocation> locations,
-       String stepInfo}) {
+      int codeOffset,
+      List<SourceLocation> locations,
+      String stepInfo}) {
     locations = locations.where((l) => l != null).toList();
     addCodeLineAnnotation(
         annotationType: annotationType,
@@ -788,9 +767,7 @@ Future<CodeLinesResult> computeCodeLines(
 
   /// Add annotations for all mappings created for [node].
   bool addSourceLocationsForNode(
-      {AnnotationType annotationType,
-       js.Node node,
-       String stepInfo}) {
+      {AnnotationType annotationType, js.Node node, String stepInfo}) {
     Map<int, List<SourceLocation>> locations = info.nodeMap[node];
     if (locations == null || locations.isEmpty) {
       return false;
@@ -833,22 +810,21 @@ Future<CodeLinesResult> computeCodeLines(
   for (js.Node node in info.nodeMap.nodes) {
     if (!mappedNodes.contains(node)) {
       addSourceLocationsForNode(
-          annotationType: AnnotationType.ADDITIONAL_SOURCE_INFO,
-          node: node);
+          annotationType: AnnotationType.ADDITIONAL_SOURCE_INFO, node: node);
     }
   }
 
   // Add annotations for unused source information associated with nodes.
   SourceLocationCollector collector = new SourceLocationCollector();
   info.node.accept(collector);
-  collector.sourceLocations.forEach(
-      (js.Node node, List<SourceLocation> locations) {
+  collector.sourceLocations
+      .forEach((js.Node node, List<SourceLocation> locations) {
     if (!mappedNodes.contains(node)) {
       int offset = info.jsCodePositions[node].startPosition;
       addSourceLocations(
-        annotationType: AnnotationType.UNUSED_SOURCE_INFO,
-        codeOffset: offset,
-        locations: locations);
+          annotationType: AnnotationType.UNUSED_SOURCE_INFO,
+          codeOffset: offset,
+          locations: locations);
     }
   });
 
@@ -863,9 +839,7 @@ Future<CodeLinesResult> computeCodeLines(
         hasSourceMappedLocation = true;
       }
       annotations.add(new Annotation(
-          data.annotationType.index,
-          codeOffset,
-          'id=${data.annotationId}',
+          data.annotationType.index, codeOffset, 'id=${data.annotationId}',
           data: data));
     }
     if (hasSourceMappedLocation) {
@@ -876,17 +850,15 @@ Future<CodeLinesResult> computeCodeLines(
   // Associate JavaScript offsets with [Element]s.
   StringSourceFile sourceFile = new StringSourceFile.fromName(filename, code);
   Map<int, Element> elementMap = <int, Element>{};
-  sourceMaps.elementSourceMapInfos.forEach(
-      (Element element, SourceMapInfo info) {
+  sourceMaps.elementSourceMapInfos
+      .forEach((Element element, SourceMapInfo info) {
     CodePosition position = info.jsCodePositions[info.node];
     elementMap[sourceFile.getLine(position.startPosition)] = element;
   });
 
   codeLines = convertAnnotatedCodeToCodeLines(code, annotations);
-  return new CodeLinesResult(
-      codeLines, coverage, elementMap,
-      sourceMaps.sourceFileManager,
-      codeSources);
+  return new CodeLinesResult(codeLines, coverage, elementMap,
+      sourceMaps.sourceFileManager, codeSources);
 }
 
 /// Visitor that computes a map from [js.Node]s to all attached source
@@ -940,37 +912,31 @@ LineData getLineData(CodeSource lineAnnotation) {
   if (lineAnnotation != null) {
     return new LineData(
         lineClass: ClassNames.line,
-        lineNumberClass:
-          '${ClassNames.lineNumber} '
-          '${ClassNames.colored(lineAnnotation.hashCode % 4)}');
+        lineNumberClass: '${ClassNames.lineNumber} '
+            '${ClassNames.colored(lineAnnotation.hashCode % 4)}');
   }
   return new LineData(
-      lineClass: ClassNames.line,
-      lineNumberClass: ClassNames.lineNumber);
+      lineClass: ClassNames.line, lineNumberClass: ClassNames.lineNumber);
 }
 
 AnnotationData getAnnotationData(Iterable<Annotation> annotations,
-                                 {bool forSpan}) {
+    {bool forSpan}) {
   for (Annotation annotation in annotations) {
     CodeLineAnnotation data = annotation.data;
     if (data.annotationType.isSourceMapped) {
       if (forSpan) {
         int index = data.sourceMappingIndex;
-        return new AnnotationData(
-            tag: 'span',
-            properties: {
-              'class':
-                '${ClassNames.sourceMapping} '
-                '${ClassNames.sourceMappingIndex(index % HUE_COUNT)}',
-              'title': 'index=$index',
-            });
+        return new AnnotationData(tag: 'span', properties: {
+          'class': '${ClassNames.sourceMapping} '
+              '${ClassNames.sourceMappingIndex(index % HUE_COUNT)}',
+          'title': 'index=$index',
+        });
       } else {
-        return new AnnotationData(
-            tag: 'span',
-            properties: {
-              'title': annotation.title,
-              'class': '${ClassNames.marker} '
-                       '${data.annotationType.className}'});
+        return new AnnotationData(tag: 'span', properties: {
+          'title': annotation.title,
+          'class': '${ClassNames.marker} '
+              '${data.annotationType.className}'
+        });
       }
     }
   }
@@ -978,23 +944,21 @@ AnnotationData getAnnotationData(Iterable<Annotation> annotations,
   for (Annotation annotation in annotations) {
     CodeLineAnnotation data = annotation.data;
     if (data.annotationType == AnnotationType.UNUSED_SOURCE_INFO) {
-      return new AnnotationData(
-          tag: 'span',
-          properties: {
-            'title': annotation.title,
-            'class': '${ClassNames.marker} '
-                     '${data.annotationType.className}'});
+      return new AnnotationData(tag: 'span', properties: {
+        'title': annotation.title,
+        'class': '${ClassNames.marker} '
+            '${data.annotationType.className}'
+      });
     }
   }
   for (Annotation annotation in annotations) {
     CodeLineAnnotation data = annotation.data;
     if (data.annotationType == AnnotationType.WITHOUT_SOURCE_INFO) {
-      return new AnnotationData(
-          tag: 'span',
-          properties: {
-            'title': annotation.title,
-            'class': '${ClassNames.marker} '
-                     '${data.annotationType.className}'});
+      return new AnnotationData(tag: 'span', properties: {
+        'title': annotation.title,
+        'class': '${ClassNames.marker} '
+            '${data.annotationType.className}'
+      });
     }
   }
   return null;

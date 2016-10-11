@@ -165,6 +165,10 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Error& error =
       Error::Handle(Compiler::CompileFunction(thread, function));
   if (!error.IsNull()) {
+    if (error.IsLanguageError()) {
+      Exceptions::ThrowCompileTimeError(LanguageError::Cast(error));
+      UNREACHABLE();
+    }
     Exceptions::PropagateError(error);
   }
 }
@@ -691,7 +695,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     if (val == 0) {
       FlowGraph* flow_graph = NULL;
 
-      // Class hierarchy analysis is registered with the isolate in the
+      // Class hierarchy analysis is registered with the thread in the
       // constructor and unregisters itself upon destruction.
       CHA cha(thread());
 
@@ -806,7 +810,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         // Optimize (a << b) & c patterns, merge operations.
         // Run early in order to have more opportunity to optimize left shifts.
-        optimizer.TryOptimizePatterns();
+        flow_graph->TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         FlowGraphInliner::SetInliningId(flow_graph, 0);
@@ -953,7 +957,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Optimize (a << b) & c patterns, merge operations.
         // Run after CSE in order to have more opportunity to merge
         // instructions that have same inputs.
-        optimizer.TryOptimizePatterns();
+        flow_graph->TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
@@ -1251,7 +1255,6 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                num_tokens_after - num_tokens_before);
     }
 
-
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
 
     if (Compiler::IsBackgroundCompilation()) {
@@ -1285,8 +1288,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
             // We got an error during compilation.
             error = thread->sticky_error();
             thread->clear_sticky_error();
-            if (error.IsLanguageError() &&
-                LanguageError::Cast(error).kind() == Report::kBailout) {
+            if ((error.IsLanguageError() &&
+                 LanguageError::Cast(error).kind() == Report::kBailout) ||
+                error.IsUnhandledException()) {
               if (FLAG_trace_compiler) {
                 THR_Print("--> disabling optimizations for '%s'\n",
                           function.ToFullyQualifiedCString());
@@ -1312,9 +1316,12 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         // We got an error during compilation.
         error = thread->sticky_error();
         thread->clear_sticky_error();
-        // The non-optimizing compiler should not bail out.
-        ASSERT(error.IsLanguageError() &&
-               LanguageError::Cast(error).kind() != Report::kBailout);
+        // The non-optimizing compiler can get an unhandled exception
+        // due to OOM or Stack overflow errors, it should not however
+        // bail out.
+        ASSERT(error.IsUnhandledException() ||
+               (error.IsLanguageError() &&
+                LanguageError::Cast(error).kind() != Report::kBailout));
         return error.raw();
       }
     }
@@ -1334,12 +1341,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-      SafepointOperationScope safepoint_scope(thread);
       Disassembler::DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized &&
                optimized &&
                FlowGraphPrinter::ShouldPrint(function)) {
-      SafepointOperationScope safepoint_scope(thread);
       Disassembler::DisassembleCode(function, true);
     }
 
@@ -1361,11 +1366,67 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
       }
       return Error::null();
     }
+    // Do not attempt to optimize functions that can cause errors.
+    function.set_is_optimizable(false);
+    return error.raw();
+  }
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+static RawError* ParseFunctionHelper(CompilationPipeline* pipeline,
+                                     const Function& function,
+                                     bool optimized,
+                                     intptr_t osr_id) {
+  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!optimized || function.was_compiled());
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    Thread* const thread = Thread::Current();
+    StackZone stack_zone(thread);
+    Zone* const zone = stack_zone.GetZone();
+    const bool trace_compiler =
+        FLAG_trace_compiler ||
+        (FLAG_trace_optimizing_compiler && optimized);
+
+    if (trace_compiler) {
+      const intptr_t token_size = function.end_token_pos().Pos() -
+                                  function.token_pos().Pos();
+      THR_Print("Parsing %s%sfunction %s: '%s' @ token %s, size %" Pd "\n",
+                (osr_id == Compiler::kNoOSRDeoptId ? "" : "osr "),
+                (optimized ? "optimized " : ""),
+                (Compiler::IsBackgroundCompilation() ? "(background)" : ""),
+                function.ToFullyQualifiedCString(),
+                function.token_pos().ToCString(),
+                token_size);
+    }
+    ParsedFunction* parsed_function = new(zone) ParsedFunction(
+        thread, Function::ZoneHandle(zone, function.raw()));
+    pipeline->ParseFunction(parsed_function);
+    // For now we just walk thru the AST nodes and in DEBUG mode we print
+    // them otherwise just skip through them, this will be need to be
+    // wired to generate the IR format.
+#if !defined(PRODUCT)
+#if defined(DEBUG)
+    AstPrinter ast_printer(true);
+#else
+    AstPrinter ast_printer(false);
+#endif  // defined(DEBUG).
+    ast_printer.PrintFunctionNodes(*parsed_function);
+#endif  // !defined(PRODUCT).
+    return Error::null();
+  } else {
+    Thread* const thread = Thread::Current();
+    StackZone stack_zone(thread);
+    Error& error = Error::Handle();
+    // We got an error during compilation or it is a bailout from background
+    // compilation (e.g., during parsing with EnsureIsFinalized).
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     // Unoptimized compilation or precompilation may encounter compile-time
     // errors, but regular optimized compilation should not.
     ASSERT(!optimized);
-    // Do not attempt to optimize functions that can cause errors.
-    function.set_is_optimizable(false);
     return error.raw();
   }
   UNREACHABLE();
@@ -1377,7 +1438,7 @@ RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
 #ifdef DART_PRECOMPILER
   if (FLAG_precompiled_mode) {
-    return Precompiler::CompileFunction(thread, function);
+    return Precompiler::CompileFunction(thread, thread->zone(), function);
   }
 #endif
   Isolate* isolate = thread->isolate();
@@ -1400,6 +1461,31 @@ NOT_IN_PRODUCT(
                                function,
                                /* optimized = */ false,
                                kNoOSRDeoptId);
+}
+
+
+RawError* Compiler::ParseFunction(Thread* thread,
+                                  const Function& function) {
+  Isolate* isolate = thread->isolate();
+NOT_IN_PRODUCT(
+  VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "ParseFunction", function);
+)  // !PRODUCT
+
+  if (!isolate->compilation_allowed()) {
+    FATAL3("Precompilation missed function %s (%s, %s)\n",
+           function.ToLibNamePrefixedQualifiedCString(),
+           function.token_pos().ToCString(),
+           Function::KindToCString(function.kind()));
+  }
+
+  CompilationPipeline* pipeline =
+      CompilationPipeline::New(thread->zone(), function);
+
+  return ParseFunctionHelper(pipeline,
+                             function,
+                             /* optimized = */ false,
+                             kNoOSRDeoptId);
 }
 
 
@@ -1554,6 +1640,40 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 }
 
 
+RawError* Compiler::ParseAllFunctions(const Class& cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Error& error = Error::Handle(zone);
+  Array& functions = Array::Handle(zone, cls.functions());
+  Function& func = Function::Handle(zone);
+  // Class dynamic lives in the vm isolate. Its array fields cannot be set to
+  // an empty array.
+  if (functions.IsNull()) {
+    ASSERT(cls.IsDynamicClass());
+    return error.raw();
+  }
+  // Compile all the regular functions.
+  for (int i = 0; i < functions.Length(); i++) {
+    func ^= functions.At(i);
+    ASSERT(!func.IsNull());
+    if (!func.is_abstract() && !func.IsRedirectingFactory()) {
+      if ((cls.is_mixin_app_alias() || cls.IsMixinApplication()) &&
+          func.HasOptionalParameters()) {
+        // Skipping optional parameters in mixin application.
+        continue;
+      }
+      error = ParseFunction(thread, func);
+      if (!error.IsNull()) {
+        return error.raw();
+      }
+      func.ClearICDataArray();
+      func.ClearCode();
+    }
+  }
+  return error.raw();
+}
+
+
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 #ifdef DART_PRECOMPILER
   if (FLAG_precompiled_mode) {
@@ -1632,7 +1752,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     if (FLAG_trace_compiler) {
       THR_Print("compiling expression: ");
       if (FLAG_support_ast_printer) {
-        AstPrinter::PrintNode(fragment);
+        AstPrinter ast_printer;
+        ast_printer.PrintNode(fragment);
       }
     }
 
@@ -1863,15 +1984,9 @@ void BackgroundCompiler::Run() {
       while (running_ && !function.IsNull() && !isolate_->IsTopLevelParsing()) {
         // Check that we have aggregated and cleared the stats.
         ASSERT(thread->compiler_stats()->IsCleared());
-        const Error& error = Error::Handle(zone,
-            Compiler::CompileOptimizedFunction(thread,
-                                               function,
-                                               Compiler::kNoOSRDeoptId));
-        // TODO(srdjan): We do not expect errors while compiling optimized
-        // code, any errors should have been caught when compiling
-        // unoptimized code. Any issues while optimizing are flagged by
-        // making the result invalid.
-        ASSERT(error.IsNull());
+        Compiler::CompileOptimizedFunction(thread,
+                                           function,
+                                           Compiler::kNoOSRDeoptId);
 #ifndef PRODUCT
         Isolate* isolate = thread->isolate();
         isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
@@ -2096,6 +2211,13 @@ RawError* Compiler::CompileFunction(Thread* thread,
 }
 
 
+RawError* Compiler::ParseFunction(Thread* thread,
+                                  const Function& function) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
 RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
                                           const Function& function) {
   UNREACHABLE();
@@ -2124,6 +2246,12 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
 
 
 RawError* Compiler::CompileAllFunctions(const Class& cls) {
+  UNREACHABLE();
+  return Error::null();
+}
+
+
+RawError* Compiler::ParseAllFunctions(const Class& cls) {
   UNREACHABLE();
   return Error::null();
 }

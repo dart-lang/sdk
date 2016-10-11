@@ -93,7 +93,6 @@ uword Handles<kHandleSizeInWords,
               kOffsetOfRawPtr>::AllocateHandle(Zone* zone) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->zone() == zone);
   ASSERT(thread->top_handle_scope() != NULL);
   ASSERT(thread->no_handle_scope_depth() == 0);
 #endif  // DEBUG

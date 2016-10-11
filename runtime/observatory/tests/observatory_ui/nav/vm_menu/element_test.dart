@@ -4,7 +4,6 @@
 
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 import 'package:observatory/src/elements/nav/vm_menu.dart';
 import '../../mocks.dart';
@@ -12,7 +11,7 @@ import '../../mocks.dart';
 main(){
   NavVMMenuElement.tag.ensureRegistration();
 
-  final mTag = NavMenuElement.tag.name;
+  final mTag = '.nav-menu_label > a';
   final miTag = NavMenuItemElement.tag.name;
 
   EventRepositoryMock events;
@@ -33,10 +32,10 @@ main(){
     final e = new NavVMMenuElement(vm1, events);
     document.body.append(e);
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isNonZero, reason: 'has elements');
+    expect(e.children.length, isNonZero, reason: 'has elements');
     e.remove();
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isZero, reason: 'is empty');
+    expect(e.children.length, isZero, reason: 'is empty');
   });
   group('updates', () {
     test('are correctly listen', () async {
@@ -53,15 +52,13 @@ main(){
       final e = new NavVMMenuElement(vm1, events);
       document.body.append(e);
       await e.onRendered.first;
-      expect((e.shadowRoot.querySelector(mTag) as NavMenuElement).label,
-          equals(vm1.displayName));
-      expect(e.shadowRoot.querySelectorAll(miTag).length,
+      expect(e.querySelectorAll(mTag).single.text, equals(vm1.displayName));
+      expect(e.querySelectorAll(miTag).length,
           equals(vm1.isolates.length));
       events.add(new VMUpdateEventMock(vm: vm2));
       await e.onRendered.first;
-      expect((e.shadowRoot.querySelector(mTag) as NavMenuElement).label,
-          equals(vm2.displayName));
-      expect(e.shadowRoot.querySelectorAll(miTag).length,
+      expect(e.querySelectorAll(mTag).single.text, equals(vm2.displayName));
+      expect(e.querySelectorAll(miTag).length,
           equals(vm2.isolates.length));
       e.remove();
     });

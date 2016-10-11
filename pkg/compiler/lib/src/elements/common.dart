@@ -494,6 +494,8 @@ abstract class ClassElementCommon implements ClassElement {
 }
 
 abstract class FunctionSignatureCommon implements FunctionSignature {
+  DartType get returnType => type.returnType;
+
   void forEachRequiredParameter(void function(Element parameter)) {
     requiredParameters.forEach(function);
   }

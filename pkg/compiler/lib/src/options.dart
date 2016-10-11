@@ -221,6 +221,9 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// Whether to generate code compliant with content security policy (CSP).
   final bool useContentSecurityPolicy;
 
+  /// Whether to use kernel internally as part of compilation.
+  final bool useKernel;
+
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
   final bool useFrequencyNamer;
@@ -318,6 +321,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         trustTypeAnnotations: _hasOption(options, Flags.trustTypeAnnotations),
         useContentSecurityPolicy:
             _hasOption(options, Flags.useContentSecurityPolicy),
+        useKernel: _hasOption(options, Flags.useKernel),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
         useNewSourceInfo: _hasOption(options, Flags.useNewSourceInfo),
@@ -378,6 +382,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       bool trustPrimitives: false,
       bool trustTypeAnnotations: false,
       bool useContentSecurityPolicy: false,
+      bool useKernel: false,
       bool useFrequencyNamer: true,
       bool useNewSourceInfo: false,
       bool useStartupEmitter: false,
@@ -450,6 +455,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         trustPrimitives: trustPrimitives,
         trustTypeAnnotations: trustTypeAnnotations,
         useContentSecurityPolicy: useContentSecurityPolicy,
+        useKernel: useKernel,
         useFrequencyNamer: useFrequencyNamer,
         useNewSourceInfo: useNewSourceInfo,
         useStartupEmitter: useStartupEmitter,
@@ -500,6 +506,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.trustPrimitives: false,
       this.trustTypeAnnotations: false,
       this.useContentSecurityPolicy: false,
+      this.useKernel: false,
       this.useFrequencyNamer: false,
       this.useNewSourceInfo: false,
       this.useStartupEmitter: false,
@@ -557,6 +564,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       trustPrimitives,
       trustTypeAnnotations,
       useContentSecurityPolicy,
+      useKernel,
       useFrequencyNamer,
       useNewSourceInfo,
       useStartupEmitter,
@@ -626,6 +634,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
             trustTypeAnnotations ?? options.trustTypeAnnotations,
         useContentSecurityPolicy:
             useContentSecurityPolicy ?? options.useContentSecurityPolicy,
+        useKernel: useKernel ?? options.useKernel,
         useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
         useNewSourceInfo: useNewSourceInfo ?? options.useNewSourceInfo,
         useStartupEmitter: useStartupEmitter ?? options.useStartupEmitter,

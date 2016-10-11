@@ -9,21 +9,20 @@ import "package:compiler/src/world.dart";
 import 'type_test_helper.dart';
 
 main() {
-
   asyncTest(() async {
-    TypeEnvironment env = await TypeEnvironment.create(r"""
+    TypeEnvironment env = await TypeEnvironment.create(
+        r"""
       class A {}
       class B {}
       """,
-      mainSource: r"""
+        mainSource: r"""
       main() {
         new A();
         new B();
       }
       """,
-      useMockCompiler: false);
-    World world = env.compiler.world;
-    world.populate();
+        useMockCompiler: false);
+    ClosedWorld world = env.compiler.openWorld.closeWorld();
     FlatTypeMask mask1 = new FlatTypeMask.exact(env.getElement('A'));
     FlatTypeMask mask2 = new FlatTypeMask.exact(env.getElement('B'));
     UnionTypeMask union1 = mask1.nonNullable().union(mask2, world);

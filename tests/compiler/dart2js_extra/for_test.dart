@@ -55,7 +55,7 @@ void for5() {
 void for6() {
   var i = 0;
   var sum = 0;
-  for(; i < 5; i++) {
+  for (; i < 5; i++) {
     sum += i;
   }
   Expect.equals(5, i);
@@ -63,7 +63,7 @@ void for6() {
 
   sum = 0;
   i = 0;
-  for(; i < 5;) {
+  for (; i < 5;) {
     sum += i;
     i++;
   }
@@ -71,7 +71,7 @@ void for6() {
   Expect.equals(10, sum);
 
   sum = 0;
-  for(i = 0; i < 5;) {
+  for (i = 0; i < 5;) {
     sum += i;
     i++;
   }

@@ -165,6 +165,9 @@ runner.Command makeCompilationCommand(String testName, FileUtils fileUtils) {
 }
 
 void main() {
+  // This script is in [sdk]/tests/standalone/io.
+  suite.TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
+
   var fs_noTestJs = new FileUtils(createJs: false,
                                   createJsDeps: true,
                                   createDart: true,

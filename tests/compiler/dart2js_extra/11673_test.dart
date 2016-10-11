@@ -8,10 +8,13 @@ import "package:expect/expect.dart";
 // application.
 
 class JSIB {}
+
 class TD {}
+
 class M {
   foo() => 123;
 }
+
 class I8 extends TD with M implements JSIB {}
 
 use(x) {

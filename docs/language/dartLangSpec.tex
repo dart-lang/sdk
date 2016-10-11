@@ -1227,7 +1227,15 @@ A {\em constructor parameter list} is a parenthesized, comma-separated list of f
 If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named \code{id} is $T_{id}$, where $T_{id}$ is the type of the field named \code{id} in the immediately enclosing class. It is a static warning if the static type of \code{id} is not assignable to $T_{id}$.
 
 \LMHash{}
-Using an initializing formal \code{\THIS{}.id} in a formal parameter list does not introduce a formal parameter name into the scope of the constructor. However, the initializing formal does effect the type of the constructor function exactly as if a formal parameter  named \code{id}  of the same type were introduced in the same position.
+Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
+When the formal parameter list of a non-redirecting generative constructor contains any initializing formals, a new scope is introduced, the {\em formal parameter initializer scope}, which is the current scope of the initializer list of the constructor, and which is enclosed in the scope where the constructor is declared.
+Each initializing formal in the formal parameter list introduces a final local variable into the formal parameter initializer scope, but not into the formal parameter scope; every other formal parameter introduces a local variable into both the formal parameter scope and the formal parameter initializer scope.
+
+\commentary{
+This means that formal parameters, including initializing formals, must have distinct names, and that initializing formals are in scope for the initializer list, but they are not in scope for the body of the constructor.
+When a formal parameter introduces a local variable into two scopes, it is still one variable and hence one storage location.
+The type of the constructor is defined in terms of its formal parameters, including the initializing formals.
+}
 
 \LMHash{}
 Initializing formals are executed during the execution of generative constructors detailed below. Executing an initializing formal  \code{\THIS{}.id} causes the field \code{id} of the immediately surrounding class to be assigned the value of the corresponding actual parameter, unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
@@ -2075,10 +2083,9 @@ If, for example, $M$ declares an instance member $im$ whose type is at odds with
 }
 
 \LMHash{}
-The effect of a class definition of the form \code{\CLASS{} $C$ = $M$; } or the form
- \code{\CLASS{} $C<T_1, \ldots, T_n>$ = $M$; } in library $L$  is to introduce the name $C$ into the scope of $L$, bound to the class (\ref{classes}) defined by the mixin application $M$. The name of the class is also set to $C$. Iff the  class is prefixed by the built-in identifier \ABSTRACT{}, the class being defined is an abstract class.
+The effect of a class definition of the form \code{\CLASS{} $C$ = $M$; } or the form \code{\CLASS{} $C<T_1, \ldots, T_n>$ = $M$; } in library $L$  is to introduce the name $C$ into the scope of $L$, bound to the class (\ref{classes}) defined by the mixin application $M$. The name of the class is also set to $C$. Iff the  class is prefixed by the built-in identifier \ABSTRACT{}, the class being defined is an abstract class.
 
- Let $M_A$ be a mixin derived from a class $M$ with direct superclass $S_{static}$.
+Let $M_A$ be a mixin derived from a class $M$ with direct superclass $S_{static}$, e.g., as defined by the class declaration \code{class M extends S$_{static}$ \{ \ldots \}}.
 
 Let $A$ be an application of $M_A$. It is a static warning if the superclass of $A$ is not a subtype of $S_{static}$.
 
@@ -2461,8 +2468,8 @@ On the other hand, since implementations are free to compile code late, some com
 }
 
 \begin{dartCode}
-\CONST{} x = 1/0;
-\FINAL{} y = 1/0;
+\CONST{} x = 1 ~/ 0;
+\FINAL{} y = 1 ~/ 0;
 
 \CLASS{} K \{
   m1() \{
@@ -2582,7 +2589,7 @@ A {\em numeric literal} is either a decimal or hexadecimal integer of arbitrary 
  \end{grammar}
 
 \LMHash{}
-If a numeric literal begins with the prefix `0x' or `0X', it denotes the hexadecimal integer represented by the part of the literal following `0x' (respectively `0X'). Otherwise, if the numeric literal does not include a decimal point  it denotes a decimal integer.  Otherwise, the numeric literal  denotes a 64 bit double precision floating point number as specified by the IEEE 754 standard.
+If a numeric literal begins with the prefix `0x' or `0X', it denotes the hexadecimal integer represented by the part of the literal following `0x' (respectively `0X'). Otherwise, if the numeric literal contains only decimal digits, it denotes a decimal integer.  Otherwise, the numeric literal contains either a decimal point or an exponent part and it denotes a 64 bit double precision floating point number as specified by the IEEE 754 standard.
 
 \LMHash{}
 In principle, the range of integers supported by a Dart implementations is unlimited. In practice, it is limited by available memory. Implementations may also be limited by other considerations.
@@ -2782,7 +2789,7 @@ Strings support escape sequences for special characters. The escapes are:
 
 $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$\}.
 \item $\backslash$u $HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$, equivalent to $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$\}.
-\item $\backslash$u\{$HEX\_DIGIT\_SEQUENCE$\} is the unicode scalar value represented by the $HEX\_DIGIT\_SEQUENCE$. It is a compile-time error if the value of the $HEX\_DIGIT\_SEQUENCE$ is not a valid unicode scalar value.
+\item $\backslash$u\{$HEX\_DIGIT\_SEQUENCE$\} is the Unicode code point represented by the $HEX\_DIGIT\_SEQUENCE$. It is a compile-time error if the value of the $HEX\_DIGIT\_SEQUENCE$ is not a valid Unicode code point.
 \item \$ indicating the beginning of an interpolated expression.
 \item Otherwise, $\backslash k$ indicates the character $k$ for any $k$ not in $\{n, r, f, b, t, v, x, u\}$.
  \end{itemize}
@@ -2864,7 +2871,7 @@ A {\em symbol literal} denotes the name of a declaration in a Dart program.
 A symbol literal \code{\#id} where \code{id} does not begin with an underscore ('\code{\_}')  is equivalent to the expression \code{\CONST{} Symbol('id')}.
 
 \LMHash{}
-A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{mirror.getPrivateSymbol('id')} where mirror is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
+A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{MirrorSystem.getSymbol("\_id", libraryMirror)} where \code{libraryMirror} is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not. However literal strings are already canonicalized in Dart.  Symbols are slightly easier to type compared to strings and their use can become strangely addictive, but this is not nearly sufficient justification for adding a literal form to the language. The primary motivation is related to the use of reflection and a web specific practice known as minification.

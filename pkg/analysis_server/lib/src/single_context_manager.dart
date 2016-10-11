@@ -5,7 +5,7 @@
 library analysis_server.src.single_context_manager;
 
 import 'dart:async';
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/context_manager.dart';
@@ -200,9 +200,7 @@ class SingleContextManager implements ContextManager {
     }
     // Create or update the analysis context.
     if (context == null) {
-      UriResolver packageResolver = packageResolverProvider(contextFolder);
-      context = callbacks.addContext(contextFolder, defaultContextOptions,
-          new CustomPackageResolverDisposition(packageResolver));
+      context = callbacks.addContext(contextFolder, defaultContextOptions);
       ChangeSet changeSet =
           _buildChangeSet(added: _includedFiles(includedPaths, excludedPaths));
       callbacks.applyChangesToContext(contextFolder, changeSet);

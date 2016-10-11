@@ -35,10 +35,9 @@ foo() {
 
 main() {
   asyncTest(() => Future.wait([
-    compileAndMatch(TEST_1, 'foo', new RegExp(r'return 72')),
-    compileAndDoNotMatch(TEST_1, 'foo', new RegExp(r'Hello')),
-
-    compileAndMatch(TEST_2, 'foo', new RegExp(r'Hello')),
-    compileAndMatch(TEST_3, 'foo', new RegExp(r'Hello')),
-  ]));
+        compileAndMatch(TEST_1, 'foo', new RegExp(r'return 72')),
+        compileAndDoNotMatch(TEST_1, 'foo', new RegExp(r'Hello')),
+        compileAndMatch(TEST_2, 'foo', new RegExp(r'Hello')),
+        compileAndMatch(TEST_3, 'foo', new RegExp(r'Hello')),
+      ]));
 }

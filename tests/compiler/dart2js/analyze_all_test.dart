@@ -30,10 +30,8 @@ main() {
 }
 """;
 
-Future<DiagnosticCollector> run(
-    String source,
-    {bool analyzeAll,
-     bool expectSuccess}) async {
+Future<DiagnosticCollector> run(String source,
+    {bool analyzeAll, bool expectSuccess}) async {
   DiagnosticCollector collector = new DiagnosticCollector();
 
   List<String> options = [];
@@ -53,20 +51,20 @@ Future<DiagnosticCollector> run(
 test1() async {
   DiagnosticCollector collector =
       await run(SOURCE, analyzeAll: false, expectSuccess: true);
-  Expect.isTrue(collector.warnings.isEmpty,
-      'Unexpected warnings: ${collector.warnings}');
-  Expect.isTrue(collector.errors.isEmpty,
-      'Unexpected errors: ${collector.errors}');
+  Expect.isTrue(
+      collector.warnings.isEmpty, 'Unexpected warnings: ${collector.warnings}');
+  Expect.isTrue(
+      collector.errors.isEmpty, 'Unexpected errors: ${collector.errors}');
 }
 
 test2() async {
   DiagnosticCollector collector =
       await run(SOURCE, analyzeAll: true, expectSuccess: false);
 
-  Expect.isTrue(collector.warnings.isEmpty,
-                'unexpected warnings: ${collector.warnings}');
+  Expect.isTrue(
+      collector.warnings.isEmpty, 'unexpected warnings: ${collector.warnings}');
   Expect.equals(2, collector.errors.length,
-                'expected exactly two errors, but got ${collector.errors}');
+      'expected exactly two errors, but got ${collector.errors}');
 
   CollectedMessage first = collector.errors.first;
   Expect.equals(MessageKind.CONSTRUCTOR_IS_NOT_CONST, first.message.kind);
@@ -99,10 +97,10 @@ main() => new A().m();
   DiagnosticCollector collector =
       await run(source, analyzeAll: true, expectSuccess: false);
 
-  Expect.isTrue(collector.warnings.isEmpty,
-                'unexpected warnings: ${collector.warnings}');
+  Expect.isTrue(
+      collector.warnings.isEmpty, 'unexpected warnings: ${collector.warnings}');
   Expect.equals(1, collector.errors.length,
-                'expected exactly one error, but got ${collector.errors}');
+      'expected exactly one error, but got ${collector.errors}');
 }
 
 main() {

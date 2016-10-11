@@ -49,10 +49,11 @@ test() {
   // Restore dir.
   Directory.current = oldDir;
   var pkgRootString = Platform.packageRoot;
-  Directory packageRoot = new Directory.fromUri(Uri.parse(pkgRootString));
-  Expect.isTrue(packageRoot.existsSync());
-  Expect.isTrue(new Directory("${packageRoot.path}/expect").existsSync());
-  Expect.isTrue(Platform.executableArguments.any(
+  if (pkgRootString != null) {
+    Directory packageRoot = new Directory.fromUri(Uri.parse(pkgRootString));
+    Expect.isTrue(packageRoot.existsSync());
+    Expect.isTrue(new Directory("${packageRoot.path}/expect").existsSync());
+    Expect.isTrue(Platform.executableArguments.any(
       (arg) {
         if (!arg.startsWith("--package-root=")) {
           return false;
@@ -60,8 +61,8 @@ test() {
         // Cut out the '--package-root=' prefix.
         arg = arg.substring(15);
         return pkgRootString.contains(arg);
-      }
-  ));
+      }));
+  }
 }
 
 void f(reply) {

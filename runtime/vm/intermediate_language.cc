@@ -469,40 +469,6 @@ UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
 }
 
 
-bool Value::BindsTo32BitMaskConstant() const {
-  if (!definition()->IsUnboxInt64() || !definition()->IsUnboxUint32()) {
-    return false;
-  }
-  // Two cases to consider: UnboxInt64 and UnboxUint32.
-  if (definition()->IsUnboxInt64()) {
-    UnboxInt64Instr* instr = definition()->AsUnboxInt64();
-    if (!instr->value()->BindsToConstant()) {
-      return false;
-    }
-    const Object& obj = instr->value()->BoundConstant();
-    if (!obj.IsMint()) {
-      return false;
-    }
-    Mint& mint = Mint::Handle();
-    mint ^= obj.raw();
-    return mint.value() == kMaxUint32;
-  } else if (definition()->IsUnboxUint32()) {
-    UnboxUint32Instr* instr = definition()->AsUnboxUint32();
-    if (!instr->value()->BindsToConstant()) {
-      return false;
-    }
-    const Object& obj = instr->value()->BoundConstant();
-    if (!obj.IsMint()) {
-      return false;
-    }
-    Mint& mint = Mint::Handle();
-    mint ^= obj.raw();
-    return mint.value() == kMaxUint32;
-  }
-  return false;
-}
-
-
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();
@@ -2061,9 +2027,6 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         IsFixedLengthArrayCid(call->Type()->ToCid())) {
       return call->ArgumentAt(1);
     }
-    if (call->is_native_list_factory()) {
-      return call->ArgumentAt(0);
-    }
   }
 
   CreateArrayInstr* create_array =
@@ -2700,9 +2663,6 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
       LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
     length = call->ArgumentAt(1)->AsConstant();
   }
-  if (call->is_native_list_factory()) {
-    length = call->ArgumentAt(0)->AsConstant();
-  }
   if ((length != NULL) &&
       length->value().IsSmi() &&
       Smi::Cast(length->value()).Value() == expected_length) {
@@ -3228,22 +3188,12 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
+  if (FLAG_precompiled_mode && with_checks()) return false;
+
   return ic_data().HasOneTarget() &&
       (MethodRecognizer::RecognizeKind(
           Function::Handle(ic_data().GetTargetAt(0))) !=
        MethodRecognizer::kUnknown);
-}
-
-
-bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
-  for (intptr_t i = 0; i < ic_data().NumberOfChecks(); ++i) {
-    const Function& target = Function::Handle(ic_data().GetTargetAt(i));
-    if (!target.IsNoSuchMethodDispatcher() &&
-        !target.IsInvokeFieldDispatcher()) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
@@ -3841,24 +3791,9 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
 }
 
 
-const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
-  switch (kind()) {
-    case MathUnaryInstr::kSin:
-      return kLibcSinRuntimeEntry;
-    case MathUnaryInstr::kCos:
-      return kLibcCosRuntimeEntry;
-    default:
-      UNREACHABLE();
-  }
-  return kLibcSinRuntimeEntry;
-}
-
-
 const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   switch (kind) {
     case kIllegal:       return "illegal";
-    case kSin:           return "sin";
-    case kCos:           return "cos";
     case kSqrt:          return "sqrt";
     case kDoubleSquare:  return "double-square";
   }
@@ -3887,10 +3822,10 @@ MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
 }
 
 
-intptr_t MergedMathInstr::OutputIndexOf(intptr_t kind) {
+intptr_t MergedMathInstr::OutputIndexOf(MethodRecognizer::Kind kind) {
   switch (kind) {
-    case MathUnaryInstr::kSin: return 1;
-    case MathUnaryInstr::kCos: return 0;
+    case MethodRecognizer::kMathSin: return 1;
+    case MethodRecognizer::kMathCos: return 0;
     default: UNIMPLEMENTED(); return -1;
   }
 }

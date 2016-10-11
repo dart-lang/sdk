@@ -62,6 +62,7 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(int, reload_every);
+DECLARE_FLAG(bool, unbox_numeric_fields);
 
 static void PrecompilationModeHandler(bool value) {
   if (value) {
@@ -94,6 +95,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = false;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
+    FLAG_unbox_numeric_fields = false;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_noopt.
@@ -223,7 +225,8 @@ FlowGraphCompiler::FlowGraphCompiler(
                 LookupClass(Symbols::List()))),
         parallel_move_resolver_(this),
         pending_deoptimization_env_(NULL),
-        lazy_deopt_pc_offset_(Code::kInvalidPc),
+        lazy_deopt_return_pc_offset_(Code::kInvalidPc),
+        lazy_deopt_throw_pc_offset_(Code::kInvalidPc),
         deopt_id_to_ic_data_(NULL),
         edge_counters_array_(Array::ZoneHandle()),
         inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
@@ -534,7 +537,10 @@ void FlowGraphCompiler::VisitBlocks() {
 
     entry->set_offset(assembler()->CodeSize());
     BeginCodeSourceRange();
+    ASSERT(pending_deoptimization_env_ == NULL);
+    pending_deoptimization_env_ = entry->env();
     entry->EmitNativeCode(this);
+    pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
@@ -803,8 +809,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 }
 
 
-void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
-                                            TokenPosition token_pos) {
+void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =
@@ -1026,7 +1031,8 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
       pc_descriptors_list_->FinalizePcDescriptors(code.PayloadStart()));
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
   code.set_pc_descriptors(descriptors);
-  code.set_lazy_deopt_pc_offset(lazy_deopt_pc_offset_);
+  code.set_lazy_deopt_return_pc_offset(lazy_deopt_return_pc_offset_);
+  code.set_lazy_deopt_throw_pc_offset(lazy_deopt_throw_pc_offset_);
 }
 
 
@@ -1144,7 +1150,8 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *return_node.value()->AsLoadInstanceFieldNode();
       // Only intrinsify getter if the field cannot contain a mutable double.
       // Reading from a mutable double box requires allocating a fresh double.
-      if (!IsPotentialUnboxedField(load_node.field())) {
+      if (FLAG_precompiled_mode ||
+          !IsPotentialUnboxedField(load_node.field())) {
         GenerateInlinedGetter(load_node.field().Offset());
         return !FLAG_use_field_guards;
       }
@@ -1159,7 +1166,8 @@ bool FlowGraphCompiler::TryIntrinsify() {
       ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
       const StoreInstanceFieldNode& store_node =
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
-      if (store_node.field().guarded_cid() == kDynamicCid) {
+      if (FLAG_precompiled_mode ||
+          (store_node.field().guarded_cid() == kDynamicCid)) {
         GenerateInlinedSetter(store_node.field().Offset());
         return !FLAG_use_field_guards;
       }
@@ -1168,9 +1176,10 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
   EnterIntrinsicMode();
 
-  Intrinsifier::Intrinsify(parsed_function(), this);
+  bool complete = Intrinsifier::Intrinsify(parsed_function(), this);
 
   ExitIntrinsicMode();
+
   // "Deoptimization" from intrinsic continues here. All deoptimization
   // branches from intrinsic code redirect to here where the slow-path
   // (normal function body) starts.
@@ -1178,7 +1187,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // before any deoptimization point.
   ASSERT(!intrinsic_slow_path_label_.IsBound());
   assembler()->Bind(&intrinsic_slow_path_label_);
-  return false;
+  return complete;
 }
 
 

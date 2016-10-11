@@ -6,7 +6,7 @@ library analyzer.source.pub_package_map_provider;
 
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';

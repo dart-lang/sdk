@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -52,17 +53,19 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   Future fillChange() async {
-    if (!element.isSynthetic) {
-      // prepare references
-      List<SearchMatch> matches = await searchEngine.searchReferences(element);
-      List<SourceReference> references = getSourceReferences(matches);
-      // append declaration
+    // prepare references
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    List<SourceReference> references = getSourceReferences(matches);
+    // append declaration
+    if (element.isSynthetic) {
+      _replaceSynthetic();
+    } else {
       references.add(_createDeclarationReference());
-      // update references
-      String replacement = newName.isEmpty ? '' : '.$newName';
-      for (SourceReference reference in references) {
-        reference.addEdit(change, replacement);
-      }
+    }
+    // update references
+    String replacement = newName.isEmpty ? '' : '.$newName';
+    for (SourceReference reference in references) {
+      reference.addEdit(change, replacement);
     }
   }
 
@@ -94,5 +97,22 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         sourceRange,
         true,
         true));
+  }
+
+  void _replaceSynthetic() {
+    ClassElement classElement = element.enclosingElement;
+    ClassDeclaration classNode = classElement.computeNode();
+    CorrectionUtils utils = new CorrectionUtils(classNode.parent);
+    ClassMemberLocation location =
+        utils.prepareNewConstructorLocation(classNode);
+    doSourceChange_addElementEdit(
+        change,
+        classElement,
+        new SourceEdit(
+            location.offset,
+            0,
+            location.prefix +
+                '${classElement.name}.$newName();' +
+                location.suffix));
   }
 }

@@ -34,12 +34,12 @@ Future runTest1() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST1, uri);
   return compiler.run(uri).then((_) {
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
+    var commonMasks = compiler.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrer;
     var element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfElement(element);
     var falseType =
-        new ValueTypeMask(typesTask.boolType, new FalseConstantValue());
+        new ValueTypeMask(commonMasks.boolType, new FalseConstantValue());
     // 'foo' should always return false
     Expect.equals(falseType, mask);
     // the argument to 'bar' is always false
@@ -77,17 +77,17 @@ Future runTest2() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST2, uri);
   return compiler.run(uri).then((_) {
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
+    var commonMasks = compiler.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrer;
     var element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfElement(element);
     // Can't infer value for foo's return type, it could be either true or false
-    Expect.identical(typesTask.boolType, mask);
+    Expect.identical(commonMasks.boolType, mask);
     var bar = findElement(compiler, "bar");
     var barArg = bar.parameters.first;
     var barArgMask = typesInferrer.getTypeOfElement(barArg);
     // The argument to bar should have the same type as the return type of foo
-    Expect.identical(typesTask.boolType, barArgMask);
+    Expect.identical(commonMasks.boolType, barArgMask);
     var barCode = compiler.backend.getGeneratedCode(bar);
     Expect.isTrue(barCode.contains('"bbb"'));
     // Still must output the print for "aaa"

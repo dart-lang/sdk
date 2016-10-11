@@ -26,27 +26,27 @@ main() {
   buffer.write("$NUMBER_OF_PARAMETERS; return i; }");
   String code = buffer.toString();
 
-  asyncTest(() => compile(code, entry: 'foo', minify: true)
-      .then((String generated) {
-    RegExp re = new RegExp(r"\(a,b,c");
-    Expect.isTrue(re.hasMatch(generated));
+  asyncTest(
+      () => compile(code, entry: 'foo', minify: true).then((String generated) {
+            RegExp re = new RegExp(r"\(a,b,c");
+            Expect.isTrue(re.hasMatch(generated));
 
-    re = new RegExp(r"x,y,z,a0,a1,a2");
-    Expect.isTrue(re.hasMatch(generated));
+            re = new RegExp(r"x,y,z,a0,a1,a2");
+            Expect.isTrue(re.hasMatch(generated));
 
-    re = new RegExp(r"y,z,a0,a1,a2,a3,a4,a5,a6");
-    Expect.isTrue(re.hasMatch(generated));
+            re = new RegExp(r"y,z,a0,a1,a2,a3,a4,a5,a6");
+            Expect.isTrue(re.hasMatch(generated));
 
-    re = new RegExp(r"g8,g9,h0,h1");
-    Expect.isTrue(re.hasMatch(generated));
+            re = new RegExp(r"g8,g9,h0,h1");
+            Expect.isTrue(re.hasMatch(generated));
 
-    re = new RegExp(r"z8,z9,aa0,aa1,aa2");
-    Expect.isTrue(re.hasMatch(generated));
+            re = new RegExp(r"z8,z9,aa0,aa1,aa2");
+            Expect.isTrue(re.hasMatch(generated));
 
-    re = new RegExp(r"aa9,ab0,ab1");
-    Expect.isTrue(re.hasMatch(generated));
+            re = new RegExp(r"aa9,ab0,ab1");
+            Expect.isTrue(re.hasMatch(generated));
 
-    re = new RegExp(r"az9,ba0,ba1");
-    Expect.isTrue(re.hasMatch(generated));
-  }));
+            re = new RegExp(r"az9,ba0,ba1");
+            Expect.isTrue(re.hasMatch(generated));
+          }));
 }

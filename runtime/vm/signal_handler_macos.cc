@@ -79,25 +79,17 @@ uintptr_t SignalHandler::GetDartStackPointer(const mcontext_t& mcontext) {
 uintptr_t SignalHandler::GetLinkRegister(const mcontext_t& mcontext) {
   uintptr_t lr = 0;
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(HOST_ARCH_IA32)
   lr = 0;
-#elif defined(TARGET_ARCH_X64)
+#elif defined(HOST_ARCH_X64)
   lr = 0;
-#elif defined(TARGET_ARCH_MIPS) && defined(USING_SIMULATOR)
-  lr = 0;
-#elif defined(TARGET_ARCH_ARM) && defined(USING_SIMULATOR)
-  lr = 0;
-#elif defined(TARGET_ARCH_ARM64) && defined(USING_SIMULATOR)
-  lr = 0;
-#elif defined(TARGET_ARCH_ARM)
-  lr = 0;
-#elif defined(TARGET_ARCH_ARM64)
-  lr = 0;
-#elif defined(TARGET_ARCH_MIPS)
-  lr = 0;
+#elif defined(HOST_ARCH_ARM)
+  lr = static_cast<uintptr_t>(mcontext->__ss.__lr);
+#elif defined(HOST_ARCH_ARM64)
+  lr = static_cast<uintptr_t>(mcontext->__ss.__lr);
 #else
-  UNIMPLEMENTED();
-#endif  // TARGET_ARCH_...
+#error Unsupported architecture.
+#endif  // HOST_ARCH_...
 
   return lr;
 }

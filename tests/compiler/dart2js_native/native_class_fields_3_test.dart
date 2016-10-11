@@ -25,7 +25,6 @@ class A {
   int settersCalled;
 }
 
-
 void setup() native r"""
 function getter() {
   this.gettersCalled++;
@@ -62,10 +61,9 @@ function A(){
 makeA = function() { return new A; };
 """;
 
-A makeA() native;
+A makeA() native ;
 
-class B {
-}
+class B {}
 
 int inscrutable(int x) => x == 0 ? 0 : x | inscrutable(x & (x - 1));
 

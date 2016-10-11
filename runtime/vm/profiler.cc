@@ -65,11 +65,11 @@ void Profiler::InitOnce() {
   }
   ASSERT(!initialized_);
   sample_buffer_ = new SampleBuffer();
+  // Zero counters.
+  memset(&counters_, 0, sizeof(counters_));
   NativeSymbolResolver::InitOnce();
   ThreadInterrupter::SetInterruptPeriod(FLAG_profile_period);
   ThreadInterrupter::Startup();
-  // Zero counters.
-  memset(&counters_, 0, sizeof(counters_));
   initialized_ = true;
 }
 
@@ -335,11 +335,9 @@ static void DumpStackFrame(intptr_t frame_index, uword pc) {
   char* native_symbol_name =
       NativeSymbolResolver::LookupSymbolName(pc, &start);
   if (native_symbol_name == NULL) {
-    OS::PrintErr("Frame[%" Pd "] = `unknown symbol` [0x%" Px "]\n",
-                 frame_index, pc);
+    OS::PrintErr("  [0x%" Pp "] Unknown symbol\n", pc);
   } else {
-    OS::PrintErr("Frame[%" Pd "] = `%s` [0x%" Px "]\n",
-                 frame_index, native_symbol_name, pc);
+    OS::PrintErr("  [0x%" Pp "] %s\n", pc, native_symbol_name);
     NativeSymbolResolver::FreeSymbolName(native_symbol_name);
   }
 }
@@ -529,8 +527,9 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       return NextExit();
     }
     uword* new_fp = CallerFP();
-    if (new_fp <= fp_) {
-      // FP didn't move to a higher address.
+    if (!IsCalleeFrameOf(reinterpret_cast<uword>(new_fp),
+                         reinterpret_cast<uword>(fp_))) {
+      // FP didn't move to a caller (higher address on most architectures).
       return false;
     }
     // Success, update fp and pc.
@@ -787,18 +786,18 @@ static void CollectSample(Isolate* isolate,
 
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
-    counters->stack_walker_native++;
+    AtomicOperations::IncrementInt64By(&counters->stack_walker_native, 1);
     native_stack_walker->walk();
   } else if (StubCode::HasBeenInitialized() && exited_dart_code) {
-    counters->stack_walker_dart_exit++;
+    AtomicOperations::IncrementInt64By(&counters->stack_walker_dart_exit, 1);
     // We have a valid exit frame info, use the Dart stack walker.
     dart_exit_stack_walker->walk();
   } else if (StubCode::HasBeenInitialized() && in_dart_code) {
-    counters->stack_walker_dart++;
+    AtomicOperations::IncrementInt64By(&counters->stack_walker_dart, 1);
     // We are executing Dart code. We have frame pointers.
     dart_stack_walker->walk();
   } else {
-    counters->stack_walker_none++;
+    AtomicOperations::IncrementInt64By(&counters->stack_walker_none, 1);
     sample->SetAt(0, pc);
   }
 
@@ -859,10 +858,18 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
     return false;
   }
 #endif
+
+#if defined(TARGET_ARCH_DBC)
+  if (!in_dart_code && (sp > *stack_lower)) {
+    // The stack pointer gives us a tighter lower bound.
+    *stack_lower = sp;
+  }
+#else
   if (sp > *stack_lower) {
     // The stack pointer gives us a tighter lower bound.
     *stack_lower = sp;
   }
+#endif
 
   if (*stack_lower >= *stack_upper) {
     // Stack boundary is invalid.
@@ -1024,7 +1031,7 @@ void Profiler::DumpStackTrace(bool native_stack_trace) {
                                               fp,
                                               sp);
   }
-  OS::PrintErr("-- End of DumpStackTrace");
+  OS::PrintErr("-- End of DumpStackTrace\n");
 }
 
 
@@ -1125,11 +1132,6 @@ void Profiler::SampleThreadSingleFrame(Thread* thread, uintptr_t pc) {
 
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
-#if defined(TARGET_ARCH_DBC)
-  // TODO(vegorov) implement simulator stack sampling.
-  return;
-#endif
-
   ASSERT(thread != NULL);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
@@ -1137,7 +1139,7 @@ void Profiler::SampleThread(Thread* thread,
 
   // Thread is not doing VM work.
   if (thread->task_kind() == Thread::kUnknownTask) {
-    counters_.bail_out_unknown_task++;
+    AtomicOperations::IncrementInt64By(&counters_.bail_out_unknown_task, 1);
     return;
   }
 
@@ -1146,7 +1148,8 @@ void Profiler::SampleThread(Thread* thread,
     // The JumpToExceptionHandler stub manually adjusts the stack pointer,
     // frame pointer, and some isolate state before jumping to a catch entry.
     // It is not safe to walk the stack when executing this stub.
-    counters_.bail_out_jump_to_exception_handler++;
+    AtomicOperations::IncrementInt64By(
+        &counters_.bail_out_jump_to_exception_handler, 1);
     return;
   }
 
@@ -1155,14 +1158,17 @@ void Profiler::SampleThread(Thread* thread,
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
   uintptr_t pc = state.pc;
-#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
+#if defined(USING_SIMULATOR)
   Simulator* simulator = NULL;
 #endif
 
   if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
 #if defined(TARGET_ARCH_DBC)
-    UNIMPLEMENTED();
+    simulator = isolate->simulator();
+    sp = simulator->get_sp();
+    fp = simulator->get_fp();
+    pc = simulator->get_pc();
 #elif defined(USING_SIMULATOR)
     simulator = isolate->simulator();
     sp = simulator->get_register(SPREG);
@@ -1177,18 +1183,20 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   if (!CheckIsolate(isolate)) {
-    counters_.bail_out_check_isolate++;
+    AtomicOperations::IncrementInt64By(&counters_.bail_out_check_isolate, 1);
     return;
   }
 
   if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
-    counters_.single_frame_sample_deoptimizing++;
+    AtomicOperations::IncrementInt64By(
+        &counters_.single_frame_sample_deoptimizing, 1);
     SampleThreadSingleFrame(thread, pc);
     return;
   }
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
-    counters_.single_frame_sample_register_check++;
+    AtomicOperations::IncrementInt64By(
+        &counters_.single_frame_sample_register_check, 1);
     SampleThreadSingleFrame(thread, pc);
     return;
   }
@@ -1200,7 +1208,8 @@ void Profiler::SampleThread(Thread* thread,
                                         sp,
                                         &stack_lower,
                                         &stack_upper)) {
-    counters_.single_frame_sample_get_and_validate_stack_bounds++;
+    AtomicOperations::IncrementInt64By(
+       &counters_.single_frame_sample_get_and_validate_stack_bounds, 1);
     // Could not get stack boundary.
     SampleThreadSingleFrame(thread, pc);
     return;

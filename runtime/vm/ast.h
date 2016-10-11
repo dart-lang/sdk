@@ -1875,6 +1875,7 @@ class CatchClauseNode : public AstNode {
     ASSERT(stacktrace_var != NULL);
   }
 
+  SequenceNode* sequence() const { return catch_block_; }
   const Array& handler_types() const { return handler_types_; }
   const LocalVariable& context_var() const { return context_var_; }
   const LocalVariable& exception_var() const { return exception_var_; }

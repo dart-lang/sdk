@@ -5,14 +5,14 @@
 library analyzer.test.src.util.lru_map_test;
 
 import 'package:analyzer/src/util/lru_map.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(_LRUCacheTest);
+  defineReflectiveTests(_LRUCacheTest);
 }
 
 @reflectiveTest

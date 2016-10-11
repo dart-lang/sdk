@@ -10,8 +10,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
-import 'package:compiler/src/compiler.dart'
-       as dart2js;
+import 'package:compiler/src/compiler.dart' as dart2js;
 
 Future runTest(String mainScript, test) async {
   CompilationResult result = await runCompiler(
@@ -103,7 +102,7 @@ void main() {
   });
 }
 """,
-  "lib1.dart":"""
+  "lib1.dart": """
 library lib1;
 import "dart:mirrors";
 
@@ -114,7 +113,7 @@ void foo1() {
   mirror.invoke(null, null);
 }
 """,
-  "lib2.dart":"""
+  "lib2.dart": """
 library lib2;
 @MirrorsUsed(targets: "field2") import "dart:mirrors";
 
@@ -127,7 +126,7 @@ void foo2() {
 """,
 // The elements C and f are named as targets, but there is no actual use of
 // mirrors.
-"main2.dart": """
+  "main2.dart": """
 import "lib.dart" deferred as lib;
 
 @MirrorsUsed(targets: const ["C", "f"])
@@ -141,10 +140,10 @@ void main() {
 
 }
 """,
-"lib.dart": """ """,
+  "lib.dart": """ """,
 // Lib3 has a MirrorsUsed annotation with a library.
 // Check that that is handled correctly.
-"main3.dart": """
+  "main3.dart": """
 library main3;
 
 import "lib3.dart" deferred as lib;
@@ -161,7 +160,7 @@ void main() {
   });
 }
 """,
-"lib3.dart": """
+  "lib3.dart": """
 @MirrorsUsed(targets: const ["main3.C"])
 import "dart:mirrors";
 
@@ -170,7 +169,7 @@ foo() {
 }
 """,
 // Check that exports and imports are handled correctly with mirrors.
-"main4.dart": """
+  "main4.dart": """
 library main3;
 
 @MirrorsUsed(targets: const ["lib5.foo","lib6.foo"])
@@ -184,17 +183,17 @@ void main() {
   });
 }
 """,
-"lib4.dart": """
+  "lib4.dart": """
 import "lib5.dart";
 export "lib6.dart";
 
 """,
-"lib5.dart": """
+  "lib5.dart": """
 library lib5;
 
 foo() {}
 """,
-"lib6.dart": """
+  "lib6.dart": """
 library lib6;
 
 foo() {}

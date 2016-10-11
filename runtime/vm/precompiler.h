@@ -22,6 +22,42 @@ class RawError;
 class SequenceNode;
 class String;
 
+
+class TypeRangeCache : public StackResource {
+ public:
+  TypeRangeCache(Thread* thread, intptr_t num_cids)
+      : StackResource(thread),
+        thread_(thread),
+        lower_limits_(thread->zone()->Alloc<intptr_t>(num_cids)),
+        upper_limits_(thread->zone()->Alloc<intptr_t>(num_cids)) {
+    for (intptr_t i = 0; i < num_cids; i++) {
+      lower_limits_[i] = kNotComputed;
+      upper_limits_[i] = kNotComputed;
+    }
+    // We don't re-enter the precompiler.
+    ASSERT(thread->type_range_cache() == NULL);
+    thread->set_type_range_cache(this);
+  }
+
+  ~TypeRangeCache() {
+    ASSERT(thread_->type_range_cache() == this);
+    thread_->set_type_range_cache(NULL);
+  }
+
+  bool InstanceOfHasClassRange(const AbstractType& type,
+                               intptr_t* lower_limit,
+                               intptr_t* upper_limit);
+
+ private:
+  static const intptr_t kNotComputed = -1;
+  static const intptr_t kNotContiguous = -2;
+
+  Thread* thread_;
+  intptr_t* lower_limits_;
+  intptr_t* upper_limits_;
+};
+
+
 class SymbolKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -119,6 +155,30 @@ class InstructionsKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
+
+
+class UnlinkedCallKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const UnlinkedCall* Key;
+  typedef const UnlinkedCall* Value;
+  typedef const UnlinkedCall* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return String::Handle(key->target_name()).Hash();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return (pair->target_name() == key->target_name()) &&
+        (pair->args_descriptor() == key->args_descriptor());
+  }
+};
+
+typedef DirectChainedHashMap<UnlinkedCallKeyValueTrait> UnlinkedCallSet;
 
 
 class FunctionKeyValueTrait {
@@ -259,13 +319,47 @@ class InstanceKeyValueTrait {
 typedef DirectChainedHashMap<InstanceKeyValueTrait> InstanceSet;
 
 
+struct FieldTypePair {
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Field* Key;
+  typedef intptr_t Value;
+  typedef FieldTypePair Pair;
+
+  static Key KeyOf(Pair kv) { return kv.field_; }
+
+  static Value ValueOf(Pair kv) { return kv.cid_; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->token_pos().value();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair.field_->raw() == key->raw();
+  }
+
+  FieldTypePair(const Field* f, intptr_t cid) : field_(f), cid_(cid) { }
+
+  FieldTypePair() : field_(NULL), cid_(-1) { }
+
+  void Print() const;
+
+  const Field* field_;
+  intptr_t cid_;
+};
+
+typedef DirectChainedHashMap<FieldTypePair> FieldTypeMap;
+
+
 class Precompiler : public ValueObject {
  public:
   static RawError* CompileAll(
       Dart_QualifiedFunctionName embedder_entry_points[],
       bool reset_fields);
 
-  static RawError* CompileFunction(Thread* thread, const Function& function);
+  static RawError* CompileFunction(Thread* thread,
+                                   Zone* zone,
+                                   const Function& function,
+                                   FieldTypeMap* field_type_map = NULL);
 
   static RawObject* EvaluateStaticInitializer(const Field& field);
   static RawObject* ExecuteOnce(SequenceNode* fragment);
@@ -275,7 +369,6 @@ class Precompiler : public ValueObject {
 
  private:
   Precompiler(Thread* thread, bool reset_fields);
-
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
@@ -313,14 +406,16 @@ class Precompiler : public ValueObject {
 
   void BindStaticCalls();
   void SwitchICCalls();
+  void ShareMegamorphicBuckets();
   void DedupStackmaps();
-  void DedupStackmapLists();
+  void DedupLists();
   void DedupInstructions();
   void ResetPrecompilerState();
 
   void CollectDynamicFunctionNames();
 
   void PrecompileStaticInitializers();
+  void PrecompileConstructors();
 
   template<typename T>
   class Visitor : public ValueObject {
@@ -335,6 +430,8 @@ class Precompiler : public ValueObject {
   void VisitClasses(ClassVisitor* visitor);
 
   void FinalizeAllClasses();
+  void SortClasses();
+  void RemapClassIds(intptr_t* old_to_new_cid);
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
@@ -367,6 +464,7 @@ class Precompiler : public ValueObject {
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
   InstanceSet consts_to_retain_;
+  FieldTypeMap field_type_map_;
   Error& error_;
 };
 

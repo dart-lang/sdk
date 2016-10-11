@@ -7,13 +7,15 @@ library analyzer.test.generated.incremental_resolver_test;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart' as logging;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
@@ -27,18 +29,18 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(IncrementalResolverTest);
-  runReflectiveTests(PoorMansIncrementalResolutionTest);
-  runReflectiveTests(ResolutionContextBuilderTest);
+  defineReflectiveTests(IncrementalResolverTest);
+  defineReflectiveTests(PoorMansIncrementalResolutionTest);
+  defineReflectiveTests(ResolutionContextBuilderTest);
 }
 
 void initializeTestEnvironment() {}
@@ -525,6 +527,7 @@ class PoorMansIncrementalResolutionTest extends ResolverTestCase {
     expectEqualSets(Iterable actual, Iterable expected) {
       expect(actual, unorderedEquals(expected));
     }
+
     expectEqualSets(incNames.names, fullNames.names);
     expectEqualSets(incNames.instantiatedNames, fullNames.instantiatedNames);
     expectEqualSets(incNames.superToSubs.keys, fullNames.superToSubs.keys);
@@ -1938,9 +1941,8 @@ class B extends A {}
     _assertCacheUnitResult(RESOLVED_UNIT9);
     _assertCacheUnitResult(RESOLVED_UNIT10);
     _assertCacheUnitResult(RESOLVED_UNIT11);
-    _assertCacheUnitResult(RESOLVED_UNIT12);
     if (expectCachePostConstantsValid) {
-      _assertCacheUnitResult(RESOLVED_UNIT13);
+      _assertCacheUnitResult(RESOLVED_UNIT12);
       _assertCacheUnitResult(RESOLVED_UNIT);
     }
   }
@@ -2113,8 +2115,6 @@ class B extends A {}
 
 @reflectiveTest
 class ResolutionContextBuilderTest extends EngineTestCase {
-  GatheringErrorListener listener = new GatheringErrorListener();
-
   void test_scopeFor_ClassDeclaration() {
     Scope scope = _scopeFor(_createResolvedClassDeclaration());
     EngineTestCase.assertInstanceOf(
@@ -2316,7 +2316,7 @@ class ResolutionContextBuilderTest extends EngineTestCase {
   }
 
   Scope _scopeFor(AstNode node) {
-    return ResolutionContextBuilder.contextFor(node, listener).scope;
+    return ResolutionContextBuilder.contextFor(node).scope;
   }
 }
 

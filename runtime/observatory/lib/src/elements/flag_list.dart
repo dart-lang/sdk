@@ -7,11 +7,11 @@ library flag_list_element;
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/bar.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/refresh.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
@@ -19,14 +19,14 @@ import 'package:observatory/src/elements/nav/vm_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
 
 class FlagListElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<FlagListElement>('flag-list',
-                     dependencies: const [NavBarElement.tag,
-                                          NavMenuElement.tag,
-                                          NavNotifyElement.tag,
-                                          NavRefreshElement.tag,
-                                          NavTopMenuElement.tag,
-                                          NavVMMenuElement.tag,
-                                          ViewFooterElement.tag,]);
+  static const tag =
+      const Tag<FlagListElement>('flag-list', dependencies: const [
+    NavNotifyElement.tag,
+    NavRefreshElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    ViewFooterElement.tag,
+  ]);
 
   RenderingScheduler _r;
 
@@ -40,11 +40,9 @@ class FlagListElement extends HtmlElement implements Renderable {
 
   M.VMRef get vm => _vm;
 
-  factory FlagListElement(M.VMRef vm,
-                          M.EventRepository events,
-                          M.FlagsRepository repository,
-                          M.NotificationRepository notifications,
-                          {RenderingQueue queue}) {
+  factory FlagListElement(M.VMRef vm, M.EventRepository events,
+      M.FlagsRepository repository, M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
     assert(vm != null);
     assert(events != null);
     assert(repository != null);
@@ -100,23 +98,21 @@ class FlagListElement extends HtmlElement implements Renderable {
     }
 
     children = [
-      new NavBarElement(queue: _r.queue)
-        ..children = [
-          new NavTopMenuElement(queue: _r.queue),
-          new NavVMMenuElement(_vm, _events, queue: _r.queue),
-          new NavMenuElement('flags', link: Uris.flags(), last: true,
-                             queue: _r.queue),
-          new NavRefreshElement(queue: _r.queue)
-            ..onRefresh.listen((e) async {
-              e.element.disabled = true;
-              try {
-                await _refresh();
-              } finally {
-                e.element.disabled = false;
-              }
-            }),
-          new NavNotifyElement(_notifications, queue: _r.queue)
-        ],
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        navMenu('flags', link: Uris.flags()),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((e) async {
+            e.element.disabled = true;
+            try {
+              await _refresh();
+            } finally {
+              e.element.disabled = false;
+            }
+          }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
       new DivElement()
         ..classes = ['content-centered']
         ..children = content,
@@ -136,15 +132,19 @@ class FlagListElement extends HtmlElement implements Renderable {
 
   static List<Element> _renderFlag(M.Flag flag) {
     return [
-      new SpanElement()..classes = const ['comment']
+      new SpanElement()
+        ..classes = ['comment']
         ..text = '// ${flag.comment}',
-      new DivElement()..classes = flag.modified ? const ['flag', 'modified']
-                                                : const ['flag', 'unmodified']
+      new DivElement()
+        ..classes =
+            flag.modified ? ['flag', 'modified'] : ['flag', 'unmodified']
         ..children = [
-          new SpanElement()..classes = const ['name']
+          new SpanElement()
+            ..classes = ['name']
             ..text = flag.name,
           new SpanElement()..text = '=',
-          new SpanElement()..classes = const ['value']
+          new SpanElement()
+            ..classes = ['value']
             ..text = flag.valueAsString ?? 'NULL'
         ],
       new BRElement(),

@@ -31,14 +31,9 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // List of instructions that are still unimplemented by DBC backend.
 #define FOR_EACH_UNIMPLEMENTED_INSTRUCTION(M)                                  \
   M(LoadCodeUnits)                                                             \
-  M(LoadUntagged)                                                              \
-  M(AllocateUninitializedContext)                                              \
   M(BinaryInt32Op)                                                             \
   M(Int32ToDouble)                                                             \
   M(DoubleToInteger)                                                           \
-  M(DoubleToDouble)                                                            \
-  M(DoubleToFloat)                                                             \
-  M(FloatToDouble)                                                             \
   M(BoxInt64)                                                                  \
   M(MergedMath)                                                                \
   M(GuardFieldClass)                                                           \
@@ -49,8 +44,6 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(ShiftUint32Op)                                                             \
   M(UnaryUint32Op)                                                             \
   M(UnboxedIntConverter)                                                       \
-  M(BoxInteger32)                                                              \
-  M(UnboxInteger32)                                                            \
 
 // List of instructions that are not used by DBC.
 // Things we aren't planning to implement for DBC:
@@ -687,82 +680,137 @@ EMIT_NATIVE_CODE(CreateArray,
                  2, Location::RequiresRegister(),
                  LocationSummary::kCall) {
   if (compiler->is_optimizing()) {
-    __ Push(locs()->in(0).reg());
-    __ Push(locs()->in(1).reg());
-  }
-  __ CreateArrayTOS();
-  compiler->RecordSafepoint(locs());
-  if (compiler->is_optimizing()) {
-    __ PopLocal(locs()->out(0).reg());
+    const Register length = locs()->in(kLengthPos).reg();
+    const Register type_arguments = locs()->in(kElementTypePos).reg();
+    const Register out = locs()->out(0).reg();
+    __ CreateArrayOpt(out, length, type_arguments);
+    __ Push(type_arguments);
+    __ Push(length);
+    __ CreateArrayTOS();
+    compiler->RecordSafepoint(locs());
+    __ PopLocal(out);
+  } else {
+    __ CreateArrayTOS();
+    compiler->RecordSafepoint(locs());
   }
 }
 
 
 EMIT_NATIVE_CODE(StoreIndexed, 3, Location::NoLocation(),
                  LocationSummary::kNoCall, 1) {
-  if (compiler->is_optimizing()) {
-    if (IsExternal()) {
-      Unsupported(compiler);
-      UNREACHABLE();
-    }
-    const Register array = locs()->in(kArrayPos).reg();
-    const Register index = locs()->in(kIndexPos).reg();
-    const Register value = locs()->in(kValuePos).reg();
-    const Register temp = locs()->temp(0).reg();
-    switch (class_id()) {
-      case kArrayCid:
-        __ StoreIndexed(array, index, value);
-        break;
-      case kTypedDataFloat64ArrayCid:
-        if ((index_scale() != 8) && (index_scale() != 1)) {
-          Unsupported(compiler);
-          UNREACHABLE();
-        }
-        if (index_scale() == 1) {
-          __ ShrImm(temp, index, 3);
-        } else {
-          __ Move(temp, index);
-        }
-        __ StoreFloat64Indexed(array, temp, value);
-        break;
-      default:
-        Unsupported(compiler);
-        UNREACHABLE();
-        break;
-    }
-  } else {
+  if (!compiler->is_optimizing()) {
     ASSERT(class_id() == kArrayCid);
     __ StoreIndexedTOS();
+    return;
   }
-}
-
-
-EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister()) {
-  ASSERT(compiler->is_optimizing());
-  if (IsExternal()) {
-    Unsupported(compiler);
-    UNREACHABLE();
-  }
-  const Register array = locs()->in(0).reg();
-  const Register index = locs()->in(1).reg();
-  const Register result = locs()->out(0).reg();
+  const Register array = locs()->in(kArrayPos).reg();
+  const Register index = locs()->in(kIndexPos).reg();
+  const Register value = locs()->in(kValuePos).reg();
+  const Register temp = locs()->temp(0).reg();
   switch (class_id()) {
     case kArrayCid:
-      __ LoadIndexed(result, array, index);
+      __ StoreIndexed(array, index, value);
       break;
-    case kTypedDataFloat64ArrayCid:
-      if ((index_scale() != 8) && (index_scale() != 1)) {
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataInt8ArrayCid:
+    case kExternalOneByteStringCid:
+    case kExternalTypedDataUint8ArrayCid:
+      ASSERT(index_scale() == 1);
+      if (IsExternal()) {
+        __ StoreIndexedExternalUint8(array, index, value);
+      } else {
+        __ StoreIndexedUint8(array, index, value);
+      }
+      break;
+    case kOneByteStringCid:
+      ASSERT(index_scale() == 1);
+      __ StoreIndexedOneByteString(array, index, value);
+      break;
+    case kTypedDataInt32ArrayCid:
+    case kTypedDataUint32ArrayCid: {
+      if (IsExternal()) {
         Unsupported(compiler);
         UNREACHABLE();
       }
       if (index_scale() == 1) {
-        __ ShrImm(index, index, 3);
+        __ StoreIndexedUint32(array, index, value);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ StoreIndexedUint32(array, temp, value);
       }
-      __ LoadFloat64Indexed(result, array, index);
+      break;
+    }
+    case kTypedDataFloat32ArrayCid:
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ StoreIndexedFloat32(array, index, value);
+      } else if (index_scale() == 4) {
+        __ StoreIndexed4Float32(array, index, value);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ StoreIndexedFloat32(array, temp, value);
+      }
+      break;
+    case kTypedDataFloat64ArrayCid:
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ StoreIndexedFloat64(array, index, value);
+      } else if (index_scale() == 8) {
+        __ StoreIndexed8Float64(array, index, value);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ StoreIndexedFloat64(array, temp, value);
+      }
+      break;
+    default:
+      Unsupported(compiler);
+      UNREACHABLE();
+      break;
+  }
+}
+
+
+EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister(),
+                 LocationSummary::kNoCall, 1) {
+  ASSERT(compiler->is_optimizing());
+  const Register array = locs()->in(0).reg();
+  const Register index = locs()->in(1).reg();
+  const Register temp = locs()->temp(0).reg();
+  const Register result = locs()->out(0).reg();
+  switch (class_id()) {
+    case kArrayCid:
+    case kImmutableArrayCid:
+      __ LoadIndexed(result, array, index);
+      break;
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalOneByteStringCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      ASSERT(index_scale() == 1);
+      if (IsExternal()) {
+        __ LoadIndexedExternalUint8(result, array, index);
+      } else {
+        __ LoadIndexedUint8(result, array, index);
+      }
+      break;
+    case kTypedDataInt8ArrayCid:
+      ASSERT(index_scale() == 1);
+      if (IsExternal()) {
+        __ LoadIndexedExternalInt8(result, array, index);
+      } else {
+        __ LoadIndexedInt8(result, array, index);
+      }
       break;
     case kOneByteStringCid:
       ASSERT(index_scale() == 1);
-      __ LoadOneByteStringIndexed(result, array, index);
+      __ LoadIndexedOneByteString(result, array, index);
       break;
     case kTwoByteStringCid:
       if (index_scale() != 2) {
@@ -770,7 +818,65 @@ EMIT_NATIVE_CODE(LoadIndexed, 2, Location::RequiresRegister()) {
         Unsupported(compiler);
         UNREACHABLE();
       }
-      __ LoadTwoByteStringIndexed(result, array, index);
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      __ LoadIndexedTwoByteString(result, array, index);
+      break;
+    case kTypedDataInt32ArrayCid:
+      ASSERT(representation() == kUnboxedInt32);
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ LoadIndexedInt32(result, array, index);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ LoadIndexedInt32(result, array, temp);
+      }
+      break;
+    case kTypedDataUint32ArrayCid:
+      ASSERT(representation() == kUnboxedUint32);
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ LoadIndexedUint32(result, array, index);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ LoadIndexedUint32(result, array, temp);
+      }
+      break;
+    case kTypedDataFloat32ArrayCid:
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ LoadIndexedFloat32(result, array, index);
+      } else if (index_scale() == 4) {
+        __ LoadIndexed4Float32(result, array, index);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ LoadIndexedFloat32(result, array, temp);
+      }
+      break;
+    case kTypedDataFloat64ArrayCid:
+      if (IsExternal()) {
+        Unsupported(compiler);
+        UNREACHABLE();
+      }
+      if (index_scale() == 1) {
+        __ LoadIndexedFloat64(result, array, index);
+      } else if (index_scale() == 8) {
+        __ LoadIndexed8Float64(result, array, index);
+      } else {
+        __ ShlImm(temp, index, Utils::ShiftForPowerOfTwo(index_scale()));
+        __ LoadIndexedFloat64(result, array, temp);
+      }
       break;
     default:
       Unsupported(compiler);
@@ -850,21 +956,68 @@ EMIT_NATIVE_CODE(AllocateObject,
                  0, Location::RequiresRegister(),
                  LocationSummary::kCall) {
   if (ArgumentCount() == 1) {
-    __ PushConstant(cls());
-    __ AllocateT();
+    // Allocate with type arguments.
+    if (compiler->is_optimizing()) {
+      // If we're optimizing, try a streamlined fastpath.
+      const intptr_t instance_size = cls().instance_size();
+      Isolate* isolate = Isolate::Current();
+      if (Heap::IsAllocatableInNewSpace(instance_size) &&
+          !cls().TraceAllocation(isolate)) {
+        uword tags = 0;
+        tags = RawObject::SizeTag::update(instance_size, tags);
+        ASSERT(cls().id() != kIllegalCid);
+        tags = RawObject::ClassIdTag::update(cls().id(), tags);
+        if (Smi::IsValid(tags)) {
+          const intptr_t tags_kidx = __ AddConstant(
+              Smi::Handle(Smi::New(tags)));
+          __ AllocateTOpt(locs()->out(0).reg(), tags_kidx);
+          __ Nop(cls().type_arguments_field_offset());
+        }
+      }
+      __ PushConstant(cls());
+      __ AllocateT();
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                     Thread::kNoDeoptId,
+                                     token_pos());
+      compiler->RecordSafepoint(locs());
+      __ PopLocal(locs()->out(0).reg());
+    } else {
+      __ PushConstant(cls());
+      __ AllocateT();
+      compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                     Thread::kNoDeoptId,
+                                     token_pos());
+      compiler->RecordSafepoint(locs());
+    }
+  } else if (compiler->is_optimizing()) {
+    // If we're optimizing, try a streamlined fastpath.
+    const intptr_t instance_size = cls().instance_size();
+    Isolate* isolate = Isolate::Current();
+    if (Heap::IsAllocatableInNewSpace(instance_size) &&
+        !cls().TraceAllocation(isolate)) {
+      uword tags = 0;
+      tags = RawObject::SizeTag::update(instance_size, tags);
+      ASSERT(cls().id() != kIllegalCid);
+      tags = RawObject::ClassIdTag::update(cls().id(), tags);
+      if (Smi::IsValid(tags)) {
+        const intptr_t tags_kidx = __ AddConstant(Smi::Handle(Smi::New(tags)));
+        __ AllocateOpt(locs()->out(0).reg(), tags_kidx);
+      }
+    }
+    const intptr_t kidx = __ AddConstant(cls());
+    __ Allocate(kidx);
     compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                    Thread::kNoDeoptId,
                                    token_pos());
+    compiler->RecordSafepoint(locs());
+    __ PopLocal(locs()->out(0).reg());
   } else {
     const intptr_t kidx = __ AddConstant(cls());
     __ Allocate(kidx);
     compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                    Thread::kNoDeoptId,
                                    token_pos());
-  }
-  compiler->RecordSafepoint(locs());
-  if (compiler->is_optimizing()) {
-    __ PopLocal(locs()->out(0).reg());
+    compiler->RecordSafepoint(locs());
   }
 }
 
@@ -894,6 +1047,18 @@ EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
 }
 
 
+EMIT_NATIVE_CODE(LoadUntagged, 1, Location::RequiresRegister()) {
+  const Register obj = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  if (object()->definition()->representation() == kUntagged) {
+    __ LoadUntagged(result, obj, offset() / kWordSize);
+  } else {
+    ASSERT(object()->definition()->representation() == kTagged);
+    __ LoadField(result, obj, offset() / kWordSize);
+  }
+}
+
+
 EMIT_NATIVE_CODE(BooleanNegate, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     __ BooleanNegate(locs()->out(0).reg(), locs()->in(0).reg());
@@ -915,15 +1080,35 @@ EMIT_NATIVE_CODE(AllocateContext,
 }
 
 
+EMIT_NATIVE_CODE(AllocateUninitializedContext,
+                 0, Location::RequiresRegister(),
+                 LocationSummary::kCall) {
+  ASSERT(compiler->is_optimizing());
+  __ AllocateUninitializedContext(locs()->out(0).reg(),
+                                  num_context_variables());
+  __ AllocateContext(num_context_variables());
+  compiler->RecordSafepoint(locs());
+  compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
+                                 Thread::kNoDeoptId,
+                                 token_pos());
+  __ PopLocal(locs()->out(0).reg());
+}
+
+
 EMIT_NATIVE_CODE(CloneContext,
                  1, Location::RequiresRegister(),
                  LocationSummary::kCall) {
-  ASSERT(!compiler->is_optimizing());
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+  }
   __ CloneContext();
   compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  Thread::kNoDeoptId,
                                  token_pos());
+  if (compiler->is_optimizing()) {
+    __ PopLocal(locs()->out(0).reg());
+  }
 }
 
 
@@ -1323,13 +1508,25 @@ EMIT_NATIVE_CODE(Box, 1, Location::RequiresRegister(), LocationSummary::kCall) {
   ASSERT(from_representation() == kUnboxedDouble);
   const Register value = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
+  const intptr_t instance_size = compiler->double_class().instance_size();
+  Isolate* isolate = Isolate::Current();
+  ASSERT(Heap::IsAllocatableInNewSpace(instance_size));
+  if (!compiler->double_class().TraceAllocation(isolate)) {
+    uword tags = 0;
+    tags = RawObject::SizeTag::update(instance_size, tags);
+    tags = RawObject::ClassIdTag::update(compiler->double_class().id(), tags);
+    if (Smi::IsValid(tags)) {
+      const intptr_t tags_kidx = __ AddConstant(Smi::Handle(Smi::New(tags)));
+      __ AllocateOpt(out, tags_kidx);
+    }
+  }
   const intptr_t kidx = __ AddConstant(compiler->double_class());
   __ Allocate(kidx);
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther,
                                  Thread::kNoDeoptId,
                                  token_pos());
   compiler->RecordSafepoint(locs());
-  // __ Allocate puts the box at the top of the stack.
+  __ PopLocal(out);
   __ WriteIntoDouble(out, value);
 }
 
@@ -1353,6 +1550,41 @@ EMIT_NATIVE_CODE(Unbox, 1, Location::RequiresRegister()) {
     __ CheckedUnboxDouble(result, box);
     compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptCheckClass);
   }
+}
+
+
+EMIT_NATIVE_CODE(UnboxInteger32, 1, Location::RequiresRegister()) {
+#if defined(ARCH_IS_64_BIT)
+  const Register out = locs()->out(0).reg();
+  const Register value = locs()->in(0).reg();
+  const bool may_truncate = is_truncating() || !CanDeoptimize();
+  __ UnboxInt32(out, value, may_truncate);
+  if (CanDeoptimize()) {
+    compiler->EmitDeopt(GetDeoptId(), ICData::kDeoptUnboxInteger);
+  } else {
+    __ Nop(0);
+  }
+#else
+  Unsupported(compiler);
+  UNREACHABLE();
+#endif  // defined(ARCH_IS_64_BIT)
+}
+
+
+EMIT_NATIVE_CODE(BoxInteger32, 1, Location::RequiresRegister()) {
+#if defined(ARCH_IS_64_BIT)
+  const Register out = locs()->out(0).reg();
+  const Register value = locs()->in(0).reg();
+  if (from_representation() == kUnboxedInt32) {
+    __ BoxInt32(out, value);
+  } else {
+    ASSERT(from_representation() == kUnboxedUint32);
+    __ BoxUint32(out, value);
+  }
+#else
+  Unsupported(compiler);
+  UNREACHABLE();
+#endif  // defined(ARCH_IS_64_BIT)
 }
 
 
@@ -1399,14 +1631,43 @@ EMIT_NATIVE_CODE(MathUnary, 1, Location::RequiresRegister()) {
     __ DSqrt(result, value);
   } else if (kind() == MathUnaryInstr::kDoubleSquare) {
     __ DMul(result, value, value);
-  } else if (kind() == MathUnaryInstr::kSin) {
-    __ DSin(result, value);
-  } else if (kind() == MathUnaryInstr::kCos) {
-    __ DCos(result, value);
   } else {
     Unsupported(compiler);
     UNREACHABLE();
   }
+}
+
+
+EMIT_NATIVE_CODE(DoubleToDouble, 1, Location::RequiresRegister()) {
+  const Register in = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  switch (recognized_kind()) {
+    case MethodRecognizer::kDoubleTruncate:
+      __ DTruncate(result, in);
+      break;
+    case MethodRecognizer::kDoubleFloor:
+      __ DFloor(result, in);
+      break;
+    case MethodRecognizer::kDoubleCeil:
+      __ DCeil(result, in);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+
+EMIT_NATIVE_CODE(DoubleToFloat, 1, Location::RequiresRegister()) {
+  const Register in = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ DoubleToFloat(result, in);
+}
+
+
+EMIT_NATIVE_CODE(FloatToDouble, 1, Location::RequiresRegister()) {
+  const Register in = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  __ FloatToDouble(result, in);
 }
 
 
@@ -1420,6 +1681,10 @@ EMIT_NATIVE_CODE(InvokeMathCFunction,
   } else if (recognized_kind() == MethodRecognizer::kDoubleMod) {
     const Register right = locs()->in(1).reg();
     __ DMod(result, left, right);
+  } else if (recognized_kind() == MethodRecognizer::kMathSin) {
+    __ DSin(result, left);
+  } else if (recognized_kind() == MethodRecognizer::kMathCos) {
+    __ DCos(result, left);
   } else {
     Unsupported(compiler);
     UNREACHABLE();

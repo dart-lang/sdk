@@ -8,7 +8,6 @@
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/growable_array.h"
-#include "vm/handles_impl.h"
 #include "vm/locations.h"
 #include "vm/method_recognizer.h"
 #include "vm/object.h"
@@ -340,9 +339,6 @@ class Value : public ZoneAllocated {
   const char* ToCString() const;
 
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
-
-  // Returns true if this value binds to the constant: 0xFFFFFFFF.
-  bool BindsTo32BitMaskConstant() const;
 
   // Return true if the value represents a constant.
   bool BindsToConstant() const;
@@ -901,6 +897,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class ComparisonInstr;
   friend class Scheduler;
   friend class BlockEntryInstr;
+  friend class CatchBlockEntryInstr;  // deopt_id_
 
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
@@ -1568,7 +1565,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        intptr_t catch_try_index,
                        const LocalVariable& exception_var,
                        const LocalVariable& stacktrace_var,
-                       bool needs_stacktrace)
+                       bool needs_stacktrace,
+                       intptr_t deopt_id)
       : BlockEntryInstr(block_id, try_index),
         graph_entry_(graph_entry),
         predecessor_(NULL),
@@ -1576,7 +1574,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
         stacktrace_var_(stacktrace_var),
-        needs_stacktrace_(needs_stacktrace) { }
+        needs_stacktrace_(needs_stacktrace) {
+    deopt_id_ = deopt_id;
+  }
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
@@ -2926,8 +2926,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   bool HasSingleRecognizedTarget() const;
 
-  bool HasOnlyDispatcherTargets() const;
-
   virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
@@ -3263,7 +3261,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
         arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
-        is_native_list_factory_(false),
         identity_(AliasIdentity::Unknown()) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function.IsZoneHandle());
@@ -3283,7 +3280,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
         arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
-        is_native_list_factory_(false),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
@@ -3329,13 +3325,8 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
     is_known_list_constructor_ = value;
   }
 
-  bool is_native_list_factory() const { return is_native_list_factory_; }
-  void set_is_native_list_factory(bool value) {
-    is_native_list_factory_ = value;
-  }
-
   bool IsRecognizedFactory() const {
-    return is_known_list_constructor() || is_native_list_factory();
+    return is_known_list_constructor();
   }
 
   virtual AliasIdentity Identity() const { return identity_; }
@@ -3353,7 +3344,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
-  bool is_native_list_factory_;
 
   AliasIdentity identity_;
 
@@ -5103,8 +5093,6 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   enum MathUnaryKind {
     kIllegal,
-    kSin,
-    kCos,
     kSqrt,
     kDoubleSquare,
   };
@@ -5115,7 +5103,6 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* value() const { return inputs_[0]; }
   MathUnaryKind kind() const { return kind_; }
-  const RuntimeEntry& TargetFunction() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -7697,7 +7684,7 @@ class MergedMathInstr : public PureDefinition {
     return (*inputs_)[i];
   }
 
-  static intptr_t OutputIndexOf(intptr_t kind);
+  static intptr_t OutputIndexOf(MethodRecognizer::Kind kind);
   static intptr_t OutputIndexOf(Token::Kind token);
 
   virtual CompileType ComputeType() const;

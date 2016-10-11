@@ -10,6 +10,8 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/cancelable_future.dart';
@@ -17,8 +19,6 @@ import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -33,6 +33,8 @@ import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+
+export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -227,7 +229,7 @@ abstract class AnalysisContext {
    * analysis results that have been invalidated by these changes will be
    * removed.
    */
-  ApplyChangesStatus applyChanges(ChangeSet changeSet);
+  void applyChanges(ChangeSet changeSet);
 
   /**
    * Return the documentation comment for the given [element] as it appears in
@@ -947,19 +949,21 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
 /**
  * The levels at which a source can be analyzed.
  */
-class AnalysisLevel extends Enum<AnalysisLevel> {
+class AnalysisLevel implements Comparable<AnalysisLevel> {
   /**
    * Indicates a source should be fully analyzed.
    */
   static const AnalysisLevel ALL = const AnalysisLevel('ALL', 0);
 
   /**
-   * Indicates a source should be resolved and that errors, warnings and hints are needed.
+   * Indicates a source should be resolved and that errors, warnings and hints
+   * are needed.
    */
   static const AnalysisLevel ERRORS = const AnalysisLevel('ERRORS', 1);
 
   /**
-   * Indicates a source should be resolved, but that errors, warnings and hints are not needed.
+   * Indicates a source should be resolved, but that errors, warnings and hints
+   * are not needed.
    */
   static const AnalysisLevel RESOLVED = const AnalysisLevel('RESOLVED', 2);
 
@@ -970,7 +974,26 @@ class AnalysisLevel extends Enum<AnalysisLevel> {
 
   static const List<AnalysisLevel> values = const [ALL, ERRORS, RESOLVED, NONE];
 
-  const AnalysisLevel(String name, int ordinal) : super(name, ordinal);
+  /**
+   * The name of this analysis level.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the analysis level.
+   */
+  final int ordinal;
+
+  const AnalysisLevel(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(AnalysisLevel other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -1049,6 +1072,12 @@ abstract class AnalysisOptions {
   bool get dart2jsHint;
 
   /**
+   * Return `true` if the parser is to parse asserts in the initializer list of
+   * a constructor.
+   */
+  bool get enableAssertInitializer;
+
+  /**
    * Return `true` to enable custom assert messages (DEP 37).
    */
   bool get enableAssertMessage;
@@ -1056,6 +1085,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to if analysis is to enable async support.
    */
+  @deprecated
   bool get enableAsync;
 
   /**
@@ -1068,6 +1098,12 @@ abstract class AnalysisOptions {
    * Return `true` to enable generic methods (DEP 22).
    */
   bool get enableGenericMethods => null;
+
+  /**
+   * Return `true` if access to field formal parameters should be allowed in a
+   * constructor's initializer list.
+   */
+  bool get enableInitializingFormalAccess;
 
   /**
    * Return `true` to enable the lazy compound assignment operators '&&=' and
@@ -1183,12 +1219,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   static const int DEFAULT_CACHE_SIZE = 64;
 
   static const int ENABLE_ASSERT_FLAG = 0x01;
-  static const int ENABLE_ASYNC_FLAG = 0x02;
-  static const int ENABLE_GENERIC_METHODS_FLAG = 0x04;
-  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x08;
-  static const int ENABLE_STRONG_MODE_FLAG = 0x10;
-  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x20;
-  static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
+  static const int ENABLE_GENERIC_METHODS_FLAG = 0x02;
+  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x04;
+  static const int ENABLE_STRONG_MODE_FLAG = 0x08;
+  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x10;
+  static const int ENABLE_SUPER_MIXINS_FLAG = 0x20;
 
   /**
    * The default list of non-nullable type names.
@@ -1202,100 +1237,61 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalyzeFunctionBodiesPredicate _analyzeFunctionBodiesPredicate =
       _analyzeAllFunctionBodies;
 
-  /**
-   * The maximum number of sources for which AST structures should be kept in
-   * the cache.
-   */
+  @override
   int cacheSize = DEFAULT_CACHE_SIZE;
 
-  /**
-   * A flag indicating whether analysis is to generate dart2js related hint
-   * results.
-   */
+  @override
   bool dart2jsHint = false;
 
-  /**
-   * A flag indicating whether custom assert messages are to be supported (DEP
-   * 37).
-   */
+  @override
+  bool enableAssertInitializer = false;
+
+  @override
   bool enableAssertMessage = false;
 
-  /**
-   * A flag indicating whether analysis is to enable async support.
-   */
-  bool enableAsync = true;
-
-  /**
-   * A flag indicating whether generic methods are to be supported (DEP 22).
-   */
+  @override
   bool enableGenericMethods = false;
+
+  @override
+  bool enableInitializingFormalAccess = false;
 
   @override
   bool enableLazyAssignmentOperators = false;
 
-  /**
-   * A flag indicating whether analysis is to strictly follow the specification
-   * when generating warnings on "call" methods (fixes dartbug.com/21938).
-   */
+  @override
   bool enableStrictCallChecks = false;
 
-  /**
-   * A flag indicating whether mixins are allowed to inherit from types other
-   * than Object, and are allowed to reference `super`.
-   */
+  @override
   bool enableSuperMixins = false;
 
   @override
   bool enableTiming = false;
 
-  /**
-   * A flag indicating whether errors, warnings and hints should be generated
-   * for sources that are implicitly being analyzed.
-   */
+  @override
   bool generateImplicitErrors = true;
 
-  /**
-   * A flag indicating whether errors, warnings and hints should be generated
-   * for sources in the SDK.
-   */
+  @override
   bool generateSdkErrors = false;
 
-  /**
-   * A flag indicating whether analysis is to generate hint results (e.g. type
-   * inference based information and pub best practices).
-   */
+  @override
   bool hint = true;
 
-  /**
-   * A flag indicating whether incremental analysis should be used.
-   */
+  @override
   bool incremental = false;
 
-  /**
-   * A flag indicating whether incremental analysis should be used for API
-   * changes.
-   */
+  @override
   bool incrementalApi = false;
 
-  /**
-   * A flag indicating whether validation should be performed after incremental
-   * analysis.
-   */
+  @override
   bool incrementalValidation = false;
 
-  /**
-   * A flag indicating whether analysis is to generate lint warnings.
-   */
+  @override
   bool lint = false;
 
-  /**
-   * A flag indicating whether analysis is to parse comments.
-   */
+  @override
   bool preserveComments = true;
 
-  /**
-   * A flag indicating whether strong-mode analysis should be used.
-   */
+  @override
   bool strongMode = false;
 
   /**
@@ -1352,10 +1348,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
+    enableAssertInitializer = options.enableAssertInitializer;
     enableAssertMessage = options.enableAssertMessage;
-    enableAsync = options.enableAsync;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
+    enableInitializingFormalAccess = options.enableInitializingFormalAccess;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
     generateImplicitErrors = options.generateImplicitErrors;
@@ -1407,6 +1404,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     _analyzeFunctionBodiesPredicate = value;
   }
 
+  @deprecated
+  @override
+  bool get enableAsync => true;
+
+  @deprecated
+  void set enableAsync(bool enable) {}
+
   /**
    * A flag indicating whether interface libraries are to be supported (DEP 40).
    */
@@ -1418,7 +1422,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   int encodeCrossContextOptions() =>
       (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
-      (enableAsync ? ENABLE_ASYNC_FLAG : 0) |
       (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
       (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
       (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
@@ -1428,7 +1431,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableAssertMessage = options.enableAssertMessage;
-    enableAsync = options.enableAsync;
     enableGenericMethods = options.enableGenericMethods;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
@@ -1459,9 +1461,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
     if (encoding & ENABLE_ASSERT_FLAG > 0) {
       add('assert');
-    }
-    if (encoding & ENABLE_ASYNC_FLAG > 0) {
-      add('async');
     }
     if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
       add('genericMethods');
@@ -1545,18 +1544,6 @@ class AnalysisResult {
 }
 
 /**
- * The result of applying a [ChangeSet] to a [AnalysisContext].
- */
-class ApplyChangesStatus {
-  /**
-   * Is `true` if the given [ChangeSet] caused any changes in the context.
-   */
-  final bool hasChanges;
-
-  ApplyChangesStatus(this.hasChanges);
-}
-
-/**
  * Statistics about cache consistency validation.
  */
 class CacheConsistencyValidationStatistics {
@@ -1611,7 +1598,7 @@ abstract class CacheConsistencyValidator {
 /**
  * The possible states of cached data.
  */
-class CacheState extends Enum<CacheState> {
+class CacheState implements Comparable<CacheState> {
   /**
    * The data is not in the cache and the last time an attempt was made to
    * compute the data an exception occurred, making it pointless to attempt to
@@ -1672,7 +1659,26 @@ class CacheState extends Enum<CacheState> {
     VALID
   ];
 
-  const CacheState(String name, int ordinal) : super(name, ordinal);
+  /**
+   * The name of this cache state.
+   */
+  final String name;
+
+  /**
+   * The ordinal value of the cache state.
+   */
+  final int ordinal;
+
+  const CacheState(this.name, this.ordinal);
+
+  @override
+  int get hashCode => ordinal;
+
+  @override
+  int compareTo(CacheState other) => ordinal - other.ordinal;
+
+  @override
+  String toString() => name;
 }
 
 /**
@@ -1816,12 +1822,6 @@ class ChangeSet {
   final List<SourceContainer> removedContainers = new List<SourceContainer>();
 
   /**
-   * A list containing the sources that have been deleted.
-   */
-  @deprecated
-  final List<Source> deletedSources = new List<Source>();
-
-  /**
    * Return a table mapping the sources whose content has been changed to the
    * current content of those sources.
    */
@@ -1836,8 +1836,7 @@ class ChangeSet {
       _changedContent.isEmpty &&
       changedRanges.isEmpty &&
       removedSources.isEmpty &&
-      removedContainers.isEmpty &&
-      deletedSources.isEmpty;
+      removedContainers.isEmpty;
 
   /**
    * Record that the specified [source] has been added and that its content is
@@ -1879,14 +1878,6 @@ class ChangeSet {
   }
 
   /**
-   * Record that the specified [source] has been deleted.
-   */
-  @deprecated
-  void deletedSource(Source source) {
-    deletedSources.add(source);
-  }
-
-  /**
    * Record that the specified source [container] has been removed.
    */
   void removedContainer(SourceContainer container) {
@@ -1915,8 +1906,6 @@ class ChangeSet {
         buffer, _changedContent, needsSeparator, "changedContent");
     needsSeparator =
         _appendSources2(buffer, changedRanges, needsSeparator, "changedRanges");
-    needsSeparator = _appendSources(
-        buffer, deletedSources, needsSeparator, "deletedSources");
     needsSeparator = _appendSources(
         buffer, removedSources, needsSeparator, "removedSources");
     int count = removedContainers.length;
@@ -2114,6 +2103,16 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * Return a list of the explicit targets being analyzed by this context.
    */
   List<AnalysisTarget> get explicitTargets;
+
+  /**
+   * Return `true` if the context is active, i.e. is being analyzed now.
+   */
+  bool get isActive;
+
+  /**
+   * Specify whether the context is active, i.e. is being analyzed now.
+   */
+  set isActive(bool value);
 
   /**
    * Return the [StreamController] reporting [InvalidatedResult]s for everything
@@ -2403,66 +2402,6 @@ class PerformanceStatistics {
 }
 
 /**
- * An error listener that will record the errors that are reported to it in a
- * way that is appropriate for caching those errors within an analysis context.
- */
-class RecordingErrorListener implements AnalysisErrorListener {
-  /**
-   * A map of sets containing the errors that were collected, keyed by each
-   * source.
-   */
-  Map<Source, HashSet<AnalysisError>> _errors =
-      new HashMap<Source, HashSet<AnalysisError>>();
-
-  /**
-   * Return the errors collected by the listener.
-   */
-  List<AnalysisError> get errors {
-    int numEntries = _errors.length;
-    if (numEntries == 0) {
-      return AnalysisError.NO_ERRORS;
-    }
-    List<AnalysisError> resultList = new List<AnalysisError>();
-    for (HashSet<AnalysisError> errors in _errors.values) {
-      resultList.addAll(errors);
-    }
-    return resultList;
-  }
-
-  /**
-   * Add all of the errors recorded by the given [listener] to this listener.
-   */
-  void addAll(RecordingErrorListener listener) {
-    for (AnalysisError error in listener.errors) {
-      onError(error);
-    }
-  }
-
-  /**
-   * Return the errors collected by the listener for the given [source].
-   */
-  List<AnalysisError> getErrorsForSource(Source source) {
-    HashSet<AnalysisError> errorsForSource = _errors[source];
-    if (errorsForSource == null) {
-      return AnalysisError.NO_ERRORS;
-    } else {
-      return new List.from(errorsForSource);
-    }
-  }
-
-  @override
-  void onError(AnalysisError error) {
-    Source source = error.source;
-    HashSet<AnalysisError> errorsForSource = _errors[source];
-    if (_errors[source] == null) {
-      errorsForSource = new HashSet<AnalysisError>();
-      _errors[source] = errorsForSource;
-    }
-    errorsForSource.add(error);
-  }
-}
-
-/**
  * An visitor that removes any resolution information from an AST structure when
  * used to visit that structure.
  */
@@ -2714,10 +2653,9 @@ class SourcesChangedEvent {
   /**
    * Return `true` if any sources were removed or deleted.
    */
-  bool get wereSourcesRemovedOrDeleted =>
+  bool get wereSourcesRemoved =>
       _changeSet.removedSources.length > 0 ||
-      _changeSet.removedContainers.length > 0 ||
-      _changeSet.deletedSources.length > 0;
+      _changeSet.removedContainers.length > 0;
 }
 
 /**

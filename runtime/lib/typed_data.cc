@@ -41,13 +41,6 @@ static void LengthCheck(intptr_t len, intptr_t max) {
 }
 
 
-static void PeerFinalizer(void* isolate_callback_data,
-                          Dart_WeakPersistentHandle handle,
-                          void* peer) {
-  OS::AlignedFree(peer);
-}
-
-
 DEFINE_NATIVE_ENTRY(TypedData_length, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
   if (instance.IsTypedData()) {
@@ -175,31 +168,8 @@ DEFINE_NATIVE_ENTRY(TypedData_##name##_new, 2) {                               \
 }                                                                              \
 
 
-// We check the length parameter against a possible maximum length for the
-// array based on available physical addressable memory on the system. The
-// maximum possible length is a scaled value of kSmiMax which is set up based
-// on whether the underlying architecture is 32-bit or 64-bit.
-// Argument 0 is type arguments and is ignored.
-#define EXT_TYPED_DATA_NEW(name)                                               \
-DEFINE_NATIVE_ENTRY(ExternalTypedData_##name##_new, 2) {                       \
-  const int kAlignment = 16;                                                   \
-  GET_NON_NULL_NATIVE_ARGUMENT(Smi, length, arguments->NativeArgAt(1));        \
-  intptr_t cid = kExternalTypedData##name##Cid;                                \
-  intptr_t len = length.Value();                                               \
-  intptr_t max = ExternalTypedData::MaxElements(cid);                          \
-  LengthCheck(len, max);                                                       \
-  intptr_t len_bytes = len * ExternalTypedData::ElementSizeInBytes(cid);       \
-  uint8_t* data = OS::AllocateAlignedArray<uint8_t>(len_bytes, kAlignment);    \
-  const ExternalTypedData& obj =                                               \
-      ExternalTypedData::Handle(ExternalTypedData::New(cid, data, len));       \
-  obj.AddFinalizer(data, PeerFinalizer);                                       \
-  return obj.raw();                                                            \
-}                                                                              \
-
-
 #define TYPED_DATA_NEW_NATIVE(name)                                            \
   TYPED_DATA_NEW(name)                                                         \
-  EXT_TYPED_DATA_NEW(name)                                                     \
 
 
 CLASS_LIST_TYPED_DATA(TYPED_DATA_NEW_NATIVE)

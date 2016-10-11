@@ -8,20 +8,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(StrongModeDownwardsInferenceTest);
-  runReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
-  runReflectiveTests(StrongModeTypePropagationTest);
+  defineReflectiveTests(StrongModeDownwardsInferenceTest);
+  defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
+  defineReflectiveTests(StrongModeTypePropagationTest);
 }
 
 /**
@@ -1450,6 +1450,12 @@ class D<S> {
     checkBody("D");
   }
 
+  void test_genericFunction_upwardsAndDownwards() {
+    // Regression tests for https://github.com/dart-lang/sdk/issues/27151.
+    resolveTestUnit(r'List<num> x = [1, 2];');
+    expectInitializerType('x', 'List<int>');
+  }
+
   void test_genericMethod() {
     resolveTestUnit(r'''
 class C<E> {
@@ -1801,23 +1807,7 @@ class C {
 class D extends C {
   String f/*<S>*/(/*=S*/ x) => null;
 }''');
-    // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
-    // from CodeChecker don't have working equality.
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
-
-    // Sort errors by name.
-    errors.sort((AnalysisError e1, AnalysisError e2) =>
-        e1.errorCode.name.compareTo(e2.errorCode.name));
-
-    expect(
-        errors.map((e) => e.errorCode.name),
-        unorderedEquals([
-          'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
-          'STRONG_MODE_INVALID_METHOD_OVERRIDE'
-        ]));
-    expect(errors[0].message, contains('Iterable<S>'),
-        reason: 'errors should be in terms of the type parameters '
-            'at the error location');
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -1831,15 +1821,7 @@ class C {
 class D extends C {
   /*=T*/ f/*<T extends B>*/(/*=T*/ x) => null;
 }''');
-    // TODO(jmesserly): this is modified code from assertErrors, which we can't
-    // use directly because STRONG_MODE_* errors don't have working equality.
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    expect(
-        errors.map((e) => e.errorCode.name),
-        unorderedEquals([
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
-          'STRONG_MODE_INVALID_METHOD_OVERRIDE'
-        ]));
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -1851,15 +1833,7 @@ class C {
 class D extends C {
   /*=S*/ f/*<T, S>*/(/*=T*/ x) => null;
 }''');
-    // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
-    // from CodeChecker don't have working equality.
-    List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    expect(
-        errors.map((e) => e.errorCode.name),
-        unorderedEquals([
-          'STRONG_MODE_INVALID_METHOD_OVERRIDE',
-          'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
-        ]));
+    assertErrors(source, [StrongModeCode.INVALID_METHOD_OVERRIDE]);
     verify([source]);
   }
 
@@ -2204,10 +2178,8 @@ main() {
     v; // marker
   }
 }''';
-    assertPropagatedIterationType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    assertPropagatedIterationType(code, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
   }
 
   void test_foreachInference_reusedVar_disabled() {
@@ -2219,10 +2191,8 @@ main() {
     v; // marker
   }
 }''';
-    assertPropagatedIterationType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    assertPropagatedIterationType(code, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
   }
 
   void test_foreachInference_var() {
@@ -2288,10 +2258,8 @@ main() {
   dynamic v = 3;
   v; // marker
 }''';
-    assertPropagatedAssignedType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
   }
 
   void test_localVariableInference_noInitializer_disabled() {
@@ -2301,10 +2269,8 @@ main() {
   v = 3;
   v; // marker
 }''';
-    assertPropagatedAssignedType(
-        code, typeProvider.dynamicType, typeProvider.intType);
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
+    assertPropagatedAssignedType(code, typeProvider.dynamicType, null);
+    assertTypeOfMarkedExpression(code, typeProvider.dynamicType, null);
   }
 
   void test_localVariableInference_transitive_field_inferred_lexical() {

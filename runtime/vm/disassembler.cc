@@ -165,6 +165,10 @@ void Disassembler::Disassemble(uword start,
 
 void Disassembler::DisassembleCodeHelper(
     const char* function_fullname, const Code& code, bool optimized) {
+  LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle();
+  if (FLAG_print_variable_descriptors) {
+    var_descriptors = code.GetLocalVarDescriptors();
+  }
   THR_Print("Code for %sfunction '%s' {\n",
             optimized ? "optimized " : "",
             function_fullname);
@@ -232,8 +236,6 @@ void Disassembler::DisassembleCodeHelper(
   if (FLAG_print_variable_descriptors) {
     THR_Print("Variable Descriptors for function '%s' {\n",
               function_fullname);
-    const LocalVarDescriptors& var_descriptors =
-        LocalVarDescriptors::Handle(code.GetLocalVarDescriptors());
     intptr_t var_desc_length =
         var_descriptors.IsNull() ? 0 : var_descriptors.Length();
     String& var_name = String::Handle();
@@ -283,10 +285,9 @@ void Disassembler::DisassembleCodeHelper(
         Class& cls = Class::Handle();
         cls ^= code.owner();
         if (cls.IsNull()) {
-          const String& code_name = String::Handle(code.Name());
           THR_Print("  0x%" Px ": %s, %p\n",
               start + offset.Value(),
-              code_name.ToCString(),
+              code.Name(),
               code.raw());
         } else {
           THR_Print("  0x%" Px ": allocation stub for %s, %p\n",

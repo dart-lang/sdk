@@ -8,14 +8,18 @@ void bar() {
   var a = 0;
   var c = 0;
 
-  if (a == 0) c = a++;
-  else c = a--;
+  if (a == 0)
+    c = a++;
+  else
+    c = a--;
 
   Expect.equals(1, a);
   Expect.equals(0, c);
 
-  if (a == 0) c = a++;
-  else c = a--;
+  if (a == 0)
+    c = a++;
+  else
+    c = a--;
 
   Expect.equals(0, a);
   Expect.equals(1, c);

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of types;
+part of masks;
 
 /**
  * A type mask that wraps an other one, and delegate all its
@@ -26,55 +26,55 @@ abstract class ForwardingTypeMask implements TypeMask {
   bool get isValue => false;
   bool get isForwarding => true;
 
-  bool isInMask(TypeMask other, ClassWorld classWorld) {
-    return forwardTo.isInMask(other, classWorld);
+  bool isInMask(TypeMask other, ClosedWorld closedWorld) {
+    return forwardTo.isInMask(other, closedWorld);
   }
 
-  bool containsMask(TypeMask other, ClassWorld classWorld) {
-    return forwardTo.containsMask(other, classWorld);
+  bool containsMask(TypeMask other, ClosedWorld closedWorld) {
+    return forwardTo.containsMask(other, closedWorld);
   }
 
-  bool containsOnlyInt(ClassWorld classWorld) {
-    return forwardTo.containsOnlyInt(classWorld);
+  bool containsOnlyInt(ClosedWorld closedWorld) {
+    return forwardTo.containsOnlyInt(closedWorld);
   }
 
-  bool containsOnlyDouble(ClassWorld classWorld) {
-    return forwardTo.containsOnlyDouble(classWorld);
+  bool containsOnlyDouble(ClosedWorld closedWorld) {
+    return forwardTo.containsOnlyDouble(closedWorld);
   }
 
-  bool containsOnlyNum(ClassWorld classWorld) {
-    return forwardTo.containsOnlyNum(classWorld);
+  bool containsOnlyNum(ClosedWorld closedWorld) {
+    return forwardTo.containsOnlyNum(closedWorld);
   }
 
-  bool containsOnlyBool(ClassWorld classWorld) {
-    return forwardTo.containsOnlyBool(classWorld);
+  bool containsOnlyBool(ClosedWorld closedWorld) {
+    return forwardTo.containsOnlyBool(closedWorld);
   }
 
-  bool containsOnlyString(ClassWorld classWorld) {
-    return forwardTo.containsOnlyString(classWorld);
+  bool containsOnlyString(ClosedWorld closedWorld) {
+    return forwardTo.containsOnlyString(closedWorld);
   }
 
   bool containsOnly(ClassElement element) {
     return forwardTo.containsOnly(element);
   }
 
-  bool satisfies(ClassElement cls, ClassWorld classWorld) {
-    return forwardTo.satisfies(cls, classWorld);
+  bool satisfies(ClassElement cls, ClosedWorld closedWorld) {
+    return forwardTo.satisfies(cls, closedWorld);
   }
 
-  bool contains(ClassElement type, ClassWorld classWorld) {
-    return forwardTo.contains(type, classWorld);
+  bool contains(ClassElement type, ClosedWorld closedWorld) {
+    return forwardTo.contains(type, closedWorld);
   }
 
-  bool containsAll(ClassWorld classWorld) {
-    return forwardTo.containsAll(classWorld);
+  bool containsAll(ClosedWorld closedWorld) {
+    return forwardTo.containsAll(closedWorld);
   }
 
-  ClassElement singleClass(ClassWorld classWorld) {
-    return forwardTo.singleClass(classWorld);
+  ClassElement singleClass(ClosedWorld closedWorld) {
+    return forwardTo.singleClass(closedWorld);
   }
 
-  TypeMask union(other, ClassWorld classWorld) {
+  TypeMask union(other, ClosedWorld closedWorld) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -82,28 +82,27 @@ abstract class ForwardingTypeMask implements TypeMask {
     } else if (other.isEmptyOrNull) {
       return other.isNullable ? this.nullable() : this;
     }
-    return forwardTo.union(other, classWorld);
+    return forwardTo.union(other, closedWorld);
   }
 
-  bool isDisjoint(TypeMask other, ClassWorld classWorld) {
-    return forwardTo.isDisjoint(other, classWorld);
+  bool isDisjoint(TypeMask other, ClosedWorld closedWorld) {
+    return forwardTo.isDisjoint(other, closedWorld);
   }
 
-  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
-    return forwardTo.intersection(other, classWorld);
+  TypeMask intersection(TypeMask other, ClosedWorld closedWorld) {
+    return forwardTo.intersection(other, closedWorld);
   }
 
-  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld) {
-    return forwardTo.needsNoSuchMethodHandling(selector, classWorld);
+  bool needsNoSuchMethodHandling(Selector selector, ClosedWorld closedWorld) {
+    return forwardTo.needsNoSuchMethodHandling(selector, closedWorld);
   }
 
-  bool canHit(Element element, Selector selector, ClassWorld classWorld) {
-    return forwardTo.canHit(element, selector, classWorld);
+  bool canHit(Element element, Selector selector, ClosedWorld closedWorld) {
+    return forwardTo.canHit(element, selector, closedWorld);
   }
 
-  Element locateSingleElement(
-      Selector selector, TypeMask mask, Compiler compiler) {
-    return forwardTo.locateSingleElement(selector, mask, compiler);
+  Element locateSingleElement(Selector selector, Compiler compiler) {
+    return forwardTo.locateSingleElement(selector, compiler);
   }
 
   bool equalsDisregardNull(other) {

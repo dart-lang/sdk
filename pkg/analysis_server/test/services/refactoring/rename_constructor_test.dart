@@ -132,6 +132,39 @@ main() {
 ''');
   }
 
+  test_createChange_add_toSynthetic() {
+    indexTestUnit('''
+class A {
+}
+class B extends A {
+  B() : super() {}
+  factory B._() = A;
+}
+main() {
+  new A();
+}
+''');
+    // configure refactoring
+    _createConstructorInvocationRefactoring('new A();');
+    expect(refactoring.refactoringName, 'Rename Constructor');
+    expect(refactoring.elementKindName, 'constructor');
+    expect(refactoring.oldName, '');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+class B extends A {
+  B() : super.newName() {}
+  factory B._() = A.newName;
+}
+main() {
+  new A.newName();
+}
+''');
+  }
+
   test_createChange_change() {
     indexTestUnit('''
 class A {
@@ -208,6 +241,12 @@ main() {
   void _createConstructorDeclarationRefactoring(String search) {
     ConstructorElement element = findNodeElementAtString(
         search, (node) => node is ConstructorDeclaration);
+    createRenameRefactoringForElement(element);
+  }
+
+  void _createConstructorInvocationRefactoring(String search) {
+    ConstructorElement element = findNodeElementAtString(
+        search, (node) => node is InstanceCreationExpression);
     createRenameRefactoringForElement(element);
   }
 }

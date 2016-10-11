@@ -28,6 +28,8 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/directory.h"
+#include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
 #include "bin/socket.h"
@@ -62,6 +64,10 @@ static const bool SSL_LOG_STATUS = false;
 static const bool SSL_LOG_DATA = false;
 
 static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
+
+
+const char* commandline_root_certs_file = NULL;
+const char* commandline_root_certs_cache = NULL;
 
 
 /* Get the error messages from BoringSSL, and put them in buffer as a
@@ -788,22 +794,10 @@ void FUNCTION_NAME(SecurityContext_AlpnSupported)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
-    Dart_NativeArguments args) {
-  SSLContext* context = GetSecurityContext(args);
-#if defined(TARGET_OS_ANDROID)
-  // On Android, we don't compile in the trusted root certificates. Insead,
-  // we use the directory of trusted certificates already present on the device.
-  // This saves ~240KB from the size of the binary. This has the drawback that
-  // SSL_do_handshake will synchronously hit the filesystem looking for root
-  // certs during its trust evaluation. We call SSL_do_handshake directly from
-  // the Dart thread so that Dart code can be invoked from the "bad certificate"
-  // callback called by SSL_do_handshake.
-  const char* android_cacerts = "/system/etc/security/cacerts";
-  int status = SSL_CTX_load_verify_locations(
-      context->context(), NULL, android_cacerts);
-  CheckStatus(status, "TlsException", "Failure trusting builtint roots");
-#else
+static void AddCompiledInCerts(SSLContext* context) {
+  if (root_certificates_pem == NULL) {
+    return;
+  }
   X509_STORE* store = SSL_CTX_get_cert_store(context->context());
   BIO* roots_bio =
       BIO_new_mem_buf(const_cast<unsigned char*>(root_certificates_pem),
@@ -825,7 +819,90 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
   // reading PEM certificates.
   ASSERT((ERR_peek_error() == 0) || NoPEMStartLine());
   ERR_clear_error();
+}
+
+
+static void LoadRootCertFile(SSLContext* context, const char* file) {
+  if (SSL_LOG_STATUS) {
+    Log::Print("Looking for trusted roots in %s\n", file);
+  }
+  if (!File::Exists(file)) {
+    ThrowIOException(-1, "TlsException", "Failed to find root cert file");
+  }
+  int status = SSL_CTX_load_verify_locations(context->context(), file, NULL);
+  CheckStatus(status, "TlsException", "Failure trusting builtint roots");
+  if (SSL_LOG_STATUS) {
+    Log::Print("Trusting roots from: %s\n", file);
+  }
+}
+
+
+static void LoadRootCertCache(SSLContext* context, const char* cache) {
+  if (SSL_LOG_STATUS) {
+    Log::Print("Looking for trusted roots in %s\n", cache);
+  }
+  if (Directory::Exists(cache) != Directory::EXISTS) {
+    ThrowIOException(-1, "TlsException", "Failed to find root cert cache");
+  }
+  int status = SSL_CTX_load_verify_locations(context->context(), NULL, cache);
+  CheckStatus(status, "TlsException", "Failure trusting builtint roots");
+  if (SSL_LOG_STATUS) {
+    Log::Print("Trusting roots from: %s\n", cache);
+  }
+}
+
+
+void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
+    Dart_NativeArguments args) {
+  SSLContext* context = GetSecurityContext(args);
+
+  // First, try to use locations specified on the command line.
+  if (commandline_root_certs_file != NULL) {
+    LoadRootCertFile(context, commandline_root_certs_file);
+    return;
+  }
+
+  if (commandline_root_certs_cache != NULL) {
+    LoadRootCertCache(context, commandline_root_certs_cache);
+    return;
+  }
+
+#if defined(TARGET_OS_ANDROID)
+  // On Android, we don't compile in the trusted root certificates. Insead,
+  // we use the directory of trusted certificates already present on the device.
+  // This saves ~240KB from the size of the binary. This has the drawback that
+  // SSL_do_handshake will synchronously hit the filesystem looking for root
+  // certs during its trust evaluation. We call SSL_do_handshake directly from
+  // the Dart thread so that Dart code can be invoked from the "bad certificate"
+  // callback called by SSL_do_handshake.
+  const char* android_cacerts = "/system/etc/security/cacerts";
+  LoadRootCertCache(context, android_cacerts);
+  return;
+#elif defined(TARGET_OS_LINUX)
+  // On Linux, we use the compiled-in trusted certs as a last resort. First,
+  // we try to find the trusted certs in various standard locations. A good
+  // discussion of the complexities of this endeavor can be found here:
+  //
+  // https://www.happyassassin.net/2015/01/12/a-note-about-ssltls-trusted-certificate-stores-and-platforms/
+  const char* bundle = "/etc/pki/tls/certs/ca-bundle.crt";
+  const char* cachedir = "/etc/ssl/certs";
+  if (File::Exists(bundle)) {
+    LoadRootCertFile(context, bundle);
+    return;
+  }
+
+  if (Directory::Exists(cachedir) == Directory::EXISTS) {
+    LoadRootCertCache(context, cachedir);
+    return;
+  }
 #endif  // defined(TARGET_OS_ANDROID)
+
+  // Fall back on the compiled-in certs if the standard locations don't exist,
+  // or we aren't on Linux.
+  AddCompiledInCerts(context);
+  if (SSL_LOG_STATUS) {
+    Log::Print("Trusting compiled-in roots\n");
+  }
 }
 
 
@@ -1494,19 +1571,27 @@ void SSLFilter::Connect(const char* hostname,
   // Make the connection:
   if (is_server_) {
     status = SSL_accept(ssl_);
-    if (SSL_LOG_STATUS) Log::Print("SSL_accept status: %d\n", status);
+    if (SSL_LOG_STATUS) {
+      Log::Print("SSL_accept status: %d\n", status);
+    }
     if (status != 1) {
       // TODO(whesse): expect a needs-data error here.  Handle other errors.
       error = SSL_get_error(ssl_, status);
-      if (SSL_LOG_STATUS) Log::Print("SSL_accept error: %d\n", error);
+      if (SSL_LOG_STATUS) {
+        Log::Print("SSL_accept error: %d\n", error);
+      }
     }
   } else {
     status = SSL_connect(ssl_);
-    if (SSL_LOG_STATUS) Log::Print("SSL_connect status: %d\n", status);
+    if (SSL_LOG_STATUS) {
+      Log::Print("SSL_connect status: %d\n", status);
+    }
     if (status != 1) {
       // TODO(whesse): expect a needs-data error here.  Handle other errors.
       error = SSL_get_error(ssl_, status);
-      if (SSL_LOG_STATUS) Log::Print("SSL_connect error: %d\n", error);
+      if (SSL_LOG_STATUS) {
+        Log::Print("SSL_connect error: %d\n", error);
+      }
     }
   }
   Handshake();

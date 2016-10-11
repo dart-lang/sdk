@@ -13,7 +13,7 @@ confuse(x) => x;
 
 class TooHigh {
   static load1() {
-    var a = confuse(true) ? [10,11] : [10,11,12,13,14];
+    var a = confuse(true) ? [10, 11] : [10, 11, 12, 13, 14];
     try {
       // dynamic receiver causes method to be called via interceptor.
       return confuse(a)[3];
@@ -31,8 +31,9 @@ class TooHigh {
     }
     Expect.fail('unreached');
   }
+
   static load2x(i) {
-    var a = confuse(true) ? [10,11] : [10,11,12,13,14];
+    var a = confuse(true) ? [10, 11] : [10, 11, 12, 13, 14];
     // 'a' is inferred as JSArray of unknown length so has optimized check.
     return a[i];
   }
@@ -46,7 +47,7 @@ class TooHigh {
 
 class Negative {
   static load1() {
-    var a = confuse(true) ? [10,11] : [10,11,12,13,14];
+    var a = confuse(true) ? [10, 11] : [10, 11, 12, 13, 14];
     try {
       // dynamic receiver causes method to be called via interceptor.
       return confuse(a)[-3];
@@ -64,8 +65,9 @@ class Negative {
     }
     Expect.fail('unreached');
   }
+
   static load2x(i) {
-    var a = confuse(true) ? [10,11] : [10,11,12,13,14];
+    var a = confuse(true) ? [10, 11] : [10, 11, 12, 13, 14];
     // 'a' is inferred as JSArray of unknown length so has optimized check.
     return a[i];
   }
@@ -79,7 +81,7 @@ class Negative {
 
 class Empty {
   static load1() {
-    var a = confuse(true) ? [] : [10,11,12,13,14];
+    var a = confuse(true) ? [] : [10, 11, 12, 13, 14];
     try {
       // dynamic receiver causes method to be called via interceptor.
       return confuse(a)[-3];
@@ -97,8 +99,9 @@ class Empty {
     }
     Expect.fail('unreached');
   }
+
   static load2x(i) {
-    var a = confuse(true) ? [] : [10,11,12,13,14];
+    var a = confuse(true) ? [] : [10, 11, 12, 13, 14];
     // 'a' is inferred as JSArray of unknown length so has optimized check.
     return a[i];
   }
@@ -112,7 +115,7 @@ class Empty {
 
 class BadType {
   static load1() {
-    var a = confuse(true) ? [10,11] : [10,11,12,13,14];
+    var a = confuse(true) ? [10, 11] : [10, 11, 12, 13, 14];
     try {
       // dynamic receiver causes method to be called via interceptor.
       return confuse(a)['a'];
@@ -130,8 +133,9 @@ class BadType {
     }
     Expect.fail('unreached');
   }
+
   static load2x(i) {
-    var a = confuse(true) ? [10,11] : [10,11,12,13,14];
+    var a = confuse(true) ? [10, 11] : [10, 11, 12, 13, 14];
     // 'a' is inferred as JSArray of unknown length so has optimized check.
     return a[i];
   }

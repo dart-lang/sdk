@@ -29,8 +29,7 @@ void or4() {
 }
 
 void or5() {
-  if (true || false) {
-  } else {
+  if (true || false) {} else {
     Expect.fail('unreachable');
   }
 }

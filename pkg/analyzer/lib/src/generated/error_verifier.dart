@@ -13,15 +13,17 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
@@ -276,6 +278,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       new HashSet<String>();
 
   /**
+   * The elements that will be defined later in the current scope, but right
+   * now are not declared.
+   */
+  HiddenElements _hiddenElements = null;
+
+  /**
    * A list of types used by the [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]
    * and [CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS] error codes.
    */
@@ -387,6 +395,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitBlock(Block node) {
+    _hiddenElements = new HiddenElements(_hiddenElements, node);
+    try {
+      _checkDuplicateDeclarationInStatements(node.statements);
+      return super.visitBlock(node);
+    } finally {
+      _hiddenElements = _hiddenElements.outerElements;
+    }
+  }
+
+  @override
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     bool wasInAsync = _inAsync;
     bool wasInGenerator = _inGenerator;
@@ -426,6 +445,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitCatchClause(CatchClause node) {
+    _checkDuplicateDefinitionInCatchClause(node);
     bool previousIsInCatchClause = _isInCatchClause;
     try {
       _isInCatchClause = true;
@@ -442,14 +462,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     try {
       _isInNativeClass = node.nativeClause != null;
       _enclosingClass = AbstractClassElementImpl.getImpl(node.element);
-      ExtendsClause extendsClause = node.extendsClause;
-      ImplementsClause implementsClause = node.implementsClause;
-      WithClause withClause = node.withClause;
+      _checkDuplicateClassMembers(node);
       _checkForBuiltInIdentifierAsName(
           node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME);
       _checkForMemberWithClassName();
       _checkForNoDefaultSuperConstructorImplicit(node);
       _checkForConflictingTypeVariableErrorCodes(node);
+      ExtendsClause extendsClause = node.extendsClause;
+      ImplementsClause implementsClause = node.implementsClause;
+      WithClause withClause = node.withClause;
       // Only do error checks on the clause nodes if there is a non-null clause
       if (implementsClause != null ||
           extendsClause != null ||
@@ -544,6 +565,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitCompilationUnit(CompilationUnit node) {
+    _checkDuplicateUnitMembers(node);
     _checkForDeferredPrefixCollisions(node);
     return super.visitCompilationUnit(node);
   }
@@ -633,6 +655,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     ClassElement outerEnum = _enclosingEnum;
     try {
       _enclosingEnum = node.element;
+      _checkDuplicateEnumMembers(node);
       return super.visitEnumDeclaration(node);
     } finally {
       _enclosingEnum = outerEnum;
@@ -719,15 +742,29 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitFormalParameterList(FormalParameterList node) {
+    _checkDuplicateDefinitionInParameterList(node);
+    return super.visitFormalParameterList(node);
+  }
+
+  @override
   Object visitForStatement(ForStatement node) {
     if (node.condition != null) {
       _checkForNonBoolCondition(node.condition);
+    }
+    if (node.variables != null) {
+      _checkDuplicateVariables(node.variables);
     }
     return super.visitForStatement(node);
   }
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
+    ExecutableElement functionElement = node.element;
+    if (functionElement != null &&
+        functionElement.enclosingElement is! CompilationUnitElement) {
+      _hiddenElements.declare(functionElement);
+    }
     ExecutableElement outerFunction = _enclosingFunction;
     try {
       SimpleIdentifier identifier = node.name;
@@ -735,7 +772,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (identifier != null) {
         methodName = identifier.name;
       }
-      _enclosingFunction = node.element;
+      _enclosingFunction = functionElement;
       TypeName returnType = node.returnType;
       if (node.isSetter || node.isGetter) {
         _checkForMismatchedAccessorTypes(node, methodName);
@@ -1092,6 +1129,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
+    _checkForAmbiguousImport(node);
+    _checkForReferenceBeforeDeclaration(node);
     _checkForImplicitThisReferenceInInitializer(node);
     if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
@@ -1107,6 +1146,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } finally {
       _isInConstructorInitializer = false;
     }
+  }
+
+  @override
+  Object visitSwitchCase(SwitchCase node) {
+    _checkDuplicateDeclarationInStatements(node.statements);
+    return super.visitSwitchCase(node);
+  }
+
+  @override
+  Object visitSwitchDefault(SwitchDefault node) {
+    _checkDuplicateDeclarationInStatements(node.statements);
+    return super.visitSwitchDefault(node);
   }
 
   @override
@@ -1162,6 +1213,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitTypeParameterList(TypeParameterList node) {
+    _checkDuplicateDefinitionInTypeParameterList(node);
+    return super.visitTypeParameterList(node);
+  }
+
+  @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     SimpleIdentifier nameNode = node.name;
     Expression initializerNode = node.initializer;
@@ -1182,6 +1239,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } finally {
       _isInInstanceVariableInitializer = wasInInstanceVariableInitializer;
       _namesForReferenceToDeclaredVariableInInitializer.remove(name);
+    }
+    // declare the variable
+    AstNode grandparent = node.parent.parent;
+    if (grandparent is! TopLevelVariableDeclaration &&
+        grandparent is! FieldDeclaration) {
+      VariableElement element = node.element;
+      if (element != null) {
+        _hiddenElements.declare(element);
+      }
     }
     // done
     return null;
@@ -1255,6 +1321,222 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
         }
       }
+    }
+  }
+
+  /**
+   * Check that there are no members with the same name.
+   */
+  void _checkDuplicateClassMembers(ClassDeclaration node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    Set<String> visitedFields = new HashSet<String>();
+    for (ClassMember member in node.members) {
+      // We ignore constructors because they are checked in the method
+      // _checkForConflictingConstructorNameAndMember.
+      if (member is FieldDeclaration) {
+        for (VariableDeclaration field in member.fields.variables) {
+          SimpleIdentifier identifier = field.name;
+          _checkDuplicateIdentifier(definedNames, identifier);
+          String name = identifier.name;
+          if (!field.isFinal &&
+              !field.isConst &&
+              !visitedFields.contains(name)) {
+            _checkDuplicateIdentifier(definedNames, identifier,
+                implicitSetter: true);
+          }
+          visitedFields.add(name);
+        }
+      } else if (member is MethodDeclaration) {
+        _checkDuplicateIdentifier(definedNames, member.name);
+      }
+    }
+  }
+
+  /**
+   * Check that all of the parameters have unique names.
+   */
+  void _checkDuplicateDeclarationInStatements(List<Statement> statements) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    for (Statement statement in statements) {
+      if (statement is VariableDeclarationStatement) {
+        for (VariableDeclaration variable in statement.variables.variables) {
+          _checkDuplicateIdentifier(definedNames, variable.name);
+        }
+      } else if (statement is FunctionDeclarationStatement) {
+        _checkDuplicateIdentifier(
+            definedNames, statement.functionDeclaration.name);
+      }
+    }
+  }
+
+  /**
+   * Check that the exception and stack trace parameters have different names.
+   */
+  void _checkDuplicateDefinitionInCatchClause(CatchClause node) {
+    SimpleIdentifier exceptionParameter = node.exceptionParameter;
+    SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
+    if (exceptionParameter != null && stackTraceParameter != null) {
+      String exceptionName = exceptionParameter.name;
+      if (exceptionName == stackTraceParameter.name) {
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.DUPLICATE_DEFINITION,
+            stackTraceParameter,
+            [exceptionName]);
+      }
+    }
+  }
+
+  /**
+   * Check that all of the parameters have unique names.
+   */
+  void _checkDuplicateDefinitionInParameterList(FormalParameterList node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    for (FormalParameter parameter in node.parameters) {
+      _checkDuplicateIdentifier(definedNames, parameter.identifier);
+    }
+  }
+
+  /**
+   * Check that all of the parameters have unique names.
+   */
+  void _checkDuplicateDefinitionInTypeParameterList(TypeParameterList node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    for (TypeParameter parameter in node.typeParameters) {
+      _checkDuplicateIdentifier(definedNames, parameter.name);
+    }
+  }
+
+  /**
+   * Check that there are no members with the same name.
+   */
+  void _checkDuplicateEnumMembers(EnumDeclaration node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    ClassElement element = node.element;
+    String indexName = 'index';
+    String valuesName = 'values';
+    definedNames[indexName] = element.getField(indexName);
+    definedNames[valuesName] = element.getField(valuesName);
+    for (EnumConstantDeclaration constant in node.constants) {
+      _checkDuplicateIdentifier(definedNames, constant.name);
+    }
+  }
+
+  /**
+   * Check whether the given [identifier] is already in the set of
+   * [definedNames], and produce an error if it is. If [implicitSetter] is
+   * `true`, then the identifier represents the definition of a setter.
+   */
+  void _checkDuplicateIdentifier(
+      Map<String, Element> definedNames, SimpleIdentifier identifier,
+      {bool implicitSetter: false}) {
+    ErrorCode getError(Element previous, Element current) {
+      if (previous is MethodElement && current is PropertyAccessorElement) {
+        if (current.isGetter) {
+          return CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME;
+        }
+      } else if (previous is PropertyAccessorElement &&
+          current is MethodElement) {
+        if (previous.isGetter) {
+          return CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME;
+        }
+      } else if (previous is PrefixElement) {
+        return CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
+      }
+      return CompileTimeErrorCode.DUPLICATE_DEFINITION;
+    }
+
+    Element current = identifier.staticElement;
+    String name = identifier.name;
+    if (current is PropertyAccessorElement && current.isSetter) {
+      name += '=';
+    } else if (current is MethodElement && current.isOperator && name == '-') {
+      if (current.parameters.length == 0) {
+        name = 'unary-';
+      }
+    } else if (implicitSetter) {
+      name += '=';
+    }
+    Element previous = definedNames[name];
+    if (previous != null) {
+      _errorReporter
+          .reportErrorForNode(getError(previous, current), identifier, [name]);
+    } else {
+      definedNames[name] = identifier.staticElement;
+    }
+  }
+
+  /**
+   * Check that there are no members with the same name.
+   */
+  void _checkDuplicateUnitMembers(CompilationUnit node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    void addWithoutChecking(CompilationUnitElement element) {
+      for (PropertyAccessorElement accessor in element.accessors) {
+        String name = accessor.name;
+        if (accessor.isSetter) {
+          name += '=';
+        }
+        definedNames[name] = accessor;
+      }
+      for (ClassElement type in element.enums) {
+        definedNames[type.name] = type;
+      }
+      for (FunctionElement function in element.functions) {
+        definedNames[function.name] = function;
+      }
+      for (FunctionTypeAliasElement alias in element.functionTypeAliases) {
+        definedNames[alias.name] = alias;
+      }
+      for (TopLevelVariableElement variable in element.topLevelVariables) {
+        definedNames[variable.name] = variable;
+        if (!variable.isFinal && !variable.isConst) {
+          definedNames[variable.name + '='] = variable;
+        }
+      }
+      for (ClassElement type in element.types) {
+        definedNames[type.name] = type;
+      }
+    }
+
+    for (ImportElement importElement in _currentLibrary.imports) {
+      PrefixElement prefix = importElement.prefix;
+      if (prefix != null) {
+        definedNames[prefix.name] = prefix;
+      }
+    }
+    CompilationUnitElement element = node.element;
+    if (element != _currentLibrary.definingCompilationUnit) {
+      addWithoutChecking(_currentLibrary.definingCompilationUnit);
+      for (CompilationUnitElement part in _currentLibrary.parts) {
+        if (element == part) {
+          break;
+        }
+        addWithoutChecking(part);
+      }
+    }
+    for (CompilationUnitMember member in node.declarations) {
+      if (member is NamedCompilationUnitMember) {
+        _checkDuplicateIdentifier(definedNames, member.name);
+      } else if (member is TopLevelVariableDeclaration) {
+        for (VariableDeclaration variable in member.variables.variables) {
+          _checkDuplicateIdentifier(definedNames, variable.name);
+          if (!variable.isFinal && !variable.isConst) {
+            _checkDuplicateIdentifier(definedNames, variable.name,
+                implicitSetter: true);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Check that the given list of variable declarations does not define multiple
+   * variables of the same name.
+   */
+  void _checkDuplicateVariables(VariableDeclarationList node) {
+    Map<String, Element> definedNames = new HashMap<String, Element>();
+    for (VariableDeclaration variable in node.variables) {
+      _checkDuplicateIdentifier(definedNames, variable.name);
     }
   }
 
@@ -1439,6 +1721,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       List<ParameterElement> parameters,
       List<AstNode> parameterLocations,
       SimpleIdentifier errorNameTarget) {
+    if (_options.strongMode) {
+      return false; // strong mode already checked for this
+    }
+
     bool isGetter = false;
     bool isSetter = false;
     if (derivedElement is PropertyAccessorElement) {
@@ -1778,6 +2064,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       List<ParameterElement> parameters,
       List<AstNode> parameterLocations,
       SimpleIdentifier errorNameTarget) {
+    assert(!_options.strongMode); // strong mode already checked for these
     //
     // Compute the overridden executable from the InheritanceManager
     //
@@ -1802,6 +2089,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForAllInvalidOverrideErrorCodesForField(
       FieldDeclaration declaration) {
+    if (_options.strongMode) {
+      return; // strong mode already checked for this
+    }
+
     if (_enclosingClass == null || declaration.isStatic) {
       return;
     }
@@ -1833,6 +2124,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void _checkForAllInvalidOverrideErrorCodesForMethod(
       MethodDeclaration method) {
+    if (_options.strongMode) {
+      return; // strong mode already checked for this
+    }
     if (_enclosingClass == null ||
         method.isStatic ||
         method.body is NativeFunctionBody) {
@@ -2045,6 +2339,37 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check the given node to see whether it was ambiguous because the name was
+   * imported from two or more imports.
+   */
+  void _checkForAmbiguousImport(SimpleIdentifier node) {
+    Element element = node.staticElement;
+    if (element is MultiplyDefinedElementImpl) {
+      String name = element.displayName;
+      List<Element> conflictingMembers = element.conflictingElements;
+      int count = conflictingMembers.length;
+      List<String> libraryNames = new List<String>(count);
+      for (int i = 0; i < count; i++) {
+        libraryNames[i] = _getLibraryName(conflictingMembers[i]);
+      }
+      libraryNames.sort();
+      _errorReporter.reportErrorForNode(StaticWarningCode.AMBIGUOUS_IMPORT,
+          node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
+    } else {
+      List<Element> sdkElements =
+          node.getProperty(LibraryImportScope.conflictingSdkElements);
+      if (sdkElements != null) {
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.CONFLICTING_DART_IMPORT, node, [
+          element.displayName,
+          _getLibraryName(sdkElements[0]),
+          _getLibraryName(element)
+        ]);
+      }
+    }
+  }
+
+  /**
    * Verify that the given [expression] can be assigned to its corresponding
    * parameters. The [expectedStaticType] is the expected static type of the
    * parameter. The [actualStaticType] is the actual static type of the
@@ -2168,7 +2493,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType expectedStaticType,
       ErrorCode errorCode) {
     // TODO(leafp): Move the Downcast functionality here.
-    // TODO(leafp): Support strict downcasts
     if (!_expressionIsAssignableAtType(
         expression, actualStaticType, expectedStaticType)) {
       _errorReporter.reportTypeErrorForNode(
@@ -2332,7 +2656,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         overriddenMember = _enclosingClass.lookUpInheritedConcreteMethod(
             memberName, _currentLibrary);
       }
-      if (overriddenMember == null && !_hasNoSuchMethod(_enclosingClass)) {
+      if (overriddenMember == null && !_enclosingClass.hasNoSuchMethod) {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
             nameNode,
@@ -4647,7 +4971,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       SimpleIdentifier classNameNode) {
     if (_enclosingClass.isAbstract) {
       return;
-    } else if (_hasNoSuchMethod(_enclosingClass)) {
+    } else if (_enclosingClass.hasNoSuchMethod) {
       return;
     }
     //
@@ -4715,11 +5039,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           FunctionType requiredMemberFT = _inheritanceManager
               .substituteTypeArgumentsInMemberFromInheritance(
                   requiredMemberType, memberName, enclosingType);
-          foundConcreteFT =
-              _typeSystem.typeToConcreteType(_typeProvider, foundConcreteFT);
-          requiredMemberFT =
-              _typeSystem.typeToConcreteType(_typeProvider, requiredMemberFT);
-          if (_typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
+          foundConcreteFT = _typeSystem.functionTypeToConcreteType(
+              _typeProvider, foundConcreteFT);
+          requiredMemberFT = _typeSystem.functionTypeToConcreteType(
+              _typeProvider, requiredMemberFT);
+
+          // Strong mode does override checking for types in CodeChecker, so
+          // we can skip it here. Doing it here leads to unnecessary duplicate
+          // error messages in subclasses that inherit from one that has an
+          // override error.
+          //
+          // See: https://github.com/dart-lang/sdk/issues/25232
+          if (_options.strongMode ||
+              _typeSystem.isSubtypeOf(foundConcreteFT, requiredMemberFT)) {
             continue;
           }
         }
@@ -5153,6 +5485,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR,
         redirectedConstructorNode);
+  }
+
+  void _checkForReferenceBeforeDeclaration(SimpleIdentifier node) {
+    if (!node.inDeclarationContext() &&
+        _hiddenElements != null &&
+        _hiddenElements.contains(node.staticElement)) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          node,
+          [node.name]);
+    }
   }
 
   /**
@@ -5755,7 +6098,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     // If there is a noSuchMethod method, then don't report the warning,
     // see dartbug.com/16078
-    if (_hasNoSuchMethod(classElement)) {
+    if (_enclosingClass.hasNoSuchMethod) {
       return;
     }
     ExecutableElement callMethod = _inheritanceManager.lookupMember(
@@ -5895,11 +6238,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _expressionIsAssignableAtType(Expression expression,
       DartType actualStaticType, DartType expectedStaticType) {
     bool concrete = _options.strongMode && checker.isKnownFunction(expression);
-    if (concrete) {
-      actualStaticType =
-          _typeSystem.typeToConcreteType(_typeProvider, actualStaticType);
+    if (concrete && actualStaticType is FunctionType) {
+      actualStaticType = _typeSystem.functionTypeToConcreteType(
+          _typeProvider, actualStaticType);
       // TODO(leafp): Move the Downcast functionality here.
-      // TODO(leafp): Support strict downcasts
     }
     return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
   }
@@ -5971,17 +6313,72 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  /**
+   * Return the name of the library that defines given [element].
+   */
+  String _getLibraryName(Element element) {
+    if (element == null) {
+      return StringUtilities.EMPTY;
+    }
+    LibraryElement library = element.library;
+    if (library == null) {
+      return StringUtilities.EMPTY;
+    }
+    List<ImportElement> imports = _currentLibrary.imports;
+    int count = imports.length;
+    for (int i = 0; i < count; i++) {
+      if (identical(imports[i].importedLibrary, library)) {
+        return library.definingCompilationUnit.displayName;
+      }
+    }
+    List<String> indirectSources = new List<String>();
+    for (int i = 0; i < count; i++) {
+      LibraryElement importedLibrary = imports[i].importedLibrary;
+      if (importedLibrary != null) {
+        for (LibraryElement exportedLibrary
+            in importedLibrary.exportedLibraries) {
+          if (identical(exportedLibrary, library)) {
+            indirectSources
+                .add(importedLibrary.definingCompilationUnit.displayName);
+          }
+        }
+      }
+    }
+    int indirectCount = indirectSources.length;
+    StringBuffer buffer = new StringBuffer();
+    buffer.write(library.definingCompilationUnit.displayName);
+    if (indirectCount > 0) {
+      buffer.write(" (via ");
+      if (indirectCount > 1) {
+        indirectSources.sort();
+        buffer.write(StringUtilities.printListOfQuotedNames(indirectSources));
+      } else {
+        buffer.write(indirectSources[0]);
+      }
+      buffer.write(")");
+    }
+    return buffer.toString();
+  }
+
   ExecutableElement _getOverriddenMember(Element member) {
-    if (member == null || _inheritanceManager == null) {
+    if (member == null) {
       return null;
     }
-
     ClassElement classElement =
         member.getAncestor((element) => element is ClassElement);
     if (classElement == null) {
       return null;
     }
-    return _inheritanceManager.lookupInheritance(classElement, member.name);
+    String name = member.name;
+    ClassElement superclass = classElement.supertype?.element;
+    while (superclass != null) {
+      ExecutableElement member = superclass.getMethod(name) ?? superclass.getGetter(name) ?? superclass.getSetter(name);
+      if (member != null) {
+        return member;
+      }
+      superclass = superclass.supertype?.element;
+    }
+    return null;
   }
 
   /**
@@ -5995,22 +6392,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return null;
     }
     return setterParameters[0].type;
-  }
-
-  /**
-   * Return `true` if the given [classElement] has a noSuchMethod() method
-   * distinct from the one declared in class Object, as per the Dart Language
-   * Specification (section 10.4).
-   */
-  bool _hasNoSuchMethod(ClassElement classElement) {
-    MethodElement method = classElement.lookUpMethod(
-        FunctionElement.NO_SUCH_METHOD_METHOD_NAME, classElement.library);
-    if (method == null) {
-      return false;
-    }
-    ClassElement definingClass =
-        method.getAncestor((Element element) => element is ClassElement);
-    return definingClass != null && !definingClass.type.isObject;
   }
 
   /**
@@ -6169,24 +6550,26 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return true;
     }
     AstNode parent = identifier.parent;
-    if (parent is ConstructorName ||
-        parent is MethodInvocation ||
-        parent is PropertyAccess ||
-        parent is SuperConstructorInvocation) {
-      return true;
-    }
-    if (parent is PrefixedIdentifier &&
-        identical(parent.identifier, identifier)) {
-      return true;
-    }
-    if (parent is Annotation && identical(parent.constructorName, identifier)) {
-      return true;
+    if (parent is Annotation) {
+      return identical(parent.constructorName, identifier);
     }
     if (parent is CommentReference) {
-      CommentReference commentReference = parent;
-      if (commentReference.newKeyword != null) {
-        return true;
-      }
+      return parent.newKeyword != null;
+    }
+    if (parent is ConstructorName) {
+      return identical(parent.name, identifier);
+    }
+    if (parent is MethodInvocation) {
+      return identical(parent.methodName, identifier);
+    }
+    if (parent is PrefixedIdentifier) {
+      return identical(parent.identifier, identifier);
+    }
+    if (parent is PropertyAccess) {
+      return identical(parent.propertyName, identifier);
+    }
+    if (parent is SuperConstructorInvocation) {
+      return identical(parent.constructorName, identifier);
     }
     return false;
   }
@@ -6340,6 +6723,61 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
         _addTypeToCheck(typeArgument);
       }
     }
+  }
+}
+
+/**
+ * A record of the elements that will be declared in some scope (block), but are
+ * not yet declared.
+ */
+class HiddenElements {
+  /**
+   * The elements hidden in outer scopes, or `null` if this is the outermost
+   * scope.
+   */
+  final HiddenElements outerElements;
+
+  /**
+   * A set containing the elements that will be declared in this scope, but are
+   * not yet declared.
+   */
+  Set<Element> _elements = new HashSet<Element>();
+
+  /**
+   * Initialize a newly created set of hidden elements to include all of the
+   * elements defined in the set of [outerElements] and all of the elements
+   * declared in the given [block].
+   */
+  HiddenElements(this.outerElements, Block block) {
+    _initializeElements(block);
+  }
+
+  /**
+   * Return `true` if this set of elements contains the given [element].
+   */
+  bool contains(Element element) {
+    if (_elements.contains(element)) {
+      return true;
+    } else if (outerElements != null) {
+      return outerElements.contains(element);
+    }
+    return false;
+  }
+
+  /**
+   * Record that the given [element] has been declared, so it is no longer
+   * hidden.
+   */
+  void declare(Element element) {
+    _elements.remove(element);
+  }
+
+  /**
+   * Initialize the list of elements that are not yet declared to be all of the
+   * elements declared somewhere in the given [block].
+   */
+  void _initializeElements(Block block) {
+    _elements.addAll(BlockScope.elementsInBlock(block));
   }
 }
 

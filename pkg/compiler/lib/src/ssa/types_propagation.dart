@@ -7,7 +7,7 @@ import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
 import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart';
 
@@ -18,13 +18,13 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       new Map<HInstruction, Function>();
 
   final Compiler compiler;
-  final ClassWorld classWorld;
+  final ClosedWorld closedWorld;
   JavaScriptBackend get backend => compiler.backend;
   String get name => 'type propagator';
 
   SsaTypePropagator(Compiler compiler)
       : this.compiler = compiler,
-        this.classWorld = compiler.world;
+        this.closedWorld = compiler.closedWorld;
 
   TypeMask computeType(HInstruction instruction) {
     return instruction.accept(this);
@@ -160,7 +160,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     TypeMask candidateType = backend.emptyType;
     for (int i = 0, length = phi.inputs.length; i < length; i++) {
       TypeMask inputType = phi.inputs[i].instructionType;
-      candidateType = candidateType.union(inputType, classWorld);
+      candidateType = candidateType.union(inputType, closedWorld);
     }
     return candidateType;
   }
@@ -173,25 +173,25 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       // We must make sure a type conversion for receiver or argument check
       // does not try to do an int check, because an int check is not enough.
       // We only do an int check if the input is integer or null.
-      if (checkedType.containsOnlyNum(classWorld) &&
-          !checkedType.containsOnlyDouble(classWorld) &&
+      if (checkedType.containsOnlyNum(closedWorld) &&
+          !checkedType.containsOnlyDouble(closedWorld) &&
           input.isIntegerOrNull(compiler)) {
         instruction.checkedType = backend.intType;
-      } else if (checkedType.containsOnlyInt(classWorld) &&
+      } else if (checkedType.containsOnlyInt(closedWorld) &&
           !input.isIntegerOrNull(compiler)) {
         instruction.checkedType = backend.numType;
       }
     }
 
-    TypeMask outputType = checkedType.intersection(inputType, classWorld);
+    TypeMask outputType = checkedType.intersection(inputType, closedWorld);
     if (outputType.isEmpty) {
       // Intersection of double and integer conflicts (is empty), but JS numbers
       // can be both int and double at the same time.  For example, the input
       // can be a literal double '8.0' that is marked as an integer (because 'is
       // int' will return 'true').  What we really need to do is make the
       // overlap between int and double values explicit in the TypeMask system.
-      if (inputType.containsOnlyInt(classWorld) &&
-          checkedType.containsOnlyDouble(classWorld)) {
+      if (inputType.containsOnlyInt(closedWorld) &&
+          checkedType.containsOnlyDouble(closedWorld)) {
         if (inputType.isNullable && checkedType.isNullable) {
           outputType = backend.doubleType.nullable();
         } else {
@@ -221,7 +221,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     HInstruction input = instruction.checkedInput;
     TypeMask inputType = input.instructionType;
     TypeMask outputType =
-        instruction.knownType.intersection(inputType, classWorld);
+        instruction.knownType.intersection(inputType, closedWorld);
     if (inputType != outputType) {
       input.replaceAllUsersDominatedBy(instruction.next, instruction);
     }
@@ -244,7 +244,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     // In some cases, we want the receiver to be an integer,
     // but that does not mean we will get a NoSuchMethodError
     // if it's not: the receiver could be a double.
-    if (type.containsOnlyInt(classWorld)) {
+    if (type.containsOnlyInt(closedWorld)) {
       // If the instruction's type is integer or null, the codegen
       // will emit a null check, which is enough to know if it will
       // hit a noSuchMethod.
@@ -268,18 +268,18 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           HTypeConversion.RECEIVER_TYPE_CHECK);
       return true;
     } else if (instruction.element == null) {
-      Iterable<Element> targets = compiler.world.allFunctions
+      Iterable<Element> targets = compiler.closedWorld.allFunctions
           .filter(instruction.selector, instruction.mask);
       if (targets.length == 1) {
         Element target = targets.first;
         ClassElement cls = target.enclosingClass;
         TypeMask type =
-            new TypeMask.nonNullSubclass(cls.declaration, classWorld);
+            new TypeMask.nonNullSubclass(cls.declaration, closedWorld);
         // TODO(ngeoffray): We currently only optimize on primitive
         // types.
-        if (!type.satisfies(backend.helpers.jsIndexableClass, classWorld) &&
-            !type.containsOnlyNum(classWorld) &&
-            !type.containsOnlyBool(classWorld)) {
+        if (!type.satisfies(backend.helpers.jsIndexableClass, closedWorld) &&
+            !type.containsOnlyNum(closedWorld) &&
+            !type.containsOnlyBool(closedWorld)) {
           return false;
         }
         if (!isCheckEnoughForNsmOrAe(receiver, type)) return false;
@@ -361,31 +361,47 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     TypeMask receiverType = receiver.instructionType;
     instruction.mask = receiverType;
 
-    // Try to specialize the receiver after this call.
-    if (receiver.dominatedUsers(instruction).length != 1 &&
-        !instruction.selector.isClosureCall) {
-      TypeMask newType = compiler.world.allFunctions
-          .receiverType(instruction.selector, instruction.mask);
-      newType = newType.intersection(receiverType, classWorld);
+    // Try to specialize the receiver after this call by instering a refinement
+    // node (HTypeKnown). There are two potentially expensive tests - are there
+    // any uses of the receiver dominated by and following this call?, and what
+    // is the refined type? The first is expensive if the receiver has many
+    // uses, the second is expensive if many classes implement the selector. So
+    // we try to do the least expensive test first.
+    const int _MAX_QUICK_USERS = 50;
+    if (!instruction.selector.isClosureCall) {
+      TypeMask newType;
+      TypeMask computeNewType() {
+        newType = compiler.closedWorld.allFunctions
+            .receiverType(instruction.selector, instruction.mask);
+        newType = newType.intersection(receiverType, closedWorld);
+        return newType;
+      }
+
       var next = instruction.next;
       if (next is HTypeKnown && next.checkedInput == receiver) {
-        // We already have refined [receiver]. We still update the
-        // type of the [HTypeKnown] instruction because it may have
-        // been refined with a correct type at the time, but
-        // incorrect now.
-        if (next.instructionType != newType) {
+        // On a previous pass or iteration we already refined [receiver] by
+        // inserting a [HTypeKnown] instruction. That replaced several dominated
+        // uses with the refinement. We update the type of the [HTypeKnown]
+        // instruction because it may have been refined with a correct type at
+        // the time, but incorrect now.
+        if (next.instructionType != computeNewType()) {
           next.knownType = next.instructionType = newType;
           addDependentInstructionsToWorkList(next);
         }
-      } else if (newType != receiverType) {
-        // Insert a refinement node after the call and update all
-        // users dominated by the call to use that node instead of
-        // [receiver].
-        HTypeKnown converted =
-            new HTypeKnown.witnessed(newType, receiver, instruction);
-        instruction.block.addBefore(instruction.next, converted);
-        receiver.replaceAllUsersDominatedBy(converted.next, converted);
-        addDependentInstructionsToWorkList(converted);
+      } else {
+        bool hasCandidates() => receiver.dominatedUsers(instruction).length > 1;
+
+        if ((receiver.usedBy.length <= _MAX_QUICK_USERS)
+            ? (hasCandidates() && computeNewType() != receiverType)
+            : (computeNewType() != receiverType && hasCandidates())) {
+          // Insert a refinement node after the call and update all users
+          // dominated by the call to use that node instead of [receiver].
+          HTypeKnown converted =
+              new HTypeKnown.witnessed(newType, receiver, instruction);
+          instruction.block.addBefore(instruction.next, converted);
+          receiver.replaceAllUsersDominatedBy(converted.next, converted);
+          addDependentInstructionsToWorkList(converted);
+        }
       }
     }
 

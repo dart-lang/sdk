@@ -16,24 +16,21 @@ void main() {
   String mainFile =
       'tests/compiler/dart2js/source_map_validator_test_file.dart';
   asyncTest(() => createTempDir().then((Directory tmpDir) {
-    print(
-        'Compiling tests/compiler/dart2js/source_map_validator_test_file.dart');
-    Future<CompilationResult> result = entry.internalMain(
-        [mainFile,
-         '-o${tmpDir.path}/out.js',
-         '--library-root=sdk']);
-      return result.then((CompilationResult result) {
-        CompilerImpl compiler = result.compiler;
-        Uri uri =
-            new Uri.file('${tmpDir.path}/out.js', windows: Platform.isWindows);
-        validateSourceMap(uri,
-                          mainUri: Uri.base.resolve(mainFile),
-                          mainPosition: const Position(13, 1),
-                          compiler: compiler);
+        print(
+            'Compiling tests/compiler/dart2js/source_map_validator_test_file.dart');
+        Future<CompilationResult> result = entry.internalMain(
+            [mainFile, '-o${tmpDir.path}/out.js', '--library-root=sdk']);
+        return result.then((CompilationResult result) {
+          CompilerImpl compiler = result.compiler;
+          Uri uri = new Uri.file('${tmpDir.path}/out.js',
+              windows: Platform.isWindows);
+          validateSourceMap(uri,
+              mainUri: Uri.base.resolve(mainFile),
+              mainPosition: const Position(13, 1),
+              compiler: compiler);
 
-        print("Deleting '${tmpDir.path}'.");
-        tmpDir.deleteSync(recursive: true);
-      });
-  }));
+          print("Deleting '${tmpDir.path}'.");
+          tmpDir.deleteSync(recursive: true);
+        });
+      }));
 }
-

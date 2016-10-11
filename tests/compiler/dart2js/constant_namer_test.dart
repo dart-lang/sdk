@@ -28,10 +28,10 @@ main() {
   }
 
   asyncTest(() => compile(TEST_ONE, entry: 'test').then((String generated) {
-    check(generated, '.List_12_53.');
-    check(generated, '.Token_start_null.');
-    check(generated, '.Token_end_null.');
-    check(generated, '.Token_yes_12.');
-    check(generated, '.Token_true_false.');
-  }));
+        check(generated, '.List_12_53.');
+        check(generated, '.Token_start_null.');
+        check(generated, '.Token_end_null.');
+        check(generated, '.Token_yes_12.');
+        check(generated, '.Token_true_false.');
+      }));
 }

@@ -10,10 +10,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -71,8 +72,7 @@ class AstCloner implements AstVisitor<AstNode> {
    * Return a list containing cloned versions of the nodes in the given list of
    * [nodes].
    */
-  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(
-      List/*<E>*/ nodes) {
+  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(List/*<E>*/ nodes) {
     int count = nodes.length;
     List/*<E>*/ clonedNodes = new List/*<E>*/();
     for (int i = 0; i < count; i++) {
@@ -277,7 +277,7 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.equalToken),
       cloneNode(node.value),
       cloneToken(node.rightParenthesis),
-      cloneNode(node.libraryUri));
+      cloneNode(node.uri));
 
   @override
   ConstructorDeclaration visitConstructorDeclaration(
@@ -376,7 +376,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ExportDirective visitExportDirective(ExportDirective node) {
-    ExportDirective directive = new ExportDirective(
+    ExportDirectiveImpl directive = new ExportDirective(
         cloneNode(node.documentationComment),
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
@@ -384,7 +384,9 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.configurations),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.selectedUriContent = node.selectedUriContent;
+    directive.selectedSource = node.selectedSource;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }
@@ -547,7 +549,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ImportDirective visitImportDirective(ImportDirective node) {
-    ImportDirective directive = new ImportDirective(
+    ImportDirectiveImpl directive = new ImportDirective(
         cloneNode(node.documentationComment),
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
@@ -558,7 +560,9 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNode(node.prefix),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.selectedUriContent = node.selectedUriContent;
+    directive.selectedSource = node.selectedSource;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }
@@ -706,7 +710,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneToken(node.partKeyword),
         cloneNode(node.uri),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }
@@ -936,6 +940,7 @@ class AstCloner implements AstVisitor<AstNode> {
     Token nonComment(Token token) {
       return token is CommentToken ? token.parent : token;
     }
+
     token = nonComment(token);
     if (_lastCloned == null) {
       _lastCloned = new Token(TokenType.EOF, -1);
@@ -1264,7 +1269,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.equalToken, other.equalToken) &&
         isEqualNodes(node.value, other.value) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.libraryUri, other.libraryUri);
+        isEqualNodes(node.uri, other.uri);
   }
 
   @override
@@ -2853,7 +2858,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _mapToken(node.equalToken),
       _cloneNode(node.value),
       _mapToken(node.rightParenthesis),
-      _cloneNode(node.libraryUri));
+      _cloneNode(node.uri));
 
   @override
   ConstructorDeclaration visitConstructorDeclaration(
@@ -4167,8 +4172,8 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.value, _oldNode)) {
       node.value = _newNode as StringLiteral;
       return true;
-    } else if (identical(node.libraryUri, _oldNode)) {
-      node.libraryUri = _newNode as StringLiteral;
+    } else if (identical(node.uri, _oldNode)) {
+      node.uri = _newNode as StringLiteral;
       return true;
     }
     return visitNode(node);
@@ -4706,8 +4711,7 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   bool visitNode(AstNode node) {
-    throw new IllegalArgumentException(
-        "The old node is not a child of it's parent");
+    throw new ArgumentError("The old node is not a child of it's parent");
   }
 
   bool visitNormalFormalParameter(NormalFormalParameter node) {
@@ -5065,21 +5069,18 @@ class NodeReplacer implements AstVisitor<bool> {
    * Replace the [oldNode] with the [newNode] in the AST structure containing
    * the old node. Return `true` if the replacement was successful.
    *
-   * Throws an [IllegalArgumentException] if either node is `null`, if the old
-   * node does not have a parent node, or if the AST structure has been
-   * corrupted.
+   * Throws an [ArgumentError] if either node is `null`, if the old node does
+   * not have a parent node, or if the AST structure has been corrupted.
    */
   static bool replace(AstNode oldNode, AstNode newNode) {
     if (oldNode == null || newNode == null) {
-      throw new IllegalArgumentException(
-          "The old and new nodes must be non-null");
+      throw new ArgumentError("The old and new nodes must be non-null");
     } else if (identical(oldNode, newNode)) {
       return true;
     }
     AstNode parent = oldNode.parent;
     if (parent == null) {
-      throw new IllegalArgumentException(
-          "The old node is not a child of another node");
+      throw new ArgumentError("The old node is not a child of another node");
     }
     NodeReplacer replacer = new NodeReplacer(oldNode, newNode);
     return parent.accept(replacer);
@@ -5361,7 +5362,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.equalToken, toNode.equalToken),
         _isEqualNodes(node.value, toNode.value),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.libraryUri, toNode.libraryUri))) {
+        _isEqualNodes(node.uri, toNode.uri))) {
       return true;
     }
     return false;
@@ -6908,7 +6909,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNode(node.name);
     _visitNodeWithPrefix(" == ", node.value);
     _writer.print(') ');
-    _visitNode(node.libraryUri);
+    _visitNode(node.uri);
     return null;
   }
 
@@ -7204,6 +7205,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNode(node.identifier);
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
+    if (node.question != null) {
+      _writer.print('?');
+    }
     return null;
   }
 
@@ -7650,6 +7654,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitTypeName(TypeName node) {
     _visitNode(node.name);
     _visitNode(node.typeArguments);
+    if (node.question != null) {
+      _writer.print('?');
+    }
     return null;
   }
 

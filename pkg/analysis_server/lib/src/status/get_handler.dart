@@ -27,6 +27,7 @@ import 'package:analysis_server/src/utilities/average.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/sdk_ext.dart';
@@ -35,8 +36,6 @@ import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -47,6 +46,8 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/task/options.dart'
+    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
@@ -486,10 +487,6 @@ class GetHandler {
     if (unit != null) {
       return unit;
     }
-    unit = entry.getValue(RESOLVED_UNIT13);
-    if (unit != null) {
-      return unit;
-    }
     return entry.getValue(RESOLVED_UNIT);
   }
 
@@ -562,7 +559,6 @@ class GetHandler {
       results.add(RESOLVED_UNIT10);
       results.add(RESOLVED_UNIT11);
       results.add(RESOLVED_UNIT12);
-      results.add(RESOLVED_UNIT13);
       results.add(RESOLVED_UNIT);
       results.add(STRONG_MODE_ERRORS);
       results.add(USED_IMPORTED_ELEMENTS);
@@ -1412,7 +1408,6 @@ class GetHandler {
       _writeOption(
           buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
       _writeOption(buffer, 'Cache size', options.cacheSize);
-      _writeOption(buffer, 'Enable async support', options.enableAsync);
       _writeOption(
           buffer, 'Enable generic methods', options.enableGenericMethods);
       _writeOption(
@@ -2185,8 +2180,8 @@ class GetHandler {
           }
         }
         buffer.write('<p>element count: ');
-        buffer.write(
-            counter.counts.values.fold(0, (prev, element) => prev + element));
+        buffer.write(counter.counts.values
+            .fold(0, (int prev, int element) => prev + element));
         buffer.write('</p>');
         buffer.write('<p>  (w/docs): ');
         buffer.write(counter.elementsWithDocs);
@@ -2201,8 +2196,8 @@ class GetHandler {
     buffer.write('SDK');
     buffer.write('</h3></p>');
     buffer.write('<p>element count: ');
-    buffer.write(
-        sdkCounter.counts.values.fold(0, (prev, element) => prev + element));
+    buffer.write(sdkCounter.counts.values
+        .fold(0, (int prev, int element) => prev + element));
     buffer.write('</p>');
     buffer.write('<p>  (w/docs): ');
     buffer.write(sdkCounter.elementsWithDocs);

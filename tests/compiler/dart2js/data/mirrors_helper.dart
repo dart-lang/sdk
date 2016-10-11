@@ -8,11 +8,9 @@
 
 library mirrors_helper;
 
-typedef E Func<E,F extends Foo>(F f);
+typedef E Func<E, F extends Foo>(F f);
 
-main() {
-
-}
+main() {}
 
 /// Singleline doc comment.
 @Metadata(null)
@@ -24,29 +22,26 @@ main() {
 @Metadata(1.5)
 @Metadata("Foo")
 @Metadata(const ["Foo"])
-@Metadata(const {'foo':"Foo"})
+@Metadata(const {'foo': "Foo"})
 @metadata
 /** Multiline doc comment. */
 /* Multiline comment. */ class Foo {
   m(@metadata a) {}
 }
 
+abstract class Bar<E> {}
 
-abstract class Bar<E> {
-
-}
-
-class Baz<E,F extends Foo> implements Bar<E> {
+class Baz<E, F extends Foo> implements Bar<E> {
   Baz();
   const Baz.named();
-  factory Baz.factory() => new Baz<E,F>();
+  factory Baz.factory() => new Baz<E, F>();
 
   static method1(e) {}
   void method2(E e, [F f = null]) {}
-  Baz<E,F> method3(E func1(F f), Func<E,F> func2) => null;
+  Baz<E, F> method3(E func1(F f), Func<E, F> func2) => null;
 
-  bool operator==(Object other) => false;
-  int operator-() => 0;
+  bool operator ==(Object other) => false;
+  int operator -() => 0;
   operator$foo() {}
 }
 

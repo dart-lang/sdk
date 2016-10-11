@@ -6,9 +6,9 @@ library analysis_server.src.status.tree_writer;
 
 import 'dart:convert';
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**

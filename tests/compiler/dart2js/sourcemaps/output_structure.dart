@@ -5,10 +5,7 @@
 library sourcemap.output_structure;
 
 import 'dart:math' as Math;
-import 'html_parts.dart' show
-    Annotation,
-    CodeLine,
-    JsonStrategy;
+import 'html_parts.dart' show Annotation, CodeLine, JsonStrategy;
 
 // Constants used to identify the subsection of the JavaScript output. These
 // are specifically for the unminified full_emitter output.
@@ -43,10 +40,8 @@ abstract class OutputEntity {
   CodeSource codeSource;
 
   Interval getChildInterval(Interval childIndex) {
-    return new Interval(
-        children[childIndex.from].interval.from,
+    return new Interval(children[childIndex.from].interval.from,
         children[childIndex.to - 1].interval.to);
-
   }
 
   OutputEntity getChild(int index) {
@@ -137,11 +132,7 @@ class OutputStructure extends OutputEntity {
   final int footerStart;
   final List<LibraryBlock> children;
 
-  OutputStructure(
-      this.lines,
-      this.headerEnd,
-      this.footerStart,
-      this.children);
+  OutputStructure(this.lines, this.headerEnd, this.footerStart, this.children);
 
   @override
   EntityKind get kind => EntityKind.STRUCTURE;
@@ -168,7 +159,6 @@ class OutputStructure extends OutputEntity {
 
   /// Compute the structure of the JavaScript [lines].
   static OutputStructure parse(List<CodeLine> lines) {
-
     int findHeaderStart(List<CodeLine> lines) {
       int index = 0;
       for (CodeLine line in lines) {
@@ -229,8 +219,7 @@ class OutputStructure extends OutputEntity {
       block.preprocess(lines);
     }
 
-    return new OutputStructure(
-        lines, headerEnd, footerStart, libraryBlocks);
+    return new OutputStructure(lines, headerEnd, footerStart, libraryBlocks);
   }
 
   accept(OutputVisitor visitor, arg) => visitor.visitStructure(this, arg);
@@ -250,10 +239,9 @@ class OutputStructure extends OutputEntity {
         json['lines'].map((l) => CodeLine.fromJson(l, strategy)).toList();
     int headerEnd = json['headerEnd'];
     int footerStart = json['footerStart'];
-    List<LibraryBlock> children =
-        json['children']
-            .map((j) => AbstractEntity.fromJson(j, strategy))
-            .toList();
+    List<LibraryBlock> children = json['children']
+        .map((j) => AbstractEntity.fromJson(j, strategy))
+        .toList();
     return new OutputStructure(lines, headerEnd, footerStart, children);
   }
 }
@@ -298,42 +286,42 @@ abstract class AbstractEntity extends OutputEntity {
         return lib;
       case EntityKind.CLASS:
         LibraryClass cls = new LibraryClass(name, from)
-            ..to = to
-            ..codeSource = codeSource;
+          ..to = to
+          ..codeSource = codeSource;
         json['children']
             .forEach((child) => cls.children.add(fromJson(child, strategy)));
         return cls;
       case EntityKind.TOP_LEVEL_FUNCTION:
         return new TopLevelFunction(name, from)
-            ..to = to
-            ..codeSource = codeSource;
+          ..to = to
+          ..codeSource = codeSource;
       case EntityKind.TOP_LEVEL_VALUE:
         return new TopLevelValue(name, from)
-            ..to = to
-            ..codeSource = codeSource;
+          ..to = to
+          ..codeSource = codeSource;
       case EntityKind.MEMBER_FUNCTION:
         return new MemberFunction(name, from)
-            ..to = to
-            ..codeSource = codeSource;
+          ..to = to
+          ..codeSource = codeSource;
       case EntityKind.MEMBER_OBJECT:
         return new MemberObject(name, from)
-            ..to = to
-            ..codeSource = codeSource;
+          ..to = to
+          ..codeSource = codeSource;
       case EntityKind.MEMBER_VALUE:
         return new MemberValue(name, from)
-            ..to = to
-            ..codeSource = codeSource;
+          ..to = to
+          ..codeSource = codeSource;
       case EntityKind.STATICS:
         Statics statics = new Statics(from)
-            ..to = to
-            ..codeSource = codeSource;
+          ..to = to
+          ..codeSource = codeSource;
         json['children'].forEach(
             (child) => statics.children.add(fromJson(child, strategy)));
         return statics;
       case EntityKind.STATIC_FUNCTION:
         return new StaticFunction(name, from)
-            ..to = to
-            ..codeSource = codeSource;
+          ..to = to
+          ..codeSource = codeSource;
     }
   }
 }
@@ -342,7 +330,7 @@ abstract class AbstractEntity extends OutputEntity {
 class LibraryBlock extends AbstractEntity {
   List<BasicEntity> children = <BasicEntity>[];
   int get headerEnd => from + 2;
-  int get footerStart => to/* - 1*/;
+  int get footerStart => to /* - 1*/;
 
   LibraryBlock(String name, int from) : super(name, from);
 
@@ -675,9 +663,7 @@ class CodeLocation {
   static CodeLocation fromJson(Map json, JsonStrategy strategy) {
     if (json == null) return null;
     return new CodeLocation(
-        Uri.parse(json['uri']),
-        json['name'],
-        json['offset']);
+        Uri.parse(json['uri']), json['name'], json['offset']);
   }
 }
 
@@ -694,8 +680,7 @@ class CodeSource {
   CodeSource(this.kind, this.uri, this.name, this.begin, this.end);
 
   int get hashCode {
-    return
-        kind.hashCode * 13 +
+    return kind.hashCode * 13 +
         uri.hashCode * 17 +
         name.hashCode * 19 +
         begin.hashCode * 23;
@@ -704,12 +689,10 @@ class CodeSource {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! CodeSource) return false;
-    return
-        kind == other.kind &&
+    return kind == other.kind &&
         uri == other.uri &&
         name == other.name &&
         begin == other.begin;
-
   }
 
   String toString() => '${toJson()}';
@@ -727,12 +710,8 @@ class CodeSource {
 
   static CodeSource fromJson(Map json) {
     if (json == null) return null;
-    CodeSource codeSource = new CodeSource(
-        CodeKind.values[json['kind']],
-        Uri.parse(json['uri']),
-        json['name'],
-        json['begin'],
-        json['end']);
+    CodeSource codeSource = new CodeSource(CodeKind.values[json['kind']],
+        Uri.parse(json['uri']), json['name'], json['begin'], json['end']);
     json['members'].forEach((m) => codeSource.members.add(fromJson(m)));
     return codeSource;
   }

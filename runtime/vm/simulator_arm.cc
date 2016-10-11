@@ -3906,6 +3906,13 @@ void Simulator::Longjmp(uword pc,
   ASSERT(raw_exception != Object::null());
   set_register(kExceptionObjectReg, bit_cast<int32_t>(raw_exception));
   set_register(kStackTraceObjectReg, bit_cast<int32_t>(raw_stacktrace));
+  // Restore pool pointer.
+  int32_t code = *reinterpret_cast<int32_t*>(
+      fp + kPcMarkerSlotFromFp * kWordSize);
+  int32_t pp = *reinterpret_cast<int32_t*>(
+      code + Code::object_pool_offset() - kHeapObjectTag);
+  set_register(CODE_REG, code);
+  set_register(PP, pp);
   buf->Longjmp();
 }
 

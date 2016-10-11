@@ -9,8 +9,8 @@ import 'package:compiler/src/io/code_output.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/io/source_information.dart';
 import 'package:compiler/src/js_backend/js_backend.dart';
-import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
-    as full show Emitter;
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart' as full
+    show Emitter;
 
 import 'mock_compiler.dart';
 
@@ -23,8 +23,7 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
     // TODO(floitsch): the outputBuffers are only accessible in the full
     // emitter.
     full.Emitter fullEmitter = backend.emitter.emitter;
-    return fullEmitter
-        .outputBuffers[compiler.deferredLoadTask.mainOutputUnit];
+    return fullEmitter.outputBuffers[compiler.deferredLoadTask.mainOutputUnit];
   });
 }
 
@@ -39,26 +38,27 @@ void testSourceMapLocations(String codeWithMarkers) {
 
   SourceFile sourceFile = new StringSourceFile.fromName('<test script>', code);
   asyncTest(() => compileAll(sourceFile).then((CodeOutput output) {
-    Set<int> locations = new Set<int>();
-    output.forEachSourceLocation((int offset, SourceLocation sourcePosition) {
-      if (sourcePosition != null &&
-          sourcePosition.sourceUri == sourceFile.uri) {
-        locations.add(sourcePosition.offset);
-      }
-    });
+        Set<int> locations = new Set<int>();
+        output
+            .forEachSourceLocation((int offset, SourceLocation sourcePosition) {
+          if (sourcePosition != null &&
+              sourcePosition.sourceUri == sourceFile.uri) {
+            locations.add(sourcePosition.offset);
+          }
+        });
 
-    for (int i = 0; i < expectedLocations.length; ++i) {
-      int expectedLocation = expectedLocations[i];
-      if (!locations.contains(expectedLocation)) {
-        int originalLocation = expectedLocation + i;
-        SourceFile sourceFileWithMarkers =
-            new StringSourceFile.fromName('<test script>', codeWithMarkers);
-        String message = sourceFileWithMarkers.getLocationMessage(
-            'Missing location', originalLocation, originalLocation + 1);
-        Expect.fail(message);
-      }
-    }
-  }));
+        for (int i = 0; i < expectedLocations.length; ++i) {
+          int expectedLocation = expectedLocations[i];
+          if (!locations.contains(expectedLocation)) {
+            int originalLocation = expectedLocation + i;
+            SourceFile sourceFileWithMarkers =
+                new StringSourceFile.fromName('<test script>', codeWithMarkers);
+            String message = sourceFileWithMarkers.getLocationMessage(
+                'Missing location', originalLocation, originalLocation + 1);
+            Expect.fail(message);
+          }
+        }
+      }));
 }
 
 String FUNCTIONS_TEST = '''
@@ -72,7 +72,8 @@ String NOT_TEST = 'void main() { ((x) { if (@!x) print(x); })(1==2); }';
 
 String UNARY_TEST = 'void main() { ((x, y) { print(@-x + @~y); })(1,2); }';
 
-String BINARY_TEST = 'void main() { ((x, y) { if (x @!= y) print(x @* y); })(1,2); }';
+String BINARY_TEST =
+    'void main() { ((x, y) { if (x @!= y) print(x @* y); })(1,2); }';
 
 String SEND_TEST = '''
 void main() {

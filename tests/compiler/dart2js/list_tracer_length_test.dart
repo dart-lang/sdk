@@ -89,8 +89,8 @@ main() {
 
 void checkRangeError(String test, {bool hasRangeError}) {
   asyncTest(() => compileAll(test).then((generated) {
-    Expect.equals(hasRangeError, generated.contains('ioore'));
-  }));
+        Expect.equals(hasRangeError, generated.contains('ioore'));
+      }));
 }
 
 main() {

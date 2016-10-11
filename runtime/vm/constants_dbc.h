@@ -197,10 +197,10 @@ namespace dart {
 //    the immediately following instruction is skipped. These instructions
 //    expect their operands to be Smis, but don't check that they are.
 //
-//  - ShrImm rA, rB, rC
+//  - ShlImm rA, rB, rC
 //
-//    FP[rA] <- FP[rB] >> rC. Shifts the Smi in FP[rB] right by rC. rC is
-//    assumed to be a legal positive number by which righ-shifting is possible.
+//    FP[rA] <- FP[rB] << rC. Shifts the Smi in FP[rB] left by rC. rC is
+//    assumed to be a legal positive number by which left-shifting is possible.
 //
 //  - Min, Max rA, rB, rC
 //
@@ -220,6 +220,16 @@ namespace dart {
 //
 //    FP[rA] <- op(FP[rD]). Assumes FP[rD] is an unboxed double.
 //
+//  - DTruncate, DFloor, DCeil rA, rD
+//
+//    Applies trunc(), floor(), or ceil() to the unboxed double in FP[rD], and
+//    stores the result in FP[rA].
+//
+//  - DoubleToFloat, FloatToDouble rA, rD
+//
+//    Convert the unboxed float or double in FP[rD] as indicated, and store the
+//    result in FP[rA].
+//
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
 //    FP[rA] <- FP[rB] op FP[rC]. These instructions expect their operands to be
@@ -231,7 +241,7 @@ namespace dart {
 //
 //  - WriteIntoDouble rA, rD
 //
-//    Box the double in FP[rD] with the result in FP[rA].
+//    Box the double in FP[rD] using the box in FP[rA].
 //
 //  - UnboxDouble rA, rD
 //
@@ -242,6 +252,20 @@ namespace dart {
 //    Unboxes FP[rD] into FP[rA] and skips the following instruction unless
 //    FP[rD] is not a double or a Smi. When FP[rD] is a Smi, converts it to a
 //    double.
+//
+//  - UnboxInt32 rA, rB, C
+//
+//    Unboxes the integer in FP[rB] into FP[rA]. If C == 1, the value may be
+//    truncated. If FP[rA] is successfully unboxed the following instruction is
+//    skipped.
+//
+//  - BoxInt32 rA, rD
+//
+//    Boxes the unboxed signed 32-bit integer in FP[rD] into FP[rA].
+//
+//  - BoxUint32 rA, rD
+//
+//    Boxes the unboxed unsigned 32-bit integer in FP[rD] into FP[rA].
 //
 //  - SmiToDouble rA, rD
 //
@@ -295,13 +319,34 @@ namespace dart {
 //
 //    Allocate array of length SP[0] with type arguments SP[-1].
 //
+//  - CreateArrayOpt rA, rB, rC
+//
+//    Try to allocate a new array where FP[rB] is the length, and FP[rC] is the
+//    type. If allocation is successful, the result is stored in FP[rA], and
+//    the next four instructions, which should be the
+//    (Push type; Push length; AllocateTOS; PopLocal) slow path are skipped.
+//
 //  - Allocate D
 //
 //    Allocate object of class PP[D] with no type arguments.
 //
+//  - AllocateOpt rA, D
+//
+//    Try allocating an object with tags in PP[D] with no type arguments.
+//    If allocation is successful, the result is stored in FP[rA], and
+//    the next two instructions, which should be the (Allocate class; PopLocal)
+//    slow path are skipped
+//
 //  - AllocateT
 //
 //    Allocate object of class SP[0] with type arguments SP[-1].
+//
+//  - AllocateTOpt rA, D
+//
+//    Similar to AllocateOpt with the difference that the offset of the
+//    type arguments in the resulting object is taken from the D field of the
+//    following Nop instruction, and on success 4 instructions are skipped and
+//    the object at the top of the stack is popped.
 //
 //  - StoreIndexedTOS
 //
@@ -313,20 +358,39 @@ namespace dart {
 //    Store FP[rC] into array FP[rA] at index FP[rB]. No typechecking is done.
 //    FP[rA] is assumed to be a RawArray, FP[rB] to be a smi.
 //
-//  - StoreFloat64Indexed rA, rB, rC
+//  - StoreIndexed{N}{Type} rA, rB, rC
 //
-//    Store the unboxed double in FP[rC] into the typed data array at FP[rA]
-//    at index FP[rB].
+//    Where Type is Float32, Float64, Uint8, or OneByteString
+//    Where N is '', '4', or '8'. N may only be '4' for Float32 and '8' for
+//    Float64.
+//
+//    Store the unboxed double or tagged Smi in FP[rC] into the typed data array
+//    at FP[rA] at index FP[rB]. If N is not '', the index is assumed to be
+//    already scaled by N.
+//
+//  - StoreIndexedExternalUint8 rA, rB, rC
+//
+//    Similar to StoreIndexedUint8 but FP[rA] is an external typed data aray.
 //
 //  - LoadIndexed rA, rB, rC
 //
 //    Loads from array FP[rB] at index FP[rC] into FP[rA]. No typechecking is
 //    done. FP[rB] is assumed to be a RawArray, and to contain a Smi at FP[rC].
 //
-//  - Load{Float64, OneByteString, TwoByteString}Indexed rA, rB, rC
+//  - LoadIndexed{N}{Type} rA, rB, rC
+//
+//    Where Type is Float32, Float64, OneByteString, TwoByteString, Uint8,
+//    Int8, and N is '', '4', or '8'. N may only be '4' for Float32, and may
+//    only be '8' for Float64.
 //
 //    Loads from typed data array FP[rB] at index FP[rC] into an unboxed double,
-//    or tagged Smi in FP[rA] as indicated by the type in the name.
+//    or tagged Smi in FP[rA] as indicated by the type in the name. If N is not
+//    '', the index is assumed to be already scaled by N.
+//
+//  - LoadIndexedExternal{Int8, Uint8} rA, rB, rC
+//
+//    Loads from the external typed data array FP[rB] at index FP[rC] into
+//    FP[rA]. No typechecking is done.
 //
 //  - StoreField rA, B, rC
 //
@@ -339,6 +403,10 @@ namespace dart {
 //  - LoadField rA, rB, C
 //
 //    Load value at offset (in words) C from object FP[rB] into FP[rA].
+//
+//  - LoadUntagged rA, rB, C
+//
+//    Like LoadField, but assumes that FP[rB] is untagged.
 //
 //  - LoadFieldTOS D
 //
@@ -415,6 +483,12 @@ namespace dart {
 //  - AllocateContext D
 //
 //    Allocate Context object assuming for D context variables.
+//
+//  - AllocateUninitializedContext rA, D
+//
+//    Allocates an uninitialized context for D variables, and places the result
+//    in FP[rA]. On success, skips the next 2 instructions, which should be the
+//    slow path (AllocateContext D; PopLocal rA).
 //
 //  - CloneContext
 //
@@ -594,7 +668,7 @@ namespace dart {
   V(Mod,                         A_B_C, reg, reg, reg) \
   V(Shl,                         A_B_C, reg, reg, reg) \
   V(Shr,                         A_B_C, reg, reg, reg) \
-  V(ShrImm,                      A_B_C, reg, reg, num) \
+  V(ShlImm,                      A_B_C, reg, reg, num) \
   V(Neg,                           A_D, reg, reg, ___) \
   V(BitOr,                       A_B_C, reg, reg, reg) \
   V(BitAnd,                      A_B_C, reg, reg, reg) \
@@ -605,6 +679,9 @@ namespace dart {
   V(WriteIntoDouble,               A_D, reg, reg, ___) \
   V(UnboxDouble,                   A_D, reg, reg, ___) \
   V(CheckedUnboxDouble,            A_D, reg, reg, ___) \
+  V(UnboxInt32,                  A_B_C, reg, reg, num) \
+  V(BoxInt32,                      A_D, reg, reg, ___) \
+  V(BoxUint32,                     A_D, reg, reg, ___) \
   V(SmiToDouble,                   A_D, reg, reg, ___) \
   V(DoubleToSmi,                   A_D, reg, reg, ___) \
   V(DAdd,                        A_B_C, reg, reg, reg) \
@@ -619,6 +696,11 @@ namespace dart {
   V(DSin,                          A_D, reg, reg, ___) \
   V(DPow,                        A_B_C, reg, reg, reg) \
   V(DMod,                        A_B_C, reg, reg, reg) \
+  V(DTruncate,                     A_D, reg, reg, ___) \
+  V(DFloor,                        A_D, reg, reg, ___) \
+  V(DCeil,                         A_D, reg, reg, ___) \
+  V(DoubleToFloat,                 A_D, reg, reg, ___) \
+  V(FloatToDouble,                 A_D, reg, reg, ___) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
@@ -647,18 +729,38 @@ namespace dart {
   V(IfEqNull,                        A, reg, ___, ___) \
   V(IfNeNull,                        A, reg, ___, ___) \
   V(CreateArrayTOS,                  0, ___, ___, ___) \
+  V(CreateArrayOpt,              A_B_C, reg, reg, ___) \
   V(Allocate,                        D, lit, ___, ___) \
   V(AllocateT,                       0, ___, ___, ___) \
+  V(AllocateOpt,                   A_D, reg, lit, ___) \
+  V(AllocateTOpt,                  A_D, reg, lit, ___) \
   V(StoreIndexedTOS,                 0, ___, ___, ___) \
   V(StoreIndexed,                A_B_C, reg, reg, reg) \
-  V(StoreFloat64Indexed,         A_B_C, reg, reg, reg) \
+  V(StoreIndexedUint8,           A_B_C, reg, reg, reg) \
+  V(StoreIndexedExternalUint8,   A_B_C, reg, reg, reg) \
+  V(StoreIndexedOneByteString,   A_B_C, reg, reg, reg) \
+  V(StoreIndexedUint32,          A_B_C, reg, reg, reg) \
+  V(StoreIndexedFloat32,         A_B_C, reg, reg, reg) \
+  V(StoreIndexed4Float32,        A_B_C, reg, reg, reg) \
+  V(StoreIndexedFloat64,         A_B_C, reg, reg, reg) \
+  V(StoreIndexed8Float64,        A_B_C, reg, reg, reg) \
   V(LoadIndexed,                 A_B_C, reg, reg, reg) \
-  V(LoadFloat64Indexed,          A_B_C, reg, reg, reg) \
-  V(LoadOneByteStringIndexed,    A_B_C, reg, reg, reg) \
-  V(LoadTwoByteStringIndexed,    A_B_C, reg, reg, reg) \
+  V(LoadIndexedUint8,            A_B_C, reg, reg, reg) \
+  V(LoadIndexedInt8,             A_B_C, reg, reg, reg) \
+  V(LoadIndexedInt32,            A_B_C, reg, reg, reg) \
+  V(LoadIndexedUint32,           A_B_C, reg, reg, reg) \
+  V(LoadIndexedExternalUint8,    A_B_C, reg, reg, reg) \
+  V(LoadIndexedExternalInt8,     A_B_C, reg, reg, reg) \
+  V(LoadIndexedFloat32,          A_B_C, reg, reg, reg) \
+  V(LoadIndexed4Float32,         A_B_C, reg, reg, reg) \
+  V(LoadIndexedFloat64,          A_B_C, reg, reg, reg) \
+  V(LoadIndexed8Float64,         A_B_C, reg, reg, reg) \
+  V(LoadIndexedOneByteString,    A_B_C, reg, reg, reg) \
+  V(LoadIndexedTwoByteString,    A_B_C, reg, reg, reg) \
   V(StoreField,                  A_B_C, reg, num, reg) \
   V(StoreFieldTOS,                   D, num, ___, ___) \
   V(LoadField,                   A_B_C, reg, reg, num) \
+  V(LoadUntagged,                A_B_C, reg, reg, num) \
   V(LoadFieldTOS,                    D, num, ___, ___) \
   V(BooleanNegateTOS,                0, ___, ___, ___) \
   V(BooleanNegate,                 A_D, reg, reg, ___) \
@@ -669,6 +771,7 @@ namespace dart {
   V(Frame,                           D, num, ___, ___) \
   V(SetFrame,                        A, num, ___, num) \
   V(AllocateContext,                 D, num, ___, ___) \
+  V(AllocateUninitializedContext,  A_D, reg, num, ___) \
   V(CloneContext,                    0, ___, ___, ___) \
   V(MoveSpecial,                   A_D, reg, num, ___) \
   V(InstantiateType,                 D, lit, ___, ___) \

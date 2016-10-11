@@ -182,20 +182,6 @@ namespace dart {
   V(TypedData_Float32x4Array_new, 2)                                           \
   V(TypedData_Int32x4Array_new, 2)                                             \
   V(TypedData_Float64x2Array_new, 2)                                           \
-  V(ExternalTypedData_Int8Array_new, 2)                                        \
-  V(ExternalTypedData_Uint8Array_new, 2)                                       \
-  V(ExternalTypedData_Uint8ClampedArray_new, 2)                                \
-  V(ExternalTypedData_Int16Array_new, 2)                                       \
-  V(ExternalTypedData_Uint16Array_new, 2)                                      \
-  V(ExternalTypedData_Int32Array_new, 2)                                       \
-  V(ExternalTypedData_Uint32Array_new, 2)                                      \
-  V(ExternalTypedData_Int64Array_new, 2)                                       \
-  V(ExternalTypedData_Uint64Array_new, 2)                                      \
-  V(ExternalTypedData_Float32Array_new, 2)                                     \
-  V(ExternalTypedData_Float64Array_new, 2)                                     \
-  V(ExternalTypedData_Float32x4Array_new, 2)                                   \
-  V(ExternalTypedData_Int32x4Array_new, 2)                                     \
-  V(ExternalTypedData_Float64x2Array_new, 2)                                   \
   V(TypedData_length, 1)                                                       \
   V(TypedData_setRange, 7)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
@@ -330,7 +316,6 @@ namespace dart {
   V(Internal_makeListFixedLength, 1)                                           \
   V(Internal_makeFixedListUnmodifiable, 1)                                     \
   V(Internal_inquireIs64Bit, 0)                                                \
-  V(LinkedHashMap_allocate, 1)                                                 \
   V(LinkedHashMap_getIndex, 1)                                                 \
   V(LinkedHashMap_setIndex, 2)                                                 \
   V(LinkedHashMap_getData, 1)                                                  \

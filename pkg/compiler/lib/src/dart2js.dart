@@ -324,6 +324,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
+    new OptionHandler(Flags.useKernel, passThrough),
     new OptionHandler(Flags.noFrequencyBasedMinification, passThrough),
     new OptionHandler(Flags.verbose, setVerbose),
     new OptionHandler(Flags.version, (_) => wantVersion = true),
@@ -364,6 +365,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.analyzeSignaturesOnly, setAnalyzeOnly),
     new OptionHandler(Flags.disableNativeLiveTypeAnalysis, passThrough),
     new OptionHandler('--categories=.*', setCategories),
+    new OptionHandler(Flags.disableInlining, implyCompilation),
     new OptionHandler(Flags.disableTypeInference, implyCompilation),
     new OptionHandler(Flags.terse, passThrough),
     new OptionHandler('--deferred-map=.+', implyCompilation),

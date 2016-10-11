@@ -11,8 +11,8 @@ class ClassStubGenerator {
 
   ClassStubGenerator(this.compiler, this.namer, this.backend);
 
-  jsAst.Expression generateClassConstructor(
-      ClassElement classElement, Iterable<jsAst.Name> fields) {
+  jsAst.Expression generateClassConstructor(ClassElement classElement,
+      Iterable<jsAst.Name> fields, bool hasRtiField) {
     // TODO(sra): Implement placeholders in VariableDeclaration position:
     //
     //     String constructorName = namer.getNameOfClass(classElement);
@@ -20,9 +20,18 @@ class ClassStubGenerator {
     //        [ constructorName, fields,
     //            fields.map(
     //                (name) => js('this.# = #', [name, name]))]));
-    return js('function(#) { #; this.#();}', [
+    var typeParameters = const <jsAst.Parameter>[];
+    var typeInits = const <jsAst.Expression>[];
+    if (hasRtiField) {
+      String parameterName = r'$ti';
+      typeParameters = parameterName;
+      typeInits = js('this.# = #', [namer.rtiFieldName, parameterName]);
+    }
+    return js('function(#, #) { #; #; this.#();}', [
       fields,
+      typeParameters,
       fields.map((name) => js('this.# = #', [name, name])),
+      typeInits,
       namer.deferredAction
     ]);
   }
@@ -83,8 +92,8 @@ class ClassStubGenerator {
     Set<Selector> generatedSelectors = new Set<Selector>();
     for (Selector selector in selectors.keys) {
       if (generatedSelectors.contains(selector)) continue;
-      if (!selector.appliesUnnamed(member, compiler.world)) continue;
-      if (selectors[selector].applies(member, selector, compiler.world)) {
+      if (!selector.appliesUnnamed(member)) continue;
+      if (selectors[selector].applies(member, selector, compiler.closedWorld)) {
         generatedSelectors.add(selector);
 
         jsAst.Name invocationName = namer.invocationName(selector);
@@ -125,7 +134,7 @@ class ClassStubGenerator {
         String ignore, Map<Selector, SelectorConstraints> selectors) {
       for (Selector selector in selectors.keys) {
         SelectorConstraints maskSet = selectors[selector];
-        if (maskSet.needsNoSuchMethodHandling(selector, compiler.world)) {
+        if (maskSet.needsNoSuchMethodHandling(selector, compiler.closedWorld)) {
           jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
           jsNames[jsName] = selector;
         }

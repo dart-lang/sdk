@@ -1923,6 +1923,110 @@ class A {a(blat: ^) { }}''');
     assertNotSuggested('bar');
   }
 
+  test_doc_classMember() async {
+    String docLines = r'''
+  /// My documentation.
+  /// Short description.
+  ///
+  /// Longer description.
+''';
+    void assertDoc(CompletionSuggestion suggestion) {
+      expect(suggestion.docSummary, 'My documentation.\nShort description.');
+      expect(suggestion.docComplete,
+          'My documentation.\nShort description.\n\nLonger description.');
+    }
+
+    addTestSource('''
+class C {
+$docLines
+  int myField;
+
+$docLines
+  myMethod() {}
+
+$docLines
+  int get myGetter => 0;
+
+  main() {^}
+}''');
+    await computeSuggestions();
+    {
+      CompletionSuggestion suggestion = assertSuggestField('myField', 'int',
+          relevance: DART_RELEVANCE_LOCAL_FIELD);
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestMethod(
+          'myMethod', 'C', null,
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestGetter('myGetter', 'int',
+          relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
+      assertDoc(suggestion);
+    }
+  }
+
+  test_doc_topLevel() async {
+    String docLines = r'''
+/// My documentation.
+/// Short description.
+///
+/// Longer description.
+''';
+    void assertDoc(CompletionSuggestion suggestion) {
+      expect(suggestion.docSummary, 'My documentation.\nShort description.');
+      expect(suggestion.docComplete,
+          'My documentation.\nShort description.\n\nLonger description.');
+    }
+
+    addTestSource('''
+$docLines
+class MyClass {}
+
+$docLines
+class MyClassTypeAlias = Object with MyClass;
+
+$docLines
+enum MyEnum {A, B, C}
+
+$docLines
+void myFunction() {}
+
+$docLines
+int myVariable;
+
+main() {^}
+''');
+    await computeSuggestions();
+    {
+      CompletionSuggestion suggestion = assertSuggestClass('MyClass');
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion =
+          assertSuggestClassTypeAlias('MyClassTypeAlias');
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestEnum('MyEnum');
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestFunction(
+          'myFunction', 'void',
+          relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestTopLevelVar(
+          'myVariable', 'int',
+          relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+      assertDoc(suggestion);
+    }
+  }
+
   test_enum() async {
     addTestSource('enum E { one, two } main() {^}');
     await computeSuggestions();

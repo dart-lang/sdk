@@ -89,7 +89,8 @@ class DeferredLoadTask extends CompilerTask {
   String get name => 'Deferred Loading';
 
   /// DeferredLibrary from dart:async
-  ClassElement get deferredLibraryClass => compiler.deferredLibraryClass;
+  ClassElement get deferredLibraryClass =>
+      compiler.commonElements.deferredLibraryClass;
 
   /// A synthetic import representing the loading of the main program.
   final _DeferredImport _fakeMainImport = const _DeferredImport();
@@ -221,11 +222,23 @@ class DeferredLoadTask extends CompilerTask {
     return outputUnitTo.imports.containsAll(outputUnitFrom.imports);
   }
 
+  // TODO(het): use a union-find to canonicalize output units
+  OutputUnit _getCanonicalUnit(OutputUnit outputUnit) {
+    OutputUnit representative = allOutputUnits.lookup(outputUnit);
+    if (representative == null) {
+      representative = outputUnit;
+      allOutputUnits.add(representative);
+    }
+    return representative;
+  }
+
   void registerConstantDeferredUse(
       DeferredConstantValue constant, PrefixElement prefix) {
     OutputUnit outputUnit = new OutputUnit();
     outputUnit.imports.add(new _DeclaredDeferredImport(prefix.deferredImport));
-    _constantToOutputUnit[constant] = outputUnit;
+
+    // Check to see if there is already a canonical output unit registered.
+    _constantToOutputUnit[constant] = _getCanonicalUnit(outputUnit);
   }
 
   /// Answers whether [element] is explicitly deferred when referred to from
@@ -463,7 +476,7 @@ class DeferredLoadTask extends CompilerTask {
     }
 
     traverseLibrary(root);
-    result.add(compiler.coreLibrary);
+    result.add(compiler.commonElements.coreLibrary);
     return result;
   }
 
@@ -668,7 +681,7 @@ class DeferredLoadTask extends CompilerTask {
 
               // Now check to see if we have to add more elements due to
               // mirrors.
-              if (compiler.mirrorsLibrary != null) {
+              if (compiler.commonElements.mirrorsLibrary != null) {
                 _addMirrorElements();
               }
 
@@ -677,6 +690,11 @@ class DeferredLoadTask extends CompilerTask {
                   new Map<Element, OutputUnit>();
               Map<ConstantValue, OutputUnit> constantToOutputUnitBuilder =
                   new Map<ConstantValue, OutputUnit>();
+
+              // Add all constants that may have been registered during
+              // resolution with [registerConstantDeferredUse].
+              constantToOutputUnitBuilder.addAll(_constantToOutputUnit);
+              _constantToOutputUnit.clear();
 
               // Reverse the mappings. For each element record an OutputUnit
               // collecting all deferred imports mapped to this element. Same
@@ -720,21 +738,11 @@ class DeferredLoadTask extends CompilerTask {
               // to, and canonicalize them.
               elementToOutputUnitBuilder
                   .forEach((Element element, OutputUnit outputUnit) {
-                OutputUnit representative = allOutputUnits.lookup(outputUnit);
-                if (representative == null) {
-                  representative = outputUnit;
-                  allOutputUnits.add(representative);
-                }
-                _elementToOutputUnit[element] = representative;
+                _elementToOutputUnit[element] = _getCanonicalUnit(outputUnit);
               });
               constantToOutputUnitBuilder
                   .forEach((ConstantValue constant, OutputUnit outputUnit) {
-                OutputUnit representative = allOutputUnits.lookup(outputUnit);
-                if (representative == null) {
-                  representative = outputUnit;
-                  allOutputUnits.add(representative);
-                }
-                _constantToOutputUnit[constant] = representative;
+                _constantToOutputUnit[constant] = _getCanonicalUnit(outputUnit);
               });
 
               // Generate a unique name for each OutputUnit.
@@ -1021,7 +1029,7 @@ class _DeclaredDeferredImport implements _DeferredImport {
         ConstantValue value =
             compiler.constants.getConstantValue(metadata.constant);
         Element element = value.getType(compiler.coreTypes).element;
-        if (element == compiler.deferredLibraryClass) {
+        if (element == compiler.commonElements.deferredLibraryClass) {
           ConstructedConstantValue constant = value;
           StringConstantValue s = constant.fields.values.single;
           result = s.primitiveValue.slowToString();

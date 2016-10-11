@@ -55,7 +55,6 @@ checkAndRange(Range one, Range two, lower, upper) {
 }
 
 checkSubRange(Range one, Range two, [lower, upper]) {
-
   buildBound(one, two) {
     // Create a bound just like our current implementation in dart2js does.
     if (two is IntValue) {

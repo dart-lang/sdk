@@ -30,11 +30,11 @@ foo(a) {
 
 main() {
   asyncTest(() => Future.wait([
-    compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(!generated.contains(r'break'));
-    }),
-    compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains(r'continue'));
-    }),
-  ]));
+        compile(TEST_ONE, entry: 'foo', check: (String generated) {
+          Expect.isTrue(!generated.contains(r'break'));
+        }),
+        compile(TEST_TWO, entry: 'foo', check: (String generated) {
+          Expect.isTrue(generated.contains(r'continue'));
+        }),
+      ]));
 }

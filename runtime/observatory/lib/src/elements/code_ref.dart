@@ -7,13 +7,13 @@ library code_ref_element;
 import 'dart:html';
 import 'dart:async';
 import 'package:observatory/models.dart' as M
-  show IsolateRef, CodeRef, isSyntheticCode;
+    show IsolateRef, CodeRef, isSyntheticCode;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class CodeRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<CodeRefElement>('code-ref-wrapped');
+  static const tag = const Tag<CodeRefElement>('code-ref');
 
   RenderingScheduler<CodeRefElement> _r;
 
@@ -54,9 +54,10 @@ class CodeRefElement extends HtmlElement implements Renderable {
   void render() {
     final name = (_code.isOptimized ? '*' : '') + _code.name;
     children = [
-      new AnchorElement(href: M.isSyntheticCode(_code.kind) ? null
-          : Uris.inspect(_isolate, object: _code))
-        ..text = name
+      new AnchorElement(
+          href: M.isSyntheticCode(_code.kind)
+              ? null
+              : Uris.inspect(_isolate, object: _code))..text = name
     ];
   }
 }

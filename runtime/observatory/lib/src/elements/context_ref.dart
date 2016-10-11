@@ -4,14 +4,13 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, ContextRef;
+import 'package:observatory/models.dart' as M show IsolateRef, ContextRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ContextRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ContextRefElement>('context-ref-wrapped');
+  static const tag = const Tag<ContextRefElement>('context-ref');
 
   RenderingScheduler<ContextRefElement> _r;
 
@@ -53,7 +52,9 @@ class ContextRefElement extends HtmlElement implements Renderable {
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _context))
         ..children = [
-          new SpanElement()..classes = ['empathize']..text = 'Context',
+          new SpanElement()
+            ..classes = ['emphasize']
+            ..text = 'Context',
           new SpanElement()..text = ' (${_context.length})'
         ]
     ];

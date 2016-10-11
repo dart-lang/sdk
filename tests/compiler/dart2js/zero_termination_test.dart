@@ -32,9 +32,9 @@ Future handleRequest(HttpRequest request) {
   final File file = new File(requestPath.toFilePath());
   return file.exists().then((bool found) {
     if (found) {
-      file.openRead()
-          .pipe(request.response)
-          .catchError((e) { _sendNotFound(request.response); });
+      file.openRead().pipe(request.response).catchError((e) {
+        _sendNotFound(request.response);
+      });
     } else {
       _sendNotFound(request.response);
     }
@@ -86,7 +86,8 @@ Future serverRunning(HttpServer server) async {
 }
 
 Future testHttp() {
-  return HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 0)
+  return HttpServer
+      .bind(InternetAddress.LOOPBACK_IP_V4, 0)
       .then((HttpServer server) => serverRunning(server));
 }
 
@@ -98,7 +99,7 @@ runTests() async {
     await testFile();
     await testHttp();
   } finally {
-    await tempDir.delete(recursive:true);
+    await tempDir.delete(recursive: true);
   }
 }
 

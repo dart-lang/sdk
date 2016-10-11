@@ -4,7 +4,10 @@
 
 library analyzer.test.src.task.html_work_manager_test;
 
+import 'package:analyzer/error/error.dart' show AnalysisError;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/error/codes.dart' show HtmlErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisEngine,
@@ -13,9 +16,6 @@ import 'package:analyzer/src/generated/engine.dart'
         CacheState,
         ChangeNoticeImpl,
         InternalAnalysisContext;
-import 'package:analyzer/src/generated/error.dart'
-    show AnalysisError, HtmlErrorCode;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
@@ -23,16 +23,16 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
 import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(HtmlWorkManagerTest);
+  defineReflectiveTests(HtmlWorkManagerTest);
 }
 
 @reflectiveTest

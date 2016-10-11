@@ -78,9 +78,54 @@ DECLARE_FLAG(bool, trace_irregexp);
 
 class DartPrecompilationPipeline : public DartCompilationPipeline {
  public:
-  DartPrecompilationPipeline() : result_type_(CompileType::None()) { }
+  explicit DartPrecompilationPipeline(Zone* zone,
+                                      FieldTypeMap* field_map = NULL)
+      : zone_(zone),
+        result_type_(CompileType::None()),
+        field_map_(field_map) { }
 
   virtual void FinalizeCompilation(FlowGraph* flow_graph) {
+    if ((field_map_ != NULL )&&
+        flow_graph->function().IsGenerativeConstructor()) {
+      for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
+           !block_it.Done();
+           block_it.Advance()) {
+        ForwardInstructionIterator it(block_it.Current());
+        for (; !it.Done(); it.Advance()) {
+          StoreInstanceFieldInstr* store = it.Current()->AsStoreInstanceField();
+          if (store != NULL) {
+            if (!store->field().IsNull() && store->field().is_final()) {
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                THR_Print("Found store to %s <- %s\n",
+                          store->field().ToCString(),
+                          store->value()->Type()->ToCString());
+              }
+              FieldTypePair* entry = field_map_->Lookup(&store->field());
+              if (entry == NULL) {
+                field_map_->Insert(FieldTypePair(
+                    &Field::Handle(zone_, store->field().raw()),  // Re-wrap.
+                    store->value()->Type()->ToCid()));
+                if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                    THR_Print(" initial type = %s\n",
+                              store->value()->Type()->ToCString());
+                }
+                continue;
+              }
+              CompileType type = CompileType::FromCid(entry->cid_);
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                  THR_Print(" old type = %s\n", type.ToCString());
+              }
+              type.Union(store->value()->Type());
+              if (FLAG_trace_precompiler && FLAG_support_il_printer) {
+                  THR_Print(" new type = %s\n", type.ToCString());
+              }
+              entry->cid_ = type.ToCid();
+            }
+          }
+        }
+      }
+    }
+
     CompileType result_type = CompileType::None();
     for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
          !block_it.Done();
@@ -99,7 +144,9 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
   CompileType result_type() { return result_type_; }
 
  private:
+  Zone* zone_;
   CompileType result_type_;
+  FieldTypeMap* field_map_;
 };
 
 
@@ -154,6 +201,92 @@ RawError* Precompiler::CompileAll(
 }
 
 
+bool TypeRangeCache::InstanceOfHasClassRange(const AbstractType& type,
+                                             intptr_t* lower_limit,
+                                             intptr_t* upper_limit) {
+  ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
+
+  if (!type.IsInstantiated()) return false;
+  if (type.IsFunctionType()) return false;
+
+  Zone* zone = thread_->zone();
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(zone, type.arguments());
+  if (!type_arguments.IsNull() &&
+      !type_arguments.IsRaw(0, type_arguments.Length())) return false;
+
+
+  intptr_t type_cid = type.type_class_id();
+  if (lower_limits_[type_cid] == kNotContiguous) return false;
+  if (lower_limits_[type_cid] != kNotComputed) {
+    *lower_limit = lower_limits_[type_cid];
+    *upper_limit = upper_limits_[type_cid];
+    return true;
+  }
+
+
+  *lower_limit = -1;
+  *upper_limit = -1;
+  intptr_t last_matching_cid = -1;
+
+  ClassTable* table = thread_->isolate()->class_table();
+  Class& cls = Class::Handle(zone);
+  AbstractType& cls_type = AbstractType::Handle(zone);
+  for (intptr_t cid = kInstanceCid; cid < table->NumCids(); cid++) {
+    if (!table->HasValidClassAt(cid)) continue;
+    if (cid == kVoidCid) continue;
+    if (cid == kDynamicCid) continue;
+    cls = table->At(cid);
+    if (cls.is_abstract()) continue;
+    if (cls.is_patch()) continue;
+    if (cls.IsTopLevel()) continue;
+
+    cls_type = cls.RareType();
+    if (cls_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
+      last_matching_cid = cid;
+      if (*lower_limit == -1) {
+        // Found beginning of range.
+        *lower_limit = cid;
+      } else if (*upper_limit == -1) {
+        // Expanding range.
+      } else {
+        // Found a second range.
+        lower_limits_[type_cid] = kNotContiguous;
+        return false;
+      }
+    } else {
+      if (*lower_limit == -1) {
+        // Still before range.
+      } else if (*upper_limit == -1) {
+        // Found end of range.
+        *upper_limit = last_matching_cid;
+      } else {
+        // After range.
+      }
+    }
+  }
+  if (*lower_limit == -1) {
+    // Not implemented by any concrete class.
+    *lower_limit = kIllegalCid;
+    *upper_limit = kIllegalCid;
+  }
+
+  if (*upper_limit == -1) {
+    ASSERT(last_matching_cid != -1);
+    *upper_limit = last_matching_cid;
+  }
+
+  if (FLAG_trace_precompiler) {
+    THR_Print("Type check for %s is cid range [%" Pd ", %" Pd "]\n",
+              type.ToCString(), *lower_limit, *upper_limit);
+  }
+
+  lower_limits_[type_cid] = *lower_limit;
+  upper_limits_[type_cid] = *upper_limit;
+  return true;
+}
+
+
 Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     thread_(thread),
     zone_(NULL),
@@ -180,6 +313,7 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     typeargs_to_retain_(),
     types_to_retain_(),
     consts_to_retain_(),
+    field_type_map_(),
     error_(Error::Handle()) {
 }
 
@@ -198,8 +332,15 @@ void Precompiler::DoCompileAll(
       // because their class hasn't been finalized yet.
       FinalizeAllClasses();
 
+      SortClasses();
+      TypeRangeCache trc(T, I->class_table()->NumCids());
+
       // Precompile static initializers to compute result type information.
       PrecompileStaticInitializers();
+
+      // Precompile constructors to compute type information for final fields.
+      ClearAllCode();
+      PrecompileConstructors();
 
       for (intptr_t round = 0; round < FLAG_precompiler_rounds; round++) {
         if (FLAG_trace_precompiler) {
@@ -248,6 +389,7 @@ void Precompiler::DoCompileAll(
       I->object_store()->set_completer_class(null_class);
       I->object_store()->set_stream_iterator_class(null_class);
       I->object_store()->set_symbol_class(null_class);
+      I->object_store()->set_compiletime_error_class(null_class);
     }
     DropClasses();
     DropLibraries();
@@ -255,8 +397,9 @@ void Precompiler::DoCompileAll(
     BindStaticCalls();
     SwitchICCalls();
 
+    ShareMegamorphicBuckets();
     DedupStackmaps();
-    DedupStackmapLists();
+    DedupLists();
 
     if (FLAG_dedup_instructions) {
       // Reduces binary size but obfuscates profiler results.
@@ -337,6 +480,52 @@ void Precompiler::PrecompileStaticInitializers() {
 }
 
 
+void Precompiler::PrecompileConstructors() {
+  class ConstructorVisitor : public FunctionVisitor {
+   public:
+    explicit ConstructorVisitor(Zone* zone, FieldTypeMap* map)
+        : zone_(zone), field_type_map_(map) {
+      ASSERT(map != NULL);
+    }
+    void Visit(const Function& function) {
+      if (!function.IsGenerativeConstructor()) return;
+      if (function.HasCode()) {
+        // Const constructors may have been visited before. Recompile them here
+        // to collect type information for final fields for them as well.
+        function.ClearCode();
+      }
+      if (FLAG_trace_precompiler) {
+        THR_Print("Precompiling constructor %s\n", function.ToCString());
+      }
+      CompileFunction(Thread::Current(),
+                      zone_,
+                      function,
+                      field_type_map_);
+    }
+   private:
+    Zone* zone_;
+    FieldTypeMap* field_type_map_;
+  };
+
+  HANDLESCOPE(T);
+  ConstructorVisitor visitor(zone_, &field_type_map_);
+  VisitFunctions(&visitor);
+
+  FieldTypeMap::Iterator it(field_type_map_.GetIterator());
+  for (FieldTypePair* current = it.Next();
+       current != NULL;
+       current = it.Next()) {
+    const intptr_t cid = current->cid_;
+    current->field_->set_guarded_cid(cid);
+    current->field_->set_is_nullable(cid == kNullCid || cid == kDynamicCid);
+    if (FLAG_trace_precompiler) {
+      THR_Print("Field %s <- Type %s\n", current->field_->ToCString(),
+          Class::Handle(T->isolate()->class_table()->At(cid)).ToCString());
+    }
+  }
+}
+
+
 void Precompiler::ClearAllCode() {
   class ClearCodeFunctionVisitor : public FunctionVisitor {
     void Visit(const Function& function) {
@@ -344,8 +533,16 @@ void Precompiler::ClearAllCode() {
       function.ClearICDataArray();
     }
   };
-  ClearCodeFunctionVisitor visitor;
-  VisitFunctions(&visitor);
+  ClearCodeFunctionVisitor function_visitor;
+  VisitFunctions(&function_visitor);
+
+  class ClearCodeClassVisitor : public ClassVisitor {
+    void Visit(const Class& cls) {
+      cls.DisableAllocationStub();
+    }
+  };
+  ClearCodeClassVisitor class_visitor;
+  VisitClasses(&class_visitor);
 }
 
 
@@ -599,7 +796,7 @@ void Precompiler::ProcessFunction(const Function& function) {
     ASSERT(!function.is_abstract());
     ASSERT(!function.IsRedirectingFactory());
 
-    error_ = CompileFunction(thread_, function);
+    error_ = CompileFunction(thread_, zone_, function);
     if (!error_.IsNull()) {
       Jump(error_);
     }
@@ -936,7 +1133,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
   ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
 
   parsed_function->AllocateVariables();
-  DartPrecompilationPipeline pipeline;
+  DartPrecompilationPipeline pipeline(zone.GetZone());
   PrecompileParsedFunctionHelper helper(parsed_function,
                                         /* optimized = */ true);
   bool success = helper.Compile(&pipeline);
@@ -1000,7 +1197,8 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
     Thread* const thread = Thread::Current();
     if (FLAG_support_ast_printer && FLAG_trace_compiler) {
       THR_Print("compiling expression: ");
-      AstPrinter::PrintNode(fragment);
+      AstPrinter ast_printer;
+      ast_printer.PrintNode(fragment);
     }
 
     // Create a dummy function object for the code generator.
@@ -1036,7 +1234,7 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
     parsed_function->AllocateVariables();
 
     // Non-optimized code generator.
-    DartPrecompilationPipeline pipeline;
+    DartPrecompilationPipeline pipeline(Thread::Current()->zone());
     PrecompileParsedFunctionHelper helper(parsed_function,
                                           /* optimized = */ false);
     helper.Compile(&pipeline);
@@ -1905,7 +2103,7 @@ void Precompiler::SwitchICCalls() {
   // the ic data array instead indirectly through a Function in the ic data
   // array. Iterate all the object pools and rewrite the ic data from
   // (cid, target function, count) to (cid, target code, entry point), and
-  // replace the ICLookupThroughFunction stub with ICLookupThroughCode.
+  // replace the ICCallThroughFunction stub with ICCallThroughCode.
 
   class SwitchICCallsVisitor : public FunctionVisitor {
    public:
@@ -1915,7 +2113,11 @@ void Precompiler::SwitchICCalls() {
         pool_(ObjectPool::Handle(zone)),
         entry_(Object::Handle(zone)),
         ic_(ICData::Handle(zone)),
-        target_code_(Code::Handle(zone)) {
+        target_name_(String::Handle(zone)),
+        args_descriptor_(Array::Handle(zone)),
+        unlinked_(UnlinkedCall::Handle(zone)),
+        target_code_(Code::Handle(zone)),
+        canonical_unlinked_calls_() {
     }
 
     void Visit(const Function& function) {
@@ -1933,11 +2135,31 @@ void Precompiler::SwitchICCalls() {
           // calls.
           ic_ ^= entry_.raw();
           ic_.ResetSwitchable(zone_);
+
+          unlinked_ = UnlinkedCall::New();
+          target_name_ = ic_.target_name();
+          unlinked_.set_target_name(target_name_);
+          args_descriptor_ = ic_.arguments_descriptor();
+          unlinked_.set_args_descriptor(args_descriptor_);
+          unlinked_ = DedupUnlinkedCall(unlinked_);
+          pool_.SetObjectAt(i, unlinked_);
         } else if (entry_.raw() ==
-                   StubCode::ICLookupThroughFunction_entry()->code()) {
-          target_code_ = StubCode::ICLookupThroughCode_entry()->code();
+                   StubCode::ICCallThroughFunction_entry()->code()) {
+          target_code_ = StubCode::UnlinkedCall_entry()->code();
           pool_.SetObjectAt(i, target_code_);
         }
+      }
+    }
+
+    RawUnlinkedCall* DedupUnlinkedCall(const UnlinkedCall& unlinked) {
+      const UnlinkedCall* canonical_unlinked =
+          canonical_unlinked_calls_.LookupValue(&unlinked);
+      if (canonical_unlinked == NULL) {
+        canonical_unlinked_calls_.Insert(
+            &UnlinkedCall::ZoneHandle(zone_, unlinked.raw()));
+        return unlinked.raw();
+      } else {
+        return canonical_unlinked->raw();
       }
     }
 
@@ -1947,13 +2169,40 @@ void Precompiler::SwitchICCalls() {
     ObjectPool& pool_;
     Object& entry_;
     ICData& ic_;
+    String& target_name_;
+    Array& args_descriptor_;
+    UnlinkedCall& unlinked_;
     Code& target_code_;
+    UnlinkedCallSet canonical_unlinked_calls_;
   };
 
   ASSERT(!I->compilation_allowed());
   SwitchICCallsVisitor visitor(Z);
   VisitFunctions(&visitor);
 #endif
+}
+
+
+void Precompiler::ShareMegamorphicBuckets() {
+  const GrowableObjectArray& table = GrowableObjectArray::Handle(Z,
+      I->object_store()->megamorphic_cache_table());
+  if (table.IsNull()) return;
+  MegamorphicCache& cache = MegamorphicCache::Handle(Z);
+
+  const intptr_t capacity = 1;
+  const Array& buckets = Array::Handle(Z,
+      Array::New(MegamorphicCache::kEntryLength * capacity, Heap::kOld));
+  const Function& handler =
+      Function::Handle(Z, MegamorphicCacheTable::miss_handler(I));
+  MegamorphicCache::SetEntry(buckets, 0,
+                             MegamorphicCache::smi_illegal_cid(), handler);
+
+  for (intptr_t i = 0; i < table.Length(); i++) {
+    cache ^= table.At(i);
+    cache.set_buckets(buckets);
+    cache.set_mask(capacity - 1);
+    cache.set_filled_entry_count(0);
+  }
 }
 
 
@@ -2007,50 +2256,73 @@ void Precompiler::DedupStackmaps() {
 }
 
 
-void Precompiler::DedupStackmapLists() {
-  class DedupStackmapListsVisitor : public FunctionVisitor {
+void Precompiler::DedupLists() {
+  class DedupListsVisitor : public FunctionVisitor {
    public:
-    explicit DedupStackmapListsVisitor(Zone* zone) :
+    explicit DedupListsVisitor(Zone* zone) :
       zone_(zone),
-      canonical_stackmap_lists_(),
+      canonical_lists_(),
       code_(Code::Handle(zone)),
-      stackmaps_(Array::Handle(zone)),
-      stackmap_(Stackmap::Handle(zone)) {
+      list_(Array::Handle(zone)) {
     }
 
     void Visit(const Function& function) {
-      if (!function.HasCode()) {
-        return;
-      }
       code_ = function.CurrentCode();
-      stackmaps_ = code_.stackmaps();
-      if (stackmaps_.IsNull()) return;
+      if (!code_.IsNull()) {
+        list_ = code_.stackmaps();
+        if (!list_.IsNull()) {
+          list_ = DedupList(list_);
+          code_.set_stackmaps(list_);
+        }
+      }
 
-      stackmaps_ = DedupStackmapList(stackmaps_);
-      code_.set_stackmaps(stackmaps_);
+      list_ = function.parameter_types();
+      if (!list_.IsNull()) {
+        if (!function.IsSignatureFunction() &&
+            !function.IsClosureFunction() &&
+            (function.name() != Symbols::Call().raw()) &&
+            !list_.InVMHeap()) {
+          // Parameter types not needed for function type tests.
+          for (intptr_t i = 0; i < list_.Length(); i++) {
+            list_.SetAt(i, Object::dynamic_type());
+          }
+        }
+        list_ = DedupList(list_);
+        function.set_parameter_types(list_);
+      }
+
+      list_ = function.parameter_names();
+      if (!list_.IsNull()) {
+        if (!function.HasOptionalNamedParameters() &&
+            !list_.InVMHeap()) {
+          // Parameter names not needed for resolution.
+          for (intptr_t i = 0; i < list_.Length(); i++) {
+            list_.SetAt(i, Symbols::OptimizedOut());
+          }
+        }
+        list_ = DedupList(list_);
+        function.set_parameter_names(list_);
+      }
     }
 
-    RawArray* DedupStackmapList(const Array& stackmaps) {
-      const Array* canonical_stackmap_list =
-          canonical_stackmap_lists_.LookupValue(&stackmaps);
-      if (canonical_stackmap_list == NULL) {
-        canonical_stackmap_lists_.Insert(
-            &Array::ZoneHandle(zone_, stackmaps.raw()));
-        return stackmaps.raw();
+    RawArray* DedupList(const Array& list) {
+      const Array* canonical_list = canonical_lists_.LookupValue(&list);
+      if (canonical_list == NULL) {
+        canonical_lists_.Insert(&Array::ZoneHandle(zone_, list.raw()));
+        return list.raw();
       } else {
-        return canonical_stackmap_list->raw();
+        return canonical_list->raw();
       }
     }
 
    private:
     Zone* zone_;
-    ArraySet canonical_stackmap_lists_;
+    ArraySet canonical_lists_;
     Code& code_;
-    Array& stackmaps_;
-    Stackmap& stackmap_;
+    Array& list_;
   };
 
-  DedupStackmapListsVisitor visitor(Z);
+  DedupListsVisitor visitor(Z);
   VisitFunctions(&visitor);
 }
 
@@ -2206,6 +2478,147 @@ void Precompiler::FinalizeAllClasses() {
 }
 
 
+void Precompiler::SortClasses() {
+  ClassTable* table = I->class_table();
+  intptr_t num_cids = table->NumCids();
+  intptr_t* old_to_new_cid = new intptr_t[num_cids];
+  for (intptr_t cid = 0; cid < kNumPredefinedCids; cid++) {
+    old_to_new_cid[cid] = cid;  // The predefined classes cannot change cids.
+  }
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    old_to_new_cid[cid] = -1;
+  }
+
+  intptr_t next_new_cid = kNumPredefinedCids;
+  GrowableArray<intptr_t> dfs_stack;
+  Class& cls = Class::Handle(Z);
+  GrowableObjectArray& subclasses = GrowableObjectArray::Handle(Z);
+
+  // Object doesn't use its subclasses list.
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    if (!table->HasValidClassAt(cid)) {
+      continue;
+    }
+    cls = table->At(cid);
+    if (cls.is_patch()) {
+      continue;
+    }
+    if (cls.SuperClass() == I->object_store()->object_class()) {
+      dfs_stack.Add(cid);
+    }
+  }
+
+  while (dfs_stack.length() > 0) {
+    intptr_t cid = dfs_stack.RemoveLast();
+    ASSERT(table->HasValidClassAt(cid));
+    cls = table->At(cid);
+    ASSERT(!cls.IsNull());
+    if (old_to_new_cid[cid] == -1) {
+      old_to_new_cid[cid] = next_new_cid++;
+      if (FLAG_trace_precompiler) {
+        THR_Print("%" Pd ": %s, was %" Pd "\n",
+                  old_to_new_cid[cid], cls.ToCString(), cid);
+      }
+    }
+    subclasses = cls.direct_subclasses();
+    if (!subclasses.IsNull()) {
+      for (intptr_t i = 0; i < subclasses.Length(); i++) {
+        cls ^= subclasses.At(i);
+        ASSERT(!cls.IsNull());
+        dfs_stack.Add(cls.id());
+      }
+    }
+  }
+
+  // Top-level classes, typedefs, patch classes, etc.
+  for (intptr_t cid = kNumPredefinedCids; cid < num_cids; cid++) {
+    if (old_to_new_cid[cid] == -1) {
+      old_to_new_cid[cid] = next_new_cid++;
+      if (FLAG_trace_precompiler && table->HasValidClassAt(cid)) {
+        cls = table->At(cid);
+        THR_Print("%" Pd ": %s, was %" Pd "\n",
+                  old_to_new_cid[cid], cls.ToCString(), cid);
+      }
+    }
+  }
+  ASSERT(next_new_cid == num_cids);
+
+  RemapClassIds(old_to_new_cid);
+  delete[] old_to_new_cid;
+}
+
+
+class CidRewriteVisitor : public ObjectVisitor {
+ public:
+  explicit CidRewriteVisitor(intptr_t* old_to_new_cids)
+      : old_to_new_cids_(old_to_new_cids) { }
+
+  intptr_t Map(intptr_t cid) {
+    ASSERT(cid != -1);
+    return old_to_new_cids_[cid];
+  }
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsClass()) {
+      RawClass* cls = Class::RawCast(obj);
+      cls->ptr()->id_ = Map(cls->ptr()->id_);
+    } else if (obj->IsField()) {
+      RawField* field = Field::RawCast(obj);
+      field->ptr()->guarded_cid_ = Map(field->ptr()->guarded_cid_);
+      field->ptr()->is_nullable_ = Map(field->ptr()->is_nullable_);
+    } else if (obj->IsTypeParameter()) {
+      RawTypeParameter* param = TypeParameter::RawCast(obj);
+      param->ptr()->parameterized_class_id_ =
+          Map(param->ptr()->parameterized_class_id_);
+    } else if (obj->IsType()) {
+      RawType* type = Type::RawCast(obj);
+      RawObject* id = type->ptr()->type_class_id_;
+      if (!id->IsHeapObject()) {
+        type->ptr()->type_class_id_ =
+            Smi::New(Map(Smi::Value(Smi::RawCast(id))));
+      }
+    } else {
+      intptr_t old_cid = obj->GetClassId();
+      intptr_t new_cid = Map(old_cid);
+      if (old_cid != new_cid) {
+        // Don't touch objects that are unchanged. In particular, Instructions,
+        // which are write-protected.
+        obj->SetClassId(new_cid);
+      }
+    }
+  }
+
+ private:
+  intptr_t* old_to_new_cids_;
+};
+
+
+void Precompiler::RemapClassIds(intptr_t* old_to_new_cid) {
+  // Code, ICData, allocation stubs have now-invalid cids.
+  ClearAllCode();
+
+  {
+    HeapIterationScope his;
+
+    // Update the class table. Do it before rewriting cids in headers, as the
+    // heap walkers load an object's size *after* calling the visitor.
+    I->class_table()->Remap(old_to_new_cid);
+
+    // Rewrite cids in headers and cids in Classes, Fields, Types and
+    // TypeParameters.
+    {
+      CidRewriteVisitor visitor(old_to_new_cid);
+      I->heap()->VisitObjects(&visitor);
+    }
+  }
+
+#if defined(DEBUG)
+  I->class_table()->Validate();
+  I->heap()->Verify();
+#endif
+}
+
+
 void Precompiler::ResetPrecompilerState() {
   changed_ = false;
   function_count_ = 0;
@@ -2338,7 +2751,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
     if (val == 0) {
       FlowGraph* flow_graph = NULL;
 
-      // Class hierarchy analysis is registered with the isolate in the
+      // Class hierarchy analysis is registered with the thread in the
       // constructor and unregisters itself upon destruction.
       CHA cha(thread());
 
@@ -2426,7 +2839,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
         // Optimize (a << b) & c patterns, merge operations.
         // Run early in order to have more opportunity to optimize left shifts.
-        optimizer.TryOptimizePatterns();
+        flow_graph->TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         FlowGraphInliner::SetInliningId(flow_graph, 0);
@@ -2586,7 +2999,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Optimize (a << b) & c patterns, merge operations.
         // Run after CSE in order to have more opportunity to merge
         // instructions that have same inputs.
-        optimizer.TryOptimizePatterns();
+        flow_graph->TryOptimizePatterns();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
         {
@@ -2922,16 +3335,16 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
 
 
 RawError* Precompiler::CompileFunction(Thread* thread,
-                                       const Function& function) {
+                                       Zone* zone,
+                                       const Function& function,
+                                       FieldTypeMap* field_type_map) {
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
-  CompilationPipeline* pipeline =
-      CompilationPipeline::New(thread->zone(), function);
-
   ASSERT(FLAG_precompiled_mode);
   const bool optimized = function.IsOptimizable();  // False for natives.
-  return PrecompileFunctionHelper(pipeline, function, optimized);
+  DartPrecompilationPipeline pipeline(zone, field_type_map);
+  return PrecompileFunctionHelper(&pipeline, function, optimized);
 }
 
 #endif  // DART_PRECOMPILER

@@ -23,6 +23,11 @@ class AnalysisPerformanceKind {
  */
 abstract class InstrumentationServer {
   /**
+   * Return the identifier used to identify the current session.
+   */
+  String get sessionId;
+
+  /**
    * Pass the given [message] to the instrumentation server so that it will be
    * logged with other messages.
    *
@@ -94,6 +99,11 @@ class InstrumentationService {
    * non-`null` server (and hence instrumentation is active).
    */
   bool get isActive => _instrumentationServer != null;
+
+  /**
+   * Return the identifier used to identify the current session.
+   */
+  String get sessionId => _instrumentationServer?.sessionId ?? '';
 
   /**
    * The current time, expressed as a decimal encoded number of milliseconds.
@@ -355,6 +365,9 @@ class MulticastInstrumentationServer implements InstrumentationServer {
   final List<InstrumentationServer> _servers;
 
   MulticastInstrumentationServer(this._servers);
+
+  @override
+  String get sessionId => _servers[0].sessionId;
 
   @override
   void log(String message) {

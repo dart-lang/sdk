@@ -7,3 +7,16 @@ part of models;
 abstract class ObjectPoolRef extends ObjectRef {
   int get length;
 }
+
+abstract class ObjectPool extends Object implements ObjectPoolRef {
+  Iterable<ObjectPoolEntry> get entries;
+}
+
+enum ObjectPoolEntryKind { object, immediate, nativeEntry }
+
+abstract class ObjectPoolEntry {
+  int get offset;
+  ObjectPoolEntryKind get kind;
+  ObjectRef get asObject;
+  int get asInteger;
+}

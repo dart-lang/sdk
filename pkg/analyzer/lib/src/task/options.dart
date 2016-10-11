@@ -29,6 +29,14 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
     new ListResultDescriptor<AnalysisError>(
         'ANALYSIS_OPTIONS_ERRORS', AnalysisError.NO_ERRORS);
 
+/**
+ * The descriptor used to associate error processors with analysis contexts in
+ * configuration data.
+ */
+final ListResultDescriptor<ErrorProcessor> CONFIGURED_ERROR_PROCESSORS =
+    new ListResultDescriptor<ErrorProcessor>(
+        'configured.errors', const <ErrorProcessor>[]);
+
 final _OptionsProcessor _processor = new _OptionsProcessor();
 
 void applyToAnalysisOptions(
@@ -45,8 +53,11 @@ void configureContextOptions(
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
+  static const String enableAssertInitializer = 'enableAssertInitializer';
   static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
+  static const String enableInitializingFormalAccess =
+      'enableInitializingFormalAccess';
   static const String enableStrictCallChecks = 'enableStrictCallChecks';
   static const String enableSuperMixins = 'enableSuperMixins';
 
@@ -84,6 +95,7 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
+    enableAssertInitializer,
     enableAsync,
     enableGenericMethods,
     enableStrictCallChecks,
@@ -478,11 +490,11 @@ class _OptionsProcessor {
 
   void setLanguageOption(
       AnalysisContext context, Object feature, Object value) {
-    if (feature == AnalyzerOptions.enableAsync) {
-      if (isFalse(value)) {
+    if (feature == AnalyzerOptions.enableAssertInitializer) {
+      if (isTrue(value)) {
         AnalysisOptionsImpl options =
             new AnalysisOptionsImpl.from(context.analysisOptions);
-        options.enableAsync = false;
+        options.enableAssertInitializer = true;
         context.analysisOptions = options;
       }
     }
@@ -552,13 +564,13 @@ class _OptionsProcessor {
       AnalysisOptionsImpl options, Object feature, Object value) {
     bool boolValue = toBool(value);
     if (boolValue != null) {
-      if (feature == AnalyzerOptions.enableAsync) {
-        options.enableAsync = boolValue;
-      }
-      if (feature == AnalyzerOptions.enableSuperMixins) {
+      if (feature == AnalyzerOptions.enableAssertInitializer) {
+        options.enableAssertInitializer = boolValue;
+      } else if (feature == AnalyzerOptions.enableInitializingFormalAccess) {
+        options.enableInitializingFormalAccess = boolValue;
+      } else if (feature == AnalyzerOptions.enableSuperMixins) {
         options.enableSuperMixins = boolValue;
-      }
-      if (feature == AnalyzerOptions.enableGenericMethods) {
+      } else if (feature == AnalyzerOptions.enableGenericMethods) {
         options.enableGenericMethods = boolValue;
       }
     }

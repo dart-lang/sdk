@@ -5,14 +5,13 @@
 library type_mask_test_helper;
 
 import 'package:compiler/src/types/types.dart';
-import 'package:compiler/src/compiler.dart'
-    show Compiler;
+import 'package:compiler/src/compiler.dart' show Compiler;
 
 TypeMask simplify(TypeMask mask, Compiler compiler) {
   if (mask is ForwardingTypeMask) {
     return simplify(mask.forwardTo, compiler);
   } else if (mask is UnionTypeMask) {
-    return UnionTypeMask.flatten(mask.disjointMasks, compiler.world);
+    return UnionTypeMask.flatten(mask.disjointMasks, compiler.closedWorld);
   } else {
     return mask;
   }

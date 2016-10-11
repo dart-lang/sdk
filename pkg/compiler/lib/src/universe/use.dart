@@ -21,7 +21,7 @@ import '../common.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../util/util.dart' show Hashing;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show World;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
 import 'universe.dart' show ReceiverConstraint;
@@ -37,8 +37,8 @@ class DynamicUse {
 
   DynamicUse(this.selector, this.mask);
 
-  bool appliesUnnamed(Element element, ClassWorld world) {
-    return selector.appliesUnnamed(element, world) &&
+  bool appliesUnnamed(Element element, World world) {
+    return selector.appliesUnnamed(element) &&
         (mask == null || mask.canHit(element, selector, world));
   }
 

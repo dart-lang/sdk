@@ -17,21 +17,23 @@ main() {
       tokenToLine: (int token) => 1, tokenToCol: (int token) => 2);
   final location = new SourceLocationMock(script: script, tokenPos: 0,
       endTokenPos: 1);
+  final repository = new ScriptRepositoryMock();
   test('instantiation', () {
-    final e = new SourceLinkElement(isolate, location,
-        new ScriptRepositoryMock());
+    final e = new SourceLinkElement(isolate, location, repository);
     expect(e, isNotNull, reason: 'element correctly created');
     expect(e.isolate, equals(isolate));
     expect(e.location, equals(location));
   });
   test('elements created after attachment', () async {
     bool rendered = false;
-    final e = new SourceLinkElement(isolate, location,
-        new ScriptRepositoryMock(getter: expectAsync((String id) async {
-          expect(rendered, isFalse);
-          expect(id, equals(script_id));
-          return script;
-        }, count: 1)));
+    final repository = new ScriptRepositoryMock(
+      getter: expectAsync((isolate, id) async {
+        expect(rendered, isFalse);
+        expect(id, equals(script_id));
+        return script;
+      }, count: 1)
+    );
+    final e = new SourceLinkElement(isolate, location, repository);
     document.body.append(e);
     await e.onRendered.first;
     rendered = true;

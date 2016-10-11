@@ -8,6 +8,7 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
+#include "vm/atomic.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler.h"
@@ -142,19 +143,20 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 }
 
 
-
 NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
     : StackResource(thread),
       isolate_(isolate) {
   ASSERT(isolate_ != NULL);
-  isolate_->no_reload_scope_depth_++;
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
+  ASSERT(
+      AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >= 0);
 }
 
 
 NoReloadScope::~NoReloadScope() {
-  isolate_->no_reload_scope_depth_--;
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
+  ASSERT(
+      AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >= 0);
 }
 
 
@@ -1074,7 +1076,8 @@ void Isolate::DoneLoading() {
 bool Isolate::CanReload() const {
 #ifndef PRODUCT
   return !ServiceIsolate::IsServiceIsolateDescendant(this) &&
-         is_runnable() && !IsReloading() && (no_reload_scope_depth_ == 0) &&
+         is_runnable() && !IsReloading() &&
+         (AtomicOperations::LoadRelaxed(&no_reload_scope_depth_) == 0) &&
          IsolateCreationEnabled();
 #else
   return false;
@@ -1501,6 +1504,9 @@ static void ShutdownIsolate(uword parameter) {
     // TODO(27003): Enable for precompiled.
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
     if (!isolate->HasAttemptedReload()) {
+      // For this verification we need to stop the background compiler earlier.
+      // This would otherwise happen in Dart::ShowdownIsolate.
+      isolate->StopBackgroundCompiler();
       isolate->heap()->CollectAllGarbage();
       VerifyCanonicalVisitor check_canonical(thread);
       isolate->heap()->IterateObjects(&check_canonical);
@@ -1518,9 +1524,10 @@ static void ShutdownIsolate(uword parameter) {
 
 
 void Isolate::SetStickyError(RawError* sticky_error) {
-  ASSERT(sticky_error_ == Error::null());
+  ASSERT(((sticky_error_ == Error::null()) ||
+         (sticky_error == Error::null())) &&
+         (sticky_error != sticky_error_));
   sticky_error_ = sticky_error;
-  message_handler()->PausedOnExit(true);
 }
 
 
@@ -1736,20 +1743,10 @@ void Isolate::Shutdown() {
   if (heap_ != NULL) {
     // Wait for any concurrent GC tasks to finish before shutting down.
     // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
-    {
-      PageSpace* old_space = heap_->old_space();
-      MonitorLocker ml(old_space->tasks_lock());
-      while (old_space->tasks() > 0) {
-        ml.Wait();
-      }
-    }
-
-    // Wait for background finalization to finish before shutting down.
-    {
-      MonitorLocker ml(heap_->finalization_tasks_lock());
-      while (heap_->finalization_tasks() > 0) {
-        ml.Wait();
-      }
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
+      ml.Wait();
     }
   }
 
@@ -1895,7 +1892,10 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = class_table()->At(cid);
 #endif  // !PRODUCT
   ASSERT(raw_class != NULL);
+#if !defined(DART_PRECOMPILER)
+  // This is temporarily untrue during a class id remap.
   ASSERT(raw_class->ptr()->id_ == cid);
+#endif
   return raw_class;
 }
 
@@ -2192,12 +2192,10 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
           "[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
           Dart::timestamp(), name(), method_name.ToCString());
     }
+    // Propagate the error.
     if (result.IsError()) {
-      if (result.IsUnwindError()) {
-        // Propagate the unwind error. Remaining service extension calls
-        // are dropped.
-        return result.raw();
-      } else {
+      // Remaining service extension calls are dropped.
+      if (!result.IsUnwindError()) {
         // Send error back over the protocol.
         Service::PostError(method_name,
                            parameter_keys,
@@ -2206,9 +2204,13 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
                            id,
                            Error::Cast(result));
       }
+      return result.raw();
     }
+    // Drain the microtask queue.
     result = DartLibraryCalls::DrainMicrotaskQueue();
+    // Propagate the error.
     if (result.IsError()) {
+      // Remaining service extension calls are dropped.
       return result.raw();
     }
   }

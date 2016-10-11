@@ -12,12 +12,11 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ScriptRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ScriptRefElement>('script-ref-wrapped');
+  static const tag = const Tag<ScriptRefElement>('script-ref');
 
   RenderingScheduler _r;
 
   Stream<RenderedEvent<ScriptRefElement>> get onRendered => _r.onRendered;
-
 
   M.IsolateRef _isolate;
   M.ScriptRef _script;
@@ -26,7 +25,7 @@ class ScriptRefElement extends HtmlElement implements Renderable {
   M.ScriptRef get script => _script;
 
   factory ScriptRefElement(M.IsolateRef isolate, M.ScriptRef script,
-                           {RenderingQueue queue}) {
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(script != null);
     ScriptRefElement e = document.createElement(tag.name);

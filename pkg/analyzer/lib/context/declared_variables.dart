@@ -35,6 +35,12 @@ class DeclaredVariables {
   }
 
   /**
+   * Return the raw string value of the variable with the given [name],
+   * or `null` of the variable is not defined.
+   */
+  String get(String name) => _declaredVariables[name];
+
+  /**
    * Return the value of the variable with the given [name] interpreted as a
    * 'boolean' value. If the variable is not defined (or [name] is `null`), a
    * DartObject representing "unknown" is returned. If the value cannot be

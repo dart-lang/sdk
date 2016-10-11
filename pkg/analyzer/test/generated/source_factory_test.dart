@@ -7,29 +7,27 @@ library analyzer.test.generated.test.generated.source_factory;
 import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine, Logger;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
-import '../reflective_tests.dart';
 import '../utils.dart';
 import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(SourceFactoryTest);
+  defineReflectiveTests(SourceFactoryTest);
   runPackageMapTests();
 }
 
@@ -40,9 +38,10 @@ Source createSource({String path, String uri}) =>
         .createSource(uri != null ? Uri.parse(uri) : null);
 
 void runPackageMapTests() {
+  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
   final Uri baseUri = new Uri.file('test/base');
   final List<UriResolver> testResolvers = [
-    new ResourceUriResolver(PhysicalResourceProvider.INSTANCE)
+    new ResourceUriResolver(resourceProvider)
   ];
 
   Packages createPackageMap(Uri base, String configFileContents) {
@@ -146,7 +145,7 @@ quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
           expect(
               () => resolvePackageUri(
                   config: 'foo:<:&%>', uri: 'package:foo/bar.dart'),
-              throwsA(new isInstanceOf('FormatException')));
+              throwsA(new isInstanceOf<FormatException>()));
         });
         test('Valid URI that cannot be further resolved', () {
           String uri = resolvePackageUri(
@@ -172,7 +171,7 @@ unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/
 async:/home/somebody/.pub/cache/async-1.1.0/lib/
 quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
 ''',
-              source: new FileBasedSource(FileUtilities2.createFile(
+              source: new FileSource(resourceProvider.getFile(
                   '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart')));
           expect(uri, isNotNull);
           expect(uri.toString(), equals('package:unittest/unittest.dart'));
@@ -207,6 +206,19 @@ foo:http://www.google.com
   });
 }
 
+class AbsoluteUriResolver extends UriResolver {
+  final MemoryResourceProvider resourceProvider;
+
+  AbsoluteUriResolver(this.resourceProvider);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    return new FileSource(
+        resourceProvider.getFile(resourceProvider.pathContext.fromUri(uri)),
+        actualUri);
+  }
+}
+
 class CustomUriResolver extends UriResolver {
   String uriPath;
   CustomUriResolver({this.uriPath});
@@ -218,20 +230,21 @@ class CustomUriResolver extends UriResolver {
 
 @reflectiveTest
 class SourceFactoryTest {
+  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+
   void test_creation() {
     expect(new SourceFactory([]), isNotNull);
   }
 
   void test_fromEncoding_invalidUri() {
     SourceFactory factory = new SourceFactory([]);
-    expect(() => factory.fromEncoding("<:&%>"),
-        throwsA(new isInstanceOf<IllegalArgumentException>()));
+    expect(() => factory.fromEncoding("<:&%>"), throwsArgumentError);
   }
 
   void test_fromEncoding_noResolver() {
     SourceFactory factory = new SourceFactory([]);
     expect(() => factory.fromEncoding("foo:/does/not/exist.dart"),
-        throwsA(new isInstanceOf<IllegalArgumentException>()));
+        throwsArgumentError);
   }
 
   void test_fromEncoding_valid() {
@@ -250,10 +263,10 @@ class SourceFactoryTest {
 
   void test_resolveUri_nonAbsolute_absolute() {
     SourceFactory factory =
-        new SourceFactory([new UriResolver_nonAbsolute_absolute()]);
+        new SourceFactory([new AbsoluteUriResolver(resourceProvider)]);
     String absolutePath = "/does/not/matter.dart";
     Source containingSource =
-        new FileBasedSource(FileUtilities2.createFile("/does/not/exist.dart"));
+        new FileSource(resourceProvider.getFile("/does/not/exist.dart"));
     Source result = factory.resolveUri(containingSource, absolutePath);
     expect(result.fullName,
         FileUtilities2.createFile(absolutePath).getAbsolutePath());
@@ -261,9 +274,9 @@ class SourceFactoryTest {
 
   void test_resolveUri_nonAbsolute_relative() {
     SourceFactory factory =
-        new SourceFactory([new UriResolver_nonAbsolute_relative()]);
+        new SourceFactory([new AbsoluteUriResolver(resourceProvider)]);
     Source containingSource =
-        new FileBasedSource(FileUtilities2.createFile("/does/not/have.dart"));
+        new FileSource(resourceProvider.getFile("/does/not/have.dart"));
     Source result = factory.resolveUri(containingSource, "exist.dart");
     expect(result.fullName,
         FileUtilities2.createFile("/does/not/exist.dart").getAbsolutePath());
@@ -299,11 +312,11 @@ class SourceFactoryTest {
   }
 
   void test_restoreUri() {
-    JavaFile file1 = FileUtilities2.createFile("/some/file1.dart");
-    JavaFile file2 = FileUtilities2.createFile("/some/file2.dart");
-    Source source1 = new FileBasedSource(file1);
-    Source source2 = new FileBasedSource(file2);
-    Uri expected1 = parseUriWithException("file:///my_file.dart");
+    File file1 = resourceProvider.getFile("/some/file1.dart");
+    File file2 = resourceProvider.getFile("/some/file2.dart");
+    Source source1 = new FileSource(file1);
+    Source source2 = new FileSource(file2);
+    Uri expected1 = Uri.parse("file:///my_file.dart");
     SourceFactory factory =
         new SourceFactory([new UriResolver_restoreUri(source1, expected1)]);
     expect(factory.restoreUri(source1), same(expected1));
@@ -320,20 +333,6 @@ class UriResolver_absolute extends UriResolver {
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     invoked = true;
     return null;
-  }
-}
-
-class UriResolver_nonAbsolute_absolute extends UriResolver {
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    return new FileBasedSource(new JavaFile.fromUri(uri), actualUri);
-  }
-}
-
-class UriResolver_nonAbsolute_relative extends UriResolver {
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    return new FileBasedSource(new JavaFile.fromUri(uri), actualUri);
   }
 }
 

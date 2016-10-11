@@ -36,8 +36,6 @@ main() {
     var compiler = result.compiler;
     var element = compiler.mainFunction;
     var code = compiler.backend.getGeneratedCode(element);
-    Expect.isTrue(code.contains('return 2'),
-        "Unexpected code:\n$code");
+    Expect.isTrue(code.contains('return 2'), "Unexpected code:\n$code");
   });
 }
-

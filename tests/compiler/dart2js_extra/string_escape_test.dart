@@ -55,17 +55,31 @@ testXEscapes() {
 }
 
 testUEscapes() {
-  List/*String*/ examples =
-    ["\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff"
-     "\u0100\u1000\ud7ff\ue000\uffff",
-     '\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff'
-     '\u0100\u1000\ud7ff\ue000\uffff',
-     """\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff"""
-     """\u0100\u1000\ud7ff\ue000\uffff""",
-     '''\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff'''
-     '''\u0100\u1000\ud7ff\ue000\uffff'''];
-  List/*<int>*/ values = [0, 1, 0x22, 0x27, 0x5c, 0x7f, 0x80, 0xff,
-                          0x100, 0x1000, 0xd7ff, 0xe000, 0xffff];
+  List /*String*/ examples = [
+    "\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff"
+        "\u0100\u1000\ud7ff\ue000\uffff",
+    '\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff'
+        '\u0100\u1000\ud7ff\ue000\uffff',
+    """\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff"""
+        """\u0100\u1000\ud7ff\ue000\uffff""",
+    '''\u0000\u0001\u0022\u0027\u005c\u007f\u0080\u00ff'''
+        '''\u0100\u1000\ud7ff\ue000\uffff'''
+  ];
+  List/*<int>*/ values = [
+    0,
+    1,
+    0x22,
+    0x27,
+    0x5c,
+    0x7f,
+    0x80,
+    0xff,
+    0x100,
+    0x1000,
+    0xd7ff,
+    0xe000,
+    0xffff
+  ];
   for (String s in examples) {
     Expect.equals(values.length, s.length);
     for (int i = 0; i < values.length; i++) {
@@ -73,8 +87,7 @@ testUEscapes() {
     }
   }
   // No characters above 0xffff until Leg supports that.
-  var long =
-      "\u{0}\u{00}\u{000}\u{0000}\u{00000}\u{000000}"
+  var long = "\u{0}\u{00}\u{000}\u{0000}\u{00000}\u{000000}"
       "\u{1}\u{01}\u{001}\u{00001}"
       "\u{ffff}\u{0ffff}\u{00ffff}";
   var longValues = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0xffff, 0xffff, 0xffff];
@@ -88,10 +101,10 @@ testIdentityEscapes() {
   // All non-control ASCII characters escaped, except those with special
   // meaning: b, f, n, r, t, u, v, and x (replaced by \x00).
   var asciiLiterals =
-    "\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\0\1\2\3\4\5\6\7\8\9\:\;\<\=\>"
-    "\?\@\A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z\[\\\]"
-    "\^\_\`\a\x00\c\d\e\x00\g\h\i\j\k\l\m\x00\o\p\q\x00\s\x00\x00\x00"
-    "\w\x00\y\z\{\|\}\~\";
+      "\ \!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\0\1\2\3\4\5\6\7\8\9\:\;\<\=\>"
+      "\?\@\A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z\[\\\]"
+      "\^\_\`\a\x00\c\d\e\x00\g\h\i\j\k\l\m\x00\o\p\q\x00\s\x00\x00\x00"
+      "\w\x00\y\z\{\|\}\~\";
 
   Expect.equals(128 - 32, asciiLiterals.length);
   for (int i = 32; i < 128; i++) {
@@ -101,7 +114,6 @@ testIdentityEscapes() {
     }
   }
 }
-
 
 testQuotes() {
   // The string [ "' ].
@@ -113,7 +125,6 @@ testQuotes() {
   Expect.equals(bothQuotes, r""" "' """);
   Expect.equals(bothQuotes, r''' "' ''');
 }
-
 
 testRawStrings() {
   String raw1 = r'\x00';

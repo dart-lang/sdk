@@ -28,4 +28,11 @@ abstract class Object implements ObjectRef {
   /// VM implementation, this occurs for small integers, which are
   /// stored entirely within their object pointers.
   int get size;
+
+  String get vmName;
+}
+
+abstract class RetainingObject {
+  int get retainedSize;
+  ObjectRef get object;
 }

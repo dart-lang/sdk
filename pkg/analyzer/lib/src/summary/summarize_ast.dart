@@ -585,10 +585,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         .map((Token t) => t.toString())
         .join()
         .replaceAll('\r\n', '\n');
-    return new UnlinkedDocumentationCommentBuilder(
-        text: text,
-        offset: documentationComment.offset,
-        length: documentationComment.length);
+    return new UnlinkedDocumentationCommentBuilder(text: text);
   }
 
   /**
@@ -1094,7 +1091,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   UnlinkedParamBuilder visitDefaultFormalParameter(
       DefaultFormalParameter node) {
-    UnlinkedParamBuilder b = node.parameter.accept(this);
+    UnlinkedParamBuilder b =
+        node.parameter.accept(this) as UnlinkedParamBuilder;
     b.initializer = serializeInitializerFunction(node.defaultValue, true);
     if (node.defaultValue != null) {
       b.defaultValueCode = node.defaultValue.toSource();
@@ -1264,6 +1262,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.offset = node.offset;
     b.combinators = node.combinators.map(serializeCombinator).toList();
+    b.configurations = node.configurations.map(serializeConfiguration).toList();
     if (node.prefix != null) {
       b.prefixReference = serializeReference(null, node.prefix.name);
       b.prefixOffset = node.prefix.offset;

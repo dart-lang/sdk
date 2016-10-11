@@ -10,14 +10,16 @@ import 'compiler_helper.dart';
 
 main() {
   asyncTest(() => compileAll(r'''main() { print(main); }''').then((code) {
-    // At some point, we will have to closurize global functions
-    // differently, at which point this test will break. Then it is time
-    // to implement a way to call a Dart closure from JS foreign
-    // functions.
+        // At some point, we will have to closurize global functions
+        // differently, at which point this test will break. Then it is time
+        // to implement a way to call a Dart closure from JS foreign
+        // functions.
 
-    // If this test fail, please take a look at the use of
-    // toStringWrapper in captureStackTrace in js_helper.dart.
-    Expect.isTrue(code.contains(
-        new RegExp(r'print\([$A-Z]+\.lib___main\$closure\(\)\);')), code);
-  }));
+        // If this test fail, please take a look at the use of
+        // toStringWrapper in captureStackTrace in js_helper.dart.
+        Expect.isTrue(
+            code.contains(
+                new RegExp(r'print\([$A-Z]+\.lib___main\$closure\(\)\);')),
+            code);
+      }));
 }

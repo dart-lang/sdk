@@ -24,21 +24,21 @@ main() {
 }
 """;
 
-
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.typesTask.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkReturn(String name, type) {
-      var element = findElement(compiler, name);
-      Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
-          name);
-    }
+        checkReturn(String name, type) {
+          var element = findElement(compiler, name);
+          Expect.equals(
+              type,
+              typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+              name);
+        }
 
-    checkReturn('method', compiler.typesTask.numType);
-    checkReturn('returnNum', compiler.typesTask.numType);
-  }));
+        checkReturn('method', compiler.commonMasks.numType);
+        checkReturn('returnNum', compiler.commonMasks.numType);
+      }));
 }

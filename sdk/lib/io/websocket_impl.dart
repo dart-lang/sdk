@@ -36,6 +36,11 @@ class _WebSocketOpcode {
   static const int RESERVED_F = 15;
 }
 
+class _EncodedString {
+  final List<int> bytes;
+  _EncodedString(this.bytes);
+}
+
 /**
  *  Stores the header and integer value derived from negotiation of
  *  client_max_window_bits and server_max_window_bits. headerValue will be
@@ -670,13 +675,14 @@ class _WebSocketOutgoingTransformer
       if (message is String) {
         opcode = _WebSocketOpcode.TEXT;
         data = UTF8.encode(message);
+      } else if (message is List<int>) {
+        opcode = _WebSocketOpcode.BINARY;
+        data = message;
+      } else if (message is _EncodedString) {
+        opcode = _WebSocketOpcode.TEXT;
+        data = message.bytes;
       } else {
-        if (message is List<int>) {
-          opcode = _WebSocketOpcode.BINARY;
-          data = message;
-        } else {
-          throw new ArgumentError(message);
-        }
+        throw new ArgumentError(message);
       }
 
       if (_deflateHelper != null) {
@@ -1176,6 +1182,12 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   String get closeReason => _closeReason;
 
   void add(data) { _sink.add(data); }
+  void addUtf8Text(List<int> bytes) {
+    if (bytes is! List<int>) {
+      throw new ArgumentError.value(bytes, "bytes", "Is not a list of bytes");
+    }
+    _sink.add(new _EncodedString(bytes));
+  }
   void addError(error, [StackTrace stackTrace]) {
     _sink.addError(error, stackTrace);
   }

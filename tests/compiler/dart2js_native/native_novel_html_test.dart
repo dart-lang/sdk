@@ -10,11 +10,11 @@ import "package:expect/expect.dart";
 @Native("HTMLElement")
 class Element {
   String dartMethod(int x) => 'dartMethod(${nativeMethod(x+1)})';
-  String nativeMethod(int x) native;
+  String nativeMethod(int x) native ;
 }
 
-makeE() native;
-makeF() native;
+makeE() native ;
+makeF() native ;
 
 void setup() native """
 // A novel HTML element.
@@ -38,7 +38,6 @@ Object.prototype.toString = function() {
   return theRealObjectToString.call(this);
 }
 """;
-
 
 main() {
   setup();

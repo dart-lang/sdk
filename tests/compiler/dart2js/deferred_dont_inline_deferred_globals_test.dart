@@ -15,8 +15,7 @@ void main() {
   OutputCollector collector = new OutputCollector();
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        outputProvider: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES, outputProvider: collector);
     Compiler compiler = result.compiler;
     lookupLibrary(name) {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
@@ -45,7 +44,8 @@ void main() {
 }
 
 // Make sure that deferred constants are not inlined into the main hunk.
-const Map MEMORY_SOURCE_FILES = const {"main.dart": """
+const Map MEMORY_SOURCE_FILES = const {
+  "main.dart": """
 import "dart:async";
 
 import 'lib1.dart' deferred as lib1;
@@ -58,8 +58,10 @@ void main() {
     print(lib1.globalVar);
   });
 }
-""", "lib1.dart": """
+""",
+  "lib1.dart": """
 import "main.dart" as main;
 final finalVar = "string1";
 var globalVar = "string2";
-"""};
+"""
+};

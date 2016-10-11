@@ -11,15 +11,14 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../reflective_tests.dart';
-
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ResynthesizerResultProviderTest);
-  runReflectiveTests(SummaryDataStoreTest);
+  defineReflectiveTests(ResynthesizerResultProviderTest);
+  defineReflectiveTests(SummaryDataStoreTest);
 }
 
 UnlinkedPublicNamespace _namespaceWithParts(List<String> parts) {
@@ -93,6 +92,12 @@ class ResynthesizerResultProviderTest {
     expect(entry2.getValue(CONTAINING_LIBRARIES), unorderedEquals([source1]));
   }
 
+  test_compute_LINE_INFO_emptyLineStarts() {
+    when(unlinkedUnit1.lineStarts).thenReturn(<int>[]);
+    bool success = provider.compute(entry1, LINE_INFO);
+    expect(success, isFalse);
+  }
+
   test_compute_LINE_INFO_hasLineStarts() {
     when(unlinkedUnit1.lineStarts).thenReturn(<int>[10, 20, 30]);
     bool success = provider.compute(entry1, LINE_INFO);
@@ -100,10 +105,16 @@ class ResynthesizerResultProviderTest {
     expect(entry1.getValue(LINE_INFO).lineStarts, <int>[10, 20, 30]);
   }
 
-  test_compute_LINE_INFO_emptyLineStarts() {
-    when(unlinkedUnit1.lineStarts).thenReturn(<int>[]);
-    bool success = provider.compute(entry1, LINE_INFO);
+  test_compute_MODIFICATION_TIME_hasResult() {
+    bool success = provider.compute(entry1, MODIFICATION_TIME);
+    expect(success, isTrue);
+    expect(entry1.getValue(MODIFICATION_TIME), 0);
+  }
+
+  test_compute_MODIFICATION_TIME_noResult() {
+    bool success = provider.compute(entry3, MODIFICATION_TIME);
     expect(success, isFalse);
+    expect(entry3.getState(MODIFICATION_TIME), CacheState.INVALID);
   }
 
   test_compute_SOURCE_KIND_librarySource() {

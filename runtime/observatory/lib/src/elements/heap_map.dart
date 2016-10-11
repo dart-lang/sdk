@@ -7,56 +7,78 @@ library heap_map_element;
 import 'dart:async';
 import 'dart:html';
 import 'dart:math';
-import 'observatory_element.dart';
-import 'package:observatory/service.dart';
-import 'package:logging/logging.dart';
-import 'package:polymer/polymer.dart';
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/service.dart' as S;
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
+import 'package:observatory/src/elements/nav/isolate_menu.dart';
+import 'package:observatory/src/elements/nav/notify.dart';
+import 'package:observatory/src/elements/nav/refresh.dart';
+import 'package:observatory/src/elements/nav/top_menu.dart';
+import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-// A reference to a particular pixel of ImageData.
-class PixelReference {
-  final _data;
-  var _dataIndex;
-  static const NUM_COLOR_COMPONENTS = 4;
+class HeapMapElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<HeapMapElement>('heap-map', dependencies: const [
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+  ]);
 
-  PixelReference(ImageData data, Point<int> point)
-      : _data = data,
-        _dataIndex = (point.y * data.width + point.x) * NUM_COLOR_COMPONENTS;
+  RenderingScheduler<HeapMapElement> _r;
 
-  PixelReference._fromDataIndex(this._data, this._dataIndex);
+  Stream<RenderedEvent<HeapMapElement>> get onRendered => _r.onRendered;
 
-  Point<int> get point =>
-      new Point(index % _data.width, index ~/ _data.width);
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.VMRef get vm => _vm;
+  M.IsolateRef get isolate => _isolate;
+  M.NotificationRepository get notifications => _notifications;
 
-  void set color(Iterable<int> color) {
-    _data.data.setRange(
-        _dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);
+  factory HeapMapElement(M.VM vm, M.IsolateRef isolate,
+      M.EventRepository events, M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
+    assert(vm != null);
+    assert(isolate != null);
+    assert(events != null);
+    assert(notifications != null);
+    HeapMapElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._vm = vm;
+    e._isolate = isolate;
+    e._events = events;
+    e._notifications = notifications;
+    return e;
   }
 
-  Iterable<int> get color =>
-      _data.data.getRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS);
+  HeapMapElement.created() : super.created();
 
-  // Returns the next pixel in row-major order.
-  PixelReference next() => new PixelReference._fromDataIndex(
-      _data, _dataIndex + NUM_COLOR_COMPONENTS);
+  @override
+  attached() {
+    super.attached();
+    _r.enable();
+    _refresh();
+  }
 
-  // The row-major index of this pixel.
-  int get index => _dataIndex ~/ NUM_COLOR_COMPONENTS;
-}
+  @override
+  detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
+  }
 
-class ObjectInfo {
-  final address;
-  final size;
-  ObjectInfo(this.address, this.size);
-}
-
-@CustomTag('heap-map')
-class HeapMapElement extends ObservatoryElement {
-  CanvasElement _fragmentationCanvas;
+  CanvasElement _canvas;
   var _fragmentationData;
-  var _pageHeight;
-  var _classIdToColor = {};
-  var _colorToClassId = {};
-  var _classIdToName = {};
+  double _pageHeight;
+  final _classIdToColor = {};
+  final _colorToClassId = {};
+  final _classIdToName = {};
 
   static final _freeColor = [255, 255, 255, 255];
   static final _pageSeparationColor = [0, 0, 0, 255];
@@ -65,19 +87,37 @@ class HeapMapElement extends ObservatoryElement {
   // TODO(koda): Improve interface for huge heaps.
   static const _MAX_CANVAS_HEIGHT = 6000;
 
-  @observable String status;
-  @published Isolate isolate;
-  @observable ServiceMap fragmentation;
+  String _status;
+  S.ServiceMap _fragmentation;
 
-  HeapMapElement.created() : super.created() {
-  }
-
-  @override
-  void attached() {
-    super.attached();
-    _fragmentationCanvas = shadowRoot.querySelector("#fragmentation");
-    _fragmentationCanvas.onMouseMove.listen(_handleMouseMove);
-    _fragmentationCanvas.onMouseDown.listen(_handleClick);
+  void render() {
+    if (_canvas == null) {
+      _canvas = new CanvasElement()
+        ..width = 1
+        ..height = 1
+        ..onMouseMove.listen(_handleMouseMove)
+        ..onMouseDown.listen(_handleClick);
+    }
+    children = [
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('heap map'),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh()),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
+      new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = [
+          new HeadingElement.h2()..text = _status,
+          new HRElement(),
+        ],
+      new DivElement()
+        ..classes = ['flex-row']
+        ..children = [_canvas]
+    ];
   }
 
   // Encode color as single integer, to enable using it as a map key.
@@ -97,12 +137,12 @@ class HeapMapElement extends ObservatoryElement {
 
   void _updateClassList(classList, int freeClassId) {
     for (var member in classList['classes']) {
-      if (member is! Class) {
+      if (member is! S.Class) {
         // TODO(turnidge): The printing for some of these non-class
         // members is broken.  Fix this:
         //
         // Logger.root.info('$member');
-        Logger.root.info('Ignoring non-class in class list');
+        print('Ignoring non-class in class list');
         continue;
       }
       var classId = int.parse(member.id.split('/').last);
@@ -125,14 +165,14 @@ class HeapMapElement extends ObservatoryElement {
   }
 
   ObjectInfo _objectAt(Point<int> point) {
-    if (fragmentation == null || _fragmentationCanvas == null) {
+    if (_fragmentation == null || _canvas == null) {
       return null;
     }
     var pagePixels = _pageHeight * _fragmentationData.width;
     var index = new PixelReference(_fragmentationData, point).index;
     var pageIndex = index ~/ pagePixels;
     var pageOffset = index % pagePixels;
-    var pages = fragmentation['pages'];
+    var pages = _fragmentation['pages'];
     if (pageIndex < 0 || pageIndex >= pages.length) {
       return null;
     }
@@ -149,55 +189,62 @@ class HeapMapElement extends ObservatoryElement {
         break;
       }
     }
-    return new ObjectInfo(int.parse(page['objectStart']) +
-                          pageOffset * fragmentation['unitSizeBytes'],
-        size * fragmentation['unitSizeBytes']);
+    return new ObjectInfo(
+        int.parse(page['objectStart']) +
+            pageOffset * _fragmentation['unitSizeBytes'],
+        size * _fragmentation['unitSizeBytes']);
   }
 
   void _handleMouseMove(MouseEvent event) {
     var info = _objectAt(event.offset);
     if (info == null) {
-      status = '';
+      _status = '';
+      _r.dirty();
       return;
     }
     var addressString = '${info.size}B @ 0x${info.address.toRadixString(16)}';
     var className = _classNameAt(event.offset);
-    status = (className == '') ? '-' : '$className $addressString';
+    _status = (className == '') ? '-' : '$className $addressString';
+    _r.dirty();
   }
 
   void _handleClick(MouseEvent event) {
-    var address = _objectAt(event.offset).address.toRadixString(16);
+    final isolate = _isolate as S.Isolate;
+    final address = _objectAt(event.offset).address.toRadixString(16);
     isolate.getObjectByAddress(address).then((result) {
       if (result.type != 'Sentinel') {
-        app.locationManager.go(gotoLink('/inspect', result));
+        new AnchorElement(
+                href: Uris.inspect(_isolate, object: result as S.HeapObject))
+            .click();
       }
     });
   }
 
   void _updateFragmentationData() {
-    if (fragmentation == null || _fragmentationCanvas == null) {
+    if (_fragmentation == null || _canvas == null) {
       return;
     }
     _updateClassList(
-        fragmentation['classList'], fragmentation['freeClassId']);
-    var pages = fragmentation['pages'];
-    var width = _fragmentationCanvas.parent.client.width;
+        _fragmentation['classList'], _fragmentation['freeClassId']);
+    var pages = _fragmentation['pages'];
+    var width = max(_canvas.parent.client.width, 1);
     _pageHeight = _PAGE_SEPARATION_HEIGHT +
-        fragmentation['pageSizeBytes'] ~/
-        fragmentation['unitSizeBytes'] ~/ width;
+        _fragmentation['pageSizeBytes'] ~/
+            _fragmentation['unitSizeBytes'] ~/
+            width;
     var height = min(_pageHeight * pages.length, _MAX_CANVAS_HEIGHT);
-    _fragmentationData =
-        _fragmentationCanvas.context2D.createImageData(width, height);
-    _fragmentationCanvas.width = _fragmentationData.width;
-    _fragmentationCanvas.height = _fragmentationData.height;
+    _fragmentationData = _canvas.context2D.createImageData(width, height);
+    _canvas.width = _fragmentationData.width;
+    _canvas.height = _fragmentationData.height;
     _renderPages(0);
   }
 
   // Renders and draws asynchronously, one page at a time to avoid
   // blocking the UI.
   void _renderPages(int startPage) {
-    var pages = fragmentation['pages'];
-    status = 'Loaded $startPage of ${pages.length} pages';
+    var pages = _fragmentation['pages'];
+    _status = 'Loaded $startPage of ${pages.length} pages';
+    _r.dirty();
     var startY = startPage * _pageHeight;
     var endY = startY + _pageHeight;
     if (startPage >= pages.length || endY > _fragmentationData.height) {
@@ -218,7 +265,7 @@ class HeapMapElement extends ObservatoryElement {
       pixel.color = _pageSeparationColor;
       pixel = pixel.next();
     }
-    _fragmentationCanvas.context2D.putImageData(
+    _canvas.context2D.putImageData(
         _fragmentationData, 0, 0, 0, startY, _fragmentationData.width, endY);
     // Continue with the next page, asynchronously.
     new Future(() {
@@ -226,33 +273,47 @@ class HeapMapElement extends ObservatoryElement {
     });
   }
 
-  void isolateChanged(oldValue) {
-    if (isolate == null) {
-      fragmentation = null;
-      return;
-    }
-    isolate.invokeRpc('_getHeapMap', {}).then((ServiceMap response) {
+  Future _refresh() {
+    final isolate = _isolate as S.Isolate;
+    return isolate.invokeRpc('_getHeapMap', {}).then((S.ServiceMap response) {
       assert(response['type'] == 'HeapMap');
-      fragmentation = response;
-    }).catchError((e, st) {
-      Logger.root.info('$e $st');
-    });
-  }
-
-  Future refresh() {
-    if (isolate == null) {
-      return new Future.value(null);
-    }
-    return isolate.invokeRpc('_getHeapMap', {}).then((ServiceMap response) {
-      assert(response['type'] == 'HeapMap');
-      fragmentation = response;
-    });
-  }
-
-  void fragmentationChanged(oldValue) {
-    // Async, in case attached has not yet run (observed in JS version).
-    new Future(() {
+      _fragmentation = response;
       _updateFragmentationData();
     });
   }
+}
+
+// A reference to a particular pixel of ImageData.
+class PixelReference {
+  final _data;
+  var _dataIndex;
+  static const NUM_COLOR_COMPONENTS = 4;
+
+  PixelReference(ImageData data, Point<int> point)
+      : _data = data,
+        _dataIndex = (point.y * data.width + point.x) * NUM_COLOR_COMPONENTS;
+
+  PixelReference._fromDataIndex(this._data, this._dataIndex);
+
+  Point<int> get point => new Point(index % _data.width, index ~/ _data.width);
+
+  void set color(Iterable<int> color) {
+    _data.data.setRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS, color);
+  }
+
+  Iterable<int> get color =>
+      _data.data.getRange(_dataIndex, _dataIndex + NUM_COLOR_COMPONENTS);
+
+  // Returns the next pixel in row-major order.
+  PixelReference next() => new PixelReference._fromDataIndex(
+      _data, _dataIndex + NUM_COLOR_COMPONENTS);
+
+  // The row-major index of this pixel.
+  int get index => _dataIndex ~/ NUM_COLOR_COMPONENTS;
+}
+
+class ObjectInfo {
+  final address;
+  final size;
+  ObjectInfo(this.address, this.size);
 }

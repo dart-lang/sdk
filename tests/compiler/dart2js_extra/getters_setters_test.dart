@@ -5,7 +5,6 @@
 import "package:expect/expect.dart";
 
 class GettersSettersTest {
-
   static int foo;
 
   static get bar {

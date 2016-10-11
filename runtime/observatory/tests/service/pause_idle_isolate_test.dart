@@ -6,6 +6,7 @@
 import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate' show ReceivePort;
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'service_test_common.dart';
@@ -37,7 +38,7 @@ hasStoppedAtBreakpoint,
   } while (frameCount > 0);
   print('Isolate is idle.');
   await isolate.reload();
-  expect(isolate.pauseEvent.kind, equals(ServiceEvent.kResume));
+  expect(isolate.pauseEvent is M.ResumeEvent, isTrue);
 
   // Make sure that the isolate receives an interrupt even when it is
   // idle. (https://github.com/dart-lang/sdk/issues/24349)

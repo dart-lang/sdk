@@ -4,8 +4,7 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, TokenStreamRef;
+import 'package:observatory/models.dart' as M show IsolateRef, TokenStreamRef;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
@@ -51,8 +50,8 @@ class TokenStreamRefElement extends HtmlElement implements Renderable {
 
   void render() {
     final text = (_token.name == null || _token.name == '')
-      ? 'TokenStream'
-      : _token.name;
+        ? 'TokenStream'
+        : _token.name;
     children = [
       new AnchorElement(href: Uris.inspect(_isolate, object: _token))
         ..text = text

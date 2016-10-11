@@ -56,15 +56,13 @@ class LoggerCanceler extends DiagnosticReporter {
     throw 'unsupported operation';
   }
 
-  void reportError(
-      DiagnosticMessage message,
+  void reportError(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     log(message);
     infos.forEach(log);
   }
 
-  void reportWarning(
-      DiagnosticMessage message,
+  void reportWarning(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     log(message);
     infos.forEach(log);
@@ -75,8 +73,7 @@ class LoggerCanceler extends DiagnosticReporter {
     log(new Message(MessageTemplate.TEMPLATES[errorCode], arguments, false));
   }
 
-  void reportHint(
-      DiagnosticMessage message,
+  void reportHint(DiagnosticMessage message,
       [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     log(message);
     infos.forEach(log);
@@ -85,12 +82,9 @@ class LoggerCanceler extends DiagnosticReporter {
   withCurrentElement(Element element, f()) => f();
 
   @override
-  DiagnosticMessage createMessage(
-      Spannable spannable,
-      MessageKind messageKind,
+  DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]) {
-    return new DiagnosticMessage(
-        null, spannable,
+    return new DiagnosticMessage(null, spannable,
         new Message(MessageTemplate.TEMPLATES[messageKind], arguments, false));
   }
 
@@ -98,20 +92,19 @@ class LoggerCanceler extends DiagnosticReporter {
   bool get hasReportedError => false;
 }
 
-Token scan(String text) =>
-    new StringScanner.fromString(text)
-    .tokenize();
+Token scan(String text) => new StringScanner.fromString(text).tokenize();
 
 Node parseBodyCode(String text, Function parseMethod,
-                   {DiagnosticReporter reporter}) {
+    {DiagnosticReporter reporter}) {
   Token tokens = scan(text);
   if (reporter == null) reporter = new LoggerCanceler();
   Uri uri = new Uri(scheme: "source");
-  Script script = new Script(uri, uri,new MockFile(text));
+  Script script = new Script(uri, uri, new MockFile(text));
   LibraryElement library = new LibraryElementX(script);
   NodeListener listener = new NodeListener(
       new ScannerOptions(canUseNative: true),
-      reporter, library.entryCompilationUnit);
+      reporter,
+      library.entryCompilationUnit);
   Parser parser = new Parser(listener, new MockParserOptions());
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
@@ -122,7 +115,7 @@ Node parseBodyCode(String text, Function parseMethod,
 }
 
 Node parseStatement(String text) =>
-  parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
+    parseBodyCode(text, (parser, tokens) => parser.parseStatement(tokens));
 
 Node parseFunction(String text, Compiler compiler) {
   ElementX element = parseUnit(text, compiler, compiler.mainApp).head;
@@ -132,22 +125,18 @@ Node parseFunction(String text, Compiler compiler) {
 }
 
 Node parseMember(String text, {DiagnosticReporter reporter}) {
-  return parseBodyCode(
-      text,
-      (parser, tokens) => parser.parseMember(tokens),
+  return parseBodyCode(text, (parser, tokens) => parser.parseMember(tokens),
       reporter: reporter);
 }
 
 class MockFile extends StringSourceFile {
-  MockFile(text)
-      : super.fromName('<string>', text);
+  MockFile(text) : super.fromName('<string>', text);
 }
 
 var sourceCounter = 0;
 
-Link<Element> parseUnit(String text, Compiler compiler,
-                        LibraryElement library,
-                        [void registerSource(Uri uri, String source)]) {
+Link<Element> parseUnit(String text, Compiler compiler, LibraryElement library,
+    [void registerSource(Uri uri, String source)]) {
   Token tokens = scan(text);
   Uri uri = new Uri(scheme: "source", path: '${++sourceCounter}');
   if (registerSource != null) {
@@ -158,15 +147,15 @@ Link<Element> parseUnit(String text, Compiler compiler,
   DiagnosticReporter reporter = compiler.reporter;
   ElementListener listener = new ElementListener(
       compiler.parsingContext.getScannerOptionsFor(library),
-      reporter, unit, new IdGenerator());
+      reporter,
+      unit,
+      new IdGenerator());
   PartialParser parser = new PartialParser(listener, new MockParserOptions());
   reporter.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.localMembers;
 }
 
 NodeList fullParseUnit(String source, {DiagnosticReporter reporter}) {
-  return parseBodyCode(
-      source,
-      (parser, tokens) => parser.parseUnit(tokens),
+  return parseBodyCode(source, (parser, tokens) => parser.parseUnit(tokens),
       reporter: reporter);
 }

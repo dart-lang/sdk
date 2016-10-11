@@ -9,12 +9,14 @@ library analyzer.test.src.task.strong.strong_test_helper;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
@@ -270,6 +272,7 @@ List<LibraryElement> _reachableLibraries(LibraryElement start) {
     lib.importedLibraries.forEach(find);
     lib.exportedLibraries.forEach(find);
   }
+
   find(start);
   return results;
 }

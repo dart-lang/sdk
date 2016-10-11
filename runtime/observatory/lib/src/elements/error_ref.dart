@@ -6,20 +6,19 @@ library error_ref_element;
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart'
-  show ErrorRef;
+import 'package:observatory/models.dart' show ErrorRef;
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 
 class ErrorRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ErrorRefElement>('error-ref-wrapped');
+  static const tag = const Tag<ErrorRefElement>('error-ref');
 
   RenderingScheduler<ErrorRefElement> _r;
 
   Stream<RenderedEvent<ErrorRefElement>> get onRendered => _r.onRendered;
 
   ErrorRef _error;
-  
+
   ErrorRef get error => _error;
 
   factory ErrorRefElement(ErrorRef error, {RenderingQueue queue}) {
@@ -46,8 +45,6 @@ class ErrorRefElement extends HtmlElement implements Renderable {
   }
 
   void render() {
-    children = [
-      new PreElement()..text = error.message
-    ];
+    children = [new PreElement()..text = error.message];
   }
 }

@@ -600,7 +600,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       new AstConstant(context, node, new StringConstantExpression(text),
           constantSystem.createString(new LiteralDartString(text)))
     ];
-    ConstructorElement constructor = compiler.symbolConstructor;
+    ConstructorElement constructor = compiler.commonElements.symbolConstructor;
     AstConstant constant = createConstructorInvocation(
         node, type, constructor, CallStructure.ONE_ARG,
         normalizedArguments: arguments);
@@ -711,7 +711,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       }
       return result;
     } else if (send.isCall) {
-      if (element == compiler.identicalFunction && send.argumentCount() == 2) {
+      if (element == compiler.commonElements.identicalFunction &&
+          send.argumentCount() == 2) {
         AstConstant left = evaluate(send.argumentsNode.nodes.head);
         AstConstant right = evaluate(send.argumentsNode.nodes.tail.head);
         if (left == null || right == null) {

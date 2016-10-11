@@ -15,6 +15,7 @@ class AbstractType;
 class Array;
 class DartFrameIterator;
 class Error;
+class LanguageError;
 class Instance;
 class Integer;
 class RawInstance;
@@ -60,6 +61,7 @@ class Exceptions : AllStatic {
     kFallThrough,
     kAbstractClassInstantiation,
     kCyclicInitializationError,
+    kCompileTimeError,
   };
 
   static void ThrowByType(ExceptionType type, const Array& arguments);
@@ -72,6 +74,7 @@ class Exceptions : AllStatic {
                               const Integer& argument_value,
                               intptr_t expected_from,
                               intptr_t expected_to);
+  static void ThrowCompileTimeError(const LanguageError& error);
 
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.

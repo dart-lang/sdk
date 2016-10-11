@@ -8,46 +8,10 @@
   },
   'targets': [
     {
-      'target_name': 'fetch_observatory_deps',
-      'type': 'none',
-      'dependencies': [
-        'dart_bootstrap#host',
-        # We use packages for building
-        '../pkg/pkg.gyp:pkg_packages#target',
-      ],
-      'toolsets': ['host'],
-      'actions': [
-        {
-          'action_name': 'get_obsevatory_dependencies',
-          'inputs': [
-            '../../tools/observatory_tool.py',
-            '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
-            'pubspec.yaml',
-          ],
-          'outputs': [
-            '<(gen_source_dir)/observatory_packages.stamp'
-          ],
-          'action': [
-            'python',
-            '../tools/observatory_tool.py',
-            '--sdk=True',
-            '--package-root', '<(PRODUCT_DIR)/packages',
-            '--stamp',
-            '<(gen_source_dir)/observatory_packages.stamp',
-            '--dart-executable',
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
-            '--directory', 'observatory',
-            '--command', 'get',
-          ],
-        }
-      ],
-    },
-    {
       'target_name': 'build_observatory',
       'type': 'none',
       'dependencies': [
         'dart_bootstrap#host',
-        'fetch_observatory_deps#host',
       ],
       'toolsets': ['host'],
       'includes': [
@@ -58,7 +22,6 @@
           'action_name': 'pub_build_observatory',
           'inputs': [
             '../../tools/observatory_tool.py',
-            '<(gen_source_dir)/observatory_packages.stamp',
             '<@(_sources)',
           ],
           'outputs': [
@@ -68,7 +31,6 @@
             'python',
             '../tools/observatory_tool.py',
             '--sdk=True',
-            '--package-root', '<(PRODUCT_DIR)/packages',
             '--dart-executable',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
             '--directory', 'observatory',
@@ -89,7 +51,6 @@
             'python',
             '../tools/observatory_tool.py',
             '--sdk=True',
-            '--package-root', '<(PRODUCT_DIR)/packages',
             '--dart-executable',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
             '--directory', '<(PRODUCT_DIR)/observatory/',

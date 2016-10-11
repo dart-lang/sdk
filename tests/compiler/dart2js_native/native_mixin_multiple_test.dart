@@ -27,8 +27,8 @@ class M2 {
   foo() => "M2-foo";
 }
 
-A makeA() native;
-B makeB() native;
+A makeA() native ;
+B makeB() native ;
 
 void setup() native """
 function A() {}

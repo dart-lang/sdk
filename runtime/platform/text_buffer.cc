@@ -32,8 +32,8 @@ void TextBuffer::Clear() {
 }
 
 
-const char* TextBuffer::Steal() {
-  const char* r = buf_;
+char* TextBuffer::Steal() {
+  char* r = buf_;
   buf_ = NULL;
   buf_size_ = 0;
   msg_len_ = 0;

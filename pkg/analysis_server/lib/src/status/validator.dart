@@ -10,13 +10,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisResult, CacheState, ChangeSet;
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -274,6 +274,7 @@ class ElementComparator {
         _write(element.name);
       }
     }
+
     expectedElements.forEach((String name, Element element) {
       _write('Expected ');
       writeElement(element);
@@ -603,6 +604,7 @@ class ElementComparator {
         _write(actual.name);
       }
     }
+
     void compareTypeArguments(
         ParameterizedType expected, ParameterizedType actual) {
       List<DartType> expectedArguments = expected.typeArguments;
@@ -1597,6 +1599,7 @@ class ValueComparison {
         }
         buffer.write('}');
       }
+
       bool needsNewline = false;
       if (missingNames.isNotEmpty) {
         buffer.write('Has ');

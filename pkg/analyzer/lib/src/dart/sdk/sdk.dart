@@ -9,14 +9,14 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -144,8 +144,8 @@ abstract class AbstractDartSdk implements DartSdk {
       return null;
     }
     try {
-      return file.createSource(parseUriWithException(path));
-    } on URISyntaxException catch (exception, stackTrace) {
+      return file.createSource(Uri.parse(path));
+    } on FormatException catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Failed to create URI: $path",
           new CaughtException(exception, stackTrace));
@@ -155,9 +155,12 @@ abstract class AbstractDartSdk implements DartSdk {
 
   @override
   PackageBundle getLinkedBundle() {
-    bool strongMode = _analysisOptions?.strongMode ?? false;
-    _sdkBundle ??= getSummarySdkBundle(strongMode);
-    return _sdkBundle;
+    if (_useSummary) {
+      bool strongMode = _analysisOptions?.strongMode ?? false;
+      _sdkBundle ??= getSummarySdkBundle(strongMode);
+      return _sdkBundle;
+    }
+    return null;
   }
 
   String getRelativePathFromFile(File file);
@@ -207,8 +210,8 @@ abstract class AbstractDartSdk implements DartSdk {
     String filePath = srcPath.replaceAll('/', separator);
     try {
       File file = resourceProvider.getFile(filePath);
-      return file.createSource(parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return file.createSource(Uri.parse(dartUri));
+    } on FormatException {
       return null;
     }
   }
@@ -265,10 +268,16 @@ class EmbedderSdk extends AbstractDartSdk {
   static const String _EMBEDDED_LIB_MAP_KEY = 'embedded_libs';
   final Map<String, String> _urlMappings = new HashMap<String, String>();
 
+  PackageBundle _embedderBundle;
+
   EmbedderSdk(
       ResourceProvider resourceProvider, Map<Folder, YamlMap> embedderYamls) {
     this.resourceProvider = resourceProvider;
     embedderYamls?.forEach(_processEmbedderYaml);
+    if (embedderYamls?.length == 1) {
+      Folder libFolder = embedderYamls.keys.first;
+      _loadEmbedderBundle(libFolder);
+    }
   }
 
   @override
@@ -281,13 +290,15 @@ class EmbedderSdk extends AbstractDartSdk {
   Map<String, String> get urlMappings => _urlMappings;
 
   @override
-  PackageBundle getLinkedBundle() => null;
-
-  @override
   String getRelativePathFromFile(File file) => file.path;
 
   @override
-  PackageBundle getSummarySdkBundle(bool strongMode) => null;
+  PackageBundle getSummarySdkBundle(bool strongMode) {
+    if (strongMode) {
+      return _embedderBundle;
+    }
+    return null;
+  }
 
   @override
   Source internalMapDartUri(String dartUri) {
@@ -323,9 +334,19 @@ class EmbedderSdk extends AbstractDartSdk {
     String filePath = srcPath.replaceAll('/', separator);
     try {
       File file = resourceProvider.getFile(filePath);
-      return file.createSource(parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return file.createSource(Uri.parse(dartUri));
+    } on FormatException {
       return null;
+    }
+  }
+
+  void _loadEmbedderBundle(Folder libFolder) {
+    File bundleFile = libFolder.parent.getChildAssumingFile('sdk.ds');
+    if (bundleFile.exists) {
+      try {
+        List<int> bytes = bundleFile.readAsBytesSync();
+        _embedderBundle = new PackageBundle.fromBuffer(bytes);
+      } on FileSystemException {}
     }
   }
 
@@ -596,9 +617,13 @@ class FolderBasedDartSdk extends AbstractDartSdk {
         lastStackTrace = stackTrace;
       }
     }
+    StringBuffer buffer = new StringBuffer();
+    buffer.writeln('Could not initialize the library map from $searchedPaths');
+    if (resourceProvider is MemoryResourceProvider) {
+      (resourceProvider as MemoryResourceProvider).writeOn(buffer);
+    }
     AnalysisEngine.instance.logger.logError(
-        "Could not initialize the library map from $searchedPaths",
-        new CaughtException(lastException, lastStackTrace));
+        buffer.toString(), new CaughtException(lastException, lastStackTrace));
     return new LibraryMap();
   }
 
@@ -623,8 +648,8 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       if (!relativePath.isEmpty) {
         file = file.parent.getChildAssumingFile(relativePath);
       }
-      return file.createSource(parseUriWithException(dartUri));
-    } on URISyntaxException {
+      return file.createSource(Uri.parse(dartUri));
+    } on FormatException {
       return null;
     }
   }

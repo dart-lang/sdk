@@ -16,7 +16,6 @@ import 'helper.dart';
 import 'test_data.dart';
 import 'test_helper.dart';
 
-
 main(List<String> args) {
   Arguments arguments = new Arguments.from(args);
   asyncTest(() async {
@@ -35,14 +34,10 @@ main(List<String> args) {
   });
 }
 
-Future check(
-  SerializedData serializedData,
-  Uri entryPoint,
-  [Map<String, String> sourceFiles = const <String, String>{}]) async {
-
-  Compiler compilerNormal = compilerFor(
-      memorySourceFiles: sourceFiles,
-      options: [Flags.analyzeAll]);
+Future check(SerializedData serializedData, Uri entryPoint,
+    [Map<String, String> sourceFiles = const <String, String>{}]) async {
+  Compiler compilerNormal =
+      compilerFor(memorySourceFiles: sourceFiles, options: [Flags.analyzeAll]);
   compilerNormal.resolution.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
 

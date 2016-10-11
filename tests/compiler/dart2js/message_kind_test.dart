@@ -5,9 +5,8 @@
 import 'package:expect/expect.dart';
 import 'dart:async';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/diagnostics/messages.dart' show
-    MessageKind,
-    MessageTemplate;
+import 'package:compiler/src/diagnostics/messages.dart'
+    show MessageKind, MessageTemplate;
 
 import 'message_kind_helper.dart';
 
@@ -23,30 +22,34 @@ main(List<String> arguments) {
     if (!arguments.isEmpty && !arguments.contains(name)) continue;
     if (name == 'GENERIC' // Shouldn't be used.
         // We can't provoke a crash.
-        || name == 'COMPILER_CRASHED'
-        || name == 'PLEASE_REPORT_THE_CRASH'
+        ||
+        name == 'COMPILER_CRASHED' ||
+        name == 'PLEASE_REPORT_THE_CRASH'
         // We cannot provide examples for patch errors.
-        || name.startsWith('PATCH_')
-        || name == 'LIBRARY_NOT_SUPPORTED'
+        ||
+        name.startsWith('PATCH_') ||
+        name == 'LIBRARY_NOT_SUPPORTED'
         // TODO(johnniwinther): Remove these when [Compiler.reportUnusedCode] is
         // reenabled.
-        || name == 'UNUSED_METHOD'
-        || name == 'UNUSED_CLASS'
-        || name == 'UNUSED_TYPEDEF') continue;
+        ||
+        name == 'UNUSED_METHOD' ||
+        name == 'UNUSED_CLASS' ||
+        name == 'UNUSED_TYPEDEF') continue;
     if (template.examples != null) {
       examples.add(template);
     } else {
       print("No example in '$name'");
     }
-  };
+  }
+  ;
   var cachedCompiler;
   asyncTest(() => Future.forEach(examples, (MessageTemplate template) {
-    print("Checking '${template.kind}'.");
-    Stopwatch sw = new Stopwatch()..start();
-    return check(template, cachedCompiler).then((var compiler) {
-      cachedCompiler = compiler;
-      sw.stop();
-      print("Checked '${template.kind}' in ${sw.elapsedMilliseconds}ms.");
-    });
-  }));
+        print("Checking '${template.kind}'.");
+        Stopwatch sw = new Stopwatch()..start();
+        return check(template, cachedCompiler).then((var compiler) {
+          cachedCompiler = compiler;
+          sw.stop();
+          print("Checked '${template.kind}' in ${sw.elapsedMilliseconds}ms.");
+        });
+      }));
 }

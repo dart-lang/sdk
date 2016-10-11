@@ -37,13 +37,16 @@ class Deserializer;
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
-  V(ICLookupThroughFunction)                                                   \
-  V(ICLookupThroughCode)                                                       \
-  V(MegamorphicLookup)                                                         \
+  V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
+  V(SingleTargetCall)                                                          \
+  V(ICCallThroughFunction)                                                     \
+  V(ICCallThroughCode)                                                         \
+  V(MegamorphicCall)                                                           \
   V(FixAllocationStubTarget)                                                   \
   V(Deoptimize)                                                                \
-  V(DeoptimizeLazy)                                                            \
+  V(DeoptimizeLazyFromReturn)                                                  \
+  V(DeoptimizeLazyFromThrow)                                                   \
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
@@ -71,7 +74,8 @@ class Deserializer;
   V(LazyCompile)                                                               \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
-  V(DeoptimizeLazy)                                                            \
+  V(DeoptimizeLazyFromReturn)                                                  \
+  V(DeoptimizeLazyFromThrow)                                                   \
   V(FrameAwaitingMaterialization)                                              \
 
 #endif  // !defined(TARGET_ARCH_DBC)
@@ -192,7 +196,8 @@ class StubCode : public AllStatic {
 
 
 enum DeoptStubKind {
-  kLazyDeopt,
+  kLazyDeoptFromReturn,
+  kLazyDeoptFromThrow,
   kEagerDeopt
 };
 

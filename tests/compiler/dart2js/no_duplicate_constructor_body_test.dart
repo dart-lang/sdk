@@ -17,8 +17,8 @@ main() {
 
 main() {
   asyncTest(() => compileAll(CODE).then((generated) {
-    RegExp regexp = new RegExp(r'\A: {[ \n]*"\^": "[A-za-z]+;"');
-    Iterator<Match> matches = regexp.allMatches(generated).iterator;
-    checkNumberOfMatches(matches, 1);
-  }));
+        RegExp regexp = new RegExp(r'\A: {[ \n]*"\^": "[A-za-z]+;"');
+        Iterator<Match> matches = regexp.allMatches(generated).iterator;
+        checkNumberOfMatches(matches, 1);
+      }));
 }
