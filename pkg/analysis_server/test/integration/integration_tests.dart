@@ -40,6 +40,38 @@ Matcher isMapOf(Matcher keyMatcher, Matcher valueMatcher) =>
 Matcher isOneOf(List<Matcher> choiceMatchers) => new _OneOf(choiceMatchers);
 
 /**
+ * Assert that [actual] matches [matcher].
+ */
+void outOfTestExpect(actual, matcher,
+    {String reason, skip, bool verbose: false}) {
+  var matchState = {};
+  try {
+    if (matcher.matches(actual, matchState)) return;
+  } catch (e, trace) {
+    if (reason == null) {
+      reason = '${(e is String) ? e : e.toString()} at $trace';
+    }
+  }
+  fail(_defaultFailFormatter(actual, matcher, reason, matchState, verbose));
+}
+
+String _defaultFailFormatter(
+    actual, Matcher matcher, String reason, Map matchState, bool verbose) {
+  var description = new StringDescription();
+  description.add('Expected: ').addDescriptionOf(matcher).add('\n');
+  description.add('  Actual: ').addDescriptionOf(actual).add('\n');
+
+  var mismatchDescription = new StringDescription();
+  matcher.describeMismatch(actual, mismatchDescription, matchState, verbose);
+
+  if (mismatchDescription.length > 0) {
+    description.add('   Which: $mismatchDescription\n');
+  }
+  if (reason != null) description.add(reason).add('\n');
+  return description.toString();
+}
+
+/**
  * Type of closures used by LazyMatcher.
  */
 typedef Matcher MatcherCreator();
@@ -111,7 +143,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     StreamSubscription subscription;
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
-    expect(_subscribedToServerStatus, isTrue);
+    outOfTestExpect(_subscribedToServerStatus, isTrue);
     subscription = onServerStatus.listen((ServerStatusParams params) {
       if (params.analysis != null && !params.analysis.isAnalyzing) {
         completer.complete(params);
@@ -147,7 +179,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     });
     Completer serverConnected = new Completer();
     onServerConnected.listen((_) {
-      expect(serverConnected.isCompleted, isFalse);
+      outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
     onServerError.listen((ServerErrorParams params) {
@@ -525,10 +557,10 @@ class Server {
         _badDataFromServer('JSON decode failure: $exception');
         return;
       }
-      expect(message, isMap);
+      outOfTestExpect(message, isMap);
       Map messageAsMap = message;
       if (messageAsMap.containsKey('id')) {
-        expect(messageAsMap['id'], isString);
+        outOfTestExpect(messageAsMap['id'], isString);
         String id = message['id'];
         Completer completer = _pendingCommands[id];
         if (completer == null) {
@@ -546,17 +578,17 @@ class Server {
         // Check that the message is well-formed.  We do this after calling
         // completer.complete() or completer.completeError() so that we don't
         // stall the test in the event of an error.
-        expect(message, isResponse);
+        outOfTestExpect(message, isResponse);
       } else {
         // Message is a notification.  It should have an event and possibly
         // params.
-        expect(messageAsMap, contains('event'));
-        expect(messageAsMap['event'], isString);
+        outOfTestExpect(messageAsMap, contains('event'));
+        outOfTestExpect(messageAsMap['event'], isString);
         notificationProcessor(messageAsMap['event'], messageAsMap['params']);
         // Check that the message is well-formed.  We do this after calling
         // notificationController.add() so that we don't stall the test in the
         // event of an error.
-        expect(message, isNotification);
+        outOfTestExpect(message, isNotification);
       }
     });
     _process.stderr

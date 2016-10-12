@@ -11,6 +11,7 @@ import 'dart:math';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:test/test.dart';
 
+import '../../test/integration/integration_tests.dart';
 import 'performance_tests.dart';
 
 void printBenchmarkResults(String id, String description, List<int> times) {
@@ -46,10 +47,10 @@ class BenchmarkScenario extends AbstractTimingTest {
       String file,
       FileChange fileChange,
       int numOfRepeats}) async {
-    expect(roots, isNotNull, reason: 'roots');
-    expect(file, isNotNull, reason: 'file');
-    expect(fileChange, isNotNull, reason: 'fileChange');
-    expect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
+    outOfTestExpect(roots, isNotNull, reason: 'roots');
+    outOfTestExpect(file, isNotNull, reason: 'file');
+    outOfTestExpect(fileChange, isNotNull, reason: 'fileChange');
+    outOfTestExpect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
     // Initialize Analysis Server.
     await super.setUp();
     await subscribeToStatusNotifications();
@@ -95,11 +96,11 @@ class BenchmarkScenario extends AbstractTimingTest {
       FileChange fileChange,
       String completeAfterStr,
       int numOfRepeats}) async {
-    expect(roots, isNotNull, reason: 'roots');
-    expect(file, isNotNull, reason: 'file');
-    expect(fileChange, isNotNull, reason: 'fileChange');
-    expect(completeAfterStr, isNotNull, reason: 'completeAfterStr');
-    expect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
+    outOfTestExpect(roots, isNotNull, reason: 'roots');
+    outOfTestExpect(file, isNotNull, reason: 'file');
+    outOfTestExpect(fileChange, isNotNull, reason: 'fileChange');
+    outOfTestExpect(completeAfterStr, isNotNull, reason: 'completeAfterStr');
+    outOfTestExpect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
     // Initialize Analysis Server.
     await super.setUp();
     await subscribeToStatusNotifications();
@@ -149,13 +150,14 @@ class BenchmarkScenario extends AbstractTimingTest {
       RefactoringKind refactoringKind,
       RefactoringOptions refactoringOptions,
       int numOfRepeats}) async {
-    expect(roots, isNotNull, reason: 'roots');
-    expect(file, isNotNull, reason: 'file');
-    expect(fileChange, isNotNull, reason: 'fileChange');
-    expect(refactoringAtStr, isNotNull, reason: 'refactoringAtStr');
-    expect(refactoringKind, isNotNull, reason: 'refactoringKind');
-    expect(refactoringOptions, isNotNull, reason: 'refactoringOptions');
-    expect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
+    outOfTestExpect(roots, isNotNull, reason: 'roots');
+    outOfTestExpect(file, isNotNull, reason: 'file');
+    outOfTestExpect(fileChange, isNotNull, reason: 'fileChange');
+    outOfTestExpect(refactoringAtStr, isNotNull, reason: 'refactoringAtStr');
+    outOfTestExpect(refactoringKind, isNotNull, reason: 'refactoringKind');
+    outOfTestExpect(refactoringOptions, isNotNull,
+        reason: 'refactoringOptions');
+    outOfTestExpect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
     // Initialize Analysis Server.
     await super.setUp();
     await subscribeToStatusNotifications();
@@ -243,8 +245,8 @@ class BenchmarkScenario extends AbstractTimingTest {
    */
   static Future<List<int>> start_waitInitialAnalysis_shutdown(
       {List<String> roots, int numOfRepeats}) async {
-    expect(roots, isNotNull, reason: 'roots');
-    expect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
+    outOfTestExpect(roots, isNotNull, reason: 'roots');
+    outOfTestExpect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
     // Repeat.
     List<int> times = <int>[];
     for (int i = 0; i < numOfRepeats; i++) {
@@ -265,7 +267,8 @@ class BenchmarkScenario extends AbstractTimingTest {
 
   static String _getFileContent(String path) {
     File file = new File(path);
-    expect(file.existsSync(), isTrue, reason: 'File $path does not exist.');
+    outOfTestExpect(file.existsSync(), isTrue,
+        reason: 'File $path does not exist.');
     return file.readAsStringSync();
   }
 
@@ -274,7 +277,7 @@ class BenchmarkScenario extends AbstractTimingTest {
    */
   static int _indexOf(String file, String where, String what) {
     int index = where.indexOf(what);
-    expect(index, isNot(-1), reason: 'Cannot find |$what| in $file.');
+    outOfTestExpect(index, isNot(-1), reason: 'Cannot find |$what| in $file.');
     return index;
   }
 
@@ -293,11 +296,16 @@ class FileChange {
   final String replaceWhat;
   final String replaceWith;
 
-  FileChange({this.afterStr, this.afterStrBack: 0, this.insertStr, this.replaceWhat, this.replaceWith}) {
+  FileChange(
+      {this.afterStr,
+      this.afterStrBack: 0,
+      this.insertStr,
+      this.replaceWhat,
+      this.replaceWith}) {
     if (afterStr != null) {
-      expect(insertStr, isNotNull, reason: 'insertStr');
+      outOfTestExpect(insertStr, isNotNull, reason: 'insertStr');
     } else if (replaceWhat != null) {
-      expect(replaceWith, isNotNull, reason: 'replaceWith');
+      outOfTestExpect(replaceWith, isNotNull, reason: 'replaceWith');
     }
   }
 }

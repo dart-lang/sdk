@@ -51,7 +51,7 @@ abstract class IntegrationTestMixin {
    */
   Future sendServerShutdown() async {
     var result = await server.send("server.shutdown", null);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -72,7 +72,7 @@ abstract class IntegrationTestMixin {
   Future sendServerSetSubscriptions(List<ServerService> subscriptions) async {
     var params = new ServerSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("server.setSubscriptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -376,7 +376,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisReanalyze({List<String> roots}) async {
     var params = new AnalysisReanalyzeParams(roots: roots).toJson();
     var result = await server.send("analysis.reanalyze", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -442,7 +442,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded, {Map<String, String> packageRoots}) async {
     var params = new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots).toJson();
     var result = await server.send("analysis.setAnalysisRoots", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -464,7 +464,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisSetGeneralSubscriptions(List<GeneralAnalysisService> subscriptions) async {
     var params = new AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("analysis.setGeneralSubscriptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -496,7 +496,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisSetPriorityFiles(List<String> files) async {
     var params = new AnalysisSetPriorityFilesParams(files).toJson();
     var result = await server.send("analysis.setPriorityFiles", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -535,7 +535,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisSetSubscriptions(Map<AnalysisService, List<String>> subscriptions) async {
     var params = new AnalysisSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("analysis.setSubscriptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -579,7 +579,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisUpdateOptions(AnalysisOptions options) async {
     var params = new AnalysisUpdateOptionsParams(options).toJson();
     var result = await server.send("analysis.updateOptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -1503,7 +1503,7 @@ abstract class IntegrationTestMixin {
   Future sendExecutionDeleteContext(String id) async {
     var params = new ExecutionDeleteContextParams(id).toJson();
     var result = await server.send("execution.deleteContext", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -1579,7 +1579,7 @@ abstract class IntegrationTestMixin {
   Future sendExecutionSetSubscriptions(List<ExecutionService> subscriptions) async {
     var params = new ExecutionSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("execution.setSubscriptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -1678,71 +1678,71 @@ abstract class IntegrationTestMixin {
     ResponseDecoder decoder = new ResponseDecoder(null);
     switch (event) {
       case "server.connected":
-        expect(params, isServerConnectedParams);
+        outOfTestExpect(params, isServerConnectedParams);
         _onServerConnected.add(new ServerConnectedParams.fromJson(decoder, 'params', params));
         break;
       case "server.error":
-        expect(params, isServerErrorParams);
+        outOfTestExpect(params, isServerErrorParams);
         _onServerError.add(new ServerErrorParams.fromJson(decoder, 'params', params));
         break;
       case "server.status":
-        expect(params, isServerStatusParams);
+        outOfTestExpect(params, isServerStatusParams);
         _onServerStatus.add(new ServerStatusParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.analyzedFiles":
-        expect(params, isAnalysisAnalyzedFilesParams);
+        outOfTestExpect(params, isAnalysisAnalyzedFilesParams);
         _onAnalysisAnalyzedFiles.add(new AnalysisAnalyzedFilesParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.errors":
-        expect(params, isAnalysisErrorsParams);
+        outOfTestExpect(params, isAnalysisErrorsParams);
         _onAnalysisErrors.add(new AnalysisErrorsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.flushResults":
-        expect(params, isAnalysisFlushResultsParams);
+        outOfTestExpect(params, isAnalysisFlushResultsParams);
         _onAnalysisFlushResults.add(new AnalysisFlushResultsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.folding":
-        expect(params, isAnalysisFoldingParams);
+        outOfTestExpect(params, isAnalysisFoldingParams);
         _onAnalysisFolding.add(new AnalysisFoldingParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.highlights":
-        expect(params, isAnalysisHighlightsParams);
+        outOfTestExpect(params, isAnalysisHighlightsParams);
         _onAnalysisHighlights.add(new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.implemented":
-        expect(params, isAnalysisImplementedParams);
+        outOfTestExpect(params, isAnalysisImplementedParams);
         _onAnalysisImplemented.add(new AnalysisImplementedParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.invalidate":
-        expect(params, isAnalysisInvalidateParams);
+        outOfTestExpect(params, isAnalysisInvalidateParams);
         _onAnalysisInvalidate.add(new AnalysisInvalidateParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.navigation":
-        expect(params, isAnalysisNavigationParams);
+        outOfTestExpect(params, isAnalysisNavigationParams);
         _onAnalysisNavigation.add(new AnalysisNavigationParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.occurrences":
-        expect(params, isAnalysisOccurrencesParams);
+        outOfTestExpect(params, isAnalysisOccurrencesParams);
         _onAnalysisOccurrences.add(new AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.outline":
-        expect(params, isAnalysisOutlineParams);
+        outOfTestExpect(params, isAnalysisOutlineParams);
         _onAnalysisOutline.add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.overrides":
-        expect(params, isAnalysisOverridesParams);
+        outOfTestExpect(params, isAnalysisOverridesParams);
         _onAnalysisOverrides.add(new AnalysisOverridesParams.fromJson(decoder, 'params', params));
         break;
       case "completion.results":
-        expect(params, isCompletionResultsParams);
+        outOfTestExpect(params, isCompletionResultsParams);
         _onCompletionResults.add(new CompletionResultsParams.fromJson(decoder, 'params', params));
         break;
       case "search.results":
-        expect(params, isSearchResultsParams);
+        outOfTestExpect(params, isSearchResultsParams);
         _onSearchResults.add(new SearchResultsParams.fromJson(decoder, 'params', params));
         break;
       case "execution.launchData":
-        expect(params, isExecutionLaunchDataParams);
+        outOfTestExpect(params, isExecutionLaunchDataParams);
         _onExecutionLaunchData.add(new ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
         break;
       default:

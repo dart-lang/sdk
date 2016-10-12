@@ -43,7 +43,7 @@ abstract class AbstractAnalysisServerPerformanceTest
     });
     Completer serverConnected = new Completer();
     onServerConnected.listen((_) {
-      expect(serverConnected.isCompleted, isFalse);
+      outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
     return startServer(checked: false).then((_) {

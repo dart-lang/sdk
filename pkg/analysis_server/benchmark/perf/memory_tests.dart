@@ -65,7 +65,7 @@ class AnalysisServerMemoryUsageTest
     });
     Completer serverConnected = new Completer();
     onServerConnected.listen((_) {
-      expect(serverConnected.isCompleted, isFalse);
+      outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
     return startServer(servicesPort: vmServicePort).then((_) {
@@ -109,8 +109,8 @@ class AnalysisServerMemoryUsageTest
    */
   static Future<List<int>> start_waitInitialAnalysis_shutdown(
       {List<String> roots, int numOfRepeats}) async {
-    expect(roots, isNotNull, reason: 'roots');
-    expect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
+    outOfTestExpect(roots, isNotNull, reason: 'roots');
+    outOfTestExpect(numOfRepeats, isNotNull, reason: 'numOfRepeats');
     // Repeat.
     List<int> sizes = <int>[];
     for (int i = 0; i < numOfRepeats; i++) {
