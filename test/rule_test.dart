@@ -6,6 +6,7 @@ library linter.test.rule;
 
 import 'dart:io';
 
+import 'mock_sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -409,7 +410,7 @@ testRule(String ruleName, File file, {bool debug: false}) {
     }
 
     LinterOptions options = new LinterOptions([rule])
-      ..useMockSdk = true
+      ..mockSdk = new MockSdk()
       ..packageRootPath = '.';
 
     DartLinter driver = new DartLinter(options);

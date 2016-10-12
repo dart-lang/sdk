@@ -23,7 +23,6 @@ import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/project.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/sdk.dart';
 import 'package:package_config/packages.dart' show Packages;
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -70,9 +69,8 @@ class AnalysisDriver {
   int get numSourcesAnalyzed => _sourcesAnalyzed.length;
 
   List<UriResolver> get resolvers {
-    DartSdk sdk = options.useMockSdk
-        ? new MockSdk()
-        : new FolderBasedDartSdk(PhysicalResourceProvider.INSTANCE,
+    DartSdk sdk = options.mockSdk ??
+        new FolderBasedDartSdk(PhysicalResourceProvider.INSTANCE,
             PhysicalResourceProvider.INSTANCE.getFolder(sdkDir));
 
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];
@@ -234,8 +232,8 @@ class DriverOptions {
   /// Whether to use Dart's Strong Mode analyzer.
   bool strongMode = true;
 
-  /// Whether to use a mock SDK (to speed up testing).
-  bool useMockSdk = false;
+  /// The mock SDK (to speed up testing) or `null` to use the actual SDK.
+  DartSdk mockSdk;
 
   /// Whether to show lints for the transitive closure of imported and exported
   /// libraries.

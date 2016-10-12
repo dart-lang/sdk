@@ -346,27 +346,7 @@ class _MockSdkLibrary implements SdkLibrary {
       [this.parts = const <_MockSdkFile>[]]);
 
   @override
-  String get category => throw unimplemented;
-
-  @override
-  bool get isDart2JsLibrary => throw unimplemented;
-
-  @override
-  bool get isDocumented => throw unimplemented;
-
-  @override
-  bool get isImplementation => throw unimplemented;
-
-  @override
-  bool get isInternal => throw unimplemented;
-
-  @override
-  bool get isShared => throw unimplemented;
-
-  @override
-  bool get isVmLibrary => throw unimplemented;
-
-  UnimplementedError get unimplemented => new UnimplementedError();
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// An [AnalysisContextImpl] that only contains sources for a Dart SDK.
