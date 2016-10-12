@@ -33,6 +33,32 @@ class SdkPatcherTest {
     sdkFolder = provider.getFolder(_p('/sdk'));
   }
 
+  test_directive_fail_export() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+import 'a.dart';
+''',
+          r'''
+export 'c.dart';
+''');
+    }, throwsArgumentError);
+  }
+
+  test_directive_import() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+import 'a.dart';
+part 'b.dart';
+int bar() => 0;
+''',
+        r'''
+import 'c.dart';
+''');
+    _assertUnitCode(unit,
+        "import 'a.dart'; part 'b.dart'; import 'c.dart'; int bar() => 0;");
+  }
+
   test_fail_noSuchLibrary() {
     expect(() {
       _setSdkLibraries('const LIBRARIES = const {};');
@@ -76,7 +102,32 @@ void set _foo3(int val) {}
         'int get _foo2 => 1; void set _foo3(int val) {}');
   }
 
-  test_topLevel_fail_append_notPrivate() {
+  test_topLevel_fail_topLevelVariable() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+int foo() => 0;
+''',
+          r'''
+int _bar;
+''');
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_function_fail_noExternalKeyword() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+int foo();
+''',
+          r'''
+@patch
+int foo() => 1;
+''');
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_function_fail_notPrivate() {
     expect(() {
       _doTopLevelPatching(
           r'''
@@ -88,15 +139,38 @@ int bar() => 2;
     }, throwsArgumentError);
   }
 
-  test_topLevel_fail_noExternalKeyword() {
+  test_topLevel_functionTypeAlias_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+int foo() => 0;
+''',
+        r'''
+typedef int _bar();
+''');
+    _assertUnitCode(unit, 'int foo() => 0; typedef int _bar();');
+  }
+
+  test_topLevel_functionTypeAlias_fail_hasAnnotation() {
     expect(() {
       _doTopLevelPatching(
           r'''
-int foo();
+int foo() => 0;
 ''',
           r'''
 @patch
-int foo() => 1;
+typedef int _bar();
+''');
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_functionTypeAlias_fail_notPrivate() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+int foo() => 0;
+''',
+          r'''
+typedef int bar();
 ''');
     }, throwsArgumentError);
   }
@@ -112,6 +186,18 @@ int bar() => 2;
 int foo() => 1;
 ''');
     _assertUnitCode(unit, 'int foo() => 1; int bar() => 2;');
+  }
+
+  test_topLevel_patch_function_blockBody() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+external int foo();
+''',
+        r'''
+@patch
+int foo() {int v = 1; return v + 2;}
+''');
+    _assertUnitCode(unit, 'int foo() {int v = 1; return v + 2;}');
   }
 
   test_topLevel_patch_getter() {

@@ -21,6 +21,10 @@ import 'package:path/src/context.dart';
  * [SdkPatcher] applies patches to SDK [CompilationUnit].
  */
 class SdkPatcher {
+  String _baseDesc;
+  String _patchDesc;
+  CompilationUnit _patchUnit;
+
   /**
    * Patch the given [unit] of a SDK [source] with the patches defined in
    * the [sdk] for the given [platform].  Throw [ArgumentError] if a patch
@@ -56,10 +60,18 @@ class SdkPatcher {
       File patchFile = sdk.libraryDirectory.getChildAssumingFile(pathInLib);
       if (!patchFile.exists) {
         throw new ArgumentError(
-            'The patch file ${patchFile.path} does not exist.');
+            'The patch file ${patchFile.path} for $source does not exist.');
       }
       Source patchSource = patchFile.createSource();
       CompilationUnit patchUnit = parse(patchSource, strongMode, errorListener);
+
+      // Prepare for reporting errors.
+      _baseDesc = source.toString();
+      _patchDesc = patchFile.path;
+      _patchUnit = patchUnit;
+
+      _patchDirectives(
+          source, unit, patchSource, patchUnit, addNewTopLevelDeclarations);
       _patchTopLevelDeclarations(
           source, unit, patchSource, patchUnit, addNewTopLevelDeclarations);
     }
@@ -68,6 +80,39 @@ class SdkPatcher {
   void _failExternalKeyword(Source source, String name, int offset) {
     throw new ArgumentError(
         'The keyword "external" was expected for "$name" in $source @ $offset.');
+  }
+
+  void _failIfPublicName(AstNode node, String name) {
+    if (!Identifier.isPrivateName(name)) {
+      _failInPatch('contains a public declaration "$name"', node.offset);
+    }
+  }
+
+  void _failInPatch(String message, int offset) {
+    String loc = _getLocationDesc3(_patchUnit, offset);
+    throw new ArgumentError(
+        'The patch file $_patchDesc for $_baseDesc $message at $loc.');
+  }
+
+  String _getLocationDesc3(CompilationUnit unit, int offset) {
+    LineInfo_Location location = unit.lineInfo.getLocation(offset);
+    return 'the line ${location.lineNumber}';
+  }
+
+  void _patchDirectives(
+      Source baseSource,
+      CompilationUnit baseUnit,
+      Source patchSource,
+      CompilationUnit patchUnit,
+      bool addNewTopLevelDeclarations) {
+    for (Directive patchDirective in patchUnit.directives) {
+      if (patchDirective is ImportDirective) {
+        baseUnit.directives.add(patchDirective);
+      } else {
+        _failInPatch('contains an unsupported "$patchDirective" directive',
+            patchDirective.offset);
+      }
+    }
   }
 
   void _patchTopLevelDeclarations(
@@ -100,14 +145,19 @@ class SdkPatcher {
             }
           }
         } else if (addNewTopLevelDeclarations) {
-          // No @patch, must be private.
-          if (!Identifier.isPrivateName(name)) {
-            throw new ArgumentError(
-                'The patch file $patchSource attempts to append '
-                'a non-private declaration "$name".');
-          }
+          _failIfPublicName(patchDeclaration, name);
           declarationsToAppend.add(patchDeclaration);
         }
+      } else if (patchDeclaration is FunctionTypeAlias) {
+        if (patchDeclaration.metadata.isNotEmpty) {
+          _failInPatch('contains a function type alias with an annotation',
+              patchDeclaration.offset);
+        }
+        _failIfPublicName(patchDeclaration, patchDeclaration.name.name);
+        declarationsToAppend.add(patchDeclaration);
+      } else {
+        _failInPatch('contains an unsupported top-level declaration',
+            patchDeclaration.offset);
       }
     }
     // Append new top-level declarations.
