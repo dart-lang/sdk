@@ -1,3 +1,9 @@
+## 1.20.1 - 2016-10-13
+
+Patch release, resolves one issue:
+
+* Dartium: Fixes a bug that caused crashes.  No issue filed
+
 ## 1.20.0 - 2016-10-11
 
 ### Dart VM
