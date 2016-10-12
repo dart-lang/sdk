@@ -73,7 +73,7 @@ vars = {
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.2",
   "kernel_rev": "@1906e420431656d351a9f4ee9a36b8ca9a4da1db",
-  "linter_tag": "@0.1.27",
+  "linter_tag": "@0.1.28",
   "logging_tag": "@0.11.3+1",
   "markdown_tag": "@0.11.0",
   "matcher_tag": "@0.12.0+2",
