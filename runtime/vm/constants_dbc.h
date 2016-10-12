@@ -806,7 +806,7 @@ namespace dart {
   V(CheckEitherNonSmi,             A_D, reg, reg, ___) \
   V(CheckClassId,                  A_D, reg, num, ___) \
   V(CheckDenseSwitch,              A_D, reg, num, ___) \
-  V(CheckCids,                   A_B_C, reg, num, ___) \
+  V(CheckCids,                   A_B_C, reg, num, num) \
   V(CheckStack,                      0, ___, ___, ___) \
   V(DebugStep,                       0, ___, ___, ___) \
   V(DebugBreak,                      A, num, ___, ___) \

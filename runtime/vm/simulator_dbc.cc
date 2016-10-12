@@ -2881,8 +2881,8 @@ RawObject* Simulator::Call(const Code& code,
           pc++;
           break;
         }
-        // The cids are sorted.
-        if (cid < desired_cid) {
+        // The cids are sorted in descending order.
+        if (cid > desired_cid) {
           break;
         }
       }
