@@ -10999,9 +10999,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         right_operand = new(Z) TypeNode(type_pos, type);
         // In production mode, the type may be malformed.
         // In checked mode, the type may be malformed or malbounded.
-        if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
-             (op_kind == Token::kAS)) &&
-            type.IsMalformedOrMalbounded()) {
+        if (type.IsMalformedOrMalbounded()) {
           // Note that a type error is thrown in a type test or in
           // a type cast even if the tested value is null.
           // We need to evaluate the left operand for potential
