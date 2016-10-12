@@ -15,7 +15,9 @@ DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..', '..'))
 
 def main(argv):
   os.environ["DART_USE_GN"] = "1"
-  gclient_result = subprocess.call(['gclient', 'runhooks'])
+  generate_buildfiles = os.path.join(
+      DART_ROOT, 'tools', 'generate_buildfiles.py')
+  gclient_result = subprocess.call(['python', generate_buildfiles])
   if gclient_result != 0:
     return gclient_result
 
