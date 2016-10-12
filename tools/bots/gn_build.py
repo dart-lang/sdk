@@ -10,19 +10,20 @@ import shutil
 import sys
 import subprocess
 
-import bot
-import bot_utils
+SCRIPT_DIR = os.path.dirname(sys.argv[0])
+DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..', '..'))
 
-utils = bot_utils.GetUtils()
+def main(argv):
+  os.environ["DART_USE_GN"] = "1"
+  gclient_result = subprocess.call(['gclient', 'runhooks'])
+  if gclient_result != 0:
+    return gclient_result
 
-BUILD_OS = utils.GuessOS()
-
-(bot_name, _) = bot.GetBotName()
-CHANNEL = bot_utils.GetChannelFromName(bot_name)
+  build_py = os.path.join(DART_ROOT, 'tools', 'build.py')
+  build_result = subprocess.call(['python', build_py] + argv[1:])
+  if build_result != 0:
+    return build_result
+  return 0
 
 if __name__ == '__main__':
-  print "This step should build the sdk using gn"
-  print "This script received the args: " + (" ".join(sys.argv))
-  print "Current directory when running on a bot should be"
-  print "/b/build/slave/[builder name]/build/sdk"
-
+  sys.exit(main(sys.argv))

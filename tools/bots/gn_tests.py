@@ -10,18 +10,15 @@ import shutil
 import sys
 import subprocess
 
-import bot
-import bot_utils
+SCRIPT_DIR = os.path.dirname(sys.argv[0])
+DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..', '..'))
 
-utils = bot_utils.GetUtils()
-
-BUILD_OS = utils.GuessOS()
-
-(bot_name, _) = bot.GetBotName()
-CHANNEL = bot_utils.GetChannelFromName(bot_name)
+def main(argv):
+  test_py = os.path.join(DART_ROOT, 'tools', 'test.py')
+  build_result = subprocess.call(['python', test_py] + argv[1:])
+  if build_result != 0:
+    return build_result
+  return 0
 
 if __name__ == '__main__':
-  print "This step should test the sdk that was built using gn"
-  print "Current directory when running on a bot should be"
-  print "/b/build/slave/[builder name]/build/sdk"
-
+  sys.exit(main(sys.argv))
