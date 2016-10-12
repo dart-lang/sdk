@@ -180,7 +180,8 @@ class SearchMatch {
 
   @override
   int get hashCode {
-    return JenkinsSmiHash.hash4(libraryUri, unitUri, kind, sourceRange);
+    return JenkinsSmiHash.hash4(libraryUri.hashCode, unitUri.hashCode,
+        kind.hashCode, sourceRange.hashCode);
   }
 
   /**
