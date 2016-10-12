@@ -80,7 +80,7 @@ _injectJs() {
     _getA: function() { return this._a;}
   };
 
-  var selection = ["a", "b", "c", foo, bar];  
+  var selection = ["a", "b", "c", foo, bar];
 
   function returnNumArgs() { return arguments.length; };
   function returnLastArg() { return arguments[arguments.length-1]; };
@@ -139,6 +139,14 @@ class ClassWithConstructor {
 @JS('ClassWithConstructor')
 class _ClassWithConstructor {
   external _ClassWithConstructor(aParam, bParam);
+  external getA();
+  external get a;
+  external get b;
+}
+
+@JS('ClassWithConstructor')
+class ClassWithFactory {
+  external factory ClassWithFactory(aParam, bParam);
   external getA();
   external get a;
   external get b;
@@ -320,6 +328,12 @@ main() {
   group('constructor', () {
     test('simple', () {
       var o = new ClassWithConstructor("foo", "bar");
+      expect(o.a, equals("foo"));
+      expect(o.b, equals("bar"));
+      expect(o.getA(), equals("foo"));
+    });
+    test('external factory', () {
+      var o = new ClassWithFactory("foo", "bar");
       expect(o.a, equals("foo"));
       expect(o.b, equals("bar"));
       expect(o.getA(), equals("foo"));
