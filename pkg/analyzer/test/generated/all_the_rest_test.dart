@@ -33,7 +33,7 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -128,14 +128,14 @@ class CustomUriResolverTest {
   }
 
   void test_resolve_uri() {
-    String path =
+    String filePath =
         FileUtilities2.createFile("/path/to/library.dart").getAbsolutePath();
     UriResolver resolver = new CustomUriResolver({
-      'custom:library': path,
+      'custom:library': filePath,
     });
     Source result = resolver.resolveAbsolute(Uri.parse("custom:library"));
     expect(result, isNotNull);
-    expect(result.fullName, path);
+    expect(result.fullName, filePath);
   }
 }
 
@@ -3183,7 +3183,7 @@ class ErrorReporterTest extends EngineTestCase {
     ErrorReporter reporter = new ErrorReporter(
         listener,
         new NonExistingSource(
-            '/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
+            '/test.dart', path.toUri('/test.dart'), UriKind.FILE_URI));
     reporter.reportErrorForElement(
         StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
         element,

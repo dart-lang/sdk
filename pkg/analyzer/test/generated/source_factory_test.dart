@@ -18,7 +18,7 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -284,7 +284,7 @@ class SourceFactoryTest {
 
   void test_resolveUri_nonAbsolute_relative_package() {
     MemoryResourceProvider provider = new MemoryResourceProvider();
-    Context context = provider.pathContext;
+    pathos.Context context = provider.pathContext;
     String packagePath =
         context.joinAll([context.separator, 'path', 'to', 'package']);
     String libPath = context.joinAll([packagePath, 'lib']);

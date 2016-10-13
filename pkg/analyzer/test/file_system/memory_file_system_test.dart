@@ -12,7 +12,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pathos;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart';
@@ -464,7 +464,7 @@ class MemoryFileSourceExistingTest {
 
   void test_encoding() {
     String expected = 'file:///foo/test.dart';
-    if (provider.pathContext.style == windows.style) {
+    if (provider.pathContext.style == pathos.windows.style) {
       expected = 'file:///C:/foo/test.dart';
     }
     expect(source.encoding, expected);
@@ -551,7 +551,7 @@ class MemoryFileSourceNotExistingTest {
 
   void test_encoding() {
     String expected = 'file:///foo/test.dart';
-    if (provider.pathContext.style == windows.style) {
+    if (provider.pathContext.style == pathos.windows.style) {
       expected = 'file:///C:/foo/test.dart';
     }
     expect(source.encoding, expected);
@@ -616,13 +616,6 @@ class MemoryResourceProviderTest {
     expect(file.exists, isFalse);
   }
 
-  test_getModificationTimes() async {
-    File file = provider.newFile(provider.convertPath('/test.dart'), '');
-    Source source = file.createSource();
-    List<int> times = await provider.getModificationTimes([source]);
-    expect(times, [source.modificationStamp]);
-  }
-
   test_getFolder_existing() async {
     String path = provider.convertPath('/foo/bar');
     provider.newFolder(path);
@@ -638,6 +631,13 @@ class MemoryResourceProviderTest {
     expect(folder, isNotNull);
     expect(folder.path, path);
     expect(folder.exists, isFalse);
+  }
+
+  test_getModificationTimes() async {
+    File file = provider.newFile(provider.convertPath('/test.dart'), '');
+    Source source = file.createSource();
+    List<int> times = await provider.getModificationTimes([source]);
+    expect(times, [source.modificationStamp]);
   }
 
   void test_getStateLocation_uniqueness() {
