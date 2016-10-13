@@ -210,13 +210,18 @@ define(['dart_sdk'], function(dart_sdk) {
     }
     static deepEquals(expected, actual) {
       if (dart.equals(expected, actual)) return;
-      if (core.List.is(expected) && core.List.is(actual)) {
-        let n = dart.notNull(expected[dartx.length]) < dart.notNull(actual[dartx.length]) ? expected[dartx.length] : actual[dartx.length];
-        for (let i = 0; i < dart.notNull(n); i++) {
-          expect.Expect.deepEquals(expected[dartx.get](i), actual[dartx.get](i));
+      if (typeof expected == 'string' && typeof actual == 'string') {
+        expect.Expect.stringEquals(expected, actual);
+      } else if (core.Iterable.is(expected) && core.Iterable.is(actual)) {
+        let expectedLength = expected[dartx.length];
+        let actualLength = actual[dartx.length];
+        let length = dart.notNull(expectedLength) < dart.notNull(actualLength) ? expectedLength : actualLength;
+        for (let i = 0; i < dart.notNull(length); i++) {
+          expect.Expect.deepEquals(expected[dartx.elementAt](i), actual[dartx.elementAt](i));
         }
-        if (expected[dartx.length] != actual[dartx.length]) {
-          expect.Expect._fail('Expect.deepEquals(list length, ' + dart.str`expected: <${expected[dartx.length]}>, actual: <${actual[dartx.length]}>) ` + 'fails: Next element <' + dart.str`${dart.notNull(expected[dartx.length]) > dart.notNull(n) ? expected[dartx.get](n) : actual[dartx.get](n)}>`);
+        if (expectedLength != actualLength) {
+          let nextElement = (dart.notNull(expectedLength) > dart.notNull(length) ? expected : actual)[dartx.elementAt](length);
+          expect.Expect._fail('Expect.deepEquals(list length, ' + dart.str`expected: <${expectedLength}>, actual: <${actualLength}>) ` + dart.str`fails: Next element <${nextElement}>`);
         }
       } else if (core.Map.is(expected) && core.Map.is(actual)) {
         for (let key of expected[dartx.keys]) {
@@ -230,10 +235,6 @@ define(['dart_sdk'], function(dart_sdk) {
             expect.Expect._fail(dart.str`Expect.deepEquals(unexpected key: <${key}>) fails`);
           }
         }
-      } else if (typeof expected == 'string' && typeof actual == 'string') {
-        let stringDifference = expect.Expect._stringDifference(expected, actual);
-        dart.assert(stringDifference != null);
-        expect.Expect._fail(dart.str`Expect.deepEquals(${stringDifference}) fails.`);
       } else {
         expect.Expect._fail(dart.str`Expect.deepEquals(expected: <${expected}>, actual: <${actual}>) ` + "fails.");
       }

@@ -5460,8 +5460,9 @@ String jsLibraryName(String libraryRoot, LibraryElement library) {
     // E.g., "foo/bar.dart" and "foo$47bar.dart" would collide.
     qualifiedPath = uri.pathSegments.skip(1).join(customSeparator);
   } else if (isWithin(libraryRoot, uri.toFilePath())) {
-    qualifiedPath =
-        fromUri(uri).substring(libraryRoot.length).replaceAll(separator, customSeparator);
+    qualifiedPath = fromUri(uri)
+        .substring(libraryRoot.length)
+        .replaceAll(separator, customSeparator);
   } else {
     // We don't have a unique name.
     throw 'Invalid library root. $libraryRoot does not contain ${uri

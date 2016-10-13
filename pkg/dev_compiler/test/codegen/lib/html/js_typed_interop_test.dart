@@ -8,9 +8,7 @@ library js_typed_interop_test;
 import 'dart:html';
 
 import 'package:js/js.dart';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:minitest/minitest.dart';
 
 _injectJs() {
   document.body.append(new ScriptElement()
@@ -202,8 +200,6 @@ external num get propertyOnWindow;
 main() {
   _injectJs();
 
-  useHtmlIndividualConfiguration();
-
   group('object literal', () {
     test('simple', () {
       var l = new ExampleLiteral(x: 3, y: "foo");
@@ -274,7 +270,7 @@ main() {
       Function multiplyByX = foo.multiplyByX;
       // Tearing off a JS closure doesn't bind this.
       // You will need to use the new method tearoff syntax to bind this.
-      expect(multiplyByX(4), isNaN);
+      expect(multiplyByX(4), double.NAN);
 
       MultiplyWithDefault multiplyWithDefault = foo.multiplyDefault2Function;
       expect(multiplyWithDefault(6, 6), equals(36));
@@ -288,7 +284,7 @@ main() {
       // Calling a JavaScript method with too few arguments is also fine and
       // defaults to JavaScript behavior of setting all unspecified arguments
       // to undefined resulting in multiplying undefined by 2 == NAN.
-      expect(untypedFunction(), isNaN);
+      expect(untypedFunction(), double.NAN);
 
     });
   });

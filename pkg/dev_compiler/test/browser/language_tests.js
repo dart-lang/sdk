@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-define(['dart_sdk', 'async_helper', 'unittest', 'require'],
-      function(dart_sdk, async_helper, unittest, require) {
+define(['dart_sdk', 'async_helper', 'minitest', 'unittest', 'require'],
+      function(dart_sdk, async_helper, minitest, unittest, require) {
   'use strict';
 
   async_helper = async_helper.async_helper;
+  minitest = minitest.minitest;
 
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   let html_config = unittest.html_config;
@@ -25,10 +26,17 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
   const skip_fail = ['skip', 'fail'];
   const skip_timeout = ['skip', 'timeout'];
 
+  // Tests marked with this are still using the deprecated unittest package
+  // because they rely on its support for futures and asynchronous tests, which
+  // expect and minitest do not handle.
+  // TODO(rnystrom): Move all of these away from using the async test API so
+  // they can stop using unittest.
+  const async_unittest = ['unittest', 'skip', 'fail'];
+
   // The number of expected unittest errors should be zero but unfortunately
   // there are a lot of broken html unittests.
-  let num_expected_unittest_fails = 5;
-  let num_expected_unittest_errors = 8;
+  let num_expected_unittest_fails = 3;
+  let num_expected_unittest_errors = 2;
 
   // TODO(jmesserly): separate StrongModeError from other errors.
   let all_status = {
@@ -406,94 +414,74 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
     // more hope of passing. Triage tests that can never run in this test
     // runner and track them separately.
     'lib/html': {
-      'async_spawnuri_test': ['unittest', 'skip', 'fail'],
-      'async_test': ['unittest', 'skip', 'fail'],
-      'audiobuffersourcenode_test': ['unittest', 'skip', 'fail'],
-      'audiocontext_test': ['unittest', 'skip', 'fail'],
-      'audioelement_test': ['unittest', 'skip', 'fail'],
-      'b_element_test': ['unittest', 'skip', 'fail'],
-      'blob_constructor_test': ['unittest', 'skip', 'fail'],
-      'cache_test': ['unittest', 'skip', 'fail'],
-      'callbacks_test': ['unittest', 'skip', 'fail'],
-      'canvas_pixel_array_type_alias_test': ['unittest'],
-      'canvasrenderingcontext2d_test': ['unittest'],
+      'async_spawnuri_test': async_unittest,
+      'async_test': async_unittest,
+      'audiobuffersourcenode_test': 'fail', // sdk#27578.
+      'audiocontext_test': 'fail', // sdk#27578.
+      'blob_constructor_test': 'fail', // sdk#27578.
+      'cache_test': 'fail', // sdk#27578.
       'canvas_test': ['unittest'],
-      'cdata_test': ['unittest', 'skip', 'fail'],
-      'client_rect_test': ['unittest', 'skip', 'fail'],
-      'cross_domain_iframe_test': ['unittest', 'skip', 'fail'],
-      'cross_frame_test': ['unittest', 'skip', 'fail'],
-      'crypto_test': ['unittest', 'skip', 'fail'],
-      'css_rule_list_test': ['unittest', 'skip', 'fail'],
-      'cssstyledeclaration_test': ['unittest', 'skip', 'fail'],
-      'css_test': ['unittest', 'skip', 'fail'],
-      'custom_element_method_clash_test': ['unittest', 'skip', 'fail'],
-      'custom_element_name_clash_test': ['unittest', 'skip', 'fail'],
-      'custom_elements_23127_test': ['unittest', 'skip', 'fail'],
-      'custom_elements_test': ['unittest', 'skip', 'fail'],
-      'custom_tags_test': ['unittest', 'skip', 'fail'],
-      'dart_object_local_storage_test': ['unittest', 'skip', 'fail'],
-      'datalistelement_test': ['unittest', 'skip', 'fail'],
-      'documentfragment_test': ['unittest', 'skip', 'fail'],
-      'document_test': ['unittest'],
-      'dom_constructors_test': ['unittest', 'skip', 'fail'],
-      'domparser_test': ['unittest', 'skip', 'fail'],
-      'element_add_test': ['unittest', 'skip', 'fail'],
-      'element_animate_test': ['unittest', 'skip', 'fail'],
-      'element_classes_svg_test': ['unittest', 'skip', 'fail'],
-      'element_classes_test': ['unittest', 'skip', 'fail'],
-      'element_constructor_1_test': ['unittest', 'skip', 'fail'],
-      'element_dimensions_test': ['unittest', 'skip', 'fail'],
-      'element_offset_test': ['unittest', 'skip', 'fail'],
-      'element_test': ['unittest', 'skip', 'fail'],
-      'element_types_constructors1_test': ['unittest', 'skip', 'fail'],
-      'element_types_constructors2_test': ['unittest', 'skip', 'fail'],
-      'element_types_constructors3_test': ['unittest', 'skip', 'fail'],
-      'element_types_constructors4_test': ['unittest', 'skip', 'fail'],
-      'element_types_constructors5_test': ['unittest', 'skip', 'fail'],
-      'element_types_constructors6_test': ['unittest', 'skip', 'fail'],
-      'element_types_test': ['unittest', 'skip', 'fail'],
-      'event_customevent_test': ['unittest', 'skip', 'fail'],
-      'events_test': ['unittest', 'skip', 'fail'],
-      'event_test': ['unittest', 'skip', 'fail'],
-      'exceptions_test': ['unittest', 'skip', 'fail'],
-      'fileapi_test': ['unittest', 'skip', 'fail'],
-      'filereader_test': ['unittest', 'skip', 'fail'],
-      'filteredelementlist_test': ['unittest', 'skip', 'fail'],
-      'fontface_loaded_test': ['unittest', 'skip', 'fail'],
-      'fontface_test': ['unittest', 'skip', 'fail'],
-      'form_data_test': ['unittest', 'skip', 'fail'],
-      'form_element_test': ['unittest', 'skip', 'fail'],
-      'geolocation_test': ['unittest', 'skip', 'fail'],
-      'hidden_dom_1_test': ['unittest', 'skip', 'fail'],
-      'hidden_dom_2_test': ['unittest', 'skip', 'fail'],
-      'history_test': ['unittest', 'skip', 'fail'],
-      'htmlcollection_test': ['unittest', 'skip', 'fail'],
-      'htmlelement_test': ['unittest', 'skip', 'fail'],
-      'htmloptionscollection_test': ['unittest', 'skip', 'fail'],
-      'indexeddb_1_test': ['unittest', 'skip', 'fail'],
-      'indexeddb_2_test': ['unittest', 'skip', 'fail'],
-      'indexeddb_3_test': ['unittest', 'skip', 'fail'],
-      'indexeddb_4_test': ['unittest', 'skip', 'fail'],
-      'indexeddb_5_test': ['unittest', 'skip', 'fail'],
-      'input_element_test': ['unittest', 'skip', 'fail'],
-      'instance_of_test': ['unittest', 'skip', 'fail'],
-      'interactive_test': ['unittest', 'skip', 'fail'],
-      'isolates_test': ['unittest', 'skip', 'fail'],
-      'js_function_getter_test': 'unittest',
-      'js_function_getter_trust_types_test': 'unittest',
-      'js_interop_1_test': 'unittest',
-      'js_test': 'unittest',
-      'js_util_test': 'unittest',
-      'js_typed_interop_anonymous2_exp_test': 'unittest',
-      'js_typed_interop_anonymous2_test': 'unittest',
-      'js_typed_interop_anonymous_exp_test': 'unittest',
-      'js_typed_interop_anonymous_test': 'unittest',
-      'js_typed_interop_anonymous_unreachable_exp_test': 'unittest',
-      'js_typed_interop_anonymous_unreachable_test': 'unittest',
-      'js_typed_interop_default_arg_test': 'unittest',
-      'js_typed_interop_side_cast_exp_test': 'unittest',
-      'js_typed_interop_side_cast_test': 'unittest',
-      'js_typed_interop_test': 'unittest',
+      'canvasrenderingcontext2d_test': ['unittest'],
+      'cross_domain_iframe_test': async_unittest,
+      'crypto_test': 'fail', // sdk#27578.
+      'cssstyledeclaration_test': async_unittest,
+      'css_test': async_unittest,
+
+      // This is failing with a range error, I'm guessing because it's looking
+      // for a stylesheet and the page has none.
+      'css_rule_list_test': 'fail',
+      'custom_element_method_clash_test': async_unittest,
+      'custom_element_name_clash_test': async_unittest,
+      'custom_elements_23127_test': async_unittest,
+      'custom_elements_test': async_unittest,
+      'datalistelement_test': 'fail', // sdk#27578.
+      'dom_constructors_test': 'fail', // sdk#27578.
+      'element_animate_test': async_unittest,
+      'element_classes_test': 'fail', // sdk#27579.
+      'element_classes_svg_test': 'fail', // sdk#27579.
+
+      // This fails because we get 150 instead of 10 on line 45.
+      'element_dimensions_test': 'fail',
+
+      // Failure: 'Expected 364 to be in the inclusive range [111, 160].'.
+      'element_offset_test': 'fail',
+      'element_test': async_unittest,
+      'element_types_test': 'fail', // sdk#27578.
+      'event_customevent_test': async_unittest,
+      'events_test': async_unittest,
+
+      // Failure: "Failed to execute 'dispatchEvent' on 'EventTarget': parameter
+      // 1 is not of type 'Event'."
+      'event_test': 'fail',
+      'fileapi_test': async_unittest,
+      'filereader_test': async_unittest,
+      'fontface_loaded_test': async_unittest,
+
+      // Failed because it's expecting "Ahem" but getting null. Maybe sdk#27579?
+      'fontface_test': 'fail',
+      'form_data_test': async_unittest,
+      'history_test': async_unittest,
+
+      // Failing because innerHtml should be 'Hello World' but was ''.
+      'htmlelement_test': 'fail',
+      'indexeddb_1_test': async_unittest,
+      'indexeddb_2_test': async_unittest,
+      'indexeddb_3_test': async_unittest,
+      'indexeddb_4_test': async_unittest,
+      'indexeddb_5_test': async_unittest,
+      'input_element_test': 'fail', // sdk#27578.
+      'interactive_test': async_unittest,
+      'isolates_test': async_unittest,
+
+      // Failing on "identical JS objects should have identical proxies".
+      'js_test': 'fail',
+      'js_interop_1_test': async_unittest,
+
+      // Failing because accessing "zSomeInvalidName" does not throw.
+      'js_typed_interop_test': 'fail',
+
+      // The "typed literal" test fails because the object does not have "_c".
+      'js_util_test': 'fail',
       'keyboard_event_test': ['unittest', 'skip', 'fail'],
       'localstorage_test': ['unittest', 'skip', 'fail'],
       'location_test': ['unittest', 'skip', 'fail'],
@@ -528,7 +516,6 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
       'svgelement_test': ['unittest', 'skip', 'fail'],
       'svg_test': ['unittest', 'skip', 'fail'],
       'table_test': ['unittest', 'skip', 'fail'],
-      'text_event_test': ['unittest', 'skip', 'fail'],
       'touchevent_test': ['unittest', 'skip', 'fail'],
       'track_element_constructor_test': ['unittest', 'skip', 'fail'],
       'transferables_test': ['unittest', 'skip', 'fail'],
@@ -564,7 +551,9 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
 
       'js_typed_interop_default_arg_test_none_multi': ['unittest', 'skip', 'fail'],
       'js_typed_interop_default_arg_test_explicit_argument_multi': ['unittest', 'skip', 'fail'],
-      'js_typed_interop_default_arg_test_default_value_multi': ['unittest', 'skip', 'fail']
+
+      // Failing when it gets 3 instead of 42.
+      'js_typed_interop_default_arg_test_default_value_multi': 'fail',
     },
 
     'lib/html/custom': {
@@ -820,10 +809,14 @@ define(['dart_sdk', 'async_helper', 'unittest', 'require'],
             }
           }
         } else {
-          if (negative) {
-            assert.throws(mainLibrary.main);
-          } else {
-            mainLibrary.main();
+          try {
+            if (negative) {
+              assert.throws(mainLibrary.main);
+            } else {
+              mainLibrary.main();
+            }
+          } finally {
+            minitest.finishTests();
           }
         }
 
