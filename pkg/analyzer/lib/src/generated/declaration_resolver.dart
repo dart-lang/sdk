@@ -4,13 +4,10 @@
 
 library analyzer.src.generated.declaration_resolver;
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
@@ -23,37 +20,17 @@ import 'package:analyzer/src/dart/element/element.dart';
  * This class must not assume that the [CompilationUnitElement] passed to it is
  * any more complete than a [COMPILATION_UNIT_ELEMENT].
  */
-class DeclarationResolver extends RecursiveAstVisitor<Object>
-    with _ExistingElementResolver {
+class DeclarationResolver extends RecursiveAstVisitor<Object> {
   /**
-   * The elements that are reachable from the compilation unit element. When a
-   * compilation unit has been resolved, this set should be empty.
+   * The compilation unit containing the AST nodes being visited.
    */
-  Set<Element> _expectedElements;
+  CompilationUnitElementImpl _enclosingUnit;
 
   /**
-   * The function type alias containing the AST nodes being visited, or `null`
-   * if we are not in the scope of a function type alias.
+   * The [ElementWalker] we are using to keep track of progress through the
+   * element model.
    */
-  FunctionTypeAliasElement _enclosingAlias;
-
-  /**
-   * The class containing the AST nodes being visited, or `null` if we are not
-   * in the scope of a class.
-   */
-  ClassElement _enclosingClass;
-
-  /**
-   * The method or function containing the AST nodes being visited, or `null` if
-   * we are not in the scope of a method or function.
-   */
-  ExecutableElement _enclosingExecutable;
-
-  /**
-   * The parameter containing the AST nodes being visited, or `null` if we are
-   * not in the scope of a parameter.
-   */
-  ParameterElement _enclosingParameter;
+  ElementWalker _walker;
 
   /**
    * Resolve the declarations within the given compilation [unit] to the
@@ -61,26 +38,26 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
    * if the element model and compilation unit do not match each other.
    */
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
-    _ElementGatherer gatherer = new _ElementGatherer();
-    element.accept(gatherer);
-    _expectedElements = gatherer.elements;
     _enclosingUnit = element;
-    _expectedElements.remove(element);
+    _walker = new ElementWalker.forCompilationUnit(element);
     unit.element = element;
-    unit.accept(this);
-    _validateResolution();
+    try {
+      unit.accept(this);
+      _walker.validate();
+    } on Error catch (e, st) {
+      throw new _ElementMismatchException(
+          element, _walker.element, new CaughtException(e, st));
+    }
   }
 
   @override
   Object visitCatchClause(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
-      List<LocalVariableElement> localVariables =
-          _enclosingExecutable.localVariables;
-      _findIdentifier(localVariables, exceptionParameter);
+      _match(exceptionParameter, _walker.getVariable());
       SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
       if (stackTraceParameter != null) {
-        _findIdentifier(localVariables, stackTraceParameter);
+        _match(stackTraceParameter, _walker.getVariable());
       }
     }
     return super.visitCatchClause(node);
@@ -88,67 +65,38 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElement outerClass = _enclosingClass;
-    try {
-      SimpleIdentifier className = node.name;
-      _enclosingClass = _findIdentifier(_enclosingUnit.types, className);
+    ClassElement element = _match(node.name, _walker.getClass());
+    _walk(new ElementWalker.forClass(element), () {
       super.visitClassDeclaration(node);
-      _resolveMetadata(node, node.metadata, _enclosingClass);
-      return null;
-    } finally {
-      _enclosingClass = outerClass;
-    }
+    });
+    _resolveMetadata(node, node.metadata, element);
+    return null;
   }
 
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
-    ClassElement outerClass = _enclosingClass;
-    try {
-      SimpleIdentifier className = node.name;
-      _enclosingClass = _findIdentifier(_enclosingUnit.types, className);
+    ClassElement element = _match(node.name, _walker.getClass());
+    _walk(new ElementWalker.forClass(element), () {
       super.visitClassTypeAlias(node);
-      _resolveMetadata(node, node.metadata, _enclosingClass);
-      return null;
-    } finally {
-      _enclosingClass = outerClass;
-    }
+    });
+    _resolveMetadata(node, node.metadata, element);
+    return null;
   }
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    ExecutableElement outerExecutable = _enclosingExecutable;
-    try {
-      SimpleIdentifier constructorName = node.name;
-      if (constructorName == null) {
-        _enclosingExecutable = _enclosingClass.unnamedConstructor;
-        if (_enclosingExecutable == null) {
-          _mismatch('Could not find default constructor', node);
-        }
-      } else {
-        _enclosingExecutable =
-            _enclosingClass.getNamedConstructor(constructorName.name);
-        if (_enclosingExecutable == null) {
-          _mismatch(
-              'Could not find constructor element with name "${constructorName.name}',
-              node);
-        }
-        constructorName.staticElement = _enclosingExecutable;
-      }
-      _expectedElements.remove(_enclosingExecutable);
-      node.element = _enclosingExecutable as ConstructorElement;
+    ConstructorElement element = _match(node.name, _walker.getConstructor());
+    _walk(new ElementWalker.forExecutable(element), () {
+      node.element = element;
       super.visitConstructorDeclaration(node);
-      _resolveMetadata(node, node.metadata, _enclosingExecutable);
-      return null;
-    } finally {
-      _enclosingExecutable = outerExecutable;
-    }
+    });
+    _resolveMetadata(node, node.metadata, element);
+    return null;
   }
 
   @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
-    SimpleIdentifier variableName = node.identifier;
-    Element element =
-        _findIdentifier(_enclosingExecutable.localVariables, variableName);
+    VariableElement element = _match(node.identifier, _walker.getVariable());
     super.visitDeclaredIdentifier(node);
     _resolveMetadata(node, node.metadata, element);
     return null;
@@ -156,39 +104,31 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
 
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    SimpleIdentifier parameterName = node.parameter.identifier;
-    ParameterElement element = _getElementForParameter(node, parameterName);
+    ParameterElement element =
+        _match(node.parameter.identifier, _walker.getParameter());
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null) {
-      ExecutableElement outerExecutable = _enclosingExecutable;
-      try {
-        _enclosingExecutable = element.initializer;
+      _walk(new ElementWalker.forExecutable(element.initializer), () {
         defaultValue.accept(this);
-      } finally {
-        _enclosingExecutable = outerExecutable;
-      }
+      });
     }
-    ParameterElement outerParameter = _enclosingParameter;
-    try {
-      _enclosingParameter = element;
+    _walk(new ElementWalker.forParameter(element), () {
       super.visitDefaultFormalParameter(node);
-      _resolveMetadata(node, node.metadata, element);
-      return null;
-    } finally {
-      _enclosingParameter = outerParameter;
-    }
+    });
+    _resolveMetadata(node, node.metadata, element);
+    return null;
   }
 
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
-    ClassElement enclosingEnum =
-        _findIdentifier(_enclosingUnit.enums, node.name);
-    List<FieldElement> constants = enclosingEnum.fields;
-    for (EnumConstantDeclaration constant in node.constants) {
-      _findIdentifier(constants, constant.name);
-    }
-    super.visitEnumDeclaration(node);
-    _resolveMetadata(node, node.metadata, enclosingEnum);
+    ClassElement element = _match(node.name, _walker.getEnum());
+    _walk(new ElementWalker.forClass(element), () {
+      for (EnumConstantDeclaration constant in node.constants) {
+        _match(constant.name, _walker.getVariable());
+      }
+      super.visitEnumDeclaration(node);
+    });
+    _resolveMetadata(node, node.metadata, element);
     return null;
   }
 
@@ -210,17 +150,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
   @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
-      SimpleIdentifier parameterName = node.identifier;
-      ParameterElement element = _getElementForParameter(node, parameterName);
-      ParameterElement outerParameter = _enclosingParameter;
-      try {
-        _enclosingParameter = element;
+      ParameterElement element =
+          _match(node.identifier, _walker.getParameter());
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitFieldFormalParameter(node);
-        _resolveMetadata(node, node.metadata, element);
-        return null;
-      } finally {
-        _enclosingParameter = outerParameter;
-      }
+      });
+      _resolveMetadata(node, node.metadata, element);
+      return null;
     } else {
       return super.visitFieldFormalParameter(node);
     }
@@ -228,96 +164,64 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    ExecutableElement outerExecutable = _enclosingExecutable;
-    try {
-      SimpleIdentifier functionName = node.name;
-      Token property = node.propertyKeyword;
-      if (property == null) {
-        if (_enclosingExecutable != null) {
-          _enclosingExecutable =
-              _findIdentifier(_enclosingExecutable.functions, functionName);
-        } else {
-          _enclosingExecutable =
-              _findIdentifier(_enclosingUnit.functions, functionName);
-        }
+    SimpleIdentifier functionName = node.name;
+    Token property = node.propertyKeyword;
+    ExecutableElement element;
+    if (property == null) {
+      element = _match(functionName, _walker.getFunction());
+    } else {
+      if (_walker.element is ExecutableElement) {
+        element = _match(functionName, _walker.getFunction());
+      } else if (property.keyword == Keyword.GET) {
+        element = _match(functionName, _walker.getAccessor());
       } else {
-        if (_enclosingExecutable != null) {
-          _enclosingExecutable =
-              _findIdentifier(_enclosingExecutable.functions, functionName);
-        } else {
-          List<PropertyAccessorElement> accessors;
-          if (_enclosingClass != null) {
-            accessors = _enclosingClass.accessors;
-          } else {
-            accessors = _enclosingUnit.accessors;
-          }
-          PropertyAccessorElement accessor;
-          if (property.keyword == Keyword.GET) {
-            accessor = _findIdentifier(accessors, functionName);
-          } else if (property.keyword == Keyword.SET) {
-            accessor = _findWithNameAndOffset(accessors, functionName,
-                functionName.name + '=', functionName.offset);
-            _expectedElements.remove(accessor);
-            functionName.staticElement = accessor;
-          }
-          _enclosingExecutable = accessor;
-        }
+        assert(property.keyword == Keyword.SET);
+        element = _match(functionName, _walker.getAccessor(),
+            elementName: functionName.name + '=');
       }
-      node.functionExpression.element = _enclosingExecutable;
-      super.visitFunctionDeclaration(node);
-      _resolveMetadata(node, node.metadata, _enclosingExecutable);
-      return null;
-    } finally {
-      _enclosingExecutable = outerExecutable;
     }
+    node.functionExpression.element = element;
+    _walk(new ElementWalker.forExecutable(element), () {
+      super.visitFunctionDeclaration(node);
+    });
+    _resolveMetadata(node, node.metadata, element);
+    return null;
   }
 
   @override
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
-      FunctionElement element = _findAtOffset(
-          _enclosingExecutable.functions, node, node.beginToken.offset);
-      _expectedElements.remove(element);
+      FunctionElement element = _walker.getFunction();
       node.element = element;
-    }
-    ExecutableElement outerExecutable = _enclosingExecutable;
-    try {
-      _enclosingExecutable = node.element;
+      _walk(new ElementWalker.forExecutable(element), () {
+        super.visitFunctionExpression(node);
+      });
+      return null;
+    } else {
       return super.visitFunctionExpression(node);
-    } finally {
-      _enclosingExecutable = outerExecutable;
     }
   }
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    FunctionTypeAliasElement outerAlias = _enclosingAlias;
-    try {
-      SimpleIdentifier aliasName = node.name;
-      _enclosingAlias =
-          _findIdentifier(_enclosingUnit.functionTypeAliases, aliasName);
+    FunctionTypeAliasElement element = _match(node.name, _walker.getTypedef());
+    _walk(new ElementWalker.forTypedef(element), () {
       super.visitFunctionTypeAlias(node);
-      _resolveMetadata(node, node.metadata, _enclosingAlias);
-      return null;
-    } finally {
-      _enclosingAlias = outerAlias;
-    }
+    });
+    _resolveMetadata(node, node.metadata, element);
+    return null;
   }
 
   @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
-      SimpleIdentifier parameterName = node.identifier;
-      ParameterElement element = _getElementForParameter(node, parameterName);
-      ParameterElement outerParameter = _enclosingParameter;
-      try {
-        _enclosingParameter = element;
+      ParameterElement element =
+          _match(node.identifier, _walker.getParameter());
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitFunctionTypedFormalParameter(node);
-        _resolveMetadata(node, node.metadata, _enclosingParameter);
-        return null;
-      } finally {
-        _enclosingParameter = outerParameter;
-      }
+      });
+      _resolveMetadata(node, node.metadata, element);
+      return null;
     } else {
       return super.visitFunctionTypedFormalParameter(node);
     }
@@ -334,8 +238,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
   @override
   Object visitLabeledStatement(LabeledStatement node) {
     for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      _findIdentifier(_enclosingExecutable.labels, labelName);
+      _match(label.label, _walker.getLabel());
     }
     return super.visitLabeledStatement(node);
   }
@@ -350,39 +253,32 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
-    ExecutableElement outerExecutable = _enclosingExecutable;
-    try {
-      Token property = node.propertyKeyword;
-      SimpleIdentifier methodName = node.name;
-      String nameOfMethod = methodName.name;
-      if (property == null) {
-        String elementName = nameOfMethod == '-' &&
-                node.parameters != null &&
-                node.parameters.parameters.isEmpty
-            ? 'unary-'
-            : nameOfMethod;
-        _enclosingExecutable = _findWithNameAndOffset(_enclosingClass.methods,
-            methodName, elementName, methodName.offset);
-        _expectedElements.remove(_enclosingExecutable);
-        methodName.staticElement = _enclosingExecutable;
+    Token property = node.propertyKeyword;
+    SimpleIdentifier methodName = node.name;
+    String nameOfMethod = methodName.name;
+    ExecutableElement element;
+    if (property == null) {
+      String elementName = nameOfMethod == '-' &&
+              node.parameters != null &&
+              node.parameters.parameters.isEmpty
+          ? 'unary-'
+          : nameOfMethod;
+      element =
+          _match(methodName, _walker.getFunction(), elementName: elementName);
+    } else {
+      if (property.keyword == Keyword.GET) {
+        element = _match(methodName, _walker.getAccessor());
       } else {
-        PropertyAccessorElement accessor;
-        if (property.keyword == Keyword.GET) {
-          accessor = _findIdentifier(_enclosingClass.accessors, methodName);
-        } else if (property.keyword == Keyword.SET) {
-          accessor = _findWithNameAndOffset(_enclosingClass.accessors,
-              methodName, nameOfMethod + '=', methodName.offset);
-          _expectedElements.remove(accessor);
-          methodName.staticElement = accessor;
-        }
-        _enclosingExecutable = accessor;
+        assert(property.keyword == Keyword.SET);
+        element = _match(methodName, _walker.getAccessor(),
+            elementName: nameOfMethod + '=');
       }
-      super.visitMethodDeclaration(node);
-      _resolveMetadata(node, node.metadata, _enclosingExecutable);
-      return null;
-    } finally {
-      _enclosingExecutable = outerExecutable;
     }
+    _walk(new ElementWalker.forExecutable(element), () {
+      super.visitMethodDeclaration(node);
+    });
+    _resolveMetadata(node, node.metadata, element);
+    return null;
   }
 
   @override
@@ -402,26 +298,22 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
   @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
-      SimpleIdentifier parameterName = node.identifier;
-      ParameterElement element = _getElementForParameter(node, parameterName);
-      ParameterElement outerParameter = _enclosingParameter;
-      try {
-        _enclosingParameter = element;
+      ParameterElement element =
+          _match(node.identifier, _walker.getParameter());
+      _walk(new ElementWalker.forParameter(element), () {
         super.visitSimpleFormalParameter(node);
-        _resolveMetadata(node, node.metadata, element);
-        return null;
-      } finally {
-        _enclosingParameter = outerParameter;
-      }
-    } else {}
-    return super.visitSimpleFormalParameter(node);
+      });
+      _resolveMetadata(node, node.metadata, element);
+      return null;
+    } else {
+      return super.visitSimpleFormalParameter(node);
+    }
   }
 
   @override
   Object visitSwitchCase(SwitchCase node) {
     for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      _findIdentifier(_enclosingExecutable.labels, labelName);
+      _match(label.label, _walker.getLabel());
     }
     return super.visitSwitchCase(node);
   }
@@ -429,8 +321,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
   @override
   Object visitSwitchDefault(SwitchDefault node) {
     for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      _findIdentifier(_enclosingExecutable.labels, labelName);
+      _match(label.label, _walker.getLabel());
     }
     return super.visitSwitchDefault(node);
   }
@@ -444,28 +335,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
 
   @override
   Object visitTypeParameter(TypeParameter node) {
-    SimpleIdentifier parameterName = node.name;
-    Element element = null;
-    if (_enclosingExecutable != null) {
-      element = _findIdentifier(
-          _enclosingExecutable.typeParameters, parameterName,
-          required: false);
-    }
-    if (element == null) {
-      if (_enclosingClass != null) {
-        element =
-            _findIdentifier(_enclosingClass.typeParameters, parameterName);
-      } else if (_enclosingAlias != null) {
-        element =
-            _findIdentifier(_enclosingAlias.typeParameters, parameterName);
-      }
-    }
-    if (element == null) {
-      String name = parameterName.name;
-      int offset = parameterName.offset;
-      _mismatch(
-          'Could not find type parameter with name "$name" at $offset', node);
-    }
+    Element element = _match(node.name, _walker.getTypeParameter());
     super.visitTypeParameter(node);
     _resolveMetadata(node, node.metadata, element);
     return null;
@@ -473,31 +343,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    VariableElement element = null;
-    SimpleIdentifier variableName = node.name;
-    if (_enclosingExecutable != null) {
-      element = _findIdentifier(
-          _enclosingExecutable.localVariables, variableName,
-          required: false);
-    }
-    if (element == null && _enclosingClass != null) {
-      element = _findIdentifier(_enclosingClass.fields, variableName,
-          required: false);
-    }
-    if (element == null && _enclosingUnit != null) {
-      element = _findIdentifier(_enclosingUnit.topLevelVariables, variableName);
-    }
+    VariableElement element = _match(node.name, _walker.getVariable());
     Expression initializer = node.initializer;
     if (initializer != null) {
-      ExecutableElement outerExecutable = _enclosingExecutable;
-      try {
-        _enclosingExecutable = element.initializer;
-        return super.visitVariableDeclaration(node);
-      } finally {
-        _enclosingExecutable = outerExecutable;
-      }
+      _walk(new ElementWalker.forExecutable(element.initializer), () {
+        super.visitVariableDeclaration(node);
+      });
+      return null;
+    } else {
+      return super.visitVariableDeclaration(node);
     }
-    return super.visitVariableDeclaration(node);
   }
 
   @override
@@ -511,100 +366,25 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
   }
 
   /**
-   * Return the element in the given list of [elements] that was created for the
-   * declaration at the given [offset]. Throw an [ElementMismatchException] if
-   * an element at that offset cannot be found.
+   * Updates [identifier] to point to [element], after ensuring that the
+   * element has the expected name.
    *
-   * This method should only be used when there is no name associated with the
-   * node.
+   * If no [elementName] is given, it defaults to the name of the [identifier]
+   * (or the empty string if [identifier] is `null`).
+   *
+   * If [identifier] is `null`, nothing is updated, but the element name is
+   * still checked.
    */
-  Element _findAtOffset(List<Element> elements, AstNode node, int offset) =>
-      _findWithNameAndOffset(elements, node, '', offset);
-
-  /**
-   * Return the element in the given list of [elements] that was created for the
-   * declaration with the given [identifier]. As a side-effect, associate the
-   * returned element with the identifier. Throw an [ElementMismatchException]
-   * if an element corresponding to the identifier cannot be found unless
-   * [required] is `false`, in which case return `null`.
-   */
-  Element _findIdentifier(List<Element> elements, SimpleIdentifier identifier,
-      {bool required: true}) {
-    Element element = _findWithNameAndOffset(
-        elements, identifier, identifier.name, identifier.offset,
-        required: required);
-    _expectedElements.remove(element);
-    identifier.staticElement = element;
+  Element/*=E*/ _match/*<E extends Element>*/(
+      SimpleIdentifier identifier, Element/*=E*/ element,
+      {String elementName}) {
+    elementName ??= identifier?.name ?? '';
+    if (element.name != elementName) {
+      throw new StateError(
+          'Expected an element matching `$elementName`, got `${element.name}`');
+    }
+    identifier?.staticElement = element;
     return element;
-  }
-
-  /**
-   * Return the element in the given list of [elements] that was created for the
-   * declaration with the given [name] at the given [offset]. Throw an
-   * [ElementMismatchException] if an element corresponding to the identifier
-   * cannot be found unless [required] is `false`, in which case return `null`.
-   */
-  Element _findWithNameAndOffset(
-      List<Element> elements, AstNode node, String name, int offset,
-      {bool required: true}) {
-    int length = elements.length;
-    for (int i = 0; i < length; i++) {
-      Element element = elements[i];
-      if (element.nameOffset == offset && element.name == name) {
-        return element;
-      }
-    }
-    if (!required) {
-      return null;
-    }
-    for (int i = 0; i < length; i++) {
-      Element element = elements[i];
-      if (element.name == name) {
-        _mismatch(
-            'Found element with name "$name" at ${element.nameOffset}, '
-            'but expected offset of $offset',
-            node);
-      }
-      if (element.nameOffset == offset) {
-        _mismatch(
-            'Found element with name "${element.name}" at $offset, '
-            'but expected element with name "$name"',
-            node);
-      }
-    }
-    _mismatch('Could not find element with name "$name" at $offset', node);
-    return null; // Never reached
-  }
-
-  /**
-   * Search the most closely enclosing list of parameter elements for a
-   * parameter, defined by the given [node], with the given [parameterName].
-   * Return the element that was found, or throw an [ElementMismatchException]
-   * if an element corresponding to the identifier cannot be found.
-   */
-  ParameterElement _getElementForParameter(
-      FormalParameter node, SimpleIdentifier parameterName) {
-    List<ParameterElement> parameters = null;
-    if (_enclosingParameter != null) {
-      parameters = _enclosingParameter.parameters;
-    }
-    if (parameters == null && _enclosingExecutable != null) {
-      parameters = _enclosingExecutable.parameters;
-    }
-    if (parameters == null && _enclosingAlias != null) {
-      parameters = _enclosingAlias.parameters;
-    }
-    if (parameters == null) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.writeln('Could not find parameter in enclosing scope');
-      buffer.writeln(
-          '(_enclosingParameter == null) == ${_enclosingParameter == null}');
-      buffer.writeln(
-          '(_enclosingExecutable == null) == ${_enclosingExecutable == null}');
-      buffer.writeln('(_enclosingAlias == null) == ${_enclosingAlias == null}');
-      _mismatch(buffer.toString(), parameterName);
-    }
-    return _findIdentifier(parameters, parameterName);
   }
 
   /**
@@ -616,10 +396,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
       List<ElementAnnotation> annotations) {
     int nodeCount = nodes.length;
     if (nodeCount != annotations.length) {
-      _mismatch(
-          'Found $nodeCount annotation nodes and '
-          '${annotations.length} element annotations',
-          parent);
+      throw new StateError('Found $nodeCount annotation nodes and '
+          '${annotations.length} element annotations');
     }
     for (int i = 0; i < nodeCount; i++) {
       nodes[i].elementAnnotation = annotations[i];
@@ -643,87 +421,208 @@ class DeclarationResolver extends RecursiveAstVisitor<Object>
   }
 
   /**
-   * Throw an exception if there are non-synthetic elements in the element model
-   * that were not associated with an AST node.
+   * Recurses through the element model and AST, verifying that all elements are
+   * matched.
+   *
+   * Executes [callback] with [_walker] pointing to the given [walker] (which
+   * should be a new instance of [ElementWalker]).  Once [callback] returns,
+   * uses [ElementWalker.validate] to verify that all expected elements have
+   * been matched.
    */
-  void _validateResolution() {
-    if (_expectedElements.isNotEmpty) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write(_expectedElements.length);
-      buffer.writeln(' unmatched elements found:');
-      for (Element element in _expectedElements) {
-        buffer.write('  ');
-        buffer.writeln(element);
-      }
-      throw new _ElementMismatchException(buffer.toString());
-    }
+  void _walk(ElementWalker walker, void callback()) {
+    ElementWalker outerWalker = _walker;
+    _walker = walker;
+    callback();
+    walker.validate();
+    _walker = outerWalker;
   }
 }
 
 /**
- * A visitor that can be used to collect all of the non-synthetic elements in an
- * element model.
+ * Keeps track of the set of non-synthetic child elements of an element,
+ * yielding them one at a time in response to "get" method calls.
  */
-class _ElementGatherer extends GeneralizingElementVisitor {
+class ElementWalker {
   /**
-   * The set in which the elements are collected.
+   * The element whose child elements are being walked.
    */
-  final Set<Element> elements = new HashSet<Element>();
+  final Element element;
+
+  List<PropertyAccessorElement> _accessors;
+  int _accessorIndex = 0;
+  List<ClassElement> _classes;
+  int _classIndex = 0;
+  List<ConstructorElement> _constructors;
+  int _constructorIndex = 0;
+  List<ClassElement> _enums;
+  int _enumIndex = 0;
+  List<ExecutableElement> _functions;
+  int _functionIndex = 0;
+  List<LabelElement> _labels;
+  int _labelIndex = 0;
+  List<ParameterElement> _parameters;
+  int _parameterIndex = 0;
+  List<FunctionTypeAliasElement> _typedefs;
+  int _typedefIndex = 0;
+  List<TypeParameterElement> _typeParameters;
+  int _typeParameterIndex = 0;
+  List<VariableElement> _variables;
+  int _variableIndex = 0;
 
   /**
-   * Initialize the visitor.
+   * Creates an [ElementWalker] which walks the child elements of a class
+   * element.
    */
-  _ElementGatherer();
+  ElementWalker.forClass(ClassElement element)
+      : element = element,
+        _accessors = element.accessors.where(_isNotSynthetic).toList(),
+        _constructors = element.isMixinApplication
+            ? null
+            : element.constructors.where(_isNotSynthetic).toList(),
+        _functions = element.methods,
+        _typeParameters = element.typeParameters,
+        _variables = element.fields.where(_isNotSynthetic).toList();
 
-  @override
-  void visitElement(Element element) {
-    if (!element.isSynthetic) {
-      elements.add(element);
+  /**
+   * Creates an [ElementWalker] which walks the child elements of a compilation
+   * unit element.
+   */
+  ElementWalker.forCompilationUnit(CompilationUnitElement compilationUnit)
+      : element = compilationUnit,
+        _accessors = compilationUnit.accessors.where(_isNotSynthetic).toList(),
+        _classes = compilationUnit.types,
+        _enums = compilationUnit.enums,
+        _functions = compilationUnit.functions,
+        _typedefs = compilationUnit.functionTypeAliases,
+        _variables =
+            compilationUnit.topLevelVariables.where(_isNotSynthetic).toList();
+
+  /**
+   * Creates an [ElementWalker] which walks the child elements of a compilation
+   * unit element.
+   */
+  ElementWalker.forExecutable(ExecutableElement element)
+      : element = element,
+        _functions = element.functions,
+        _labels = element.labels,
+        _parameters = element.parameters,
+        _typeParameters = element.typeParameters,
+        _variables = element.localVariables;
+
+  /**
+   * Creates an [ElementWalker] which walks the child elements of a parameter
+   * element.
+   */
+  ElementWalker.forParameter(ParameterElement element)
+      : element = element,
+        _parameters = element.parameters;
+
+  /**
+   * Creates an [ElementWalker] which walks the child elements of a typedef
+   * element.
+   */
+  ElementWalker.forTypedef(FunctionTypeAliasElement element)
+      : element = element,
+        _parameters = element.parameters,
+        _typeParameters = element.typeParameters;
+
+  /**
+   * Returns the next non-synthetic child of [element] which is an accessor;
+   * throws an [IndexError] if there are no more.
+   */
+  PropertyAccessorElement getAccessor() => _accessors[_accessorIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a class; throws
+   * an [IndexError] if there are no more.
+   */
+  ClassElement getClass() => _classes[_classIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a constructor;
+   * throws an [IndexError] if there are no more.
+   */
+  ConstructorElement getConstructor() => _constructors[_constructorIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is an enum; throws
+   * an [IndexError] if there are no more.
+   */
+  ClassElement getEnum() => _enums[_enumIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a top level
+   * function, method, or local function; throws an [IndexError] if there are no
+   * more.
+   */
+  ExecutableElement getFunction() => _functions[_functionIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a label; throws
+   * an [IndexError] if there are no more.
+   */
+  LabelElement getLabel() => _labels[_labelIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a parameter;
+   * throws an [IndexError] if there are no more.
+   */
+  ParameterElement getParameter() => _parameters[_parameterIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a typedef;
+   * throws an [IndexError] if there are no more.
+   */
+  FunctionTypeAliasElement getTypedef() => _typedefs[_typedefIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a type
+   * parameter; throws an [IndexError] if there are no more.
+   */
+  TypeParameterElement getTypeParameter() =>
+      _typeParameters[_typeParameterIndex++];
+
+  /**
+   * Returns the next non-synthetic child of [element] which is a top level
+   * variable, field, or local variable; throws an [IndexError] if there are no
+   * more.
+   */
+  VariableElement getVariable() => _variables[_variableIndex++];
+
+  /**
+   * Verifies that all non-synthetic children of [element] have been obtained
+   * from their corresponding "get" method calls; if not, throws a [StateError].
+   */
+  void validate() {
+    void check(List<Element> elements, int index) {
+      if (elements != null && elements.length != index) {
+        throw new StateError(
+            'Unmatched ${elements[index].runtimeType} ${elements[index]}');
+      }
     }
-    super.visitElement(element);
+
+    check(_accessors, _accessorIndex);
+    check(_classes, _classIndex);
+    check(_constructors, _constructorIndex);
+    check(_enums, _enumIndex);
+    check(_functions, _functionIndex);
+    check(_labels, _labelIndex);
+    check(_parameters, _parameterIndex);
+    check(_typedefs, _typedefIndex);
+    check(_typeParameters, _typeParameterIndex);
+    check(_variables, _variableIndex);
   }
+
+  static bool _isNotSynthetic(Element e) => !e.isSynthetic;
 }
 
 class _ElementMismatchException extends AnalysisException {
   /**
-   * Initialize a newly created exception to have the given [message] and
-   * [cause].
+   * Creates an exception to refer to the given [compilationUnit], [element],
+   * and [cause].
    */
-  _ElementMismatchException(String message, [CaughtException cause = null])
-      : super(message, cause);
-}
-
-/**
- * A mixin for classes that use an existing element model to resolve a portion
- * of an AST structure.
- */
-class _ExistingElementResolver {
-  /**
-   * The compilation unit containing the AST nodes being visited.
-   */
-  CompilationUnitElementImpl _enclosingUnit;
-
-  /**
-   * Throw an [ElementMismatchException] to report that the element model and the
-   * AST do not match. The [message] will have the path to the given [node]
-   * appended to it.
-   */
-  void _mismatch(String message, AstNode node) {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write('Mismatch in ');
-    buffer.write(runtimeType);
-    buffer.write(' while resolving ');
-    buffer.writeln(_enclosingUnit?.source?.fullName);
-    buffer.writeln(message);
-    buffer.write('Path to root:');
-    String separator = ' ';
-    AstNode parent = node;
-    while (parent != null) {
-      buffer.write(separator);
-      buffer.write(parent.runtimeType.toString());
-      separator = ', ';
-      parent = parent.parent;
-    }
-    throw new _ElementMismatchException(buffer.toString());
-  }
+  _ElementMismatchException(
+      CompilationUnitElement compilationUnit, Element element,
+      [CaughtException cause = null])
+      : super('Element mismatch in $compilationUnit at $element', cause);
 }
