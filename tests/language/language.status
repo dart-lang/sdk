@@ -179,17 +179,62 @@ super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit || $mode == product ]
-# Deferred loading happens eagerly
-regress_23408_test: Skip
-deferred_inheritance_constraints_test: Skip
-deferred_global_test: Skip
-deferred_load_constants_test: Skip
-tearoff_basic_test: Skip
-deferred_static_seperate_test: Skip
-deferred_constraints_type_annotation_test/new_before_load: Skip
-regress_22443_test: Skip
-deferred_not_loaded_check_test: Skip
+[ $noopt ]
+# Deferred loading happens eagerly. Issue #27587
+regress_23408_test: Fail
+deferred_inheritance_constraints_test/redirecting_constructor: Fail
+deferred_global_test: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+tearoff_basic_test: Fail
+regress_22443_test: Fail
+deferred_not_loaded_check_test: Fail
+
+[ $mode == product ]
+# Deferred loading happens eagerly. Issue #27587
+regress_23408_test: Fail
+deferred_inheritance_constraints_test/redirecting_constructor: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+tearoff_basic_test: Fail
+deferred_not_loaded_check_test: Fail
+
+[ $compiler == dart2appjit ]
+# Deferred loading happens eagerly. Issue #27587
+regress_23408_test: Fail
+deferred_inheritance_constraints_test/redirecting_constructor: Fail
+deferred_load_constants_test/none: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+tearoff_basic_test: Fail
+deferred_static_seperate_test: Fail
+deferred_constraints_type_annotation_test/new_before_load: Fail
+regress_22443_test: Fail
+deferred_not_loaded_check_test: Fail
+
+[ $compiler == dart2app ]
+# Deferred loading happens eagerly. Issue #27587
+regress_23408_test: Fail
+deferred_inheritance_constraints_test/redirecting_constructor: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+tearoff_basic_test: Fail
+deferred_not_loaded_check_test: Fail
+
+[ $compiler == precompiler ]
+# Deferred loading happens eagerly. Issue #27587
+regress_23408_test: Fail
+deferred_inheritance_constraints_test/redirecting_constructor: Fail
+deferred_global_test: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+tearoff_basic_test: Fail
+deferred_not_loaded_check_test: Fail
 
 [ $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all

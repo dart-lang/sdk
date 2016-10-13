@@ -1189,7 +1189,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                          reader->Read<int16_t>());
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_deferred_load_,
                          reader->Read<bool>());
-  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, reader->Read<bool>());
+  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, false);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(prefix,
@@ -1220,7 +1220,6 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   // Write out all non object fields.
   writer->Write<int16_t>(ptr()->num_imports_);
   writer->Write<bool>(ptr()->is_deferred_load_);
-  writer->Write<bool>(ptr()->is_loaded_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);

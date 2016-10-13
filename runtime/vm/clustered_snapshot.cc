@@ -2783,7 +2783,6 @@ class LibraryPrefixSerializationCluster : public SerializationCluster {
       }
       s->Write<uint16_t>(prefix->ptr()->num_imports_);
       s->Write<bool>(prefix->ptr()->is_deferred_load_);
-      s->Write<bool>(prefix->ptr()->is_loaded_);
     }
   }
 
@@ -2825,7 +2824,7 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
       }
       prefix->ptr()->num_imports_ = d->Read<uint16_t>();
       prefix->ptr()->is_deferred_load_ = d->Read<bool>();
-      prefix->ptr()->is_loaded_ = d->Read<bool>();
+      prefix->ptr()->is_loaded_ = false;
     }
   }
 };
