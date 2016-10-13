@@ -194,7 +194,6 @@ def main():
             test = os.path.join(DART_TEST_DIR, options.layout_test)
           else:
             test = DART_TEST_DIR
-          package_root = os.path.join(build_dir, 'packages')
           utils.runCommand(['python',
                             test_script,
                             test_mode,
@@ -204,8 +203,6 @@ def main():
                             '--builder-name', 'BuildBot',
                             '--additional-env-var',
                             'DART_FLAGS=%s' % dart_flags,
-                            '--additional-env-var',
-                            'DART_PACKAGE_ROOT=file://%s' % package_root,
                             test])
 
         # Run core dart tests
