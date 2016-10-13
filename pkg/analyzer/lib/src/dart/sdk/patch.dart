@@ -197,14 +197,9 @@ class SdkPatcher {
             patchMember.offset);
       }
     }
-    // Append new top-level declarations.
-    Token lastToken = baseClass.endToken.previous;
-    for (ClassMember newMember in membersToAppend) {
-      newMember.endToken.setNext(lastToken.next);
-      lastToken.setNext(newMember.beginToken);
-      baseClass.members.add(newMember);
-      lastToken = newMember.endToken;
-    }
+    // Append new class members.
+    _appendToNodeList(
+        baseClass.members, membersToAppend, baseClass.leftBracket);
   }
 
   void _patchDirectives(
@@ -279,13 +274,8 @@ class SdkPatcher {
       }
     }
     // Append new top-level declarations.
-    Token lastToken = baseUnit.endToken.previous;
-    for (CompilationUnitMember newDeclaration in declarationsToAppend) {
-      newDeclaration.endToken.setNext(lastToken.next);
-      lastToken.setNext(newDeclaration.beginToken);
-      baseUnit.declarations.add(newDeclaration);
-      lastToken = newDeclaration.endToken;
-    }
+    _appendToNodeList(baseUnit.declarations, declarationsToAppend,
+        baseUnit.endToken.previous);
   }
 
   /**
@@ -307,6 +297,21 @@ class SdkPatcher {
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;
+  }
+
+  /**
+   * Append [newNodes] to the given [nodes] and attach new tokens to the end
+   * token of the last [nodes] items, or, if it is empty, to [defaultPrevToken].
+   */
+  static void _appendToNodeList(
+      NodeList<AstNode> nodes, List<AstNode> newNodes, Token defaultPrevToken) {
+    Token prevToken = nodes.endToken ?? defaultPrevToken;
+    for (AstNode newNode in newNodes) {
+      newNode.endToken.setNext(prevToken.next);
+      prevToken.setNext(newNode.beginToken);
+      nodes.add(newNode);
+      prevToken = newNode.endToken;
+    }
   }
 
   /**
