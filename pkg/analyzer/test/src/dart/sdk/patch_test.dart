@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/sdk/patch.dart';
@@ -86,22 +87,6 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     }, throwsArgumentError);
   }
 
-  test_topLevel_append() {
-    CompilationUnit unit = _doTopLevelPatching(
-        r'''
-int bar() => 2;
-''',
-        r'''
-int _foo1() => 1;
-int get _foo2 => 1;
-void set _foo3(int val) {}
-''');
-    _assertUnitCode(
-        unit,
-        'int bar() => 2; int _foo1() => 1; '
-        'int get _foo2 => 1; void set _foo3(int val) {}');
-  }
-
   test_topLevel_fail_topLevelVariable() {
     expect(() {
       _doTopLevelPatching(
@@ -112,6 +97,26 @@ int foo() => 0;
 int _bar;
 ''');
     }, throwsArgumentError);
+  }
+
+  test_topLevel_function_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+int foo() => 0;
+''',
+        r'''
+int _bar1() => 1;
+int _bar2() => 2;
+''');
+    _assertUnitCode(
+        unit, 'int foo() => 0; int _bar1() => 1; int _bar2() => 2;');
+
+    FunctionDeclaration foo = unit.declarations[0];
+    FunctionDeclaration bar1 = unit.declarations[1];
+    FunctionDeclaration bar2 = unit.declarations[2];
+
+    _assertPrevNextToken(foo.endToken, bar1.beginToken);
+    _assertPrevNextToken(bar1.endToken, bar2.beginToken);
   }
 
   test_topLevel_function_fail_noExternalKeyword() {
@@ -145,9 +150,20 @@ int bar() => 2;
 int foo() => 0;
 ''',
         r'''
-typedef int _bar();
+typedef int _bar1();
+typedef int _bar2();
 ''');
-    _assertUnitCode(unit, 'int foo() => 0; typedef int _bar();');
+    _assertUnitCode(
+        unit, 'int foo() => 0; typedef int _bar1(); typedef int _bar2();');
+
+    FunctionDeclaration foo = unit.declarations[0];
+    FunctionTypeAlias bar1 = unit.declarations[1];
+    FunctionTypeAlias bar2 = unit.declarations[2];
+
+    _assertPrevNextToken(foo.endToken, bar1.beginToken);
+    _assertPrevNextToken(bar1.endToken, bar2.beginToken);
+    expect(unit.endToken.type, TokenType.EOF);
+    expect(bar2.endToken.next, same(unit.endToken));
   }
 
   test_topLevel_functionTypeAlias_fail_hasAnnotation() {
@@ -186,6 +202,26 @@ int bar() => 2;
 int foo() => 1;
 ''');
     _assertUnitCode(unit, 'int foo() => 1; int bar() => 2;');
+
+    // Prepare functions.
+    FunctionDeclaration foo = unit.declarations[0];
+    FunctionDeclaration bar = unit.declarations[1];
+
+    // The "external" token is removed from the stream.
+    {
+      expect(foo.externalKeyword, isNull);
+      Token token = foo.beginToken;
+      expect(token.lexeme, 'int');
+      expect(token.previous.type, TokenType.EOF);
+    }
+
+    // The body tokens are included into the patched token stream.
+    {
+      FunctionExpression fooExpr = foo.functionExpression;
+      FunctionBody fooBody = fooExpr.body;
+      expect(fooBody.beginToken.previous, same(fooExpr.parameters.endToken));
+      expect(fooBody.endToken.next, same(bar.beginToken));
+    }
   }
 
   test_topLevel_patch_function_blockBody() {
@@ -258,5 +294,10 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
   void _setSdkLibraries(String code) {
     provider.newFile(
         _p('/sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart'), code);
+  }
+
+  static void _assertPrevNextToken(Token prev, Token next) {
+    expect(prev.next, same(next));
+    expect(next.previous, same(prev));
   }
 }

@@ -132,15 +132,19 @@ class SdkPatcher {
                 baseDeclaration.name.name == name) {
               if (_hasPatchAnnotation(patchDeclaration.metadata)) {
                 // Remove the "external" keyword.
-                if (baseDeclaration.externalKeyword != null) {
+                Token externalKeyword = baseDeclaration.externalKeyword;
+                if (externalKeyword != null) {
                   baseDeclaration.externalKeyword = null;
+                  _removeToken(externalKeyword);
                 } else {
                   _failExternalKeyword(
                       baseSource, name, baseDeclaration.offset);
                 }
                 // Replace the body.
-                baseDeclaration.functionExpression.body =
-                    patchDeclaration.functionExpression.body;
+                FunctionExpression oldExpr = baseDeclaration.functionExpression;
+                FunctionBody newBody = patchDeclaration.functionExpression.body;
+                _replaceNodeTokens(oldExpr.body, newBody);
+                oldExpr.body = newBody;
               }
             }
           }
@@ -161,7 +165,13 @@ class SdkPatcher {
       }
     }
     // Append new top-level declarations.
-    baseUnit.declarations.addAll(declarationsToAppend);
+    Token lastToken = baseUnit.endToken.previous;
+    for (CompilationUnitMember newDeclaration in declarationsToAppend) {
+      newDeclaration.endToken.setNext(lastToken.next);
+      lastToken.setNext(newDeclaration.beginToken);
+      baseUnit.declarations.add(newDeclaration);
+      lastToken = newDeclaration.endToken;
+    }
   }
 
   /**
@@ -195,5 +205,20 @@ class SdkPatcher {
           name is SimpleIdentifier &&
           name.name == 'patch';
     });
+  }
+
+  /**
+   * Remove the [token] from the stream.
+   */
+  static void _removeToken(Token token) {
+    token.previous.setNext(token.next);
+  }
+
+  /**
+   * Replace tokens of the [oldNode] with tokens of the [newNode].
+   */
+  static void _replaceNodeTokens(AstNode oldNode, AstNode newNode) {
+    oldNode.beginToken.previous.setNext(newNode.beginToken);
+    newNode.endToken.setNext(oldNode.endToken.next);
   }
 }
