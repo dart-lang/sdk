@@ -1675,6 +1675,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
       case ServiceEvent.kPauseBreakpoint:
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
+      case ServiceEvent.kPausePostRequest:
       case ServiceEvent.kNone:
       case ServiceEvent.kResume:
         assert((pauseEvent == null) ||
@@ -2017,6 +2018,7 @@ class ServiceEvent extends ServiceObject {
   static const kPauseBreakpoint = 'PauseBreakpoint';
   static const kPauseInterrupted = 'PauseInterrupted';
   static const kPauseException = 'PauseException';
+  static const kPausePostRequest = 'PausePostRequest';
   static const kNone = 'None';
   static const kResume = 'Resume';
   static const kBreakpointAdded = 'BreakpointAdded';
@@ -2067,6 +2069,7 @@ class ServiceEvent extends ServiceObject {
         kind == kPauseBreakpoint ||
         kind == kPauseInterrupted ||
         kind == kPauseException ||
+        kind == kPausePostRequest ||
         kind == kNone);
   }
 

@@ -847,7 +847,8 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       no_reload_scope_depth_(0),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
       reload_context_(NULL),
-      last_reload_timestamp_(OS::GetCurrentTimeMillis()) {
+      last_reload_timestamp_(OS::GetCurrentTimeMillis()),
+      should_pause_post_service_request_(false) {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
@@ -1045,6 +1046,23 @@ void Isolate::ScheduleMessageInterrupts() {
 void Isolate::set_debugger_name(const char* name) {
   free(debugger_name_);
   debugger_name_ = strdup(name);
+}
+
+
+bool Isolate::IsPaused() const {
+  return (debugger_ != NULL) && (debugger_->PauseEvent() != NULL);
+}
+
+
+void Isolate::PausePostRequest() {
+  if (debugger_ == NULL) {
+    return;
+  }
+  ASSERT(!IsPaused());
+  const Error& error = Error::Handle(debugger_->PausePostRequest());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
 }
 
 
@@ -2002,8 +2020,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
     ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
     jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->is_paused_on_exit()) {
-    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+  } else if (message_handler()->is_paused_on_exit() &&
+             ((debugger() == NULL) || (debugger()->PauseEvent() == NULL))) {
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
     jsobj.AddProperty("pauseEvent", &pause_event);
   } else if ((debugger() != NULL) &&

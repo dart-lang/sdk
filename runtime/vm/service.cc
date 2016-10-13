@@ -971,6 +971,7 @@ void Service::HandleObjectRootMessage(const Array& msg_instance) {
 void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   InvokeMethod(isolate, msg);
+  MaybePause(isolate);
 }
 
 
@@ -1084,6 +1085,11 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
       OS::PrintErr(
           "vm-service: isolate '%s' has no debugger attached and is paused.",
           name);
+      break;
+    case ServiceEvent::kPausePostRequest:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused "
+          "post reload.", name);
       break;
     default:
       UNREACHABLE();
@@ -2510,6 +2516,7 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
 static const MethodParameter* reload_sources_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
   new BoolParameter("force", false),
+  new BoolParameter("pause", false),
   NULL,
 };
 
@@ -2554,7 +2561,27 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
 
   isolate->ReloadSources(js, force_reload);
 
+  Service::CheckForPause(isolate, js);
+
   return true;
+}
+
+
+void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
+  // Should we pause?
+  isolate->set_should_pause_post_service_request(
+      BoolParameter::Parse(stream->LookupParam("pause"), false));
+}
+
+
+void Service::MaybePause(Isolate* isolate) {
+  // Don't pause twice.
+  if (!isolate->IsPaused()) {
+    if (isolate->should_pause_post_service_request()) {
+      isolate->set_should_pause_post_service_request(false);
+      isolate->PausePostRequest();
+    }
+  }
 }
 
 
@@ -4163,6 +4190,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     remove_breakpoint_params },
   { "_restartVM", RestartVM,
     restart_vm_params },
+  { "reloadSources", ReloadSources,
+    reload_sources_params },
   { "_reloadSources", ReloadSources,
     reload_sources_params },
   { "resume", Resume,

@@ -292,12 +292,22 @@ void Debugger::InvokeEventHandler(ServiceEvent* event) {
 
 
 RawError* Debugger::PauseInterrupted() {
+  return PauseRequest(ServiceEvent::kPauseInterrupted);
+}
+
+
+RawError* Debugger::PausePostRequest() {
+  return PauseRequest(ServiceEvent::kPausePostRequest);
+}
+
+
+RawError* Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   if (ignore_breakpoints_ || IsPaused()) {
     // We don't let the isolate get interrupted if we are already
     // paused or ignoring breakpoints.
     return Error::null();
   }
-  ServiceEvent event(isolate_, ServiceEvent::kPauseInterrupted);
+  ServiceEvent event(isolate_, kind);
   DebuggerStackTrace* trace = CollectStackTrace();
   if (trace->Length() > 0) {
     event.set_top_frame(trace->FrameAt(0));
@@ -574,7 +584,8 @@ intptr_t ActivationFrame::ColumnNumber() {
 
 void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
-    if (code().is_optimized()) {
+    Code& unoptimized_code = Code::Handle(function().unoptimized_code());
+    if (unoptimized_code.IsNull()) {
       Thread* thread = Thread::Current();
       Zone* zone = thread->zone();
       const Error& error = Error::Handle(zone,
@@ -582,9 +593,10 @@ void ActivationFrame::GetVarDescriptors() {
       if (!error.IsNull()) {
         Exceptions::PropagateError(error);
       }
+      unoptimized_code ^= function().unoptimized_code();
     }
-    var_descriptors_ =
-        Code::Handle(function().unoptimized_code()).GetLocalVarDescriptors();
+    ASSERT(!unoptimized_code.IsNull());
+    var_descriptors_ = unoptimized_code.GetLocalVarDescriptors();
     ASSERT(!var_descriptors_.IsNull());
   }
 }

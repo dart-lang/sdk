@@ -510,6 +510,18 @@ class Isolate : public BaseIsolate {
     return last_reload_timestamp_;
   }
 
+  bool IsPaused() const;
+
+  bool should_pause_post_service_request() const {
+    return should_pause_post_service_request_;
+  }
+  void set_should_pause_post_service_request(
+      bool should_pause_post_service_request) {
+    should_pause_post_service_request_ = should_pause_post_service_request;
+  }
+
+  void PausePostRequest();
+
   uword user_tag() const {
     return user_tag_;
   }
@@ -854,7 +866,8 @@ class Isolate : public BaseIsolate {
   intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_;
   int64_t last_reload_timestamp_;
-
+  // Should we pause in the debug message loop after this request?
+  bool should_pause_post_service_request_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
