@@ -72,14 +72,13 @@ class SdkPatcher {
 
       _patchDirectives(
           source, unit, patchSource, patchUnit, addNewTopLevelDeclarations);
-      _patchTopLevelDeclarations(
-          source, unit, patchSource, patchUnit, addNewTopLevelDeclarations);
+      _patchTopLevelDeclarations(unit, patchUnit, addNewTopLevelDeclarations);
     }
   }
 
-  void _failExternalKeyword(Source source, String name, int offset) {
+  void _failExternalKeyword(String name, int offset) {
     throw new ArgumentError(
-        'The keyword "external" was expected for "$name" in $source @ $offset.');
+        'The keyword "external" was expected for "$name" in $_baseDesc @ $offset.');
   }
 
   void _failIfPublicName(AstNode node, String name) {
@@ -99,6 +98,53 @@ class SdkPatcher {
     return 'the line ${location.lineNumber}';
   }
 
+  void _patchClassMembers(
+      ClassDeclaration baseClass, ClassDeclaration patchClass) {
+    List<ClassMember> membersToAppend = [];
+    for (ClassMember patchMember in patchClass.members) {
+      if (patchMember is MethodDeclaration) {
+        String name = patchMember.name.name;
+        if (_hasPatchAnnotation(patchMember.metadata)) {
+          for (ClassMember baseMember in baseClass.members) {
+            if (baseMember is MethodDeclaration &&
+                baseMember.name.name == name) {
+              // Remove the "external" keyword.
+              Token externalKeyword = baseMember.externalKeyword;
+              if (externalKeyword != null) {
+                baseMember.externalKeyword = null;
+                _removeToken(externalKeyword);
+              } else {
+                _failExternalKeyword(name, baseMember.offset);
+              }
+              // Replace the body.
+              FunctionBody oldBody = baseMember.body;
+              FunctionBody newBody = patchMember.body;
+              _replaceNodeTokens(oldBody, newBody);
+              baseMember.body = newBody;
+            }
+          }
+        } else {
+          _failIfPublicName(patchMember, name);
+          membersToAppend.add(patchMember);
+        }
+      } else {
+        // TODO(scheglov) support field
+        // TODO(scheglov) support constructors
+        String className = patchClass.name.name;
+        _failInPatch('contains an unsupported class member in $className',
+            patchMember.offset);
+      }
+    }
+    // Append new top-level declarations.
+    Token lastToken = baseClass.endToken.previous;
+    for (ClassMember newMember in membersToAppend) {
+      newMember.endToken.setNext(lastToken.next);
+      lastToken.setNext(newMember.beginToken);
+      baseClass.members.add(newMember);
+      lastToken = newMember.endToken;
+    }
+  }
+
   void _patchDirectives(
       Source baseSource,
       CompilationUnit baseUnit,
@@ -115,12 +161,8 @@ class SdkPatcher {
     }
   }
 
-  void _patchTopLevelDeclarations(
-      Source baseSource,
-      CompilationUnit baseUnit,
-      Source patchSource,
-      CompilationUnit patchUnit,
-      bool addNewTopLevelDeclarations) {
+  void _patchTopLevelDeclarations(CompilationUnit baseUnit,
+      CompilationUnit patchUnit, bool addNewTopLevelDeclarations) {
     List<CompilationUnitMember> declarationsToAppend = [];
     for (CompilationUnitMember patchDeclaration in patchUnit.declarations) {
       if (patchDeclaration is FunctionDeclaration) {
@@ -130,22 +172,19 @@ class SdkPatcher {
             if (patchDeclaration is FunctionDeclaration &&
                 baseDeclaration is FunctionDeclaration &&
                 baseDeclaration.name.name == name) {
-              if (_hasPatchAnnotation(patchDeclaration.metadata)) {
-                // Remove the "external" keyword.
-                Token externalKeyword = baseDeclaration.externalKeyword;
-                if (externalKeyword != null) {
-                  baseDeclaration.externalKeyword = null;
-                  _removeToken(externalKeyword);
-                } else {
-                  _failExternalKeyword(
-                      baseSource, name, baseDeclaration.offset);
-                }
-                // Replace the body.
-                FunctionExpression oldExpr = baseDeclaration.functionExpression;
-                FunctionBody newBody = patchDeclaration.functionExpression.body;
-                _replaceNodeTokens(oldExpr.body, newBody);
-                oldExpr.body = newBody;
+              // Remove the "external" keyword.
+              Token externalKeyword = baseDeclaration.externalKeyword;
+              if (externalKeyword != null) {
+                baseDeclaration.externalKeyword = null;
+                _removeToken(externalKeyword);
+              } else {
+                _failExternalKeyword(name, baseDeclaration.offset);
               }
+              // Replace the body.
+              FunctionExpression oldExpr = baseDeclaration.functionExpression;
+              FunctionBody newBody = patchDeclaration.functionExpression.body;
+              _replaceNodeTokens(oldExpr.body, newBody);
+              oldExpr.body = newBody;
             }
           }
         } else if (addNewTopLevelDeclarations) {
@@ -159,6 +198,19 @@ class SdkPatcher {
         }
         _failIfPublicName(patchDeclaration, patchDeclaration.name.name);
         declarationsToAppend.add(patchDeclaration);
+      } else if (patchDeclaration is ClassDeclaration) {
+        if (_hasPatchAnnotation(patchDeclaration.metadata)) {
+          String name = patchDeclaration.name.name;
+          for (CompilationUnitMember baseDeclaration in baseUnit.declarations) {
+            if (baseDeclaration is ClassDeclaration &&
+                baseDeclaration.name.name == name) {
+              _patchClassMembers(baseDeclaration, patchDeclaration);
+            }
+          }
+        } else {
+          _failIfPublicName(patchDeclaration, patchDeclaration.name.name);
+          declarationsToAppend.add(patchDeclaration);
+        }
       } else {
         _failInPatch('contains an unsupported top-level declaration',
             patchDeclaration.offset);

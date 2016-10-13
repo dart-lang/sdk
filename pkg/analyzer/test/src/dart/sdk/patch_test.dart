@@ -34,6 +34,117 @@ class SdkPatcherTest {
     sdkFolder = provider.getFolder(_p('/sdk'));
   }
 
+  test_class_getter_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  void a() {}
+}
+''',
+        r'''
+@patch
+class C {
+  int get _b => 2;
+}
+''');
+    _assertUnitCode(unit, 'class C {void a() {} int get _b => 2;}');
+  }
+
+  test_class_method_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  void a() {}
+}
+''',
+        r'''
+@patch
+class C {
+  void _b() {}
+  void _c() {}
+}
+''');
+    _assertUnitCode(unit, 'class C {void a() {} void _b() {} void _c() {}}');
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration a = clazz.members[0];
+    MethodDeclaration b = clazz.members[1];
+    MethodDeclaration c = clazz.members[2];
+    _assertPrevNextToken(a.endToken, b.beginToken);
+    _assertPrevNextToken(b.endToken, c.beginToken);
+    _assertPrevNextToken(c.endToken, clazz.rightBracket);
+  }
+
+  test_class_method_fail_notPrivate() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class A {}
+''',
+          r'''
+@patch
+class A {
+  void m() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_method_patch() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  external int m();
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  int m() => 42;
+}
+''');
+    _assertUnitCode(unit, 'class C {int m() => 42;}');
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration m = clazz.members[0];
+    expect(m.externalKeyword, isNull);
+    _assertPrevNextToken(m.parameters.rightParenthesis, m.body.beginToken);
+    _assertPrevNextToken(m.body.endToken, clazz.rightBracket);
+  }
+
+  test_class_method_patch_fail_noExternalKeyword() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  int m();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  int m() => 42;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_setter_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  void a() {}
+}
+''',
+        r'''
+@patch
+class C {
+  void set _b(_) {}
+}
+''');
+    _assertUnitCode(unit, 'class C {void a() {} void set _b(_) {}}');
+  }
+
   test_directive_fail_export() {
     expect(() {
       _doTopLevelPatching(
@@ -84,6 +195,47 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
       Source source = file.createSource(FastUri.parse('dart:test'));
       CompilationUnit unit = SdkPatcher.parse(source, true, listener);
       patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_class_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class A {}
+''',
+        r'''
+class _B {
+  void mmm() {}
+}
+''');
+    _assertUnitCode(unit, 'class A {} class _B {void mmm() {}}');
+    ClassDeclaration a = unit.declarations[0];
+    ClassDeclaration b = unit.declarations[1];
+    _assertPrevNextToken(a.endToken, b.beginToken);
+  }
+
+  test_topLevel_class_fail_mixinApplication() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class A {}
+''',
+          r'''
+class _B {}
+class _C = Object with _B;
+''');
+    }, throwsArgumentError);
+  }
+
+  test_topLevel_class_fail_notPrivate() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class A {}
+''',
+          r'''
+class B {}
+''');
     }, throwsArgumentError);
   }
 
