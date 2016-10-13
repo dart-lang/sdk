@@ -226,6 +226,96 @@ class C {
     _assertPrevNextToken(constructor.endToken, clazz.rightBracket);
   }
 
+  test_class_field_append() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  void a() {}
+}
+''',
+        r'''
+@patch
+class C {
+  int _b = 42;
+}
+''');
+    _assertUnitCode(unit, 'class C {void a() {} int _b = 42;}');
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration a = clazz.members[0];
+    FieldDeclaration b = clazz.members[1];
+    _assertPrevNextToken(a.endToken, b.beginToken);
+    _assertPrevNextToken(b.endToken, clazz.rightBracket);
+  }
+
+  test_class_field_append_fail_moreThanOne() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class A {}
+''',
+          r'''
+@patch
+class A {
+  @patch
+  int _f1, _f2;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_field_append_fail_notPrivate() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class A {}
+''',
+          r'''
+@patch
+class A {
+  @patch
+  int b;
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_field_append_publiInPrivateClass() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class _C {
+  void a() {}
+}
+''',
+        r'''
+@patch
+class _C {
+  int b = 42;
+}
+''');
+    _assertUnitCode(unit, 'class _C {void a() {} int b = 42;}');
+    ClassDeclaration clazz = unit.declarations[0];
+    MethodDeclaration a = clazz.members[0];
+    FieldDeclaration b = clazz.members[1];
+    _assertPrevNextToken(a.endToken, b.beginToken);
+    _assertPrevNextToken(b.endToken, clazz.rightBracket);
+  }
+
+  test_class_field_patch_fail() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class A {}
+''',
+          r'''
+@patch
+class A {
+  @patch
+  int _f;
+}
+''');
+    }, throwsArgumentError);
+  }
+
   test_class_getter_append() {
     CompilationUnit unit = _doTopLevelPatching(
         r'''

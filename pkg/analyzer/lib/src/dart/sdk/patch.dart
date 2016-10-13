@@ -100,9 +100,26 @@ class SdkPatcher {
 
   void _patchClassMembers(
       ClassDeclaration baseClass, ClassDeclaration patchClass) {
+    String className = baseClass.name.name;
     List<ClassMember> membersToAppend = [];
     for (ClassMember patchMember in patchClass.members) {
-      if (patchMember is MethodDeclaration) {
+      if (patchMember is FieldDeclaration) {
+        if (_hasPatchAnnotation(patchMember.metadata)) {
+          _failInPatch('attempts to patch a field', patchMember.offset);
+        }
+        List<VariableDeclaration> fields = patchMember.fields.variables;
+        if (fields.length != 1) {
+          _failInPatch('contains a field declaration with more than one field',
+              patchMember.offset);
+        }
+        String name = fields[0].name.name;
+        if (!Identifier.isPrivateName(className) &&
+            !Identifier.isPrivateName(name)) {
+          // TODO(scheglov) allow adding public fields into dart:_internal
+          _failInPatch('contains a public field', patchMember.offset);
+        }
+        membersToAppend.add(patchMember);
+      } else if (patchMember is MethodDeclaration) {
         String name = patchMember.name.name;
         if (_hasPatchAnnotation(patchMember.metadata)) {
           for (ClassMember baseMember in baseClass.members) {
@@ -181,7 +198,7 @@ class SdkPatcher {
           }
         } else {
           if (name == null) {
-            if (!Identifier.isPrivateName(baseClass.name.name)) {
+            if (!Identifier.isPrivateName(className)) {
               _failInPatch(
                   'contains an unnamed public constructor', patchMember.offset);
             }
@@ -191,7 +208,6 @@ class SdkPatcher {
           membersToAppend.add(patchMember);
         }
       } else {
-        // TODO(scheglov) support field
         String className = patchClass.name.name;
         _failInPatch('contains an unsupported class member in $className',
             patchMember.offset);
