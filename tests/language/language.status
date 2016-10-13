@@ -189,6 +189,7 @@ tearoff_basic_test: Skip
 deferred_static_seperate_test: Skip
 deferred_constraints_type_annotation_test/new_before_load: Skip
 regress_22443_test: Skip
+deferred_not_loaded_check_test: Skip
 
 [ $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
