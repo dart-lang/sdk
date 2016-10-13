@@ -2824,7 +2824,7 @@ class LibraryPrefixDeserializationCluster : public DeserializationCluster {
       }
       prefix->ptr()->num_imports_ = d->Read<uint16_t>();
       prefix->ptr()->is_deferred_load_ = d->Read<bool>();
-      prefix->ptr()->is_loaded_ = false;
+      prefix->ptr()->is_loaded_ = !prefix->ptr()->is_deferred_load_;
     }
   }
 };

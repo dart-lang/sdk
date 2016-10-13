@@ -1189,7 +1189,8 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                          reader->Read<int16_t>());
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_deferred_load_,
                          reader->Read<bool>());
-  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, false);
+  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_,
+                         !prefix.raw_ptr()->is_deferred_load_);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(prefix,
