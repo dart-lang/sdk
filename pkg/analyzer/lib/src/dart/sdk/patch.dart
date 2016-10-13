@@ -29,26 +29,33 @@ class SdkPatcher {
    * Patch the given [unit] of a SDK [source] with the patches defined in
    * the [sdk] for the given [platform].  Throw [ArgumentError] if a patch
    * file cannot be read, or the contents violates rules for patch files.
-   *
-   * If [addNewTopLevelDeclarations] is `true`, then the [unit] is the
-   * defining unit of a library, so new top-level declarations should be
-   * added to this unit.  For parts new declarations may be added only to the
-   * patched classes.
-   *
-   * TODO(scheglov) auto-detect [addNewTopLevelDeclarations]
    */
-  void patch(FolderBasedDartSdk sdk, int platform,
-      AnalysisErrorListener errorListener, Source source, CompilationUnit unit,
-      {bool addNewTopLevelDeclarations: true}) {
+  void patch(
+      FolderBasedDartSdk sdk,
+      int platform,
+      AnalysisErrorListener errorListener,
+      Source source,
+      CompilationUnit unit) {
+    // Process URI.
+    String libraryUriStr;
+    bool isLibraryDefiningUnit;
+    {
+      Uri uri = source.uri;
+      if (uri.scheme != 'dart') {
+        throw new ArgumentError(
+            'The URI of the unit to patch must have the "dart" scheme: $uri');
+      }
+      List<String> uriSegments = uri.pathSegments;
+      libraryUriStr = 'dart:${uriSegments.first}';
+      isLibraryDefiningUnit = uriSegments.length == 1;
+    }
     // Prepare the patch files to apply.
     List<String> patchPaths;
     {
-      // TODO(scheglov) add support for patching parts
-      String uriStr = source.uri.toString();
-      SdkLibrary sdkLibrary = sdk.getSdkLibrary(uriStr);
+      SdkLibrary sdkLibrary = sdk.getSdkLibrary(libraryUriStr);
       if (sdkLibrary == null) {
         throw new ArgumentError(
-            'The library $uriStr is not defined in the SDK.');
+            'The library $libraryUriStr is not defined in the SDK.');
       }
       patchPaths = sdkLibrary.getPatches(platform);
     }
@@ -70,9 +77,10 @@ class SdkPatcher {
       _patchDesc = patchFile.path;
       _patchUnit = patchUnit;
 
-      _patchDirectives(
-          source, unit, patchSource, patchUnit, addNewTopLevelDeclarations);
-      _patchTopLevelDeclarations(unit, patchUnit, addNewTopLevelDeclarations);
+      if (isLibraryDefiningUnit) {
+        _patchDirectives(source, unit, patchSource, patchUnit);
+      }
+      _patchTopLevelDeclarations(unit, patchUnit, isLibraryDefiningUnit);
     }
   }
 
@@ -218,12 +226,8 @@ class SdkPatcher {
         baseClass.members, membersToAppend, baseClass.leftBracket);
   }
 
-  void _patchDirectives(
-      Source baseSource,
-      CompilationUnit baseUnit,
-      Source patchSource,
-      CompilationUnit patchUnit,
-      bool addNewTopLevelDeclarations) {
+  void _patchDirectives(Source baseSource, CompilationUnit baseUnit,
+      Source patchSource, CompilationUnit patchUnit) {
     for (Directive patchDirective in patchUnit.directives) {
       if (patchDirective is ImportDirective) {
         baseUnit.directives.add(patchDirective);
@@ -235,7 +239,7 @@ class SdkPatcher {
   }
 
   void _patchTopLevelDeclarations(CompilationUnit baseUnit,
-      CompilationUnit patchUnit, bool addNewTopLevelDeclarations) {
+      CompilationUnit patchUnit, bool appendNewTopLevelDeclarations) {
     List<CompilationUnitMember> declarationsToAppend = [];
     for (CompilationUnitMember patchDeclaration in patchUnit.declarations) {
       if (patchDeclaration is FunctionDeclaration) {
@@ -260,7 +264,7 @@ class SdkPatcher {
               oldExpr.body = newBody;
             }
           }
-        } else if (addNewTopLevelDeclarations) {
+        } else if (appendNewTopLevelDeclarations) {
           _failIfPublicName(patchDeclaration, name);
           declarationsToAppend.add(patchDeclaration);
         }
@@ -290,8 +294,10 @@ class SdkPatcher {
       }
     }
     // Append new top-level declarations.
-    _appendToNodeList(baseUnit.declarations, declarationsToAppend,
-        baseUnit.endToken.previous);
+    if (appendNewTopLevelDeclarations) {
+      _appendToNodeList(baseUnit.declarations, declarationsToAppend,
+          baseUnit.endToken.previous);
+    }
   }
 
   /**

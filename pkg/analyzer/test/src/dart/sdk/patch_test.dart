@@ -480,6 +480,65 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     }, throwsArgumentError);
   }
 
+  test_part() {
+    String baseLibCode = r'''
+library test;
+part 'test_part.dart';
+class A {}
+''';
+    String basePartCode = r'''
+part of test;
+class B {}
+''';
+    _setSdkLibraries(r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'test' : const LibraryInfo(
+    'test/test.dart',
+    patches: {VM_PLATFORM: ['test/test_patch.dart']}),
+};''');
+    File fileLib = provider.newFile(_p('/sdk/lib/test/test.dart'), baseLibCode);
+    File filePart =
+        provider.newFile(_p('/sdk/lib/test/test_part.dart'), basePartCode);
+    provider.newFile(
+        _p('/sdk/lib/test/test_patch.dart'),
+        r'''
+import 'foo.dart';
+
+@patch
+class A {
+  int _a() => 1;
+}
+
+@patch
+class B {
+  int _b() => 1;
+}
+
+class _C {}
+''');
+
+    _createSdk();
+
+    {
+      Uri uri = FastUri.parse('dart:test');
+      Source source = fileLib.createSource(uri);
+      CompilationUnit unit = SdkPatcher.parse(source, true, listener);
+      patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+      _assertUnitCode(
+          unit,
+          "library test; part 'test_part.dart'; import 'foo.dart'; "
+          "class A {int _a() => 1;} class _C {}");
+    }
+
+    {
+      Uri uri = FastUri.parse('dart:test/test_part.dart');
+      Source source = filePart.createSource(uri);
+      CompilationUnit unit = SdkPatcher.parse(source, true, listener);
+      patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+      _assertUnitCode(unit, "part of test; class B {int _b() => 1;}");
+    }
+  }
+
   test_topLevel_class_append() {
     CompilationUnit unit = _doTopLevelPatching(
         r'''
