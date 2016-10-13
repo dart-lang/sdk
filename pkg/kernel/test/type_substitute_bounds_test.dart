@@ -22,6 +22,14 @@ final List<TestCase> testCases = <TestCase>[
   testCase('(T) => void', {'T': bound('_', 'String')}, '(_) => void'),
   testCase('(int) => T', {'T': bound('_', 'String')}, '(int) => String'),
   testCase('(int) => int', {'T': bound('_', 'String')}, '(int) => int'),
+  testCase('((T) => int) => int', {'T': bound('_', 'String')},
+      '((String) => int) => int'),
+  testCase('<E>(<F>(T) => int) => int', {'T': bound('_', 'String')},
+      '<E>(<F>(String) => int) => int'),
+  testCase('(<F>(T) => int) => int', {'T': bound('_', 'String')},
+      '(<F>(String) => int) => int'),
+  testCase('<E>((T) => int) => int', {'T': bound('_', 'String')},
+      '<E>((String) => int) => int'),
 ];
 
 class TestCase {

@@ -182,7 +182,9 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   /// check quickly if anything happened in a substitution.
   int useCounter = 0;
 
-  _TypeSubstitutor(this.upperBounds, this.lowerBounds, [this.outer]);
+  _TypeSubstitutor(this.upperBounds, this.lowerBounds, [this.outer]) {
+    covariantContext = outer == null ? true : outer.covariantContext;
+  }
 
   _TypeSubstitutor newInnerEnvironment() {
     var map = <TypeParameter, DartType>{};
