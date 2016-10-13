@@ -191,31 +191,7 @@ tearoff_basic_test: Fail
 regress_22443_test: Fail
 deferred_not_loaded_check_test: Fail
 
-[ $mode == product ]
-# Deferred loading happens eagerly. Issue #27587
-regress_23408_test: Fail
-deferred_inheritance_constraints_test/redirecting_constructor: Fail
-deferred_load_constants_test/02: Fail
-deferred_load_constants_test/03: Fail
-deferred_load_constants_test/05: Fail
-tearoff_basic_test: Fail
-deferred_not_loaded_check_test: Fail
-
-[ $compiler == dart2appjit ]
-# Deferred loading happens eagerly. Issue #27587
-regress_23408_test: Fail
-deferred_inheritance_constraints_test/redirecting_constructor: Fail
-deferred_load_constants_test/none: Fail
-deferred_load_constants_test/02: Fail
-deferred_load_constants_test/03: Fail
-deferred_load_constants_test/05: Fail
-tearoff_basic_test: Fail
-deferred_static_seperate_test: Fail
-deferred_constraints_type_annotation_test/new_before_load: Fail
-regress_22443_test: Fail
-deferred_not_loaded_check_test: Fail
-
-[ $compiler == dart2app ]
+[ $mode == product || $compiler == dart2appjit || $compiler == dart2app || $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
 regress_23408_test: Fail
 deferred_inheritance_constraints_test/redirecting_constructor: Fail
@@ -227,14 +203,7 @@ deferred_not_loaded_check_test: Fail
 
 [ $compiler == precompiler ]
 # Deferred loading happens eagerly. Issue #27587
-regress_23408_test: Fail
-deferred_inheritance_constraints_test/redirecting_constructor: Fail
 deferred_global_test: Fail
-deferred_load_constants_test/02: Fail
-deferred_load_constants_test/03: Fail
-deferred_load_constants_test/05: Fail
-tearoff_basic_test: Fail
-deferred_not_loaded_check_test: Fail
 
 [ $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
