@@ -1216,14 +1216,19 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           // TODO(paulberry): implement other cases as necessary
           throw new UnimplementedError('${element._unlinkedExecutable.kind}');
       }
-      return addRawReference(element.name,
-          numTypeParameters: element.typeParameters.length,
-          containingReference:
-              enclosingClass != null ? addReference(enclosingClass) : null,
-          dependency: enclosingClass != null
-              ? null
-              : library.addDependency(element.library as LibraryElementForLink),
-          kind: kind);
+      if (enclosingClass == null) {
+        return addRawReference(element.name,
+            numTypeParameters: element.typeParameters.length,
+            dependency:
+                library.addDependency(element.library as LibraryElementForLink),
+            unitNum: element.compilationUnit.unitNum,
+            kind: kind);
+      } else {
+        return addRawReference(element.name,
+            numTypeParameters: element.typeParameters.length,
+            containingReference: addReference(enclosingClass),
+            kind: kind);
+      }
     } else if (element is FunctionElementForLink_Initializer) {
       return addRawReference('',
           containingReference: addReference(element.enclosingElement),
@@ -1231,6 +1236,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     } else if (element is TopLevelVariableElementForLink) {
       return addRawReference(element.name,
           dependency: library.addDependency(element.library),
+          unitNum: element.compilationUnit.unitNum,
           kind: ReferenceKind.topLevelPropertyAccessor);
     } else if (element is FieldElementForLink_ClassField) {
       ClassElementForLink_Class enclosingClass = element.enclosingElement;

@@ -1635,6 +1635,14 @@ f() {
 ''');
   }
 
+  test_closure_in_variable_declaration_in_part() {
+    addSource('/a.dart', 'part of lib; final f = (int i) => i.toDouble();');
+    checkLibrary('''
+library lib;
+part "a.dart";
+''');
+  }
+
   test_const_invalid_field_const() {
     variablesWithNotConstInitializers.add('f');
     checkLibrary(
