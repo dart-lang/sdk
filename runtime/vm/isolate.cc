@@ -1055,6 +1055,9 @@ bool Isolate::IsPaused() const {
 
 
 void Isolate::PausePostRequest() {
+  if (!FLAG_support_debugger) {
+    return;
+  }
   if (debugger_ == NULL) {
     return;
   }
