@@ -39,16 +39,16 @@ VirtualMemory::~VirtualMemory() {
     return;
   }
   if (VirtualFree(address(), 0, MEM_RELEASE) == 0) {
-    FATAL("VirtualFree failed");
+    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
   }
 }
 
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
-  // On Windows only the entire segment returned by VirtualAlloc
-  // can be freed. Therefore we will have to waste these unused
-  // virtual memory sub-segments.
-  return false;
+  if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
+    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
+  }
+  return true;
 }
 
 
