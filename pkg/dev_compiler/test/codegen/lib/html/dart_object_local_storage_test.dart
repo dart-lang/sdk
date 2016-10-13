@@ -1,6 +1,6 @@
 import 'dart:html';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 // TODO(vsm): Rename this to wrapper_caching_test or similar.  It's
 // basically a port of dom/dart_object_local_storage_test.dart.  For

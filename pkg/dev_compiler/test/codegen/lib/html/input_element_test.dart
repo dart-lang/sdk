@@ -1,6 +1,6 @@
 import 'dart:html';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 void check(InputElement element, String type, [bool supported = true]) {
   expect(element is InputElement, true);

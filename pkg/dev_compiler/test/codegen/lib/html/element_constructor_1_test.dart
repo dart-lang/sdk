@@ -8,7 +8,7 @@
 
 import 'dart:html';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 main() {
   var isAnchorElement =

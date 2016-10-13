@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:typed_data';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 main() {
   test('basic', () {

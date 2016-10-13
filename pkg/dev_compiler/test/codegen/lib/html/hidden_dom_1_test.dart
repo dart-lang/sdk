@@ -1,6 +1,6 @@
 import 'dart:html';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 // Test that the dart:html API does not leak native jsdom methods:
 //   onfocus setter.

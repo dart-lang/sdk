@@ -1,7 +1,7 @@
 import 'dart:html';
 import 'dart:html_common';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 main() {
   var t1 = new Text('T1'),

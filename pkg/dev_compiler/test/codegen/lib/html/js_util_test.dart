@@ -12,7 +12,7 @@ import 'dart:indexed_db' show IdbFactory, KeyRange;
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 _injectJs() {
   final script = new ScriptElement();

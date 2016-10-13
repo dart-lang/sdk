@@ -5,7 +5,7 @@
 import 'dart:html';
 import 'dart:typed_data';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 // We have aliased the legacy type CanvasPixelArray with the new type
 // Uint8ClampedArray by mapping the CanvasPixelArray type tag to

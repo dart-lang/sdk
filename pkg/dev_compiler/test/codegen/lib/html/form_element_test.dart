@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 void main() {
   var isFormElement = predicate((x) => x is FormElement, 'is a FormElement');

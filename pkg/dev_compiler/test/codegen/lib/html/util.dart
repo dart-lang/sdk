@@ -5,7 +5,7 @@
 library test.html.util;
 
 import 'dart:html';
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 void expectEmptyRect(Rectangle rect) {
   expect(rect.bottom, 0);

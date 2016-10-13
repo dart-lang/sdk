@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-define(['dart_sdk', 'async_helper', 'minitest', 'unittest', 'require'],
-      function(dart_sdk, async_helper, minitest, unittest, require) {
+define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
+      function(dart_sdk, async_helper, expect, unittest, require) {
   'use strict';
 
   async_helper = async_helper.async_helper;
-  minitest = minitest.minitest;
+  let minitest = expect.minitest;
 
   dart_sdk._isolate_helper.startRootIsolate(function() {}, []);
   let html_config = unittest.html_config;

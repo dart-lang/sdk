@@ -1,6 +1,6 @@
 import 'dart:html';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 bool isChecked(Element e) => (e as CheckboxInputElement).checked;
 bool isUnchecked(Element e) => !(e as CheckboxInputElement).checked;

@@ -8,7 +8,7 @@ library js_typed_interop_test;
 import 'dart:html';
 
 import 'package:js/js.dart';
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 _injectJs() {
   document.body.append(new ScriptElement()

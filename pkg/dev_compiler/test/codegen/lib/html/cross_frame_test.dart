@@ -1,6 +1,6 @@
 import 'dart:html';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 main() {
   var isWindowBase = predicate((x) => x is WindowBase, 'is a WindowBase');

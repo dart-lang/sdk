@@ -7,7 +7,7 @@ import 'dart:typed_data' show ByteBuffer, Int32List;
 import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'dart:js';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 _injectJs() {
   final script = new ScriptElement();

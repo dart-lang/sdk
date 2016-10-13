@@ -6,7 +6,7 @@ import 'dart:collection';
 import 'dart:html';
 import 'dart:svg' as svg;
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 // Test for `querySelectorAll(xxx).classes.op()` where the query returns mixed
 // Html and Svg elements.

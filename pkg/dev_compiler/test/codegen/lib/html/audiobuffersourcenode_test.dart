@@ -1,6 +1,6 @@
 import 'dart:web_audio';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 main() {
   group('supported', () {

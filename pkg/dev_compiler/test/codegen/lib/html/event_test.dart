@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:minitest/minitest.dart';
+import 'package:expect/minitest.dart';
 
 eventTest(String name, Event eventFn(), void validate(Event),
     [String type = 'foo']) {
