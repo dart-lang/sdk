@@ -5287,7 +5287,10 @@ void FullSnapshotWriter::WriteFullSnapshot() {
   WriteIsolateFullSnapshot(num_base_objects);
 
   if (Snapshot::IncludesCode(kind_)) {
-    instructions_writer_->Write();
+    instructions_writer_->Write(*vm_isolate_snapshot_buffer_,
+                                vm_isolate_snapshot_size_,
+                                *isolate_snapshot_buffer_,
+                                isolate_snapshot_size_);
 
     OS::Print("VMIsolate(CodeSize): %" Pd "\n", VmIsolateSnapshotSize());
     OS::Print("Isolate(CodeSize): %" Pd "\n", IsolateSnapshotSize());

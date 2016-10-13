@@ -6323,10 +6323,6 @@ DART_EXPORT Dart_Handle Dart_Precompile(
 
 
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
-    uint8_t** vm_isolate_snapshot_buffer,
-    intptr_t* vm_isolate_snapshot_size,
-    uint8_t** isolate_snapshot_buffer,
-    intptr_t* isolate_snapshot_size,
     uint8_t** assembly_buffer,
     intptr_t* assembly_size) {
   UNREACHABLE();
@@ -6378,10 +6374,6 @@ DART_EXPORT Dart_Handle Dart_Precompile(
 
 
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
-    uint8_t** vm_isolate_snapshot_buffer,
-    intptr_t* vm_isolate_snapshot_size,
-    uint8_t** isolate_snapshot_buffer,
-    intptr_t* isolate_snapshot_size,
     uint8_t** assembly_buffer,
     intptr_t* assembly_size) {
 #if defined(TARGET_ARCH_IA32)
@@ -6397,18 +6389,6 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
                          "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
-  if (vm_isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
-  }
-  if (vm_isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
-  }
-  if (isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_buffer);
-  }
-  if (isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_size);
-  }
   if (assembly_buffer == NULL) {
     RETURN_NULL_ERROR(assembly_buffer);
   }
@@ -6421,15 +6401,15 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
   AssemblyInstructionsWriter instructions_writer(assembly_buffer,
                                                  ApiReallocate,
                                                  2 * MB /* initial_size */);
+  uint8_t* vm_isolate_snapshot_buffer = NULL;
+  uint8_t* isolate_snapshot_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kAppNoJIT,
-                            vm_isolate_snapshot_buffer,
-                            isolate_snapshot_buffer,
+                            &vm_isolate_snapshot_buffer,
+                            &isolate_snapshot_buffer,
                             ApiReallocate,
                             &instructions_writer);
 
   writer.WriteFullSnapshot();
-  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
-  *isolate_snapshot_size = writer.IsolateSnapshotSize();
   *assembly_size = instructions_writer.AssemblySize();
 
   return Api::Success();

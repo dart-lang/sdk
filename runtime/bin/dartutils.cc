@@ -192,17 +192,6 @@ const char* DartUtils::RemoveScheme(const char* url) {
 }
 
 
-void* DartUtils::MapExecutable(const char* name, intptr_t* len) {
-  File* file = File::Open(name, File::kRead);
-  if (file == NULL) {
-    return NULL;
-  }
-  void* addr = file->MapExecutable(len);
-  file->Release();
-  return addr;
-}
-
-
 void* DartUtils::OpenFile(const char* name, bool write) {
   File* file = File::Open(name, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);
