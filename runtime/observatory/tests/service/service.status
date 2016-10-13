@@ -7,6 +7,8 @@ vm_timeline_flags_test: Pass, RuntimeError # Issue 26483
 gc_test: Pass, RuntimeError # Issue 26490
 pause_on_start_and_exit_test: Pass, RuntimeError # Issue 26470
 pause_on_start_then_step_test: Pass, RuntimeError # Issue 26470
+# Reload is slow on the bots
+reload_sources_test: Pass, Slow
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) ]
 evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
@@ -17,6 +19,7 @@ isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 [ $mode == debug ]
 debugger_location_second_test: Pass, Slow
 debugger_location_test: Pass, Slow
+
 
 # Disable on simulators.
 [ $arch == simarm || $arch == simmips || $arch == simarm64 ]
