@@ -1354,9 +1354,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
   __ Comment("SwitchableCall");
 
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
-  __ LoadUniqueObject(R9, ic_data);
   __ LoadUniqueObject(CODE_REG, initial_stub);
   __ ldr(LR, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ LoadUniqueObject(R9, ic_data);
   __ blx(LR);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId, token_pos);

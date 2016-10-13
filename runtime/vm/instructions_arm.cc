@@ -258,15 +258,15 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(*(reinterpret_cast<uword*>(pc) - 1) == 0xe12fff3e);
 
   Register reg;
-  uword stub_load_end =
-      InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize,
+  uword data_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(pc - Instr::kInstrSize,
                                                  &reg,
-                                                 &target_pool_index_);
-  ASSERT(reg == CODE_REG);
-  InstructionPattern::DecodeLoadWordFromPool(stub_load_end,
-                                             &reg,
-                                             &data_pool_index_);
+                                                 &data_pool_index_);
   ASSERT(reg == R9);
+  InstructionPattern::DecodeLoadWordFromPool(data_load_end - Instr::kInstrSize,
+                                             &reg,
+                                             &target_pool_index_);
+  ASSERT(reg == CODE_REG);
 }
 
 

@@ -1360,9 +1360,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
 
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
-  __ LoadUniqueObject(RBX, ic_data);
   __ LoadUniqueObject(CODE_REG, initial_stub);
   __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ LoadUniqueObject(RBX, ic_data);
   __ call(RCX);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,
