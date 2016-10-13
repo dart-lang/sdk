@@ -97,7 +97,7 @@ class A {
     expect(newConstructorElement.name, 'a');
     // classElement.constructors
     ClassElement classElement = helper.element;
-    expect(classElement.constructors, unorderedEquals([newConstructorElement]));
+    expect(classElement.constructors, [newConstructorElement]);
     // verify delta
     expect(helper.delta.hasUnnamedConstructorChange, isTrue);
     expect(helper.delta.addedConstructors,
@@ -231,7 +231,7 @@ class A {
     expect(elementB.name, 'b');
     // classElement.constructors
     ClassElement classElement = helper.element;
-    expect(classElement.constructors, unorderedEquals([elementA, elementB]));
+    expect(classElement.constructors, [elementA, elementB]);
     // verify delta
     expect(helper.delta.addedConstructors, unorderedEquals([elementB]));
     expect(helper.delta.removedConstructors, unorderedEquals([]));
@@ -267,7 +267,7 @@ class A {
     expect(elementB.name, 'b');
     // classElement.constructors
     ClassElement classElement = helper.element;
-    expect(classElement.constructors, unorderedEquals([elementB]));
+    expect(classElement.constructors, [elementB]);
     // verify delta
     expect(helper.delta.addedConstructors, unorderedEquals([]));
     expect(helper.delta.removedConstructors, unorderedEquals([oldElementA]));
@@ -307,7 +307,7 @@ class A {
     expect(elementA.name, 'a');
     // classElement.constructors
     ClassElement classElement = helper.element;
-    expect(classElement.constructors, unorderedEquals([elementB, elementA]));
+    expect(classElement.constructors, [elementB, elementA]);
     // verify delta
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
@@ -463,12 +463,17 @@ class A {
     // nodes
     FieldDeclaration nodeA = helper.newMembers[0];
     FieldDeclaration newNodeB = helper.newMembers[1];
+    List<VariableDeclaration> fieldsA = nodeA.fields.variables;
     List<VariableDeclaration> newFieldsB = newNodeB.fields.variables;
     expect(nodeA, same(helper.oldMembers[0]));
     expect(newFieldsB, hasLength(1));
     // elements
+    FieldElement fieldElementA = fieldsA[0].name.staticElement;
     FieldElement newFieldElementB = newFieldsB[0].name.staticElement;
     expect(newFieldElementB.name, 'bbb');
+    // members
+    ClassElement classElement = helper.element;
+    expect(classElement.fields, [fieldElementA, newFieldElementB]);
     // verify delta
     expect(helper.delta.hasAnnotationChanges, isFalse);
     expect(helper.delta.addedConstructors, isEmpty);
@@ -541,17 +546,13 @@ class A {
     FieldElement newFieldElement = newFieldNode.name.staticElement;
     PropertyAccessorElement getterElement = getterNode.element;
     expect(newFieldElement.name, '_foo');
-    expect(
-        helper.element.fields,
-        unorderedMatches(
-            [same(newFieldElement), same(getterElement.variable)]));
-    expect(
-        helper.element.accessors,
-        unorderedMatches([
-          same(newFieldElement.getter),
-          same(newFieldElement.setter),
-          same(getterElement)
-        ]));
+    expect(helper.element.fields,
+        [same(newFieldElement), same(getterElement.variable)]);
+    expect(helper.element.accessors, [
+      same(newFieldElement.getter),
+      same(newFieldElement.setter),
+      same(getterElement)
+    ]);
     // verify delta
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
@@ -589,6 +590,7 @@ class A {
     expect(elementA.name, 'aaa');
     expect(newElementB, isNotNull);
     expect(newElementB.name, 'bbb');
+    expect(helper.element.accessors, [elementA, newElementB]);
     // verify delta
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
@@ -657,6 +659,7 @@ class A {
     expect(elementA.name, 'aaa');
     expect(newElementB, isNotNull);
     expect(newElementB.name, 'bbb');
+    expect(helper.element.methods, [elementA, newElementB]);
     // verify delta
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
@@ -698,6 +701,7 @@ class A {
     expect(newElementA.parameters, hasLength(1));
     expect(elementB, isNotNull);
     expect(elementB.name, 'bbb');
+    expect(helper.element.methods, [newElementA, elementB]);
     // verify delta
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
@@ -750,6 +754,7 @@ class A {
     expect(newElementA.name, 'aaa2');
     expect(elementB, isNotNull);
     expect(elementB.name, 'bbb');
+    expect(helper.element.methods, [newElementA, elementB]);
     // verify delta
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
@@ -824,6 +829,7 @@ class A {
     expect(newElementA.parameters, hasLength(0));
     expect(elementB, isNotNull);
     expect(elementB.name, 'bbb');
+    expect(helper.element.methods, [newElementA, elementB]);
     // verify delta
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
@@ -831,6 +837,48 @@ class A {
     expect(helper.delta.removedAccessors, isEmpty);
     expect(helper.delta.addedMethods, unorderedEquals([newElementA]));
     expect(helper.delta.removedMethods, unorderedEquals([oldElementA]));
+  }
+
+  test_classDelta_newOrder() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  bbb() {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  aaa() {}
+  bbb() {}
+  ccc() {}
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    ClassMember newNodeA = helper.newMembers[0];
+    ClassMember nodeB = helper.oldMembers[0];
+    ClassMember newNodeC = helper.newMembers[2];
+    expect(nodeB, same(helper.oldMembers[0]));
+    // elements
+    MethodElement newElementA = newNodeA.element;
+    MethodElement elementB = nodeB.element;
+    MethodElement newElementC = newNodeC.element;
+    expect(newElementA, isNotNull);
+    expect(newElementA.name, 'aaa');
+    expect(elementB, isNotNull);
+    expect(elementB.name, 'bbb');
+    expect(newElementC, isNotNull);
+    expect(newElementC.name, 'ccc');
+    expect(helper.element.methods, [newElementA, elementB, newElementC]);
+    // verify delta
+    expect(helper.delta.addedConstructors, isEmpty);
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(
+        helper.delta.addedMethods, unorderedEquals([newElementA, newElementC]));
+    expect(helper.delta.removedMethods, isEmpty);
   }
 
   test_classDelta_null_abstractKeyword_add() {
@@ -1027,6 +1075,7 @@ class A {
     expect(elementA.name, 'aaa=');
     expect(newElementB, isNotNull);
     expect(newElementB.name, 'bbb=');
+    expect(helper.element.accessors, [elementA, newElementB]);
     // verify delta
     expect(helper.delta.addedConstructors, isEmpty);
     expect(helper.delta.removedConstructors, isEmpty);
@@ -1374,9 +1423,9 @@ get b => 2;
     expect(elementA.name, 'a');
     expect(elementB.name, 'b');
     // unit.types
-    expect(unitElement.topLevelVariables,
-        unorderedEquals([elementA.variable, elementB.variable]));
-    expect(unitElement.accessors, unorderedEquals([elementA, elementB]));
+    expect(
+        unitElement.topLevelVariables, [elementA.variable, elementB.variable]);
+    expect(unitElement.accessors, [elementA, elementB]);
   }
 
   test_unitMembers_class_add() {
@@ -1401,7 +1450,7 @@ class B {}
     expect(elementA.name, 'A');
     expect(elementB.name, 'B');
     // unit.types
-    expect(unitElement.types, unorderedEquals([elementA, elementB]));
+    expect(unitElement.types, [elementA, elementB]);
     // verify delta
     expect(unitDelta.addedDeclarations, unorderedEquals([elementB]));
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
@@ -1512,7 +1561,7 @@ class A {}
     expect(elementA.name, 'A');
     expect(elementB.name, 'B');
     // unit.types
-    expect(unitElement.types, unorderedEquals([elementA]));
+    expect(unitElement.types, [elementA]);
     // verify delta
     expect(unitDelta.addedDeclarations, unorderedEquals([]));
     expect(unitDelta.removedDeclarations, unorderedEquals([elementB]));
@@ -1593,7 +1642,7 @@ enum B {B1, B2}
     expect(elementB.accessors.map((a) => a.name),
         unorderedEquals(['index', 'values', 'B1', 'B2']));
     // unit.types
-    expect(unitElement.enums, unorderedEquals([elementA, elementB]));
+    expect(unitElement.enums, [elementA, elementB]);
     // verify delta
     expect(unitDelta.addedDeclarations, unorderedEquals([elementB]));
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
@@ -1621,7 +1670,7 @@ b() {}
     expect(elementA.name, 'a');
     expect(elementB.name, 'b');
     // unit.types
-    expect(unitElement.functions, unorderedEquals([elementA, elementB]));
+    expect(unitElement.functions, [elementA, elementB]);
     // verify delta
     expect(unitDelta.addedDeclarations, unorderedEquals([elementB]));
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
@@ -1649,11 +1698,48 @@ typedef B();
     expect(elementA.name, 'A');
     expect(elementB.name, 'B');
     // unit.types
-    expect(
-        unitElement.functionTypeAliases, unorderedEquals([elementA, elementB]));
+    expect(unitElement.functionTypeAliases, [elementA, elementB]);
     // verify delta
     expect(unitDelta.addedDeclarations, unorderedEquals([elementB]));
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
+  }
+
+  test_unitMembers_newOrder() {
+    _buildOldUnit(r'''
+int b;
+''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
+    _buildNewUnit(r'''
+int a;
+int b;
+int c;
+''');
+    List<CompilationUnitMember> newNodes = newUnit.declarations;
+    // nodes
+    TopLevelVariableDeclaration node1 = newNodes[0];
+    TopLevelVariableDeclaration node2 = newNodes[1];
+    TopLevelVariableDeclaration node3 = newNodes[2];
+    expect(node2, same(oldNodes[0]));
+    // elements
+    TopLevelVariableElement elementA = node1.variables.variables[0].element;
+    TopLevelVariableElement elementB = node2.variables.variables[0].element;
+    TopLevelVariableElement elementC = node3.variables.variables[0].element;
+    expect(elementA, isNotNull);
+    expect(elementB, isNotNull);
+    expect(elementC, isNotNull);
+    expect(elementA.name, 'a');
+    expect(elementB.name, 'b');
+    expect(elementC.name, 'c');
+    // unit.types
+    expect(unitElement.topLevelVariables, [elementA, elementB, elementC]);
+    expect(unitElement.accessors, [
+      elementA.getter,
+      elementA.setter,
+      elementB.getter,
+      elementB.setter,
+      elementC.getter,
+      elementC.setter,
+    ]);
   }
 
   test_unitMembers_topLevelVariable() {
@@ -1733,19 +1819,17 @@ int c, d;
     expect(elementD.name, 'd');
     // unit.types
     expect(unitElement.topLevelVariables,
-        unorderedEquals([elementA, elementB, elementC, elementD]));
-    expect(
-        unitElement.accessors,
-        unorderedEquals([
-          elementA.getter,
-          elementA.setter,
-          elementB.getter,
-          elementB.setter,
-          elementC.getter,
-          elementC.setter,
-          elementD.getter,
-          elementD.setter
-        ]));
+        [elementA, elementB, elementC, elementD]);
+    expect(unitElement.accessors, [
+      elementA.getter,
+      elementA.setter,
+      elementB.getter,
+      elementB.setter,
+      elementC.getter,
+      elementC.setter,
+      elementD.getter,
+      elementD.setter
+    ]);
   }
 
   test_unitMembers_topLevelVariable_final() {
