@@ -48,7 +48,7 @@ extern const uint8_t* isolate_snapshot_buffer;
 
 #define BENCHMARK(name) BENCHMARK_HELPER(name, "RunTime")
 #define BENCHMARK_SIZE(name) BENCHMARK_HELPER(name, "CodeSize")
-#define BENCHMARK_MEMORY(name) BENCHMARK_HELPER(name, "Memory")
+#define BENCHMARK_MEMORY(name) BENCHMARK_HELPER(name, "MemoryUse")
 
 inline Dart_Handle NewString(const char* str) {
   return Dart_NewStringFromCString(str);
