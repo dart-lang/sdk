@@ -279,7 +279,7 @@ class A {
     }, throwsArgumentError);
   }
 
-  test_class_field_append_publiInPrivateClass() {
+  test_class_field_append_publicInPrivateClass() {
     CompilationUnit unit = _doTopLevelPatching(
         r'''
 class _C {
@@ -478,6 +478,47 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
       CompilationUnit unit = SdkPatcher.parse(source, true, listener);
       patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
     }, throwsArgumentError);
+  }
+
+  test_internal_allowNewPublicNames() {
+    _setSdkLibraries(r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  '_internal' : const LibraryInfo(
+    'internal/internal.dart',
+    patches: {VM_PLATFORM: ['internal/internal_patch.dart']}),
+};''');
+    File file = provider.newFile(
+        _p('/sdk/lib/internal/internal.dart'),
+        r'''
+library dart._internal;
+class A {}
+class B {
+  B();
+}
+''');
+    provider.newFile(
+        _p('/sdk/lib/internal/internal_patch.dart'),
+        r'''
+@patch
+class B {
+  int newField;
+  B.newConstructor();
+  int newMethod() => 1;
+}
+class NewClass {}
+int newFunction() => 2;
+''');
+
+    _createSdk();
+
+    Source source = file.createSource(FastUri.parse('dart:_internal'));
+    CompilationUnit unit = SdkPatcher.parse(source, true, listener);
+    patcher.patch(sdk, SdkLibraryImpl.VM_PLATFORM, listener, source, unit);
+    _assertUnitCode(
+        unit,
+        'library dart._internal; class A {} '
+        'class B {B(); int newField; B.newConstructor(); int newMethod() => 1;} '
+        'class NewClass {} int newFunction() => 2;');
   }
 
   test_part() {

@@ -21,6 +21,7 @@ import 'package:path/src/context.dart';
  * [SdkPatcher] applies patches to SDK [CompilationUnit].
  */
 class SdkPatcher {
+  bool _allowNewPublicNames;
   String _baseDesc;
   String _patchDesc;
   CompilationUnit _patchUnit;
@@ -46,8 +47,10 @@ class SdkPatcher {
             'The URI of the unit to patch must have the "dart" scheme: $uri');
       }
       List<String> uriSegments = uri.pathSegments;
-      libraryUriStr = 'dart:${uriSegments.first}';
+      String libraryName = uriSegments.first;
+      libraryUriStr = 'dart:$libraryName';
       isLibraryDefiningUnit = uriSegments.length == 1;
+      _allowNewPublicNames = libraryName == '_internal';
     }
     // Prepare the patch files to apply.
     List<String> patchPaths;
@@ -90,6 +93,9 @@ class SdkPatcher {
   }
 
   void _failIfPublicName(AstNode node, String name) {
+    if (_allowNewPublicNames) {
+      return;
+    }
     if (!Identifier.isPrivateName(name)) {
       _failInPatch('contains a public declaration "$name"', node.offset);
     }
@@ -121,9 +127,9 @@ class SdkPatcher {
               patchMember.offset);
         }
         String name = fields[0].name.name;
-        if (!Identifier.isPrivateName(className) &&
+        if (!_allowNewPublicNames &&
+            !Identifier.isPrivateName(className) &&
             !Identifier.isPrivateName(name)) {
-          // TODO(scheglov) allow adding public fields into dart:_internal
           _failInPatch('contains a public field', patchMember.offset);
         }
         membersToAppend.add(patchMember);
@@ -206,7 +212,7 @@ class SdkPatcher {
           }
         } else {
           if (name == null) {
-            if (!Identifier.isPrivateName(className)) {
+            if (!_allowNewPublicNames && !Identifier.isPrivateName(className)) {
               _failInPatch(
                   'contains an unnamed public constructor', patchMember.offset);
             }
