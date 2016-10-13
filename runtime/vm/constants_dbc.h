@@ -747,7 +747,7 @@ namespace dart {
   V(IfEqNull,                        A, reg, ___, ___) \
   V(IfNeNull,                        A, reg, ___, ___) \
   V(CreateArrayTOS,                  0, ___, ___, ___) \
-  V(CreateArrayOpt,              A_B_C, reg, reg, ___) \
+  V(CreateArrayOpt,              A_B_C, reg, reg, reg) \
   V(Allocate,                        D, lit, ___, ___) \
   V(AllocateT,                       0, ___, ___, ___) \
   V(AllocateOpt,                   A_D, reg, lit, ___) \

@@ -670,8 +670,17 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
     if (flow_graph().captured_parameters()->Contains(i)) continue;
     if ((*idefs)[i]->IsConstant()) continue;  // Common constants
     Location src = env->LocationAt(i);
+#if defined(TARGET_ARCH_DBC)
+    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
+    Location dest = Location::RegisterLocation(dest_index);
+    // Update safepoint bitmap to indicate that the target location
+    // now contains a pointer. With DBC parameters are copied into
+    // the locals area.
+    instr->locs()->SetStackBit(dest_index);
+#else
     intptr_t dest_index = i - num_non_copied_params;
     Location dest = Location::StackSlot(dest_index);
+#endif
     move_instr->AddMove(dest, src);
   }
 
@@ -687,8 +696,13 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
     Location src = env->LocationAt(i);
     ASSERT(!src.IsFpuRegister());
     ASSERT(!src.IsDoubleStackSlot());
+#if defined(TARGET_ARCH_DBC)
+    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
+    Location dest = Location::RegisterLocation(dest_index);
+#else
     intptr_t dest_index = i - num_non_copied_params;
     Location dest = Location::StackSlot(dest_index);
+#endif
     move_instr->AddMove(dest, src);
     // Update safepoint bitmap to indicate that the target location
     // now contains a pointer.
@@ -845,12 +859,18 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
     // with the same instruction (and same location summary) sees a bitmap that
     // is larger that StackSize(). It will never be larger than StackSize() +
     // live_registers_size.
-    ASSERT(bitmap->Length() <= (spill_area_size + live_registers_size));
     // The first safepoint will grow the bitmap to be the size of
     // spill_area_size but the second safepoint will truncate the bitmap and
     // append the live registers to it again. The bitmap produced by both calls
     // will be the same.
+#if !defined(TARGET_ARCH_DBC)
+    ASSERT(bitmap->Length() <= (spill_area_size + live_registers_size));
     bitmap->SetLength(spill_area_size);
+#else
+    if (bitmap->Length() <= (spill_area_size + live_registers_size)) {
+      bitmap->SetLength(Utils::Maximum(bitmap->Length(), spill_area_size));
+    }
+#endif
 
     // Mark the bits in the stack map in the same order we push registers in
     // slow path code (see FlowGraphCompiler::SaveLiveRegisters).

@@ -194,10 +194,12 @@ void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
     // hence the difference.
     pending_deoptimization_env_->DropArguments(instr->ArgumentCount());
     AddDeoptIndexAtCall(deopt_id_after);
+    // This descriptor is needed for exception handling in optimized code.
+    AddCurrentDescriptor(RawPcDescriptors::kOther,
+                         deopt_id_after, instr->token_pos());
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    // In optimized code this descriptor is needed for exception handling.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                          deopt_id_after,
                          instr->token_pos());

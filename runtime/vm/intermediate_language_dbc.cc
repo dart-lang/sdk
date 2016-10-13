@@ -1129,10 +1129,27 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_,
                                 needs_stacktrace());
-  __ MoveSpecial(-exception_var().index()-1,
-                 Simulator::kExceptionSpecialIndex);
-  __ MoveSpecial(-stacktrace_var().index()-1,
-                 Simulator::kStacktraceSpecialIndex);
+
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+  if (compiler->is_optimizing()) {
+    // In optimized code, variables at the catch block entry reside at the top
+    // of the allocatable register range.
+    const intptr_t num_non_copied_params =
+        compiler->flow_graph().num_non_copied_params();
+    const intptr_t exception_reg = kNumberOfCpuRegisters -
+        (-exception_var().index() + num_non_copied_params);
+    const intptr_t stacktrace_reg = kNumberOfCpuRegisters -
+        (-stacktrace_var().index() + num_non_copied_params);
+    __ MoveSpecial(exception_reg, Simulator::kExceptionSpecialIndex);
+    __ MoveSpecial(stacktrace_reg, Simulator::kStacktraceSpecialIndex);
+  } else {
+    __ MoveSpecial(LocalVarIndex(0, exception_var().index()),
+                   Simulator::kExceptionSpecialIndex);
+    __ MoveSpecial(LocalVarIndex(0, stacktrace_var().index()),
+                   Simulator::kStacktraceSpecialIndex);
+  }
   __ SetFrame(compiler->StackSize());
 }
 
@@ -1410,10 +1427,15 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
            (unary_checks().NumberOfChecks() > 1));
     const intptr_t may_be_smi =
         (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
+    bool is_dense_switch = false;
+    intptr_t cid_mask = 0;
     if (IsDenseSwitch()) {
       ASSERT(cids_[0] < cids_[cids_.length() - 1]);
+      cid_mask = ComputeCidMask();
+      is_dense_switch = Smi::IsValid(cid_mask);
+    }
+    if (is_dense_switch) {
       const intptr_t low_cid = cids_[0];
-      const intptr_t cid_mask = ComputeCidMask();
       __ CheckDenseSwitch(value, may_be_smi);
       __ Nop(compiler->ToEmbeddableCid(low_cid, this));
       __ Nop(__ AddConstant(Smi::Handle(Smi::New(cid_mask))));

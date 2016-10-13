@@ -12164,7 +12164,7 @@ RawStackmap* Stackmap::New(intptr_t length,
 
 
 const char* Stackmap::ToCString() const {
-#define FORMAT "%#x: "
+#define FORMAT "%#05x: "
   if (IsNull()) {
     return "{null}";
   } else {
