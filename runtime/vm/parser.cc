@@ -11276,18 +11276,18 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     if (name.IsNull()) {
       ReportError(left_pos, "expression is not assignable");
     }
-    LetNode* let_node = new(Z) LetNode(left_pos);
-    let_node->AddInitializer(rhs);
-    let_node->AddNode(ThrowNoSuchMethodError(
+    ArgumentListNode* error_arguments =
+        new(Z) ArgumentListNode(rhs->token_pos());
+    error_arguments->Add(rhs);
+    result = ThrowNoSuchMethodError(
          original->token_pos(),
          *target_cls,
          String::Handle(Z, Field::SetterName(name)),
-         NULL,  // No arguments.
+         error_arguments,
          InvocationMirror::kStatic,
          original->IsLoadLocalNode() ?
          InvocationMirror::kLocalVar : InvocationMirror::kSetter,
-         NULL));  // No existing function.
-    result = let_node;
+         NULL);  // No existing function.
   }
   // The compound assignment operator a ??= b is different from other
   // a op= b assignments. If a is non-null, the assignment to a must be
@@ -13945,6 +13945,15 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       const Error& error = Error::Handle(Z, type.error());
       ReportError(error);
     }
+    if (arguments->length() > 0) {
+      // Evaluate arguments for side-effects and throw.
+      LetNode* error_result = new(Z) LetNode(type_pos);
+      for (intptr_t i = 0; i < arguments->length(); ++i) {
+        error_result->AddNode(arguments->NodeAt(i));
+      }
+      error_result->AddNode(ThrowTypeError(type_pos, type));
+      return error_result;
+    }
     return ThrowTypeError(type_pos, type);
   }
 
@@ -14437,32 +14446,13 @@ AstNode* Parser::ParsePrimary() {
           ConsumeToken();  // Prefix name.
           primary = new(Z) LiteralNode(qual_ident_pos, prefix);
         } else {
-          // TODO(hausner): Ideally we should generate the NoSuchMethodError
-          // later, when we know more about how the unresolved name is used.
-          // For example, we don't know yet whether the unresolved name
-          // refers to a getter or a setter. However, it is more awkward
-          // to distinuish four NoSuchMethodError cases all over the place
-          // in the parser. The four cases are: prefixed vs non-prefixed
-          // name, static vs dynamic context in which the unresolved name
-          // is used. We cheat a little here by looking at the next token
-          // to determine whether we have an unresolved method call or
-          // field access.
           GrowableHandlePtrArray<const String> pieces(Z, 3);
           pieces.Add(String::Handle(Z, prefix.name()));
           pieces.Add(Symbols::Dot());
           pieces.Add(ident);
           const String& qualified_name = String::ZoneHandle(Z,
               Symbols::FromConcatAll(T, pieces));
-          InvocationMirror::Type call_type =
-              CurrentToken() == Token::kLPAREN ?
-                  InvocationMirror::kMethod : InvocationMirror::kGetter;
-          primary = ThrowNoSuchMethodError(qual_ident_pos,
-                                           current_class(),
-                                           qualified_name,
-                                           NULL,  // No arguments.
-                                           InvocationMirror::kTopLevel,
-                                           call_type,
-                                           NULL);  // No existing function.
+          primary = new(Z) PrimaryNode(qual_ident_pos, qualified_name);
         }
       } else if (FLAG_load_deferred_eagerly && prefix.is_deferred_load()) {
         // primary != NULL.

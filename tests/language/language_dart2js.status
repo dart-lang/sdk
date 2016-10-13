@@ -3,6 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2js ]
+deferred_not_loaded_check_test: Fail # Issue 27577
 getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 setter4_test: CompileTimeError # issue 13639

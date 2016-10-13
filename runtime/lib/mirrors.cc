@@ -1607,10 +1607,14 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   }
 
   if (field.is_final() || !field.is_reflectable()) {
+    const int kNumArgs = 1;
+    const Array& args = Array::Handle(Array::New(kNumArgs));
+    args.SetAt(0, value);
+
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       internal_setter_name,
                       setter,
-                      Object::null_array(),
+                      args,
                       Object::null_array(),
                       InvocationMirror::kStatic,
                       InvocationMirror::kSetter);
@@ -1908,10 +1912,14 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
   }
 
   if (field.is_final() || !field.is_reflectable()) {
+    const int kNumArgs = 1;
+    const Array& args = Array::Handle(Array::New(kNumArgs));
+    args.SetAt(0, value);
+
     ThrowNoSuchMethod(Instance::null_instance(),
                       internal_setter_name,
                       setter,
-                      Object::null_array(),
+                      args,
                       Object::null_array(),
                       InvocationMirror::kTopLevel,
                       InvocationMirror::kSetter);
