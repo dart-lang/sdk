@@ -6709,13 +6709,13 @@ TEST_CASE(LoadPatchSignatureMismatch) {
   const char* kSourceChars =
       "part of library1_name;\n"
       "external int foo([int x]);\n"
-      "class Foo {\n"
+      "class Foo<T extends Foo> {\n"
       "  external static int addDefault10([int x, int y]);\n"
       "}";
   const char* kPatchChars =
       "const _UNDEFINED = const Object();\n"
       "@patch foo([x=_UNDEFINED]) => identical(x, _UNDEFINED) ? 42 : x;\n"
-      "@patch class Foo {\n"
+      "@patch class Foo<T> {\n"
       "  static addDefault10([x=_UNDEFINED, y=_UNDEFINED]) {\n"
       "    if (identical(x, _UNDEFINED)) x = 10;\n"
       "    if (identical(y, _UNDEFINED)) y = 10;\n"
