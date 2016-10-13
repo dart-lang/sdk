@@ -34,6 +34,198 @@ class SdkPatcherTest {
     sdkFolder = provider.getFolder(_p('/sdk'));
   }
 
+  test_class_constructor_append_fail_notPrivate_named() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {}
+''',
+          r'''
+@patch
+class C {
+  C.named() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_append_fail_notPrivate_unnamed() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {}
+''',
+          r'''
+@patch
+class C {
+  C() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_append_named() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+}
+''',
+        r'''
+@patch
+class C {
+  C._named() {}
+}
+''');
+    _assertUnitCode(unit, 'class C {C._named() {}}');
+    ClassDeclaration clazz = unit.declarations[0];
+    ConstructorDeclaration constructor = clazz.members[0];
+    _assertPrevNextToken(clazz.leftBracket, constructor.beginToken);
+    _assertPrevNextToken(constructor.endToken, clazz.rightBracket);
+  }
+
+  test_class_constructor_append_unnamed() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class _C {
+}
+''',
+        r'''
+@patch
+class _C {
+  _C() {}
+}
+''');
+    _assertUnitCode(unit, 'class _C {_C() {}}');
+    ClassDeclaration clazz = unit.declarations[0];
+    ConstructorDeclaration constructor = clazz.members[0];
+    _assertPrevNextToken(clazz.leftBracket, constructor.beginToken);
+    _assertPrevNextToken(constructor.endToken, clazz.rightBracket);
+  }
+
+  test_class_constructor_patch() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  external C.named();
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  C.named() {
+    print(42);
+  }
+}
+''');
+    _assertUnitCode(unit, 'class C {C.named() {print(42);}}');
+    ClassDeclaration clazz = unit.declarations[0];
+    ConstructorDeclaration constructor = clazz.members[0];
+    expect(constructor.externalKeyword, isNull);
+    _assertPrevNextToken(
+        constructor.parameters.endToken, constructor.body.beginToken);
+    _assertPrevNextToken(constructor.endToken, clazz.rightBracket);
+  }
+
+  test_class_constructor_patch_fail_baseFactory_patchGenerative() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external factory C.named();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_baseGenerative_patchFactory() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  external C.named();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  factory C.named() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_hasInitializers() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  int f;
+  external C.named() : f = 1;
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named() : f = 2 {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_fail_noExternalKeyword() {
+    expect(() {
+      _doTopLevelPatching(
+          r'''
+class C {
+  C.named();
+}
+''',
+          r'''
+@patch
+class C {
+  @patch
+  C.named() {}
+}
+''');
+    }, throwsArgumentError);
+  }
+
+  test_class_constructor_patch_initializers() {
+    CompilationUnit unit = _doTopLevelPatching(
+        r'''
+class C {
+  int f;
+  external C.named();
+}
+''',
+        r'''
+@patch
+class C {
+  @patch
+  C.named() : f = 2 {
+    print(42);
+  }
+}
+''');
+    _assertUnitCode(unit, 'class C {int f; C.named() : f = 2 {print(42);}}');
+    ClassDeclaration clazz = unit.declarations[0];
+    ConstructorDeclaration constructor = clazz.members[1];
+    expect(constructor.externalKeyword, isNull);
+    _assertPrevNextToken(constructor.parameters.endToken,
+        constructor.initializers.beginToken.previous);
+    _assertPrevNextToken(constructor.endToken, clazz.rightBracket);
+  }
+
   test_class_getter_append() {
     CompilationUnit unit = _doTopLevelPatching(
         r'''

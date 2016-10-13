@@ -127,9 +127,71 @@ class SdkPatcher {
           _failIfPublicName(patchMember, name);
           membersToAppend.add(patchMember);
         }
+      } else if (patchMember is ConstructorDeclaration) {
+        String name = patchMember.name?.name;
+        if (_hasPatchAnnotation(patchMember.metadata)) {
+          for (ClassMember baseMember in baseClass.members) {
+            if (baseMember is ConstructorDeclaration &&
+                baseMember.name?.name == name) {
+              // Remove the "external" keyword.
+              Token externalKeyword = baseMember.externalKeyword;
+              if (externalKeyword != null) {
+                baseMember.externalKeyword = null;
+                _removeToken(externalKeyword);
+              } else {
+                _failExternalKeyword(name, baseMember.offset);
+              }
+              // Factory vs. generative.
+              if (baseMember.factoryKeyword == null &&
+                  patchMember.factoryKeyword != null) {
+                _failInPatch(
+                    'attempts to replace generative constructor with a factory one',
+                    patchMember.offset);
+              } else if (baseMember.factoryKeyword != null &&
+                  patchMember.factoryKeyword == null) {
+                _failInPatch(
+                    'attempts to replace factory constructor with a generative one',
+                    patchMember.offset);
+              }
+              // The base constructor should not have initializers.
+              if (baseMember.initializers.isNotEmpty) {
+                throw new ArgumentError(
+                    'Cannot patch external constructors with initializers '
+                    'in $_baseDesc.');
+              }
+              // Prepare nodes.
+              FunctionBody baseBody = baseMember.body;
+              FunctionBody patchBody = patchMember.body;
+              NodeList<ConstructorInitializer> baseInitializers =
+                  baseMember.initializers;
+              NodeList<ConstructorInitializer> patchInitializers =
+                  patchMember.initializers;
+              // Replace initializers and link tokens.
+              if (patchInitializers.isNotEmpty) {
+                baseMember.parameters.endToken
+                    .setNext(patchInitializers.beginToken.previous);
+                baseInitializers.addAll(patchInitializers);
+                patchBody.endToken.setNext(baseBody.endToken.next);
+              } else {
+                _replaceNodeTokens(baseBody, patchBody);
+              }
+              // Replace the body.
+              baseMember.body = patchBody;
+            }
+          }
+        } else {
+          if (name == null) {
+            if (!Identifier.isPrivateName(baseClass.name.name)) {
+              _failInPatch(
+                  'contains an unnamed public constructor', patchMember.offset);
+            }
+          } else {
+            _failIfPublicName(patchMember, name);
+          }
+          membersToAppend.add(patchMember);
+        }
       } else {
         // TODO(scheglov) support field
-        // TODO(scheglov) support constructors
         String className = patchClass.name.name;
         _failInPatch('contains an unsupported class member in $className',
             patchMember.offset);
