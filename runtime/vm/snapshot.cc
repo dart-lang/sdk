@@ -704,10 +704,7 @@ static void EnsureIdentifier(char* label) {
 }
 
 
-void AssemblyInstructionsWriter::Write(uint8_t* vmisolate_buffer,
-                                       intptr_t vmisolate_length,
-                                       uint8_t* isolate_buffer,
-                                       intptr_t isolate_length) {
+void AssemblyInstructionsWriter::Write() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread,
@@ -852,28 +849,10 @@ void AssemblyInstructionsWriter::Write(uint8_t* vmisolate_buffer,
       WriteWordLiteralData(*cursor);
     }
   }
-
-
-  assembly_stream_.Print(".globl _kVmIsolateSnapshot\n");
-  assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
-  assembly_stream_.Print("_kVmIsolateSnapshot:\n");
-  for (intptr_t i = 0; i < vmisolate_length; i++) {
-    assembly_stream_.Print(".byte %" Pd "\n", vmisolate_buffer[i]);
-  }
-
-  assembly_stream_.Print(".globl _kIsolateSnapshot\n");
-  assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
-  assembly_stream_.Print("_kIsolateSnapshot:\n");
-  for (intptr_t i = 0; i < isolate_length; i++) {
-    assembly_stream_.Print(".byte %" Pd "\n", isolate_buffer[i]);
-  }
 }
 
 
-void BlobInstructionsWriter::Write(uint8_t* vmisolate_buffer,
-                                   intptr_t vmisolate_len,
-                                   uint8_t* isolate_buffer,
-                                   intptr_t isolate_length) {
+void BlobInstructionsWriter::Write() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread,

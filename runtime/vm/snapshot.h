@@ -750,10 +750,7 @@ class InstructionsWriter : public ZoneAllocated {
 
   int32_t GetObjectOffsetFor(RawObject* raw_object);
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length) = 0;
+  virtual void Write() = 0;
   virtual intptr_t text_size() = 0;
   virtual intptr_t data_size() = 0;
 
@@ -806,10 +803,7 @@ class AssemblyInstructionsWriter : public InstructionsWriter {
       data_size_(0) {
   }
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length);
+  virtual void Write();
   virtual intptr_t text_size() { return text_size_; }
   virtual intptr_t data_size() { return data_size_; }
 
@@ -855,10 +849,7 @@ class BlobInstructionsWriter : public InstructionsWriter {
       rodata_blob_stream_(rodata_blob_buffer, alloc, initial_size) {
   }
 
-  virtual void Write(uint8_t* vmisolate_buffer,
-                     intptr_t vmisolate_length,
-                     uint8_t* isolate_buffer,
-                     intptr_t isolate_length);
+  virtual void Write();
   virtual intptr_t text_size() { return InstructionsBlobSize(); }
   virtual intptr_t data_size() { return RodataBlobSize(); }
 

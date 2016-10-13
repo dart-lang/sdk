@@ -80,23 +80,16 @@ bool File::IsClosed() {
 }
 
 
-void* File::Map(MapType type, int64_t position, int64_t length) {
+void* File::MapExecutable(intptr_t* len) {
   ASSERT(handle_->fd() >= 0);
-  int prot = PROT_NONE;
-  switch (type) {
-    case kReadOnly:
-      prot = PROT_READ;
-      break;
-    case kReadExecute:
-      prot = PROT_READ | PROT_EXEC;
-      break;
-    default:
-      return NULL;
-  }
-  void* addr = mmap(NULL, length, prot, MAP_PRIVATE,
-                    handle_->fd(), position);
+  intptr_t length = Length();
+  void* addr = mmap(0, length,
+                    PROT_READ | PROT_EXEC, MAP_PRIVATE,
+                    handle_->fd(), 0);
   if (addr == MAP_FAILED) {
-    return NULL;
+    *len = -1;
+  } else {
+    *len = length;
   }
   return addr;
 }

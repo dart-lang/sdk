@@ -11,8 +11,7 @@
 namespace dart {
 namespace bin {
 
-const char* kPrecompiledVMIsolateSymbolName = "kVmIsolateSnapshot";
-const char* kPrecompiledIsolateSymbolName = "kIsolateSnapshot";
+const char* kPrecompiledLibraryName = "libprecompiled.dylib";
 const char* kPrecompiledInstructionsSymbolName = "kInstructionsSnapshot";
 const char* kPrecompiledDataSymbolName = "kDataSnapshot";
 
