@@ -25,6 +25,7 @@ packages_file_test: Skip # Uses Platform.executable
 
 [ ($runtime != vm && $runtime != dart_precompiled && $runtime != dart_app) && ($runtime != drt || $compiler != none)) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
+env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 package/package_isolate_test: Fail # Issue 12474

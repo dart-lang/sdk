@@ -276,32 +276,32 @@ static bool ProcessEnvironmentOption(const char* arg,
   ASSERT(arg != NULL);
   if (*arg == '\0') {
     // Ignore empty -D option.
-    Log::PrintErr("No arguments given to -D option\n");
+    Log::PrintErr("No arguments given to -D option, ignoring it\n");
     return true;
-  }
-  if (environment == NULL) {
-    environment = new HashMap(&HashMap::SameStringValue, 4);
   }
   // Split the name=value part of the -Dname=value argument.
   const char* equals_pos = strchr(arg, '=');
   if (equals_pos == NULL) {
     // No equal sign (name without value) currently not supported.
-    Log::PrintErr("No value given to -D option\n");
-    return false;
+    Log::PrintErr("No value given in -D%s option, ignoring it\n", arg);
+    return true;
   }
 
   char* name;
   char* value = NULL;
   int name_len = equals_pos - arg;
   if (name_len == 0) {
-    Log::PrintErr("No name given to -D option\n");
-    return false;
+    Log::PrintErr("No name given in -D%s option, ignoring it\n", arg);
+    return true;
   }
   // Split name=value into name and value.
   name = reinterpret_cast<char*>(malloc(name_len + 1));
   strncpy(name, arg, name_len);
   name[name_len] = '\0';
   value = strdup(equals_pos + 1);
+  if (environment == NULL) {
+    environment = new HashMap(&HashMap::SameStringValue, 4);
+  }
   HashMap::Entry* entry = environment->Lookup(
       GetHashmapKeyFromString(name), HashMap::StringHash(name), true);
   ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
