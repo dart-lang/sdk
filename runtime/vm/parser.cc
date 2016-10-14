@@ -2185,7 +2185,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     if (params->has_optional_positional_parameters) {
       ExpectToken(Token::kASSIGN);
     } else {
-      ExpectToken(Token::kCOLON);
+      ConsumeToken();
     }
     params->num_optional_parameters++;
     params->has_explicit_default_values = true;  // Also if explicitly NULL.

@@ -326,7 +326,6 @@ enum MessageKind {
   MULTI_INHERITANCE,
   NAMED_ARGUMENT_NOT_FOUND,
   NAMED_FUNCTION_EXPRESSION,
-  NAMED_PARAMETER_WITH_EQUALS,
   NATIVE_NOT_SUPPORTED,
   NO_BREAK_TARGET,
   NO_CATCH_NOR_FINALLY,
@@ -1369,19 +1368,6 @@ main() {
 main() {
   foo(a = 1) => print(a);
   foo(2);
-}"""
-          ]),
-
-      MessageKind.NAMED_PARAMETER_WITH_EQUALS: const MessageTemplate(
-          MessageKind.NAMED_PARAMETER_WITH_EQUALS,
-          "Named optional parameters can't use '=' to specify a default "
-          "value.",
-          howToFix: "Try replacing '=' with ':'.",
-          examples: const [
-            """
-main() {
-  foo({a = 1}) => print(a);
-  foo(a: 2);
 }"""
           ]),
 

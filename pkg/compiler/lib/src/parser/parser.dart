@@ -480,8 +480,6 @@ class Parser {
       if (type.isRequired) {
         listener.reportError(
             equal, MessageKind.REQUIRED_PARAMETER_WITH_DEFAULT);
-      } else if (type.isNamed && identical('=', value)) {
-        listener.reportError(equal, MessageKind.NAMED_PARAMETER_WITH_EQUALS);
       } else if (type.isPositional && identical(':', value)) {
         listener.reportError(
             equal, MessageKind.POSITIONAL_PARAMETER_WITH_EQUALS);

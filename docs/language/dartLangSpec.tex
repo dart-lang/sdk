@@ -741,13 +741,24 @@ Optional parameters may be specified and provided with default values.
 
 \begin{grammar}
 {\bf defaultFormalParameter:}
-      normalFormalParameter ('=' expression)?
+      normalFormalParameter (`=' expression)?
     .
 
-{\bf defaultNamedParameter:}
+{\bf defaultNamedParameter:}normalFormalParameter (`=' expression)?;
       normalFormalParameter ( `{\escapegrammar :}' expression)?
     .
 \end{grammar}
+
+A {\bf defaultNamedParameter} on the form:
+\begin{code}
+   normalFormalParameter : expression
+\end{code}
+is equivalent to one on the form:
+\begin{code}
+   normalFormalParameter = expression
+\end{code}
+The colon-syntax is included only for backwards compatibility.
+It is deprecated and will be removed in a later version of the language specification.
 
 \LMHash{}
 It is a compile-time error if the default value of an optional parameter is not a compile-time constant (\ref{constants}). If no default is explicitly specified for an optional parameter an implicit default of \NULL{} is provided.
@@ -3150,7 +3161,7 @@ Here, a naive definition of $flatten$ diverges; there is not even a fixed point.
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\}) => e$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\}) => e$
 is
 
 $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow T_0$, where $T_0$ is the static type of $e$.
@@ -3158,7 +3169,7 @@ $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ \ASYNC{}  $=> e$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\})$ \ASYNC{}  $=> e$
 
 is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow Future<flatten(T_0)>$, where $T_0$ is the static type of $e$.
 
@@ -3199,21 +3210,21 @@ is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarro
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\ASYNC{}$ $\{s\}$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\})$ $\ASYNC{}$ $\{s\}$
 
 is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Future{}$.
 
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\ASYNC*{}$ $\{s\}$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\})$ $\ASYNC*{}$ $\{s\}$
 
 is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Stream{}$.
 
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\SYNC*{}$ $\{s\}$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\})$ $\SYNC*{}$ $\{s\}$
 
 is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Iterable{}$.
 
@@ -3859,15 +3870,15 @@ If the method lookup succeeded, the body of $f$ is executed with respect to the 
 If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $v_o$ with respect to $L$.
 If $v_o$ is an instance of \code{Type} but $o$ is not a constant type literal, then if $g$ is a getter that forwards to a static getter, getter lookup fails.
 If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $o.m$. Then the value of $i$ is the result of invoking
-the static method \code{Function.apply()} with arguments $v.g, [o_1, \ldots , o_n], \{x_{n+1}: o_{n+1}, \ldots , x_{n+k}: o_{n+k}\}$.
+the static method \code{Function.apply()} with arguments $v.g, [o_1, \ldots , o_n], \{\#x_{n+1}: o_{n+1}, \ldots , \#x_{n+k}: o_{n+k}\}$.
 
 \LMHash{}
-If  getter lookup has also failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
+If getter lookup has also failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
 \begin{itemize}
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to the symbol \code{m}.
-\item \code{im.positionalArguments} evaluates to an immutable list with the same values as  \code{[$o_1, \ldots, o_n$]}.
-\item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$x_{n+1}: o_{n+1}, \ldots, x_{n+k} : o_{n+k}$\}}.
+\item \code{im.positionalArguments} evaluates to an immutable list with the same values as \code{[$o_1, \ldots, o_n$]}.
+\item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$\#x_{n+1}: o_{n+1}, \ldots, \#x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
 
 \LMHash{}
@@ -3960,7 +3971,7 @@ If the method lookup succeeded, the body of $f$ is executed with respect to the 
 
 \LMHash{}
 If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $S_{dynamic}$ with respect to $L$. If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $\SUPER{}.m$. Then the value of $i$ is the result of invoking
-the static method \code{Function.apply()} with arguments $v_g, [o_1, \ldots , o_n], \{x_{n+1}: o_{n+1}, \ldots , x_{n+k}: o_{n+k}\}$.
+the static method \code{Function.apply()} with arguments $v_g, [o_1, \ldots , o_n], \{x_{n+1} = o_{n+1}, \ldots , x_{n+k} = o_{n+k}\}$.
 
 \LMHash{}
 If  getter lookup has also failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
@@ -3968,7 +3979,7 @@ If  getter lookup has also failed, then a new instance $im$  of the predefined c
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to the symbol \code{m}.
 \item \code{im.positionalArguments} evaluates to an immutable list with the same  values as  \code{[$o_1, \ldots, o_n$]}.
-\item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$x_{n+1}: o_{n+1}, \ldots, x_{n+k} : o_{n+k}$\}}.
+\item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$\#x_{n+1}: o_{n+1}, \ldots, \#x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
 Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked on \THIS{} with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
 \begin{itemize}
@@ -4273,7 +4284,7 @@ The {\em closurization of method $f$ on object $o$} is defined to be equivalent 
 \item $(a, b) \{\RETURN{}$ $u[a] = b;$\} if $f$ is named $[]=$.
 \item
 \begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
   \RETURN{} $ u.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
 \}
 \end{dartCode}
@@ -4323,7 +4334,7 @@ The {\em closurization of constructor $f$ of type $T$} is defined to be equivale
 \begin{itemize}
 \item
 \begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
   \RETURN{} \NEW{} $T.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
 \}
 \end{dartCode}
@@ -4354,7 +4365,7 @@ The {\em closurization of anonymous constructor $f$ of type $T$} is defined to b
 \begin{itemize}
 \item
 \begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
   \RETURN{} \NEW{} $T(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
 \}
 \end{dartCode}
@@ -4388,7 +4399,7 @@ The {\em closurization of method $f$ with respect to superclass $S$} is defined 
 \item $(a, b) \{\RETURN{}$ $\SUPER[a] = b;$\} if $f$ is named $[]=$.
 \item
 \begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
   \RETURN{} \SUPER$.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
 \}
 \end{dartCode}

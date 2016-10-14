@@ -2770,14 +2770,6 @@ void main() {
     listener.assertErrorsWithCodes([ParserErrorCode.WITH_WITHOUT_EXTENDS]);
   }
 
-  void test_wrongSeparatorForNamedParameter() {
-    createParser('(a, {b = 0})');
-    FormalParameterList list = parser.parseFormalParameterList();
-    expectNotNullIfNoErrors(list);
-    listener.assertErrorsWithCodes(
-        [ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER]);
-  }
-
   void test_wrongSeparatorForPositionalParameter() {
     createParser('(a, [b : 0])');
     FormalParameterList list = parser.parseFormalParameterList();

@@ -18,6 +18,8 @@ LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
 
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
 
+Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Fail # co19 issue 80
+
 [ $system == linux ]
 LibTest/collection/ListBase/ListBase_class_A01_t01: Fail # co19 issue 72
 LibTest/collection/ListBase/ListBase_class_A01_t02: Fail # co19 issue 72
