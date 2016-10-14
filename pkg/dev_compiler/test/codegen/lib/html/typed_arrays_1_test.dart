@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library TypedArrays1Test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 import 'dart:typed_data';
 
-main() {
-  useHtmlIndividualConfiguration();
+import 'package:expect/minitest.dart';
 
-  var isnumList = predicate((x) => x is List<num>, 'is a List<num>');
-  var isStringList = predicate((x) => x is List<String>, 'is a List<String>');
+main() {
+  var isList = predicate((x) => x is List, 'is a List');
+  var isNumList = predicate((x) => x is List<num>, 'is a List<num>');
+  var isNotStringList =
+      predicate((x) => x is! List<String>, 'is not a List<String>');
   var expectation = Platform.supportsTypedData ? returnsNormally : throws;
 
   group('supported', () {
@@ -63,8 +62,8 @@ main() {
         expect(() {
           var a = new Float32List(10);
           expect(a, isList);
-          expect(a, isnumList);
-          expect(a, isNot(isStringList));
+          expect(a, isNumList);
+          expect(a, isNotStringList);
         }, expectation);
       });
     }

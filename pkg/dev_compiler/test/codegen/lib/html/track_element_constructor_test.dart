@@ -11,19 +11,18 @@
 
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:expect/minitest.dart';
 
 void main() {
-  useHtmlConfiguration();
   test('', () {
     if (!TrackElement.supported) return;
     document.body.append(new TrackElement()..defaultValue = true);
-    if (!document.query('track').defaultValue) {
+    var trackElement = document.query('track') as TrackElement;
+    if (!trackElement.defaultValue) {
       throw 'Expected default value to be true';
     }
-    document.query('track').defaultValue = false;
-    if (document.query('track').defaultValue) {
+    trackElement.defaultValue = false;
+    if (trackElement.defaultValue) {
       throw 'Expected default value to be false';
     }
   });

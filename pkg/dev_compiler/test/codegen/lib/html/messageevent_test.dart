@@ -1,11 +1,8 @@
-library SerializedScriptValueTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   test('new MessageEvent', () {
       final event = new MessageEvent('type', cancelable: true, data: 'data',
           origin: 'origin', lastEventId: 'lastEventId');

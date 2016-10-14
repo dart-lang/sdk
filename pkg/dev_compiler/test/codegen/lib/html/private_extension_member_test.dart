@@ -13,6 +13,6 @@ main() {
   //
   // The createFragment() method sets `_innerHtml` on the element, so we use it
   // as a test case.
-  Expect.equals("[object DocumentFragment]",
+  Expect.equals("Instance of 'DocumentFragment'",
       new BRElement().createFragment("Hi").toString());
 }

@@ -1,11 +1,8 @@
-library LocationTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   var isLocation = predicate((x) => x is Location, 'is a Location');
 
   test('location hash', () {

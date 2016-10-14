@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library register_element_proxy_test;
-
 import 'dart:async';
 import 'dart:html';
 import 'dart:js' as js;
-import 'package:unittest/html_config.dart';
-import 'package:unittest/unittest.dart';
+
+import 'package:expect/minitest.dart';
+
 import '../utils.dart';
 
 class FooElement extends HtmlElement {
@@ -28,8 +27,6 @@ class FooElement extends HtmlElement {
 }
 
 main() {
-  useHtmlConfiguration();
-
   var registered = false;
   var upgrader;
   setUp(() => customElementsReady.then((_) {

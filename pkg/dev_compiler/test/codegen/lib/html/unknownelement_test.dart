@@ -2,22 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-library UnknownElementTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   var isUnknownElement =
       predicate((x) => x is UnknownElement, 'is an UnknownELement');
 
-  var foo = new Element.tag('foo');
+  dynamic foo = new Element.tag('foo');
   foo.id = 'foo';
   var bar = new Element.tag('bar');
   bar.id = 'bar';
-  document.body.nodes.addAll([foo, bar]);
+  document.body.nodes.addAll(<Node>[foo, bar]);
 
   test('type-check', () {
       expect(foo, isUnknownElement);

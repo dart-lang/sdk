@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library document_register_type_extensions_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
+
 import '../utils.dart';
 
 class Foo extends HtmlElement {

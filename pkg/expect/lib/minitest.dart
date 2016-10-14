@@ -161,6 +161,20 @@ Object same(Object value) => new _Expectation((actual) {
       Expect.identical(value, actual);
     });
 
+Object closeTo(num value, num tolerance) => new _Expectation((actual) {
+      Expect.approxEquals(value, actual, tolerance);
+    });
+
+/// Succeeds if the actual value is any of the given strings. Unlike matcher's
+/// [anyOf], this only works with strings and requires an explicit list.
+Object anyOf(List<String> expected) => new _Expectation((actual) {
+      for (var string in expected) {
+        if (actual == string) return;
+      }
+
+      fail("Expected $actual to be one of $expected.");
+    });
+
 /// One level of group() nesting to track an optional [setUp()] and [tearDown()]
 /// function for the group.
 ///

@@ -1,12 +1,8 @@
-library range_test;
-
 import 'dart:html';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+
+import 'package:expect/minitest.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('supported', () {
     test('supports_createContextualFragment', () {
       expect(Range.supportsCreateContextualFragment, isTrue);
