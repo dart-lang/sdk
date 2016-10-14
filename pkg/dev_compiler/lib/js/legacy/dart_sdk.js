@@ -145,6 +145,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let ListOfClassMirror = () => (ListOfClassMirror = dart.constFn(core.List$(mirrors.ClassMirror)))();
   let ListOfTypeVariableMirror = () => (ListOfTypeVariableMirror = dart.constFn(core.List$(mirrors.TypeVariableMirror)))();
   let MapOfSymbol$MethodMirror = () => (MapOfSymbol$MethodMirror = dart.constFn(core.Map$(core.Symbol, mirrors.MethodMirror)))();
+  let JSArrayOfType = () => (JSArrayOfType = dart.constFn(_interceptors.JSArray$(core.Type)))();
   let ListOfParameterMirror = () => (ListOfParameterMirror = dart.constFn(core.List$(mirrors.ParameterMirror)))();
   let ListOfFloat32x4 = () => (ListOfFloat32x4 = dart.constFn(core.List$(typed_data.Float32x4)))();
   let ListOfInt32x4 = () => (ListOfInt32x4 = dart.constFn(core.List$(typed_data.Int32x4)))();
@@ -13377,7 +13378,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
   _js_mirrors.JsClassMirror = class JsClassMirror extends _js_mirrors.JsMirror {
     get metadata() {
       if (this[_metadata$] == null) {
-        let fn = _js_mirrors._unwrap(this[_cls])[dart.metadata];
+        let unwrapped = _js_mirrors._unwrap(this[_cls]);
+        let fn = Object.hasOwnProperty.call(unwrapped, dart.metadata) ? unwrapped[dart.metadata] : null;
         this[_metadata$] = fn == null ? const$0 || (const$0 = dart.constList([], mirrors.InstanceMirror)) : ListOfInstanceMirror().unmodifiable(core.Iterable._check(dart.dsend(dart.dcall(fn), 'map', dart.fn(i => _js_mirrors.reflect(i), dynamicToInstanceMirror()))));
       }
       return this[_metadata$];
@@ -13745,11 +13747,14 @@ dart_library.library('dart_sdk', null, /* Imports */[
         this[_metadata$] = const$3 || (const$3 = dart.constList([], mirrors.InstanceMirror));
         return;
       }
-      if (core.List.is(ftype)) {
+      if (!core.Function.is(ftype) && core.List.is(ftype)) {
         this[_metadata$] = ListOfInstanceMirror().unmodifiable(core.Iterable._check(dart.dsend(dart.dsend(ftype, 'skip', 1), 'map', dart.fn(a => _js_mirrors.reflect(a), dynamicToInstanceMirror()))));
         ftype = dart.dindex(ftype, 0);
       } else {
         this[_metadata$] = const$4 || (const$4 = dart.constList([], mirrors.InstanceMirror));
+      }
+      if (typeof ftype == "function") {
+        ftype = ftype.apply(null, JSArrayOfType().of([dart.dynamic, dart.dynamic, dart.dynamic]));
       }
       let args = core.List._check(dart.dload(ftype, 'args'));
       let opts = core.List._check(dart.dload(ftype, 'optionals'));

@@ -281,7 +281,12 @@ class JsClassMirror extends JsMirror implements ClassMirror {
   List<InstanceMirror> get metadata {
     if (_metadata == null) {
       // Load metadata.
-      var fn = JS('Function', '#[dart.metadata]', _unwrap(_cls));
+      var unwrapped = _unwrap(_cls);
+      // Only get metadata directly embedded on this class, not its
+      // superclasses.
+      var fn = JS('Function',
+        'Object.hasOwnProperty.call(#, dart.metadata) ? #[dart.metadata] : null',
+        unwrapped, unwrapped);
       _metadata = (fn == null)
           ? const <InstanceMirror>[]
           : new List<InstanceMirror>.unmodifiable(
@@ -520,13 +525,23 @@ class JsMethodMirror extends JsMirror implements MethodMirror {
       _metadata = const [];
       return;
     }
-    if (ftype is List) {
+
+    // TODO(vsm): Why does generic function type trigger true for List?
+    if (ftype is! Function && ftype is List) {
       // Record metadata
       _metadata = new List<InstanceMirror>.unmodifiable(
           ftype.skip(1).map((a) => reflect(a)));
       ftype = ftype[0];
     } else {
       _metadata = const [];
+    }
+
+    // TODO(vsm): Handle generic function types properly.  Or deprecate mirrors
+    // before we need to!
+    if (JS('bool', 'typeof(#) == "function"', ftype)) {
+      // Instantiate the generic version.
+      // TODO(vsm): Can't use arguments.length on arrow function.
+      ftype = JS('', '#.apply(null, #)', ftype, [dynamic, dynamic, dynamic]);
     }
 
     // TODO(vsm): Add named args.
