@@ -22,8 +22,7 @@ main() {
 @reflectiveTest
 class DartSdkManagerTest extends EngineTestCase {
   void test_anySdk() {
-    DartSdkManager manager =
-        new DartSdkManager('/a/b/c', false, _failIfCreated);
+    DartSdkManager manager = new DartSdkManager('/a/b/c', false);
     expect(manager.anySdk, isNull);
 
     AnalysisOptions options = new AnalysisOptionsImpl();
@@ -34,8 +33,7 @@ class DartSdkManagerTest extends EngineTestCase {
   }
 
   void test_getSdk_differentDescriptors() {
-    DartSdkManager manager =
-        new DartSdkManager('/a/b/c', false, _failIfCreated);
+    DartSdkManager manager = new DartSdkManager('/a/b/c', false);
     AnalysisOptions options = new AnalysisOptionsImpl();
     SdkDescription description1 = new SdkDescription(<String>['/c/d'], options);
     DartSdk sdk1 = new MockSdk();
@@ -51,8 +49,7 @@ class DartSdkManagerTest extends EngineTestCase {
   }
 
   void test_getSdk_sameDescriptor() {
-    DartSdkManager manager =
-        new DartSdkManager('/a/b/c', false, _failIfCreated);
+    DartSdkManager manager = new DartSdkManager('/a/b/c', false);
     AnalysisOptions options = new AnalysisOptionsImpl();
     SdkDescription description = new SdkDescription(<String>['/c/d'], options);
     DartSdk sdk = new MockSdk();
@@ -63,11 +60,6 @@ class DartSdkManagerTest extends EngineTestCase {
 
   DartSdk _failIfAbsent() {
     fail('Use of ifAbsent function');
-    return null;
-  }
-
-  DartSdk _failIfCreated(AnalysisOptions _) {
-    fail('Use of sdkCreator');
     return null;
   }
 }

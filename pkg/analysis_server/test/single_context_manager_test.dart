@@ -21,7 +21,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_manager_test.dart' show TestContextManagerCallbacks;
-import 'mock_sdk.dart';
 import 'mocks.dart';
 
 main() {
@@ -64,8 +63,7 @@ class SingleContextManagerTest {
     packageResolver = new TestUriResolver();
 
     _processRequiredPlugins();
-    DartSdkManager sdkManager =
-        new DartSdkManager('', false, (_) => new MockSdk());
+    DartSdkManager sdkManager = new DartSdkManager('', false);
     manager = new SingleContextManager(resourceProvider, sdkManager,
         (_) => packageResolver, analysisFilesGlobs, new AnalysisOptionsImpl());
     callbacks = new TestContextManagerCallbacks(resourceProvider);

@@ -124,9 +124,12 @@ class AbstractAnalysisTest {
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
     //
+    // Create an SDK in the mock file system.
+    //
+    new MockSdk(resourceProvider: resourceProvider);
+    //
     // Create server
     //
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -134,8 +137,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager(
-            resourceProvider.convertPath('/'), false, (_) => sdk),
+        new DartSdkManager(resourceProvider.convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
   }
 

@@ -15,13 +15,11 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/manager.dart';
 import 'package:test/test.dart';
 
-import 'mock_sdk.dart';
 import 'mocks.dart';
 
 main() {
   AnalysisServer server;
   ServerDomainHandler handler;
-
 
   setUp(() {
     var serverChannel = new MockServerChannel();
@@ -36,7 +34,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('', false, (_) => new MockSdk()),
+        new DartSdkManager('', false),
         InstrumentationService.NULL_SERVICE);
     handler = new ServerDomainHandler(server);
   });

@@ -25,7 +25,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 
 import 'analysis_abstract.dart';
-import 'mock_sdk.dart';
 import 'mocks.dart';
 import 'operation/operation_queue_test.dart';
 
@@ -49,7 +48,7 @@ main() {
           null,
           serverPlugin,
           new AnalysisServerOptions(),
-          new DartSdkManager('', false, (_) => new MockSdk()),
+          new DartSdkManager('', false),
           InstrumentationService.NULL_SERVICE);
       handler = new ExecutionDomainHandler(server);
     });

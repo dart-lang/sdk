@@ -16,12 +16,6 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/summary/idl.dart' show PackageBundle;
 
 /**
- * A function used to create a new DartSdk with the given [options]. If the
- * passed [options] are `null`, then default options are used.
- */
-typedef DartSdk SdkCreator(AnalysisOptions options);
-
-/**
  * A Dart SDK installed in a specified location.
  */
 abstract class DartSdk {
@@ -118,11 +112,6 @@ class DartSdkManager {
   final bool canUseSummaries;
 
   /**
-   * The function used to create new SDK's.
-   */
-  final SdkCreator sdkCreator;
-
-  /**
    * A table mapping (an encoding of) analysis options and SDK locations to the
    * DartSdk from that location that has been configured with those options.
    */
@@ -131,8 +120,7 @@ class DartSdkManager {
   /**
    * Initialize a newly created manager.
    */
-  DartSdkManager(
-      this.defaultSdkDirectory, this.canUseSummaries, this.sdkCreator);
+  DartSdkManager(this.defaultSdkDirectory, this.canUseSummaries);
 
   /**
    * Return any SDK that has been created, or `null` if no SDKs have been
@@ -152,24 +140,12 @@ class DartSdkManager {
   List<SdkDescription> get sdkDescriptors => sdkMap.keys.toList();
 
   /**
-   * Return the Dart SDK that is appropriate for the given analysis [options].
-   * If such an SDK has not yet been created, then the [sdkCreator] will be
-   * invoked to create it.
+   * Return the Dart SDK that is appropriate for the given SDK [description].
+   * If such an SDK has not yet been created, then the [ifAbsent] function will
+   * be invoked to create it.
    */
   DartSdk getSdk(SdkDescription description, DartSdk ifAbsent()) {
     return sdkMap.putIfAbsent(description, ifAbsent);
-  }
-
-  /**
-   * Return the Dart SDK that is appropriate for the given analysis [options].
-   * If such an SDK has not yet been created, then the [sdkCreator] will be
-   * invoked to create it.
-   */
-  DartSdk getSdkForOptions(AnalysisOptions options) {
-    // TODO(brianwilkerson) Remove this method and the field sdkCreator.
-    SdkDescription description =
-        new SdkDescription(<String>[defaultSdkDirectory], options);
-    return getSdk(description, () => sdkCreator(options));
   }
 }
 

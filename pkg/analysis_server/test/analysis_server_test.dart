@@ -137,7 +137,8 @@ import "../foo/foo.dart";
     manager.processPlugins([plugin]);
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
     packageMapProvider = new MockPackageMapProvider();
     server = new AnalysisServer(
         channel,
@@ -146,7 +147,7 @@ import "../foo/foo.dart";
         null,
         plugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('/', false, (_) => sdk),
+        new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE,
         rethrowExceptions: true);
     processRequiredPlugins();

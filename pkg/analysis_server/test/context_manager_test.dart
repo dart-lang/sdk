@@ -1791,8 +1791,9 @@ abstract class ContextManagerTest {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
-    DartSdkManager sdkManager = new DartSdkManager('/', false, (_) => sdk);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
+    DartSdkManager sdkManager = new DartSdkManager('/', false);
     manager = new ContextManagerImpl(
         resourceProvider,
         sdkManager,
@@ -2705,7 +2706,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    DartSdkManager sdkManager = new DartSdkManager('/', false, null);
+    DartSdkManager sdkManager = new DartSdkManager('/', false);
     ContextBuilder builder =
         new ContextBuilder(resourceProvider, sdkManager, new ContentCache());
     builder.defaultOptions = options;

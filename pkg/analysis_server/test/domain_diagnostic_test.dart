@@ -24,7 +24,6 @@ main() {
   DiagnosticDomainHandler handler;
   MemoryResourceProvider resourceProvider;
 
-
   setUp(() {
     //
     // Collect plugins
@@ -45,7 +44,8 @@ main() {
     //
     var serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -53,7 +53,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('/', false, (_) => sdk),
+        new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
     handler = new DiagnosticDomainHandler(server);
   });

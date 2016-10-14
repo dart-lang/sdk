@@ -422,19 +422,10 @@ class Driver implements ServerStarter {
           .path;
     }
     bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
-    SdkCreator defaultSdkCreator = (AnalysisOptions options) {
-      PhysicalResourceProvider resourceProvider =
-          PhysicalResourceProvider.INSTANCE;
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
-          resourceProvider, resourceProvider.getFolder(defaultSdkPath));
-      sdk.analysisOptions = options;
-      sdk.useSummary = useSummaries;
-      return sdk;
-    };
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DartSdk defaultSdk = defaultSdkCreator(null);
+    DartSdk defaultSdk = _createDefaultSdk(defaultSdkPath, useSummaries);
     //
     // Initialize the instrumentation service.
     //
@@ -458,7 +449,7 @@ class Driver implements ServerStarter {
     //
     socketServer = new SocketServer(
         analysisServerOptions,
-        new DartSdkManager(defaultSdkPath, useSummaries, defaultSdkCreator),
+        new DartSdkManager(defaultSdkPath, useSummaries),
         defaultSdk,
         service,
         serverPlugin,
@@ -584,6 +575,15 @@ class Driver implements ServerStarter {
         defaultsTo: "as-is");
 
     return parser;
+  }
+
+  DartSdk _createDefaultSdk(String defaultSdkPath, bool useSummaries) {
+    PhysicalResourceProvider resourceProvider =
+        PhysicalResourceProvider.INSTANCE;
+    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+        resourceProvider, resourceProvider.getFolder(defaultSdkPath));
+    sdk.useSummary = useSummaries;
+    return sdk;
   }
 
   /**

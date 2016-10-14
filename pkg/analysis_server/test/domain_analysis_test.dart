@@ -23,7 +23,6 @@ import 'mock_sdk.dart';
 import 'mocks.dart';
 
 main() {
-
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainTest);
     defineReflectiveTests(SetSubscriptionsTest);
@@ -40,7 +39,8 @@ main() {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -48,7 +48,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('/', false, (_) => sdk),
+        new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
   });
@@ -435,7 +435,8 @@ class AnalysisTestHelper {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -443,7 +444,7 @@ class AnalysisTestHelper {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('/', false, (_) => sdk),
+        new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications
