@@ -1036,16 +1036,6 @@ static void CreateAndWritePrecompiledSnapshot(
     Dart_QualifiedFunctionName* standalone_entry_points) {
   ASSERT(IsSnapshottingForPrecompilation());
   Dart_Handle result;
-  uint8_t* vm_isolate_buffer = NULL;
-  intptr_t vm_isolate_size = 0;
-  uint8_t* isolate_buffer = NULL;
-  intptr_t isolate_size = 0;
-  uint8_t* assembly_buffer = NULL;
-  intptr_t assembly_size = 0;
-  uint8_t* instructions_blob_buffer = NULL;
-  intptr_t instructions_blob_size = 0;
-  uint8_t* rodata_blob_buffer = NULL;
-  intptr_t rodata_blob_size = 0;
 
   // Precompile with specified embedder entry points
   result = Dart_Precompile(standalone_entry_points, true);
@@ -1054,14 +1044,23 @@ static void CreateAndWritePrecompiledSnapshot(
   // Create a precompiled snapshot.
   bool as_assembly = assembly_filename != NULL;
   if (as_assembly) {
-    result = Dart_CreatePrecompiledSnapshotAssembly(&vm_isolate_buffer,
-                                                    &vm_isolate_size,
-                                                    &isolate_buffer,
-                                                    &isolate_size,
-                                                    &assembly_buffer,
+    uint8_t* assembly_buffer = NULL;
+    intptr_t assembly_size = 0;
+    result = Dart_CreatePrecompiledSnapshotAssembly(&assembly_buffer,
                                                     &assembly_size);
     CHECK_RESULT(result);
+    WriteSnapshotFile(assembly_filename,
+                      assembly_buffer,
+                      assembly_size);
   } else {
+    uint8_t* vm_isolate_buffer = NULL;
+    intptr_t vm_isolate_size = 0;
+    uint8_t* isolate_buffer = NULL;
+    intptr_t isolate_size = 0;
+    uint8_t* instructions_blob_buffer = NULL;
+    intptr_t instructions_blob_size = 0;
+    uint8_t* rodata_blob_buffer = NULL;
+    intptr_t rodata_blob_size = 0;
     result = Dart_CreatePrecompiledSnapshotBlob(&vm_isolate_buffer,
                                                 &vm_isolate_size,
                                                 &isolate_buffer,
@@ -1071,20 +1070,12 @@ static void CreateAndWritePrecompiledSnapshot(
                                                 &rodata_blob_buffer,
                                                 &rodata_blob_size);
     CHECK_RESULT(result);
-  }
-
-  // Now write the snapshot pieces out to the specified files and exit.
-  WriteSnapshotFile(vm_isolate_snapshot_filename,
-                    vm_isolate_buffer,
-                    vm_isolate_size);
-  WriteSnapshotFile(isolate_snapshot_filename,
-                    isolate_buffer,
-                    isolate_size);
-  if (as_assembly) {
-    WriteSnapshotFile(assembly_filename,
-                      assembly_buffer,
-                      assembly_size);
-  } else {
+    WriteSnapshotFile(vm_isolate_snapshot_filename,
+                      vm_isolate_buffer,
+                      vm_isolate_size);
+    WriteSnapshotFile(isolate_snapshot_filename,
+                      isolate_buffer,
+                      isolate_size);
     WriteSnapshotFile(instructions_blob_filename,
                       instructions_blob_buffer,
                       instructions_blob_size);
@@ -1092,6 +1083,7 @@ static void CreateAndWritePrecompiledSnapshot(
                       rodata_blob_buffer,
                       rodata_blob_size);
   }
+
   Dart_ExitScope();
 
   // Shutdown the isolate.
