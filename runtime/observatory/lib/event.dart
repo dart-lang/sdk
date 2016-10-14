@@ -139,7 +139,7 @@ class PauseInterruptedEvent implements M.PauseInterruptedEvent {
 }
 
 
-class PausePostRequestEvent implements M.PauseInterruptedEvent {
+class PausePostRequestEvent implements M.PausePostRequestEvent {
   final DateTime timestamp;
   final M.IsolateRef isolate;
   final M.Frame topFrame;
