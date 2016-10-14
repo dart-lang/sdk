@@ -3380,7 +3380,10 @@ class TypeParameterType extends DartType {
 class TypeParameter extends TreeNode {
   String name; // Cosmetic name.
 
-  /// The bound on the type variable, or [DynamicType] if none was given.
+  /// The bound on the type variable.
+  ///
+  /// Should not be null except temporarily during IR construction.  Should
+  /// be set to the root class for type parameters without an explicit bound.
   DartType bound;
 
   TypeParameter([this.name, this.bound]);
