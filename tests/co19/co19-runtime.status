@@ -59,10 +59,6 @@ Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Issue 27201
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == windows ]
 Language/Expressions/Function_Invocation/async_invokation_t04: Pass, RuntimeError # co19 issue 54
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $checked == false ]
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError # Issue 27185
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError, Crash # Issue 27185
-
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 

@@ -676,8 +676,6 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t0
 [ $compiler == dart2js && $checked != true ]
 Language/Expressions/Property_Extraction/General_Super_Property_Extraction/getter_lookup_t02: Timeout, Skip # Please triage this failure
 Language/Expressions/Property_Extraction/Super_Closurization/setter_closurization_t09: CompileTimeError # Please triage this failure
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError # Issue 27185
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError # Issue 27185
 
 [ $compiler == dart2js && $minified ]
 LibTest/typed_data/Float32List/runtimeType_A01_t01: fail # co19-roll r559: Please triage this failure
