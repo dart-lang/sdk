@@ -1852,6 +1852,7 @@ class StandardTestSuite extends TestSuite {
       "hasRuntimeError": hasRuntimeError,
       "hasStaticWarning": hasStaticWarning,
       "otherScripts": <String>[],
+      "otherResources": <String>[],
       "isMultitest": isMultitest,
       "isMultiHtmlTest": false,
       "subtestNames": <String>[],
