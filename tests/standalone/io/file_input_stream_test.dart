@@ -2,6 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Testing file input stream, VM-only, standalone test.
+//
+// OtherResources=readuntil_test.dat
+// OtherResources=readline_test1.dat
+// OtherResources=readline_test2.dat
 
 import "dart:convert";
 import "dart:io";
@@ -9,17 +13,12 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-// Helper method to be able to run the test from the runtime
-// directory, or the top directory.
 String getFilename(String path) {
-  var testPath = Platform.script.resolve('../../../$path');
-  return new File.fromUri(testPath).existsSync()
-      ? testPath.toFilePath()
-      : Platform.script.resolve('../../../runtime/$path').toFilePath();
+  return Platform.script.resolve(path).toFilePath();
 }
 
 void testStringLineSplitter() {
-  String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
+  String fileName = getFilename("readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   File file = new File(fileName);
   int linesRead = 0;
@@ -41,7 +40,7 @@ void testStringLineSplitter() {
 
 void testOpenStreamAsync() {
   asyncStart();
-  String fileName = getFilename("tests/standalone/io/readuntil_test.dat");
+  String fileName = getFilename("readuntil_test.dat");
   // File contains "Hello Dart\nwassup!\n"
   var expected = "Hello Dart\nwassup!\n".codeUnits;
   var byteCount = 0;
@@ -234,7 +233,7 @@ void testInputStreamBadOffset() {
 
 
 void testStringLineSplitterEnding(String name, int length) {
-  String fileName = getFilename("tests/standalone/io/$name");
+  String fileName = getFilename(name);
   // File contains 10 lines.
   File file = new File(fileName);
   Expect.equals(length, file.lengthSync());
