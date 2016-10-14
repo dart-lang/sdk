@@ -50,8 +50,8 @@ abstract class Accessor {
   Expression buildPostfixIncrement(Name binaryOperator,
       {bool voidContext: false, Procedure interfaceTarget}) {
     if (voidContext) {
-      return buildPrefixIncrement(binaryOperator, voidContext: true,
-          interfaceTarget: interfaceTarget);
+      return buildPrefixIncrement(binaryOperator,
+          voidContext: true, interfaceTarget: interfaceTarget);
     }
     var value = new VariableDeclaration.forValue(_makeRead());
     valueAccess() => new VariableGet(value);
@@ -319,6 +319,7 @@ class SuperIndexAccessor extends Accessor {
       _indexGet, new Arguments(<Expression>[index]), getter);
 
   _makeSimpleWrite(Expression value, bool voidContext) {
+    if (!voidContext) return _makeWriteAndReturn(value);
     return new SuperMethodInvocation(
         _indexSet, new Arguments(<Expression>[index, value]), setter);
   }
@@ -329,8 +330,20 @@ class SuperIndexAccessor extends Accessor {
   }
 
   _makeWrite(Expression value, bool voidContext) {
+    if (!voidContext) return _makeWriteAndReturn(value);
     return new SuperMethodInvocation(
         _indexSet, new Arguments(<Expression>[indexAccess(), value]), setter);
+  }
+
+  _makeWriteAndReturn(Expression value) {
+    var valueVariable = new VariableDeclaration.forValue(value);
+    var dummy = new VariableDeclaration.forValue(new SuperMethodInvocation(
+        _indexSet,
+        new Arguments(
+            <Expression>[indexAccess(), new VariableGet(valueVariable)]),
+        setter));
+    return makeLet(
+        valueVariable, makeLet(dummy, new VariableGet(valueVariable)));
   }
 
   Expression _finish(Expression body) {
