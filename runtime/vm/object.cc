@@ -14293,8 +14293,8 @@ RawCode* Code::FinalizeCode(const char* name,
     }
 
     // Hook up Code and Instructions objects.
-    code.SetActiveInstructions(instrs.raw());
-    code.set_instructions(instrs.raw());
+    code.SetActiveInstructions(instrs);
+    code.set_instructions(instrs);
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
@@ -14506,7 +14506,7 @@ void Code::DisableDartCode() const {
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
-  SetActiveInstructions(new_code.instructions());
+  SetActiveInstructions(Instructions::Handle(new_code.instructions()));
 }
 
 
@@ -14517,7 +14517,7 @@ void Code::DisableStubCode() const {
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
-  SetActiveInstructions(new_code.instructions());
+  SetActiveInstructions(Instructions::Handle(new_code.instructions()));
 #else
   // DBC does not use allocation stubs.
   UNIMPLEMENTED();
@@ -14525,18 +14525,18 @@ void Code::DisableStubCode() const {
 }
 
 
-void Code::SetActiveInstructions(RawInstructions* instructions) const {
+void Code::SetActiveInstructions(const Instructions& instructions) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
-  StorePointer(&raw_ptr()->active_instructions_, instructions);
+  StorePointer(&raw_ptr()->active_instructions_, instructions.raw());
   StoreNonPointer(&raw_ptr()->entry_point_,
-                  Instructions::UncheckedEntryPoint(instructions));
+                  Instructions::UncheckedEntryPoint(instructions.raw()));
   StoreNonPointer(&raw_ptr()->checked_entry_point_,
-                  Instructions::CheckedEntryPoint(instructions));
+                  Instructions::CheckedEntryPoint(instructions.raw()));
 #endif
 }
 

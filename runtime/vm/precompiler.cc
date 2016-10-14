@@ -2342,8 +2342,8 @@ void Precompiler::DedupInstructions() {
       code_ = function.CurrentCode();
       instructions_ = code_.instructions();
       instructions_ = DedupOneInstructions(instructions_);
-      code_.SetActiveInstructions(instructions_.raw());
-      code_.set_instructions(instructions_.raw());
+      code_.SetActiveInstructions(instructions_);
+      code_.set_instructions(instructions_);
       function.SetInstructions(code_);  // Update cached entry point.
     }
 

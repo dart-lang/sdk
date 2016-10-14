@@ -4945,7 +4945,7 @@ class Code : public Object {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(instructions() != active_instructions());
-    SetActiveInstructions(instructions());
+    SetActiveInstructions(Instructions::Handle(instructions()));
   }
 
   bool IsDisabled() const {
@@ -5001,11 +5001,11 @@ class Code : public Object {
 #endif
   }
 
-  void SetActiveInstructions(RawInstructions* instructions) const;
+  void SetActiveInstructions(const Instructions& instructions) const;
 
-  void set_instructions(RawInstructions* instructions) const {
+  void set_instructions(const Instructions& instructions) const {
     ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
-    StorePointer(&raw_ptr()->instructions_, instructions);
+    StorePointer(&raw_ptr()->instructions_, instructions.raw());
   }
 
   void set_pointer_offsets_length(intptr_t value) {
