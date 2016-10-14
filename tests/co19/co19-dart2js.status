@@ -548,16 +548,6 @@ LibTest/isolate/Isolate/spawn_A04_t04: Fail # Issue 27558
 LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Fail # please triage
 
 [ $compiler == dart2js && $fast_startup && $browser ]
-LayoutTests/fast/dom/custom/document-register-on-create-callback_t01: Fail # please triage
-LayoutTests/fast/dom/custom/unresolved-pseudoclass_t01: Fail # please triage
-WebPlatformTest/custom-elements/concepts/type_A01_t01: Fail # custom elements not supported
-LayoutTests/fast/dom/custom/attribute-changed-callback_t01: Fail # custom elements not supported
-LayoutTests/fast/dom/custom/created-callback_t01: Fail # please triage
-LayoutTests/fast/dom/custom/document-register-namespace_t01: Fail # please triage
-LayoutTests/fast/dom/custom/document-register-type-extensions_t01: Fail # please triage
-LayoutTests/fast/dom/custom/element-type_t01: Fail # custom elements not supported
-LayoutTests/fast/dom/custom/element-upgrade_t01: Fail # please triage
-LayoutTests/fast/dom/custom/type-extensions_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t01: Fail # please triage
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-004_t02: Fail # please triage
@@ -580,7 +570,6 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Fail # 
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-and-their-shadow-trees/test-003_t01: Fail # please triage
-
 WebPlatformTest/shadow-dom/shadow-trees/custom-pseudo-elements/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/distributed-pseudo-element/test-002_t01: Fail # please triage
@@ -589,15 +578,15 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: Fail # please triage
-WebPlatformTest/custom-elements/concepts/type_A07_t01: Fail # custom elements not supported
-WebPlatformTest/custom-elements/concepts/type_A08_t01: Fail # please triage
-WebPlatformTest/custom-elements/instantiating/createElementNS_A01_t01: Fail # please triage
-WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: Fail # custom elements not supported
-WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: Fail # custom elements not supported
-WebPlatformTest/custom-elements/instantiating/createElement_A01_t01: Fail # please triage
-WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: Fail # please triage
-WebPlatformTest/custom-elements/instantiating/isAttribute_A03_t01: Fail # please triage
-WebPlatformTest/custom-elements/instantiating/localName_A01_t01: Fail # please triage
+
+[ $compiler == dart2js && $runtime == chrome && $fast_startup && $checked ]
+WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == drt && $fast_startup && $checked ]
+WebPlatformTest/custom-elements/instantiating/createElementNS_A05_t01: RuntimeError # Please triage this failure
+WebPlatformTest/custom-elements/instantiating/createElement_A05_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $fast_startup && $browser && $runtime != chrome && $runtime != drt]
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/attributes/test-005_t01: Fail # please triage
@@ -626,7 +615,6 @@ WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t03: Fail # 
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t04: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-001_t01: Fail # please triage
 WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: Fail # please triage
-
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: Fail # custom elements not supported
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-002_t01: Fail # please triage
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/inert-html-elements/test-002_t01: Fail # please triage
@@ -1795,13 +1783,7 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t0
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime == chrome && $fast_startup ]
-WebPlatformTest/custom-elements/concepts/type_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/namespace_A01_t01: RuntimeError # Please triage this failure
-
-[ $compiler == dart2js && $runtime == chrome && $fast_startup == false ]
+[ $compiler == dart2js && $runtime == chrome ]
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && $checked ]
@@ -2679,19 +2661,7 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t0
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime == drt && $fast_startup ]
-WebPlatformTest/custom-elements/concepts/type_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElement_A02_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: RuntimeError # Please triage this failure
-WebPlatformTest/custom-elements/instantiating/namespace_A01_t01: RuntimeError # Please triage this failure
-
-[ $compiler == dart2js && $runtime == drt && $fast_startup == false ]
+[ $compiler == dart2js && $runtime == drt ]
 WebPlatformTest/custom-elements/concepts/type_A03_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == drt && $fast_startup && $checked ]

@@ -419,22 +419,6 @@ custom/js_custom_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported
 
-[ $compiler == dart2js && $fast_startup && $browser ]
-custom/attribute_changed_callback_test/fully_supported: Fail # custom elements not supported
-custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # custom elements not supported
-custom/document_register_type_extensions_test/construction: Fail # custom elements not supported
-custom/document_register_type_extensions_test/functional: Fail # custom elements not supported
-custom/document_register_type_extensions_test/namespaces: Fail # custom elements not supported
-custom/document_register_type_extensions_test/parsing: Fail # custom elements not supported
-custom/document_register_type_extensions_test/registration: Fail # custom elements not supported
-custom/entered_left_view_test: Fail # custom elements not supported
-custom/element_upgrade_test: Fail # custom elements not supported
-custom/document_register_basic_test: Fail # custom elements not supported
-custom/document_register_type_extensions: Fail # custom elements not supported
-custom_elements_23127_test/baseline: Fail # custom elements not supported
-custom_elements_23127_test/c1t: Fail # custom elements not supported
-custom_elements_23127_test/c2: Fail # custom elements not supported
-
 [ $compiler == dart2js && $cps_ir && $browser ]
 js_typed_interop_side_cast_exp_test: RuntimeError # Corner case in package:js that we might want to remove (See comment in #24978).
 js_typed_interop_test/static_method_tearoff_1: RuntimeError # Tree-shaking a used tear-off (#24978, #25720).

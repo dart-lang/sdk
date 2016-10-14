@@ -1333,7 +1333,7 @@ class FragmentEmitter {
 
     Map<String, js.Expression> interceptorsByTag = <String, js.Expression>{};
     Map<String, js.Expression> leafTags = <String, js.Expression>{};
-    js.Statement subclassAssignment = new js.EmptyStatement();
+    List<js.Statement> subclassAssignments = <js.Statement>[];
 
     for (Library library in fragment.libraries) {
       for (Class cls in library.classes) {
@@ -1350,15 +1350,15 @@ class FragmentEmitter {
           }
           if (cls.nativeExtensions != null) {
             List<Class> subclasses = cls.nativeExtensions;
-            js.Expression value = js.string(cls.nativeNonLeafTags[0]);
+            js.Expression base = js.string(cls.nativeNonLeafTags[0]);
+
             for (Class subclass in subclasses) {
-              value = js.js('#.# = #', [
+              subclassAssignments.add(js.js.statement('#.# = #;', [
                 classReference(subclass),
                 NATIVE_SUPERCLASS_TAG_NAME,
-                js.string(cls.nativeNonLeafTags[0])
-              ]);
+                base
+              ]));
             }
-            subclassAssignment = new js.ExpressionStatement(value);
           }
         }
       }
@@ -1367,7 +1367,7 @@ class FragmentEmitter {
         js.objectLiteral(interceptorsByTag)));
     statements.add(
         js.js.statement("setOrUpdateLeafTags(#);", js.objectLiteral(leafTags)));
-    statements.add(subclassAssignment);
+    statements.addAll(subclassAssignments);
 
     return new js.Block(statements);
   }
