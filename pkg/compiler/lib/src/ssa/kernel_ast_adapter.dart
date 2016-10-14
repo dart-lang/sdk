@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:js_runtime/shared/embedded_names.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
@@ -11,10 +10,8 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../js/js.dart' as js;
 import '../js_backend/js_backend.dart';
 import '../kernel/kernel.dart';
-import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
@@ -223,10 +220,6 @@ class KernelAstAdapter {
     return TypeMaskFactory.inferredTypeForSelector(selector, mask, _compiler);
   }
 
-  TypeMask typeFromNativeBehavior(native.NativeBehavior nativeBehavior) {
-    return TypeMaskFactory.fromNativeBehavior(nativeBehavior, _compiler);
-  }
-
   ConstantValue getConstantFor(ir.Node node) {
     ConstantValue constantValue =
         _backend.constants.getConstantValueForNode(getNode(node), elements);
@@ -278,45 +271,6 @@ class KernelAstAdapter {
 
   TypeMask get assertThrowReturnType => TypeMaskFactory
       .inferredReturnTypeForElement(_backend.helpers.assertThrow, _compiler);
-
-  ir.Procedure get currentIsolate =>
-      kernel.functions[_backend.helpers.currentIsolate];
-
-  bool isInForeignLibrary(ir.Member member) =>
-      _backend.isForeign(getElement(member));
-
-  native.NativeBehavior getNativeBehavior(ir.Node node) {
-    return elements.getNativeData(getNode(node));
-  }
-
-  js.Name getNameForJsGetName(ir.Node argument, ConstantValue constant) {
-    int index = _extractEnumIndexFromConstantValue(
-        constant, _backend.helpers.jsGetNameEnum);
-    if (index == null) return null;
-    return _backend.namer
-        .getNameForJsGetName(getNode(argument), JsGetName.values[index]);
-  }
-
-  js.Template getJsBuiltinTemplate(ConstantValue constant) {
-    int index = _extractEnumIndexFromConstantValue(
-        constant, _backend.helpers.jsBuiltinEnum);
-    if (index == null) return null;
-    return _backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
-  }
-
-  int _extractEnumIndexFromConstantValue(
-      ConstantValue constant, Element classElement) {
-    if (constant is ConstructedConstantValue) {
-      if (constant.type.element == classElement) {
-        assert(constant.fields.length == 1);
-        ConstantValue indexConstant = constant.fields.values.single;
-        if (indexConstant is IntConstantValue) {
-          return indexConstant.primitiveValue;
-        }
-      }
-    }
-    return null;
-  }
 
   DartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);

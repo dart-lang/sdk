@@ -1930,7 +1930,7 @@ class KernelVisitor extends Object
 
   @override
   ir.Expression handleStaticFieldGet(Send node, FieldElement field, _) {
-    return associateNode(buildStaticGet(field), node);
+    return buildStaticGet(field);
   }
 
   @override
@@ -2137,8 +2137,7 @@ class KernelVisitor extends Object
       NodeList arguments,
       CallStructure callStructure,
       _) {
-    return associateNode(
-        buildStaticInvoke(function, arguments, isConst: false), node);
+    return buildStaticInvoke(function, arguments, isConst: false);
   }
 
   @override
@@ -2763,7 +2762,7 @@ class KernelVisitor extends Object
       FieldElement field = currentElement;
       return field.isMalformed
           ? new ir.InvalidExpression()
-          : associateNode(visitForValue(field.initializer), field.initializer);
+          : visitForValue(field.initializer);
     });
   }
 }
