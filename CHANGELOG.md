@@ -1,5 +1,9 @@
 ## 1.21.0
 
+### Language
+
+* Allow `=` as well as `:` as separator for named parameter default values.
+
 ## 1.20.0
 
 ### Dart VM
