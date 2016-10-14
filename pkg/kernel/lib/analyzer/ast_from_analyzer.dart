@@ -1359,11 +1359,6 @@ class ExpressionBuilder
     }
     ast.Expression expression;
     if (node.leftOperand is SuperExpression) {
-      var method = scope.resolveConcreteMethod(node.staticElement);
-      if (method == null) {
-        // TODO: Invoke super.noSuchMethod.
-        return new ast.InvalidExpression();
-      }
       scope.addTransformerFlag(TransformerFlag.superCalls);
       expression = new ast.SuperMethodInvocation(
           new ast.Name(operator),
