@@ -1949,11 +1949,12 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Push(R6);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ Pop(R0);  // Discard argument.
-  __ Pop(CODE_REG);  // Get Code object
+  __ Pop(R0);  // Get Function object
   __ Pop(R4);  // Restore argument descriptor.
-  __ LoadFieldFromOffset(R0, CODE_REG, Code::entry_point_offset());
+  __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
+  __ LoadFieldFromOffset(R1, R0, Function::entry_point_offset());
   __ LeaveStubFrame();
-  __ br(R0);
+  __ br(R1);
   __ brk(0);
 }
 

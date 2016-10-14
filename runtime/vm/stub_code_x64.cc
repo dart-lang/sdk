@@ -1914,11 +1914,12 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ pushq(RDI);  // Arg0: function to optimize
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popq(RAX);  // Disard argument.
-  __ popq(CODE_REG);  // Get Code object.
+  __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore argument descriptor.
-  __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ LeaveStubFrame();
-  __ jmp(RAX);
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+  __ jmp(RCX);
   __ int3();
 }
 

@@ -1209,11 +1209,12 @@ RawObject* Simulator::Call(const Code& code,
       INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, args);
       {
         // DRT_OptimizeInvokedFunction returns the code object to execute.
-        ASSERT(FP[1]->GetClassId() == kCodeCid);
-        RawCode* code = static_cast<RawCode*>(FP[1]);
+        ASSERT(FP[1]->GetClassId() == kFunctionCid);
+        RawFunction* function = static_cast<RawFunction*>(FP[1]);
+        RawCode* code = function->ptr()->code_;
         SimulatorHelpers::SetFrameCode(FP, code);
         pp = code->ptr()->object_pool_->ptr();
-        pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+        pc = reinterpret_cast<uint32_t*>(function->ptr()->entry_point_);
         pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
       }
     }

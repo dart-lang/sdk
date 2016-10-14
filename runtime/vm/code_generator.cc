@@ -1864,9 +1864,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         ASSERT(isolate->background_compiler() != NULL);
         isolate->background_compiler()->CompileOptimized(function);
         // Continue in the same code.
-        const Code& code = Code::Handle(zone, function.CurrentCode());
-        ASSERT(!code.IsDisabled());
-        arguments.SetReturn(code);
+        arguments.SetReturn(function);
         return;
       }
     }
@@ -1888,9 +1886,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     const Code& optimized_code = Code::Handle(zone, function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
   }
-  const Code& code = Code::Handle(zone, function.CurrentCode());
-  ASSERT(!code.IsDisabled());
-  arguments.SetReturn(code);
+  arguments.SetReturn(function);
 #else
   UNREACHABLE();
 #endif  // !DART_PRECOMPILED_RUNTIME

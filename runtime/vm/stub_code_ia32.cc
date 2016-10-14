@@ -1840,10 +1840,11 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ pushl(EBX);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popl(EAX);  // Discard argument.
-  __ popl(EAX);  // Get Code object
+  __ popl(EAX);  // Get Function object
   __ popl(EDX);  // Restore argument descriptor.
-  __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
   __ LeaveFrame();
+  __ movl(CODE_REG, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EAX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EAX);
   __ int3();
 }
