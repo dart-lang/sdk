@@ -351,3 +351,31 @@ io/socket_bind_test: Skip
 io/http_proxy_advanced_test: Skip
 io/http_ipv6_test: Skip
 io/socket_ipv6_test: Skip
+
+[ $runtime == dart_app || $runtime == dart_precompiled ]
+# Issue 27591 - resource not available relative to generated snapshot
+io/file_input_stream_test: Fail
+io/file_invalid_arguments_test: Fail
+io/http_proxy_advanced_test: Fail
+io/http_proxy_test: Fail
+io/https_bad_certificate_test: Fail
+io/https_server_test: Fail
+io/raw_secure_server_closing_test: Fail
+io/raw_secure_server_socket_test: Fail
+io/raw_secure_socket_pause_test: Fail
+io/raw_secure_socket_test: Fail
+io/read_into_const_list_test: Fail
+io/regress_21160_test: Fail
+io/resolve_symbolic_links_test: Fail
+io/secure_bad_certificate_test: Fail
+io/secure_client_raw_server_test: Fail
+io/secure_client_server_test: Fail
+io/secure_multiple_client_server_test: Fail
+io/secure_server_client_certificate_test: Fail
+io/secure_server_closing_test: Fail
+io/secure_server_socket_test: Fail
+io/secure_session_resume_test: Fail
+io/secure_socket_alpn_test: Fail
+io/secure_socket_test: Fail
+io/security_context_argument_test: Fail
+io/socket_upgrade_to_secure_test: Fail
