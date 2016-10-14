@@ -2607,22 +2607,19 @@ class CommandExecutorImpl implements CommandExecutor {
           .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
     }
 
-    if (command.useBlobs) {
-      steps.add(() => device.runAdbShellCommand(
-          [
-            '$devicedir/dart_precompiled_runtime',
-            '--run-app-snapshot=$deviceTestDir',
-            '--use-blobs'
-          ]..addAll(arguments),
-          timeout: timeoutDuration));
-    } else {
-      steps.add(() => device.runAdbShellCommand(
-          [
-            '$devicedir/dart_precompiled_runtime',
-            '--run-app-snapshot=$deviceTestDir'
-          ]..addAll(arguments),
-          timeout: timeoutDuration));
+    var args = new List();
+    args.addAll(arguments);
+    for (var i = 0; i < args.length; i++) {
+      if (args[i].endsWith(".dart")) {
+        args[i] = "$deviceTestDir/out.aotsnapshot";
+      }
     }
+
+    steps.add(() => device.runAdbShellCommand(
+        [
+          '$devicedir/dart_precompiled_runtime',
+        ]..addAll(args),
+        timeout: timeoutDuration));
 
     var stopwatch = new Stopwatch()..start();
     var writer = new StringBuffer();
