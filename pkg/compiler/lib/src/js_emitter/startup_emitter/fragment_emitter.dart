@@ -345,6 +345,9 @@ var #staticStateDeclaration = {};
 // Native-support uses setOrUpdateInterceptorsByTag and setOrUpdateLeafTags.
 #nativeSupport;
 
+// Sets up the js-interop support.
+#jsInteropSupport;
+
 // Invokes main (making sure that it records the 'current-script' value).
 #invokeMain;
 })()
@@ -496,6 +499,9 @@ class FragmentEmitter {
       'embeddedGlobals': emitEmbeddedGlobals(program, deferredLoadHashes),
       'nativeSupport': program.needsNativeSupport
           ? emitNativeSupport(fragment)
+          : new js.EmptyStatement(),
+      'jsInteropSupport': backend.jsInteropAnalysis.enabledJsInterop
+          ? backend.jsInteropAnalysis.buildJsInteropBootstrap()
           : new js.EmptyStatement(),
       'invokeMain': fragment.invokeMain,
     });

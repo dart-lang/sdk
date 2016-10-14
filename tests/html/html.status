@@ -434,11 +434,6 @@ custom/document_register_type_extensions: Fail # custom elements not supported
 custom_elements_23127_test/baseline: Fail # custom elements not supported
 custom_elements_23127_test/c1t: Fail # custom elements not supported
 custom_elements_23127_test/c2: Fail # custom elements not supported
-js_function_getter_test: Fail # js-interop function's not supported
-js_typed_interop_callable_object_test: Fail # js-interop function's not supported
-js_typed_interop_test/closure: Fail # js-interop function's not supported
-js_typed_interop_test/method: Fail # js-interop function's not supported
-js_typed_interop_window_property_test/bind*: Fail # js-interop function's not supported
 
 [ $compiler == dart2js && $cps_ir && $browser ]
 js_typed_interop_side_cast_exp_test: RuntimeError # Corner case in package:js that we might want to remove (See comment in #24978).
