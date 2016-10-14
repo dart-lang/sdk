@@ -35,20 +35,20 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
 
 
 VirtualMemory::~VirtualMemory() {
-  if (embedder_allocated()) {
+  if (embedder_allocated() || (reserved_size_ == 0)) {
     return;
   }
   if (VirtualFree(address(), 0, MEM_RELEASE) == 0) {
-    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
+    FATAL("VirtualFree failed");
   }
 }
 
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
-  if (VirtualFree(address, size, MEM_DECOMMIT) == 0) {
-    FATAL1("VirtualFree failed: Error code %d\n", GetLastError());
-  }
-  return true;
+  // On Windows only the entire segment returned by VirtualAlloc
+  // can be freed. Therefore we will have to waste these unused
+  // virtual memory sub-segments.
+  return false;
 }
 
 
