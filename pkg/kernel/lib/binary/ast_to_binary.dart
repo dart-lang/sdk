@@ -6,7 +6,6 @@ library kernel.ast_to_binary;
 import '../ast.dart';
 import '../import_table.dart';
 import 'tag.dart';
-import 'dart:io';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:collection';
@@ -37,7 +36,7 @@ class BinaryPrinter extends Visitor {
   /// If multiple binaries are to be written based on the same IR, a shared
   /// [globalIndexer] may be passed in to avoid rebuilding the same indices
   /// in every printer.
-  BinaryPrinter(IOSink sink, {GlobalIndexer globalIndexer})
+  BinaryPrinter(Sink<List<int>> sink, {GlobalIndexer globalIndexer})
       : _sink = new BufferedSink(sink),
         _globalIndexer = globalIndexer ?? new GlobalIndexer();
 
@@ -1188,11 +1187,11 @@ class GlobalIndexer extends TreeVisitor {
   }
 }
 
-/// Puts a buffer in front of an [IOSink].
+/// Puts a buffer in front of a [Sink<List<int>>].
 class BufferedSink {
   static const int SIZE = 100000;
   static const int SMALL = 10000;
-  final IOSink _sink;
+  final Sink<List<int>> _sink;
   Uint8List _buffer = new Uint8List(SIZE);
   int length = 0;
 
