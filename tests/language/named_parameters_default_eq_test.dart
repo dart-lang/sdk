@@ -32,6 +32,9 @@ class A {
 }
 
 main() {
+  // Reference the type, or dart2js won't see that the declaration is invalid
+  F1 _ = null;  /// 01: continued
+
   var a = new A();
 
   int local({x = 3, y : 5, z}) => x * y * (z ?? 2);
