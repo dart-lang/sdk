@@ -12210,7 +12210,8 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
         obj = prefix.LookupObject(extractor_name);
       }
     }
-    if (!prefix.is_loaded() && (parsed_function() != NULL)) {
+    if (!prefix.is_loaded() && (parsed_function() != NULL) &&
+        !FLAG_load_deferred_eagerly) {
       // Remember that this function depends on an import prefix of an
       // unloaded deferred library.
       parsed_function()->AddDeferredPrefix(prefix);
@@ -14032,7 +14033,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
             UnresolvedClass::Handle(Z, redirect_type.unresolved_class());
         const LibraryPrefix& prefix =
             LibraryPrefix::Handle(Z, cls.library_prefix());
-        if (!prefix.IsNull() && !prefix.is_loaded()) {
+        if (!prefix.IsNull() && !prefix.is_loaded() &&
+            !FLAG_load_deferred_eagerly) {
           // If the redirection type is unresolved because it refers to
           // an unloaded deferred prefix, mark this function as depending
           // on the library prefix. It will then get invalidated when the
