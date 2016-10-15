@@ -1566,7 +1566,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        const LocalVariable& exception_var,
                        const LocalVariable& stacktrace_var,
                        bool needs_stacktrace,
-                       intptr_t deopt_id)
+                       intptr_t deopt_id,
+                       bool should_restore_closure_context = false)
       : BlockEntryInstr(block_id, try_index),
         graph_entry_(graph_entry),
         predecessor_(NULL),
@@ -1574,7 +1575,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
         stacktrace_var_(stacktrace_var),
-        needs_stacktrace_(needs_stacktrace) {
+        needs_stacktrace_(needs_stacktrace),
+        should_restore_closure_context_(should_restore_closure_context) {
     deopt_id_ = deopt_id;
   }
 
@@ -1615,6 +1617,12 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
     predecessor_ = predecessor;
   }
 
+  bool should_restore_closure_context() const {
+    ASSERT(exception_var_.is_captured() == stacktrace_var_.is_captured());
+    ASSERT(!exception_var_.is_captured() || should_restore_closure_context_);
+    return should_restore_closure_context_;
+  }
+
   GraphEntryInstr* graph_entry_;
   BlockEntryInstr* predecessor_;
   const Array& catch_handler_types_;
@@ -1623,6 +1631,7 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;
   const bool needs_stacktrace_;
+  const bool should_restore_closure_context_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
@@ -2777,17 +2786,27 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
                    ClosureCallNode* node,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        ast_node_(*node),
+        argument_names_(node->arguments()->names()),
+        token_pos_(node->token_pos()),
+        arguments_(arguments) {
+    SetInputAt(0, function);
+  }
+
+  ClosureCallInstr(Value* function,
+                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   const Array& argument_names,
+                   TokenPosition token_pos)
+      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+        argument_names_(argument_names),
+        token_pos_(token_pos),
         arguments_(arguments) {
     SetInputAt(0, function);
   }
 
   DECLARE_INSTRUCTION(ClosureCall)
 
-  const Array& argument_names() const { return ast_node_.arguments()->names(); }
-  virtual TokenPosition token_pos() const {
-    return ast_node_.token_pos();
-  }
+  const Array& argument_names() const { return argument_names_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
@@ -2804,7 +2823,8 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const ClosureCallNode& ast_node_;
+  const Array& argument_names_;
+  TokenPosition token_pos_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
@@ -3272,6 +3292,7 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
         identity_(AliasIdentity::Unknown()) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function.IsZoneHandle());
+    ASSERT(!function.IsNull());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
 
@@ -3290,6 +3311,7 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
         is_known_list_constructor_(false),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
+    ASSERT(!function.IsNull());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
 
@@ -3491,33 +3513,32 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
 class NativeCallInstr : public TemplateDefinition<0, Throws> {
  public:
   explicit NativeCallInstr(NativeBodyNode* node)
-      : ast_node_(*node),
+      : native_name_(&node->native_c_function_name()),
+        function_(&node->function()),
         native_c_function_(NULL),
-        is_bootstrap_native_(false) { }
+        is_bootstrap_native_(false),
+        link_lazily_(node->link_lazily()),
+        token_pos_(node->token_pos()) { }
+
+  NativeCallInstr(const String* name,
+                  const Function* function,
+                  bool link_lazily,
+                  TokenPosition position)
+      : native_name_(name),
+        function_(function),
+        native_c_function_(NULL),
+        is_bootstrap_native_(false),
+        link_lazily_(link_lazily),
+        token_pos_(position) { }
 
   DECLARE_INSTRUCTION(NativeCall)
 
-  virtual TokenPosition token_pos() const {
-    return ast_node_.token_pos();
-  }
-
-  const Function& function() const { return ast_node_.function(); }
-
-  const String& native_name() const {
-    return ast_node_.native_c_function_name();
-  }
-
-  NativeFunction native_c_function() const {
-    return native_c_function_;
-  }
-
-  bool is_bootstrap_native() const {
-    return is_bootstrap_native_;
-  }
-
-  bool link_lazily() const {
-    return ast_node_.link_lazily();
-  }
+  const String& native_name() const { return *native_name_; }
+  const Function& function() const { return *function_; }
+  NativeFunction native_c_function() const { return native_c_function_; }
+  bool is_bootstrap_native() const { return is_bootstrap_native_; }
+  bool link_lazily() const { return link_lazily_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -3534,9 +3555,12 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
   void set_is_bootstrap_native(bool value) { is_bootstrap_native_ = value; }
 
-  const NativeBodyNode& ast_node_;
+  const String* native_name_;
+  const Function* function_;
   NativeFunction native_c_function_;
   bool is_bootstrap_native_;
+  bool link_lazily_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
 };

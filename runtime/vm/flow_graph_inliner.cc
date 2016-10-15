@@ -8,6 +8,8 @@
 #include "vm/block_scheduler.h"
 #include "vm/branch_optimizer.h"
 #include "vm/compiler.h"
+#include "vm/kernel.h"
+#include "vm/kernel_to_il.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_builder.h"
@@ -720,13 +722,6 @@ class CallSiteInliner : public ValueObject {
         // Makes sure no classes are loaded during parsing in background.
         const intptr_t loading_invalidation_gen_at_start =
             isolate->loading_invalidation_gen();
-        // Parse the callee function.
-        bool in_cache;
-        ParsedFunction* parsed_function;
-       {
-          CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
-          parsed_function = GetParsedFunction(function, &in_cache);
-        }
 
         if (Compiler::IsBackgroundCompilation()) {
           if (isolate->IsTopLevelParsing() ||
@@ -750,18 +745,42 @@ class CallSiteInliner : public ValueObject {
               "ICData cleared while inlining");
         }
 
+        // Parse the callee function.
+        bool in_cache;
+        ParsedFunction* parsed_function;
+        {
+          CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
+          parsed_function = GetParsedFunction(function, &in_cache);
+        }
+
         // Build the callee graph.
         InlineExitCollector* exit_collector =
             new(Z) InlineExitCollector(caller_graph_, call);
-        FlowGraphBuilder builder(*parsed_function,
-                                 *ic_data_array,
-                                 exit_collector,
-                                 Compiler::kNoOSRDeoptId);
-        builder.SetInitialBlockId(caller_graph_->max_block_id());
         FlowGraph* callee_graph;
-        {
-          CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
-          callee_graph = builder.BuildGraph();
+        if (UseKernelFrontEndFor(parsed_function)) {
+          kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
+              parsed_function->function().kernel_function());
+
+          kernel::FlowGraphBuilder builder(node,
+                                           parsed_function,
+                                           *ic_data_array,
+                                           exit_collector,
+                                           Compiler::kNoOSRDeoptId,
+                                           caller_graph_->max_block_id() + 1);
+          {
+            CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
+            callee_graph = builder.BuildGraph();
+          }
+        } else {
+          FlowGraphBuilder builder(*parsed_function,
+                                   *ic_data_array,
+                                   exit_collector,
+                                   Compiler::kNoOSRDeoptId);
+          builder.SetInitialBlockId(caller_graph_->max_block_id());
+          {
+            CSTAT_TIMER_SCOPE(thread(), graphinliner_build_timer);
+            callee_graph = builder.BuildGraph();
+          }
         }
 
         // The parameter stubs are a copy of the actual arguments providing
@@ -1138,8 +1157,10 @@ class CallSiteInliner : public ValueObject {
     *in_cache = false;
     ParsedFunction* parsed_function =
         new(Z) ParsedFunction(thread(), function);
-    Parser::ParseFunction(parsed_function);
-    parsed_function->AllocateVariables();
+    if (!UseKernelFrontEndFor(parsed_function)) {
+      Parser::ParseFunction(parsed_function);
+      parsed_function->AllocateVariables();
+    }
     return parsed_function;
   }
 

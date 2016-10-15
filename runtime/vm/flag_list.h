@@ -170,8 +170,10 @@ D(trace_isolates, bool, false,                                                 \
   "Trace isolate creation and shut down.")                                     \
 D(trace_handles, bool, false,                                                  \
   "Traces allocation of handles.")                                             \
+D(trace_kernel_binary, bool, false,                                            \
+  "Trace Kernel reader/writer.")                                               \
 D(trace_optimization, bool, false,                                             \
-  "Print optimization details.");                                              \
+  "Print optimization details.")                                               \
 R(trace_profiler, false, bool, false,                                          \
   "Profiler trace")                                                            \
 D(trace_profiler_verbose, bool, false,                                         \

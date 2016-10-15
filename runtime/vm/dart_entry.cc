@@ -299,6 +299,14 @@ RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
 }
 
 
+intptr_t ArgumentsDescriptor::PositionAt(intptr_t index) const {
+  const intptr_t offset = kFirstNamedEntryIndex +
+                          (index * kNamedEntrySize) +
+                          kPositionOffset;
+  return Smi::Value(Smi::RawCast(array_.At(offset)));
+}
+
+
 bool ArgumentsDescriptor::MatchesNameAt(intptr_t index,
                                         const String& other) const {
   return NameAt(index) == other.raw();

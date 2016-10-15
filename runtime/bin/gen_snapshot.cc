@@ -487,6 +487,7 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   // Now load the contents of the specified uri.
   const char* resolved_uri_string = DartUtils::GetStringValue(resolved_uri);
   Dart_Handle source =  LoadUrlContents(resolved_uri_string);
+
   if (Dart_IsError(source)) {
     return source;
   }
@@ -1312,13 +1313,31 @@ int main(int argc, char** argv) {
     Dart_QualifiedFunctionName* entry_points =
         ParseEntryPointsManifestIfPresent();
 
+    intptr_t payload_bytes = 0;
+    const uint8_t* payload = NULL;
+    const bool is_kernel_file =
+        TryReadKernel(app_script_name, &payload, &payload_bytes);
+
+    if (is_kernel_file) {
+      Dart_Handle library = Dart_LoadKernel(payload, payload_bytes);
+      free(const_cast<uint8_t*>(payload));
+      if (Dart_IsError(library)) FATAL("Failed to load app from Kernel IR");
+    } else {
+      // Set up the library tag handler in such a manner that it will use the
+      // URL mapping specified on the command line to load the libraries.
+      result = Dart_SetLibraryTagHandler(CreateSnapshotLibraryTagHandler);
+      CHECK_RESULT(result);
+    }
+
     SetupStubNativeResolversForPrecompilation(entry_points);
 
-    // Load the specified script.
-    library = LoadSnapshotCreationScript(app_script_name);
-    VerifyLoaded(library);
+    if (!is_kernel_file) {
+      // Load the specified script.
+      library = LoadSnapshotCreationScript(app_script_name);
+      VerifyLoaded(library);
 
-    ImportNativeEntryPointLibrariesIntoRoot(entry_points);
+      ImportNativeEntryPointLibrariesIntoRoot(entry_points);
+    }
 
     // Ensure that we mark all libraries as loaded.
     result = Dart_FinalizeLoading(false);

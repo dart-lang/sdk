@@ -364,6 +364,27 @@ class NumbersKeyValueTrait {
   static inline bool IsKeyEqual(Pair kv, Key key) { return kv.first() == key; }
 };
 
+
+template<typename K, typename V>
+class RawPointerKeyValueTrait {
+ public:
+  typedef K* Key;
+  typedef V Value;
+
+  struct Pair {
+    Key key;
+    Value value;
+    Pair() : key(NULL), value() {}
+    Pair(const Key key, const Value& value) : key(key), value(value) {}
+    Pair(const Pair& other) : key(other.key), value(other.value) {}
+  };
+
+  static Key KeyOf(Pair kv) { return kv.key; }
+  static Value ValueOf(Pair kv) { return kv.value; }
+  static intptr_t Hashcode(Key key) { return reinterpret_cast<intptr_t>(key); }
+  static bool IsKeyEqual(Pair kv, Key key) { return kv.key == key; }
+};
+
 }  // namespace dart
 
 #endif  // VM_HASH_MAP_H_

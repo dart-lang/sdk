@@ -2591,12 +2591,50 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ leaq(RSP, Address(RBP, fp_sp_dist));
 
-  // Restore stack and initialize the two exception variables:
-  // exception and stack trace variables.
-  __ movq(Address(RBP, exception_var().index() * kWordSize),
-          kExceptionObjectReg);
-  __ movq(Address(RBP, stacktrace_var().index() * kWordSize),
-          kStackTraceObjectReg);
+  // Auxiliary variables introduced by the try catch can be captured if we are
+  // inside a function with yield/resume points. In this case we first need
+  // to restore the context to match the context at entry into the closure.
+  if (should_restore_closure_context()) {
+    const ParsedFunction& parsed_function = compiler->parsed_function();
+    ASSERT(parsed_function.function().IsClosureFunction());
+    LocalScope* scope = parsed_function.node_sequence()->scope();
+
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    ASSERT(!closure_parameter->is_captured());
+    __ movq(CTX, Address(RBP, closure_parameter->index() * kWordSize));
+    __ movq(CTX, FieldAddress(CTX, Closure::context_offset()));
+
+#ifdef DEBUG
+    Label ok;
+    __ LoadClassId(RBX, CTX);
+    __ cmpq(RBX, Immediate(kContextCid));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect context at entry");
+    __ Bind(&ok);
+#endif
+
+    const intptr_t context_index =
+        parsed_function.current_context_var()->index();
+    __ movq(Address(RBP, context_index * kWordSize), CTX);
+  }
+
+  // Initialize exception and stack trace variables.
+  if (exception_var().is_captured()) {
+    ASSERT(stacktrace_var().is_captured());
+    __ StoreIntoObject(
+        CTX,
+        FieldAddress(CTX, Context::variable_offset(exception_var().index())),
+        kExceptionObjectReg);
+    __ StoreIntoObject(
+        CTX,
+        FieldAddress(CTX, Context::variable_offset(stacktrace_var().index())),
+        kStackTraceObjectReg);
+  } else {
+    __ movq(Address(RBP, exception_var().index() * kWordSize),
+            kExceptionObjectReg);
+    __ movq(Address(RBP, stacktrace_var().index() * kWordSize),
+            kStackTraceObjectReg);
+  }
 }
 
 

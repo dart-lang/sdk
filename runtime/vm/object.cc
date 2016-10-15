@@ -2691,6 +2691,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_parameter_types(Object::extractor_parameter_types());
   extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Object::dynamic_type());
+  extractor.set_kernel_function(kernel_function());
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -6612,6 +6613,7 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
+  result.set_kernel_function(NULL);
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
@@ -6640,6 +6642,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
+  clone.set_kernel_function(kernel_function());
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
     AbstractType& type = AbstractType::Handle(clone.result_type());
@@ -6780,6 +6783,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
     param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
   }
+  closure_function.set_kernel_function(kernel_function());
+
   const Type& signature_type = Type::Handle(closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
     ClassFinalizer::FinalizeType(
@@ -7546,6 +7551,7 @@ void Field::InitializeNew(const Field& result,
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
+  result.set_kernel_field(NULL);
   Isolate* isolate = Isolate::Current();
 
   // Use field guards if they are enabled and the isolate has never reloaded.
@@ -7636,6 +7642,7 @@ RawField* Field::Clone(const Field& original) const {
   Field& clone = Field::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
   clone.SetOriginal(original);
+  clone.set_kernel_field(original.kernel_field());
   return clone.raw();
 }
 
@@ -13817,6 +13824,9 @@ RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
   if (v.IsNull()) {
     ASSERT(!is_optimized());
     const Function& f = Function::Handle(function());
+    if (f.kernel_function() != NULL) {
+      return v.raw();
+    }
     ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
     Compiler::ComputeLocalVarDescriptors(*this);
   }
@@ -22595,10 +22605,11 @@ static intptr_t PrintOneStacktrace(Zone* zone,
   const Script& script = Script::Handle(zone, function.script());
   const String& function_name =
       String::Handle(zone, function.QualifiedUserVisibleName());
-  const String& url = String::Handle(zone, script.url());
+  const String& url = String::Handle(zone,
+      script.IsNull() ? String::New("Kernel") : script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos.IsReal()) {
+  if (!script.IsNull() && token_pos.IsReal()) {
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {

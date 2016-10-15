@@ -3353,10 +3353,15 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
     GrowableArray<Definition*> cdefs(idefs->length());
     cdefs.AddArray(*idefs);
 
-    // exception_var and stacktrace_var are never constant.
-    intptr_t ex_idx = base - catch_entry->exception_var().index();
-    intptr_t st_idx = base - catch_entry->stacktrace_var().index();
-    cdefs[ex_idx] = cdefs[st_idx] = NULL;
+    // exception_var and stacktrace_var are never constant.  In asynchronous or
+    // generator functions they may be context-allocated in which case they are
+    // not tracked in the environment anyway.
+    if (!catch_entry->exception_var().is_captured()) {
+      cdefs[base - catch_entry->exception_var().index()] = NULL;
+    }
+    if (!catch_entry->stacktrace_var().is_captured()) {
+      cdefs[base - catch_entry->stacktrace_var().index()] = NULL;
+    }
 
     for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
          !block_it.Done();

@@ -16,6 +16,8 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
+#include "vm/kernel.h"
+#include "vm/kernel_to_il.h"
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -84,9 +86,20 @@ DECLARE_FLAG(bool, trace_irregexp);
 
 #ifndef DART_PRECOMPILED_RUNTIME
 
+
+bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
+  const Function& function = parsed_function->function();
+  return (function.kernel_function() != NULL) ||
+         (function.kind() == RawFunction::kNoSuchMethodDispatcher) ||
+         (function.kind() == RawFunction::kInvokeFieldDispatcher);
+}
+
+
 void DartCompilationPipeline::ParseFunction(ParsedFunction* parsed_function) {
-  Parser::ParseFunction(parsed_function);
-  parsed_function->AllocateVariables();
+  if (!UseKernelFrontEndFor(parsed_function)) {
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
+  }
 }
 
 
@@ -95,7 +108,15 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
     ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array,
     intptr_t osr_id) {
-  // Build the flow graph.
+  if (UseKernelFrontEndFor(parsed_function)) {
+    kernel::TreeNode* node = static_cast<kernel::TreeNode*>(
+        parsed_function->function().kernel_function());
+    kernel::FlowGraphBuilder builder(
+        node, parsed_function, ic_data_array, NULL, osr_id);
+    FlowGraph* graph = builder.BuildGraph();
+    ASSERT(graph != NULL);
+    return graph;
+  }
   FlowGraphBuilder builder(*parsed_function,
                            ic_data_array,
                            NULL,  // NULL = not inlining.
@@ -1028,7 +1049,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // the deoptimization path.
         AllocationSinking* sinking = NULL;
         if (FLAG_allocation_sinking &&
-            (flow_graph->graph_entry()->SuccessorCount()  == 1)) {
+            (flow_graph->graph_entry()->SuccessorCount() == 1)) {
           NOT_IN_PRODUCT(TimelineDurationScope tds2(
               thread(), compiler_timeline, "AllocationSinking::Optimize"));
           // TODO(fschneider): Support allocation sinking with try-catch.
@@ -1704,11 +1725,43 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
         }
       )
 
-      StackZone zone(thread);
-      ParsedFunction* parsed_function =
-          Parser::ParseStaticFieldInitializer(field);
+      StackZone stack_zone(thread);
+      Zone* zone = stack_zone.GetZone();
+      ParsedFunction* parsed_function;
 
-      parsed_function->AllocateVariables();
+      // Create a one-time-use function to evaluate the initializer and invoke
+      // it immediately.
+      if (field.kernel_field() != NULL) {
+        // kImplicitStaticFinalGetter is used for both implicit static getters
+        // and static initializers.  The Kernel graph builder will tell the
+        // difference by pattern matching on the name.
+        const String& name = String::Handle(zone,
+            Symbols::FromConcat(thread,
+                Symbols::InitPrefix(), String::Handle(zone, field.name())));
+        const Script& script = Script::Handle(zone, field.Script());
+        Object& owner = Object::Handle(zone, field.Owner());
+        owner = PatchClass::New(Class::Cast(owner), script);
+        const Function& function = Function::ZoneHandle(zone,
+            Function::New(name,
+                          RawFunction::kImplicitStaticFinalGetter,
+                          true,  // is_static
+                          false,  // is_const
+                          false,  // is_abstract
+                          false,  // is_external
+                          false,  // is_native
+                          owner,
+                          TokenPosition::kNoSource));
+        function.set_kernel_function(field.kernel_field());
+        function.set_result_type(AbstractType::Handle(zone, field.type()));
+        function.set_is_reflectable(false);
+        function.set_is_debuggable(false);
+        function.set_is_inlinable(false);
+        parsed_function = new(zone) ParsedFunction(thread, function);
+      } else {
+        parsed_function = Parser::ParseStaticFieldInitializer(field);
+        parsed_function->AllocateVariables();
+      }
+
       // Non-optimized code generator.
       DartCompilationPipeline pipeline;
       CompileParsedFunctionHelper helper(parsed_function, false, kNoOSRDeoptId);
@@ -2163,6 +2216,12 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
 
 
 #else  // DART_PRECOMPILED_RUNTIME
+
+
+bool UseKernelFrontEndFor(ParsedFunction* parsed_function) {
+  UNREACHABLE();
+  return false;
+}
 
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,

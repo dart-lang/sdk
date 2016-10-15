@@ -16,6 +16,7 @@
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/kernel_to_il.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
@@ -223,6 +224,19 @@ void ParsedFunction::Bailout(const char* origin, const char* reason) const {
                    String::Handle(function_.name()).ToCString(),
                    reason);
   UNREACHABLE();
+}
+
+
+kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
+  if (kernel_scopes_ == NULL) {
+    kernel::TreeNode* node = NULL;
+    if (function().kernel_function() != NULL) {
+      node = static_cast<kernel::TreeNode*>(function().kernel_function());
+    }
+    kernel::ScopeBuilder builder(this, node);
+    kernel_scopes_ = builder.BuildScopes();
+  }
+  return kernel_scopes_;
 }
 
 
@@ -1593,10 +1607,13 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
                              &Object::dynamic_type());
     ASSERT(func.num_fixed_parameters() == 2);  // closure, value.
   } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
-    const bool allow_explicit_default_values = true;
-    SkipFunctionPreamble();
-    ParseFormalParameterList(allow_explicit_default_values, false, &params);
-    SetupDefaultsForOptionalParams(params);
+    // NOTE: For the `kernel -> flowgraph` we don't use the parser.
+    if (parent.kernel_function() == NULL) {
+      const bool allow_explicit_default_values = true;
+      SkipFunctionPreamble();
+      ParseFormalParameterList(allow_explicit_default_values, false, &params);
+      SetupDefaultsForOptionalParams(params);
+    }
   }
 
   // Populate function scope with the formal parameters.
@@ -15005,6 +15022,12 @@ namespace dart {
 
 void ParsedFunction::AddToGuardedFields(const Field* field) const {
   UNREACHABLE();
+}
+
+
+kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
+  UNREACHABLE();
+  return NULL;
 }
 
 

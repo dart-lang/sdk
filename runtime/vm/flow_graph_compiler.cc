@@ -1155,38 +1155,36 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !isolate()->type_checks()) {
+    const Class& owner = Class::Handle(parsed_function().function().Owner());
+    String& name = String::Handle(parsed_function().function().name());
+
     if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
-      // An implicit getter must have a specific AST structure.
-      const SequenceNode& sequence_node = *parsed_function().node_sequence();
-      ASSERT(sequence_node.length() == 1);
-      ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
-      const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
-      ASSERT(return_node.value()->IsLoadInstanceFieldNode());
-      const LoadInstanceFieldNode& load_node =
-          *return_node.value()->AsLoadInstanceFieldNode();
+      // TODO(27590) Store Field object inside RawFunction::data_ if possible.
+      name = Field::NameFromGetter(name);
+      const Field& field = Field::Handle(owner.LookupFieldAllowPrivate(name));
+      ASSERT(!field.IsNull());
+
       // Only intrinsify getter if the field cannot contain a mutable double.
       // Reading from a mutable double box requires allocating a fresh double.
-      if (FLAG_precompiled_mode ||
-          !IsPotentialUnboxedField(load_node.field())) {
-        GenerateInlinedGetter(load_node.field().Offset());
+      if (field.is_instance() &&
+          (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
+        GenerateInlinedGetter(field.Offset());
         return !FLAG_use_field_guards;
       }
       return false;
     }
     if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
-      // An implicit setter must have a specific AST structure.
-      // Sequence node has one store node and one return NULL node.
-      const SequenceNode& sequence_node = *parsed_function().node_sequence();
-      ASSERT(sequence_node.length() == 2);
-      ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
-      ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
-      const StoreInstanceFieldNode& store_node =
-          *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
-      if (FLAG_precompiled_mode ||
-          (store_node.field().guarded_cid() == kDynamicCid)) {
-        GenerateInlinedSetter(store_node.field().Offset());
+      // TODO(27590) Store Field object inside RawFunction::data_ if possible.
+      name = Field::NameFromSetter(name);
+      const Field& field = Field::Handle(owner.LookupFieldAllowPrivate(name));
+      ASSERT(!field.IsNull());
+
+      if (field.is_instance() &&
+          (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+        GenerateInlinedSetter(field.Offset());
         return !FLAG_use_field_guards;
       }
+      return false;
     }
   }
 

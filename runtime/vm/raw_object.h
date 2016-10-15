@@ -869,6 +869,7 @@ class RawFunction : public RawObject {
   uint32_t kind_tag_;  // See Function::KindTagBits.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
+  NOT_IN_PRECOMPILED(void* kernel_function_);
   NOT_IN_PRECOMPILED(uint16_t optimized_instruction_count_);
   NOT_IN_PRECOMPILED(uint16_t optimized_call_site_count_);
   NOT_IN_PRECOMPILED(int8_t deoptimization_counter_);
@@ -965,6 +966,7 @@ class RawField : public RawObject {
   int8_t guarded_list_length_in_object_offset_;
 
   uint8_t kind_bits_;  // static, final, const, has initializer....
+  NOT_IN_PRECOMPILED(void* kernel_field_);
 
   friend class CidRewriteVisitor;
 };

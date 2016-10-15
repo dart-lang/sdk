@@ -2864,12 +2864,39 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ AddImmediate(SP, FP, fp_sp_dist);
 
-  // Restore stack and initialize the two exception variables:
-  // exception and stack trace variables.
-  __ StoreToOffset(kWord, kExceptionObjectReg,
-                   FP, exception_var().index() * kWordSize);
-  __ StoreToOffset(kWord, kStackTraceObjectReg,
-                   FP, stacktrace_var().index() * kWordSize);
+  // Auxiliary variables introduced by the try catch can be captured if we are
+  // inside a function with yield/resume points. In this case we first need
+  // to restore the context to match the context at entry into the closure.
+  if (should_restore_closure_context()) {
+    const ParsedFunction& parsed_function = compiler->parsed_function();
+    ASSERT(parsed_function.function().IsClosureFunction());
+    LocalScope* scope = parsed_function.node_sequence()->scope();
+
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    ASSERT(!closure_parameter->is_captured());
+    __ ldr(CTX, Address(FP, closure_parameter->index() * kWordSize));
+    __ ldr(CTX, FieldAddress(CTX, Closure::context_offset()));
+
+    const intptr_t context_index =
+        parsed_function.current_context_var()->index();
+    __ StoreToOffset(kWord, CTX, FP, context_index * kWordSize);
+  }
+
+  // Initialize exception and stack trace variables.
+  if (exception_var().is_captured()) {
+    ASSERT(stacktrace_var().is_captured());
+    __ StoreIntoObjectOffset(CTX,
+                             Context::variable_offset(exception_var().index()),
+                             kExceptionObjectReg);
+    __ StoreIntoObjectOffset(CTX,
+                             Context::variable_offset(stacktrace_var().index()),
+                             kStackTraceObjectReg);
+  } else {
+    __ StoreToOffset(kWord, kExceptionObjectReg,
+                     FP, exception_var().index() * kWordSize);
+    __ StoreToOffset(kWord, kStackTraceObjectReg,
+                     FP, stacktrace_var().index() * kWordSize);
+  }
 }
 
 

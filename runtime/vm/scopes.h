@@ -33,6 +33,7 @@ class LocalVariable : public ZoneAllocated {
       is_captured_(false),
       is_invisible_(false),
       is_captured_parameter_(false),
+      is_forced_stack_(false),
       index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
@@ -54,6 +55,13 @@ class LocalVariable : public ZoneAllocated {
 
   bool is_captured() const { return is_captured_; }
   void set_is_captured() { is_captured_ = true; }
+
+  // Variables marked as forced to stack are skipped and not captured by
+  // CaptureLocalVariables - which iterates scope chain between two scopes
+  // and indiscriminately marks all variables as captured.
+  // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
+  bool is_forced_stack() const { return is_forced_stack_; }
+  void set_is_forced_stack() { is_forced_stack_ = true; }
 
   bool HasIndex() const {
     return index_ != kUninitializedIndex;
@@ -122,6 +130,7 @@ class LocalVariable : public ZoneAllocated {
                       // in the stack frame.
   bool is_invisible_;
   bool is_captured_parameter_;
+  bool is_forced_stack_;
   int index_;  // Allocation index in words relative to frame pointer (if not
                // captured), or relative to the context pointer (if captured).
 
@@ -331,7 +340,7 @@ class LocalScope : public ZoneAllocated {
   RawContextScope* PreserveOuterScope(int current_context_level) const;
 
   // Mark all local variables that are accessible from this scope up to
-  // top_scope (included) as captured.
+  // top_scope (included) as captured unless they are marked as forced to stack.
   void CaptureLocalVariables(LocalScope* top_scope);
 
   // Creates a LocalScope representing the outer scope of a local function to be
