@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/pub_summary.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
@@ -94,6 +95,13 @@ class ContextBuilder {
    * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackagesDirectoryPath;
+
+  /**
+   * The file path of the file containing the summary of the SDK that should be
+   * used to "analyze" the SDK. This option should only be specified by
+   * command-line tools such as 'dartanalyzer' or 'ddc'.
+   */
+  String dartSdkSummaryPath;
 
   /**
    * The file path of the analysis options file that should be used in place of
@@ -288,7 +296,9 @@ class ContextBuilder {
    */
   DartSdk findSdk(
       Map<String, List<Folder>> packageMap, AnalysisOptions options) {
-    if (packageMap != null) {
+    if (dartSdkSummaryPath != null) {
+      return new SummaryBasedDartSdk(dartSdkSummaryPath, options.strongMode);
+    } else if (packageMap != null) {
       SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
       List<String> extFilePaths = extFinder.extensionFilePaths;
       EmbedderYamlLocator locator = new EmbedderYamlLocator(packageMap);
