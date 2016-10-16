@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const desc = 'Await only futures.';
 
@@ -54,7 +55,10 @@ class _Visitor extends SimpleAstVisitor {
   @override
   visitAwaitExpression(AwaitExpression node) {
     final DartType type = node.expression.bestType;
-    if (!(type.isDartAsyncFuture || type.isDynamic)) {
+    if (!(type.isDartAsyncFuture ||
+        type.isDynamic ||
+        DartTypeUtilities.extendsClass(type, 'Future', 'dart.async') ||
+        DartTypeUtilities.implementsInterface(type, 'Future', 'dart.async'))) {
       rule.reportLint(node);
     }
   }
