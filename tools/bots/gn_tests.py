@@ -15,7 +15,8 @@ DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..', '..'))
 
 def main(argv):
   test_py = os.path.join(DART_ROOT, 'tools', 'test.py')
-  build_result = subprocess.call(['python', test_py] + argv[1:])
+  build_result = subprocess.call(
+      ['python', test_py] + ['--builder-tag=no_ipv6'] + argv[1:])
   if build_result != 0:
     return build_result
   return 0
