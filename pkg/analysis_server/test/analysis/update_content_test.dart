@@ -170,7 +170,7 @@ f() {}
         {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
-      '/project/main.dart': ["1: Target of URI does not exist: 'target.dart'"],
+      '/project/main.dart': ["1: Target of URI doesn't exist: 'target.dart'."],
       '/project/target.dart': []
     });
 
@@ -178,8 +178,8 @@ f() {}
         {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
-      '/project/main.dart': ["1: Unused import"],
-      '/project/target.dart': ["1: Target of URI does not exist: 'none.dart'"],
+      '/project/main.dart': ["1: Unused import."],
+      '/project/target.dart': ["1: Target of URI doesn't exist: 'none.dart'."],
       '/project/none.dart': []
     });
   }

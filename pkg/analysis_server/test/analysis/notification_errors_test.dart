@@ -54,7 +54,7 @@ import 'does_not_exist.dart';
     AnalysisError error = errors[0];
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
-    expect(error.message, startsWith('Target of URI does not exist'));
+    expect(error.message, startsWith("Target of URI doesn't exist"));
   }
 
   test_lintError() async {
