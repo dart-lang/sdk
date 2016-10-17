@@ -1728,7 +1728,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
          FLAG_precompiled_runtime ? 0 : frame->NumLocalVariables();
       TokenPosition unused = TokenPosition::kNoSource;
       for (intptr_t v = 0; v < num_vars; v++) {
-        frame->VariableAt(v, &var_name, &unused, &unused, &var_value);
+        frame->VariableAt(v, &var_name, &unused, &unused, &unused, &var_value);
       }
     }
     FLAG_stacktrace_every = saved_stacktrace_every;

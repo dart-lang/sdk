@@ -1485,6 +1485,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
 
     // Create a descriptor for 'this' variable.
     context_scope.SetTokenIndexAt(0, TokenPosition::kMinSource);
+    context_scope.SetDeclarationTokenIndexAt(0, TokenPosition::kMinSource);
     context_scope.SetNameAt(0, Symbols::This());
     context_scope.SetIsFinalAt(0, true);
     context_scope.SetIsConstAt(0, false);

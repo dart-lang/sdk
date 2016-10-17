@@ -896,8 +896,9 @@ void ActivationFrame::PrintContextMismatchError(
 
 void ActivationFrame::VariableAt(intptr_t i,
                                  String* name,
-                                 TokenPosition* token_pos,
-                                 TokenPosition* end_pos,
+                                 TokenPosition* declaration_token_pos,
+                                 TokenPosition* visible_start_token_pos,
+                                 TokenPosition* visible_end_token_pos,
                                  Object* value) {
   GetDescIndices();
   ASSERT(i < desc_indices_.length());
@@ -908,10 +909,12 @@ void ActivationFrame::VariableAt(intptr_t i,
 
   RawLocalVarDescriptors::VarInfo var_info;
   var_descriptors_.GetInfo(desc_index, &var_info);
-  ASSERT(token_pos != NULL);
-  *token_pos = var_info.begin_pos;
-  ASSERT(end_pos != NULL);
-  *end_pos = var_info.end_pos;
+  ASSERT(declaration_token_pos != NULL);
+  *declaration_token_pos = var_info.declaration_pos;
+  ASSERT(visible_start_token_pos != NULL);
+  *visible_start_token_pos = var_info.begin_pos;
+  ASSERT(visible_end_token_pos != NULL);
+  *visible_end_token_pos = var_info.end_pos;
   ASSERT(value != NULL);
   const int8_t kind = var_info.kind();
   if (kind == RawLocalVarDescriptors::kStackVar) {
@@ -966,7 +969,7 @@ RawArray* ActivationFrame::GetLocalVariables() {
   const Array& list = Array::Handle(Array::New(2 * num_variables));
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore;
-    VariableAt(i, &var_name, &ignore, &ignore, &value);
+    VariableAt(i, &var_name, &ignore, &ignore, &ignore, &value);
     list.SetAt(2 * i, var_name);
     list.SetAt((2 * i) + 1, value);
   }
@@ -981,7 +984,7 @@ RawObject* ActivationFrame::GetReceiver() {
   Instance& value = Instance::Handle();
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore;
-    VariableAt(i, &var_name, &ignore, &ignore, &value);
+    VariableAt(i, &var_name, &ignore, &ignore, &ignore, &value);
     if (var_name.Equals(Symbols::This())) {
       return value.raw();
     }
@@ -1011,7 +1014,7 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
   intptr_t num_variables = desc_indices_.length();
   for (intptr_t i = 0; i < num_variables; i++) {
     TokenPosition ignore;
-    VariableAt(i, &name, &ignore, &ignore, &value);
+    VariableAt(i, &name, &ignore, &ignore, &ignore, &value);
     if (!name.Equals(Symbols::This()) && !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
         name = String::ScrubName(name);
@@ -1087,20 +1090,27 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
     for (intptr_t v = 0; v < num_vars; v++) {
       String& var_name = String::Handle();
       Instance& var_value = Instance::Handle();
-      TokenPosition token_pos;
-      TokenPosition end_token_pos;
-      VariableAt(v, &var_name, &token_pos, &end_token_pos, &var_value);
+      TokenPosition declaration_token_pos;
+      TokenPosition visible_start_token_pos;
+      TokenPosition visible_end_token_pos;
+      VariableAt(v,
+                 &var_name,
+                 &declaration_token_pos,
+                 &visible_start_token_pos,
+                 &visible_end_token_pos,
+                 &var_value);
       if (var_name.raw() != Symbols::AsyncOperation().raw()) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
         var_name = String::ScrubName(var_name);
         jsvar.AddProperty("name", var_name.ToCString());
         jsvar.AddProperty("value", var_value, !full);
-        // TODO(turnidge): Do we really want to provide this on every
-        // stack dump?  Should be associated with the function object, I
-        // think, and not the stack frame.
-        jsvar.AddProperty("_tokenPos", token_pos);
-        jsvar.AddProperty("_endTokenPos", end_token_pos);
+        // Where was the variable declared?
+        jsvar.AddProperty("declarationTokenPos", declaration_token_pos);
+        // When the variable becomes visible to the scope.
+        jsvar.AddProperty("scopeStartTokenPos", visible_start_token_pos);
+        // When the variable stops being visible to the scope.
+        jsvar.AddProperty("scopeEndTokenPos", visible_end_token_pos);
       }
     }
   }

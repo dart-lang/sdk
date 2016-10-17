@@ -736,8 +736,9 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
     JSONObject var(&members);
     var.AddProperty("name", var_name.ToCString());
     var.AddProperty("index", static_cast<intptr_t>(info.index()));
-    var.AddProperty("beginPos", info.begin_pos);
-    var.AddProperty("endPos", info.end_pos);
+    var.AddProperty("declarationTokenPos", info.declaration_pos);
+    var.AddProperty("scopeStartTokenPos", info.begin_pos);
+    var.AddProperty("scopeEndTokenPos", info.end_pos);
     var.AddProperty("scopeId", static_cast<intptr_t>(info.scope_id));
     var.AddProperty("kind", KindToCString(info.kind()));
   }

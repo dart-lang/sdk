@@ -14811,6 +14811,21 @@ void ContextScope::SetTokenIndexAt(intptr_t scope_index,
 }
 
 
+TokenPosition ContextScope::DeclarationTokenIndexAt(
+    intptr_t scope_index) const {
+  return TokenPosition(
+      Smi::Value(VariableDescAddr(scope_index)->declaration_token_pos));
+}
+
+
+void ContextScope::SetDeclarationTokenIndexAt(
+    intptr_t scope_index,
+    TokenPosition declaration_token_pos) const {
+  StoreSmi(&VariableDescAddr(scope_index)->declaration_token_pos,
+           Smi::New(declaration_token_pos.value()));
+}
+
+
 RawString* ContextScope::NameAt(intptr_t scope_index) const {
   return VariableDescAddr(scope_index)->name;
 }

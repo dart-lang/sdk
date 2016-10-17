@@ -285,8 +285,9 @@ class ActivationFrame : public ZoneAllocated {
 
   void VariableAt(intptr_t i,
                   String* name,
-                  TokenPosition* token_pos,
-                  TokenPosition* end_pos,
+                  TokenPosition* declaration_token_pos,
+                  TokenPosition* visible_start_token_pos,
+                  TokenPosition* visible_end_token_pos,
                   Object* value);
 
   RawArray* GetLocalVariables();

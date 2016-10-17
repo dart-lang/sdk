@@ -385,7 +385,10 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
                                                  intptr_t index) const {
   LocalVariable* local = new(Z) LocalVariable(
-      TokenPosition::kNoSource, name, Object::dynamic_type());
+      TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
+      name,
+      Object::dynamic_type());
 
   intptr_t param_frame_index = kParamEndSlotFromFp + kParamCount - index;
   local->set_index(param_frame_index);
@@ -396,7 +399,10 @@ LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
 
 LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
   LocalVariable* local = new(Z) LocalVariable(
-      TokenPosition::kNoSource, name, Object::dynamic_type());
+      TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
+      name,
+      Object::dynamic_type());
   local->set_index(GetNextLocalIndex());
 
   return local;

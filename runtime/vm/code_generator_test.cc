@@ -50,7 +50,7 @@ static LocalVariable* NewTestLocalVariable(const char* name) {
   const String& variable_name = String::ZoneHandle(
       Symbols::New(Thread::Current(), name));
   const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
-  return new LocalVariable(kPos, variable_name, variable_type);
+  return new LocalVariable(kPos, kPos, variable_name, variable_type);
 }
 
 
