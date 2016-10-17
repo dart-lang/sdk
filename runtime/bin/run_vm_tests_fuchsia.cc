@@ -6,6 +6,7 @@
 #include <launchpad/launchpad.h>
 #include <launchpad/vmo.h>
 #include <magenta/syscalls.h>
+#include <magenta/syscalls/object.h>
 #include <mxio/util.h>
 #include <pthread.h>
 #include <runtime/status.h>
