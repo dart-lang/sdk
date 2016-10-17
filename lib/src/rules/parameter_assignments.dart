@@ -69,11 +69,16 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    node.functionExpression.parameters.parameters.forEach((e) {
-      if (node.functionExpression.body.isPotentiallyMutatedInScope(e.element)) {
-        rule.reportLint(e);
-      }
-    });
+    FormalParameterList parameters = node.functionExpression.parameters;
+    if (parameters != null) {
+      // Getter do not have formal parameters.
+      parameters.parameters.forEach((e) {
+        if (node.functionExpression.body
+            .isPotentiallyMutatedInScope(e.element)) {
+          rule.reportLint(e);
+        }
+      });
+    }
   }
 
   @override

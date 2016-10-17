@@ -12,6 +12,8 @@ void ok(String parameter) {
   print(parameter);
 }
 
+String get topLevelGetter => '';
+
 class A {
   int get x => 0;
 
