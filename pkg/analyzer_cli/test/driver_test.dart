@@ -298,7 +298,7 @@ linter:
                 ErrorSeverity.WARNING);
             // Should not be made fatal by `--fatal-warnings`.
             expect(outSink.toString(),
-                contains("[warning] The function 'baz' is not defined"));
+                contains("[warning] The function 'baz' isn't defined"));
             expect(
                 outSink.toString(), contains("1 error and 1 warning found."));
           });

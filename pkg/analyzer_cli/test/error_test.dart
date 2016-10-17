@@ -22,21 +22,21 @@ void main() {
       expect(
           errorsForFile('void foo;\n'),
           equals(
-              "Error in test.dart: Variables cannot have a type of 'void'\n"));
+              "Error in test.dart: Variables can't have a type of 'void'.\n"));
     });
 
     test("an error on the last line", () {
       expect(
           errorsForFile('\nvoid foo;'),
           equals(
-              "Error in test.dart: Variables cannot have a type of 'void'\n"));
+              "Error in test.dart: Variables can't have a type of 'void'.\n"));
     });
 
     test("an error in the middle", () {
       expect(
           errorsForFile('\nvoid foo;\n'),
           equals(
-              "Error in test.dart: Variables cannot have a type of 'void'\n"));
+              "Error in test.dart: Variables can't have a type of 'void'.\n"));
     });
 
     var veryLongString = new List.filled(107, ' ').join('');
@@ -45,21 +45,21 @@ void main() {
       expect(
           errorsForFile('$veryLongString     void foo;'),
           equals(
-              "Error in test.dart: Variables cannot have a type of 'void'\n"));
+              "Error in test.dart: Variables can't have a type of 'void'.\n"));
     });
 
     test("an error at the beginning of a very long line", () {
       expect(
           errorsForFile('void foo;     $veryLongString'),
           equals(
-              "Error in test.dart: Variables cannot have a type of 'void'\n"));
+              "Error in test.dart: Variables can't have a type of 'void'.\n"));
     });
 
     test("an error in the middle of a very long line", () {
       expect(
           errorsForFile('$veryLongString void foo;$veryLongString'),
           equals(
-              "Error in test.dart: Variables cannot have a type of 'void'\n"));
+              "Error in test.dart: Variables can't have a type of 'void'.\n"));
     });
   });
 }
