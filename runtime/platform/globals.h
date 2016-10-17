@@ -298,6 +298,14 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
+#ifdef _MSC_VER
+#define DART_PRETTY_FUNCTION __FUNCSIG__
+#elif __GNUC__
+#define DART_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#else
+#error Automatic compiler detection failed.
+#endif
+
 #if !defined(TARGET_ARCH_MIPS)
 #if !defined(TARGET_ARCH_ARM)
 #if !defined(TARGET_ARCH_X64)
