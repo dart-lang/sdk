@@ -4,7 +4,13 @@
 
 * Allow `=` as well as `:` as separator for named parameter default values.
 
-## 1.20.0
+## 1.20.1 - 2016-10-13
+
+Patch release, resolves one issue:
+
+* Dartium: Fixes a bug that caused crashes.  No issue filed
+
+## 1.20.0 - 2016-10-11
 
 ### Dart VM
 
@@ -130,7 +136,14 @@
     a `packages/` directory in addition to the package spec, use the
     `--packages-dir` flag with `pub get`, `pub upgrade`, and `pub downgrade`.
 
-## 1.19.0
+## 1.19.1 - 2016-09-08
+
+Patch release, resolves one issue:
+
+* Dartdoc:  Fixes a bug that prevented generation of docs
+(Dartdoc issue [1233](https://github.com/dart-lang/dartdoc/issues/1233))
+
+## 1.19.0 - 2016-08-26
 
 ### Language changes
 
