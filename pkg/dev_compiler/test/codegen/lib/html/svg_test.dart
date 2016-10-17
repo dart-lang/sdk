@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library SVGTest;
 import 'dart:html';
 import 'dart:svg' as svg;
-import 'package:unittest/html_individual_config.dart';
-import 'package:unittest/unittest.dart';
+
+import 'package:expect/minitest.dart';
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('svgPresence', () {
     var isSvgElement = predicate((x) => x is svg.SvgElement, 'is a SvgElement');
 
@@ -42,8 +39,7 @@ main() {
         </svg>
         """);
 
-    expect(logo, isSvgElement);
-
+      expect(logo, isSvgElement);
     });
   });
 
@@ -66,9 +62,13 @@ main() {
     var isSvgElement = predicate((x) => x is svg.SvgElement, 'is a SvgElement');
     var isSvgSvgElement =
         predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
+    var isNotSvgSvgElement =
+        predicate((x) => x is! svg.SvgSvgElement, 'is not a SvgSvgElement');
     var isNode = predicate((x) => x is Node, 'is a Node');
     var isSvgNumber = predicate((x) => x is svg.Number, 'is a svg.Number');
+    var isNotSvgNumber = predicate((x) => x is! svg.Number, 'is not a svg.Number');
     var isSvgRect = predicate((x) => x is svg.Rect, 'is a svg.Rect');
+    var isNotSvgRect = predicate((x) => x is! svg.Rect, 'is not a svg.Rect');
 
     test('rect_isChecks', () {
         var div = insertTestDiv();
@@ -80,9 +80,9 @@ main() {
         expect(r, isNode);
 
         // Interfaces not implemented.
-        expect(r, isNot(isSvgNumber));
-        expect(r, isNot(isSvgRect));
-        expect(r, isNot(isSvgSvgElement));
+        expect(r, isNotSvgNumber);
+        expect(r, isNotSvgRect);
+        expect(r, isNotSvgSvgElement);
 
         div.remove();
       });

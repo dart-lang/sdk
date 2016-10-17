@@ -869,6 +869,7 @@ class RawFunction : public RawObject {
   uint32_t kind_tag_;  // See Function::KindTagBits.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
+  NOT_IN_PRECOMPILED(void* kernel_function_);
   NOT_IN_PRECOMPILED(uint16_t optimized_instruction_count_);
   NOT_IN_PRECOMPILED(uint16_t optimized_call_site_count_);
   NOT_IN_PRECOMPILED(int8_t deoptimization_counter_);
@@ -941,8 +942,9 @@ class RawField : public RawObject {
     switch (kind) {
       case Snapshot::kCore:
       case Snapshot::kScript:
-      case Snapshot::kAppWithJIT:
         return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
+      case Snapshot::kAppWithJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
       case Snapshot::kAppNoJIT:
         return reinterpret_cast<RawObject**>(&ptr()->initializer_);
       case Snapshot::kMessage:
@@ -964,6 +966,7 @@ class RawField : public RawObject {
   int8_t guarded_list_length_in_object_offset_;
 
   uint8_t kind_bits_;  // static, final, const, has initializer....
+  NOT_IN_PRECOMPILED(void* kernel_field_);
 
   friend class CidRewriteVisitor;
 };
@@ -1141,18 +1144,18 @@ class RawCode : public RawObject {
   NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
   // (code-offset, function, code) triples.
   NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
-  NOT_IN_PRECOMPILED(RawLocalVarDescriptors* var_descriptors_);
   NOT_IN_PRECOMPILED(RawArray* inlined_metadata_);
-  NOT_IN_PRECOMPILED(RawCodeSourceMap* code_source_map_);
-  NOT_IN_PRECOMPILED(RawArray* comments_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
   NOT_IN_PRECOMPILED(RawObject* return_address_metadata_);
+  NOT_IN_PRECOMPILED(RawLocalVarDescriptors* var_descriptors_);
+  NOT_IN_PRECOMPILED(RawCodeSourceMap* code_source_map_);
+  NOT_IN_PRECOMPILED(RawArray* comments_);
   RawObject** to() {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
 #else
-    return reinterpret_cast<RawObject**>(&ptr()->return_address_metadata_);
+    return reinterpret_cast<RawObject**>(&ptr()->comments_);
 #endif
   }
 
@@ -1164,10 +1167,6 @@ class RawCode : public RawObject {
   // offsets.
   // Alive: If true, the embedded object pointers will be visited during GC.
   int32_t state_bits_;
-
-  // PC offsets for code patching.
-  NOT_IN_PRECOMPILED(int32_t lazy_deopt_return_pc_offset_);
-  NOT_IN_PRECOMPILED(int32_t lazy_deopt_throw_pc_offset_);
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }

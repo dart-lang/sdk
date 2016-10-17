@@ -160,6 +160,10 @@ template("observatory_archive") {
          "Need inner_namespace in $target_name")
   assert(defined(invoker.outer_namespace),
          "Need outer_namespace in $target_name")
+  enable_compression = false
+  if (defined(invoker.compress) && invoker.compress) {
+    enable_compression = true
+  }
   action(target_name) {
     deps = [
       ":deploy_observatory",
@@ -167,10 +171,10 @@ template("observatory_archive") {
 
     script = "../tools/create_archive.py"
 
-  inputs = [
-    script,
-    "$root_out_dir/observatory/deployed/web/main.dart.js",
-  ]
+    inputs = [
+      script,
+      "$root_out_dir/observatory/deployed/web/main.dart.js",
+    ]
 
     inner_namespace = invoker.inner_namespace
     outer_namespace = invoker.outer_namespace
@@ -185,6 +189,9 @@ template("observatory_archive") {
       "--name", "observatory_assets_archive",
       "--client_root", rebase_path("$root_out_dir/observatory/deployed/web/"),
     ]
+    if (enable_compression) {
+      args += [ "--compress" ]
+    }
 
     outputs = [
       "$root_gen_dir/observatory/${output_name}.cc",
@@ -209,6 +216,7 @@ source_set("embedded_observatory_archive") {
 }
 
 observatory_archive("standalone_archive_observatory") {
+  compress = true
   outer_namespace = "dart"
   inner_namespace = "bin"
 }

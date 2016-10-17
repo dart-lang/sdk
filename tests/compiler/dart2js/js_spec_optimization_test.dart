@@ -57,6 +57,33 @@ const String TEST_3 = r"""
   }
 """;
 
+const String TEST_4 = r"""
+  import 'dart:_foreign_helper';
+  main() {
+    var s = JS('String|Null', '"Hello"');
+    var s1 = JS('returns:String;depends:none;effects:none;throws:null(1)',
+        '#.toLowerCase()', s);
+    var s2 = JS('returns:String;depends:none;effects:none;throws:null(1)',
+        '#.toUpperCase()', s);
+
+    // present: 'erCase' - retained at least one call to guarantee exception.
+  }
+""";
+
+const String TEST_5 = r"""
+  import 'dart:_foreign_helper';
+  main() {
+    var s = JS('String', '"Hello"');
+    var s1 = JS('returns:String;depends:none;effects:none;throws:null(1)',
+        '#.toLowerCase()', s);
+    var s2 = JS('returns:String;depends:none;effects:none;throws:null(1)',
+        '#.toUpperCase()', s);
+
+    // absent: 'erCase' - neither call needs to be retained since there is no
+    // exception.
+  }
+""";
+
 main() {
   RegExp directivePattern = new RegExp(
       //      \1                    \2        \3
@@ -90,5 +117,7 @@ main() {
         check(TEST_1),
         check(TEST_2),
         check(TEST_3),
+        check(TEST_4),
+        check(TEST_5),
       ]));
 }

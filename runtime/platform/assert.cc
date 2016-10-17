@@ -20,6 +20,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
 
   // Print the file and line number into the buffer.
   char buffer[4 * KB];
+  MSAN_UNPOISON(buffer, sizeof(buffer));
   intptr_t file_and_line_length =
       snprintf(buffer, sizeof(buffer), "%s: %d: error: ", file, line_);
 

@@ -216,9 +216,8 @@ void FlowGraphTypePropagator::VisitValue(Value* value) {
   value->SetReachingType(type);
 
   if (FLAG_support_il_printer && FLAG_trace_type_propagation) {
-    THR_Print("reaching type to v%" Pd " for v%" Pd " is %s\n",
-              value->instruction()->IsDefinition() ?
-                  value->instruction()->AsDefinition()->ssa_temp_index() : -1,
+    THR_Print("reaching type to %s for v%" Pd " is %s\n",
+              value->instruction()->ToCString(),
               value->definition()->ssa_temp_index(),
               type->ToCString());
   }
@@ -260,6 +259,23 @@ void FlowGraphTypePropagator::VisitCheckClass(CheckClassInstr* check) {
 void FlowGraphTypePropagator::VisitCheckClassId(CheckClassIdInstr* check) {
   // Can't propagate the type/cid because it may cause illegal code motion and
   // we don't track dependencies in all places via redefinitions.
+}
+
+
+void FlowGraphTypePropagator::VisitInstanceCall(InstanceCallInstr* instr) {
+  if (instr->has_unique_selector()) {
+    SetCid(instr->ArgumentAt(0),
+           instr->ic_data()->GetReceiverClassIdAt(0));
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitPolymorphicInstanceCall(
+    PolymorphicInstanceCallInstr* instr) {
+  if (instr->instance_call()->has_unique_selector()) {
+    SetCid(instr->ArgumentAt(0),
+           instr->ic_data().GetReceiverClassIdAt(0));
+  }
 }
 
 

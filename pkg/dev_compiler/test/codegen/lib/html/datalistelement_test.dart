@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library datalistelement_dataview_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   var isDataListElement =
       predicate((x) => x is DataListElement, 'is a DataListElement');
 
@@ -46,15 +43,15 @@ main() {
 
   test('list', () {
     expect(() {
-      var list = document.query('#browsers');
-      var input = document.query('#input');
+      var list = document.query('#browsers') as DataListElement;
+      var input = document.query('#input') as InputElement;
       expect(input.list, list);
     }, expectation);
   });
 
   test('options', () {
     expect(() {
-      var options = document.query('#browsers').options;
+      var options = (document.query('#browsers') as DataListElement).options;
       expect(options.length, 5);
     }, expectation);
   });

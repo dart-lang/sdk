@@ -6,14 +6,13 @@
 /// for prevent XSS or other attacks. If you suppress this, or parts of it
 /// please make it a critical bug and bring it to the attention of the
 /// dart:html maintainers.
-library trusted_html_tree_sanitizer_test;
-
+import 'dart:js' as js;
 import 'dart:html';
 import 'dart:svg' as svg;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+
+import 'package:expect/minitest.dart';
+
 import 'utils.dart';
-import 'dart:js' as js;
 
 var oldAdoptNode;
 var jsDocument;
@@ -33,8 +32,6 @@ restoreOldAdoptNode() {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('not_create_document_fragment', () {
     setUp(makeDocumentFragmentAdoptionThrow);
     tearDown(restoreOldAdoptNode);

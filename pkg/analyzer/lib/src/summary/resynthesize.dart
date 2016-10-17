@@ -19,8 +19,10 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/util/fast_uri.dart';
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
@@ -1160,9 +1162,8 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   }
 
   LibraryElementHandle _getLibraryByRelativeUri(String depUri) {
-    String absoluteUri = resynthesizer.summaryResynthesizer.sourceFactory
-        .resolveUri(resynthesizer.librarySource, depUri)
-        .uri
+    String absoluteUri = resolveRelativeUri(
+            resynthesizer.librarySource.uri, FastUri.parse(depUri))
         .toString();
     return new LibraryElementHandle(resynthesizer.summaryResynthesizer,
         new ElementLocationImpl.con3(<String>[absoluteUri]));
@@ -1388,6 +1389,11 @@ class _ResynthesizerContext implements ResynthesizerContext {
   }
 
   @override
+  bool inheritsCovariant(int slot) {
+    return _unitResynthesizer.parametersInheritingCovariant.contains(slot);
+  }
+
+  @override
   bool isInConstCycle(int slot) {
     return _unitResynthesizer.constCycles.contains(slot);
   }
@@ -1453,6 +1459,12 @@ class _UnitResynthesizer {
    */
   Set<int> constCycles;
 
+  /**
+   * Set of slot ids corresponding to parameters that inherit `@covariant`
+   * behavior.
+   */
+  Set<int> parametersInheritingCovariant;
+
   int numLinkedReferences;
   int numUnlinkedReferences;
 
@@ -1481,6 +1493,8 @@ class _UnitResynthesizer {
       linkedTypeMap[t.slot] = t;
     }
     constCycles = linkedUnit.constCycles.toSet();
+    parametersInheritingCovariant =
+        linkedUnit.parametersInheritingCovariant.toSet();
     numLinkedReferences = linkedUnit.references.length;
     numUnlinkedReferences = unlinkedUnit.references.length;
     referenceInfos = new List<_ReferenceInfo>(numLinkedReferences);
@@ -1511,7 +1525,8 @@ class _UnitResynthesizer {
         constructorName = null;
       }
       elementAnnotation.annotationAst = AstFactory.annotation2(
-          typeName, constructorName, constExpr.argumentList);
+          typeName, constructorName, constExpr.argumentList)
+        ..element = constExpr.staticElement;
     } else {
       throw new StateError(
           'Unexpected annotation type: ${constExpr.runtimeType}');

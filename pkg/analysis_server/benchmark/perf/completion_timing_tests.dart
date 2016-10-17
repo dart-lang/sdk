@@ -8,9 +8,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
-import '../../test/utils.dart';
 import 'performance_tests.dart';
 
 /**
@@ -19,7 +18,6 @@ import 'performance_tests.dart';
  * with a `--offset`.
  */
 main(List<String> arguments) {
-  initializeTestEnvironment();
   ArgParser parser = _createArgParser();
   var args = parser.parse(arguments);
   if (args[SOURCE_OPTION] == null) {

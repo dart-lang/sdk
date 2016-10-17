@@ -1,11 +1,8 @@
-library ExceptionsTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   test('EventException', () {
     final event = new Event('Event');
     // Intentionally do not initialize it!

@@ -55,6 +55,10 @@ abstract class ClosedWorld implements World {
   /// subclass.
   bool isIndirectlyInstantiated(ClassElement cls);
 
+  /// Returns `true` if [cls] is abstract and thus can only be instantiated
+  /// through subclasses.
+  bool isAbstract(ClassElement cls);
+
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls);
 
@@ -156,6 +160,52 @@ abstract class ClosedWorld implements World {
   /// Returns `true` if any subclass of [superclass] implements [type].
   bool hasAnySubclassThatImplements(ClassElement superclass, ClassElement type);
 
+  /// Returns `true` if a call of [selector] on [cls] and/or subclasses/subtypes
+  /// need noSuchMethod handling.
+  ///
+  /// If the receiver is guaranteed to have a member that matches what we're
+  /// looking for, there's no need to introduce a noSuchMethod handler. It will
+  /// never be called.
+  ///
+  /// As an example, consider this class hierarchy:
+  ///
+  ///                   A    <-- noSuchMethod
+  ///                  / \
+  ///                 C   B  <-- foo
+  ///
+  /// If we know we're calling foo on an object of type B we don't have to worry
+  /// about the noSuchMethod method in A because objects of type B implement
+  /// foo. On the other hand, if we end up calling foo on something of type C we
+  /// have to add a handler for it.
+  ///
+  /// If the holders of all user-defined noSuchMethod implementations that might
+  /// be applicable to the receiver type have a matching member for the current
+  /// name and selector, we avoid introducing a noSuchMethod handler.
+  ///
+  /// As an example, consider this class hierarchy:
+  ///
+  ///                        A    <-- foo
+  ///                       / \
+  ///    noSuchMethod -->  B   C  <-- bar
+  ///                      |   |
+  ///                      C   D  <-- noSuchMethod
+  ///
+  /// When calling foo on an object of type A, we know that the implementations
+  /// of noSuchMethod are in the classes B and D that also (indirectly)
+  /// implement foo, so we do not need a handler for it.
+  ///
+  /// If we're calling bar on an object of type D, we don't need the handler
+  /// either because all objects of type D implement bar through inheritance.
+  ///
+  /// If we're calling bar on an object of type A we do need the handler because
+  /// we may have to call B.noSuchMethod since B does not implement bar.
+  bool needsNoSuchMethod(ClassElement cls, Selector selector, ClassQuery query);
+
+  /// Returns whether [element] will be the one used at runtime when being
+  /// invoked on an instance of [cls]. [selector] is used to ensure library
+  /// privacy is taken into account.
+  bool hasElementIn(ClassElement cls, Selector selector, Element element);
+
   /// Returns [ClassHierarchyNode] for [cls] used to model the class hierarchies
   /// of known classes.
   ///
@@ -170,9 +220,10 @@ abstract class ClosedWorld implements World {
   /// methods defined in [ClosedWorld].
   ClassSet getClassSet(ClassElement cls);
 
-  // TODO(johnniwinther): Find a better strategy for caching these.
-  @deprecated
-  List<Map<ClassElement, TypeMask>> get canonicalizedTypeMasks;
+  /// Return the cached mask for [base] with the given flags, or
+  /// calls [createMask] to create the mask and cache it.
+  // TODO(johnniwinther): Find a better strategy for caching these?
+  TypeMask getCachedMask(ClassElement base, int flags, TypeMask createMask());
 
   /// Returns the [FunctionSet] containing all live functions in the closed
   /// world.
@@ -274,9 +325,15 @@ abstract class OpenWorld implements World {
 class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   bool _closed = false;
 
+  TypeMask getCachedMask(ClassElement base, int flags, TypeMask createMask()) {
+    Map<ClassElement, TypeMask> cachedMasks =
+        _canonicalizedTypeMasks[flags] ??= <ClassElement, TypeMask>{};
+    return cachedMasks.putIfAbsent(base, createMask);
+  }
+
   /// Cache of [FlatTypeMask]s grouped by the 8 possible values of the
   /// `FlatTypeMask.flags` property.
-  List<Map<ClassElement, TypeMask>> canonicalizedTypeMasks =
+  final List<Map<ClassElement, TypeMask>> _canonicalizedTypeMasks =
       new List<Map<ClassElement, TypeMask>>.filled(8, null);
 
   bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
@@ -341,6 +398,9 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
     return node != null && node.isIndirectlyInstantiated;
   }
+
+  @override
+  bool isAbstract(ClassElement cls) => cls.isAbstract;
 
   /// Returns `true` if [cls] is implemented by an instantiated class.
   bool isImplemented(ClassElement cls) {
@@ -622,14 +682,14 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// Returns `true` if [cls] or any superclass mixes in [mixin].
   bool isSubclassOfMixinUseOf(ClassElement cls, ClassElement mixin) {
     assert(isClosed);
+    assert(cls.isDeclaration);
+    assert(mixin.isDeclaration);
     if (isUsedAsMixin(mixin)) {
-      ClassElement current = cls.declaration;
-      mixin = mixin.declaration;
+      ClassElement current = cls;
       while (current != null) {
-        current = current.declaration;
         if (current.isMixinApplication) {
           MixinApplicationElement application = current;
-          if (application.mixin.declaration == mixin) return true;
+          if (application.mixin == mixin) return true;
         }
         current = current.superclass;
       }
@@ -641,8 +701,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   /// of a mixin application of [y].
   bool everySubtypeIsSubclassOfOrMixinUseOf(ClassElement x, ClassElement y) {
     assert(isClosed);
-    x = x.declaration;
-    y = y.declaration;
+    assert(x.isDeclaration);
+    assert(y.isDeclaration);
     Map<ClassElement, bool> secondMap =
         _subtypeCoveredByCache[x] ??= <ClassElement, bool>{};
     return secondMap[y] ??= subtypesOf(x).every((ClassElement cls) =>
@@ -656,6 +716,72 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     Set<ClassElement> subclasses = typesImplementedBySubclassesOf(superclass);
     if (subclasses == null) return false;
     return subclasses.contains(type);
+  }
+
+  @override
+  bool hasElementIn(ClassElement cls, Selector selector, Element element) {
+    // Use [:implementation:] of [element]
+    // because our function set only stores declarations.
+    Element result = findMatchIn(cls, selector);
+    return result == null
+        ? false
+        : result.implementation == element.implementation;
+  }
+
+  Element findMatchIn(ClassElement cls, Selector selector) {
+    // Use the [:implementation] of [cls] in case the found [element]
+    // is in the patch class.
+    var result = cls.implementation.lookupByName(selector.memberName);
+    return result;
+  }
+
+  /// Returns whether a [selector] call on an instance of [cls]
+  /// will hit a method at runtime, and not go through [noSuchMethod].
+  bool hasConcreteMatch(ClassElement cls, Selector selector) {
+    assert(invariant(cls, isInstantiated(cls),
+        message: '$cls has not been instantiated.'));
+    Element element = findMatchIn(cls, selector);
+    if (element == null) return false;
+
+    if (element.isAbstract) {
+      ClassElement enclosingClass = element.enclosingClass;
+      return hasConcreteMatch(enclosingClass.superclass, selector);
+    }
+    return selector.appliesUntyped(element);
+  }
+
+  @override
+  bool needsNoSuchMethod(
+      ClassElement base, Selector selector, ClassQuery query) {
+    /// Returns `true` if [cls] is an instantiated class that does not have
+    /// a concrete method matching [selector].
+    bool needsNoSuchMethod(ClassElement cls) {
+      // We can skip uninstantiated subclasses.
+      if (!isInstantiated(cls)) {
+        return false;
+      }
+      // We can just skip abstract classes because we know no
+      // instance of them will be created at runtime, and
+      // therefore there is no instance that will require
+      // [noSuchMethod] handling.
+      return !cls.isAbstract && !hasConcreteMatch(cls, selector);
+    }
+
+    bool baseNeedsNoSuchMethod = needsNoSuchMethod(base);
+    if (query == ClassQuery.EXACT || baseNeedsNoSuchMethod) {
+      return baseNeedsNoSuchMethod;
+    }
+
+    Iterable<ClassElement> subclassesToCheck;
+    if (query == ClassQuery.SUBTYPE) {
+      subclassesToCheck = strictSubtypesOf(base);
+    } else {
+      assert(query == ClassQuery.SUBCLASS);
+      subclassesToCheck = strictSubclassesOf(base);
+    }
+
+    return subclassesToCheck != null &&
+        subclassesToCheck.any(needsNoSuchMethod);
   }
 
   final Compiler _compiler;
@@ -1010,4 +1136,17 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   bool getCurrentlyKnownMightBePassedToApply(Element element) {
     return getMightBePassedToApply(element);
   }
+}
+
+/// Enum values defining subset of classes included in queries.
+enum ClassQuery {
+  /// Only the class itself is included.
+  EXACT,
+
+  /// The class and all subclasses (transitively) are included.
+  SUBCLASS,
+
+  /// The class and all classes that implement or subclass it (transitively)
+  /// are included.
+  SUBTYPE,
 }

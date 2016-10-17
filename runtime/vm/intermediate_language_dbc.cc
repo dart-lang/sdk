@@ -454,7 +454,7 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
     }
   } else {
     ASSERT(true_condition == NEXT_IS_FALSE);
-    // NEXT_IS_FALSE indicates that the preceeing test has been flipped and
+    // NEXT_IS_FALSE indicates that the preceeding test has been flipped and
     // expects the false case to be in the subsequent instruction, which it
     // skips if the test succeeds.
     __ Jump(labels.false_label);
@@ -479,7 +479,7 @@ Condition StrictCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     condition = NEXT_IS_TRUE;
     comparison = kind();
   } else {
-    // Flip comparision to save a jump.
+    // Flip comparison to save a jump.
     condition = NEXT_IS_FALSE;
     comparison = (kind() == Token::kEQ_STRICT) ? Token::kNE_STRICT
                                                : Token::kEQ_STRICT;
@@ -1028,7 +1028,12 @@ EMIT_NATIVE_CODE(StoreInstanceField, 2) {
   if (compiler->is_optimizing()) {
     const Register value = locs()->in(1).reg();
     const Register instance = locs()->in(0).reg();
-    __ StoreField(instance, offset_in_bytes() / kWordSize, value);
+    if (Utils::IsInt(8, offset_in_bytes() / kWordSize)) {
+      __ StoreField(instance, offset_in_bytes() / kWordSize, value);
+    } else {
+      __ StoreFieldExt(instance, value);
+      __ Nop(offset_in_bytes() / kWordSize);
+    }
   } else {
     __ StoreFieldTOS(offset_in_bytes() / kWordSize);
   }
@@ -1040,7 +1045,12 @@ EMIT_NATIVE_CODE(LoadField, 1, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
     const Register result = locs()->out(0).reg();
     const Register instance = locs()->in(0).reg();
-    __ LoadField(result, instance, offset_in_bytes() / kWordSize);
+    if (Utils::IsInt(8, offset_in_bytes() / kWordSize)) {
+      __ LoadField(result, instance, offset_in_bytes() / kWordSize);
+    } else {
+      __ LoadFieldExt(result, instance);
+      __ Nop(offset_in_bytes() / kWordSize);
+    }
   } else {
     __ LoadFieldTOS(offset_in_bytes() / kWordSize);
   }
@@ -1119,10 +1129,27 @@ EMIT_NATIVE_CODE(CatchBlockEntry, 0) {
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_,
                                 needs_stacktrace());
-  __ MoveSpecial(-exception_var().index()-1,
-                 Simulator::kExceptionSpecialIndex);
-  __ MoveSpecial(-stacktrace_var().index()-1,
-                 Simulator::kStacktraceSpecialIndex);
+
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+  if (compiler->is_optimizing()) {
+    // In optimized code, variables at the catch block entry reside at the top
+    // of the allocatable register range.
+    const intptr_t num_non_copied_params =
+        compiler->flow_graph().num_non_copied_params();
+    const intptr_t exception_reg = kNumberOfCpuRegisters -
+        (-exception_var().index() + num_non_copied_params);
+    const intptr_t stacktrace_reg = kNumberOfCpuRegisters -
+        (-stacktrace_var().index() + num_non_copied_params);
+    __ MoveSpecial(exception_reg, Simulator::kExceptionSpecialIndex);
+    __ MoveSpecial(stacktrace_reg, Simulator::kStacktraceSpecialIndex);
+  } else {
+    __ MoveSpecial(LocalVarIndex(0, exception_var().index()),
+                   Simulator::kExceptionSpecialIndex);
+    __ MoveSpecial(LocalVarIndex(0, stacktrace_var().index()),
+                   Simulator::kStacktraceSpecialIndex);
+  }
   __ SetFrame(compiler->StackSize());
 }
 
@@ -1400,10 +1427,15 @@ EMIT_NATIVE_CODE(CheckClass, 1) {
            (unary_checks().NumberOfChecks() > 1));
     const intptr_t may_be_smi =
         (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) ? 1 : 0;
+    bool is_dense_switch = false;
+    intptr_t cid_mask = 0;
     if (IsDenseSwitch()) {
       ASSERT(cids_[0] < cids_[cids_.length() - 1]);
+      cid_mask = ComputeCidMask();
+      is_dense_switch = Smi::IsValid(cid_mask);
+    }
+    if (is_dense_switch) {
       const intptr_t low_cid = cids_[0];
-      const intptr_t cid_mask = ComputeCidMask();
       __ CheckDenseSwitch(value, may_be_smi);
       __ Nop(compiler->ToEmbeddableCid(low_cid, this));
       __ Nop(__ AddConstant(Smi::Handle(Smi::New(cid_mask))));
@@ -1788,15 +1820,12 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   const Register left = locs->in(0).reg();
   const Register right = locs->in(1).reg();
   Token::Kind comparison = kind;
+  // For double comparisons we can't flip the condition like with smi
+  // comparisons because of NaN which will compare false for all except !=
+  // operations.
+  // TODO(fschneider): Change the block order instead in DBC so that the
+  // false block in always the fall-through block.
   Condition condition = NEXT_IS_TRUE;
-  if (labels.fall_through != labels.false_label) {
-    // If we aren't falling through to the false label, we can save a Jump
-    // instruction in the case that the true case is the fall through by
-    // flipping the sense of the test such that the instruction following the
-    // test is the Jump to the false label.
-    condition = NEXT_IS_FALSE;
-    comparison = FlipCondition(kind);
-  }
   __ Emit(Bytecode::Encode(OpcodeForDoubleCondition(comparison), left, right));
   return condition;
 }

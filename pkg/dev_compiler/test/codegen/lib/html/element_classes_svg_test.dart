@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ElementTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:collection';
 import 'dart:html';
 import 'dart:svg' as svg;
+
+import 'package:expect/minitest.dart';
 
 // Test for `querySelectorAll(xxx).classes.op()` where the query returns mixed
 // Html and Svg elements.
@@ -53,8 +52,6 @@ String view(var e) {
 }
 
 main() {
-  useHtmlConfiguration();
-
   Set<String> extractClasses(Element el) {
     final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml);
     return new LinkedHashSet.from(match[1].split(' '));
@@ -82,8 +79,8 @@ main() {
     expect(view(elements2), '[[foo, qux], [foo, qux], [foo, qux], [foo, qux]]');
 
     for (Element e in elements2) {
-      expect(e.classes, orderedEquals(['foo', 'qux']));
-      expect(extractClasses(e), orderedEquals(['foo', 'qux']));
+      expect(e.classes, equals(['foo', 'qux']));
+      expect(extractClasses(e), equals(['foo', 'qux']));
     }
 
     elements.classes = [];
@@ -102,7 +99,6 @@ main() {
     expect(elements.classes.contains('classy'), isTrue);
     expect(elements.classes.contains('troll'), isFalse);
   });
-
 
   test('listAdd', () {
     var elements =  elementsSetup();

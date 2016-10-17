@@ -430,16 +430,18 @@ class ResolverTask extends CompilerTask {
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
-    DartType type = resolveReturnType(element, annotation);
+    DartType type = _resolveReturnType(element, annotation);
     if (type.isVoid) {
       reporter.reportErrorMessage(annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;
   }
 
-  DartType resolveReturnType(Element element, TypeAnnotation annotation) {
+  DartType _resolveReturnType(Element element, TypeAnnotation annotation) {
     if (annotation == null) return const DynamicType();
     DartType result = visitorFor(element).resolveTypeAnnotation(annotation);
+    assert(invariant(annotation, result != null,
+        message: "No type computed for $annotation."));
     if (result == null) {
       // TODO(karklose): warning.
       return const DynamicType();

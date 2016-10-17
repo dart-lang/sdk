@@ -714,6 +714,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_deoptimization_counter(reader->Read<int8_t>());
     func.set_optimized_instruction_count(reader->Read<uint16_t>());
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
+    func.set_kernel_function(NULL);
     func.set_was_compiled(false);
 
     // Set all the object fields.
@@ -820,6 +821,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_guarded_cid(reader->Read<int32_t>());
   field.set_is_nullable(reader->Read<int32_t>());
   field.set_kind_bits(reader->Read<uint8_t>());
+  field.set_kernel_field(NULL);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(field,
@@ -1189,7 +1191,8 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                          reader->Read<int16_t>());
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_deferred_load_,
                          reader->Read<bool>());
-  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, reader->Read<bool>());
+  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_,
+                         !prefix.raw_ptr()->is_deferred_load_);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(prefix,
@@ -1220,7 +1223,6 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   // Write out all non object fields.
   writer->Write<int16_t>(ptr()->num_imports_);
   writer->Write<bool>(ptr()->is_deferred_load_);
-  writer->Write<bool>(ptr()->is_loaded_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);

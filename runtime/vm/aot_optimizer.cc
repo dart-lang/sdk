@@ -54,6 +54,42 @@ static bool CanConvertUnboxedMintToDouble() {
 }
 
 
+// Returns named function that is a unique dynamic target, i.e.,
+// - the target is identified by its name alone, since it occurs only once.
+// - target's class has no subclasses, and neither is subclassed, i.e.,
+//   the receiver type can be only the function's class.
+// Returns Function::null() if there is no unique dynamic target for
+// given 'fname'. 'fname' must be a symbol.
+static void GetUniqueDynamicTarget(Isolate* isolate,
+                                   const String& fname,
+                                   Object* function) {
+  UniqueFunctionsSet functions_set(
+      isolate->object_store()->unique_dynamic_targets());
+  ASSERT(fname.IsSymbol());
+  *function = functions_set.GetOrNull(fname);
+  ASSERT(functions_set.Release().raw() ==
+      isolate->object_store()->unique_dynamic_targets());
+}
+
+
+AotOptimizer::AotOptimizer(FlowGraph* flow_graph,
+                           bool use_speculative_inlining,
+                           GrowableArray<intptr_t>* inlining_black_list)
+    : FlowGraphVisitor(flow_graph->reverse_postorder()),
+      flow_graph_(flow_graph),
+      use_speculative_inlining_(use_speculative_inlining),
+      inlining_black_list_(inlining_black_list),
+      has_unique_no_such_method_(false) {
+  ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
+  Function& target_function = Function::Handle();
+  if (isolate()->object_store()->unique_dynamic_targets() != Array::null()) {
+    GetUniqueDynamicTarget(
+        isolate(), Symbols::NoSuchMethod(), &target_function);
+    has_unique_no_such_method_ = !target_function.IsNull();
+  }
+}
+
+
 // Optimize instance calls using ICData.
 void AotOptimizer::ApplyICData() {
   VisitBlocks();
@@ -120,24 +156,6 @@ void AotOptimizer::ApplyClassIds() {
 // TODO(srdjan): Test/support other number types as well.
 static bool IsNumberCid(intptr_t cid) {
   return (cid == kSmiCid) || (cid == kDoubleCid);
-}
-
-
-// Returns named function that is a unique dynamic target, i.e.,
-// - the target is identified by its name alone, since it occurs only once.
-// - target's class has no subclasses, and neither is subclassed, i.e.,
-//   the receiver type can be only the function's class.
-// Returns Function::null() if there is no unique dynamic target for
-// given 'fname'. 'fname' must be a symbol.
-static void GetUniqueDynamicTarget(Isolate* isolate,
-                                   const String& fname,
-                                   Object* function) {
-  UniqueFunctionsSet functions_set(
-      isolate->object_store()->unique_dynamic_targets());
-  ASSERT(fname.IsSymbol());
-  *function = functions_set.GetOrNull(fname);
-  ASSERT(functions_set.Release().raw() ==
-      isolate->object_store()->unique_dynamic_targets());
 }
 
 
@@ -227,12 +245,17 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
         !target_function.HasOptionalNamedParameters() &&
         target_function.AreValidArgumentCounts(call->ArgumentCount(), 0,
                                                /* error_message = */ NULL)) {
-      const intptr_t cid = Class::Handle(Z, target_function.Owner()).id();
-      const ICData& ic_data = ICData::ZoneHandle(Z,
-          ICData::NewFrom(*call->ic_data(), 1));
-      ic_data.AddReceiverCheck(cid, target_function);
-      call->set_ic_data(&ic_data);
-      return true;
+      const Class& cls = Class::Handle(Z, target_function.Owner());
+      if (!CHA::IsImplemented(cls) && !CHA::HasSubclasses(cls)) {
+        const ICData& ic_data = ICData::ZoneHandle(Z,
+            ICData::NewFrom(*call->ic_data(), 1));
+        ic_data.AddReceiverCheck(cls.id(), target_function);
+        call->set_ic_data(&ic_data);
+        if (has_unique_no_such_method_) {
+          call->set_has_unique_selector(true);
+        }
+        return true;
+      }
     }
   }
 
@@ -1991,6 +2014,32 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
                                             /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;
+  }
+}
+
+
+void AotOptimizer::VisitPolymorphicInstanceCall(
+    PolymorphicInstanceCallInstr* call) {
+  if (call->with_checks()) {
+    const intptr_t receiver_cid =
+        call->PushArgumentAt(0)->value()->Type()->ToCid();
+    if (receiver_cid != kDynamicCid) {
+      const Class& receiver_class = Class::Handle(Z,
+          isolate()->class_table()->At(receiver_cid));
+
+      const Array& args_desc_array = Array::Handle(Z,
+          ArgumentsDescriptor::New(call->ArgumentCount(),
+                                   call->instance_call()->argument_names()));
+      ArgumentsDescriptor args_desc(args_desc_array);
+      const Function& function = Function::Handle(Z,
+          Resolver::ResolveDynamicForReceiverClass(
+              receiver_class,
+              call->instance_call()->function_name(),
+              args_desc));
+      if (!function.IsNull()) {
+        call->set_with_checks(false);
+      }
+    }
   }
 }
 

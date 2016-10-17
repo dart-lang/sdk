@@ -333,30 +333,6 @@ void CallPattern::SetTargetCode(const Code& target) const {
 }
 
 
-void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
-  Instr* movz0 = Instr::At(pc + (0 * Instr::kInstrSize));
-  Instr* movk1 = Instr::At(pc + (1 * Instr::kInstrSize));
-  Instr* movk2 = Instr::At(pc + (2 * Instr::kInstrSize));
-  Instr* movk3 = Instr::At(pc + (3 * Instr::kInstrSize));
-  Instr* blr = Instr::At(pc + (4 * Instr::kInstrSize));
-  const uint32_t w0 = Utils::Low32Bits(target_address);
-  const uint32_t w1 = Utils::High32Bits(target_address);
-  const uint16_t h0 = Utils::Low16Bits(w0);
-  const uint16_t h1 = Utils::High16Bits(w0);
-  const uint16_t h2 = Utils::Low16Bits(w1);
-  const uint16_t h3 = Utils::High16Bits(w1);
-
-  movz0->SetMoveWideBits(MOVZ, IP0, h0, 0, kDoubleWord);
-  movk1->SetMoveWideBits(MOVK, IP0, h1, 1, kDoubleWord);
-  movk2->SetMoveWideBits(MOVK, IP0, h2, 2, kDoubleWord);
-  movk3->SetMoveWideBits(MOVK, IP0, h3, 3, kDoubleWord);
-  blr->SetUnconditionalBranchRegBits(BLR, IP0);
-
-  ASSERT(kDeoptCallLengthInBytes == 5 * Instr::kInstrSize);
-  CPU::FlushICache(pc, kDeoptCallLengthInBytes);
-}
-
-
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       data_pool_index_(-1),
@@ -366,15 +342,15 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(*(reinterpret_cast<uint32_t*>(pc) - 1) == 0xd63f0200);
 
   Register reg;
-  uword stub_load_end =
-      InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize,
+  uword data_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(pc - Instr::kInstrSize,
                                                  &reg,
-                                                 &target_pool_index_);
-  ASSERT(reg == CODE_REG);
-  InstructionPattern::DecodeLoadWordFromPool(stub_load_end,
-                                             &reg,
-                                             &data_pool_index_);
+                                                 &data_pool_index_);
   ASSERT(reg == R5);
+  InstructionPattern::DecodeLoadWordFromPool(data_load_end - Instr::kInstrSize,
+                                             &reg,
+                                             &target_pool_index_);
+  ASSERT(reg == CODE_REG);
 }
 
 

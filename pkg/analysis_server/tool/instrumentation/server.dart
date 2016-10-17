@@ -186,8 +186,10 @@ class WebServer {
 
   void _writeLogPage(HttpRequest request, StringBuffer buffer) {
     Map<String, String> parameterMap = getParameterMap(request);
+    String groupId = parameterMap['group'];
     String startIndex = parameterMap['start'];
     LogPage page = new LogPage(log);
+    page.selectedGroup = EntryGroup.withId(groupId ?? 'nonTask');
     if (startIndex != null) {
       page.pageStart = int.parse(startIndex);
     } else {

@@ -9,16 +9,16 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:path/path.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(UriContributorTest);
-  defineReflectiveTests(UriContributorWindowsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(UriContributorTest);
+    defineReflectiveTests(UriContributorWindowsTest);
+  });
 }
 
 @reflectiveTest
@@ -267,6 +267,16 @@ class UriContributorTest extends DartCompletionContributorTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_import_package2_raw() async {
+    addPackageSource('foo', 'foo.dart', 'library foo;');
+    addPackageSource('foo', 'baz/too.dart', 'library too;');
+    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addTestSource('import r"package:foo/baz/^" import');
+    await computeSuggestions();
+    assertSuggest('package:foo/baz/too.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
+  }
+
   test_import_package2_with_trailing() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');
@@ -277,16 +287,6 @@ class UriContributorTest extends DartCompletionContributorTest {
         csKind: CompletionSuggestionKind.IMPORT);
     expect(replacementOffset, completionOffset - 16);
     expect(replacementLength, 5 + 16);
-  }
-
-  test_import_package2_raw() async {
-    addPackageSource('foo', 'foo.dart', 'library foo;');
-    addPackageSource('foo', 'baz/too.dart', 'library too;');
-    addPackageSource('bar', 'bar.dart', 'library bar;');
-    addTestSource('import r"package:foo/baz/^" import');
-    await computeSuggestions();
-    assertSuggest('package:foo/baz/too.dart',
-        csKind: CompletionSuggestionKind.IMPORT);
   }
 
   test_import_package_missing_lib() async {

@@ -369,10 +369,12 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     var exec = "$buildDir/dart_bootstrap";
     var args = new List();
-    args.add("--snapshot=$tempDir");
     args.add("--snapshot-kind=app-aot");
     if (useBlobs) {
+      args.add("--snapshot=$tempDir/out.aotsnapshot");
       args.add("--use-blobs");
+    } else {
+      args.add("--snapshot=$tempDir/out.S");
     }
     if (isAndroid && arch == 'arm') {
       args.add('--no-sim-use-hardfp');
@@ -390,15 +392,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       List arguments,
       Map<String, String> environmentOverrides) {
 
-    var cc, shared, libname;
+    var cc, shared;
     if (Platform.isLinux) {
       cc = 'gcc';
       shared = '-shared';
-      libname = 'libprecompiled.so';
     } else if (Platform.isMacOS) {
       cc = 'clang';
       shared = '-dynamiclib';
-      libname = 'libprecompiled.dylib';
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }
@@ -430,8 +430,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
     var args = (cc_flags != null) ? [ shared, cc_flags ] : [ shared ];
     args.addAll([
       '-o',
-      '$tempDir/$libname',
-      '$tempDir/snapshot.S'
+      '$tempDir/out.aotsnapshot',
+      '$tempDir/out.S'
     ]);
 
     return commandBuilder.getCompilationCommand('assemble', tempDir, !useSdk,
@@ -447,7 +447,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       List arguments,
       Map<String, String> environmentOverrides) {
     var exec = 'rm';
-    var args = ['$tempDir/snapshot.S'];
+    var args = ['$tempDir/out.S'];
 
     return commandBuilder.getCompilationCommand(
         'remove_assembly',
@@ -532,7 +532,7 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     var exec = "$buildDir/dart_bootstrap";
     var args = new List();
-    args.add("--snapshot=$tempDir");
+    args.add("--snapshot=$tempDir/out.jitsnapshot");
     args.add("--snapshot-kind=app-after-run");
     args.addAll(arguments);
 
@@ -592,7 +592,7 @@ class Dart2AppJitSnapshotCompilerConfiguration extends Dart2AppSnapshotCompilerC
       Map<String, String> environmentOverrides) {
     var exec = "$buildDir/dart";
     var args = new List();
-    args.add("--snapshot=$tempDir");
+    args.add("--snapshot=$tempDir/out.jitsnapshot");
     args.add("--snapshot-kind=app-jit-after-run");
     if (useBlobs) {
       args.add("--use-blobs");

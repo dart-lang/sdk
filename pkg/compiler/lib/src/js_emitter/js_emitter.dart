@@ -56,7 +56,7 @@ import '../js_backend/js_backend.dart'
         TypeVariableHandler;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../universe/universe.dart' show SelectorConstraints;
+import '../universe/world_builder.dart' show SelectorConstraints;
 import '../util/util.dart' show Setlet;
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;

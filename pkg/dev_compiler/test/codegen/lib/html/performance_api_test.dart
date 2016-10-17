@@ -1,11 +1,8 @@
-library PerformanceApiTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlIndividualConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   group('supported', () {
     test('supported', () {
       expect(Performance.supported, true);

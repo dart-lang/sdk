@@ -31,20 +31,20 @@ vars = {
   "co19_rev": "@d4767b4caea3c5828ad8e053cd051d44a59061af",
 
   # Revisions of GN related dependencies.
-  "buildtools_revision": "@3d2e47bf14e4e67816a53e304dea422fa18f9180",
+  "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
 
-  "gperftools_revision": "@7822b5b0b9fa7e016e1f6b46ea86f26f4691a457",
+  "gperftools_revision": "@02eeed29df112728564a5dde6417fa4622b57a06",
 
   # Revisions of /third_party/* dependencies.
   "args_tag": "@0.13.5",
-  "async_tag": "@1.11.1",
+  "async_tag": "@1.11.2",
   "barback-0.13.0_rev": "@34853",
   "barback-0.14.0_rev": "@36398",
   "barback-0.14.1_rev": "@38525",
   "barback_tag" : "@0.15.2+9",
   "bazel_worker_tag": "@0.1.1",
   "boolean_selector_tag" : "@1.0.2",
-  "boringssl_gen_rev": "@922830c0aad900dd3d143eef1ba06faa83fe263b",
+  "boringssl_gen_rev": "@62c20247d582444cb2804f9ea4e3abaa6e47f6a5",
   "boringssl_rev" : "@8d343b44bbab829d1a28fdef650ca95f7db4412e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
@@ -54,7 +54,7 @@ vars = {
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.1",
   "csslib_tag" : "@0.13.2",
-  "dart2js_info_tag" : "@0.2.7+1",
+  "dart2js_info_tag" : "@0.5.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.10",
   "dartdoc_tag" : "@v0.9.7+6",
@@ -68,14 +68,14 @@ vars = {
   "http_throttle_rev" : "@284344cd357e435c6c8ff9a4a21f02b9e384a541",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "initialize_tag": "@v0.6.2+2",
-  "intl_tag": "@0.13.1",
+  "intl_tag": "@0.14.0",
   "isolate_tag": "@0.2.3",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.2",
-  "kernel_rev": "@449803b82e850a41148e636db1a6e4a848284aed",
-  "linter_tag": "@0.1.27",
+  "kernel_rev": "@1906e420431656d351a9f4ee9a36b8ca9a4da1db",
+  "linter_tag": "@0.1.28",
   "logging_tag": "@0.11.3+1",
-  "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
+  "markdown_tag": "@0.11.0",
   "matcher_tag": "@0.12.0+2",
   "metatest_tag": "@0.2.2+2",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
@@ -110,7 +110,7 @@ vars = {
   "stream_channel_tag": "@1.5.0",
   "string_scanner_tag": "@1.0.0",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_reflective_loader_tag": "@0.0.4",
+  "test_reflective_loader_tag": "@0.1.0",
   "test_tag": "@0.12.15+6",
   "typed_data_tag": "@1.1.3",
   "usage_tag": "@v2.2.2",
@@ -239,7 +239,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_tag"),
   Var("dart_root") + "/third_party/pkg/markdown":
-      (Var("github_mirror") % "markdown") + Var("markdown_rev"),
+      (Var("github_mirror") % "markdown") + Var("markdown_tag"),
   Var("dart_root") + "/third_party/pkg/matcher":
       (Var("github_mirror") % "matcher") + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
@@ -496,20 +496,6 @@ hooks = [
     ],
   },
   {
-    "name": "petitparser",
-    "pattern": ".",
-    "action": [
-      "download_from_google_storage",
-      "--no_auth",
-      "--no_resume",
-      "--bucket",
-      "dart-dependencies",
-      "--extract",
-      "-s",
-      Var('dart_root') + "/third_party/pkg/petitparser.tar.gz.sha1",
-    ],
-  },
-  {
     "name": "unittest",
     # Unittest is an early version, 0.11.6, of the package "test"
     # Do not use it in any new tests.
@@ -576,7 +562,13 @@ hooks = [
     'action': ['python', 'sdk/tools/clang/scripts/update.py', '--if-needed'],
   },
   {
+    # Update the Windows toolchain if necessary.
+    'name': 'win_toolchain',
+    'pattern': '.',
+    'action': ['python', 'sdk/build/vs_toolchain.py', 'update'],
+  },
+  {
     "pattern": ".",
-    "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
+    "action": ["python", Var("dart_root") + "/tools/generate_buildfiles.py"],
   },
 ]

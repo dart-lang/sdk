@@ -1,14 +1,12 @@
-library WindowEqualityTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
+import 'package:expect/minitest.dart';
+
 main() {
-  useHtmlConfiguration();
   var obfuscated = null;
 
   test('notNull', () {
       expect(window, isNotNull);
-      expect(window, isNot(equals(obfuscated)));
+      expect(window != obfuscated, isTrue);
     });
 }

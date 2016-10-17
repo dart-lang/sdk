@@ -6,7 +6,6 @@ library search.element_references;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show SearchResult, newSearchResult_fromMatch;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
@@ -25,21 +24,23 @@ class ElementReferencesComputer {
   /**
    * Computes [SearchResult]s for [element] references.
    */
-  Future<List<SearchResult>> compute(Element element, bool withPotential) {
-    var futureGroup = new _ConcatFutureGroup<SearchResult>();
-    // find element references
-    futureGroup.add(_findElementsReferences(element));
-    // add potential references
+  Future<List<SearchResult>> compute(
+      Element element, bool withPotential) async {
+    List<SearchResult> results = <SearchResult>[];
+
+    // Add element references.
+    results.addAll(await _findElementsReferences(element));
+
+    // Add potential references.
     if (withPotential && _isMemberElement(element)) {
       String name = element.displayName;
-      var matchesFuture = searchEngine.searchMemberReferences(name);
-      var resultsFuture = matchesFuture.then((List<SearchMatch> matches) {
-        return matches.where((match) => !match.isResolved).map(toResult);
-      });
-      futureGroup.add(resultsFuture);
+      List<SearchMatch> matches =
+          await searchEngine.searchMemberReferences(name);
+      matches = SearchMatch.withNotNullElement(matches);
+      results.addAll(matches.where((match) => !match.isResolved).map(toResult));
     }
-    // merge results
-    return futureGroup.future;
+
+    return results;
   }
 
   /**
@@ -47,18 +48,20 @@ class ElementReferencesComputer {
    * to the corresponding hierarchy [Element]s.
    */
   Future<List<SearchResult>> _findElementsReferences(Element element) async {
+    List<SearchResult> allResults = <SearchResult>[];
     Iterable<Element> refElements = await _getRefElements(element);
-    var futureGroup = new _ConcatFutureGroup<SearchResult>();
     for (Element refElement in refElements) {
       // add declaration
       if (_isDeclarationInteresting(refElement)) {
         SearchResult searchResult = _newDeclarationResult(refElement);
-        futureGroup.add(searchResult);
+        allResults.add(searchResult);
       }
       // do search
-      futureGroup.add(_findSingleElementReferences(refElement));
+      List<SearchResult> elementResults =
+          await _findSingleElementReferences(refElement);
+      allResults.addAll(elementResults);
     }
-    return futureGroup.future;
+    return allResults;
   }
 
   /**
@@ -67,6 +70,7 @@ class ElementReferencesComputer {
   Future<List<SearchResult>> _findSingleElementReferences(
       Element element) async {
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    matches = SearchMatch.withNotNullElement(matches);
     return matches.map(toResult).toList();
   }
 
@@ -127,28 +131,5 @@ class ElementReferencesComputer {
       return false;
     }
     return element.enclosingElement is ClassElement;
-  }
-}
-
-/**
- * A collection of [Future]s that concats [List] results of added [Future]s into
- * a single [List].
- */
-class _ConcatFutureGroup<E> {
-  final List<Future<List<E>>> _futures = <Future<List<E>>>[];
-
-  Future<List<E>> get future {
-    return Future.wait(_futures).then(concatToList);
-  }
-
-  /**
-   * Adds a [Future] or an [E] value to results.
-   */
-  void add(value) {
-    if (value is Future) {
-      _futures.add(value as Future<List<E>>);
-    } else {
-      _futures.add(new Future.value(<E>[value as E]));
-    }
   }
 }

@@ -253,27 +253,39 @@ a:focus, a:hover {
     <h4>Options</h4>
     <blockquote>
     <dl>
+      <dt>--client-id</dt>
+      <dd>
+      <p>
+      Specifies an identifier associated with the client. Used when
+      generating error reports.
+      </p>
+      <p>
+      Clients are strongly encouraged to provide this information in
+      order to improve the quality of information that can be provided
+      to them.
+      </p>
+      </dd>
+    </dl>
+    <dl>
+      <dt>--client-version</dt>
+      <dd>
+      <p>
+      Specifies the version of the client that is communicating with
+      the server. Used when generating error reports.
+      </p>
+      <p>
+        Clients are strongly encouraged to provide this information in
+        order to improve the quality of information that can be provided
+        to them.
+      </p>
+      </dd>
+    </dl>
+    <dl>
       <dt>--no-error-notification</dt>
       <dd>
       Disable notifications about errors (see analysis.error). If this
       flag is not specified then notifications will be sent for all
       errors produced for all files in the actual analysis roots.
-      </dd>
-    </dl>
-    <dl>
-      <dt>--file-read-mode</dt>
-      <dd>
-      An enumeration of the ways files can be read from disk. Some clients
-      normalize end of line characters which would make the file offset and
-      range information incorrect. The default option is <tt>as-is</tt>, but
-      can also be set to <tt>normalize-eol-always</tt>. The default option
-      (<tt>as-is</tt>) reads files as they are on disk. The
-      <tt>normalize-eol-always</tt> option does the following:
-      <ul>
-        <li>'\r\n' is converted to '\n';</li>
-        <li>'\r' by itself is converted to '\n';</li>
-        <li>this happens regardless of the OS editor is running on.</li>
-      </ul>
       </dd>
     </dl>
     <dl>
@@ -284,6 +296,23 @@ a:focus, a:hover {
       will be thrown. The set of API calls that require an index include:
       refactoring calls, code completions and searching.
       
+      </dd>
+    </dl>
+    <dl>
+      <dt>--file-read-mode</dt>
+      <dd>
+        <p><b>Deprecated</b></p>
+        An enumeration of the ways files can be read from disk. Some clients
+        normalize end of line characters which would make the file offset and
+        range information incorrect. The default option is <tt>as-is</tt>, but
+        can also be set to <tt>normalize-eol-always</tt>. The default option
+        (<tt>as-is</tt>) reads files as they are on disk. The
+        <tt>normalize-eol-always</tt> option does the following:
+        <ul>
+          <li>'\r\n' is converted to '\n';</li>
+          <li>'\r' by itself is converted to '\n';</li>
+          <li>this happens regardless of the OS editor is running on.</li>
+        </ul>
       </dd>
     </dl>
     </blockquote>

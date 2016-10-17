@@ -6,15 +6,15 @@ library test.integration.analysis.lint;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(LintIntegrationTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LintIntegrationTest);
+  });
 }
 
 @reflectiveTest

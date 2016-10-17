@@ -40,8 +40,15 @@ abstract class _RectangleBase<T extends num> {
 
   bool operator ==(other) {
     if (other is !Rectangle) return false;
-    return left == other.left && top == other.top && right == other.right &&
-        bottom == other.bottom;
+    // TODO(rnystrom): Type promotion doesn't currently promote the [other]
+    // to Rectangle from the above line, so do it explicitly here to avoid a
+    // dynamic send and work around:
+    // https://github.com/dart-lang/sdk/issues/27551
+    var otherRect = other as Rectangle;
+    return left == otherRect.left &&
+        top == otherRect.top &&
+        right == otherRect.right &&
+        bottom == otherRect.bottom;
   }
 
   int get hashCode => _JenkinsSmiHash.hash4(left.hashCode, top.hashCode,

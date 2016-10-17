@@ -5,15 +5,15 @@
 library test.integration.analysis.overrides;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(Test);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(Test);
+  });
 }
 
 @reflectiveTest
@@ -74,6 +74,7 @@ class Target extends Base implements Interface1, Interface2 {
         }
         return null;
       }
+
       void checkOverrides(String methodName, bool expectedOverridesBase,
           List<String> expectedOverridesInterfaces) {
         Override override = findOverride(methodName);
@@ -109,6 +110,7 @@ class Target extends Base implements Interface1, Interface2 {
           expect(interfaceMembers, isNull);
         }
       }
+
       checkOverrides('method0', true, ['Interface1', 'Interface2']);
       checkOverrides('method1', false, ['Interface1', 'Interface2']);
       checkOverrides('method2', true, ['Interface1']);

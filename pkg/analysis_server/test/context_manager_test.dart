@@ -5,7 +5,6 @@
 library test.context.directory.manager;
 
 import 'dart:collection';
-import 'dart:io' as io;
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/error/error.dart';
@@ -28,18 +27,18 @@ import 'package:linter/src/rules/avoid_as.dart';
 import 'package:path/path.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AbstractContextManagerTest);
-  defineReflectiveTests(ContextManagerWithNewOptionsTest);
-  defineReflectiveTests(ContextManagerWithOldOptionsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AbstractContextManagerTest);
+    defineReflectiveTests(ContextManagerWithNewOptionsTest);
+    defineReflectiveTests(ContextManagerWithOldOptionsTest);
+  });
 }
 
 @reflectiveTest
@@ -156,10 +155,7 @@ test_pack:lib/''');
     var context = contexts[0];
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(
-        source.fullName,
-        '/my/proj/sdk_ext/entry.dart'
-            .replaceAll('/', io.Platform.pathSeparator));
+    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
     // We can't find dart:core because we didn't list it in our
     // embedded_libs map.
     expect(context.sourceFactory.forUri('dart:core'), isNull);
@@ -1795,8 +1791,9 @@ abstract class ContextManagerTest {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    DartSdk sdk = new MockSdk(resourceProvider: resourceProvider);
-    DartSdkManager sdkManager = new DartSdkManager('/', false, (_) => sdk);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
+    DartSdkManager sdkManager = new DartSdkManager('/', false);
     manager = new ContextManagerImpl(
         resourceProvider,
         sdkManager,
@@ -2164,10 +2161,7 @@ linter:
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(
-        source.fullName,
-        '/my/proj/sdk_ext/entry.dart'
-            .replaceAll('/', io.Platform.pathSeparator));
+    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
   }
 
   test_embedder_options() async {
@@ -2258,10 +2252,7 @@ linter:
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(
-        source.fullName,
-        '/my/proj/sdk_ext/entry.dart'
-            .replaceAll('/', io.Platform.pathSeparator));
+    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
   }
 
   test_error_filter_analysis_option() async {
@@ -2715,7 +2706,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
-    DartSdkManager sdkManager = new DartSdkManager('/', false, null);
+    DartSdkManager sdkManager = new DartSdkManager('/', false);
     ContextBuilder builder =
         new ContextBuilder(resourceProvider, sdkManager, new ContentCache());
     builder.defaultOptions = options;

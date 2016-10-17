@@ -14,6 +14,7 @@
 #endif
 
 #include "platform/globals.h"
+#include "platform/memory_sanitizer.h"
 
 #if !defined(DEBUG) && !defined(NDEBUG)
 #error neither DEBUG nor NDEBUG defined
@@ -142,6 +143,7 @@ void DynamicAssertionHelper::FloatEquals(const E& expected,
 
 
 template<typename E, typename A>
+NO_SANITIZE_MEMORY
 void DynamicAssertionHelper::StringEquals(const E& expected, const A& actual) {
   std::ostringstream ess, ass;
   ess << expected;
@@ -153,6 +155,7 @@ void DynamicAssertionHelper::StringEquals(const E& expected, const A& actual) {
 
 
 template<typename E, typename A>
+NO_SANITIZE_MEMORY
 void DynamicAssertionHelper::IsSubstring(const E& needle, const A& haystack) {
   std::ostringstream ess, ass;
   ess << needle;
@@ -165,6 +168,7 @@ void DynamicAssertionHelper::IsSubstring(const E& needle, const A& haystack) {
 
 
 template<typename E, typename A>
+NO_SANITIZE_MEMORY
 void DynamicAssertionHelper::IsNotSubstring(const E& needle,
                                             const A& haystack) {
   std::ostringstream ess, ass;

@@ -29,6 +29,7 @@ static void updateThreadState(Thread* thread) {
 Monitor::WaitResult MonitorLocker::WaitWithSafepointCheck(Thread* thread,
                                                           int64_t millis) {
   ASSERT(thread == Thread::Current());
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   thread->set_execution_state(Thread::kThreadInBlockedState);
   thread->EnterSafepoint();
   Monitor::WaitResult result = monitor_->Wait(millis);

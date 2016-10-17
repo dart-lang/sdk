@@ -1870,8 +1870,11 @@ class RunningProcess {
                 });
               } else if (io.Platform.isMacOS) {
                 // Try to print stack traces of the timed out process.
+                // `sample` is a sampling profiler but we ask it sample for 1
+                // second with a 4 second delay between samples so that we only
+                // sample the threads once.
                 io.Process.run('/usr/bin/sample',
-                               ['${process.pid}', '1', '1', '-mayDie'])
+                               ['${process.pid}', '1', '4000', '-mayDie'])
                 .then((result) {
                   io.stdout.write(result.stdout);
                   io.stderr.write(result.stderr);
@@ -2604,22 +2607,19 @@ class CommandExecutorImpl implements CommandExecutor {
           .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
     }
 
-    if (command.useBlobs) {
-      steps.add(() => device.runAdbShellCommand(
-          [
-            '$devicedir/dart_precompiled_runtime',
-            '--run-app-snapshot=$deviceTestDir',
-            '--use-blobs'
-          ]..addAll(arguments),
-          timeout: timeoutDuration));
-    } else {
-      steps.add(() => device.runAdbShellCommand(
-          [
-            '$devicedir/dart_precompiled_runtime',
-            '--run-app-snapshot=$deviceTestDir'
-          ]..addAll(arguments),
-          timeout: timeoutDuration));
+    var args = new List();
+    args.addAll(arguments);
+    for (var i = 0; i < args.length; i++) {
+      if (args[i].endsWith(".dart")) {
+        args[i] = "$deviceTestDir/out.aotsnapshot";
+      }
     }
+
+    steps.add(() => device.runAdbShellCommand(
+        [
+          '$devicedir/dart_precompiled_runtime',
+        ]..addAll(args),
+        timeout: timeoutDuration));
 
     var stopwatch = new Stopwatch()..start();
     var writer = new StringBuffer();

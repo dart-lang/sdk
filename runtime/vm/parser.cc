@@ -16,6 +16,7 @@
 #include "vm/compiler_stats.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
+#include "vm/kernel_to_il.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
@@ -61,6 +62,7 @@ DEFINE_FLAG(bool, assert_initializer, false,
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(bool, trace_service);
+DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
 
 // Quick access to the current thread, isolate and zone.
 #define T (thread())
@@ -222,6 +224,19 @@ void ParsedFunction::Bailout(const char* origin, const char* reason) const {
                    String::Handle(function_.name()).ToCString(),
                    reason);
   UNREACHABLE();
+}
+
+
+kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
+  if (kernel_scopes_ == NULL) {
+    kernel::TreeNode* node = NULL;
+    if (function().kernel_function() != NULL) {
+      node = static_cast<kernel::TreeNode*>(function().kernel_function());
+    }
+    kernel::ScopeBuilder builder(this, node);
+    kernel_scopes_ = builder.BuildScopes();
+  }
+  return kernel_scopes_;
 }
 
 
@@ -1592,10 +1607,13 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func) {
                              &Object::dynamic_type());
     ASSERT(func.num_fixed_parameters() == 2);  // closure, value.
   } else if (!parent.IsGetterFunction() && !parent.IsImplicitGetterFunction()) {
-    const bool allow_explicit_default_values = true;
-    SkipFunctionPreamble();
-    ParseFormalParameterList(allow_explicit_default_values, false, &params);
-    SetupDefaultsForOptionalParams(params);
+    // NOTE: For the `kernel -> flowgraph` we don't use the parser.
+    if (parent.kernel_function() == NULL) {
+      const bool allow_explicit_default_values = true;
+      SkipFunctionPreamble();
+      ParseFormalParameterList(allow_explicit_default_values, false, &params);
+      SetupDefaultsForOptionalParams(params);
+    }
   }
 
   // Populate function scope with the formal parameters.
@@ -2184,7 +2202,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
     if (params->has_optional_positional_parameters) {
       ExpectToken(Token::kASSIGN);
     } else {
-      ExpectToken(Token::kCOLON);
+      ConsumeToken();
     }
     params->num_optional_parameters++;
     params->has_explicit_default_values = true;  // Also if explicitly NULL.
@@ -4731,35 +4749,37 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                   "class '%s' must be patched with identical type parameters",
                   class_name.ToCString());
     }
-    TypeParameter& new_type_param = TypeParameter::Handle(Z);
-    TypeParameter& orig_type_param = TypeParameter::Handle(Z);
-    String& new_name = String::Handle(Z);
-    String& orig_name = String::Handle(Z);
-    AbstractType& new_bound = AbstractType::Handle(Z);
-    AbstractType& orig_bound = AbstractType::Handle(Z);
-    for (int i = 0; i < new_type_params_count; i++) {
-      new_type_param ^= new_type_parameters.TypeAt(i);
-      orig_type_param ^= orig_type_parameters.TypeAt(i);
-      new_name = new_type_param.name();
-      orig_name = orig_type_param.name();
-      if (!new_name.Equals(orig_name)) {
-        ReportError(new_type_param.token_pos(),
-                    "type parameter '%s' of patch class '%s' does not match "
-                    "original type parameter '%s'",
-                    new_name.ToCString(),
-                    class_name.ToCString(),
-                    orig_name.ToCString());
-      }
-      new_bound = new_type_param.bound();
-      orig_bound = orig_type_param.bound();
-      if (!new_bound.Equals(orig_bound)) {
-        ReportError(new_type_param.token_pos(),
-                    "bound '%s' of type parameter '%s' of patch class '%s' "
-                    "does not match original type parameter bound '%s'",
-                    String::Handle(new_bound.UserVisibleName()).ToCString(),
-                    new_name.ToCString(),
-                    class_name.ToCString(),
-                    String::Handle(orig_bound.UserVisibleName()).ToCString());
+    if (!FLAG_ignore_patch_signature_mismatch) {
+      TypeParameter& new_type_param = TypeParameter::Handle(Z);
+      TypeParameter& orig_type_param = TypeParameter::Handle(Z);
+      String& new_name = String::Handle(Z);
+      String& orig_name = String::Handle(Z);
+      AbstractType& new_bound = AbstractType::Handle(Z);
+      AbstractType& orig_bound = AbstractType::Handle(Z);
+      for (int i = 0; i < new_type_params_count; i++) {
+        new_type_param ^= new_type_parameters.TypeAt(i);
+        orig_type_param ^= orig_type_parameters.TypeAt(i);
+        new_name = new_type_param.name();
+        orig_name = orig_type_param.name();
+        if (!new_name.Equals(orig_name)) {
+          ReportError(new_type_param.token_pos(),
+                      "type parameter '%s' of patch class '%s' does not match "
+                      "original type parameter '%s'",
+                      new_name.ToCString(),
+                      class_name.ToCString(),
+                      orig_name.ToCString());
+        }
+        new_bound = new_type_param.bound();
+        orig_bound = orig_type_param.bound();
+        if (!new_bound.Equals(orig_bound)) {
+          ReportError(new_type_param.token_pos(),
+                      "bound '%s' of type parameter '%s' of patch class '%s' "
+                      "does not match original type parameter bound '%s'",
+                      String::Handle(new_bound.UserVisibleName()).ToCString(),
+                      new_name.ToCString(),
+                      class_name.ToCString(),
+                      String::Handle(orig_bound.UserVisibleName()).ToCString());
+        }
       }
     }
     cls.set_type_parameters(orig_type_parameters);
@@ -10999,9 +11019,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         right_operand = new(Z) TypeNode(type_pos, type);
         // In production mode, the type may be malformed.
         // In checked mode, the type may be malformed or malbounded.
-        if (((op_kind == Token::kIS) || (op_kind == Token::kISNOT) ||
-             (op_kind == Token::kAS)) &&
-            type.IsMalformedOrMalbounded()) {
+        if (type.IsMalformedOrMalbounded()) {
           // Note that a type error is thrown in a type test or in
           // a type cast even if the tested value is null.
           // We need to evaluate the left operand for potential
@@ -11278,18 +11296,18 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     if (name.IsNull()) {
       ReportError(left_pos, "expression is not assignable");
     }
-    LetNode* let_node = new(Z) LetNode(left_pos);
-    let_node->AddInitializer(rhs);
-    let_node->AddNode(ThrowNoSuchMethodError(
+    ArgumentListNode* error_arguments =
+        new(Z) ArgumentListNode(rhs->token_pos());
+    error_arguments->Add(rhs);
+    result = ThrowNoSuchMethodError(
          original->token_pos(),
          *target_cls,
          String::Handle(Z, Field::SetterName(name)),
-         NULL,  // No arguments.
+         error_arguments,
          InvocationMirror::kStatic,
          original->IsLoadLocalNode() ?
          InvocationMirror::kLocalVar : InvocationMirror::kSetter,
-         NULL));  // No existing function.
-    result = let_node;
+         NULL);  // No existing function.
   }
   // The compound assignment operator a ??= b is different from other
   // a op= b assignments. If a is non-null, the assignment to a must be
@@ -11914,15 +11932,9 @@ AstNode* Parser::LoadTypeParameter(PrimaryNode* primary) {
     // TODO(regis): Verify that CaptureFunctionInstantiator() was already
     // called if necessary.
     // TODO(regis): Finalize type parameter and return as type node.
-    // For now, throw a type error.
-    Type& malformed_type = Type::ZoneHandle(Z);
-    malformed_type = ClassFinalizer::NewFinalizedMalformedType(
-        Error::Handle(Z),  // No previous error.
-        script_,
-        primary_pos,
-        "function type parameter '%s' not yet supported",
-        String::Handle(Z, type_parameter.name()).ToCString());
-    return ThrowTypeError(primary_pos, malformed_type);
+    // For now, map to dynamic type.
+    Type& type = Type::ZoneHandle(Z, Type::DynamicType());
+    return new(Z) TypeNode(primary_pos, type);
   }
 }
 
@@ -12215,7 +12227,8 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
         obj = prefix.LookupObject(extractor_name);
       }
     }
-    if (!prefix.is_loaded() && (parsed_function() != NULL)) {
+    if (!prefix.is_loaded() && (parsed_function() != NULL) &&
+        !FLAG_load_deferred_eagerly) {
       // Remember that this function depends on an import prefix of an
       // unloaded deferred library.
       parsed_function()->AddDeferredPrefix(prefix);
@@ -12383,15 +12396,8 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
                                                      NULL));
         if (!type_parameter.IsNull()) {
           // TODO(regis): Check for absence of type arguments.
-          // For now, return as malformed type.
-          Type& malformed_type = Type::ZoneHandle(Z);
-          malformed_type = ClassFinalizer::NewFinalizedMalformedType(
-              Error::Handle(Z),  // No previous error.
-              script_,
-              type->token_pos(),
-              "function type parameter '%s' not yet supported",
-              String::Handle(Z, type_parameter.name()).ToCString());
-          *type = malformed_type.raw();
+          // For now, resolve the function type parameter to dynamic.
+          *type = Type::DynamicType();
           return;
         }
       }
@@ -13001,15 +13007,9 @@ AstNode* Parser::ResolveIdent(TokenPosition ident_pos,
           CaptureFunctionInstantiator();
         }
         // TODO(regis): Finalize type parameter and return as type node.
-        // For now, return as malformed type.
-        Type& malformed_type = Type::ZoneHandle(Z);
-        malformed_type = ClassFinalizer::NewFinalizedMalformedType(
-            Error::Handle(Z),  // No previous error.
-            script_,
-            ident_pos,
-            "function type parameter '%s' not yet supported",
-            ident.ToCString());
-        return new(Z) TypeNode(ident_pos, malformed_type);
+        // For now, map to dynamic type.
+        Type& type = Type::ZoneHandle(Z, Type::DynamicType());
+        return new(Z) TypeNode(ident_pos, type);
       }
     }
   }
@@ -13966,6 +13966,15 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       const Error& error = Error::Handle(Z, type.error());
       ReportError(error);
     }
+    if (arguments->length() > 0) {
+      // Evaluate arguments for side-effects and throw.
+      LetNode* error_result = new(Z) LetNode(type_pos);
+      for (intptr_t i = 0; i < arguments->length(); ++i) {
+        error_result->AddNode(arguments->NodeAt(i));
+      }
+      error_result->AddNode(ThrowTypeError(type_pos, type));
+      return error_result;
+    }
     return ThrowTypeError(type_pos, type);
   }
 
@@ -14041,7 +14050,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
             UnresolvedClass::Handle(Z, redirect_type.unresolved_class());
         const LibraryPrefix& prefix =
             LibraryPrefix::Handle(Z, cls.library_prefix());
-        if (!prefix.IsNull() && !prefix.is_loaded()) {
+        if (!prefix.IsNull() && !prefix.is_loaded() &&
+            !FLAG_load_deferred_eagerly) {
           // If the redirection type is unresolved because it refers to
           // an unloaded deferred prefix, mark this function as depending
           // on the library prefix. It will then get invalidated when the
@@ -14458,32 +14468,13 @@ AstNode* Parser::ParsePrimary() {
           ConsumeToken();  // Prefix name.
           primary = new(Z) LiteralNode(qual_ident_pos, prefix);
         } else {
-          // TODO(hausner): Ideally we should generate the NoSuchMethodError
-          // later, when we know more about how the unresolved name is used.
-          // For example, we don't know yet whether the unresolved name
-          // refers to a getter or a setter. However, it is more awkward
-          // to distinuish four NoSuchMethodError cases all over the place
-          // in the parser. The four cases are: prefixed vs non-prefixed
-          // name, static vs dynamic context in which the unresolved name
-          // is used. We cheat a little here by looking at the next token
-          // to determine whether we have an unresolved method call or
-          // field access.
           GrowableHandlePtrArray<const String> pieces(Z, 3);
           pieces.Add(String::Handle(Z, prefix.name()));
           pieces.Add(Symbols::Dot());
           pieces.Add(ident);
           const String& qualified_name = String::ZoneHandle(Z,
               Symbols::FromConcatAll(T, pieces));
-          InvocationMirror::Type call_type =
-              CurrentToken() == Token::kLPAREN ?
-                  InvocationMirror::kMethod : InvocationMirror::kGetter;
-          primary = ThrowNoSuchMethodError(qual_ident_pos,
-                                           current_class(),
-                                           qualified_name,
-                                           NULL,  // No arguments.
-                                           InvocationMirror::kTopLevel,
-                                           call_type,
-                                           NULL);  // No existing function.
+          primary = new(Z) PrimaryNode(qual_ident_pos, qualified_name);
         }
       } else if (FLAG_load_deferred_eagerly && prefix.is_deferred_load()) {
         // primary != NULL.
@@ -15031,6 +15022,12 @@ namespace dart {
 
 void ParsedFunction::AddToGuardedFields(const Field* field) const {
   UNREACHABLE();
+}
+
+
+kernel::ScopeBuildingResult* ParsedFunction::EnsureKernelScopes() {
+  UNREACHABLE();
+  return NULL;
 }
 
 

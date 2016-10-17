@@ -83,6 +83,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "PauseInterrupted";
     case kPauseException:
       return "PauseException";
+    case kPausePostRequest:
+      return "PausePostRequest";
     case kNone:
       return "None";
     case kResume:
@@ -135,6 +137,7 @@ const StreamInfo* ServiceEvent::stream_info() const {
     case kPauseBreakpoint:
     case kPauseInterrupted:
     case kPauseException:
+    case kPausePostRequest:
     case kNone:
     case kResume:
     case kBreakpointAdded:

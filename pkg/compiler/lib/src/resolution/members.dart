@@ -1117,12 +1117,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (notTypeNode != null) {
       // `e is! T`.
       Node typeNode = notTypeNode.receiver;
-      type = resolveTypeAnnotation(typeNode);
+      type = resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
       sendStructure = new IsNotStructure(type);
     } else {
       // `e is T`.
       Node typeNode = node.arguments.head;
-      type = resolveTypeAnnotation(typeNode);
+      type = resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
       sendStructure = new IsStructure(type);
     }
 
@@ -1144,7 +1144,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     visitExpression(expression);
 
     Node typeNode = node.arguments.head;
-    DartType type = resolveTypeAnnotation(typeNode);
+    DartType type =
+        resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
 
     // GENERIC_METHODS: Method type variables are not reified so we must warn
     // about the error which will occur at runtime.
@@ -3444,12 +3445,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.setSelector(node, setterSelector);
         registry.setOperatorSelectorInComplexSendSet(node, operatorSelector);
 
-        registry.registerDynamicUse(new DynamicUse(operatorSelector, null));
-
         SendStructure sendStructure;
         if (operator.kind == AssignmentOperatorKind.IF_NULL) {
+          registry.registerConstantLiteral(new NullConstantExpression());
+          registry.registerDynamicUse(new DynamicUse(Selectors.equals, null));
           sendStructure = new SetIfNullStructure(semantics);
         } else {
+          registry.registerDynamicUse(new DynamicUse(operatorSelector, null));
           sendStructure = new CompoundStructure(semantics, operator);
         }
         registry.registerSendStructure(node, sendStructure);
@@ -3664,6 +3666,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           {'fromType': targetConstructorType, 'toType': constructorType});
       // TODO(johnniwinther): Handle this (potentially) erroneous case.
       isValidAsConstant = false;
+    }
+    if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
+      registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
     }
 
     redirectionTarget.computeType(resolution);
@@ -3882,11 +3887,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (!isInvalid) {
       // [constructor] might be the implementation element
       // and only declaration elements may be registered.
-      registry.registerStaticUse(new StaticUse.constructorInvoke(
-          constructor.declaration, callStructure));
       // TODO(johniwinther): Avoid registration of `type` in face of redirecting
       // factory constructors.
-      registry.registerTypeUse(new TypeUse.instantiation(type));
+      registry.registerStaticUse(node.isConst
+          ? new StaticUse.constConstructorInvoke(
+              constructor.declaration, callStructure, type)
+          : new StaticUse.typedConstructorInvoke(
+              constructor.declaration, callStructure, type));
+      InterfaceType interfaceType = type;
+      if (interfaceType.typeArguments.any((DartType type) => !type.isDynamic)) {
+        registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+      }
     }
 
     ResolutionResult resolutionResult = const NoneResult();
@@ -4594,6 +4605,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         reporter.reportErrorMessage(
             switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
+      if (cases.isNotEmpty && switchCase.statements.isNotEmpty) {
+        Node last = switchCase.statements.last;
+        if (last.asBreakStatement() == null &&
+            last.asContinueStatement() == null &&
+            last.asThrow() == null &&
+            last.asReturn() == null) {
+          registry.registerFeature(Feature.FALL_THROUGH_ERROR);
+        }
+      }
     }
 
     addDeferredAction(enclosingElement, () {
@@ -4615,7 +4635,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     });
     // TODO(15575): We should warn if we can detect a fall through
     // error.
-    registry.registerFeature(Feature.FALL_THROUGH_ERROR);
     return const NoneResult();
   }
 

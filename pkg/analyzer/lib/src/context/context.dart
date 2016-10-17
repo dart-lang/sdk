@@ -290,6 +290,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.enableAssertMessage != options.enableAssertMessage ||
         this._options.enableInitializingFormalAccess !=
             options.enableInitializingFormalAccess ||
+        this._options.enableLazyAssignmentOperators !=
+            options.enableLazyAssignmentOperators ||
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
             : false) ||
@@ -306,10 +308,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableSuperMixins != options.enableSuperMixins;
-    int cacheSize = options.cacheSize;
-    if (this._options.cacheSize != cacheSize) {
-      this._options.cacheSize = cacheSize;
-    }
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
     this._options.generateImplicitErrors = options.generateImplicitErrors;
@@ -321,6 +319,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableInitializingFormalAccess =
         options.enableInitializingFormalAccess;
+    this._options.enableLazyAssignmentOperators =
+        options.enableLazyAssignmentOperators;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
     this._options.hint = options.hint;
@@ -334,6 +334,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     this._options.strongMode = options.strongMode;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
+    this._options.disableCacheFlushing = options.disableCacheFlushing;
     this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;

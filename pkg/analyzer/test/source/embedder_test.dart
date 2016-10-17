@@ -11,16 +11,18 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../embedder_tests.dart';
 import '../resource_utils.dart';
 
 main() {
-  defineReflectiveTests(DartUriResolverTest);
-  defineReflectiveTests(EmbedderSdkTest);
-  defineReflectiveTests(EmbedderUriResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DartUriResolverTest);
+    defineReflectiveTests(EmbedderSdkTest);
+    defineReflectiveTests(EmbedderUriResolverTest);
+  });
 }
 
 @reflectiveTest

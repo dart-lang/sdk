@@ -2632,6 +2632,20 @@ class Function : public Object {
 #endif
   }
 
+  void* kernel_function() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return NULL;
+#else
+    return raw_ptr()->kernel_function_;
+#endif
+  }
+
+  void set_kernel_function(void* kernel_function) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StoreNonPointer(&raw_ptr()->kernel_function_, kernel_function);
+#endif
+  }
+
   bool IsOptimizable() const;
   bool IsNativeAutoSetupScope() const;
   void SetIsOptimizable(bool value) const;
@@ -3151,6 +3165,21 @@ class Field : public Object {
     ASSERT(IsOriginal());
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
+
+  void* kernel_field() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return NULL;
+#else
+    return raw_ptr()->kernel_field_;
+#endif
+  }
+
+  void set_kernel_field(void* kernel_field) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StoreNonPointer(&raw_ptr()->kernel_field_, kernel_field);
+#endif
+  }
+
 
   inline intptr_t Offset() const;
   // Called during class finalization.
@@ -4129,17 +4158,17 @@ class Instructions : public Object {
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
 #elif defined(TARGET_ARCH_X64)
-  static const intptr_t kCheckedEntryOffset = 23;
-  static const intptr_t kUncheckedEntryOffset = 44;
-#elif defined(TARGET_ARCH_ARM)
-  static const intptr_t kCheckedEntryOffset = 12;
-  static const intptr_t kUncheckedEntryOffset = 36;
-#elif defined(TARGET_ARCH_ARM64)
-  static const intptr_t kCheckedEntryOffset = 24;
-  static const intptr_t kUncheckedEntryOffset = 48;
-#elif defined(TARGET_ARCH_MIPS)
   static const intptr_t kCheckedEntryOffset = 16;
-  static const intptr_t kUncheckedEntryOffset = 56;
+  static const intptr_t kUncheckedEntryOffset = 38;
+#elif defined(TARGET_ARCH_ARM)
+  static const intptr_t kCheckedEntryOffset = 8;
+  static const intptr_t kUncheckedEntryOffset = 32;
+#elif defined(TARGET_ARCH_ARM64)
+  static const intptr_t kCheckedEntryOffset = 16;
+  static const intptr_t kUncheckedEntryOffset = 40;
+#elif defined(TARGET_ARCH_MIPS)
+  static const intptr_t kCheckedEntryOffset = 12;
+  static const intptr_t kUncheckedEntryOffset = 52;
 #elif defined(TARGET_ARCH_DBC)
   static const intptr_t kCheckedEntryOffset = 0;
   static const intptr_t kUncheckedEntryOffset = 0;
@@ -4918,13 +4947,6 @@ class Code : public Object {
   }
   TokenPosition GetTokenIndexOfPC(uword pc) const;
 
-  enum {
-    kInvalidPc = -1
-  };
-
-  uword GetLazyDeoptReturnPc() const;
-  uword GetLazyDeoptThrowPc() const;
-
   // Find pc, return 0 if not found.
   uword GetPcForDeoptId(intptr_t deopt_id, RawPcDescriptors::Kind kind) const;
   intptr_t GetDeoptIdForOsr(uword pc) const;
@@ -4940,35 +4962,6 @@ class Code : public Object {
 #endif
   }
 
-  intptr_t lazy_deopt_return_pc_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->lazy_deopt_return_pc_offset_;
-#endif
-  }
-  void set_lazy_deopt_return_pc_offset(intptr_t pc) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    StoreNonPointer(&raw_ptr()->lazy_deopt_return_pc_offset_, pc);
-#endif
-  }
-  intptr_t lazy_deopt_throw_pc_offset() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return 0;
-#else
-    return raw_ptr()->lazy_deopt_throw_pc_offset_;
-#endif
-  }
-  void set_lazy_deopt_throw_pc_offset(intptr_t pc) const {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    UNREACHABLE();
-#else
-    StoreNonPointer(&raw_ptr()->lazy_deopt_throw_pc_offset_, pc);
-#endif
-  }
-
   bool IsAllocationStubCode() const;
   bool IsStubCode() const;
   bool IsFunctionCode() const;
@@ -4981,7 +4974,7 @@ class Code : public Object {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(instructions() != active_instructions());
-    SetActiveInstructions(instructions());
+    SetActiveInstructions(Instructions::Handle(instructions()));
   }
 
   bool IsDisabled() const {
@@ -5037,11 +5030,11 @@ class Code : public Object {
 #endif
   }
 
-  void SetActiveInstructions(RawInstructions* instructions) const;
+  void SetActiveInstructions(const Instructions& instructions) const;
 
-  void set_instructions(RawInstructions* instructions) const {
+  void set_instructions(const Instructions& instructions) const {
     ASSERT(Thread::Current()->IsMutatorThread() || !is_alive());
-    StorePointer(&raw_ptr()->instructions_, instructions);
+    StorePointer(&raw_ptr()->instructions_, instructions.raw());
   }
 
   void set_pointer_offsets_length(intptr_t value) {

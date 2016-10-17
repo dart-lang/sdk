@@ -461,27 +461,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 }
 
 
-// TOS: return address + call-instruction-size (5 bytes).
 // EAX: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ popl(EBX);
-  __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
-  __ pushl(EBX);
+  // Return address for "call" to deopt stub.
+  __ pushl(Immediate(0xe1e1e1e1));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
 }
 
 
-// TOS: return address + call-instruction-size (5 bytes).
 // EAX: exception, must be preserved
 // EDX: stacktrace, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ popl(EBX);
-  __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
-  __ pushl(EBX);
+  // Return address for "call" to deopt stub.
+  __ pushl(Immediate(0xe1e1e1e1));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
@@ -1848,10 +1840,11 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ pushl(EBX);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popl(EAX);  // Discard argument.
-  __ popl(EAX);  // Get Code object
+  __ popl(EAX);  // Get Function object
   __ popl(EDX);  // Restore argument descriptor.
-  __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
   __ LeaveFrame();
+  __ movl(CODE_REG, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EAX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EAX);
   __ int3();
 }

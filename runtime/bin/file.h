@@ -88,7 +88,11 @@ class File : public ReferenceCounted<File> {
 
   intptr_t GetFD();
 
-  void* MapExecutable(intptr_t* num_bytes);
+  enum MapType {
+    kReadOnly = 0,
+    kReadExecute = 1,
+  };
+  void* Map(MapType type, int64_t position, int64_t length);
 
   // Read/Write attempt to transfer num_bytes to/from buffer. It returns
   // the number of bytes read/written.

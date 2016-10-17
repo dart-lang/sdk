@@ -2,89 +2,98 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library point_test;
-
 import 'dart:math';
-import 'package:unittest/unittest.dart';
+import 'package:expect/expect.dart';
 
 main() {
-  test('constructor', () {
+  // constructor
+  {
     var point = new Point(0, 0);
-    expect(point.x, 0);
-    expect(point.y, 0);
-    expect('$point', 'Point(0, 0)');
-  });
+    Expect.equals(0, point.x);
+    Expect.equals(0, point.y);
+    Expect.equals('Point(0, 0)', '$point');
+  }
 
-  test('constructor X', () {
+  // constructor X
+  {
     var point = new Point<int>(10, 0);
-    expect(point.x, 10);
-    expect(point.y, 0);
-    expect('$point', 'Point(10, 0)');
-  });
+    Expect.equals(10, point.x);
+    Expect.equals(0, point.y);
+    Expect.equals('Point(10, 0)', '$point');
+  }
 
-  test('constructor X Y', () {
+  // constructor X Y
+  {
     var point = new Point<int>(10, 20);
-    expect(point.x, 10);
-    expect(point.y, 20);
-    expect('$point', 'Point(10, 20)');
-  });
+    Expect.equals(10, point.x);
+    Expect.equals(20, point.y);
+    Expect.equals('Point(10, 20)', '$point');
+  }
 
-  test('constructor X Y double', () {
+  // constructor X Y double
+  {
     var point = new Point<double>(10.5, 20.897);
-    expect(point.x, 10.5);
-    expect(point.y, 20.897);
-    expect('$point', 'Point(10.5, 20.897)');
-  });
+    Expect.equals(10.5, point.x);
+    Expect.equals(20.897, point.y);
+    Expect.equals('Point(10.5, 20.897)', '$point');
+  }
 
-  test('constructor X Y NaN', () {
+  // constructor X Y NaN
+  {
     var point = new Point(double.NAN, 1000);
-    expect(point.x, isNaN);
-    expect(point.y, 1000);
-    expect('$point', 'Point(NaN, 1000)');
-  });
+    Expect.isTrue(point.x.isNaN);
+    Expect.equals(1000, point.y);
+    Expect.equals('Point(NaN, 1000)', '$point');
+  }
 
-  test('squaredDistanceTo', () {
+  // squaredDistanceTo
+  {
     var a = new Point(7, 11);
     var b = new Point(3, -1);
-    expect(a.squaredDistanceTo(b), 160);
-    expect(b.squaredDistanceTo(a), 160);
-  });
+    Expect.equals(160, a.squaredDistanceTo(b));
+    Expect.equals(160, b.squaredDistanceTo(a));
+  }
 
-  test('distanceTo', () {
+  // distanceTo
+  {
     var a = new Point(-2, -3);
     var b = new Point(2, 0);
-    expect(a.distanceTo(b), 5);
-    expect(b.distanceTo(a), 5);
-  });
+    Expect.equals(5, a.distanceTo(b));
+    Expect.equals(5, b.distanceTo(a));
+  }
 
-  test('subtract', () {
+  // subtract
+  {
     var a = new Point(5, 10);
     var b = new Point(2, 50);
-    expect(a - b, new Point(3, -40));
-  });
+    Expect.equals(new Point(3, -40), a - b);
+  }
 
-  test('add', () {
+  // add
+  {
     var a = new Point(5, 10);
     var b = new Point(2, 50);
-    expect(a + b, new Point(7, 60));
-  });
+    Expect.equals(new Point(7, 60), a + b);
+  }
 
-  test('hashCode', () {
+  // hashCode
+  {
     var a = new Point(0, 1);
     var b = new Point(0, 1);
-    expect(a.hashCode, b.hashCode);
+    Expect.equals(b.hashCode, a.hashCode);
 
     var c = new Point(1, 0);
-    expect(a.hashCode == c.hashCode, isFalse);
-  });
+    Expect.isFalse(a.hashCode == c.hashCode);
+  }
 
-  test('magnitute', () {
+  // magnitude
+  {
     var a = new Point(5, 10);
     var b = new Point(0, 0);
-    expect(a.magnitude, a.distanceTo(b));
-    expect(b.magnitude, 0);
+    Expect.equals(a.distanceTo(b), a.magnitude);
+    Expect.equals(0, b.magnitude);
 
     var c = new Point(-5, -10);
-    expect(c.magnitude, a.distanceTo(b));
-  });
+    Expect.equals(a.distanceTo(b), c.magnitude);
+  }
 }

@@ -325,7 +325,7 @@ element_animate_test/timing_dict: RuntimeError # Issue 26730
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
-element_types_test/supported_details: Fail
+element_classes_test: RuntimeError # Issue 27535
 element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_object: Fail
@@ -418,27 +418,6 @@ custom/constructor_calls_created_synchronously_test: Fail # mirrors not supporte
 custom/js_custom_test: Fail # mirrors not supported
 custom/mirrors_test: Fail # mirrors not supported
 mirrors_js_typed_interop_test: Fail # mirrors not supported
-
-[ $compiler == dart2js && $fast_startup && $browser ]
-custom/attribute_changed_callback_test/fully_supported: Fail # custom elements not supported
-custom/attribute_changed_callback_test/unsupported_on_polyfill: Fail # custom elements not supported
-custom/document_register_type_extensions_test/construction: Fail # custom elements not supported
-custom/document_register_type_extensions_test/functional: Fail # custom elements not supported
-custom/document_register_type_extensions_test/namespaces: Fail # custom elements not supported
-custom/document_register_type_extensions_test/parsing: Fail # custom elements not supported
-custom/document_register_type_extensions_test/registration: Fail # custom elements not supported
-custom/entered_left_view_test: Fail # custom elements not supported
-custom/element_upgrade_test: Fail # custom elements not supported
-custom/document_register_basic_test: Fail # custom elements not supported
-custom/document_register_type_extensions: Fail # custom elements not supported
-custom_elements_23127_test/baseline: Fail # custom elements not supported
-custom_elements_23127_test/c1t: Fail # custom elements not supported
-custom_elements_23127_test/c2: Fail # custom elements not supported
-js_function_getter_test: Fail # js-interop function's not supported
-js_typed_interop_callable_object_test: Fail # js-interop function's not supported
-js_typed_interop_test/closure: Fail # js-interop function's not supported
-js_typed_interop_test/method: Fail # js-interop function's not supported
-js_typed_interop_window_property_test/bind*: Fail # js-interop function's not supported
 
 [ $compiler == dart2js && $cps_ir && $browser ]
 js_typed_interop_side_cast_exp_test: RuntimeError # Corner case in package:js that we might want to remove (See comment in #24978).

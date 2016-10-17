@@ -2798,13 +2798,25 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
  * Loads the root script for current isolate from a snapshot.
  *
  * \param buffer A buffer which contains a snapshot of the script.
- * \param length Length of the passed in buffer.
+ * \param buffer_len Length of the passed in buffer.
  *
  * \return If no error occurs, the Library object corresponding to the root
  *   script is returned. Otherwise an error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                                                     intptr_t buffer_len);
+
+/**
+ * Loads a dart application which was compiled to a Kernel binary.
+ *
+ * \param buffer A buffer which contains a Kernel binary.
+ * \param buffer_len Length of the passed in buffer.
+ *
+ * \return If no error occurs, the Library object corresponding to the root
+ *   script is returned. Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_LoadKernel(const uint8_t* buffer,
+                                        intptr_t buffer_len);
 
 /**
  * Gets the library for the root script for the current isolate.
@@ -3115,10 +3127,6 @@ DART_EXPORT Dart_Handle Dart_Precompile(
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
-    uint8_t** vm_isolate_snapshot_buffer,
-    intptr_t* vm_isolate_snapshot_size,
-    uint8_t** isolate_snapshot_buffer,
-    intptr_t* isolate_snapshot_size,
     uint8_t** assembly_buffer,
     intptr_t* assembly_size);
 

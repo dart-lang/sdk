@@ -1536,7 +1536,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Instance) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("4 Class 'C' has no instance getter 'y'.",
+  EXPECT_STREQ("4 NoSuchMethodError: Class 'C' has no instance getter 'y'.",
                SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1595,8 +1595,8 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("4 No static getter 'y' declared in class 'C'.",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("4 NoSuchMethodError: No static getter 'y' declared "
+               "in class 'C'.", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1653,7 +1653,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Library) {
 
   TestCase::SetReloadTestScript(kScript);  // Root library does not change.
 
-  EXPECT_STREQ("4 No top-level getter 'y' declared.",
+  EXPECT_STREQ("4 NoSuchMethodError: No top-level getter 'y' declared.",
                SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1710,7 +1710,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Instance) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("null Class 'C' has no instance setter 'y='.",
+  EXPECT_STREQ("null NoSuchMethodError: Class 'C' has no instance setter 'y='.",
                SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1769,8 +1769,8 @@ TEST_CASE(IsolateReload_DanglingSetter_Class) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("5 No static setter 'y=' declared in class 'C'.",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("5 NoSuchMethodError: No static setter 'y=' declared in "
+               "class 'C'.", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1827,7 +1827,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Library) {
 
   TestCase::SetReloadTestScript(kScript);  // Root library does not change.
 
-  EXPECT_STREQ("5 No top-level setter 'y=' declared.",
+  EXPECT_STREQ("5 NoSuchMethodError: No top-level setter 'y=' declared.",
                SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1883,8 +1883,8 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("1 Class 'C' has no instance method 'foo' with matching"
-               " arguments.", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("1 NoSuchMethodError: Class 'C' has no instance method "
+               "'foo' with matching arguments.", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1937,8 +1937,8 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("1 Closure call with mismatched arguments: function 'C.foo'",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("1 NoSuchMethodError: Closure call with mismatched arguments: "
+               "function 'C.foo'", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);

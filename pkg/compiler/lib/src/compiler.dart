@@ -73,7 +73,8 @@ import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' show GlobalTypeInferenceTask;
 import 'types/masks.dart' show CommonMasks;
 import 'universe/selector.dart' show Selector;
-import 'universe/universe.dart' show ResolutionUniverse, CodegenUniverse;
+import 'universe/world_builder.dart'
+    show ResolutionWorldBuilder, CodegenWorldBuilder;
 import 'universe/use.dart' show StaticUse;
 import 'universe/world_impact.dart' show ImpactStrategy, WorldImpact;
 import 'util/util.dart' show Link, Setlet;
@@ -333,8 +334,8 @@ abstract class Compiler implements LibraryLoaderListener {
 
   // TODO(johnniwinther): Rename these appropriately when unification of worlds/
   // universes is complete.
-  ResolutionUniverse get resolverWorld => enqueuer.resolution.universe;
-  CodegenUniverse get codegenWorld => enqueuer.codegen.universe;
+  ResolutionWorldBuilder get resolverWorld => enqueuer.resolution.universe;
+  CodegenWorldBuilder get codegenWorld => enqueuer.codegen.universe;
 
   bool get analyzeAll => options.analyzeAll || compileAll;
 
@@ -723,14 +724,8 @@ abstract class Compiler implements LibraryLoaderListener {
           return;
         }
         assert(mainFunction != null);
-        phase = PHASE_DONE_RESOLVING;
 
-        openWorld.closeWorld();
-        // Compute whole-program-knowledge that the backend needs. (This might
-        // require the information computed in [world.populate].)
-        backend.onResolutionComplete();
-
-        deferredLoadTask.onResolutionComplete(mainFunction);
+        closeResolution();
 
         reporter.log('Inferring types...');
         globalInference.runGlobalTypeInference(mainFunction);
@@ -765,6 +760,22 @@ abstract class Compiler implements LibraryLoaderListener {
 
         checkQueues();
       });
+
+  /// Perform the steps needed to fully end the resolution phase.
+  void closeResolution() {
+    phase = PHASE_DONE_RESOLVING;
+
+    openWorld.closeWorld();
+    // Compute whole-program-knowledge that the backend needs. (This might
+    // require the information computed in [world.closeWorld].)
+    backend.onResolutionComplete();
+
+    deferredLoadTask.onResolutionComplete(mainFunction);
+
+    // TODO(johnniwinther): Move this after rti computation but before
+    // reflection members computation, and (re-)close the world afterwards.
+    closureToClassMapper.createClosureClasses();
+  }
 
   void fullyEnqueueLibrary(LibraryElement library, Enqueuer world) {
     void enqueueAll(Element element) {
@@ -835,9 +846,9 @@ abstract class Compiler implements LibraryLoaderListener {
               work.element,
               () => selfTask.measureSubtask("world.applyImpact", () {
                     world.applyImpact(
-                        work.element,
                         selfTask.measureSubtask(
-                            "work.run", () => work.run(this, world)));
+                            "work.run", () => work.run(this, world)),
+                        impactSource: work.element);
                   }));
         });
       });

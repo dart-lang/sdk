@@ -15,19 +15,18 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/manager.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
-
-  defineReflectiveTests(AnalysisDomainTest);
-  defineReflectiveTests(SetSubscriptionsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisDomainTest);
+    defineReflectiveTests(SetSubscriptionsTest);
+  });
 
   MockServerChannel serverChannel;
   MemoryResourceProvider resourceProvider;
@@ -40,7 +39,8 @@ main() {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -48,7 +48,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('/', false, (_) => sdk),
+        new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
   });
@@ -435,7 +435,8 @@ class AnalysisTestHelper {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -443,7 +444,7 @@ class AnalysisTestHelper {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('/', false, (_) => sdk),
+        new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
     handler = new AnalysisDomainHandler(server);
     // listen for notifications

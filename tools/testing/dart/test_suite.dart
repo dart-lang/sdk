@@ -1069,6 +1069,15 @@ class StandardTestSuite extends TestSuite {
         path = path.join(new Path(vmOptionsVarient.toString()));
       }
       tempDir = createCompilationOutputDirectory(path);
+
+      List<String> otherResources = info.optionsFromFile['otherResources'];
+      for (String name in otherResources) {
+        Path namePath = new Path(name);
+        String fileName = namePath.filename;
+        Path fromPath = info.filePath.directoryPath.join(namePath);
+        new File('$tempDir/$name').parent.createSync(recursive: true);
+        new File(fromPath.toNativePath()).copySync('$tempDir/$name');
+      }
     }
 
     CommandArtifact compilationArtifact =
@@ -1673,6 +1682,7 @@ class StandardTestSuite extends TestSuite {
     RegExp sharedOptionsRegExp = new RegExp(r"// SharedOptions=(.*)");
     RegExp dartOptionsRegExp = new RegExp(r"// DartOptions=(.*)");
     RegExp otherScriptsRegExp = new RegExp(r"// OtherScripts=(.*)");
+    RegExp otherResourcesRegExp = new RegExp(r"// OtherResources=(.*)");
     RegExp packageRootRegExp = new RegExp(r"// PackageRoot=(.*)");
     RegExp packagesRegExp = new RegExp(r"// Packages=(.*)");
     RegExp isolateStubsRegExp = new RegExp(r"// IsolateStubs=(.*)");
@@ -1752,6 +1762,12 @@ class StandardTestSuite extends TestSuite {
       otherScripts.addAll(match[1].split(' ').where((e) => e != '').toList());
     }
 
+    List<String> otherResources = new List<String>();
+    matches = otherResourcesRegExp.allMatches(contents);
+    for (var match in matches) {
+      otherResources.addAll(match[1].split(' ').where((e) => e != '').toList());
+    }
+
     bool isMultitest = multiTestRegExp.hasMatch(contents);
     bool isMultiHtmlTest = multiHtmlTestRegExp.hasMatch(contents);
     Match isolateMatch = isolateStubsRegExp.firstMatch(contents);
@@ -1776,6 +1792,7 @@ class StandardTestSuite extends TestSuite {
       "hasRuntimeError": false,
       "hasStaticWarning": false,
       "otherScripts": otherScripts,
+      "otherResources": otherResources,
       "isMultitest": isMultitest,
       "isMultiHtmlTest": isMultiHtmlTest,
       "subtestNames": subtestNames,
@@ -1835,6 +1852,7 @@ class StandardTestSuite extends TestSuite {
       "hasRuntimeError": hasRuntimeError,
       "hasStaticWarning": hasStaticWarning,
       "otherScripts": <String>[],
+      "otherResources": <String>[],
       "isMultitest": isMultitest,
       "isMultiHtmlTest": false,
       "subtestNames": <String>[],

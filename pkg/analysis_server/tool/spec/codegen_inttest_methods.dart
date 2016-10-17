@@ -104,7 +104,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
     writeln("import 'package:analysis_server/plugin/protocol/protocol.dart';");
     writeln(
         "import 'package:analysis_server/src/protocol/protocol_internal.dart';");
-    writeln("import 'package:unittest/unittest.dart';");
+    writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln("import 'protocol_matchers.dart';");
@@ -179,7 +179,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
       indent(() {
         String paramsValidator = camelJoin(
             ['is', notification.domainName, notification.event, 'params']);
-        writeln('expect(params, $paramsValidator);');
+        writeln('outOfTestExpect(params, $paramsValidator);');
         String constructorCall;
         if (notification.params == null) {
           constructorCall = 'new $className()';
@@ -255,7 +255,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
         writeln('ResponseDecoder decoder = new ResponseDecoder($kind);');
         writeln("return new $resultClass.fromJson(decoder, 'result', result);");
       } else {
-        writeln('expect(result, isNull);');
+        writeln('outOfTestExpect(result, isNull);');
         writeln('return null;');
       }
     });

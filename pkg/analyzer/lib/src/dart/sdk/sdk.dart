@@ -66,6 +66,11 @@ abstract class AbstractDartSdk implements DartSdk {
   PackageBundle _sdkBundle;
 
   /**
+   * Return the analysis options for this SDK analysis context.
+   */
+  AnalysisOptions get analysisOptions => _analysisOptions;
+
+  /**
    * Set the [options] for this SDK analysis context.  Throw [StateError] if the
    * context has been already created.
    */
@@ -680,6 +685,15 @@ class FolderBasedDartSdk extends AbstractDartSdk {
       return null;
     }
     pathos.Context pathContext = resourceProvider.pathContext;
+    if (pathContext.style != pathos.context.style) {
+      // This will only happen when running tests.
+      if (exec.startsWith(new RegExp('[a-zA-Z]:'))) {
+        exec = exec.substring(2);
+      } else if (resourceProvider is MemoryResourceProvider) {
+        exec = resourceProvider.convertPath(exec);
+      }
+      exec = pathContext.fromUri(pathos.context.toUri(exec));
+    }
     // Might be "xcodebuild/ReleaseIA32/dart" with "sdk" sibling
     String outDir = pathContext.dirname(pathContext.dirname(exec));
     String sdkPath = pathContext.join(pathContext.dirname(outDir), "sdk");

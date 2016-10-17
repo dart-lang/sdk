@@ -48,12 +48,14 @@
   let ListOfNameValuePair = () => (ListOfNameValuePair = dart.constFn(core.List$(_debugger.NameValuePair)))();
   let JSArrayOfString = () => (JSArrayOfString = dart.constFn(_interceptors.JSArray$(core.String)))();
   let JSArrayOfJsonMLFormatter = () => (JSArrayOfJsonMLFormatter = dart.constFn(_interceptors.JSArray$(_debugger.JsonMLFormatter)))();
+  let JSIndexable = () => (JSIndexable = dart.constFn(_interceptors.JSIndexable$()))();
   let JSArray = () => (JSArray = dart.constFn(_interceptors.JSArray$()))();
   let JSMutableArray = () => (JSMutableArray = dart.constFn(_interceptors.JSMutableArray$()))();
   let JSFixedArray = () => (JSFixedArray = dart.constFn(_interceptors.JSFixedArray$()))();
   let JSExtendableArray = () => (JSExtendableArray = dart.constFn(_interceptors.JSExtendableArray$()))();
   let JSUnmodifiableArray = () => (JSUnmodifiableArray = dart.constFn(_interceptors.JSUnmodifiableArray$()))();
   let ArrayIterator = () => (ArrayIterator = dart.constFn(_interceptors.ArrayIterator$()))();
+  let JSIndexableOfString = () => (JSIndexableOfString = dart.constFn(_interceptors.JSIndexable$(core.String)))();
   let MatchToString = () => (MatchToString = dart.constFn(dart.functionType(core.String, [core.Match])))();
   let StringToString = () => (StringToString = dart.constFn(dart.functionType(core.String, [core.String])))();
   let ComparableOfnum = () => (ComparableOfnum = dart.constFn(core.Comparable$(core.num)))();
@@ -142,6 +144,7 @@
   let ListOfClassMirror = () => (ListOfClassMirror = dart.constFn(core.List$(mirrors.ClassMirror)))();
   let ListOfTypeVariableMirror = () => (ListOfTypeVariableMirror = dart.constFn(core.List$(mirrors.TypeVariableMirror)))();
   let MapOfSymbol$MethodMirror = () => (MapOfSymbol$MethodMirror = dart.constFn(core.Map$(core.Symbol, mirrors.MethodMirror)))();
+  let JSArrayOfType = () => (JSArrayOfType = dart.constFn(_interceptors.JSArray$(core.Type)))();
   let ListOfParameterMirror = () => (ListOfParameterMirror = dart.constFn(core.List$(mirrors.ParameterMirror)))();
   let ListOfFloat32x4 = () => (ListOfFloat32x4 = dart.constFn(core.List$(typed_data.Float32x4)))();
   let ListOfInt32x4 = () => (ListOfInt32x4 = dart.constFn(core.List$(typed_data.Int32x4)))();
@@ -616,6 +619,7 @@
   let dynamicToMap = () => (dynamicToMap = dart.constFn(dart.definiteFunctionType(core.Map, [dart.dynamic])))();
   let TypeAndInvocationTodynamic = () => (TypeAndInvocationTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.Type, core.Invocation])))();
   let SymbolAnddynamicTovoid = () => (SymbolAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.Symbol, dart.dynamic])))();
+  let MapOfSymbol$dynamicTodynamic = () => (MapOfSymbol$dynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [MapOfSymbol$dynamic()])))();
   let StringAnddynamicTovoid = () => (StringAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [core.String, dart.dynamic])))();
   let dynamicToTypeMirror = () => (dynamicToTypeMirror = dart.constFn(dart.definiteFunctionType(mirrors.TypeMirror, [dart.dynamic])))();
   let dynamicAnddynamicAnddynamicTovoid = () => (dynamicAnddynamicAnddynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic, dart.dynamic])))();
@@ -3555,8 +3559,12 @@
     constructors: () => ({new: dart.definiteFunctionType(_interceptors.JSBool, [])})
   });
   dart.registerExtension(dart.global.Boolean, _interceptors.JSBool);
-  _interceptors.JSIndexable = class JSIndexable extends core.Object {};
-  _interceptors.JSMutableIndexable = class JSMutableIndexable extends _interceptors.JSIndexable {};
+  _interceptors.JSIndexable$ = dart.generic(E => {
+    class JSIndexable extends core.Object {}
+    dart.addTypeTests(JSIndexable);
+    return JSIndexable;
+  });
+  _interceptors.JSIndexable = JSIndexable();
   _interceptors.JSObject = class JSObject extends core.Object {};
   _interceptors.JavaScriptObject = class JavaScriptObject extends _interceptors.Interceptor {
     new() {
@@ -3619,6 +3627,7 @@
     let SetOfE = () => (SetOfE = dart.constFn(core.Set$(E)))();
     let ArrayIteratorOfE = () => (ArrayIteratorOfE = dart.constFn(_interceptors.ArrayIterator$(E)))();
     let ListMapViewOfE = () => (ListMapViewOfE = dart.constFn(_internal.ListMapView$(E)))();
+    let JSIndexableOfE = () => (JSIndexableOfE = dart.constFn(_interceptors.JSIndexable$(E)))();
     let ETobool = () => (ETobool = dart.constFn(dart.functionType(core.bool, [E])))();
     let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
     let EAndEToint = () => (EAndEToint = dart.constFn(dart.functionType(core.int, [E, E])))();
@@ -4176,7 +4185,7 @@
     }
     dart.setExtensionBaseClass(JSArray, dart.global.Array);
     dart.addTypeTests(JSArray);
-    JSArray[dart.implements] = () => [ListOfE(), _interceptors.JSIndexable];
+    JSArray[dart.implements] = () => [ListOfE(), JSIndexableOfE()];
     dart.setSignature(JSArray, {
       constructors: () => ({
         new: dart.definiteFunctionType(_interceptors.JSArray$(E), []),
@@ -4261,7 +4270,6 @@
         super.new();
       }
     }
-    JSMutableArray[dart.implements] = () => [_interceptors.JSMutableIndexable];
     return JSMutableArray;
   });
   _interceptors.JSMutableArray = JSMutableArray();
@@ -5337,7 +5345,7 @@
       return this[index];
     }
   };
-  _interceptors.JSString[dart.implements] = () => [core.String, _interceptors.JSIndexable];
+  _interceptors.JSString[dart.implements] = () => [core.String, JSIndexableOfString()];
   dart.setSignature(_interceptors.JSString, {
     constructors: () => ({new: dart.definiteFunctionType(_interceptors.JSString, [])}),
     getters: () => ({
@@ -11557,7 +11565,7 @@
     constructors: () => ({new: dart.definiteFunctionType(_js_helper.JSName, [core.String])}),
     fields: () => ({name: core.String})
   });
-  _js_helper.JavaScriptIndexingBehavior = class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {};
+  _js_helper.JavaScriptIndexingBehavior = class JavaScriptIndexingBehavior extends core.Object {};
   _js_helper.TypeErrorImplementation = class TypeErrorImplementation extends core.Error {
     new(value, actualType, expectedType) {
       this.message = dart.str`Type '${actualType}' is not a subtype ` + dart.str`of type '${expectedType}'`;
@@ -13083,58 +13091,66 @@
     return _Lazy;
   });
   _js_mirrors._Lazy = _Lazy();
+  _js_mirrors._getNameForESSymbol = function(member) {
+    let str = dart.toString(member);
+    dart.assert(dart.test(str[dartx.startsWith]('Symbol(')) && dart.test(str[dartx.endsWith](')')));
+    return str[dartx.substring](7, dart.notNull(str[dartx.length]) - 1);
+  };
+  dart.lazyFn(_js_mirrors._getNameForESSymbol, () => dynamicToString());
+  _js_mirrors._toDartMap = function(data) {
+    if (data == null) return dart.map();
+    let map = _js_mirrors._dart.map(data);
+    let privateMembers = Object.getOwnPropertySymbols(data);
+    for (let member of core.Iterable._check(privateMembers)) {
+      let name = _js_mirrors._getNameForESSymbol(member);
+      map[dartx.set](name, data[member]);
+    }
+    return map;
+  };
+  dart.lazyFn(_js_mirrors._toDartMap, () => dynamicToMap());
   _js_mirrors._getConstructors = function(obj) {
     let sig = _js_mirrors._dart.getConstructorSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getConstructors, () => dynamicToMap());
   _js_mirrors._getFields = function(obj) {
     let sig = _js_mirrors._dart.getFieldSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getFields, () => dynamicToMap());
   _js_mirrors._getMethods = function(obj) {
     let sig = _js_mirrors._dart.getMethodSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getMethods, () => dynamicToMap());
   _js_mirrors._getGetters = function(obj) {
     let sig = _js_mirrors._dart.getGetterSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getGetters, () => dynamicToMap());
   _js_mirrors._getSetters = function(obj) {
     let sig = _js_mirrors._dart.getSetterSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getSetters, () => dynamicToMap());
   _js_mirrors._getStaticFields = function(obj) {
     let sig = _js_mirrors._dart.getStaticFieldSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getStaticFields, () => dynamicToMap());
   _js_mirrors._getStatics = function(obj) {
     let sig = _js_mirrors._dart.getStaticSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getStatics, () => dynamicToMap());
   _js_mirrors._getStaticGetters = function(obj) {
     let sig = _js_mirrors._dart.getStaticGetterSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getStaticGetters, () => dynamicToMap());
   _js_mirrors._getStaticSetters = function(obj) {
     let sig = _js_mirrors._dart.getStaticSetterSig(obj);
-    if (sig == null) return dart.map();
-    return _js_mirrors._dart.map(sig);
+    return _js_mirrors._toDartMap(sig);
   };
   dart.lazyFn(_js_mirrors._getStaticSetters, () => dynamicToMap());
   _js_mirrors._unwrap = function(obj) {
@@ -13146,9 +13162,17 @@
   };
   dart.fn(_js_mirrors._wrap, dynamicTodynamic$());
   _js_mirrors._unimplemented = function(t, i) {
-    dart.throw(new core.UnimplementedError(dart.str`${t}.${i.memberName} unimplemented`));
+    dart.throw(new core.UnimplementedError(dart.str`${t}.${_js_mirrors.getName(i.memberName)} unimplemented`));
   };
   dart.fn(_js_mirrors._unimplemented, TypeAndInvocationTodynamic());
+  _js_mirrors._toJsMap = function(map) {
+    let obj = {};
+    map[dartx.forEach](dart.fn((key, value) => {
+      obj[_js_mirrors.getName(key)] = value;
+    }, SymbolAnddynamicTovoid()));
+    return obj;
+  };
+  dart.lazyFn(_js_mirrors._toJsMap, () => MapOfSymbol$dynamicTodynamic());
   _js_mirrors.JsMirror = class JsMirror extends core.Object {
     noSuchMethod(i) {
       _js_mirrors._unimplemented(this.runtimeType, i);
@@ -13242,7 +13266,7 @@
     }
   };
   _js_mirrors.JsObjectMirror[dart.implements] = () => [mirrors.ObjectMirror];
-  const _toJsMap = Symbol('_toJsMap');
+  const _getAccessor = Symbol('_getAccessor');
   _js_mirrors.JsInstanceMirror = class JsInstanceMirror extends _js_mirrors.JsObjectMirror {
     get hasReflectee() {
       return true;
@@ -13260,32 +13284,41 @@
     get hashCode() {
       return (dart.notNull(core.identityHashCode(this.reflectee)) ^ 909522486) >>> 0;
     }
-    getField(symbol) {
+    [_getAccessor](reflectee, symbol, args, namedArgs) {
+      if (args === void 0) args = null;
+      if (namedArgs === void 0) namedArgs = null;
       let name = _js_mirrors.getName(symbol);
-      let field = _js_mirrors._dload(this.reflectee, name);
+      if (!dart.test(name[dartx.startsWith]('_'))) return name;
+      let privateMembers = Object.getOwnPropertySymbols(reflectee);
+      dart.dsend(privateMembers, 'addAll', Object.getOwnPropertySymbols(reflectee.__proto__));
+      for (let member of core.Iterable._check(privateMembers)) {
+        let privateName = _js_mirrors._getNameForESSymbol(member);
+        if (name == privateName) return member;
+      }
+      return new core.NoSuchMethodError(reflectee, symbol, args, namedArgs);
+    }
+    getField(symbol) {
+      let name = this[_getAccessor](this.reflectee, symbol);
+      let field = _js_mirrors._dload(this.reflectee, core.String._check(name));
       return _js_mirrors.reflect(field);
     }
     setField(symbol, value) {
-      let name = _js_mirrors.getName(symbol);
-      _js_mirrors._dput(this.reflectee, name, value);
+      let name = this[_getAccessor](this.reflectee, symbol);
+      _js_mirrors._dput(this.reflectee, core.String._check(name), value);
       return _js_mirrors.reflect(value);
     }
     invoke(symbol, args, namedArgs) {
       if (namedArgs === void 0) namedArgs = null;
-      let name = _js_mirrors.getName(symbol);
+      let name = this[_getAccessor](this.reflectee, symbol, args, namedArgs);
       if (namedArgs != null) {
         args = core.List.from(args);
-        args[dartx.add](this[_toJsMap](namedArgs));
+        args[dartx.add](_js_mirrors._toJsMap(namedArgs));
       }
-      let result = _js_mirrors._dsend(this.reflectee, name, args);
+      let result = _js_mirrors._dsend(this.reflectee, core.String._check(name), args);
       return _js_mirrors.reflect(result);
     }
-    [_toJsMap](map) {
-      let obj = {};
-      map[dartx.forEach](dart.fn((key, value) => {
-        obj[_js_mirrors.getName(key)] = value;
-      }, SymbolAnddynamicTovoid()));
-      return obj;
+    toString() {
+      return dart.str`InstanceMirror on '${this.reflectee}'`;
     }
     delegate(...args) {
       return this.noSuchMethod(new dart.InvocationImpl('delegate', args, {isMethod: true}));
@@ -13302,10 +13335,10 @@
     }),
     methods: () => ({
       '==': dart.definiteFunctionType(core.bool, [core.Object]),
+      [_getAccessor]: dart.definiteFunctionType(dart.dynamic, [dart.dynamic, core.Symbol], [core.List, MapOfSymbol$dynamic()]),
       getField: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol]),
       setField: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol, core.Object]),
-      invoke: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol, core.List], [MapOfSymbol$dynamic()]),
-      [_toJsMap]: dart.definiteFunctionType(dart.dynamic, [MapOfSymbol$dynamic()])
+      invoke: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol, core.List], [MapOfSymbol$dynamic()])
     })
   });
   _js_mirrors.JsClosureMirror = class JsClosureMirror extends _js_mirrors.JsInstanceMirror {
@@ -13316,7 +13349,7 @@
       if (namedArgs === void 0) namedArgs = null;
       if (namedArgs != null) {
         args = core.List.from(args);
-        args[dartx.add](this[_toJsMap](namedArgs));
+        args[dartx.add](_js_mirrors._toJsMap(namedArgs));
       }
       let result = _js_mirrors._dcall(this.reflectee, args);
       return _js_mirrors.reflect(result);
@@ -13344,7 +13377,8 @@
   _js_mirrors.JsClassMirror = class JsClassMirror extends _js_mirrors.JsMirror {
     get metadata() {
       if (this[_metadata$] == null) {
-        let fn = _js_mirrors._unwrap(this[_cls])[dart.metadata];
+        let unwrapped = _js_mirrors._unwrap(this[_cls]);
+        let fn = Object.hasOwnProperty.call(unwrapped, dart.metadata) ? unwrapped[dart.metadata] : null;
         this[_metadata$] = fn == null ? const$0 || (const$0 = dart.constList([], mirrors.InstanceMirror)) : ListOfInstanceMirror().unmodifiable(core.Iterable._check(dart.dsend(dart.dcall(fn), 'map', dart.fn(i => _js_mirrors.reflect(i), dynamicToInstanceMirror()))));
       }
       return this[_metadata$];
@@ -13441,6 +13475,25 @@
       let instance = name == 'new' || name == '' ? new (_js_mirrors._unwrap(this[_cls]))(...args) : new (_js_mirrors._unwrap(this[_cls]))[name](...args);
       return _js_mirrors.reflect(instance);
     }
+    getField(symbol) {
+      let name = _js_mirrors.getName(symbol);
+      return _js_mirrors.reflect(_js_mirrors._unwrap(this[_cls])[name]);
+    }
+    setField(symbol, value) {
+      let name = _js_mirrors.getName(symbol);
+      _js_mirrors._unwrap(this[_cls])[name] = value;
+      return _js_mirrors.reflect(value);
+    }
+    invoke(symbol, args, namedArgs) {
+      if (namedArgs === void 0) namedArgs = null;
+      let name = _js_mirrors.getName(symbol);
+      if (namedArgs != null) {
+        args = core.List.from(args);
+        args[dartx.add](_js_mirrors._toJsMap(namedArgs));
+      }
+      let result = _js_mirrors._unwrap(this[_cls])[name](...args);
+      return _js_mirrors.reflect(result);
+    }
     get superinterfaces() {
       let interfaceThunk = _js_mirrors._unwrap(this[_cls])[dart.implements];
       if (interfaceThunk == null) {
@@ -13475,6 +13528,9 @@
         return mirrors.ClassMirror._check(_js_mirrors.reflectType(core.Type._check(_js_mirrors._wrap(_js_mirrors._unwrap(this[_cls]).__proto__))));
       }
     }
+    toString() {
+      return dart.str`ClassMirror on '${this[_cls]}'`;
+    }
     get qualifiedName() {
       return core.Symbol._check(this.noSuchMethod(new dart.InvocationImpl('qualifiedName', [], {isGetter: true})));
     }
@@ -13498,15 +13554,6 @@
     }
     get typeVariables() {
       return ListOfTypeVariableMirror()._check(this.noSuchMethod(new dart.InvocationImpl('typeVariables', [], {isGetter: true})));
-    }
-    invoke(...args) {
-      return mirrors.InstanceMirror._check(this.noSuchMethod(new dart.InvocationImpl('invoke', args, {isMethod: true})));
-    }
-    getField(...args) {
-      return mirrors.InstanceMirror._check(this.noSuchMethod(new dart.InvocationImpl('getField', args, {isMethod: true})));
-    }
-    setField(...args) {
-      return mirrors.InstanceMirror._check(this.noSuchMethod(new dart.InvocationImpl('setField', args, {isMethod: true})));
     }
     isSubclassOf(...args) {
       return core.bool._check(this.noSuchMethod(new dart.InvocationImpl('isSubclassOf', args, {isMethod: true})));
@@ -13545,7 +13592,12 @@
       originalDeclaration: dart.definiteFunctionType(mirrors.TypeMirror, []),
       superclass: dart.definiteFunctionType(mirrors.ClassMirror, [])
     }),
-    methods: () => ({newInstance: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol, core.List], [MapOfSymbol$dynamic()])})
+    methods: () => ({
+      newInstance: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol, core.List], [MapOfSymbol$dynamic()]),
+      getField: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol]),
+      setField: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol, core.Object]),
+      invoke: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol, core.List], [MapOfSymbol$dynamic()])
+    })
   });
   const _name$ = Symbol('_name');
   _js_mirrors.JsVariableMirror = class JsVariableMirror extends _js_mirrors.JsMirror {
@@ -13558,6 +13610,9 @@
       this.metadata = ListOfInstanceMirror().unmodifiable(annotations[dartx.map](mirrors.InstanceMirror)(dart.fn(a => _js_mirrors.reflect(a), dynamicToInstanceMirror())));
       this.isStatic = false;
       this.isFinal = false;
+    }
+    toString() {
+      return dart.str`VariableMirror on '${this[_name$]}'`;
     }
     get qualifiedName() {
       return core.Symbol._check(this.noSuchMethod(new dart.InvocationImpl('qualifiedName', [], {isGetter: true})));
@@ -13594,6 +13649,9 @@
   _js_mirrors.JsParameterMirror = class JsParameterMirror extends _js_mirrors.JsVariableMirror {
     _(name, t, annotations) {
       super._(name, t, annotations);
+    }
+    toString() {
+      return dart.str`ParameterMirror on '${this[_name$]}'`;
     }
     get qualifiedName() {
       return core.Symbol._check(this.noSuchMethod(new dart.InvocationImpl('qualifiedName', [], {isGetter: true})));
@@ -13688,11 +13746,14 @@
         this[_metadata$] = const$3 || (const$3 = dart.constList([], mirrors.InstanceMirror));
         return;
       }
-      if (core.List.is(ftype)) {
+      if (!core.Function.is(ftype) && core.List.is(ftype)) {
         this[_metadata$] = ListOfInstanceMirror().unmodifiable(core.Iterable._check(dart.dsend(dart.dsend(ftype, 'skip', 1), 'map', dart.fn(a => _js_mirrors.reflect(a), dynamicToInstanceMirror()))));
         ftype = dart.dindex(ftype, 0);
       } else {
         this[_metadata$] = const$4 || (const$4 = dart.constList([], mirrors.InstanceMirror));
+      }
+      if (typeof ftype == "function") {
+        ftype = ftype.apply(null, JSArrayOfType().of([dart.dynamic, dart.dynamic, dart.dynamic]));
       }
       let args = core.List._check(dart.dload(ftype, 'args'));
       let opts = core.List._check(dart.dload(ftype, 'optionals'));
@@ -13710,6 +13771,9 @@
         params[dartx.set](i + dart.notNull(args[dartx.length]), param);
       }
       this[_params] = ListOfParameterMirror().unmodifiable(params);
+    }
+    toString() {
+      return dart.str`MethodMirror on '${this[_name$]}'`;
     }
     get qualifiedName() {
       return core.Symbol._check(this.noSuchMethod(new dart.InvocationImpl('qualifiedName', [], {isGetter: true})));
@@ -36958,40 +37022,13 @@
   math.SQRT2 = 1.4142135623730951;
   math.min = function(T) {
     return (a, b) => {
-      if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
-      if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
-      if (dart.notNull(a) > dart.notNull(b)) return b;
-      if (dart.notNull(a) < dart.notNull(b)) return a;
-      if (typeof b == 'number') {
-        if (typeof a == 'number') {
-          if (a == 0.0) {
-            return (dart.notNull(a) + dart.notNull(b)) * dart.notNull(a) * dart.notNull(b);
-          }
-        }
-        if (a == 0 && dart.test(b[dartx.isNegative]) || dart.test(b[dartx.isNaN])) return b;
-        return a;
-      }
-      return a;
+      return Math.min(_js_helper.checkNum(a), _js_helper.checkNum(b));
     };
   };
   dart.fn(math.min, TAndTToT());
   math.max = function(T) {
     return (a, b) => {
-      if (!(typeof a == 'number')) dart.throw(new core.ArgumentError(a));
-      if (!(typeof b == 'number')) dart.throw(new core.ArgumentError(b));
-      if (dart.notNull(a) > dart.notNull(b)) return a;
-      if (dart.notNull(a) < dart.notNull(b)) return b;
-      if (typeof b == 'number') {
-        if (typeof a == 'number') {
-          if (a == 0.0) {
-            return dart.notNull(a) + dart.notNull(b);
-          }
-        }
-        if (dart.test(b[dartx.isNaN])) return b;
-        return a;
-      }
-      if (b == 0 && dart.test(a[dartx.isNegative])) return b;
-      return a;
+      return Math.max(_js_helper.checkNum(a), _js_helper.checkNum(b));
     };
   };
   dart.fn(math.max, TAndTToT$());
@@ -37408,7 +37445,8 @@
       }
       ['=='](other) {
         if (!RectangleOfnum().is(other)) return false;
-        return dart.equals(this[dartx.left], dart.dload(other, 'left')) && dart.equals(this[dartx.top], dart.dload(other, 'top')) && dart.equals(this[dartx.right], dart.dload(other, 'right')) && dart.equals(this[dartx.bottom], dart.dload(other, 'bottom'));
+        let otherRect = RectangleOfnum().as(other);
+        return this[dartx.left] == otherRect[dartx.left] && this[dartx.top] == otherRect[dartx.top] && this[dartx.right] == otherRect[dartx.right] && this[dartx.bottom] == otherRect[dartx.bottom];
       }
       get hashCode() {
         return math._JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.right]), dart.hashCode(this[dartx.bottom]));

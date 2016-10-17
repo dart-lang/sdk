@@ -10,17 +10,17 @@ import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(DartScriptsTaskTest);
-  defineReflectiveTests(HtmlErrorsTaskTest);
-  defineReflectiveTests(ParseHtmlTaskTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DartScriptsTaskTest);
+    defineReflectiveTests(HtmlErrorsTaskTest);
+    defineReflectiveTests(ParseHtmlTaskTest);
+  });
 }
 
 isInstanceOf isDartScriptsTask = new isInstanceOf<DartScriptsTask>();

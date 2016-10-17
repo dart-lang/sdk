@@ -2780,6 +2780,7 @@ class Parser {
    *         normalFormalParameter ('=' expression)?
    *
    *     defaultNamedParameter ::=
+   *         normalFormalParameter ('=' expression)?
    *         normalFormalParameter (':' expression)?
    */
   FormalParameter parseFormalParameter(ParameterKind kind) {
@@ -2788,10 +2789,7 @@ class Parser {
     if (type == TokenType.EQ) {
       Token separator = getAndAdvance();
       Expression defaultValue = parseExpression2();
-      if (kind == ParameterKind.NAMED) {
-        _reportErrorForToken(
-            ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER, separator);
-      } else if (kind == ParameterKind.REQUIRED) {
+      if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
       }

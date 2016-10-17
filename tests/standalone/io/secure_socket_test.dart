@@ -6,6 +6,12 @@
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
+// OtherResources=certificates/server_chain.pem
+// OtherResources=certificates/server_key.pem
+// OtherResources=certificates/trusted_certs.pem
+// OtherResources=certificates/server_chain.p12
+// OtherResources=certificates/server_key.p12
+// OtherResources=certificates/trusted_certs.p12
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";

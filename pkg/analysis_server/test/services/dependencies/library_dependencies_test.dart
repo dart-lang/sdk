@@ -5,15 +5,15 @@
 library test.services.dependencies.library;
 
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(LibraryDependenciesTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LibraryDependenciesTest);
+  });
 }
 
 @reflectiveTest

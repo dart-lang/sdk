@@ -50,7 +50,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/feature.dart';
 import '../universe/selector.dart' show Selector;
-import '../universe/universe.dart';
+import '../universe/world_builder.dart';
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart'
@@ -1310,7 +1310,8 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, helpers.isJsIndexable, registry);
     }
 
-    customElementsAnalysis.registerInstantiatedClass(cls, enqueuer);
+    customElementsAnalysis.registerInstantiatedClass(cls,
+        forResolution: enqueuer.isResolutionQueue);
     if (!enqueuer.isResolutionQueue) {
       lookupMapAnalysis.registerInstantiatedClass(cls);
     }
@@ -1904,7 +1905,7 @@ class JavaScriptBackend extends Backend {
     return compiler.closedWorld.hasOnlySubclasses(classElement);
   }
 
-  void registerStaticUse(Element element, Enqueuer enqueuer) {
+  void registerStaticUse(Element element, {bool forResolution}) {
     if (element == helpers.disableTreeShakingMarker) {
       isTreeShakingDisabled = true;
     } else if (element == helpers.preserveNamesMarker) {
@@ -1927,7 +1928,8 @@ class JavaScriptBackend extends Backend {
     } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
     }
-    customElementsAnalysis.registerStaticUse(element, enqueuer);
+    customElementsAnalysis.registerStaticUse(element,
+        forResolution: forResolution);
   }
 
   /// Called when [:const Symbol(name):] is seen.
@@ -2164,9 +2166,15 @@ class JavaScriptBackend extends Backend {
         });
         // 3) all members, including fields via getter/setters (if resolved)
         cls.forEachClassMember((Member member) {
-          if (resolution.hasBeenProcessed(member.element)) {
+          MemberElement element = member.element;
+          if (resolution.hasBeenProcessed(element)) {
             memberNames.add(member.name);
-            reflectableMembers.add(member.element);
+            reflectableMembers.add(element);
+            element.nestedClosures
+                .forEach((SynthesizedCallMethodElementX callFunction) {
+              reflectableMembers.add(callFunction);
+              reflectableMembers.add(callFunction.closureClass);
+            });
           }
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)
@@ -2351,9 +2359,12 @@ class JavaScriptBackend extends Backend {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    customElementsAnalysis.onQueueEmpty(enqueuer);
-    lookupMapAnalysis.onQueueEmpty(enqueuer);
-    typeVariableHandler.onQueueEmpty(enqueuer);
+    enqueuer.applyImpact(customElementsAnalysis.flush(
+        forResolution: enqueuer.isResolutionQueue));
+    enqueuer.applyImpact(
+        lookupMapAnalysis.flush(forResolution: enqueuer.isResolutionQueue));
+    enqueuer.applyImpact(
+        typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
 
     if (!enqueuer.queueIsEmpty) return false;
 
@@ -2365,7 +2376,7 @@ class JavaScriptBackend extends Backend {
       enabledNoSuchMethod = true;
     }
 
-    if (compiler.options.useKernel) {
+    if (compiler.options.useKernel && compiler.mainApp != null) {
       kernelTask.buildKernelIr();
     }
 
@@ -2424,7 +2435,7 @@ class JavaScriptBackend extends Backend {
         }
         metadataConstants.clear();
       }
-      enqueuer.applyImpact(null, impactBuilder.flush());
+      enqueuer.applyImpact(impactBuilder.flush());
     }
     return true;
   }
@@ -2946,14 +2957,21 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (StaticUse staticUse in worldImpact.staticUses) {
-      if (staticUse.kind == StaticUseKind.CLOSURE) {
-        registerBackendImpact(transformed, impacts.closure);
-        LocalFunctionElement closure = staticUse.element;
-        if (closure.type.containsTypeVariables) {
-          resolutionEnqueuer.universe.closuresWithFreeTypeVariables
-              .add(closure);
-          registerBackendImpact(transformed, impacts.computeSignature);
-        }
+      switch (staticUse.kind) {
+        case StaticUseKind.CLOSURE:
+          registerBackendImpact(transformed, impacts.closure);
+          LocalFunctionElement closure = staticUse.element;
+          if (closure.type.containsTypeVariables) {
+            resolutionEnqueuer.universe.closuresWithFreeTypeVariables
+                .add(closure);
+            registerBackendImpact(transformed, impacts.computeSignature);
+          }
+          break;
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+          registerRequiredType(staticUse.type);
+          break;
+        default:
       }
     }
 
@@ -3139,11 +3157,18 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (StaticUse staticUse in impact.staticUses) {
-      if (staticUse.kind == StaticUseKind.CLOSURE) {
-        LocalFunctionElement closure = staticUse.element;
-        if (backend.methodNeedsRti(closure)) {
-          registerBackendImpact(transformed, impacts.computeSignature);
-        }
+      switch (staticUse.kind) {
+        case StaticUseKind.CLOSURE:
+          LocalFunctionElement closure = staticUse.element;
+          if (backend.methodNeedsRti(closure)) {
+            registerBackendImpact(transformed, impacts.computeSignature);
+          }
+          break;
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+          backend.lookupMapAnalysis.registerInstantiatedType(staticUse.type);
+          break;
+        default:
       }
     }
 

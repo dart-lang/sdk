@@ -752,8 +752,7 @@ class NativeByteData extends NativeTypedData implements ByteData {
 
 abstract class NativeTypedArray extends NativeTypedData
     implements JavaScriptIndexingBehavior {
-  // TODO(jmesserly): moved `length` to subclass to (somewhat) mitigate
-  // <https://github.com/dart-lang/dev_compiler/issues/138>
+  int get length;
 
   void _setRangeFast(int start, int end,
       NativeTypedArray source, int skipCount) {

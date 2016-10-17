@@ -7,15 +7,15 @@ library analyzer.test.src.dart.constant.value_test;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../../generated/test_support.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(DartObjectImplTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DartObjectImplTest);
+  });
 }
 
 const Matcher isEvaluationException = const isInstanceOf<EvaluationException>();

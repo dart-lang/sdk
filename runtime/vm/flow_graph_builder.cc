@@ -1546,6 +1546,7 @@ Value* EffectGraphVisitor::BuildAssignableValue(TokenPosition token_pos,
   return Bind(BuildAssertAssignable(token_pos, value, dst_type, dst_name));
 }
 
+
 static bool simpleInstanceOfType(const AbstractType& type) {
   // Bail if the type is still uninstantiated at compile time.
   if (!type.IsInstantiated()) return false;

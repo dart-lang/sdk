@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library custom_tags_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
+
 import 'utils.dart';
 
 main() {
-  useHtmlConfiguration();
-
   test('create via custom tag', () {
     var element = new Element.tag('x-basic1')..id = 'basic1';
     document.body.nodes.add(element);

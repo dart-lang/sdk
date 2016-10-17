@@ -44,10 +44,11 @@ class Thread;
 }
 #endif
 
+void VerifyOnTransition();
+
 #define VERIFY_ON_TRANSITION                                                   \
   if (FLAG_verify_on_transition) {                                             \
-    VerifyPointersVisitor::VerifyPointers();                                   \
-    Isolate::Current()->heap()->Verify();                                      \
+    VerifyOnTransition();                                                      \
   }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
@@ -142,6 +143,8 @@ class NativeArguments {
   }
 
   RawObject* ReturnValue() const {
+    // Tell MemorySanitizer the retval_ was initialized (by generated code).
+    MSAN_UNPOISON(retval_, kWordSize);
     return *retval_;
   }
 

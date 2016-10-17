@@ -8,8 +8,8 @@ mkdir -p gen/codegen_output/pkg/
 SDK=--dart-sdk-summary=lib/js/amd/dart_sdk.sum
 
 ./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/expect.js \
-    --url-mapping=package:expect/expect.dart,test/codegen/expect.dart \
-    package:expect/expect.dart
+    package:expect/expect.dart \
+    package:expect/minitest.dart
 
 ./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/async_helper.js \
     --url-mapping=package:async_helper/async_helper.dart,test/codegen/async_helper.dart \

@@ -147,11 +147,7 @@ class MemberListener extends NodeListener {
   }
 
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
-    popNode(); // Discard arguments.
-    if (periodBeforeName != null) {
-      popNode(); // Discard name.
-    }
-    popNode(); // Discard node (Send or Identifier).
+    super.endMetadata(beginToken, periodBeforeName, endToken);
     pushMetadata(new PartialMetadataAnnotation(beginToken, endToken));
   }
 }

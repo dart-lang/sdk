@@ -16,6 +16,7 @@ abstract class Event {
         event is PauseBreakpointEvent ||
         event is PauseInterruptedEvent ||
         event is PauseExceptionEvent ||
+        event is PausePostRequestEvent ||
         event is NoneEvent;
   }
 }
@@ -80,6 +81,15 @@ abstract class PauseBreakpointEvent extends DebugEvent {
 }
 
 abstract class PauseInterruptedEvent extends DebugEvent {
+  /// [optional] The top stack frame associated with this event. There will be
+  /// no top frame if the isolate is idle (waiting in the message loop).
+  Frame get topFrame;
+
+  /// Is the isolate paused at an await, yield, or yield* statement?
+  bool get atAsyncSuspension;
+}
+
+abstract class PausePostRequestEvent extends DebugEvent {
   /// [optional] The top stack frame associated with this event. There will be
   /// no top frame if the isolate is idle (waiting in the message loop).
   Frame get topFrame;

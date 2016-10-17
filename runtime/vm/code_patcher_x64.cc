@@ -207,9 +207,9 @@ class SwitchableCall : public ValueObject {
 
   bool IsValid() const {
     static int16_t pattern[kCallPatternSize] = {
-      0x49, 0x8b, 0x9f, -1, -1, -1, -1,  // movq rbx, [PP + cache_offs]
       0x4d, 0x8b, 0xa7, -1, -1, -1, -1,  // movq r12, [PP + code_offs]
       0x49, 0x8b, 0x4c, 0x24, 0x0f,      // movq rcx, [r12 + entrypoint_off]
+      0x49, 0x8b, 0x9f, -1, -1, -1, -1,  // movq rbx, [PP + cache_offs]
       0xff, 0xd1,                        // call rcx
     };
     ASSERT(ARRAY_SIZE(pattern) == kCallPatternSize);
@@ -217,10 +217,10 @@ class SwitchableCall : public ValueObject {
   }
 
   intptr_t data_index() const {
-    return IndexFromPPLoad(start_ + 3);
+    return IndexFromPPLoad(start_ + 15);
   }
   intptr_t target_index() const {
-    return IndexFromPPLoad(start_ + 10);
+    return IndexFromPPLoad(start_ + 3);
   }
 
   RawObject* data() const {
@@ -293,13 +293,8 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
-void CodePatcher::InsertDeoptimizationCallAt(uword start, uword target) {
-  // The inserted call should not overlap the lazy deopt jump code.
-  ASSERT(start + ShortCallPattern::pattern_length_in_bytes() <= target);
-  *reinterpret_cast<uint8_t*>(start) = 0xE8;
-  ShortCallPattern call(start);
-  call.SetTargetAddress(target);
-  CPU::FlushICache(start, ShortCallPattern::pattern_length_in_bytes());
+void CodePatcher::InsertDeoptimizationCallAt(uword start) {
+  UNREACHABLE();
 }
 
 

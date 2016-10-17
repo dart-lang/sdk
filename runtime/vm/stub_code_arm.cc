@@ -522,7 +522,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
   // Result tells stub how many bytes to remove from the expression stack
   // of the bottom-most frame. They were used as materialization arguments.
-  __ Pop(R1);
+  __ Pop(R2);
   if (kind == kLazyDeoptFromReturn) {
     __ Pop(R0);  // Restore result.
   } else if (kind == kLazyDeoptFromThrow) {
@@ -531,34 +531,32 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
-  __ add(SP, SP, Operand(R1, ASR, kSmiTagSize));
+  __ add(SP, SP, Operand(R2, ASR, kSmiTagSize));
   __ Ret();
 }
 
 
-// LR: return address + call-instruction-size
 // R0: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ AddImmediate(LR, -CallPattern::DeoptCallPatternLengthInBytes());
   // Push zap value instead of CODE_REG for lazy deopt.
   __ LoadImmediate(IP, 0xf1f1f1f1);
   __ Push(IP);
+  // Return address for "call" to deopt stub.
+  __ LoadImmediate(LR, 0xe1e1e1e1);
+  __ ldr(CODE_REG, Address(THR, Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
 }
 
 
-// LR: return address + call-instruction-size
 // R0: exception, must be preserved
 // R1: stacktrace, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ AddImmediate(LR, -CallPattern::DeoptCallPatternLengthInBytes());
   // Push zap value instead of CODE_REG for lazy deopt.
   __ LoadImmediate(IP, 0xf1f1f1f1);
   __ Push(IP);
+  // Return address for "call" to deopt stub.
+  __ LoadImmediate(LR, 0xe1e1e1e1);
+  __ ldr(CODE_REG, Address(THR, Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
@@ -1898,12 +1896,12 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ Push(R8);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ Pop(R0);  // Discard argument.
-  __ Pop(R0);  // Get Code object
+  __ Pop(R0);  // Get Function object
   __ Pop(R4);  // Restore argument descriptor.
   __ LeaveStubFrame();
-  __ mov(CODE_REG, Operand(R0));
-  __ ldr(R0, FieldAddress(R0, Code::entry_point_offset()));
-  __ bx(R0);
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
+  __ bx(R1);
   __ bkpt(0);
 }
 
@@ -2237,6 +2235,7 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
 // Called from the monomorphic checked entry.
 //  R0: receiver
 void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+  __ ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
   __ EnterStubFrame();
   __ Push(R0);  // Preserve receiver.
 

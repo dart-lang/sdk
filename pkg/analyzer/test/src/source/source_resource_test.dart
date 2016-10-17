@@ -12,15 +12,15 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../context/mock_sdk.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(FileSourceTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(FileSourceTest);
+  });
 }
 
 @reflectiveTest
@@ -93,7 +93,7 @@ class FileSourceTest {
   void test_getEncoding() {
     SourceFactory factory =
         new SourceFactory([new ResourceUriResolver(resourceProvider)]);
-    String fullPath = "/does/not/exist.dart";
+    String fullPath = resourceProvider.convertPath("/does/not/exist.dart");
     File file = resourceProvider.getFile(fullPath);
     FileSource source = new FileSource(file);
     expect(factory.fromEncoding(source.encoding), source);

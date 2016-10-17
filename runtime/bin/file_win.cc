@@ -74,7 +74,7 @@ bool File::IsClosed() {
 }
 
 
-void* File::MapExecutable(intptr_t* len) {
+void* File::Map(MapType type, int64_t position, int64_t length) {
   UNIMPLEMENTED();
   return NULL;
 }

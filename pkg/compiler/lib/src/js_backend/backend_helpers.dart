@@ -457,6 +457,15 @@ class BackendHelpers {
     return findHelper('throwConcurrentModificationError');
   }
 
+  Element get checkInt => _checkInt ??= findHelper('checkInt');
+  Element _checkInt;
+
+  Element get checkNum => _checkNum ??= findHelper('checkNum');
+  Element _checkNum;
+
+  Element get checkString => _checkString ??= findHelper('checkString');
+  Element _checkString;
+
   Element get stringInterpolationHelper {
     return findHelper('S');
   }

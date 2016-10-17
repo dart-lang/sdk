@@ -2,16 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fontface_test;
-
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
-
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   test("Creation with parameters", () {
     var font =
         new FontFace('Ahem', 'url(Ahem.ttf)', {'variant': 'small-caps'});

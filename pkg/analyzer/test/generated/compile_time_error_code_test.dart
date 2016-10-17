@@ -9,15 +9,15 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test/test.dart' show expect;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart' show expect;
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(CompileTimeErrorCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CompileTimeErrorCodeTest);
+  });
 }
 
 @reflectiveTest
@@ -1956,6 +1956,30 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT]);
+    verify([source]);
+  }
+
+  void test_duplicatePart_sameSource() {
+    addNamedSource('/part.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part.dart';
+part 'foo/../part.dart';
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_PART]);
+    verify([source]);
+  }
+
+  void test_duplicatePart_sameUri() {
+    addNamedSource('/part.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part.dart';
+part 'part.dart';
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_PART]);
     verify([source]);
   }
 
@@ -6145,7 +6169,7 @@ main() {
 
     // Check that the file is represented as missing.
     Source target =
-        analysisContext2.getSourcesWithFullName("/target.dart").first;
+        analysisContext2.getSourcesWithFullName(resourceProvider.convertPath("/target.dart")).first;
     expect(analysisContext2.getModificationStamp(target), -1);
 
     // Add an overlay in the same way as AnalysisServer.

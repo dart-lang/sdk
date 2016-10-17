@@ -336,15 +336,12 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   }
 
   // Check for payload and load accordingly.
-  bool is_snapshot = false;
   const uint8_t* payload = result->payload;
   intptr_t payload_length = result->payload_length;
-  payload =
-      DartUtils::SniffForMagicNumber(payload,
-                                     &payload_length,
-                                     &is_snapshot);
+  const DartUtils::MagicNumber payload_type =
+      DartUtils::SniffForMagicNumber(&payload, &payload_length);
   Dart_Handle source = Dart_Null();
-  if (!is_snapshot) {
+  if (payload_type == DartUtils::kUnknownMagicNumber) {
     source = Dart_NewStringFromUTF8(result->payload,
                                     result->payload_length);
     if (Dart_IsError(source)) {
@@ -377,8 +374,10 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     }
     break;
     case Dart_kScriptTag:
-      if (is_snapshot) {
+      if (payload_type == DartUtils::kSnapshotMagicNumber) {
         dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
+      } else if (payload_type == DartUtils::kKernelMagicNumber) {
+        dart_result = Dart_LoadKernel(payload, payload_length);
       } else {
         dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
       }

@@ -27,18 +27,6 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 
-void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Assembler* assembler = compiler->assembler();
-#define __ assembler->
-  __ Bind(entry_label());
-  __ Comment("MegamorphicSlowPath");
-  compiler->EmitMegamorphicInstanceCall(ic_data_, argument_count_, deopt_id_,
-                                        token_pos_, locs_, try_index_);
-  __ jmp(exit_label());
-#undef __
-}
-
-
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -1135,19 +1123,6 @@ void FlowGraphCompiler::CompileGraph() {
   __ int3();
   ASSERT(assembler()->constant_pool_allowed());
   GenerateDeferredCode();
-  // Emit function patching code. This will be swapped with the first 13 bytes
-  // at entry point.
-
-  BeginCodeSourceRange();
-  if (is_optimizing() && !FLAG_precompiled_mode) {
-    // Leave enough space for patching in case of lazy deoptimization.
-    __ nop(ShortCallPattern::pattern_length_in_bytes());
-    lazy_deopt_return_pc_offset_ = assembler()->CodeSize();
-    __ Jmp(*StubCode::DeoptimizeLazyFromReturn_entry(), PP);
-    lazy_deopt_throw_pc_offset_ = assembler()->CodeSize();
-    __ Jmp(*StubCode::DeoptimizeLazyFromThrow_entry(), PP);
-  }
-  EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }
 
 
@@ -1385,9 +1360,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
 
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
-  __ LoadUniqueObject(RBX, ic_data);
   __ LoadUniqueObject(CODE_REG, initial_stub);
   __ movq(RCX, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ LoadUniqueObject(RBX, ic_data);
   __ call(RCX);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,

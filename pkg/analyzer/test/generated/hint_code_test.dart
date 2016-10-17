@@ -9,16 +9,16 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(HintCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(HintCodeTest);
+  });
 }
 
 @reflectiveTest
@@ -62,7 +62,7 @@ class JS {
   const JS([String js]) { }
 }
 '''
-    });
+    }, resourceProvider: resourceProvider);
   }
 
   void test_abstractSuperMemberReference_getter() {

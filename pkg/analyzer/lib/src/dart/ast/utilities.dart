@@ -19,6 +19,13 @@ import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
+ * A function used to handle exceptions that are thrown by delegates while using
+ * an [ExceptionHandlingDelegatingAstVisitor].
+ */
+typedef void ExceptionInDelegateHandler(
+    AstNode node, AstVisitor visitor, dynamic exception, StackTrace stackTrace);
+
+/**
  * An AST visitor that will clone any AST structure that it visits. The cloner
  * will only clone the structure, it will not preserve any resolution results or
  * properties associated with the nodes.
@@ -2628,6 +2635,69 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
 
   @override
   Element visitVariableDeclaration(VariableDeclaration node) => node.element;
+}
+
+/**
+ * A [DelegatingAstVisitor] that will additionally catch all exceptions from the
+ * delegates without stopping the visiting. A function must be provided that
+ * will be invoked for each such exception.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
+  /**
+   * The function that will be executed for each exception that is thrown by one
+   * of the visit methods on the delegate.
+   */
+  final ExceptionInDelegateHandler handler;
+
+  /**
+   * Initialize a newly created visitor to use each of the given delegate
+   * visitors to visit the nodes of an AST structure.
+   */
+  ExceptionHandlingDelegatingAstVisitor(
+      Iterable<AstVisitor<T>> delegates, this.handler)
+      : super(delegates) {
+    if (handler == null) {
+      throw new ArgumentError('A handler must be provided');
+    }
+  }
+
+  @override
+  T visitNode(AstNode node) {
+    delegates.forEach((delegate) {
+      try {
+        node.accept(delegate);
+      } catch (exception, stackTrace) {
+        handler(node, delegate, exception, stackTrace);
+      }
+    });
+    node.visitChildren(this);
+    return null;
+  }
+
+  /**
+   * A function that can be used with instances of this class to log and then
+   * ignore any exceptions that are thrown by any of the delegates.
+   */
+  static void logException(AstNode node, AstVisitor visitor, dynamic exception,
+      StackTrace stackTrace) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
+    AstNode currentNode = node;
+    bool first = true;
+    while (currentNode != null) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write('in ');
+      }
+      buffer.write(currentNode.runtimeType);
+      currentNode = currentNode.parent;
+    }
+    AnalysisEngine.instance.logger.logError(
+        buffer.toString(), new CaughtException(exception, stackTrace));
+  }
 }
 
 /**

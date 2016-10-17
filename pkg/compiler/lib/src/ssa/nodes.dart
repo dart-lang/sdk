@@ -873,6 +873,8 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_INFO_READ_VARIABLE_TYPECODE = 39;
   static const int TYPE_INFO_EXPRESSION_TYPECODE = 40;
 
+  static const int FOREIGN_CODE_TYPECODE = 41;
+
   HInstruction(this.inputs, this.instructionType)
       : id = idCounter++,
         usedBy = <HInstruction>[] {
@@ -1901,6 +1903,9 @@ class HForeignCode extends HForeign {
     assert(this.throwBehavior != null);
 
     if (effects != null) sideEffects.add(effects);
+    if (nativeBehavior != null && nativeBehavior.useGvn) {
+      setUseGvn();
+    }
   }
 
   HForeignCode.statement(js.Template codeTemplate, List<HInstruction> inputs,
@@ -1913,15 +1918,27 @@ class HForeignCode extends HForeign {
   accept(HVisitor visitor) => visitor.visitForeignCode(this);
 
   bool isJsStatement() => isStatement;
-  bool canThrow() =>
-      canBeNull() ? throwBehavior.canThrow : throwBehavior.onNonNull.canThrow;
+  bool canThrow() {
+    if (inputs.length > 0) {
+      return inputs.first.canBeNull()
+          ? throwBehavior.canThrow
+          : throwBehavior.onNonNull.canThrow;
+    }
+    return throwBehavior.canThrow;
+  }
 
   bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
 
   bool get isAllocation =>
       nativeBehavior != null && nativeBehavior.isAllocation && !canBeNull();
 
-  String toString() => 'HForeignCode("${codeTemplate.source}",$inputs)';
+  int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
+  bool typeEquals(other) => other is HForeignCode;
+  bool dataEquals(HForeignCode other) {
+    return codeTemplate.source == other.codeTemplate.source;
+  }
+
+  String toString() => 'HForeignCode("${codeTemplate.source}", $inputs)';
 }
 
 abstract class HInvokeBinary extends HInstruction {

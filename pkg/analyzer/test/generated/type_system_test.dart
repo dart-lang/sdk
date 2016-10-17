@@ -14,20 +14,20 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'analysis_context_factory.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(StrongAssignabilityTest);
-  defineReflectiveTests(StrongSubtypingTest);
-  defineReflectiveTests(StrongGenericFunctionInferenceTest);
-  defineReflectiveTests(LeastUpperBoundTest);
-  defineReflectiveTests(StrongLeastUpperBoundTest);
-  defineReflectiveTests(StrongGreatestLowerBoundTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(StrongAssignabilityTest);
+    defineReflectiveTests(StrongSubtypingTest);
+    defineReflectiveTests(StrongGenericFunctionInferenceTest);
+    defineReflectiveTests(LeastUpperBoundTest);
+    defineReflectiveTests(StrongLeastUpperBoundTest);
+    defineReflectiveTests(StrongGreatestLowerBoundTest);
+  });
 }
 
 /**

@@ -22,8 +22,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
 import '../abstract_single_unit.dart';
@@ -542,18 +542,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
         }
         compareConstAstLists(
             r.arguments?.arguments, o.arguments?.arguments, desc);
-        Element expectedElement = o.element;
-        if (oName is PrefixedIdentifier &&
-            o.constructorName != null &&
-            o.element != null) {
-          // Due to dartbug.com/25706, [o.element] incorrectly points to the
-          // class rather than the named constructor.  Hack around this.
-          // TODO(paulberry): when dartbug.com/25706 is fixed, remove this.
-          expectedElement = (expectedElement as ClassElement)
-              .getNamedConstructor(o.constructorName.name);
-          expect(expectedElement, isNotNull, reason: desc);
-        }
-        compareElements(r.element, expectedElement, desc);
+        compareElements(r.element, o.element, desc);
         // elementAnnotation should be null; it is only used in the full AST.
         expect(o.elementAnnotation, isNull);
         expect(r.elementAnnotation, isNull);
@@ -928,6 +917,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     }
     expect(resynthesized.defaultValueCode, original.defaultValueCode,
         reason: desc);
+    expect(resynthesized.isCovariant, original.isCovariant, reason: desc);
     ParameterElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     ParameterElementImpl originalActual = getActualElement(original, desc);
@@ -1642,6 +1632,14 @@ f() {
   print(() {});
   print(() => () => 0);
 }
+''');
+  }
+
+  test_closure_in_variable_declaration_in_part() {
+    addSource('/a.dart', 'part of lib; final f = (int i) => i.toDouble();');
+    checkLibrary('''
+library lib;
+part "a.dart";
 ''');
   }
 
@@ -2744,6 +2742,35 @@ class C {
 class D {
   final x;
   D() : x = new C();
+}
+''');
+  }
+
+  void test_covariant_parameter() {
+    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
+    // its presence in a library called "meta".  If that bug is fixed, this test
+    // my need to be changed.
+    checkLibrary(r'''
+library meta;
+const checked = null;
+class A<T> {
+  void f(@checked T t) {}
+}
+''');
+  }
+
+  void test_covariant_parameter_inherited() {
+    // Note: due to dartbug.com/27393, the keyword "checked" is identified by
+    // its presence in a library called "meta".  If that bug is fixed, this test
+    // my need to be changed.
+    checkLibrary(r'''
+library meta;
+const checked = null;
+class A<T> {
+  void f(@checked T t) {}
+}
+class B<T> extends A<T> {
+  void f(T t) {}
 }
 ''');
   }
@@ -4492,7 +4519,6 @@ typedef F();''');
     checkLibrary('import "dart:async" as foo; @foo.bar.baz() class C {}');
   }
 
-  @failingTest // See dartbug.com/25706
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() {
     checkLibrary('import "dart:async" as foo; @foo.Future.bar() class C {}');
   }

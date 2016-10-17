@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
@@ -18,24 +19,25 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AstClonerTest);
-  defineReflectiveTests(NodeReplacerTest);
-  defineReflectiveTests(LineInfoTest);
-  defineReflectiveTests(SourceRangeTest);
-  defineReflectiveTests(BooleanArrayTest);
-  defineReflectiveTests(DirectedGraphTest);
-  defineReflectiveTests(MultipleMapIteratorTest);
-  defineReflectiveTests(SingleMapIteratorTest);
-  defineReflectiveTests(TokenMapTest);
-  defineReflectiveTests(StringUtilitiesTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AstClonerTest);
+    defineReflectiveTests(BooleanArrayTest);
+    defineReflectiveTests(DirectedGraphTest);
+    defineReflectiveTests(ExceptionHandlingDelegatingAstVisitorTest);
+    defineReflectiveTests(LineInfoTest);
+    defineReflectiveTests(MultipleMapIteratorTest);
+    defineReflectiveTests(NodeReplacerTest);
+    defineReflectiveTests(SingleMapIteratorTest);
+    defineReflectiveTests(SourceRangeTest);
+    defineReflectiveTests(StringUtilitiesTest);
+    defineReflectiveTests(TokenMapTest);
+  });
 }
 
 class AstCloneComparator extends AstComparator {
@@ -1593,6 +1595,21 @@ class DirectedGraphTest extends EngineTestCase {
  * Instances of the class `Node` represent simple nodes used for testing purposes.
  */
 class DirectedGraphTest_Node {}
+
+@reflectiveTest
+class ExceptionHandlingDelegatingAstVisitorTest extends EngineTestCase {
+  void test_handlerIsCalled() {
+    AstVisitor exceptionThrowingVisitor = new _ExceptionThrowingVisitor();
+    bool handlerInvoked = false;
+    AstVisitor visitor = new ExceptionHandlingDelegatingAstVisitor(
+        [exceptionThrowingVisitor], (AstNode node, AstVisitor visitor,
+            dynamic exception, StackTrace stackTrace) {
+      handlerInvoked = true;
+    });
+    new NullLiteral(null).accept(visitor);
+    expect(handlerInvoked, isTrue);
+  }
+}
 
 class Getter_NodeReplacerTest_test_annotation
     implements NodeReplacerTest_Getter<Annotation, ArgumentList> {
@@ -4338,5 +4355,11 @@ class TokenMapTest {
     Token value = TokenFactory.tokenFromType(TokenType.AT);
     tokenMap.put(key, value);
     expect(tokenMap.get(key), same(value));
+  }
+}
+
+class _ExceptionThrowingVisitor extends SimpleAstVisitor {
+  visitNullLiteral(NullLiteral node) {
+    throw new ArgumentError('');
   }
 }

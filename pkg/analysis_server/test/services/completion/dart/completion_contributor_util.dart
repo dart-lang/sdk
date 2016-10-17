@@ -20,7 +20,7 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../../../abstract_context.dart';
 

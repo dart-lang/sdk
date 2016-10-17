@@ -5,11 +5,9 @@
 # This directory contains tests that are intended to show the
 # current state of the language.
 
-[ ($compiler == dart2app || $compiler == dart2appjit) ]
-string_literals_test: Skip # Issue 27433
-
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) ]
 tearoff_constructor_basic_test: Skip # Crashes in checked mode -- hausner investigating
+generic_methods_type_expression_test: RuntimeError # Issue 25869
 
 # This is OK for now, but we may want to change the semantics to match the test.
 async_star_pause_test: Fail, OK
@@ -51,14 +49,14 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $checked ]
-# The generic functions tests fail in checked mode because the parsed type parameters
-# are ignored.
-generic_methods_function_type_test: RuntimeError # Issue 25869
-generic_methods_test: RuntimeError # Issue 25869
-generic_methods_new_test: RuntimeError # Issue 25869
-generic_local_functions_test: RuntimeError # Issue 25869
-generic_functions_test: RuntimeError # Issue 25869
-generic_methods_generic_function_parameter_test: RuntimeError # Issue 25869
+# These generic functions tests pass for the wrong reason in checked mode,
+# because the parsed type parameters are mapped to dynamic type.
+generic_methods_function_type_test: Pass # Issue 25869
+generic_methods_test: Pass # Issue 25869
+generic_methods_new_test: Pass # Issue 25869
+generic_local_functions_test: Pass # Issue 25869
+generic_functions_test: Pass # Issue 25869
+generic_methods_generic_function_parameter_test: Pass # Issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 
@@ -106,6 +104,7 @@ initializing_formal_access_test: Skip
 initializing_formal_capture_test: Skip
 initializing_formal_final_test: Skip
 initializing_formal_type_test: Skip
+initializing_formal_promotion_test: Skip
 
 # Experimental feature: Syntactic support for generic methods.
 # Skip these in dartium, because the test framework can't pass VM flags to
@@ -180,23 +179,35 @@ super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit || $mode == product ]
-# Deferred loading happens eagerly
-regress_23408_test: Skip
-deferred_inheritance_constraints_test: Skip
-deferred_global_test: Skip
-deferred_load_constants_test: Skip
-tearoff_basic_test: Skip
-deferred_static_seperate_test: Skip
-deferred_constraints_type_annotation_test/new_before_load: Skip
-regress_22443_test: Skip
+[ $noopt ]
+# Deferred loading happens eagerly. Issue #27587
+regress_23408_test: Fail
+deferred_inheritance_constraints_test/redirecting_constructor: Fail
+deferred_global_test: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+tearoff_basic_test: Fail
+regress_22443_test: Fail
+deferred_not_loaded_check_test: Fail
+
+[ $mode == product || $compiler == dart2appjit || $compiler == dart2app || $compiler == precompiler ]
+# Deferred loading happens eagerly. Issue #27587
+regress_23408_test: Fail
+deferred_inheritance_constraints_test/redirecting_constructor: Fail
+deferred_load_constants_test/02: Fail
+deferred_load_constants_test/03: Fail
+deferred_load_constants_test/05: Fail
+tearoff_basic_test: Fail
+deferred_not_loaded_check_test: Fail
+
+[ $compiler == precompiler ]
+# Deferred loading happens eagerly. Issue #27587
+deferred_global_test: Fail
 
 [ $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 ct_const2_test: Skip # Incompatible flag: --compile_all
 hello_dart_test: Skip # Incompatible flag: --compile_all
-
-[ $runtime == dart_app ]
-number_identity_test: RuntimeError # Issue 26873
 
 [ $compiler == precompiler ]
 implicit_closure_test: Skip # Incompatible flag: --use_slow_path
@@ -239,11 +250,6 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 [ $noopt || $compiler == precompiler || $mode == product ]
 # The following tests are supposed to fail.
 library_env_test/has_mirror_support: RuntimeError, OK
-
-[ $arch == simdbc || $arch == simdbc64 ]
-# TODO(vegorov) Encoding limitation: StoreField bytecode only supports 256
-# fields in an object.
-large_class_declaration_test: Skip
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
@@ -297,3 +303,6 @@ assert_initializer_test/none: pass
 # The VM doesn't enforce that potentially const expressions are actually
 # const expressions when the constructor is called with `const`.
 assert_initializer_test/4*: MissingCompileTimeError # Issue 392.
+
+[$runtime == vm && $compiler == none]
+duplicate_part_test/01: MissingCompileTimeError # Issue 27516

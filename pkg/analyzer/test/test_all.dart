@@ -4,7 +4,7 @@
 
 library analyzer.test.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'cancelable_future_test.dart' as cancelable_future_test;
 import 'context/test_all.dart' as context;
@@ -14,12 +14,10 @@ import 'instrumentation/test_all.dart' as instrumentation;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
 import 'source/test_all.dart' as source;
 import 'src/test_all.dart' as src;
-import 'utils.dart';
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
-  group('analysis engine', () {
+  defineReflectiveSuite(() {
     cancelable_future_test.main();
     context.main();
     file_system.main();
@@ -28,5 +26,5 @@ main() {
     parse_compilation_unit.main();
     source.main();
     src.main();
-  });
+  }, name: 'analyzer');
 }

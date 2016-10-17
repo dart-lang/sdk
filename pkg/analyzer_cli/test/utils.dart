@@ -9,10 +9,8 @@ import 'dart:mirrors';
 
 import 'package:analyzer/analyzer.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:unittest/unittest.dart';
 
-/// Gets the test directory in a way that works with
-/// package:test and package:unittest.
+/// Gets the test directory in a way that works with package:test
 /// See <https://github.com/dart-lang/test/issues/110> for more info.
 final String testDirectory = pathos.dirname(
     pathos.fromUri((reflectClass(_TestUtils).owner as LibraryMirror).uri));
@@ -39,11 +37,6 @@ String errorsForFile(String contents) {
     }
     return null;
   });
-}
-
-/// Test env setup (copied from `analyzer/test/utils.dart`).
-void initializeTestEnvironment() {
-  groupSep = ' | ';
 }
 
 /// Creates a temporary directory and passes its path to [fn]. Once [fn]

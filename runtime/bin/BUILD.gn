@@ -203,9 +203,11 @@ gen_library_src_path("generate_web_audio_cc_file") {
 }
 
 config("libdart_builtin_config") {
-  libs = [
-    "dl",
-  ]
+  if (!is_win) {
+    libs = [
+      "dl",
+    ]
+  }
   if (is_android) {
     libs += [
       "android",
@@ -300,6 +302,16 @@ executable("gen_snapshot") {
       "CoreServices.framework"
     ]
   }
+
+  if (is_win) {
+    libs = [
+      "iphlpapi.lib",
+      "psapi.lib",
+      "ws2_32.lib",
+      "Rpcrt4.lib",
+      "winmm.lib",
+    ]
+  }
 }
 
 # A source set for the implementation of 'dart:io' library
@@ -374,9 +386,14 @@ source_set("embedded_dart_io") {
   if (is_mac || is_ios) {
     libs = [
       "CoreFoundation.framework",
-      "CoreServices.framework",
       "Security.framework",
     ]
+
+    if (is_mac) {
+      libs += [
+        "CoreServices.framework",
+      ]
+    }
   } else if (defined(is_fuchsia) && is_fuchsia) {
     defines += [
       "DART_IO_SECURE_SOCKET_DISABLED"
@@ -540,9 +557,25 @@ template("dart_executable") {
       "//third_party",
     ]
 
-    ldflags = [
-      "-rdynamic",
-    ]
+    if (is_win) {
+      ldflags = [
+        "/EXPORT:Dart_True"
+      ]
+    } else {
+      ldflags = [
+        "-rdynamic",
+      ]
+    }
+
+    if (is_win) {
+      libs = [
+        "iphlpapi.lib",
+        "psapi.lib",
+        "ws2_32.lib",
+        "Rpcrt4.lib",
+        "winmm.lib",
+      ]
+    }
   }
 }
 
@@ -550,6 +583,17 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
   dart_executable("dart") {
     extra_deps = [
       "..:libdart",
+      ":dart_snapshot_cc",
+      "../observatory:standalone_observatory_archive",
+    ]
+  }
+
+  dart_executable("dart_noopt") {
+    extra_configs = [
+      "..:dart_precompiler_config",
+    ]
+    extra_deps = [
+      "..:libdart_noopt",
       ":dart_snapshot_cc",
       "../observatory:standalone_observatory_archive",
     ]
@@ -703,9 +747,21 @@ executable("run_vm_tests") {
     "run_vm_tests.cc",
   ] + builtin_impl_tests_list.sources + vm_tests
 
-  ldflags = [
-    "-rdynamic",
-  ]
+  if (!is_win) {
+    ldflags = [
+      "-rdynamic",
+    ]
+  }
+
+  if (is_win) {
+    libs = [
+      "iphlpapi.lib",
+      "psapi.lib",
+      "ws2_32.lib",
+      "Rpcrt4.lib",
+      "winmm.lib",
+    ]
+  }
 }
 
 if (!defined(is_fuchsia) || !is_fuchsia) {
@@ -724,6 +780,15 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
       # The only effect of DART_SHARED_LIB is to export the Dart API.
       "DART_SHARED_LIB",
     ]
+    if (is_win) {
+      libs = [
+        "dart.lib"
+      ]
+      abs_root_out_dir = rebase_path(root_out_dir)
+      ldflags = [
+        "/LIBPATH:$abs_root_out_dir"
+      ]
+    }
   }
 
   shared_library("sample_extension") {
@@ -741,5 +806,14 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
       # The only effect of DART_SHARED_LIB is to export the Dart API.
       "DART_SHARED_LIB",
     ]
+    if (is_win) {
+      libs = [
+        "dart.lib"
+      ]
+      abs_root_out_dir = rebase_path(root_out_dir)
+      ldflags = [
+        "/LIBPATH:$abs_root_out_dir"
+      ]
+    }
   }
 }

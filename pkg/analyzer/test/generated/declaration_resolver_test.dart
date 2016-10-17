@@ -8,23 +8,23 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(DeclarationResolverMetadataTest);
-  defineReflectiveTests(DeclarationResolverTest);
-  defineReflectiveTests(StrongModeDeclarationResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DeclarationResolverMetadataTest);
+    defineReflectiveTests(DeclarationResolverTest);
+    defineReflectiveTests(StrongModeDeclarationResolverTest);
+  });
 }
 
 CompilationUnit _cloneResolveUnit(CompilationUnit unit) {

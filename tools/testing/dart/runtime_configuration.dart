@@ -4,6 +4,8 @@
 
 library runtime_configuration;
 
+import 'dart:io' show Platform;
+
 import 'compiler_configuration.dart' show CommandArtifact;
 
 // TODO(ahe): Remove this import, we can precompute all the values required
@@ -244,16 +246,17 @@ class DartAppRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart_app cannot run files of type '$type'.";
     }
 
-    var augmentedArgs = new List();
-    augmentedArgs.add("--run-app-snapshot=${artifact.filename}");
-    if (useBlobs) {
-      augmentedArgs.add("--use-blobs");
+    var args = new List();
+    args.addAll(arguments);
+    for (var i = 0; i < args.length; i++) {
+      if (args[i].endsWith(".dart")) {
+        args[i] = "${artifact.filename}/out.jitsnapshot";
+      }
     }
-    augmentedArgs.addAll(arguments);
 
     return <Command>[
       commandBuilder.getVmCommand(suite.dartVmBinaryFileName,
-          augmentedArgs, environmentOverrides)
+          args, environmentOverrides)
     ];
   }
 }
@@ -274,16 +277,17 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    var augmentedArgs = new List();
-    augmentedArgs.add("--run-app-snapshot=${artifact.filename}");
-    if (useBlobs) {
-      augmentedArgs.add("--use-blobs");
+    var args = new List();
+    args.addAll(arguments);
+    for (var i = 0; i < args.length; i++) {
+      if (args[i].endsWith(".dart")) {
+        args[i] = "${artifact.filename}/out.aotsnapshot";
+      }
     }
-    augmentedArgs.addAll(arguments);
 
     return <Command>[
       commandBuilder.getVmCommand(suite.dartPrecompiledBinaryFileName,
-          augmentedArgs, environmentOverrides)
+          args, environmentOverrides)
     ];
   }
 }

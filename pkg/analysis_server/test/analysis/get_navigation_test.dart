@@ -7,15 +7,15 @@ library test.analysis.get_navigation;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'notification_navigation_test.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(GetNavigationTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(GetNavigationTest);
+  });
 }
 
 @reflectiveTest
@@ -25,7 +25,9 @@ class GetNavigationTest extends AbstractNavigationTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new AnalysisDomainHandler(server),];
+    server.handlers = [
+      new AnalysisDomainHandler(server),
+    ];
     createProject();
   }
 

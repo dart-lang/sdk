@@ -29,8 +29,8 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
@@ -38,9 +38,11 @@ import 'test_support.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(IncrementalResolverTest);
-  defineReflectiveTests(PoorMansIncrementalResolutionTest);
-  defineReflectiveTests(ResolutionContextBuilderTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(IncrementalResolverTest);
+    defineReflectiveTests(PoorMansIncrementalResolutionTest);
+    defineReflectiveTests(ResolutionContextBuilderTest);
+  });
 }
 
 void initializeTestEnvironment() {}
@@ -143,16 +145,6 @@ class IncrementalResolverTest extends ResolverTestCase {
   String code;
   LibraryElement library;
   CompilationUnit unit;
-
-  @override
-  void reset() {
-    analysisContext2 = AnalysisContextFactory.contextWithCore();
-  }
-
-  @override
-  void resetWithOptions(AnalysisOptions options) {
-    AnalysisContextFactory.contextWithCoreAndOptions(options);
-  }
 
   void setUp() {
     super.setUp();

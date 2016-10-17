@@ -2,49 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library LocalStorageTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
+import 'package:expect/minitest.dart';
+
 main() {
-  useHtmlConfiguration();
+  setUp(() {
+    window.localStorage['key1'] = 'val1';
+    window.localStorage['key2'] = 'val2';
+    window.localStorage['key3'] = 'val3';
+  });
 
-  void testWithLocalStorage(String name, fn()) {
-    test(name, () {
-      window.localStorage['key1'] = 'val1';
-      window.localStorage['key2'] = 'val2';
-      window.localStorage['key3'] = 'val3';
+  tearDown(() {
+    window.localStorage.clear();
+  });
 
-      try {
-        fn();
-      } finally {
-      window.localStorage.clear();
-      }
-    });
-  }
-
-  testWithLocalStorage('containsValue', () {
+  test('containsValue', () {
     expect(window.localStorage.containsValue('does not exist'), isFalse);
     expect(window.localStorage.containsValue('key1'), isFalse);
     expect(window.localStorage.containsValue('val1'), isTrue);
     expect(window.localStorage.containsValue('val3'), isTrue);
   });
 
-  testWithLocalStorage('containsKey', () {
+  test('containsKey', () {
     expect(window.localStorage.containsKey('does not exist'), isFalse);
     expect(window.localStorage.containsKey('val1'), isFalse);
     expect(window.localStorage.containsKey('key1'), isTrue);
     expect(window.localStorage.containsKey('key3'), isTrue);
   });
 
-  testWithLocalStorage('[]', () {
+  test('[]', () {
     expect(window.localStorage['does not exist'], isNull);
     expect(window.localStorage['key1'], 'val1');
     expect(window.localStorage['key3'], 'val3');
   });
 
-  testWithLocalStorage('[]=', () {
+  test('[]=', () {
     expect(window.localStorage['key4'], isNull);
     window.localStorage['key4'] = 'val4';
     expect(window.localStorage['key4'], 'val4');
@@ -54,29 +47,32 @@ main() {
     expect(window.localStorage['key3'], 'val3-new');
   });
 
-  testWithLocalStorage('putIfAbsent', () {
+  test('putIfAbsent', () {
     expect(window.localStorage['key4'], isNull);
     expect(window.localStorage.putIfAbsent('key4', () => 'val4'), 'val4');
     expect(window.localStorage['key4'], 'val4');
 
     expect(window.localStorage['key3'], 'val3');
     expect(window.localStorage.putIfAbsent('key3',
-        () => expect(false, isTrue, reason: 'should not be called')), 'val3');
+        () {
+          fail('should not be called');
+          return 'unused';
+        }), 'val3');
     expect(window.localStorage['key3'], 'val3');
   });
 
-  testWithLocalStorage('remove', () {
+  test('remove', () {
     expect(window.localStorage.remove('does not exist'), isNull);
     expect(window.localStorage.remove('key3'), 'val3');
     expect(window.localStorage, equals({'key1': 'val1', 'key2': 'val2'}));
   });
 
-  testWithLocalStorage('clear', () {
+  test('clear', () {
     window.localStorage.clear();
     expect(window.localStorage, equals({}));
   });
 
-  testWithLocalStorage('forEach', () {
+  test('forEach', () {
     Map<String, String> results = {};
     window.localStorage.forEach((k, v) {
       results[k] = v;
@@ -84,23 +80,23 @@ main() {
     expect(results, equals({'key1': 'val1', 'key2': 'val2', 'key3': 'val3'}));
   });
 
-  testWithLocalStorage('getKeys', () {
+  test('getKeys', () {
     expect(window.localStorage.keys.toList(),
         unorderedEquals(['key1', 'key2', 'key3']));
   });
 
-  testWithLocalStorage('getVals', () {
+  test('getVals', () {
     expect(window.localStorage.values.toList(),
         unorderedEquals(['val1', 'val2', 'val3']));
   });
 
-  testWithLocalStorage('length', () {
+  test('length', () {
     expect(window.localStorage.length, 3);
     window.localStorage.clear();
     expect(window.localStorage.length, 0);
   });
 
-  testWithLocalStorage('isEmpty', () {
+  test('isEmpty', () {
     expect(window.localStorage.isEmpty, isFalse);
     window.localStorage.clear();
     expect(window.localStorage.isEmpty, isTrue);

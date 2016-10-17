@@ -139,7 +139,7 @@ typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && $runtime != jsshell && $runtime != safarimobilesim && $runtime != safari && $runtime != ff &&  $runtime != ie10 && ($runtime != chrome || $system != linux) ]
+[ $compiler == dart2js && ($runtime == d8 || $runtime == drt || $runtime == ie11 || ($runtime == chrome && $system == macos)) ]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
@@ -278,6 +278,9 @@ mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
 mirrors/spawn_function_root_library_test: SkipByDesign # Uses spawnFunction.
 mirrors/local_isolate_test: RuntimeError # Issue 12188
 mirrors/deferred_type_test: RuntimeError, OK # Should be CompileTimeError. Issue 22072
+
+[ $compiler == none && $runtime == dartium && $system == macos ]
+convert/streamed_conversion_utf8_decode_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982

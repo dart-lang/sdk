@@ -14,12 +14,12 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
-import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(MoveFileTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(MoveFileTest);
+  });
 }
 
 @reflectiveTest

@@ -3243,7 +3243,6 @@ void Assembler::NoMonomorphicCheckedEntry() {
   buffer_.Reset();
   bkpt(0);
   bkpt(0);
-  bkpt(0);
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
 }
 
@@ -3257,8 +3256,7 @@ void Assembler::MonomorphicCheckedEntry() {
 
   Label miss;
   Bind(&miss);
-  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
-  ldr(IP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  ldr(IP, Address(THR, Thread::monomorphic_miss_entry_offset()));
   bx(IP);
 
   Comment("MonomorphicCheckedEntry");

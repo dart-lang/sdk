@@ -8,9 +8,7 @@ library js_function_getter_test;
 import 'dart:html';
 
 import 'package:js/js.dart';
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:expect/minitest.dart';
 
 _injectJs() {
   document.body.append(new ScriptElement()
@@ -62,8 +60,6 @@ external Foo get foo;
 
 main() {
   _injectJs();
-
-  useHtmlIndividualConfiguration();
 
   group('call getter as function', () {
     test('member function', () {

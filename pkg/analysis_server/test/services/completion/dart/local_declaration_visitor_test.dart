@@ -11,14 +11,13 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(LocalDeclarationVisitorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LocalDeclarationVisitorTest);
+  });
 }
 
 @reflectiveTest

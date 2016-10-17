@@ -1,17 +1,13 @@
-library CssRuleListTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
+import 'package:expect/minitest.dart';
 
+main() {
   var isCssRuleList =
       predicate((x) => x is List<CssRule>, 'is a List<CssRule>');
 
-  useHtmlConfiguration();
-
   test("ClientRectList test", () {
-    var sheet = document.styleSheets[0];
+    var sheet = document.styleSheets[0] as CssStyleSheet;
     List<CssRule> rulesList = sheet.cssRules;
     expect(rulesList, isCssRuleList);
   });

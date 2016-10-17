@@ -813,6 +813,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       gc_prologue_callback_(NULL),
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
+      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>),
       deopt_context_(NULL),
       is_service_isolate_(false),
       stacktrace_(NULL),
@@ -838,11 +839,16 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
+#define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
+      metric_##variable##_(),
+      ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
+#undef ISOLATE_METRIC_CONSTRUCTORS
       has_attempted_reload_(false),
       no_reload_scope_depth_(0),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
       reload_context_(NULL),
-      last_reload_timestamp_(OS::GetCurrentTimeMillis()) {
+      last_reload_timestamp_(OS::GetCurrentTimeMillis()),
+      should_pause_post_service_request_(false) {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
@@ -878,6 +884,8 @@ Isolate::~Isolate() {
   constant_canonicalization_mutex_ = NULL;
   delete megamorphic_lookup_mutex_;
   megamorphic_lookup_mutex_ = NULL;
+  delete pending_deopts_;
+  pending_deopts_ = NULL;
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
@@ -1038,6 +1046,26 @@ void Isolate::ScheduleMessageInterrupts() {
 void Isolate::set_debugger_name(const char* name) {
   free(debugger_name_);
   debugger_name_ = strdup(name);
+}
+
+
+bool Isolate::IsPaused() const {
+  return (debugger_ != NULL) && (debugger_->PauseEvent() != NULL);
+}
+
+
+void Isolate::PausePostRequest() {
+  if (!FLAG_support_debugger) {
+    return;
+  }
+  if (debugger_ == NULL) {
+    return;
+  }
+  ASSERT(!IsPaused());
+  const Error& error = Error::Handle(debugger_->PausePostRequest());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
 }
 
 
@@ -1900,6 +1928,45 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
 }
 
 
+void Isolate::AddPendingDeopt(uword fp, uword pc) {
+  // GrowableArray::Add is not atomic and may be interrupt by a profiler
+  // stack walk.
+  MallocGrowableArray<PendingLazyDeopt>* old_pending_deopts = pending_deopts_;
+  MallocGrowableArray<PendingLazyDeopt>* new_pending_deopts
+      = new MallocGrowableArray<PendingLazyDeopt>(
+          old_pending_deopts->length() + 1);
+  for (intptr_t i = 0; i < old_pending_deopts->length(); i++) {
+    ASSERT((*old_pending_deopts)[i].fp() != fp);
+    new_pending_deopts->Add((*old_pending_deopts)[i]);
+  }
+  PendingLazyDeopt deopt(fp, pc);
+  new_pending_deopts->Add(deopt);
+
+  pending_deopts_ = new_pending_deopts;
+  delete old_pending_deopts;
+}
+
+
+uword Isolate::FindPendingDeopt(uword fp) const {
+  for (intptr_t i = 0; i < pending_deopts_->length(); i++) {
+    if ((*pending_deopts_)[i].fp() == fp) {
+      return (*pending_deopts_)[i].pc();
+    }
+  }
+  FATAL("Missing pending deopt entry");
+  return 0;
+}
+
+
+void Isolate::ClearPendingDeoptsAtOrBelow(uword fp) const {
+  for (intptr_t i = pending_deopts_->length() - 1; i >= 0; i--) {
+    if ((*pending_deopts_)[i].fp() <= fp) {
+      pending_deopts_->RemoveAt(i);
+    }
+  }
+}
+
+
 #ifndef PRODUCT
 static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
   switch (pi) {
@@ -1956,8 +2023,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
     ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
     jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->is_paused_on_exit()) {
-    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+  } else if (message_handler()->is_paused_on_exit() &&
+             ((debugger() == NULL) || (debugger()->PauseEvent() == NULL))) {
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
     jsobj.AddProperty("pauseEvent", &pause_event);
   } else if ((debugger() != NULL) &&

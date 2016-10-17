@@ -6,7 +6,7 @@ library test.integration.analysis.get.errors;
 
 import 'dart:async';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../integration_tests.dart';
 

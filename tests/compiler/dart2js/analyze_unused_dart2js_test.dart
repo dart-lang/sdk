@@ -39,7 +39,7 @@ const Map<String, List<String>> WHITE_LIST = const {
   // Serialization code is only used in test.
   "lib/src/serialization/": const ["is never"],
 
-  "lib/src/universe/universe.dart": const [
+  "lib/src/universe/world_builder.dart": const [
     "The method 'getterInvocationsByName' is never called.",
     "The method 'setterInvocationsByName' is never called."
   ],

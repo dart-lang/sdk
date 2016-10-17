@@ -5,15 +5,14 @@
 library analyzer.test.src.util.glob_test;
 
 import 'package:analyzer/src/util/glob.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(GlobPosixTest);
-  defineReflectiveTests(GlobWindowsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(GlobPosixTest);
+    defineReflectiveTests(GlobWindowsTest);
+  });
 }
 
 @reflectiveTest

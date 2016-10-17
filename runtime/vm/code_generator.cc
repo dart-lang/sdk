@@ -1864,7 +1864,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
         ASSERT(isolate->background_compiler() != NULL);
         isolate->background_compiler()->CompileOptimized(function);
         // Continue in the same code.
-        arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
+        arguments.SetReturn(function);
         return;
       }
     }
@@ -1886,7 +1886,7 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     const Code& optimized_code = Code::Handle(zone, function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
   }
-  arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
+  arguments.SetReturn(function);
 #else
   UNREACHABLE();
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -1935,6 +1935,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
                  target_function.ToFullyQualifiedCString(),
                  current_target_code.UncheckedEntryPoint());
   }
+  ASSERT(!current_target_code.IsDisabled());
   arguments.SetReturn(current_target_code);
 }
 
@@ -1996,15 +1997,10 @@ DEOPT_REASONS(DEOPT_REASON_TO_TEXT)
 }
 
 
-void DeoptimizeAt(const Code& optimized_code, uword pc) {
+void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   ASSERT(optimized_code.is_optimized());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  ICData::DeoptReasonId deopt_reason = ICData::kDeoptUnknown;
-  uint32_t deopt_flags = 0;
-  const TypedData& deopt_info = TypedData::Handle(zone,
-      optimized_code.GetDeoptInfoAtPc(pc, &deopt_reason, &deopt_flags));
-  ASSERT(!deopt_info.IsNull());
   const Function& function = Function::Handle(zone, optimized_code.function());
   const Error& error =
       Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
@@ -2018,24 +2014,18 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
   if (function.HasOptimizedCode()) {
     function.SwitchToUnoptimizedCode();
   }
-  // Patch call site (lazy deoptimization is quite rare, patching it twice
-  // is not a performance issue).
-  uword lazy_deopt_jump_return = optimized_code.GetLazyDeoptReturnPc();
-  uword lazy_deopt_jump_throw = optimized_code.GetLazyDeoptThrowPc();
-#if !defined(TARGET_ARCH_DBC)
-  ASSERT(lazy_deopt_jump_return != 0);
-  ASSERT(lazy_deopt_jump_throw != 0);
-#endif
+
+#if defined(TARGET_ARCH_DBC)
   const Instructions& instrs =
       Instructions::Handle(zone, optimized_code.instructions());
   {
     WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
-    CodePatcher::InsertDeoptimizationCallAt(pc, lazy_deopt_jump_return);
+    CodePatcher::InsertDeoptimizationCallAt(frame->pc());
     if (FLAG_trace_patching) {
       const String& name = String::Handle(function.name());
       OS::PrintErr(
-          "InsertDeoptimizationCallAt: 0x%" Px " to 0x%" Px " for %s\n",
-          pc, lazy_deopt_jump_return, name.ToCString());
+          "InsertDeoptimizationCallAt: 0x%" Px " for %s\n",
+          frame->pc(), name.ToCString());
     }
     const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(zone, optimized_code.exception_handlers());
@@ -2043,12 +2033,38 @@ void DeoptimizeAt(const Code& optimized_code, uword pc) {
     for (intptr_t i = 0; i < handlers.num_entries(); ++i) {
       handlers.GetHandlerInfo(i, &info);
       const uword patch_pc = instrs.PayloadStart() + info.handler_pc_offset;
-      CodePatcher::InsertDeoptimizationCallAt(patch_pc, lazy_deopt_jump_throw);
+      CodePatcher::InsertDeoptimizationCallAt(patch_pc);
       if (FLAG_trace_patching) {
         OS::PrintErr("  at handler 0x%" Px "\n", patch_pc);
       }
     }
   }
+#else  // !DBC
+  if (frame->IsMarkedForLazyDeopt()) {
+    // Deopt already scheduled.
+    if (FLAG_trace_deoptimization) {
+      THR_Print("Lazy deopt already scheduled for fp=%" Pp "\n", frame->fp());
+    }
+  } else {
+    uword deopt_pc = frame->pc();
+    ASSERT(optimized_code.ContainsInstructionAt(deopt_pc));
+
+#if defined(DEBUG)
+    ValidateFrames();
+#endif
+
+    // N.B.: Update the pending deopt table before updating the frame. The
+    // profiler may attempt a stack walk in between.
+    thread->isolate()->AddPendingDeopt(frame->fp(), deopt_pc);
+    frame->MarkForLazyDeopt();
+
+    if (FLAG_trace_deoptimization) {
+      THR_Print("Lazy deopt scheduled for fp=%" Pp ", pc=%" Pp "\n",
+                frame->fp(), deopt_pc);
+    }
+  }
+#endif  // !DBC
+
   // Mark code as dead (do not GC its embedded objects).
   optimized_code.set_is_alive(false);
 }
@@ -2063,7 +2079,7 @@ void DeoptimizeFunctionsOnStack() {
   while (frame != NULL) {
     optimized_code = frame->LookupDartCode();
     if (optimized_code.is_optimized()) {
-      DeoptimizeAt(optimized_code, frame->pc());
+      DeoptimizeAt(optimized_code, frame);
     }
     frame = iterator.NextFrame();
   }
@@ -2144,6 +2160,28 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
        is_lazy_deopt ? "lazy-deopt" : "");
   }
 
+#if !defined(TARGET_ARCH_DBC)
+  if (is_lazy_deopt) {
+    uword deopt_pc = isolate->FindPendingDeopt(caller_frame->fp());
+    if (FLAG_trace_deoptimization) {
+      THR_Print("Lazy deopt fp=%" Pp " pc=%" Pp "\n",
+                caller_frame->fp(), deopt_pc);
+    }
+
+    // N.B.: Update frame before updating pending deopt table. The profiler
+    // may attempt a stack walk in between.
+    caller_frame->set_pc(deopt_pc);
+    ASSERT(caller_frame->pc() == deopt_pc);
+    ASSERT(optimized_code.ContainsInstructionAt(caller_frame->pc()));
+    isolate->ClearPendingDeoptsAtOrBelow(caller_frame->fp());
+  } else {
+    if (FLAG_trace_deoptimization) {
+      THR_Print("Eager deopt fp=%" Pp " pc=%" Pp "\n",
+                caller_frame->fp(), caller_frame->pc());
+    }
+  }
+#endif  // !DBC
+
   // Copy the saved registers from the stack.
   fpu_register_t* fpu_registers;
   intptr_t* cpu_registers;
@@ -2204,6 +2242,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
 
   deopt_context->set_dest_frame(caller_frame);
   deopt_context->FillDestFrame();
+
 #else
   UNREACHABLE();
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -2222,11 +2261,7 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
   {
     // We may rendezvous for a safepoint at entry or GC from the allocations
     // below. Check the stack is walkable.
-    StackFrameIterator frames_iterator(StackFrameIterator::kValidateFrames);
-    StackFrame* frame = frames_iterator.NextFrame();
-    while (frame != NULL) {
-      frame = frames_iterator.NextFrame();
-    }
+    ValidateFrames();
   }
 #endif
   DeoptContext* deopt_context = isolate->deopt_context();

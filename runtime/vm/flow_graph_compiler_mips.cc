@@ -25,18 +25,6 @@ namespace dart {
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 
 
-void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Assembler* assembler = compiler->assembler();
-#define __ assembler->
-  __ Bind(entry_label());
-  __ Comment("MegamorphicSlowPath");
-  compiler->EmitMegamorphicInstanceCall(ic_data_, argument_count_, deopt_id_,
-                                        token_pos_, locs_, try_index_);
-  __ b(exit_label());
-#undef __
-}
-
-
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -1138,21 +1126,6 @@ void FlowGraphCompiler::CompileGraph() {
 
   __ break_(0);
   GenerateDeferredCode();
-
-  BeginCodeSourceRange();
-  if (is_optimizing() && !FLAG_precompiled_mode) {
-    // Leave enough space for patching in case of lazy deoptimization.
-    for (intptr_t i = 0;
-      i < CallPattern::kDeoptCallLengthInInstructions;
-      ++i) {
-      __ nop();
-    }
-    lazy_deopt_return_pc_offset_ = assembler()->CodeSize();
-    __ Branch(*StubCode::DeoptimizeLazyFromReturn_entry());
-    lazy_deopt_throw_pc_offset_ = assembler()->CodeSize();
-    __ Branch(*StubCode::DeoptimizeLazyFromThrow_entry());
-  }
-  EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }
 
 
@@ -1160,7 +1133,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const StubEntry& stub_entry,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  __ BranchLinkPatchable(stub_entry);
+  __ BranchLink(stub_entry);
   AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
 }
@@ -1385,9 +1358,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
 
   __ Comment("SwitchableCall");
   __ lw(T0, Address(SP, (argument_count - 1) * kWordSize));
-  __ LoadUniqueObject(S5, ic_data);
   __ LoadUniqueObject(CODE_REG, initial_stub);
   __ lw(T9, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ LoadUniqueObject(S5, ic_data);
   __ jalr(T9);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,

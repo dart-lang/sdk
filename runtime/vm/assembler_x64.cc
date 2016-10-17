@@ -3335,9 +3335,7 @@ void Assembler::NoMonomorphicCheckedEntry() {
 void Assembler::MonomorphicCheckedEntry() {
   Label immediate, have_cid, miss;
   Bind(&miss);
-  movq(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
-  movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  jmp(RCX);
+  jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
 
   Bind(&immediate);
   movq(R10, Immediate(kSmiCid));
@@ -3354,6 +3352,7 @@ void Assembler::MonomorphicCheckedEntry() {
   Bind(&have_cid);
   cmpq(R10, RBX);
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
+  nop();
 
   // Fall through to unchecked entry.
   ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);

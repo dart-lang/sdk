@@ -10,7 +10,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'abstract_context.dart';
 

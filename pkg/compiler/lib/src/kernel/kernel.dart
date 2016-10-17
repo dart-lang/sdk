@@ -8,6 +8,8 @@ import 'dart:collection' show Queue;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/checks.dart' show CheckParentPointers;
 
+import '../common.dart';
+import '../common/names.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart' show TypeConstantExpression;
 import '../dart_types.dart'
@@ -591,10 +593,26 @@ class Kernel {
     return false;
   }
 
+  ir.Constructor getDartCoreConstructor(
+      String className, String constructorName) {
+    LibraryElement library =
+        compiler.libraryLoader.lookupLibrary(Uris.dart_core);
+    ClassElement cls = library.implementation.localLookup(className);
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, cls != null,
+        message: 'dart:core class $className not found.'));
+    ConstructorElement constructor = cls.lookupConstructor(constructorName);
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, constructor != null,
+        message: "Constructor '$constructorName' not found "
+            "in class '$className'."));
+    return functionToIr(constructor);
+  }
+
   ir.Procedure getDartCoreMethod(String name) {
     LibraryElement library =
-        compiler.libraryLoader.lookupLibrary(Uri.parse("dart:core"));
+        compiler.libraryLoader.lookupLibrary(Uris.dart_core);
     Element function = library.implementation.localLookup(name);
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, function != null,
+        message: "dart:core method '$name' not found."));
     return functionToIr(function);
   }
 
@@ -646,8 +664,8 @@ class Kernel {
     return getDartCoreMethod('_genericNoSuchMethod');
   }
 
-  ir.Procedure getFallThroughErrorBuilder() {
-    return getDartCoreMethod('_fallThroughError');
+  ir.Constructor getFallThroughErrorConstructor() {
+    return getDartCoreConstructor('FallThroughError', '');
   }
 }
 

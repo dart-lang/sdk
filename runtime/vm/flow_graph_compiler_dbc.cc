@@ -29,11 +29,6 @@ DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 DECLARE_FLAG(charp, optimization_filter);
 
-void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
-  UNIMPLEMENTED();
-}
-
-
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -199,10 +194,12 @@ void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
     // hence the difference.
     pending_deoptimization_env_->DropArguments(instr->ArgumentCount());
     AddDeoptIndexAtCall(deopt_id_after);
+    // This descriptor is needed for exception handling in optimized code.
+    AddCurrentDescriptor(RawPcDescriptors::kOther,
+                         deopt_id_after, instr->token_pos());
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    // In optimized code this descriptor is needed for exception handling.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                          deopt_id_after,
                          instr->token_pos());
@@ -227,6 +224,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   SubtypeTestCache& test_cache = SubtypeTestCache::Handle();
   if (!dst_type.IsVoidType() && dst_type.IsInstantiated()) {
     test_cache = SubtypeTestCache::New();
+  } else if (!dst_type.IsInstantiated() &&
+             (dst_type.IsTypeParameter() || dst_type.IsType())) {
+    test_cache = SubtypeTestCache::New();
   }
 
   if (is_optimizing()) {
@@ -235,7 +235,26 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
   }
   __ PushConstant(dst_type);
   __ PushConstant(dst_name);
-  __ AssertAssignable(__ AddConstant(test_cache));
+
+  if (dst_type.IsMalformedOrMalbounded()) {
+    __ BadTypeError();
+  } else {
+    bool may_be_smi = false;
+    if (!dst_type.IsVoidType() && dst_type.IsInstantiated()) {
+      const Class& type_class = Class::Handle(zone(), dst_type.type_class());
+      if (type_class.NumTypeArguments() == 0) {
+        const Class& smi_class = Class::Handle(zone(), Smi::Class());
+        may_be_smi = smi_class.IsSubtypeOf(TypeArguments::Handle(zone()),
+                                           type_class,
+                                           TypeArguments::Handle(zone()),
+                                           NULL,
+                                           NULL,
+                                           Heap::kOld);
+      }
+    }
+    __ AssertAssignable(may_be_smi ? 1 : 0, __ AddConstant(test_cache));
+  }
+
   if (is_optimizing()) {
     // Register allocator does not think that our first input (also used as
     // output) needs to be kept alive across the call because that is how code
@@ -276,7 +295,13 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 
 void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ Move(0, -(1 + kParamEndSlotFromFp));
-  __ LoadField(0, 0, offset / kWordSize);
+  ASSERT(offset % kWordSize == 0);
+  if (Utils::IsInt(8, offset/ kWordSize)) {
+    __ LoadField(0, 0, offset / kWordSize);
+  } else {
+    __ LoadFieldExt(0, 0);
+    __ Nop(offset / kWordSize);
+  }
   __ Return(0);
 }
 
@@ -284,7 +309,13 @@ void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
 void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ Move(0, -(2 + kParamEndSlotFromFp));
   __ Move(1, -(1 + kParamEndSlotFromFp));
-  __ StoreField(0, offset / kWordSize, 1);
+  ASSERT(offset % kWordSize == 0);
+  if (Utils::IsInt(8, offset/ kWordSize)) {
+    __ StoreField(0, offset / kWordSize, 1);
+  } else {
+    __ StoreFieldExt(0, 1);
+    __ Nop(offset / kWordSize);
+  }
   __ LoadConstant(0, Object::Handle());
   __ Return(0);
 }

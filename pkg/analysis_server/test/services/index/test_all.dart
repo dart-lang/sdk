@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'index_test.dart' as index_test;
 import 'index_unit_test.dart' as index_unit_test;
 
@@ -12,9 +11,8 @@ import 'index_unit_test.dart' as index_unit_test;
  * Utility for manually running all tests.
  */
 main() {
-  initializeTestEnvironment();
-  group('index', () {
+  defineReflectiveSuite(() {
     index_test.main();
     index_unit_test.main();
-  });
+  }, name: 'index');
 }

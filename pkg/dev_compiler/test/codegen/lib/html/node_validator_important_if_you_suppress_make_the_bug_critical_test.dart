@@ -10,8 +10,9 @@ library node_validator_test;
 
 import 'dart:html';
 import 'dart:svg' as svg;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+
+import 'package:expect/minitest.dart';
+
 import 'utils.dart';
 
 void validateHtml(String html, String reference, NodeValidator validator) {
@@ -52,8 +53,6 @@ void testHtml(String name, NodeValidator validator, String html,
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   group('DOM_sanitization', () {
     var validator = new NodeValidatorBuilder.common();
 
@@ -126,7 +125,7 @@ main() {
         '</template>';
 
       var fragment = document.body.createFragment(html, validator: validator);
-      var template = fragment.nodes.single;
+      var template = fragment.nodes.single as TemplateElement;
 
       var expectedContent = document.body.createFragment(
           '<div></div>'
@@ -149,8 +148,9 @@ main() {
       var fragment = new DocumentFragment.html(html);
       fragment.appendHtml('<div id="bad"><script></script></div>');
       expect(fragment.childNodes.length, 1);
-      expect(fragment.childNodes[0].id, "bad");
-      expect(fragment.childNodes[0].childNodes.length, 0);
+      var child = fragment.childNodes[0] as Element;
+      expect(child.id, "bad");
+      expect(child.childNodes.length, 0);
     });
 
     testHtml("sanitizes embed",
@@ -500,7 +500,7 @@ main() {
         '</svg>';
 
       var fragment = new DocumentFragment.svg(svgText);
-      var element = fragment.nodes.first;
+      var element = fragment.nodes.first as Element;
       expect(element is svg.SvgSvgElement, isTrue);
       expect(element.children[0] is svg.ImageElement, isTrue);
     });
@@ -542,7 +542,7 @@ main() {
       var fragment = document.body.createFragment(
           "<form onmouseover='alert(2)'><input name='tagName'>",
           validator: validator);
-      var form = fragment.lastChild;
+      var form = fragment.lastChild as FormElement;
       // If the tagName was clobbered, the sanitizer should have removed
       // the whole thing and form is null.
       // If the tagName was not clobbered, then there will be content,
@@ -557,7 +557,7 @@ main() {
       var fragment = document.body.createFragment(
           "<form><input name='tagName'>",
           validator: validator);
-      var form = fragment.lastChild;
+      var form = fragment.lastChild as FormElement;
       // If the tagName was clobbered, the sanitizer should have removed
       // the whole thing and form is null.
       // If the tagName was not clobbered, then there will be content,

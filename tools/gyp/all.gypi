@@ -14,6 +14,8 @@
     'dart_io_support': 1,
     # Flag that tells us whether this is an ASAN build.
     'asan%': 0,
+    # Flag that tells us whether this is a MSAN build.
+    'msan%': 0,
   },
   'conditions': [
     [ 'OS=="linux"', {

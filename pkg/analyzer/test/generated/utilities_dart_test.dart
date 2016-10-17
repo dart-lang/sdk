@@ -5,14 +5,13 @@
 library analyzer.test.generated.utilities_dart_test;
 
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ResolveRelativeUriTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ResolveRelativeUriTest);
+  });
 }
 
 @reflectiveTest

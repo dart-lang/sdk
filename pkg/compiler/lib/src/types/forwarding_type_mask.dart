@@ -54,23 +54,23 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.containsOnlyString(closedWorld);
   }
 
-  bool containsOnly(ClassElement element) {
-    return forwardTo.containsOnly(element);
+  bool containsOnly(Entity cls) {
+    return forwardTo.containsOnly(cls);
   }
 
-  bool satisfies(ClassElement cls, ClosedWorld closedWorld) {
+  bool satisfies(Entity cls, ClosedWorld closedWorld) {
     return forwardTo.satisfies(cls, closedWorld);
   }
 
-  bool contains(ClassElement type, ClosedWorld closedWorld) {
-    return forwardTo.contains(type, closedWorld);
+  bool contains(Entity cls, ClosedWorld closedWorld) {
+    return forwardTo.contains(cls, closedWorld);
   }
 
   bool containsAll(ClosedWorld closedWorld) {
     return forwardTo.containsAll(closedWorld);
   }
 
-  ClassElement singleClass(ClosedWorld closedWorld) {
+  Entity singleClass(ClosedWorld closedWorld) {
     return forwardTo.singleClass(closedWorld);
   }
 

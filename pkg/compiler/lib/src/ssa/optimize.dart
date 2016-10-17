@@ -952,13 +952,30 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
     propagateConstantValueToUses(node);
-    if (node.element == backend.helpers.checkConcurrentModificationError) {
+    Element element = node.element;
+
+    if (element == backend.helpers.checkConcurrentModificationError) {
       if (node.inputs.length == 2) {
         HInstruction firstArgument = node.inputs[0];
         if (firstArgument is HConstant) {
           HConstant constant = firstArgument;
           if (constant.constant.isTrue) return constant;
         }
+      }
+    } else if (element == backend.helpers.checkInt) {
+      if (node.inputs.length == 1) {
+        HInstruction argument = node.inputs[0];
+        if (argument.isInteger(compiler)) return argument;
+      }
+    } else if (element == backend.helpers.checkNum) {
+      if (node.inputs.length == 1) {
+        HInstruction argument = node.inputs[0];
+        if (argument.isNumber(compiler)) return argument;
+      }
+    } else if (element == backend.helpers.checkString) {
+      if (node.inputs.length == 1) {
+        HInstruction argument = node.inputs[0];
+        if (argument.isString(compiler)) return argument;
       }
     }
     return node;
@@ -2604,7 +2621,33 @@ class MemorySet {
   MemorySet intersectionFor(
       MemorySet other, HBasicBlock block, int predecessorIndex) {
     MemorySet result = new MemorySet(compiler);
-    if (other == null) return result;
+    if (other == null) {
+      // This is the first visit to a loop header ([other] is `null` because we
+      // have not visited the back edge). Copy the nonEscapingReceivers that are
+      // guaranteed to survive the loop because they are not escaped before
+      // method exit.
+      // TODO(sra): We should do a proper dataflow to find the maximal
+      // nonEscapingReceivers (a variant of Available-Expressions), which must
+      // converge before we edit the program in [findCommonInstruction].
+      for (HInstruction instruction in nonEscapingReceivers) {
+        bool isNonEscapingUse(HInstruction use) {
+          if (use is HReturn) return true; // Escapes, but so does control.
+          if (use is HFieldGet) return true;
+          if (use is HFieldSet &&
+              use.receiver.nonCheck() == instruction &&
+              use.value.nonCheck() != instruction) {
+            return true;
+          }
+          if (use is HTypeInfoReadVariable) return true;
+          return false;
+        }
+
+        if (instruction.usedBy.every(isNonEscapingUse)) {
+          result.nonEscapingReceivers.add(instruction);
+        }
+      }
+      return result;
+    }
 
     fieldValues.forEach((element, values) {
       var otherValues = other.fieldValues[element];

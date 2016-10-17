@@ -6,6 +6,8 @@
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
+// OtherResources=certificates/server_chain.pem
+// OtherResources=certificates/server_key.pem
 
 library dart.io;
 

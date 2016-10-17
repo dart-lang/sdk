@@ -37,7 +37,8 @@ class ServiceEvent {
     kPauseBreakpoint,
     kPauseInterrupted,
     kPauseException,
-    kNone,               // isolate has not been made runnable yet.
+    kPausePostRequest,    // isolate is paused after a service request.
+    kNone,                // isolate has not been made runnable yet.
     kResume,
     kBreakpointAdded,
     kBreakpointResolved,
@@ -92,6 +93,7 @@ class ServiceEvent {
       case kPauseBreakpoint:
       case kPauseInterrupted:
       case kPauseException:
+      case kPausePostRequest:
         return true;
       default:
         return false;
@@ -131,6 +133,7 @@ class ServiceEvent {
     ASSERT(kind() == kPauseBreakpoint ||
            kind() == kPauseInterrupted ||
            kind() == kPauseException ||
+           kind() == kPausePostRequest ||
            kind() == kResume);
     top_frame_ = frame;
   }

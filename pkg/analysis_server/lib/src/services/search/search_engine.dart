@@ -155,16 +155,20 @@ class SearchMatch {
       this.sourceRange, this.isResolved, this.isQualified);
 
   /**
-   * Return the [Element] containing the match.
+   * Return the [Element] containing the match. Can return `null` if the unit
+   * does not exist, or its element was invalidated, or the element cannot be
+   * found, etc.
    */
   Element get element {
     if (_element == null) {
       CompilationUnitElement unitElement =
           context.getCompilationUnitElement(unitSource, librarySource);
-      _ContainingElementFinder finder =
-          new _ContainingElementFinder(sourceRange.offset);
-      unitElement.accept(finder);
-      _element = finder.containingElement;
+      if (unitElement != null) {
+        _ContainingElementFinder finder =
+            new _ContainingElementFinder(sourceRange.offset);
+        unitElement.accept(finder);
+        _element = finder.containingElement;
+      }
     }
     return _element;
   }
@@ -176,7 +180,8 @@ class SearchMatch {
 
   @override
   int get hashCode {
-    return JenkinsSmiHash.hash4(libraryUri, unitUri, kind, sourceRange);
+    return JenkinsSmiHash.hash4(libraryUri.hashCode, unitUri.hashCode,
+        kind.hashCode, sourceRange.hashCode);
   }
 
   /**
@@ -236,6 +241,16 @@ class SearchMatch {
     buffer.write(isQualified);
     buffer.write(")");
     return buffer.toString();
+  }
+
+  /**
+   * Return elements of [matches] which has not-null elements.
+   *
+   * When [SearchMatch.element] is not `null` we cache its value, so it cannot
+   * become `null` later.
+   */
+  static List<SearchMatch> withNotNullElement(List<SearchMatch> matches) {
+    return matches.where((match) => match.element != null).toList();
   }
 }
 

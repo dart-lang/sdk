@@ -1216,14 +1216,19 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           // TODO(paulberry): implement other cases as necessary
           throw new UnimplementedError('${element._unlinkedExecutable.kind}');
       }
-      return addRawReference(element.name,
-          numTypeParameters: element.typeParameters.length,
-          containingReference:
-              enclosingClass != null ? addReference(enclosingClass) : null,
-          dependency: enclosingClass != null
-              ? null
-              : library.addDependency(element.library as LibraryElementForLink),
-          kind: kind);
+      if (enclosingClass == null) {
+        return addRawReference(element.name,
+            numTypeParameters: element.typeParameters.length,
+            dependency:
+                library.addDependency(element.library as LibraryElementForLink),
+            unitNum: element.compilationUnit.unitNum,
+            kind: kind);
+      } else {
+        return addRawReference(element.name,
+            numTypeParameters: element.typeParameters.length,
+            containingReference: addReference(enclosingClass),
+            kind: kind);
+      }
     } else if (element is FunctionElementForLink_Initializer) {
       return addRawReference('',
           containingReference: addReference(element.enclosingElement),
@@ -1231,6 +1236,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     } else if (element is TopLevelVariableElementForLink) {
       return addRawReference(element.name,
           dependency: library.addDependency(element.library),
+          unitNum: element.compilationUnit.unitNum,
           kind: ReferenceKind.topLevelPropertyAccessor);
     } else if (element is FieldElementForLink_ClassField) {
       ClassElementForLink_Class enclosingClass = element.enclosingElement;
@@ -1280,6 +1286,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
    */
   void unlink() {
     _linkedUnit.constCycles.clear();
+    _linkedUnit.parametersInheritingCovariant.clear();
     _linkedUnit.references.length = _unlinkedUnit.references.length;
     _linkedUnit.types.clear();
   }
@@ -1290,6 +1297,14 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
    */
   void _storeConstCycle(int slot) {
     _linkedUnit.constCycles.add(slot);
+  }
+
+  /**
+   * Store the fact that the given [slot] represents a parameter that inherits
+   * `@covariant` behavior.
+   */
+  void _storeInheritsCovariant(int slot) {
+    _linkedUnit.parametersInheritingCovariant.add(slot);
   }
 
   /**
@@ -3382,6 +3397,11 @@ abstract class LibraryElementForLink<
   LibraryCycleForLink get libraryCycleForLink;
 
   @override
+  String get name {
+    return _definingUnlinkedUnit.libraryName;
+  }
+
+  @override
   List<UnitElement> get units {
     if (_units == null) {
       UnlinkedUnit definingUnit = definingUnlinkedUnit;
@@ -3937,9 +3957,7 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   DartType _inferredType;
   DartType _declaredType;
-
-  @override
-  bool inheritsCovariant = false;
+  bool _inheritsCovariant = false;
 
   ParameterElementForLink(this.enclosingElement, this._unlinkedParam,
       this._typeParameterContext, this.compilationUnit, this._parameterIndex) {
@@ -3956,7 +3974,32 @@ class ParameterElementForLink implements ParameterElementImpl {
       !_unlinkedParam.isFunctionTyped && _unlinkedParam.type == null;
 
   @override
-  bool get isCovariant => false;
+  bool get inheritsCovariant => _inheritsCovariant;
+
+  @override
+  void set inheritsCovariant(bool value) {
+    _inheritsCovariant = value;
+  }
+
+  @override
+  bool get isCovariant {
+    if (inheritsCovariant) {
+      return true;
+    }
+    for (UnlinkedConst annotation in _unlinkedParam.annotations) {
+      if (annotation.operations.length == 1 &&
+          annotation.operations[0] == UnlinkedConstOperation.pushReference) {
+        ReferenceableElementForLink element =
+            this.compilationUnit.resolveRef(annotation.references[0].reference);
+        if (element is PropertyAccessorElementForLink &&
+            element.name == 'checked' &&
+            element.library.name == 'meta') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   @override
   String get name => _unlinkedParam.name;
@@ -4012,6 +4055,10 @@ class ParameterElementForLink implements ParameterElementImpl {
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     compilationUnit._storeLinkedType(
         _unlinkedParam.inferredTypeSlot, _inferredType, _typeParameterContext);
+    if (inheritsCovariant) {
+      compilationUnit
+          ._storeInheritsCovariant(_unlinkedParam.inheritsCovariantSlot);
+    }
   }
 
   @override

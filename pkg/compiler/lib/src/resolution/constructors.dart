@@ -222,8 +222,8 @@ class InitializerResolver {
           functionNode, calledConstructor, callStructure, className,
           isImplicitSuperCall: true);
       if (!result.isError) {
-        registry.registerStaticUse(
-            new StaticUse.constructorInvoke(calledConstructor, callStructure));
+        registry.registerStaticUse(new StaticUse.superConstructorInvoke(
+            calledConstructor, callStructure));
       }
 
       if (isConst && isValidAsConstant) {

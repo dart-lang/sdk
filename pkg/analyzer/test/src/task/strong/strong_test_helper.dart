@@ -19,7 +19,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:source_span/source_span.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -46,7 +46,7 @@ bool _checkCalled;
 /// For a single file, you may also use [checkFile].
 void addFile(String content, {String name: '/main.dart'}) {
   name = name.replaceFirst('^package:', '/packages/');
-  files.newFile(name, content);
+  files.newFile(files.convertPath(name), content);
 }
 
 /// Run the checker on a program, staring from '/main.dart', and verifies that
@@ -62,8 +62,8 @@ CompilationUnit check(
     List<String> nonnullableTypes: AnalysisOptionsImpl.NONNULLABLE_TYPES}) {
   _checkCalled = true;
 
-  expect(files.getFile('/main.dart').exists, true,
-      reason: '`/main.dart` is missing');
+  File mainFile = files.getFile(files.convertPath('/main.dart'));
+  expect(mainFile.exists, true, reason: '`/main.dart` is missing');
 
   var uriResolver = new _TestUriResolver(files);
   // Enable task model strong mode
@@ -74,13 +74,13 @@ CompilationUnit check(
   options.implicitCasts = implicitCasts;
   options.implicitDynamic = implicitDynamic;
   options.nonnullableTypes = nonnullableTypes;
-  var mockSdk = new MockSdk();
+  var mockSdk = new MockSdk(resourceProvider: files);
   (mockSdk.context.analysisOptions as AnalysisOptionsImpl).strongMode = true;
   context.sourceFactory =
       new SourceFactory([new DartUriResolver(mockSdk), uriResolver]);
 
   // Run the checker on /main.dart.
-  Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
+  Source mainSource = uriResolver.resolveAbsolute(mainFile.toUri());
   var initialLibrary = context.resolveCompilationUnit2(mainSource, mainSource);
 
   var collector = new _ErrorCollector(context);
@@ -123,18 +123,16 @@ CompilationUnit checkFile(String content) {
   return check();
 }
 
-void initStrongModeTests() {
-  setUp(() {
-    AnalysisEngine.instance.processRequiredPlugins();
-    files = new MemoryResourceProvider();
-    _checkCalled = false;
-  });
+void doSetUp() {
+  AnalysisEngine.instance.processRequiredPlugins();
+  files = new MemoryResourceProvider();
+  _checkCalled = false;
+}
 
-  tearDown(() {
-    // This is a sanity check, in case only addFile is called.
-    expect(_checkCalled, true, reason: 'must call check() method in test case');
-    files = null;
-  });
+void doTearDown() {
+  // This is a sanity check, in case only addFile is called.
+  expect(_checkCalled, true, reason: 'must call check() method in test case');
+  files = null;
 }
 
 SourceSpanWithContext _createSpanHelper(
@@ -402,7 +400,8 @@ class _TestUriResolver extends ResourceUriResolver {
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     if (uri.scheme == 'package') {
-      return (provider.getResource('/packages/' + uri.path) as File)
+      return (provider.getResource(
+              provider.convertPath('/packages/' + uri.path)) as File)
           .createSource(uri);
     }
     return super.resolveAbsolute(uri, actualUri);

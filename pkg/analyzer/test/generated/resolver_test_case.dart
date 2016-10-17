@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'analysis_context_factory.dart';
 import 'test_support.dart';
@@ -299,6 +299,11 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
 
 class ResolverTestCase extends EngineTestCase {
   /**
+   * The resource provider used by the test case.
+   */
+  MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+
+  /**
    * The analysis context used to parse the compilation units being resolved.
    */
   InternalAnalysisContext analysisContext2;
@@ -332,14 +337,13 @@ class ResolverTestCase extends EngineTestCase {
   TypeSystem get typeSystem => analysisContext2.typeSystem;
 
   /**
-   * Add a source file to the content provider. The file path should be absolute.
-   *
-   * @param filePath the path of the file being added
-   * @param contents the contents to be returned by the content provider for the specified file
-   * @return the source object representing the added file
+   * Add a source file with the given [filePath] in the root of the file system.
+   * The file path should be absolute. The file will have the given [contents]
+   * set in the content provider. Return the source representing the added file.
    */
   Source addNamedSource(String filePath, String contents) {
-    Source source = cacheSource(filePath, contents);
+    Source source =
+        cacheSource(resourceProvider.convertPath(filePath), contents);
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(source);
     analysisContext2.applyChanges(changeSet);
@@ -347,10 +351,9 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Add a source file to the content provider.
-   *
-   * @param contents the contents to be returned by the content provider for the specified file
-   * @return the source object representing the added file
+   * Add a source file named 'test.dart' in the root of the file system. The
+   * file will have the given [contents] set in the content provider. Return the
+   * source representing the added file.
    */
   Source addSource(String contents) => addNamedSource("/test.dart", contents);
 
@@ -477,8 +480,7 @@ class ResolverTestCase extends EngineTestCase {
    * source to the analysis context. The file path must be absolute.
    */
   Source cacheSource(String filePath, String contents) {
-    Source source =
-        PhysicalResourceProvider.INSTANCE.getFile(filePath).createSource();
+    Source source = resourceProvider.getFile(filePath).createSource();
     analysisContext2.setContents(source, contents);
     return source;
   }
@@ -516,8 +518,7 @@ class ResolverTestCase extends EngineTestCase {
    * give it an empty content. Return the source that was created.
    */
   Source createNamedSource(String fileName) {
-    Source source =
-        PhysicalResourceProvider.INSTANCE.getFile(fileName).createSource();
+    Source source = resourceProvider.getFile(fileName).createSource();
     analysisContext2.setContents(source, '');
     return source;
   }
@@ -614,21 +615,20 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * In the rare cases we want to group several tests into single "test_" method, so need a way to
-   * reset test instance to reuse it.
+   * Re-create the analysis context being used by the test case.
    */
   void reset() {
-    analysisContext2 = AnalysisContextFactory.contextWithCore();
+    analysisContext2 = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
   }
 
   /**
-   * Reset the analysis context to have the given options applied.
-   *
-   * @param options the analysis options to be applied to the context
+   * Re-create the analysis context being used by the test case and set the
+   * [options] in the newly created context to the given [options].
    */
   void resetWithOptions(AnalysisOptions options) {
-    analysisContext2 =
-        AnalysisContextFactory.contextWithCoreAndOptions(options);
+    analysisContext2 = AnalysisContextFactory.contextWithCoreAndOptions(options,
+        resourceProvider: resourceProvider);
   }
 
   /**

@@ -9,15 +9,15 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisNotificationImplementedTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisNotificationImplementedTest);
+  });
 }
 
 @reflectiveTest
@@ -432,6 +432,7 @@ class B extends A {
       return new Future.delayed(
           new Duration(milliseconds: 1), () => waitForNotification(times - 1));
     }
+
     return waitForNotification(30000);
   }
 }

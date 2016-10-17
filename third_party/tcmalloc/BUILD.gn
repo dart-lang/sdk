@@ -105,6 +105,12 @@ source_set("tcmalloc") {
     "-fpermissive",
   ]
 
+  if (!is_clang && current_cpu == "x86") {
+    cflags += [
+      "-Wno-format"
+    ]
+  }
+
   set_sources_assignment_filter([
     # No debug allocator.
     "gperftools/src/debugallocation.cc",

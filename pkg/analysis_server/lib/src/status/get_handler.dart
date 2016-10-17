@@ -1407,7 +1407,6 @@ class GetHandler {
       buffer.write('<p>');
       _writeOption(
           buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
-      _writeOption(buffer, 'Cache size', options.cacheSize);
       _writeOption(
           buffer, 'Enable generic methods', options.enableGenericMethods);
       _writeOption(

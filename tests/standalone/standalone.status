@@ -25,6 +25,7 @@ packages_file_test: Skip # Uses Platform.executable
 
 [ ($runtime != vm && $runtime != dart_precompiled && $runtime != dart_app) && ($runtime != drt || $compiler != none)) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
+env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 package/package_isolate_test: Fail # Issue 12474
@@ -75,6 +76,7 @@ out_of_memory_test: Skip
 map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
 regress_26031_test: SkipByDesign # Standalone only test
+env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.

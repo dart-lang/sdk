@@ -9,53 +9,19 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import 'abstract_rename.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(RenameConstructorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(RenameConstructorTest);
+  });
 }
 
 @reflectiveTest
 class RenameConstructorTest extends RenameRefactoringTest {
-  test_checkFinalConditions_hasMember_constructor() async {
-    indexTestUnit('''
-class A {
-  A.test() {}
-  A.newName() {} // existing
-}
-''');
-    _createConstructorDeclarationRefactoring('test() {}');
-    // check status
-    refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Class 'A' already declares constructor with name 'newName'.",
-        expectedContextSearch: 'newName() {} // existing');
-  }
-
-  test_checkFinalConditions_hasMember_method() async {
-    indexTestUnit('''
-class A {
-  A.test() {}
-  newName() {} // existing
-}
-''');
-    _createConstructorDeclarationRefactoring('test() {}');
-    // check status
-    refactoring.newName = 'newName';
-    RefactoringStatus status = await refactoring.checkFinalConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
-        expectedMessage:
-            "Class 'A' already declares method with name 'newName'.",
-        expectedContextSearch: 'newName() {} // existing');
-  }
-
   test_checkInitialConditions_inSDK() async {
     indexTestUnit('''
 main() {
@@ -96,6 +62,40 @@ class A {
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  test_checkNewName_hasMember_constructor() async {
+    indexTestUnit('''
+class A {
+  A.test() {}
+  A.newName() {} // existing
+}
+''');
+    _createConstructorDeclarationRefactoring('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    RefactoringStatus status = refactoring.checkNewName();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Class 'A' already declares constructor with name 'newName'.",
+        expectedContextSearch: 'newName() {} // existing');
+  }
+
+  test_checkNewName_hasMember_method() async {
+    indexTestUnit('''
+class A {
+  A.test() {}
+  newName() {} // existing
+}
+''');
+    _createConstructorDeclarationRefactoring('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    RefactoringStatus status = refactoring.checkNewName();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Class 'A' already declares method with name 'newName'.",
+        expectedContextSearch: 'newName() {} // existing');
   }
 
   test_createChange_add() {

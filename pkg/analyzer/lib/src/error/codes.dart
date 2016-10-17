@@ -752,6 +752,17 @@ class CompileTimeErrorCode extends ErrorCode {
           'DUPLICATE_DEFINITION', "The name '{0}' is already defined");
 
   /**
+   * 18.3 Parts: It's a compile-time error if the same library contains two part
+   * directives with the same URI.
+   *
+   * Parameters:
+   * 0: the URI of the duplicate part
+   */
+  static const CompileTimeErrorCode DUPLICATE_PART = const CompileTimeErrorCode(
+      'DUPLICATE_PART',
+      "The library already contains a part with the uri '{0}'.");
+
+  /**
    * 7. Classes: It is a compile-time error if a class has an instance member
    * and a static member with the same name.
    *

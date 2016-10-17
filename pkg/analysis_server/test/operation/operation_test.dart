@@ -5,13 +5,9 @@
 library test.operation;
 
 import 'package:analysis_server/src/operation/operation.dart';
-import 'package:unittest/unittest.dart';
-
-import '../utils.dart';
+import 'package:test/test.dart';
 
 main() {
-  initializeTestEnvironment();
-
   group('ServerOperationPriority', () {
     test('toString', () {
       expect(ServerOperationPriority.ANALYSIS.toString(), 'ANALYSIS');

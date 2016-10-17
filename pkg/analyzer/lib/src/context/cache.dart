@@ -1229,7 +1229,8 @@ abstract class CachePartition {
    */
   CacheFlushManager _getFlushManager(ResultDescriptor descriptor) {
     ResultCachingPolicy policy = descriptor.cachingPolicy;
-    if (identical(policy, DEFAULT_CACHING_POLICY)) {
+    if (identical(policy, DEFAULT_CACHING_POLICY) ||
+        context.analysisOptions.disableCacheFlushing) {
       return UnlimitedCacheFlushManager.INSTANCE;
     }
     CacheFlushManager manager = _flushManagerMap[policy];

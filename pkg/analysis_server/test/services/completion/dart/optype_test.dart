@@ -11,15 +11,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../../abstract_context.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(OpTypeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(OpTypeTest);
+  });
 }
 
 @reflectiveTest

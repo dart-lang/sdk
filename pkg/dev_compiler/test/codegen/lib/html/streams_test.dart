@@ -1,8 +1,7 @@
-library streams_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:async';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
 
 class StreamHelper {
   var _a;
@@ -22,8 +21,6 @@ class StreamHelper {
 }
 
 main() {
-  useHtmlConfiguration();
-
   test('simple', () {
     var helper = new StreamHelper();
 

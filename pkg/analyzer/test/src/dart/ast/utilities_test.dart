@@ -16,20 +16,20 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../../generated/parser_test.dart' show ParserTestCase;
 import '../../../generated/test_support.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ConstantEvaluatorTest);
-  defineReflectiveTests(NodeLocatorTest);
-  defineReflectiveTests(NodeLocator2Test);
-  defineReflectiveTests(ResolutionCopierTest);
-  defineReflectiveTests(ToSourceVisitorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConstantEvaluatorTest);
+    defineReflectiveTests(NodeLocatorTest);
+    defineReflectiveTests(NodeLocator2Test);
+    defineReflectiveTests(ResolutionCopierTest);
+    defineReflectiveTests(ToSourceVisitorTest);
+  });
 }
 
 @reflectiveTest

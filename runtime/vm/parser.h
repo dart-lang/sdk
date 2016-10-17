@@ -14,6 +14,7 @@
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
+#include "vm/kernel.h"
 #include "vm/hash_table.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -22,6 +23,13 @@
 namespace dart {
 
 // Forward declarations.
+
+namespace kernel {
+
+class ScopeBuildingResult;
+
+}  // kernel
+
 class ArgumentsDescriptor;
 class Isolate;
 class LocalScope;
@@ -101,7 +109,8 @@ class ParsedFunction : public ZoneAllocated {
         first_stack_local_index_(0),
         num_copied_params_(0),
         num_stack_locals_(0),
-        have_seen_await_expr_(false) {
+        have_seen_await_expr_(false),
+        kernel_scopes_(NULL) {
     ASSERT(function.IsZoneHandle());
     // Every function has a local variable for the current context.
     LocalVariable* temp = new(zone()) LocalVariable(
@@ -215,6 +224,8 @@ class ParsedFunction : public ZoneAllocated {
 
   void Bailout(const char* origin, const char* reason) const;
 
+  kernel::ScopeBuildingResult* EnsureKernelScopes();
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -234,6 +245,8 @@ class ParsedFunction : public ZoneAllocated {
   int num_copied_params_;
   int num_stack_locals_;
   bool have_seen_await_expr_;
+
+  kernel::ScopeBuildingResult* kernel_scopes_;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);

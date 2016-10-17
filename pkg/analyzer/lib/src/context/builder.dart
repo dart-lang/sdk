@@ -14,9 +14,13 @@ import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/bazel.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/pub_summary.dart';
+import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart';
@@ -68,12 +72,14 @@ class ContextBuilder {
    * The resolver provider used to create a package: URI resolver, or `null` if
    * the normal (Package Specification DEP) lookup mechanism is to be used.
    */
+  @deprecated
   ResolverProvider packageResolverProvider;
 
   /**
    * The resolver provider used to create a file: URI resolver, or `null` if
    * the normal file URI resolver is to be used.
    */
+  @deprecated
   ResolverProvider fileResolverProvider;
 
   /**
@@ -89,6 +95,13 @@ class ContextBuilder {
    * or `null` if the normal lookup mechanism should be used.
    */
   String defaultPackagesDirectoryPath;
+
+  /**
+   * The file path of the file containing the summary of the SDK that should be
+   * used to "analyze" the SDK. This option should only be specified by
+   * command-line tools such as 'dartanalyzer' or 'ddc'.
+   */
+  String dartSdkSummaryPath;
 
   /**
    * The file path of the analysis options file that should be used in place of
@@ -109,6 +122,11 @@ class ContextBuilder {
    * `null` if no additional variables should be declared.
    */
   Map<String, String> declaredVariables;
+
+  /**
+   * The manager of pub package summaries.
+   */
+  PubSummaryManager pubSummaryManager;
 
   /**
    * Initialize a newly created builder to be ready to build a context rooted in
@@ -132,7 +150,27 @@ class ContextBuilder {
     context.name = path;
     //_processAnalysisOptions(context, optionMap);
     declareVariables(context);
+    configureSummaries(context);
     return context;
+  }
+
+  /**
+   * Configure the context to make use of summaries.
+   */
+  void configureSummaries(InternalAnalysisContext context) {
+    if (pubSummaryManager != null) {
+      List<LinkedPubPackage> linkedBundles =
+          pubSummaryManager.getLinkedBundles(context);
+      if (linkedBundles.isNotEmpty) {
+        SummaryDataStore store = new SummaryDataStore([]);
+        for (LinkedPubPackage package in linkedBundles) {
+          store.addBundle(null, package.unlinked);
+          store.addBundle(null, package.linked);
+        }
+        context.resultProvider =
+            new InputPackagesResultProvider(context, store);
+      }
+    }
   }
 
   Map<String, List<Folder>> convertPackagesToMap(Packages packages) {
@@ -193,38 +231,24 @@ class ContextBuilder {
     return findPackagesFromFile(rootDirectoryPath);
   }
 
-  SourceFactory createSourceFactory(
-      String rootDirectoryPath, AnalysisOptions options) {
-    Folder _folder = null;
-    Folder folder() {
-      return _folder ??= resourceProvider.getFolder(rootDirectoryPath);
+  SourceFactory createSourceFactory(String rootPath, AnalysisOptions options) {
+    BazelWorkspace bazelWorkspace =
+        BazelWorkspace.find(resourceProvider, rootPath);
+    if (bazelWorkspace != null) {
+      List<UriResolver> resolvers = <UriResolver>[
+        new DartUriResolver(findSdk(null, options)),
+        new BazelPackageUriResolver(bazelWorkspace),
+        new BazelFileUriResolver(bazelWorkspace)
+      ];
+      return new SourceFactory(resolvers, null, resourceProvider);
     }
 
-    UriResolver fileResolver;
-    if (fileResolverProvider != null) {
-      fileResolver = fileResolverProvider(folder());
-    }
-    fileResolver ??= new ResourceUriResolver(resourceProvider);
-    if (packageResolverProvider != null) {
-      UriResolver packageResolver = packageResolverProvider(folder());
-      if (packageResolver != null) {
-        // TODO(brianwilkerson) This doesn't support either embedder files or
-        // sdk extensions because we don't have a way to get the package map
-        // from the resolver.
-        List<UriResolver> resolvers = <UriResolver>[
-          new DartUriResolver(findSdk(null, options)),
-          packageResolver,
-          fileResolver
-        ];
-        return new SourceFactory(resolvers, null, resourceProvider);
-      }
-    }
-    Packages packages = createPackageMap(rootDirectoryPath);
+    Packages packages = createPackageMap(rootPath);
     Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
     List<UriResolver> resolvers = <UriResolver>[
       new DartUriResolver(findSdk(packageMap, options)),
       new PackageMapUriResolver(resourceProvider, packageMap),
-      fileResolver
+      new ResourceUriResolver(resourceProvider)
     ];
     return new SourceFactory(resolvers, packages, resourceProvider);
   }
@@ -272,7 +296,9 @@ class ContextBuilder {
    */
   DartSdk findSdk(
       Map<String, List<Folder>> packageMap, AnalysisOptions options) {
-    if (packageMap != null) {
+    if (dartSdkSummaryPath != null) {
+      return new SummaryBasedDartSdk(dartSdkSummaryPath, options.strongMode);
+    } else if (packageMap != null) {
       SdkExtensionFinder extFinder = new SdkExtensionFinder(packageMap);
       List<String> extFilePaths = extFinder.extensionFilePaths;
       EmbedderYamlLocator locator = new EmbedderYamlLocator(packageMap);
@@ -324,8 +350,8 @@ class ContextBuilder {
     String sdkPath = sdkManager.defaultSdkDirectory;
     SdkDescription description = new SdkDescription(<String>[sdkPath], options);
     return sdkManager.getSdk(description, () {
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
-          resourceProvider, resourceProvider.getFolder(sdkPath));
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
+          resourceProvider.getFolder(sdkPath), options.strongMode);
       sdk.analysisOptions = options;
       sdk.useSummary = sdkManager.canUseSummaries;
       return sdk;

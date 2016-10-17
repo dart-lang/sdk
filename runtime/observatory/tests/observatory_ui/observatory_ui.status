@@ -13,3 +13,6 @@ allocation_profile: Skip
 allocation_profile: Skip
 cpu_profile_table: Skip
 persistent_handles_page: Skip
+
+[ $runtime == ff || $runtime == chrome ]
+vm_connect/element_test: Skip # Times out

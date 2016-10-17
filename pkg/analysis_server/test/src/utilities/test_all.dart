@@ -4,13 +4,15 @@
 
 library test.services;
 
-import '../../utils.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
+
 import 'change_builder_core_test.dart' as change_builder_core_test;
 import 'change_builder_dart_test.dart' as change_builder_dart_test;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
-  change_builder_core_test.main();
-  change_builder_dart_test.main();
+  defineReflectiveSuite(() {
+    change_builder_core_test.main();
+    change_builder_dart_test.main();
+  });
 }

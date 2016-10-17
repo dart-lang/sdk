@@ -37,6 +37,7 @@ class ArgumentsDescriptor : public ValueObject {
   intptr_t PositionalCount() const;
   intptr_t NamedCount() const { return Count() - PositionalCount(); }
   RawString* NameAt(intptr_t i) const;
+  intptr_t PositionAt(intptr_t i) const;
   bool MatchesNameAt(intptr_t i, const String& other) const;
 
   // Generated code support.

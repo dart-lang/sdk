@@ -495,6 +495,9 @@ class Debugger {
   // Pause execution due to isolate interrupt.
   RawError* PauseInterrupted();
 
+  // Pause after a reload request.
+  RawError* PausePostRequest();
+
   // Pause execution due to an uncaught exception.
   void PauseException(const Instance& exc);
 
@@ -518,6 +521,8 @@ class Debugger {
     kStepOut,
     kSingleStep
   };
+
+  RawError* PauseRequest(ServiceEvent::EventKind kind);
 
   bool NeedsIsolateEvents();
   bool NeedsDebugEvents();

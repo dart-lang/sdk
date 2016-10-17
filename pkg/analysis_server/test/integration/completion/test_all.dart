@@ -4,17 +4,15 @@
 
 library test.integration.completion.all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'get_suggestions_test.dart' as get_suggestions_test;
 
 /**
  * Utility for manually running all integration tests.
  */
 main() {
-  initializeTestEnvironment();
-  group('completion', () {
+  defineReflectiveSuite(() {
     get_suggestions_test.main();
-  });
+  }, name: 'completion');
 }

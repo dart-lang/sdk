@@ -57,10 +57,11 @@ class TypeVariableHandler {
   JavaScriptBackend get _backend => _compiler.backend;
   DiagnosticReporter get reporter => _compiler.reporter;
 
-  void onQueueEmpty(Enqueuer enqueuer) {
-    if (enqueuer.isResolutionQueue) return;
-
-    enqueuer.applyImpact(null, impactBuilder.flush());
+  /// Compute the [WorldImpact] for the type variables registered since last
+  /// flush.
+  WorldImpact flush({bool forResolution}) {
+    if (forResolution) return const WorldImpact();
+    return impactBuilder.flush();
   }
 
   void registerClassWithTypeVariables(

@@ -11,6 +11,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/log.h"
 #include "vm/parser.h"
+#include "vm/stack_frame.h"
 
 namespace dart {
 
@@ -612,10 +613,6 @@ void FlowGraphAllocator::BuildLiveRanges() {
     } else if (block->IsCatchBlockEntry()) {
       // Process initial definitions.
       CatchBlockEntryInstr* catch_entry = block->AsCatchBlockEntry();
-#if defined(TARGET_ARCH_DBC)
-      // TODO(vegorov) support try-catch/finally for DBC.
-      flow_graph_.parsed_function().Bailout("FlowGraphAllocator", "Catch");
-#endif
 
       ProcessEnvironmentUses(catch_entry, catch_entry);  // For lazy deopt
 
@@ -631,10 +628,19 @@ void FlowGraphAllocator::BuildLiveRanges() {
       // block start to until the end of the instruction so that they are
       // preserved.
       intptr_t start = catch_entry->start_pos();
-      BlockLocation(Location::RegisterLocation(kExceptionObjectReg),
+#if !defined(TARGET_ARCH_DBC)
+      const Register exception_reg = kExceptionObjectReg;
+      const Register stacktrace_reg = kStackTraceObjectReg;
+#else
+      const intptr_t exception_reg =
+          LocalVarIndex(0, catch_entry->exception_var().index());
+      const intptr_t stacktrace_reg =
+          LocalVarIndex(0, catch_entry->stacktrace_var().index());
+#endif
+      BlockLocation(Location::RegisterLocation(exception_reg),
                     start,
                     ToInstructionEnd(start));
-      BlockLocation(Location::RegisterLocation(kStackTraceObjectReg),
+      BlockLocation(Location::RegisterLocation(stacktrace_reg),
                     start,
                     ToInstructionEnd(start));
     }
@@ -654,9 +660,52 @@ void FlowGraphAllocator::BuildLiveRanges() {
 }
 
 
+void FlowGraphAllocator::SplitInitialDefinitionAt(LiveRange* range,
+                                                  intptr_t pos) {
+  if (range->End() > pos) {
+    LiveRange* tail = range->SplitAt(pos);
+    CompleteRange(tail, Location::kRegister);
+  }
+}
+
+
 void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
                                                   LiveRange* range,
                                                   BlockEntryInstr* block) {
+#if defined(TARGET_ARCH_DBC)
+  if (block->IsCatchBlockEntry()) {
+    if (defn->IsParameter()) {
+      ParameterInstr* param = defn->AsParameter();
+      intptr_t slot_index = param->index();
+      AssignSafepoints(defn, range);
+      range->finger()->Initialize(range);
+      slot_index = kNumberOfCpuRegisters - 1 - slot_index;
+      range->set_assigned_location(Location::RegisterLocation(slot_index));
+      SplitInitialDefinitionAt(range, block->lifetime_position() + 2);
+      ConvertAllUses(range);
+      BlockLocation(Location::RegisterLocation(slot_index), 0, kMaxPosition);
+    } else {
+      ConstantInstr* constant = defn->AsConstant();
+      ASSERT(constant != NULL);
+      range->set_assigned_location(Location::Constant(constant));
+      range->set_spill_slot(Location::Constant(constant));
+      AssignSafepoints(defn, range);
+      range->finger()->Initialize(range);
+      UsePosition* use =
+          range->finger()->FirstRegisterBeneficialUse(block->start_pos());
+      if (use != NULL) {
+        LiveRange* tail =
+            SplitBetween(range, block->start_pos(), use->pos());
+        // Parameters and constants are tagged, so allocated to CPU registers.
+        ASSERT(constant->representation() == kTagged);
+        CompleteRange(tail, Location::kRegister);
+      }
+      ConvertAllUses(range);
+    }
+    return;
+  }
+#endif
+
   // Save the range end because it may change below.
   intptr_t range_end = range->End();
   if (defn->IsParameter()) {
@@ -679,10 +728,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(Definition* defn,
       AssignSafepoints(defn, range);
       range->finger()->Initialize(range);
       range->set_assigned_location(Location::RegisterLocation(slot_index));
-      if (range->End() > kNormalEntryPos) {
-        LiveRange* tail = range->SplitAt(kNormalEntryPos);
-        CompleteRange(tail, Location::kRegister);
-      }
+      SplitInitialDefinitionAt(range, kNormalEntryPos);
       ConvertAllUses(range);
       return;
     }

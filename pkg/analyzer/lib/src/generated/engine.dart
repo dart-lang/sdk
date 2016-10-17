@@ -1061,15 +1061,29 @@ abstract class AnalysisOptions {
   AnalyzeFunctionBodiesPredicate get analyzeFunctionBodiesPredicate;
 
   /**
-   * Return the maximum number of sources for which AST structures should be
+   * DEPRECATED: Return the maximum number of sources for which AST structures should be
    * kept in the cache.
+   *
+   * This setting no longer has any effect.
    */
+  @deprecated
   int get cacheSize;
 
   /**
    * Return `true` if analysis is to generate dart2js related hint results.
    */
   bool get dart2jsHint;
+
+  /**
+   * Return `true` if cache flushing should be disabled.  Setting this option to
+   * `true` can improve analysis speed at the expense of memory usage.  It may
+   * also be useful for working around bugs.
+   *
+   * This option should not be used when the analyzer is part of a long running
+   * process (such as the analysis server) because it has the potential to
+   * prevent memory from being reclaimed.
+   */
+  bool get disableCacheFlushing;
 
   /**
    * Return `true` if the parser is to parse asserts in the initializer list of
@@ -1214,16 +1228,20 @@ abstract class AnalysisOptions {
  */
 class AnalysisOptionsImpl implements AnalysisOptions {
   /**
-   * The maximum number of sources for which data should be kept in the cache.
+   * DEPRECATED: The maximum number of sources for which data should be kept in the cache.
+   *
+   * This constant no longer has any effect.
    */
+  @deprecated
   static const int DEFAULT_CACHE_SIZE = 64;
 
   static const int ENABLE_ASSERT_FLAG = 0x01;
   static const int ENABLE_GENERIC_METHODS_FLAG = 0x02;
-  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x04;
-  static const int ENABLE_STRONG_MODE_FLAG = 0x08;
-  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x10;
-  static const int ENABLE_SUPER_MIXINS_FLAG = 0x20;
+  static const int ENABLE_LAZY_ASSIGNMENT_OPERATORS = 0x04;
+  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x08;
+  static const int ENABLE_STRONG_MODE_FLAG = 0x10;
+  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x20;
+  static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
 
   /**
    * The default list of non-nullable type names.
@@ -1238,6 +1256,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       _analyzeAllFunctionBodies;
 
   @override
+  @deprecated
   int cacheSize = DEFAULT_CACHE_SIZE;
 
   @override
@@ -1305,6 +1324,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool trackCacheDependencies = true;
 
+  @override
+  bool disableCacheFlushing = false;
+
   /**
    * A flag indicating whether implicit casts are allowed in [strongMode]
    * (they are always allowed in Dart 1.0 mode).
@@ -1346,13 +1368,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
-    cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
     enableAssertInitializer = options.enableAssertInitializer;
     enableAssertMessage = options.enableAssertMessage;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableInitializingFormalAccess = options.enableInitializingFormalAccess;
+    enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableSuperMixins = options.enableSuperMixins;
     enableTiming = options.enableTiming;
     generateImplicitErrors = options.generateImplicitErrors;
@@ -1371,6 +1393,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       implicitDynamic = options.implicitDynamic;
     }
     trackCacheDependencies = options.trackCacheDependencies;
+    disableCacheFlushing = options.disableCacheFlushing;
     finerGrainedInvalidation = options.finerGrainedInvalidation;
   }
 
@@ -1423,15 +1446,17 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   int encodeCrossContextOptions() =>
       (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
       (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
+      (enableLazyAssignmentOperators ? ENABLE_LAZY_ASSIGNMENT_OPERATORS : 0) |
       (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
+      (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
       (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
-      (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0) |
-      (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0);
+      (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
 
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
     enableAssertMessage = options.enableAssertMessage;
     enableGenericMethods = options.enableGenericMethods;
+    enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableSuperMixins = options.enableSuperMixins;
     strongMode = options.strongMode;
@@ -1465,17 +1490,20 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
       add('genericMethods');
     }
+    if (encoding & ENABLE_LAZY_ASSIGNMENT_OPERATORS > 0) {
+      add('lazyAssignmentOperators');
+    }
     if (encoding & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
       add('strictCallChecks');
+    }
+    if (encoding & ENABLE_SUPER_MIXINS_FLAG > 0) {
+      add('superMixins');
     }
     if (encoding & ENABLE_STRONG_MODE_FLAG > 0) {
       add('strongMode');
     }
     if (encoding & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
       add('strongModeHints');
-    }
-    if (encoding & ENABLE_SUPER_MIXINS_FLAG > 0) {
-      add('superMixins');
     }
     return buffer.toString();
   }

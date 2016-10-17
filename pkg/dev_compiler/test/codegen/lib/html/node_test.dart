@@ -2,14 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library NodeTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 import 'dart:svg' as svg;
 
+import 'package:expect/minitest.dart';
+
 Node makeNode() => new Element.tag('div');
-Node makeNodeWithChildren() =>
+Element makeNodeWithChildren() =>
   new Element.html("<div>Foo<br/><!--baz--></div>");
 
 void testUnsupported(String name, void f()) {
@@ -19,8 +18,6 @@ void testUnsupported(String name, void f()) {
 }
 
 main() {
-  useHtmlIndividualConfiguration();
-
   var isText = predicate((x) => x is Text, 'is a Text');
   var isComment = predicate((x) => x is Comment, 'is a Comment');
   var isBRElement = predicate((x) => x is BRElement, 'is a BRElement');

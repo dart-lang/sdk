@@ -677,10 +677,10 @@ class MarkTask : public ThreadPool::Task {
 
 template<class MarkingVisitorType>
 void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
-#ifndef PRODUCT
   {
     MutexLocker ml(&stats_mutex_);
     marked_bytes_ += visitor->marked_bytes();
+#ifndef PRODUCT
     // Class heap stats are not themselves thread-safe yet, so we update the
     // stats while holding stats_mutex_.
     ClassTable* table = heap_->isolate()->class_table();
@@ -691,8 +691,8 @@ void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
         table->UpdateLiveOld(i, size, count);
       }
     }
-  }
 #endif  // !PRODUCT
+  }
   visitor->Finalize();
 }
 

@@ -7,14 +7,13 @@ library analyzer.test.source.sdk_ext_test;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(SdkExtUriResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SdkExtUriResolverTest);
+  });
 }
 
 @reflectiveTest
@@ -22,17 +21,23 @@ class SdkExtUriResolverTest {
   MemoryResourceProvider resourceProvider;
 
   void setUp() {
+    String joinAndEscape(List<String> components) {
+      return resourceProvider.pathContext
+          .joinAll(components)
+          .replaceAll(r'\', r'\\');
+    }
+
     resourceProvider = new MemoryResourceProvider();
-    resourceProvider.newFolder('/empty');
-    resourceProvider.newFolder('/tmp');
+    resourceProvider.newFolder(resourceProvider.convertPath('/empty'));
+    resourceProvider.newFolder(resourceProvider.convertPath('/tmp'));
     resourceProvider.newFile(
-        '/tmp/_sdkext',
-        r'''
+        resourceProvider.convertPath('/tmp/_sdkext'),
+        '''
 {
   "dart:fox": "slippy.dart",
   "dart:bear": "grizzly.dart",
-  "dart:relative": "../relative.dart",
-  "dart:deep": "deep/directory/file.dart",
+  "dart:relative": "${joinAndEscape(['..', 'relative.dart'])}",
+  "dart:deep": "${joinAndEscape(['deep', 'directory', 'file.dart'])}",
   "fart:loudly": "nomatter.dart"
 }''');
   }
@@ -45,7 +50,9 @@ class SdkExtUriResolverTest {
 
   test_create_noSdkExtPackageMap() {
     var resolver = new SdkExtUriResolver({
-      'fox': <Folder>[resourceProvider.getResource('/empty')]
+      'fox': <Folder>[
+        resourceProvider.getFolder(resourceProvider.convertPath('/empty'))
+      ]
     });
     expect(resolver.length, equals(0));
   }
@@ -57,20 +64,28 @@ class SdkExtUriResolverTest {
 
   test_create_sdkExtPackageMap() {
     var resolver = new SdkExtUriResolver({
-      'fox': <Folder>[resourceProvider.getResource('/tmp')]
+      'fox': <Folder>[
+        resourceProvider.newFolder(resourceProvider.convertPath('/tmp'))
+      ]
     });
     // We have four mappings.
     expect(resolver.length, equals(4));
     // Check that they map to the correct paths.
-    expect(resolver['dart:fox'], equals("/tmp/slippy.dart"));
-    expect(resolver['dart:bear'], equals("/tmp/grizzly.dart"));
-    expect(resolver['dart:relative'], equals("/relative.dart"));
-    expect(resolver['dart:deep'], equals("/tmp/deep/directory/file.dart"));
+    expect(resolver['dart:fox'],
+        equals(resourceProvider.convertPath('/tmp/slippy.dart')));
+    expect(resolver['dart:bear'],
+        equals(resourceProvider.convertPath('/tmp/grizzly.dart')));
+    expect(resolver['dart:relative'],
+        equals(resourceProvider.convertPath('/relative.dart')));
+    expect(resolver['dart:deep'],
+        equals(resourceProvider.convertPath('/tmp/deep/directory/file.dart')));
   }
 
   test_restoreAbsolute() {
     var resolver = new SdkExtUriResolver({
-      'fox': <Folder>[resourceProvider.getResource('/tmp')]
+      'fox': <Folder>[
+        resourceProvider.newFolder(resourceProvider.convertPath('/tmp'))
+      ]
     });
     var source = resolver.resolveAbsolute(Uri.parse('dart:fox'));
     expect(source, isNotNull);

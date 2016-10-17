@@ -7,15 +7,15 @@ library test.integration.analysis.highlights2;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisHighlightsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisHighlightsTest);
+  });
 }
 
 @reflectiveTest

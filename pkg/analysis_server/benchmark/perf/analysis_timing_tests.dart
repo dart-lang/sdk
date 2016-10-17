@@ -9,9 +9,8 @@ import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:args/args.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
-import '../../test/utils.dart';
 import 'performance_tests.dart';
 
 /**
@@ -21,7 +20,6 @@ import 'performance_tests.dart';
  * `analysis`.
  */
 main(List<String> arguments) {
-  initializeTestEnvironment();
   ArgParser parser = _createArgParser();
   var args = parser.parse(arguments);
   if (args[SOURCE_OPTION] == null) {
@@ -34,7 +32,6 @@ main(List<String> arguments) {
   for (var name in names) {
     metricNames.add(name as String);
   }
-  unittestConfiguration.timeout = new Duration(minutes: 20);
 
   var test;
 

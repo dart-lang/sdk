@@ -212,6 +212,8 @@ class Listener {
 
   void beginMember(Token token) {}
 
+  void endMember() {}
+
   void endMethod(Token getOrSet, Token beginToken, Token endToken) {}
 
   void beginMetadataStar(Token token) {}

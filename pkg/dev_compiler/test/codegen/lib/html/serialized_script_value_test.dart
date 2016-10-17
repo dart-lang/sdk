@@ -1,21 +1,20 @@
-library SerializedScriptValueTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
+
 import 'utils.dart';
 
-serializationTest(name, value) => test(name, () {
+serializationTest(name, value) {
+  test(name, () {
     // To check how value is serialized and deserialized, we create a
     // MessageEvent.
     final event =
         new MessageEvent('', data: value, origin: '', lastEventId: '');
     verifyGraph(value, event.data);
-});
-
+  });
+}
 
 main() {
-  useHtmlConfiguration();
-
   serializationTest('null', null);
   serializationTest('int', 1);
   serializationTest('double', 2.39);

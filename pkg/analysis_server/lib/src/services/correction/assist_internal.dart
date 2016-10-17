@@ -87,7 +87,18 @@ class AssistProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Assist>> compute() async {
-    utils = new CorrectionUtils(unit);
+    // If the source was changed between the constructor and running
+    // this asynchronous method, it is not safe to use the unit.
+    if (analysisContext.getModificationStamp(source) != fileStamp) {
+      return const <Assist>[];
+    }
+
+    try {
+      utils = new CorrectionUtils(unit);
+    } catch (e) {
+      throw new CancelCorrectionException(exception: e);
+    }
+
     node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
     if (node == null) {
       return assists;
@@ -2239,9 +2250,13 @@ class AssistProcessor {
  */
 class DefaultAssistContributor extends DartAssistContributor {
   @override
-  Future<List<Assist>> internalComputeAssists(DartAssistContext context) {
-    AssistProcessor processor = new AssistProcessor(context);
-    return processor.compute();
+  Future<List<Assist>> internalComputeAssists(DartAssistContext context) async {
+    try {
+      AssistProcessor processor = new AssistProcessor(context);
+      return processor.compute();
+    } on CancelCorrectionException {
+      return Assist.EMPTY_LIST;
+    }
   }
 }
 

@@ -10,6 +10,7 @@
 #include "vm/code_patcher.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
+#include "vm/native_symbol.h"
 #include "vm/object_store.h"
 #include "vm/reusable_handles.h"
 #include "vm/safepoint.h"
@@ -132,6 +133,7 @@ void NativeEntry::NativeCallWrapperNoStackCheck(Dart_NativeArguments args,
   /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
   MSAN_UNPOISON(arguments, sizeof(*arguments));
   Thread* thread = arguments->thread();
+  ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   if (!arguments->IsNativeAutoSetupScope()) {
     TransitionGeneratedToNative transition(thread);
     func(args);
@@ -173,8 +175,9 @@ void NativeEntry::NativeCallWrapperNoStackCheck(Dart_NativeArguments args,
       delete scope;
     }
     DEOPTIMIZE_ALOT;
-    VERIFY_ON_TRANSITION;
   }
+  ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
+  VERIFY_ON_TRANSITION;
 }
 
 

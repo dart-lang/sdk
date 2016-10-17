@@ -164,6 +164,8 @@ class Service : public AllStatic {
 
   static void PrintJSONForVM(JSONStream* js, bool ref);
 
+  static void CheckForPause(Isolate* isolate, JSONStream* stream);
+
  private:
   static void InvokeMethod(Isolate* isolate,
                            const Array& message,
@@ -198,6 +200,8 @@ class Service : public AllStatic {
                         const char* stream_id,
                         const char* kind,
                         JSONStream* event);
+
+  static void MaybePause(Isolate* isolate);
 
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;

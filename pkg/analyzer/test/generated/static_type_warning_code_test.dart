@@ -9,16 +9,16 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart' show formatList;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(StaticTypeWarningCodeTest);
-  defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(StaticTypeWarningCodeTest);
+    defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+  });
 }
 
 @reflectiveTest

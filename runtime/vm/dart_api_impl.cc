@@ -17,6 +17,9 @@
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/kernel_reader.h"
+#endif
 #include "vm/exceptions.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -5392,6 +5395,41 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
 }
 
 
+DART_EXPORT Dart_Handle Dart_LoadKernel(const uint8_t* buffer,
+                                        intptr_t buffer_len) {
+  API_TIMELINE_DURATION;
+  DARTSCOPE(Thread::Current());
+  StackZone zone(T);
+
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+  return Api::NewError("%s: Can't load Kernel files from precompiled runtime.",
+                       CURRENT_FUNC);
+#else
+  Isolate* I = T->isolate();
+
+  Library& library = Library::Handle(Z, I->object_store()->root_library());
+  if (!library.IsNull()) {
+    const String& library_url = String::Handle(Z, library.url());
+    return Api::NewError("%s: A script has already been loaded from '%s'.",
+                         CURRENT_FUNC, library_url.ToCString());
+  }
+  CHECK_CALLBACK_STATE(T);
+  CHECK_COMPILATION_ALLOWED(I);
+
+  // TODO(27588): Memory leak!
+  kernel::KernelReader* reader = new kernel::KernelReader(buffer, buffer_len);
+  const Object& tmp = reader->ReadProgram();
+  if (tmp.IsError()) {
+    return Api::NewHandle(T, tmp.raw());
+  }
+  library ^= tmp.raw();
+  library.set_debuggable(false);
+  I->object_store()->set_root_library(library);
+  return Api::NewHandle(T, library.raw());
+#endif
+}
+
+
 DART_EXPORT Dart_Handle Dart_RootLibrary() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -6323,10 +6361,6 @@ DART_EXPORT Dart_Handle Dart_Precompile(
 
 
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
-    uint8_t** vm_isolate_snapshot_buffer,
-    intptr_t* vm_isolate_snapshot_size,
-    uint8_t** isolate_snapshot_buffer,
-    intptr_t* isolate_snapshot_size,
     uint8_t** assembly_buffer,
     intptr_t* assembly_size) {
   UNREACHABLE();
@@ -6378,10 +6412,6 @@ DART_EXPORT Dart_Handle Dart_Precompile(
 
 
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
-    uint8_t** vm_isolate_snapshot_buffer,
-    intptr_t* vm_isolate_snapshot_size,
-    uint8_t** isolate_snapshot_buffer,
-    intptr_t* isolate_snapshot_size,
     uint8_t** assembly_buffer,
     intptr_t* assembly_size) {
 #if defined(TARGET_ARCH_IA32)
@@ -6397,18 +6427,6 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
                          "Did you forget to call Dart_Precompile?");
   }
   ASSERT(FLAG_load_deferred_eagerly);
-  if (vm_isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_buffer);
-  }
-  if (vm_isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(vm_isolate_snapshot_size);
-  }
-  if (isolate_snapshot_buffer == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_buffer);
-  }
-  if (isolate_snapshot_size == NULL) {
-    RETURN_NULL_ERROR(isolate_snapshot_size);
-  }
   if (assembly_buffer == NULL) {
     RETURN_NULL_ERROR(assembly_buffer);
   }
@@ -6421,15 +6439,15 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
   AssemblyInstructionsWriter instructions_writer(assembly_buffer,
                                                  ApiReallocate,
                                                  2 * MB /* initial_size */);
+  uint8_t* vm_isolate_snapshot_buffer = NULL;
+  uint8_t* isolate_snapshot_buffer = NULL;
   FullSnapshotWriter writer(Snapshot::kAppNoJIT,
-                            vm_isolate_snapshot_buffer,
-                            isolate_snapshot_buffer,
+                            &vm_isolate_snapshot_buffer,
+                            &isolate_snapshot_buffer,
                             ApiReallocate,
                             &instructions_writer);
 
   writer.WriteFullSnapshot();
-  *vm_isolate_snapshot_size = writer.VmIsolateSnapshotSize();
-  *isolate_snapshot_size = writer.IsolateSnapshotSize();
   *assembly_size = instructions_writer.AssemblySize();
 
   return Api::Success();

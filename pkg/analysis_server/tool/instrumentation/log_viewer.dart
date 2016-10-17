@@ -118,6 +118,7 @@ class Driver {
           stackTrace: stackTrace);
       return;
     }
+    print('Log file contains ${lines.length} lines');
 
     InstrumentationLog log =
         new InstrumentationLog(<String>[logFile.path], lines);

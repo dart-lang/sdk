@@ -2691,6 +2691,7 @@ RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
   extractor.set_parameter_types(Object::extractor_parameter_types());
   extractor.set_parameter_names(Object::extractor_parameter_names());
   extractor.set_result_type(Object::dynamic_type());
+  extractor.set_kernel_function(kernel_function());
 
   extractor.set_extracted_method_closure(closure_function);
   extractor.set_is_debuggable(false);
@@ -6612,6 +6613,7 @@ RawFunction* Function::New(const String& name,
   NOT_IN_PRECOMPILED(result.set_deoptimization_counter(0));
   NOT_IN_PRECOMPILED(result.set_optimized_instruction_count(0));
   NOT_IN_PRECOMPILED(result.set_optimized_call_site_count(0));
+  result.set_kernel_function(NULL);
   result.set_is_optimizable(is_native ? false : true);
   result.set_is_inlinable(true);
   result.set_allows_hoisting_check_class(true);
@@ -6640,6 +6642,7 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   clone.set_deoptimization_counter(0);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
+  clone.set_kernel_function(kernel_function());
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
     AbstractType& type = AbstractType::Handle(clone.result_type());
@@ -6780,6 +6783,8 @@ RawFunction* Function::ImplicitClosureFunction() const {
     param_name = ParameterNameAt(has_receiver - kClosure + i);
     closure_function.SetParameterNameAt(i, param_name);
   }
+  closure_function.set_kernel_function(kernel_function());
+
   const Type& signature_type = Type::Handle(closure_function.SignatureType());
   if (!signature_type.IsFinalized()) {
     ClassFinalizer::FinalizeType(
@@ -7546,6 +7551,7 @@ void Field::InitializeNew(const Field& result,
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   result.set_is_unboxing_candidate(true);
+  result.set_kernel_field(NULL);
   Isolate* isolate = Isolate::Current();
 
   // Use field guards if they are enabled and the isolate has never reloaded.
@@ -7636,6 +7642,7 @@ RawField* Field::Clone(const Field& original) const {
   Field& clone = Field::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
   clone.SetOriginal(original);
+  clone.set_kernel_field(original.kernel_field());
   return clone.raw();
 }
 
@@ -7876,7 +7883,6 @@ void Field::EvaluateInitializer() const {
                                   : Instance::Cast(value));
     return;
   } else if (StaticValue() == Object::transition_sentinel().raw()) {
-    SetStaticValue(Object::null_instance());
     const Array& ctor_args = Array::Handle(Array::New(1));
     const String& field_name = String::Handle(name());
     ctor_args.SetAt(0, field_name);
@@ -12165,7 +12171,7 @@ RawStackmap* Stackmap::New(intptr_t length,
 
 
 const char* Stackmap::ToCString() const {
-#define FORMAT "%#x: "
+#define FORMAT "%#05x: "
   if (IsNull()) {
     return "{null}";
   } else {
@@ -13818,6 +13824,9 @@ RawLocalVarDescriptors* Code::GetLocalVarDescriptors() const {
   if (v.IsNull()) {
     ASSERT(!is_optimized());
     const Function& f = Function::Handle(function());
+    if (f.kernel_function() != NULL) {
+      return v.raw();
+    }
     ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
     Compiler::ComputeLocalVarDescriptors(*this);
   }
@@ -14229,8 +14238,6 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result.set_is_alive(false);
     result.set_comments(Comments::New(0));
     result.set_compile_timestamp(0);
-    result.set_lazy_deopt_return_pc_offset(kInvalidPc);
-    result.set_lazy_deopt_throw_pc_offset(kInvalidPc);
     result.set_pc_descriptors(Object::empty_descriptors());
   }
   return result.raw();
@@ -14296,8 +14303,8 @@ RawCode* Code::FinalizeCode(const char* name,
     }
 
     // Hook up Code and Instructions objects.
-    code.SetActiveInstructions(instrs.raw());
-    code.set_instructions(instrs.raw());
+    code.SetActiveInstructions(instrs);
+    code.set_instructions(instrs);
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
@@ -14509,7 +14516,7 @@ void Code::DisableDartCode() const {
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
-  SetActiveInstructions(new_code.instructions());
+  SetActiveInstructions(Instructions::Handle(new_code.instructions()));
 }
 
 
@@ -14520,7 +14527,7 @@ void Code::DisableStubCode() const {
   ASSERT(instructions() == active_instructions());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
-  SetActiveInstructions(new_code.instructions());
+  SetActiveInstructions(Instructions::Handle(new_code.instructions()));
 #else
   // DBC does not use allocation stubs.
   UNIMPLEMENTED();
@@ -14528,31 +14535,19 @@ void Code::DisableStubCode() const {
 }
 
 
-void Code::SetActiveInstructions(RawInstructions* instructions) const {
+void Code::SetActiveInstructions(const Instructions& instructions) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
 #else
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
-  StorePointer(&raw_ptr()->active_instructions_, instructions);
+  StorePointer(&raw_ptr()->active_instructions_, instructions.raw());
   StoreNonPointer(&raw_ptr()->entry_point_,
-                  Instructions::UncheckedEntryPoint(instructions));
+                  Instructions::UncheckedEntryPoint(instructions.raw()));
   StoreNonPointer(&raw_ptr()->checked_entry_point_,
-                  Instructions::CheckedEntryPoint(instructions));
+                  Instructions::CheckedEntryPoint(instructions.raw()));
 #endif
-}
-
-
-uword Code::GetLazyDeoptReturnPc() const {
-  return (lazy_deopt_return_pc_offset() != kInvalidPc)
-      ? PayloadStart() + lazy_deopt_return_pc_offset() : 0;
-}
-
-
-uword Code::GetLazyDeoptThrowPc() const {
-  return (lazy_deopt_throw_pc_offset() != kInvalidPc)
-      ? PayloadStart() + lazy_deopt_throw_pc_offset() : 0;
 }
 
 
@@ -14577,7 +14572,7 @@ RawStackmap* Code::GetStackmap(
       return map->raw();  // We found a stack map for this frame.
     }
   }
-  ASSERT(!is_optimized());
+  ASSERT(!is_optimized() || (pc_offset == Instructions::kUncheckedEntryOffset));
   return Stackmap::null();
 }
 
@@ -20111,19 +20106,21 @@ bool String::Equals(const uint16_t* utf16_array, intptr_t len) const {
 
 
 bool String::Equals(const int32_t* utf32_array, intptr_t len) const {
-  CodePointIterator it(*this);
-  intptr_t i = 0;
-  bool has_more = it.Next();
-  while (has_more && (i < len)) {
-    if ((it.Current() != static_cast<int32_t>(utf32_array[i]))) {
-      return false;
+  if (len < 0) return false;
+  intptr_t j = 0;
+  for (intptr_t i = 0; i < len; ++i) {
+    if (Utf::IsSupplementary(utf32_array[i])) {
+      uint16_t encoded[2];
+      Utf16::Encode(utf32_array[i], &encoded[0]);
+      if (j + 1 >= Length()) return false;
+      if (CharAt(j++) != encoded[0]) return false;
+      if (CharAt(j++) != encoded[1]) return false;
+    } else {
+      if (j >= Length()) return false;
+      if (CharAt(j++) != utf32_array[i]) return false;
     }
-    // Advance both streams forward.
-    ++i;
-    has_more = it.Next();
   }
-  // Strings are only true iff we reached the end in both streams.
-  return (i == len) && !has_more;
+  return j == Length();
 }
 
 
@@ -22608,10 +22605,11 @@ static intptr_t PrintOneStacktrace(Zone* zone,
   const Script& script = Script::Handle(zone, function.script());
   const String& function_name =
       String::Handle(zone, function.QualifiedUserVisibleName());
-  const String& url = String::Handle(zone, script.url());
+  const String& url = String::Handle(zone,
+      script.IsNull() ? String::New("Kernel") : script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos.IsReal()) {
+  if (!script.IsNull() && token_pos.IsReal()) {
     if (script.HasSource()) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {

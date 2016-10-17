@@ -111,10 +111,10 @@ class ModuleCompiler {
     var compilingSdk = false;
     for (var sourcePath in unit.sources) {
       var sourceUri = Uri.parse(sourcePath);
-      if (sourceUri.scheme == '') {
-        sourceUri = path.toUri(path.absolute(sourcePath));
-      } else if (sourceUri.scheme == 'dart') {
+      if (sourceUri.scheme == 'dart') {
         compilingSdk = true;
+      } else if (sourceUri.scheme != 'package') {
+        sourceUri = path.toUri(path.absolute(sourcePath));
       }
       Source source = context.sourceFactory.forUri2(sourceUri);
 
@@ -503,7 +503,7 @@ Map placeSourceMap(
     if (match != null) return match;
 
     // Fall back to a relative path.
-    return path.toUri(path.relative(path.fromUri(uri), from: dir)).toString();
+    return path.toUri(path.relative(uri, from: dir)).toString();
   }
 
   for (int i = 0; i < list.length; i++) {

@@ -17,34 +17,34 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../../generated/analysis_context_factory.dart'
     show AnalysisContextHelper;
 import '../../../generated/resolver_test_case.dart';
 import '../../../generated/test_support.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ElementAnnotationImplTest);
-  defineReflectiveTests(FieldElementImplTest);
-  defineReflectiveTests(FunctionTypeImplTest);
-  defineReflectiveTests(InterfaceTypeImplTest);
-  defineReflectiveTests(LocalVariableElementImplTest);
-  defineReflectiveTests(TypeParameterTypeImplTest);
-  defineReflectiveTests(VoidTypeImplTest);
-  defineReflectiveTests(ClassElementImplTest);
-  defineReflectiveTests(CompilationUnitElementImplTest);
-  defineReflectiveTests(ElementLocationImplTest);
-  defineReflectiveTests(ElementImplTest);
-  defineReflectiveTests(LibraryElementImplTest);
-  defineReflectiveTests(MethodElementImplTest);
-  defineReflectiveTests(MultiplyDefinedElementImplTest);
-  defineReflectiveTests(ParameterElementImplTest);
-  defineReflectiveTests(PropertyAccessorElementImplTest);
-  defineReflectiveTests(TopLevelVariableElementImplTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ElementAnnotationImplTest);
+    defineReflectiveTests(FieldElementImplTest);
+    defineReflectiveTests(FunctionTypeImplTest);
+    defineReflectiveTests(InterfaceTypeImplTest);
+    defineReflectiveTests(LocalVariableElementImplTest);
+    defineReflectiveTests(TypeParameterTypeImplTest);
+    defineReflectiveTests(VoidTypeImplTest);
+    defineReflectiveTests(ClassElementImplTest);
+    defineReflectiveTests(CompilationUnitElementImplTest);
+    defineReflectiveTests(ElementLocationImplTest);
+    defineReflectiveTests(ElementImplTest);
+    defineReflectiveTests(LibraryElementImplTest);
+    defineReflectiveTests(MethodElementImplTest);
+    defineReflectiveTests(MultiplyDefinedElementImplTest);
+    defineReflectiveTests(ParameterElementImplTest);
+    defineReflectiveTests(PropertyAccessorElementImplTest);
+    defineReflectiveTests(TopLevelVariableElementImplTest);
+  });
 }
 
 @reflectiveTest

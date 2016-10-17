@@ -358,9 +358,6 @@ Scavenger::Scavenger(Heap* heap,
 
   UpdateMaxHeapCapacity();
   UpdateMaxHeapUsage();
-  if (heap_ != NULL) {
-    heap_->UpdateGlobalMaxUsed();
-  }
 }
 
 

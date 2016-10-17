@@ -614,10 +614,6 @@ class ParserErrorCode extends ErrorCode {
       'WITH_WITHOUT_EXTENDS',
       "The with clause cannot be used without an extends clause");
 
-  static const ParserErrorCode WRONG_SEPARATOR_FOR_NAMED_PARAMETER =
-      const ParserErrorCode('WRONG_SEPARATOR_FOR_NAMED_PARAMETER',
-          "The default value of a named parameter should be preceeded by ':'");
-
   static const ParserErrorCode WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER =
       const ParserErrorCode('WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER',
           "The default value of a positional parameter should be preceeded by '='");

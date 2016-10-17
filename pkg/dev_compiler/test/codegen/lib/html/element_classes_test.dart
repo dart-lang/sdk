@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library ElementTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:collection';
 import 'dart:html';
+
+import 'package:expect/minitest.dart';
 
 Element makeElement() => new Element.tag('div');
 
 Element makeElementWithClasses() =>
     new Element.html('<div class="foo bar baz"></div>');
 
-Set<String> makeClassSet() => makeElementWithClasses().classes;
+CssClassSet makeClassSet() => makeElementWithClasses().classes;
 
 Element makeListElement() =>
     new Element.html('<ul class="foo bar baz">'
@@ -47,43 +46,40 @@ String view(var e) {
 }
 
 main() {
-  useHtmlConfiguration();
-
   Set<String> extractClasses(Element el) {
     final match = new RegExp('class="([^"]+)"').firstMatch(el.outerHtml);
     return new LinkedHashSet.from(match[1].split(' '));
   }
 
-
   test('affects the "class" attribute', () {
     final el = makeElementWithClasses();
     el.classes.add('qux');
-    expect(extractClasses(el), orderedEquals(['foo', 'bar', 'baz', 'qux']));
+    expect(extractClasses(el), equals(['foo', 'bar', 'baz', 'qux']));
   });
 
   test('is affected by the "class" attribute', () {
     final el = makeElementWithClasses();
     el.attributes['class'] = 'foo qux';
-    expect(el.classes, orderedEquals(['foo', 'qux']));
+    expect(el.classes, equals(['foo', 'qux']));
   });
 
   test('classes=', () {
     final el = makeElementWithClasses();
     el.classes = ['foo', 'qux'];
-    expect(el.classes, orderedEquals(['foo', 'qux']));
-    expect(extractClasses(el), orderedEquals(['foo', 'qux']));
+    expect(el.classes, equals(['foo', 'qux']));
+    expect(extractClasses(el), equals(['foo', 'qux']));
   });
 
   test('toString', () {
     expect(makeClassSet().toString().split(' '),
-        orderedEquals(['foo', 'bar', 'baz']));
+        equals(['foo', 'bar', 'baz']));
     expect(makeElement().classes.toString(), '');
   });
 
   test('forEach', () {
     final classes = <String>[];
     makeClassSet().forEach(classes.add);
-    expect(classes, orderedEquals(['foo', 'bar', 'baz']));
+    expect(classes, equals(['foo', 'bar', 'baz']));
   });
 
   test('iterator', () {
@@ -91,17 +87,17 @@ main() {
     for (var el in makeClassSet()) {
       classes.add(el);
     }
-    expect(classes, orderedEquals(['foo', 'bar', 'baz']));
+    expect(classes, equals(['foo', 'bar', 'baz']));
   });
 
   test('map', () {
     expect(makeClassSet().map((c) => c.toUpperCase()).toList(),
-        orderedEquals(['FOO', 'BAR', 'BAZ']));
+        equals(['FOO', 'BAR', 'BAZ']));
   });
 
   test('where', () {
     expect(makeClassSet().where((c) => c.contains('a')).toList(),
-        orderedEquals(['bar', 'baz']));
+        equals(['bar', 'baz']));
   });
 
   test('every', () {
@@ -142,13 +138,13 @@ main() {
     final classes = makeClassSet();
     var added = classes.add('qux');
     expect(added, isTrue);
-    expect(classes, orderedEquals(['foo', 'bar', 'baz', 'qux']));
+    expect(classes, equals(['foo', 'bar', 'baz', 'qux']));
 
     added = classes.add('qux');
     expect(added, isFalse);
     final list = new List.from(classes);
     list.sort((a, b) => a.compareTo(b));
-    expect(list, orderedEquals(['bar', 'baz', 'foo', 'qux']),
+    expect(list, equals(['bar', 'baz', 'foo', 'qux']),
         reason: "The class set shouldn't have duplicate elements.");
   });
 
@@ -161,9 +157,9 @@ main() {
   test('remove', () {
     final classes = makeClassSet();
     classes.remove('bar');
-    expect(classes, orderedEquals(['foo', 'baz']));
+    expect(classes, equals(['foo', 'baz']));
     classes.remove('qux');
-    expect(classes, orderedEquals(['foo', 'baz']));
+    expect(classes, equals(['foo', 'baz']));
   });
 
   test('remove-bad', () {
@@ -175,18 +171,18 @@ main() {
   test('toggle', () {
     final classes = makeClassSet();
     classes.toggle('bar');
-    expect(classes, orderedEquals(['foo', 'baz']));
+    expect(classes, equals(['foo', 'baz']));
     classes.toggle('qux');
-    expect(classes, orderedEquals(['foo', 'baz', 'qux']));
+    expect(classes, equals(['foo', 'baz', 'qux']));
 
     classes.toggle('qux', true);
-    expect(classes, orderedEquals(['foo', 'baz', 'qux']));
+    expect(classes, equals(['foo', 'baz', 'qux']));
     classes.toggle('qux', false);
-    expect(classes, orderedEquals(['foo', 'baz']));
+    expect(classes, equals(['foo', 'baz']));
     classes.toggle('qux', false);
-    expect(classes, orderedEquals(['foo', 'baz']));
+    expect(classes, equals(['foo', 'baz']));
     classes.toggle('qux', true);
-    expect(classes, orderedEquals(['foo', 'baz', 'qux']));
+    expect(classes, equals(['foo', 'baz', 'qux']));
   });
 
   test('toggle-bad', () {
@@ -202,43 +198,43 @@ main() {
   test('addAll', () {
     final classes = makeClassSet();
     classes.addAll(['bar', 'qux', 'bip']);
-    expect(classes, orderedEquals(['foo', 'bar', 'baz', 'qux', 'bip']));
+    expect(classes, equals(['foo', 'bar', 'baz', 'qux', 'bip']));
   });
 
   test('removeAll', () {
     final classes = makeClassSet();
     classes.removeAll(['bar', 'baz', 'qux']);
-    expect(classes, orderedEquals(['foo']));
+    expect(classes, equals(['foo']));
   });
 
   test('toggleAll', () {
     final classes = makeClassSet();
     classes.toggleAll(['bar', 'foo']);
-    expect(classes, orderedEquals(['baz']));
+    expect(classes, equals(['baz']));
     classes.toggleAll(['qux', 'quux']);
-    expect(classes, orderedEquals(['baz', 'qux', 'quux']));
+    expect(classes, equals(['baz', 'qux', 'quux']));
     classes.toggleAll(['bar', 'foo'], true);
-    expect(classes, orderedEquals(['baz', 'qux', 'quux', 'bar', 'foo']));
+    expect(classes, equals(['baz', 'qux', 'quux', 'bar', 'foo']));
     classes.toggleAll(['baz', 'quux'], false);
-    expect(classes, orderedEquals(['qux','bar', 'foo']));
+    expect(classes, equals(['qux','bar', 'foo']));
   });
 
   test('retainAll', () {
     final classes = makeClassSet();
     classes.retainAll(['bar', 'baz', 'qux']);
-    expect(classes, orderedEquals(['bar', 'baz']));
+    expect(classes, equals(['bar', 'baz']));
   });
 
   test('removeWhere', () {
     final classes = makeClassSet();
     classes.removeWhere((s) => s.startsWith('b'));
-    expect(classes, orderedEquals(['foo']));
+    expect(classes, equals(['foo']));
   });
 
   test('retainWhere', () {
     final classes = makeClassSet();
     classes.retainWhere((s) => s.startsWith('b'));
-    expect(classes, orderedEquals(['bar', 'baz']));
+    expect(classes, equals(['bar', 'baz']));
   });
 
   test('containsAll', () {
@@ -264,11 +260,11 @@ main() {
   test('order', () {
     var classes = makeClassSet();
     classes.add('aardvark');
-    expect(classes, orderedEquals(['foo', 'bar', 'baz', 'aardvark']));
+    expect(classes, equals(['foo', 'bar', 'baz', 'aardvark']));
     classes.toggle('baz');
-    expect(classes, orderedEquals(['foo', 'bar', 'aardvark']));
+    expect(classes, equals(['foo', 'bar', 'aardvark']));
     classes.toggle('baz');
-    expect(classes, orderedEquals(['foo', 'bar', 'aardvark', 'baz']));
+    expect(classes, equals(['foo', 'bar', 'aardvark', 'baz']));
   });
 
   tearDown(listElementTearDown);
@@ -286,8 +282,8 @@ main() {
     elements.classes = ['foo', 'qux'];
     elements = document.queryAll('li');
     for (Element e in elements) {
-      expect(e.classes, orderedEquals(['foo', 'qux']));
-      expect(extractClasses(e), orderedEquals(['foo', 'qux']));
+      expect(e.classes, equals(['foo', 'qux']));
+      expect(extractClasses(e), equals(['foo', 'qux']));
     }
 
     elements.classes = [];

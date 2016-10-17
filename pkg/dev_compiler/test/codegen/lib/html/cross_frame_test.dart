@@ -1,11 +1,8 @@
-library CrossFrameTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   var isWindowBase = predicate((x) => x is WindowBase, 'is a WindowBase');
   var isWindow = predicate((x) => x is Window, 'is a Window');
   var isLocationBase = predicate((x) => x is LocationBase, 'is a LocationBase');
@@ -14,7 +11,7 @@ main() {
   var isHistoryBase = predicate((x) => x is HistoryBase, 'is a HistoryBase');
   var isHistory = predicate((x) => x is History, 'is a History');
 
-  final iframe = new Element.tag('iframe');
+  final iframe = new IFrameElement();
   document.body.append(iframe);
 
   test('window', () {

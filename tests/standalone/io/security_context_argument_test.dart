@@ -1,6 +1,15 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// OtherResources=certificates/server_chain.pem
+// OtherResources=certificates/server_key.pem
+// OtherResources=certificates/server_key.p12
+// OtherResources=certificates/client1_key_malformed.pem
+// OtherResources=certificates/trusted_certs_malformed.pem
+// OtherResources=certificates/server_chain_malformed1.pem
+// OtherResources=certificates/server_chain_malformed2.pem
+// OtherResources=certificates/client_authority_malformed.pem
 
 import "package:expect/expect.dart";
 import "dart:io";

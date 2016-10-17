@@ -30,6 +30,15 @@ before_install:
 
   - if [ "$CXX" ]; then $CXX --version ; fi
 
+  # Chrome install
+  - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  - wget https://dl.google.com/linux/direct/google-chrome-unstable_current_amd64.deb
+  - sudo dpkg -i google-chrome*.deb
+  - /usr/bin/google-chrome --version
+  - export CHROME_BIN=/usr/bin/google-chrome
+  - /usr/bin/google-chrome-unstable --version
+  - export CHROME_CANARY_BIN=/usr/bin/google-chrome-unstable
+
   # Install Depot Tools
   - git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
   - export PATH=`pwd`/depot_tools:"$PATH"
@@ -48,7 +57,6 @@ before_install:
   # DDC setup
   - cd pkg/dev_compiler
   - pub global activate dart_coveralls
-  - export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
 install:
@@ -65,10 +73,10 @@ script:
 env:
   - ANALYZER=master
   - ANALYZER=master DDC_BROWSERS=Firefox
+  - ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
   - ANALYZER=master CXX=g++
   - ANALYZER=master CXX=clang++
   - TEST=coverage
-  - TEST=node
 matrix:
   allow_failures:
     - env: TEST=node

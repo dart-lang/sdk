@@ -4726,4 +4726,19 @@ VM_TEST_CASE(String_ScrubName) {
   }
 }
 
+
+VM_TEST_CASE(String_EqualsUTF32) {
+  // Regression test for Issue 27433. Checks that comparisons between Strings
+  // and utf32 arrays happens after conversion to utf16 instead of utf32, as
+  // required for proper canonicalization of string literals with a lossy
+  // utf32->utf16 conversion.
+  int32_t char_codes[] = {
+    0, 0x0a, 0x0d, 0x7f, 0xff, 0xffff, 0xd800, 0xdc00, 0xdbff, 0xdfff
+  };
+
+  const String& str =
+      String::Handle(String::FromUTF32(char_codes, ARRAY_SIZE(char_codes)));
+  EXPECT(str.Equals(char_codes, ARRAY_SIZE(char_codes)));
+}
+
 }  // namespace dart

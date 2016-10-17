@@ -18,17 +18,17 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import '../../abstract_single_unit.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(FixProcessorTest);
-  defineReflectiveTests(LintFixTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(FixProcessorTest);
+    defineReflectiveTests(LintFixTest);
+  });
 }
 
 typedef bool AnalysisErrorFilter(AnalysisError error);
@@ -5273,10 +5273,10 @@ class LintFixTest extends BaseFixProcessorTest {
     resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
   }
 
-  void findLint(String src, String lintCode) {
+  void findLint(String src, String lintCode, {int length: 1}) {
     int errorOffset = src.indexOf('/*LINT*/');
     resolveTestUnit(src.replaceAll('/*LINT*/', ''));
-    error = new AnalysisError(testUnit.element.source, errorOffset, 1,
+    error = new AnalysisError(testUnit.element.source, errorOffset, length,
         new LintCode(lintCode, '<ignored>'));
   }
 
@@ -5458,6 +5458,23 @@ class Sub extends Test {
   // Non-doc comment.
   @override
   void t() { }
+}
+''');
+  }
+
+  test_lint_removeInterpolationBraces() async {
+    String src = r'''
+main() {
+  var v = 42;
+  print('v: /*LINT*/${ v}');
+}
+''';
+    findLint(src, LintNames.unnecessary_brace_in_string_interp, length: 4);
+    await applyFix(DartFixKind.LINT_REMOVE_INTERPOLATION_BRACES);
+    verifyResult(r'''
+main() {
+  var v = 42;
+  print('v: $v');
 }
 ''');
   }

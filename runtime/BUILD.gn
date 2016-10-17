@@ -153,36 +153,37 @@ config("dart_config") {
     defines += ["NDEBUG"]
   }
 
-  cflags = [
-    "-Werror",
-    "-Wall",
-    "-Wextra", # Also known as -W.
-    "-Wno-unused-parameter",
-    "-Wnon-virtual-dtor",
-    "-Wvla",
-    "-Wno-conversion-null",
-    "-Woverloaded-virtual",
-    "-g3",
-    "-ggdb3",
-    "-fno-rtti",
-    "-fno-exceptions",
-  ]
+  if (!is_win) {
+    cflags = [
+      "-Werror",
+      "-Wall",
+      "-Wextra", # Also known as -W.
+      "-Wno-unused-parameter",
+      "-Wnon-virtual-dtor",
+      "-Wvla",
+      "-Wno-conversion-null",
+      "-Woverloaded-virtual",
+      "-g3",
+      "-ggdb3",
+      "-fno-rtti",
+      "-fno-exceptions",
+    ]
 
-  if (dart_debug) {
-    cflags += [
-      "-O1",
-    ]
-  } else {
-    cflags += [
-      "-O3",
-    ]
-  }
+    if (dart_debug) {
+      cflags += [
+        "-O1",
+      ]
+    } else {
+      cflags += [
+        "-O3",
+      ]
+    }
 
-  if (defined(is_asan) && is_asan) {
-    ldflags = [
-      "-Wl,-u_sanitizer_options_link_helper",
-      "-fsanitize=address",
-    ]
+    if (defined(is_asan) && is_asan) {
+      ldflags = [
+        "-fsanitize=address",
+      ]
+    }
   }
 }
 
@@ -234,6 +235,17 @@ libdart_library("libdart") {
   extra_deps = [
     "vm:libdart_lib",
     "vm:libdart_vm",
+  ]
+}
+
+libdart_library("libdart_noopt") {
+  extra_configs = [
+    ":dart_maybe_precompiled_runtime_config",
+    ":dart_precompiler_config",
+  ]
+  extra_deps = [
+    "vm:libdart_lib",
+    "vm:libdart_vm_noopt",
   ]
 }
 

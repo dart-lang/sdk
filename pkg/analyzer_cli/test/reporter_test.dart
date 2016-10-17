@@ -6,8 +6,8 @@ library analyzer_cli.test.formatter;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
+import 'package:test/test.dart' hide ErrorFormatter;
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart' hide ErrorFormatter;
 
 import 'mocks.dart';
 

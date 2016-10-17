@@ -1,11 +1,8 @@
-library DocumentTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlIndividualConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   var isElement = predicate((x) => x is Element, 'is an Element');
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
   var isAnchorElement =
@@ -59,7 +56,7 @@ main() {
       var div = new Element.html('<div><div id="foo">bar</div></div>');
       var doc = document.implementation.createHtmlDocument('');
       var div2 = doc.importNode(div, true);
-      expect(div2, isNot(equals(div)));
+      expect(div2, notEquals(div));
       expect(div2.ownerDocument, doc);
       doc.body.nodes.add(div2);
       expect(doc.query('#foo').text, 'bar');

@@ -2355,7 +2355,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       libraryNames.sort();
       _errorReporter.reportErrorForNode(StaticWarningCode.AMBIGUOUS_IMPORT,
           node, [name, StringUtilities.printListOfQuotedNames(libraryNames)]);
-    } else {
+    } else if (element != null) {
       List<Element> sdkElements =
           node.getProperty(LibraryImportScope.conflictingSdkElements);
       if (sdkElements != null) {
@@ -6372,7 +6372,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     String name = member.name;
     ClassElement superclass = classElement.supertype?.element;
     while (superclass != null) {
-      ExecutableElement member = superclass.getMethod(name) ?? superclass.getGetter(name) ?? superclass.getSetter(name);
+      ExecutableElement member = superclass.getMethod(name) ??
+          superclass.getGetter(name) ??
+          superclass.getSetter(name);
       if (member != null) {
         return member;
       }

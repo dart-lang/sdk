@@ -105,7 +105,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln(' */');
     writeln('library test.integration.protocol.matchers;');
     writeln();
-    writeln("import 'package:unittest/unittest.dart';");
+    writeln("import 'package:test/test.dart';");
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln();

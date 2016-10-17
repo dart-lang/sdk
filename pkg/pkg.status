@@ -34,6 +34,7 @@ analysis_server/test/completion_test: Pass, Slow
 analysis_server/test/completion_test: Pass, Slow
 
 [ $runtime == vm && $system == windows]
+analysis_server/*: Skip # Issue 27557
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/integration/analysis/analysis_options_test: RuntimeError # Issue 24796
 analyzer/test/generated/all_the_rest_test: Fail # Issue 21772
@@ -48,6 +49,7 @@ collection/test/equality_test/03: Fail # Issue 1533
 collection/test/equality_test/04: Fail # Issue 1533
 collection/test/equality_test/05: Fail # Issue 1533
 collection/test/equality_test/none: Pass, Fail # Issue 14348
+compiler/tool/*: SkipByDesign # Only meant to run on vm
 lookup_map/test/version_check_test: SkipByDesign # Only meant to run in vm.
 typed_data/test/typed_buffers_test/01: Fail # Not supporting Int64List, Uint64List.
 
@@ -95,6 +97,7 @@ analyzer/test/*: SkipByDesign # Uses dart:io.
 analyzer/tool/task_dependency_graph/check_test: SkipByDesign # Uses dart:io.
 analyzer/tool/summary/check_test: SkipByDesign # Uses dart:io.
 analyzer2dart/*: SkipByDesign # Uses dart:io.
+compiler/tool/*: SkipByDesign # Only meant to run on vm
 http_server/test/*: Fail, OK # Uses dart:io.
 observe/test/transformer_test: Fail, OK # Uses dart:io.
 observe/test/unique_message_test: SkipByDesign  # Uses dart:io.

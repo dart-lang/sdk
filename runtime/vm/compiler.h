@@ -27,6 +27,7 @@ class RawInstance;
 class Script;
 class SequenceNode;
 
+bool UseKernelFrontEndFor(ParsedFunction* parsed_function);
 
 class CompilationPipeline : public ZoneAllocated {
  public:

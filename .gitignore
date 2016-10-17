@@ -34,6 +34,7 @@
 # IntelliJ project files
 *.iml
 .idea
+CMakeLists.txt
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt

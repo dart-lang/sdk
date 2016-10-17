@@ -2,14 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library selectelement_test;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   test('selectedOptions', () {
     var element = new SelectElement();
     element.multiple = false;
@@ -64,14 +61,14 @@ main() {
         '<optgroup>'
           '<option>2</option>'
         '</optgroup>'
-      '</select>');
+      '</select>') as SelectElement;
 
     expect(element.options.length, 2);
     element.selectedIndex = 1;
 
     var optGroup = element.children[1];
     expect(optGroup is OptGroupElement, isTrue);
-    expect(optGroup.children.single.selected, isTrue);
+    expect((optGroup.children.single as OptionElement).selected, isTrue);
     expect(element.selectedOptions, optGroup.children);
   });
 }

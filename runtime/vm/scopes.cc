@@ -616,7 +616,8 @@ void LocalScope::CaptureLocalVariables(LocalScope* top_scope) {
   while (scope != top_scope->parent()) {
     for (intptr_t i = 0; i < scope->num_variables(); i++) {
       LocalVariable* variable = scope->VariableAt(i);
-      if ((variable->name().raw() == Symbols::StackTraceVar().raw()) ||
+      if (variable->is_forced_stack() ||
+          (variable->name().raw() == Symbols::StackTraceVar().raw()) ||
           (variable->name().raw() == Symbols::ExceptionVar().raw()) ||
           (variable->name().raw() == Symbols::SavedTryContextVar().raw())) {
         // Don't capture those variables because the VM expects them to be on

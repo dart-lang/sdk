@@ -798,7 +798,6 @@ abstract class ErrorCode {
     ParserErrorCode.UNEXPECTED_TOKEN,
     ParserErrorCode.WITH_BEFORE_EXTENDS,
     ParserErrorCode.WITH_WITHOUT_EXTENDS,
-    ParserErrorCode.WRONG_SEPARATOR_FOR_NAMED_PARAMETER,
     ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
     ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
     ParserErrorCode.VAR_AND_TYPE,

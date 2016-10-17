@@ -46,6 +46,13 @@ class ConstantAstCloner extends AstCloner {
   }
 
   @override
+  Annotation visitAnnotation(Annotation node) {
+    Annotation annotation = super.visitAnnotation(node);
+    annotation.element = node.element;
+    return annotation;
+  }
+
+  @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
     FunctionExpression expression = super.visitFunctionExpression(node);
     expression.element = node.element;

@@ -5,15 +5,15 @@
 library test.integration.analysis.navigation;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import '../integration_tests.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisNavigationTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisNavigationTest);
+  });
 }
 
 @reflectiveTest
@@ -84,6 +84,7 @@ part of foo;
         fail('No element found for index $index');
         return null;
       }
+
       void checkLocal(
           String source, String expectedTarget, ElementKind expectedKind) {
         int sourceIndex = text1.indexOf(source);
@@ -93,6 +94,7 @@ part of foo;
         expect(element.offset, equals(targetIndex));
         expect(element.kind, equals(expectedKind));
       }
+
       void checkRemote(String source, String expectedTargetRegexp,
           ElementKind expectedKind) {
         int sourceIndex = text1.indexOf(source);
@@ -100,6 +102,7 @@ part of foo;
         expect(targetFiles[element.fileIndex], matches(expectedTargetRegexp));
         expect(element.kind, equals(expectedKind));
       }
+
       // TODO(paulberry): will the element type 'CLASS_TYPE_ALIAS' ever appear
       // as a navigation target?
       checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);

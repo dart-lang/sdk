@@ -1,11 +1,8 @@
-library TypingTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   var isStyleSheetList =
       predicate((x) => x is List<StyleSheet>, 'is a List<StyleSheet>');
 
@@ -23,15 +20,16 @@ main() {
   });
 
   test('StyleSheetList', () {
-    List<StyleSheet> asList = window.document.styleSheets;
+    var document = window.document as HtmlDocument;
+    List<StyleSheet> asList = document.styleSheets;
     expect(asList, isStyleSheetList);
     // Check it's Iterable.
     int counter = 0;
-    for (StyleSheet styleSheet in window.document.styleSheets) {
+    for (StyleSheet styleSheet in document.styleSheets) {
       counter++;
     }
 
-    // There is one style sheet from the unittest framework.
-    expect(counter, 1);
+    // There are no style sheets.
+    expect(counter, 0);
   });
 }

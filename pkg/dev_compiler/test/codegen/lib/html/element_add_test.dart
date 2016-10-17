@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file
 
-library ElementAddTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
-import 'util.dart';
 import 'dart:html';
 
-main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+import 'util.dart';
+
+main() {
   var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElemt');
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
   var isText = predicate((x) => x is Text, 'is a Text');

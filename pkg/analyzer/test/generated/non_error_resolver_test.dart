@@ -11,16 +11,16 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(NonErrorResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NonErrorResolverTest);
+  });
 }
 
 @reflectiveTest
@@ -1704,6 +1704,19 @@ Map _globalMap = {
 
   void test_duplicateDefinition_getter() {
     Source source = addSource("bool get a => true;");
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_duplicatePart() {
+    addNamedSource('/part1.dart', 'part of lib;');
+    addNamedSource('/part2.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

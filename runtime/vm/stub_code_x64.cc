@@ -497,31 +497,25 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 }
 
 
-// TOS: return address + call-instruction-size (5 bytes).
 // RAX: result, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ popq(RBX);
-  __ subq(RBX, Immediate(ShortCallPattern::pattern_length_in_bytes()));
   // Push zap value instead of CODE_REG for lazy deopt.
   __ pushq(Immediate(0xf1f1f1f1));
-  __ pushq(RBX);
+  // Return address for "call" to deopt stub.
+  __ pushq(Immediate(0xe1e1e1e1));
+  __ movq(CODE_REG, Address(THR, Thread::lazy_deopt_from_return_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
 }
 
 
-// TOS: return address + call-instruction-size (5 bytes).
 // RAX: exception, must be preserved
 // RDX: stacktrace, must be preserved
 void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ popq(RBX);
-  __ subq(RBX, Immediate(ShortCallPattern::pattern_length_in_bytes()));
   // Push zap value instead of CODE_REG for lazy deopt.
   __ pushq(Immediate(0xf1f1f1f1));
-  __ pushq(RBX);
+  // Return address for "call" to deopt stub.
+  __ pushq(Immediate(0xe1e1e1e1));
+  __ movq(CODE_REG, Address(THR, Thread::lazy_deopt_from_throw_stub_offset()));
   GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
@@ -1920,11 +1914,12 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ pushq(RDI);  // Arg0: function to optimize
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popq(RAX);  // Disard argument.
-  __ popq(CODE_REG);  // Get Code object.
+  __ popq(RAX);  // Get Code object.
   __ popq(R10);  // Restore argument descriptor.
-  __ movq(RAX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ LeaveStubFrame();
-  __ jmp(RAX);
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+  __ jmp(RCX);
   __ int3();
 }
 
@@ -2265,6 +2260,7 @@ void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
 // Called from the monomorphic checked entry.
 //  RDI: receiver
 void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+  __ movq(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
   __ EnterStubFrame();
   __ pushq(RDI);  // Preserve receiver.
 

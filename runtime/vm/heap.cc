@@ -38,6 +38,7 @@ Heap::Heap(Isolate* isolate,
       read_only_(false),
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false) {
+  UpdateGlobalMaxUsed();
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {

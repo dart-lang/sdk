@@ -19,6 +19,7 @@
 #include "vm/os_thread.h"
 #include "vm/timer.h"
 #include "vm/token_position.h"
+#include "vm/growable_array.h"
 
 namespace dart {
 
@@ -68,6 +69,19 @@ class StoreBuffer;
 class StubCode;
 class ThreadRegistry;
 class UserTag;
+
+
+class PendingLazyDeopt {
+ public:
+  PendingLazyDeopt(uword fp, uword pc) : fp_(fp), pc_(pc) { }
+  uword fp() { return fp_; }
+  uword pc() { return pc_; }
+  void set_pc(uword pc) { pc_ = pc; }
+
+ private:
+  uword fp_;
+  uword pc_;
+};
 
 
 class IsolateVisitor {
@@ -390,6 +404,12 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
+  void AddPendingDeopt(uword fp, uword pc);
+  uword FindPendingDeopt(uword fp) const;
+  void ClearPendingDeoptsAtOrBelow(uword fp) const;
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts() const {
+    return pending_deopts_;
+  }
   bool IsDeoptimizing() const { return deopt_context_ != NULL; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
@@ -489,6 +509,18 @@ class Isolate : public BaseIsolate {
   int64_t last_reload_timestamp() const {
     return last_reload_timestamp_;
   }
+
+  bool IsPaused() const;
+
+  bool should_pause_post_service_request() const {
+    return should_pause_post_service_request_;
+  }
+  void set_should_pause_post_service_request(
+      bool should_pause_post_service_request) {
+    should_pause_post_service_request_ = should_pause_post_service_request;
+  }
+
+  void PausePostRequest();
 
   uword user_tag() const {
     return user_tag_;
@@ -740,6 +772,7 @@ class Isolate : public BaseIsolate {
   Dart_GcPrologueCallback gc_prologue_callback_;
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts_;
   DeoptContext* deopt_context_;
 
   bool is_service_isolate_;
@@ -821,6 +854,11 @@ class Isolate : public BaseIsolate {
   Monitor* spawn_count_monitor_;
   intptr_t spawn_count_;
 
+#define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
+  type metric_##variable##_;
+  ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
+#undef ISOLATE_METRIC_VARIABLE
+
   // Has a reload ever been attempted?
   bool has_attempted_reload_;
   intptr_t no_reload_scope_depth_;  // we can only reload when this is 0.
@@ -828,12 +866,8 @@ class Isolate : public BaseIsolate {
   intptr_t reload_every_n_stack_overflow_checks_;
   IsolateReloadContext* reload_context_;
   int64_t last_reload_timestamp_;
-
-#define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
-  type metric_##variable##_;
-  ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
-#undef ISOLATE_METRIC_VARIABLE
-
+  // Should we pause in the debug message loop after this request?
+  bool should_pause_post_service_request_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;

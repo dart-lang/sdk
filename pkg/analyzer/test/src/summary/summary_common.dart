@@ -17,7 +17,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart'
     as public_namespace;
 import 'package:path/path.dart' show posix;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../context/mock_sdk.dart';
 
@@ -141,13 +141,6 @@ abstract class SummaryTest {
   LinkedUnit get definingUnit => linked.units[0];
 
   /**
-   * `true` if the linked portion of the summary is expected to contain
-   * absolute URIs.  This happens because the element model doesn't (yet) store
-   * enough information to recover relative URIs, TODO(paulberry): fix this.
-   */
-  bool get expectAbsoluteUrisInDependencies;
-
-  /**
    * Get access to the linked summary that results from serializing and
    * then deserializing the library under test.
    */
@@ -217,12 +210,7 @@ abstract class SummaryTest {
    */
   void checkDependency(int dependency, String absoluteUri, String relativeUri) {
     expect(dependency, new isInstanceOf<int>());
-    if (expectAbsoluteUrisInDependencies) {
-      // The element model doesn't (yet) store enough information to recover
-      // relative URIs, so we have to use the absolute URI.
-      // TODO(paulberry): fix this.
-      expect(linked.dependencies[dependency].uri, absoluteUri);
-    } else if (dependency >= linked.numPrelinkedDependencies) {
+    if (dependency >= linked.numPrelinkedDependencies) {
       // Fully-linked dependencies are always absolute URIs.
       expect(linked.dependencies[dependency].uri, absoluteUri);
     } else {
@@ -231,17 +219,11 @@ abstract class SummaryTest {
   }
 
   /**
-   * Verify that the given [dependency] lists the given [absoluteUris] or
+   * Verify that the given [dependency] lists the given
    * [relativeUris] as its parts.
    */
-  void checkDependencyParts(LinkedDependency dependency,
-      List<String> absoluteUris, List<String> relativeUris) {
-    if (expectAbsoluteUrisInDependencies) {
-      // The element model doesn't (yet) store enough information to recover
-      // relative URIs, so we have to use the absolute URI.
-      // TODO(paulberry): fix this.
-      relativeUris = absoluteUris;
-    }
+  void checkDependencyParts(
+      LinkedDependency dependency, List<String> relativeUris) {
     expect(dependency.parts, relativeUris);
   }
 
@@ -295,20 +277,13 @@ abstract class SummaryTest {
 
   /**
    * Verify that the dependency table contains an entry for a file reachable
-   * via the given [absoluteUri] and [relativeUri].  If [fullyLinked] is
+   * via the given [relativeUri].  If [fullyLinked] is
    * `true`, then the dependency should be a fully-linked dependency; otherwise
    * it should be a prelinked dependency.
    *
    * The index of the [LinkedDependency] is returned.
    */
-  int checkHasDependency(String absoluteUri, String relativeUri,
-      {bool fullyLinked: false}) {
-    if (expectAbsoluteUrisInDependencies) {
-      // The element model doesn't (yet) store enough information to recover
-      // relative URIs, so we have to use the absolute URI.
-      // TODO(paulberry): fix this.
-      relativeUri = absoluteUri;
-    }
+  int checkHasDependency(String relativeUri, {bool fullyLinked: false}) {
     List<String> found = <String>[];
     for (int i = 0; i < linked.dependencies.length; i++) {
       LinkedDependency dep = linked.dependencies[i];
@@ -359,15 +334,9 @@ abstract class SummaryTest {
 
   /**
    * Verify that the dependency table *does not* contain any entries for a file
-   * reachable via the given [absoluteUri] and [relativeUri].
+   * reachable via the given [relativeUri].
    */
-  void checkLacksDependency(String absoluteUri, String relativeUri) {
-    if (expectAbsoluteUrisInDependencies) {
-      // The element model doesn't (yet) store enough information to recover
-      // relative URIs, so we have to use the absolute URI.
-      // TODO(paulberry): fix this.
-      relativeUri = absoluteUri;
-    }
+  void checkLacksDependency(String relativeUri) {
     for (LinkedDependency dep in linked.dependencies) {
       if (dep.uri == relativeUri) {
         fail('Unexpected dependency found: $relativeUri');
@@ -618,6 +587,37 @@ abstract class SummaryTest {
    */
   void checkVoidTypeRef(EntityRef typeRef) {
     checkTypeRef(typeRef, null, null, 'void');
+  }
+
+  fail_invalid_prefix_dynamic() {
+//    if (checkAstDerivedData) {
+//      // TODO(paulberry): get this to work properly.
+//      return;
+//    }
+    var t = serializeTypeText('dynamic.T', allowErrors: true);
+    checkUnresolvedTypeRef(t, 'dynamic', 'T');
+  }
+
+  fail_invalid_prefix_type_parameter() {
+//    if (checkAstDerivedData) {
+//      // TODO(paulberry): get this to work properly.
+//      return;
+//    }
+    checkUnresolvedTypeRef(
+        serializeClassText('class C<T> { T.U x; }', allowErrors: true)
+            .fields[0]
+            .type,
+        'T',
+        'U');
+  }
+
+  fail_invalid_prefix_void() {
+//    if (checkAstDerivedData) {
+//      // TODO(paulberry): get this to work properly.
+//      return;
+//    }
+    checkUnresolvedTypeRef(
+        serializeTypeText('void.T', allowErrors: true), 'void', 'T');
   }
 
   /**
@@ -1363,7 +1363,7 @@ class E {}
     checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
         absUri('/a.dart'), 'a.dart', 'D',
         onlyInStrongMode: false);
-    checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
+    checkHasDependency('a.dart', fullyLinked: false);
   }
 
   test_closure_executable_with_return_type_from_closure() {
@@ -1408,7 +1408,7 @@ f() {
         absUri('/b.dart'), 'b.dart', 'D',
         onlyInStrongMode: false);
     if (!skipFullyLinkedData) {
-      checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+      checkHasDependency('b.dart', fullyLinked: true);
     }
   }
 
@@ -4699,7 +4699,7 @@ class C {
     // re-export any names defined in b.dart, because a change to b.dart might
     // cause it to start exporting a name that the main test library *does*
     // use.
-    checkHasDependency(absUri('/b.dart'), 'b.dart');
+    checkHasDependency('b.dart');
   }
 
   test_dependencies_export_unused() {
@@ -4709,17 +4709,17 @@ class C {
     // re-export any names defined in a.dart, because a change to a.dart might
     // cause it to start exporting a name that the main test library *will*
     // re-export.
-    checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkHasDependency('a.dart');
   }
 
   test_dependencies_import_to_export() {
     addNamedSource('/a.dart', 'library a; export "b.dart"; class A {}');
     addNamedSource('/b.dart', 'library b;');
     serializeLibraryText('import "a.dart"; A a;');
-    checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkHasDependency('a.dart');
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency(absUri('/b.dart'), 'b.dart');
+    checkHasDependency('b.dart');
   }
 
   test_dependencies_import_to_export_in_subdirs_absolute_export() {
@@ -4727,40 +4727,40 @@ class C {
         'library a; export "${absUri('/a/b/b.dart')}"; class A {}');
     addNamedSource('/a/b/b.dart', 'library b;');
     serializeLibraryText('import "a/a.dart"; A a;');
-    checkHasDependency(absUri('/a/a.dart'), 'a/a.dart');
+    checkHasDependency('a/a.dart');
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency(absUri('/a/b/b.dart'), absUri('/a/b/b.dart'));
+    checkHasDependency(absUri('/a/b/b.dart'));
   }
 
   test_dependencies_import_to_export_in_subdirs_absolute_import() {
     addNamedSource('/a/a.dart', 'library a; export "b/b.dart"; class A {}');
     addNamedSource('/a/b/b.dart', 'library b;');
     serializeLibraryText('import "${absUri('/a/a.dart')}"; A a;');
-    checkHasDependency(absUri('/a/a.dart'), absUri('/a/a.dart'));
+    checkHasDependency(absUri('/a/a.dart'));
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency(absUri('/a/b/b.dart'), absUri('/a/b/b.dart'));
+    checkHasDependency(absUri('/a/b/b.dart'));
   }
 
   test_dependencies_import_to_export_in_subdirs_relative() {
     addNamedSource('/a/a.dart', 'library a; export "b/b.dart"; class A {}');
     addNamedSource('/a/b/b.dart', 'library b;');
     serializeLibraryText('import "a/a.dart"; A a;');
-    checkHasDependency(absUri('/a/a.dart'), 'a/a.dart');
+    checkHasDependency('a/a.dart');
     // The main test library depends on b.dart, because names defined in
     // b.dart are exported by a.dart.
-    checkHasDependency(absUri('/a/b/b.dart'), 'a/b/b.dart');
+    checkHasDependency('a/b/b.dart');
   }
 
   test_dependencies_import_to_export_loop() {
     addNamedSource('/a.dart', 'library a; export "b.dart"; class A {}');
     addNamedSource('/b.dart', 'library b; export "a.dart";');
     serializeLibraryText('import "a.dart"; A a;');
-    checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkHasDependency('a.dart');
     // Serialization should have been able to walk the transitive export
     // dependencies to b.dart without going into an infinite loop.
-    checkHasDependency(absUri('/b.dart'), 'b.dart');
+    checkHasDependency('b.dart');
   }
 
   test_dependencies_import_to_export_transitive_closure() {
@@ -4768,10 +4768,10 @@ class C {
     addNamedSource('/b.dart', 'library b; export "c.dart";');
     addNamedSource('/c.dart', 'library c;');
     serializeLibraryText('import "a.dart"; A a;');
-    checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkHasDependency('a.dart');
     // The main test library depends on c.dart, because names defined in
     // c.dart are exported by b.dart and then re-exported by a.dart.
-    checkHasDependency(absUri('/c.dart'), 'c.dart');
+    checkHasDependency('c.dart');
   }
 
   test_dependencies_import_to_export_unused() {
@@ -4781,7 +4781,7 @@ class C {
     // The main test library depends on b.dart, even though it doesn't use any
     // names defined in b.dart, because a change to b.dart might cause it to
     // start exporting a name that the main test library *does* use.
-    checkHasDependency(absUri('/b.dart'), 'b.dart');
+    checkHasDependency('b.dart');
   }
 
   test_dependencies_import_transitive_closure() {
@@ -4789,10 +4789,10 @@ class C {
         '/a.dart', 'library a; import "b.dart"; class A extends B {}');
     addNamedSource('/b.dart', 'library b; class B {}');
     serializeLibraryText('import "a.dart"; A a;');
-    checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkHasDependency('a.dart');
     // The main test library doesn't depend on b.dart, because no change to
     // b.dart can possibly affect the serialized element model for it.
-    checkLacksDependency(absUri('/b.dart'), 'b.dart');
+    checkLacksDependency('b.dart');
   }
 
   test_dependencies_import_unused() {
@@ -4801,7 +4801,7 @@ class C {
     // The main test library depends on a.dart, even though it doesn't use any
     // names defined in a.dart, because a change to a.dart might cause it to
     // start exporting a name that the main test library *does* use.
-    checkHasDependency(absUri('/a.dart'), 'a.dart');
+    checkHasDependency('a.dart');
   }
 
   test_dependencies_parts() {
@@ -4810,9 +4810,8 @@ class C {
     addNamedSource('/b.dart', 'part of a;');
     addNamedSource('/c.dart', 'part of a;');
     serializeLibraryText('import "a.dart"; A a;');
-    int dep = checkHasDependency(absUri('/a.dart'), 'a.dart');
-    checkDependencyParts(linked.dependencies[dep],
-        [absUri('/b.dart'), absUri('/c.dart')], ['b.dart', 'c.dart']);
+    int dep = checkHasDependency('a.dart');
+    checkDependencyParts(linked.dependencies[dep], ['b.dart', 'c.dart']);
   }
 
   test_dependencies_parts_relative_to_importing_library() {
@@ -4822,11 +4821,9 @@ class C {
     addNamedSource('/a/c/e/f.dart', 'part of d;');
     addNamedSource('/a/c/g/h.dart', 'part of d;');
     serializeLibraryText('import "a/b.dart"; D d;');
-    int dep = checkHasDependency(absUri('/a/c/d.dart'), 'a/c/d.dart');
+    int dep = checkHasDependency('a/c/d.dart');
     checkDependencyParts(
-        linked.dependencies[dep],
-        [absUri('/a/c/e/f.dart'), absUri('/a/c/g/h.dart')],
-        ['a/c/e/f.dart', 'a/c/g/h.dart']);
+        linked.dependencies[dep], ['a/c/e/f.dart', 'a/c/g/h.dart']);
   }
 
   test_elements_in_part() {
@@ -5800,6 +5797,49 @@ int foo(int a, String b) => 0;
   test_executable_param_none() {
     UnlinkedExecutable executable = serializeExecutableText('f() {}');
     expect(executable.parameters, isEmpty);
+  }
+
+  test_executable_param_of_constructor_no_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { C(x); }').executables[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, 0);
+  }
+
+  test_executable_param_of_local_function_no_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { m() { f(x) {} } }')
+            .executables[0]
+            .localFunctions[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, 0);
+  }
+
+  test_executable_param_of_method_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { m(x) {} }').executables[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, isNot(0));
+  }
+
+  test_executable_param_of_param_no_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { m(f(x)) {} }').executables[0];
+    expect(executable.parameters[0].parameters[0].inheritsCovariantSlot, 0);
+  }
+
+  test_executable_param_of_setter_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { void set s(x) {} }').executables[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, isNot(0));
+  }
+
+  test_executable_param_of_static_method_no_covariance() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { static m(x) {} }').executables[0];
+    expect(executable.parameters[0].inheritsCovariantSlot, 0);
+  }
+
+  test_executable_param_of_top_level_function_no_covariance() {
+    UnlinkedExecutable executable = serializeExecutableText('f(x) {}');
+    expect(executable.parameters[0].inheritsCovariantSlot, 0);
   }
 
   test_executable_param_order() {
@@ -7792,10 +7832,8 @@ get f => null;''';
     // The dependency on b.dart is implicit, so it should be placed at the end
     // of the dependency list, after a.dart, even though the code that refers
     // to b.dart comes before the code that refers to a.dart.
-    int aDep =
-        checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
-    int bDep =
-        checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+    int aDep = checkHasDependency('a.dart', fullyLinked: false);
+    int bDep = checkHasDependency('b.dart', fullyLinked: true);
     expect(aDep, lessThan(bDep));
   }
 
@@ -8379,7 +8417,7 @@ var v = f(g: (x, y) {});
     checkInferredTypeSlot(variable.initializer.inferredReturnTypeSlot,
         absUri('/a.dart'), 'a.dart', 'D',
         onlyInStrongMode: false);
-    checkHasDependency(absUri('/a.dart'), 'a.dart', fullyLinked: false);
+    checkHasDependency('a.dart', fullyLinked: false);
   }
 
   test_initializer_executable_with_return_type_from_closure() {
@@ -8490,39 +8528,8 @@ void f() {
         absUri('/b.dart'), 'b.dart', 'D',
         onlyInStrongMode: false);
     if (!skipFullyLinkedData) {
-      checkHasDependency(absUri('/b.dart'), 'b.dart', fullyLinked: true);
+      checkHasDependency('b.dart', fullyLinked: true);
     }
-  }
-
-  fail_invalid_prefix_dynamic() {
-//    if (checkAstDerivedData) {
-//      // TODO(paulberry): get this to work properly.
-//      return;
-//    }
-    var t = serializeTypeText('dynamic.T', allowErrors: true);
-    checkUnresolvedTypeRef(t, 'dynamic', 'T');
-  }
-
-  fail_invalid_prefix_type_parameter() {
-//    if (checkAstDerivedData) {
-//      // TODO(paulberry): get this to work properly.
-//      return;
-//    }
-    checkUnresolvedTypeRef(
-        serializeClassText('class C<T> { T.U x; }', allowErrors: true)
-            .fields[0]
-            .type,
-        'T',
-        'U');
-  }
-
-  fail_invalid_prefix_void() {
-//    if (checkAstDerivedData) {
-//      // TODO(paulberry): get this to work properly.
-//      return;
-//    }
-    checkUnresolvedTypeRef(
-        serializeTypeText('void.T', allowErrors: true), 'void', 'T');
   }
 
   test_library_documented() {

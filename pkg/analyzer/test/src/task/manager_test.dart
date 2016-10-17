@@ -7,15 +7,15 @@ library analyzer.test.src.task.manager_test;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(TaskManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(TaskManagerTest);
+  });
 }
 
 @reflectiveTest

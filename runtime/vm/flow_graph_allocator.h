@@ -248,6 +248,8 @@ class FlowGraphAllocator : public ValueObject {
     return Location::MachineRegisterLocation(register_kind_, reg);
   }
 
+  void SplitInitialDefinitionAt(LiveRange* range, intptr_t pos);
+
   void PrintLiveRanges();
 
   const FlowGraph& flow_graph_;

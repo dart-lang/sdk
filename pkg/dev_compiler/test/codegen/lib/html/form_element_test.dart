@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library FormElementTest;
-
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
-void main() {
-  useHtmlConfiguration();
+import 'package:expect/minitest.dart';
 
+void main() {
   var isFormElement = predicate((x) => x is FormElement, 'is a FormElement');
 
   test('constructorTest1', () {

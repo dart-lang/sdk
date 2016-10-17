@@ -5,14 +5,13 @@
 library analyzer.test.src.util.fast_uri_test;
 
 import 'package:analyzer/src/util/fast_uri.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(_FastUriTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(_FastUriTest);
+  });
 }
 
 @reflectiveTest

@@ -865,7 +865,6 @@ void Assembler::NoMonomorphicCheckedEntry() {
   break_(0);
   break_(0);
   break_(0);
-  break_(0);
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
 }
 
@@ -877,8 +876,7 @@ void Assembler::MonomorphicCheckedEntry() {
 
   Label have_cid, miss;
   Bind(&miss);
-  lw(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
-  lw(T9, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  lw(T9, Address(THR, Thread::monomorphic_miss_entry_offset()));
   jr(T9);
 
   Comment("MonomorphicCheckedEntry");

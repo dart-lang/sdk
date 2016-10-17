@@ -98,6 +98,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // search
     List<SearchMatch> matches =
         await searchEngine.searchMemberDeclarations(params.name);
+    matches = SearchMatch.withNotNullElement(matches);
     _sendSearchNotification(searchId, true, matches.map(toResult));
   }
 
@@ -112,6 +113,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // search
     List<SearchMatch> matches =
         await searchEngine.searchMemberReferences(params.name);
+    matches = SearchMatch.withNotNullElement(matches);
     _sendSearchNotification(searchId, true, matches.map(toResult));
   }
 
@@ -135,6 +137,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
     // search
     List<SearchMatch> matches =
         await searchEngine.searchTopLevelDeclarations(params.pattern);
+    matches = SearchMatch.withNotNullElement(matches);
     _sendSearchNotification(searchId, true, matches.map(toResult));
   }
 

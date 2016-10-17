@@ -33,6 +33,15 @@ static inline Dart_Handle ThrowIfError(Dart_Handle handle) {
   return handle;
 }
 
+// Tries to read [script_uri] as a Kernel IR file.  If successful this function
+// returns `true` and sets [kernel_file] and [kernel_length] to be the memory
+// contents.
+//
+// The caller is responsible for free()ing [kernel_file] if `true` was returned.
+bool TryReadKernel(const char* script_uri,
+                   const uint8_t** kernel_file,
+                   intptr_t* kernel_length);
+
 class CommandLineOptions {
  public:
   explicit CommandLineOptions(int max_count)
@@ -200,14 +209,21 @@ class DartUtils {
   static Dart_Handle ResolveUriInWorkingDirectory(Dart_Handle script_uri);
   static Dart_Handle ResolveScript(Dart_Handle url);
 
+  enum MagicNumber {
+    kSnapshotMagicNumber,
+    kKernelMagicNumber,
+    kUnknownMagicNumber
+  };
+
+  // static const uint8_t* GetMagicNumber(MagicNumber number);
+
   // Sniffs the specified text_buffer to see if it contains the magic number
   // representing a script snapshot. If the text_buffer is a script snapshot
   // the return value is an updated pointer to the text_buffer pointing past
   // the magic number value. The 'buffer_len' parameter is also appropriately
   // adjusted.
-  static const uint8_t* SniffForMagicNumber(const uint8_t* text_buffer,
-                                            intptr_t* buffer_len,
-                                            bool* is_snapshot);
+  static MagicNumber SniffForMagicNumber(const uint8_t** text_buffer,
+                                         intptr_t* buffer_len);
 
   // Write a magic number to indicate a script snapshot file.
   static void WriteMagicNumber(File* file);
@@ -230,8 +246,6 @@ class DartUtils {
   static const char* const kUriLibURL;
   static const char* const kHttpScheme;
   static const char* const kVMServiceLibURL;
-
-  static const uint8_t magic_number[];
 
   static Dart_Handle LibraryFilePath(Dart_Handle library_uri);
 

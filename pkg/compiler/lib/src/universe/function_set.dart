@@ -11,7 +11,7 @@ import '../types/types.dart';
 import '../util/util.dart' show Hashing, Setlet;
 import '../world.dart' show ClosedWorld;
 import 'selector.dart' show Selector;
-import 'universe.dart' show ReceiverConstraint;
+import 'world_builder.dart' show ReceiverConstraint;
 
 // TODO(kasperl): This actually holds getters and setters just fine
 // too and stricly they aren't functions. Maybe this needs a better

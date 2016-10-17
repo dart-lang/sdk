@@ -742,34 +742,6 @@ class ParameterMember extends VariableMember
     super.visitChildren(visitor);
     safelyVisitChildren(parameters, visitor);
   }
-
-  /**
-   * If the given [parameter]'s type is different when any type parameters from
-   * the defining type's declaration are replaced with the actual type
-   * arguments from the [definingType], create a parameter member representing
-   * the given parameter. Return the member that was created, or the base
-   * parameter if no member was created.
-   */
-  static ParameterElement from(
-      ParameterElement parameter, ParameterizedType definingType) {
-    if (parameter == null || definingType.typeArguments.length == 0) {
-      return parameter;
-    }
-    // Check if parameter type depends on defining type type arguments.
-    // It is possible that we did not resolve field formal parameter yet,
-    // so skip this check for it.
-    if (parameter is FieldFormalParameterElement) {
-      return new FieldFormalParameterMember(parameter, definingType);
-    } else {
-      DartType baseType = parameter.type;
-      List<DartType> argumentTypes = definingType.typeArguments;
-      List<DartType> parameterTypes =
-          TypeParameterTypeImpl.getTypes(definingType.typeParameters);
-      DartType substitutedType =
-          baseType.substitute2(argumentTypes, parameterTypes);
-      return new ParameterMember(parameter, definingType, substitutedType);
-    }
-  }
 }
 
 /**

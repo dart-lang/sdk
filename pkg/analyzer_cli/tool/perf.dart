@@ -5,6 +5,7 @@
 /// An entrypoint used to run portions of analyzer and measure its performance.
 library analyzer_cli.tool.perf;
 
+import 'dart:async';
 import 'dart:io' show exit;
 
 import 'package:analyzer/dart/ast/ast.dart';
@@ -23,33 +24,36 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:package_config/discovery.dart';
 
-/// Cummulative total number of chars scanned.
+/// Cumulative total number of chars scanned.
 int scanTotalChars = 0;
 
-/// Cummulative time spent scanning.
+/// Cumulative time spent scanning.
 Stopwatch scanTimer = new Stopwatch();
 
 /// Factory to load and resolve app, packages, and sdk sources.
 SourceFactory sources;
 
-main(args) {
+main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
-  if (args.length < 3) {
-    print('usage: perf.dart <bench-id> <package-root> <entry.dart>');
+  if (args.length < 2) {
+    print('usage: perf.dart <bench-id> <entry.dart>');
     exit(1);
   }
   var totalTimer = new Stopwatch()..start();
 
   var bench = args[0];
-  var packageRoot = Uri.base.resolve(args[1]);
-  var entryUri = Uri.base.resolve(args[2]);
+  var entryUri = Uri.base.resolve(args[1]);
 
-  setup(packageRoot);
+  await setup(entryUri);
+
   if (bench == 'scan') {
-    scanReachableFiles(entryUri);
+    Set<Source> files = scanReachableFiles(entryUri);
+    // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
+    for (int i = 0; i < 10; i++) scanFiles(files);
   } else if (bench == 'parse') {
     Set<Source> files = scanReachableFiles(entryUri);
-    parseFiles(files);
+    // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
+    for (int i = 0; i < 10; i++) parseFiles(files);
   } else {
     print('unsupported bench-id: $bench. Please specify "scan" or "parse"');
     // TODO(sigmund): implement the remaining benchmarks.
@@ -62,10 +66,10 @@ main(args) {
 
 /// Sets up analyzer to be able to load and resolve app, packages, and sdk
 /// sources.
-void setup(Uri packageRoot) {
+Future setup(Uri entryUri) async {
   var provider = PhysicalResourceProvider.INSTANCE;
   var packageMap = new ContextBuilder(provider, null, null)
-      .convertPackagesToMap(getPackagesDirectory(packageRoot));
+      .convertPackagesToMap(await findPackages(entryUri));
   sources = new SourceFactory([
     new ResourceUriResolver(provider),
     new PackageMapUriResolver(provider, packageMap),
@@ -80,16 +84,25 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   var files = new Set<Source>();
   var loadTimer = new Stopwatch()..start();
   collectSources(sources.forUri2(entryUri), files);
-  collectSources(sources.forUri("dart:async"), files);
-  collectSources(sources.forUri("dart:collection"), files);
-  collectSources(sources.forUri("dart:convert"), files);
-  collectSources(sources.forUri("dart:core"), files);
-  collectSources(sources.forUri("dart:developer"), files);
-  collectSources(sources.forUri("dart:_internal"), files);
-  collectSources(sources.forUri("dart:isolate"), files);
-  collectSources(sources.forUri("dart:math"), files);
-  collectSources(sources.forUri("dart:mirrors"), files);
-  collectSources(sources.forUri("dart:typed_data"), files);
+
+  var libs = [
+    "dart:async",
+    "dart:collection",
+    "dart:convert",
+    "dart:core",
+    "dart:developer",
+    "dart:_internal",
+    "dart:isolate",
+    "dart:math",
+    "dart:mirrors",
+    "dart:typed_data",
+    "dart:io"
+  ];
+
+  for (var lib in libs) {
+    collectSources(sources.forUri(lib), files);
+  }
+
   loadTimer.stop();
 
   print('input size: ${scanTotalChars} chars');
@@ -97,6 +110,24 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   report("load", loadTime);
   report("scan", scanTimer.elapsedMicroseconds);
   return files;
+}
+
+/// Scans every file in [files] and reports the time spent doing so.
+void scanFiles(Set<Source> files) {
+  // The code below will record again how many chars are scanned and how long it
+  // takes to scan them, even though we already did so in [scanReachableFiles].
+  // Recording and reporting this twice is unnecessary, but we do so for now to
+  // validate that the results are consistent.
+  scanTimer = new Stopwatch();
+  var old = scanTotalChars;
+  scanTotalChars = 0;
+  for (var source in files) {
+    tokenize(source);
+  }
+
+  // Report size and scanning time again. See discussion above.
+  if (old != scanTotalChars) print('input size changed? ${old} chars');
+  report("scan", scanTimer.elapsedMicroseconds);
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
@@ -156,7 +187,7 @@ Token tokenize(Source source) {
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
   var scanner = new Scanner(source, new CharSequenceReader(contents),
-      AnalysisErrorListener.NULL_LISTENER);
+      AnalysisErrorListener.NULL_LISTENER)..preserveComments = false;
   var token = scanner.tokenize();
   scanTimer.stop();
   return token;

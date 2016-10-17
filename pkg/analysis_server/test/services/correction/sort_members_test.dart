@@ -6,15 +6,15 @@ library test.services.refactoring.sort_members;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(SortMembersTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SortMembersTest);
+  });
 }
 
 @reflectiveTest

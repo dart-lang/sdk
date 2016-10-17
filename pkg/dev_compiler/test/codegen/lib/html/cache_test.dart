@@ -1,14 +1,11 @@
-library CacheTest;
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
 import 'dart:html';
 
-main() {
-  useHtmlIndividualConfiguration();
+import 'package:expect/minitest.dart';
 
+main() {
   group('supported', () {
     test('supported', () {
-      expect(ApplicationCache.supported, true);
+      expect(ApplicationCache.supported, isTrue);
     });
   });
 
@@ -19,10 +16,8 @@ main() {
         ApplicationCache appCache = window.applicationCache;
         expect(cacheStatusToString(appCache.status), "UNCACHED");
       }, expectation);
-
     });
   });
-
 }
 
 String cacheStatusToString(int status) {

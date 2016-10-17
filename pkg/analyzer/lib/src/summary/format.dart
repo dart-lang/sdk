@@ -1425,6 +1425,7 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
 
 class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.LinkedUnit {
   List<int> _constCycles;
+  List<int> _parametersInheritingCovariant;
   List<LinkedReferenceBuilder> _references;
   List<EntityRefBuilder> _types;
 
@@ -1438,6 +1439,19 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
   void set constCycles(List<int> value) {
     assert(value == null || value.every((e) => e >= 0));
     this._constCycles = value;
+  }
+
+  @override
+  List<int> get parametersInheritingCovariant => _parametersInheritingCovariant ??= <int>[];
+
+  /**
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
+   * corresponding to parameters that inherit `@covariant` behavior from a base
+   * class.
+   */
+  void set parametersInheritingCovariant(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._parametersInheritingCovariant = value;
   }
 
   @override
@@ -1466,8 +1480,9 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     this._types = value;
   }
 
-  LinkedUnitBuilder({List<int> constCycles, List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types})
+  LinkedUnitBuilder({List<int> constCycles, List<int> parametersInheritingCovariant, List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types})
     : _constCycles = constCycles,
+      _parametersInheritingCovariant = parametersInheritingCovariant,
       _references = references,
       _types = types;
 
@@ -1507,14 +1522,26 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
         signature.addInt(x);
       }
     }
+    if (this._parametersInheritingCovariant == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parametersInheritingCovariant.length);
+      for (var x in this._parametersInheritingCovariant) {
+        signature.addInt(x);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_constCycles;
+    fb.Offset offset_parametersInheritingCovariant;
     fb.Offset offset_references;
     fb.Offset offset_types;
     if (!(_constCycles == null || _constCycles.isEmpty)) {
       offset_constCycles = fbBuilder.writeListUint32(_constCycles);
+    }
+    if (!(_parametersInheritingCovariant == null || _parametersInheritingCovariant.isEmpty)) {
+      offset_parametersInheritingCovariant = fbBuilder.writeListUint32(_parametersInheritingCovariant);
     }
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
@@ -1525,6 +1552,9 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     fbBuilder.startTable();
     if (offset_constCycles != null) {
       fbBuilder.addOffset(2, offset_constCycles);
+    }
+    if (offset_parametersInheritingCovariant != null) {
+      fbBuilder.addOffset(3, offset_parametersInheritingCovariant);
     }
     if (offset_references != null) {
       fbBuilder.addOffset(0, offset_references);
@@ -1550,6 +1580,7 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
   _LinkedUnitImpl(this._bc, this._bcOffset);
 
   List<int> _constCycles;
+  List<int> _parametersInheritingCovariant;
   List<idl.LinkedReference> _references;
   List<idl.EntityRef> _types;
 
@@ -1557,6 +1588,12 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
   List<int> get constCycles {
     _constCycles ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _constCycles;
+  }
+
+  @override
+  List<int> get parametersInheritingCovariant {
+    _parametersInheritingCovariant ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
+    return _parametersInheritingCovariant;
   }
 
   @override
@@ -1577,6 +1614,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (constCycles.isNotEmpty) _result["constCycles"] = constCycles;
+    if (parametersInheritingCovariant.isNotEmpty) _result["parametersInheritingCovariant"] = parametersInheritingCovariant;
     if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
     if (types.isNotEmpty) _result["types"] = types.map((_value) => _value.toJson()).toList();
     return _result;
@@ -1585,6 +1623,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   @override
   Map<String, Object> toMap() => {
     "constCycles": constCycles,
+    "parametersInheritingCovariant": parametersInheritingCovariant,
     "references": references,
     "types": types,
   };
@@ -6718,6 +6757,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   CodeRangeBuilder _codeRange;
   String _defaultValueCode;
   int _inferredTypeSlot;
+  int _inheritsCovariantSlot;
   UnlinkedExecutableBuilder _initializer;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
@@ -6777,6 +6817,22 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   void set inferredTypeSlot(int value) {
     assert(value == null || value >= 0);
     this._inferredTypeSlot = value;
+  }
+
+  @override
+  int get inheritsCovariantSlot => _inheritsCovariantSlot ??= 0;
+
+  /**
+   * If this is a parameter of an instance method, a nonzero slot id which is
+   * unique within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then this parameter inherits
+   * `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  void set inheritsCovariantSlot(int value) {
+    assert(value == null || value >= 0);
+    this._inheritsCovariantSlot = value;
   }
 
   @override
@@ -6886,11 +6942,12 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     this._visibleOffset = value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _codeRange = codeRange,
       _defaultValueCode = defaultValueCode,
       _inferredTypeSlot = inferredTypeSlot,
+      _inheritsCovariantSlot = inheritsCovariantSlot,
       _initializer = initializer,
       _isFunctionTyped = isFunctionTyped,
       _isInitializingFormal = isInitializingFormal,
@@ -6946,6 +7003,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     signature.addInt(this._visibleOffset ?? 0);
     signature.addBool(this._initializer != null);
     this._initializer?.collectApiSignature(signature);
+    signature.addInt(this._inheritsCovariantSlot ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -6989,6 +7047,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
       fbBuilder.addUint32(2, _inferredTypeSlot);
+    }
+    if (_inheritsCovariantSlot != null && _inheritsCovariantSlot != 0) {
+      fbBuilder.addUint32(14, _inheritsCovariantSlot);
     }
     if (offset_initializer != null) {
       fbBuilder.addOffset(12, offset_initializer);
@@ -7041,6 +7102,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   idl.CodeRange _codeRange;
   String _defaultValueCode;
   int _inferredTypeSlot;
+  int _inheritsCovariantSlot;
   idl.UnlinkedExecutable _initializer;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
@@ -7074,6 +7136,12 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   int get inferredTypeSlot {
     _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _inferredTypeSlot;
+  }
+
+  @override
+  int get inheritsCovariantSlot {
+    _inheritsCovariantSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
+    return _inheritsCovariantSlot;
   }
 
   @override
@@ -7145,6 +7213,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (defaultValueCode != '') _result["defaultValueCode"] = defaultValueCode;
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
+    if (inheritsCovariantSlot != 0) _result["inheritsCovariantSlot"] = inheritsCovariantSlot;
     if (initializer != null) _result["initializer"] = initializer.toJson();
     if (isFunctionTyped != false) _result["isFunctionTyped"] = isFunctionTyped;
     if (isInitializingFormal != false) _result["isInitializingFormal"] = isInitializingFormal;
@@ -7164,6 +7233,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "codeRange": codeRange,
     "defaultValueCode": defaultValueCode,
     "inferredTypeSlot": inferredTypeSlot,
+    "inheritsCovariantSlot": inheritsCovariantSlot,
     "initializer": initializer,
     "isFunctionTyped": isFunctionTyped,
     "isInitializingFormal": isInitializingFormal,

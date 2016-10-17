@@ -18,6 +18,7 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
+#include "platform/memory_sanitizer.h"
 
 // Return the error from the containing function if handle is in error handle.
 #define RETURN_IF_ERROR(handle)                                                \
@@ -46,7 +47,47 @@ const char* const DartUtils::kUriLibURL = "dart:uri";
 const char* const DartUtils::kHttpScheme = "http:";
 const char* const DartUtils::kVMServiceLibURL = "dart:vmservice";
 
-const uint8_t DartUtils::magic_number[] = { 0xf5, 0xf5, 0xdc, 0xdc };
+
+struct MagicNumberData {
+  static const intptr_t kLength = 4;
+
+  const uint8_t bytes[kLength];
+  bool should_skip;
+};
+
+
+MagicNumberData snapshot_magic_number = { { 0xf5, 0xf5, 0xdc, 0xdc }, true };
+MagicNumberData kernel_magic_number = { {0x90, 0xab, 0xcd, 0xef}, false };
+
+
+bool TryReadKernel(const char* script_uri,
+                   const uint8_t** kernel_file,
+                   intptr_t* kernel_length) {
+  *kernel_file = NULL;
+  *kernel_length = -1;
+  bool is_kernel_file = false;
+  void* script_file = DartUtils::OpenFile(script_uri, false);
+  if (script_file != NULL) {
+    const uint8_t* buffer = NULL;
+    DartUtils::ReadFile(&buffer, kernel_length, script_file);
+    DartUtils::CloseFile(script_file);
+    if (*kernel_length > 0 && buffer != NULL) {
+      *kernel_file = buffer;
+      if (DartUtils::SniffForMagicNumber(&buffer, kernel_length) !=
+              DartUtils::kKernelMagicNumber) {
+        free(const_cast<uint8_t*>(buffer));
+        *kernel_file = NULL;
+      } else {
+        // Do not free buffer if this is a kernel file - kernel_file will be
+        // backed by the same memory as the buffer and caller will own it.
+        // Caller is responsible for freeing the buffer when this function
+        // returns true.
+        is_kernel_file = true;
+      }
+    }
+  }
+  return is_kernel_file;
+}
 
 
 static bool IsWindowsHost() {
@@ -188,17 +229,6 @@ const char* DartUtils::RemoveScheme(const char* url) {
   } else {
     return colon + 1;
   }
-}
-
-
-void* DartUtils::MapExecutable(const char* name, intptr_t* len) {
-  File* file = File::Open(name, File::kRead);
-  if (file == NULL) {
-    return NULL;
-  }
-  void* addr = file->MapExecutable(len);
-  file->Release();
-  return addr;
 }
 
 
@@ -467,30 +497,39 @@ Dart_Handle DartUtils::LibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-const uint8_t* DartUtils::SniffForMagicNumber(const uint8_t* text_buffer,
-                                              intptr_t* buffer_len,
-                                              bool* is_snapshot) {
-  intptr_t len = sizeof(magic_number);
-  if (*buffer_len <= len) {
-    *is_snapshot = false;
-    return text_buffer;
-  }
-  for (intptr_t i = 0; i < len; i++) {
-    if (text_buffer[i] != magic_number[i]) {
-      *is_snapshot = false;
-      return text_buffer;
+static bool CheckMagicNumber(const uint8_t** buf,
+                             intptr_t* len,
+                             const MagicNumberData& magic_number) {
+  if ((*len >= MagicNumberData::kLength) &&
+      (memcmp(*buf, magic_number.bytes, MagicNumberData::kLength) == 0)) {
+    if (magic_number.should_skip) {
+      *buf += MagicNumberData::kLength;
+      *len -= MagicNumberData::kLength;
     }
+    return true;
   }
-  *is_snapshot = true;
-  ASSERT(*buffer_len > len);
-  *buffer_len -= len;
-  return text_buffer + len;
+  return false;
+}
+
+
+DartUtils::MagicNumber DartUtils::SniffForMagicNumber(const uint8_t** buf,
+                                           intptr_t* len) {
+  if (CheckMagicNumber(buf, len, snapshot_magic_number)) {
+    return kSnapshotMagicNumber;
+  }
+
+  if (CheckMagicNumber(buf, len, kernel_magic_number)) {
+    return kKernelMagicNumber;
+  }
+
+  return kUnknownMagicNumber;
 }
 
 
 void DartUtils::WriteMagicNumber(File* file) {
   // Write a magic number and version information into the snapshot file.
-  bool bytes_written = file->WriteFully(magic_number, sizeof(magic_number));
+  bool bytes_written = file->WriteFully(snapshot_magic_number.bytes,
+                                        MagicNumberData::kLength);
   ASSERT(bytes_written);
 }
 
@@ -558,12 +597,14 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
 
   if (Dart_IsNull(tag_in) && Dart_IsNull(library_uri)) {
     // Entry file. Check for payload and load accordingly.
-    bool is_snapshot = false;
-    const uint8_t *payload =
-        DartUtils::SniffForMagicNumber(data, &num_bytes, &is_snapshot);
+    const uint8_t* payload = data;
+    const DartUtils::MagicNumber payload_type =
+        DartUtils::SniffForMagicNumber(&payload, &num_bytes);
 
-    if (is_snapshot) {
+    if (payload_type == DartUtils::kSnapshotMagicNumber) {
       result = Dart_LoadScriptFromSnapshot(payload, num_bytes);
+    } else if (payload_type == DartUtils::kKernelMagicNumber) {
+      UNREACHABLE();
     } else {
       Dart_Handle source = Dart_NewStringFromUTF8(data, num_bytes);
       if (Dart_IsError(source)) {
@@ -927,6 +968,7 @@ Dart_Handle DartUtils::NewError(const char* format, ...) {
   va_end(args);
 
   char* buffer = reinterpret_cast<char*>(Dart_ScopeAllocate(len + 1));
+  MSAN_UNPOISON(buffer, (len + 1));
   va_list args2;
   va_start(args2, format);
   vsnprintf(buffer, (len + 1), format, args2);

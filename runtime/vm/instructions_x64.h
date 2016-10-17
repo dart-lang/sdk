@@ -66,25 +66,6 @@ template<class P> class InstructionPattern : public ValueObject {
 };
 
 
-// 5 byte call instruction.
-class ShortCallPattern : public InstructionPattern<ShortCallPattern> {
- public:
-  explicit ShortCallPattern(uword pc) : InstructionPattern(pc) {}
-
-  void SetTargetAddress(uword new_target) const;
-
-  static int pattern_length_in_bytes() { return kLengthInBytes; }
-  static const int* pattern() {
-    static const int kCallPattern[kLengthInBytes] = {0xE8, -1, -1, -1, -1};
-    return kCallPattern;
-  }
-
- private:
-  static const int kLengthInBytes = 5;
-  DISALLOW_COPY_AND_ASSIGN(ShortCallPattern);
-};
-
-
 class ReturnPattern : public InstructionPattern<ReturnPattern> {
  public:
   explicit ReturnPattern(uword pc) : InstructionPattern(pc) {}

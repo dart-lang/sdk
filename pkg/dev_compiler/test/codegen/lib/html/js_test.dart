@@ -2,16 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library jsTest;
-
-import 'dart:async';
 import 'dart:html';
 import 'dart:typed_data' show ByteBuffer, Int32List;
 import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'dart:js';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_individual_config.dart';
+import 'package:expect/minitest.dart';
 
 _injectJs() {
   final script = new ScriptElement();
@@ -230,7 +226,6 @@ class Callable {
 
 main() {
   _injectJs();
-  useHtmlIndividualConfiguration();
 
   group('identity', () {
 
@@ -274,7 +269,7 @@ main() {
       var foo2 = new JsObject(context['Foo'], [2]);
       context['foo1'] = foo1;
       context['foo2'] = foo2;
-      expect(foo1, isNot(equals(context['foo2'])));
+      expect(foo1, notEquals(context['foo2']));
       expect(foo2, equals(context['foo2']));
       context.deleteProperty('foo1');
       context.deleteProperty('foo2');
@@ -325,7 +320,7 @@ main() {
       var foo = new JsObject(context['Foo'], [42]);
       expect(foo['a'], equals(42));
       expect(foo.callMethod('bar'), equals(42));
-      expect(() => foo.callMethod('baz'), throwsA(isNoSuchMethodError));
+      expect(() => foo.callMethod('baz'), throwsNoSuchMethodError);
     });
 
     test('new container.Foo()', () {
@@ -337,7 +332,7 @@ main() {
 
     test('new Array()', () {
       var a = new JsObject(context['Array']);
-      expect(a, new isInstanceOf<JsArray>());
+      expect(a is JsArray, isTrue);
 
       // Test that the object still behaves via the base JsObject interface.
       // JsArray specific tests are below.
@@ -444,7 +439,7 @@ main() {
 
     test('new JsObject can return a JsFunction', () {
       var f = new JsObject(context['Function']);
-      expect(f, new isInstanceOf<JsFunction>());
+      expect(f is JsFunction, isTrue);
     });
 
     test('JsFunction.apply on a function defined in JS', () {
@@ -458,7 +453,7 @@ main() {
 
     test('JsObject.callMethod on a function defined in JS', () {
       expect(context.callMethod('razzle'), equals(42));
-      expect(() => context.callMethod('dazzle'), throwsA(isNoSuchMethodError));
+      expect(() => context.callMethod('dazzle'), throwsNoSuchMethodError);
     });
 
     test('callMethod with many arguments', () {
@@ -477,7 +472,7 @@ main() {
 
     test('callMethod throws if name is not a String or num', () {
       expect(() => context.callMethod(true),
-          throwsA(new isInstanceOf<ArgumentError>()));
+          throwsArgumentError);
     });
 */
   });
@@ -506,7 +501,7 @@ main() {
       expect(context.callMethod('isPropertyInstanceOf',
           ['a', context['Array']]), isTrue);
       var a = context['a'];
-      expect(a, new isInstanceOf<JsArray>());
+      expect(a is JsArray, isTrue);
       expect(a, [1, 2, 3]);
       context.deleteProperty('a');
     });
@@ -516,8 +511,8 @@ main() {
       expect(context.callMethod('isPropertyInstanceOf',
           ['a', context['Array']]), isTrue);
       var a = context['a'];
-      expect(a, new isInstanceOf<List>());
-      expect(a, isNot(new isInstanceOf<JsArray>()));
+      expect(a is List, isTrue);
+      expect(a is JsArray, isFalse);
       expect(a, [1, 2, 3]);
       context.deleteProperty('a');
     });
@@ -526,17 +521,17 @@ main() {
       var array = new JsArray.from([1, 2]);
       expect(array[0], 1);
       expect(array[1], 2);
-      expect(() => array[-1], throwsA(isRangeError));
-      expect(() => array[2], throwsA(isRangeError));
+      expect(() => array[-1], throwsRangeError);
+      expect(() => array[2], throwsRangeError);
     });
 
    test('[]=', () {
-      var array = new JsArray.from([1, 2]);
+      var array = new JsArray<Object>.from([1, 2]);
       array[0] = 'd';
       array[1] = 'e';
       expect(array, ['d', 'e']);
-      expect(() => array[-1] = 3, throwsA(isRangeError));
-      expect(() => array[2] = 3, throwsA(isRangeError));
+      expect(() => array[-1] = 3, throwsRangeError);
+      expect(() => array[2] = 3, throwsRangeError);
     });
 
     test('length', () {
@@ -575,16 +570,16 @@ main() {
       expect(array, ['a', 'b']);
       array.insert(2, 'c');
       expect(array, ['a', 'b', 'c']);
-      expect(() => array.insert(4, 'e'), throwsA(isRangeError));
-      expect(() => array.insert(-1, 'e'), throwsA(isRangeError));
+      expect(() => array.insert(4, 'e'), throwsRangeError);
+      expect(() => array.insert(-1, 'e'), throwsRangeError);
     });
 
     test('removeAt', () {
       var array = new JsArray.from(['a', 'b', 'c']);
       expect(array.removeAt(1), 'b');
       expect(array, ['a', 'c']);
-      expect(() => array.removeAt(2), throwsA(isRangeError));
-      expect(() => array.removeAt(-1), throwsA(isRangeError));
+      expect(() => array.removeAt(2), throwsRangeError);
+      expect(() => array.removeAt(-1), throwsRangeError);
     });
 
     test('removeLast', () {
@@ -592,16 +587,16 @@ main() {
       expect(array.removeLast(), 'c');
       expect(array, ['a', 'b']);
       array.length = 0;
-      expect(() => array.removeLast(), throwsA(isRangeError));
+      expect(() => array.removeLast(), throwsRangeError);
     });
 
     test('removeRange', () {
       var array = new JsArray.from(['a', 'b', 'c', 'd']);
       array.removeRange(1, 3);
       expect(array, ['a', 'd']);
-      expect(() => array.removeRange(-1, 2), throwsA(isRangeError));
-      expect(() => array.removeRange(0, 3), throwsA(isRangeError));
-      expect(() => array.removeRange(2, 1), throwsA(isRangeError));
+      expect(() => array.removeRange(-1, 2), throwsRangeError);
+      expect(() => array.removeRange(0, 3), throwsRangeError);
+      expect(() => array.removeRange(2, 1), throwsRangeError);
     });
 
     test('setRange', () {
@@ -639,8 +634,7 @@ main() {
 
     test('primitives and null throw ArgumentError', () {
       for (var v in ['a', 1, 2.0, true, null]) {
-        expect(() => new JsObject.fromBrowserObject(v),
-            throwsA(new isInstanceOf<ArgumentError>()));
+        expect(() => new JsObject.fromBrowserObject(v), throwsArgumentError);
       }
     });
 
@@ -725,7 +719,7 @@ main() {
     });
 
     test('deep convert a complex object', () {
-      final object = {
+      dynamic object = {
         'a': [1, [2, 3]],
         'b': {
           'c': 3,
@@ -744,8 +738,7 @@ main() {
     });
 
     test('throws if object is not a Map or Iterable', () {
-      expect(() => new JsObject.jsify('a'),
-          throwsA(new isInstanceOf<ArgumentError>()));
+      expect(() => new JsObject.jsify('a'), throwsArgumentError);
     });
   });
 
@@ -793,7 +786,7 @@ main() {
     test('deleteProperty throws if name is not a String or num', () {
       var object = new JsObject.jsify({});
       expect(() => object.deleteProperty(true),
-          throwsA(new isInstanceOf<ArgumentError>()));
+          throwsArgumentError);
     });
   */
 
@@ -808,7 +801,7 @@ main() {
     test('hasProperty throws if name is not a String or num', () {
       var object = new JsObject.jsify({});
       expect(() => object.hasProperty(true),
-          throwsA(new isInstanceOf<ArgumentError>()));
+          throwsArgumentError);
     });
 */
 
@@ -829,9 +822,9 @@ main() {
     test('[] and []= throw if name is not a String or num', () {
       var object = new JsObject.jsify({});
       expect(() => object[true],
-          throwsA(new isInstanceOf<ArgumentError>()));
+          throwsArgumentError);
       expect(() => object[true] = 1,
-          throwsA(new isInstanceOf<ArgumentError>()));
+          throwsArgumentError);
     });
 */
   });
@@ -916,7 +909,7 @@ main() {
           var list = context.callMethod('getNewInt32Array');
           print(list);
           expect(list is Int32List, isTrue);
-          expect(list, orderedEquals([1, 2, 3, 4, 5, 6, 7, 8]));
+          expect(list, equals([1, 2, 3, 4, 5, 6, 7, 8]));
         }
       });
 
@@ -988,7 +981,7 @@ main() {
       // is called, or if the other tests in this file are enabled
       skipIE9_test('ImageData', () {
         var canvas = new CanvasElement();
-        var ctx = canvas.getContext('2d');
+        var ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
         context['o'] = ctx.createImageData(1, 1);
         var imageDataType = context['ImageData'];
         expect(context.callMethod('isPropertyInstanceOf', ['o', imageDataType]),
