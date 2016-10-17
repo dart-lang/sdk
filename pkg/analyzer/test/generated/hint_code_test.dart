@@ -1504,8 +1504,7 @@ class B {
 ''');
     List<AnalysisError> errors = analysisContext2.computeErrors(source2);
     expect(errors, hasLength(1));
-    expect(errors[0].message,
-        "The member 'a' can only be used within instance members of subclasses of 'A'");
+    expect(errors[0].errorCode, HintCode.INVALID_USE_OF_PROTECTED_MEMBER);
     verify([source, source2]);
   }
 

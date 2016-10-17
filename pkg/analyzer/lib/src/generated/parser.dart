@@ -6430,7 +6430,8 @@ class Parser {
         if (leftSquareBracket == null) {
           if (leftCurlyBracket != null) {
             _reportErrorForCurrentToken(
-                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["}"]);
+                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+                ['}', ']']);
             rightCurlyBracket = rightSquareBracket;
             rightSquareBracket = null;
           } else {
@@ -6445,7 +6446,8 @@ class Parser {
         if (leftCurlyBracket == null) {
           if (leftSquareBracket != null) {
             _reportErrorForCurrentToken(
-                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP, ["]"]);
+                ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP,
+                [']', '}']);
             rightSquareBracket = rightCurlyBracket;
             rightCurlyBracket = null;
           } else {
@@ -7842,7 +7844,7 @@ class Parser {
   }
 
   /**
-   * Validate that the given set of [modifiers] is appropriate for a class and
+   * Validate that the given set of [modifiers] is appropriate for an enum and
    * return the 'abstract' keyword if there is one.
    */
   void _validateModifiersForEnum(Modifiers modifiers) {
