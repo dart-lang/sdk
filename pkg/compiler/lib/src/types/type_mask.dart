@@ -77,30 +77,30 @@ class TypeMaskStrategy implements SelectorConstraintsStrategy {
  */
 abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask(
-      ClassElement base, int kind, bool isNullable, ClosedWorld closedWorld) {
+      Entity base, int kind, bool isNullable, ClosedWorld closedWorld) {
     return new FlatTypeMask.normalized(
         base, (kind << 1) | (isNullable ? 1 : 0), closedWorld);
   }
 
   const factory TypeMask.empty() = FlatTypeMask.empty;
 
-  factory TypeMask.exact(ClassElement base, ClosedWorld closedWorld) {
+  factory TypeMask.exact(Entity base, ClosedWorld closedWorld) {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     return new FlatTypeMask.exact(base);
   }
 
-  factory TypeMask.exactOrEmpty(ClassElement base, ClosedWorld closedWorld) {
+  factory TypeMask.exactOrEmpty(Entity base, ClosedWorld closedWorld) {
     if (closedWorld.isInstantiated(base)) return new FlatTypeMask.exact(base);
     return const TypeMask.empty();
   }
 
-  factory TypeMask.subclass(ClassElement base, ClosedWorld closedWorld) {
+  factory TypeMask.subclass(Entity base, ClosedWorld closedWorld) {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
-    ClassElement topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
+    Entity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.empty();
     } else if (closedWorld.hasAnyStrictSubclass(topmost)) {
@@ -110,8 +110,8 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     }
   }
 
-  factory TypeMask.subtype(ClassElement base, ClosedWorld closedWorld) {
-    ClassElement topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
+  factory TypeMask.subtype(Entity base, ClosedWorld closedWorld) {
+    Entity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return new TypeMask.empty();
     }
@@ -127,26 +127,25 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
 
   const factory TypeMask.nonNullEmpty() = FlatTypeMask.nonNullEmpty;
 
-  factory TypeMask.nonNullExact(ClassElement base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullExact(Entity base, ClosedWorld closedWorld) {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create exact type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
 
-  factory TypeMask.nonNullExactOrEmpty(
-      ClassElement base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullExactOrEmpty(Entity base, ClosedWorld closedWorld) {
     if (closedWorld.isInstantiated(base)) {
       return new FlatTypeMask.nonNullExact(base);
     }
     return const TypeMask.nonNullEmpty();
   }
 
-  factory TypeMask.nonNullSubclass(ClassElement base, ClosedWorld closedWorld) {
+  factory TypeMask.nonNullSubclass(Entity base, ClosedWorld closedWorld) {
     assert(invariant(base, closedWorld.isInstantiated(base),
         message: () => "Cannot create subclass type mask for uninstantiated "
             "class $base.\n${closedWorld.dump(base)}"));
-    ClassElement topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
+    Entity topmost = closedWorld.getLubOfInstantiatedSubclasses(base);
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
     } else if (closedWorld.hasAnyStrictSubclass(topmost)) {
@@ -156,8 +155,8 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
     }
   }
 
-  factory TypeMask.nonNullSubtype(ClassElement base, ClosedWorld closedWorld) {
-    ClassElement topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
+  factory TypeMask.nonNullSubtype(Entity base, ClosedWorld closedWorld) {
+    Entity topmost = closedWorld.getLubOfInstantiatedSubtypes(base);
     if (topmost == null) {
       return new TypeMask.nonNullEmpty();
     }
@@ -287,7 +286,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   bool containsOnlyNum(ClosedWorld closedWorld);
   bool containsOnlyBool(ClosedWorld closedWorld);
   bool containsOnlyString(ClosedWorld closedWorld);
-  bool containsOnly(ClassElement element);
+  bool containsOnly(Entity cls);
 
   /**
    * Compares two [TypeMask] objects for structural equality.
@@ -316,23 +315,21 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   /**
    * Returns whether this type mask is an instance of [cls].
    */
-  bool satisfies(ClassElement cls, ClosedWorld closedWorld);
+  bool satisfies(Entity cls, ClosedWorld closedWorld);
 
   /**
-   * Returns whether or not this type mask contains the given type.
+   * Returns whether or not this type mask contains the given class [cls].
    */
-  bool contains(ClassElement type, ClosedWorld closedWorld);
+  bool contains(Entity cls, ClosedWorld closedWorld);
 
   /**
    * Returns whether or not this type mask contains all types.
    */
   bool containsAll(ClosedWorld closedWorld);
 
-  /**
-   * Returns the [ClassElement] if this type represents a single class,
-   * otherwise returns `null`.  This method is conservative.
-   */
-  ClassElement singleClass(ClosedWorld closedWorld);
+  /// Returns the [Entity] if this type represents a single class, otherwise
+  /// returns `null`.  This method is conservative.
+  Entity singleClass(ClosedWorld closedWorld);
 
   /**
    * Returns a type mask representing the union of [this] and [other].
