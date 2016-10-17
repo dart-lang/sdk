@@ -327,14 +327,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   bool _inFunction = false;
 
   /**
-   * A collection holding the elements defined in a class that need to have
-   * their function type fixed to take into account type parameters of the
-   * enclosing class, or `null` if we are not currently processing nodes within
-   * a class.
-   */
-  List<ExecutableElementImpl> _functionTypesToFix = null;
-
-  /**
    * A table mapping field names to field elements for the fields defined in the current class, or
    * `null` if we are not in the scope of a class.
    */
@@ -404,7 +396,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ElementHolder holder = new ElementHolder();
-    _functionTypesToFix = new List<ExecutableElementImpl>();
     //
     // Process field declarations before constructors and methods so that field
     // formal parameters can be correctly resolved to their fields.
@@ -438,12 +429,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.constructors = constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-    // Function types must be initialized after the enclosing element has been
-    // set, for them to pick up the type parameters.
-    for (ExecutableElementImpl e in _functionTypesToFix) {
-      e.type = new FunctionTypeImpl(e);
-    }
-    _functionTypesToFix = null;
     _currentHolder.addType(element);
     className.staticElement = element;
     _fieldMap = null;
@@ -835,11 +820,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
       }
     }
-    if (_functionTypesToFix != null) {
-      _functionTypesToFix.add(element);
-    } else {
-      element.type = new FunctionTypeImpl(element);
-    }
+    element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
     _currentHolder.addFunction(element);
     node.element = element;
