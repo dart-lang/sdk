@@ -419,16 +419,6 @@ class StrongTypeSystemImpl extends TypeSystem {
         new _StrongInferenceTypeSystem(typeProvider, this, typeFormals);
 
     if (returnContextType != null) {
-      // If we're in a future union context, choose either the Future<T>
-      // or the T based on the declared return type.
-      if (returnContextType is FutureUnionType) {
-        var futureUnion = returnContextType as FutureUnionType;
-        returnContextType =
-            isSubtypeOf(declaredReturnType, typeProvider.futureDynamicType)
-                ? futureUnion.futureOfType
-                : futureUnion.type;
-      }
-
       inferringTypeSystem.isSubtypeOf(declaredReturnType, returnContextType);
     }
 
@@ -851,7 +841,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     if (identical(i1, i2)) {
       return true;
     }
-    
+
     // Guard recursive calls
     _GuardedSubtypeChecker<InterfaceType> guardedInterfaceSubtype = _guard(
         (DartType i1, DartType i2, Set<Element> visited) =>
@@ -944,6 +934,19 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     if (t2 is TypeParameterType) {
       return guardedInferTypeParameter(t1, t2, visited);
+    }
+
+    if (t1 is FutureUnionType) {
+      // given t1 is Future<A> | A, then:
+      // (Future<A> | A) <: t2 iff t2 <: Future<A> and t2 <: A.
+      return guardedSubtype(t1.futureOfType, t2, visited) &&
+          guardedSubtype(t1.type, t2, visited);
+    }
+    if (t2 is FutureUnionType) {
+      // given t2 is Future<A> | A, then:
+      // t1 <: (Future<A> | A) iff t1 <: Future<A> or t1 <: A
+      return guardedSubtype(t1, t2.futureOfType, visited) ||
+          guardedSubtype(t1, t2.type, visited);
     }
 
     // Void only appears as the return type of a function, and we handle it
@@ -1577,6 +1580,39 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
       _TypeParameterBound bound = _bounds[typeParam];
       DartType lowerBound = bound.lower;
       DartType upperBound = bound.upper;
+
+      // Collapse future unions if we inferred them somehow.
+      //
+      // TODO(jmesserly): in our initial upward phase it would be fine to
+      // keep the FutureUnionType for the argument downward context.
+      //
+      // We need to track in `inferGenericFunctionCall` whether we are going up
+      // or down. This would also allow for an improved heuristic: if we are
+      // doing our final inference, the downward context can take priority.
+      if (lowerBound is FutureUnionType) {
+        // lowerBound <: T, where lowerBound is Future<A> | A.
+        // So we choose lowerBound as LUB(A, Future<A>).
+        //
+        // This will typically lead to top with the current rules, but it will
+        // work with `bottom` or if we remove Future flattening.
+        var f = upperBound as FutureUnionType;
+        lowerBound = _typeSystem.getLeastUpperBound(
+            _typeProvider, f.futureOfType, f.type);
+      }
+      if (upperBound is FutureUnionType) {
+        // T <: upperBound, where upperBound is Future<A> | A.
+        // Therefore we need T <: Future<A> or T <: A.
+        //
+        // This is just an arbitrarily heuristic.
+        var f = upperBound as FutureUnionType;
+        if (_typeSystem.isSubtypeOf(lowerBound, f.type)) {
+          upperBound = f.type;
+        } else if (_typeSystem.isSubtypeOf(lowerBound, f.futureOfType)) {
+          upperBound = f.futureOfType;
+        } else {
+          upperBound = f.type;
+        }
+      }
 
       // See if the bounds can be satisfied.
       // TODO(jmesserly): also we should have an error for unconstrained type

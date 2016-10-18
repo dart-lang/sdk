@@ -1740,7 +1740,7 @@ $downwards<List<int>> g3() async {
         build(declared: "Future", downwards: "Future", upwards: "MyFuture"));
   }
 
-  void test_futureUnion_downwardsGenericMethods() {
+  void test_futureUnion_downwardsGenericMethodWithFutureReturn() {
     // Regression test for https://github.com/dart-lang/sdk/issues/27134
     //
     // We need to take a future union into account for both directions of
@@ -1755,6 +1755,20 @@ foo() async {
 }
 
 class A {}
+    ''');
+  }
+
+  void test_futureUnion_downwardsGenericMethodWithGenericReturn() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/27284
+    checkFile(r'''
+import 'dart:async';
+
+/*=T*/ id/*<T>*/(/*=T*/ x) => x;
+
+main() async {
+  Future<String> f;
+  String s = await id(f);
+}
     ''');
   }
 
