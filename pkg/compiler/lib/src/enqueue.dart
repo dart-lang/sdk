@@ -600,6 +600,10 @@ class ResolutionEnqueuer extends Enqueuer {
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         registerTypeUse(new TypeUse.instantiation(staticUse.type));
         break;
+      case StaticUseKind.DIRECT_INVOKE:
+        invariant(
+            element, 'Direct static use is not supported for resolution.');
+        break;
     }
     if (addElement) {
       addToWorkList(element);

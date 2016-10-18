@@ -379,6 +379,10 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       case StaticUseKind.CLOSURE:
         allClosures.add(element);
         break;
+      case StaticUseKind.DIRECT_INVOKE:
+        invariant(
+            element, 'Direct static use is not supported for resolution.');
+        break;
     }
   }
 
@@ -519,7 +523,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
         isNative
         // Likewise, if this registration comes from the mirror system,
         // all bets are off.
-        // TODO(herhut): Track classes required by mirrors seperately.
+        // TODO(herhut): Track classes required by mirrors separately.
         ||
         byMirrors) {
       _directlyInstantiatedClasses.add(cls);
@@ -651,6 +655,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
       case StaticUseKind.FIELD_GET:
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.DIRECT_INVOKE:
         break;
     }
   }
