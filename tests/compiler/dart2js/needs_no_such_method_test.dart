@@ -35,6 +35,7 @@ testClassSets() async {
   Selector foo, bar, baz;
   ClosedWorld closedWorld;
   ClassElement superclass, subclass, subtype;
+  String testMode;
 
   Future run(List<String> instantiated) async {
     StringBuffer main = new StringBuffer();
@@ -43,6 +44,7 @@ testClassSets() async {
       main.write('new $cls();');
     }
     main.write('}');
+    testMode = '$instantiated';
 
     var env = await TypeEnvironment.create(CLASSES,
         mainSource: main.toString(), useMockCompiler: false);
@@ -59,8 +61,11 @@ testClassSets() async {
   void check(ClassElement cls, ClassQuery query, Selector selector,
       bool expectedResult) {
     bool result = closedWorld.needsNoSuchMethod(cls, selector, query);
-    Expect.equals(expectedResult, result,
-        'Unexpected result for $selector in $cls ($query)');
+    Expect.equals(
+        expectedResult,
+        result,
+        'Unexpected result for $selector in $cls ($query)'
+        'for instantiations $testMode');
   }
 
   await run([]);
@@ -166,17 +171,13 @@ testClassSets() async {
   Expect.isFalse(closedWorld.isImplemented(subtype));
 
   check(superclass, ClassQuery.EXACT, foo, false);
-  // Should be false since the class is not directly instantiated:
-  check(superclass, ClassQuery.EXACT, bar, true);
-  // Should be false since the class is not directly instantiated:
-  check(superclass, ClassQuery.EXACT, baz, true);
+  check(superclass, ClassQuery.EXACT, bar, false);
+  check(superclass, ClassQuery.EXACT, baz, false);
   check(superclass, ClassQuery.SUBCLASS, foo, false);
-  // Should be false since all live subclasses have a concrete implementation:
-  check(superclass, ClassQuery.SUBCLASS, bar, true);
+  check(superclass, ClassQuery.SUBCLASS, bar, false);
   check(superclass, ClassQuery.SUBCLASS, baz, true);
   check(superclass, ClassQuery.SUBTYPE, foo, false);
-  // Should be false since all live subtypes have a concrete implementation:
-  check(superclass, ClassQuery.SUBTYPE, bar, true);
+  check(superclass, ClassQuery.SUBTYPE, bar, false);
   check(superclass, ClassQuery.SUBTYPE, baz, true);
 
   check(subclass, ClassQuery.EXACT, foo, false);
@@ -258,17 +259,13 @@ testClassSets() async {
   Expect.isTrue(closedWorld.isImplemented(subtype));
 
   check(superclass, ClassQuery.EXACT, foo, false);
-  // Should be false since the class is not directly instantiated:
-  check(superclass, ClassQuery.EXACT, bar, true);
-  // Should be false since the class is not directly instantiated:
-  check(superclass, ClassQuery.EXACT, baz, true);
+  check(superclass, ClassQuery.EXACT, bar, false);
+  check(superclass, ClassQuery.EXACT, baz, false);
   check(superclass, ClassQuery.SUBCLASS, foo, false);
-  // Should be false since all live subclasses have a concrete implementation:
-  check(superclass, ClassQuery.SUBCLASS, bar, true);
+  check(superclass, ClassQuery.SUBCLASS, bar, false);
   check(superclass, ClassQuery.SUBCLASS, baz, true);
   check(superclass, ClassQuery.SUBTYPE, foo, true);
-  // Should be false since all live subtypes have a concrete implementation:
-  check(superclass, ClassQuery.SUBTYPE, bar, true);
+  check(superclass, ClassQuery.SUBTYPE, bar, false);
   check(superclass, ClassQuery.SUBTYPE, baz, true);
 
   check(subclass, ClassQuery.EXACT, foo, false);
