@@ -430,6 +430,7 @@ enum MessageKind {
   TYPE_VARIABLE_IN_CONSTANT,
   TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
   TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED,
+  TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC,
   TYPEDEF_FORMAL_WITH_DEFAULT,
   UNARY_OPERATOR_BAD_ARITY,
   UNBOUND_LABEL,
@@ -1232,7 +1233,17 @@ main() => f<int>();
 bool f<T>(Object o) => o is T;
 
 main() => f<int>(42);
-""",
+"""
+          ]),
+
+      MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC:
+      const MessageTemplate(
+          MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC,
+          "Method type variables are treated as `dynamic` in `as` expressions.",
+          options: const ["--generic-method-syntax"],
+          howToFix: "Try using the upper bound of the type variable, or check "
+              "that the blind success of the test does not introduce bugs.",
+          examples: const [
             """
 // Method type variables are not reified, so they cannot be tested dynamically.
 bool f<T>(Object o) => o as T;

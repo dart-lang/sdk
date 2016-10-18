@@ -1557,6 +1557,11 @@ class SsaBuilder extends ast.Visitor
     assert(type != null);
     type = localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
+    // TODO(johnniwinther): This operation on `registry` may be inconsistent.
+    // If it is needed then it seems likely that similar invocations of
+    // `buildTypeConversion` in `SsaBuilder.visitAs` should also be followed by
+    // a similar operation on `registry`; otherwise, this one might not be
+    // needed.
     registry?.registerTypeUse(new TypeUse.isCheck(type));
     return other;
   }
@@ -2461,15 +2466,13 @@ class SsaBuilder extends ast.Visitor
   void visitAs(ast.Send node, ast.Node expression, DartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
     if (type.isMalformed) {
-      String message;
       if (type is MalformedType) {
         ErroneousElement element = type.element;
-        message = element.message;
+        generateTypeError(node, element.message);
       } else {
         assert(type is MethodTypeVariableType);
-        message = "Method type variables are not reified.";
+        stack.add(expressionInstruction);
       }
-      generateTypeError(node, message);
     } else {
       HInstruction converted = buildTypeConversion(expressionInstruction,
           localsHandler.substInContext(type), HTypeConversion.CAST_TYPE_CHECK);
