@@ -221,7 +221,6 @@ class Isolate : public BaseIsolate {
 
   Heap* heap() const { return heap_; }
   void set_heap(Heap* value) { heap_ = value; }
-  static intptr_t heap_offset() { return OFFSET_OF(Isolate, heap_); }
 
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
