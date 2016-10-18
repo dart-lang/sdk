@@ -274,9 +274,7 @@ class IncrementalResolver {
     LoggingTimer timer = logger.startTimer();
     try {
       ElementHolder holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder, _definingUnit);
-      builder.initForFunctionBodyIncrementalResolution();
-      node.accept(builder);
+      node.accept(new LocalElementBuilder(holder, _definingUnit));
       // Move local elements into the ExecutableElementImpl.
       ExecutableElementImpl executableElement =
           executable.element as ExecutableElementImpl;

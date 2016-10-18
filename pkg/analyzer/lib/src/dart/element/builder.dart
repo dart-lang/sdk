@@ -28,11 +28,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  */
 class ApiElementBuilder extends _BaseElementBuilder {
   /**
-   * A flag indicating whether a variable declaration is within the body of a method or function.
-   */
-  bool _inFunction = false;
-
-  /**
    * A table mapping field names to field elements for the fields defined in the current class, or
    * `null` if we are not in the scope of a class.
    */
@@ -46,13 +41,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
   ApiElementBuilder(ElementHolder initialHolder,
       CompilationUnitElementImpl compilationUnitElement)
       : super(initialHolder, compilationUnitElement);
-
-  /**
-   * Prepares for incremental resolution of a function body.
-   */
-  void initForFunctionBodyIncrementalResolution() {
-    _inFunction = true;
-  }
 
   @override
   Object visitAnnotation(Annotation node) {
@@ -149,13 +137,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ElementHolder holder = new ElementHolder();
-    bool wasInFunction = _inFunction;
-    _inFunction = true;
-    try {
-      _visitChildren(holder, node);
-    } finally {
-      _inFunction = wasInFunction;
-    }
+    _visitChildren(holder, node);
     FunctionBody body = node.body;
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
@@ -281,16 +263,10 @@ class ApiElementBuilder extends _BaseElementBuilder {
     FunctionExpression expression = node.functionExpression;
     if (expression != null) {
       ElementHolder holder = new ElementHolder();
-      bool wasInFunction = _inFunction;
-      _inFunction = true;
-      try {
-        _visitChildren(holder, node);
-      } finally {
-        _inFunction = wasInFunction;
-      }
+      _visitChildren(holder, node);
       FunctionBody body = expression.body;
       Token property = node.propertyKeyword;
-      if (property == null || _inFunction) {
+      if (property == null) {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
@@ -310,13 +286,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
         }
         if (body.isGenerator) {
           element.generator = true;
-        }
-        if (_inFunction) {
-          Block enclosingBlock = node.getAncestor((node) => node is Block);
-          if (enclosingBlock != null) {
-            element.setVisibleRange(
-                enclosingBlock.offset, enclosingBlock.length);
-          }
         }
         if (node.returnType == null) {
           element.hasImplicitReturnType = true;
@@ -412,13 +381,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       return super.visitFunctionExpression(node);
     }
     ElementHolder holder = new ElementHolder();
-    bool wasInFunction = _inFunction;
-    _inFunction = true;
-    try {
-      _visitChildren(holder, node);
-    } finally {
-      _inFunction = wasInFunction;
-    }
+    _visitChildren(holder, node);
     FunctionBody body = node.body;
     FunctionElementImpl element =
         new FunctionElementImpl.forOffset(node.beginToken.offset);
@@ -433,12 +396,6 @@ class ApiElementBuilder extends _BaseElementBuilder {
     }
     if (body.isGenerator) {
       element.generator = true;
-    }
-    if (_inFunction) {
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
-      if (enclosingBlock != null) {
-        element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
-      }
     }
     element.type = new FunctionTypeImpl(element);
     element.hasImplicitReturnType = true;
@@ -490,13 +447,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
   Object visitMethodDeclaration(MethodDeclaration node) {
     try {
       ElementHolder holder = new ElementHolder();
-      bool wasInFunction = _inFunction;
-      _inFunction = true;
-      try {
-        _visitChildren(holder, node);
-      } finally {
-        _inFunction = wasInFunction;
-      }
+      _visitChildren(holder, node);
       bool isStatic = node.isStatic;
       Token property = node.propertyKeyword;
       FunctionBody body = node.body;
@@ -726,10 +677,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
   }
 
   /**
-   * Build the table mapping field names to field elements for the fields defined in the current
-   * class.
-   *
-   * @param fields the field elements defined in the current class
+   * Build the table mapping field names to field elements for the [fields]
+   * defined in the current class.
    */
   void _buildFieldMap(List<FieldElement> fields) {
     _fieldMap = new HashMap<String, FieldElement>();
