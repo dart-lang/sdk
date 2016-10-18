@@ -207,6 +207,33 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
+  /// Direct invocation of a method [element] with the given [callStructure].
+  factory StaticUse.directInvoke(
+      MethodElement element, CallStructure callStructure) {
+    // TODO(johnniwinther): Use the [callStructure].
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct invoke element $element must be an instance method."));
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
+  /// Direct read access of a field or getter [element].
+  factory StaticUse.directGet(MemberElement element) {
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct get element $element must be an instance method."));
+    assert(invariant(element, element.isField || element.isGetter,
+        message: "Direct get element $element must be a field or a getter."));
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
+  /// Direct write access of a field [element].
+  factory StaticUse.directSet(FieldElement element) {
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct set element $element must be an instance method."));
+    assert(invariant(element, element.isField,
+        message: "Direct set element $element must be a field."));
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
   /// Constructor invocation of [element] with the given [callStructure].
   factory StaticUse.constructorInvoke(
       ConstructorElement element, CallStructure callStructure) {
