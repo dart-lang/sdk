@@ -1041,7 +1041,8 @@ class ElementBuilder extends ApiElementBuilder {
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
     super.visitDefaultFormalParameter(node);
-    _buildParameterInitializer(node.element as ParameterElementImpl, node);
+    buildParameterInitializer(
+        node.element as ParameterElementImpl, node.defaultValue);
     return null;
   }
 
@@ -1055,7 +1056,7 @@ class ElementBuilder extends ApiElementBuilder {
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
     VariableElementImpl element = node.element as VariableElementImpl;
-    _buildVariableInitializer(element, node.initializer);
+    buildVariableInitializer(element, node.initializer);
     return null;
   }
 
@@ -1271,7 +1272,7 @@ class LocalElementBuilder extends _BaseElementBuilder {
     variableName.staticElement = element;
     element.const3 = isConst;
     element.final2 = isFinal;
-    _buildVariableInitializer(element, initializerNode);
+    buildVariableInitializer(element, initializerNode);
     return null;
   }
 
@@ -1313,6 +1314,52 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
   ElementHolder _currentHolder;
 
   _BaseElementBuilder(this._currentHolder, this._unitElement);
+
+  /**
+   * If the [defaultValue] is not `null`, build the [FunctionElementImpl]
+   * that corresponds it, and set it as the initializer for the [parameter].
+   */
+  void buildParameterInitializer(
+      ParameterElementImpl parameter, Expression defaultValue) {
+    if (defaultValue != null) {
+      ElementHolder holder = new ElementHolder();
+      _visit(holder, defaultValue);
+      FunctionElementImpl initializer =
+          new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
+      initializer.hasImplicitReturnType = true;
+      initializer.functions = holder.functions;
+      initializer.labels = holder.labels;
+      initializer.localVariables = holder.localVariables;
+      initializer.parameters = holder.parameters;
+      initializer.synthetic = true;
+      initializer.type = new FunctionTypeImpl(initializer);
+      parameter.initializer = initializer;
+      parameter.defaultValueCode = defaultValue.toSource();
+      holder.validate();
+    }
+  }
+
+  /**
+   * If the [initializer] is not `null`, build the [FunctionElementImpl] that
+   * corresponds it, and set it as the initializer for the [variable].
+   */
+  void buildVariableInitializer(
+      VariableElementImpl variable, Expression initializer) {
+    if (initializer != null) {
+      ElementHolder holder = new ElementHolder();
+      _visit(holder, initializer);
+      FunctionElementImpl initializerElement =
+          new FunctionElementImpl.forOffset(initializer.beginToken.offset);
+      initializerElement.hasImplicitReturnType = true;
+      initializerElement.functions = holder.functions;
+      initializerElement.labels = holder.labels;
+      initializerElement.localVariables = holder.localVariables;
+      initializerElement.synthetic = true;
+      initializerElement.type = new FunctionTypeImpl(initializerElement);
+      variable.initializer = initializerElement;
+      holder.validate();
+    }
+  }
 
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
@@ -1405,44 +1452,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder.addTypeParameter(typeParameter);
     parameterName.staticElement = typeParameter;
     return super.visitTypeParameter(node);
-  }
-
-  void _buildParameterInitializer(
-      ParameterElementImpl parameter, DefaultFormalParameter node) {
-    Expression defaultValue = node.defaultValue;
-    if (defaultValue != null) {
-      ElementHolder holder = new ElementHolder();
-      _visit(holder, defaultValue);
-      FunctionElementImpl initializer =
-          new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
-      initializer.hasImplicitReturnType = true;
-      initializer.functions = holder.functions;
-      initializer.labels = holder.labels;
-      initializer.localVariables = holder.localVariables;
-      initializer.parameters = holder.parameters;
-      initializer.synthetic = true;
-      initializer.type = new FunctionTypeImpl(initializer);
-      parameter.initializer = initializer;
-      parameter.defaultValueCode = defaultValue.toSource();
-      holder.validate();
-    }
-  }
-
-  void _buildVariableInitializer(VariableElementImpl element, Expression node) {
-    if (node != null) {
-      ElementHolder holder = new ElementHolder();
-      _visit(holder, node);
-      FunctionElementImpl initializer =
-          new FunctionElementImpl.forOffset(node.beginToken.offset);
-      initializer.hasImplicitReturnType = true;
-      initializer.functions = holder.functions;
-      initializer.labels = holder.labels;
-      initializer.localVariables = holder.localVariables;
-      initializer.synthetic = true;
-      initializer.type = new FunctionTypeImpl(initializer);
-      element.initializer = initializer;
-      holder.validate();
-    }
   }
 
   /**

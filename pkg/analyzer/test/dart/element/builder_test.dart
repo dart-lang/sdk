@@ -27,6 +27,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ApiElementBuilderTest);
     defineReflectiveTests(ElementBuilderTest);
+    defineReflectiveTests(LocalElementBuilderTest);
   });
 }
 
@@ -186,63 +187,6 @@ class C {
     compilationUnitElement = new CompilationUnitElementImpl('test.dart');
   }
 
-  void test_visitDefaultFormalParameter_noType() {
-    // p = 0
-    String parameterName = 'p';
-    DefaultFormalParameter formalParameter =
-    AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter3(parameterName),
-        AstFactory.integer(0));
-    formalParameter.beginToken.offset = 50;
-    formalParameter.endToken.offset = 80;
-
-    ElementHolder holder = buildElementsForAst(formalParameter);
-    List<ParameterElement> parameters = holder.parameters;
-    expect(parameters, hasLength(1));
-    ParameterElement parameter = parameters[0];
-    assertHasCodeRange(parameter, 50, 31);
-    expect(parameter.hasImplicitType, isTrue);
-    expect(parameter.initializer, isNotNull);
-    expect(parameter.initializer.type, isNotNull);
-    expect(parameter.initializer.hasImplicitReturnType, isTrue);
-    expect(parameter.isConst, isFalse);
-    expect(parameter.isDeprecated, isFalse);
-    expect(parameter.isFinal, isFalse);
-    expect(parameter.isInitializingFormal, isFalse);
-    expect(parameter.isOverride, isFalse);
-    expect(parameter.isPrivate, isFalse);
-    expect(parameter.isPublic, isTrue);
-    expect(parameter.isSynthetic, isFalse);
-    expect(parameter.name, parameterName);
-  }
-
-  void test_visitDefaultFormalParameter_type() {
-    // E p = 0
-    String parameterName = 'p';
-    DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter4(
-            AstFactory.typeName4('E'), parameterName),
-        AstFactory.integer(0));
-
-    ElementHolder holder = buildElementsForAst(formalParameter);
-    List<ParameterElement> parameters = holder.parameters;
-    expect(parameters, hasLength(1));
-    ParameterElement parameter = parameters[0];
-    expect(parameter.hasImplicitType, isFalse);
-    expect(parameter.initializer, isNotNull);
-    expect(parameter.initializer.type, isNotNull);
-    expect(parameter.initializer.hasImplicitReturnType, isTrue);
-    expect(parameter.isConst, isFalse);
-    expect(parameter.isDeprecated, isFalse);
-    expect(parameter.isFinal, isFalse);
-    expect(parameter.isInitializingFormal, isFalse);
-    expect(parameter.isOverride, isFalse);
-    expect(parameter.isPrivate, isFalse);
-    expect(parameter.isPublic, isTrue);
-    expect(parameter.isSynthetic, isFalse);
-    expect(parameter.name, parameterName);
-  }
-
   void test_metadata_localVariableDeclaration() {
     List<LocalVariableElement> localVariables =
         buildElementsForText('f() { @a int x, y; }')
@@ -355,6 +299,63 @@ class C {
     expect(variable.isPublic, isTrue);
     expect(variable.isSynthetic, isFalse);
     expect(variable.name, 'i');
+  }
+
+  void test_visitDefaultFormalParameter_noType() {
+    // p = 0
+    String parameterName = 'p';
+    DefaultFormalParameter formalParameter =
+        AstFactory.positionalFormalParameter(
+            AstFactory.simpleFormalParameter3(parameterName),
+            AstFactory.integer(0));
+    formalParameter.beginToken.offset = 50;
+    formalParameter.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(formalParameter);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    assertHasCodeRange(parameter, 50, 31);
+    expect(parameter.hasImplicitType, isTrue);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.initializer.type, isNotNull);
+    expect(parameter.initializer.hasImplicitReturnType, isTrue);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isDeprecated, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isInitializingFormal, isFalse);
+    expect(parameter.isOverride, isFalse);
+    expect(parameter.isPrivate, isFalse);
+    expect(parameter.isPublic, isTrue);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
+  }
+
+  void test_visitDefaultFormalParameter_type() {
+    // E p = 0
+    String parameterName = 'p';
+    DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(
+        AstFactory.simpleFormalParameter4(
+            AstFactory.typeName4('E'), parameterName),
+        AstFactory.integer(0));
+
+    ElementHolder holder = buildElementsForAst(formalParameter);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter.hasImplicitType, isFalse);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.initializer.type, isNotNull);
+    expect(parameter.initializer.hasImplicitReturnType, isTrue);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isDeprecated, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isInitializingFormal, isFalse);
+    expect(parameter.isOverride, isFalse);
+    expect(parameter.isPrivate, isFalse);
+    expect(parameter.isPublic, isTrue);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
   }
 
   void test_visitFunctionExpression() {
@@ -876,6 +877,109 @@ class C {
         AstFactory.identifier3("main"),
         AstFactory.formalParameterList([formalParameter]),
         body);
+  }
+}
+
+@reflectiveTest
+class LocalElementBuilderTest extends _BaseTest {
+  @override
+  AstVisitor createElementBuilder(ElementHolder holder) {
+    return new LocalElementBuilder(holder, compilationUnitElement);
+  }
+
+  void test_buildLocalElements() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+main() {
+  int v1;
+  f1() {
+    int v2;
+    f2() {
+      int v3;
+    }
+  }
+}
+''');
+    var mainAst = unit.declarations.single as FunctionDeclaration;
+    // Build API elements.
+    FunctionElementImpl main;
+    {
+      ElementHolder holder = new ElementHolder();
+      unit.accept(new ApiElementBuilder(holder, compilationUnitElement));
+      main = holder.functions.single as FunctionElementImpl;
+    }
+    expect(main.localVariables, isEmpty);
+    expect(main.functions, isEmpty);
+    // Build local elements in body.
+    ElementHolder holder = new ElementHolder();
+    FunctionBody mainBody = mainAst.functionExpression.body;
+    mainBody.accept(new LocalElementBuilder(holder, compilationUnitElement));
+    main.functions = holder.functions;
+    main.localVariables = holder.localVariables;
+    expect(main.localVariables.map((v) => v.name), ['v1']);
+    expect(main.functions, hasLength(1));
+    {
+      FunctionElement f1 = main.functions[0];
+      expect(f1.name, 'f1');
+      expect(f1.localVariables.map((v) => v.name), ['v2']);
+      expect(f1.functions, hasLength(1));
+      {
+        FunctionElement f2 = f1.functions[0];
+        expect(f2.name, 'f2');
+        expect(f2.localVariables.map((v) => v.name), ['v3']);
+        expect(f2.functions, isEmpty);
+      }
+    }
+  }
+
+  void test_buildParameterInitializer() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit('f({p: 42}) {}');
+    var function = unit.declarations.single as FunctionDeclaration;
+    var parameter = function.functionExpression.parameters.parameters.single
+        as DefaultFormalParameter;
+    // Build API elements.
+    {
+      ElementHolder holder = new ElementHolder();
+      unit.accept(new ApiElementBuilder(holder, compilationUnitElement));
+    }
+    // Validate the parameter element.
+    var parameterElement = parameter.element as ParameterElementImpl;
+    expect(parameterElement, isNotNull);
+    expect(parameterElement.initializer, isNull);
+    // Build the initializer element.
+    new LocalElementBuilder(new ElementHolder(), compilationUnitElement)
+        .buildParameterInitializer(parameterElement, parameter.defaultValue);
+    expect(parameterElement.initializer, isNotNull);
+  }
+
+  void test_buildVariableInitializer() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit('var V = 42;');
+    TopLevelVariableDeclaration topLevelDecl =
+        unit.declarations[0] as TopLevelVariableDeclaration;
+    VariableDeclaration variable = topLevelDecl.variables.variables.single;
+    // Build the variable element.
+    {
+      ElementHolder holder = new ElementHolder();
+      unit.accept(new ApiElementBuilder(holder, compilationUnitElement));
+    }
+    // Validate the variable element.
+    var variableElement = variable.element as VariableElementImpl;
+    expect(variableElement, isNotNull);
+    expect(variableElement.initializer, isNull);
+    // Build the initializer element.
+    new LocalElementBuilder(new ElementHolder(), compilationUnitElement)
+        .buildVariableInitializer(variableElement, variable.initializer);
+    expect(variableElement.initializer, isNotNull);
+  }
+
+  void test_visitVariableDeclaration_local() {
+    var holder = buildElementsForText('class C { m() { T v = null; } }');
+    List<LocalVariableElement> variableElements = holder.localVariables;
+    expect(variableElements, hasLength(1));
+    LocalVariableElement variableElement = variableElements[0];
+    expect(variableElement.hasImplicitType, isFalse);
+    expect(variableElement.name, 'v');
+    expect(variableElement.initializer, isNotNull);
+    _assertVisibleRange(variableElement, 14, 29);
   }
 }
 
