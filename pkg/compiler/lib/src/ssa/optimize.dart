@@ -449,10 +449,10 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // TODO(ngeoffray): Also fold if it's a getter or variable.
     if (element != null &&
         element.isFunction
-        // If we found out that the only target is an implicitly called
-        // [:noSuchMethod:] we just ignore it.
+        // If we found out that the only target is a [:noSuchMethod:],
+        // we just ignore it.
         &&
-        node.selector.applies(element)) {
+        element.name == node.selector.name) {
       FunctionElement method = element;
 
       if (backend.isNative(method)) {

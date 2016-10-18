@@ -51,10 +51,8 @@ class FunctionSet {
     return (node != null) ? node.contains(element) : false;
   }
 
-  /// Returns all the functions that may be invoked with the [selector] on a
-  /// receiver with the given [constraint]. The returned elements may include
-  /// noSuchMethod handlers that are potential targets indirectly through the
-  /// noSuchMethod mechanism.
+  /// Returns an object that allows iterating over all the functions
+  /// that may be invoked with the given [selector].
   Iterable<Element> filter(Selector selector, ReceiverConstraint constraint) {
     return query(selector, constraint).functions;
   }

@@ -1555,13 +1555,7 @@ abstract class ClassElement extends TypeDeclarationElement
   void reverseBackendMembers();
 
   Element lookupMember(String memberName);
-
-  /// Looks up a class instance member declared or inherited in this class
-  /// using [memberName] to match the (private) name and getter/setter property.
-  ///
-  /// This method recursively visits superclasses until the member is found or
-  /// [stopAt] is reached.
-  Element lookupByName(Name memberName, {ClassElement stopAt});
+  Element lookupByName(Name memberName);
   Element lookupSuperByName(Name memberName);
 
   Element lookupLocalMember(String memberName);

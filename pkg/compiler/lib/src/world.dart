@@ -728,19 +728,16 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
         : result.implementation == element.implementation;
   }
 
-  Element findMatchIn(ClassElement cls, Selector selector,
-      {ClassElement stopAtSuperclass}) {
+  Element findMatchIn(ClassElement cls, Selector selector) {
     // Use the [:implementation] of [cls] in case the found [element]
     // is in the patch class.
-    var result = cls.implementation
-        .lookupByName(selector.memberName, stopAt: stopAtSuperclass);
+    var result = cls.implementation.lookupByName(selector.memberName);
     return result;
   }
 
   /// Returns whether a [selector] call on an instance of [cls]
   /// will hit a method at runtime, and not go through [noSuchMethod].
-  bool hasConcreteMatch(ClassElement cls, Selector selector,
-      {ClassElement stopAtSuperclass}) {
+  bool hasConcreteMatch(ClassElement cls, Selector selector) {
     assert(invariant(cls, isInstantiated(cls),
         message: '$cls has not been instantiated.'));
     Element element = findMatchIn(cls, selector);
@@ -756,49 +753,35 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   @override
   bool needsNoSuchMethod(
       ClassElement base, Selector selector, ClassQuery query) {
-    /// Returns `true` if subclasses in the [rootNode] tree needs noSuchMethod
-    /// handling.
-    bool subclassesNeedNoSuchMethod(ClassHierarchyNode rootNode) {
-      if (!rootNode.isInstantiated) {
-        // No subclass needs noSuchMethod handling since they are all
-        // uninstantiated.
+    /// Returns `true` if [cls] is an instantiated class that does not have
+    /// a concrete method matching [selector].
+    bool needsNoSuchMethod(ClassElement cls) {
+      // We can skip uninstantiated subclasses.
+      if (!isInstantiated(cls)) {
         return false;
       }
-      ClassElement rootClass = rootNode.cls;
-      if (hasConcreteMatch(rootClass, selector)) {
-        // The root subclass has a concrete implementation so no subclass needs
-        // noSuchMethod handling.
-        return false;
-      } else if (rootNode.isDirectlyInstantiated) {
-        // The root class need noSuchMethod handling.
-        return true;
-      }
-      IterationStep result = rootNode.forEachSubclass((ClassElement subclass) {
-        if (hasConcreteMatch(subclass, selector, stopAtSuperclass: rootClass)) {
-          // Found a match - skip all subclasses.
-          return IterationStep.SKIP_SUBCLASSES;
-        } else {
-          // Stop fast - we found a need for noSuchMethod handling.
-          return IterationStep.STOP;
-        }
-      }, ClassHierarchyNode.DIRECTLY_INSTANTIATED, strict: true);
-      // We stopped fast so we need noSuchMethod handling.
-      return result == IterationStep.STOP;
+      // We can just skip abstract classes because we know no
+      // instance of them will be created at runtime, and
+      // therefore there is no instance that will require
+      // [noSuchMethod] handling.
+      return !cls.isAbstract && !hasConcreteMatch(cls, selector);
     }
 
-    ClassSet classSet = getClassSet(base);
-    ClassHierarchyNode node = classSet.node;
-    if (query == ClassQuery.EXACT) {
-      return node.isDirectlyInstantiated && !hasConcreteMatch(base, selector);
-    } else if (query == ClassQuery.SUBCLASS) {
-      return subclassesNeedNoSuchMethod(node);
-    } else {
-      if (subclassesNeedNoSuchMethod(node)) return true;
-      for (ClassHierarchyNode subtypeNode in classSet.subtypeNodes) {
-        if (subclassesNeedNoSuchMethod(subtypeNode)) return true;
-      }
-      return false;
+    bool baseNeedsNoSuchMethod = needsNoSuchMethod(base);
+    if (query == ClassQuery.EXACT || baseNeedsNoSuchMethod) {
+      return baseNeedsNoSuchMethod;
     }
+
+    Iterable<ClassElement> subclassesToCheck;
+    if (query == ClassQuery.SUBTYPE) {
+      subclassesToCheck = strictSubtypesOf(base);
+    } else {
+      assert(query == ClassQuery.SUBCLASS);
+      subclassesToCheck = strictSubclassesOf(base);
+    }
+
+    return subclassesToCheck != null &&
+        subclassesToCheck.any(needsNoSuchMethod);
   }
 
   final Compiler _compiler;

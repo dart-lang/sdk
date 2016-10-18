@@ -958,6 +958,13 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     }
   }
 
+  T _superType;
+  T get superType {
+    if (_superType != null) return _superType;
+    return _superType =
+        types.nonNullExact(outermostElement.enclosingClass.superclass);
+  }
+
   @override
   T visitThisGet(Identifier node, _) {
     return thisType;
@@ -967,7 +974,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     if (node.isThis()) {
       return thisType;
     } else if (node.isSuper()) {
-      return internalError(node, 'Unexpected expression $node.');
+      return superType;
     } else {
       Element element = elements[node];
       if (Elements.isLocal(element)) {

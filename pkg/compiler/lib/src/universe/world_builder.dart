@@ -519,7 +519,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
         isNative
         // Likewise, if this registration comes from the mirror system,
         // all bets are off.
-        // TODO(herhut): Track classes required by mirrors separately.
+        // TODO(herhut): Track classes required by mirrors seperately.
         ||
         byMirrors) {
       _directlyInstantiatedClasses.add(cls);
