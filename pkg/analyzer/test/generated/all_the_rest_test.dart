@@ -617,17 +617,12 @@ class C {
   }
 
   void test_visitCatchClause() {
-    // } catch (e, s) {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
+    List<LocalVariableElement> variables =
+        buildElementsForText('f() { try {} catch (e, s) {} }')
+            .functions[0]
+            .localVariables;
     String exceptionParameterName = "e";
     String stackParameterName = "s";
-    CatchClause clause =
-        AstFactory.catchClause2(exceptionParameterName, stackParameterName);
-    _setNodeSourceRange(clause, 100, 110);
-    clause.accept(builder);
-
-    List<LocalVariableElement> variables = holder.localVariables;
     expect(variables, hasLength(2));
 
     LocalVariableElement exceptionVariable = variables[0];
@@ -638,7 +633,7 @@ class C {
     expect(exceptionVariable.isConst, isFalse);
     expect(exceptionVariable.isFinal, isFalse);
     expect(exceptionVariable.initializer, isNull);
-    _assertVisibleRange(exceptionVariable, 100, 110);
+    _assertVisibleRange(exceptionVariable, 13, 28);
 
     LocalVariableElement stackVariable = variables[1];
     expect(stackVariable, isNotNull);
@@ -647,19 +642,15 @@ class C {
     expect(stackVariable.isConst, isFalse);
     expect(stackVariable.isFinal, isFalse);
     expect(stackVariable.initializer, isNull);
-    _assertVisibleRange(stackVariable, 100, 110);
+    _assertVisibleRange(stackVariable, 13, 28);
   }
 
   void test_visitCatchClause_withType() {
-    // } on E catch (e) {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
+    List<LocalVariableElement> variables =
+        buildElementsForText('f() { try {} on E catch (e) {} }')
+            .functions[0]
+            .localVariables;
     String exceptionParameterName = "e";
-    CatchClause clause = AstFactory.catchClause4(
-        AstFactory.typeName4('E'), exceptionParameterName);
-    clause.accept(builder);
-
-    List<LocalVariableElement> variables = holder.localVariables;
     expect(variables, hasLength(1));
     VariableElement exceptionVariable = variables[0];
     expect(exceptionVariable, isNotNull);
@@ -1073,22 +1064,11 @@ class C {
   }
 
   void test_visitDeclaredIdentifier_noType() {
-    // var i
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    var variableName = 'i';
-    DeclaredIdentifier identifier =
-        AstFactory.declaredIdentifier3(variableName);
-    AstFactory.forEachStatement(
-        identifier, AstFactory.nullLiteral(), AstFactory.emptyStatement());
-    identifier.beginToken.offset = 50;
-    identifier.endToken.offset = 80;
-    identifier.accept(builder);
-
-    List<LocalVariableElement> variables = holder.localVariables;
-    expect(variables, hasLength(1));
-    LocalVariableElement variable = variables[0];
-    _assertHasCodeRange(variable, 50, 31);
+    LocalVariableElement variable =
+        buildElementsForText('f() { for (var i in []) {} }')
+            .functions[0]
+            .localVariables[0];
+    _assertHasCodeRange(variable, 11, 5);
     expect(variable, isNotNull);
     expect(variable.hasImplicitType, isTrue);
     expect(variable.isConst, isFalse);
@@ -1098,27 +1078,15 @@ class C {
     expect(variable.isPrivate, isFalse);
     expect(variable.isPublic, isTrue);
     expect(variable.isSynthetic, isFalse);
-    expect(variable.name, variableName);
+    expect(variable.name, 'i');
   }
 
   void test_visitDeclaredIdentifier_type() {
-    // E i
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    var variableName = 'i';
-    DeclaredIdentifier identifier =
-        AstFactory.declaredIdentifier4(AstFactory.typeName4('E'), variableName);
-    AstFactory.forEachStatement(
-        identifier, AstFactory.nullLiteral(), AstFactory.emptyStatement());
-    identifier.beginToken.offset = 50;
-    identifier.endToken.offset = 80;
-    identifier.accept(builder);
-
-    List<LocalVariableElement> variables = holder.localVariables;
-    expect(variables, hasLength(1));
-    LocalVariableElement variable = variables[0];
-    expect(variable, isNotNull);
-    _assertHasCodeRange(variable, 50, 31);
+    LocalVariableElement variable =
+        buildElementsForText('f() { for (int i in []) {} }')
+            .functions[0]
+            .localVariables[0];
+    _assertHasCodeRange(variable, 11, 5);
     expect(variable.hasImplicitType, isFalse);
     expect(variable.isConst, isFalse);
     expect(variable.isDeprecated, isFalse);
@@ -1127,7 +1095,7 @@ class C {
     expect(variable.isPrivate, isFalse);
     expect(variable.isPublic, isTrue);
     expect(variable.isSynthetic, isFalse);
-    expect(variable.name, variableName);
+    expect(variable.name, 'i');
   }
 
   void test_visitDefaultFormalParameter_noType() {
@@ -1492,6 +1460,28 @@ class C {
     expect(function.typeParameters, hasLength(0));
   }
 
+  void test_visitFunctionExpression_inBlockBody() {
+    List<FunctionElement> functions =
+        buildElementsForText('f() { return () => 42; }').functions[0].functions;
+    expect(functions, hasLength(1));
+    FunctionElement function = functions[0];
+    expect(function, isNotNull);
+    expect(function.hasImplicitReturnType, isTrue);
+    expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
+  }
+
+  void test_visitFunctionExpression_inExpressionBody() {
+    List<FunctionElement> functions =
+        buildElementsForText('f() => () => 42;').functions[0].functions;
+    expect(functions, hasLength(1));
+    FunctionElement function = functions[0];
+    expect(function, isNotNull);
+    expect(function.hasImplicitReturnType, isTrue);
+    expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
+  }
+
   void test_visitFunctionTypeAlias() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
@@ -1564,17 +1554,12 @@ class C {
   }
 
   void test_visitLabeledStatement() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String labelName = "l";
-    LabeledStatement statement = AstFactory.labeledStatement(
-        [AstFactory.label2(labelName)], AstFactory.breakStatement());
-    statement.accept(builder);
-    List<LabelElement> labels = holder.labels;
+    List<LabelElement> labels =
+        buildElementsForText('f() { l: print(42); }').functions[0].labels;
     expect(labels, hasLength(1));
     LabelElement label = labels[0];
     expect(label, isNotNull);
-    expect(label.name, labelName);
+    expect(label.name, 'l');
     expect(label.isSynthetic, isFalse);
   }
 
@@ -2054,37 +2039,15 @@ class A {
   }
 
   void test_visitMethodDeclaration_withMembers() {
-    // m(p) { var v; try { l: return; } catch (e) {} }
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
+    MethodElement method = buildElementsForText(
+            'class C { m(p) { var v; try { l: return; } catch (e) {} } }')
+        .types[0]
+        .methods[0];
     String methodName = "m";
     String parameterName = "p";
     String localVariableName = "v";
     String labelName = "l";
     String exceptionParameterName = "e";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(
-            [AstFactory.simpleFormalParameter3(parameterName)]),
-        AstFactory.blockFunctionBody2([
-          AstFactory.variableDeclarationStatement2(
-              Keyword.VAR, [AstFactory.variableDeclaration(localVariableName)]),
-          AstFactory.tryStatement2(
-              AstFactory.block([
-                AstFactory.labeledStatement([AstFactory.label2(labelName)],
-                    AstFactory.returnStatement())
-              ]),
-              [AstFactory.catchClause(exceptionParameterName)])
-        ]));
-    methodDeclaration.accept(builder);
-
-    List<MethodElement> methods = holder.methods;
-    expect(methods, hasLength(1));
-    MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.hasImplicitReturnType, isTrue);
     expect(method.name, methodName);
@@ -2288,39 +2251,19 @@ class A {
   }
 
   void test_visitVariableDeclaration_inConstructor() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    //
-    // C() {var v;}
-    //
-    String variableName = "v";
-    VariableDeclaration variable =
-        AstFactory.variableDeclaration2(variableName, null);
-    VariableDeclarationStatement statement =
-        AstFactory.variableDeclarationStatement2(Keyword.VAR, [variable]);
-    ConstructorDeclaration constructor = AstFactory.constructorDeclaration2(
-        null,
-        null,
-        AstFactory.identifier3("C"),
-        "C",
-        AstFactory.formalParameterList(),
-        null,
-        AstFactory.blockFunctionBody2([statement]));
-    statement.beginToken.offset = 50;
-    statement.endToken.offset = 80;
-    _setBlockBodySourceRange(constructor.body, 100, 110);
-    constructor.accept(builder);
-
-    List<ConstructorElement> constructors = holder.constructors;
+    List<ConstructorElement> constructors =
+        buildElementsForText('class C { C() { var v = 1; } }')
+            .types[0]
+            .constructors;
     expect(constructors, hasLength(1));
     List<LocalVariableElement> variableElements =
         constructors[0].localVariables;
     expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
-    _assertHasCodeRange(variableElement, 50, 31);
+    _assertHasCodeRange(variableElement, 16, 10);
     expect(variableElement.hasImplicitType, isTrue);
-    expect(variableElement.name, variableName);
-    _assertVisibleRange(variableElement, 100, 110);
+    expect(variableElement.name, 'v');
+    _assertVisibleRange(variableElement, 14, 28);
   }
 
   void test_visitVariableDeclaration_inForEachStatement() {
