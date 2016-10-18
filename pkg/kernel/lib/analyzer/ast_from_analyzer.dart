@@ -2340,8 +2340,6 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         buildDefaultConstructor(memberNode, defaultConstructor);
       }
     }
-
-    addDefaultFieldInitializers(classNode);
   }
 
   void buildDefaultConstructor(
@@ -2366,38 +2364,6 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         var arguments = new ast.Arguments.empty();
         constructor.initializers.add(
             new ast.SuperInitializer(target, arguments)..parent = constructor);
-      }
-    }
-  }
-
-  /// Adds initializers to fields that are have no initializer and are not
-  /// initialized by all constructors in the class.
-  void addDefaultFieldInitializers(ast.Class node) {
-    List<ast.Field> uninitializedFields = new List<ast.Field>();
-    for (var field in node.fields) {
-      if (field.initializer != null || field.isExternal) continue;
-      if (field.isStatic) {
-        field.initializer = new ast.NullLiteral()..parent = field;
-      } else {
-        uninitializedFields.add(field);
-      }
-    }
-    if (uninitializedFields.isEmpty) return;
-    constructorLoop:
-    for (var constructor in node.constructors) {
-      var remainingFields = uninitializedFields.toSet();
-      for (var initializer in constructor.initializers) {
-        if (initializer is ast.FieldInitializer) {
-          remainingFields.remove(initializer.field);
-        } else if (initializer is ast.RedirectingInitializer) {
-          // The target constructor will be checked in another iteration.
-          continue constructorLoop;
-        }
-      }
-      for (var field in remainingFields) {
-        if (field.initializer == null) {
-          field.initializer = new ast.NullLiteral()..parent = field;
-        }
       }
     }
   }
