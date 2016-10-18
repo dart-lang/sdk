@@ -38,6 +38,8 @@ Future<ResolvedAsts> resolvedAstsFor(
     throw new UnimplementedError();
 
 /// Representation of the resolved ASTs of a build unit.
+///
+/// Not intended to be implemented or extended by clients.
 @deprecated
 abstract class ResolvedAsts {
   /// The resolved ASTs of the build unit's source libraries.

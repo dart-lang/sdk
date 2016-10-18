@@ -15,6 +15,8 @@ import 'package:source_span/source_span.dart' show SourceSpan;
 ///
 /// TODO(paulberry): add a correction message, once most analyzer errors have
 /// one.
+///
+/// Not intended to be implemented or extended by clients.
 abstract class CompilationError {
   /// A text description of the compile error.
   String get message;

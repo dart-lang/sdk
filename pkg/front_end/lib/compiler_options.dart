@@ -13,6 +13,8 @@ typedef void ErrorHandler(CompilationError error);
 ///
 /// TODO(paulberry): add a mechanism to allow file system operations to be
 /// stubbed out for testing.
+///
+/// Not intended to be implemented or extended by clients.
 class CompilerOptions {
   /// The path to the Dart SDK.
   ///
