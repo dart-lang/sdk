@@ -22,7 +22,7 @@ abstract class Bar extends core::Object {
   abstract method externalInstanceMethod() → self::ExternalValue;
 }
 class Box extends core::Object {
-  field dynamic field;
+  field dynamic field = null;
   constructor •() → void
     : super core::Object::•()
     ;

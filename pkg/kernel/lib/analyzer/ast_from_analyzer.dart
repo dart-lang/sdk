@@ -2340,6 +2340,8 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         buildDefaultConstructor(memberNode, defaultConstructor);
       }
     }
+
+    addDefaultInstanceFieldInitializers(classNode);
   }
 
   void buildDefaultConstructor(
@@ -2364,6 +2366,34 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
         var arguments = new ast.Arguments.empty();
         constructor.initializers.add(
             new ast.SuperInitializer(target, arguments)..parent = constructor);
+      }
+    }
+  }
+
+  /// Adds initializers to instance fields that are have no initializer and are
+  /// not initialized by all constructors in the class.
+  void addDefaultInstanceFieldInitializers(ast.Class node) {
+    List<ast.Field> uninitializedFields = new List<ast.Field>();
+    for (var field in node.fields) {
+      if (field.initializer != null || field.isStatic) continue;
+      uninitializedFields.add(field);
+    }
+    if (uninitializedFields.isEmpty) return;
+    constructorLoop:
+    for (var constructor in node.constructors) {
+      var remainingFields = uninitializedFields.toSet();
+      for (var initializer in constructor.initializers) {
+        if (initializer is ast.FieldInitializer) {
+          remainingFields.remove(initializer.field);
+        } else if (initializer is ast.RedirectingInitializer) {
+          // The target constructor will be checked in another iteration.
+          continue constructorLoop;
+        }
+      }
+      for (var field in remainingFields) {
+        if (field.initializer == null) {
+          field.initializer = new ast.NullLiteral()..parent = field;
+        }
       }
     }
   }
@@ -2610,6 +2640,10 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
     if (node.initializer != null) {
       field.initializer = scope.buildTopLevelExpression(node.initializer)
         ..parent = field;
+    } else if (field.isStatic) {
+      // Add null initializer to static fields without an initializer.
+      // For instance fields, this is handled when building the class.
+      field.initializer = new ast.NullLiteral()..parent = field;
     }
   }
 

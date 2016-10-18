@@ -236,7 +236,7 @@ class EqualityConstraint extends self::BinaryConstraint {
 }
 class Variable extends core::Object {
   field core::List<self::Constraint> constraints = <self::Constraint>[];
-  field self::Constraint determinedBy;
+  field self::Constraint determinedBy = null;
   field core::int mark = 0;
   field self::Strength walkStrength = self::WEAKEST;
   field core::bool stay = true;
@@ -377,7 +377,7 @@ static const field self::Strength WEAKEST = const self::Strength::•(6, "weakes
 static const field core::int NONE = 1;
 static const field core::int FORWARD = 2;
 static const field core::int BACKWARD = 0;
-static field self::Planner planner;
+static field self::Planner planner = null;
 static method main() → dynamic {
   new self::DeltaBlue::•().{self::DeltaBlue::run}();
 }

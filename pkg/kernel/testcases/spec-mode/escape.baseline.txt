@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  field dynamic field;
+  field dynamic field = null;
   constructor •() → void
     : super core::Object::•()
     ;
 }
 class B extends core::Object {
-  field dynamic field;
+  field dynamic field = null;
   constructor •() → void
     : super core::Object::•()
     ;
@@ -22,7 +22,7 @@ class C extends core::Object {
     return false;
 }
 class X extends core::Object implements self::A, self::B {
-  field dynamic field;
+  field dynamic field = null;
   constructor •() → void
     : super core::Object::•()
     ;

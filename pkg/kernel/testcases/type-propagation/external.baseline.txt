@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:isolate" as iso;
 
-static field dynamic/dart.async::StreamSubscription* {null,other} subscription;
+static field dynamic/dart.async::StreamSubscription* {null,other} subscription = null;
 static method onData(dynamic/core::Object* {*} x) → void/Null {
   core::print(x);
   self::subscription.cancel();
