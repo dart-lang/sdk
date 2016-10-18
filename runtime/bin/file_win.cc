@@ -635,7 +635,12 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
 
 
 File::Type File::GetType(const char* pathname, bool follow_links) {
-  const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
+  // Convert to wchar_t string.
+  int name_len = MultiByteToWideChar(CP_UTF8, 0, pathname, -1, NULL, 0);
+  wchar_t* name;
+  name = new wchar_t[name_len];
+  MultiByteToWideChar(CP_UTF8, 0, pathname, -1, name, name_len);
+
   DWORD attributes = GetFileAttributesW(name);
   File::Type result = kIsFile;
   if (attributes == INVALID_FILE_ATTRIBUTES) {
@@ -662,6 +667,7 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
     result = kIsDirectory;
   }
+  delete[] name;
   return result;
 }
 

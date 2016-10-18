@@ -19,7 +19,16 @@ const char* kPrecompiledDataSymbolName = "_kDataSnapshot";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   SetLastError(0);
-  return LoadLibraryW(StringUtilsWin::Utf8ToWide(library_file));
+
+  // Convert to wchar_t string.
+  int name_len = MultiByteToWideChar(CP_UTF8, 0, library_file, -1, NULL, 0);
+  wchar_t* name;
+  name = new wchar_t[name_len];
+  MultiByteToWideChar(CP_UTF8, 0, library_file, -1, name, name_len);
+
+  void* ext = LoadLibraryW(name);
+  delete[] name;
+  return ext;
 }
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {
