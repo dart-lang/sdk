@@ -5,9 +5,15 @@
 library dev_compiler.web.web_command;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html' show HttpRequest;
-import 'dart:convert' show BASE64;
 
+import 'package:analyzer/dart/element/element.dart'
+    show
+        LibraryElement,
+        ImportElement,
+        ShowElementCombinator,
+        HideElementCombinator;
 import 'package:analyzer/file_system/file_system.dart' show ResourceUriResolver;
 import 'package:analyzer/file_system/memory_file_system.dart'
     show MemoryResourceProvider;
@@ -20,6 +26,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart'
         InSummaryUriResolver,
         InputPackagesResultProvider,
         InSummarySource;
+import 'package:analyzer/src/dart/resolver/scope.dart' show Scope;
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 
 import 'package:args/command_runner.dart';
@@ -30,6 +37,7 @@ import 'package:dev_compiler/src/compiler/compiler.dart'
 
 import 'package:dev_compiler/src/compiler/module_builder.dart';
 import 'package:js/js.dart';
+import 'package:path/path.dart' as path;
 
 typedef void MessageHandler(Object message);
 
@@ -40,8 +48,8 @@ class CompileResult {
       {String code, List<String> errors, bool isValid});
 }
 
-typedef CompileResult CompileModule(
-    String code, String libraryName, String fileName);
+typedef CompileModule(String imports, String body, String libraryName,
+    String existingLibrary, String fileName);
 
 /// The command for invoking the modular compiler.
 class WebCompileCommand extends Command {
@@ -102,7 +110,8 @@ class WebCompileCommand extends Command {
       var summaryBundle = new PackageBundle.fromBuffer(bytes);
       summaryDataStore.addBundle(url, summaryBundle);
     }
-    var summaryResolver = new InSummaryUriResolver(resourceProvider, summaryDataStore);
+    var summaryResolver =
+        new InSummaryUriResolver(resourceProvider, summaryDataStore);
 
     var fileResolvers = [summaryResolver, resourceUriResolver];
 
@@ -112,24 +121,85 @@ class WebCompileCommand extends Command {
         fileResolvers: fileResolvers,
         resourceProvider: resourceProvider);
 
-    (compiler.context as AnalysisContextImpl).resultProvider =
+    var context = compiler.context as AnalysisContextImpl;
+    context.resultProvider =
         new InputPackagesResultProvider(compiler.context, summaryDataStore);
 
     var compilerOptions = new CompilerOptions.fromArguments(argResults);
 
-    CompileModule compileFn =
-        (String sourceCode, String libraryName, String fileName) {
+    CompileModule compileFn = (String imports, String body, String libraryName,
+        String existingLibrary, String fileName) {
       // Create a new virtual File that contains the given Dart source.
-      resourceProvider.newFile("/$fileName", sourceCode);
+      String sourceCode;
+      if (existingLibrary == null) {
+        sourceCode = imports + body;
+      } else {
+        var dir = path.dirname(existingLibrary);
+        // Need to pull in all the imports from the existing library and
+        // re-export all privates as privates in this library.
+        var source = context.sourceFactory.forUri(existingLibrary);
+        if (source == null) {
+          throw "Unable to load source for library $existingLibrary";
+        }
 
-      var unit = new BuildUnit(
-          libraryName, "", ["file:///$fileName"], _moduleForLibrary);
+        LibraryElement libraryElement = context.computeLibraryElement(source);
+        if (libraryElement == null) {
+          throw "Unable to get library element.";
+        }
+        var sb = new StringBuffer(imports);
+        sb.write('\n');
+
+        // TODO(jacobr): we need to add a proper Analyzer flag specifing that
+        // cross-library privates should be in scope instead of this hack.
+        // We set the private name prefix for scope resolution to an invalid
+        // character code so that the analyzer ignores normal Dart private
+        // scoping rules for top level names allowing REPL users to access
+        // privates in arbitrary libraries. The downside of this scheme is it is
+        // possible to get errors if privates in the current library and
+        // imported libraries happen to have exactly the same name.
+        Scope.PRIVATE_NAME_PREFIX = -1;
+
+        // We emulate running code in the context of an existing library by
+        // importing that library and all libraries it imports.
+        sb.write('import ${JSON.encode(existingLibrary)};\n');
+
+        for (ImportElement importElement in libraryElement.imports) {
+          if (importElement.uri == null) continue;
+          var uri = importElement.uri;
+          // dart: and package: uris are not relative but the path package
+          // thinks they are. We have to provide absolute uris as our library
+          // has a different directory than the library we are pretending to be.
+          if (path.isRelative(uri) &&
+              !uri.startsWith('package:') &&
+              !uri.startsWith('dart:')) {
+            uri = path.normalize(path.join(dir, uri));
+          }
+          sb.write('import ${JSON.encode(uri)}');
+          if (importElement.prefix != null)
+            sb.write(' as ${importElement.prefix.name}');
+          for (var combinator in importElement.combinators) {
+            if (combinator is ShowElementCombinator) {
+              sb.write(' show ${combinator.shownNames.join(', ')}');
+            } else if (combinator is HideElementCombinator) {
+              sb.write(' hide ${combinator.hiddenNames.join(', ')}');
+            } else {
+              throw 'Unexpected element combinator';
+            }
+          }
+          sb.write(';\n');
+        }
+        sb.write(body);
+        sourceCode = sb.toString();
+      }
+      resourceProvider.newFile(fileName, sourceCode);
+
+      var unit = new BuildUnit(libraryName, "", [fileName], _moduleForLibrary);
 
       JSModuleFile module = compiler.compile(unit, compilerOptions);
 
       var moduleCode = module.isValid
           ? module
-              .getCode(ModuleFormat.legacy, false, unit.name, unit.name + '.map')
+              .getCode(ModuleFormat.legacy, true, unit.name, unit.name + '.map')
               .code
           : '';
 

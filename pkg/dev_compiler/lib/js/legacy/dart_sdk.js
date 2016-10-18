@@ -536,9 +536,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
   let ListOfTransform = () => (ListOfTransform = dart.constFn(core.List$(svg$.Transform)))();
   let CompleterOfAudioBuffer = () => (CompleterOfAudioBuffer = dart.constFn(async.Completer$(web_audio.AudioBuffer)))();
   let EventStreamProviderOfAudioProcessingEvent = () => (EventStreamProviderOfAudioProcessingEvent = dart.constFn(html$.EventStreamProvider$(web_audio.AudioProcessingEvent)))();
+  let dynamicTodynamic$ = () => (dynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let StringAndStringToint = () => (StringAndStringToint = dart.constFn(dart.definiteFunctionType(core.int, [core.String, core.String])))();
   let VoidTo_MethodStats = () => (VoidTo_MethodStats = dart.constFn(dart.definiteFunctionType(dart._MethodStats, [])))();
-  let dynamicTodynamic$ = () => (dynamicTodynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [dart.dynamic])))();
   let dynamicToString = () => (dynamicToString = dart.constFn(dart.definiteFunctionType(core.String, [dart.dynamic])))();
   let dynamicToListOfString = () => (dynamicToListOfString = dart.constFn(dart.definiteFunctionType(ListOfString(), [dart.dynamic])))();
   let dynamicToList = () => (dynamicToList = dart.constFn(dart.definiteFunctionType(core.List, [dart.dynamic])))();
@@ -1561,6 +1561,43 @@ dart_library.library('dart_sdk', null, /* Imports */[
   };
   dart.dgcall = function(f, typeArgs, ...args) {
     return dart._checkAndCall(f, dart._getRuntimeType(f), void 0, typeArgs, args, 'call');
+  };
+  dart._dhelperRepl = function(object, field, callback) {
+    let rawField = field;
+    if (typeof field == 'symbol') {
+      if (field in object) return callback(field);
+      field = field.toString();
+      field = field.substring('Symbol('.length, field.length - 1);
+    } else if (field.charAt(0) != '_') {
+      return callback(field);
+    }
+    if (field in object) return callback(field);
+    let proto = object;
+    while (proto !== null) {
+      let symbols = Object.getOwnPropertySymbols(proto);
+      let target = 'Symbol(' + field + ')';
+      for (let s = 0; s < symbols.length; s++) {
+        let sym = symbols[s];
+        if (target == sym.toString()) return callback(sym);
+      }
+      proto = proto.__proto__;
+    }
+    return callback(rawField);
+  };
+  dart.dloadRepl = function(obj, field) {
+    return dart._dhelperRepl(obj, field, dart.fn(resolvedField => dart.dload(obj, resolvedField), dynamicTodynamic$()));
+  };
+  dart.dputRepl = function(obj, field, value) {
+    return dart._dhelperRepl(obj, field, dart.fn(resolvedField => dart.dput(obj, resolvedField, value), dynamicTodynamic$()));
+  };
+  dart._callMethodRepl = function(obj, method, typeArgs, args) {
+    return dart._dhelperRepl(obj, method, dart.fn(resolvedField => dart._callMethod(obj, resolvedField, typeArgs, args, method), dynamicTodynamic$()));
+  };
+  dart.dsendRepl = function(obj, method, ...args) {
+    return dart._callMethodRepl(obj, method, null, args);
+  };
+  dart.dgsendRepl = function(obj, typeArgs, method, ...args) {
+    return dart._callMethodRepl(obj, method, typeArgs, args);
   };
   dart.getDynamicStats = function() {
     let ret = JSArrayOfListOfObject().of([]);
