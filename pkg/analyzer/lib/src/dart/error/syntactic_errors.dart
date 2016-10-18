@@ -572,7 +572,7 @@ class ParserErrorCode extends ErrorCode {
 
   static const ParserErrorCode MISSING_STAR_AFTER_SYNC = const ParserErrorCode(
       'MISSING_STAR_AFTER_SYNC',
-      "The modifier 'sync' must be followed by a star ('*')",
+      "The modifier 'sync' must be followed by a star ('*').",
       "Try removing the modifier, or add a star.");
 
   static const ParserErrorCode MISSING_STATEMENT =

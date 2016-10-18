@@ -5776,7 +5776,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _errorReporter.reportErrorForNode(
         StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
         parameter,
-        [element.displayName]);
+        [element.displayName, bound.displayName]);
   }
 
   /**
