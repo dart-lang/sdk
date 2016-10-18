@@ -140,8 +140,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
 
   @override
   Object visitCompilationUnit(CompilationUnit node) {
-    if (compilationUnitElement is ElementImpl) {
-      _setCodeRange(compilationUnitElement, node);
+    if (_unitElement is ElementImpl) {
+      _setCodeRange(_unitElement, node);
     }
     return super.visitCompilationUnit(node);
   }
@@ -235,7 +235,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
   Object visitExportDirective(ExportDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
-    compilationUnitElement.setAnnotations(node.offset, annotations);
+    _unitElement.setAnnotations(node.offset, annotations);
     return super.visitExportDirective(node);
   }
 
@@ -474,7 +474,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
   Object visitImportDirective(ImportDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
-    compilationUnitElement.setAnnotations(node.offset, annotations);
+    _unitElement.setAnnotations(node.offset, annotations);
     return super.visitImportDirective(node);
   }
 
@@ -482,7 +482,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
   Object visitLibraryDirective(LibraryDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
-    compilationUnitElement.setAnnotations(node.offset, annotations);
+    _unitElement.setAnnotations(node.offset, annotations);
     return super.visitLibraryDirective(node);
   }
 
@@ -647,7 +647,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
   Object visitPartDirective(PartDirective node) {
     List<ElementAnnotation> annotations =
         _createElementAnnotations(node.metadata);
-    compilationUnitElement.setAnnotations(node.offset, annotations);
+    _unitElement.setAnnotations(node.offset, annotations);
     return super.visitPartDirective(node);
   }
 
@@ -1090,6 +1090,13 @@ class ElementBuilder extends ApiElementBuilder {
   }
 
   @override
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    super.visitDefaultFormalParameter(node);
+    _buildParameterInitializer(node.element as ParameterElementImpl, node);
+    return null;
+  }
+
+  @override
   Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
     _buildLocal(node);
     return null;
@@ -1104,8 +1111,7 @@ class ElementBuilder extends ApiElementBuilder {
   }
 
   void _buildLocal(AstNode node) {
-    node.accept(
-        new LocalElementBuilder(_currentHolder, compilationUnitElement));
+    node.accept(new LocalElementBuilder(_currentHolder, _unitElement));
   }
 }
 
@@ -1350,18 +1356,17 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
    * The compilation unit element into which the elements being built will be
    * stored.
    */
-  final CompilationUnitElementImpl compilationUnitElement;
+  final CompilationUnitElementImpl _unitElement;
 
   /**
    * The element holder associated with the element that is currently being built.
    */
   ElementHolder _currentHolder;
 
-  _BaseElementBuilder(this._currentHolder, this.compilationUnitElement);
+  _BaseElementBuilder(this._currentHolder, this._unitElement);
 
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    ElementHolder holder = new ElementHolder();
     NormalFormalParameter normalParameter = node.parameter;
     SimpleIdentifier parameterName = normalParameter.identifier;
     ParameterElementImpl parameter;
@@ -1377,22 +1382,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     parameter.const3 = node.isConst;
     parameter.final2 = node.isFinal;
     parameter.parameterKind = node.kind;
-    // set initializer, default value range
-    Expression defaultValue = node.defaultValue;
-    if (defaultValue != null) {
-      _visit(holder, defaultValue);
-      FunctionElementImpl initializer =
-          new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
-      initializer.hasImplicitReturnType = true;
-      initializer.functions = holder.functions;
-      initializer.labels = holder.labels;
-      initializer.localVariables = holder.localVariables;
-      initializer.parameters = holder.parameters;
-      initializer.synthetic = true;
-      initializer.type = new FunctionTypeImpl(initializer);
-      parameter.initializer = initializer;
-      parameter.defaultValueCode = defaultValue.toSource();
-    }
     // visible range
     _setParameterVisibleRange(node, parameter);
     if (normalParameter is SimpleFormalParameter &&
@@ -1402,7 +1391,6 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder.addParameter(parameter);
     parameterName.staticElement = parameter;
     normalParameter.accept(this);
-    holder.validate();
     return null;
   }
 
@@ -1470,6 +1458,27 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitTypeParameter(node);
   }
 
+  void _buildParameterInitializer(
+      ParameterElementImpl parameter, DefaultFormalParameter node) {
+    Expression defaultValue = node.defaultValue;
+    if (defaultValue != null) {
+      ElementHolder holder = new ElementHolder();
+      _visit(holder, defaultValue);
+      FunctionElementImpl initializer =
+          new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
+      initializer.hasImplicitReturnType = true;
+      initializer.functions = holder.functions;
+      initializer.labels = holder.labels;
+      initializer.localVariables = holder.localVariables;
+      initializer.parameters = holder.parameters;
+      initializer.synthetic = true;
+      initializer.type = new FunctionTypeImpl(initializer);
+      parameter.initializer = initializer;
+      parameter.defaultValueCode = defaultValue.toSource();
+      holder.validate();
+    }
+  }
+
   void _buildVariableInitializer(VariableElementImpl element, Expression node) {
     if (node != null) {
       ElementHolder holder = new ElementHolder();
@@ -1498,7 +1507,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
     }
     return annotations.map((Annotation a) {
       ElementAnnotationImpl elementAnnotation =
-          new ElementAnnotationImpl(compilationUnitElement);
+          new ElementAnnotationImpl(_unitElement);
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
@@ -1584,7 +1593,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
 }
 
 class _ElementBuilder_visitClassDeclaration extends UnifyingAstVisitor<Object> {
-  final ElementBuilder builder;
+  final ApiElementBuilder builder;
 
   List<ClassMember> nonFields;
 

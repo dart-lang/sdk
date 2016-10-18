@@ -25,62 +25,145 @@ import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ApiElementBuilderTest);
     defineReflectiveTests(ElementBuilderTest);
   });
 }
 
 @reflectiveTest
-class ElementBuilderTest extends ParserTestCase {
-  CompilationUnitElement compilationUnitElement;
-  CompilationUnit compilationUnit;
+class ApiElementBuilderTest extends _BaseTest with _ApiElementBuilderTestMixin {
+  @override
+  AstVisitor createElementBuilder(ElementHolder holder) {
+    return new ApiElementBuilder(holder, compilationUnitElement);
+  }
 
+  void test_api_class_field() {
+    List<FieldElement> fields = buildElementsForText(r'''
+class C {
+  var a = 42;
+  var b = () {
+    int v = 0;
+    localFunction() {}
+  };
+}
+''').types[0].fields;
+    expect(fields, hasLength(2));
+    {
+      FieldElement a = fields[0];
+      expect(a.displayName, 'a');
+      expect(a.initializer, isNull);
+    }
+    {
+      FieldElement b = fields[1];
+      expect(b.displayName, 'b');
+      expect(b.initializer, isNull);
+    }
+  }
+
+  void test_api_class_method_blockBody() {
+    MethodElement method = buildElementsForText(r'''
+class C {
+  void m(int a, {int b: 42}) {
+    int v = 0;
+    localFunction() {}
+  }
+}
+''').types[0].methods[0];
+    {
+      expect(method.parameters, hasLength(2));
+      expect(method.parameters[0].displayName, 'a');
+      expect(method.parameters[0].initializer, isNull);
+      expect(method.parameters[1].displayName, 'b');
+      expect(method.parameters[1].initializer, isNull);
+    }
+    expect(method.localVariables, isEmpty);
+    expect(method.functions, isEmpty);
+  }
+
+  void test_api_topLevelFunction_blockBody() {
+    FunctionElement function = buildElementsForText(r'''
+void topLevelFunction() {
+  int v = 0;
+  localFunction() {}
+}
+''').functions[0];
+    expect(function.localVariables, isEmpty);
+    expect(function.functions, isEmpty);
+  }
+
+  void test_api_topLevelFunction_expressionBody() {
+    FunctionElement function = buildElementsForText(r'''
+topLevelFunction() => () {
+  int localVar = 0;
+};
+''').functions[0];
+    expect(function.localVariables, isEmpty);
+    expect(function.functions, isEmpty);
+  }
+
+  void test_api_topLevelFunction_parameters() {
+    FunctionElement function = buildElementsForText(r'''
+void topLevelFunction(int a, int b(double b2), {c: () {int c2; c3() {} }}) {
+}
+''').functions[0];
+    List<ParameterElement> parameters = function.parameters;
+    expect(parameters, hasLength(3));
+    {
+      ParameterElement a = parameters[0];
+      expect(a.displayName, 'a');
+      expect(a.initializer, isNull);
+    }
+    {
+      ParameterElement b = parameters[1];
+      expect(b.displayName, 'b');
+      expect(b.initializer, isNull);
+      expect(b.parameters, hasLength(1));
+      expect(b.parameters[0].displayName, 'b2');
+    }
+    {
+      var c = parameters[2] as DefaultParameterElementImpl;
+      expect(c.displayName, 'c');
+      expect(c.initializer, isNull);
+    }
+  }
+
+  void test_api_topLevelVariable() {
+    List<TopLevelVariableElement> variables = buildElementsForText(r'''
+var A = 42;
+var B = () {
+  int v = 0;
+  localFunction(int _) {}
+};
+''').topLevelVariables;
+    expect(variables, hasLength(2));
+    {
+      TopLevelVariableElement a = variables[0];
+      expect(a.displayName, 'A');
+      expect(a.initializer, isNull);
+    }
+    {
+      TopLevelVariableElement b = variables[1];
+      expect(b.displayName, 'B');
+      expect(b.initializer, isNull);
+    }
+  }
+}
+
+@reflectiveTest
+class ElementBuilderTest extends _BaseTest with _ApiElementBuilderTestMixin {
   /**
    * Parse the given [code], pass it through [ElementBuilder], and return the
    * resulting [ElementHolder].
    */
   ElementHolder buildElementsForText(String code) {
-    TestLogger logger = new TestLogger();
-    AnalysisEngine.instance.logger = logger;
-    try {
-      compilationUnit = ParserTestCase.parseCompilationUnit(code);
-      ElementHolder holder = new ElementHolder();
-      ElementBuilder builder =
-          new ElementBuilder(holder, compilationUnitElement);
-      compilationUnit.accept(builder);
-      return holder;
-    } finally {
-      expect(logger.log, hasLength(0));
-      AnalysisEngine.instance.logger = Logger.NULL;
-    }
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder, compilationUnitElement);
+    _visitAstOfCode(code, builder);
+    return holder;
   }
 
-  /**
-   * Verify that the given [metadata] has exactly one annotation, and that its
-   * [ElementAnnotationImpl] is unresolved.
-   */
-  void checkAnnotation(NodeList<Annotation> metadata) {
-    expect(metadata, hasLength(1));
-    expect(metadata[0], new isInstanceOf<AnnotationImpl>());
-    AnnotationImpl annotation = metadata[0];
-    expect(annotation.elementAnnotation,
-        new isInstanceOf<ElementAnnotationImpl>());
-    ElementAnnotationImpl elementAnnotation = annotation.elementAnnotation;
-    expect(elementAnnotation.element, isNull); // Not yet resolved
-    expect(elementAnnotation.compilationUnit, isNotNull);
-    expect(elementAnnotation.compilationUnit, compilationUnitElement);
-  }
-
-  /**
-   * Verify that the given [element] has exactly one annotation, and that its
-   * [ElementAnnotationImpl] is unresolved.
-   */
-  void checkMetadata(Element element) {
-    expect(element.metadata, hasLength(1));
-    expect(element.metadata[0], new isInstanceOf<ElementAnnotationImpl>());
-    ElementAnnotationImpl elementAnnotation = element.metadata[0];
-    expect(elementAnnotation.element, isNull); // Not yet resolved
-    expect(elementAnnotation.compilationUnit, isNotNull);
-    expect(elementAnnotation.compilationUnit, compilationUnitElement);
+  AstVisitor createElementBuilder(ElementHolder holder) {
+    return new ElementBuilder(holder, compilationUnitElement);
   }
 
   void fail_visitMethodDeclaration_setter_duplicate() {
@@ -103,12 +186,61 @@ class C {
     compilationUnitElement = new CompilationUnitElementImpl('test.dart');
   }
 
-  void test_metadata_fieldDeclaration() {
-    List<FieldElement> fields =
-        buildElementsForText('class C { @a int x, y; }').types[0].fields;
-    checkMetadata(fields[0]);
-    checkMetadata(fields[1]);
-    expect(fields[0].metadata, same(fields[1].metadata));
+  void test_visitDefaultFormalParameter_noType() {
+    // p = 0
+    String parameterName = 'p';
+    DefaultFormalParameter formalParameter =
+    AstFactory.positionalFormalParameter(
+        AstFactory.simpleFormalParameter3(parameterName),
+        AstFactory.integer(0));
+    formalParameter.beginToken.offset = 50;
+    formalParameter.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(formalParameter);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    assertHasCodeRange(parameter, 50, 31);
+    expect(parameter.hasImplicitType, isTrue);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.initializer.type, isNotNull);
+    expect(parameter.initializer.hasImplicitReturnType, isTrue);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isDeprecated, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isInitializingFormal, isFalse);
+    expect(parameter.isOverride, isFalse);
+    expect(parameter.isPrivate, isFalse);
+    expect(parameter.isPublic, isTrue);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
+  }
+
+  void test_visitDefaultFormalParameter_type() {
+    // E p = 0
+    String parameterName = 'p';
+    DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(
+        AstFactory.simpleFormalParameter4(
+            AstFactory.typeName4('E'), parameterName),
+        AstFactory.integer(0));
+
+    ElementHolder holder = buildElementsForAst(formalParameter);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter.hasImplicitType, isFalse);
+    expect(parameter.initializer, isNotNull);
+    expect(parameter.initializer.type, isNotNull);
+    expect(parameter.initializer.hasImplicitReturnType, isTrue);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isDeprecated, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isInitializingFormal, isFalse);
+    expect(parameter.isOverride, isFalse);
+    expect(parameter.isPrivate, isFalse);
+    expect(parameter.isPublic, isTrue);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.name, parameterName);
   }
 
   void test_metadata_localVariableDeclaration() {
@@ -121,177 +253,12 @@ class C {
     expect(localVariables[0].metadata, same(localVariables[1].metadata));
   }
 
-  void test_metadata_topLevelVariableDeclaration() {
-    List<TopLevelVariableElement> topLevelVariables =
-        buildElementsForText('@a int x, y;').topLevelVariables;
-    checkMetadata(topLevelVariables[0]);
-    checkMetadata(topLevelVariables[1]);
-    expect(topLevelVariables[0].metadata, same(topLevelVariables[1].metadata));
-  }
-
-  void test_metadata_visitClassDeclaration() {
-    ClassElement classElement = buildElementsForText('@a class C {}').types[0];
-    checkMetadata(classElement);
-  }
-
-  void test_metadata_visitClassTypeAlias() {
-    ClassElement classElement =
-        buildElementsForText('@a class C = D with E;').types[0];
-    checkMetadata(classElement);
-  }
-
-  void test_metadata_visitConstructorDeclaration() {
-    ConstructorElement constructorElement =
-        buildElementsForText('class C { @a C(); }').types[0].constructors[0];
-    checkMetadata(constructorElement);
-  }
-
   void test_metadata_visitDeclaredIdentifier() {
     LocalVariableElement localVariableElement =
         buildElementsForText('f() { for (@a var x in y) {} }')
             .functions[0]
             .localVariables[0];
     checkMetadata(localVariableElement);
-  }
-
-  void test_metadata_visitDefaultFormalParameter_fieldFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('class C { var x; C([@a this.x = null]); }')
-            .types[0]
-            .constructors[0]
-            .parameters[0];
-    checkMetadata(parameterElement);
-  }
-
-  void
-      test_metadata_visitDefaultFormalParameter_functionTypedFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('f([@a g() = null]) {}').functions[0].parameters[
-            0];
-    checkMetadata(parameterElement);
-  }
-
-  void test_metadata_visitDefaultFormalParameter_simpleFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('f([@a gx = null]) {}').functions[0].parameters[0];
-    checkMetadata(parameterElement);
-  }
-
-  void test_metadata_visitEnumDeclaration() {
-    ClassElement classElement =
-        buildElementsForText('@a enum E { v }').enums[0];
-    checkMetadata(classElement);
-  }
-
-  void test_metadata_visitExportDirective() {
-    buildElementsForText('@a export "foo.dart";');
-    expect(compilationUnit.directives[0], new isInstanceOf<ExportDirective>());
-    ExportDirective exportDirective = compilationUnit.directives[0];
-    checkAnnotation(exportDirective.metadata);
-  }
-
-  void test_metadata_visitFieldFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('class C { var x; C(@a this.x); }')
-            .types[0]
-            .constructors[0]
-            .parameters[0];
-    checkMetadata(parameterElement);
-  }
-
-  void test_metadata_visitFunctionDeclaration_function() {
-    FunctionElement functionElement =
-        buildElementsForText('@a f() {}').functions[0];
-    checkMetadata(functionElement);
-  }
-
-  void test_metadata_visitFunctionDeclaration_getter() {
-    PropertyAccessorElement propertyAccessorElement =
-        buildElementsForText('@a get f => null;').accessors[0];
-    checkMetadata(propertyAccessorElement);
-  }
-
-  void test_metadata_visitFunctionDeclaration_setter() {
-    PropertyAccessorElement propertyAccessorElement =
-        buildElementsForText('@a set f(value) {}').accessors[0];
-    checkMetadata(propertyAccessorElement);
-  }
-
-  void test_metadata_visitFunctionTypeAlias() {
-    FunctionTypeAliasElement functionTypeAliasElement =
-        buildElementsForText('@a typedef F();').typeAliases[0];
-    checkMetadata(functionTypeAliasElement);
-  }
-
-  void test_metadata_visitFunctionTypedFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('f(@a g()) {}').functions[0].parameters[0];
-    checkMetadata(parameterElement);
-  }
-
-  void test_metadata_visitImportDirective() {
-    buildElementsForText('@a import "foo.dart";');
-    expect(compilationUnit.directives[0], new isInstanceOf<ImportDirective>());
-    ImportDirective importDirective = compilationUnit.directives[0];
-    checkAnnotation(importDirective.metadata);
-  }
-
-  void test_metadata_visitLibraryDirective() {
-    buildElementsForText('@a library L;');
-    expect(compilationUnit.directives[0], new isInstanceOf<LibraryDirective>());
-    LibraryDirective libraryDirective = compilationUnit.directives[0];
-    checkAnnotation(libraryDirective.metadata);
-  }
-
-  void test_metadata_visitMethodDeclaration_getter() {
-    PropertyAccessorElement propertyAccessorElement =
-        buildElementsForText('class C { @a get m => null; }')
-            .types[0]
-            .accessors[0];
-    checkMetadata(propertyAccessorElement);
-  }
-
-  void test_metadata_visitMethodDeclaration_method() {
-    MethodElement methodElement =
-        buildElementsForText('class C { @a m() {} }').types[0].methods[0];
-    checkMetadata(methodElement);
-  }
-
-  void test_metadata_visitMethodDeclaration_setter() {
-    PropertyAccessorElement propertyAccessorElement =
-        buildElementsForText('class C { @a set f(value) {} }')
-            .types[0]
-            .accessors[0];
-    checkMetadata(propertyAccessorElement);
-  }
-
-  void test_metadata_visitPartDirective() {
-    buildElementsForText('@a part "foo.dart";');
-    expect(compilationUnit.directives[0], new isInstanceOf<PartDirective>());
-    PartDirective partDirective = compilationUnit.directives[0];
-    checkAnnotation(partDirective.metadata);
-  }
-
-  void test_metadata_visitPartOfDirective() {
-    // We don't build ElementAnnotation objects for `part of` directives, since
-    // analyzer ignores them in favor of annotations on the library directive.
-    buildElementsForText('@a part of L;');
-    expect(compilationUnit.directives[0], new isInstanceOf<PartOfDirective>());
-    PartOfDirective partOfDirective = compilationUnit.directives[0];
-    expect(partOfDirective.metadata, hasLength(1));
-    expect(partOfDirective.metadata[0].elementAnnotation, isNull);
-  }
-
-  void test_metadata_visitSimpleFormalParameter() {
-    ParameterElement parameterElement =
-        buildElementsForText('f(@a x) {}').functions[0].parameters[0];
-    checkMetadata(parameterElement);
-  }
-
-  void test_metadata_visitTypeParameter() {
-    TypeParameterElement typeParameterElement =
-        buildElementsForText('class C<@a T> {}').types[0].typeParameters[0];
-    checkMetadata(typeParameterElement);
   }
 
   void test_visitCatchClause() {
@@ -336,243 +303,6 @@ class C {
     expect(exceptionVariable.hasImplicitType, isFalse);
   }
 
-  void test_visitClassDeclaration_abstract() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "C";
-    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
-        Keyword.ABSTRACT, className, null, null, null, null);
-    classDeclaration.accept(builder);
-    List<ClassElement> types = holder.types;
-    expect(types, hasLength(1));
-    ClassElement type = types[0];
-    expect(type, isNotNull);
-    expect(type.name, className);
-    List<TypeParameterElement> typeParameters = type.typeParameters;
-    expect(typeParameters, hasLength(0));
-    expect(type.isAbstract, isTrue);
-    expect(type.isMixinApplication, isFalse);
-    expect(type.isSynthetic, isFalse);
-  }
-
-  void test_visitClassDeclaration_invalidFunctionInAnnotation_class() {
-    // https://github.com/dart-lang/sdk/issues/25696
-    String code = r'''
-class A {
-  const A({f});
-}
-
-@A(f: () {})
-class C {}
-''';
-    buildElementsForText(code);
-  }
-
-  void test_visitClassDeclaration_invalidFunctionInAnnotation_method() {
-    String code = r'''
-class A {
-  const A({f});
-}
-
-class C {
-  @A(f: () {})
-  void m() {}
-}
-''';
-    ElementHolder holder = buildElementsForText(code);
-    ClassElement elementC = holder.types[1];
-    expect(elementC, isNotNull);
-    MethodElement methodM = elementC.methods[0];
-    expect(methodM, isNotNull);
-    expect(methodM.functions, isEmpty);
-  }
-
-  void test_visitClassDeclaration_minimal() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "C";
-    ClassDeclaration classDeclaration =
-        AstFactory.classDeclaration(null, className, null, null, null, null);
-    classDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    classDeclaration.endToken.offset = 80;
-    classDeclaration.accept(builder);
-    List<ClassElement> types = holder.types;
-    expect(types, hasLength(1));
-    ClassElement type = types[0];
-    expect(type, isNotNull);
-    expect(type.name, className);
-    List<TypeParameterElement> typeParameters = type.typeParameters;
-    expect(typeParameters, hasLength(0));
-    expect(type.isAbstract, isFalse);
-    expect(type.isMixinApplication, isFalse);
-    expect(type.isSynthetic, isFalse);
-    expect(type.documentationComment, '/// aaa');
-    _assertHasCodeRange(type, 50, 31);
-  }
-
-  void test_visitClassDeclaration_parameterized() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "C";
-    String firstVariableName = "E";
-    String secondVariableName = "F";
-    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
-        null,
-        className,
-        AstFactory.typeParameterList([firstVariableName, secondVariableName]),
-        null,
-        null,
-        null);
-    classDeclaration.accept(builder);
-    List<ClassElement> types = holder.types;
-    expect(types, hasLength(1));
-    ClassElement type = types[0];
-    expect(type, isNotNull);
-    expect(type.name, className);
-    List<TypeParameterElement> typeParameters = type.typeParameters;
-    expect(typeParameters, hasLength(2));
-    expect(typeParameters[0].name, firstVariableName);
-    expect(typeParameters[1].name, secondVariableName);
-    expect(type.isAbstract, isFalse);
-    expect(type.isMixinApplication, isFalse);
-    expect(type.isSynthetic, isFalse);
-  }
-
-  void test_visitClassDeclaration_withMembers() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "C";
-    String typeParameterName = "E";
-    String fieldName = "f";
-    String methodName = "m";
-    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
-        null,
-        className,
-        AstFactory.typeParameterList([typeParameterName]),
-        null,
-        null,
-        null, [
-      AstFactory.fieldDeclaration2(
-          false, null, [AstFactory.variableDeclaration(fieldName)]),
-      AstFactory.methodDeclaration2(
-          null,
-          null,
-          null,
-          null,
-          AstFactory.identifier3(methodName),
-          AstFactory.formalParameterList(),
-          AstFactory.blockFunctionBody2())
-    ]);
-    classDeclaration.accept(builder);
-    List<ClassElement> types = holder.types;
-    expect(types, hasLength(1));
-    ClassElement type = types[0];
-    expect(type, isNotNull);
-    expect(type.name, className);
-    expect(type.isAbstract, isFalse);
-    expect(type.isMixinApplication, isFalse);
-    expect(type.isSynthetic, isFalse);
-    List<TypeParameterElement> typeParameters = type.typeParameters;
-    expect(typeParameters, hasLength(1));
-    TypeParameterElement typeParameter = typeParameters[0];
-    expect(typeParameter, isNotNull);
-    expect(typeParameter.name, typeParameterName);
-    List<FieldElement> fields = type.fields;
-    expect(fields, hasLength(1));
-    FieldElement field = fields[0];
-    expect(field, isNotNull);
-    expect(field.name, fieldName);
-    List<MethodElement> methods = type.methods;
-    expect(methods, hasLength(1));
-    MethodElement method = methods[0];
-    expect(method, isNotNull);
-    expect(method.name, methodName);
-  }
-
-  void test_visitClassTypeAlias() {
-    // class B {}
-    // class M {}
-    // class C = B with M
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    ClassElementImpl classB = ElementFactory.classElement2('B', []);
-    ConstructorElementImpl constructorB =
-        ElementFactory.constructorElement2(classB, '', []);
-    constructorB.setModifier(Modifier.SYNTHETIC, true);
-    classB.constructors = [constructorB];
-    ClassElement classM = ElementFactory.classElement2('M', []);
-    WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias alias = AstFactory.classTypeAlias(
-        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
-    alias.accept(builder);
-    List<ClassElement> types = holder.types;
-    expect(types, hasLength(1));
-    ClassElement type = types[0];
-    expect(alias.element, same(type));
-    expect(type.name, equals('C'));
-    expect(type.isAbstract, isFalse);
-    expect(type.isMixinApplication, isTrue);
-    expect(type.isSynthetic, isFalse);
-    expect(type.typeParameters, isEmpty);
-    expect(type.fields, isEmpty);
-    expect(type.methods, isEmpty);
-  }
-
-  void test_visitClassTypeAlias_abstract() {
-    // class B {}
-    // class M {}
-    // abstract class C = B with M
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    ClassElementImpl classB = ElementFactory.classElement2('B', []);
-    ConstructorElementImpl constructorB =
-        ElementFactory.constructorElement2(classB, '', []);
-    constructorB.setModifier(Modifier.SYNTHETIC, true);
-    classB.constructors = [constructorB];
-    ClassElement classM = ElementFactory.classElement2('M', []);
-    WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias classCAst = AstFactory.classTypeAlias('C', null,
-        Keyword.ABSTRACT, AstFactory.typeName(classB, []), withClause, null);
-    classCAst.accept(builder);
-    List<ClassElement> types = holder.types;
-    expect(types, hasLength(1));
-    ClassElement type = types[0];
-    expect(type.isAbstract, isTrue);
-    expect(type.isMixinApplication, isTrue);
-  }
-
-  void test_visitClassTypeAlias_typeParams() {
-    // class B {}
-    // class M {}
-    // class C<T> = B with M
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    ClassElementImpl classB = ElementFactory.classElement2('B', []);
-    ConstructorElementImpl constructorB =
-        ElementFactory.constructorElement2(classB, '', []);
-    constructorB.setModifier(Modifier.SYNTHETIC, true);
-    classB.constructors = [constructorB];
-    ClassElementImpl classM = ElementFactory.classElement2('M', []);
-    WithClause withClause =
-        AstFactory.withClause([AstFactory.typeName(classM, [])]);
-    ClassTypeAlias classCAst = AstFactory.classTypeAlias(
-        'C',
-        AstFactory.typeParameterList(['T']),
-        null,
-        AstFactory.typeName(classB, []),
-        withClause,
-        null);
-    classCAst.accept(builder);
-    List<ClassElement> types = holder.types;
-    expect(types, hasLength(1));
-    ClassElement type = types[0];
-    expect(type.typeParameters, hasLength(1));
-    expect(type.typeParameters[0].name, equals('T'));
-  }
-
   void test_visitCompilationUnit_codeRange() {
     TopLevelVariableDeclaration topLevelVariableDeclaration = AstFactory
         .topLevelVariableDeclaration(null, AstFactory.typeName4('int'),
@@ -589,156 +319,7 @@ class C {
     unit.endToken.offset = 40;
     unit.accept(builder);
 
-    CompilationUnitElement element = builder.compilationUnitElement;
-    _assertHasCodeRange(element, 0, 41);
-  }
-
-  void test_visitConstructorDeclaration_external() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "A";
-    ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
-            null,
-            null,
-            AstFactory.identifier3(className),
-            null,
-            AstFactory.formalParameterList(),
-            null,
-            AstFactory.blockFunctionBody2());
-    constructorDeclaration.externalKeyword =
-        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    constructorDeclaration.accept(builder);
-    List<ConstructorElement> constructors = holder.constructors;
-    expect(constructors, hasLength(1));
-    ConstructorElement constructor = constructors[0];
-    expect(constructor, isNotNull);
-    expect(constructor.isExternal, isTrue);
-    expect(constructor.isFactory, isFalse);
-    expect(constructor.name, "");
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
-    expect(constructor.parameters, hasLength(0));
-  }
-
-  void test_visitConstructorDeclaration_factory() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "A";
-    ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
-            null,
-            Keyword.FACTORY,
-            AstFactory.identifier3(className),
-            null,
-            AstFactory.formalParameterList(),
-            null,
-            AstFactory.blockFunctionBody2());
-    constructorDeclaration.accept(builder);
-    List<ConstructorElement> constructors = holder.constructors;
-    expect(constructors, hasLength(1));
-    ConstructorElement constructor = constructors[0];
-    expect(constructor, isNotNull);
-    expect(constructor.isExternal, isFalse);
-    expect(constructor.isFactory, isTrue);
-    expect(constructor.name, "");
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
-    expect(constructor.parameters, hasLength(0));
-  }
-
-  void test_visitConstructorDeclaration_minimal() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "A";
-    ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
-            null,
-            null,
-            AstFactory.identifier3(className),
-            null,
-            AstFactory.formalParameterList(),
-            null,
-            AstFactory.blockFunctionBody2());
-    constructorDeclaration.documentationComment = AstFactory
-        .documentationComment(
-            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    constructorDeclaration.endToken.offset = 80;
-    constructorDeclaration.accept(builder);
-
-    List<ConstructorElement> constructors = holder.constructors;
-    expect(constructors, hasLength(1));
-    ConstructorElement constructor = constructors[0];
-    expect(constructor, isNotNull);
-    _assertHasCodeRange(constructor, 50, 31);
-    expect(constructor.documentationComment, '/// aaa');
-    expect(constructor.isExternal, isFalse);
-    expect(constructor.isFactory, isFalse);
-    expect(constructor.name, "");
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
-    expect(constructor.parameters, hasLength(0));
-  }
-
-  void test_visitConstructorDeclaration_named() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "A";
-    String constructorName = "c";
-    ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
-            null,
-            null,
-            AstFactory.identifier3(className),
-            constructorName,
-            AstFactory.formalParameterList(),
-            null,
-            AstFactory.blockFunctionBody2());
-    constructorDeclaration.accept(builder);
-    List<ConstructorElement> constructors = holder.constructors;
-    expect(constructors, hasLength(1));
-    ConstructorElement constructor = constructors[0];
-    expect(constructor, isNotNull);
-    expect(constructor.isExternal, isFalse);
-    expect(constructor.isFactory, isFalse);
-    expect(constructor.name, constructorName);
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
-    expect(constructor.parameters, hasLength(0));
-    expect(constructorDeclaration.name.staticElement, same(constructor));
-    expect(constructorDeclaration.element, same(constructor));
-  }
-
-  void test_visitConstructorDeclaration_unnamed() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String className = "A";
-    ConstructorDeclaration constructorDeclaration =
-        AstFactory.constructorDeclaration2(
-            null,
-            null,
-            AstFactory.identifier3(className),
-            null,
-            AstFactory.formalParameterList(),
-            null,
-            AstFactory.blockFunctionBody2());
-    constructorDeclaration.accept(builder);
-    List<ConstructorElement> constructors = holder.constructors;
-    expect(constructors, hasLength(1));
-    ConstructorElement constructor = constructors[0];
-    expect(constructor, isNotNull);
-    expect(constructor.isExternal, isFalse);
-    expect(constructor.isFactory, isFalse);
-    expect(constructor.name, "");
-    expect(constructor.functions, hasLength(0));
-    expect(constructor.labels, hasLength(0));
-    expect(constructor.localVariables, hasLength(0));
-    expect(constructor.parameters, hasLength(0));
-    expect(constructorDeclaration.element, same(constructor));
+    assertHasCodeRange(compilationUnitElement, 0, 41);
   }
 
   void test_visitDeclaredIdentifier_noType() {
@@ -746,7 +327,7 @@ class C {
         buildElementsForText('f() { for (var i in []) {} }')
             .functions[0]
             .localVariables[0];
-    _assertHasCodeRange(variable, 11, 5);
+    assertHasCodeRange(variable, 11, 5);
     expect(variable, isNotNull);
     expect(variable.hasImplicitType, isTrue);
     expect(variable.isConst, isFalse);
@@ -764,7 +345,7 @@ class C {
         buildElementsForText('f() { for (int i in []) {} }')
             .functions[0]
             .localVariables[0];
-    _assertHasCodeRange(variable, 11, 5);
+    assertHasCodeRange(variable, 11, 5);
     expect(variable.hasImplicitType, isFalse);
     expect(variable.isConst, isFalse);
     expect(variable.isDeprecated, isFalse);
@@ -774,352 +355,6 @@ class C {
     expect(variable.isPublic, isTrue);
     expect(variable.isSynthetic, isFalse);
     expect(variable.name, 'i');
-  }
-
-  void test_visitDefaultFormalParameter_noType() {
-    // p = 0
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String parameterName = 'p';
-    DefaultFormalParameter formalParameter =
-        AstFactory.positionalFormalParameter(
-            AstFactory.simpleFormalParameter3(parameterName),
-            AstFactory.integer(0));
-    formalParameter.beginToken.offset = 50;
-    formalParameter.endToken.offset = 80;
-    formalParameter.accept(builder);
-
-    List<ParameterElement> parameters = holder.parameters;
-    expect(parameters, hasLength(1));
-    ParameterElement parameter = parameters[0];
-    _assertHasCodeRange(parameter, 50, 31);
-    expect(parameter.hasImplicitType, isTrue);
-    expect(parameter.initializer, isNotNull);
-    expect(parameter.initializer.type, isNotNull);
-    expect(parameter.initializer.hasImplicitReturnType, isTrue);
-    expect(parameter.isConst, isFalse);
-    expect(parameter.isDeprecated, isFalse);
-    expect(parameter.isFinal, isFalse);
-    expect(parameter.isInitializingFormal, isFalse);
-    expect(parameter.isOverride, isFalse);
-    expect(parameter.isPrivate, isFalse);
-    expect(parameter.isPublic, isTrue);
-    expect(parameter.isSynthetic, isFalse);
-    expect(parameter.name, parameterName);
-  }
-
-  void test_visitDefaultFormalParameter_type() {
-    // E p = 0
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String parameterName = 'p';
-    DefaultFormalParameter formalParameter = AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter4(
-            AstFactory.typeName4('E'), parameterName),
-        AstFactory.integer(0));
-    formalParameter.accept(builder);
-
-    List<ParameterElement> parameters = holder.parameters;
-    expect(parameters, hasLength(1));
-    ParameterElement parameter = parameters[0];
-    expect(parameter.hasImplicitType, isFalse);
-    expect(parameter.initializer, isNotNull);
-    expect(parameter.initializer.type, isNotNull);
-    expect(parameter.initializer.hasImplicitReturnType, isTrue);
-    expect(parameter.isConst, isFalse);
-    expect(parameter.isDeprecated, isFalse);
-    expect(parameter.isFinal, isFalse);
-    expect(parameter.isInitializingFormal, isFalse);
-    expect(parameter.isOverride, isFalse);
-    expect(parameter.isPrivate, isFalse);
-    expect(parameter.isPublic, isTrue);
-    expect(parameter.isSynthetic, isFalse);
-    expect(parameter.name, parameterName);
-  }
-
-  void test_visitEnumDeclaration() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String enumName = "E";
-    EnumDeclaration enumDeclaration =
-        AstFactory.enumDeclaration2(enumName, ["ONE"]);
-    enumDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    enumDeclaration.endToken.offset = 80;
-    enumDeclaration.accept(builder);
-    List<ClassElement> enums = holder.enums;
-    expect(enums, hasLength(1));
-    ClassElement enumElement = enums[0];
-    expect(enumElement, isNotNull);
-    _assertHasCodeRange(enumElement, 50, 31);
-    expect(enumElement.documentationComment, '/// aaa');
-    expect(enumElement.name, enumName);
-  }
-
-  void test_visitFieldDeclaration() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String firstFieldName = "x";
-    String secondFieldName = "y";
-    FieldDeclaration fieldDeclaration =
-        AstFactory.fieldDeclaration2(false, null, [
-      AstFactory.variableDeclaration(firstFieldName),
-      AstFactory.variableDeclaration(secondFieldName)
-    ]);
-    fieldDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    fieldDeclaration.endToken.offset = 110;
-    fieldDeclaration.accept(builder);
-
-    List<FieldElement> fields = holder.fields;
-    expect(fields, hasLength(2));
-
-    FieldElement firstField = fields[0];
-    expect(firstField, isNotNull);
-    _assertHasCodeRange(firstField, 50, 61);
-    expect(firstField.documentationComment, '/// aaa');
-    expect(firstField.name, firstFieldName);
-    expect(firstField.initializer, isNull);
-    expect(firstField.isConst, isFalse);
-    expect(firstField.isFinal, isFalse);
-    expect(firstField.isSynthetic, isFalse);
-
-    FieldElement secondField = fields[1];
-    expect(secondField, isNotNull);
-    _assertHasCodeRange(secondField, 50, 61);
-    expect(secondField.documentationComment, '/// aaa');
-    expect(secondField.name, secondFieldName);
-    expect(secondField.initializer, isNull);
-    expect(secondField.isConst, isFalse);
-    expect(secondField.isFinal, isFalse);
-    expect(secondField.isSynthetic, isFalse);
-  }
-
-  void test_visitFieldFormalParameter() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String parameterName = "p";
-    FieldFormalParameter formalParameter =
-        AstFactory.fieldFormalParameter(null, null, parameterName);
-    formalParameter.beginToken.offset = 50;
-    formalParameter.endToken.offset = 80;
-    formalParameter.accept(builder);
-    List<ParameterElement> parameters = holder.parameters;
-    expect(parameters, hasLength(1));
-    ParameterElement parameter = parameters[0];
-    expect(parameter, isNotNull);
-    _assertHasCodeRange(parameter, 50, 31);
-    expect(parameter.name, parameterName);
-    expect(parameter.initializer, isNull);
-    expect(parameter.isConst, isFalse);
-    expect(parameter.isFinal, isFalse);
-    expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    expect(parameter.parameters, hasLength(0));
-  }
-
-  void test_visitFieldFormalParameter_functionTyped() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String parameterName = "p";
-    FieldFormalParameter formalParameter = AstFactory.fieldFormalParameter(
-        null,
-        null,
-        parameterName,
-        AstFactory
-            .formalParameterList([AstFactory.simpleFormalParameter3("a")]));
-    formalParameter.accept(builder);
-    List<ParameterElement> parameters = holder.parameters;
-    expect(parameters, hasLength(1));
-    ParameterElement parameter = parameters[0];
-    expect(parameter, isNotNull);
-    expect(parameter.name, parameterName);
-    expect(parameter.initializer, isNull);
-    expect(parameter.isConst, isFalse);
-    expect(parameter.isFinal, isFalse);
-    expect(parameter.isSynthetic, isFalse);
-    expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    expect(parameter.parameters, hasLength(1));
-  }
-
-  void test_visitFormalParameterList() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String firstParameterName = "a";
-    String secondParameterName = "b";
-    FormalParameterList parameterList = AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3(firstParameterName),
-      AstFactory.simpleFormalParameter3(secondParameterName)
-    ]);
-    parameterList.accept(builder);
-    List<ParameterElement> parameters = holder.parameters;
-    expect(parameters, hasLength(2));
-    expect(parameters[0].name, firstParameterName);
-    expect(parameters[1].name, secondParameterName);
-  }
-
-  void test_visitFunctionDeclaration_external() {
-    // external f();
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        null,
-        null,
-        functionName,
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.emptyFunctionBody()));
-    declaration.externalKeyword =
-        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    declaration.accept(builder);
-
-    List<FunctionElement> functions = holder.functions;
-    expect(functions, hasLength(1));
-    FunctionElement function = functions[0];
-    expect(function, isNotNull);
-    expect(function.name, functionName);
-    expect(declaration.element, same(function));
-    expect(declaration.functionExpression.element, same(function));
-    expect(function.hasImplicitReturnType, isTrue);
-    expect(function.isExternal, isTrue);
-    expect(function.isSynthetic, isFalse);
-    expect(function.typeParameters, hasLength(0));
-  }
-
-  void test_visitFunctionDeclaration_getter() {
-    // get f() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        null,
-        Keyword.GET,
-        functionName,
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
-    declaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    declaration.endToken.offset = 80;
-    declaration.accept(builder);
-
-    List<PropertyAccessorElement> accessors = holder.accessors;
-    expect(accessors, hasLength(1));
-    PropertyAccessorElement accessor = accessors[0];
-    expect(accessor, isNotNull);
-    _assertHasCodeRange(accessor, 50, 31);
-    expect(accessor.documentationComment, '/// aaa');
-    expect(accessor.name, functionName);
-    expect(declaration.element, same(accessor));
-    expect(declaration.functionExpression.element, same(accessor));
-    expect(accessor.hasImplicitReturnType, isTrue);
-    expect(accessor.isGetter, isTrue);
-    expect(accessor.isExternal, isFalse);
-    expect(accessor.isSetter, isFalse);
-    expect(accessor.isSynthetic, isFalse);
-    expect(accessor.typeParameters, hasLength(0));
-    PropertyInducingElement variable = accessor.variable;
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
-        TopLevelVariableElement, variable);
-    expect(variable.isSynthetic, isTrue);
-  }
-
-  void test_visitFunctionDeclaration_plain() {
-    // T f() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        AstFactory.typeName4('T'),
-        null,
-        functionName,
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
-    declaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    declaration.endToken.offset = 80;
-    declaration.accept(builder);
-
-    List<FunctionElement> functions = holder.functions;
-    expect(functions, hasLength(1));
-    FunctionElement function = functions[0];
-    expect(function, isNotNull);
-    _assertHasCodeRange(function, 50, 31);
-    expect(function.documentationComment, '/// aaa');
-    expect(function.hasImplicitReturnType, isFalse);
-    expect(function.name, functionName);
-    expect(declaration.element, same(function));
-    expect(declaration.functionExpression.element, same(function));
-    expect(function.isExternal, isFalse);
-    expect(function.isSynthetic, isFalse);
-    expect(function.typeParameters, hasLength(0));
-  }
-
-  void test_visitFunctionDeclaration_setter() {
-    // set f() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String functionName = "f";
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        null,
-        Keyword.SET,
-        functionName,
-        AstFactory.functionExpression2(
-            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
-    declaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    declaration.endToken.offset = 80;
-    declaration.accept(builder);
-
-    List<PropertyAccessorElement> accessors = holder.accessors;
-    expect(accessors, hasLength(1));
-    PropertyAccessorElement accessor = accessors[0];
-    expect(accessor, isNotNull);
-    _assertHasCodeRange(accessor, 50, 31);
-    expect(accessor.documentationComment, '/// aaa');
-    expect(accessor.hasImplicitReturnType, isTrue);
-    expect(accessor.name, "$functionName=");
-    expect(declaration.element, same(accessor));
-    expect(declaration.functionExpression.element, same(accessor));
-    expect(accessor.isGetter, isFalse);
-    expect(accessor.isExternal, isFalse);
-    expect(accessor.isSetter, isTrue);
-    expect(accessor.isSynthetic, isFalse);
-    expect(accessor.typeParameters, hasLength(0));
-    PropertyInducingElement variable = accessor.variable;
-    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
-        TopLevelVariableElement, variable);
-    expect(variable.isSynthetic, isTrue);
-  }
-
-  void test_visitFunctionDeclaration_typeParameters() {
-    // f<E>() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String functionName = 'f';
-    String typeParameterName = 'E';
-    FunctionExpression expression = AstFactory.functionExpression3(
-        AstFactory.typeParameterList([typeParameterName]),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    FunctionDeclaration declaration =
-        AstFactory.functionDeclaration(null, null, functionName, expression);
-    declaration.accept(builder);
-
-    List<FunctionElement> functions = holder.functions;
-    expect(functions, hasLength(1));
-    FunctionElement function = functions[0];
-    expect(function, isNotNull);
-    expect(function.hasImplicitReturnType, isTrue);
-    expect(function.name, functionName);
-    expect(function.isExternal, isFalse);
-    expect(function.isSynthetic, isFalse);
-    expect(declaration.element, same(function));
-    expect(expression.element, same(function));
-    List<TypeParameterElement> typeParameters = function.typeParameters;
-    expect(typeParameters, hasLength(1));
-    TypeParameterElement typeParameter = typeParameters[0];
-    expect(typeParameter, isNotNull);
-    expect(typeParameter.name, typeParameterName);
   }
 
   void test_visitFunctionExpression() {
@@ -1176,7 +411,7 @@ class C {
     expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
-    _assertHasCodeRange(alias, 50, 31);
+    assertHasCodeRange(alias, 50, 31);
     expect(alias.documentationComment, '/// aaa');
     expect(alias.name, aliasName);
     expect(alias.parameters, hasLength(0));
@@ -1241,481 +476,6 @@ class C {
     expect(label.isSynthetic, isFalse);
   }
 
-  void test_visitMethodDeclaration_abstract() {
-    // m();
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.emptyFunctionBody());
-    methodDeclaration.accept(builder);
-
-    List<MethodElement> methods = holder.methods;
-    expect(methods, hasLength(1));
-    MethodElement method = methods[0];
-    expect(method, isNotNull);
-    expect(method.hasImplicitReturnType, isTrue);
-    expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
-    expect(method.localVariables, hasLength(0));
-    expect(method.parameters, hasLength(0));
-    expect(method.typeParameters, hasLength(0));
-    expect(method.isAbstract, isTrue);
-    expect(method.isExternal, isFalse);
-    expect(method.isStatic, isFalse);
-    expect(method.isSynthetic, isFalse);
-  }
-
-  void test_visitMethodDeclaration_duplicateField_synthetic() {
-    buildElementsForText(r'''
-class A {
-  int f;
-  int get f => 42;
-}
-''');
-    ClassDeclaration classNode = compilationUnit.declarations.single;
-    // ClassElement
-    ClassElement classElement = classNode.element;
-    expect(classElement.fields, hasLength(2));
-    expect(classElement.accessors, hasLength(3));
-    FieldElement notSyntheticFieldElement = classElement.fields
-        .singleWhere((f) => f.displayName == 'f' && !f.isSynthetic);
-    FieldElement syntheticFieldElement = classElement.fields
-        .singleWhere((f) => f.displayName == 'f' && f.isSynthetic);
-    PropertyAccessorElement syntheticGetterElement = classElement.accessors
-        .singleWhere(
-            (a) => a.displayName == 'f' && a.isGetter && a.isSynthetic);
-    PropertyAccessorElement syntheticSetterElement = classElement.accessors
-        .singleWhere(
-            (a) => a.displayName == 'f' && a.isSetter && a.isSynthetic);
-    PropertyAccessorElement notSyntheticGetterElement = classElement.accessors
-        .singleWhere(
-            (a) => a.displayName == 'f' && a.isGetter && !a.isSynthetic);
-    expect(notSyntheticFieldElement.getter, same(syntheticGetterElement));
-    expect(notSyntheticFieldElement.setter, same(syntheticSetterElement));
-    expect(syntheticFieldElement.getter, same(notSyntheticGetterElement));
-    expect(syntheticFieldElement.setter, isNull);
-    // class members nodes and their elements
-    FieldDeclaration fieldDeclNode = classNode.members[0];
-    VariableDeclaration fieldNode = fieldDeclNode.fields.variables.single;
-    MethodDeclaration getterNode = classNode.members[1];
-    expect(fieldNode.element, notSyntheticFieldElement);
-    expect(getterNode.element, notSyntheticGetterElement);
-  }
-
-  void test_visitMethodDeclaration_external() {
-    // external m();
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.emptyFunctionBody());
-    methodDeclaration.externalKeyword =
-        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    methodDeclaration.accept(builder);
-
-    List<MethodElement> methods = holder.methods;
-    expect(methods, hasLength(1));
-    MethodElement method = methods[0];
-    expect(method, isNotNull);
-    expect(method.hasImplicitReturnType, isTrue);
-    expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
-    expect(method.localVariables, hasLength(0));
-    expect(method.parameters, hasLength(0));
-    expect(method.typeParameters, hasLength(0));
-    expect(method.isAbstract, isFalse);
-    expect(method.isExternal, isTrue);
-    expect(method.isStatic, isFalse);
-    expect(method.isSynthetic, isFalse);
-  }
-
-  void test_visitMethodDeclaration_getter() {
-    // get m() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        Keyword.GET,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    methodDeclaration.endToken.offset = 80;
-    methodDeclaration.accept(builder);
-
-    List<FieldElement> fields = holder.fields;
-    expect(fields, hasLength(1));
-    FieldElement field = fields[0];
-    expect(field, isNotNull);
-    expect(field.name, methodName);
-    expect(field.isSynthetic, isTrue);
-    expect(field.setter, isNull);
-    PropertyAccessorElement getter = field.getter;
-    expect(getter, isNotNull);
-    _assertHasCodeRange(getter, 50, 31);
-    expect(getter.documentationComment, '/// aaa');
-    expect(getter.hasImplicitReturnType, isTrue);
-    expect(getter.isAbstract, isFalse);
-    expect(getter.isExternal, isFalse);
-    expect(getter.isGetter, isTrue);
-    expect(getter.isSynthetic, isFalse);
-    expect(getter.name, methodName);
-    expect(getter.variable, field);
-    expect(getter.functions, hasLength(0));
-    expect(getter.labels, hasLength(0));
-    expect(getter.localVariables, hasLength(0));
-    expect(getter.parameters, hasLength(0));
-  }
-
-  void test_visitMethodDeclaration_getter_abstract() {
-    // get m();
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        Keyword.GET,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.emptyFunctionBody());
-    methodDeclaration.accept(builder);
-
-    List<FieldElement> fields = holder.fields;
-    expect(fields, hasLength(1));
-    FieldElement field = fields[0];
-    expect(field, isNotNull);
-    expect(field.name, methodName);
-    expect(field.isSynthetic, isTrue);
-    expect(field.setter, isNull);
-    PropertyAccessorElement getter = field.getter;
-    expect(getter, isNotNull);
-    expect(getter.hasImplicitReturnType, isTrue);
-    expect(getter.isAbstract, isTrue);
-    expect(getter.isExternal, isFalse);
-    expect(getter.isGetter, isTrue);
-    expect(getter.isSynthetic, isFalse);
-    expect(getter.name, methodName);
-    expect(getter.variable, field);
-    expect(getter.functions, hasLength(0));
-    expect(getter.labels, hasLength(0));
-    expect(getter.localVariables, hasLength(0));
-    expect(getter.parameters, hasLength(0));
-  }
-
-  void test_visitMethodDeclaration_getter_external() {
-    // external get m();
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(
-        null,
-        null,
-        Keyword.GET,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList());
-    methodDeclaration.externalKeyword =
-        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    methodDeclaration.accept(builder);
-
-    List<FieldElement> fields = holder.fields;
-    expect(fields, hasLength(1));
-    FieldElement field = fields[0];
-    expect(field, isNotNull);
-    expect(field.name, methodName);
-    expect(field.isSynthetic, isTrue);
-    expect(field.setter, isNull);
-    PropertyAccessorElement getter = field.getter;
-    expect(getter, isNotNull);
-    expect(getter.hasImplicitReturnType, isTrue);
-    expect(getter.isAbstract, isFalse);
-    expect(getter.isExternal, isTrue);
-    expect(getter.isGetter, isTrue);
-    expect(getter.isSynthetic, isFalse);
-    expect(getter.name, methodName);
-    expect(getter.variable, field);
-    expect(getter.functions, hasLength(0));
-    expect(getter.labels, hasLength(0));
-    expect(getter.localVariables, hasLength(0));
-    expect(getter.parameters, hasLength(0));
-  }
-
-  void test_visitMethodDeclaration_minimal() {
-    // T m() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        AstFactory.typeName4('T'),
-        null,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    methodDeclaration.endToken.offset = 80;
-    methodDeclaration.accept(builder);
-
-    List<MethodElement> methods = holder.methods;
-    expect(methods, hasLength(1));
-    MethodElement method = methods[0];
-    expect(method, isNotNull);
-    _assertHasCodeRange(method, 50, 31);
-    expect(method.documentationComment, '/// aaa');
-    expect(method.hasImplicitReturnType, isFalse);
-    expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
-    expect(method.localVariables, hasLength(0));
-    expect(method.parameters, hasLength(0));
-    expect(method.typeParameters, hasLength(0));
-    expect(method.isAbstract, isFalse);
-    expect(method.isExternal, isFalse);
-    expect(method.isStatic, isFalse);
-    expect(method.isSynthetic, isFalse);
-  }
-
-  void test_visitMethodDeclaration_operator() {
-    // operator +(addend) {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "+";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        Keyword.OPERATOR,
-        AstFactory.identifier3(methodName),
-        AstFactory
-            .formalParameterList([AstFactory.simpleFormalParameter3("addend")]),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.accept(builder);
-
-    List<MethodElement> methods = holder.methods;
-    expect(methods, hasLength(1));
-    MethodElement method = methods[0];
-    expect(method, isNotNull);
-    expect(method.hasImplicitReturnType, isTrue);
-    expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
-    expect(method.localVariables, hasLength(0));
-    expect(method.parameters, hasLength(1));
-    expect(method.typeParameters, hasLength(0));
-    expect(method.isAbstract, isFalse);
-    expect(method.isExternal, isFalse);
-    expect(method.isStatic, isFalse);
-    expect(method.isSynthetic, isFalse);
-  }
-
-  void test_visitMethodDeclaration_setter() {
-    // set m() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        Keyword.SET,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.documentationComment = AstFactory.documentationComment(
-        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
-    methodDeclaration.endToken.offset = 80;
-    methodDeclaration.accept(builder);
-
-    List<FieldElement> fields = holder.fields;
-    expect(fields, hasLength(1));
-    FieldElement field = fields[0];
-    expect(field, isNotNull);
-    expect(field.name, methodName);
-    expect(field.isSynthetic, isTrue);
-    expect(field.getter, isNull);
-
-    PropertyAccessorElement setter = field.setter;
-    expect(setter, isNotNull);
-    _assertHasCodeRange(setter, 50, 31);
-    expect(setter.documentationComment, '/// aaa');
-    expect(setter.hasImplicitReturnType, isTrue);
-    expect(setter.isAbstract, isFalse);
-    expect(setter.isExternal, isFalse);
-    expect(setter.isSetter, isTrue);
-    expect(setter.isSynthetic, isFalse);
-    expect(setter.name, "$methodName=");
-    expect(setter.displayName, methodName);
-    expect(setter.variable, field);
-    expect(setter.functions, hasLength(0));
-    expect(setter.labels, hasLength(0));
-    expect(setter.localVariables, hasLength(0));
-    expect(setter.parameters, hasLength(0));
-  }
-
-  void test_visitMethodDeclaration_setter_abstract() {
-    // set m();
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        Keyword.SET,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.emptyFunctionBody());
-    methodDeclaration.accept(builder);
-
-    List<FieldElement> fields = holder.fields;
-    expect(fields, hasLength(1));
-    FieldElement field = fields[0];
-    expect(field, isNotNull);
-    expect(field.name, methodName);
-    expect(field.isSynthetic, isTrue);
-    expect(field.getter, isNull);
-    PropertyAccessorElement setter = field.setter;
-    expect(setter, isNotNull);
-    expect(setter.hasImplicitReturnType, isTrue);
-    expect(setter.isAbstract, isTrue);
-    expect(setter.isExternal, isFalse);
-    expect(setter.isSetter, isTrue);
-    expect(setter.isSynthetic, isFalse);
-    expect(setter.name, "$methodName=");
-    expect(setter.displayName, methodName);
-    expect(setter.variable, field);
-    expect(setter.functions, hasLength(0));
-    expect(setter.labels, hasLength(0));
-    expect(setter.localVariables, hasLength(0));
-    expect(setter.parameters, hasLength(0));
-  }
-
-  void test_visitMethodDeclaration_setter_external() {
-    // external m();
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(
-        null,
-        null,
-        Keyword.SET,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList());
-    methodDeclaration.externalKeyword =
-        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
-    methodDeclaration.accept(builder);
-
-    List<FieldElement> fields = holder.fields;
-    expect(fields, hasLength(1));
-    FieldElement field = fields[0];
-    expect(field, isNotNull);
-    expect(field.name, methodName);
-    expect(field.isSynthetic, isTrue);
-    expect(field.getter, isNull);
-    PropertyAccessorElement setter = field.setter;
-    expect(setter, isNotNull);
-    expect(setter.hasImplicitReturnType, isTrue);
-    expect(setter.isAbstract, isFalse);
-    expect(setter.isExternal, isTrue);
-    expect(setter.isSetter, isTrue);
-    expect(setter.isSynthetic, isFalse);
-    expect(setter.name, "$methodName=");
-    expect(setter.displayName, methodName);
-    expect(setter.variable, field);
-    expect(setter.functions, hasLength(0));
-    expect(setter.labels, hasLength(0));
-    expect(setter.localVariables, hasLength(0));
-    expect(setter.parameters, hasLength(0));
-  }
-
-  void test_visitMethodDeclaration_static() {
-    // static m() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        Keyword.STATIC,
-        null,
-        null,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.accept(builder);
-    List<MethodElement> methods = holder.methods;
-    expect(methods, hasLength(1));
-    MethodElement method = methods[0];
-    expect(method, isNotNull);
-    expect(method.hasImplicitReturnType, isTrue);
-    expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
-    expect(method.localVariables, hasLength(0));
-    expect(method.parameters, hasLength(0));
-    expect(method.typeParameters, hasLength(0));
-    expect(method.isAbstract, isFalse);
-    expect(method.isExternal, isFalse);
-    expect(method.isStatic, isTrue);
-    expect(method.isSynthetic, isFalse);
-  }
-
-  void test_visitMethodDeclaration_typeParameters() {
-    // m<E>() {}
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String methodName = "m";
-    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstFactory.identifier3(methodName),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    methodDeclaration.typeParameters = AstFactory.typeParameterList(['E']);
-    methodDeclaration.accept(builder);
-
-    List<MethodElement> methods = holder.methods;
-    expect(methods, hasLength(1));
-    MethodElement method = methods[0];
-    expect(method, isNotNull);
-    expect(method.hasImplicitReturnType, isTrue);
-    expect(method.name, methodName);
-    expect(method.functions, hasLength(0));
-    expect(method.labels, hasLength(0));
-    expect(method.localVariables, hasLength(0));
-    expect(method.parameters, hasLength(0));
-    expect(method.typeParameters, hasLength(1));
-    expect(method.isAbstract, isFalse);
-    expect(method.isExternal, isFalse);
-    expect(method.isStatic, isFalse);
-    expect(method.isSynthetic, isFalse);
-  }
-
   void test_visitMethodDeclaration_withMembers() {
     MethodElement method = buildElementsForText(
             'class C { m(p) { var v; try { l: return; } catch (e) {} } }')
@@ -1773,7 +533,7 @@ class A {
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
-    _assertHasCodeRange(parameter, 50, 32);
+    assertHasCodeRange(parameter, 50, 32);
     expect(parameter.name, parameterName);
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
@@ -1833,101 +593,6 @@ class A {
     _assertVisibleRange(parameter, 100, 110);
   }
 
-  void test_visitTypeAlias_minimal() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String aliasName = "F";
-    TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName, null, null);
-    typeAlias.accept(builder);
-    List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    expect(aliases, hasLength(1));
-    FunctionTypeAliasElement alias = aliases[0];
-    expect(alias, isNotNull);
-    expect(alias.name, aliasName);
-    expect(alias.type, isNotNull);
-    expect(alias.isSynthetic, isFalse);
-  }
-
-  void test_visitTypeAlias_withFormalParameters() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String aliasName = "F";
-    String firstParameterName = "x";
-    String secondParameterName = "y";
-    TypeAlias typeAlias = AstFactory.typeAlias(
-        null,
-        aliasName,
-        AstFactory.typeParameterList(),
-        AstFactory.formalParameterList([
-          AstFactory.simpleFormalParameter3(firstParameterName),
-          AstFactory.simpleFormalParameter3(secondParameterName)
-        ]));
-    typeAlias.beginToken.offset = 50;
-    typeAlias.endToken.offset = 80;
-    typeAlias.accept(builder);
-    List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    expect(aliases, hasLength(1));
-    FunctionTypeAliasElement alias = aliases[0];
-    expect(alias, isNotNull);
-    _assertHasCodeRange(alias, 50, 31);
-    expect(alias.name, aliasName);
-    expect(alias.type, isNotNull);
-    expect(alias.isSynthetic, isFalse);
-    List<VariableElement> parameters = alias.parameters;
-    expect(parameters, hasLength(2));
-    expect(parameters[0].name, firstParameterName);
-    expect(parameters[1].name, secondParameterName);
-    List<TypeParameterElement> typeParameters = alias.typeParameters;
-    expect(typeParameters, isNotNull);
-    expect(typeParameters, hasLength(0));
-  }
-
-  void test_visitTypeAlias_withTypeParameters() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String aliasName = "F";
-    String firstTypeParameterName = "A";
-    String secondTypeParameterName = "B";
-    TypeAlias typeAlias = AstFactory.typeAlias(
-        null,
-        aliasName,
-        AstFactory.typeParameterList(
-            [firstTypeParameterName, secondTypeParameterName]),
-        AstFactory.formalParameterList());
-    typeAlias.accept(builder);
-    List<FunctionTypeAliasElement> aliases = holder.typeAliases;
-    expect(aliases, hasLength(1));
-    FunctionTypeAliasElement alias = aliases[0];
-    expect(alias, isNotNull);
-    expect(alias.name, aliasName);
-    expect(alias.type, isNotNull);
-    expect(alias.isSynthetic, isFalse);
-    List<VariableElement> parameters = alias.parameters;
-    expect(parameters, isNotNull);
-    expect(parameters, hasLength(0));
-    List<TypeParameterElement> typeParameters = alias.typeParameters;
-    expect(typeParameters, hasLength(2));
-    expect(typeParameters[0].name, firstTypeParameterName);
-    expect(typeParameters[1].name, secondTypeParameterName);
-  }
-
-  void test_visitTypeParameter() {
-    ElementHolder holder = new ElementHolder();
-    ElementBuilder builder = _makeBuilder(holder);
-    String parameterName = "E";
-    TypeParameter typeParameter = AstFactory.typeParameter(parameterName);
-    typeParameter.beginToken.offset = 50;
-    typeParameter.accept(builder);
-    List<TypeParameterElement> typeParameters = holder.typeParameters;
-    expect(typeParameters, hasLength(1));
-    TypeParameterElement typeParameterElement = typeParameters[0];
-    expect(typeParameterElement, isNotNull);
-    _assertHasCodeRange(typeParameterElement, 50, 1);
-    expect(typeParameterElement.name, parameterName);
-    expect(typeParameterElement.bound, isNull);
-    expect(typeParameterElement.isSynthetic, isFalse);
-  }
-
   void test_visitVariableDeclaration_inConstructor() {
     List<ConstructorElement> constructors =
         buildElementsForText('class C { C() { var v = 1; } }')
@@ -1938,7 +603,7 @@ class A {
         constructors[0].localVariables;
     expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
-    _assertHasCodeRange(variableElement, 16, 10);
+    assertHasCodeRange(variableElement, 16, 10);
     expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.name, 'v');
     _assertVisibleRange(variableElement, 14, 28);
@@ -2184,20 +849,8 @@ class A {
     expect(variable.setter, isNull);
   }
 
-  void _assertHasCodeRange(Element element, int offset, int length) {
-    ElementImpl elementImpl = element;
-    expect(elementImpl.codeOffset, offset);
-    expect(elementImpl.codeLength, length);
-  }
-
-  void _assertVisibleRange(LocalElement element, int offset, int end) {
-    SourceRange visibleRange = element.visibleRange;
-    expect(visibleRange.offset, offset);
-    expect(visibleRange.end, end);
-  }
-
   ElementBuilder _makeBuilder(ElementHolder holder) =>
-      new ElementBuilder(holder, new CompilationUnitElementImpl('test.dart'));
+      new ElementBuilder(holder, compilationUnitElement);
 
   void _setBlockBodySourceRange(BlockFunctionBody body, int offset, int end) {
     _setNodeSourceRange(body.block, offset, end);
@@ -2223,5 +876,1472 @@ class A {
         AstFactory.identifier3("main"),
         AstFactory.formalParameterList([formalParameter]),
         body);
+  }
+}
+
+/**
+ * Mixin with test methods for testing element building in [ApiElementBuilder].
+ * It is used to test the [ApiElementBuilder] itself, and its usage by
+ * [ElementBuilder].
+ */
+abstract class _ApiElementBuilderTestMixin {
+  CompilationUnit get compilationUnit;
+
+  void assertHasCodeRange(Element element, int offset, int length);
+
+  /**
+   * Build elements using [ApiElementBuilder].
+   */
+  ElementHolder buildElementsForAst(AstNode node);
+
+  /**
+   * Parse the given [code], and build elements using [ApiElementBuilder].
+   */
+  ElementHolder buildElementsForText(String code);
+
+  /**
+   * Verify that the given [metadata] has exactly one annotation, and that its
+   * [ElementAnnotationImpl] is unresolved.
+   */
+  void checkAnnotation(NodeList<Annotation> metadata);
+
+  /**
+   * Verify that the given [element] has exactly one annotation, and that its
+   * [ElementAnnotationImpl] is unresolved.
+   */
+  void checkMetadata(Element element);
+
+  void test_metadata_fieldDeclaration() {
+    List<FieldElement> fields =
+        buildElementsForText('class C { @a int x, y; }').types[0].fields;
+    checkMetadata(fields[0]);
+    checkMetadata(fields[1]);
+    expect(fields[0].metadata, same(fields[1].metadata));
+  }
+
+  void test_metadata_topLevelVariableDeclaration() {
+    List<TopLevelVariableElement> topLevelVariables =
+        buildElementsForText('@a int x, y;').topLevelVariables;
+    checkMetadata(topLevelVariables[0]);
+    checkMetadata(topLevelVariables[1]);
+    expect(topLevelVariables[0].metadata, same(topLevelVariables[1].metadata));
+  }
+
+  void test_metadata_visitClassDeclaration() {
+    ClassElement classElement = buildElementsForText('@a class C {}').types[0];
+    checkMetadata(classElement);
+  }
+
+  void test_metadata_visitClassTypeAlias() {
+    ClassElement classElement =
+        buildElementsForText('@a class C = D with E;').types[0];
+    checkMetadata(classElement);
+  }
+
+  void test_metadata_visitConstructorDeclaration() {
+    ConstructorElement constructorElement =
+        buildElementsForText('class C { @a C(); }').types[0].constructors[0];
+    checkMetadata(constructorElement);
+  }
+
+  void test_metadata_visitDefaultFormalParameter_fieldFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('class C { var x; C([@a this.x = null]); }')
+            .types[0]
+            .constructors[0]
+            .parameters[0];
+    checkMetadata(parameterElement);
+  }
+
+  void
+      test_metadata_visitDefaultFormalParameter_functionTypedFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('f([@a g() = null]) {}').functions[0].parameters[
+            0];
+    checkMetadata(parameterElement);
+  }
+
+  void test_metadata_visitDefaultFormalParameter_simpleFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('f([@a gx = null]) {}').functions[0].parameters[0];
+    checkMetadata(parameterElement);
+  }
+
+  void test_metadata_visitEnumDeclaration() {
+    ClassElement classElement =
+        buildElementsForText('@a enum E { v }').enums[0];
+    checkMetadata(classElement);
+  }
+
+  void test_metadata_visitExportDirective() {
+    buildElementsForText('@a export "foo.dart";');
+    expect(compilationUnit.directives[0], new isInstanceOf<ExportDirective>());
+    ExportDirective exportDirective = compilationUnit.directives[0];
+    checkAnnotation(exportDirective.metadata);
+  }
+
+  void test_metadata_visitFieldFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('class C { var x; C(@a this.x); }')
+            .types[0]
+            .constructors[0]
+            .parameters[0];
+    checkMetadata(parameterElement);
+  }
+
+  void test_metadata_visitFunctionDeclaration_function() {
+    FunctionElement functionElement =
+        buildElementsForText('@a f() {}').functions[0];
+    checkMetadata(functionElement);
+  }
+
+  void test_metadata_visitFunctionDeclaration_getter() {
+    PropertyAccessorElement propertyAccessorElement =
+        buildElementsForText('@a get f => null;').accessors[0];
+    checkMetadata(propertyAccessorElement);
+  }
+
+  void test_metadata_visitFunctionDeclaration_setter() {
+    PropertyAccessorElement propertyAccessorElement =
+        buildElementsForText('@a set f(value) {}').accessors[0];
+    checkMetadata(propertyAccessorElement);
+  }
+
+  void test_metadata_visitFunctionTypeAlias() {
+    FunctionTypeAliasElement functionTypeAliasElement =
+        buildElementsForText('@a typedef F();').typeAliases[0];
+    checkMetadata(functionTypeAliasElement);
+  }
+
+  void test_metadata_visitFunctionTypedFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('f(@a g()) {}').functions[0].parameters[0];
+    checkMetadata(parameterElement);
+  }
+
+  void test_metadata_visitImportDirective() {
+    buildElementsForText('@a import "foo.dart";');
+    expect(compilationUnit.directives[0], new isInstanceOf<ImportDirective>());
+    ImportDirective importDirective = compilationUnit.directives[0];
+    checkAnnotation(importDirective.metadata);
+  }
+
+  void test_metadata_visitLibraryDirective() {
+    buildElementsForText('@a library L;');
+    expect(compilationUnit.directives[0], new isInstanceOf<LibraryDirective>());
+    LibraryDirective libraryDirective = compilationUnit.directives[0];
+    checkAnnotation(libraryDirective.metadata);
+  }
+
+  void test_metadata_visitMethodDeclaration_getter() {
+    PropertyAccessorElement propertyAccessorElement =
+        buildElementsForText('class C { @a get m => null; }')
+            .types[0]
+            .accessors[0];
+    checkMetadata(propertyAccessorElement);
+  }
+
+  void test_metadata_visitMethodDeclaration_method() {
+    MethodElement methodElement =
+        buildElementsForText('class C { @a m() {} }').types[0].methods[0];
+    checkMetadata(methodElement);
+  }
+
+  void test_metadata_visitMethodDeclaration_setter() {
+    PropertyAccessorElement propertyAccessorElement =
+        buildElementsForText('class C { @a set f(value) {} }')
+            .types[0]
+            .accessors[0];
+    checkMetadata(propertyAccessorElement);
+  }
+
+  void test_metadata_visitPartDirective() {
+    buildElementsForText('@a part "foo.dart";');
+    expect(compilationUnit.directives[0], new isInstanceOf<PartDirective>());
+    PartDirective partDirective = compilationUnit.directives[0];
+    checkAnnotation(partDirective.metadata);
+  }
+
+  void test_metadata_visitPartOfDirective() {
+    // We don't build ElementAnnotation objects for `part of` directives, since
+    // analyzer ignores them in favor of annotations on the library directive.
+    buildElementsForText('@a part of L;');
+    expect(compilationUnit.directives[0], new isInstanceOf<PartOfDirective>());
+    PartOfDirective partOfDirective = compilationUnit.directives[0];
+    expect(partOfDirective.metadata, hasLength(1));
+    expect(partOfDirective.metadata[0].elementAnnotation, isNull);
+  }
+
+  void test_metadata_visitSimpleFormalParameter() {
+    ParameterElement parameterElement =
+        buildElementsForText('f(@a x) {}').functions[0].parameters[0];
+    checkMetadata(parameterElement);
+  }
+
+  void test_metadata_visitTypeParameter() {
+    TypeParameterElement typeParameterElement =
+        buildElementsForText('class C<@a T> {}').types[0].typeParameters[0];
+    checkMetadata(typeParameterElement);
+  }
+
+  void test_visitClassDeclaration_abstract() {
+    List<ClassElement> types =
+        buildElementsForText('abstract class C {}').types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(type, isNotNull);
+    expect(type.name, 'C');
+    List<TypeParameterElement> typeParameters = type.typeParameters;
+    expect(typeParameters, hasLength(0));
+    expect(type.isAbstract, isTrue);
+    expect(type.isMixinApplication, isFalse);
+    expect(type.isSynthetic, isFalse);
+  }
+
+  void test_visitClassDeclaration_invalidFunctionInAnnotation_class() {
+    // https://github.com/dart-lang/sdk/issues/25696
+    String code = r'''
+class A {
+  const A({f});
+}
+
+@A(f: () {})
+class C {}
+''';
+    buildElementsForText(code);
+  }
+
+  void test_visitClassDeclaration_invalidFunctionInAnnotation_method() {
+    String code = r'''
+class A {
+  const A({f});
+}
+
+class C {
+  @A(f: () {})
+  void m() {}
+}
+''';
+    ElementHolder holder = buildElementsForText(code);
+    ClassElement elementC = holder.types[1];
+    expect(elementC, isNotNull);
+    MethodElement methodM = elementC.methods[0];
+    expect(methodM, isNotNull);
+    expect(methodM.functions, isEmpty);
+  }
+
+  void test_visitClassDeclaration_minimal() {
+    String className = "C";
+    ClassDeclaration classDeclaration =
+        AstFactory.classDeclaration(null, className, null, null, null, null);
+    classDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    classDeclaration.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(classDeclaration);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(type, isNotNull);
+    expect(type.name, className);
+    List<TypeParameterElement> typeParameters = type.typeParameters;
+    expect(typeParameters, hasLength(0));
+    expect(type.isAbstract, isFalse);
+    expect(type.isMixinApplication, isFalse);
+    expect(type.isSynthetic, isFalse);
+    expect(type.documentationComment, '/// aaa');
+    assertHasCodeRange(type, 50, 31);
+  }
+
+  void test_visitClassDeclaration_parameterized() {
+    String className = "C";
+    String firstVariableName = "E";
+    String secondVariableName = "F";
+    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
+        null,
+        className,
+        AstFactory.typeParameterList([firstVariableName, secondVariableName]),
+        null,
+        null,
+        null);
+
+    ElementHolder holder = buildElementsForAst(classDeclaration);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(type, isNotNull);
+    expect(type.name, className);
+    List<TypeParameterElement> typeParameters = type.typeParameters;
+    expect(typeParameters, hasLength(2));
+    expect(typeParameters[0].name, firstVariableName);
+    expect(typeParameters[1].name, secondVariableName);
+    expect(type.isAbstract, isFalse);
+    expect(type.isMixinApplication, isFalse);
+    expect(type.isSynthetic, isFalse);
+  }
+
+  void test_visitClassDeclaration_withMembers() {
+    String className = "C";
+    String typeParameterName = "E";
+    String fieldName = "f";
+    String methodName = "m";
+    ClassDeclaration classDeclaration = AstFactory.classDeclaration(
+        null,
+        className,
+        AstFactory.typeParameterList([typeParameterName]),
+        null,
+        null,
+        null, [
+      AstFactory.fieldDeclaration2(
+          false, null, [AstFactory.variableDeclaration(fieldName)]),
+      AstFactory.methodDeclaration2(
+          null,
+          null,
+          null,
+          null,
+          AstFactory.identifier3(methodName),
+          AstFactory.formalParameterList(),
+          AstFactory.blockFunctionBody2())
+    ]);
+
+    ElementHolder holder = buildElementsForAst(classDeclaration);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(type, isNotNull);
+    expect(type.name, className);
+    expect(type.isAbstract, isFalse);
+    expect(type.isMixinApplication, isFalse);
+    expect(type.isSynthetic, isFalse);
+    List<TypeParameterElement> typeParameters = type.typeParameters;
+    expect(typeParameters, hasLength(1));
+    TypeParameterElement typeParameter = typeParameters[0];
+    expect(typeParameter, isNotNull);
+    expect(typeParameter.name, typeParameterName);
+    List<FieldElement> fields = type.fields;
+    expect(fields, hasLength(1));
+    FieldElement field = fields[0];
+    expect(field, isNotNull);
+    expect(field.name, fieldName);
+    List<MethodElement> methods = type.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+  }
+
+  void test_visitClassTypeAlias() {
+    // class B {}
+    // class M {}
+    // class C = B with M
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorB =
+        ElementFactory.constructorElement2(classB, '', []);
+    constructorB.setModifier(Modifier.SYNTHETIC, true);
+    classB.constructors = [constructorB];
+    ClassElement classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassTypeAlias alias = AstFactory.classTypeAlias(
+        'C', null, null, AstFactory.typeName(classB, []), withClause, null);
+
+    ElementHolder holder = buildElementsForAst(alias);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(alias.element, same(type));
+    expect(type.name, equals('C'));
+    expect(type.isAbstract, isFalse);
+    expect(type.isMixinApplication, isTrue);
+    expect(type.isSynthetic, isFalse);
+    expect(type.typeParameters, isEmpty);
+    expect(type.fields, isEmpty);
+    expect(type.methods, isEmpty);
+  }
+
+  void test_visitClassTypeAlias_abstract() {
+    // class B {}
+    // class M {}
+    // abstract class C = B with M
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorB =
+        ElementFactory.constructorElement2(classB, '', []);
+    constructorB.setModifier(Modifier.SYNTHETIC, true);
+    classB.constructors = [constructorB];
+    ClassElement classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassTypeAlias alias = AstFactory.classTypeAlias('C', null,
+        Keyword.ABSTRACT, AstFactory.typeName(classB, []), withClause, null);
+
+    ElementHolder holder = buildElementsForAst(alias);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(type.isAbstract, isTrue);
+    expect(type.isMixinApplication, isTrue);
+  }
+
+  void test_visitClassTypeAlias_typeParams() {
+    // class B {}
+    // class M {}
+    // class C<T> = B with M
+    ClassElementImpl classB = ElementFactory.classElement2('B', []);
+    ConstructorElementImpl constructorB =
+        ElementFactory.constructorElement2(classB, '', []);
+    constructorB.setModifier(Modifier.SYNTHETIC, true);
+    classB.constructors = [constructorB];
+    ClassElementImpl classM = ElementFactory.classElement2('M', []);
+    WithClause withClause =
+        AstFactory.withClause([AstFactory.typeName(classM, [])]);
+    ClassTypeAlias alias = AstFactory.classTypeAlias(
+        'C',
+        AstFactory.typeParameterList(['T']),
+        null,
+        AstFactory.typeName(classB, []),
+        withClause,
+        null);
+
+    ElementHolder holder = buildElementsForAst(alias);
+    List<ClassElement> types = holder.types;
+    expect(types, hasLength(1));
+    ClassElement type = types[0];
+    expect(type.typeParameters, hasLength(1));
+    expect(type.typeParameters[0].name, equals('T'));
+  }
+
+  void test_visitConstructorDeclaration_external() {
+    String className = "A";
+    ConstructorDeclaration constructorDeclaration =
+        AstFactory.constructorDeclaration2(
+            null,
+            null,
+            AstFactory.identifier3(className),
+            null,
+            AstFactory.formalParameterList(),
+            null,
+            AstFactory.blockFunctionBody2());
+    constructorDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+
+    ElementHolder holder = buildElementsForAst(constructorDeclaration);
+    List<ConstructorElement> constructors = holder.constructors;
+    expect(constructors, hasLength(1));
+    ConstructorElement constructor = constructors[0];
+    expect(constructor, isNotNull);
+    expect(constructor.isExternal, isTrue);
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.name, "");
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
+  }
+
+  void test_visitConstructorDeclaration_factory() {
+    String className = "A";
+    ConstructorDeclaration constructorDeclaration =
+        AstFactory.constructorDeclaration2(
+            null,
+            Keyword.FACTORY,
+            AstFactory.identifier3(className),
+            null,
+            AstFactory.formalParameterList(),
+            null,
+            AstFactory.blockFunctionBody2());
+
+    ElementHolder holder = buildElementsForAst(constructorDeclaration);
+    List<ConstructorElement> constructors = holder.constructors;
+    expect(constructors, hasLength(1));
+    ConstructorElement constructor = constructors[0];
+    expect(constructor, isNotNull);
+    expect(constructor.isExternal, isFalse);
+    expect(constructor.isFactory, isTrue);
+    expect(constructor.name, "");
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
+  }
+
+  void test_visitConstructorDeclaration_minimal() {
+    String className = "A";
+    ConstructorDeclaration constructorDeclaration =
+        AstFactory.constructorDeclaration2(
+            null,
+            null,
+            AstFactory.identifier3(className),
+            null,
+            AstFactory.formalParameterList(),
+            null,
+            AstFactory.blockFunctionBody2());
+    constructorDeclaration.documentationComment = AstFactory
+        .documentationComment(
+            [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    constructorDeclaration.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(constructorDeclaration);
+    List<ConstructorElement> constructors = holder.constructors;
+    expect(constructors, hasLength(1));
+    ConstructorElement constructor = constructors[0];
+    expect(constructor, isNotNull);
+    assertHasCodeRange(constructor, 50, 31);
+    expect(constructor.documentationComment, '/// aaa');
+    expect(constructor.isExternal, isFalse);
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.name, "");
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
+  }
+
+  void test_visitConstructorDeclaration_named() {
+    String className = "A";
+    String constructorName = "c";
+    ConstructorDeclaration constructorDeclaration =
+        AstFactory.constructorDeclaration2(
+            null,
+            null,
+            AstFactory.identifier3(className),
+            constructorName,
+            AstFactory.formalParameterList(),
+            null,
+            AstFactory.blockFunctionBody2());
+
+    ElementHolder holder = buildElementsForAst(constructorDeclaration);
+    List<ConstructorElement> constructors = holder.constructors;
+    expect(constructors, hasLength(1));
+    ConstructorElement constructor = constructors[0];
+    expect(constructor, isNotNull);
+    expect(constructor.isExternal, isFalse);
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.name, constructorName);
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
+    expect(constructorDeclaration.name.staticElement, same(constructor));
+    expect(constructorDeclaration.element, same(constructor));
+  }
+
+  void test_visitConstructorDeclaration_unnamed() {
+    String className = "A";
+    ConstructorDeclaration constructorDeclaration =
+        AstFactory.constructorDeclaration2(
+            null,
+            null,
+            AstFactory.identifier3(className),
+            null,
+            AstFactory.formalParameterList(),
+            null,
+            AstFactory.blockFunctionBody2());
+
+    ElementHolder holder = buildElementsForAst(constructorDeclaration);
+    List<ConstructorElement> constructors = holder.constructors;
+    expect(constructors, hasLength(1));
+    ConstructorElement constructor = constructors[0];
+    expect(constructor, isNotNull);
+    expect(constructor.isExternal, isFalse);
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.name, "");
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
+    expect(constructorDeclaration.element, same(constructor));
+  }
+
+  void test_visitEnumDeclaration() {
+    String enumName = "E";
+    EnumDeclaration enumDeclaration =
+        AstFactory.enumDeclaration2(enumName, ["ONE"]);
+    enumDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    enumDeclaration.endToken.offset = 80;
+    ElementHolder holder = buildElementsForAst(enumDeclaration);
+    List<ClassElement> enums = holder.enums;
+    expect(enums, hasLength(1));
+    ClassElement enumElement = enums[0];
+    expect(enumElement, isNotNull);
+    assertHasCodeRange(enumElement, 50, 31);
+    expect(enumElement.documentationComment, '/// aaa');
+    expect(enumElement.name, enumName);
+  }
+
+  void test_visitFieldDeclaration() {
+    String firstFieldName = "x";
+    String secondFieldName = "y";
+    FieldDeclaration fieldDeclaration =
+        AstFactory.fieldDeclaration2(false, null, [
+      AstFactory.variableDeclaration(firstFieldName),
+      AstFactory.variableDeclaration(secondFieldName)
+    ]);
+    fieldDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    fieldDeclaration.endToken.offset = 110;
+
+    ElementHolder holder = buildElementsForAst(fieldDeclaration);
+    List<FieldElement> fields = holder.fields;
+    expect(fields, hasLength(2));
+
+    FieldElement firstField = fields[0];
+    expect(firstField, isNotNull);
+    assertHasCodeRange(firstField, 50, 61);
+    expect(firstField.documentationComment, '/// aaa');
+    expect(firstField.name, firstFieldName);
+    expect(firstField.initializer, isNull);
+    expect(firstField.isConst, isFalse);
+    expect(firstField.isFinal, isFalse);
+    expect(firstField.isSynthetic, isFalse);
+
+    FieldElement secondField = fields[1];
+    expect(secondField, isNotNull);
+    assertHasCodeRange(secondField, 50, 61);
+    expect(secondField.documentationComment, '/// aaa');
+    expect(secondField.name, secondFieldName);
+    expect(secondField.initializer, isNull);
+    expect(secondField.isConst, isFalse);
+    expect(secondField.isFinal, isFalse);
+    expect(secondField.isSynthetic, isFalse);
+  }
+
+  void test_visitFieldFormalParameter() {
+    String parameterName = "p";
+    FieldFormalParameter formalParameter =
+        AstFactory.fieldFormalParameter(null, null, parameterName);
+    formalParameter.beginToken.offset = 50;
+    formalParameter.endToken.offset = 80;
+    ElementHolder holder = buildElementsForAst(formalParameter);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter, isNotNull);
+    assertHasCodeRange(parameter, 50, 31);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.parameters, hasLength(0));
+  }
+
+  void test_visitFieldFormalParameter_functionTyped() {
+    String parameterName = "p";
+    FieldFormalParameter formalParameter = AstFactory.fieldFormalParameter(
+        null,
+        null,
+        parameterName,
+        AstFactory
+            .formalParameterList([AstFactory.simpleFormalParameter3("a")]));
+    ElementHolder holder = buildElementsForAst(formalParameter);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.parameters, hasLength(1));
+  }
+
+  void test_visitFormalParameterList() {
+    String firstParameterName = "a";
+    String secondParameterName = "b";
+    FormalParameterList parameterList = AstFactory.formalParameterList([
+      AstFactory.simpleFormalParameter3(firstParameterName),
+      AstFactory.simpleFormalParameter3(secondParameterName)
+    ]);
+    ElementHolder holder = buildElementsForAst(parameterList);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(2));
+    expect(parameters[0].name, firstParameterName);
+    expect(parameters[1].name, secondParameterName);
+  }
+
+  void test_visitFunctionDeclaration_external() {
+    // external f();
+    String functionName = "f";
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        null,
+        null,
+        functionName,
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList(), AstFactory.emptyFunctionBody()));
+    declaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+
+    ElementHolder holder = buildElementsForAst(declaration);
+    List<FunctionElement> functions = holder.functions;
+    expect(functions, hasLength(1));
+    FunctionElement function = functions[0];
+    expect(function, isNotNull);
+    expect(function.name, functionName);
+    expect(declaration.element, same(function));
+    expect(declaration.functionExpression.element, same(function));
+    expect(function.hasImplicitReturnType, isTrue);
+    expect(function.isExternal, isTrue);
+    expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
+  }
+
+  void test_visitFunctionDeclaration_getter() {
+    // get f() {}
+    String functionName = "f";
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        null,
+        Keyword.GET,
+        functionName,
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    declaration.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(declaration);
+    List<PropertyAccessorElement> accessors = holder.accessors;
+    expect(accessors, hasLength(1));
+    PropertyAccessorElement accessor = accessors[0];
+    expect(accessor, isNotNull);
+    assertHasCodeRange(accessor, 50, 31);
+    expect(accessor.documentationComment, '/// aaa');
+    expect(accessor.name, functionName);
+    expect(declaration.element, same(accessor));
+    expect(declaration.functionExpression.element, same(accessor));
+    expect(accessor.hasImplicitReturnType, isTrue);
+    expect(accessor.isGetter, isTrue);
+    expect(accessor.isExternal, isFalse);
+    expect(accessor.isSetter, isFalse);
+    expect(accessor.isSynthetic, isFalse);
+    expect(accessor.typeParameters, hasLength(0));
+    PropertyInducingElement variable = accessor.variable;
+    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
+        TopLevelVariableElement, variable);
+    expect(variable.isSynthetic, isTrue);
+  }
+
+  void test_visitFunctionDeclaration_plain() {
+    // T f() {}
+    String functionName = "f";
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('T'),
+        null,
+        functionName,
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    declaration.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(declaration);
+    List<FunctionElement> functions = holder.functions;
+    expect(functions, hasLength(1));
+    FunctionElement function = functions[0];
+    expect(function, isNotNull);
+    assertHasCodeRange(function, 50, 31);
+    expect(function.documentationComment, '/// aaa');
+    expect(function.hasImplicitReturnType, isFalse);
+    expect(function.name, functionName);
+    expect(declaration.element, same(function));
+    expect(declaration.functionExpression.element, same(function));
+    expect(function.isExternal, isFalse);
+    expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
+  }
+
+  void test_visitFunctionDeclaration_setter() {
+    // set f() {}
+    String functionName = "f";
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        null,
+        Keyword.SET,
+        functionName,
+        AstFactory.functionExpression2(
+            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+    declaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    declaration.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(declaration);
+    List<PropertyAccessorElement> accessors = holder.accessors;
+    expect(accessors, hasLength(1));
+    PropertyAccessorElement accessor = accessors[0];
+    expect(accessor, isNotNull);
+    assertHasCodeRange(accessor, 50, 31);
+    expect(accessor.documentationComment, '/// aaa');
+    expect(accessor.hasImplicitReturnType, isTrue);
+    expect(accessor.name, "$functionName=");
+    expect(declaration.element, same(accessor));
+    expect(declaration.functionExpression.element, same(accessor));
+    expect(accessor.isGetter, isFalse);
+    expect(accessor.isExternal, isFalse);
+    expect(accessor.isSetter, isTrue);
+    expect(accessor.isSynthetic, isFalse);
+    expect(accessor.typeParameters, hasLength(0));
+    PropertyInducingElement variable = accessor.variable;
+    EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
+        TopLevelVariableElement, variable);
+    expect(variable.isSynthetic, isTrue);
+  }
+
+  void test_visitFunctionDeclaration_typeParameters() {
+    // f<E>() {}
+    String functionName = 'f';
+    String typeParameterName = 'E';
+    FunctionExpression expression = AstFactory.functionExpression3(
+        AstFactory.typeParameterList([typeParameterName]),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
+    FunctionDeclaration declaration =
+        AstFactory.functionDeclaration(null, null, functionName, expression);
+
+    ElementHolder holder = buildElementsForAst(declaration);
+    List<FunctionElement> functions = holder.functions;
+    expect(functions, hasLength(1));
+    FunctionElement function = functions[0];
+    expect(function, isNotNull);
+    expect(function.hasImplicitReturnType, isTrue);
+    expect(function.name, functionName);
+    expect(function.isExternal, isFalse);
+    expect(function.isSynthetic, isFalse);
+    expect(declaration.element, same(function));
+    expect(expression.element, same(function));
+    List<TypeParameterElement> typeParameters = function.typeParameters;
+    expect(typeParameters, hasLength(1));
+    TypeParameterElement typeParameter = typeParameters[0];
+    expect(typeParameter, isNotNull);
+    expect(typeParameter.name, typeParameterName);
+  }
+
+  void test_visitMethodDeclaration_abstract() {
+    // m();
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.emptyFunctionBody());
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
+    expect(method.isAbstract, isTrue);
+    expect(method.isExternal, isFalse);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_duplicateField_synthetic() {
+    buildElementsForText(r'''
+class A {
+  int f;
+  int get f => 42;
+}
+''');
+    ClassDeclaration classNode = compilationUnit.declarations.single;
+    // ClassElement
+    ClassElement classElement = classNode.element;
+    expect(classElement.fields, hasLength(2));
+    expect(classElement.accessors, hasLength(3));
+    FieldElement notSyntheticFieldElement = classElement.fields
+        .singleWhere((f) => f.displayName == 'f' && !f.isSynthetic);
+    FieldElement syntheticFieldElement = classElement.fields
+        .singleWhere((f) => f.displayName == 'f' && f.isSynthetic);
+    PropertyAccessorElement syntheticGetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isGetter && a.isSynthetic);
+    PropertyAccessorElement syntheticSetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isSetter && a.isSynthetic);
+    PropertyAccessorElement notSyntheticGetterElement = classElement.accessors
+        .singleWhere(
+            (a) => a.displayName == 'f' && a.isGetter && !a.isSynthetic);
+    expect(notSyntheticFieldElement.getter, same(syntheticGetterElement));
+    expect(notSyntheticFieldElement.setter, same(syntheticSetterElement));
+    expect(syntheticFieldElement.getter, same(notSyntheticGetterElement));
+    expect(syntheticFieldElement.setter, isNull);
+    // class members nodes and their elements
+    FieldDeclaration fieldDeclNode = classNode.members[0];
+    VariableDeclaration fieldNode = fieldDeclNode.fields.variables.single;
+    MethodDeclaration getterNode = classNode.members[1];
+    expect(fieldNode.element, notSyntheticFieldElement);
+    expect(getterNode.element, notSyntheticGetterElement);
+  }
+
+  void test_visitMethodDeclaration_external() {
+    // external m();
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.emptyFunctionBody());
+    methodDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
+    expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isTrue);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_getter() {
+    // get m() {}
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        Keyword.GET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    methodDeclaration.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<FieldElement> fields = holder.fields;
+    expect(fields, hasLength(1));
+    FieldElement field = fields[0];
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.setter, isNull);
+    PropertyAccessorElement getter = field.getter;
+    expect(getter, isNotNull);
+    assertHasCodeRange(getter, 50, 31);
+    expect(getter.documentationComment, '/// aaa');
+    expect(getter.hasImplicitReturnType, isTrue);
+    expect(getter.isAbstract, isFalse);
+    expect(getter.isExternal, isFalse);
+    expect(getter.isGetter, isTrue);
+    expect(getter.isSynthetic, isFalse);
+    expect(getter.name, methodName);
+    expect(getter.variable, field);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
+  }
+
+  void test_visitMethodDeclaration_getter_abstract() {
+    // get m();
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        Keyword.GET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.emptyFunctionBody());
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<FieldElement> fields = holder.fields;
+    expect(fields, hasLength(1));
+    FieldElement field = fields[0];
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.setter, isNull);
+    PropertyAccessorElement getter = field.getter;
+    expect(getter, isNotNull);
+    expect(getter.hasImplicitReturnType, isTrue);
+    expect(getter.isAbstract, isTrue);
+    expect(getter.isExternal, isFalse);
+    expect(getter.isGetter, isTrue);
+    expect(getter.isSynthetic, isFalse);
+    expect(getter.name, methodName);
+    expect(getter.variable, field);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
+  }
+
+  void test_visitMethodDeclaration_getter_external() {
+    // external get m();
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(
+        null,
+        null,
+        Keyword.GET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList());
+    methodDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<FieldElement> fields = holder.fields;
+    expect(fields, hasLength(1));
+    FieldElement field = fields[0];
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.setter, isNull);
+    PropertyAccessorElement getter = field.getter;
+    expect(getter, isNotNull);
+    expect(getter.hasImplicitReturnType, isTrue);
+    expect(getter.isAbstract, isFalse);
+    expect(getter.isExternal, isTrue);
+    expect(getter.isGetter, isTrue);
+    expect(getter.isSynthetic, isFalse);
+    expect(getter.name, methodName);
+    expect(getter.variable, field);
+    expect(getter.functions, hasLength(0));
+    expect(getter.labels, hasLength(0));
+    expect(getter.localVariables, hasLength(0));
+    expect(getter.parameters, hasLength(0));
+  }
+
+  void test_visitMethodDeclaration_minimal() {
+    // T m() {}
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        AstFactory.typeName4('T'),
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    methodDeclaration.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    assertHasCodeRange(method, 50, 31);
+    expect(method.documentationComment, '/// aaa');
+    expect(method.hasImplicitReturnType, isFalse);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
+    expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_operator() {
+    // operator +(addend) {}
+    String methodName = "+";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        Keyword.OPERATOR,
+        AstFactory.identifier3(methodName),
+        AstFactory
+            .formalParameterList([AstFactory.simpleFormalParameter3("addend")]),
+        AstFactory.blockFunctionBody2());
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(1));
+    expect(method.typeParameters, hasLength(0));
+    expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_setter() {
+    // set m() {}
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        Keyword.SET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
+    methodDeclaration.documentationComment = AstFactory.documentationComment(
+        [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    methodDeclaration.endToken.offset = 80;
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<FieldElement> fields = holder.fields;
+    expect(fields, hasLength(1));
+    FieldElement field = fields[0];
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.getter, isNull);
+
+    PropertyAccessorElement setter = field.setter;
+    expect(setter, isNotNull);
+    assertHasCodeRange(setter, 50, 31);
+    expect(setter.documentationComment, '/// aaa');
+    expect(setter.hasImplicitReturnType, isTrue);
+    expect(setter.isAbstract, isFalse);
+    expect(setter.isExternal, isFalse);
+    expect(setter.isSetter, isTrue);
+    expect(setter.isSynthetic, isFalse);
+    expect(setter.name, "$methodName=");
+    expect(setter.displayName, methodName);
+    expect(setter.variable, field);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
+  }
+
+  void test_visitMethodDeclaration_setter_abstract() {
+    // set m();
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        Keyword.SET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.emptyFunctionBody());
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<FieldElement> fields = holder.fields;
+    expect(fields, hasLength(1));
+    FieldElement field = fields[0];
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.getter, isNull);
+    PropertyAccessorElement setter = field.setter;
+    expect(setter, isNotNull);
+    expect(setter.hasImplicitReturnType, isTrue);
+    expect(setter.isAbstract, isTrue);
+    expect(setter.isExternal, isFalse);
+    expect(setter.isSetter, isTrue);
+    expect(setter.isSynthetic, isFalse);
+    expect(setter.name, "$methodName=");
+    expect(setter.displayName, methodName);
+    expect(setter.variable, field);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
+  }
+
+  void test_visitMethodDeclaration_setter_external() {
+    // external m();
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(
+        null,
+        null,
+        Keyword.SET,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList());
+    methodDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<FieldElement> fields = holder.fields;
+    expect(fields, hasLength(1));
+    FieldElement field = fields[0];
+    expect(field, isNotNull);
+    expect(field.name, methodName);
+    expect(field.isSynthetic, isTrue);
+    expect(field.getter, isNull);
+    PropertyAccessorElement setter = field.setter;
+    expect(setter, isNotNull);
+    expect(setter.hasImplicitReturnType, isTrue);
+    expect(setter.isAbstract, isFalse);
+    expect(setter.isExternal, isTrue);
+    expect(setter.isSetter, isTrue);
+    expect(setter.isSynthetic, isFalse);
+    expect(setter.name, "$methodName=");
+    expect(setter.displayName, methodName);
+    expect(setter.variable, field);
+    expect(setter.functions, hasLength(0));
+    expect(setter.labels, hasLength(0));
+    expect(setter.localVariables, hasLength(0));
+    expect(setter.parameters, hasLength(0));
+  }
+
+  void test_visitMethodDeclaration_static() {
+    // static m() {}
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        Keyword.STATIC,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
+    expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
+    expect(method.isStatic, isTrue);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_typeParameters() {
+    // m<E>() {}
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2());
+    methodDeclaration.typeParameters = AstFactory.typeParameterList(['E']);
+
+    ElementHolder holder = buildElementsForAst(methodDeclaration);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.hasImplicitReturnType, isTrue);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(1));
+    expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitTypeAlias_minimal() {
+    String aliasName = "F";
+    TypeAlias typeAlias = AstFactory.typeAlias(null, aliasName, null, null);
+    ElementHolder holder = buildElementsForAst(typeAlias);
+    List<FunctionTypeAliasElement> aliases = holder.typeAliases;
+    expect(aliases, hasLength(1));
+    FunctionTypeAliasElement alias = aliases[0];
+    expect(alias, isNotNull);
+    expect(alias.name, aliasName);
+    expect(alias.type, isNotNull);
+    expect(alias.isSynthetic, isFalse);
+  }
+
+  void test_visitTypeAlias_withFormalParameters() {
+    String aliasName = "F";
+    String firstParameterName = "x";
+    String secondParameterName = "y";
+    TypeAlias typeAlias = AstFactory.typeAlias(
+        null,
+        aliasName,
+        AstFactory.typeParameterList(),
+        AstFactory.formalParameterList([
+          AstFactory.simpleFormalParameter3(firstParameterName),
+          AstFactory.simpleFormalParameter3(secondParameterName)
+        ]));
+    typeAlias.beginToken.offset = 50;
+    typeAlias.endToken.offset = 80;
+    ElementHolder holder = buildElementsForAst(typeAlias);
+    List<FunctionTypeAliasElement> aliases = holder.typeAliases;
+    expect(aliases, hasLength(1));
+    FunctionTypeAliasElement alias = aliases[0];
+    expect(alias, isNotNull);
+    assertHasCodeRange(alias, 50, 31);
+    expect(alias.name, aliasName);
+    expect(alias.type, isNotNull);
+    expect(alias.isSynthetic, isFalse);
+    List<VariableElement> parameters = alias.parameters;
+    expect(parameters, hasLength(2));
+    expect(parameters[0].name, firstParameterName);
+    expect(parameters[1].name, secondParameterName);
+    List<TypeParameterElement> typeParameters = alias.typeParameters;
+    expect(typeParameters, isNotNull);
+    expect(typeParameters, hasLength(0));
+  }
+
+  void test_visitTypeAlias_withTypeParameters() {
+    String aliasName = "F";
+    String firstTypeParameterName = "A";
+    String secondTypeParameterName = "B";
+    TypeAlias typeAlias = AstFactory.typeAlias(
+        null,
+        aliasName,
+        AstFactory.typeParameterList(
+            [firstTypeParameterName, secondTypeParameterName]),
+        AstFactory.formalParameterList());
+    ElementHolder holder = buildElementsForAst(typeAlias);
+    List<FunctionTypeAliasElement> aliases = holder.typeAliases;
+    expect(aliases, hasLength(1));
+    FunctionTypeAliasElement alias = aliases[0];
+    expect(alias, isNotNull);
+    expect(alias.name, aliasName);
+    expect(alias.type, isNotNull);
+    expect(alias.isSynthetic, isFalse);
+    List<VariableElement> parameters = alias.parameters;
+    expect(parameters, isNotNull);
+    expect(parameters, hasLength(0));
+    List<TypeParameterElement> typeParameters = alias.typeParameters;
+    expect(typeParameters, hasLength(2));
+    expect(typeParameters[0].name, firstTypeParameterName);
+    expect(typeParameters[1].name, secondTypeParameterName);
+  }
+
+  void test_visitTypeParameter() {
+    String parameterName = "E";
+    TypeParameter typeParameter = AstFactory.typeParameter(parameterName);
+    typeParameter.beginToken.offset = 50;
+    ElementHolder holder = buildElementsForAst(typeParameter);
+    List<TypeParameterElement> typeParameters = holder.typeParameters;
+    expect(typeParameters, hasLength(1));
+    TypeParameterElement typeParameterElement = typeParameters[0];
+    expect(typeParameterElement, isNotNull);
+    assertHasCodeRange(typeParameterElement, 50, 1);
+    expect(typeParameterElement.name, parameterName);
+    expect(typeParameterElement.bound, isNull);
+    expect(typeParameterElement.isSynthetic, isFalse);
+  }
+}
+
+abstract class _BaseTest {
+  CompilationUnitElement compilationUnitElement;
+  CompilationUnit _compilationUnit;
+
+  CompilationUnit get compilationUnit => _compilationUnit;
+
+  void assertHasCodeRange(Element element, int offset, int length) {
+    ElementImpl elementImpl = element;
+    expect(elementImpl.codeOffset, offset);
+    expect(elementImpl.codeLength, length);
+  }
+
+  /**
+   * Build elements using [ApiElementBuilder].
+   */
+  ElementHolder buildElementsForAst(AstNode node) {
+    ElementHolder holder = new ElementHolder();
+    AstVisitor builder = createElementBuilder(holder);
+    node.accept(builder);
+    return holder;
+  }
+
+  /**
+   * Parse the given [code], and build elements using [ApiElementBuilder].
+   */
+  ElementHolder buildElementsForText(String code) {
+    ElementHolder holder = new ElementHolder();
+    AstVisitor builder = createElementBuilder(holder);
+    _visitAstOfCode(code, builder);
+    return holder;
+  }
+
+  /**
+   * Verify that the given [metadata] has exactly one annotation, and that its
+   * [ElementAnnotationImpl] is unresolved.
+   */
+  void checkAnnotation(NodeList<Annotation> metadata) {
+    expect(metadata, hasLength(1));
+    expect(metadata[0], new isInstanceOf<AnnotationImpl>());
+    AnnotationImpl annotation = metadata[0];
+    expect(annotation.elementAnnotation,
+        new isInstanceOf<ElementAnnotationImpl>());
+    ElementAnnotationImpl elementAnnotation = annotation.elementAnnotation;
+    expect(elementAnnotation.element, isNull); // Not yet resolved
+    expect(elementAnnotation.compilationUnit, isNotNull);
+    expect(elementAnnotation.compilationUnit, compilationUnitElement);
+  }
+
+  /**
+   * Verify that the given [element] has exactly one annotation, and that its
+   * [ElementAnnotationImpl] is unresolved.
+   */
+  void checkMetadata(Element element) {
+    expect(element.metadata, hasLength(1));
+    expect(element.metadata[0], new isInstanceOf<ElementAnnotationImpl>());
+    ElementAnnotationImpl elementAnnotation = element.metadata[0];
+    expect(elementAnnotation.element, isNull); // Not yet resolved
+    expect(elementAnnotation.compilationUnit, isNotNull);
+    expect(elementAnnotation.compilationUnit, compilationUnitElement);
+  }
+
+  AstVisitor createElementBuilder(ElementHolder holder);
+
+  void setUp() {
+    compilationUnitElement = new CompilationUnitElementImpl('test.dart');
+  }
+
+  void _assertVisibleRange(LocalElement element, int offset, int end) {
+    SourceRange visibleRange = element.visibleRange;
+    expect(visibleRange.offset, offset);
+    expect(visibleRange.end, end);
+  }
+
+  /**
+   * Parse the given [code], and visit it with the given [visitor].
+   * Fail if any error is logged.
+   */
+  void _visitAstOfCode(String code, AstVisitor visitor) {
+    TestLogger logger = new TestLogger();
+    AnalysisEngine.instance.logger = logger;
+    try {
+      _compilationUnit = ParserTestCase.parseCompilationUnit(code);
+      compilationUnit.accept(visitor);
+    } finally {
+      expect(logger.log, hasLength(0));
+      AnalysisEngine.instance.logger = Logger.NULL;
+    }
   }
 }
