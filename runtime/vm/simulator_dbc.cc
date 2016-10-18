@@ -37,6 +37,8 @@ DEFINE_FLAG(uint64_t, trace_sim_after, ULLONG_MAX,
 DEFINE_FLAG(uint64_t, stop_sim_at, ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
+#define LIKELY(cond) __builtin_expect((cond), 1)
+
 // SimulatorSetjmpBuffer are linked together, and the last created one
 // is referenced by the Simulator. When an exception is thrown, the exception
 // runtime looks at where to jump and finds the corresponding
@@ -294,6 +296,21 @@ class SimulatorHelpers {
     return true;
   }
 
+  static RawObject* AllocateDouble(Thread* thread, double value) {
+    const intptr_t instance_size = Double::InstanceSize();
+    const uword start =
+        thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      uword tags = 0;
+      tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
+      tags = RawObject::SizeTag::update(instance_size, tags);
+      *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
+      *reinterpret_cast<double*>(start + Double::value_offset()) = value;
+      return reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+    }
+    return NULL;
+  }
+
   static bool Double_add(Thread* thread,
                          RawObject** FP,
                          RawObject** result) {
@@ -301,8 +318,12 @@ class SimulatorHelpers {
     if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
       return false;
     }
-    *result = static_cast<RawObject*>(Double::New(d1 + d2));
-    return true;
+    RawObject* new_double = AllocateDouble(thread, d1 + d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
   }
 
   static bool Double_mul(Thread* thread,
@@ -312,8 +333,12 @@ class SimulatorHelpers {
     if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
       return false;
     }
-    *result = static_cast<RawObject*>(Double::New(d1 * d2));
-    return true;
+    RawObject* new_double = AllocateDouble(thread, d1 * d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
   }
 
   static bool Double_sub(Thread* thread,
@@ -323,8 +348,12 @@ class SimulatorHelpers {
     if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
       return false;
     }
-    *result = static_cast<RawObject*>(Double::New(d1 - d2));
-    return true;
+    RawObject* new_double = AllocateDouble(thread, d1 - d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
   }
 
   static bool Double_div(Thread* thread,
@@ -334,8 +363,12 @@ class SimulatorHelpers {
     if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
       return false;
     }
-    *result = static_cast<RawObject*>(Double::New(d1 / d2));
-    return true;
+    RawObject* new_double = AllocateDouble(thread, d1 / d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
   }
 
   static bool Double_greaterThan(Thread* thread,
@@ -659,9 +692,6 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
 #endif
   return (res != 0);
 }
-
-
-#define LIKELY(cond) __builtin_expect((cond), 1)
 
 
 DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
