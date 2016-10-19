@@ -1940,10 +1940,11 @@ class HForeignCode extends HForeign {
   int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
   bool typeEquals(other) => other is HForeignCode;
   bool dataEquals(HForeignCode other) {
-    return codeTemplate.source == other.codeTemplate.source;
+    return codeTemplate.source != null &&
+        codeTemplate.source == other.codeTemplate.source;
   }
 
-  String toString() => 'HForeignCode("${codeTemplate.source}", $inputs)';
+  String toString() => 'HForeignCode("${codeTemplate.source}")';
 }
 
 abstract class HInvokeBinary extends HInstruction {
