@@ -209,19 +209,17 @@ class ParserErrorCode extends ErrorCode {
           "Try inserting a list or map literal, or remove the type arguments.");
 
   static const ParserErrorCode EXPECTED_STRING_LITERAL = const ParserErrorCode(
-      'EXPECTED_STRING_LITERAL',
-      "Expected a string literal.",
-      "Try adding a string literal.");
+      'EXPECTED_STRING_LITERAL', "Expected a string literal.");
 
   /**
    * Parameters:
    * 0: the token that was expected but not found
    */
-  static const ParserErrorCode EXPECTED_TOKEN = const ParserErrorCode(
-      'EXPECTED_TOKEN', "Expected to find '{0}'.", "Try inserting a '{0}'.");
+  static const ParserErrorCode EXPECTED_TOKEN =
+      const ParserErrorCode('EXPECTED_TOKEN', "Expected to find '{0}'.");
 
-  static const ParserErrorCode EXPECTED_TYPE_NAME = const ParserErrorCode(
-      'EXPECTED_TYPE_NAME', "Expected a type name.", "Try adding a type name.");
+  static const ParserErrorCode EXPECTED_TYPE_NAME =
+      const ParserErrorCode('EXPECTED_TYPE_NAME', "Expected a type name.");
 
   static const ParserErrorCode EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE =
       const ParserErrorCode(
