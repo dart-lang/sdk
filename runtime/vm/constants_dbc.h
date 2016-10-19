@@ -230,6 +230,16 @@ namespace dart {
 //    Convert the unboxed float or double in FP[rD] as indicated, and store the
 //    result in FP[rA].
 //
+//  - DoubleIsNaN rA, rD
+//
+//    If the unboxed double in FP[rD] is a NaN, then writes Bool::True().raw()
+//    into FP[rA], and Bool::False().raw() otherwise.
+//
+//  - DoubleIsInfinite rA, rD
+//
+//    If the unboxed double in FP[rD] is + or - infinity, then
+//    writes Bool::True().raw() into FP[rA], and Bool::False().raw() otherwise.
+//
 //  - BitOr, BitAnd, BitXor rA, rB, rC
 //
 //    FP[rA] <- FP[rB] op FP[rC]. These instructions expect their operands to be
@@ -719,6 +729,8 @@ namespace dart {
   V(DCeil,                         A_D, reg, reg, ___) \
   V(DoubleToFloat,                 A_D, reg, reg, ___) \
   V(FloatToDouble,                 A_D, reg, reg, ___) \
+  V(DoubleIsNaN,                   A_D, reg, reg, ___) \
+  V(DoubleIsInfinite,              A_D, reg, reg, ___) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \
