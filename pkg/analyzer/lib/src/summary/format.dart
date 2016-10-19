@@ -5370,6 +5370,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _redirectedConstructor?.flushInformative();
     _returnType?.flushInformative();
     _typeParameters?.forEach((b) => b.flushInformative());
+    _visibleLength = null;
+    _visibleOffset = null;
   }
 
   /**
@@ -5430,8 +5432,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
         x?.collectApiSignature(signature);
       }
     }
-    signature.addInt(this._visibleLength ?? 0);
-    signature.addInt(this._visibleOffset ?? 0);
     signature.addInt(this._constCycleSlot ?? 0);
     signature.addBool(this._bodyExpr != null);
     this._bodyExpr?.collectApiSignature(signature);

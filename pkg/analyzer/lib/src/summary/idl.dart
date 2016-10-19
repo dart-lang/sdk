@@ -1926,12 +1926,14 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * If a local function, the length of the visible range; zero otherwise.
    */
+  @informative
   @Id(20)
   int get visibleLength;
 
   /**
    * If a local function, the beginning of the visible range; zero otherwise.
    */
+  @informative
   @Id(21)
   int get visibleOffset;
 }
