@@ -5826,6 +5826,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ b(&skip_call, EQ);  // base is 1.0, result is 1.0.
 
   __ vcmpd(saved_base, exp);
+  __ vmstat();
   __ b(&try_sqrt, VC);  // // Neither 'exp' nor 'base' is NaN.
 
   __ Bind(&return_nan);
@@ -5840,15 +5841,18 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 
   // base == -Infinity -> call pow;
   __ vcmpd(saved_base, result);
+  __ vmstat();
   __ b(&do_pow, EQ);
 
   // exponent == 0.5 ?
   __ LoadDImmediate(result, 0.5, temp);
   __ vcmpd(exp, result);
+  __ vmstat();
   __ b(&do_pow, NE);
 
   // base == 0 -> return 0;
   __ vcmpdz(saved_base);
+  __ vmstat();
   __ b(&return_zero, EQ);
 
   __ vsqrtd(result, saved_base);
