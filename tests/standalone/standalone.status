@@ -326,16 +326,6 @@ link_natives_lazily_test: SkipByDesign
 # SIMDBC interpreter doesn't support --no_lazy_dispatchers
 no_lazy_dispatchers_test: SkipByDesign
 
-[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
-io/*: Skip # Issue #26376
-
-typed_data_isolate_test: Skip # Issue #26376
-typed_array_test: Skip # Issue #26376
-typed_array_int64_uint64_test: Skip # Issue #26376
-
-oom_error_stacktrace_test: Skip # Issue #26377
-out_of_memory_test: Skip # Issue #26377
-
 [ $runtime == vm || $runtime == dart_app || $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
 
