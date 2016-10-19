@@ -2424,6 +2424,9 @@ import 'package:crypto/crypto.dart';
   }
 
   void test_resolveCompilationUnit_existingElementModel() {
+    prepareAnalysisContext(new AnalysisOptionsImpl()
+      ..enableGenericMethods = true
+      ..strongMode = true);
     Source source = addSource(
         '/test.dart',
         r'''
@@ -2470,6 +2473,8 @@ class ClassTwo {
 void topLevelFunctionWithLocalFunction() {
   void localFunction({bool b: false}) {}
 }
+
+void functionWithGenericFunctionTypedParam/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {}
 ''');
     context.resolveCompilationUnit2(source, source);
     LibraryElement firstElement = context.computeLibraryElement(source);

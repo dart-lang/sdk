@@ -528,7 +528,8 @@ class ElementWalker {
    */
   ElementWalker.forParameter(ParameterElement element)
       : element = element,
-        _parameters = element.parameters;
+        _parameters = element.parameters,
+        _typeParameters = element.typeParameters;
 
   /**
    * Creates an [ElementWalker] which walks the child elements of a typedef
