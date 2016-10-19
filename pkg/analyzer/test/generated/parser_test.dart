@@ -8,10 +8,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -2983,6 +2985,21 @@ class ParserTestCase extends EngineTestCase {
     CompilationUnit unit = parser.parseCompilationUnit(token);
     expect(unit, isNotNull);
     listener.assertErrorsWithCodes(errorCodes);
+    return unit;
+  }
+
+  /**
+   * Parse the given [code] as a compilation unit.
+   */
+  static CompilationUnit parseCompilationUnit2(String code,
+      {AnalysisErrorListener listener, bool parseGenericMethods: false}) {
+    listener ??= AnalysisErrorListener.NULL_LISTENER;
+    Scanner scanner = new Scanner(null, new CharSequenceReader(code), listener);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    parser.parseGenericMethods = parseGenericMethods;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = new LineInfo(scanner.lineStarts);
     return unit;
   }
 

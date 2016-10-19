@@ -9395,6 +9395,10 @@ enum TypeResolverMode {
 
   /**
    * Resolve only type names that would be skipped during [api].
+   *
+   * Resolution must start from a unit member or a class member. For example
+   * it is not allowed to resolve types in a separate statement, or a function
+   * body.
    */
   local
 }
@@ -9438,7 +9442,16 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   final TypeResolverMode mode;
 
-  bool _visitAllInLocalMode = false;
+  /**
+   * Is `true` when we are visiting all nodes in [TypeResolverMode.local] mode.
+   */
+  bool _localModeVisitAll = false;
+
+  /**
+   * Is `true` if we are in [TypeResolverMode.local] mode, and the initial
+   * [nameScope] was computed.
+   */
+  bool _localModeScopeReady = false;
 
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
@@ -9794,8 +9807,34 @@ class TypeResolverVisitor extends ScopedVisitor {
     // resolve only type names that are local.
     if (mode == TypeResolverMode.local) {
       // We are in the state of visiting all nodes.
-      if (_visitAllInLocalMode) {
+      if (_localModeVisitAll) {
         return super.visitNode(node);
+      }
+
+      // Ensure that the name scope is ready.
+      if (!_localModeScopeReady) {
+        void fillNameScope(AstNode node) {
+          if (node is FunctionBody ||
+              node is FormalParameterList ||
+              node is VariableDeclaration) {
+            throw new StateError(
+                'Local type resolution must start from a class or unit member.');
+          }
+          // Create enclosing name scopes.
+          AstNode parent = node.parent;
+          if (parent != null) {
+            fillNameScope(parent);
+          }
+          // Create the name scope for the node.
+          if (node is ClassDeclaration) {
+            ClassElement classElement = node.element;
+            nameScope = new TypeParameterScope(nameScope, classElement);
+            nameScope = new ClassScope(nameScope, classElement);
+          }
+        }
+
+        fillNameScope(node);
+        _localModeScopeReady = true;
       }
 
       /**
@@ -9803,12 +9842,12 @@ class TypeResolverVisitor extends ScopedVisitor {
        */
       void visitAllNodes(AstNode node) {
         if (node != null) {
-          bool wasVisitAllInLocalMode = _visitAllInLocalMode;
+          bool wasVisitAllInLocalMode = _localModeVisitAll;
           try {
-            _visitAllInLocalMode = true;
+            _localModeVisitAll = true;
             node.accept(this);
           } finally {
-            _visitAllInLocalMode = wasVisitAllInLocalMode;
+            _localModeVisitAll = wasVisitAllInLocalMode;
           }
         }
       }
