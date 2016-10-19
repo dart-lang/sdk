@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -28,6 +29,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_context_factory.dart';
+import 'parser_test.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
@@ -2589,6 +2591,107 @@ class TypeResolverVisitorTest {
     _visitor = new TypeResolverVisitor(
         element, librarySource, _typeProvider, _listener,
         nameScope: libraryScope);
+  }
+
+  void test_modeApi() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class C extends A with A implements A {
+  A f = new A();
+  A m() {
+    A v1;
+  }
+}
+A f([A p = const A()]) {
+  A v2;
+}
+A V = new A();
+''');
+    var unitElement = new CompilationUnitElementImpl('/test.dart');
+    ClassElementImpl A = ElementFactory.classElement2('A');
+
+    // Build API elements.
+    {
+      var holder = new ElementHolder();
+      unit.accept(new ApiElementBuilder(holder, unitElement));
+    }
+
+    // Resolve API types.
+    {
+      MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+      InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+          resourceProvider: resourceProvider);
+      var source = resourceProvider.getFile('/test.dart').createSource();
+      var libraryElement = new LibraryElementImpl.forNode(context, null)
+        ..definingCompilationUnit = unitElement;
+      var libraryScope = new LibraryScope(libraryElement);
+      var visitor = new TypeResolverVisitor(
+          libraryElement, source, _typeProvider, _listener,
+          nameScope: libraryScope, mode: TypeResolverMode.api);
+      libraryScope.define(A);
+      unit.accept(visitor);
+    }
+
+    // Top-level: C
+    {
+      var c = unit.declarations[0] as ClassDeclaration;
+
+      // The extends/with/implements types are resolved.
+      expect(c.extendsClause.superclass.toString(), 'A');
+      expect(c.withClause.mixinTypes[0].type.toString(), 'A');
+      expect(c.implementsClause.interfaces[0].type.toString(), 'A');
+
+      {
+        var fd = c.members[0] as FieldDeclaration;
+        // The field type is resolved.
+        expect(fd.fields.type.type.toString(), 'A');
+        // The type in the initializer is not resolved.
+        var f = fd.fields.variables[0];
+        var fi = f.initializer as InstanceCreationExpression;
+        expect(fi.constructorName.type.type, isNull);
+      }
+
+      {
+        var m = c.members[1] as MethodDeclaration;
+        // The return type is resolved.
+        expect(m.returnType.type.toString(), 'A');
+        // The local variable type is not resolved.
+        var body = m.body as BlockFunctionBody;
+        var vd = body.block.statements.single as VariableDeclarationStatement;
+        expect(vd.variables.type.type, isNull);
+      }
+    }
+
+    // Top-level: f
+    {
+      var f = unit.declarations[1] as FunctionDeclaration;
+      FunctionExpression fe = f.functionExpression;
+      // The return type is resolved.
+      expect(f.returnType.type.toString(), 'A');
+      // The parameter type is resolved.
+      var pd = fe.parameters.parameters[0] as DefaultFormalParameter;
+      var p = pd.parameter as SimpleFormalParameter;
+      expect(p.type.type.toString(), 'A');
+      // The parameter default is not resolved.
+      {
+        var pde = pd.defaultValue as InstanceCreationExpression;
+        expect(pde.constructorName.type.type, isNull);
+      }
+      // The local variable type is not resolved.
+      var body = fe.body as BlockFunctionBody;
+      var vd = body.block.statements.single as VariableDeclarationStatement;
+      expect(vd.variables.type.type, isNull);
+    }
+
+    // Top-level: V
+    {
+      var vd = unit.declarations[2] as TopLevelVariableDeclaration;
+      // The type is resolved.
+      expect(vd.variables.type.toString(), 'A');
+      // The initializer is not resolved.
+      VariableDeclaration v = vd.variables.variables[0];
+      var vi = v.initializer as InstanceCreationExpression;
+      expect(vi.constructorName.type.type, isNull);
+    }
   }
 
   void test_visitCatchClause_exception() {

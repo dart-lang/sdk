@@ -9379,6 +9379,27 @@ class TypeProviderImpl extends TypeProviderBase {
 }
 
 /**
+ * Modes in which [TypeResolverVisitor] works.
+ */
+enum TypeResolverMode {
+  /**
+   * Resolve all names types of all nodes.
+   */
+  everything,
+
+  /**
+   * Resolve only type names outside of function bodies, variable initializers,
+   * and parameter default values.
+   */
+  api,
+
+  /**
+   * Resolve only type names that would be skipped during [api].
+   */
+  local
+}
+
+/**
  * Instances of the class `TypeResolverVisitor` are used to resolve the types associated with
  * the elements in the element model. This includes the types of superclasses, mixins, interfaces,
  * fields, methods, parameters, and local variables. As a side-effect, this also finishes building
@@ -9415,6 +9436,8 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   TypeNameResolver _typeNameResolver;
 
+  final TypeResolverMode mode;
+
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
@@ -9432,7 +9455,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope})
+      {Scope nameScope, this.mode: TypeResolverMode.everything})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
@@ -9470,6 +9493,14 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
+  }
+
+  @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    if (mode == TypeResolverMode.api) {
+      return null;
+    }
+    return super.visitBlockFunctionBody(node);
   }
 
   @override
@@ -9631,6 +9662,14 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (mode == TypeResolverMode.api) {
+      return null;
+    }
+    return super.visitExpressionFunctionBody(node);
+  }
+
+  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     super.visitFieldFormalParameter(node);
     Element element = node.identifier.staticElement;
@@ -9739,6 +9778,23 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
+  }
+
+  @override
+  Object visitNode(AstNode node) {
+    // In API mode we need to ignore:
+    //   - default values of parameters;
+    //   - initializers of top-level variables.
+    if (mode == TypeResolverMode.api) {
+      if (node is DefaultFormalParameter) {
+        node.parameter.accept(this);
+        return null;
+      }
+      if (node is VariableDeclaration) {
+        return null;
+      }
+    }
+    return super.visitNode(node);
   }
 
   @override
