@@ -1060,8 +1060,10 @@ define([], function() {
     derived.__proto__ = base;
   };
   dart.setExtensionBaseClass = function(derived, base) {
-    derived.prototype[dart._extensionType] = derived;
-    derived.prototype.__proto__ = base.prototype;
+    if (base) {
+      derived.prototype[dart._extensionType] = derived;
+      derived.prototype.__proto__ = base.prototype;
+    }
   };
   dart.callableClass = function(callableCtor, classExpr) {
     callableCtor.prototype = classExpr.prototype;
@@ -16327,6 +16329,7 @@ define([], function() {
     names: ['_create1', '_create2', '_create3']
   });
   dart.registerExtension(dart.global.Uint8ClampedArray, _native_typed_data.NativeUint8ClampedList);
+  dart.registerExtension(dart.global.CanvasPixelArray, _native_typed_data.NativeUint8ClampedList);
   dart.defineExtensionNames([
     'runtimeType',
     'length',
@@ -39310,6 +39313,7 @@ define([], function() {
     }
   });
   dart.registerExtension(dart.global.IDBOpenDBRequest, indexed_db.OpenDBRequest);
+  dart.registerExtension(dart.global.IDBVersionChangeRequest, indexed_db.OpenDBRequest);
   dart.defineExtensionNames([
     'completed',
     'abort',
@@ -39561,6 +39565,7 @@ define([], function() {
   html$.Event.BUBBLING_PHASE = 3;
   html$.Event.CAPTURING_PHASE = 1;
   dart.registerExtension(dart.global.Event, html$.Event);
+  dart.registerExtension(dart.global.InputEvent, html$.Event);
   dart.defineExtensionNames([
     'dataLoss',
     'dataLossMessage',
@@ -42439,6 +42444,8 @@ define([], function() {
     }
   });
   dart.registerExtension(dart.global.ApplicationCache, html$.ApplicationCache);
+  dart.registerExtension(dart.global.DOMApplicationCache, html$.ApplicationCache);
+  dart.registerExtension(dart.global.OfflineResourceList, html$.ApplicationCache);
   dart.defineExtensionNames([
     'message',
     'reason',
@@ -46258,6 +46265,8 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.CSSKeyframeRule, html$.CssKeyframeRule);
+  dart.registerExtension(dart.global.MozCSSKeyframeRule, html$.CssKeyframeRule);
+  dart.registerExtension(dart.global.WebKitCSSKeyframeRule, html$.CssKeyframeRule);
   dart.defineExtensionNames([
     'appendRule',
     'deleteRule',
@@ -46305,6 +46314,8 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.CSSKeyframesRule, html$.CssKeyframesRule);
+  dart.registerExtension(dart.global.MozCSSKeyframesRule, html$.CssKeyframesRule);
+  dart.registerExtension(dart.global.WebKitCSSKeyframesRule, html$.CssKeyframesRule);
   dart.defineExtensionNames([
     'media'
   ]);
@@ -52046,6 +52057,8 @@ define([], function() {
     }
   });
   dart.registerExtension(dart.global.CSSStyleDeclaration, html$.CssStyleDeclaration);
+  dart.registerExtension(dart.global.MSStyleCSSProperties, html$.CssStyleDeclaration);
+  dart.registerExtension(dart.global.CSS2Properties, html$.CssStyleDeclaration);
   const _elementIterable = Symbol('_elementIterable');
   const _elementCssStyleDeclarationSetIterable = Symbol('_elementCssStyleDeclarationSetIterable');
   const _setAll = Symbol('_setAll');
@@ -64522,6 +64535,7 @@ define([], function() {
     names: ['_create_1', '_create_2']
   });
   dart.registerExtension(dart.global.MouseEvent, html$.MouseEvent);
+  dart.registerExtension(dart.global.DragEvent, html$.MouseEvent);
   html$.MutationCallback = dart.typedef('MutationCallback', () => dart.functionType(dart.void, [ListOfMutationRecord(), html$.MutationObserver]));
   const _observe_1 = Symbol('_observe_1');
   const _observe = Symbol('_observe');
@@ -64611,6 +64625,7 @@ define([], function() {
   });
   html$.MutationObserver._boolKeys = dart.const(dart.map({childList: true, attributes: true, characterData: true, subtree: true, attributeOldValue: true, characterDataOldValue: true}, core.String, core.bool));
   dart.registerExtension(dart.global.MutationObserver, html$.MutationObserver);
+  dart.registerExtension(dart.global.WebKitMutationObserver, html$.MutationObserver);
   dart.defineExtensionNames([
     'addedNodes',
     'attributeName',
@@ -65416,6 +65431,7 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.NodeList, html$.NodeList);
+  dart.registerExtension(dart.global.RadioNodeList, html$.NodeList);
   dart.defineExtensionNames([
     'nextElementSibling',
     'previousElementSibling'
@@ -68334,6 +68350,7 @@ define([], function() {
     }
   });
   dart.registerExtension(dart.global.RTCDataChannel, html$.RtcDataChannel);
+  dart.registerExtension(dart.global.DataChannel, html$.RtcDataChannel);
   dart.defineExtensionNames([
     'channel'
   ]);
@@ -68476,6 +68493,7 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.RTCIceCandidate, html$.RtcIceCandidate);
+  dart.registerExtension(dart.global.mozRTCIceCandidate, html$.RtcIceCandidate);
   dart.defineExtensionNames([
     'candidate'
   ]);
@@ -68492,6 +68510,7 @@ define([], function() {
     fields: () => ({[dartx.candidate]: html$.RtcIceCandidate})
   });
   dart.registerExtension(dart.global.RTCIceCandidateEvent, html$.RtcIceCandidateEvent);
+  dart.registerExtension(dart.global.RTCPeerConnectionIceEvent, html$.RtcIceCandidateEvent);
   const _createOffer = Symbol('_createOffer');
   const _createAnswer = Symbol('_createAnswer');
   const _getStats = Symbol('_getStats');
@@ -68851,6 +68870,7 @@ define([], function() {
     }
   });
   dart.registerExtension(dart.global.RTCPeerConnection, html$.RtcPeerConnection);
+  dart.registerExtension(dart.global.mozRTCPeerConnection, html$.RtcPeerConnection);
   dart.defineExtensionNames([
     'sdp',
     'type'
@@ -68887,6 +68907,7 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.RTCSessionDescription, html$.RtcSessionDescription);
+  dart.registerExtension(dart.global.mozRTCSessionDescription, html$.RtcSessionDescription);
   const _get_timestamp = Symbol('_get_timestamp');
   dart.defineExtensionNames([
     'timestamp',
@@ -72034,6 +72055,8 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.HTMLTableCellElement, html$.TableCellElement);
+  dart.registerExtension(dart.global.HTMLTableDataCellElement, html$.TableCellElement);
+  dart.registerExtension(dart.global.HTMLTableHeaderCellElement, html$.TableCellElement);
   dart.defineExtensionNames([
     'span'
   ]);
@@ -73781,6 +73804,7 @@ define([], function() {
     names: ['_create_1', '_create_2']
   });
   dart.registerExtension(dart.global.TransitionEvent, html$.TransitionEvent);
+  dart.registerExtension(dart.global.WebKitTransitionEvent, html$.TransitionEvent);
   dart.defineExtensionNames([
     'firstChild',
     'lastChild',
@@ -76279,6 +76303,7 @@ define([], function() {
     }
   });
   dart.registerExtension(dart.global.Window, html$.Window);
+  dart.registerExtension(dart.global.DOMWindow, html$.Window);
   const _returnValue = Symbol('_returnValue');
   html$._WrappedEvent = class _WrappedEvent extends core.Object {
     new(wrapped) {
@@ -77237,6 +77262,7 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.ClientRectList, html$._ClientRectList);
+  dart.registerExtension(dart.global.DOMRectList, html$._ClientRectList);
   dart.defineExtensionNames([
     'length',
     'get',
@@ -77780,6 +77806,7 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.NamedNodeMap, html$._NamedNodeMap);
+  dart.registerExtension(dart.global.MozNamedAttrMap, html$._NamedNodeMap);
   html$._PagePopupController = class _PagePopupController extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -90299,6 +90326,7 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.AnalyserNode, web_audio.AnalyserNode);
+  dart.registerExtension(dart.global.RealtimeAnalyserNode, web_audio.AnalyserNode);
   dart.defineExtensionNames([
     'getChannelData',
     'duration',
@@ -90618,6 +90646,7 @@ define([], function() {
   });
   web_audio.AudioContext.completeEvent = dart.const(new (EventStreamProviderOfEvent())('complete'));
   dart.registerExtension(dart.global.AudioContext, web_audio.AudioContext);
+  dart.registerExtension(dart.global.webkitAudioContext, web_audio.AudioContext);
   dart.defineExtensionNames([
     'maxChannelCount'
   ]);
@@ -90821,6 +90850,7 @@ define([], function() {
     constructors: () => ({_: dart.definiteFunctionType(web_audio.ChannelMergerNode, [])})
   });
   dart.registerExtension(dart.global.ChannelMergerNode, web_audio.ChannelMergerNode);
+  dart.registerExtension(dart.global.AudioChannelMerger, web_audio.ChannelMergerNode);
   web_audio.ChannelSplitterNode = class ChannelSplitterNode extends web_audio.AudioNode {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -90830,6 +90860,7 @@ define([], function() {
     constructors: () => ({_: dart.definiteFunctionType(web_audio.ChannelSplitterNode, [])})
   });
   dart.registerExtension(dart.global.ChannelSplitterNode, web_audio.ChannelSplitterNode);
+  dart.registerExtension(dart.global.AudioChannelSplitter, web_audio.ChannelSplitterNode);
   dart.defineExtensionNames([
     'buffer',
     'normalize'
@@ -90934,6 +90965,7 @@ define([], function() {
     fields: () => ({[dartx.gain]: web_audio.AudioParam})
   });
   dart.registerExtension(dart.global.GainNode, web_audio.GainNode);
+  dart.registerExtension(dart.global.AudioGainNode, web_audio.GainNode);
   dart.defineExtensionNames([
     'mediaElement'
   ]);
@@ -91083,6 +91115,7 @@ define([], function() {
   });
   web_audio.OscillatorNode.endedEvent = dart.const(new (EventStreamProviderOfEvent())('ended'));
   dart.registerExtension(dart.global.OscillatorNode, web_audio.OscillatorNode);
+  dart.registerExtension(dart.global.Oscillator, web_audio.OscillatorNode);
   dart.defineExtensionNames([
     'setOrientation',
     'setPosition',
@@ -91177,6 +91210,8 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.PannerNode, web_audio.PannerNode);
+  dart.registerExtension(dart.global.AudioPannerNode, web_audio.PannerNode);
+  dart.registerExtension(dart.global.webkitAudioPannerNode, web_audio.PannerNode);
   web_audio.PeriodicWave = class PeriodicWave extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -91214,6 +91249,7 @@ define([], function() {
   });
   web_audio.ScriptProcessorNode.audioProcessEvent = dart.const(new (EventStreamProviderOfAudioProcessingEvent())('audioprocess'));
   dart.registerExtension(dart.global.ScriptProcessorNode, web_audio.ScriptProcessorNode);
+  dart.registerExtension(dart.global.JavaScriptAudioNode, web_audio.ScriptProcessorNode);
   dart.defineExtensionNames([
     'curve',
     'oversample'
@@ -93483,6 +93519,7 @@ define([], function() {
     })
   });
   dart.registerExtension(dart.global.WebGLLoseContext, web_gl.LoseContext);
+  dart.registerExtension(dart.global.WebGLExtensionLoseContext, web_gl.LoseContext);
   web_gl.OesElementIndexUint = class OesElementIndexUint extends _interceptors.Interceptor {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));

@@ -754,8 +754,8 @@ class CodeGenerator extends GeneralizingAstVisitor
     _defineClass(classElem, className, classExpr, isCallable, body);
 
     // Emit things that come after the ES6 `class ... { ... }`.
-    var jsPeerName = _getJSPeerName(classElem);
-    _setBaseClass(classElem, className, jsPeerName, body);
+    var jsPeerNames = _getJSPeerNames(classElem);
+    _setBaseClass(classElem, className, jsPeerNames, body);
 
     _emitClassTypeTests(classElem, className, body);
 
@@ -774,7 +774,9 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     body = <JS.Statement>[classDef];
     _emitStaticFields(staticFields, staticFieldOverrides, classElem, body);
-    _registerExtensionType(classElem, jsPeerName, body);
+    for (var peer in jsPeerNames) {
+      _registerExtensionType(classElem, peer, body);
+    }
     return _statement(body);
   }
 
@@ -1569,16 +1571,21 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// For example for dart:_interceptors `JSArray` this will return "Array",
   /// referring to the JavaScript built-in `Array` type.
-  String _getJSPeerName(ClassElement classElem) {
-    var jsPeerName = getAnnotationName(
+  List<String> _getJSPeerNames(ClassElement classElem) {
+    var jsPeerNames = getAnnotationName(
         classElem,
         (a) =>
             isJsPeerInterface(a) ||
             isNativeAnnotation(a) && _extensionTypes.isNativeClass(classElem));
-    if (jsPeerName != null && jsPeerName.contains(',')) {
-      jsPeerName = jsPeerName.split(',')[0];
+    if (jsPeerNames != null) {
+      // Omit the special name "!nonleaf" and any future hacks starting with "!"
+      return jsPeerNames
+          .split(',')
+          .where((peer) => !peer.startsWith("!"))
+          .toList();
+    } else {
+      return [];
     }
-    return jsPeerName;
   }
 
   void _registerExtensionType(
@@ -1590,12 +1597,14 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   void _setBaseClass(ClassElement classElem, JS.Expression className,
-      String jsPeerName, List<JS.Statement> body) {
-    if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
-      // TODO(jmesserly): we should really just extend Array in the first place.
-      var newBaseClass = js.call('dart.global.#', [jsPeerName]);
-      body.add(js.statement(
-          'dart.setExtensionBaseClass(#, #);', [className, newBaseClass]));
+      List<String> jsPeerNames, List<JS.Statement> body) {
+    if (jsPeerNames.isNotEmpty && classElem.typeParameters.isNotEmpty) {
+      for (var peer in jsPeerNames) {
+        // TODO(jmesserly): we should just extend Array in the first place
+        var newBaseClass = js.call('dart.global.#', [peer]);
+        body.add(js.statement(
+            'dart.setExtensionBaseClass(#, #);', [className, newBaseClass]));
+      }
     } else if (_hasDeferredSupertype.contains(classElem)) {
       var newBaseClass = _emitType(classElem.type.superclass,
           nameType: false, subClass: classElem, className: className);
