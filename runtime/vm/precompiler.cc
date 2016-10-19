@@ -1721,8 +1721,7 @@ void Precompiler::DropFields() {
           bool top_level = cls.IsTopLevel();
           if (top_level) {
             name = field.DictionaryName();
-            bool removed = lib.RemoveObject(field, name);
-            ASSERT(removed);
+            lib.RemoveObject(field, name);
           }
           dropped_field_count_++;
           if (FLAG_trace_precompiler) {
