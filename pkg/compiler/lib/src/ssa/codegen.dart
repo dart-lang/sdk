@@ -1718,11 +1718,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void registerGetter(HInvokeDynamic node) {
-    if (node.element != null) {
-      // This is a dynamic read which we have found to have a single
-      // target but for some reason haven't inlined. We are _still_ accessing
-      // the target dynamically but we don't need to enqueue more than target
-      // for this to work.
+    if (node.element != null &&
+        (node.element.isGetter || node.element.isField)) {
+      // This is a dynamic read which we have found to have a single target but
+      // for some reason haven't inlined. We are _still_ accessing the target
+      // dynamically but we don't need to enqueue more than target for this to
+      // work. The test above excludes non-getter functions since the element
+      // represents two targets - a tearoff getter and the torn-off method.
       registry.registerStaticUse(new StaticUse.directGet(node.element));
     } else {
       Selector selector = node.selector;

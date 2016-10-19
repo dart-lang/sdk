@@ -901,8 +901,22 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
     HInstruction receiver = node.getDartReceiver(compiler);
     Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
-    if (field == null) return node;
-    return directFieldGet(receiver, field);
+    if (field != null) return directFieldGet(receiver, field);
+
+    if (node.element == null) {
+      Element element = compiler.closedWorld
+          .locateSingleElement(node.selector, receiver.instructionType);
+      if (element != null && element.name == node.selector.name) {
+        node.element = element;
+        if (element.isFunction) {
+          // A property extraction getter, aka a tear-off.
+          node.sideEffects.clearAllDependencies();
+          node.sideEffects.clearAllSideEffects();
+          node.setUseGvn(); // We don't care about identity of tear-offs.
+        }
+      }
+    }
+    return node;
   }
 
   HInstruction directFieldGet(HInstruction receiver, Element field) {
@@ -1065,10 +1079,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // be a class extending `Interceptor` then it can be called directly.
       if (new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, closedWorld)
           .isDisjoint(input.instructionType, closedWorld)) {
+        var inputs = <HInstruction>[input, input]; // [interceptor, receiver].
         HInstruction result = new HInvokeDynamicMethod(
             selector,
             input.instructionType, // receiver mask.
-            <HInstruction>[input, input], // [interceptor, receiver].
+            inputs,
             toStringType)..sourceInformation = node.sourceInformation;
         return result;
       }

@@ -1627,6 +1627,11 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
       : super(selector, mask, element, inputs, type);
   toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
+
+  bool get isTearOff => element != null && element.isFunction;
+
+  // There might be an interceptor input, so `inputs.last` is the dart receiver.
+  bool canThrow() => isTearOff ? inputs.last.canBeNull() : super.canThrow();
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
