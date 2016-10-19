@@ -775,6 +775,9 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   }                                                                            \
 
 
+static void SnapshotOnExitHook(int64_t exit_code);
+
+
 // Returns true on success, false on failure.
 static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
@@ -801,6 +804,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   IsolateData* isolate_data = new IsolateData(script_uri,
                                               package_root,
                                               packages_config);
+  if ((gen_snapshot_kind == kAppAfterRun) ||
+      (gen_snapshot_kind == kAppJITAfterRun)) {
+    isolate_data->set_exit_hook(SnapshotOnExitHook);
+  }
   Dart_Isolate isolate = Dart_CreateIsolate(script_uri,
                                             main,
                                             isolate_snapshot_buffer,
@@ -1519,6 +1526,18 @@ static void GenerateFullSnapshot() {
         kCompilationErrorExitCode : kErrorExitCode;                            \
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
+
+
+static void SnapshotOnExitHook(int64_t exit_code) {
+  if (exit_code == 0) {
+    if (gen_snapshot_kind == kAppAfterRun) {
+      GenerateFullSnapshot();
+    } else {
+      Dart_PrecompileJIT();
+      GeneratePrecompiledJITSnapshot();
+    }
+  }
+}
 
 
 bool RunMainIsolate(const char* script_name,
