@@ -464,6 +464,7 @@ class bool {
 
 @patch
 class RegExp {
+  @NoInline()
   @patch
   factory RegExp(String source,
                        {bool multiLine: false,
