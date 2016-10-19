@@ -3116,7 +3116,13 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   const Function& redirect_ctor = Function::ZoneHandle(Z,
       cls.LookupConstructor(ctor_name));
   if (redirect_ctor.IsNull()) {
-    ReportError(call_pos, "constructor '%s' not found", ctor_name.ToCString());
+    ReportError(call_pos, "constructor '%s' not found",
+        String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
+  }
+  if (current_function().is_const() && !redirect_ctor.is_const()) {
+    ReportError(call_pos,
+        "redirection constructor '%s' must be const",
+        String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
   }
   String& error_message = String::Handle(Z);
   if (!redirect_ctor.AreValidArguments(arguments->length(),
@@ -3124,7 +3130,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
                                        &error_message)) {
     ReportError(call_pos,
                 "invalid arguments passed to constructor '%s': %s",
-                ctor_name.ToCString(),
+                String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString(),
                 error_message.ToCString());
   }
   current_block_->statements->Add(
