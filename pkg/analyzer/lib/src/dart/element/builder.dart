@@ -1125,6 +1125,14 @@ class LocalElementBuilder extends _BaseElementBuilder {
   }
 
   @override
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    super.visitDefaultFormalParameter(node);
+    buildParameterInitializer(
+        node.element as ParameterElementImpl, node.defaultValue);
+    return null;
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     FunctionExpression expression = node.functionExpression;
     if (expression == null) {

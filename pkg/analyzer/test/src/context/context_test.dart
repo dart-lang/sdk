@@ -2461,6 +2461,10 @@ class ClassOne {
 class ClassTwo {
   // Implicit no-argument constructor
 }
+
+void topLevelFunctionWithLocalFunction() {
+  void localFunction({bool b: false}) {}
+}
 ''');
     context.resolveCompilationUnit2(source, source);
     LibraryElement firstElement = context.computeLibraryElement(source);

@@ -971,6 +971,32 @@ main() {
     expect(variableElement.initializer, isNotNull);
   }
 
+  void test_visitDefaultFormalParameter_local() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit('''
+main() {
+  f({bool b: false}) {}
+}
+''');
+    var mainAst = unit.declarations.single as FunctionDeclaration;
+    // Build API elements.
+    FunctionElementImpl main;
+    {
+      ElementHolder holder = new ElementHolder();
+      unit.accept(new ApiElementBuilder(holder, compilationUnitElement));
+      main = holder.functions.single as FunctionElementImpl;
+    }
+    // Build local elements in body.
+    ElementHolder holder = new ElementHolder();
+    FunctionBody mainBody = mainAst.functionExpression.body;
+    mainBody.accept(new LocalElementBuilder(holder, compilationUnitElement));
+    main.functions = holder.functions;
+    main.localVariables = holder.localVariables;
+    expect(main.functions, hasLength(1));
+    FunctionElement f = main.functions[0];
+    expect(f.parameters, hasLength(1));
+    expect(f.parameters[0].initializer, isNotNull);
+  }
+
   void test_visitVariableDeclaration_local() {
     var holder = buildElementsForText('class C { m() { T v = null; } }');
     List<LocalVariableElement> variableElements = holder.localVariables;
