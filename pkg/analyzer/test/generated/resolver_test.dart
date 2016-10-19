@@ -2694,6 +2694,139 @@ A V = new A();
     }
   }
 
+  void test_modeLocal_noContext() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class C {
+  A f = new A();
+  A m([A p = const A()]) {
+    A v;
+  }
+}
+A f([A p = const A()]) {
+  A v1 = new A();
+  A f2(A p2) {
+    A v2;
+  }
+}
+A V = new A();
+A get G => new A();
+''');
+    var unitElement = new CompilationUnitElementImpl('/test.dart');
+    ClassElementImpl A = ElementFactory.classElement2('A');
+
+    // Build API elements.
+    {
+      var holder = new ElementHolder();
+      unit.accept(new ElementBuilder(holder, unitElement));
+    }
+
+    // Resolve API types.
+    {
+      MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+      InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+          resourceProvider: resourceProvider);
+      var source = resourceProvider.getFile('/test.dart').createSource();
+      var libraryElement = new LibraryElementImpl.forNode(context, null)
+        ..definingCompilationUnit = unitElement;
+      var libraryScope = new LibraryScope(libraryElement);
+      var visitor = new TypeResolverVisitor(
+          libraryElement, source, _typeProvider, _listener,
+          nameScope: libraryScope, mode: TypeResolverMode.local);
+      libraryScope.define(A);
+      unit.accept(visitor);
+    }
+
+    // Top-level: C
+    {
+      var c = unit.declarations[0] as ClassDeclaration;
+      {
+        var fd = c.members[0] as FieldDeclaration;
+        // The type of "f" is not resolved.
+        expect(fd.fields.type.type, isNull);
+        // The initializer of "f" is resolved.
+        var f = fd.fields.variables[0];
+        var fi = f.initializer as InstanceCreationExpression;
+        expect(fi.constructorName.type.type.toString(), 'A');
+      }
+      {
+        var m = c.members[1] as MethodDeclaration;
+        // The return type of "m" is not resolved.
+        expect(m.returnType.type, isNull);
+        // The type of the parameter "p" is not resolved.
+        var pd = m.parameters.parameters[0] as DefaultFormalParameter;
+        var p = pd.parameter as SimpleFormalParameter;
+        expect(p.type.type, isNull);
+        // The default value of the parameter "p" is resolved.
+        var pdd = pd.defaultValue as InstanceCreationExpression;
+        expect(pdd.constructorName.type.type.toString(), 'A');
+        // The type of "v" is resolved.
+        var mb = m.body as BlockFunctionBody;
+        var vd = mb.block.statements[0] as VariableDeclarationStatement;
+        expect(vd.variables.type.type.toString(), 'A');
+      }
+    }
+
+    // Top-level: f
+    {
+      var f = unit.declarations[1] as FunctionDeclaration;
+      // The return type of "f" is not resolved.
+      expect(f.returnType.type, isNull);
+      // The type of the parameter "p" is not resolved.
+      var fe = f.functionExpression;
+      var pd = fe.parameters.parameters[0] as DefaultFormalParameter;
+      var p = pd.parameter as SimpleFormalParameter;
+      expect(p.type.type, isNull);
+      // The default value of the parameter "p" is resolved.
+      var pdd = pd.defaultValue as InstanceCreationExpression;
+      expect(pdd.constructorName.type.type.toString(), 'A');
+      // The type of "v1" is resolved.
+      var fb = fe.body as BlockFunctionBody;
+      var vd = fb.block.statements[0] as VariableDeclarationStatement;
+      expect(vd.variables.type.type.toString(), 'A');
+      // The initializer of "v1" is resolved.
+      var v = vd.variables.variables[0];
+      var vi = v.initializer as InstanceCreationExpression;
+      expect(vi.constructorName.type.type.toString(), 'A');
+      // Local: f2
+      {
+        var f2s = fb.block.statements[1] as FunctionDeclarationStatement;
+        var f2 = f2s.functionDeclaration;
+        // The return type of "f2" is resolved.
+        expect(f2.returnType.type.toString(), 'A');
+        // The type of the parameter "p2" is resolved.
+        var f2e = f2.functionExpression;
+        var p2 = f2e.parameters.parameters[0] as SimpleFormalParameter;
+        expect(p2.type.type.toString(), 'A');
+        // The type of "v2" is resolved.
+        var f2b = f2e.body as BlockFunctionBody;
+        var v2d = f2b.block.statements[0] as VariableDeclarationStatement;
+        expect(v2d.variables.type.type.toString(), 'A');
+      }
+    }
+
+    // Top-level: V
+    {
+      var vd = unit.declarations[2] as TopLevelVariableDeclaration;
+      // The type is not resolved.
+      expect(vd.variables.type.type, isNull);
+      // The initializer is resolved.
+      VariableDeclaration v = vd.variables.variables[0];
+      var vi = v.initializer as InstanceCreationExpression;
+      expect(vi.constructorName.type.type.toString(), 'A');
+    }
+
+    // Top-level: G
+    {
+      var g = unit.declarations[3] as FunctionDeclaration;
+      // The return type is not resolved.
+      expect(g.returnType.type, isNull);
+      // The body is resolved.
+      var gb = g.functionExpression.body as ExpressionFunctionBody;
+      var ge = gb.expression as InstanceCreationExpression;
+      expect(ge.constructorName.type.type.toString(), 'A');
+    }
+  }
+
   void test_visitCatchClause_exception() {
     // catch (e)
     CatchClause clause = AstFactory.catchClause("e");

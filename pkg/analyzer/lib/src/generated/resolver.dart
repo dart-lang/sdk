@@ -9438,6 +9438,8 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   final TypeResolverMode mode;
 
+  bool _visitAllInLocalMode = false;
+
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
@@ -9493,14 +9495,6 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
-  }
-
-  @override
-  Object visitBlockFunctionBody(BlockFunctionBody node) {
-    if (mode == TypeResolverMode.api) {
-      return null;
-    }
-    return super.visitBlockFunctionBody(node);
   }
 
   @override
@@ -9662,14 +9656,6 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    if (mode == TypeResolverMode.api) {
-      return null;
-    }
-    return super.visitExpressionFunctionBody(node);
-  }
-
-  @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
     super.visitFieldFormalParameter(node);
     Element element = node.identifier.staticElement;
@@ -9782,10 +9768,14 @@ class TypeResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitNode(AstNode node) {
-    // In API mode we need to ignore:
+    // In API mode we need to skip:
+    //   - function bodies;
     //   - default values of parameters;
     //   - initializers of top-level variables.
     if (mode == TypeResolverMode.api) {
+      if (node is FunctionBody) {
+        return null;
+      }
       if (node is DefaultFormalParameter) {
         node.parameter.accept(this);
         return null;
@@ -9794,6 +9784,65 @@ class TypeResolverVisitor extends ScopedVisitor {
         return null;
       }
     }
+
+    // In local mode we need to resolve only:
+    //   - function bodies;
+    //   - default values of parameters;
+    //   - initializers of top-level variables.
+    // So, we carefully visit only nodes that are, or contain, these nodes.
+    // The client may choose to start visiting any node, but we still want to
+    // resolve only type names that are local.
+    if (mode == TypeResolverMode.local) {
+      // We are in the state of visiting all nodes.
+      if (_visitAllInLocalMode) {
+        return super.visitNode(node);
+      }
+
+      /**
+       * Visit the given [node] and all its children.
+       */
+      void visitAllNodes(AstNode node) {
+        if (node != null) {
+          bool wasVisitAllInLocalMode = _visitAllInLocalMode;
+          try {
+            _visitAllInLocalMode = true;
+            node.accept(this);
+          } finally {
+            _visitAllInLocalMode = wasVisitAllInLocalMode;
+          }
+        }
+      }
+
+      // Visit only nodes that may contain type names to resolve.
+      if (node is CompilationUnit) {
+        node.declarations.forEach(visitNode);
+      } else if (node is ClassDeclaration) {
+        node.members.forEach(visitNode);
+      } else if (node is DefaultFormalParameter) {
+        visitAllNodes(node.defaultValue);
+      } else if (node is FieldDeclaration) {
+        visitNode(node.fields);
+      } else if (node is FunctionBody) {
+        visitAllNodes(node);
+      } else if (node is FunctionDeclaration) {
+        visitNode(node.functionExpression.parameters);
+        visitAllNodes(node.functionExpression.body);
+      } else if (node is FormalParameterList) {
+        node.parameters.accept(this);
+      } else if (node is MethodDeclaration) {
+        visitNode(node.parameters);
+        visitAllNodes(node.body);
+      } else if (node is TopLevelVariableDeclaration) {
+        visitNode(node.variables);
+      } else if (node is VariableDeclaration) {
+        visitAllNodes(node.initializer);
+      } else if (node is VariableDeclarationList) {
+        node.variables.forEach(visitNode);
+      }
+      return null;
+    }
+
+    // The mode in which we visit all nodes.
     return super.visitNode(node);
   }
 
