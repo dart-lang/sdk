@@ -59,7 +59,7 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   ASSERT(size >= 0);
   Segment* result = reinterpret_cast<Segment*>(malloc(size));
   if (result == NULL) {
-    FATAL("Out of memory.\n");
+    OUT_OF_MEMORY();
   }
   ASSERT(Utils::IsAligned(result->start(), Zone::kAlignment));
 #ifdef DEBUG

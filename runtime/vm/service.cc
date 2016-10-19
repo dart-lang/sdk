@@ -222,6 +222,9 @@ RawObject* Service::RequestAssets() {
 
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  if (new_ptr == NULL) {
+    OUT_OF_MEMORY();
+  }
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
 
@@ -1038,6 +1041,9 @@ void Service::SendEventWithData(const char* stream_id,
   const intptr_t total_bytes = sizeof(uint64_t) + metadata_size + data_size;
 
   uint8_t* message = static_cast<uint8_t*>(malloc(total_bytes));
+  if (message == NULL) {
+    OUT_OF_MEMORY();
+  }
   intptr_t offset = 0;
 
   // Metadata size.

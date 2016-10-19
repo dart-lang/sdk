@@ -347,7 +347,7 @@ Scavenger::Scavenger(Heap* heap,
       (FLAG_new_gen_growth_factor * FLAG_new_gen_growth_factor);
   to_ = SemiSpace::New(initial_semi_capacity_in_words);
   if (to_ == NULL) {
-    FATAL("Out of memory.\n");
+    OUT_OF_MEMORY();
   }
   // Setup local fields.
   top_ = FirstObjectStart();
@@ -393,7 +393,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (to_ == NULL) {
     // TODO(koda): We could try to recover (collect old space, wait for another
     // isolate to finish scavenge, etc.).
-    FATAL("Out of memory.\n");
+    OUT_OF_MEMORY();
   }
   UpdateMaxHeapCapacity();
   top_ = FirstObjectStart();

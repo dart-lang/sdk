@@ -28,7 +28,7 @@ static RawObject* AllocateUninitialized(PageSpace* old_space, intptr_t size) {
   uword address = old_space->TryAllocateDataBumpLocked(size,
                                                        PageSpace::kForceGrowth);
   if (address == 0) {
-    FATAL("Out of memory");
+    OUT_OF_MEMORY();
   }
   return reinterpret_cast<RawObject*>(address + kHeapObjectTag);
 }
