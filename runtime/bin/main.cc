@@ -1241,7 +1241,8 @@ static bool ReadAppSnapshotBlobs(const char* script_name,
     file->Map(File::kReadOnly, vmisolate_position,
               instructions_position - vmisolate_position);
   if (read_only_buffer == NULL) {
-    ErrorExit(kErrorExitCode, "Failed to memory map snapshot\n");
+    Log::PrintErr("Failed to memory map snapshot\n");
+    Platform::Exit(kErrorExitCode);
   }
 
   *vmisolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer)
@@ -1261,7 +1262,8 @@ static bool ReadAppSnapshotBlobs(const char* script_name,
     *instructions_buffer = reinterpret_cast<const uint8_t*>(
         file->Map(File::kReadExecute, instructions_position, header[4]));
     if (*instructions_buffer == NULL) {
-      ErrorExit(kErrorExitCode, "Failed to memory map snapshot2\n");
+      Log::PrintErr("Failed to memory map snapshot\n");
+      Platform::Exit(kErrorExitCode);
     }
   }
 
@@ -1283,29 +1285,33 @@ static bool ReadAppSnapshotDynamicLibrary(const char* script_name,
   *vmisolate_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kPrecompiledVMIsolateSymbolName));
   if (*vmisolate_buffer == NULL) {
-    ErrorExit(kErrorExitCode, "Failed to resolve symbol '%s'\n",
-              kPrecompiledVMIsolateSymbolName);
+    Log::PrintErr("Failed to resolve symbol '%s'\n",
+                  kPrecompiledVMIsolateSymbolName);
+    Platform::Exit(kErrorExitCode);
   }
 
   *isolate_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kPrecompiledIsolateSymbolName));
   if (*isolate_buffer == NULL) {
-    ErrorExit(kErrorExitCode, "Failed to resolve symbol '%s'\n",
-              kPrecompiledIsolateSymbolName);
+    Log::PrintErr("Failed to resolve symbol '%s'\n",
+                  kPrecompiledIsolateSymbolName);
+    Platform::Exit(kErrorExitCode);
   }
 
   *instructions_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kPrecompiledInstructionsSymbolName));
   if (*instructions_buffer == NULL) {
-    ErrorExit(kErrorExitCode, "Failed to resolve symbol '%s'\n",
-              kPrecompiledInstructionsSymbolName);
+    Log::PrintErr("Failed to resolve symbol '%s'\n",
+                  kPrecompiledInstructionsSymbolName);
+    Platform::Exit(kErrorExitCode);
   }
 
   *rodata_buffer = reinterpret_cast<const uint8_t*>(
       Extensions::ResolveSymbol(library, kPrecompiledDataSymbolName));
   if (*rodata_buffer == NULL) {
-    ErrorExit(kErrorExitCode, "Failed to resolve symbol '%s'\n",
-              kPrecompiledDataSymbolName);
+    Log::PrintErr("Failed to resolve symbol '%s'\n",
+                  kPrecompiledDataSymbolName);
+    Platform::Exit(kErrorExitCode);
   }
 
   return true;

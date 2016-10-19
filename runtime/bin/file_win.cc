@@ -74,9 +74,43 @@ bool File::IsClosed() {
 }
 
 
-void* File::Map(MapType type, int64_t position, int64_t length) {
-  UNIMPLEMENTED();
-  return NULL;
+void* File::Map(File::MapType type, int64_t position, int64_t length) {
+  DWORD prot_alloc;
+  DWORD prot_final;
+  switch (type) {
+    case File::kReadOnly:
+      prot_alloc = PAGE_READWRITE;
+      prot_final = PAGE_READONLY;
+      break;
+    case File::kReadExecute:
+      prot_alloc = PAGE_EXECUTE_READWRITE;
+      prot_final = PAGE_EXECUTE_READ;
+      break;
+    default:
+      return NULL;
+  }
+
+  void* addr = VirtualAlloc(NULL, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
+  if (addr == NULL) {
+    Log::PrintErr("VirtualAlloc failed %d\n", GetLastError());
+    return NULL;
+  }
+
+  SetPosition(position);
+  if (!ReadFully(addr, length)) {
+    Log::PrintErr("ReadFully failed %d\n", GetLastError());
+    VirtualFree(addr, 0, MEM_RELEASE);
+    return NULL;
+  }
+
+  DWORD old_prot;
+  bool result = VirtualProtect(addr, length, prot_final, &old_prot);
+  if (!result) {
+    Log::PrintErr("VirtualProtect failed %d\n", GetLastError());
+    VirtualFree(addr, 0, MEM_RELEASE);
+    return NULL;
+  }
+  return addr;
 }
 
 
