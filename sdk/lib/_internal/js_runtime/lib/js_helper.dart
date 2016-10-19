@@ -1036,7 +1036,8 @@ class Primitives {
   }
 
   static String flattenString(String str) {
-    return JS('String', "#.charCodeAt(0) == 0 ? # : #", str, str, str);
+    return JS('returns:String;depends:none;effects:none;throws:never;gvn:true',
+              "#.charCodeAt(0) == 0 ? # : #", str, str, str);
   }
 
   static String getTimeZoneName(DateTime receiver) {
