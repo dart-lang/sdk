@@ -1497,11 +1497,6 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
-Definition* DoubleTestOpInstr::Canonicalize(FlowGraph* flow_graph) {
-  return HasUses() ? this : NULL;
-}
-
-
 static bool IsCommutative(Token::Kind op) {
   switch (op) {
     case Token::kMUL:

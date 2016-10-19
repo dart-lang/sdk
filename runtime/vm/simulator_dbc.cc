@@ -252,17 +252,6 @@ class SimulatorHelpers {
     return true;
   }
 
-  static bool Double_getIsInfinite(Thread* thread,
-                                   RawObject** FP,
-                                   RawObject** result) {
-    RawObject** args = FrameArguments(FP, 1);
-    RawDouble* d = static_cast<RawDouble*>(args[0]);
-    *result = isinf(d->ptr()->value_)
-            ? Bool::True().raw()
-            : Bool::False().raw();
-    return true;
-  }
-
   static bool ObjectEquals(Thread* thread,
                            RawObject** FP,
                            RawObject** result) {
@@ -495,8 +484,6 @@ void Simulator::InitOnce() {
 
   intrinsics_[kDouble_getIsNaNIntrinsic] =
       SimulatorHelpers::Double_getIsNan;
-  intrinsics_[kDouble_getIsInfiniteIntrinsic] =
-      SimulatorHelpers::Double_getIsInfinite;
   intrinsics_[kDouble_addIntrinsic] =
       SimulatorHelpers::Double_add;
   intrinsics_[kDouble_mulIntrinsic] =
@@ -2229,20 +2216,6 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(DoubleIsNaN, A_D);
-    const double v = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = isnan(v) ? true_value : false_value;
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleIsInfinite, A_D);
-    const double v = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = isinf(v) ? true_value : false_value;
-    DISPATCH();
-  }
-
-  {
     BYTECODE(LoadIndexedFloat32, A_B_C);
     uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
     const uint32_t value = *reinterpret_cast<uint32_t*>(data);
@@ -2469,18 +2442,6 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(FloatToDouble, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleIsNaN, A_D);
-    UNREACHABLE();
-    DISPATCH();
-  }
-
-  {
-    BYTECODE(DoubleIsInfinite, A_D);
     UNREACHABLE();
     DISPATCH();
   }
