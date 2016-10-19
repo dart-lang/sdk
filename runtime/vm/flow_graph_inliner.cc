@@ -2402,6 +2402,34 @@ static bool InlineDoubleOp(FlowGraph* flow_graph,
 }
 
 
+static bool InlineDoubleTestOp(FlowGraph* flow_graph,
+                               Instruction* call,
+                               MethodRecognizer::Kind kind,
+                               TargetEntryInstr** entry,
+                               Definition** last) {
+  if (!CanUnboxDouble()) {
+    return false;
+  }
+  Definition* d = call->ArgumentAt(0);
+
+  *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
+                                   call->GetBlock()->try_index());
+  (*entry)->InheritDeoptTarget(Z, call);
+  // Arguments are checked. No need for class check.
+
+  DoubleTestOpInstr* double_test_op =
+      new(Z) DoubleTestOpInstr(kind,
+                               new(Z) Value(d),
+                               call->deopt_id(),
+                               call->token_pos());
+  flow_graph->AppendTo(
+      *entry, double_test_op, call->env(), FlowGraph::kValue);
+  *last = double_test_op;
+
+  return true;
+}
+
+
 static bool InlineSmiBitAndFromSmi(FlowGraph* flow_graph,
                                    Instruction* call,
                                    TargetEntryInstr** entry,
@@ -3649,6 +3677,9 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
       return InlineDoubleOp(flow_graph, Token::kMUL, call, entry, last);
     case MethodRecognizer::kDoubleDiv:
       return InlineDoubleOp(flow_graph, Token::kDIV, call, entry, last);
+    case MethodRecognizer::kDouble_getIsNaN:
+    case MethodRecognizer::kDouble_getIsInfinite:
+      return InlineDoubleTestOp(flow_graph, call, kind, entry, last);
     case MethodRecognizer::kGrowableArraySetData:
       ASSERT(receiver_cid == kGrowableObjectArrayCid);
       ASSERT(ic_data.NumberOfChecks() == 1);

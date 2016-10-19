@@ -1566,6 +1566,30 @@ void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Double_getIsInfinite(Assembler* assembler) {
+  Label not_inf;
+  __ movl(EAX, Address(ESP, +1 * kWordSize));
+  __ movl(EBX, FieldAddress(EAX, Double::value_offset()));
+
+  // If the low word isn't zero, then it isn't infinity.
+  __ cmpl(EBX, Immediate(0));
+  __ j(NOT_EQUAL, &not_inf, Assembler::kNearJump);
+  // Check the high word.
+  __ movl(EBX, FieldAddress(EAX, Double::value_offset() + kWordSize));
+  // Mask off sign bit.
+  __ andl(EBX, Immediate(0x7FFFFFFF));
+  // Compare with +infinity.
+  __ cmpl(EBX, Immediate(0x7FF00000));
+  __ j(NOT_EQUAL, &not_inf, Assembler::kNearJump);
+  __ LoadObject(EAX, Bool::True());
+  __ ret();
+
+  __ Bind(&not_inf);
+  __ LoadObject(EAX, Bool::False());
+  __ ret();
+}
+
+
 void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
   __ movl(EAX, Address(ESP, +1 * kWordSize));

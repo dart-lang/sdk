@@ -497,6 +497,7 @@ class EmbeddedArray<T, 0> {
   M(UnboxedConstant)                                                           \
   M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
+  M(DoubleTestOp)                                                              \
   M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
   M(Box)                                                                       \
@@ -5340,6 +5341,56 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
+};
+
+
+class DoubleTestOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  DoubleTestOpInstr(MethodRecognizer::Kind op_kind,
+                    Value* d,
+                    intptr_t deopt_id,
+                    TokenPosition token_pos)
+      : TemplateDefinition(deopt_id),
+        op_kind_(op_kind),
+        token_pos_(token_pos) {
+    SetInputAt(0, d);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return GetDeoptId();
+  }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+  DECLARE_INSTRUCTION(DoubleTestOp)
+  virtual CompileType ComputeType() const;
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind_ == other->AsDoubleTestOp()->op_kind();
+  }
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+  const TokenPosition token_pos_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
 };
 
 

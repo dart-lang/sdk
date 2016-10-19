@@ -1649,6 +1649,23 @@ EMIT_NATIVE_CODE(BinaryDoubleOp, 2, Location::RequiresRegister()) {
 }
 
 
+EMIT_NATIVE_CODE(DoubleTestOp, 1, Location::RequiresRegister()) {
+  ASSERT(compiler->is_optimizing());
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  switch (op_kind()) {
+    case MethodRecognizer::kDouble_getIsNaN:
+      __ DoubleIsNaN(result, value);
+      break;
+    case MethodRecognizer::kDouble_getIsInfinite:
+      __ DoubleIsInfinite(result, value);
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+
 EMIT_NATIVE_CODE(UnaryDoubleOp, 1, Location::RequiresRegister()) {
   const Register value = locs()->in(0).reg();
   const Register result = locs()->out(0).reg();

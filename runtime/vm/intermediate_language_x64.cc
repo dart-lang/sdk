@@ -3760,6 +3760,52 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(compiler->is_optimizing());
+  const XmmRegister value = locs()->in(0).fpu_reg();
+  const Register result = locs()->out(0).reg();
+  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
+    Label is_nan;
+    __ LoadObject(result, Bool::True());
+    __ comisd(value, value);
+    __ j(PARITY_EVEN, &is_nan, Assembler::kNearJump);
+    __ LoadObject(result, Bool::False());
+    __ Bind(&is_nan);
+  } else {
+    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
+    Label is_inf, done;
+    __ AddImmediate(RSP, Immediate(-kDoubleSize));
+    __ movsd(Address(RSP, 0), value);
+    __ movq(result, Address(RSP, 0));
+    // Mask off the sign.
+    __ AndImmediate(result, Immediate(0x7FFFFFFFFFFFFFFFLL));
+    // Compare with +infinity.
+    __ CompareImmediate(result, Immediate(0x7FF0000000000000LL));
+    __ j(EQUAL, &is_inf, Assembler::kNearJump);
+    __ LoadObject(result, Bool::False());
+    __ jmp(&done);
+
+    __ Bind(&is_inf);
+    __ LoadObject(result, Bool::True());
+
+    __ Bind(&done);
+    __ AddImmediate(RSP, Immediate(kDoubleSize));
+  }
+}
+
+
 LocationSummary* BinaryFloat32x4OpInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   const intptr_t kNumInputs = 2;

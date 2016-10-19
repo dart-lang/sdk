@@ -1434,6 +1434,26 @@ void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Double_getIsInfinite(Assembler* assembler) {
+  Label is_inf, done;
+  __ movq(RAX, Address(RSP, +1 * kWordSize));
+  __ movq(RAX, FieldAddress(RAX, Double::value_offset()));
+  // Mask off the sign.
+  __ AndImmediate(RAX, Immediate(0x7FFFFFFFFFFFFFFFLL));
+  // Compare with +infinity.
+  __ CompareImmediate(RAX, Immediate(0x7FF0000000000000LL));
+  __ j(EQUAL, &is_inf, Assembler::kNearJump);
+  __ LoadObject(RAX, Bool::False());
+  __ jmp(&done);
+
+  __ Bind(&is_inf);
+  __ LoadObject(RAX, Bool::True());
+
+  __ Bind(&done);
+  __ ret();
+}
+
+
 void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
