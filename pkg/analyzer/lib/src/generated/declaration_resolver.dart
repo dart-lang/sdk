@@ -9,7 +9,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 
 /**
  * A visitor that resolves declarations in an AST structure to already built
@@ -48,6 +50,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       throw new _ElementMismatchException(
           element, _walker.element, new CaughtException(e, st));
     }
+  }
+
+  @override
+  Object visitAnnotation(Annotation node) {
+    // Annotations can only contain elements in certain erroneous situations,
+    // in which case the elements are disconnected from the rest of the element
+    // model, thus we can't reconnect to them.  To avoid crashes, just create
+    // fresh elements.
+    ElementHolder elementHolder = new ElementHolder();
+    new ElementBuilder(elementHolder, _enclosingUnit).visitAnnotation(node);
+    return null;
   }
 
   @override

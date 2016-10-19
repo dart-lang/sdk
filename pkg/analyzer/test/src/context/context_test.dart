@@ -2438,6 +2438,11 @@ typedef String FunctionTypeAlias(int i);
 
 enum EnumeratedType {Invalid, Valid}
 
+class A {
+  const A(x);
+}
+
+@A(const [(_) => null])
 class ClassOne {
   int instanceField;
   static int staticField;
