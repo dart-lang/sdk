@@ -16,7 +16,7 @@ define(['dart_sdk'], function(dart_sdk) {
         dart.throw(dart.str`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
       }
       for (let i = 0; i < dart.notNull(actual[dartx.length]); i++) {
-        BenchmarkBase$.Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
+        BenchmarkBase$.Expect.equals(expected[dartx._get](i), actual[dartx._get](i));
       }
     }
     fail(message) {

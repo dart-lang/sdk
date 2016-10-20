@@ -1601,9 +1601,9 @@ dart.dgsendRepl = function(obj, typeArgs, method, ...args) {
 dart.getDynamicStats = function() {
   let ret = JSArrayOfListOfObject().of([]);
   let keys = dart._callMethodStats[dartx.keys][dartx.toList]();
-  keys[dartx.sort](dart.fn((a, b) => dart._callMethodStats[dartx.get](b).count[dartx.compareTo](dart._callMethodStats[dartx.get](a).count), StringAndStringToint()));
+  keys[dartx.sort](dart.fn((a, b) => dart._callMethodStats[dartx._get](b).count[dartx.compareTo](dart._callMethodStats[dartx._get](a).count), StringAndStringToint()));
   for (let key of keys) {
-    let stats = dart._callMethodStats[dartx.get](key);
+    let stats = dart._callMethodStats[dartx._get](key);
     ret[dartx.add](JSArrayOfObject().of([stats.typeName, stats.frame, stats.count]));
   }
   return ret;
@@ -1618,7 +1618,7 @@ dart._trackCall = function(obj) {
   let stack = stackStr[dartx.split]('\n    at ');
   let src = '';
   for (let i = 2; i < dart.notNull(stack[dartx.length]); ++i) {
-    let frame = stack[dartx.get](i);
+    let frame = stack[dartx._get](i);
     if (!dart.test(frame[dartx.contains]('dart_sdk.js'))) {
       src = frame;
       break;
@@ -1644,10 +1644,10 @@ dart.dgsend = function(obj, typeArgs, method, ...args) {
   return dart._callMethod(obj, method, typeArgs, args, method);
 };
 dart.dindex = function(obj, index) {
-  return dart._callMethod(obj, 'get', null, [index], '[]');
+  return dart._callMethod(obj, '_get', null, [index], '[]');
 };
 dart.dsetindex = function(obj, index, value) {
-  return dart._callMethod(obj, 'set', null, [index, value], '[]=');
+  return dart._callMethod(obj, '_set', null, [index, value], '[]=');
 };
 dart._ignoreMemo = function(f) {
   let memo = new Map();
@@ -1770,11 +1770,11 @@ dart.map = function(values, K, V) {
       for (let i = 0, end = values.length - 1; i < end; i += 2) {
         let key = values[i];
         let value = values[i + 1];
-        map.set(key, value);
+        map._set(key, value);
       }
     } else if (typeof values === 'object') {
       for (let key of dart.getOwnPropertyNames(values)) {
-        map.set(key, values[key]);
+        map._set(key, values[key]);
       }
     }
     return map;
@@ -3114,7 +3114,7 @@ _debugger.LibraryFormatter = class LibraryFormatter extends core.Object {
       if (genericTypeConstructor != null) {
         this.recordGenericParameters(core.String._check(name), genericTypeConstructor);
       } else {
-        nonGenericProperties.set(core.String._check(name), value);
+        nonGenericProperties._set(core.String._check(name), value);
       }
     }, dynamicAnddynamicTodynamic()));
     nonGenericProperties.forEach(dart.fn((name, value) => {
@@ -3127,13 +3127,13 @@ _debugger.LibraryFormatter = class LibraryFormatter extends core.Object {
     return children.toList();
   }
   recordGenericParameters(name, genericTypeConstructor) {
-    this.genericParameters.set(name, genericTypeConstructor.toString()[dartx.split](' =>')[dartx.first][dartx.replaceAll](core.RegExp.new('[(|)]'), ''));
+    this.genericParameters._set(name, genericTypeConstructor.toString()[dartx.split](' =>')[dartx.first][dartx.replaceAll](core.RegExp.new('[(|)]'), ''));
   }
   classChild(name, child) {
     let typeName = _debugger.getTypeName(core.Type._check(child));
     let parameterName = dart.str`${name}\$`;
     if (dart.test(this.genericParameters.keys[dartx.contains](parameterName))) {
-      typeName = dart.str`${typeName}<${this.genericParameters.get(parameterName)}>`;
+      typeName = dart.str`${typeName}<${this.genericParameters._get(parameterName)}>`;
       _debugger.JSNative.setProperty(child, 'genericTypeName', typeName);
     }
     return new _debugger.NameValuePair({name: typeName, value: child});
@@ -3723,8 +3723,8 @@ _interceptors.JSArray$ = dart.generic(E => {
     'hashCode',
     'length',
     'length',
-    'get',
-    'set',
+    '_get',
+    '_set',
     'asMap'
   ]);
   class JSArray extends core.Object {
@@ -3801,7 +3801,7 @@ _interceptors.JSArray$ = dart.generic(E => {
       this[dartx.checkMutable]('setAll');
       core.RangeError.checkValueInInterval(index, 0, this[dartx.length], "index");
       for (let element of iterable) {
-        this[dartx.set]((() => {
+        this[dartx._set]((() => {
           let x = index;
           index = dart.notNull(x) + 1;
           return x;
@@ -3816,7 +3816,7 @@ _interceptors.JSArray$ = dart.generic(E => {
     [dartx.remove](element) {
       this[dartx.checkGrowable]('remove');
       for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-        if (dart.equals(this[dartx.get](i), element)) {
+        if (dart.equals(this[dartx._get](i), element)) {
           this.splice(i, 1);
           return true;
         }
@@ -3844,7 +3844,7 @@ _interceptors.JSArray$ = dart.generic(E => {
       if (retained[dartx.length] == end) return;
       this[dartx.length] = retained[dartx.length];
       for (let i = 0; i < dart.notNull(retained[dartx.length]); i++) {
-        this[dartx.set](i, E._check(retained[dartx.get](i)));
+        this[dartx._set](i, E._check(retained[dartx._get](i)));
       }
     }
     [dartx.where](f) {
@@ -3885,7 +3885,7 @@ _interceptors.JSArray$ = dart.generic(E => {
       if (separator === void 0) separator = "";
       let list = core.List.new(this[dartx.length]);
       for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-        list[dartx.set](i, dart.str`${this[dartx.get](i)}`);
+        list[dartx._set](i, dart.str`${this[dartx._get](i)}`);
       }
       return list.join(separator);
     }
@@ -3905,7 +3905,7 @@ _interceptors.JSArray$ = dart.generic(E => {
       EAndEToE()._check(combine);
       let length = this[dartx.length];
       if (length == 0) dart.throw(_internal.IterableElementError.noElement());
-      let value = this[dartx.get](0);
+      let value = this[dartx._get](0);
       for (let i = 1; i < dart.notNull(length); i++) {
         let element = this[i];
         value = combine(value, element);
@@ -3972,7 +3972,7 @@ _interceptors.JSArray$ = dart.generic(E => {
       dart.throw(_internal.IterableElementError.noElement());
     }
     [dartx.elementAt](index) {
-      return this[dartx.get](index);
+      return this[dartx._get](index);
     }
     [dartx.sublist](start, end) {
       if (end === void 0) end = null;
@@ -3997,15 +3997,15 @@ _interceptors.JSArray$ = dart.generic(E => {
       return new (SubListIterableOfE())(this, start, end);
     }
     get [dartx.first]() {
-      if (dart.notNull(this[dartx.length]) > 0) return this[dartx.get](0);
+      if (dart.notNull(this[dartx.length]) > 0) return this[dartx._get](0);
       dart.throw(_internal.IterableElementError.noElement());
     }
     get [dartx.last]() {
-      if (dart.notNull(this[dartx.length]) > 0) return this[dartx.get](dart.notNull(this[dartx.length]) - 1);
+      if (dart.notNull(this[dartx.length]) > 0) return this[dartx._get](dart.notNull(this[dartx.length]) - 1);
       dart.throw(_internal.IterableElementError.noElement());
     }
     get [dartx.single]() {
-      if (this[dartx.length] == 1) return this[dartx.get](0);
+      if (this[dartx.length] == 1) return this[dartx._get](0);
       if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
       dart.throw(_internal.IterableElementError.tooMany());
     }
@@ -4037,12 +4037,12 @@ _interceptors.JSArray$ = dart.generic(E => {
       }
       if (dart.notNull(otherStart) < dart.notNull(start)) {
         for (let i = length - 1; i >= 0; i--) {
-          let element = otherList[dartx.get](dart.notNull(otherStart) + i);
+          let element = otherList[dartx._get](dart.notNull(otherStart) + i);
           this[dart.notNull(start) + i] = element;
         }
       } else {
         for (let i = 0; i < length; i++) {
-          let element = otherList[dartx.get](dart.notNull(otherStart) + i);
+          let element = otherList[dartx._get](dart.notNull(otherStart) + i);
           this[dart.notNull(start) + i] = element;
         }
       }
@@ -4121,9 +4121,9 @@ _interceptors.JSArray$ = dart.generic(E => {
       while (dart.notNull(length) > 1) {
         let pos = random.nextInt(length);
         length = dart.notNull(length) - 1;
-        let tmp = this[dartx.get](length);
-        this[dartx.set](length, this[dartx.get](pos));
-        this[dartx.set](pos, tmp);
+        let tmp = this[dartx._get](length);
+        this[dartx._set](length, this[dartx._get](pos));
+        this[dartx._set](pos, tmp);
       }
     }
     [dartx.indexOf](element, start) {
@@ -4135,7 +4135,7 @@ _interceptors.JSArray$ = dart.generic(E => {
         start = 0;
       }
       for (let i = start; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
-        if (dart.equals(this[dartx.get](i), element)) {
+        if (dart.equals(this[dartx._get](i), element)) {
           return i;
         }
       }
@@ -4154,7 +4154,7 @@ _interceptors.JSArray$ = dart.generic(E => {
         }
       }
       for (let i = startIndex; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-        if (dart.equals(this[dartx.get](i), element)) {
+        if (dart.equals(this[dartx._get](i), element)) {
           return i;
         }
       }
@@ -4162,7 +4162,7 @@ _interceptors.JSArray$ = dart.generic(E => {
     }
     [dartx.contains](other) {
       for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-        if (dart.equals(this[dartx.get](i), other)) return true;
+        if (dart.equals(this[dartx._get](i), other)) return true;
       }
       return false;
     }
@@ -4203,12 +4203,12 @@ _interceptors.JSArray$ = dart.generic(E => {
       }
       this.length = newLength;
     }
-    [dartx.get](index) {
+    [dartx._get](index) {
       if (!(typeof index == 'number')) dart.throw(_js_helper.diagnoseIndexError(this, index));
       if (dart.notNull(index) >= dart.notNull(this[dartx.length]) || dart.notNull(index) < 0) dart.throw(_js_helper.diagnoseIndexError(this, index));
       return this[index];
     }
-    [dartx.set](index, value) {
+    [dartx._set](index, value) {
       E._check(value);
       this[dartx.checkMutable]('indexed set');
       if (!(typeof index == 'number')) dart.throw(_js_helper.diagnoseIndexError(this, index));
@@ -4287,8 +4287,8 @@ _interceptors.JSArray$ = dart.generic(E => {
       [dartx.contains]: dart.definiteFunctionType(core.bool, [core.Object]),
       [dartx.toList]: dart.definiteFunctionType(core.List$(E), [], {growable: core.bool}),
       [dartx.toSet]: dart.definiteFunctionType(core.Set$(E), []),
-      [dartx.get]: dart.definiteFunctionType(E, [core.int]),
-      [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, E]),
+      [dartx._get]: dart.definiteFunctionType(E, [core.int]),
+      [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, E]),
       [dartx.asMap]: dart.definiteFunctionType(core.Map$(core.int, E), [])
     }),
     statics: () => ({
@@ -4363,7 +4363,7 @@ _interceptors.ArrayIterator$ = dart.generic(E => {
         this[_current] = null;
         return false;
       }
-      this[_current] = this[_iterable][dartx.get](this[_index]);
+      this[_current] = this[_iterable][dartx._get](this[_index]);
       this[_index] = dart.notNull(this[_index]) + 1;
       return true;
     }
@@ -4415,7 +4415,7 @@ dart.defineExtensionNames([
   'toRadixString',
   'toString',
   'hashCode',
-  'unary-',
+  '_negate',
   '+',
   '-',
   '/',
@@ -4612,7 +4612,7 @@ _interceptors.JSNumber = class JSNumber extends _interceptors.Interceptor {
   get [dartx.hashCode]() {
     return this & 0x1FFFFFFF;
   }
-  [dartx['unary-']]() {
+  [dartx._negate]() {
     return -this;
   }
   [dartx['+']](other) {
@@ -4910,7 +4910,7 @@ dart.setSignature(_interceptors.JSNumber, {
     [dartx.toStringAsExponential]: dart.definiteFunctionType(core.String, [], [core.int]),
     [dartx.toStringAsPrecision]: dart.definiteFunctionType(core.String, [core.int]),
     [dartx.toRadixString]: dart.definiteFunctionType(core.String, [core.int]),
-    [dartx['unary-']]: dart.definiteFunctionType(_interceptors.JSNumber, []),
+    [dartx._negate]: dart.definiteFunctionType(_interceptors.JSNumber, []),
     [dartx['+']]: dart.definiteFunctionType(_interceptors.JSNumber, [core.num]),
     [dartx['-']]: dart.definiteFunctionType(_interceptors.JSNumber, [core.num]),
     [dartx['/']]: dart.definiteFunctionType(core.double, [core.num]),
@@ -4993,7 +4993,7 @@ dart.defineExtensionNames([
   'hashCode',
   'runtimeType',
   'length',
-  'get'
+  '_get'
 ]);
 _interceptors.JSString = class JSString extends _interceptors.Interceptor {
   new() {
@@ -5376,7 +5376,7 @@ _interceptors.JSString = class JSString extends _interceptors.Interceptor {
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (!(typeof index == 'number')) dart.throw(_js_helper.diagnoseIndexError(this, index));
     if (dart.notNull(index) >= dart.notNull(this[dartx.length]) || dart.notNull(index) < 0) dart.throw(_js_helper.diagnoseIndexError(this, index));
     return this[index];
@@ -5420,7 +5420,7 @@ dart.setSignature(_interceptors.JSString, {
     [dartx.lastIndexOf]: dart.definiteFunctionType(core.int, [core.Pattern], [core.int]),
     [dartx.contains]: dart.definiteFunctionType(core.bool, [core.Pattern], [core.int]),
     [dartx.compareTo]: dart.definiteFunctionType(core.int, [core.String]),
-    [dartx.get]: dart.definiteFunctionType(core.String, [core.int])
+    [dartx._get]: dart.definiteFunctionType(core.String, [core.int])
   }),
   statics: () => ({
     _isWhitespace: dart.definiteFunctionType(core.bool, [core.int]),
@@ -5572,12 +5572,12 @@ collection.ListMixin$ = dart.generic(E => {
       return new dart.JsIterator(this[dartx.iterator]);
     }
     elementAt(index) {
-      return this[dartx.get](index);
+      return this[dartx._get](index);
     }
     forEach(action) {
       let length = this[dartx.length];
       for (let i = 0; i < dart.notNull(length); i++) {
-        action(this[dartx.get](i));
+        action(this[dartx._get](i));
         if (length != this[dartx.length]) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
@@ -5591,21 +5591,21 @@ collection.ListMixin$ = dart.generic(E => {
     }
     get first() {
       if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
-      return this[dartx.get](0);
+      return this[dartx._get](0);
     }
     get last() {
       if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
-      return this[dartx.get](dart.notNull(this[dartx.length]) - 1);
+      return this[dartx._get](dart.notNull(this[dartx.length]) - 1);
     }
     get single() {
       if (this[dartx.length] == 0) dart.throw(_internal.IterableElementError.noElement());
       if (dart.notNull(this[dartx.length]) > 1) dart.throw(_internal.IterableElementError.tooMany());
-      return this[dartx.get](0);
+      return this[dartx._get](0);
     }
     contains(element) {
       let length = this[dartx.length];
       for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-        if (dart.equals(this[dartx.get](i), element)) return true;
+        if (dart.equals(this[dartx._get](i), element)) return true;
         if (length != this[dartx.length]) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
@@ -5615,7 +5615,7 @@ collection.ListMixin$ = dart.generic(E => {
     every(test) {
       let length = this[dartx.length];
       for (let i = 0; i < dart.notNull(length); i++) {
-        if (!dart.test(test(this[dartx.get](i)))) return false;
+        if (!dart.test(test(this[dartx._get](i)))) return false;
         if (length != this[dartx.length]) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
@@ -5625,7 +5625,7 @@ collection.ListMixin$ = dart.generic(E => {
     any(test) {
       let length = this[dartx.length];
       for (let i = 0; i < dart.notNull(length); i++) {
-        if (dart.test(test(this[dartx.get](i)))) return true;
+        if (dart.test(test(this[dartx._get](i)))) return true;
         if (length != this[dartx.length]) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
@@ -5637,7 +5637,7 @@ collection.ListMixin$ = dart.generic(E => {
       VoidToE()._check(orElse);
       let length = this[dartx.length];
       for (let i = 0; i < dart.notNull(length); i++) {
-        let element = this[dartx.get](i);
+        let element = this[dartx._get](i);
         if (dart.test(test(element))) return element;
         if (length != this[dartx.length]) {
           dart.throw(new core.ConcurrentModificationError(this));
@@ -5651,7 +5651,7 @@ collection.ListMixin$ = dart.generic(E => {
       VoidToE()._check(orElse);
       let length = this[dartx.length];
       for (let i = dart.notNull(length) - 1; i >= 0; i--) {
-        let element = this[dartx.get](i);
+        let element = this[dartx._get](i);
         if (dart.test(test(element))) return element;
         if (length != this[dartx.length]) {
           dart.throw(new core.ConcurrentModificationError(this));
@@ -5665,7 +5665,7 @@ collection.ListMixin$ = dart.generic(E => {
       let match = null;
       let matchFound = false;
       for (let i = 0; i < dart.notNull(length); i++) {
-        let element = this[dartx.get](i);
+        let element = this[dartx._get](i);
         if (dart.test(test(element))) {
           if (matchFound) {
             dart.throw(_internal.IterableElementError.tooMany());
@@ -5704,9 +5704,9 @@ collection.ListMixin$ = dart.generic(E => {
       EAndEToE()._check(combine);
       let length = this[dartx.length];
       if (length == 0) dart.throw(_internal.IterableElementError.noElement());
-      let value = this[dartx.get](0);
+      let value = this[dartx._get](0);
       for (let i = 1; i < dart.notNull(length); i++) {
-        value = combine(value, this[dartx.get](i));
+        value = combine(value, this[dartx._get](i));
         if (length != this[dartx.length]) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
@@ -5718,7 +5718,7 @@ collection.ListMixin$ = dart.generic(E => {
         let value = initialValue;
         let length = this[dartx.length];
         for (let i = 0; i < dart.notNull(length); i++) {
-          value = combine(value, this[dartx.get](i));
+          value = combine(value, this[dartx._get](i));
           if (length != this[dartx.length]) {
             dart.throw(new core.ConcurrentModificationError(this));
           }
@@ -5748,20 +5748,20 @@ collection.ListMixin$ = dart.generic(E => {
         result = ListOfE().new(this[dartx.length]);
       }
       for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-        result[dartx.set](i, this[dartx.get](i));
+        result[dartx._set](i, this[dartx._get](i));
       }
       return result;
     }
     toSet() {
       let result = SetOfE().new();
       for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-        result.add(this[dartx.get](i));
+        result.add(this[dartx._get](i));
       }
       return result;
     }
     add(element) {
       E._check(element);
-      this[dartx.set]((() => {
+      this[dartx._set]((() => {
         let x = this[dartx.length];
         this[dartx.length] = dart.notNull(x) + 1;
         return x;
@@ -5773,13 +5773,13 @@ collection.ListMixin$ = dart.generic(E => {
       for (let element of iterable) {
         dart.assert(this[dartx.length] == i || dart.test(dart.throw(new core.ConcurrentModificationError(this))));
         this[dartx.length] = dart.notNull(i) + 1;
-        this[dartx.set](i, element);
+        this[dartx._set](i, element);
         i = dart.notNull(i) + 1;
       }
     }
     remove(element) {
       for (let i = 0; i < dart.notNull(this[dartx.length]); i++) {
-        if (dart.equals(this[dartx.get](i), element)) {
+        if (dart.equals(this[dartx._get](i), element)) {
           this[dartx.setRange](i, dart.notNull(this[dartx.length]) - 1, this, i + 1);
           this[dartx.length] = dart.notNull(this[dartx.length]) - 1;
           return true;
@@ -5797,7 +5797,7 @@ collection.ListMixin$ = dart.generic(E => {
       let retained = [];
       let length = source[dartx.length];
       for (let i = 0; i < dart.notNull(length); i++) {
-        let element = source[dartx.get](i);
+        let element = source[dartx._get](i);
         if (dart.dcall(test, element) == retainMatching) {
           retained[dartx.add](element);
         }
@@ -5817,7 +5817,7 @@ collection.ListMixin$ = dart.generic(E => {
       if (this[dartx.length] == 0) {
         dart.throw(_internal.IterableElementError.noElement());
       }
-      let result = this[dartx.get](dart.notNull(this[dartx.length]) - 1);
+      let result = this[dartx._get](dart.notNull(this[dartx.length]) - 1);
       this[dartx.length] = dart.notNull(this[dartx.length]) - 1;
       return result;
     }
@@ -5836,9 +5836,9 @@ collection.ListMixin$ = dart.generic(E => {
       while (dart.notNull(length) > 1) {
         let pos = random.nextInt(length);
         length = dart.notNull(length) - 1;
-        let tmp = this[dartx.get](length);
-        this[dartx.set](length, this[dartx.get](pos));
-        this[dartx.set](pos, tmp);
+        let tmp = this[dartx._get](length);
+        this[dartx._set](length, this[dartx._get](pos));
+        this[dartx._set](pos, tmp);
       }
     }
     asMap() {
@@ -5853,7 +5853,7 @@ collection.ListMixin$ = dart.generic(E => {
       let result = ListOfE().new();
       result[dartx.length] = length;
       for (let i = 0; i < length; i++) {
-        result[dartx.set](i, this[dartx.get](dart.notNull(start) + i));
+        result[dartx._set](i, this[dartx._get](dart.notNull(start) + i));
       }
       return result;
     }
@@ -5872,7 +5872,7 @@ collection.ListMixin$ = dart.generic(E => {
       E._check(fill);
       core.RangeError.checkValidRange(start, end, this[dartx.length]);
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-        this[dartx.set](i, fill);
+        this[dartx._set](i, fill);
       }
     }
     setRange(start, end, iterable, skipCount) {
@@ -5896,11 +5896,11 @@ collection.ListMixin$ = dart.generic(E => {
       }
       if (dart.notNull(otherStart) < dart.notNull(start)) {
         for (let i = length - 1; i >= 0; i--) {
-          this[dartx.set](dart.notNull(start) + i, otherList[dartx.get](dart.notNull(otherStart) + i));
+          this[dartx._set](dart.notNull(start) + i, otherList[dartx._get](dart.notNull(otherStart) + i));
         }
       } else {
         for (let i = 0; i < length; i++) {
-          this[dartx.set](dart.notNull(start) + i, otherList[dartx.get](dart.notNull(otherStart) + i));
+          this[dartx._set](dart.notNull(start) + i, otherList[dartx._get](dart.notNull(otherStart) + i));
         }
       }
     }
@@ -5939,7 +5939,7 @@ collection.ListMixin$ = dart.generic(E => {
         startIndex = 0;
       }
       for (let i = startIndex; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
-        if (dart.equals(this[dartx.get](i), element)) {
+        if (dart.equals(this[dartx._get](i), element)) {
           return i;
         }
       }
@@ -5958,7 +5958,7 @@ collection.ListMixin$ = dart.generic(E => {
         }
       }
       for (let i = startIndex; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-        if (dart.equals(this[dartx.get](i), element)) {
+        if (dart.equals(this[dartx._get](i), element)) {
           return i;
         }
       }
@@ -5974,10 +5974,10 @@ collection.ListMixin$ = dart.generic(E => {
       if (!(typeof index == 'number')) dart.throw(new core.ArgumentError(index));
       this[dartx.length] = dart.notNull(this[dartx.length]) + 1;
       this[dartx.setRange](dart.notNull(index) + 1, this[dartx.length], this, index);
-      this[dartx.set](index, element);
+      this[dartx._set](index, element);
     }
     removeAt(index) {
-      let result = this[dartx.get](index);
+      let result = this[dartx._get](index);
       this[dartx.setRange](index, dart.notNull(this[dartx.length]) - 1, this, dart.notNull(index) + 1);
       this[dartx.length] = dart.notNull(this[dartx.length]) - 1;
       return result;
@@ -6003,7 +6003,7 @@ collection.ListMixin$ = dart.generic(E => {
         this[dartx.setRange](index, dart.notNull(index) + dart.notNull(iterable[dartx.length]), iterable);
       } else {
         for (let element of iterable) {
-          this[dartx.set]((() => {
+          this[dartx._set]((() => {
             let x = index;
             index = dart.notNull(x) + 1;
             return x;
@@ -6152,7 +6152,7 @@ _internal.UnmodifiableListMixin$ = dart.generic(E => {
   let ETobool = () => (ETobool = dart.constFn(dart.functionType(core.bool, [E])))();
   let ComparatorOfE = () => (ComparatorOfE = dart.constFn(core.Comparator$(E)))();
   class UnmodifiableListMixin extends core.Object {
-    set(index, value) {
+    _set(index, value) {
       E._check(value);
       dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable list"));
       return value;
@@ -6229,7 +6229,7 @@ _internal.UnmodifiableListMixin$ = dart.generic(E => {
   dart.setSignature(UnmodifiableListMixin, {
     setters: () => ({length: dart.definiteFunctionType(dart.void, [core.int])}),
     methods: () => ({
-      set: dart.definiteFunctionType(dart.void, [core.int, E]),
+      _set: dart.definiteFunctionType(dart.void, [core.int, E]),
       setAll: dart.definiteFunctionType(dart.void, [core.int, IterableOfE()]),
       add: dart.definiteFunctionType(dart.void, [E]),
       insert: dart.definiteFunctionType(dart.void, [core.int, E]),
@@ -6250,7 +6250,7 @@ _internal.UnmodifiableListMixin$ = dart.generic(E => {
     })
   });
   dart.defineExtensionMembers(UnmodifiableListMixin, [
-    'set',
+    '_set',
     'setAll',
     'add',
     'insert',
@@ -6319,7 +6319,7 @@ _internal.CodeUnits = class CodeUnits extends _internal.UnmodifiableListBase$(co
   set length(value) {
     super.length = value;
   }
-  get(i) {
+  _get(i) {
     return this[_string][dartx.codeUnitAt](i);
   }
   static stringOf(u) {
@@ -6331,11 +6331,11 @@ dart.setSignature(_internal.CodeUnits, {
   constructors: () => ({new: dart.definiteFunctionType(_internal.CodeUnits, [core.String])}),
   fields: () => ({[_string]: core.String}),
   getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
-  methods: () => ({get: dart.definiteFunctionType(core.int, [core.int])}),
+  methods: () => ({_get: dart.definiteFunctionType(core.int, [core.int])}),
   statics: () => ({stringOf: dart.definiteFunctionType(core.String, [_internal.CodeUnits])}),
   names: ['stringOf']
 });
-dart.defineExtensionMembers(_internal.CodeUnits, ['get', 'length']);
+dart.defineExtensionMembers(_internal.CodeUnits, ['_get', 'length']);
 _internal.EfficientLength = class EfficientLength extends core.Object {};
 core.Iterable$ = dart.generic(E => {
   let EmptyIterableOfE = () => (EmptyIterableOfE = dart.constFn(_internal.EmptyIterable$(E)))();
@@ -6854,7 +6854,7 @@ _internal.ListIterable$ = dart.generic(E => {
         result = ListOfE().new(this.length);
       }
       for (let i = 0; i < dart.notNull(this.length); i++) {
-        result[dartx.set](i, this.elementAt(i));
+        result[dartx._set](i, this.elementAt(i));
       }
       return result;
     }
@@ -7002,7 +7002,7 @@ _internal.SubListIterable$ = dart.generic(E => {
         return _;
       })() : ListOfE().new(length);
       for (let i = 0; i < length; i++) {
-        result[dartx.set](i, this[_iterable][dartx.elementAt](dart.notNull(start) + i));
+        result[dartx._set](i, this[_iterable][dartx.elementAt](dart.notNull(start) + i));
         if (dart.notNull(this[_iterable][dartx.length]) < dart.notNull(end)) dart.throw(new core.ConcurrentModificationError(this));
       }
       return result;
@@ -8052,8 +8052,8 @@ _internal.ListMapView$ = dart.generic(E => {
     new(values) {
       this[_values] = values;
     }
-    get(key) {
-      return dart.test(this.containsKey(key)) ? this[_values][dartx.get](core.int._check(key)) : null;
+    _get(key) {
+      return dart.test(this.containsKey(key)) ? this[_values][dartx._get](core.int._check(key)) : null;
     }
     get length() {
       return this[_values][dartx.length];
@@ -8079,13 +8079,13 @@ _internal.ListMapView$ = dart.generic(E => {
     forEach(f) {
       let length = this[_values][dartx.length];
       for (let i = 0; i < dart.notNull(length); i++) {
-        f(i, this[_values][dartx.get](i));
+        f(i, this[_values][dartx._get](i));
         if (length != this[_values][dartx.length]) {
           dart.throw(new core.ConcurrentModificationError(this[_values]));
         }
       }
     }
-    set(key, value) {
+    _set(key, value) {
       E._check(value);
       dart.throw(new core.UnsupportedError("Cannot modify an unmodifiable map"));
       return value;
@@ -8121,11 +8121,11 @@ _internal.ListMapView$ = dart.generic(E => {
       isNotEmpty: dart.definiteFunctionType(core.bool, [])
     }),
     methods: () => ({
-      get: dart.definiteFunctionType(E, [core.Object]),
+      _get: dart.definiteFunctionType(E, [core.Object]),
       containsValue: dart.definiteFunctionType(core.bool, [core.Object]),
       containsKey: dart.definiteFunctionType(core.bool, [core.Object]),
       forEach: dart.definiteFunctionType(dart.void, [intAndETovoid()]),
-      set: dart.definiteFunctionType(dart.void, [core.int, E]),
+      _set: dart.definiteFunctionType(dart.void, [core.int, E]),
       putIfAbsent: dart.definiteFunctionType(E, [core.int, VoidToE()]),
       remove: dart.definiteFunctionType(E, [core.Object]),
       clear: dart.definiteFunctionType(dart.void, []),
@@ -8133,11 +8133,11 @@ _internal.ListMapView$ = dart.generic(E => {
     })
   });
   dart.defineExtensionMembers(ListMapView, [
-    'get',
+    '_get',
     'containsValue',
     'containsKey',
     'forEach',
-    'set',
+    '_set',
     'putIfAbsent',
     'remove',
     'clear',
@@ -8234,11 +8234,11 @@ _internal.Lists = class Lists extends core.Object {
   static copy(src, srcStart, dst, dstStart, count) {
     if (dart.notNull(srcStart) < dart.notNull(dstStart)) {
       for (let i = dart.notNull(srcStart) + dart.notNull(count) - 1, j = dart.notNull(dstStart) + dart.notNull(count) - 1; i >= dart.notNull(srcStart); i--, j--) {
-        dst[dartx.set](j, src[dartx.get](i));
+        dst[dartx._set](j, src[dartx._get](i));
       }
     } else {
       for (let i = srcStart, j = dstStart; dart.notNull(i) < dart.notNull(srcStart) + dart.notNull(count); i = dart.notNull(i) + 1, j = dart.notNull(j) + 1) {
-        dst[dartx.set](j, src[dartx.get](i));
+        dst[dartx._set](j, src[dartx._get](i));
       }
     }
   }
@@ -8248,7 +8248,7 @@ _internal.Lists = class Lists extends core.Object {
     let length = a[dartx.length];
     if (!dart.equals(length, dart.dload(b, 'length'))) return false;
     for (let i = 0; i < dart.notNull(length); i++) {
-      if (!core.identical(a[dartx.get](i), dart.dindex(b, i))) return false;
+      if (!core.identical(a[dartx._get](i), dart.dindex(b, i))) return false;
     }
     return true;
   }
@@ -8260,7 +8260,7 @@ _internal.Lists = class Lists extends core.Object {
       startIndex = 0;
     }
     for (let i = startIndex; dart.notNull(i) < dart.notNull(endIndex); i = dart.notNull(i) + 1) {
-      if (dart.equals(a[dartx.get](i), element)) {
+      if (dart.equals(a[dartx._get](i), element)) {
         return i;
       }
     }
@@ -8274,7 +8274,7 @@ _internal.Lists = class Lists extends core.Object {
       startIndex = dart.notNull(a[dartx.length]) - 1;
     }
     for (let i = startIndex; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-      if (dart.equals(a[dartx.get](i), element)) {
+      if (dart.equals(a[dartx._get](i), element)) {
         return i;
       }
     }
@@ -8334,13 +8334,13 @@ _internal.Sort = class Sort extends core.Object {
   static _insertionSort(E) {
     return (a, left, right, compare) => {
       for (let i = dart.notNull(left) + 1; i <= dart.notNull(right); i++) {
-        let el = a[dartx.get](i);
+        let el = a[dartx._get](i);
         let j = i;
-        while (j > dart.notNull(left) && dart.notNull(compare(a[dartx.get](j - 1), el)) > 0) {
-          a[dartx.set](j, a[dartx.get](j - 1));
+        while (j > dart.notNull(left) && dart.notNull(compare(a[dartx._get](j - 1), el)) > 0) {
+          a[dartx._set](j, a[dartx._get](j - 1));
           j--;
         }
-        a[dartx.set](j, el);
+        a[dartx._set](j, el);
       }
     };
   }
@@ -8353,11 +8353,11 @@ _internal.Sort = class Sort extends core.Object {
       let index3 = ((dart.notNull(left) + dart.notNull(right)) / 2)[dartx.truncate]();
       let index2 = index3 - sixth;
       let index4 = index3 + sixth;
-      let el1 = a[dartx.get](index1);
-      let el2 = a[dartx.get](index2);
-      let el3 = a[dartx.get](index3);
-      let el4 = a[dartx.get](index4);
-      let el5 = a[dartx.get](index5);
+      let el1 = a[dartx._get](index1);
+      let el2 = a[dartx._get](index2);
+      let el3 = a[dartx._get](index3);
+      let el4 = a[dartx._get](index4);
+      let el5 = a[dartx._get](index5);
       if (dart.notNull(compare(el1, el2)) > 0) {
         let t = el1;
         el1 = el2;
@@ -8405,40 +8405,40 @@ _internal.Sort = class Sort extends core.Object {
       }
       let pivot1 = el2;
       let pivot2 = el4;
-      a[dartx.set](index1, el1);
-      a[dartx.set](index3, el3);
-      a[dartx.set](index5, el5);
-      a[dartx.set](index2, a[dartx.get](left));
-      a[dartx.set](index4, a[dartx.get](right));
+      a[dartx._set](index1, el1);
+      a[dartx._set](index3, el3);
+      a[dartx._set](index5, el5);
+      a[dartx._set](index2, a[dartx._get](left));
+      a[dartx._set](index4, a[dartx._get](right));
       let less = dart.notNull(left) + 1;
       let great = dart.notNull(right) - 1;
       let pivots_are_equal = compare(pivot1, pivot2) == 0;
       if (pivots_are_equal) {
         let pivot = pivot1;
         for (let k = less; k <= great; k++) {
-          let ak = a[dartx.get](k);
+          let ak = a[dartx._get](k);
           let comp = compare(ak, pivot);
           if (comp == 0) continue;
           if (dart.notNull(comp) < 0) {
             if (k != less) {
-              a[dartx.set](k, a[dartx.get](less));
-              a[dartx.set](less, ak);
+              a[dartx._set](k, a[dartx._get](less));
+              a[dartx._set](less, ak);
             }
             less++;
           } else {
             while (true) {
-              comp = compare(a[dartx.get](great), pivot);
+              comp = compare(a[dartx._get](great), pivot);
               if (dart.notNull(comp) > 0) {
                 great--;
                 continue;
               } else if (dart.notNull(comp) < 0) {
-                a[dartx.set](k, a[dartx.get](less));
-                a[dartx.set](less++, a[dartx.get](great));
-                a[dartx.set](great--, ak);
+                a[dartx._set](k, a[dartx._get](less));
+                a[dartx._set](less++, a[dartx._get](great));
+                a[dartx._set](great--, ak);
                 break;
               } else {
-                a[dartx.set](k, a[dartx.get](great));
-                a[dartx.set](great--, ak);
+                a[dartx._set](k, a[dartx._get](great));
+                a[dartx._set](great--, ak);
                 break;
               }
             }
@@ -8446,32 +8446,32 @@ _internal.Sort = class Sort extends core.Object {
         }
       } else {
         for (let k = less; k <= great; k++) {
-          let ak = a[dartx.get](k);
+          let ak = a[dartx._get](k);
           let comp_pivot1 = compare(ak, pivot1);
           if (dart.notNull(comp_pivot1) < 0) {
             if (k != less) {
-              a[dartx.set](k, a[dartx.get](less));
-              a[dartx.set](less, ak);
+              a[dartx._set](k, a[dartx._get](less));
+              a[dartx._set](less, ak);
             }
             less++;
           } else {
             let comp_pivot2 = compare(ak, pivot2);
             if (dart.notNull(comp_pivot2) > 0) {
               while (true) {
-                let comp = compare(a[dartx.get](great), pivot2);
+                let comp = compare(a[dartx._get](great), pivot2);
                 if (dart.notNull(comp) > 0) {
                   great--;
                   if (great < k) break;
                   continue;
                 } else {
-                  comp = compare(a[dartx.get](great), pivot1);
+                  comp = compare(a[dartx._get](great), pivot1);
                   if (dart.notNull(comp) < 0) {
-                    a[dartx.set](k, a[dartx.get](less));
-                    a[dartx.set](less++, a[dartx.get](great));
-                    a[dartx.set](great--, ak);
+                    a[dartx._set](k, a[dartx._get](less));
+                    a[dartx._set](less++, a[dartx._get](great));
+                    a[dartx._set](great--, ak);
                   } else {
-                    a[dartx.set](k, a[dartx.get](great));
-                    a[dartx.set](great--, ak);
+                    a[dartx._set](k, a[dartx._get](great));
+                    a[dartx._set](great--, ak);
                   }
                   break;
                 }
@@ -8480,49 +8480,49 @@ _internal.Sort = class Sort extends core.Object {
           }
         }
       }
-      a[dartx.set](left, a[dartx.get](less - 1));
-      a[dartx.set](less - 1, pivot1);
-      a[dartx.set](right, a[dartx.get](great + 1));
-      a[dartx.set](great + 1, pivot2);
+      a[dartx._set](left, a[dartx._get](less - 1));
+      a[dartx._set](less - 1, pivot1);
+      a[dartx._set](right, a[dartx._get](great + 1));
+      a[dartx._set](great + 1, pivot2);
       _internal.Sort._doSort(E)(a, left, less - 2, compare);
       _internal.Sort._doSort(E)(a, great + 2, right, compare);
       if (pivots_are_equal) {
         return;
       }
       if (less < index1 && great > index5) {
-        while (compare(a[dartx.get](less), pivot1) == 0) {
+        while (compare(a[dartx._get](less), pivot1) == 0) {
           less++;
         }
-        while (compare(a[dartx.get](great), pivot2) == 0) {
+        while (compare(a[dartx._get](great), pivot2) == 0) {
           great--;
         }
         for (let k = less; k <= great; k++) {
-          let ak = a[dartx.get](k);
+          let ak = a[dartx._get](k);
           let comp_pivot1 = compare(ak, pivot1);
           if (comp_pivot1 == 0) {
             if (k != less) {
-              a[dartx.set](k, a[dartx.get](less));
-              a[dartx.set](less, ak);
+              a[dartx._set](k, a[dartx._get](less));
+              a[dartx._set](less, ak);
             }
             less++;
           } else {
             let comp_pivot2 = compare(ak, pivot2);
             if (comp_pivot2 == 0) {
               while (true) {
-                let comp = compare(a[dartx.get](great), pivot2);
+                let comp = compare(a[dartx._get](great), pivot2);
                 if (comp == 0) {
                   great--;
                   if (great < k) break;
                   continue;
                 } else {
-                  comp = compare(a[dartx.get](great), pivot1);
+                  comp = compare(a[dartx._get](great), pivot1);
                   if (dart.notNull(comp) < 0) {
-                    a[dartx.set](k, a[dartx.get](less));
-                    a[dartx.set](less++, a[dartx.get](great));
-                    a[dartx.set](great--, ak);
+                    a[dartx._set](k, a[dartx._get](less));
+                    a[dartx._set](less++, a[dartx._get](great));
+                    a[dartx._set](great--, ak);
                   } else {
-                    a[dartx.set](k, a[dartx.get](great));
-                    a[dartx.set](great--, ak);
+                    a[dartx._set](k, a[dartx._get](great));
+                    a[dartx._set](great--, ak);
                   }
                   break;
                 }
@@ -8897,8 +8897,8 @@ _isolate_helper._IsolateContext = class _IsolateContext extends core.Object {
       return;
     }
     let message = core.List.new(2);
-    message[dartx.set](0, dart.toString(error));
-    message[dartx.set](1, stackTrace == null ? null : dart.toString(stackTrace));
+    message[dartx._set](0, dart.toString(error));
+    message[dartx._set](1, stackTrace == null ? null : dart.toString(stackTrace));
     for (let port of this.errorPorts)
       port.send(message);
   }
@@ -8986,13 +8986,13 @@ _isolate_helper._IsolateContext = class _IsolateContext extends core.Object {
     }
   }
   lookup(portId) {
-    return this.ports[dartx.get](portId);
+    return this.ports[dartx._get](portId);
   }
   [_addRegistration](portId, port) {
     if (dart.test(this.ports[dartx.containsKey](portId))) {
       dart.throw(core.Exception.new("Registry: ports must be registered only once."));
     }
-    this.ports[dartx.set](portId, port);
+    this.ports[dartx._set](portId, port);
   }
   register(portId, port) {
     this[_addRegistration](portId, port);
@@ -9004,7 +9004,7 @@ _isolate_helper._IsolateContext = class _IsolateContext extends core.Object {
   }
   [_updateGlobalState]() {
     if (dart.notNull(this.ports[dartx.length]) - dart.notNull(this.weakPorts.length) > 0 || dart.test(this.isPaused) || !dart.test(this.initialized)) {
-      _isolate_helper._globalState.isolates[dartx.set](this.id, this);
+      _isolate_helper._globalState.isolates[dartx._set](this.id, this);
     } else {
       this.kill();
     }
@@ -9289,7 +9289,7 @@ _isolate_helper.IsolateNatives = class IsolateNatives extends core.Object {
       }
       case 'close':
       {
-        _isolate_helper._globalState.managers[dartx.remove](_isolate_helper.IsolateNatives.workerIds.get(sender));
+        _isolate_helper._globalState.managers[dartx.remove](_isolate_helper.IsolateNatives.workerIds._get(sender));
         sender.terminate();
         _isolate_helper._globalState.topEventLoop.run();
         break;
@@ -9452,8 +9452,8 @@ _isolate_helper.IsolateNatives = class IsolateNatives extends core.Object {
     let o = _isolate_helper._globalState;
     let workerId = o.nextManagerId;
     o.nextManagerId = dart.notNull(workerId) + 1;
-    _isolate_helper.IsolateNatives.workerIds.set(worker, workerId);
-    _isolate_helper._globalState.managers[dartx.set](workerId, worker);
+    _isolate_helper.IsolateNatives.workerIds._set(worker, workerId);
+    _isolate_helper._globalState.managers[dartx._set](workerId, worker);
     worker.postMessage(_isolate_helper._serializeMessage(dart.map({command: 'start', id: workerId, replyTo: _isolate_helper._serializeMessage(replyPort), args: args, msg: _isolate_helper._serializeMessage(message), isSpawnUri: isSpawnUri, startPaused: startPaused, functionName: functionName}, core.String, core.Object)));
   }
   static workerOnError(event, uri, onError) {
@@ -9536,7 +9536,7 @@ _isolate_helper._NativeJsSendPort = class _NativeJsSendPort extends _isolate_hel
     super.new(isolateId);
   }
   send(message) {
-    let isolate = _isolate_helper._globalState.isolates[dartx.get](this[_isolateId]);
+    let isolate = _isolate_helper._globalState.isolates[dartx._get](this[_isolateId]);
     if (isolate == null) return;
     if (dart.test(this[_receivePort][_isClosed])) return;
     let msg = _isolate_helper._clone(message);
@@ -9576,7 +9576,7 @@ _isolate_helper._WorkerSendPort = class _WorkerSendPort extends _isolate_helper.
     if (dart.test(_isolate_helper._globalState.isWorker)) {
       _isolate_helper._globalState.mainManager.postMessage(workerMessage);
     } else {
-      let manager = _isolate_helper._globalState.managers[dartx.get](this[_workerId]);
+      let manager = _isolate_helper._globalState.managers[dartx._get](this[_workerId]);
       if (manager != null) {
         manager.postMessage(workerMessage);
       }
@@ -10614,10 +10614,10 @@ _isolate_helper._Serializer = class _Serializer extends core.Object {
   }
   serialize(x) {
     if (dart.test(this.isPrimitive(x))) return this.serializePrimitive(x);
-    let serializationId = this.serializedObjectIds[dartx.get](x);
+    let serializationId = this.serializedObjectIds[dartx._get](x);
     if (serializationId != null) return this.makeRef(serializationId);
     serializationId = this.serializedObjectIds[dartx.length];
-    this.serializedObjectIds[dartx.set](x, serializationId);
+    this.serializedObjectIds[dartx._set](x, serializationId);
     if (_native_typed_data.NativeByteBuffer.is(x)) return this.serializeByteBuffer(x);
     if (_native_typed_data.NativeTypedData.is(x)) return this.serializeTypedData(x);
     if (_interceptors.JSIndexable.is(x)) return this.serializeJSIndexable(x);
@@ -10666,13 +10666,13 @@ _isolate_helper._Serializer = class _Serializer extends core.Object {
     let serialized = [];
     serialized[dartx.length] = x[dartx.length];
     for (let i = 0; i < dart.notNull(x[dartx.length]); i++) {
-      serialized[dartx.set](i, this.serialize(x[dartx.get](i)));
+      serialized[dartx._set](i, this.serialize(x[dartx._get](i)));
     }
     return serialized;
   }
   serializeArrayInPlace(x) {
     for (let i = 0; i < dart.notNull(x[dartx.length]); i++) {
-      x[dartx.set](i, this.serialize(x[dartx.get](i)));
+      x[dartx._set](i, this.serialize(x[dartx._get](i)));
     }
     return x;
   }
@@ -10688,7 +10688,7 @@ _isolate_helper._Serializer = class _Serializer extends core.Object {
     let values = [];
     values[dartx.length] = keys[dartx.length];
     for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
-      values[dartx.set](i, this.serialize(x[keys[dartx.get](i)]));
+      values[dartx._set](i, this.serialize(x[keys[dartx._get](i)]));
     }
     return JSArrayOfObject().of(['js-object', keys, values]);
   }
@@ -10827,7 +10827,7 @@ _isolate_helper._Deserializer = class _Deserializer extends core.Object {
   deserializeRef(x) {
     dart.assert(dart.equals(dart.dindex(x, 0), 'ref'));
     let serializationId = core.int._check(dart.dindex(x, 1));
-    return this.deserializedObjects[dartx.get](serializationId);
+    return this.deserializedObjects[dartx._get](serializationId);
   }
   deserializeByteBuffer(x) {
     dart.assert(dart.equals(dart.dindex(x, 0), 'buffer'));
@@ -10843,7 +10843,7 @@ _isolate_helper._Deserializer = class _Deserializer extends core.Object {
   }
   deserializeArrayInPlace(x) {
     for (let i = 0; i < dart.notNull(x[dartx.length]); i++) {
-      x[dartx.set](i, this.deserialize(x[dartx.get](i)));
+      x[dartx._set](i, this.deserialize(x[dartx._get](i)));
     }
     return x;
   }
@@ -10872,14 +10872,14 @@ _isolate_helper._Deserializer = class _Deserializer extends core.Object {
     return _interceptors.JSArray.markFixed(this.deserializeArrayInPlace(_interceptors.JSArray._check(result)));
   }
   deserializeMap(x) {
-    dart.assert(dart.equals(x.get(0), 'map'));
-    let keys = core.List._check(x.get(1));
-    let values = core.List._check(x.get(2));
+    dart.assert(dart.equals(x._get(0), 'map'));
+    let keys = core.List._check(x._get(1));
+    let values = core.List._check(x._get(2));
     let result = dart.map();
     this.deserializedObjects[dartx.add](result);
     keys = keys[dartx.map](dart.dynamic)(dart.bind(this, 'deserialize'))[dartx.toList]();
     for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
-      result[dartx.set](keys[dartx.get](i), this.deserialize(values[dartx.get](i)));
+      result[dartx._set](keys[dartx._get](i), this.deserialize(values[dartx._get](i)));
     }
     return result;
   }
@@ -10890,7 +10890,7 @@ _isolate_helper._Deserializer = class _Deserializer extends core.Object {
     let receivePortId = core.int._check(dart.dindex(x, 3));
     let result = null;
     if (managerId == _isolate_helper._globalState.currentManagerId) {
-      let isolate = _isolate_helper._globalState.isolates[dartx.get](isolateId);
+      let isolate = _isolate_helper._globalState.isolates[dartx._get](isolateId);
       if (isolate == null) return null;
       let receivePort = isolate.lookup(receivePortId);
       if (receivePort == null) return null;
@@ -10914,7 +10914,7 @@ _isolate_helper._Deserializer = class _Deserializer extends core.Object {
     let o = {};
     this.deserializedObjects[dartx.add](o);
     for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
-      o[keys[dartx.get](i)] = this.deserialize(values[dartx.get](i));
+      o[keys[dartx._get](i)] = this.deserialize(values[dartx._get](i));
     }
     return o;
   }
@@ -11038,12 +11038,12 @@ _js_helper.Primitives = class Primitives extends core.Object {
     if (match == null) {
       return _js_helper.Primitives._parseIntError(source, handleError);
     }
-    let decimalMatch = match[dartx.get](decimalIndex);
+    let decimalMatch = match[dartx._get](decimalIndex);
     if (radix == null) {
       if (decimalMatch != null) {
         return parseInt(source, 10);
       }
-      if (match[dartx.get](hexIndex) != null) {
+      if (match[dartx._get](hexIndex) != null) {
         return parseInt(source, 16);
       }
       return _js_helper.Primitives._parseIntError(source, handleError);
@@ -11064,7 +11064,7 @@ _js_helper.Primitives = class Primitives extends core.Object {
       } else {
         maxCharCode = 97 - 10 - 1 + dart.notNull(radix);
       }
-      dart.assert(typeof match[dartx.get](digitsIndex) == 'string');
+      dart.assert(typeof match[dartx._get](digitsIndex) == 'string');
       let digitsPart = match[digitsIndex];
       for (let i = 0; i < dart.notNull(digitsPart[dartx.length]); i++) {
         let characterCode = (dart.notNull(digitsPart[dartx.codeUnitAt](i)) | 32) >>> 0;
@@ -11202,11 +11202,11 @@ _js_helper.Primitives = class Primitives extends core.Object {
   static getTimeZoneName(receiver) {
     let d = _js_helper.Primitives.lazyAsJsDate(receiver);
     let match = /\((.*)\)/.exec(d.toString());
-    if (match != null) return core.String._check(match[dartx.get](1));
+    if (match != null) return core.String._check(match[dartx._get](1));
     match = /^[A-Z,a-z]{3}\s[A-Z,a-z]{3}\s\d+\s\d{2}:\d{2}:\d{2}\s([A-Z]{3,5})\s\d{4}$/.exec(d.toString());
-    if (match != null) return core.String._check(match[dartx.get](1));
+    if (match != null) return core.String._check(match[dartx._get](1));
     match = /(?:GMT|UTC)[+-]\d{4}/.exec(d.toString());
-    if (match != null) return core.String._check(match[dartx.get](0));
+    if (match != null) return core.String._check(match[dartx._get](0));
     return "";
   }
   static getTimeZoneOffsetInMinutes(receiver) {
@@ -11558,7 +11558,7 @@ _js_helper.fillLiteralMap = function(keyValuePairs, result) {
   while (index < dart.notNull(length)) {
     let key = _js_helper.getIndex(keyValuePairs, index++);
     let value = _js_helper.getIndex(keyValuePairs, index++);
-    result[dartx.set](key, value);
+    result[dartx._set](key, value);
   }
   return result;
 };
@@ -11962,7 +11962,7 @@ _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
       return new (LinkedHashMapKeyIterableOfK())(this);
     }
     get values() {
-      return MappedIterableOfK$V().new(this.keys, dart.fn(each => this.get(each), KToV()));
+      return MappedIterableOfK$V().new(this.keys, dart.fn(each => this._get(each), KToV()));
     }
     containsKey(key) {
       if (dart.test(_js_helper.JsLinkedHashMap._isStringKey(key))) {
@@ -11984,15 +11984,15 @@ _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
       return dart.notNull(this.internalFindBucketIndex(bucket, key)) >= 0;
     }
     containsValue(value) {
-      return this.keys[dartx.any](dart.fn(each => dart.equals(this.get(each), value), KTobool()));
+      return this.keys[dartx.any](dart.fn(each => dart.equals(this._get(each), value), KTobool()));
     }
     addAll(other) {
       MapOfK$V()._check(other);
       other[dartx.forEach](dart.fn((key, value) => {
-        this.set(key, value);
+        this._set(key, value);
       }, KAndVTovoid$()));
     }
-    get(key) {
+    _get(key) {
       if (dart.test(_js_helper.JsLinkedHashMap._isStringKey(key))) {
         let strings = this[_strings];
         if (strings == null) return null;
@@ -12016,7 +12016,7 @@ _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
       let cell = bucket[index];
       return cell.hashMapCellValue;
     }
-    set(key, value) {
+    _set(key, value) {
       K._check(key);
       V._check(value);
       if (dart.test(_js_helper.JsLinkedHashMap._isStringKey(key))) {
@@ -12056,9 +12056,9 @@ _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
     putIfAbsent(key, ifAbsent) {
       K._check(key);
       VoidToV()._check(ifAbsent);
-      if (dart.test(this.containsKey(key))) return this.get(key);
+      if (dart.test(this.containsKey(key))) return this._get(key);
       let value = ifAbsent();
-      this.set(key, value);
+      this._set(key, value);
       return value;
     }
     remove(key) {
@@ -12231,9 +12231,9 @@ _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
       internalContainsKey: dart.definiteFunctionType(core.bool, [core.Object]),
       containsValue: dart.definiteFunctionType(core.bool, [core.Object]),
       addAll: dart.definiteFunctionType(dart.void, [MapOfK$V()]),
-      get: dart.definiteFunctionType(V, [core.Object]),
+      _get: dart.definiteFunctionType(V, [core.Object]),
       internalGet: dart.definiteFunctionType(V, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [K, V]),
+      _set: dart.definiteFunctionType(dart.void, [K, V]),
       internalSet: dart.definiteFunctionType(dart.void, [K, V]),
       putIfAbsent: dart.definiteFunctionType(V, [K, VoidToV()]),
       remove: dart.definiteFunctionType(V, [core.Object]),
@@ -12265,8 +12265,8 @@ _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
     'containsKey',
     'containsValue',
     'addAll',
-    'get',
-    'set',
+    '_get',
+    '_set',
     'putIfAbsent',
     'remove',
     'clear',
@@ -12553,7 +12553,7 @@ _js_helper.JSSyntaxRegExp = class JSSyntaxRegExp extends core.Object {
     regexp.lastIndex = start;
     let match = regexp.exec(string);
     if (match == null) return null;
-    if (match[dartx.get](dart.notNull(match[dartx.length]) - 1) != null) return null;
+    if (match[dartx._get](dart.notNull(match[dartx.length]) - 1) != null) return null;
     match[dartx.length] = dart.notNull(match[dartx.length]) - 1;
     return new _js_helper._MatchImplementation(this, ListOfString()._check(match));
   }
@@ -12616,12 +12616,12 @@ _js_helper._MatchImplementation = class _MatchImplementation extends core.Object
     return this[_match].index;
   }
   get end() {
-    return dart.notNull(this.start) + dart.notNull(this[_match][dartx.get](0)[dartx.length]);
+    return dart.notNull(this.start) + dart.notNull(this[_match][dartx._get](0)[dartx.length]);
   }
   group(index) {
-    return this[_match][dartx.get](index);
+    return this[_match][dartx._get](index);
   }
-  get(index) {
+  _get(index) {
     return this.group(index);
   }
   get groupCount() {
@@ -12650,7 +12650,7 @@ dart.setSignature(_js_helper._MatchImplementation, {
   }),
   methods: () => ({
     group: dart.definiteFunctionType(core.String, [core.int]),
-    get: dart.definiteFunctionType(core.String, [core.int]),
+    _get: dart.definiteFunctionType(core.String, [core.int]),
     groups: dart.definiteFunctionType(core.List$(core.String), [ListOfint()])
   })
 });
@@ -12752,7 +12752,7 @@ _js_helper.StringMatch = class StringMatch extends core.Object {
   get end() {
     return dart.notNull(this.start) + dart.notNull(this.pattern[dartx.length]);
   }
-  get(g) {
+  _get(g) {
     return this.group(g);
   }
   get groupCount() {
@@ -12785,7 +12785,7 @@ dart.setSignature(_js_helper.StringMatch, {
     groupCount: dart.definiteFunctionType(core.int, [])
   }),
   methods: () => ({
-    get: dart.definiteFunctionType(core.String, [core.int]),
+    _get: dart.definiteFunctionType(core.String, [core.int]),
     group: dart.definiteFunctionType(core.String, [core.int]),
     groups: dart.definiteFunctionType(core.List$(core.String), [ListOfint()])
   })
@@ -12908,7 +12908,7 @@ _js_helper.stringReplaceAllUnchecked = function(receiver, pattern, replacement) 
         let length = receiver[dartx.length];
         result.write(replacement);
         for (let i = 0; i < dart.notNull(length); i++) {
-          result.write(receiver[dartx.get](i));
+          result.write(receiver[dartx._get](i));
           result.write(replacement);
         }
         return result.toString();
@@ -12928,7 +12928,7 @@ _js_helper.stringReplaceAllUnchecked = function(receiver, pattern, replacement) 
 };
 dart.lazyFn(_js_helper.stringReplaceAllUnchecked, () => StringAndPatternAndStringToString());
 _js_helper._matchString = function(match) {
-  return match.get(0);
+  return match._get(0);
 };
 dart.lazyFn(_js_helper._matchString, () => MatchToString());
 _js_helper._stringIdentity = function(string) {
@@ -12971,7 +12971,7 @@ _js_helper.stringReplaceAllEmptyFuncUnchecked = function(receiver, onMatch, onNo
         continue;
       }
     }
-    buffer.write(onNonMatch(receiver[dartx.get](i)));
+    buffer.write(onNonMatch(receiver[dartx._get](i)));
     i++;
   }
   buffer.write(onMatch(new _js_helper.StringMatch(i, receiver, "")));
@@ -13140,7 +13140,7 @@ _js_mirrors._toDartMap = function(data) {
   let privateMembers = Object.getOwnPropertySymbols(data);
   for (let member of core.Iterable._check(privateMembers)) {
     let name = _js_mirrors._getNameForESSymbol(member);
-    map[dartx.set](name, data[member]);
+    map[dartx._set](name, data[member]);
   }
   return map;
 };
@@ -13427,13 +13427,13 @@ _js_mirrors.JsClassMirror = class JsClassMirror extends _js_mirrors.JsMirror {
       let constructors = _js_mirrors._getConstructors(unwrapped);
       constructors[dartx.forEach](dart.fn((name, ft) => {
         let symbol = core.Symbol.new(name);
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsMethodMirror._constructor(this, name, ft));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsMethodMirror._constructor(this, name, ft));
       }, StringAnddynamicTovoid()));
       if (dart.test(constructors[dartx.isEmpty])) {
         let name = 'new';
         let ft = _js_mirrors._defaultConstructorType(_js_mirrors._unwrap(this[_cls]));
         let symbol = core.Symbol.new(name);
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsMethodMirror._constructor(this, name, ft));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsMethodMirror._constructor(this, name, ft));
       }
       let fields = _js_mirrors._getFields(unwrapped);
       fields[dartx.forEach](dart.fn((name, t) => {
@@ -13443,23 +13443,23 @@ _js_mirrors.JsClassMirror = class JsClassMirror extends _js_mirrors.JsMirror {
           metadata = core.List._check(dart.dsend(dart.dsend(t, 'skip', 1), 'toList'));
           t = dart.dindex(t, 0);
         }
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsVariableMirror._(name, core.Type._check(_js_mirrors._wrap(t)), metadata));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsVariableMirror._(name, core.Type._check(_js_mirrors._wrap(t)), metadata));
       }, StringAnddynamicTovoid()));
       let methods = _js_mirrors._getMethods(unwrapped);
       methods[dartx.forEach](dart.fn((name, ft) => {
         let symbol = core.Symbol.new(name);
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsMethodMirror._instanceMethod(this, name, ft));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsMethodMirror._instanceMethod(this, name, ft));
       }, StringAnddynamicTovoid()));
       let getters = _js_mirrors._getGetters(unwrapped);
       getters[dartx.forEach](dart.fn((name, ft) => {
         let symbol = core.Symbol.new(name);
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsMethodMirror._instanceMethod(this, name, ft));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsMethodMirror._instanceMethod(this, name, ft));
       }, StringAnddynamicTovoid()));
       let setters = _js_mirrors._getSetters(unwrapped);
       setters[dartx.forEach](dart.fn((name, ft) => {
         name = dart.notNull(name) + '=';
         let symbol = core.Symbol.new(name);
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsMethodMirror._instanceMethod(this, name, ft));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsMethodMirror._instanceMethod(this, name, ft));
       }, StringAnddynamicTovoid()));
       let staticFields = _js_mirrors._getStaticFields(unwrapped);
       staticFields[dartx.forEach](dart.fn((name, t) => {
@@ -13469,22 +13469,22 @@ _js_mirrors.JsClassMirror = class JsClassMirror extends _js_mirrors.JsMirror {
           metadata = core.List._check(dart.dsend(dart.dsend(t, 'skip', 1), 'toList'));
           t = dart.dindex(t, 0);
         }
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsVariableMirror._(name, core.Type._check(_js_mirrors._wrap(t)), metadata));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsVariableMirror._(name, core.Type._check(_js_mirrors._wrap(t)), metadata));
       }, StringAnddynamicTovoid()));
       let statics = _js_mirrors._getStatics(unwrapped);
       statics[dartx.forEach](dart.fn((name, ft) => {
         let symbol = core.Symbol.new(name);
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsMethodMirror._staticMethod(this, name, ft));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsMethodMirror._staticMethod(this, name, ft));
       }, StringAnddynamicTovoid()));
       let staticGetters = _js_mirrors._getStaticGetters(unwrapped);
       staticGetters[dartx.forEach](dart.fn((name, ft) => {
         let symbol = core.Symbol.new(name);
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsMethodMirror._staticMethod(this, name, ft));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsMethodMirror._staticMethod(this, name, ft));
       }, StringAnddynamicTovoid()));
       let staticSetters = _js_mirrors._getStaticSetters(unwrapped);
       staticSetters[dartx.forEach](dart.fn((name, ft) => {
         let symbol = core.Symbol.new(name);
-        this[_declarations][dartx.set](symbol, new _js_mirrors.JsMethodMirror._staticMethod(this, name, ft));
+        this[_declarations][dartx._set](symbol, new _js_mirrors.JsMethodMirror._staticMethod(this, name, ft));
       }, StringAnddynamicTovoid()));
       this[_declarations] = MapOfSymbol$DeclarationMirror().unmodifiable(this[_declarations]);
     }
@@ -13796,16 +13796,16 @@ _js_mirrors.JsMethodMirror = class JsMethodMirror extends _js_mirrors.JsMirror {
     let opts = core.List._check(dart.dload(ftype, 'optionals'));
     let params = ListOfParameterMirror().new(dart.notNull(args[dartx.length]) + dart.notNull(opts[dartx.length]));
     for (let i = 0; i < dart.notNull(args[dartx.length]); ++i) {
-      let type = args[dartx.get](i);
+      let type = args[dartx._get](i);
       let metadata = dart.dindex(dart.dload(ftype, 'metadata'), i);
       let param = new _js_mirrors.JsParameterMirror._('', core.Type._check(_js_mirrors._wrap(type)), core.List._check(metadata));
-      params[dartx.set](i, param);
+      params[dartx._set](i, param);
     }
     for (let i = 0; i < dart.notNull(opts[dartx.length]); ++i) {
-      let type = opts[dartx.get](i);
+      let type = opts[dartx._get](i);
       let metadata = dart.dindex(dart.dload(ftype, 'metadata'), dart.notNull(args[dartx.length]) + i);
       let param = new _js_mirrors.JsParameterMirror._('', core.Type._check(_js_mirrors._wrap(type)), core.List._check(metadata));
-      params[dartx.set](i + dart.notNull(args[dartx.length]), param);
+      params[dartx._set](i + dart.notNull(args[dartx.length]), param);
     }
     this[_params] = ListOfParameterMirror().unmodifiable(params);
   }
@@ -14639,11 +14639,11 @@ _native_typed_data.NativeFloat32x4List = class NativeFloat32x4List extends dart.
   _slowFromList(list) {
     this[_storage] = _native_typed_data.NativeFloat32List.new(dart.notNull(list[dartx.length]) * 4);
     for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
-      let e = list[dartx.get](i);
-      this[_storage][dartx.set](i * 4 + 0, e.x);
-      this[_storage][dartx.set](i * 4 + 1, e.y);
-      this[_storage][dartx.set](i * 4 + 2, e.z);
-      this[_storage][dartx.set](i * 4 + 3, e.w);
+      let e = list[dartx._get](i);
+      this[_storage][dartx._set](i * 4 + 0, e.x);
+      this[_storage][dartx._set](i * 4 + 1, e.y);
+      this[_storage][dartx._set](i * 4 + 2, e.z);
+      this[_storage][dartx._set](i * 4 + 3, e.w);
     }
   }
   get runtimeType() {
@@ -14674,20 +14674,20 @@ _native_typed_data.NativeFloat32x4List = class NativeFloat32x4List extends dart.
   set length(value) {
     super.length = value;
   }
-  get(index) {
+  _get(index) {
     _native_typed_data._checkValidIndex(index, this, this.length);
-    let _x = this[_storage][dartx.get](dart.notNull(index) * 4 + 0);
-    let _y = this[_storage][dartx.get](dart.notNull(index) * 4 + 1);
-    let _z = this[_storage][dartx.get](dart.notNull(index) * 4 + 2);
-    let _w = this[_storage][dartx.get](dart.notNull(index) * 4 + 3);
+    let _x = this[_storage][dartx._get](dart.notNull(index) * 4 + 0);
+    let _y = this[_storage][dartx._get](dart.notNull(index) * 4 + 1);
+    let _z = this[_storage][dartx._get](dart.notNull(index) * 4 + 2);
+    let _w = this[_storage][dartx._get](dart.notNull(index) * 4 + 3);
     return new _native_typed_data.NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
-  set(index, value) {
+  _set(index, value) {
     _native_typed_data._checkValidIndex(index, this, this.length);
-    this[_storage][dartx.set](dart.notNull(index) * 4 + 0, value.x);
-    this[_storage][dartx.set](dart.notNull(index) * 4 + 1, value.y);
-    this[_storage][dartx.set](dart.notNull(index) * 4 + 2, value.z);
-    this[_storage][dartx.set](dart.notNull(index) * 4 + 3, value.w);
+    this[_storage][dartx._set](dart.notNull(index) * 4 + 0, value.x);
+    this[_storage][dartx._set](dart.notNull(index) * 4 + 1, value.y);
+    this[_storage][dartx._set](dart.notNull(index) * 4 + 2, value.z);
+    this[_storage][dartx._set](dart.notNull(index) * 4 + 3, value.w);
     return value;
   }
   sublist(start, end) {
@@ -14715,14 +14715,14 @@ dart.setSignature(_native_typed_data.NativeFloat32x4List, {
     length: dart.definiteFunctionType(core.int, [])
   }),
   methods: () => ({
-    get: dart.definiteFunctionType(typed_data.Float32x4, [core.int]),
-    set: dart.definiteFunctionType(dart.void, [core.int, typed_data.Float32x4]),
+    _get: dart.definiteFunctionType(typed_data.Float32x4, [core.int]),
+    _set: dart.definiteFunctionType(dart.void, [core.int, typed_data.Float32x4]),
     sublist: dart.definiteFunctionType(core.List$(typed_data.Float32x4), [core.int], [core.int])
   })
 });
 dart.defineExtensionMembers(_native_typed_data.NativeFloat32x4List, [
-  'get',
-  'set',
+  '_get',
+  '_set',
   'sublist',
   'buffer',
   'lengthInBytes',
@@ -15272,11 +15272,11 @@ _native_typed_data.NativeInt32x4List = class NativeInt32x4List extends dart.mixi
   _slowFromList(list) {
     this[_storage] = _native_typed_data.NativeInt32List.new(dart.notNull(list[dartx.length]) * 4);
     for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
-      let e = list[dartx.get](i);
-      this[_storage][dartx.set](i * 4 + 0, e.x);
-      this[_storage][dartx.set](i * 4 + 1, e.y);
-      this[_storage][dartx.set](i * 4 + 2, e.z);
-      this[_storage][dartx.set](i * 4 + 3, e.w);
+      let e = list[dartx._get](i);
+      this[_storage][dartx._set](i * 4 + 0, e.x);
+      this[_storage][dartx._set](i * 4 + 1, e.y);
+      this[_storage][dartx._set](i * 4 + 2, e.z);
+      this[_storage][dartx._set](i * 4 + 3, e.w);
     }
   }
   get runtimeType() {
@@ -15307,20 +15307,20 @@ _native_typed_data.NativeInt32x4List = class NativeInt32x4List extends dart.mixi
   set length(value) {
     super.length = value;
   }
-  get(index) {
+  _get(index) {
     _native_typed_data._checkValidIndex(index, this, this.length);
-    let _x = this[_storage][dartx.get](dart.notNull(index) * 4 + 0);
-    let _y = this[_storage][dartx.get](dart.notNull(index) * 4 + 1);
-    let _z = this[_storage][dartx.get](dart.notNull(index) * 4 + 2);
-    let _w = this[_storage][dartx.get](dart.notNull(index) * 4 + 3);
+    let _x = this[_storage][dartx._get](dart.notNull(index) * 4 + 0);
+    let _y = this[_storage][dartx._get](dart.notNull(index) * 4 + 1);
+    let _z = this[_storage][dartx._get](dart.notNull(index) * 4 + 2);
+    let _w = this[_storage][dartx._get](dart.notNull(index) * 4 + 3);
     return new _native_typed_data.NativeInt32x4._truncated(_x, _y, _z, _w);
   }
-  set(index, value) {
+  _set(index, value) {
     _native_typed_data._checkValidIndex(index, this, this.length);
-    this[_storage][dartx.set](dart.notNull(index) * 4 + 0, value.x);
-    this[_storage][dartx.set](dart.notNull(index) * 4 + 1, value.y);
-    this[_storage][dartx.set](dart.notNull(index) * 4 + 2, value.z);
-    this[_storage][dartx.set](dart.notNull(index) * 4 + 3, value.w);
+    this[_storage][dartx._set](dart.notNull(index) * 4 + 0, value.x);
+    this[_storage][dartx._set](dart.notNull(index) * 4 + 1, value.y);
+    this[_storage][dartx._set](dart.notNull(index) * 4 + 2, value.z);
+    this[_storage][dartx._set](dart.notNull(index) * 4 + 3, value.w);
     return value;
   }
   sublist(start, end) {
@@ -15348,14 +15348,14 @@ dart.setSignature(_native_typed_data.NativeInt32x4List, {
     length: dart.definiteFunctionType(core.int, [])
   }),
   methods: () => ({
-    get: dart.definiteFunctionType(typed_data.Int32x4, [core.int]),
-    set: dart.definiteFunctionType(dart.void, [core.int, typed_data.Int32x4]),
+    _get: dart.definiteFunctionType(typed_data.Int32x4, [core.int]),
+    _set: dart.definiteFunctionType(dart.void, [core.int, typed_data.Int32x4]),
     sublist: dart.definiteFunctionType(core.List$(typed_data.Int32x4), [core.int], [core.int])
   })
 });
 dart.defineExtensionMembers(_native_typed_data.NativeInt32x4List, [
-  'get',
-  'set',
+  '_get',
+  '_set',
   'sublist',
   'buffer',
   'lengthInBytes',
@@ -15395,9 +15395,9 @@ _native_typed_data.NativeFloat64x2List = class NativeFloat64x2List extends dart.
   _slowFromList(list) {
     this[_storage] = _native_typed_data.NativeFloat64List.new(dart.notNull(list[dartx.length]) * 2);
     for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
-      let e = list[dartx.get](i);
-      this[_storage][dartx.set](i * 2 + 0, e.x);
-      this[_storage][dartx.set](i * 2 + 1, e.y);
+      let e = list[dartx._get](i);
+      this[_storage][dartx._set](i * 2 + 0, e.x);
+      this[_storage][dartx._set](i * 2 + 1, e.y);
     }
   }
   static fromList(list) {
@@ -15428,16 +15428,16 @@ _native_typed_data.NativeFloat64x2List = class NativeFloat64x2List extends dart.
   set length(value) {
     super.length = value;
   }
-  get(index) {
+  _get(index) {
     _native_typed_data._checkValidIndex(index, this, this.length);
-    let _x = this[_storage][dartx.get](dart.notNull(index) * 2 + 0);
-    let _y = this[_storage][dartx.get](dart.notNull(index) * 2 + 1);
+    let _x = this[_storage][dartx._get](dart.notNull(index) * 2 + 0);
+    let _y = this[_storage][dartx._get](dart.notNull(index) * 2 + 1);
     return typed_data.Float64x2.new(_x, _y);
   }
-  set(index, value) {
+  _set(index, value) {
     _native_typed_data._checkValidIndex(index, this, this.length);
-    this[_storage][dartx.set](dart.notNull(index) * 2 + 0, value.x);
-    this[_storage][dartx.set](dart.notNull(index) * 2 + 1, value.y);
+    this[_storage][dartx._set](dart.notNull(index) * 2 + 0, value.x);
+    this[_storage][dartx._set](dart.notNull(index) * 2 + 1, value.y);
     return value;
   }
   sublist(start, end) {
@@ -15465,14 +15465,14 @@ dart.setSignature(_native_typed_data.NativeFloat64x2List, {
     length: dart.definiteFunctionType(core.int, [])
   }),
   methods: () => ({
-    get: dart.definiteFunctionType(typed_data.Float64x2, [core.int]),
-    set: dart.definiteFunctionType(dart.void, [core.int, typed_data.Float64x2]),
+    _get: dart.definiteFunctionType(typed_data.Float64x2, [core.int]),
+    _set: dart.definiteFunctionType(dart.void, [core.int, typed_data.Float64x2]),
     sublist: dart.definiteFunctionType(core.List$(typed_data.Float64x2), [core.int], [core.int])
   })
 });
 dart.defineExtensionMembers(_native_typed_data.NativeFloat64x2List, [
-  'get',
-  'set',
+  '_get',
+  '_set',
   'sublist',
   'buffer',
   'lengthInBytes',
@@ -15549,7 +15549,7 @@ _native_typed_data._ensureNativeList = function(list) {
   if (_interceptors.JSIndexable.is(list)) return list;
   let result = core.List.new(list[dartx.length]);
   for (let i = 0; i < dart.notNull(list[dartx.length]); i++) {
-    result[dartx.set](i, list[dartx.get](i));
+    result[dartx._set](i, list[dartx._get](i));
   }
   return result;
 };
@@ -15799,8 +15799,8 @@ dart.setSignature(_native_typed_data.NativeTypedArray, {
 });
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'setRange'
 ]);
 _native_typed_data.NativeTypedArrayOfDouble = class NativeTypedArrayOfDouble extends dart.mixin(_native_typed_data.NativeTypedArray, collection.ListMixin$(core.double), _internal.FixedLengthListMixin$(core.double)) {
@@ -15810,11 +15810,11 @@ _native_typed_data.NativeTypedArrayOfDouble = class NativeTypedArrayOfDouble ext
   set length(value) {
     super.length = value;
   }
-  get(index) {
+  _get(index) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     return this[index];
   }
-  set(index, value) {
+  _set(index, value) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     this[index] = value;
     return value;
@@ -15831,15 +15831,15 @@ _native_typed_data.NativeTypedArrayOfDouble = class NativeTypedArrayOfDouble ext
 dart.setSignature(_native_typed_data.NativeTypedArrayOfDouble, {
   getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({
-    get: dart.definiteFunctionType(core.double, [core.int]),
-    set: dart.definiteFunctionType(dart.void, [core.int, core.num]),
+    _get: dart.definiteFunctionType(core.double, [core.int]),
+    _set: dart.definiteFunctionType(dart.void, [core.int, core.num]),
     setRange: dart.definiteFunctionType(dart.void, [core.int, core.int, IterableOfdouble()], [core.int])
   })
 });
-dart.defineExtensionMembers(_native_typed_data.NativeTypedArrayOfDouble, ['get', 'set', 'setRange', 'length']);
+dart.defineExtensionMembers(_native_typed_data.NativeTypedArrayOfDouble, ['_get', '_set', 'setRange', 'length']);
 dart.defineExtensionNames([
   'length',
-  'set',
+  '_set',
   'setRange'
 ]);
 _native_typed_data.NativeTypedArrayOfInt = class NativeTypedArrayOfInt extends dart.mixin(_native_typed_data.NativeTypedArray, collection.ListMixin$(core.int), _internal.FixedLengthListMixin$(core.int)) {
@@ -15849,7 +15849,7 @@ _native_typed_data.NativeTypedArrayOfInt = class NativeTypedArrayOfInt extends d
   set length(value) {
     super.length = value;
   }
-  set(index, value) {
+  _set(index, value) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     this[index] = value;
     return value;
@@ -15867,11 +15867,11 @@ _native_typed_data.NativeTypedArrayOfInt[dart.implements] = () => [ListOfint()];
 dart.setSignature(_native_typed_data.NativeTypedArrayOfInt, {
   getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({
-    set: dart.definiteFunctionType(dart.void, [core.int, core.int]),
+    _set: dart.definiteFunctionType(dart.void, [core.int, core.int]),
     setRange: dart.definiteFunctionType(dart.void, [core.int, core.int, IterableOfint()], [core.int])
   })
 });
-dart.defineExtensionMembers(_native_typed_data.NativeTypedArrayOfInt, ['set', 'setRange', 'length']);
+dart.defineExtensionMembers(_native_typed_data.NativeTypedArrayOfInt, ['_set', 'setRange', 'length']);
 dart.defineExtensionNames([
   'runtimeType',
   'sublist'
@@ -15974,7 +15974,7 @@ dart.setSignature(_native_typed_data.NativeFloat64List, {
 dart.registerExtension(dart.global.Float64Array, _native_typed_data.NativeFloat64List);
 dart.defineExtensionNames([
   'runtimeType',
-  'get',
+  '_get',
   'sublist'
 ]);
 _native_typed_data.NativeInt16List = class NativeInt16List extends _native_typed_data.NativeTypedArrayOfInt {
@@ -15991,7 +15991,7 @@ _native_typed_data.NativeInt16List = class NativeInt16List extends _native_typed
   get [dartx.runtimeType]() {
     return dart.wrapType(typed_data.Int16List);
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     return this[index];
   }
@@ -16019,7 +16019,7 @@ dart.setSignature(_native_typed_data.NativeInt16List, {
     view: dart.definiteFunctionType(_native_typed_data.NativeInt16List, [_native_typed_data.NativeByteBuffer, core.int, core.int])
   }),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.int, [core.int]),
+    [dartx._get]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx.sublist]: dart.definiteFunctionType(core.List$(core.int), [core.int], [core.int])
   }),
   statics: () => ({
@@ -16032,7 +16032,7 @@ dart.setSignature(_native_typed_data.NativeInt16List, {
 dart.registerExtension(dart.global.Int16Array, _native_typed_data.NativeInt16List);
 dart.defineExtensionNames([
   'runtimeType',
-  'get',
+  '_get',
   'sublist'
 ]);
 _native_typed_data.NativeInt32List = class NativeInt32List extends _native_typed_data.NativeTypedArrayOfInt {
@@ -16049,7 +16049,7 @@ _native_typed_data.NativeInt32List = class NativeInt32List extends _native_typed
   get [dartx.runtimeType]() {
     return dart.wrapType(typed_data.Int32List);
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     return this[index];
   }
@@ -16077,7 +16077,7 @@ dart.setSignature(_native_typed_data.NativeInt32List, {
     view: dart.definiteFunctionType(_native_typed_data.NativeInt32List, [typed_data.ByteBuffer, core.int, core.int])
   }),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.int, [core.int]),
+    [dartx._get]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx.sublist]: dart.definiteFunctionType(core.List$(core.int), [core.int], [core.int])
   }),
   statics: () => ({
@@ -16090,7 +16090,7 @@ dart.setSignature(_native_typed_data.NativeInt32List, {
 dart.registerExtension(dart.global.Int32Array, _native_typed_data.NativeInt32List);
 dart.defineExtensionNames([
   'runtimeType',
-  'get',
+  '_get',
   'sublist'
 ]);
 _native_typed_data.NativeInt8List = class NativeInt8List extends _native_typed_data.NativeTypedArrayOfInt {
@@ -16107,7 +16107,7 @@ _native_typed_data.NativeInt8List = class NativeInt8List extends _native_typed_d
   get [dartx.runtimeType]() {
     return dart.wrapType(typed_data.Int8List);
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     return this[index];
   }
@@ -16135,7 +16135,7 @@ dart.setSignature(_native_typed_data.NativeInt8List, {
     view: dart.definiteFunctionType(_native_typed_data.NativeInt8List, [typed_data.ByteBuffer, core.int, core.int])
   }),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.int, [core.int]),
+    [dartx._get]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx.sublist]: dart.definiteFunctionType(core.List$(core.int), [core.int], [core.int])
   }),
   statics: () => ({
@@ -16148,7 +16148,7 @@ dart.setSignature(_native_typed_data.NativeInt8List, {
 dart.registerExtension(dart.global.Int8Array, _native_typed_data.NativeInt8List);
 dart.defineExtensionNames([
   'runtimeType',
-  'get',
+  '_get',
   'sublist'
 ]);
 _native_typed_data.NativeUint16List = class NativeUint16List extends _native_typed_data.NativeTypedArrayOfInt {
@@ -16165,7 +16165,7 @@ _native_typed_data.NativeUint16List = class NativeUint16List extends _native_typ
   get [dartx.runtimeType]() {
     return dart.wrapType(typed_data.Uint16List);
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     return this[index];
   }
@@ -16193,7 +16193,7 @@ dart.setSignature(_native_typed_data.NativeUint16List, {
     view: dart.definiteFunctionType(_native_typed_data.NativeUint16List, [typed_data.ByteBuffer, core.int, core.int])
   }),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.int, [core.int]),
+    [dartx._get]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx.sublist]: dart.definiteFunctionType(core.List$(core.int), [core.int], [core.int])
   }),
   statics: () => ({
@@ -16206,7 +16206,7 @@ dart.setSignature(_native_typed_data.NativeUint16List, {
 dart.registerExtension(dart.global.Uint16Array, _native_typed_data.NativeUint16List);
 dart.defineExtensionNames([
   'runtimeType',
-  'get',
+  '_get',
   'sublist'
 ]);
 _native_typed_data.NativeUint32List = class NativeUint32List extends _native_typed_data.NativeTypedArrayOfInt {
@@ -16223,7 +16223,7 @@ _native_typed_data.NativeUint32List = class NativeUint32List extends _native_typ
   get [dartx.runtimeType]() {
     return dart.wrapType(typed_data.Uint32List);
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     return this[index];
   }
@@ -16251,7 +16251,7 @@ dart.setSignature(_native_typed_data.NativeUint32List, {
     view: dart.definiteFunctionType(_native_typed_data.NativeUint32List, [typed_data.ByteBuffer, core.int, core.int])
   }),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.int, [core.int]),
+    [dartx._get]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx.sublist]: dart.definiteFunctionType(core.List$(core.int), [core.int], [core.int])
   }),
   statics: () => ({
@@ -16265,7 +16265,7 @@ dart.registerExtension(dart.global.Uint32Array, _native_typed_data.NativeUint32L
 dart.defineExtensionNames([
   'runtimeType',
   'length',
-  'get',
+  '_get',
   'sublist'
 ]);
 _native_typed_data.NativeUint8ClampedList = class NativeUint8ClampedList extends _native_typed_data.NativeTypedArrayOfInt {
@@ -16288,7 +16288,7 @@ _native_typed_data.NativeUint8ClampedList = class NativeUint8ClampedList extends
   set [dartx.length](value) {
     super[dartx.length] = value;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     return this[index];
   }
@@ -16316,7 +16316,7 @@ dart.setSignature(_native_typed_data.NativeUint8ClampedList, {
     view: dart.definiteFunctionType(_native_typed_data.NativeUint8ClampedList, [typed_data.ByteBuffer, core.int, core.int])
   }),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.int, [core.int]),
+    [dartx._get]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx.sublist]: dart.definiteFunctionType(core.List$(core.int), [core.int], [core.int])
   }),
   statics: () => ({
@@ -16331,7 +16331,7 @@ dart.registerExtension(dart.global.CanvasPixelArray, _native_typed_data.NativeUi
 dart.defineExtensionNames([
   'runtimeType',
   'length',
-  'get',
+  '_get',
   'sublist'
 ]);
 _native_typed_data.NativeUint8List = class NativeUint8List extends _native_typed_data.NativeTypedArrayOfInt {
@@ -16354,7 +16354,7 @@ _native_typed_data.NativeUint8List = class NativeUint8List extends _native_typed
   set [dartx.length](value) {
     super[dartx.length] = value;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     _native_typed_data._checkValidIndex(index, this, this[dartx.length]);
     return this[index];
   }
@@ -16382,7 +16382,7 @@ dart.setSignature(_native_typed_data.NativeUint8List, {
     view: dart.definiteFunctionType(_native_typed_data.NativeUint8List, [typed_data.ByteBuffer, core.int, core.int])
   }),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.int, [core.int]),
+    [dartx._get]: dart.definiteFunctionType(core.int, [core.int]),
     [dartx.sublist]: dart.definiteFunctionType(core.List$(core.int), [core.int], [core.int])
   }),
   statics: () => ({
@@ -16395,8 +16395,8 @@ dart.setSignature(_native_typed_data.NativeUint8List, {
 dart.registerExtension(dart.global.Uint8Array, _native_typed_data.NativeUint8List);
 _native_typed_data.NativeFloat32x4 = class NativeFloat32x4 extends core.Object {
   static _truncate(x) {
-    _native_typed_data.NativeFloat32x4._list[dartx.set](0, core.num._check(x));
-    return _native_typed_data.NativeFloat32x4._list[dartx.get](0);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](0, core.num._check(x));
+    return _native_typed_data.NativeFloat32x4._list[dartx._get](0);
   }
   new(x, y, z, w) {
     this.x = core.double._check(_native_typed_data.NativeFloat32x4._truncate(x));
@@ -16415,11 +16415,11 @@ _native_typed_data.NativeFloat32x4 = class NativeFloat32x4 extends core.Object {
     NativeFloat32x4.prototype._truncated.call(this, 0.0, 0.0, 0.0, 0.0);
   }
   static fromInt32x4Bits(i) {
-    _native_typed_data.NativeFloat32x4._uint32view[dartx.set](0, i.x);
-    _native_typed_data.NativeFloat32x4._uint32view[dartx.set](1, i.y);
-    _native_typed_data.NativeFloat32x4._uint32view[dartx.set](2, i.z);
-    _native_typed_data.NativeFloat32x4._uint32view[dartx.set](3, i.w);
-    return new _native_typed_data.NativeFloat32x4._truncated(_native_typed_data.NativeFloat32x4._list[dartx.get](0), _native_typed_data.NativeFloat32x4._list[dartx.get](1), _native_typed_data.NativeFloat32x4._list[dartx.get](2), _native_typed_data.NativeFloat32x4._list[dartx.get](3));
+    _native_typed_data.NativeFloat32x4._uint32view[dartx._set](0, i.x);
+    _native_typed_data.NativeFloat32x4._uint32view[dartx._set](1, i.y);
+    _native_typed_data.NativeFloat32x4._uint32view[dartx._set](2, i.z);
+    _native_typed_data.NativeFloat32x4._uint32view[dartx._set](3, i.w);
+    return new _native_typed_data.NativeFloat32x4._truncated(_native_typed_data.NativeFloat32x4._list[dartx._get](0), _native_typed_data.NativeFloat32x4._list[dartx._get](1), _native_typed_data.NativeFloat32x4._list[dartx._get](2), _native_typed_data.NativeFloat32x4._list[dartx._get](3));
   }
   fromFloat64x2(v) {
     NativeFloat32x4.prototype._truncated.call(this, core.double._check(_native_typed_data.NativeFloat32x4._truncate(v.x)), core.double._check(_native_typed_data.NativeFloat32x4._truncate(v.y)), 0.0, 0.0);
@@ -16446,7 +16446,7 @@ _native_typed_data.NativeFloat32x4 = class NativeFloat32x4 extends core.Object {
     let _w = dart.notNull(this.w) + dart.notNull(other.w);
     return new _native_typed_data.NativeFloat32x4._doubles(_x, _y, _z, _w);
   }
-  ['unary-']() {
+  _negate() {
     return new _native_typed_data.NativeFloat32x4._truncated(-dart.notNull(this.x), -dart.notNull(this.y), -dart.notNull(this.z), -dart.notNull(this.w));
   }
   ['-'](other) {
@@ -16552,46 +16552,46 @@ _native_typed_data.NativeFloat32x4 = class NativeFloat32x4 extends core.Object {
   get signMask() {
     let view = _native_typed_data.NativeFloat32x4._uint32view;
     let mx = null, my = null, mz = null, mw = null;
-    _native_typed_data.NativeFloat32x4._list[dartx.set](0, this.x);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](1, this.y);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](2, this.z);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](3, this.w);
-    mx = (dart.notNull(view[dartx.get](0)) & 2147483648) >>> 31;
-    my = (dart.notNull(view[dartx.get](1)) & 2147483648) >>> 30;
-    mz = (dart.notNull(view[dartx.get](2)) & 2147483648) >>> 29;
-    mw = (dart.notNull(view[dartx.get](3)) & 2147483648) >>> 28;
+    _native_typed_data.NativeFloat32x4._list[dartx._set](0, this.x);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](1, this.y);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](2, this.z);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](3, this.w);
+    mx = (dart.notNull(view[dartx._get](0)) & 2147483648) >>> 31;
+    my = (dart.notNull(view[dartx._get](1)) & 2147483648) >>> 30;
+    mz = (dart.notNull(view[dartx._get](2)) & 2147483648) >>> 29;
+    mw = (dart.notNull(view[dartx._get](3)) & 2147483648) >>> 28;
     return core.int._check(dart.dsend(dart.dsend(dart.dsend(mx, '|', my), '|', mz), '|', mw));
   }
   shuffle(mask) {
     if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
       dart.throw(new core.RangeError.range(mask, 0, 255, "mask"));
     }
-    _native_typed_data.NativeFloat32x4._list[dartx.set](0, this.x);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](1, this.y);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](2, this.z);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](3, this.w);
-    let _x = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) & 3);
-    let _y = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) >> 2 & 3);
-    let _z = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) >> 4 & 3);
-    let _w = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) >> 6 & 3);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](0, this.x);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](1, this.y);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](2, this.z);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](3, this.w);
+    let _x = _native_typed_data.NativeFloat32x4._list[dartx._get](dart.notNull(mask) & 3);
+    let _y = _native_typed_data.NativeFloat32x4._list[dartx._get](dart.notNull(mask) >> 2 & 3);
+    let _z = _native_typed_data.NativeFloat32x4._list[dartx._get](dart.notNull(mask) >> 4 & 3);
+    let _w = _native_typed_data.NativeFloat32x4._list[dartx._get](dart.notNull(mask) >> 6 & 3);
     return new _native_typed_data.NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
   shuffleMix(other, mask) {
     if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
       dart.throw(new core.RangeError.range(mask, 0, 255, "mask"));
     }
-    _native_typed_data.NativeFloat32x4._list[dartx.set](0, this.x);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](1, this.y);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](2, this.z);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](3, this.w);
-    let _x = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) & 3);
-    let _y = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) >> 2 & 3);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](0, other.x);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](1, other.y);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](2, other.z);
-    _native_typed_data.NativeFloat32x4._list[dartx.set](3, other.w);
-    let _z = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) >> 4 & 3);
-    let _w = _native_typed_data.NativeFloat32x4._list[dartx.get](dart.notNull(mask) >> 6 & 3);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](0, this.x);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](1, this.y);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](2, this.z);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](3, this.w);
+    let _x = _native_typed_data.NativeFloat32x4._list[dartx._get](dart.notNull(mask) & 3);
+    let _y = _native_typed_data.NativeFloat32x4._list[dartx._get](dart.notNull(mask) >> 2 & 3);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](0, other.x);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](1, other.y);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](2, other.z);
+    _native_typed_data.NativeFloat32x4._list[dartx._set](3, other.w);
+    let _z = _native_typed_data.NativeFloat32x4._list[dartx._get](dart.notNull(mask) >> 4 & 3);
+    let _w = _native_typed_data.NativeFloat32x4._list[dartx._get](dart.notNull(mask) >> 6 & 3);
     return new _native_typed_data.NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
   withX(newX) {
@@ -16667,7 +16667,7 @@ dart.setSignature(_native_typed_data.NativeFloat32x4, {
   getters: () => ({signMask: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({
     '+': dart.definiteFunctionType(typed_data.Float32x4, [typed_data.Float32x4]),
-    'unary-': dart.definiteFunctionType(typed_data.Float32x4, []),
+    _negate: dart.definiteFunctionType(typed_data.Float32x4, []),
     '-': dart.definiteFunctionType(typed_data.Float32x4, [typed_data.Float32x4]),
     '*': dart.definiteFunctionType(typed_data.Float32x4, [typed_data.Float32x4]),
     '/': dart.definiteFunctionType(typed_data.Float32x4, [typed_data.Float32x4]),
@@ -16709,8 +16709,8 @@ dart.defineLazy(_native_typed_data.NativeFloat32x4, {
 });
 _native_typed_data.NativeInt32x4 = class NativeInt32x4 extends core.Object {
   static _truncate(x) {
-    _native_typed_data.NativeInt32x4._list[dartx.set](0, core.int._check(x));
-    return _native_typed_data.NativeInt32x4._list[dartx.get](0);
+    _native_typed_data.NativeInt32x4._list[dartx._set](0, core.int._check(x));
+    return _native_typed_data.NativeInt32x4._list[dartx._get](0);
   }
   new(x, y, z, w) {
     this.x = core.int._check(_native_typed_data.NativeInt32x4._truncate(x));
@@ -16730,12 +16730,12 @@ _native_typed_data.NativeInt32x4 = class NativeInt32x4 extends core.Object {
   }
   static fromFloat32x4Bits(f) {
     let floatList = _native_typed_data.NativeFloat32x4._list;
-    floatList[dartx.set](0, f.x);
-    floatList[dartx.set](1, f.y);
-    floatList[dartx.set](2, f.z);
-    floatList[dartx.set](3, f.w);
+    floatList[dartx._set](0, f.x);
+    floatList[dartx._set](1, f.y);
+    floatList[dartx._set](2, f.z);
+    floatList[dartx._set](3, f.w);
     let view = _native_typed_data.NativeInt32List._check(floatList[dartx.buffer][dartx.asInt32List]());
-    return new _native_typed_data.NativeInt32x4._truncated(view[dartx.get](0), view[dartx.get](1), view[dartx.get](2), view[dartx.get](3));
+    return new _native_typed_data.NativeInt32x4._truncated(view[dartx._get](0), view[dartx._get](1), view[dartx._get](2), view[dartx._get](3));
   }
   _truncated(x, y, z, w) {
     this.x = x;
@@ -16761,7 +16761,7 @@ _native_typed_data.NativeInt32x4 = class NativeInt32x4 extends core.Object {
   ['-'](other) {
     return new _native_typed_data.NativeInt32x4._truncated(this.x - other.x | 0, this.y - other.y | 0, this.z - other.z | 0, this.w - other.w | 0);
   }
-  ['unary-']() {
+  _negate() {
     return new _native_typed_data.NativeInt32x4._truncated(-this.x | 0, -this.y | 0, -this.z | 0, -this.w | 0);
   }
   get signMask() {
@@ -16775,32 +16775,32 @@ _native_typed_data.NativeInt32x4 = class NativeInt32x4 extends core.Object {
     if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
       dart.throw(new core.RangeError.range(mask, 0, 255, "mask"));
     }
-    _native_typed_data.NativeInt32x4._list[dartx.set](0, this.x);
-    _native_typed_data.NativeInt32x4._list[dartx.set](1, this.y);
-    _native_typed_data.NativeInt32x4._list[dartx.set](2, this.z);
-    _native_typed_data.NativeInt32x4._list[dartx.set](3, this.w);
-    let _x = _native_typed_data.NativeInt32x4._list[dartx.get](dart.notNull(mask) & 3);
-    let _y = _native_typed_data.NativeInt32x4._list[dartx.get](dart.notNull(mask) >> 2 & 3);
-    let _z = _native_typed_data.NativeInt32x4._list[dartx.get](dart.notNull(mask) >> 4 & 3);
-    let _w = _native_typed_data.NativeInt32x4._list[dartx.get](dart.notNull(mask) >> 6 & 3);
+    _native_typed_data.NativeInt32x4._list[dartx._set](0, this.x);
+    _native_typed_data.NativeInt32x4._list[dartx._set](1, this.y);
+    _native_typed_data.NativeInt32x4._list[dartx._set](2, this.z);
+    _native_typed_data.NativeInt32x4._list[dartx._set](3, this.w);
+    let _x = _native_typed_data.NativeInt32x4._list[dartx._get](dart.notNull(mask) & 3);
+    let _y = _native_typed_data.NativeInt32x4._list[dartx._get](dart.notNull(mask) >> 2 & 3);
+    let _z = _native_typed_data.NativeInt32x4._list[dartx._get](dart.notNull(mask) >> 4 & 3);
+    let _w = _native_typed_data.NativeInt32x4._list[dartx._get](dart.notNull(mask) >> 6 & 3);
     return new _native_typed_data.NativeInt32x4._truncated(_x, _y, _z, _w);
   }
   shuffleMix(other, mask) {
     if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
       dart.throw(new core.RangeError.range(mask, 0, 255, "mask"));
     }
-    _native_typed_data.NativeInt32x4._list[dartx.set](0, this.x);
-    _native_typed_data.NativeInt32x4._list[dartx.set](1, this.y);
-    _native_typed_data.NativeInt32x4._list[dartx.set](2, this.z);
-    _native_typed_data.NativeInt32x4._list[dartx.set](3, this.w);
-    let _x = _native_typed_data.NativeInt32x4._list[dartx.get](dart.notNull(mask) & 3);
-    let _y = _native_typed_data.NativeInt32x4._list[dartx.get](dart.notNull(mask) >> 2 & 3);
-    _native_typed_data.NativeInt32x4._list[dartx.set](0, other.x);
-    _native_typed_data.NativeInt32x4._list[dartx.set](1, other.y);
-    _native_typed_data.NativeInt32x4._list[dartx.set](2, other.z);
-    _native_typed_data.NativeInt32x4._list[dartx.set](3, other.w);
-    let _z = _native_typed_data.NativeInt32x4._list[dartx.get](dart.notNull(mask) >> 4 & 3);
-    let _w = _native_typed_data.NativeInt32x4._list[dartx.get](dart.notNull(mask) >> 6 & 3);
+    _native_typed_data.NativeInt32x4._list[dartx._set](0, this.x);
+    _native_typed_data.NativeInt32x4._list[dartx._set](1, this.y);
+    _native_typed_data.NativeInt32x4._list[dartx._set](2, this.z);
+    _native_typed_data.NativeInt32x4._list[dartx._set](3, this.w);
+    let _x = _native_typed_data.NativeInt32x4._list[dartx._get](dart.notNull(mask) & 3);
+    let _y = _native_typed_data.NativeInt32x4._list[dartx._get](dart.notNull(mask) >> 2 & 3);
+    _native_typed_data.NativeInt32x4._list[dartx._set](0, other.x);
+    _native_typed_data.NativeInt32x4._list[dartx._set](1, other.y);
+    _native_typed_data.NativeInt32x4._list[dartx._set](2, other.z);
+    _native_typed_data.NativeInt32x4._list[dartx._set](3, other.w);
+    let _z = _native_typed_data.NativeInt32x4._list[dartx._get](dart.notNull(mask) >> 4 & 3);
+    let _w = _native_typed_data.NativeInt32x4._list[dartx._get](dart.notNull(mask) >> 6 & 3);
     return new _native_typed_data.NativeInt32x4._truncated(_x, _y, _z, _w);
   }
   withX(x) {
@@ -16850,31 +16850,31 @@ _native_typed_data.NativeInt32x4 = class NativeInt32x4 extends core.Object {
   select(trueValue, falseValue) {
     let floatList = _native_typed_data.NativeFloat32x4._list;
     let intView = _native_typed_data.NativeFloat32x4._uint32view;
-    floatList[dartx.set](0, trueValue.x);
-    floatList[dartx.set](1, trueValue.y);
-    floatList[dartx.set](2, trueValue.z);
-    floatList[dartx.set](3, trueValue.w);
-    let stx = intView[dartx.get](0);
-    let sty = intView[dartx.get](1);
-    let stz = intView[dartx.get](2);
-    let stw = intView[dartx.get](3);
-    floatList[dartx.set](0, falseValue.x);
-    floatList[dartx.set](1, falseValue.y);
-    floatList[dartx.set](2, falseValue.z);
-    floatList[dartx.set](3, falseValue.w);
-    let sfx = intView[dartx.get](0);
-    let sfy = intView[dartx.get](1);
-    let sfz = intView[dartx.get](2);
-    let sfw = intView[dartx.get](3);
+    floatList[dartx._set](0, trueValue.x);
+    floatList[dartx._set](1, trueValue.y);
+    floatList[dartx._set](2, trueValue.z);
+    floatList[dartx._set](3, trueValue.w);
+    let stx = intView[dartx._get](0);
+    let sty = intView[dartx._get](1);
+    let stz = intView[dartx._get](2);
+    let stw = intView[dartx._get](3);
+    floatList[dartx._set](0, falseValue.x);
+    floatList[dartx._set](1, falseValue.y);
+    floatList[dartx._set](2, falseValue.z);
+    floatList[dartx._set](3, falseValue.w);
+    let sfx = intView[dartx._get](0);
+    let sfy = intView[dartx._get](1);
+    let sfz = intView[dartx._get](2);
+    let sfw = intView[dartx._get](3);
     let _x = (dart.notNull(this.x) & dart.notNull(stx) | ~dart.notNull(this.x) & dart.notNull(sfx)) >>> 0;
     let _y = (dart.notNull(this.y) & dart.notNull(sty) | ~dart.notNull(this.y) & dart.notNull(sfy)) >>> 0;
     let _z = (dart.notNull(this.z) & dart.notNull(stz) | ~dart.notNull(this.z) & dart.notNull(sfz)) >>> 0;
     let _w = (dart.notNull(this.w) & dart.notNull(stw) | ~dart.notNull(this.w) & dart.notNull(sfw)) >>> 0;
-    intView[dartx.set](0, _x);
-    intView[dartx.set](1, _y);
-    intView[dartx.set](2, _z);
-    intView[dartx.set](3, _w);
-    return new _native_typed_data.NativeFloat32x4._truncated(floatList[dartx.get](0), floatList[dartx.get](1), floatList[dartx.get](2), floatList[dartx.get](3));
+    intView[dartx._set](0, _x);
+    intView[dartx._set](1, _y);
+    intView[dartx._set](2, _z);
+    intView[dartx._set](3, _w);
+    return new _native_typed_data.NativeFloat32x4._truncated(floatList[dartx._get](0), floatList[dartx._get](1), floatList[dartx._get](2), floatList[dartx._get](3));
   }
 };
 dart.defineNamedConstructor(_native_typed_data.NativeInt32x4, 'bool');
@@ -16906,7 +16906,7 @@ dart.setSignature(_native_typed_data.NativeInt32x4, {
     '^': dart.definiteFunctionType(typed_data.Int32x4, [typed_data.Int32x4]),
     '+': dart.definiteFunctionType(typed_data.Int32x4, [typed_data.Int32x4]),
     '-': dart.definiteFunctionType(typed_data.Int32x4, [typed_data.Int32x4]),
-    'unary-': dart.definiteFunctionType(typed_data.Int32x4, []),
+    _negate: dart.definiteFunctionType(typed_data.Int32x4, []),
     shuffle: dart.definiteFunctionType(typed_data.Int32x4, [core.int]),
     shuffleMix: dart.definiteFunctionType(typed_data.Int32x4, [typed_data.Int32x4, core.int]),
     withX: dart.definiteFunctionType(typed_data.Int32x4, [core.int]),
@@ -16954,7 +16954,7 @@ _native_typed_data.NativeFloat64x2 = class NativeFloat64x2 extends core.Object {
   ['+'](other) {
     return new _native_typed_data.NativeFloat64x2._doubles(dart.notNull(this.x) + dart.notNull(other.x), dart.notNull(this.y) + dart.notNull(other.y));
   }
-  ['unary-']() {
+  _negate() {
     return new _native_typed_data.NativeFloat64x2._doubles(-dart.notNull(this.x), -dart.notNull(this.y));
   }
   ['-'](other) {
@@ -16987,10 +16987,10 @@ _native_typed_data.NativeFloat64x2 = class NativeFloat64x2 extends core.Object {
   }
   get signMask() {
     let view = _native_typed_data.NativeFloat64x2._uint32View;
-    _native_typed_data.NativeFloat64x2._list[dartx.set](0, this.x);
-    _native_typed_data.NativeFloat64x2._list[dartx.set](1, this.y);
-    let mx = (dart.notNull(view[dartx.get](1)) & 2147483648) >>> 31;
-    let my = (dart.notNull(view[dartx.get](3)) & 2147483648) >>> 31;
+    _native_typed_data.NativeFloat64x2._list[dartx._set](0, this.x);
+    _native_typed_data.NativeFloat64x2._list[dartx._set](1, this.y);
+    let mx = (dart.notNull(view[dartx._get](1)) & 2147483648) >>> 31;
+    let my = (dart.notNull(view[dartx._get](3)) & 2147483648) >>> 31;
     return (mx | my << 1) >>> 0;
   }
   withX(x) {
@@ -17031,7 +17031,7 @@ dart.setSignature(_native_typed_data.NativeFloat64x2, {
   getters: () => ({signMask: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({
     '+': dart.definiteFunctionType(typed_data.Float64x2, [typed_data.Float64x2]),
-    'unary-': dart.definiteFunctionType(typed_data.Float64x2, []),
+    _negate: dart.definiteFunctionType(typed_data.Float64x2, []),
     '-': dart.definiteFunctionType(typed_data.Float64x2, [typed_data.Float64x2]),
     '*': dart.definiteFunctionType(typed_data.Float64x2, [typed_data.Float64x2]),
     '/': dart.definiteFunctionType(typed_data.Float64x2, [typed_data.Float64x2]),
@@ -18398,7 +18398,7 @@ async.Future$ = dart.flattenFutures(dart.generic(T => {
           future.then(dart.dynamic)(dart.fn(value => {
             remaining--;
             if (values != null) {
-              values[dartx.set](pos, value);
+              values[dartx._set](pos, value);
               if (remaining == 0) {
                 result[_completeWithValue](values);
               }
@@ -22423,13 +22423,13 @@ async._CustomZone = class _CustomZone extends async._Zone {
       }
     };
   }
-  get(key) {
-    let result = this[_map][dartx.get](key);
+  _get(key) {
+    let result = this[_map][dartx._get](key);
     if (result != null || dart.test(this[_map][dartx.containsKey](key))) return result;
     if (this.parent != null) {
-      let value = this.parent.get(key);
+      let value = this.parent._get(key);
       if (value != null) {
-        this[_map][dartx.set](key, value);
+        this[_map][dartx._set](key, value);
       }
       return value;
     }
@@ -22577,7 +22577,7 @@ dart.setSignature(async._CustomZone, {
     bindCallback: dart.definiteFunctionType(R => [async.ZoneCallback$(R), [dart.functionType(R, [])], {runGuarded: core.bool}]),
     bindUnaryCallback: dart.definiteFunctionType((R, T) => [async.ZoneUnaryCallback$(R, T), [dart.functionType(R, [T])], {runGuarded: core.bool}]),
     bindBinaryCallback: dart.definiteFunctionType((R, T1, T2) => [async.ZoneBinaryCallback$(R, T1, T2), [dart.functionType(R, [T1, T2])], {runGuarded: core.bool}]),
-    get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
+    _get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
     handleUncaughtError: dart.definiteFunctionType(R => [R, [dart.dynamic, core.StackTrace]]),
     fork: dart.definiteFunctionType(async.Zone, [], {specification: async.ZoneSpecification, zoneValues: core.Map}),
     run: dart.definiteFunctionType(R => [R, [dart.functionType(R, [])]]),
@@ -22859,7 +22859,7 @@ async._RootZone = class _RootZone extends async._Zone {
       }
     };
   }
-  get(key) {
+  _get(key) {
     return null;
   }
   handleUncaughtError(R) {
@@ -22949,7 +22949,7 @@ dart.setSignature(async._RootZone, {
     bindCallback: dart.definiteFunctionType(R => [async.ZoneCallback$(R), [dart.functionType(R, [])], {runGuarded: core.bool}]),
     bindUnaryCallback: dart.definiteFunctionType((R, T) => [async.ZoneUnaryCallback$(R, T), [dart.functionType(R, [T])], {runGuarded: core.bool}]),
     bindBinaryCallback: dart.definiteFunctionType((R, T1, T2) => [async.ZoneBinaryCallback$(R, T1, T2), [dart.functionType(R, [T1, T2])], {runGuarded: core.bool}]),
-    get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
+    _get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
     handleUncaughtError: dart.definiteFunctionType(R => [R, [dart.dynamic, core.StackTrace]]),
     fork: dart.definiteFunctionType(async.Zone, [], {specification: async.ZoneSpecification, zoneValues: core.Map}),
     run: dart.definiteFunctionType(R => [R, [dart.functionType(R, [])]]),
@@ -23063,7 +23063,7 @@ collection._HashMap$ = dart.generic((K, V) => {
       return new (_HashMapKeyIterableOfK())(this);
     }
     get values() {
-      return MappedIterableOfK$V().new(this.keys, dart.fn(each => this.get(each), KToV()));
+      return MappedIterableOfK$V().new(this.keys, dart.fn(each => this._get(each), KToV()));
     }
     containsKey(key) {
       if (dart.test(collection._HashMap._isStringKey(key))) {
@@ -23083,15 +23083,15 @@ collection._HashMap$ = dart.generic((K, V) => {
       return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
     }
     containsValue(value) {
-      return this[_computeKeys]()[dartx.any](dart.fn(each => dart.equals(this.get(each), value), KTobool()));
+      return this[_computeKeys]()[dartx.any](dart.fn(each => dart.equals(this._get(each), value), KTobool()));
     }
     addAll(other) {
       MapOfK$V()._check(other);
       other[dartx.forEach](dart.fn((key, value) => {
-        this.set(key, value);
+        this._set(key, value);
       }, KAndVTovoid$()));
     }
-    get(key) {
+    _get(key) {
       if (dart.test(collection._HashMap._isStringKey(key))) {
         let strings = this[_strings];
         return V._check(strings == null ? null : collection._HashMap._getTableEntry(strings, key));
@@ -23109,7 +23109,7 @@ collection._HashMap$ = dart.generic((K, V) => {
       let index = this[_findBucketIndex](bucket, key);
       return V._check(dart.notNull(index) < 0 ? null : bucket[dart.notNull(index) + 1]);
     }
-    set(key, value) {
+    _set(key, value) {
       K._check(key);
       V._check(value);
       if (dart.test(collection._HashMap._isStringKey(key))) {
@@ -23150,9 +23150,9 @@ collection._HashMap$ = dart.generic((K, V) => {
     putIfAbsent(key, ifAbsent) {
       K._check(key);
       VoidToV()._check(ifAbsent);
-      if (dart.test(this.containsKey(key))) return this.get(key);
+      if (dart.test(this.containsKey(key))) return this._get(key);
       let value = ifAbsent();
-      this.set(key, value);
+      this._set(key, value);
       return value;
     }
     remove(key) {
@@ -23184,7 +23184,7 @@ collection._HashMap$ = dart.generic((K, V) => {
       let keys = this[_computeKeys]();
       for (let i = 0, length = keys[dartx.length]; i < dart.notNull(length); i++) {
         let key = keys[i];
-        action(K._check(key), this.get(key));
+        action(K._check(key), this._get(key));
         if (keys !== this[_keys]) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
@@ -23322,9 +23322,9 @@ collection._HashMap$ = dart.generic((K, V) => {
       [_containsKey]: dart.definiteFunctionType(core.bool, [core.Object]),
       containsValue: dart.definiteFunctionType(core.bool, [core.Object]),
       addAll: dart.definiteFunctionType(dart.void, [MapOfK$V()]),
-      get: dart.definiteFunctionType(V, [core.Object]),
+      _get: dart.definiteFunctionType(V, [core.Object]),
       [_get]: dart.definiteFunctionType(V, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [K, V]),
+      _set: dart.definiteFunctionType(dart.void, [K, V]),
       [_set]: dart.definiteFunctionType(dart.void, [K, V]),
       putIfAbsent: dart.definiteFunctionType(V, [K, VoidToV()]),
       remove: dart.definiteFunctionType(V, [core.Object]),
@@ -23353,8 +23353,8 @@ collection._HashMap$ = dart.generic((K, V) => {
     'containsKey',
     'containsValue',
     'addAll',
-    'get',
-    'set',
+    '_get',
+    '_set',
     'putIfAbsent',
     'remove',
     'clear',
@@ -23401,11 +23401,11 @@ collection._CustomHashMap$ = dart.generic((K, V) => {
       this[_validKey] = validKey != null ? validKey : dart.fn(v => K.is(v), ObjectTobool());
       super.new();
     }
-    get(key) {
+    _get(key) {
       if (!dart.test(this[_validKey](key))) return null;
       return super[_get](key);
     }
-    set(key, value) {
+    _set(key, value) {
       K._check(key);
       V._check(value);
       super[_set](key, value);
@@ -23442,12 +23442,12 @@ collection._CustomHashMap$ = dart.generic((K, V) => {
       [_validKey]: _PredicateOfObject()
     }),
     methods: () => ({
-      get: dart.definiteFunctionType(V, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [K, V]),
+      _get: dart.definiteFunctionType(V, [core.Object]),
+      _set: dart.definiteFunctionType(dart.void, [K, V]),
       remove: dart.definiteFunctionType(V, [core.Object])
     })
   });
-  dart.defineExtensionMembers(_CustomHashMap, ['get', 'set', 'containsKey', 'remove']);
+  dart.defineExtensionMembers(_CustomHashMap, ['_get', '_set', 'containsKey', 'remove']);
   return _CustomHashMap;
 });
 collection._CustomHashMap = _CustomHashMap();
@@ -23624,13 +23624,13 @@ collection._Es6LinkedIdentityHashMap$ = dart.generic((K, V) => {
     addAll(other) {
       MapOfK$V()._check(other);
       other[dartx.forEach](dart.fn((key, value) => {
-        this.set(key, value);
+        this._set(key, value);
       }, KAndVTovoid$()));
     }
-    get(key) {
+    _get(key) {
       return this[_map].get(key);
     }
-    set(key, value) {
+    _set(key, value) {
       K._check(key);
       V._check(value);
       this[_map].set(key, value);
@@ -23640,13 +23640,13 @@ collection._Es6LinkedIdentityHashMap$ = dart.generic((K, V) => {
     putIfAbsent(key, ifAbsent) {
       K._check(key);
       VoidToV()._check(ifAbsent);
-      if (dart.test(this.containsKey(key))) return this.get(key);
+      if (dart.test(this.containsKey(key))) return this._get(key);
       let value = ifAbsent();
-      this.set(key, value);
+      this._set(key, value);
       return value;
     }
     remove(key) {
-      let value = this.get(key);
+      let value = this._get(key);
       this[_map].delete(key);
       this[_modified]();
       return value;
@@ -23691,8 +23691,8 @@ collection._Es6LinkedIdentityHashMap$ = dart.generic((K, V) => {
     }),
     methods: () => ({
       addAll: dart.definiteFunctionType(dart.void, [MapOfK$V()]),
-      get: dart.definiteFunctionType(V, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [K, V]),
+      _get: dart.definiteFunctionType(V, [core.Object]),
+      _set: dart.definiteFunctionType(dart.void, [K, V]),
       putIfAbsent: dart.definiteFunctionType(V, [K, VoidToV()]),
       remove: dart.definiteFunctionType(V, [core.Object]),
       forEach: dart.definiteFunctionType(dart.void, [KAndVTovoid()]),
@@ -23703,8 +23703,8 @@ collection._Es6LinkedIdentityHashMap$ = dart.generic((K, V) => {
     'containsKey',
     'containsValue',
     'addAll',
-    'get',
-    'set',
+    '_get',
+    '_set',
     'putIfAbsent',
     'remove',
     'clear',
@@ -23850,11 +23850,11 @@ collection._LinkedCustomHashMap$ = dart.generic((K, V) => {
       this[_validKey] = validKey != null ? validKey : dart.fn(v => K.is(v), ObjectTobool());
       super.new();
     }
-    get(key) {
+    _get(key) {
       if (!dart.test(this[_validKey](key))) return null;
       return super.internalGet(key);
     }
-    set(key, value) {
+    _set(key, value) {
       K._check(key);
       V._check(value);
       super.internalSet(key, value);
@@ -23889,12 +23889,12 @@ collection._LinkedCustomHashMap$ = dart.generic((K, V) => {
       [_validKey]: _PredicateOfObject()
     }),
     methods: () => ({
-      get: dart.definiteFunctionType(V, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [K, V]),
+      _get: dart.definiteFunctionType(V, [core.Object]),
+      _set: dart.definiteFunctionType(dart.void, [K, V]),
       remove: dart.definiteFunctionType(V, [core.Object])
     })
   });
-  dart.defineExtensionMembers(_LinkedCustomHashMap, ['get', 'set', 'containsKey', 'remove']);
+  dart.defineExtensionMembers(_LinkedCustomHashMap, ['_get', '_set', 'containsKey', 'remove']);
   return _LinkedCustomHashMap;
 });
 collection._LinkedCustomHashMap = _LinkedCustomHashMap();
@@ -23995,7 +23995,7 @@ collection.SetMixin$ = dart.generic(E => {
       })() : ListOfE().new(this.length);
       let i = 0;
       for (let element of this)
-        result[dartx.set](i++, element);
+        result[dartx._set](i++, element);
       return result;
     }
     map(T) {
@@ -24331,7 +24331,7 @@ collection._HashSet$ = dart.generic(E => {
       let bucket = this[_getBucket](rest, object);
       let index = this[_findBucketIndex](bucket, object);
       if (dart.notNull(index) < 0) return null;
-      return bucket[dartx.get](index);
+      return bucket[dartx._get](index);
     }
     add(element) {
       E._check(element);
@@ -24757,7 +24757,7 @@ collection._LinkedHashSet$ = dart.generic(E => {
       let bucket = this[_getBucket](rest, object);
       let index = this[_findBucketIndex](bucket, object);
       if (dart.notNull(index) < 0) return null;
-      return bucket[dartx.get](index)[_element];
+      return bucket[dartx._get](index)[_element];
     }
     forEach(action) {
       let cell = this[_first];
@@ -25189,7 +25189,7 @@ collection.UnmodifiableListView$ = dart.generic(E => {
     set length(value) {
       super.length = value;
     }
-    get(index) {
+    _get(index) {
       return this[_source][dartx.elementAt](index);
     }
   }
@@ -25197,9 +25197,9 @@ collection.UnmodifiableListView$ = dart.generic(E => {
     constructors: () => ({new: dart.definiteFunctionType(collection.UnmodifiableListView$(E), [IterableOfE()])}),
     fields: () => ({[_source]: IterableOfE()}),
     getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
-    methods: () => ({get: dart.definiteFunctionType(E, [core.int])})
+    methods: () => ({_get: dart.definiteFunctionType(E, [core.int])})
   });
-  dart.defineExtensionMembers(UnmodifiableListView, ['get', 'length']);
+  dart.defineExtensionMembers(UnmodifiableListView, ['_get', 'length']);
   return UnmodifiableListView;
 });
 collection.UnmodifiableListView = UnmodifiableListView();
@@ -25268,7 +25268,7 @@ collection.HashMap$ = dart.generic((K, V) => {
     static from(other) {
       let result = HashMapOfK$V().new();
       other[dartx.forEach](dart.fn((k, v) => {
-        result.set(K.as(k), V.as(v));
+        result._set(K.as(k), V.as(v));
       }, dynamicAnddynamicTovoid()));
       return result;
     }
@@ -25638,7 +25638,7 @@ dart.defineLazy(collection, {
 });
 collection._isToStringVisiting = function(o) {
   for (let i = 0; i < dart.notNull(collection._toStringVisiting[dartx.length]); i++) {
-    if (core.identical(o, collection._toStringVisiting[dartx.get](i))) return true;
+    if (core.identical(o, collection._toStringVisiting[dartx._get](i))) return true;
   }
   return false;
 };
@@ -25820,7 +25820,7 @@ collection.LinkedHashMap$ = dart.generic((K, V) => {
     static from(other) {
       let result = LinkedHashMapOfK$V().new();
       other[dartx.forEach](dart.fn((k, v) => {
-        result.set(K.as(k), V.as(v));
+        result._set(K.as(k), V.as(v));
       }, dynamicAnddynamicTovoid()));
       return result;
     }
@@ -26187,18 +26187,18 @@ collection.MapMixin$ = dart.generic((K, V) => {
   class MapMixin extends core.Object {
     forEach(action) {
       for (let key of this.keys) {
-        action(key, this.get(key));
+        action(key, this._get(key));
       }
     }
     addAll(other) {
       MapOfK$V()._check(other);
       for (let key of other[dartx.keys]) {
-        this.set(key, other[dartx.get](key));
+        this._set(key, other[dartx._get](key));
       }
     }
     containsValue(value) {
       for (let key of this.keys) {
-        if (dart.equals(this.get(key), value)) return true;
+        if (dart.equals(this._get(key), value)) return true;
       }
       return false;
     }
@@ -26206,9 +26206,9 @@ collection.MapMixin$ = dart.generic((K, V) => {
       K._check(key);
       VoidToV()._check(ifAbsent);
       if (dart.test(this.containsKey(key))) {
-        return this.get(key);
+        return this._get(key);
       }
-      return this.set(key, ifAbsent());
+      return this._set(key, ifAbsent());
     }
     containsKey(key) {
       return this.keys[dartx.contains](key);
@@ -26269,7 +26269,7 @@ collection._UnmodifiableMapMixin$ = dart.generic((K, V) => {
   let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
   let VoidToV = () => (VoidToV = dart.constFn(dart.functionType(V, [])))();
   class _UnmodifiableMapMixin extends core.Object {
-    set(key, value) {
+    _set(key, value) {
       K._check(key);
       V._check(value);
       dart.throw(new core.UnsupportedError("Cannot modify unmodifiable map"));
@@ -26295,7 +26295,7 @@ collection._UnmodifiableMapMixin$ = dart.generic((K, V) => {
   _UnmodifiableMapMixin[dart.implements] = () => [MapOfK$V()];
   dart.setSignature(_UnmodifiableMapMixin, {
     methods: () => ({
-      set: dart.definiteFunctionType(dart.void, [K, V]),
+      _set: dart.definiteFunctionType(dart.void, [K, V]),
       addAll: dart.definiteFunctionType(dart.void, [MapOfK$V()]),
       clear: dart.definiteFunctionType(dart.void, []),
       remove: dart.definiteFunctionType(V, [core.Object]),
@@ -26303,7 +26303,7 @@ collection._UnmodifiableMapMixin$ = dart.generic((K, V) => {
     })
   });
   dart.defineExtensionMembers(_UnmodifiableMapMixin, [
-    'set',
+    '_set',
     'addAll',
     'clear',
     'remove',
@@ -26339,13 +26339,13 @@ collection._MapBaseValueIterable$ = dart.generic((K, V) => {
       return this[_map][dartx.isNotEmpty];
     }
     get first() {
-      return this[_map][dartx.get](this[_map][dartx.keys][dartx.first]);
+      return this[_map][dartx._get](this[_map][dartx.keys][dartx.first]);
     }
     get single() {
-      return this[_map][dartx.get](this[_map][dartx.keys][dartx.single]);
+      return this[_map][dartx._get](this[_map][dartx.keys][dartx.single]);
     }
     get last() {
-      return this[_map][dartx.get](this[_map][dartx.keys][dartx.last]);
+      return this[_map][dartx._get](this[_map][dartx.keys][dartx.last]);
     }
     get iterator() {
       return new (_MapBaseValueIteratorOfK$V())(this[_map]);
@@ -26386,7 +26386,7 @@ collection._MapBaseValueIterator$ = dart.generic((K, V) => {
     }
     moveNext() {
       if (dart.test(this[_keys].moveNext())) {
-        this[_current] = this[_map][dartx.get](this[_keys].current);
+        this[_current] = this[_map][dartx._get](this[_keys].current);
         return true;
       }
       this[_current] = null;
@@ -26419,13 +26419,13 @@ collection.MapView$ = dart.generic((K, V) => {
     new(map) {
       this[_map] = map;
     }
-    get(key) {
-      return this[_map][dartx.get](key);
+    _get(key) {
+      return this[_map][dartx._get](key);
     }
-    set(key, value) {
+    _set(key, value) {
       K._check(key);
       V._check(value);
-      this[_map][dartx.set](key, value);
+      this[_map][dartx._set](key, value);
       return value;
     }
     addAll(other) {
@@ -26484,8 +26484,8 @@ collection.MapView$ = dart.generic((K, V) => {
       values: dart.definiteFunctionType(core.Iterable$(V), [])
     }),
     methods: () => ({
-      get: dart.definiteFunctionType(V, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [K, V]),
+      _get: dart.definiteFunctionType(V, [core.Object]),
+      _set: dart.definiteFunctionType(dart.void, [K, V]),
       addAll: dart.definiteFunctionType(dart.void, [MapOfK$V()]),
       clear: dart.definiteFunctionType(dart.void, []),
       putIfAbsent: dart.definiteFunctionType(V, [K, VoidToV()]),
@@ -26496,8 +26496,8 @@ collection.MapView$ = dart.generic((K, V) => {
     })
   });
   dart.defineExtensionMembers(MapView, [
-    'get',
-    'set',
+    '_get',
+    '_set',
     'addAll',
     'clear',
     'putIfAbsent',
@@ -26542,10 +26542,10 @@ collection.Maps = class Maps extends core.Object {
   }
   static putIfAbsent(map, key, ifAbsent) {
     if (dart.test(map[dartx.containsKey](key))) {
-      return map[dartx.get](key);
+      return map[dartx._get](key);
     }
     let v = ifAbsent();
-    map[dartx.set](key, v);
+    map[dartx._set](key, v);
     return v;
   }
   static clear(map) {
@@ -26555,11 +26555,11 @@ collection.Maps = class Maps extends core.Object {
   }
   static forEach(map, f) {
     for (let k of map[dartx.keys]) {
-      dart.dcall(f, k, map[dartx.get](k));
+      dart.dcall(f, k, map[dartx._get](k));
     }
   }
   static getValues(map) {
-    return map[dartx.keys][dartx.map](dart.dynamic)(dart.fn(key => map[dartx.get](key), dynamicTodynamic()));
+    return map[dartx.keys][dartx.map](dart.dynamic)(dart.fn(key => map[dartx._get](key), dynamicTodynamic()));
   }
   static length(map) {
     return map[dartx.keys][dartx.length];
@@ -26602,7 +26602,7 @@ collection.Maps = class Maps extends core.Object {
     if (key == null) key = collection.Maps._id;
     if (value == null) value = collection.Maps._id;
     for (let element of iterable) {
-      map[dartx.set](dart.dcall(key, element), dart.dcall(value, element));
+      map[dartx._set](dart.dcall(key, element), dart.dcall(value, element));
     }
   }
   static _fillMapWithIterables(map, keys, values) {
@@ -26611,7 +26611,7 @@ collection.Maps = class Maps extends core.Object {
     let hasNextKey = keyIterator.moveNext();
     let hasNextValue = valueIterator.moveNext();
     while (dart.test(hasNextKey) && dart.test(hasNextValue)) {
-      map[dartx.set](keyIterator.current, valueIterator.current);
+      map[dartx._set](keyIterator.current, valueIterator.current);
       hasNextKey = keyIterator.moveNext();
       hasNextValue = valueIterator.moveNext();
     }
@@ -27150,7 +27150,7 @@ collection.ListQueue$ = dart.generic(E => {
         let queue = new (ListQueueOfE())(dart.notNull(length) + 1);
         dart.assert(dart.notNull(queue[_table][dartx.length]) > dart.notNull(length));
         for (let i = 0; i < dart.notNull(length); i++) {
-          queue[_table][dartx.set](i, E.as(elements[dartx.get](i)));
+          queue[_table][dartx._set](i, E.as(elements[dartx._get](i)));
         }
         queue[_tail] = length;
         return queue;
@@ -27172,7 +27172,7 @@ collection.ListQueue$ = dart.generic(E => {
     forEach(action) {
       let modificationCount = this[_modificationCount];
       for (let i = this[_head]; i != this[_tail]; i = (dart.notNull(i) + 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0) {
-        action(this[_table][dartx.get](i));
+        action(this[_table][dartx._get](i));
         this[_checkModification](modificationCount);
       }
     }
@@ -27184,20 +27184,20 @@ collection.ListQueue$ = dart.generic(E => {
     }
     get first() {
       if (this[_head] == this[_tail]) dart.throw(_internal.IterableElementError.noElement());
-      return this[_table][dartx.get](this[_head]);
+      return this[_table][dartx._get](this[_head]);
     }
     get last() {
       if (this[_head] == this[_tail]) dart.throw(_internal.IterableElementError.noElement());
-      return this[_table][dartx.get]((dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0);
+      return this[_table][dartx._get]((dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0);
     }
     get single() {
       if (this[_head] == this[_tail]) dart.throw(_internal.IterableElementError.noElement());
       if (dart.notNull(this.length) > 1) dart.throw(_internal.IterableElementError.tooMany());
-      return this[_table][dartx.get](this[_head]);
+      return this[_table][dartx._get](this[_head]);
     }
     elementAt(index) {
       core.RangeError.checkValidIndex(index, this);
-      return this[_table][dartx.get]((dart.notNull(this[_head]) + dart.notNull(index) & dart.notNull(this[_table][dartx.length]) - 1) >>> 0);
+      return this[_table][dartx._get]((dart.notNull(this[_head]) + dart.notNull(index) & dart.notNull(this[_table][dartx.length]) - 1) >>> 0);
     }
     toList(opts) {
       let growable = opts && 'growable' in opts ? opts.growable : true;
@@ -27245,7 +27245,7 @@ collection.ListQueue$ = dart.generic(E => {
     }
     remove(value) {
       for (let i = this[_head]; i != this[_tail]; i = (dart.notNull(i) + 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0) {
-        let element = this[_table][dartx.get](i);
+        let element = this[_table][dartx._get](i);
         if (dart.equals(element, value)) {
           this[_remove](i);
           this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
@@ -27258,7 +27258,7 @@ collection.ListQueue$ = dart.generic(E => {
       let modificationCount = this[_modificationCount];
       let i = this[_head];
       while (i != this[_tail]) {
-        let element = this[_table][dartx.get](i);
+        let element = this[_table][dartx._get](i);
         let remove = core.identical(removeMatching, test(element));
         this[_checkModification](modificationCount);
         if (remove) {
@@ -27278,7 +27278,7 @@ collection.ListQueue$ = dart.generic(E => {
     clear() {
       if (this[_head] != this[_tail]) {
         for (let i = this[_head]; i != this[_tail]; i = (dart.notNull(i) + 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0) {
-          this[_table][dartx.set](i, null);
+          this[_table][dartx._set](i, null);
         }
         this[_head] = this[_tail] = 0;
         this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
@@ -27294,15 +27294,15 @@ collection.ListQueue$ = dart.generic(E => {
     addFirst(value) {
       E._check(value);
       this[_head] = (dart.notNull(this[_head]) - 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0;
-      this[_table][dartx.set](this[_head], value);
+      this[_table][dartx._set](this[_head], value);
       if (this[_head] == this[_tail]) this[_grow]();
       this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
     }
     removeFirst() {
       if (this[_head] == this[_tail]) dart.throw(_internal.IterableElementError.noElement());
       this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
-      let result = this[_table][dartx.get](this[_head]);
-      this[_table][dartx.set](this[_head], null);
+      let result = this[_table][dartx._get](this[_head]);
+      this[_table][dartx._set](this[_head], null);
       this[_head] = (dart.notNull(this[_head]) + 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0;
       return result;
     }
@@ -27310,8 +27310,8 @@ collection.ListQueue$ = dart.generic(E => {
       if (this[_head] == this[_tail]) dart.throw(_internal.IterableElementError.noElement());
       this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
       this[_tail] = (dart.notNull(this[_tail]) - 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0;
-      let result = this[_table][dartx.get](this[_tail]);
-      this[_table][dartx.set](this[_tail], null);
+      let result = this[_table][dartx._get](this[_tail]);
+      this[_table][dartx._set](this[_tail], null);
       return result;
     }
     static _isPowerOf2(number) {
@@ -27333,7 +27333,7 @@ collection.ListQueue$ = dart.generic(E => {
     }
     [_add](element) {
       E._check(element);
-      this[_table][dartx.set](this[_tail], element);
+      this[_table][dartx._set](this[_tail], element);
       this[_tail] = (dart.notNull(this[_tail]) + 1 & dart.notNull(this[_table][dartx.length]) - 1) >>> 0;
       if (this[_head] == this[_tail]) this[_grow]();
       this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
@@ -27346,10 +27346,10 @@ collection.ListQueue$ = dart.generic(E => {
         let i = offset;
         while (i != this[_head]) {
           let prevOffset = (dart.notNull(i) - 1 & mask) >>> 0;
-          this[_table][dartx.set](i, this[_table][dartx.get](prevOffset));
+          this[_table][dartx._set](i, this[_table][dartx._get](prevOffset));
           i = prevOffset;
         }
-        this[_table][dartx.set](this[_head], null);
+        this[_table][dartx._set](this[_head], null);
         this[_head] = (dart.notNull(this[_head]) + 1 & mask) >>> 0;
         return (dart.notNull(offset) + 1 & mask) >>> 0;
       } else {
@@ -27357,10 +27357,10 @@ collection.ListQueue$ = dart.generic(E => {
         let i = offset;
         while (i != this[_tail]) {
           let nextOffset = (dart.notNull(i) + 1 & mask) >>> 0;
-          this[_table][dartx.set](i, this[_table][dartx.get](nextOffset));
+          this[_table][dartx._set](i, this[_table][dartx._get](nextOffset));
           i = nextOffset;
         }
-        this[_table][dartx.set](this[_tail], null);
+        this[_table][dartx._set](this[_tail], null);
         return offset;
       }
     }
@@ -27482,7 +27482,7 @@ collection._ListQueueIterator$ = dart.generic(E => {
         this[_current] = null;
         return false;
       }
-      this[_current] = this[_queue][_table][dartx.get](this[_position]);
+      this[_current] = this[_queue][_table][dartx._get](this[_position]);
       this[_position] = (dart.notNull(this[_position]) + 1 & dart.notNull(this[_queue][_table][dartx.length]) - 1) >>> 0;
       return true;
     }
@@ -27757,7 +27757,7 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
       if (isValidKey === void 0) isValidKey = null;
       let result = new (SplayTreeMapOfK$V())(compare, isValidKey);
       other[dartx.forEach](dart.fn((k, v) => {
-        result.set(K.as(k), V.as(v));
+        result._set(K.as(k), V.as(v));
       }, dynamicAnddynamicTovoid()));
       return result;
     }
@@ -27789,7 +27789,7 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
       this[_validKey] = null;
       super.new();
     }
-    get(key) {
+    _get(key) {
       if (!dart.test(dart.dcall(this[_validKey], key))) return null;
       if (this[_root] != null) {
         let comp = this[_splay](K.as(key));
@@ -27805,7 +27805,7 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
       if (mapRoot != null) return mapRoot.value;
       return null;
     }
-    set(key, value) {
+    _set(key, value) {
       (() => {
         K._check(key);
         V._check(value);
@@ -27843,7 +27843,7 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
     addAll(other) {
       MapOfK$V()._check(other);
       other[dartx.forEach](dart.fn((key, value) => {
-        this.set(key, value);
+        this._set(key, value);
       }, KAndVTovoid$()));
     }
     get isEmpty() {
@@ -27954,9 +27954,9 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
     }),
     methods: () => ({
       [_compare]: dart.definiteFunctionType(core.int, [K, K]),
-      get: dart.definiteFunctionType(V, [core.Object]),
+      _get: dart.definiteFunctionType(V, [core.Object]),
       remove: dart.definiteFunctionType(V, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [K, V]),
+      _set: dart.definiteFunctionType(dart.void, [K, V]),
       putIfAbsent: dart.definiteFunctionType(V, [K, VoidToV()]),
       addAll: dart.definiteFunctionType(dart.void, [MapOfK$V()]),
       forEach: dart.definiteFunctionType(dart.void, [KAndVTovoid()]),
@@ -27970,9 +27970,9 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
     })
   });
   dart.defineExtensionMembers(SplayTreeMap, [
-    'get',
+    '_get',
     'remove',
-    'set',
+    '_set',
     'putIfAbsent',
     'addAll',
     'forEach',
@@ -28447,7 +28447,7 @@ convert._convertJsonToDart = function(json, reviver) {
     let processed = map[_processed];
     let keys = map[_computeKeys]();
     for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
-      let key = keys[dartx.get](i);
+      let key = keys[dartx._get](i);
       let revived = dart.dcall(reviver, key, walk(e[key]));
       processed[key] = revived;
     }
@@ -28484,9 +28484,9 @@ convert._JsonMap = class _JsonMap extends core.Object {
     this[_original] = original;
     this[_data] = null;
   }
-  get(key) {
+  _get(key) {
     if (dart.test(this[_isUpgraded])) {
-      return this[_upgradedMap][dartx.get](key);
+      return this[_upgradedMap][dartx._get](key);
     } else if (!(typeof key == 'string')) {
       return null;
     } else {
@@ -28510,11 +28510,11 @@ convert._JsonMap = class _JsonMap extends core.Object {
   }
   get values() {
     if (dart.test(this[_isUpgraded])) return this[_upgradedMap][dartx.values];
-    return MappedIterableOfString$dynamic().new(this[_computeKeys](), dart.fn(each => this.get(each), dynamicTodynamic()));
+    return MappedIterableOfString$dynamic().new(this[_computeKeys](), dart.fn(each => this._get(each), dynamicTodynamic()));
   }
-  set(key, value) {
+  _set(key, value) {
     if (dart.test(this[_isUpgraded])) {
-      this[_upgradedMap][dartx.set](key, value);
+      this[_upgradedMap][dartx._set](key, value);
     } else if (dart.test(this.containsKey(key))) {
       let processed = this[_processed];
       convert._JsonMap._setProperty(processed, core.String._check(key), value);
@@ -28523,21 +28523,21 @@ convert._JsonMap = class _JsonMap extends core.Object {
         convert._JsonMap._setProperty(original, core.String._check(key), null);
       }
     } else {
-      this[_upgrade]()[dartx.set](key, value);
+      this[_upgrade]()[dartx._set](key, value);
     }
     return value;
   }
   addAll(other) {
     other[dartx.forEach](dart.fn((key, value) => {
-      this.set(key, value);
+      this._set(key, value);
     }, dynamicAnddynamicTovoid()));
   }
   containsValue(value) {
     if (dart.test(this[_isUpgraded])) return this[_upgradedMap][dartx.containsValue](value);
     let keys = this[_computeKeys]();
     for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
-      let key = keys[dartx.get](i);
-      if (dart.equals(this.get(key), value)) return true;
+      let key = keys[dartx._get](i);
+      if (dart.equals(this._get(key), value)) return true;
     }
     return false;
   }
@@ -28547,9 +28547,9 @@ convert._JsonMap = class _JsonMap extends core.Object {
     return convert._JsonMap._hasProperty(this[_original], core.String._check(key));
   }
   putIfAbsent(key, ifAbsent) {
-    if (dart.test(this.containsKey(key))) return this.get(key);
+    if (dart.test(this.containsKey(key))) return this._get(key);
     let value = ifAbsent();
-    this.set(key, value);
+    this._set(key, value);
     return value;
   }
   remove(key) {
@@ -28571,7 +28571,7 @@ convert._JsonMap = class _JsonMap extends core.Object {
     if (dart.test(this[_isUpgraded])) return this[_upgradedMap][dartx.forEach](f);
     let keys = this[_computeKeys]();
     for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
-      let key = keys[dartx.get](i);
+      let key = keys[dartx._get](i);
       let value = convert._JsonMap._getProperty(this[_processed], key);
       if (dart.test(convert._JsonMap._isUnprocessed(value))) {
         value = convert._convertJsonToDartLazy(convert._JsonMap._getProperty(this[_original], key));
@@ -28606,8 +28606,8 @@ convert._JsonMap = class _JsonMap extends core.Object {
     let result = dart.map();
     let keys = this[_computeKeys]();
     for (let i = 0; i < dart.notNull(keys[dartx.length]); i++) {
-      let key = keys[dartx.get](i);
-      result[dartx.set](key, this.get(key));
+      let key = keys[dartx._get](i);
+      result[dartx._set](key, this._get(key));
     }
     if (dart.test(keys[dartx.isEmpty])) {
       keys[dartx.add](null);
@@ -28661,8 +28661,8 @@ dart.setSignature(convert._JsonMap, {
     [_upgradedMap]: dart.definiteFunctionType(core.Map, [])
   }),
   methods: () => ({
-    get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
-    set: dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic]),
+    _get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
+    _set: dart.definiteFunctionType(dart.void, [dart.dynamic, dart.dynamic]),
     addAll: dart.definiteFunctionType(dart.void, [core.Map]),
     containsValue: dart.definiteFunctionType(core.bool, [core.Object]),
     containsKey: dart.definiteFunctionType(core.bool, [core.Object]),
@@ -28685,8 +28685,8 @@ dart.setSignature(convert._JsonMap, {
   names: ['_hasProperty', '_getProperty', '_setProperty', '_getPropertyNames', '_isUnprocessed', '_newJavaScriptObject']
 });
 dart.defineExtensionMembers(convert._JsonMap, [
-  'get',
-  'set',
+  '_get',
+  '_set',
   'addAll',
   'containsValue',
   'containsKey',
@@ -28710,7 +28710,7 @@ convert._JsonMapKeyIterable = class _JsonMapKeyIterable extends _internal.ListIt
     return this[_parent].length;
   }
   elementAt(index) {
-    return core.String._check(dart.test(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.elementAt](index) : this[_parent][_computeKeys]()[dartx.get](index));
+    return core.String._check(dart.test(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.elementAt](index) : this[_parent][_computeKeys]()[dartx._get](index));
   }
   get iterator() {
     return dart.test(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.iterator] : this[_parent][_computeKeys]()[dartx.iterator];
@@ -28954,7 +28954,7 @@ core.List$ = dart.generic(E => {
       let result = ListOfE().new(length);
       if (length != 0 && fill != null) {
         for (let i = 0; i < dart.notNull(result[dartx.length]); i++) {
-          result[dartx.set](i, fill);
+          result[dartx._set](i, fill);
         }
       }
       return result;
@@ -28978,7 +28978,7 @@ core.List$ = dart.generic(E => {
         result = ListOfE().new(length);
       }
       for (let i = 0; i < dart.notNull(length); i++) {
-        result[dartx.set](i, generator(i));
+        result[dartx._set](i, generator(i));
       }
       return result;
     }
@@ -29017,7 +29017,7 @@ convert.Encoding = class Encoding extends convert.Codec$(core.String, core.List$
   static getByName(name) {
     if (name == null) return null;
     name = name[dartx.toLowerCase]();
-    return convert.Encoding._nameToEncoding[dartx.get](name);
+    return convert.Encoding._nameToEncoding[dartx._get](name);
   }
 };
 dart.addSimpleTypeTests(convert.Encoding);
@@ -29128,7 +29128,7 @@ convert._UnicodeSubsetEncoder = class _UnicodeSubsetEncoder extends convert.Conv
       if ((dart.notNull(codeUnit) & ~dart.notNull(this[_subsetMask])) != 0) {
         dart.throw(new core.ArgumentError("String contains invalid characters."));
       }
-      result[dartx.set](i, codeUnit);
+      result[dartx._set](i, codeUnit);
     }
     return result;
   }
@@ -29207,7 +29207,7 @@ convert._UnicodeSubsetDecoder = class _UnicodeSubsetDecoder extends convert.Conv
     core.RangeError.checkValidRange(start, end, byteCount);
     if (end == null) end = byteCount;
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      let byte = bytes[dartx.get](i);
+      let byte = bytes[dartx._get](i);
       if ((dart.notNull(byte) & ~dart.notNull(this[_subsetMask])) != 0) {
         if (!dart.test(this[_allowInvalid])) {
           dart.throw(new core.FormatException(dart.str`Invalid value in input: ${byte}`));
@@ -29220,7 +29220,7 @@ convert._UnicodeSubsetDecoder = class _UnicodeSubsetDecoder extends convert.Conv
   [_convertInvalid](bytes, start, end) {
     let buffer = new core.StringBuffer();
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      let value = bytes[dartx.get](i);
+      let value = bytes[dartx._get](i);
       if ((dart.notNull(value) & ~dart.notNull(this[_subsetMask])) != 0) value = 65533;
       buffer.writeCharCode(value);
     }
@@ -29336,7 +29336,7 @@ convert._ErrorHandlingAsciiDecoderSink = class _ErrorHandlingAsciiDecoderSink ex
   addSlice(source, start, end, isLast) {
     core.RangeError.checkValidRange(start, end, source[dartx.length]);
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      if ((dart.notNull(source[dartx.get](i)) & ~convert._ASCII_MASK) != 0) {
+      if ((dart.notNull(source[dartx._get](i)) & ~convert._ASCII_MASK) != 0) {
         if (dart.notNull(i) > dart.notNull(start)) this[_utf8Sink].addSlice(source, start, i, false);
         this[_utf8Sink].add(const || (const = dart.constList([239, 191, 189], core.int)));
         start = dart.notNull(i) + 1;
@@ -29367,7 +29367,7 @@ convert._SimpleAsciiDecoderSink = class _SimpleAsciiDecoderSink extends convert.
   }
   add(source) {
     for (let i = 0; i < dart.notNull(source[dartx.length]); i++) {
-      if ((dart.notNull(source[dartx.get](i)) & ~convert._ASCII_MASK) != 0) {
+      if ((dart.notNull(source[dartx._get](i)) & ~convert._ASCII_MASK) != 0) {
         dart.throw(new core.FormatException("Source contains non-ASCII bytes."));
       }
     }
@@ -29508,27 +29508,27 @@ convert._Base64Encoder = class _Base64Encoder extends core.Object {
     let expectedChars = 3 - dart.notNull(convert._Base64Encoder._stateCount(state));
     let byteOr = 0;
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      let byte = bytes[dartx.get](i);
+      let byte = bytes[dartx._get](i);
       byteOr = (dart.notNull(byteOr) | dart.notNull(byte)) >>> 0;
       bits = (dart.notNull(bits) << 8 | dart.notNull(byte)) & 16777215;
       expectedChars--;
       if (expectedChars == 0) {
-        output[dartx.set]((() => {
+        output[dartx._set]((() => {
           let x = outputIndex;
           outputIndex = dart.notNull(x) + 1;
           return x;
         })(), alphabet[dartx.codeUnitAt](dart.notNull(bits) >> 18 & convert._Base64Encoder._sixBitMask));
-        output[dartx.set]((() => {
+        output[dartx._set]((() => {
           let x = outputIndex;
           outputIndex = dart.notNull(x) + 1;
           return x;
         })(), alphabet[dartx.codeUnitAt](dart.notNull(bits) >> 12 & convert._Base64Encoder._sixBitMask));
-        output[dartx.set]((() => {
+        output[dartx._set]((() => {
           let x = outputIndex;
           outputIndex = dart.notNull(x) + 1;
           return x;
         })(), alphabet[dartx.codeUnitAt](dart.notNull(bits) >> 6 & convert._Base64Encoder._sixBitMask));
-        output[dartx.set]((() => {
+        output[dartx._set]((() => {
           let x = outputIndex;
           outputIndex = dart.notNull(x) + 1;
           return x;
@@ -29546,53 +29546,53 @@ convert._Base64Encoder = class _Base64Encoder extends core.Object {
     }
     let i = start;
     while (dart.notNull(i) < dart.notNull(end)) {
-      let byte = bytes[dartx.get](i);
+      let byte = bytes[dartx._get](i);
       if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) break;
       i = dart.notNull(i) + 1;
     }
-    dart.throw(new core.ArgumentError.value(bytes, dart.str`Not a byte value at index ${i}: 0x${bytes[dartx.get](i)[dartx.toRadixString](16)}`));
+    dart.throw(new core.ArgumentError.value(bytes, dart.str`Not a byte value at index ${i}: 0x${bytes[dartx._get](i)[dartx.toRadixString](16)}`));
   }
   static writeFinalChunk(alphabet, output, outputIndex, count, bits) {
     dart.assert(dart.notNull(count) > 0);
     if (count == 1) {
-      output[dartx.set]((() => {
+      output[dartx._set]((() => {
         let x = outputIndex;
         outputIndex = dart.notNull(x) + 1;
         return x;
       })(), alphabet[dartx.codeUnitAt](dart.notNull(bits) >> 2 & convert._Base64Encoder._sixBitMask));
-      output[dartx.set]((() => {
+      output[dartx._set]((() => {
         let x = outputIndex;
         outputIndex = dart.notNull(x) + 1;
         return x;
       })(), alphabet[dartx.codeUnitAt](dart.notNull(bits) << 4 & convert._Base64Encoder._sixBitMask));
-      output[dartx.set]((() => {
+      output[dartx._set]((() => {
         let x = outputIndex;
         outputIndex = dart.notNull(x) + 1;
         return x;
       })(), convert._paddingChar);
-      output[dartx.set]((() => {
+      output[dartx._set]((() => {
         let x = outputIndex;
         outputIndex = dart.notNull(x) + 1;
         return x;
       })(), convert._paddingChar);
     } else {
       dart.assert(count == 2);
-      output[dartx.set]((() => {
+      output[dartx._set]((() => {
         let x = outputIndex;
         outputIndex = dart.notNull(x) + 1;
         return x;
       })(), alphabet[dartx.codeUnitAt](dart.notNull(bits) >> 10 & convert._Base64Encoder._sixBitMask));
-      output[dartx.set]((() => {
+      output[dartx._set]((() => {
         let x = outputIndex;
         outputIndex = dart.notNull(x) + 1;
         return x;
       })(), alphabet[dartx.codeUnitAt](dart.notNull(bits) >> 4 & convert._Base64Encoder._sixBitMask));
-      output[dartx.set]((() => {
+      output[dartx._set]((() => {
         let x = outputIndex;
         outputIndex = dart.notNull(x) + 1;
         return x;
       })(), alphabet[dartx.codeUnitAt](dart.notNull(bits) << 2 & convert._Base64Encoder._sixBitMask));
-      output[dartx.set]((() => {
+      output[dartx._set]((() => {
         let x = outputIndex;
         outputIndex = dart.notNull(x) + 1;
         return x;
@@ -29804,23 +29804,23 @@ convert._Base64Decoder = class _Base64Decoder extends core.Object {
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
       let char = input[dartx.codeUnitAt](i);
       charOr = (dart.notNull(charOr) | dart.notNull(char)) >>> 0;
-      let code = convert._Base64Decoder._inverseAlphabet[dartx.get]((dart.notNull(char) & asciiMask) >>> 0);
+      let code = convert._Base64Decoder._inverseAlphabet[dartx._get]((dart.notNull(char) & asciiMask) >>> 0);
       if (dart.notNull(code) >= 0) {
         bits = (bits[dartx['<<']](bitsPerCharacter) | dart.notNull(code)) & 16777215;
         count = dart.notNull(count) + 1 & 3;
         if (count == 0) {
           dart.assert(dart.notNull(outIndex) + 3 <= dart.notNull(output[dartx.length]));
-          output[dartx.set]((() => {
+          output[dartx._set]((() => {
             let x = outIndex;
             outIndex = dart.notNull(x) + 1;
             return x;
           })(), (bits[dartx['>>']](16) & eightBitMask) >>> 0);
-          output[dartx.set]((() => {
+          output[dartx._set]((() => {
             let x = outIndex;
             outIndex = dart.notNull(x) + 1;
             return x;
           })(), (bits[dartx['>>']](8) & eightBitMask) >>> 0);
-          output[dartx.set]((() => {
+          output[dartx._set]((() => {
             let x = outIndex;
             outIndex = dart.notNull(x) + 1;
             return x;
@@ -29834,12 +29834,12 @@ convert._Base64Decoder = class _Base64Decoder extends core.Object {
           if ((dart.notNull(bits) & 3) != 0) {
             dart.throw(new core.FormatException("Invalid encoding before padding", input, i));
           }
-          output[dartx.set]((() => {
+          output[dartx._set]((() => {
             let x = outIndex;
             outIndex = dart.notNull(x) + 1;
             return x;
           })(), bits[dartx['>>']](10));
-          output[dartx.set]((() => {
+          output[dartx._set]((() => {
             let x = outIndex;
             outIndex = dart.notNull(x) + 1;
             return x;
@@ -29848,7 +29848,7 @@ convert._Base64Decoder = class _Base64Decoder extends core.Object {
           if ((dart.notNull(bits) & 15) != 0) {
             dart.throw(new core.FormatException("Invalid encoding before padding", input, i));
           }
-          output[dartx.set]((() => {
+          output[dartx._set]((() => {
             let x = outIndex;
             outIndex = dart.notNull(x) + 1;
             return x;
@@ -30400,7 +30400,7 @@ convert.HtmlEscape = class HtmlEscape extends convert.Converter$(core.String, co
   [_convert](text, start, end) {
     let result = null;
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      let ch = text[dartx.get](i);
+      let ch = text[dartx._get](i);
       let replacement = null;
       switch (ch) {
         case '&':
@@ -30672,14 +30672,14 @@ convert.JsonUtf8Encoder = class JsonUtf8Encoder extends convert.Converter$(core.
     }
     dart.fn(addChunk, Uint8ListAndintAndintTovoid());
     convert._JsonUtf8Stringifier.stringify(object, this[_indent], this[_toEncodable], this[_bufferSize], addChunk);
-    if (bytes[dartx.length] == 1) return bytes[dartx.get](0);
+    if (bytes[dartx.length] == 1) return bytes[dartx._get](0);
     let length = 0;
     for (let i = 0; i < dart.notNull(bytes[dartx.length]); i++) {
-      length = dart.notNull(length) + dart.notNull(bytes[dartx.get](i)[dartx.length]);
+      length = dart.notNull(length) + dart.notNull(bytes[dartx._get](i)[dartx.length]);
     }
     let result = typed_data.Uint8List.new(length);
     for (let i = 0, offset = 0; i < dart.notNull(bytes[dartx.length]); i++) {
-      let byteList = bytes[dartx.get](i);
+      let byteList = bytes[dartx._get](i);
       let end = offset + dart.notNull(byteList[dartx.length]);
       result[dartx.setRange](offset, end, byteList);
       offset = end;
@@ -30916,7 +30916,7 @@ convert._JsonStringifier = class _JsonStringifier extends core.Object {
   }
   [_checkCycle](object) {
     for (let i = 0; i < dart.notNull(this[_seen][dartx.length]); i++) {
-      if (core.identical(object, this[_seen][dartx.get](i))) {
+      if (core.identical(object, this[_seen][dartx._get](i))) {
         dart.throw(new convert.JsonCyclicError(object));
       }
     }
@@ -30977,10 +30977,10 @@ convert._JsonStringifier = class _JsonStringifier extends core.Object {
   writeList(list) {
     this.writeString('[');
     if (dart.notNull(list[dartx.length]) > 0) {
-      this.writeObject(list[dartx.get](0));
+      this.writeObject(list[dartx._get](0));
       for (let i = 1; i < dart.notNull(list[dartx.length]); i++) {
         this.writeString(',');
-        this.writeObject(list[dartx.get](i));
+        this.writeObject(list[dartx._get](i));
       }
     }
     this.writeString(']');
@@ -30997,8 +30997,8 @@ convert._JsonStringifier = class _JsonStringifier extends core.Object {
       if (!(typeof key == 'string')) {
         allStringKeys = false;
       }
-      keyValueList[dartx.set](i++, key);
-      keyValueList[dartx.set](i++, value);
+      keyValueList[dartx._set](i++, key);
+      keyValueList[dartx._set](i++, value);
     }, dynamicAnddynamicTovoid()));
     if (!allStringKeys) return false;
     this.writeString('{');
@@ -31006,9 +31006,9 @@ convert._JsonStringifier = class _JsonStringifier extends core.Object {
     for (let i = 0; i < dart.notNull(keyValueList[dartx.length]); i = i + 2) {
       this.writeString(separator);
       separator = ',"';
-      this.writeStringContent(core.String._check(keyValueList[dartx.get](i)));
+      this.writeStringContent(core.String._check(keyValueList[dartx._get](i)));
       this.writeString('":');
-      this.writeObject(keyValueList[dartx.get](i + 1));
+      this.writeObject(keyValueList[dartx._get](i + 1));
     }
     this.writeString('}');
     return true;
@@ -31074,11 +31074,11 @@ convert._JsonPrettyPrintMixin = class _JsonPrettyPrintMixin extends core.Object 
       this.writeString('[\n');
       this[_indentLevel] = dart.notNull(this[_indentLevel]) + 1;
       this.writeIndentation(this[_indentLevel]);
-      this.writeObject(list[dartx.get](0));
+      this.writeObject(list[dartx._get](0));
       for (let i = 1; i < dart.notNull(list[dartx.length]); i++) {
         this.writeString(',\n');
         this.writeIndentation(this[_indentLevel]);
-        this.writeObject(list[dartx.get](i));
+        this.writeObject(list[dartx._get](i));
       }
       this.writeString('\n');
       this[_indentLevel] = dart.notNull(this[_indentLevel]) - 1;
@@ -31098,8 +31098,8 @@ convert._JsonPrettyPrintMixin = class _JsonPrettyPrintMixin extends core.Object 
       if (!(typeof key == 'string')) {
         allStringKeys = false;
       }
-      keyValueList[dartx.set](i++, key);
-      keyValueList[dartx.set](i++, value);
+      keyValueList[dartx._set](i++, key);
+      keyValueList[dartx._set](i++, value);
     }, dynamicAnddynamicTovoid()));
     if (!allStringKeys) return false;
     this.writeString('{\n');
@@ -31110,9 +31110,9 @@ convert._JsonPrettyPrintMixin = class _JsonPrettyPrintMixin extends core.Object 
       separator = ",\n";
       this.writeIndentation(this[_indentLevel]);
       this.writeString('"');
-      this.writeStringContent(core.String._check(keyValueList[dartx.get](i)));
+      this.writeStringContent(core.String._check(keyValueList[dartx._get](i)));
       this.writeString('": ');
-      this.writeObject(keyValueList[dartx.get](i + 1));
+      this.writeObject(keyValueList[dartx._get](i + 1));
     }
     this.writeString('\n');
     this[_indentLevel] = dart.notNull(this[_indentLevel]) - 1;
@@ -31284,7 +31284,7 @@ convert._JsonUtf8Stringifier = class _JsonUtf8Stringifier extends convert._JsonS
       this.buffer = typed_data.Uint8List.new(this.bufferSize);
       this.index = 0;
     }
-    this.buffer[dartx.set]((() => {
+    this.buffer[dartx._set]((() => {
       let x = this.index;
       this.index = dart.notNull(x) + 1;
       return x;
@@ -31322,7 +31322,7 @@ convert._JsonUtf8StringifierPretty = class _JsonUtf8StringifierPretty extends da
     let indent = this.indent;
     let indentLength = indent[dartx.length];
     if (indentLength == 1) {
-      let char = indent[dartx.get](0);
+      let char = indent[dartx._get](0);
       while (dart.notNull(count) > 0) {
         this.writeByte(char);
         count = dart.notNull(count) - 1;
@@ -31337,7 +31337,7 @@ convert._JsonUtf8StringifierPretty = class _JsonUtf8StringifierPretty extends da
         this.index = end;
       } else {
         for (let i = 0; i < dart.notNull(indentLength); i++) {
-          this.writeByte(indent[dartx.get](i));
+          this.writeByte(indent[dartx._get](i));
         }
       }
     }
@@ -31446,7 +31446,7 @@ convert._Latin1DecoderSink = class _Latin1DecoderSink extends convert.ByteConver
   static _checkValidLatin1(source, start, end) {
     let mask = 0;
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      mask = (dart.notNull(mask) | dart.notNull(source[dartx.get](i))) >>> 0;
+      mask = (dart.notNull(mask) | dart.notNull(source[dartx._get](i))) >>> 0;
     }
     if (dart.notNull(mask) >= 0 && dart.notNull(mask) <= convert._LATIN1_MASK) {
       return;
@@ -31455,7 +31455,7 @@ convert._Latin1DecoderSink = class _Latin1DecoderSink extends convert.ByteConver
   }
   static _reportInvalidLatin1(source, start, end) {
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      let char = source[dartx.get](i);
+      let char = source[dartx._get](i);
       if (dart.notNull(char) < 0 || dart.notNull(char) > convert._LATIN1_MASK) {
         dart.throw(new core.FormatException("Source contains non-Latin-1 characters.", source, i));
       }
@@ -31485,7 +31485,7 @@ convert._Latin1AllowInvalidDecoderSink = class _Latin1AllowInvalidDecoderSink ex
   addSlice(source, start, end, isLast) {
     core.RangeError.checkValidRange(start, end, source[dartx.length]);
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      let char = source[dartx.get](i);
+      let char = source[dartx._get](i);
       if (dart.notNull(char) > convert._LATIN1_MASK || dart.notNull(char) < 0) {
         if (dart.notNull(i) > dart.notNull(start)) this[_addSliceToSink](source, start, i, false);
         this[_addSliceToSink](const || (const = dart.constList([65533], core.int)), 0, 1, false);
@@ -32025,39 +32025,39 @@ convert._Utf8Encoder = class _Utf8Encoder extends core.Object {
       let rune = convert._combineSurrogatePair(leadingSurrogate, nextCodeUnit);
       dart.assert(dart.notNull(rune) > convert._THREE_BYTE_LIMIT);
       dart.assert(dart.notNull(rune) <= convert._FOUR_BYTE_LIMIT);
-      this[_buffer][dartx.set]((() => {
+      this[_buffer][dartx._set]((() => {
         let x = this[_bufferIndex];
         this[_bufferIndex] = dart.notNull(x) + 1;
         return x;
       })(), (240 | rune[dartx['>>']](18)) >>> 0);
-      this[_buffer][dartx.set]((() => {
+      this[_buffer][dartx._set]((() => {
         let x = this[_bufferIndex];
         this[_bufferIndex] = dart.notNull(x) + 1;
         return x;
       })(), 128 | dart.notNull(rune) >> 12 & 63);
-      this[_buffer][dartx.set]((() => {
+      this[_buffer][dartx._set]((() => {
         let x = this[_bufferIndex];
         this[_bufferIndex] = dart.notNull(x) + 1;
         return x;
       })(), 128 | dart.notNull(rune) >> 6 & 63);
-      this[_buffer][dartx.set]((() => {
+      this[_buffer][dartx._set]((() => {
         let x = this[_bufferIndex];
         this[_bufferIndex] = dart.notNull(x) + 1;
         return x;
       })(), 128 | dart.notNull(rune) & 63);
       return true;
     } else {
-      this[_buffer][dartx.set]((() => {
+      this[_buffer][dartx._set]((() => {
         let x = this[_bufferIndex];
         this[_bufferIndex] = dart.notNull(x) + 1;
         return x;
       })(), (224 | leadingSurrogate[dartx['>>']](12)) >>> 0);
-      this[_buffer][dartx.set]((() => {
+      this[_buffer][dartx._set]((() => {
         let x = this[_bufferIndex];
         this[_bufferIndex] = dart.notNull(x) + 1;
         return x;
       })(), 128 | dart.notNull(leadingSurrogate) >> 6 & 63);
-      this[_buffer][dartx.set]((() => {
+      this[_buffer][dartx._set]((() => {
         let x = this[_bufferIndex];
         this[_bufferIndex] = dart.notNull(x) + 1;
         return x;
@@ -32074,7 +32074,7 @@ convert._Utf8Encoder = class _Utf8Encoder extends core.Object {
       let codeUnit = str[dartx.codeUnitAt](stringIndex);
       if (dart.notNull(codeUnit) <= convert._ONE_BYTE_LIMIT) {
         if (dart.notNull(this[_bufferIndex]) >= dart.notNull(this[_buffer][dartx.length])) break;
-        this[_buffer][dartx.set]((() => {
+        this[_buffer][dartx._set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
@@ -32090,12 +32090,12 @@ convert._Utf8Encoder = class _Utf8Encoder extends core.Object {
         let rune = codeUnit;
         if (dart.notNull(rune) <= convert._TWO_BYTE_LIMIT) {
           if (dart.notNull(this[_bufferIndex]) + 1 >= dart.notNull(this[_buffer][dartx.length])) break;
-          this[_buffer][dartx.set]((() => {
+          this[_buffer][dartx._set]((() => {
             let x = this[_bufferIndex];
             this[_bufferIndex] = dart.notNull(x) + 1;
             return x;
           })(), (192 | rune[dartx['>>']](6)) >>> 0);
-          this[_buffer][dartx.set]((() => {
+          this[_buffer][dartx._set]((() => {
             let x = this[_bufferIndex];
             this[_bufferIndex] = dart.notNull(x) + 1;
             return x;
@@ -32103,17 +32103,17 @@ convert._Utf8Encoder = class _Utf8Encoder extends core.Object {
         } else {
           dart.assert(dart.notNull(rune) <= convert._THREE_BYTE_LIMIT);
           if (dart.notNull(this[_bufferIndex]) + 2 >= dart.notNull(this[_buffer][dartx.length])) break;
-          this[_buffer][dartx.set]((() => {
+          this[_buffer][dartx._set]((() => {
             let x = this[_bufferIndex];
             this[_bufferIndex] = dart.notNull(x) + 1;
             return x;
           })(), (224 | rune[dartx['>>']](12)) >>> 0);
-          this[_buffer][dartx.set]((() => {
+          this[_buffer][dartx._set]((() => {
             let x = this[_bufferIndex];
             this[_bufferIndex] = dart.notNull(x) + 1;
             return x;
           })(), 128 | dart.notNull(rune) >> 6 & 63);
-          this[_buffer][dartx.set]((() => {
+          this[_buffer][dartx._set]((() => {
             let x = this[_bufferIndex];
             this[_bufferIndex] = dart.notNull(x) + 1;
             return x;
@@ -32340,7 +32340,7 @@ convert._Utf8Decoder = class _Utf8Decoder extends core.Object {
               if (i == endIndex) {
                 break loop;
               }
-              let unit = codeUnits[dartx.get](i);
+              let unit = codeUnits[dartx._get](i);
               if ((dart.notNull(unit) & 192) != 128) {
                 expectedUnits = 0;
                 if (!dart.test(this[_allowMalformed])) {
@@ -32355,7 +32355,7 @@ convert._Utf8Decoder = class _Utf8Decoder extends core.Object {
                 i = dart.notNull(i) + 1;
               }
             } while (dart.notNull(expectedUnits) > 0);
-            if (dart.notNull(value) <= dart.notNull(convert._Utf8Decoder._LIMITS[dartx.get](dart.notNull(extraUnits) - 1))) {
+            if (dart.notNull(value) <= dart.notNull(convert._Utf8Decoder._LIMITS[dartx._get](dart.notNull(extraUnits) - 1))) {
               if (!dart.test(this[_allowMalformed])) {
                 dart.throw(new core.FormatException(dart.str`Overlong encoding of 0x${value[dartx.toRadixString](16)}`));
               }
@@ -32381,7 +32381,7 @@ convert._Utf8Decoder = class _Utf8Decoder extends core.Object {
             i = dart.notNull(i) + dart.notNull(oneBytes);
             if (i == endIndex) break;
           }
-          let unit = codeUnits[dartx.get]((() => {
+          let unit = codeUnits[dartx._get]((() => {
             let x = i;
             i = dart.notNull(x) + 1;
             return x;
@@ -32577,23 +32577,23 @@ core.DateTime = class DateTime extends core.Object {
         return result;
       }
       dart.fn(parseMilliAndMicroseconds, StringToint());
-      let years = core.int.parse(match.get(1));
-      let month = core.int.parse(match.get(2));
-      let day = core.int.parse(match.get(3));
-      let hour = parseIntOrZero(match.get(4));
-      let minute = parseIntOrZero(match.get(5));
-      let second = parseIntOrZero(match.get(6));
+      let years = core.int.parse(match._get(1));
+      let month = core.int.parse(match._get(2));
+      let day = core.int.parse(match._get(3));
+      let hour = parseIntOrZero(match._get(4));
+      let minute = parseIntOrZero(match._get(5));
+      let second = parseIntOrZero(match._get(6));
       let addOneMillisecond = false;
-      let milliAndMicroseconds = parseMilliAndMicroseconds(match.get(7));
+      let milliAndMicroseconds = parseMilliAndMicroseconds(match._get(7));
       let millisecond = (dart.notNull(milliAndMicroseconds) / core.Duration.MICROSECONDS_PER_MILLISECOND)[dartx.truncate]();
       let microsecond = dart.asInt(milliAndMicroseconds[dartx.remainder](core.Duration.MICROSECONDS_PER_MILLISECOND));
       let isUtc = false;
-      if (match.get(8) != null) {
+      if (match._get(8) != null) {
         isUtc = true;
-        if (match.get(9) != null) {
-          let sign = match.get(9) == '-' ? -1 : 1;
-          let hourDifference = core.int.parse(match.get(10));
-          let minuteDifference = parseIntOrZero(match.get(11));
+        if (match._get(9) != null) {
+          let sign = match._get(9) == '-' ? -1 : 1;
+          let hourDifference = core.int.parse(match._get(10));
+          let minuteDifference = parseIntOrZero(match._get(11));
           minuteDifference = dart.notNull(minuteDifference) + 60 * dart.notNull(hourDifference);
           minute = dart.notNull(minute) - sign * dart.notNull(minuteDifference);
         }
@@ -32963,7 +32963,7 @@ core.Duration = class Duration extends core.Object {
     }
     dart.fn(twoDigits, intToString());
     if (dart.notNull(this.inMicroseconds) < 0) {
-      return dart.str`-${this['unary-']()}`;
+      return dart.str`-${this._negate()}`;
     }
     let twoDigitMinutes = twoDigits(dart.asInt(this.inMinutes[dartx.remainder](core.Duration.MINUTES_PER_HOUR)));
     let twoDigitSeconds = twoDigits(dart.asInt(this.inSeconds[dartx.remainder](core.Duration.SECONDS_PER_MINUTE)));
@@ -32976,7 +32976,7 @@ core.Duration = class Duration extends core.Object {
   abs() {
     return new core.Duration._microseconds(this[_duration][dartx.abs]());
   }
-  ['unary-']() {
+  _negate() {
     return new core.Duration._microseconds(-dart.notNull(this[_duration]));
   }
 };
@@ -33008,7 +33008,7 @@ dart.setSignature(core.Duration, {
     '>=': dart.definiteFunctionType(core.bool, [core.Duration]),
     compareTo: dart.definiteFunctionType(core.int, [core.Duration]),
     abs: dart.definiteFunctionType(core.Duration, []),
-    'unary-': dart.definiteFunctionType(core.Duration, [])
+    _negate: dart.definiteFunctionType(core.Duration, [])
   }),
   sfields: () => ({
     MICROSECONDS_PER_MILLISECOND: core.int,
@@ -33338,7 +33338,7 @@ core.NoSuchMethodError = class NoSuchMethodError extends core.Error {
         if (i > 0) {
           sb.write(", ");
         }
-        sb.write(core.Error.safeToString(this[_arguments][dartx.get](i)));
+        sb.write(core.Error.safeToString(this[_arguments][dartx._get](i)));
       }
     }
     if (this[_namedArguments] != null) {
@@ -33361,7 +33361,7 @@ core.NoSuchMethodError = class NoSuchMethodError extends core.Error {
         if (i > 0) {
           sb.write(", ");
         }
-        sb.write(this[_existingArgumentNames][dartx.get](i));
+        sb.write(this[_existingArgumentNames][dartx._get](i));
       }
       let formalParameters = sb.toString();
       return "NoSuchMethodError: incorrect number of arguments passed to " + dart.str`method named '${this[_memberName]}'\n` + dart.str`Receiver: ${core.Error.safeToString(this[_receiver])}\n` + dart.str`Tried calling: ${this[_memberName]}(${actualParameters})\n` + dart.str`Found: ${this[_memberName]}(${formalParameters})`;
@@ -33619,11 +33619,11 @@ core.Expando$ = dart.generic(T => {
     toString() {
       return dart.str`Expando:${this.name}`;
     }
-    get(object) {
+    _get(object) {
       let values = _js_helper.Primitives.getProperty(object, core.Expando._EXPANDO_PROPERTY_NAME);
       return T._check(values == null ? null : _js_helper.Primitives.getProperty(values, this[_getKey]()));
     }
-    set(object, value) {
+    _set(object, value) {
       T._check(value);
       let values = _js_helper.Primitives.getProperty(object, core.Expando._EXPANDO_PROPERTY_NAME);
       if (values == null) {
@@ -33651,8 +33651,8 @@ core.Expando$ = dart.generic(T => {
     constructors: () => ({new: dart.definiteFunctionType(core.Expando$(T), [], [core.String])}),
     fields: () => ({name: core.String}),
     methods: () => ({
-      get: dart.definiteFunctionType(T, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [core.Object, T]),
+      _get: dart.definiteFunctionType(T, [core.Object]),
+      _set: dart.definiteFunctionType(dart.void, [core.Object, T]),
       [_getKey]: dart.definiteFunctionType(core.String, [])
     }),
     sfields: () => ({
@@ -33675,7 +33675,7 @@ core.Function = class Function extends core.Object {
   static _toMangledNames(namedArguments) {
     let result = dart.map({}, core.String, dart.dynamic);
     namedArguments[dartx.forEach](dart.fn((symbol, value) => {
-      result[dartx.set](core._symbolToString(symbol), value);
+      result[dartx._set](core._symbolToString(symbol), value);
     }, SymbolAnddynamicTovoid()));
     return result;
   }
@@ -34153,7 +34153,7 @@ core.RuneIterator = class RuneIterator extends core.Object {
   }
   get currentAsString() {
     if (this[_position] == this[_nextPosition]) return null;
-    if (dart.notNull(this[_position]) + 1 == this[_nextPosition]) return this.string[dartx.get](this[_position]);
+    if (dart.notNull(this[_position]) + 1 == this[_nextPosition]) return this.string[dartx._get](this[_position]);
     return this.string[dartx.substring](this[_position], this[_nextPosition]);
   }
   moveNext() {
@@ -34841,7 +34841,7 @@ core.Uri = class Uri extends core.Object {
     if (this[_queryParameterLists] == null) {
       let queryParameterLists = core.Uri._splitQueryStringAll(this.query);
       for (let key of queryParameterLists[dartx.keys]) {
-        queryParameterLists[dartx.set](key, ListOfString().unmodifiable(core.Iterable._check(queryParameterLists[dartx.get](key))));
+        queryParameterLists[dartx._set](key, ListOfString().unmodifiable(core.Iterable._check(queryParameterLists[dartx._get](key))));
       }
       this[_queryParameterLists] = MapOfString$ListOfString().unmodifiable(queryParameterLists);
     }
@@ -34877,7 +34877,7 @@ core.Uri = class Uri extends core.Object {
     return core.Uri._normalizeRegName(host, start, end);
   }
   static _isRegNameChar(char) {
-    return dart.notNull(char) < 127 && (dart.notNull(core.Uri._regNameTable[dartx.get](char[dartx['>>']](4))) & 1 << (dart.notNull(char) & 15)) != 0;
+    return dart.notNull(char) < 127 && (dart.notNull(core.Uri._regNameTable[dartx._get](char[dartx['>>']](4))) & 1 << (dart.notNull(char) & 15)) != 0;
   }
   static _normalizeRegName(host, start, end) {
     let buffer = null;
@@ -35072,9 +35072,9 @@ core.Uri = class Uri extends core.Object {
     let codeUnits = null;
     if (dart.notNull(char) < 128) {
       codeUnits = ListOfint().new(3);
-      codeUnits[dartx.set](0, core.Uri._PERCENT);
-      codeUnits[dartx.set](1, core.Uri._hexDigits[dartx.codeUnitAt](char[dartx['>>']](4)));
-      codeUnits[dartx.set](2, core.Uri._hexDigits[dartx.codeUnitAt](dart.notNull(char) & 15));
+      codeUnits[dartx._set](0, core.Uri._PERCENT);
+      codeUnits[dartx._set](1, core.Uri._hexDigits[dartx.codeUnitAt](char[dartx['>>']](4)));
+      codeUnits[dartx._set](2, core.Uri._hexDigits[dartx.codeUnitAt](dart.notNull(char) & 15));
     } else {
       let flag = 192;
       let encodedBytes = 2;
@@ -35090,9 +35090,9 @@ core.Uri = class Uri extends core.Object {
       let index = 0;
       while (--encodedBytes >= 0) {
         let byte = (char[dartx['>>']](6 * encodedBytes) & 63 | flag) >>> 0;
-        codeUnits[dartx.set](index, core.Uri._PERCENT);
-        codeUnits[dartx.set](index + 1, core.Uri._hexDigits[dartx.codeUnitAt](byte[dartx['>>']](4)));
-        codeUnits[dartx.set](index + 2, core.Uri._hexDigits[dartx.codeUnitAt](byte & 15));
+        codeUnits[dartx._set](index, core.Uri._PERCENT);
+        codeUnits[dartx._set](index + 1, core.Uri._hexDigits[dartx.codeUnitAt](byte[dartx['>>']](4)));
+        codeUnits[dartx._set](index + 2, core.Uri._hexDigits[dartx.codeUnitAt](byte & 15));
         index = index + 3;
         flag = 128;
       }
@@ -35105,7 +35105,7 @@ core.Uri = class Uri extends core.Object {
     let index = start;
     while (dart.notNull(index) < dart.notNull(end)) {
       let char = component[dartx.codeUnitAt](index);
-      if (dart.notNull(char) < 127 && (dart.notNull(charTable[dartx.get](char[dartx['>>']](4))) & 1 << (dart.notNull(char) & 15)) != 0) {
+      if (dart.notNull(char) < 127 && (dart.notNull(charTable[dartx._get](char[dartx['>>']](4))) & 1 << (dart.notNull(char) & 15)) != 0) {
         index = dart.notNull(index) + 1;
       } else {
         let replacement = null;
@@ -35153,10 +35153,10 @@ core.Uri = class Uri extends core.Object {
     return dart.toString(buffer);
   }
   static _isSchemeCharacter(ch) {
-    return dart.notNull(ch) < 128 && (dart.notNull(core.Uri._schemeTable[dartx.get](ch[dartx['>>']](4))) & 1 << (dart.notNull(ch) & 15)) != 0;
+    return dart.notNull(ch) < 128 && (dart.notNull(core.Uri._schemeTable[dartx._get](ch[dartx['>>']](4))) & 1 << (dart.notNull(ch) & 15)) != 0;
   }
   static _isGeneralDelimiter(ch) {
-    return dart.notNull(ch) <= core.Uri._RIGHT_BRACKET && (dart.notNull(core.Uri._genDelimitersTable[dartx.get](ch[dartx['>>']](4))) & 1 << (dart.notNull(ch) & 15)) != 0;
+    return dart.notNull(ch) <= core.Uri._RIGHT_BRACKET && (dart.notNull(core.Uri._genDelimitersTable[dartx._get](ch[dartx['>>']](4))) & 1 << (dart.notNull(ch) & 15)) != 0;
   }
   get isAbsolute() {
     return this.scheme != "" && this.fragment == "";
@@ -35233,7 +35233,7 @@ core.Uri = class Uri extends core.Object {
         output[dartx.add](segment);
       }
     }
-    if (dart.test(output[dartx.isEmpty]) || output[dartx.length] == 1 && dart.test(output[dartx.get](0)[dartx.isEmpty])) {
+    if (dart.test(output[dartx.isEmpty]) || output[dartx.length] == 1 && dart.test(output[dartx._get](0)[dartx.isEmpty])) {
       return "./";
     }
     if (appendSlash || output[dartx.last] == '..') output[dartx.add]("");
@@ -35363,8 +35363,8 @@ core.Uri = class Uri extends core.Object {
   [_toWindowsFilePath]() {
     let hasDriveLetter = false;
     let segments = this.pathSegments;
-    if (dart.notNull(segments[dartx.length]) > 0 && segments[dartx.get](0)[dartx.length] == 2 && segments[dartx.get](0)[dartx.codeUnitAt](1) == core.Uri._COLON) {
-      core.Uri._checkWindowsDriveLetter(segments[dartx.get](0)[dartx.codeUnitAt](0), false);
+    if (dart.notNull(segments[dartx.length]) > 0 && segments[dartx._get](0)[dartx.length] == 2 && segments[dartx._get](0)[dartx.codeUnitAt](1) == core.Uri._COLON) {
+      core.Uri._checkWindowsDriveLetter(segments[dartx._get](0)[dartx.codeUnitAt](0), false);
       core.Uri._checkWindowsPathReservedCharacters(segments, false, 1);
       hasDriveLetter = true;
     } else {
@@ -35461,12 +35461,12 @@ core.Uri = class Uri extends core.Object {
       let index = element[dartx.indexOf]("=");
       if (index == -1) {
         if (element != "") {
-          map[dartx.set](core.Uri.decodeQueryComponent(element, {encoding: encoding}), "");
+          map[dartx._set](core.Uri.decodeQueryComponent(element, {encoding: encoding}), "");
         }
       } else if (index != 0) {
         let key = element[dartx.substring](0, index);
         let value = element[dartx.substring](dart.notNull(index) + 1);
-        map[dartx.set](core.Uri.decodeQueryComponent(key, {encoding: encoding}), core.Uri.decodeQueryComponent(value, {encoding: encoding}));
+        map[dartx._set](core.Uri.decodeQueryComponent(key, {encoding: encoding}), core.Uri.decodeQueryComponent(value, {encoding: encoding}));
       }
       return map;
     }, MapOfString$StringAndStringToMapOfString$String()));
@@ -35584,8 +35584,8 @@ core.Uri = class Uri extends core.Object {
       } catch (e) {
         try {
           let last = core.Uri.parseIPv4Address(host[dartx.substring](partStart, end));
-          parts[dartx.add]((dart.notNull(last[dartx.get](0)) << 8 | dart.notNull(last[dartx.get](1))) >>> 0);
-          parts[dartx.add]((dart.notNull(last[dartx.get](2)) << 8 | dart.notNull(last[dartx.get](3))) >>> 0);
+          parts[dartx.add]((dart.notNull(last[dartx._get](0)) << 8 | dart.notNull(last[dartx._get](1))) >>> 0);
+          parts[dartx.add]((dart.notNull(last[dartx._get](2)) << 8 | dart.notNull(last[dartx._get](3))) >>> 0);
         } catch (e) {
           error('invalid end of IPv6 address.', partStart);
         }
@@ -35602,17 +35602,17 @@ core.Uri = class Uri extends core.Object {
     }
     let bytes = typed_data.Uint8List.new(16);
     for (let i = 0, index = 0; i < dart.notNull(parts[dartx.length]); i++) {
-      let value = parts[dartx.get](i);
+      let value = parts[dartx._get](i);
       if (value == -1) {
         let wildCardLength = 9 - dart.notNull(parts[dartx.length]);
         for (let j = 0; j < wildCardLength; j++) {
-          bytes[dartx.set](index, 0);
-          bytes[dartx.set](index + 1, 0);
+          bytes[dartx._set](index, 0);
+          bytes[dartx._set](index + 1, 0);
           index = index + 2;
         }
       } else {
-        bytes[dartx.set](index, value[dartx['>>']](8));
-        bytes[dartx.set](index + 1, dart.notNull(value) & 255);
+        bytes[dartx._set](index, value[dartx['>>']](8));
+        bytes[dartx._set](index + 1, dart.notNull(value) & 255);
         index = index + 2;
       }
     }
@@ -35625,16 +35625,16 @@ core.Uri = class Uri extends core.Object {
     let result = new core.StringBuffer();
     let bytes = encoding.encode(text);
     for (let i = 0; i < dart.notNull(bytes[dartx.length]); i++) {
-      let byte = bytes[dartx.get](i);
-      if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable[dartx.get](byte[dartx['>>']](4))) & 1 << (dart.notNull(byte) & 15)) != 0) {
+      let byte = bytes[dartx._get](i);
+      if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable[dartx._get](byte[dartx['>>']](4))) & 1 << (dart.notNull(byte) & 15)) != 0) {
         result.writeCharCode(byte);
       } else if (dart.test(spaceToPlus) && byte == core.Uri._SPACE) {
         result.write('+');
       } else {
         let hexDigits = '0123456789ABCDEF';
         result.write('%');
-        result.write(hexDigits[dartx.get](dart.notNull(byte) >> 4 & 15));
-        result.write(hexDigits[dartx.get](dart.notNull(byte) & 15));
+        result.write(hexDigits[dartx._get](dart.notNull(byte) >> 4 & 15));
+        result.write(hexDigits[dartx._get](dart.notNull(byte) & 15));
       }
     }
     return result.toString();
@@ -35703,7 +35703,7 @@ core.Uri = class Uri extends core.Object {
     return core.Uri._LOWER_CASE_A <= lowerCase && lowerCase <= core.Uri._LOWER_CASE_Z;
   }
   static _isUnreservedChar(char) {
-    return dart.notNull(char) < 127 && (dart.notNull(core.Uri._unreservedTable[dartx.get](char[dartx['>>']](4))) & 1 << (dart.notNull(char) & 15)) != 0;
+    return dart.notNull(char) < 127 && (dart.notNull(core.Uri._unreservedTable[dartx._get](char[dartx['>>']](4))) & 1 << (dart.notNull(char) & 15)) != 0;
   }
 };
 dart.defineNamedConstructor(core.Uri, '_internal');
@@ -35921,7 +35921,7 @@ core.UriData = class UriData extends core.Object {
     let indices = JSArrayOfint().of([core.UriData._noScheme]);
     let charsetName = null;
     let encodingName = null;
-    if (parameters != null) charsetName = parameters[dartx.get]("charset");
+    if (parameters != null) charsetName = parameters[dartx._get]("charset");
     if (encoding == null) {
       if (charsetName != null) {
         encoding = convert.Encoding.getByName(charsetName);
@@ -36037,7 +36037,7 @@ core.UriData = class UriData extends core.Object {
     if (this[_uriCache] != null) return this[_uriCache];
     let path = this[_text];
     let query = null;
-    let colonIndex = this[_separatorIndices][dartx.get](0);
+    let colonIndex = this[_separatorIndices][dartx._get](0);
     let queryIndex = this[_text][dartx.indexOf]('?', dart.notNull(colonIndex) + 1);
     let end = null;
     if (dart.notNull(queryIndex) >= 0) {
@@ -36049,8 +36049,8 @@ core.UriData = class UriData extends core.Object {
     return this[_uriCache];
   }
   get mimeType() {
-    let start = dart.notNull(this[_separatorIndices][dartx.get](0)) + 1;
-    let end = this[_separatorIndices][dartx.get](1);
+    let start = dart.notNull(this[_separatorIndices][dartx._get](0)) + 1;
+    let end = this[_separatorIndices][dartx._get](1);
     if (start == end) return "text/plain";
     return core.Uri._uriDecode(this[_text], start, end, convert.UTF8, false);
   }
@@ -36061,10 +36061,10 @@ core.UriData = class UriData extends core.Object {
       parameterEnd = parameterEnd - 1;
     }
     for (let i = parameterStart; i < parameterEnd; i = i + 2) {
-      let keyStart = dart.notNull(this[_separatorIndices][dartx.get](i)) + 1;
-      let keyEnd = this[_separatorIndices][dartx.get](i + 1);
+      let keyStart = dart.notNull(this[_separatorIndices][dartx._get](i)) + 1;
+      let keyEnd = this[_separatorIndices][dartx._get](i + 1);
       if (keyEnd == keyStart + 7 && dart.test(this[_text][dartx.startsWith]("charset", keyStart))) {
-        return core.Uri._uriDecode(this[_text], dart.notNull(keyEnd) + 1, this[_separatorIndices][dartx.get](i + 2), convert.UTF8, false);
+        return core.Uri._uriDecode(this[_text], dart.notNull(keyEnd) + 1, this[_separatorIndices][dartx._get](i + 2), convert.UTF8, false);
       }
     }
     return "US-ASCII";
@@ -36099,14 +36099,14 @@ core.UriData = class UriData extends core.Object {
     for (let i = start; i < dart.notNull(text[dartx.length]); i++) {
       let codeUnit = text[dartx.codeUnitAt](i);
       if (codeUnit != percent) {
-        result[dartx.set](index++, codeUnit);
+        result[dartx._set](index++, codeUnit);
       } else {
         if (i + 2 < dart.notNull(text[dartx.length])) {
           let digit1 = core.Uri._parseHexDigit(text[dartx.codeUnitAt](i + 1));
           let digit2 = core.Uri._parseHexDigit(text[dartx.codeUnitAt](i + 2));
           if (dart.notNull(digit1) >= 0 && dart.notNull(digit2) >= 0) {
             let byte = dart.notNull(digit1) * 16 + dart.notNull(digit2);
-            result[dartx.set](index++, byte);
+            result[dartx._set](index++, byte);
             i = i + 2;
             continue;
           }
@@ -36137,12 +36137,12 @@ core.UriData = class UriData extends core.Object {
   get parameters() {
     let result = dart.map({}, core.String, core.String);
     for (let i = 3; i < dart.notNull(this[_separatorIndices][dartx.length]); i = i + 2) {
-      let start = dart.notNull(this[_separatorIndices][dartx.get](i - 2)) + 1;
-      let equals = this[_separatorIndices][dartx.get](i - 1);
-      let end = this[_separatorIndices][dartx.get](i);
+      let start = dart.notNull(this[_separatorIndices][dartx._get](i - 2)) + 1;
+      let equals = this[_separatorIndices][dartx._get](i - 1);
+      let end = this[_separatorIndices][dartx._get](i);
       let key = core.Uri._uriDecode(this[_text], start, equals, convert.UTF8, false);
       let value = core.Uri._uriDecode(this[_text], dart.notNull(equals) + 1, end, convert.UTF8, false);
-      result[dartx.set](key, value);
+      result[dartx._set](key, value);
     }
     return result;
   }
@@ -36199,9 +36199,9 @@ core.UriData = class UriData extends core.Object {
   static _uriEncodeBytes(canonicalTable, bytes, buffer) {
     let byteOr = 0;
     for (let i = 0; i < dart.notNull(bytes[dartx.length]); i++) {
-      let byte = bytes[dartx.get](i);
+      let byte = bytes[dartx._get](i);
       byteOr = (dart.notNull(byteOr) | dart.notNull(byte)) >>> 0;
-      if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable[dartx.get](byte[dartx['>>']](4))) & 1 << (dart.notNull(byte) & 15)) != 0) {
+      if (dart.notNull(byte) < 128 && (dart.notNull(canonicalTable[dartx._get](byte[dartx['>>']](4))) & 1 << (dart.notNull(byte) & 15)) != 0) {
         buffer.writeCharCode(byte);
       } else {
         buffer.writeCharCode(core.Uri._PERCENT);
@@ -36211,7 +36211,7 @@ core.UriData = class UriData extends core.Object {
     }
     if ((dart.notNull(byteOr) & ~255) != 0) {
       for (let i = 0; i < dart.notNull(bytes[dartx.length]); i++) {
-        let byte = bytes[dartx.get](i);
+        let byte = bytes[dartx._get](i);
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) {
           dart.throw(new core.ArgumentError.value(byte, "non-byte value"));
         }
@@ -36219,7 +36219,7 @@ core.UriData = class UriData extends core.Object {
     }
   }
   toString() {
-    return this[_separatorIndices][dartx.get](0) == core.UriData._noScheme ? dart.str`data:${this[_text]}` : this[_text];
+    return this[_separatorIndices][dartx._get](0) == core.UriData._noScheme ? dart.str`data:${this[_text]}` : this[_text];
   }
 };
 dart.defineNamedConstructor(core.UriData, '_');
@@ -36292,7 +36292,7 @@ isolate.Isolate = class Isolate extends core.Object {
   static spawn(entryPoint, message, opts) {
     let paused = opts && 'paused' in opts ? opts.paused : false;
     try {
-      return _isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(isolate.SendPort._check(msg[dartx.get](1)), {pauseCapability: isolate.Capability._check(msg[dartx.get](2)), terminateCapability: isolate.Capability._check(msg[dartx.get](3))}), ListToIsolate()));
+      return _isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(isolate.SendPort._check(msg[dartx._get](1)), {pauseCapability: isolate.Capability._check(msg[dartx._get](2)), terminateCapability: isolate.Capability._check(msg[dartx._get](3))}), ListToIsolate()));
     } catch (e) {
       let st = dart.stackTrace(e);
       return FutureOfIsolate().error(e, st);
@@ -36306,14 +36306,14 @@ isolate.Isolate = class Isolate extends core.Object {
     try {
       if (core.List.is(args)) {
         for (let i = 0; i < dart.notNull(args[dartx.length]); i++) {
-          if (!(typeof args[dartx.get](i) == 'string')) {
+          if (!(typeof args[dartx._get](i) == 'string')) {
             dart.throw(new core.ArgumentError(dart.str`Args must be a list of Strings ${args}`));
           }
         }
       } else if (args != null) {
         dart.throw(new core.ArgumentError(dart.str`Args must be a list of Strings ${args}`));
       }
-      return _isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(isolate.SendPort._check(msg[dartx.get](1)), {pauseCapability: isolate.Capability._check(msg[dartx.get](2)), terminateCapability: isolate.Capability._check(msg[dartx.get](3))}), ListToIsolate()));
+      return _isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(isolate.Isolate)(dart.fn(msg => new isolate.Isolate(isolate.SendPort._check(msg[dartx._get](1)), {pauseCapability: isolate.Capability._check(msg[dartx._get](2)), terminateCapability: isolate.Capability._check(msg[dartx._get](3))}), ListToIsolate()));
     } catch (e) {
       let st = dart.stackTrace(e);
       return FutureOfIsolate().error(e, st);
@@ -36328,34 +36328,34 @@ isolate.Isolate = class Isolate extends core.Object {
   }
   [_pause](resumeCapability) {
     let message = core.List.new(3);
-    message[dartx.set](0, "pause");
-    message[dartx.set](1, this.pauseCapability);
-    message[dartx.set](2, resumeCapability);
+    message[dartx._set](0, "pause");
+    message[dartx._set](1, this.pauseCapability);
+    message[dartx._set](2, resumeCapability);
     this.controlPort.send(message);
   }
   resume(resumeCapability) {
     let message = core.List.new(2);
-    message[dartx.set](0, "resume");
-    message[dartx.set](1, resumeCapability);
+    message[dartx._set](0, "resume");
+    message[dartx._set](1, resumeCapability);
     this.controlPort.send(message);
   }
   addOnExitListener(responsePort) {
     let message = core.List.new(2);
-    message[dartx.set](0, "add-ondone");
-    message[dartx.set](1, responsePort);
+    message[dartx._set](0, "add-ondone");
+    message[dartx._set](1, responsePort);
     this.controlPort.send(message);
   }
   removeOnExitListener(responsePort) {
     let message = core.List.new(2);
-    message[dartx.set](0, "remove-ondone");
-    message[dartx.set](1, responsePort);
+    message[dartx._set](0, "remove-ondone");
+    message[dartx._set](1, responsePort);
     this.controlPort.send(message);
   }
   setErrorsFatal(errorsAreFatal) {
     let message = core.List.new(3);
-    message[dartx.set](0, "set-errors-fatal");
-    message[dartx.set](1, this.terminateCapability);
-    message[dartx.set](2, errorsAreFatal);
+    message[dartx._set](0, "set-errors-fatal");
+    message[dartx._set](1, this.terminateCapability);
+    message[dartx._set](2, errorsAreFatal);
     this.controlPort.send(message);
   }
   kill(priority) {
@@ -36365,21 +36365,21 @@ isolate.Isolate = class Isolate extends core.Object {
   ping(responsePort, pingType) {
     if (pingType === void 0) pingType = isolate.Isolate.IMMEDIATE;
     let message = core.List.new(3);
-    message[dartx.set](0, "ping");
-    message[dartx.set](1, responsePort);
-    message[dartx.set](2, pingType);
+    message[dartx._set](0, "ping");
+    message[dartx._set](1, responsePort);
+    message[dartx._set](2, pingType);
     this.controlPort.send(message);
   }
   addErrorListener(port) {
     let message = core.List.new(2);
-    message[dartx.set](0, "getErrors");
-    message[dartx.set](1, port);
+    message[dartx._set](0, "getErrors");
+    message[dartx._set](1, port);
     this.controlPort.send(message);
   }
   removeErrorListener(port) {
     let message = core.List.new(2);
-    message[dartx.set](0, "stopErrors");
-    message[dartx.set](1, port);
+    message[dartx._set](0, "stopErrors");
+    message[dartx._set](1, port);
     this.controlPort.send(message);
   }
   get errors() {
@@ -36570,18 +36570,18 @@ js.JsObject = class JsObject extends core.Object {
     let _convertedObjects = collection.HashMap.identity();
     function _convert(o) {
       if (dart.test(_convertedObjects.containsKey(o))) {
-        return _convertedObjects.get(o);
+        return _convertedObjects._get(o);
       }
       if (core.Map.is(o)) {
         let convertedMap = {};
-        _convertedObjects.set(o, convertedMap);
+        _convertedObjects._set(o, convertedMap);
         for (let key of o[dartx.keys]) {
-          convertedMap[key] = _convert(o[dartx.get](key));
+          convertedMap[key] = _convert(o[dartx._get](key));
         }
         return convertedMap;
       } else if (core.Iterable.is(o)) {
         let convertedList = [];
-        _convertedObjects.set(o, convertedList);
+        _convertedObjects._set(o, convertedList);
         convertedList[dartx.addAll](o[dartx.map](dart.dynamic)(_convert));
         return convertedList;
       } else {
@@ -36591,13 +36591,13 @@ js.JsObject = class JsObject extends core.Object {
     dart.fn(_convert, dynamicTodynamic());
     return _convert(data);
   }
-  get(property) {
+  _get(property) {
     if (!(typeof property == 'string') && !(typeof property == 'number')) {
       dart.throw(new core.ArgumentError("property is not a String or num"));
     }
     return js._convertToDart(this[_jsObject][property]);
   }
-  set(property, value) {
+  _set(property, value) {
     if (!(typeof property == 'string') && !(typeof property == 'number')) {
       dart.throw(new core.ArgumentError("property is not a String or num"));
     }
@@ -36656,8 +36656,8 @@ dart.setSignature(js.JsObject, {
   }),
   fields: () => ({[_jsObject]: dart.dynamic}),
   methods: () => ({
-    get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
-    set: dart.definiteFunctionType(dart.dynamic, [core.Object, dart.dynamic]),
+    _get: dart.definiteFunctionType(dart.dynamic, [core.Object]),
+    _set: dart.definiteFunctionType(dart.dynamic, [core.Object, dart.dynamic]),
     hasProperty: dart.definiteFunctionType(core.bool, [dart.dynamic]),
     deleteProperty: dart.definiteFunctionType(dart.void, [dart.dynamic]),
     instanceof: dart.definiteFunctionType(core.bool, [js.JsFunction]),
@@ -36731,18 +36731,18 @@ js.JsArray$ = dart.generic(E => {
         dart.throw(new core.RangeError.range(end, start, length));
       }
     }
-    get(index) {
+    _get(index) {
       if (typeof index == 'number' && index == index[dartx.toInt]()) {
         this[_checkIndex](dart.asInt(index));
       }
-      return E.as(super.get(index));
+      return E.as(super._get(index));
     }
-    set(index, value) {
+    _set(index, value) {
       E._check(value);
       if (typeof index == 'number' && index == index[dartx.toInt]()) {
         this[_checkIndex](dart.asInt(index));
       }
-      super.set(index, value);
+      super._set(index, value);
       return value;
     }
     get length() {
@@ -36753,7 +36753,7 @@ js.JsArray$ = dart.generic(E => {
       dart.throw(new core.StateError('Bad JsArray length'));
     }
     set length(length) {
-      super.set('length', length);
+      super._set('length', length);
     }
     add(value) {
       E._check(value);
@@ -36811,8 +36811,8 @@ js.JsArray$ = dart.generic(E => {
     methods: () => ({
       [_checkIndex]: dart.definiteFunctionType(dart.dynamic, [core.int]),
       [_checkInsertIndex]: dart.definiteFunctionType(dart.dynamic, [core.int]),
-      get: dart.definiteFunctionType(E, [core.Object]),
-      set: dart.definiteFunctionType(dart.void, [core.Object, E]),
+      _get: dart.definiteFunctionType(E, [core.Object]),
+      _set: dart.definiteFunctionType(dart.void, [core.Object, E]),
       add: dart.definiteFunctionType(dart.void, [E]),
       addAll: dart.definiteFunctionType(dart.void, [IterableOfE()]),
       insert: dart.definiteFunctionType(dart.void, [core.int, E]),
@@ -36825,8 +36825,8 @@ js.JsArray$ = dart.generic(E => {
     names: ['_checkRange']
   });
   dart.defineExtensionMembers(JsArray, [
-    'get',
-    'set',
+    '_get',
+    '_set',
     'add',
     'addAll',
     'insert',
@@ -36933,7 +36933,7 @@ dart.defineLazy(js, {
   set _interopCaptureThisExpando(_) {}
 });
 js.allowInteropCaptureThis = function(f) {
-  let ret = js._interopCaptureThisExpando.get(f);
+  let ret = js._interopCaptureThisExpando._get(f);
   if (ret == null) {
     ret = function() {
       let args = [this];
@@ -36942,7 +36942,7 @@ js.allowInteropCaptureThis = function(f) {
       }
       return f(...args);
     };
-    js._interopCaptureThisExpando.set(f, ret);
+    js._interopCaptureThisExpando._set(f, ret);
   }
   return ret;
 };
@@ -36958,18 +36958,18 @@ js_util._convertDataTree = function(data) {
   let _convertedObjects = collection.HashMap.identity();
   function _convert(o) {
     if (dart.test(_convertedObjects.containsKey(o))) {
-      return _convertedObjects.get(o);
+      return _convertedObjects._get(o);
     }
     if (core.Map.is(o)) {
       let convertedMap = {};
-      _convertedObjects.set(o, convertedMap);
+      _convertedObjects._set(o, convertedMap);
       for (let key of o[dartx.keys]) {
-        convertedMap[key] = _convert(o[dartx.get](key));
+        convertedMap[key] = _convert(o[dartx._get](key));
       }
       return convertedMap;
     } else if (core.Iterable.is(o)) {
       let convertedList = [];
-      _convertedObjects.set(o, convertedList);
+      _convertedObjects._set(o, convertedList);
       convertedList[dartx.addAll](o[dartx.map](dart.dynamic)(_convert));
       return convertedList;
     } else {
@@ -38227,7 +38227,7 @@ indexed_db._convertNativeToDart_IDBKey = function(nativeKey) {
     if (dart.test(html_common.isJavaScriptDate(object))) return true;
     if (core.List.is(object)) {
       for (let i = 0; i < dart.notNull(object[dartx.length]); i++) {
-        if (dart.test(containsDate(object[dartx.get](i)))) return true;
+        if (dart.test(containsDate(object[dartx._get](i)))) return true;
       }
     }
     return false;
@@ -38446,10 +38446,10 @@ indexed_db.Database = class Database extends html.EventTarget {
     let autoIncrement = opts && 'autoIncrement' in opts ? opts.autoIncrement : null;
     let options = dart.map();
     if (keyPath != null) {
-      options[dartx.set]('keyPath', keyPath);
+      options[dartx._set]('keyPath', keyPath);
     }
     if (autoIncrement != null) {
-      options[dartx.set]('autoIncrement', autoIncrement);
+      options[dartx._set]('autoIncrement', autoIncrement);
     }
     return this[_createObjectStore](name, options);
   }
@@ -39041,10 +39041,10 @@ indexed_db.ObjectStore = class ObjectStore extends _interceptors.Interceptor {
     let multiEntry = opts && 'multiEntry' in opts ? opts.multiEntry : null;
     let options = dart.map();
     if (unique != null) {
-      options[dartx.set]('unique', unique);
+      options[dartx._set]('unique', unique);
     }
     if (multiEntry != null) {
-      options[dartx.set]('multiEntry', multiEntry);
+      options[dartx._set]('multiEntry', multiEntry);
     }
     return this[_createIndex](name, keyPath, options);
   }
@@ -40223,7 +40223,7 @@ html.Element = class Element extends html.Node {
     let attributes = this[dartx.attributes];
     attributes[dartx.clear]();
     for (let key of value[dartx.keys]) {
-      attributes[dartx.set](key, value[dartx.get](key));
+      attributes[dartx._set](key, value[dartx._get](key));
     }
   }
   get [dartx.children]() {
@@ -40263,7 +40263,7 @@ html.Element = class Element extends html.Node {
     let data = this[dartx.dataset];
     data[dartx.clear]();
     for (let key of value[dartx.keys]) {
-      data[dartx.set](key, value[dartx.get](key));
+      data[dartx._set](key, value[dartx._get](key));
     }
   }
   [dartx.getNamespacedAttributes](namespace) {
@@ -40412,7 +40412,7 @@ html.Element = class Element extends html.Node {
       }
       case 'afterbegin':
       {
-        let first = dart.notNull(this[dartx.nodes][dartx.length]) > 0 ? this[dartx.nodes][dartx.get](0) : null;
+        let first = dart.notNull(this[dartx.nodes][dartx.length]) > 0 ? this[dartx.nodes][dartx._get](0) : null;
         this[dartx.insertBefore](node, first);
         break;
       }
@@ -53162,7 +53162,7 @@ dart.defineExtensionNames([
   'clear',
   'item',
   'remove',
-  'get',
+  '_get',
   'length'
 ]);
 html.DataTransferItemList = class DataTransferItemList extends _interceptors.Interceptor {
@@ -53190,7 +53190,7 @@ html.DataTransferItemList = class DataTransferItemList extends _interceptors.Int
   [dartx.remove](index) {
     return this.remove(index);
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     return this[index];
   }
 };
@@ -53204,7 +53204,7 @@ dart.setSignature(html.DataTransferItemList, {
     [dartx.clear]: dart.definiteFunctionType(dart.void, []),
     [dartx.item]: dart.definiteFunctionType(html.DataTransferItem, [core.int]),
     [dartx.remove]: dart.definiteFunctionType(dart.void, [core.int]),
-    [dartx.get]: dart.definiteFunctionType(html.DataTransferItem, [core.int])
+    [dartx._get]: dart.definiteFunctionType(html.DataTransferItem, [core.int])
   })
 });
 dart.registerExtension(dart.global.DataTransferItemList, html.DataTransferItemList);
@@ -56035,8 +56035,8 @@ html.ImmutableListMixin$ = dart.generic(E => {
 html.ImmutableListMixin = ImmutableListMixin();
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -56051,11 +56051,11 @@ html.DomStringList = class DomStringList extends dart.mixin(_interceptors.Interc
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[dartx.item](index);
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -56084,7 +56084,7 @@ html.DomStringList = class DomStringList extends dart.mixin(_interceptors.Interc
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [__getter__](index) {
     return this.__getter__(index);
@@ -56104,8 +56104,8 @@ dart.setSignature(html.DomStringList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.String, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, core.String]),
+    [dartx._get]: dart.definiteFunctionType(core.String, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, core.String]),
     [dartx.elementAt]: dart.definiteFunctionType(core.String, [core.int]),
     [__getter__]: dart.definiteFunctionType(core.String, [core.int]),
     [dartx.item]: dart.definiteFunctionType(core.String, [core.int])
@@ -56146,11 +56146,11 @@ html._ChildrenElementList = class _ChildrenElementList extends collection.ListBa
   get length() {
     return this[_childElements][dartx.length];
   }
-  get(index) {
-    return html.Element._check(this[_childElements][dartx.get](index));
+  _get(index) {
+    return html.Element._check(this[_childElements][dartx._get](index));
   }
-  set(index, value) {
-    this[_element][_replaceChild](value, this[_childElements][dartx.get](index));
+  _set(index, value) {
+    this[_element][_replaceChild](value, this[_childElements][dartx._get](index));
     return value;
   }
   set length(newLength) {
@@ -56223,7 +56223,7 @@ html._ChildrenElementList = class _ChildrenElementList extends collection.ListBa
     if (index == this.length) {
       this[_element][dartx.append](element);
     } else {
-      this[_element][dartx.insertBefore](element, this.get(index));
+      this[_element][dartx.insertBefore](element, this._get(index));
     }
   }
   setAll(index, iterable) {
@@ -56233,7 +56233,7 @@ html._ChildrenElementList = class _ChildrenElementList extends collection.ListBa
     this[_element][_clearChildren]();
   }
   removeAt(index) {
-    let result = this.get(index);
+    let result = this._get(index);
     if (result != null) {
       this[_element][_removeChild](result);
     }
@@ -56283,8 +56283,8 @@ dart.setSignature(html._ChildrenElementList, {
   }),
   setters: () => ({length: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    get: dart.definiteFunctionType(html.Element, [core.int]),
-    set: dart.definiteFunctionType(dart.void, [core.int, html.Element]),
+    _get: dart.definiteFunctionType(html.Element, [core.int]),
+    _set: dart.definiteFunctionType(dart.void, [core.int, html.Element]),
     add: dart.definiteFunctionType(html.Element, [html.Element]),
     addAll: dart.definiteFunctionType(dart.void, [IterableOfElement()]),
     sort: dart.definiteFunctionType(dart.void, [], [ElementAndElementToint()]),
@@ -56302,8 +56302,8 @@ dart.setSignature(html._ChildrenElementList, {
 });
 dart.defineExtensionMembers(html._ChildrenElementList, [
   'contains',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'add',
   'addAll',
   'sort',
@@ -56345,10 +56345,10 @@ html._FrozenElementList$ = dart.generic(E => {
     get length() {
       return this[_nodeList][dartx.length];
     }
-    get(index) {
-      return html._downcast(html.Node, E)(this[_nodeList][dartx.get](index));
+    _get(index) {
+      return html._downcast(html.Node, E)(this[_nodeList][dartx._get](index));
     }
-    set(index, value) {
+    _set(index, value) {
       E._check(value);
       dart.throw(new core.UnsupportedError('Cannot modify list'));
       return value;
@@ -56697,14 +56697,14 @@ html._FrozenElementList$ = dart.generic(E => {
       classes: dart.definiteFunctionType(dart.void, [IterableOfString()])
     }),
     methods: () => ({
-      get: dart.definiteFunctionType(E, [core.int]),
-      set: dart.definiteFunctionType(dart.void, [core.int, E]),
+      _get: dart.definiteFunctionType(E, [core.int]),
+      _set: dart.definiteFunctionType(dart.void, [core.int, E]),
       sort: dart.definiteFunctionType(dart.void, [], [ComparatorOfE()])
     })
   });
   dart.defineExtensionMembers(_FrozenElementList, [
-    'get',
-    'set',
+    '_get',
+    '_set',
     'sort',
     'shuffle',
     'length',
@@ -57010,23 +57010,23 @@ html.Events = class Events extends core.Object {
   new(ptr) {
     this[_ptr] = ptr;
   }
-  get(type) {
+  _get(type) {
     return new (_EventStreamOfEvent())(this[_ptr], type, false);
   }
 };
 dart.setSignature(html.Events, {
   constructors: () => ({new: dart.definiteFunctionType(html.Events, [html.EventTarget])}),
   fields: () => ({[_ptr]: html.EventTarget}),
-  methods: () => ({get: dart.definiteFunctionType(async.Stream, [core.String])})
+  methods: () => ({_get: dart.definiteFunctionType(async.Stream, [core.String])})
 });
 html.ElementEvents = class ElementEvents extends html.Events {
   new(ptr) {
     super.new(ptr);
   }
-  get(type) {
+  _get(type) {
     if (dart.test(html.ElementEvents.webkitEvents[dartx.keys][dartx.contains](type[dartx.toLowerCase]()))) {
       if (dart.test(html_common.Device.isWebKit)) {
-        return new (_ElementEventStreamImplOfEvent())(this[_ptr], html.ElementEvents.webkitEvents[dartx.get](type[dartx.toLowerCase]()), false);
+        return new (_ElementEventStreamImplOfEvent())(this[_ptr], html.ElementEvents.webkitEvents[dartx._get](type[dartx.toLowerCase]()), false);
       }
     }
     return new (_ElementEventStreamImplOfEvent())(this[_ptr], type, false);
@@ -57409,8 +57409,8 @@ html.FileError.TYPE_MISMATCH_ERR = 11;
 dart.registerExtension(dart.global.FileError, html.FileError);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -57425,11 +57425,11 @@ html.FileList = class FileList extends dart.mixin(_interceptors.Interceptor, col
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -57458,7 +57458,7 @@ html.FileList = class FileList extends dart.mixin(_interceptors.Interceptor, col
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -57475,8 +57475,8 @@ dart.setSignature(html.FileList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.File, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.File]),
+    [dartx._get]: dart.definiteFunctionType(html.File, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.File]),
     [dartx.elementAt]: dart.definiteFunctionType(html.File, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.File, [core.int])
   })
@@ -58409,13 +58409,13 @@ html.Geolocation = class Geolocation extends _interceptors.Interceptor {
     let maximumAge = opts && 'maximumAge' in opts ? opts.maximumAge : null;
     let options = dart.map();
     if (enableHighAccuracy != null) {
-      options[dartx.set]('enableHighAccuracy', enableHighAccuracy);
+      options[dartx._set]('enableHighAccuracy', enableHighAccuracy);
     }
     if (timeout != null) {
-      options[dartx.set]('timeout', timeout.inMilliseconds);
+      options[dartx._set]('timeout', timeout.inMilliseconds);
     }
     if (maximumAge != null) {
-      options[dartx.set]('maximumAge', maximumAge.inMilliseconds);
+      options[dartx._set]('maximumAge', maximumAge.inMilliseconds);
     }
     let completer = CompleterOfGeoposition().new();
     try {
@@ -58437,13 +58437,13 @@ html.Geolocation = class Geolocation extends _interceptors.Interceptor {
     let maximumAge = opts && 'maximumAge' in opts ? opts.maximumAge : null;
     let options = dart.map();
     if (enableHighAccuracy != null) {
-      options[dartx.set]('enableHighAccuracy', enableHighAccuracy);
+      options[dartx._set]('enableHighAccuracy', enableHighAccuracy);
     }
     if (timeout != null) {
-      options[dartx.set]('timeout', timeout.inMilliseconds);
+      options[dartx._set]('timeout', timeout.inMilliseconds);
     }
     if (maximumAge != null) {
-      options[dartx.set]('maximumAge', maximumAge.inMilliseconds);
+      options[dartx._set]('maximumAge', maximumAge.inMilliseconds);
     }
     let watchId = null;
     let controller = null;
@@ -59483,8 +59483,8 @@ dart.setSignature(html.HmdvrDevice, {
 dart.registerExtension(dart.global.HMDVRDevice, html.HmdvrDevice);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -59500,11 +59500,11 @@ html.HtmlCollection = class HtmlCollection extends dart.mixin(_interceptors.Inte
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -59533,7 +59533,7 @@ html.HtmlCollection = class HtmlCollection extends dart.mixin(_interceptors.Inte
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -59553,8 +59553,8 @@ dart.setSignature(html.HtmlCollection, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.Node, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.Node]),
+    [dartx._get]: dart.definiteFunctionType(html.Node, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.Node]),
     [dartx.elementAt]: dart.definiteFunctionType(html.Node, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.Node, [core.int]),
     [dartx.namedItem]: dart.definiteFunctionType(core.Object, [core.String])
@@ -59988,9 +59988,9 @@ html.HttpRequest = class HttpRequest extends html.HttpRequestEventTarget {
       let key = header[dartx.substring](0, splitIdx)[dartx.toLowerCase]();
       let value = header[dartx.substring](dart.notNull(splitIdx) + 2);
       if (dart.test(headers[dartx.containsKey](key))) {
-        headers[dartx.set](key, dart.str`${headers[dartx.get](key)}, ${value}`);
+        headers[dartx._set](key, dart.str`${headers[dartx._get](key)}, ${value}`);
       } else {
-        headers[dartx.set](key, value);
+        headers[dartx._set](key, value);
       }
     }
     return headers;
@@ -64187,8 +64187,8 @@ dart.setSignature(html.MimeType, {
 dart.registerExtension(dart.global.MimeType, html.MimeType);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -64204,11 +64204,11 @@ html.MimeTypeArray = class MimeTypeArray extends dart.mixin(_interceptors.Interc
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -64237,7 +64237,7 @@ html.MimeTypeArray = class MimeTypeArray extends dart.mixin(_interceptors.Interc
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -64257,8 +64257,8 @@ dart.setSignature(html.MimeTypeArray, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.MimeType, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.MimeType]),
+    [dartx._get]: dart.definiteFunctionType(html.MimeType, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.MimeType]),
     [dartx.elementAt]: dart.definiteFunctionType(html.MimeType, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.MimeType, [core.int]),
     [dartx.namedItem]: dart.definiteFunctionType(html.MimeType, [core.String])
@@ -65119,14 +65119,14 @@ html._ChildNodeListLazy = class _ChildNodeListLazy extends collection.ListBase$(
     if (index == this.length) {
       this[_this][dartx.append](node);
     } else {
-      this[_this][dartx.insertBefore](node, this.get(index));
+      this[_this][dartx.insertBefore](node, this._get(index));
     }
   }
   insertAll(index, iterable) {
     if (index == this.length) {
       this.addAll(iterable);
     } else {
-      let item = this.get(index);
+      let item = this._get(index);
       this[_this][dartx.insertAllBefore](iterable, item);
     }
   }
@@ -65141,7 +65141,7 @@ html._ChildNodeListLazy = class _ChildNodeListLazy extends collection.ListBase$(
     return result;
   }
   removeAt(index) {
-    let result = this.get(index);
+    let result = this._get(index);
     if (result != null) {
       this[_this][_removeChild](result);
     }
@@ -65173,8 +65173,8 @@ html._ChildNodeListLazy = class _ChildNodeListLazy extends collection.ListBase$(
   clear() {
     this[_this][_clearChildren]();
   }
-  set(index, value) {
-    this[_this][_replaceChild](value, this.get(index));
+  _set(index, value) {
+    this[_this][_replaceChild](value, this._get(index));
     return value;
   }
   get iterator() {
@@ -65202,8 +65202,8 @@ html._ChildNodeListLazy = class _ChildNodeListLazy extends collection.ListBase$(
   set length(value) {
     dart.throw(new core.UnsupportedError("Cannot set length on immutable List."));
   }
-  get(index) {
-    return this[_this][dartx.childNodes][dartx.get](index);
+  _get(index) {
+    return this[_this][dartx.childNodes][dartx._get](index);
   }
   get rawList() {
     return this[_this][dartx.childNodes];
@@ -65234,11 +65234,11 @@ dart.setSignature(html._ChildNodeListLazy, {
     [_filter]: dart.definiteFunctionType(dart.void, [NodeTobool(), core.bool]),
     removeWhere: dart.definiteFunctionType(dart.void, [NodeTobool()]),
     retainWhere: dart.definiteFunctionType(dart.void, [NodeTobool()]),
-    set: dart.definiteFunctionType(dart.void, [core.int, html.Node]),
+    _set: dart.definiteFunctionType(dart.void, [core.int, html.Node]),
     sort: dart.definiteFunctionType(dart.void, [], [ComparatorOfNode()]),
     setRange: dart.definiteFunctionType(dart.void, [core.int, core.int, IterableOfNode()], [core.int]),
     fillRange: dart.definiteFunctionType(dart.void, [core.int, core.int], [html.Node]),
-    get: dart.definiteFunctionType(html.Node, [core.int])
+    _get: dart.definiteFunctionType(html.Node, [core.int])
   })
 });
 dart.defineExtensionMembers(html._ChildNodeListLazy, [
@@ -65253,12 +65253,12 @@ dart.defineExtensionMembers(html._ChildNodeListLazy, [
   'removeWhere',
   'retainWhere',
   'clear',
-  'set',
+  '_set',
   'sort',
   'shuffle',
   'setRange',
   'fillRange',
-  'get',
+  '_get',
   'first',
   'last',
   'single',
@@ -65357,8 +65357,8 @@ dart.setSignature(html.NodeIterator, {
 dart.registerExtension(dart.global.NodeIterator, html.NodeIterator);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -65372,11 +65372,11 @@ html.NodeList = class NodeList extends dart.mixin(_interceptors.Interceptor, col
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -65405,7 +65405,7 @@ html.NodeList = class NodeList extends dart.mixin(_interceptors.Interceptor, col
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [_item](index) {
     return this.item(index);
@@ -65422,8 +65422,8 @@ dart.setSignature(html.NodeList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.Node, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.Node]),
+    [dartx._get]: dart.definiteFunctionType(html.Node, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.Node]),
     [dartx.elementAt]: dart.definiteFunctionType(html.Node, [core.int]),
     [_item]: dart.definiteFunctionType(html.Node, [core.int])
   })
@@ -65494,11 +65494,11 @@ html.Notification = class Notification extends html.EventTarget {
     let tag = opts && 'tag' in opts ? opts.tag : null;
     let icon = opts && 'icon' in opts ? opts.icon : null;
     let parsedOptions = dart.map();
-    if (dir != null) parsedOptions[dartx.set]('dir', dir);
-    if (body != null) parsedOptions[dartx.set]('body', body);
-    if (lang != null) parsedOptions[dartx.set]('lang', lang);
-    if (tag != null) parsedOptions[dartx.set]('tag', tag);
-    if (icon != null) parsedOptions[dartx.set]('icon', icon);
+    if (dir != null) parsedOptions[dartx._set]('dir', dir);
+    if (body != null) parsedOptions[dartx._set]('body', body);
+    if (lang != null) parsedOptions[dartx._set]('lang', lang);
+    if (tag != null) parsedOptions[dartx._set]('tag', tag);
+    if (icon != null) parsedOptions[dartx._set]('icon', icon);
     return html.Notification._factoryNotification(title, parsedOptions);
   }
   static _() {
@@ -67039,8 +67039,8 @@ dart.setSignature(html.Plugin, {
 dart.registerExtension(dart.global.Plugin, html.Plugin);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -67057,11 +67057,11 @@ html.PluginArray = class PluginArray extends dart.mixin(_interceptors.Intercepto
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -67090,7 +67090,7 @@ html.PluginArray = class PluginArray extends dart.mixin(_interceptors.Intercepto
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -67113,8 +67113,8 @@ dart.setSignature(html.PluginArray, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.Plugin, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.Plugin]),
+    [dartx._get]: dart.definiteFunctionType(html.Plugin, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.Plugin]),
     [dartx.elementAt]: dart.definiteFunctionType(html.Plugin, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.Plugin, [core.int]),
     [dartx.namedItem]: dart.definiteFunctionType(html.Plugin, [core.String]),
@@ -69561,7 +69561,7 @@ html.SelectElement = class SelectElement extends html.HtmlElement {
       let options = this[dartx.options][dartx.where](dart.fn(o => o[dartx.selected], OptionElementTobool()))[dartx.toList]();
       return new (UnmodifiableListViewOfOptionElement())(options);
     } else {
-      return JSArrayOfOptionElement().of([this[dartx.options][dartx.get](this[dartx.selectedIndex])]);
+      return JSArrayOfOptionElement().of([this[dartx.options][dartx._get](this[dartx.selectedIndex])]);
     }
   }
 };
@@ -70529,8 +70529,8 @@ dart.setSignature(html.SourceBuffer, {
 dart.registerExtension(dart.global.SourceBuffer, html.SourceBuffer);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -70545,11 +70545,11 @@ html.SourceBufferList = class SourceBufferList extends dart.mixin(html.EventTarg
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -70578,7 +70578,7 @@ html.SourceBufferList = class SourceBufferList extends dart.mixin(html.EventTarg
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -70595,8 +70595,8 @@ dart.setSignature(html.SourceBufferList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.SourceBuffer, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.SourceBuffer]),
+    [dartx._get]: dart.definiteFunctionType(html.SourceBuffer, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.SourceBuffer]),
     [dartx.elementAt]: dart.definiteFunctionType(html.SourceBuffer, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.SourceBuffer, [core.int])
   })
@@ -70766,8 +70766,8 @@ dart.setSignature(html.SpeechGrammar, {
 dart.registerExtension(dart.global.SpeechGrammar, html.SpeechGrammar);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -70790,11 +70790,11 @@ html.SpeechGrammarList = class SpeechGrammarList extends dart.mixin(_interceptor
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -70823,7 +70823,7 @@ html.SpeechGrammarList = class SpeechGrammarList extends dart.mixin(_interceptor
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.addFromString](string, weight) {
     return this.addFromString(string, weight);
@@ -70849,8 +70849,8 @@ dart.setSignature(html.SpeechGrammarList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.SpeechGrammar, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.SpeechGrammar]),
+    [dartx._get]: dart.definiteFunctionType(html.SpeechGrammar, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.SpeechGrammar]),
     [dartx.elementAt]: dart.definiteFunctionType(html.SpeechGrammar, [core.int]),
     [dartx.addFromString]: dart.definiteFunctionType(dart.void, [core.String], [core.num]),
     [dartx.addFromUri]: dart.definiteFunctionType(dart.void, [core.String], [core.num]),
@@ -71542,8 +71542,8 @@ dart.defineExtensionNames([
   'addAll',
   'containsValue',
   'containsKey',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'putIfAbsent',
   'remove',
   'clear',
@@ -71557,7 +71557,7 @@ dart.defineExtensionNames([
 html.Storage = class Storage extends _interceptors.Interceptor {
   [dartx.addAll](other) {
     other[dartx.forEach](dart.fn((k, v) => {
-      this[dartx.set](k, v);
+      this[dartx._set](k, v);
     }, StringAndStringTovoid()));
   }
   [dartx.containsValue](value) {
@@ -71566,19 +71566,19 @@ html.Storage = class Storage extends _interceptors.Interceptor {
   [dartx.containsKey](key) {
     return this[_getItem](core.String._check(key)) != null;
   }
-  [dartx.get](key) {
+  [dartx._get](key) {
     return this[_getItem](core.String._check(key));
   }
-  [dartx.set](key, value) {
+  [dartx._set](key, value) {
     this[_setItem](key, value);
     return value;
   }
   [dartx.putIfAbsent](key, ifAbsent) {
-    if (!dart.test(this[dartx.containsKey](key))) this[dartx.set](key, ifAbsent());
-    return this[dartx.get](key);
+    if (!dart.test(this[dartx.containsKey](key))) this[dartx._set](key, ifAbsent());
+    return this[dartx._get](key);
   }
   [dartx.remove](key) {
-    let value = this[dartx.get](key);
+    let value = this[dartx._get](key);
     this[_removeItem](core.String._check(key));
     return value;
   }
@@ -71589,7 +71589,7 @@ html.Storage = class Storage extends _interceptors.Interceptor {
     for (let i = 0; true; i++) {
       let key = this[_key](i);
       if (key == null) return;
-      f(key, this[dartx.get](key));
+      f(key, this[dartx._get](key));
     }
   }
   get [dartx.keys]() {
@@ -71657,8 +71657,8 @@ dart.setSignature(html.Storage, {
     [dartx.addAll]: dart.definiteFunctionType(dart.void, [MapOfString$String()]),
     [dartx.containsValue]: dart.definiteFunctionType(core.bool, [core.Object]),
     [dartx.containsKey]: dart.definiteFunctionType(core.bool, [core.Object]),
-    [dartx.get]: dart.definiteFunctionType(core.String, [core.Object]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.String, core.String]),
+    [dartx._get]: dart.definiteFunctionType(core.String, [core.Object]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.String, core.String]),
     [dartx.putIfAbsent]: dart.definiteFunctionType(core.String, [core.String, VoidToString()]),
     [dartx.remove]: dart.definiteFunctionType(core.String, [core.Object]),
     [dartx.clear]: dart.definiteFunctionType(dart.void, []),
@@ -72987,8 +72987,8 @@ dart.defineLazy(html.TextTrackCue, {
 dart.registerExtension(dart.global.TextTrackCue, html.TextTrackCue);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -73004,11 +73004,11 @@ html.TextTrackCueList = class TextTrackCueList extends dart.mixin(_interceptors.
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -73037,7 +73037,7 @@ html.TextTrackCueList = class TextTrackCueList extends dart.mixin(_interceptors.
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.getCueById](id) {
     return this.getCueById(id);
@@ -73057,8 +73057,8 @@ dart.setSignature(html.TextTrackCueList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.TextTrackCue, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.TextTrackCue]),
+    [dartx._get]: dart.definiteFunctionType(html.TextTrackCue, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.TextTrackCue]),
     [dartx.elementAt]: dart.definiteFunctionType(html.TextTrackCue, [core.int]),
     [dartx.getCueById]: dart.definiteFunctionType(html.TextTrackCue, [core.String]),
     [dartx.item]: dart.definiteFunctionType(html.TextTrackCue, [core.int])
@@ -73067,8 +73067,8 @@ dart.setSignature(html.TextTrackCueList, {
 dart.registerExtension(dart.global.TextTrackCueList, html.TextTrackCueList);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -73086,11 +73086,11 @@ html.TextTrackList = class TextTrackList extends dart.mixin(html.EventTarget, co
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -73119,7 +73119,7 @@ html.TextTrackList = class TextTrackList extends dart.mixin(html.EventTarget, co
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.getTrackById](id) {
     return this.getTrackById(id);
@@ -73147,8 +73147,8 @@ dart.setSignature(html.TextTrackList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.TextTrack, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.TextTrack]),
+    [dartx._get]: dart.definiteFunctionType(html.TextTrack, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.TextTrack]),
     [dartx.elementAt]: dart.definiteFunctionType(html.TextTrack, [core.int]),
     [dartx.getTrackById]: dart.definiteFunctionType(html.TextTrack, [core.String]),
     [dartx.item]: dart.definiteFunctionType(html.TextTrack, [core.int])
@@ -73433,8 +73433,8 @@ dart.setSignature(html.TouchEvent, {
 dart.registerExtension(dart.global.TouchEvent, html.TouchEvent);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -73455,11 +73455,11 @@ html.TouchList = class TouchList extends dart.mixin(_interceptors.Interceptor, c
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -73488,7 +73488,7 @@ html.TouchList = class TouchList extends dart.mixin(_interceptors.Interceptor, c
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -73508,8 +73508,8 @@ dart.setSignature(html.TouchList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.Touch, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.Touch]),
+    [dartx._get]: dart.definiteFunctionType(html.Touch, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.Touch]),
     [dartx.elementAt]: dart.definiteFunctionType(html.Touch, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.Touch, [core.int])
   }),
@@ -77183,8 +77183,8 @@ dart.setSignature(html._JenkinsSmiHash, {
 });
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -77199,11 +77199,11 @@ html._ClientRectList = class _ClientRectList extends dart.mixin(_interceptors.In
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[dartx.item](index);
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -77232,7 +77232,7 @@ html._ClientRectList = class _ClientRectList extends dart.mixin(_interceptors.In
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [__getter__](index) {
     return this.__getter__(index);
@@ -77252,8 +77252,8 @@ dart.setSignature(html._ClientRectList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(math.Rectangle$(core.num), [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, RectangleOfnum()]),
+    [dartx._get]: dart.definiteFunctionType(math.Rectangle$(core.num), [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, RectangleOfnum()]),
     [dartx.elementAt]: dart.definiteFunctionType(math.Rectangle$(core.num), [core.int]),
     [__getter__]: dart.definiteFunctionType(math.Rectangle$(core.num), [core.int]),
     [dartx.item]: dart.definiteFunctionType(math.Rectangle$(core.num), [core.int])
@@ -77263,8 +77263,8 @@ dart.registerExtension(dart.global.ClientRectList, html._ClientRectList);
 dart.registerExtension(dart.global.DOMRectList, html._ClientRectList);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -77279,11 +77279,11 @@ html._CssRuleList = class _CssRuleList extends dart.mixin(_interceptors.Intercep
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -77312,7 +77312,7 @@ html._CssRuleList = class _CssRuleList extends dart.mixin(_interceptors.Intercep
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -77329,8 +77329,8 @@ dart.setSignature(html._CssRuleList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.CssRule, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.CssRule]),
+    [dartx._get]: dart.definiteFunctionType(html.CssRule, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.CssRule]),
     [dartx.elementAt]: dart.definiteFunctionType(html.CssRule, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.CssRule, [core.int])
   })
@@ -77516,8 +77516,8 @@ dart.setSignature(html._FileWriterSync, {
 dart.registerExtension(dart.global.FileWriterSync, html._FileWriterSync);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -77532,11 +77532,11 @@ html._GamepadList = class _GamepadList extends dart.mixin(_interceptors.Intercep
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -77565,7 +77565,7 @@ html._GamepadList = class _GamepadList extends dart.mixin(_interceptors.Intercep
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -77582,8 +77582,8 @@ dart.setSignature(html._GamepadList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.Gamepad, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.Gamepad]),
+    [dartx._get]: dart.definiteFunctionType(html.Gamepad, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.Gamepad]),
     [dartx.elementAt]: dart.definiteFunctionType(html.Gamepad, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.Gamepad, [core.int])
   })
@@ -77701,8 +77701,8 @@ dart.setSignature(html._HTMLMarqueeElement, {
 dart.registerExtension(dart.global.HTMLMarqueeElement, html._HTMLMarqueeElement);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -77723,11 +77723,11 @@ html._NamedNodeMap = class _NamedNodeMap extends dart.mixin(_interceptors.Interc
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -77756,7 +77756,7 @@ html._NamedNodeMap = class _NamedNodeMap extends dart.mixin(_interceptors.Interc
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.getNamedItem](name) {
     return this.getNamedItem(name);
@@ -77791,8 +77791,8 @@ dart.setSignature(html._NamedNodeMap, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.Node, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.Node]),
+    [dartx._get]: dart.definiteFunctionType(html.Node, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.Node]),
     [dartx.elementAt]: dart.definiteFunctionType(html.Node, [core.int]),
     [dartx.getNamedItem]: dart.definiteFunctionType(html._Attr, [core.String]),
     [dartx.getNamedItemNS]: dart.definiteFunctionType(html._Attr, [core.String, core.String]),
@@ -77935,8 +77935,8 @@ dart.setSignature(html._ServiceWorker, {
 dart.registerExtension(dart.global.ServiceWorker, html._ServiceWorker);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -77951,11 +77951,11 @@ html._SpeechRecognitionResultList = class _SpeechRecognitionResultList extends d
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -77984,7 +77984,7 @@ html._SpeechRecognitionResultList = class _SpeechRecognitionResultList extends d
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return this.item(index);
@@ -78001,8 +78001,8 @@ dart.setSignature(html._SpeechRecognitionResultList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.SpeechRecognitionResult, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.SpeechRecognitionResult]),
+    [dartx._get]: dart.definiteFunctionType(html.SpeechRecognitionResult, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.SpeechRecognitionResult]),
     [dartx.elementAt]: dart.definiteFunctionType(html.SpeechRecognitionResult, [core.int]),
     [dartx.item]: dart.definiteFunctionType(html.SpeechRecognitionResult, [core.int])
   })
@@ -78010,8 +78010,8 @@ dart.setSignature(html._SpeechRecognitionResultList, {
 dart.registerExtension(dart.global.SpeechRecognitionResultList, html._SpeechRecognitionResultList);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -78026,11 +78026,11 @@ html._StyleSheetList = class _StyleSheetList extends dart.mixin(_interceptors.In
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[index];
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -78059,7 +78059,7 @@ html._StyleSheetList = class _StyleSheetList extends dart.mixin(_interceptors.In
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [__getter__](name) {
     return this.__getter__(name);
@@ -78079,8 +78079,8 @@ dart.setSignature(html._StyleSheetList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(html.StyleSheet, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, html.StyleSheet]),
+    [dartx._get]: dart.definiteFunctionType(html.StyleSheet, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, html.StyleSheet]),
     [dartx.elementAt]: dart.definiteFunctionType(html.StyleSheet, [core.int]),
     [__getter__]: dart.definiteFunctionType(html.CssStyleSheet, [core.String]),
     [dartx.item]: dart.definiteFunctionType(html.StyleSheet, [core.int])
@@ -78170,7 +78170,7 @@ html._AttributeMap = class _AttributeMap extends core.Object {
   }
   addAll(other) {
     other[dartx.forEach](dart.fn((k, v) => {
-      this.set(k, v);
+      this._set(k, v);
     }, StringAndStringTovoid()));
   }
   containsValue(value) {
@@ -78183,9 +78183,9 @@ html._AttributeMap = class _AttributeMap extends core.Object {
   }
   putIfAbsent(key, ifAbsent) {
     if (!dart.test(this[dartx.containsKey](key))) {
-      this.set(key, ifAbsent());
+      this._set(key, ifAbsent());
     }
-    return this.get(key);
+    return this._get(key);
   }
   clear() {
     for (let key of this.keys) {
@@ -78194,7 +78194,7 @@ html._AttributeMap = class _AttributeMap extends core.Object {
   }
   forEach(f) {
     for (let key of this.keys) {
-      let value = this.get(key);
+      let value = this._get(key);
       f(key, value);
     }
   }
@@ -78202,7 +78202,7 @@ html._AttributeMap = class _AttributeMap extends core.Object {
     let attributes = this[_element][_attributes];
     let keys = JSArrayOfString().of([]);
     for (let i = 0, len = attributes[dartx.length]; i < dart.notNull(len); i++) {
-      let attr = html._Attr._check(attributes[dartx.get](i));
+      let attr = html._Attr._check(attributes[dartx._get](i));
       if (dart.test(this[_matches](attr))) {
         keys[dartx.add](attr[dartx.name]);
       }
@@ -78213,7 +78213,7 @@ html._AttributeMap = class _AttributeMap extends core.Object {
     let attributes = this[_element][_attributes];
     let values = JSArrayOfString().of([]);
     for (let i = 0, len = attributes[dartx.length]; i < dart.notNull(len); i++) {
-      let attr = html._Attr._check(attributes[dartx.get](i));
+      let attr = html._Attr._check(attributes[dartx._get](i));
       if (dart.test(this[_matches](attr))) {
         values[dartx.add](attr[dartx.value]);
       }
@@ -78263,10 +78263,10 @@ html._ElementAttributeMap = class _ElementAttributeMap extends html._AttributeMa
   containsKey(key) {
     return this[_element][_hasAttribute](core.String._check(key));
   }
-  get(key) {
+  _get(key) {
     return this[_element][dartx.getAttribute](core.String._check(key));
   }
-  set(key, value) {
+  _set(key, value) {
     this[_element][dartx.setAttribute](key, value);
     return value;
   }
@@ -78287,16 +78287,16 @@ dart.setSignature(html._ElementAttributeMap, {
   getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({
     containsKey: dart.definiteFunctionType(core.bool, [core.Object]),
-    get: dart.definiteFunctionType(core.String, [core.Object]),
-    set: dart.definiteFunctionType(dart.void, [core.String, core.String]),
+    _get: dart.definiteFunctionType(core.String, [core.Object]),
+    _set: dart.definiteFunctionType(dart.void, [core.String, core.String]),
     remove: dart.definiteFunctionType(core.String, [core.Object]),
     [_matches]: dart.definiteFunctionType(core.bool, [html.Node])
   })
 });
 dart.defineExtensionMembers(html._ElementAttributeMap, [
   'containsKey',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'remove',
   'length'
 ]);
@@ -78309,15 +78309,15 @@ html._NamespacedAttributeMap = class _NamespacedAttributeMap extends html._Attri
   containsKey(key) {
     return this[_element][_hasAttributeNS](this[_namespace], core.String._check(key));
   }
-  get(key) {
+  _get(key) {
     return this[_element][dartx.getAttributeNS](this[_namespace], core.String._check(key));
   }
-  set(key, value) {
+  _set(key, value) {
     this[_element][dartx.setAttributeNS](this[_namespace], key, value);
     return value;
   }
   remove(key) {
-    let value = this.get(key);
+    let value = this._get(key);
     this[_element][_removeAttributeNS](this[_namespace], core.String._check(key));
     return value;
   }
@@ -78334,16 +78334,16 @@ dart.setSignature(html._NamespacedAttributeMap, {
   getters: () => ({length: dart.definiteFunctionType(core.int, [])}),
   methods: () => ({
     containsKey: dart.definiteFunctionType(core.bool, [core.Object]),
-    get: dart.definiteFunctionType(core.String, [core.Object]),
-    set: dart.definiteFunctionType(dart.void, [core.String, core.String]),
+    _get: dart.definiteFunctionType(core.String, [core.Object]),
+    _set: dart.definiteFunctionType(dart.void, [core.String, core.String]),
     remove: dart.definiteFunctionType(core.String, [core.Object]),
     [_matches]: dart.definiteFunctionType(core.bool, [html.Node])
   })
 });
 dart.defineExtensionMembers(html._NamespacedAttributeMap, [
   'containsKey',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'remove',
   'length'
 ]);
@@ -78357,7 +78357,7 @@ html._DataAttributeMap = class _DataAttributeMap extends core.Object {
   }
   addAll(other) {
     other[dartx.forEach](dart.fn((k, v) => {
-      this.set(k, v);
+      this._set(k, v);
     }, StringAndStringTovoid()));
   }
   containsValue(value) {
@@ -78366,11 +78366,11 @@ html._DataAttributeMap = class _DataAttributeMap extends core.Object {
   containsKey(key) {
     return this[_attributes][dartx.containsKey](this[_attr](core.String._check(key)));
   }
-  get(key) {
-    return this[_attributes][dartx.get](this[_attr](core.String._check(key)));
+  _get(key) {
+    return this[_attributes][dartx._get](this[_attr](core.String._check(key)));
   }
-  set(key, value) {
-    this[_attributes][dartx.set](this[_attr](key), value);
+  _set(key, value) {
+    this[_attributes][dartx._set](this[_attr](key), value);
     return value;
   }
   putIfAbsent(key, ifAbsent) {
@@ -78432,9 +78432,9 @@ html._DataAttributeMap = class _DataAttributeMap extends core.Object {
     let segments = hyphenedName[dartx.split]('-');
     let start = dart.test(startUppercase) ? 0 : 1;
     for (let i = start; i < dart.notNull(segments[dartx.length]); i++) {
-      let segment = segments[dartx.get](i);
+      let segment = segments[dartx._get](i);
       if (dart.notNull(segment[dartx.length]) > 0) {
-        segments[dartx.set](i, dart.str`${segment[dartx.get](0)[dartx.toUpperCase]()}${segment[dartx.substring](1)}`);
+        segments[dartx._set](i, dart.str`${segment[dartx._get](0)[dartx.toUpperCase]()}${segment[dartx.substring](1)}`);
       }
     }
     return segments[dartx.join]('');
@@ -78442,8 +78442,8 @@ html._DataAttributeMap = class _DataAttributeMap extends core.Object {
   [_toHyphenedName](word) {
     let sb = new core.StringBuffer();
     for (let i = 0; i < dart.notNull(word[dartx.length]); i++) {
-      let lower = word[dartx.get](i)[dartx.toLowerCase]();
-      if (word[dartx.get](i) != lower && i > 0) sb.write('-');
+      let lower = word[dartx._get](i)[dartx.toLowerCase]();
+      if (word[dartx._get](i) != lower && i > 0) sb.write('-');
       sb.write(lower);
     }
     return sb.toString();
@@ -78464,8 +78464,8 @@ dart.setSignature(html._DataAttributeMap, {
     addAll: dart.definiteFunctionType(dart.void, [MapOfString$String()]),
     containsValue: dart.definiteFunctionType(core.bool, [core.Object]),
     containsKey: dart.definiteFunctionType(core.bool, [core.Object]),
-    get: dart.definiteFunctionType(core.String, [core.Object]),
-    set: dart.definiteFunctionType(dart.void, [core.String, core.String]),
+    _get: dart.definiteFunctionType(core.String, [core.Object]),
+    _set: dart.definiteFunctionType(dart.void, [core.String, core.String]),
     putIfAbsent: dart.definiteFunctionType(core.String, [core.String, VoidToString()]),
     remove: dart.definiteFunctionType(core.String, [core.Object]),
     clear: dart.definiteFunctionType(dart.void, []),
@@ -78481,8 +78481,8 @@ dart.defineExtensionMembers(html._DataAttributeMap, [
   'addAll',
   'containsValue',
   'containsKey',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'putIfAbsent',
   'remove',
   'clear',
@@ -80028,7 +80028,7 @@ html._StreamPool$ = dart.generic(T => {
     add(stream) {
       StreamOfT()._check(stream);
       if (dart.test(this[_subscriptions][dartx.containsKey](stream))) return;
-      this[_subscriptions][dartx.set](stream, stream.listen(dart.bind(this[_controller], 'add'), {onError: dart.bind(this[_controller], 'addError'), onDone: dart.fn(() => this.remove(stream), VoidTovoid())}));
+      this[_subscriptions][dartx._set](stream, stream.listen(dart.bind(this[_controller], 'add'), {onError: dart.bind(this[_controller], 'addError'), onDone: dart.fn(() => this.remove(stream), VoidTovoid())}));
     }
     remove(stream) {
       StreamOfT()._check(stream);
@@ -80112,10 +80112,10 @@ html._Html5NodeValidator = class _Html5NodeValidator extends core.Object {
     this.uriPolicy = uriPolicy != null ? uriPolicy : html.UriPolicy.new();
     if (dart.test(html._Html5NodeValidator._attributeValidators[dartx.isEmpty])) {
       for (let attr of html._Html5NodeValidator._standardAttributes) {
-        html._Html5NodeValidator._attributeValidators[dartx.set](attr, html._Html5NodeValidator._standardAttributeValidator);
+        html._Html5NodeValidator._attributeValidators[dartx._set](attr, html._Html5NodeValidator._standardAttributeValidator);
       }
       for (let attr of html._Html5NodeValidator._uriAttributes) {
-        html._Html5NodeValidator._attributeValidators[dartx.set](attr, html._Html5NodeValidator._uriAttributeValidator);
+        html._Html5NodeValidator._attributeValidators[dartx._set](attr, html._Html5NodeValidator._uriAttributeValidator);
       }
     }
   }
@@ -80124,9 +80124,9 @@ html._Html5NodeValidator = class _Html5NodeValidator extends core.Object {
   }
   allowsAttribute(element, attributeName, value) {
     let tagName = html.Element._safeTagName(element);
-    let validator = html._Html5NodeValidator._attributeValidators[dartx.get](dart.str`${tagName}::${attributeName}`);
+    let validator = html._Html5NodeValidator._attributeValidators[dartx._get](dart.str`${tagName}::${attributeName}`);
     if (validator == null) {
-      validator = html._Html5NodeValidator._attributeValidators[dartx.get](dart.str`*::${attributeName}`);
+      validator = html._Html5NodeValidator._attributeValidators[dartx._get](dart.str`*::${attributeName}`);
     }
     if (validator == null) {
       return false;
@@ -80957,7 +80957,7 @@ html._KeyboardEventHandler = class _KeyboardEventHandler extends html.EventStrea
       if (prevEvent[_shadowCharCode] == event[dartx.charCode]) {
         return prevEvent.keyCode;
       }
-      if ((dart.test(event[dartx.shiftKey]) || dart.test(this[_capsLockOn])) && dart.notNull(event[dartx.charCode]) >= dart.notNull("A"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) <= dart.notNull("Z"[dartx.codeUnits][dartx.get](0)) && dart.notNull(event[dartx.charCode]) + dart.notNull(html._KeyboardEventHandler._ROMAN_ALPHABET_OFFSET) == prevEvent[_shadowCharCode]) {
+      if ((dart.test(event[dartx.shiftKey]) || dart.test(this[_capsLockOn])) && dart.notNull(event[dartx.charCode]) >= dart.notNull("A"[dartx.codeUnits][dartx._get](0)) && dart.notNull(event[dartx.charCode]) <= dart.notNull("Z"[dartx.codeUnits][dartx._get](0)) && dart.notNull(event[dartx.charCode]) + dart.notNull(html._KeyboardEventHandler._ROMAN_ALPHABET_OFFSET) == prevEvent[_shadowCharCode]) {
         return prevEvent.keyCode;
       }
     }
@@ -81155,7 +81155,7 @@ html._KeyboardEventHandler = class _KeyboardEventHandler extends html.EventStrea
     }
     e[_shadowKeyCode] = this[_determineKeyCodeForKeypress](e);
     if (e[_shadowKeyIdentifier] != null && dart.test(html._KeyboardEventHandler._keyIdentifier[dartx.containsKey](e[_shadowKeyIdentifier]))) {
-      e[_shadowKeyCode] = html._KeyboardEventHandler._keyIdentifier[dartx.get](e[_shadowKeyIdentifier]);
+      e[_shadowKeyCode] = html._KeyboardEventHandler._keyIdentifier[dartx._get](e[_shadowKeyIdentifier]);
     }
     e[_shadowAltKey] = this[_keyDownList][dartx.any](dart.fn(element => element.altKey, KeyEventTobool()));
     this[_stream].add(e);
@@ -81210,7 +81210,7 @@ html._KeyboardEventHandler._EVENT_TYPE = 'KeyEvent';
 html._KeyboardEventHandler._keyIdentifier = dart.const(dart.map({Up: html.KeyCode.UP, Down: html.KeyCode.DOWN, Left: html.KeyCode.LEFT, Right: html.KeyCode.RIGHT, Enter: html.KeyCode.ENTER, F1: html.KeyCode.F1, F2: html.KeyCode.F2, F3: html.KeyCode.F3, F4: html.KeyCode.F4, F5: html.KeyCode.F5, F6: html.KeyCode.F6, F7: html.KeyCode.F7, F8: html.KeyCode.F8, F9: html.KeyCode.F9, F10: html.KeyCode.F10, F11: html.KeyCode.F11, F12: html.KeyCode.F12, 'U+007F': html.KeyCode.DELETE, Home: html.KeyCode.HOME, End: html.KeyCode.END, PageUp: html.KeyCode.PAGE_UP, PageDown: html.KeyCode.PAGE_DOWN, Insert: html.KeyCode.INSERT}, core.String, core.int));
 dart.defineLazy(html._KeyboardEventHandler, {
   get _ROMAN_ALPHABET_OFFSET() {
-    return dart.notNull("a"[dartx.codeUnits][dartx.get](0)) - dart.notNull("A"[dartx.codeUnits][dartx.get](0));
+    return dart.notNull("a"[dartx.codeUnits][dartx._get](0)) - dart.notNull("A"[dartx.codeUnits][dartx._get](0));
   }
 });
 html.KeyboardEventStream = class KeyboardEventStream extends core.Object {
@@ -81428,7 +81428,7 @@ html._CustomElementNodeValidator = class _CustomElementNodeValidator extends htm
   }
   allowsElement(element) {
     if (dart.test(this.allowTypeExtension)) {
-      let isAttr = element[dartx.attributes][dartx.get]('is');
+      let isAttr = element[dartx.attributes][dartx._get]('is');
       if (isAttr != null) {
         return dart.test(this.allowedElements.contains(isAttr[dartx.toUpperCase]())) && dart.test(this.allowedElements.contains(html.Element._safeTagName(element)));
       }
@@ -81465,7 +81465,7 @@ html._TemplatingNodeValidator = class _TemplatingNodeValidator extends html._Sim
     if (attributeName == 'template' && value == "") {
       return true;
     }
-    if (element[dartx.attributes][dartx.get]('template') == "") {
+    if (element[dartx.attributes][dartx._get]('template') == "") {
       return this[_templateAttrs].contains(attributeName);
     }
     return false;
@@ -81540,12 +81540,12 @@ html._WrappedList$ = dart.generic(E => {
     clear() {
       this[_list][dartx.clear]();
     }
-    get(index) {
-      return html._downcast(html.Node, E)(this[_list][dartx.get](index));
+    _get(index) {
+      return html._downcast(html.Node, E)(this[_list][dartx._get](index));
     }
-    set(index, value) {
+    _set(index, value) {
       E._check(value);
-      this[_list][dartx.set](index, value);
+      this[_list][dartx._set](index, value);
       return value;
     }
     set length(newLength) {
@@ -81603,8 +81603,8 @@ html._WrappedList$ = dart.generic(E => {
     setters: () => ({length: dart.definiteFunctionType(dart.void, [core.int])}),
     methods: () => ({
       add: dart.definiteFunctionType(dart.void, [E]),
-      get: dart.definiteFunctionType(E, [core.int]),
-      set: dart.definiteFunctionType(dart.void, [core.int, E]),
+      _get: dart.definiteFunctionType(E, [core.int]),
+      _set: dart.definiteFunctionType(dart.void, [core.int, E]),
       sort: dart.definiteFunctionType(dart.void, [], [EAndEToint()]),
       insert: dart.definiteFunctionType(dart.void, [core.int, E]),
       removeAt: dart.definiteFunctionType(E, [core.int]),
@@ -81617,8 +81617,8 @@ html._WrappedList$ = dart.generic(E => {
     'add',
     'remove',
     'clear',
-    'get',
-    'set',
+    '_get',
+    '_set',
     'sort',
     'indexOf',
     'lastIndexOf',
@@ -81699,7 +81699,7 @@ html.FixedSizeListIterator$ = dart.generic(T => {
     moveNext() {
       let nextPosition = dart.notNull(this[_position]) + 1;
       if (nextPosition < dart.notNull(this[_length])) {
-        this[_current] = this[_array][dartx.get](nextPosition);
+        this[_current] = this[_array][dartx._get](nextPosition);
         this[_position] = nextPosition;
         return true;
       }
@@ -81739,7 +81739,7 @@ html._VariableSizeListIterator$ = dart.generic(T => {
     moveNext() {
       let nextPosition = dart.notNull(this[_position]) + 1;
       if (nextPosition < dart.notNull(this[_array][dartx.length])) {
-        this[_current] = this[_array][dartx.get](nextPosition);
+        this[_current] = this[_array][dartx._get](nextPosition);
         this[_position] = nextPosition;
         return true;
       }
@@ -82324,9 +82324,9 @@ html._ValidatingTreeSanitizer = class _ValidatingTreeSanitizer extends core.Obje
     }
     let keys = attrs[dartx.keys][dartx.toList]();
     for (let i = dart.notNull(attrs[dartx.length]) - 1; i >= 0; --i) {
-      let name = keys[dartx.get](i);
-      if (!dart.test(this.validator.allowsAttribute(element, core.String._check(dart.dsend(name, 'toLowerCase')), core.String._check(attrs[dartx.get](name))))) {
-        html.window[dartx.console].warn('Removing disallowed attribute ' + dart.str`<${tag} ${name}="${attrs[dartx.get](name)}">`);
+      let name = keys[dartx._get](i);
+      if (!dart.test(this.validator.allowsAttribute(element, core.String._check(dart.dsend(name, 'toLowerCase')), core.String._check(attrs[dartx._get](name))))) {
+        html.window[dartx.console].warn('Removing disallowed attribute ' + dart.str`<${tag} ${name}="${attrs[dartx._get](name)}">`);
         attrs[dartx.remove](name);
       }
     }
@@ -82393,17 +82393,17 @@ html_common._StructuredClone = class _StructuredClone extends core.Object {
   findSlot(value) {
     let length = this.values[dartx.length];
     for (let i = 0; i < dart.notNull(length); i++) {
-      if (core.identical(this.values[dartx.get](i), value)) return i;
+      if (core.identical(this.values[dartx._get](i), value)) return i;
     }
     this.values[dartx.add](value);
     this.copies[dartx.add](null);
     return length;
   }
   readSlot(i) {
-    return this.copies[dartx.get](i);
+    return this.copies[dartx._get](i);
   }
   writeSlot(i, x) {
-    this.copies[dartx.set](i, x);
+    this.copies[dartx._set](i, x);
   }
   cleanupSlots() {}
   walk(e) {
@@ -82448,7 +82448,7 @@ html_common._StructuredClone = class _StructuredClone extends core.Object {
     let copy = this.newJsList(length);
     this.writeSlot(slot, copy);
     for (; i < dart.notNull(length); i++) {
-      dart.dsetindex(copy, i, this.walk(e[dartx.get](i)));
+      dart.dsetindex(copy, i, this.walk(e[dartx._get](i)));
     }
     return copy;
   }
@@ -82482,17 +82482,17 @@ html_common._AcceptStructuredClone = class _AcceptStructuredClone extends core.O
   findSlot(value) {
     let length = this.values[dartx.length];
     for (let i = 0; i < dart.notNull(length); i++) {
-      if (dart.test(this.identicalInJs(this.values[dartx.get](i), value))) return i;
+      if (dart.test(this.identicalInJs(this.values[dartx._get](i), value))) return i;
     }
     this.values[dartx.add](value);
     this.copies[dartx.add](null);
     return length;
   }
   readSlot(i) {
-    return this.copies[dartx.get](i);
+    return this.copies[dartx._get](i);
   }
   writeSlot(i, x) {
-    this.copies[dartx.set](i, x);
+    this.copies[dartx._set](i, x);
   }
   walk(e) {
     if (e == null) return e;
@@ -82625,7 +82625,7 @@ html_common.convertNativeToDart_Dictionary = function(object) {
   let dict = dart.map();
   let keys = Object.getOwnPropertyNames(object);
   for (let key of core.Iterable._check(keys)) {
-    dict[dartx.set](key, object[key]);
+    dict[dartx._set](key, object[key]);
   }
   return dict;
 };
@@ -82861,8 +82861,8 @@ html_common.FilteredElementList = class FilteredElementList extends collection.L
   forEach(f) {
     this[_filtered][dartx.forEach](f);
   }
-  set(index, value) {
-    this.get(index)[dartx.replaceWith](value);
+  _set(index, value) {
+    this._get(index)[dartx.replaceWith](value);
     return value;
   }
   set length(newLength) {
@@ -82935,7 +82935,7 @@ html_common.FilteredElementList = class FilteredElementList extends collection.L
     }
   }
   removeAt(index) {
-    let result = this.get(index);
+    let result = this._get(index);
     result[dartx.remove]();
     return result;
   }
@@ -82951,7 +82951,7 @@ html_common.FilteredElementList = class FilteredElementList extends collection.L
   get length() {
     return this[_iterable][dartx.length];
   }
-  get(index) {
+  _get(index) {
     return this[_iterable][dartx.elementAt](index);
   }
   get iterator() {
@@ -82980,7 +82980,7 @@ dart.setSignature(html_common.FilteredElementList, {
   setters: () => ({length: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
     forEach: dart.definiteFunctionType(dart.void, [ElementTovoid()]),
-    set: dart.definiteFunctionType(dart.void, [core.int, html.Element]),
+    _set: dart.definiteFunctionType(dart.void, [core.int, html.Element]),
     add: dart.definiteFunctionType(dart.void, [html.Element]),
     addAll: dart.definiteFunctionType(dart.void, [IterableOfElement()]),
     sort: dart.definiteFunctionType(dart.void, [], [ElementAndElementToint()]),
@@ -82991,12 +82991,12 @@ dart.setSignature(html_common.FilteredElementList, {
     insert: dart.definiteFunctionType(dart.void, [core.int, html.Element]),
     insertAll: dart.definiteFunctionType(dart.void, [core.int, IterableOfElement()]),
     removeAt: dart.definiteFunctionType(html.Element, [core.int]),
-    get: dart.definiteFunctionType(html.Element, [core.int])
+    _get: dart.definiteFunctionType(html.Element, [core.int])
   })
 });
 dart.defineExtensionMembers(html_common.FilteredElementList, [
   'forEach',
-  'set',
+  '_set',
   'add',
   'addAll',
   'contains',
@@ -83011,7 +83011,7 @@ dart.defineExtensionMembers(html_common.FilteredElementList, [
   'insertAll',
   'removeAt',
   'remove',
-  'get',
+  '_get',
   'length',
   'reversed',
   'length',
@@ -83026,7 +83026,7 @@ html_common.Lists = class Lists extends core.Object {
       startIndex = 0;
     }
     for (let i = startIndex; dart.notNull(i) < dart.notNull(endIndex); i = dart.notNull(i) + 1) {
-      if (dart.equals(a[dartx.get](i), element)) {
+      if (dart.equals(a[dartx._get](i), element)) {
         return i;
       }
     }
@@ -83040,7 +83040,7 @@ html_common.Lists = class Lists extends core.Object {
       startIndex = dart.notNull(a[dartx.length]) - 1;
     }
     for (let i = startIndex; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-      if (dart.equals(a[dartx.get](i), element)) {
+      if (dart.equals(a[dartx._get](i), element)) {
         return i;
       }
     }
@@ -83051,7 +83051,7 @@ html_common.Lists = class Lists extends core.Object {
     if (dart.notNull(end) < dart.notNull(start)) dart.throw(new core.RangeError.value(end));
     if (dart.notNull(end) > dart.notNull(a[dartx.length])) dart.throw(new core.RangeError.value(end));
     for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
-      accumulator[dartx.add](a[dartx.get](i));
+      accumulator[dartx.add](a[dartx._get](i));
     }
     return accumulator;
   }
@@ -86522,8 +86522,8 @@ dart.registerExtension(dart.global.SVGLength, svg.Length);
 const __setter__ = Symbol('__setter__');
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -86548,11 +86548,11 @@ svg.LengthList = class LengthList extends dart.mixin(_interceptors.Interceptor, 
   get [dartx.numberOfItems]() {
     return this.numberOfItems;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[dartx.getItem](index);
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -86581,7 +86581,7 @@ svg.LengthList = class LengthList extends dart.mixin(_interceptors.Interceptor, 
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [__setter__](index, newItem) {
     return this.__setter__(index, newItem);
@@ -86620,8 +86620,8 @@ dart.setSignature(svg.LengthList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(svg.Length, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, svg.Length]),
+    [dartx._get]: dart.definiteFunctionType(svg.Length, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, svg.Length]),
     [dartx.elementAt]: dart.definiteFunctionType(svg.Length, [core.int]),
     [__setter__]: dart.definiteFunctionType(dart.void, [core.int, svg.Length]),
     [dartx.appendItem]: dart.definiteFunctionType(svg.Length, [svg.Length]),
@@ -87128,8 +87128,8 @@ dart.setSignature(svg.Number, {
 dart.registerExtension(dart.global.SVGNumber, svg.Number);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -87154,11 +87154,11 @@ svg.NumberList = class NumberList extends dart.mixin(_interceptors.Interceptor, 
   get [dartx.numberOfItems]() {
     return this.numberOfItems;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[dartx.getItem](index);
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -87187,7 +87187,7 @@ svg.NumberList = class NumberList extends dart.mixin(_interceptors.Interceptor, 
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [__setter__](index, newItem) {
     return this.__setter__(index, newItem);
@@ -87226,8 +87226,8 @@ dart.setSignature(svg.NumberList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(svg.Number, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, svg.Number]),
+    [dartx._get]: dart.definiteFunctionType(svg.Number, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, svg.Number]),
     [dartx.elementAt]: dart.definiteFunctionType(svg.Number, [core.int]),
     [__setter__]: dart.definiteFunctionType(dart.void, [core.int, svg.Number]),
     [dartx.appendItem]: dart.definiteFunctionType(svg.Number, [svg.Number]),
@@ -88113,8 +88113,8 @@ dart.setSignature(svg.PathSegLinetoVerticalRel, {
 dart.registerExtension(dart.global.SVGPathSegLinetoVerticalRel, svg.PathSegLinetoVerticalRel);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -88139,11 +88139,11 @@ svg.PathSegList = class PathSegList extends dart.mixin(_interceptors.Interceptor
   get [dartx.numberOfItems]() {
     return this.numberOfItems;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[dartx.getItem](index);
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -88172,7 +88172,7 @@ svg.PathSegList = class PathSegList extends dart.mixin(_interceptors.Interceptor
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [__setter__](index, newItem) {
     return this.__setter__(index, newItem);
@@ -88211,8 +88211,8 @@ dart.setSignature(svg.PathSegList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(svg.PathSeg, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, svg.PathSeg]),
+    [dartx._get]: dart.definiteFunctionType(svg.PathSeg, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, svg.PathSeg]),
     [dartx.elementAt]: dart.definiteFunctionType(svg.PathSeg, [core.int]),
     [__setter__]: dart.definiteFunctionType(dart.void, [core.int, svg.PathSeg]),
     [dartx.appendItem]: dart.definiteFunctionType(svg.PathSeg, [svg.PathSeg]),
@@ -88878,8 +88878,8 @@ dart.setSignature(svg.StopElement, {
 dart.registerExtension(dart.global.SVGStopElement, svg.StopElement);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -88904,11 +88904,11 @@ svg.StringList = class StringList extends dart.mixin(_interceptors.Interceptor, 
   get [dartx.numberOfItems]() {
     return this.numberOfItems;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[dartx.getItem](index);
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -88937,7 +88937,7 @@ svg.StringList = class StringList extends dart.mixin(_interceptors.Interceptor, 
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [__setter__](index, newItem) {
     return this.__setter__(index, newItem);
@@ -88976,8 +88976,8 @@ dart.setSignature(svg.StringList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.String, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, core.String]),
+    [dartx._get]: dart.definiteFunctionType(core.String, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, core.String]),
     [dartx.elementAt]: dart.definiteFunctionType(core.String, [core.int]),
     [__setter__]: dart.definiteFunctionType(dart.void, [core.int, core.String]),
     [dartx.appendItem]: dart.definiteFunctionType(core.String, [core.String]),
@@ -89052,7 +89052,7 @@ svg._AttributeClassSet = class _AttributeClassSet extends html_common.CssClassSe
     this[_element] = element;
   }
   readClasses() {
-    let classname = this[_element][dartx.attributes][dartx.get]('class');
+    let classname = this[_element][dartx.attributes][dartx._get]('class');
     let s = LinkedHashSetOfString().new();
     if (classname == null) {
       return s;
@@ -89066,7 +89066,7 @@ svg._AttributeClassSet = class _AttributeClassSet extends html_common.CssClassSe
     return s;
   }
   writeClasses(s) {
-    this[_element][dartx.attributes][dartx.set]('class', s.join(' '));
+    this[_element][dartx.attributes][dartx._set]('class', s.join(' '));
   }
 };
 dart.setSignature(svg._AttributeClassSet, {
@@ -89121,7 +89121,7 @@ dart.defineExtensionNames([
 svg.SvgSvgElement = class SvgSvgElement extends svg.GraphicsElement {
   static new() {
     let el = svg.SvgElement.tag("svg");
-    el[dartx.attributes][dartx.set]('version', "1.1");
+    el[dartx.attributes][dartx._set]('version', "1.1");
     return svg.SvgSvgElement._check(el);
   }
   static _() {
@@ -89733,8 +89733,8 @@ svg.Transform.SVG_TRANSFORM_UNKNOWN = 0;
 dart.registerExtension(dart.global.SVGTransform, svg.Transform);
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -89761,11 +89761,11 @@ svg.TransformList = class TransformList extends dart.mixin(_interceptors.Interce
   get [dartx.numberOfItems]() {
     return this.numberOfItems;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[dartx.getItem](index);
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -89794,7 +89794,7 @@ svg.TransformList = class TransformList extends dart.mixin(_interceptors.Interce
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [__setter__](index, newItem) {
     return this.__setter__(index, newItem);
@@ -89839,8 +89839,8 @@ dart.setSignature(svg.TransformList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(svg.Transform, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, svg.Transform]),
+    [dartx._get]: dart.definiteFunctionType(svg.Transform, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, svg.Transform]),
     [dartx.elementAt]: dart.definiteFunctionType(svg.Transform, [core.int]),
     [__setter__]: dart.definiteFunctionType(dart.void, [core.int, svg.Transform]),
     [dartx.appendItem]: dart.definiteFunctionType(svg.Transform, [svg.Transform]),
@@ -93803,8 +93803,8 @@ dart.registerExtension(dart.global.SQLResultSet, web_sql.SqlResultSet);
 const _item_1 = Symbol('_item_1');
 dart.defineExtensionNames([
   'length',
-  'get',
-  'set',
+  '_get',
+  '_set',
   'length',
   'first',
   'last',
@@ -93819,11 +93819,11 @@ web_sql.SqlResultSetRowList = class SqlResultSetRowList extends dart.mixin(_inte
   get [dartx.length]() {
     return this.length;
   }
-  [dartx.get](index) {
+  [dartx._get](index) {
     if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
     return this[dartx.item](index);
   }
-  [dartx.set](index, value) {
+  [dartx._set](index, value) {
     dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
     return value;
   }
@@ -93852,7 +93852,7 @@ web_sql.SqlResultSetRowList = class SqlResultSetRowList extends dart.mixin(_inte
     dart.throw(new core.StateError("More than one element"));
   }
   [dartx.elementAt](index) {
-    return this[dartx.get](index);
+    return this[dartx._get](index);
   }
   [dartx.item](index) {
     return html_common.convertNativeToDart_Dictionary(this[_item_1](index));
@@ -93872,8 +93872,8 @@ dart.setSignature(web_sql.SqlResultSetRowList, {
   }),
   setters: () => ({[dartx.length]: dart.definiteFunctionType(dart.void, [core.int])}),
   methods: () => ({
-    [dartx.get]: dart.definiteFunctionType(core.Map, [core.int]),
-    [dartx.set]: dart.definiteFunctionType(dart.void, [core.int, core.Map]),
+    [dartx._get]: dart.definiteFunctionType(core.Map, [core.int]),
+    [dartx._set]: dart.definiteFunctionType(dart.void, [core.int, core.Map]),
     [dartx.elementAt]: dart.definiteFunctionType(core.Map, [core.int]),
     [dartx.item]: dart.definiteFunctionType(core.Map, [core.int]),
     [_item_1]: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])

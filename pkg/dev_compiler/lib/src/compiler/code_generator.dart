@@ -4481,7 +4481,10 @@ class CodeGenerator extends GeneralizingAstVisitor
           context: expr);
     }
 
-    return _emitSend(expr, op.lexeme[0], []);
+    var operatorName = op.lexeme;
+    // Use the name from the Dart spec.
+    if (operatorName == '-') operatorName = 'unary-';
+    return _emitSend(expr, operatorName, []);
   }
 
   // Cascades can contain [IndexExpression], [MethodInvocation] and
@@ -4714,7 +4717,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   JS.Expression _emitSend(
       Expression target, String name, List<Expression> args) {
     var type = getStaticType(target);
-    var memberName = _emitMemberName(name, unary: args.isEmpty, type: type);
+    var memberName = _emitMemberName(name, type: type);
     if (isDynamicInvoke(target)) {
       if (_inWhitelistCode(target)) {
         var vars = <JS.MetaLetVariable, JS.Expression>{};
@@ -5226,7 +5229,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
     return _emitMemberName(name,
         type: (e.enclosingElement as ClassElement).type,
-        unary: e.parameters.isEmpty,
         isStatic: e.isStatic,
         useExtension: useExtension);
   }
@@ -5266,17 +5268,13 @@ class CodeGenerator extends GeneralizingAstVisitor
   /// This follows the same pattern as ECMAScript 6 Map:
   /// <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map>
   ///
-  /// Unary minus looks like: `x['unary-']()`. Note that [unary] must be passed
-  /// for this transformation to happen, otherwise binary minus is assumed.
+  /// Unary minus looks like: `x._negate()`.
   ///
   /// Equality is a bit special, it is generated via the Dart `equals` runtime
   /// helper, that checks for null. The user defined method is called '=='.
   ///
   JS.Expression _emitMemberName(String name,
-      {DartType type,
-      bool unary: false,
-      bool isStatic: false,
-      bool useExtension}) {
+      {DartType type, bool isStatic: false, bool useExtension}) {
     // Static members skip the rename steps.
     if (isStatic) return _propertyName(name);
 
@@ -5284,16 +5282,22 @@ class CodeGenerator extends GeneralizingAstVisitor
       return _emitPrivateNameSymbol(currentLibrary, name);
     }
 
-    if (name == '[]') {
-      name = 'get';
-    } else if (name == '[]=') {
-      name = 'set';
-    } else if (name == '-' && unary) {
-      name = 'unary-';
-    } else if (name == 'constructor' || name == 'prototype') {
-      // This uses an illegal (in Dart) character for a member, avoiding the
-      // conflict. We could use practically any character for this.
-      name = '+$name';
+    // When generating synthetic names, we use _ as the prefix, since Dart names
+    // won't have this (eliminated above), nor will static names reach here.
+    switch (name) {
+      case '[]':
+        name = '_get';
+        break;
+      case '[]=':
+        name = '_set';
+        break;
+      case 'unary-':
+        name = '_negate';
+        break;
+      case 'constructor':
+      case 'prototype':
+        name = '_$name';
+        break;
     }
 
     var result = _propertyName(name);
