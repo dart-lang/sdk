@@ -41,13 +41,19 @@ void ScopeBuilder::ExitScope() { scope_ = scope_->parent(); }
 
 LocalVariable* ScopeBuilder::MakeVariable(const dart::String& name) {
   return new (Z)
-      LocalVariable(TokenPosition::kNoSource, name, Object::dynamic_type());
+      LocalVariable(TokenPosition::kNoSource,
+                    TokenPosition::kNoSource,
+                    name,
+                    Object::dynamic_type());
 }
 
 
 LocalVariable* ScopeBuilder::MakeVariable(const dart::String& name,
                                           const Type& type) {
-  return new (Z) LocalVariable(TokenPosition::kNoSource, name, type);
+  return new (Z) LocalVariable(TokenPosition::kNoSource,
+                               TokenPosition::kNoSource,
+                               name,
+                               type);
 }
 
 
@@ -2503,7 +2509,10 @@ LocalVariable* FlowGraphBuilder::MakeTemporary() {
   intptr_t index = stack_->definition()->temp_index();
   OS::SNPrint(name, 64, ":temp%" Pd, index);
   LocalVariable* variable = new (Z) LocalVariable(
-      TokenPosition::kNoSource, H.DartSymbol(name), Object::dynamic_type());
+      TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
+      H.DartSymbol(name),
+      Object::dynamic_type());
   // Set the index relative to the base of the expression stack including
   // outgoing arguments.
   variable->set_index(parsed_function_->first_stack_local_index() -
@@ -2764,7 +2773,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
         // create one directly.
         LocalVariable* parameter =
             new (Z) LocalVariable(TokenPosition::kNoSource,
-                                  Symbols::TempParam(), Object::dynamic_type());
+                                  TokenPosition::kNoSource,
+                                  Symbols::TempParam(),
+                                  Object::dynamic_type());
         parameter->set_index(parameter_index);
         // Mark the stack variable so it will be ignored by the code for
         // try/catch.

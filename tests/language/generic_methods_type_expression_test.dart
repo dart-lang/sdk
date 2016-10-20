@@ -51,8 +51,8 @@ main() {
   Expect.throws(() => f3<String>(42), (e) => e is TypeError);
   Expect.equals(f4<int>(<int>[42]), false);
   Expect.equals(f4<String>(<int>[42]), false); // `is! List<dynamic>` is false.
-  Expect.throws(() => f5<String>(s), (e) => e is TypeError);
-  Expect.throws(() => f5<int>(s), (e) => e is TypeError);
+  Expect.equals(f5<String>(s), s); // `s as dynamic == s`
+  Expect.equals(f5<int>(s), s); // `s as dynamic == s`
   Expect.equals(f6<String>(ss), ss);
   Expect.equals(f6<int>(ss), ss); // `as List<dynamic>` succeeds.
   Expect.throws(() => f7<int>(), (e) => e is TypeError);

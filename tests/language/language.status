@@ -48,6 +48,9 @@ least_upper_bound_expansive_test/*: Fail, OK
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
 async_star_cancel_while_paused_test: RuntimeError
 
+# Fails because `as T` is an error rather than being treated like `as dynamic`.
+generic_methods_type_expression_test: RuntimeError # Issue 27460
+
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && $checked ]
 # These generic functions tests pass for the wrong reason in checked mode,
 # because the parsed type parameters are mapped to dynamic type.

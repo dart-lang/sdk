@@ -10,8 +10,8 @@
 #include "bin/eventhandler.h"
 #include "bin/eventhandler_fuchsia.h"
 
+#include <magenta/status.h>
 #include <magenta/syscalls.h>
-#include <runtime/status.h>
 
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -22,7 +22,7 @@ namespace bin {
 EventHandlerImplementation::EventHandlerImplementation() {
   mx_status_t status = mx_msgpipe_create(interrupt_handles_, 0);
   if (status != NO_ERROR) {
-    FATAL1("mx_msgpipe_create failed: %s\n", mx_strstatus(status));
+    FATAL1("mx_msgpipe_create failed: %s\n", mx_status_get_string(status));
   }
   shutdown_ = false;
 }
@@ -31,11 +31,11 @@ EventHandlerImplementation::EventHandlerImplementation() {
 EventHandlerImplementation::~EventHandlerImplementation() {
   mx_status_t status = mx_handle_close(interrupt_handles_[0]);
   if (status != NO_ERROR) {
-    FATAL1("mx_handle_close failed: %s\n", mx_strstatus(status));
+    FATAL1("mx_handle_close failed: %s\n", mx_status_get_string(status));
   }
   status = mx_handle_close(interrupt_handles_[1]);
   if (status != NO_ERROR) {
-    FATAL1("mx_handle_close failed: %s\n", mx_strstatus(status));
+    FATAL1("mx_handle_close failed: %s\n", mx_status_get_string(status));
   }
 }
 
@@ -51,7 +51,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   mx_status_t status =
     mx_msgpipe_write(interrupt_handles_[1], &msg, sizeof(msg), NULL, 0, 0);
   if (status != NO_ERROR) {
-    FATAL1("mx_msgpipe_write failed: %s\n", mx_strstatus(status));
+    FATAL1("mx_msgpipe_write failed: %s\n", mx_status_get_string(status));
   }
 }
 
@@ -78,7 +78,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
   // status == ERR_BAD_STATE when we try to read and there are no messages
   // available, so it is an error if we get here and status != ERR_BAD_STATE.
   if (status != ERR_BAD_STATE) {
-    FATAL1("mx_msgpipe_read failed: %s\n", mx_strstatus(status));
+    FATAL1("mx_msgpipe_read failed: %s\n", mx_status_get_string(status));
   }
 }
 
@@ -130,7 +130,7 @@ void EventHandlerImplementation::Poll(uword args) {
         timeout,
         &signals_state);
     if ((status != NO_ERROR) && (status != ERR_TIMED_OUT)) {
-      FATAL1("mx_handle_wait_one failed: %s\n", mx_strstatus(status));
+      FATAL1("mx_handle_wait_one failed: %s\n", mx_status_get_string(status));
     } else {
       handler_impl->HandleTimeout();
       if ((signals_state.satisfied & MX_SIGNAL_READABLE) != 0) {

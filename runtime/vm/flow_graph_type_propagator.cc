@@ -1152,6 +1152,11 @@ CompileType BinaryDoubleOpInstr::ComputeType() const {
 }
 
 
+CompileType DoubleTestOpInstr::ComputeType() const {
+  return CompileType::FromCid(kBoolCid);
+}
+
+
 CompileType BinaryFloat32x4OpInstr::ComputeType() const {
   return CompileType::FromCid(kFloat32x4Cid);
 }

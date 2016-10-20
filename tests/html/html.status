@@ -75,6 +75,11 @@ native_gc_test: Pass, Slow
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
+[ $compiler == dart2js && $runtime == chrome ]
+fileapi_test/entry: Fail # TODO(dart2js-team): Please triage this failure.
+fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure.
+fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
+
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
 input_element_test/supported_datetime-local: Pass, Slow # TODO(dart2js-team): Please triage this failure.

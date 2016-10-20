@@ -89,7 +89,8 @@ Window get window => JS('Window', 'window');
 /**
  * Root node for all content in a web page.
  */
-HtmlDocument get document => JS('HtmlDocument', 'document');
+HtmlDocument get document =>
+    JS('returns:HtmlDocument;depends:none;effects:none;gvn:true', 'document');
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
@@ -3069,10 +3070,8 @@ class CloseEvent extends Event {
 @Native("Comment")
 class Comment extends CharacterData {
   factory Comment([String data]) {
-    if (data != null) {
-      return JS('Comment', '#.createComment(#)', document, data);
-    }
-    return JS('Comment', '#.createComment("")', document);
+    return JS('returns:Comment;depends:none;effects:none;new:true',
+        '#.createComment(#)', document, data == null ? "" : data);
   }
   // To suppress missing implicit constructor warnings.
   factory Comment._() { throw new UnsupportedError("Not supported"); }
@@ -31999,7 +31998,9 @@ class TemplateElement extends HtmlElement {
 @DomName('Text')
 @Native("Text")
 class Text extends CharacterData {
-  factory Text(String data) => document._createTextNode(data);
+  factory Text(String data) =>
+      JS('returns:Text;depends:none;effects:none;new:true',
+          '#.createTextNode(#)', document, data);
   // To suppress missing implicit constructor warnings.
   factory Text._() { throw new UnsupportedError("Not supported"); }
 

@@ -2294,6 +2294,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(Value* value) {
   OS::SNPrint(name, 64, ":tmp_local%" Pd, index);
   LocalVariable*  var =
       new(Z) LocalVariable(TokenPosition::kNoSource,
+                           TokenPosition::kNoSource,
                            String::ZoneHandle(Z, Symbols::New(T, name)),
                            *value->Type()->ToAbstractType());
   var->set_index(index);
@@ -4026,6 +4027,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           // Create a temporary local describing the original position.
           const String& temp_name = Symbols::TempParam();
           LocalVariable* temp_local = new(Z) LocalVariable(
+              TokenPosition::kNoSource,  // Token index.
               TokenPosition::kNoSource,  // Token index.
               temp_name,
               Object::dynamic_type());  // Type.

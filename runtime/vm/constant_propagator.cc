@@ -1168,6 +1168,27 @@ void ConstantPropagator::VisitBinaryDoubleOp(
 }
 
 
+void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
+  const Object& value = instr->value()->definition()->constant_value();
+  if (value.IsInteger()) {
+    SetValue(instr, Bool::False());
+  } else if (IsIntegerOrDouble(value)) {
+    switch (instr->op_kind()) {
+      case MethodRecognizer::kDouble_getIsNaN:
+        SetValue(instr, Bool::Get(isnan(ToDouble(value))));
+        break;
+      case MethodRecognizer::kDouble_getIsInfinite:
+        SetValue(instr, Bool::Get(isinf(ToDouble(value))));
+        break;
+      default:
+        UNREACHABLE();
+    }
+  } else {
+    SetValue(instr, non_constant_);
+  }
+}
+
+
 void ConstantPropagator::VisitBinaryFloat32x4Op(
     BinaryFloat32x4OpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();

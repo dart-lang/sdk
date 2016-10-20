@@ -501,10 +501,13 @@ setBaseClass(derived, base) {
 
 /// Like [setBaseClass] but for generic extension types, e.g. `JSArray<E>`
 setExtensionBaseClass(derived, base) {
-  // Mark the generic type as an extension type.
-  JS('', '#.prototype[#] = #', derived, _extensionType, derived);
-  // Link the prototype objects
-  JS('', '#.prototype.__proto__ = #.prototype', derived, base);
+  // Mark the generic type as an extension type and link the prototype objects
+  return JS('', '''(() => {
+    if ($base) {
+      $derived.prototype[$_extensionType] = $derived;
+      $derived.prototype.__proto__ = $base.prototype
+    }
+})()''');
 }
 
 /// Given a special constructor function that creates a function instances,

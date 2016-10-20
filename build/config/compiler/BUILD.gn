@@ -720,7 +720,7 @@ config("optimize") {
   if (is_win) {
     # Favor size over speed, /O1 must be before the common flags. The GYP
     # build also specifies /Os and /GF but these are implied by /O1.
-    cflags = [ "/O1" ] + common_optimize_on_cflags + [ "/Oi" ]
+    cflags = [ "/O2" ] + common_optimize_on_cflags + [ "/Oi" ]
   } else if (is_android) {
     cflags = [ "-Os" ] + common_optimize_on_cflags  # Favor size over speed.
   } else {
@@ -733,9 +733,9 @@ config("optimize") {
 config("no_optimize") {
   if (is_win) {
     cflags = [
-      "/Od",  # Disable optimization.
+      "/O2",  # Do some optimizations.
+      "/Oy-",  # Disable omitting frame pointers, must be after /O2.
       "/Ob0",  # Disable all inlining (on by default).
-      "/RTC1",  # Runtime checks for stack frame and uninitialized variables.
     ]
   } else if (is_android) {
     # On Android we kind of optimize some things that don't affect debugging

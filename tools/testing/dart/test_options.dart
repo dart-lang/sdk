@@ -73,8 +73,9 @@ class TestOptionsParser {
    dart2analyzer: Perform static analysis on Dart code by running the analyzer
           (only valid with the following runtimes: none)
 
-   dart2app: Compile the Dart code into an app snapshot before running the test
-          (only valid with the following runtimes: dart_app)''',
+   dart2app:
+   dart2appjit: Compile the Dart code into an app snapshot before running test
+          (only valid with dart_app runtime)''',
           ['-c', '--compiler'],
           ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app', 'dart2appjit'],
           'none'),
@@ -670,8 +671,6 @@ Note: currently only implemented for dart2js.''',
         validRuntimes = const ['none'];
         break;
       case 'dart2app':
-        validRuntimes = const ['dart_app'];
-        break;
       case 'dart2appjit':
         validRuntimes = const ['dart_app'];
         break;

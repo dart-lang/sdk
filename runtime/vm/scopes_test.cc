@@ -14,15 +14,19 @@ TEST_CASE(LocalScope) {
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New(thread, "a"));
   LocalVariable* var_a =
-      new LocalVariable(TokenPosition::kNoSource, a, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource, a, dynamic_type);
   LocalVariable* inner_var_a =
-      new LocalVariable(TokenPosition::kNoSource, a, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource, a, dynamic_type);
   const String& b = String::ZoneHandle(Symbols::New(thread, "b"));
   LocalVariable* var_b =
-      new LocalVariable(TokenPosition::kNoSource, b, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource, b, dynamic_type);
   const String& c = String::ZoneHandle(Symbols::New(thread, "c"));
   LocalVariable* var_c =
-      new LocalVariable(TokenPosition::kNoSource, c, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource, c, dynamic_type);
   const String& L = String::ZoneHandle(Symbols::New(thread, "L"));
   SourceLabel* label_L =
       new SourceLabel(TokenPosition::kNoSource, L, SourceLabel::kFor);

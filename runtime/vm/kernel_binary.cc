@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 
+#include "platform/globals.h"
 #include "vm/flags.h"
 #include "vm/kernel.h"
 #include "vm/os.h"
@@ -12,11 +13,11 @@
 #if defined(DEBUG)
 #define TRACE_READ_OFFSET() do {               \
     if (FLAG_trace_kernel_binary)              \
-      reader->DumpOffset(__PRETTY_FUNCTION__); \
+      reader->DumpOffset(DART_PRETTY_FUNCTION); \
   } while (0)
 #define TRACE_WRITE_OFFSET() do {              \
     if (FLAG_trace_kernel_binary)              \
-      writer->DumpOffset(__PRETTY_FUNCTION__); \
+      writer->DumpOffset(DART_PRETTY_FUNCTION); \
   } while (0)
 #else
 #define TRACE_READ_OFFSET()

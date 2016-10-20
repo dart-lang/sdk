@@ -254,10 +254,6 @@ analyzer:
     expect(errors, hasLength(1));
     expect(errors[0].errorCode,
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES);
-    expect(
-        errors[0].message,
-        "The option 'not_supported' is not supported by analyzer, supported "
-        "values are 'errors', 'exclude', 'language', 'plugins' and 'strong-mode'");
   }
 }
 

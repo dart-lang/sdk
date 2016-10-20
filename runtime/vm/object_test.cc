@@ -2535,17 +2535,26 @@ VM_TEST_CASE(ContextScope) {
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New(thread, "a"));
   LocalVariable* var_a =
-      new LocalVariable(TokenPosition::kNoSource, a, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource,
+                        a,
+                        dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(Symbols::New(thread, "b"));
   LocalVariable* var_b =
-      new LocalVariable(TokenPosition::kNoSource, b, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource,
+                        b,
+                        dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(Symbols::New(thread, "c"));
   LocalVariable* var_c =
-      new LocalVariable(TokenPosition::kNoSource, c, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource,
+                        c,
+                        dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.

@@ -78,11 +78,9 @@ abstract class CompilerConfiguration {
             useFastStartup: useFastStartup,
             extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
+      case 'dart2appjit':
       case 'dart2app':
         return new Dart2AppSnapshotCompilerConfiguration(
-            isDebug: isDebug, isChecked: isChecked);
-      case 'dart2appjit':
-        return new Dart2AppJitSnapshotCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked, useBlobs: useBlobs);
       case 'precompiler':
         return new PrecompilerCompilerConfiguration(
@@ -502,8 +500,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 }
 
 class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
-  Dart2AppSnapshotCompilerConfiguration({bool isDebug, bool isChecked})
-      : super._subclass(isDebug: isDebug, isChecked: isChecked);
+  final bool useBlobs;
+  Dart2AppSnapshotCompilerConfiguration({bool isDebug, bool isChecked, bool useBlobs})
+      : super._subclass(isDebug: isDebug, isChecked: isChecked), this.useBlobs = useBlobs;
 
   int computeTimeoutMultiplier() {
     int multiplier = 2;
@@ -530,10 +529,13 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    var exec = "$buildDir/dart_bootstrap";
+    var exec = "$buildDir/dart";
     var args = new List();
     args.add("--snapshot=$tempDir/out.jitsnapshot");
-    args.add("--snapshot-kind=app-after-run");
+    args.add("--snapshot-kind=app-jit");
+    if (useBlobs) {
+      args.add("--use-blobs");
+    }
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand(
@@ -576,37 +578,6 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       ..addAll(vmOptions)
       ..addAll(sharedOptions)
       ..addAll(originalArguments);
-  }
-}
-
-class Dart2AppJitSnapshotCompilerConfiguration extends Dart2AppSnapshotCompilerConfiguration {
-  final bool useBlobs;
-  Dart2AppJitSnapshotCompilerConfiguration({bool isDebug, bool isChecked, bool useBlobs})
-      : super(isDebug: isDebug, isChecked: isChecked), this.useBlobs = useBlobs;
-
-  CompilationCommand computeCompilationCommand(
-      String tempDir,
-      String buildDir,
-      CommandBuilder commandBuilder,
-      List arguments,
-      Map<String, String> environmentOverrides) {
-    var exec = "$buildDir/dart";
-    var args = new List();
-    args.add("--snapshot=$tempDir/out.jitsnapshot");
-    args.add("--snapshot-kind=app-jit-after-run");
-    if (useBlobs) {
-      args.add("--use-blobs");
-    }
-    args.addAll(arguments);
-
-    return commandBuilder.getCompilationCommand(
-        'dart2snapshot',
-        tempDir,
-        !useSdk,
-        bootstrapDependencies(buildDir),
-        exec,
-        args,
-        environmentOverrides);
   }
 }
 

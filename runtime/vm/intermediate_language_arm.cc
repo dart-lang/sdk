@@ -4142,6 +4142,49 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(compiler->is_optimizing());
+  const DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
+  const Register result = locs()->out(0).reg();
+  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
+    __ LoadObject(result, Bool::False());
+    __ vcmpd(value, value);
+    __ vmstat();
+    __ LoadObject(result, Bool::True(), VS);
+  } else {
+    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
+    Label done;
+    // TMP <- value[0:31], result <- value[32:63]
+    __ vmovrrd(TMP, result, value);
+    __ cmp(TMP, Operand(0));
+    __ LoadObject(result, Bool::False(), NE);
+    __ b(&done, NE);
+
+    // Mask off the sign bit.
+    __ AndImmediate(result, result, 0x7FFFFFFF);
+    // Compare with +infinity.
+    __ CompareImmediate(result, 0x7FF00000);
+    __ LoadObject(result, Bool::False(), NE);
+    __ b(&done, NE);
+
+    __ LoadObject(result, Bool::True());
+    __ Bind(&done);
+  }
+}
+
+
 LocationSummary* BinaryFloat32x4OpInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -5783,6 +5826,7 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
   __ b(&skip_call, EQ);  // base is 1.0, result is 1.0.
 
   __ vcmpd(saved_base, exp);
+  __ vmstat();
   __ b(&try_sqrt, VC);  // // Neither 'exp' nor 'base' is NaN.
 
   __ Bind(&return_nan);
@@ -5797,15 +5841,18 @@ static void InvokeDoublePow(FlowGraphCompiler* compiler,
 
   // base == -Infinity -> call pow;
   __ vcmpd(saved_base, result);
+  __ vmstat();
   __ b(&do_pow, EQ);
 
   // exponent == 0.5 ?
   __ LoadDImmediate(result, 0.5, temp);
   __ vcmpd(exp, result);
+  __ vmstat();
   __ b(&do_pow, NE);
 
   // base == 0 -> return 0;
   __ vcmpdz(saved_base);
+  __ vmstat();
   __ b(&return_zero, EQ);
 
   __ vsqrtd(result, saved_base);

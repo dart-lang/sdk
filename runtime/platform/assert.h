@@ -254,6 +254,9 @@ T DynamicAssertionHelper::NotNull(const T p) {
 #define UNREACHABLE()                                                          \
   FATAL("unreachable code")
 
+#define OUT_OF_MEMORY()                                                        \
+  FATAL("Out of memory.")
+
 
 #if defined(DEBUG)
 // DEBUG binaries use assertions in the code.

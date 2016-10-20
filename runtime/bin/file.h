@@ -162,6 +162,10 @@ class File : public ReferenceCounted<File> {
   // Like ScopedOpen(), but no API scope is needed.
   static File* Open(const char* path, FileOpenMode mode);
 
+  // Caution! On Windows, the static functions below may call
+  // Dart_ScopeAllocate() to do string conversions! If you call these functions
+  // without a scope, they will fail on Windows!
+
   // Create a file object for the specified stdio file descriptor
   // (stdin, stout or stderr).
   static File* OpenStdio(int fd);

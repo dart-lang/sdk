@@ -5151,6 +5151,10 @@ class ContextScope : public Object {
   TokenPosition TokenIndexAt(intptr_t scope_index) const;
   void SetTokenIndexAt(intptr_t scope_index, TokenPosition token_pos) const;
 
+  TokenPosition DeclarationTokenIndexAt(intptr_t scope_index) const;
+  void SetDeclarationTokenIndexAt(intptr_t scope_index,
+                                  TokenPosition declaration_token_pos) const;
+
   RawString* NameAt(intptr_t scope_index) const;
   void SetNameAt(intptr_t scope_index, const String& name) const;
 

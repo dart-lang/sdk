@@ -156,6 +156,7 @@ namespace dart {
   V(_Double, *, Double_mul, Double, 0x23d068d8)                                \
   V(_Double, /, Double_div, Double, 0x48bac1dc)                                \
   V(_Double, get:isNaN, Double_getIsNaN, Bool, 0x0af8ebeb)                     \
+  V(_Double, get:isInfinite, Double_getIsInfinite, Bool, 0x0f79e289)           \
   V(_Double, get:isNegative, Double_getIsNegative, Bool, 0x3a58ff36)           \
   V(_Double, _mulFromInteger, Double_mulFromInteger, Double, 0x330e9a36)       \
   V(_Double, .fromInteger, DoubleFromInteger, Double, 0x7ef45843)              \

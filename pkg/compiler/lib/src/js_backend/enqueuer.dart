@@ -25,6 +25,7 @@ import '../elements/elements.dart'
         LibraryElement,
         Member,
         MemberElement,
+        MethodElement,
         Name,
         TypedElement,
         TypedefElement;
@@ -210,11 +211,7 @@ class CodegenEnqueuer implements Enqueuer {
         addToWorkList(function);
         return;
       }
-      // Store the member in [instanceFunctionsByName] to catch
-      // getters on the function.
-      instanceFunctionsByName
-          .putIfAbsent(memberName, () => new Set<Element>())
-          .add(member);
+      _registerInstanceMethod(function);
       if (_universe.hasInvocation(function, _world)) {
         addToWorkList(function);
         return;
@@ -244,6 +241,14 @@ class CodegenEnqueuer implements Enqueuer {
     instanceMembersByName
         .putIfAbsent(memberName, () => new Set<Element>())
         .add(member);
+  }
+
+  // Store the member in [instanceFunctionsByName] to catch
+  // getters on the function.
+  void _registerInstanceMethod(MethodElement element) {
+    instanceFunctionsByName
+        .putIfAbsent(element.name, () => new Set<Element>())
+        .add(element);
   }
 
   void enableIsolateSupport() {}
@@ -534,6 +539,9 @@ class CodegenEnqueuer implements Enqueuer {
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         registerTypeUse(new TypeUse.instantiation(staticUse.type));
+        break;
+      case StaticUseKind.DIRECT_INVOKE:
+        _registerInstanceMethod(staticUse.element);
         break;
     }
     if (addElement) {

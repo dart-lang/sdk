@@ -21,10 +21,12 @@ class LocalScope;
 
 class LocalVariable : public ZoneAllocated {
  public:
-  LocalVariable(TokenPosition token_pos,
+  LocalVariable(TokenPosition declaration_pos,
+                TokenPosition token_pos,
                 const String& name,
                 const AbstractType& type)
-    : token_pos_(token_pos),
+    : declaration_pos_(declaration_pos),
+      token_pos_(token_pos),
       name_(name),
       owner_(NULL),
       type_(type),
@@ -41,6 +43,7 @@ class LocalVariable : public ZoneAllocated {
   }
 
   TokenPosition token_pos() const { return token_pos_; }
+  TokenPosition declaration_token_pos() const { return declaration_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
@@ -117,6 +120,7 @@ class LocalVariable : public ZoneAllocated {
  private:
   static const int kUninitializedIndex = INT_MIN;
 
+  const TokenPosition declaration_pos_;
   const TokenPosition token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this variable.

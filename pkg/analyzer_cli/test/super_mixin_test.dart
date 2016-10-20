@@ -45,11 +45,11 @@ void main() {
       expect(
           stdout,
           contains(
-              "[error] The class 'C' cannot be used as a mixin because it extends a class other than Object"));
+              "[error] The class 'C' can't be used as a mixin because it extends a class other than Object"));
       expect(
           stdout,
           contains(
-              "[error] The class 'C' cannot be used as a mixin because it references 'super'"));
+              "[error] The class 'C' can't be used as a mixin because it references 'super'"));
       expect(stdout, contains('2 errors found.'));
       expect(errorSink.toString(), '');
     });

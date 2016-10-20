@@ -63,11 +63,11 @@ abstract class C extends B {
     expect(
         allErrorMessages,
         contains(
-            "The class 'C' cannot be used as a mixin because it extends a class other than Object"));
+            "The class 'C' can't be used as a mixin because it extends a class other than Object."));
     expect(
         allErrorMessages,
         contains(
-            "The class 'C' cannot be used as a mixin because it references 'super'"));
+            "The class 'C' can't be used as a mixin because it references 'super'."));
   }
 
   test_super_mixins_enabled() async {

@@ -2424,6 +2424,9 @@ import 'package:crypto/crypto.dart';
   }
 
   void test_resolveCompilationUnit_existingElementModel() {
+    prepareAnalysisContext(new AnalysisOptionsImpl()
+      ..enableGenericMethods = true
+      ..strongMode = true);
     Source source = addSource(
         '/test.dart',
         r'''
@@ -2438,6 +2441,11 @@ typedef String FunctionTypeAlias(int i);
 
 enum EnumeratedType {Invalid, Valid}
 
+class A {
+  const A(x);
+}
+
+@A(const [(_) => null])
 class ClassOne {
   int instanceField;
   static int staticField;
@@ -2461,6 +2469,12 @@ class ClassOne {
 class ClassTwo {
   // Implicit no-argument constructor
 }
+
+void topLevelFunctionWithLocalFunction() {
+  void localFunction({bool b: false}) {}
+}
+
+void functionWithGenericFunctionTypedParam/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {}
 ''');
     context.resolveCompilationUnit2(source, source);
     LibraryElement firstElement = context.computeLibraryElement(source);

@@ -673,8 +673,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   // R9: Allocation size.
   Heap::Space space = Heap::kNew;
-  __ LoadIsolate(R8);
-  __ ldr(R8, Address(R8, Isolate::heap_offset()));
+  __ ldr(R8, Address(THR, Thread::heap_offset()));
   // Potential new object start.
   __ ldr(R0, Address(R8, Heap::TopOffset(space)));
   __ adds(NOTFP, R0, Operand(R9));  // Potential next object start.
@@ -902,8 +901,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     const intptr_t cid = kContextCid;
     Heap::Space space = Heap::kNew;
-    __ LoadIsolate(R9);
-    __ ldr(R9, Address(R9, Isolate::heap_offset()));
+    __ ldr(R9, Address(THR, Thread::heap_offset()));
     __ ldr(R0, Address(R9, Heap::TopOffset(space)));
     __ add(R3, R2, Operand(R0));
     // Check if the allocation fits into the remaining space.

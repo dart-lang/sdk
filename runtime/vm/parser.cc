@@ -244,6 +244,7 @@ LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   if (!has_expression_temp_var()) {
     LocalVariable* temp =
         new (Z) LocalVariable(function_.token_pos(),
+                              function_.token_pos(),
                               Symbols::ExprTemp(),
                               Object::dynamic_type());
     ASSERT(temp != NULL);
@@ -257,6 +258,7 @@ LocalVariable* ParsedFunction::EnsureExpressionTemp() {
 void ParsedFunction::EnsureFinallyReturnTemp(bool is_async) {
   if (!has_finally_return_temp_var()) {
     LocalVariable* temp = new(Z) LocalVariable(
+        function_.token_pos(),
         function_.token_pos(),
         Symbols::FinallyRetVal(),
         Object::dynamic_type());
@@ -3114,7 +3116,13 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   const Function& redirect_ctor = Function::ZoneHandle(Z,
       cls.LookupConstructor(ctor_name));
   if (redirect_ctor.IsNull()) {
-    ReportError(call_pos, "constructor '%s' not found", ctor_name.ToCString());
+    ReportError(call_pos, "constructor '%s' not found",
+        String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
+  }
+  if (current_function().is_const() && !redirect_ctor.is_const()) {
+    ReportError(call_pos,
+        "redirection constructor '%s' must be const",
+        String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString());
   }
   String& error_message = String::Handle(Z);
   if (!redirect_ctor.AreValidArguments(arguments->length(),
@@ -3122,7 +3130,7 @@ void Parser::ParseConstructorRedirection(const Class& cls,
                                        &error_message)) {
     ReportError(call_pos,
                 "invalid arguments passed to constructor '%s': %s",
-                ctor_name.ToCString(),
+                String::Handle(Z, redirect_ctor.UserVisibleName()).ToCString(),
                 error_message.ToCString());
   }
   current_block_->statements->Add(
@@ -3137,6 +3145,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   OpenFunctionBlock(func);
 
   LocalVariable* receiver = new LocalVariable(
+      TokenPosition::kNoSource,
       TokenPosition::kNoSource,
       Symbols::This(),
       *ReceiverType(current_class()));
@@ -3185,6 +3194,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
     forwarding_args = new ArgumentListNode(ST(ctor_pos));
     for (int i = 1; i < func.NumParameters(); i++) {
       LocalVariable* param = new LocalVariable(
+          TokenPosition::kNoSource,
           TokenPosition::kNoSource,
           String::ZoneHandle(Z, func.ParameterNameAt(i)),
           Object::dynamic_type());
@@ -7102,10 +7112,12 @@ void Parser::AddContinuationVariables() {
   //   var :await_ctx_var;
   LocalVariable* await_jump_var = new (Z) LocalVariable(
       TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
       Symbols::AwaitJumpVar(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(await_jump_var);
   LocalVariable* await_ctx_var = new (Z) LocalVariable(
+      TokenPosition::kNoSource,
       TokenPosition::kNoSource,
       Symbols::AwaitContextVar(),
       Object::dynamic_type());
@@ -7121,20 +7133,24 @@ void Parser::AddAsyncClosureVariables() {
   //   var :async_completer;
   LocalVariable* async_op_var = new(Z) LocalVariable(
       TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
       Symbols::AsyncOperation(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
+      TokenPosition::kNoSource,
       TokenPosition::kNoSource,
       Symbols::AsyncThenCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
       TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
       Symbols::AsyncCatchErrorCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_catch_error_callback_var);
   LocalVariable* async_completer = new(Z) LocalVariable(
+      TokenPosition::kNoSource,
       TokenPosition::kNoSource,
       Symbols::AsyncCompleter(),
       Object::dynamic_type());
@@ -7155,20 +7171,24 @@ void Parser::AddAsyncGeneratorVariables() {
   // the body of the async* function. They are used by the await operator.
   LocalVariable* controller_var = new(Z) LocalVariable(
       TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
       Symbols::Controller(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(controller_var);
   LocalVariable* async_op_var = new(Z) LocalVariable(
+      TokenPosition::kNoSource,
       TokenPosition::kNoSource,
       Symbols::AsyncOperation(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_op_var);
   LocalVariable* async_then_callback_var = new(Z) LocalVariable(
       TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
       Symbols::AsyncThenCallback(),
       Object::dynamic_type());
   current_block_->scope->AddVariable(async_then_callback_var);
   LocalVariable* async_catch_error_callback_var = new(Z) LocalVariable(
+      TokenPosition::kNoSource,
       TokenPosition::kNoSource,
       Symbols::AsyncCatchErrorCallback(),
       Object::dynamic_type());
@@ -7658,7 +7678,10 @@ void Parser::AddFormalParamsToScope(const ParamList* params,
     ASSERT(!is_top_level_ || param_desc.type->IsResolved());
     const String* name = param_desc.name;
     LocalVariable* parameter = new(Z) LocalVariable(
-        param_desc.name_pos, *name, *param_desc.type);
+        param_desc.name_pos,
+        param_desc.name_pos,
+        *name,
+        *param_desc.type);
     if (!scope->InsertParameterAt(i, parameter)) {
       ReportError(param_desc.name_pos,
                   "name '%s' already exists in scope",
@@ -7770,7 +7793,10 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
         is_const, kConsumeCascades, await_preamble);
     const TokenPosition expr_end_pos = TokenPos();
     variable = new(Z) LocalVariable(
-        expr_end_pos, ident, type);
+        ident_pos,
+        expr_end_pos,
+        ident,
+        type);
     initialization = new(Z) StoreLocalNode(
         assign_pos, variable, expr);
     if (is_const) {
@@ -7783,7 +7809,10 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
   } else {
     // Initialize variable with null.
     variable = new(Z) LocalVariable(
-        assign_pos, ident, type);
+        ident_pos,
+        assign_pos,
+        ident,
+        type);
     AstNode* null_expr = new(Z) LiteralNode(ident_pos, Object::null_instance());
     initialization = new(Z) StoreLocalNode(
         ident_pos, variable, null_expr);
@@ -7920,6 +7949,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   result_type = Type::DynamicType();
 
   const TokenPosition function_pos = TokenPos();
+  TokenPosition function_name_pos = TokenPosition::kNoSource;
   TokenPosition metadata_pos = TokenPosition::kNoSource;
   if (is_literal) {
     ASSERT(CurrentToken() == Token::kLPAREN || CurrentToken() == Token::kLT);
@@ -7934,7 +7964,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       // referring to a not yet declared function type parameter.
       result_type = ParseType(ClassFinalizer::kDoNotResolve);
     }
-    const TokenPosition name_pos = TokenPos();
+    function_name_pos = TokenPos();
     variable_name = ExpectIdentifier("function name expected");
     function_name = variable_name;
 
@@ -7947,7 +7977,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
       ASSERT(!script_.IsNull());
       intptr_t line_number;
       script_.GetTokenLocation(previous_pos, &line_number, NULL);
-      ReportError(name_pos,
+      ReportError(function_name_pos,
                   "identifier '%s' previously used in line %" Pd "",
                   function_name->ToCString(),
                   line_number);
@@ -8026,7 +8056,8 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
 
     // Add the function variable to the scope before parsing the function in
     // order to allow self reference from inside the function.
-    function_variable = new(Z) LocalVariable(function_pos,
+    function_variable = new(Z) LocalVariable(function_name_pos,
+                                             function_pos,
                                              *variable_name,
                                              function_type);
     function_variable->set_is_final();
@@ -8838,7 +8869,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
                  expr_pos));
   temp_var_type.SetIsFinalized();
   LocalVariable* temp_variable = new(Z) LocalVariable(
-      expr_pos,  Symbols::SwitchExpr(), temp_var_type);
+      expr_pos, expr_pos,  Symbols::SwitchExpr(), temp_var_type);
   current_block_->scope->AddVariable(temp_variable);
   AstNode* save_switch_expr = new(Z) StoreLocalNode(
       expr_pos, temp_variable, switch_expr);
@@ -9128,7 +9159,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                               ctor_args);
   const AbstractType& iterator_type = Object::dynamic_type();
   LocalVariable* iterator_var = new(Z) LocalVariable(
-      stream_expr_pos, Symbols::ForInIter(), iterator_type);
+      stream_expr_pos, stream_expr_pos, Symbols::ForInIter(), iterator_type);
   current_block_->scope->AddVariable(iterator_var);
   AstNode* iterator_init =
       new(Z) StoreLocalNode(stream_expr_pos, iterator_var, ctor_call);
@@ -9213,6 +9244,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
     // loop block, so it gets put in the loop context level.
     LocalVariable* loop_var =
         new(Z) LocalVariable(loop_var_assignment_pos,
+                             loop_var_assignment_pos,
                              *loop_var_name,
                              loop_var_type);;
     if (loop_var_is_final) {
@@ -9388,6 +9420,7 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
     loop_var_type = ParseConstFinalVarOrType(
         I->type_checks() ? ClassFinalizer::kCanonicalize :
                                    ClassFinalizer::kIgnore);
+    loop_var_pos = TokenPos();
     loop_var_name = ExpectIdentifier("variable name expected");
   }
   ExpectToken(Token::kIN);
@@ -9411,6 +9444,7 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
   // until the loop variable is assigned to.
   const AbstractType& iterator_type = Object::dynamic_type();
   LocalVariable* iterator_var = new(Z) LocalVariable(
+      collection_pos,
       collection_pos, Symbols::ForInIter(), iterator_type);
   current_block_->scope->AddVariable(iterator_var);
 
@@ -9448,7 +9482,8 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
     // The for loop variable is new for each iteration.
     // Create a variable and add it to the loop body scope.
     LocalVariable* loop_var =
-       new(Z) LocalVariable(loop_var_assignment_pos,
+       new(Z) LocalVariable(loop_var_pos,
+                            loop_var_assignment_pos,
                             *loop_var_name,
                             loop_var_type);;
     if (loop_var_is_final) {
@@ -9615,6 +9650,7 @@ void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
   if (exception_param->name != NULL) {
     LocalVariable* var = new(Z) LocalVariable(
         exception_param->token_pos,
+        exception_param->token_pos,
         *exception_param->name,
         *exception_param->type);
     var->set_is_final();
@@ -9624,6 +9660,7 @@ void Parser::AddCatchParamsToScope(CatchParamDesc* exception_param,
   }
   if (stack_trace_param->name != NULL) {
     LocalVariable* var = new(Z) LocalVariable(
+        stack_trace_param->token_pos,
         stack_trace_param->token_pos,
         *stack_trace_param->name,
         *stack_trace_param->type);
@@ -10034,6 +10071,7 @@ void Parser::SetupSavedTryContext(LocalVariable* saved_try_context) {
                             last_used_try_index_ - 1));
   LocalVariable* async_saved_try_ctx = new (Z) LocalVariable(
       TokenPosition::kNoSource,
+      TokenPosition::kNoSource,
       async_saved_try_ctx_name,
       Object::dynamic_type());
   ASSERT(async_temp_scope_ != NULL);
@@ -10075,6 +10113,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
   if (*context_var == NULL) {
     *context_var = new(Z) LocalVariable(
         TokenPos(),
+        TokenPos(),
         Symbols::SavedTryContextVar(),
         Object::dynamic_type());
     try_scope->AddVariable(*context_var);
@@ -10083,6 +10122,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
   if (*exception_var == NULL) {
     *exception_var = new(Z) LocalVariable(
         TokenPos(),
+        TokenPos(),
         Symbols::ExceptionVar(),
         Object::dynamic_type());
     try_scope->AddVariable(*exception_var);
@@ -10090,6 +10130,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
   *stack_trace_var = try_scope->LocalLookupVariable(Symbols::StackTraceVar());
   if (*stack_trace_var == NULL) {
     *stack_trace_var = new(Z) LocalVariable(
+        TokenPos(),
         TokenPos(),
         Symbols::StackTraceVar(),
         Object::dynamic_type());
@@ -10101,6 +10142,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
     if (*saved_exception_var == NULL) {
       *saved_exception_var = new(Z) LocalVariable(
           TokenPos(),
+          TokenPos(),
           Symbols::SavedExceptionVar(),
           Object::dynamic_type());
       try_scope->AddVariable(*saved_exception_var);
@@ -10109,6 +10151,7 @@ void Parser::SetupExceptionVariables(LocalScope* try_scope,
         Symbols::SavedStackTraceVar());
     if (*saved_stack_trace_var == NULL) {
       *saved_stack_trace_var = new(Z) LocalVariable(
+          TokenPos(),
           TokenPos(),
           Symbols::SavedStackTraceVar(),
           Object::dynamic_type());
@@ -11089,6 +11132,7 @@ LocalVariable* Parser::CreateTempConstVariable(TokenPosition token_pos,
   char name[64];
   OS::SNPrint(name, 64, ":%s%" Pd "", s, token_pos.value());
   LocalVariable* temp = new(Z) LocalVariable(
+      token_pos,
       token_pos,
       String::ZoneHandle(Z, Symbols::New(T, name)),
       Object::dynamic_type());

@@ -1355,6 +1355,7 @@ class RawLocalVarDescriptors : public RawObject {
   struct VarInfo {
     int32_t index_kind;  // Bitfield for slot index on stack or in context,
                          // and Entry kind of type VarInfoKind.
+    TokenPosition declaration_pos;   // Token position of declaration.
     TokenPosition begin_pos;   // Token position of scope start.
     TokenPosition end_pos;     // Token position of scope end.
     int16_t scope_id;    // Scope to which the variable belongs.
@@ -1457,6 +1458,7 @@ class RawContextScope : public RawObject {
   // TODO(iposva): Switch to conventional enum offset based structure to avoid
   // alignment mishaps.
   struct VariableDesc {
+    RawSmi* declaration_token_pos;
     RawSmi* token_pos;
     RawString* name;
     RawBool* is_final;

@@ -2582,7 +2582,6 @@ class CommandExecutorImpl implements CommandExecutor {
     // directory.
     List<String> files = new io.Directory(testdir)
         .listSync()
-        .where((fse) => fse is io.File)
         .map((file) => file.path)
         .map((path) => path.substring(path.lastIndexOf('/') + 1))
         .toList();

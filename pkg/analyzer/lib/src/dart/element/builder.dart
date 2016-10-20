@@ -23,6 +23,719 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
+ * Instances of the class `ApiElementBuilder` traverse an AST structure and
+ * build elements outside of function bodies and initializers.
+ */
+class ApiElementBuilder extends _BaseElementBuilder {
+  /**
+   * A table mapping field names to field elements for the fields defined in the current class, or
+   * `null` if we are not in the scope of a class.
+   */
+  HashMap<String, FieldElement> _fieldMap;
+
+  /**
+   * Initialize a newly created element builder to build the elements for a
+   * compilation unit. The [initialHolder] is the element holder to which the
+   * children of the visited compilation unit node will be added.
+   */
+  ApiElementBuilder(ElementHolder initialHolder,
+      CompilationUnitElementImpl compilationUnitElement)
+      : super(initialHolder, compilationUnitElement);
+
+  @override
+  Object visitAnnotation(Annotation node) {
+    // Although it isn't valid to do so because closures are not constant
+    // expressions, it's possible for one of the arguments to the constructor to
+    // contain a closure. Wrapping the processing of the annotation this way
+    // prevents these closures from being added to the list of functions in the
+    // annotated declaration.
+    ElementHolder holder = new ElementHolder();
+    ElementHolder previousHolder = _currentHolder;
+    _currentHolder = holder;
+    try {
+      super.visitAnnotation(node);
+    } finally {
+      _currentHolder = previousHolder;
+    }
+    return null;
+  }
+
+  @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    return null;
+  }
+
+  @override
+  Object visitClassDeclaration(ClassDeclaration node) {
+    ElementHolder holder = new ElementHolder();
+    //
+    // Process field declarations before constructors and methods so that field
+    // formal parameters can be correctly resolved to their fields.
+    //
+    ElementHolder previousHolder = _currentHolder;
+    _currentHolder = holder;
+    try {
+      List<ClassMember> nonFields = new List<ClassMember>();
+      node.visitChildren(
+          new _ElementBuilder_visitClassDeclaration(this, nonFields));
+      _buildFieldMap(holder.fieldsWithoutFlushing);
+      int count = nonFields.length;
+      for (int i = 0; i < count; i++) {
+        nonFields[i].accept(this);
+      }
+    } finally {
+      _currentHolder = previousHolder;
+    }
+    SimpleIdentifier className = node.name;
+    ClassElementImpl element = new ClassElementImpl.forNode(className);
+    _setCodeRange(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+    element.typeParameters = holder.typeParameters;
+    setElementDocumentationComment(element, node);
+    element.abstract = node.isAbstract;
+    element.accessors = holder.accessors;
+    List<ConstructorElement> constructors = holder.constructors;
+    if (constructors.isEmpty) {
+      constructors = _createDefaultConstructors(element);
+    }
+    element.constructors = constructors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+    _currentHolder.addType(element);
+    className.staticElement = element;
+    _fieldMap = null;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitClassTypeAlias(ClassTypeAlias node) {
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    SimpleIdentifier className = node.name;
+    ClassElementImpl element = new ClassElementImpl.forNode(className);
+    _setCodeRange(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+    element.abstract = node.abstractKeyword != null;
+    element.mixinApplication = true;
+    element.typeParameters = holder.typeParameters;
+    setElementDocumentationComment(element, node);
+    _currentHolder.addType(element);
+    className.staticElement = element;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitCompilationUnit(CompilationUnit node) {
+    if (_unitElement is ElementImpl) {
+      _setCodeRange(_unitElement, node);
+    }
+    return super.visitCompilationUnit(node);
+  }
+
+  @override
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    FunctionBody body = node.body;
+    SimpleIdentifier constructorName = node.name;
+    ConstructorElementImpl element =
+        new ConstructorElementImpl.forNode(constructorName);
+    _setCodeRange(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+    setElementDocumentationComment(element, node);
+    if (node.externalKeyword != null) {
+      element.external = true;
+    }
+    if (node.factoryKeyword != null) {
+      element.factory = true;
+    }
+    element.functions = holder.functions;
+    element.labels = holder.labels;
+    element.localVariables = holder.localVariables;
+    element.parameters = holder.parameters;
+    element.const2 = node.constKeyword != null;
+    if (body.isAsynchronous) {
+      element.asynchronous = true;
+    }
+    if (body.isGenerator) {
+      element.generator = true;
+    }
+    _currentHolder.addConstructor(element);
+    node.element = element;
+    if (constructorName == null) {
+      Identifier returnType = node.returnType;
+      if (returnType != null) {
+        element.nameOffset = returnType.offset;
+        element.nameEnd = returnType.end;
+      }
+    } else {
+      constructorName.staticElement = element;
+      element.periodOffset = node.period.offset;
+      element.nameEnd = constructorName.end;
+    }
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    SimpleIdentifier enumName = node.name;
+    EnumElementImpl enumElement = new EnumElementImpl.forNode(enumName);
+    _setCodeRange(enumElement, node);
+    enumElement.metadata = _createElementAnnotations(node.metadata);
+    setElementDocumentationComment(enumElement, node);
+    InterfaceTypeImpl enumType = enumElement.type;
+    //
+    // Build the elements for the constants. These are minimal elements; the
+    // rest of the constant elements (and elements for other fields) must be
+    // built later after we can access the type provider.
+    //
+    List<FieldElement> fields = new List<FieldElement>();
+    NodeList<EnumConstantDeclaration> constants = node.constants;
+    for (EnumConstantDeclaration constant in constants) {
+      SimpleIdentifier constantName = constant.name;
+      FieldElementImpl constantField =
+          new ConstFieldElementImpl.forNode(constantName);
+      constantField.static = true;
+      constantField.const3 = true;
+      constantField.type = enumType;
+      setElementDocumentationComment(constantField, constant);
+      fields.add(constantField);
+      new PropertyAccessorElementImpl_ImplicitGetter(constantField);
+      constantName.staticElement = constantField;
+    }
+    enumElement.fields = fields;
+
+    _currentHolder.addEnum(enumElement);
+    enumName.staticElement = enumElement;
+    return super.visitEnumDeclaration(node);
+  }
+
+  @override
+  Object visitExportDirective(ExportDirective node) {
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    _unitElement.setAnnotations(node.offset, annotations);
+    return super.visitExportDirective(node);
+  }
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    return null;
+  }
+
+  @override
+  Object visitFieldFormalParameter(FieldFormalParameter node) {
+    if (node.parent is! DefaultFormalParameter) {
+      SimpleIdentifier parameterName = node.identifier;
+      FieldElement field =
+          _fieldMap == null ? null : _fieldMap[parameterName.name];
+      FieldFormalParameterElementImpl parameter =
+          new FieldFormalParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
+      parameter.const3 = node.isConst;
+      parameter.final2 = node.isFinal;
+      parameter.parameterKind = node.kind;
+      if (field != null) {
+        parameter.field = field;
+      }
+      _currentHolder.addParameter(parameter);
+      parameterName.staticElement = parameter;
+    }
+    //
+    // The children of this parameter include any parameters defined on the type
+    // of this parameter.
+    //
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    ParameterElementImpl element = node.element;
+    element.metadata = _createElementAnnotations(node.metadata);
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionExpression expression = node.functionExpression;
+    if (expression != null) {
+      ElementHolder holder = new ElementHolder();
+      _visitChildren(holder, node);
+      FunctionBody body = expression.body;
+      Token property = node.propertyKeyword;
+      if (property == null) {
+        SimpleIdentifier functionName = node.name;
+        FunctionElementImpl element =
+            new FunctionElementImpl.forNode(functionName);
+        _setCodeRange(element, node);
+        element.metadata = _createElementAnnotations(node.metadata);
+        setElementDocumentationComment(element, node);
+        if (node.externalKeyword != null) {
+          element.external = true;
+        }
+        element.functions = holder.functions;
+        element.labels = holder.labels;
+        element.localVariables = holder.localVariables;
+        element.parameters = holder.parameters;
+        element.typeParameters = holder.typeParameters;
+        if (body.isAsynchronous) {
+          element.asynchronous = true;
+        }
+        if (body.isGenerator) {
+          element.generator = true;
+        }
+        if (node.returnType == null) {
+          element.hasImplicitReturnType = true;
+        }
+        _currentHolder.addFunction(element);
+        expression.element = element;
+        functionName.staticElement = element;
+      } else {
+        SimpleIdentifier propertyNameNode = node.name;
+        if (propertyNameNode == null) {
+          // TODO(brianwilkerson) Report this internal error.
+          return null;
+        }
+        String propertyName = propertyNameNode.name;
+        TopLevelVariableElementImpl variable = _currentHolder
+            .getTopLevelVariable(propertyName) as TopLevelVariableElementImpl;
+        if (variable == null) {
+          variable = new TopLevelVariableElementImpl(node.name.name, -1);
+          variable.final2 = true;
+          variable.synthetic = true;
+          _currentHolder.addTopLevelVariable(variable);
+        }
+        if (node.isGetter) {
+          PropertyAccessorElementImpl getter =
+              new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(getter, node);
+          getter.metadata = _createElementAnnotations(node.metadata);
+          setElementDocumentationComment(getter, node);
+          if (node.externalKeyword != null) {
+            getter.external = true;
+          }
+          getter.functions = holder.functions;
+          getter.labels = holder.labels;
+          getter.localVariables = holder.localVariables;
+          if (body.isAsynchronous) {
+            getter.asynchronous = true;
+          }
+          if (body.isGenerator) {
+            getter.generator = true;
+          }
+          getter.variable = variable;
+          getter.getter = true;
+          getter.static = true;
+          variable.getter = getter;
+          if (node.returnType == null) {
+            getter.hasImplicitReturnType = true;
+          }
+          _currentHolder.addAccessor(getter);
+          expression.element = getter;
+          propertyNameNode.staticElement = getter;
+        } else {
+          PropertyAccessorElementImpl setter =
+              new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(setter, node);
+          setter.metadata = _createElementAnnotations(node.metadata);
+          setElementDocumentationComment(setter, node);
+          if (node.externalKeyword != null) {
+            setter.external = true;
+          }
+          setter.functions = holder.functions;
+          setter.labels = holder.labels;
+          setter.localVariables = holder.localVariables;
+          setter.parameters = holder.parameters;
+          if (body.isAsynchronous) {
+            setter.asynchronous = true;
+          }
+          if (body.isGenerator) {
+            setter.generator = true;
+          }
+          setter.variable = variable;
+          setter.setter = true;
+          setter.static = true;
+          if (node.returnType == null) {
+            setter.hasImplicitReturnType = true;
+          }
+          variable.setter = setter;
+          variable.final2 = false;
+          _currentHolder.addAccessor(setter);
+          expression.element = setter;
+          propertyNameNode.staticElement = setter;
+        }
+      }
+      holder.validate();
+    }
+    return null;
+  }
+
+  @override
+  Object visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is FunctionDeclaration) {
+      // visitFunctionDeclaration has already created the element for the
+      // declaration.  We just need to visit children.
+      return super.visitFunctionExpression(node);
+    }
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    FunctionBody body = node.body;
+    FunctionElementImpl element =
+        new FunctionElementImpl.forOffset(node.beginToken.offset);
+    _setCodeRange(element, node);
+    element.functions = holder.functions;
+    element.labels = holder.labels;
+    element.localVariables = holder.localVariables;
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
+    if (body.isAsynchronous) {
+      element.asynchronous = true;
+    }
+    if (body.isGenerator) {
+      element.generator = true;
+    }
+    element.type = new FunctionTypeImpl(element);
+    element.hasImplicitReturnType = true;
+    _currentHolder.addFunction(element);
+    node.element = element;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitFunctionTypeAlias(FunctionTypeAlias node) {
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    SimpleIdentifier aliasName = node.name;
+    List<ParameterElement> parameters = holder.parameters;
+    List<TypeParameterElement> typeParameters = holder.typeParameters;
+    FunctionTypeAliasElementImpl element =
+        new FunctionTypeAliasElementImpl.forNode(aliasName);
+    _setCodeRange(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+    setElementDocumentationComment(element, node);
+    element.parameters = parameters;
+    element.typeParameters = typeParameters;
+    _createTypeParameterTypes(typeParameters);
+    element.type = new FunctionTypeImpl.forTypedef(element);
+    _currentHolder.addTypeAlias(element);
+    aliasName.staticElement = element;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitImportDirective(ImportDirective node) {
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    _unitElement.setAnnotations(node.offset, annotations);
+    return super.visitImportDirective(node);
+  }
+
+  @override
+  Object visitLibraryDirective(LibraryDirective node) {
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    _unitElement.setAnnotations(node.offset, annotations);
+    return super.visitLibraryDirective(node);
+  }
+
+  @override
+  Object visitMethodDeclaration(MethodDeclaration node) {
+    try {
+      ElementHolder holder = new ElementHolder();
+      _visitChildren(holder, node);
+      bool isStatic = node.isStatic;
+      Token property = node.propertyKeyword;
+      FunctionBody body = node.body;
+      if (property == null) {
+        SimpleIdentifier methodName = node.name;
+        String nameOfMethod = methodName.name;
+        if (nameOfMethod == TokenType.MINUS.lexeme &&
+            node.parameters.parameters.length == 0) {
+          nameOfMethod = "unary-";
+        }
+        MethodElementImpl element =
+            new MethodElementImpl(nameOfMethod, methodName.offset);
+        _setCodeRange(element, node);
+        element.metadata = _createElementAnnotations(node.metadata);
+        setElementDocumentationComment(element, node);
+        element.abstract = node.isAbstract;
+        if (node.externalKeyword != null) {
+          element.external = true;
+        }
+        element.functions = holder.functions;
+        element.labels = holder.labels;
+        element.localVariables = holder.localVariables;
+        element.parameters = holder.parameters;
+        element.static = isStatic;
+        element.typeParameters = holder.typeParameters;
+        if (body.isAsynchronous) {
+          element.asynchronous = true;
+        }
+        if (body.isGenerator) {
+          element.generator = true;
+        }
+        if (node.returnType == null) {
+          element.hasImplicitReturnType = true;
+        }
+        _currentHolder.addMethod(element);
+        methodName.staticElement = element;
+      } else {
+        SimpleIdentifier propertyNameNode = node.name;
+        String propertyName = propertyNameNode.name;
+        FieldElementImpl field = _currentHolder.getField(propertyName,
+            synthetic: true) as FieldElementImpl;
+        if (field == null) {
+          field = new FieldElementImpl(node.name.name, -1);
+          field.final2 = true;
+          field.static = isStatic;
+          field.synthetic = true;
+          _currentHolder.addField(field);
+        }
+        if (node.isGetter) {
+          PropertyAccessorElementImpl getter =
+              new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(getter, node);
+          getter.metadata = _createElementAnnotations(node.metadata);
+          setElementDocumentationComment(getter, node);
+          if (node.externalKeyword != null) {
+            getter.external = true;
+          }
+          getter.functions = holder.functions;
+          getter.labels = holder.labels;
+          getter.localVariables = holder.localVariables;
+          if (body.isAsynchronous) {
+            getter.asynchronous = true;
+          }
+          if (body.isGenerator) {
+            getter.generator = true;
+          }
+          getter.variable = field;
+          getter.abstract = node.isAbstract;
+          getter.getter = true;
+          getter.static = isStatic;
+          field.getter = getter;
+          if (node.returnType == null) {
+            getter.hasImplicitReturnType = true;
+          }
+          _currentHolder.addAccessor(getter);
+          propertyNameNode.staticElement = getter;
+        } else {
+          PropertyAccessorElementImpl setter =
+              new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(setter, node);
+          setter.metadata = _createElementAnnotations(node.metadata);
+          setElementDocumentationComment(setter, node);
+          if (node.externalKeyword != null) {
+            setter.external = true;
+          }
+          setter.functions = holder.functions;
+          setter.labels = holder.labels;
+          setter.localVariables = holder.localVariables;
+          setter.parameters = holder.parameters;
+          if (body.isAsynchronous) {
+            setter.asynchronous = true;
+          }
+          if (body.isGenerator) {
+            setter.generator = true;
+          }
+          setter.variable = field;
+          setter.abstract = node.isAbstract;
+          setter.setter = true;
+          setter.static = isStatic;
+          if (node.returnType == null) {
+            setter.hasImplicitReturnType = true;
+          }
+          field.setter = setter;
+          field.final2 = false;
+          _currentHolder.addAccessor(setter);
+          propertyNameNode.staticElement = setter;
+        }
+      }
+      holder.validate();
+    } catch (exception, stackTrace) {
+      if (node.name.staticElement == null) {
+        ClassDeclaration classNode =
+            node.getAncestor((node) => node is ClassDeclaration);
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("The element for the method ");
+        buffer.write(node.name);
+        buffer.write(" in ");
+        buffer.write(classNode.name);
+        buffer.write(" was not set while trying to build the element model.");
+        AnalysisEngine.instance.logger.logError(
+            buffer.toString(), new CaughtException(exception, stackTrace));
+      } else {
+        String message =
+            "Exception caught in ElementBuilder.visitMethodDeclaration()";
+        AnalysisEngine.instance.logger
+            .logError(message, new CaughtException(exception, stackTrace));
+      }
+    } finally {
+      if (node.name.staticElement == null) {
+        ClassDeclaration classNode =
+            node.getAncestor((node) => node is ClassDeclaration);
+        StringBuffer buffer = new StringBuffer();
+        buffer.write("The element for the method ");
+        buffer.write(node.name);
+        buffer.write(" in ");
+        buffer.write(classNode.name);
+        buffer.write(" was not set while trying to resolve types.");
+        AnalysisEngine.instance.logger.logError(
+            buffer.toString(),
+            new CaughtException(
+                new AnalysisException(buffer.toString()), null));
+      }
+    }
+    return null;
+  }
+
+  @override
+  Object visitPartDirective(PartDirective node) {
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    _unitElement.setAnnotations(node.offset, annotations);
+    return super.visitPartDirective(node);
+  }
+
+  @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    bool isConst = node.isConst;
+    bool isFinal = node.isFinal;
+    Expression initializerNode = node.initializer;
+    bool hasInitializer = initializerNode != null;
+    VariableDeclarationList varList = node.parent;
+    FieldDeclaration fieldNode =
+        varList.parent is FieldDeclaration ? varList.parent : null;
+    VariableElementImpl element;
+    if (fieldNode != null) {
+      SimpleIdentifier fieldName = node.name;
+      FieldElementImpl field;
+      if ((isConst || isFinal && !fieldNode.isStatic) && hasInitializer) {
+        field = new ConstFieldElementImpl.forNode(fieldName);
+      } else {
+        field = new FieldElementImpl.forNode(fieldName);
+      }
+      element = field;
+      field.static = fieldNode.isStatic;
+      _setCodeRange(element, node);
+      setElementDocumentationComment(element, fieldNode);
+      field.hasImplicitType = varList.type == null;
+      _currentHolder.addField(field);
+      fieldName.staticElement = field;
+    } else {
+      SimpleIdentifier variableName = node.name;
+      TopLevelVariableElementImpl variable;
+      if (isConst && hasInitializer) {
+        variable = new ConstTopLevelVariableElementImpl.forNode(variableName);
+      } else {
+        variable = new TopLevelVariableElementImpl.forNode(variableName);
+      }
+      element = variable;
+      _setCodeRange(element, node);
+      if (varList.parent is TopLevelVariableDeclaration) {
+        setElementDocumentationComment(element, varList.parent);
+      }
+      variable.hasImplicitType = varList.type == null;
+      _currentHolder.addTopLevelVariable(variable);
+      variableName.staticElement = element;
+    }
+    element.const3 = isConst;
+    element.final2 = isFinal;
+    if (element is PropertyInducingElementImpl) {
+      PropertyAccessorElementImpl_ImplicitGetter getter =
+          new PropertyAccessorElementImpl_ImplicitGetter(element);
+      _currentHolder.addAccessor(getter);
+      if (!isConst && !isFinal) {
+        PropertyAccessorElementImpl_ImplicitSetter setter =
+            new PropertyAccessorElementImpl_ImplicitSetter(element);
+        _currentHolder.addAccessor(setter);
+      }
+    }
+    return null;
+  }
+
+  @override
+  Object visitVariableDeclarationList(VariableDeclarationList node) {
+    super.visitVariableDeclarationList(node);
+    AstNode parent = node.parent;
+    List<ElementAnnotation> elementAnnotations;
+    if (parent is FieldDeclaration) {
+      elementAnnotations = _createElementAnnotations(parent.metadata);
+    } else if (parent is TopLevelVariableDeclaration) {
+      elementAnnotations = _createElementAnnotations(parent.metadata);
+    } else {
+      // Local variable declaration
+      elementAnnotations = _createElementAnnotations(node.metadata);
+    }
+    _setVariableDeclarationListAnnotations(node, elementAnnotations);
+    return null;
+  }
+
+  /**
+   * Build the table mapping field names to field elements for the [fields]
+   * defined in the current class.
+   */
+  void _buildFieldMap(List<FieldElement> fields) {
+    _fieldMap = new HashMap<String, FieldElement>();
+    int count = fields.length;
+    for (int i = 0; i < count; i++) {
+      FieldElement field = fields[i];
+      _fieldMap[field.name] ??= field;
+    }
+  }
+
+  /**
+   * Creates the [ConstructorElement]s array with the single default constructor element.
+   *
+   * @param interfaceType the interface type for which to create a default constructor
+   * @return the [ConstructorElement]s array with the single default constructor element
+   */
+  List<ConstructorElement> _createDefaultConstructors(
+      ClassElementImpl definingClass) {
+    ConstructorElementImpl constructor =
+        new ConstructorElementImpl.forNode(null);
+    constructor.synthetic = true;
+    constructor.enclosingElement = definingClass;
+    return <ConstructorElement>[constructor];
+  }
+
+  /**
+   * Create the types associated with the given type parameters, setting the type of each type
+   * parameter, and return an array of types corresponding to the given parameters.
+   *
+   * @param typeParameters the type parameters for which types are to be created
+   * @return an array of types corresponding to the given parameters
+   */
+  List<DartType> _createTypeParameterTypes(
+      List<TypeParameterElement> typeParameters) {
+    int typeParameterCount = typeParameters.length;
+    List<DartType> typeArguments = new List<DartType>(typeParameterCount);
+    for (int i = 0; i < typeParameterCount; i++) {
+      TypeParameterElementImpl typeParameter =
+          typeParameters[i] as TypeParameterElementImpl;
+      TypeParameterTypeImpl typeParameterType =
+          new TypeParameterTypeImpl(typeParameter);
+      typeParameter.type = typeParameterType;
+      typeArguments[i] = typeParameterType;
+    }
+    return typeArguments;
+  }
+
+  @override
+  void _setFieldParameterField(FieldFormalParameterElementImpl parameter) {
+    FieldElement field = _fieldMap == null ? null : _fieldMap[parameter.name];
+    if (field != null) {
+      parameter.field = field;
+    }
+  }
+}
+
+/**
  * A `CompilationUnitBuilder` builds an element model for a single compilation
  * unit.
  */
@@ -309,70 +1022,61 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
  * Instances of the class `ElementBuilder` traverse an AST structure and build the element
  * model representing the AST structure.
  */
-class ElementBuilder extends RecursiveAstVisitor<Object> {
-  /**
-   * The compilation unit element into which the elements being built will be
-   * stored.
-   */
-  final CompilationUnitElementImpl compilationUnitElement;
-
-  /**
-   * The element holder associated with the element that is currently being built.
-   */
-  ElementHolder _currentHolder;
-
-  /**
-   * A flag indicating whether a variable declaration is within the body of a method or function.
-   */
-  bool _inFunction = false;
-
-  /**
-   * A collection holding the elements defined in a class that need to have
-   * their function type fixed to take into account type parameters of the
-   * enclosing class, or `null` if we are not currently processing nodes within
-   * a class.
-   */
-  List<ExecutableElementImpl> _functionTypesToFix = null;
-
-  /**
-   * A table mapping field names to field elements for the fields defined in the current class, or
-   * `null` if we are not in the scope of a class.
-   */
-  HashMap<String, FieldElement> _fieldMap;
-
+class ElementBuilder extends ApiElementBuilder {
   /**
    * Initialize a newly created element builder to build the elements for a
    * compilation unit. The [initialHolder] is the element holder to which the
    * children of the visited compilation unit node will be added.
    */
-  ElementBuilder(ElementHolder initialHolder, this.compilationUnitElement) {
-    _currentHolder = initialHolder;
-  }
+  ElementBuilder(ElementHolder initialHolder,
+      CompilationUnitElement compilationUnitElement)
+      : super(initialHolder, compilationUnitElement);
 
-  /**
-   * Prepares for incremental resolution of a function body.
-   */
-  void initForFunctionBodyIncrementalResolution() {
-    _inFunction = true;
+  @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    _buildLocal(node);
+    return null;
   }
 
   @override
-  Object visitAnnotation(Annotation node) {
-    // Although it isn't valid to do so because closures are not constant
-    // expressions, it's possible for one of the arguments to the constructor to
-    // contain a closure. Wrapping the processing of the annotation this way
-    // prevents these closures from being added to the list of functions in the
-    // annotated declaration.
-    ElementHolder holder = new ElementHolder();
-    ElementHolder previousHolder = _currentHolder;
-    _currentHolder = holder;
-    try {
-      super.visitAnnotation(node);
-    } finally {
-      _currentHolder = previousHolder;
-    }
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    super.visitDefaultFormalParameter(node);
+    buildParameterInitializer(
+        node.element as ParameterElementImpl, node.defaultValue);
     return null;
   }
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    _buildLocal(node);
+    return null;
+  }
+
+  @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    super.visitVariableDeclaration(node);
+    VariableElementImpl element = node.element as VariableElementImpl;
+    buildVariableInitializer(element, node.initializer);
+    return null;
+  }
+
+  void _buildLocal(AstNode node) {
+    node.accept(new LocalElementBuilder(_currentHolder, _unitElement));
+  }
+}
+
+/**
+ * Traverse a [FunctionBody] and build elements for AST structures.
+ */
+class LocalElementBuilder extends _BaseElementBuilder {
+  /**
+   * Initialize a newly created element builder to build the elements for a
+   * compilation unit. The [initialHolder] is the element holder to which the
+   * children of the visited compilation unit node will be added.
+   */
+  LocalElementBuilder(ElementHolder initialHolder,
+      CompilationUnitElementImpl compilationUnitElement)
+      : super(initialHolder, compilationUnitElement);
 
   @override
   Object visitCatchClause(CatchClause node) {
@@ -402,133 +1106,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitClassDeclaration(ClassDeclaration node) {
-    ElementHolder holder = new ElementHolder();
-    _functionTypesToFix = new List<ExecutableElementImpl>();
-    //
-    // Process field declarations before constructors and methods so that field
-    // formal parameters can be correctly resolved to their fields.
-    //
-    ElementHolder previousHolder = _currentHolder;
-    _currentHolder = holder;
-    try {
-      List<ClassMember> nonFields = new List<ClassMember>();
-      node.visitChildren(
-          new _ElementBuilder_visitClassDeclaration(this, nonFields));
-      _buildFieldMap(holder.fieldsWithoutFlushing);
-      int count = nonFields.length;
-      for (int i = 0; i < count; i++) {
-        nonFields[i].accept(this);
-      }
-    } finally {
-      _currentHolder = previousHolder;
-    }
-    SimpleIdentifier className = node.name;
-    ClassElementImpl element = new ClassElementImpl.forNode(className);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.typeParameters = holder.typeParameters;
-    setElementDocumentationComment(element, node);
-    element.abstract = node.isAbstract;
-    element.accessors = holder.accessors;
-    List<ConstructorElement> constructors = holder.constructors;
-    if (constructors.isEmpty) {
-      constructors = _createDefaultConstructors(element);
-    }
-    element.constructors = constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-    // Function types must be initialized after the enclosing element has been
-    // set, for them to pick up the type parameters.
-    for (ExecutableElementImpl e in _functionTypesToFix) {
-      e.type = new FunctionTypeImpl(e);
-    }
-    _functionTypesToFix = null;
-    _currentHolder.addType(element);
-    className.staticElement = element;
-    _fieldMap = null;
-    holder.validate();
-    return null;
-  }
-
-  @override
-  Object visitClassTypeAlias(ClassTypeAlias node) {
-    ElementHolder holder = new ElementHolder();
-    _visitChildren(holder, node);
-    SimpleIdentifier className = node.name;
-    ClassElementImpl element = new ClassElementImpl.forNode(className);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.abstract = node.abstractKeyword != null;
-    element.mixinApplication = true;
-    element.typeParameters = holder.typeParameters;
-    setElementDocumentationComment(element, node);
-    _currentHolder.addType(element);
-    className.staticElement = element;
-    holder.validate();
-    return null;
-  }
-
-  @override
-  Object visitCompilationUnit(CompilationUnit node) {
-    if (compilationUnitElement is ElementImpl) {
-      _setCodeRange(compilationUnitElement, node);
-    }
-    return super.visitCompilationUnit(node);
-  }
-
-  @override
-  Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    ElementHolder holder = new ElementHolder();
-    bool wasInFunction = _inFunction;
-    _inFunction = true;
-    try {
-      _visitChildren(holder, node);
-    } finally {
-      _inFunction = wasInFunction;
-    }
-    FunctionBody body = node.body;
-    SimpleIdentifier constructorName = node.name;
-    ConstructorElementImpl element =
-        new ConstructorElementImpl.forNode(constructorName);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    setElementDocumentationComment(element, node);
-    if (node.externalKeyword != null) {
-      element.external = true;
-    }
-    if (node.factoryKeyword != null) {
-      element.factory = true;
-    }
-    element.functions = holder.functions;
-    element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
-    element.parameters = holder.parameters;
-    element.const2 = node.constKeyword != null;
-    if (body.isAsynchronous) {
-      element.asynchronous = true;
-    }
-    if (body.isGenerator) {
-      element.generator = true;
-    }
-    _currentHolder.addConstructor(element);
-    node.element = element;
-    if (constructorName == null) {
-      Identifier returnType = node.returnType;
-      if (returnType != null) {
-        element.nameOffset = returnType.offset;
-        element.nameEnd = returnType.end;
-      }
-    } else {
-      constructorName.staticElement = element;
-      element.periodOffset = node.period.offset;
-      element.nameEnd = constructorName.end;
-    }
-    holder.validate();
-    return null;
-  }
-
-  @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
     SimpleIdentifier variableName = node.identifier;
     LocalVariableElementImpl element =
@@ -544,33 +1121,216 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
-    return super.visitDeclaredIdentifier(node);
+    return null;
   }
 
   @override
   Object visitDefaultFormalParameter(DefaultFormalParameter node) {
-    ElementHolder holder = new ElementHolder();
-    NormalFormalParameter normalParameter = node.parameter;
-    SimpleIdentifier parameterName = normalParameter.identifier;
-    ParameterElementImpl parameter;
-    if (normalParameter is FieldFormalParameter) {
-      parameter =
-          new DefaultFieldFormalParameterElementImpl.forNode(parameterName);
-      FieldElement field =
-          _fieldMap == null ? null : _fieldMap[parameterName.name];
-      if (field != null) {
-        (parameter as DefaultFieldFormalParameterElementImpl).field = field;
-      }
-    } else {
-      parameter = new DefaultParameterElementImpl.forNode(parameterName);
+    super.visitDefaultFormalParameter(node);
+    buildParameterInitializer(
+        node.element as ParameterElementImpl, node.defaultValue);
+    return null;
+  }
+
+  @override
+  Object visitFunctionDeclaration(FunctionDeclaration node) {
+    FunctionExpression expression = node.functionExpression;
+    if (expression == null) {
+      return null;
     }
-    _setCodeRange(parameter, node);
-    parameter.const3 = node.isConst;
-    parameter.final2 = node.isFinal;
-    parameter.parameterKind = node.kind;
-    // set initializer, default value range
-    Expression defaultValue = node.defaultValue;
+
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+
+    FunctionElementImpl element = new FunctionElementImpl.forNode(node.name);
+    _setCodeRange(element, node);
+    setElementDocumentationComment(element, node);
+    element.metadata = _createElementAnnotations(node.metadata);
+    if (node.externalKeyword != null) {
+      element.external = true;
+    }
+    element.functions = holder.functions;
+    element.labels = holder.labels;
+    element.localVariables = holder.localVariables;
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
+
+    FunctionBody body = expression.body;
+    if (body.isAsynchronous) {
+      element.asynchronous = body.isAsynchronous;
+    }
+    if (body.isGenerator) {
+      element.generator = true;
+    }
+
+    {
+      Block enclosingBlock = node.getAncestor((node) => node is Block);
+      if (enclosingBlock != null) {
+        element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
+      }
+    }
+
+    if (node.returnType == null) {
+      element.hasImplicitReturnType = true;
+    }
+
+    _currentHolder.addFunction(element);
+    expression.element = element;
+    node.name.staticElement = element;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitFunctionExpression(FunctionExpression node) {
+    if (node.parent is FunctionDeclaration) {
+      // visitFunctionDeclaration has already created the element for the
+      // declaration.  We just need to visit children.
+      return super.visitFunctionExpression(node);
+    }
+
+    ElementHolder holder = new ElementHolder();
+    _visitChildren(holder, node);
+    FunctionElementImpl element =
+        new FunctionElementImpl.forOffset(node.beginToken.offset);
+    _setCodeRange(element, node);
+    element.functions = holder.functions;
+    element.labels = holder.labels;
+    element.localVariables = holder.localVariables;
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
+
+    FunctionBody body = node.body;
+    if (body.isAsynchronous) {
+      element.asynchronous = true;
+    }
+    if (body.isGenerator) {
+      element.generator = true;
+    }
+
+    {
+      Block enclosingBlock = node.getAncestor((node) => node is Block);
+      if (enclosingBlock != null) {
+        element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
+      }
+    }
+
+    element.type = new FunctionTypeImpl(element);
+    element.hasImplicitReturnType = true;
+    _currentHolder.addFunction(element);
+    node.element = element;
+    holder.validate();
+    return null;
+  }
+
+  @override
+  Object visitLabeledStatement(LabeledStatement node) {
+    bool onSwitchStatement = node.statement is SwitchStatement;
+    for (Label label in node.labels) {
+      SimpleIdentifier labelName = label.label;
+      LabelElementImpl element =
+          new LabelElementImpl.forNode(labelName, onSwitchStatement, false);
+      _currentHolder.addLabel(element);
+      labelName.staticElement = element;
+    }
+    return super.visitLabeledStatement(node);
+  }
+
+  @override
+  Object visitSwitchCase(SwitchCase node) {
+    for (Label label in node.labels) {
+      SimpleIdentifier labelName = label.label;
+      LabelElementImpl element =
+          new LabelElementImpl.forNode(labelName, false, true);
+      _currentHolder.addLabel(element);
+      labelName.staticElement = element;
+    }
+    return super.visitSwitchCase(node);
+  }
+
+  @override
+  Object visitSwitchDefault(SwitchDefault node) {
+    for (Label label in node.labels) {
+      SimpleIdentifier labelName = label.label;
+      LabelElementImpl element =
+          new LabelElementImpl.forNode(labelName, false, true);
+      _currentHolder.addLabel(element);
+      labelName.staticElement = element;
+    }
+    return super.visitSwitchDefault(node);
+  }
+
+  @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    bool isConst = node.isConst;
+    bool isFinal = node.isFinal;
+    Expression initializerNode = node.initializer;
+    VariableDeclarationList varList = node.parent;
+    SimpleIdentifier variableName = node.name;
+    LocalVariableElementImpl element;
+    if (isConst && initializerNode != null) {
+      element = new ConstLocalVariableElementImpl.forNode(variableName);
+    } else {
+      element = new LocalVariableElementImpl.forNode(variableName);
+    }
+    _setCodeRange(element, node);
+    _setVariableVisibleRange(element, node);
+    element.hasImplicitType = varList.type == null;
+    _currentHolder.addLocalVariable(element);
+    variableName.staticElement = element;
+    element.const3 = isConst;
+    element.final2 = isFinal;
+    buildVariableInitializer(element, initializerNode);
+    return null;
+  }
+
+  @override
+  Object visitVariableDeclarationList(VariableDeclarationList node) {
+    super.visitVariableDeclarationList(node);
+    List<ElementAnnotation> elementAnnotations =
+        _createElementAnnotations(node.metadata);
+    _setVariableDeclarationListAnnotations(node, elementAnnotations);
+    return null;
+  }
+
+  void _setVariableVisibleRange(
+      LocalVariableElementImpl element, VariableDeclaration node) {
+    AstNode scopeNode;
+    AstNode parent2 = node.parent.parent;
+    if (parent2 is ForStatement) {
+      scopeNode = parent2;
+    } else {
+      scopeNode = node.getAncestor((node) => node is Block);
+    }
+    element.setVisibleRange(scopeNode.offset, scopeNode.length);
+  }
+}
+
+/**
+ * Base class for API and local element builders.
+ */
+abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
+  /**
+   * The compilation unit element into which the elements being built will be
+   * stored.
+   */
+  final CompilationUnitElementImpl _unitElement;
+
+  /**
+   * The element holder associated with the element that is currently being built.
+   */
+  ElementHolder _currentHolder;
+
+  _BaseElementBuilder(this._currentHolder, this._unitElement);
+
+  /**
+   * If the [defaultValue] is not `null`, build the [FunctionElementImpl]
+   * that corresponds it, and set it as the initializer for the [parameter].
+   */
+  void buildParameterInitializer(
+      ParameterElementImpl parameter, Expression defaultValue) {
     if (defaultValue != null) {
+      ElementHolder holder = new ElementHolder();
       _visit(holder, defaultValue);
       FunctionElementImpl initializer =
           new FunctionElementImpl.forOffset(defaultValue.beginToken.offset);
@@ -583,7 +1343,49 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       initializer.type = new FunctionTypeImpl(initializer);
       parameter.initializer = initializer;
       parameter.defaultValueCode = defaultValue.toSource();
+      holder.validate();
     }
+  }
+
+  /**
+   * If the [initializer] is not `null`, build the [FunctionElementImpl] that
+   * corresponds it, and set it as the initializer for the [variable].
+   */
+  void buildVariableInitializer(
+      VariableElementImpl variable, Expression initializer) {
+    if (initializer != null) {
+      ElementHolder holder = new ElementHolder();
+      _visit(holder, initializer);
+      FunctionElementImpl initializerElement =
+          new FunctionElementImpl.forOffset(initializer.beginToken.offset);
+      initializerElement.hasImplicitReturnType = true;
+      initializerElement.functions = holder.functions;
+      initializerElement.labels = holder.labels;
+      initializerElement.localVariables = holder.localVariables;
+      initializerElement.synthetic = true;
+      initializerElement.type = new FunctionTypeImpl(initializerElement);
+      variable.initializer = initializerElement;
+      holder.validate();
+    }
+  }
+
+  @override
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    NormalFormalParameter normalParameter = node.parameter;
+    SimpleIdentifier parameterName = normalParameter.identifier;
+    ParameterElementImpl parameter;
+    if (normalParameter is FieldFormalParameter) {
+      DefaultFieldFormalParameterElementImpl fieldParameter =
+          new DefaultFieldFormalParameterElementImpl.forNode(parameterName);
+      _setFieldParameterField(fieldParameter);
+      parameter = fieldParameter;
+    } else {
+      parameter = new DefaultParameterElementImpl.forNode(parameterName);
+    }
+    _setCodeRange(parameter, node);
+    parameter.const3 = node.isConst;
+    parameter.final2 = node.isFinal;
+    parameter.parameterKind = node.kind;
     // visible range
     _setParameterVisibleRange(node, parameter);
     if (normalParameter is SimpleFormalParameter &&
@@ -593,279 +1395,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _currentHolder.addParameter(parameter);
     parameterName.staticElement = parameter;
     normalParameter.accept(this);
-    holder.validate();
-    return null;
-  }
-
-  @override
-  Object visitEnumDeclaration(EnumDeclaration node) {
-    SimpleIdentifier enumName = node.name;
-    EnumElementImpl enumElement = new EnumElementImpl.forNode(enumName);
-    _setCodeRange(enumElement, node);
-    enumElement.metadata = _createElementAnnotations(node.metadata);
-    setElementDocumentationComment(enumElement, node);
-    InterfaceTypeImpl enumType = enumElement.type;
-    //
-    // Build the elements for the constants. These are minimal elements; the
-    // rest of the constant elements (and elements for other fields) must be
-    // built later after we can access the type provider.
-    //
-    List<FieldElement> fields = new List<FieldElement>();
-    NodeList<EnumConstantDeclaration> constants = node.constants;
-    for (EnumConstantDeclaration constant in constants) {
-      SimpleIdentifier constantName = constant.name;
-      FieldElementImpl constantField =
-          new ConstFieldElementImpl.forNode(constantName);
-      constantField.static = true;
-      constantField.const3 = true;
-      constantField.type = enumType;
-      setElementDocumentationComment(constantField, constant);
-      fields.add(constantField);
-      new PropertyAccessorElementImpl_ImplicitGetter(constantField);
-      constantName.staticElement = constantField;
-    }
-    enumElement.fields = fields;
-
-    _currentHolder.addEnum(enumElement);
-    enumName.staticElement = enumElement;
-    return super.visitEnumDeclaration(node);
-  }
-
-  @override
-  Object visitExportDirective(ExportDirective node) {
-    List<ElementAnnotation> annotations =
-        _createElementAnnotations(node.metadata);
-    compilationUnitElement.setAnnotations(node.offset, annotations);
-    return super.visitExportDirective(node);
-  }
-
-  @override
-  Object visitFieldFormalParameter(FieldFormalParameter node) {
-    if (node.parent is! DefaultFormalParameter) {
-      SimpleIdentifier parameterName = node.identifier;
-      FieldElement field =
-          _fieldMap == null ? null : _fieldMap[parameterName.name];
-      FieldFormalParameterElementImpl parameter =
-          new FieldFormalParameterElementImpl.forNode(parameterName);
-      _setCodeRange(parameter, node);
-      parameter.const3 = node.isConst;
-      parameter.final2 = node.isFinal;
-      parameter.parameterKind = node.kind;
-      if (field != null) {
-        parameter.field = field;
-      }
-      _currentHolder.addParameter(parameter);
-      parameterName.staticElement = parameter;
-    }
-    //
-    // The children of this parameter include any parameters defined on the type
-    // of this parameter.
-    //
-    ElementHolder holder = new ElementHolder();
-    _visitChildren(holder, node);
-    ParameterElementImpl element = node.element;
-    element.metadata = _createElementAnnotations(node.metadata);
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
-    holder.validate();
-    return null;
-  }
-
-  @override
-  Object visitFunctionDeclaration(FunctionDeclaration node) {
-    FunctionExpression expression = node.functionExpression;
-    if (expression != null) {
-      ElementHolder holder = new ElementHolder();
-      bool wasInFunction = _inFunction;
-      _inFunction = true;
-      try {
-        _visitChildren(holder, node);
-      } finally {
-        _inFunction = wasInFunction;
-      }
-      FunctionBody body = expression.body;
-      Token property = node.propertyKeyword;
-      if (property == null || _inFunction) {
-        SimpleIdentifier functionName = node.name;
-        FunctionElementImpl element =
-            new FunctionElementImpl.forNode(functionName);
-        _setCodeRange(element, node);
-        element.metadata = _createElementAnnotations(node.metadata);
-        setElementDocumentationComment(element, node);
-        if (node.externalKeyword != null) {
-          element.external = true;
-        }
-        element.functions = holder.functions;
-        element.labels = holder.labels;
-        element.localVariables = holder.localVariables;
-        element.parameters = holder.parameters;
-        element.typeParameters = holder.typeParameters;
-        if (body.isAsynchronous) {
-          element.asynchronous = true;
-        }
-        if (body.isGenerator) {
-          element.generator = true;
-        }
-        if (_inFunction) {
-          Block enclosingBlock = node.getAncestor((node) => node is Block);
-          if (enclosingBlock != null) {
-            element.setVisibleRange(
-                enclosingBlock.offset, enclosingBlock.length);
-          }
-        }
-        if (node.returnType == null) {
-          element.hasImplicitReturnType = true;
-        }
-        _currentHolder.addFunction(element);
-        expression.element = element;
-        functionName.staticElement = element;
-      } else {
-        SimpleIdentifier propertyNameNode = node.name;
-        if (propertyNameNode == null) {
-          // TODO(brianwilkerson) Report this internal error.
-          return null;
-        }
-        String propertyName = propertyNameNode.name;
-        TopLevelVariableElementImpl variable = _currentHolder
-            .getTopLevelVariable(propertyName) as TopLevelVariableElementImpl;
-        if (variable == null) {
-          variable = new TopLevelVariableElementImpl(node.name.name, -1);
-          variable.final2 = true;
-          variable.synthetic = true;
-          _currentHolder.addTopLevelVariable(variable);
-        }
-        if (node.isGetter) {
-          PropertyAccessorElementImpl getter =
-              new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setCodeRange(getter, node);
-          getter.metadata = _createElementAnnotations(node.metadata);
-          setElementDocumentationComment(getter, node);
-          if (node.externalKeyword != null) {
-            getter.external = true;
-          }
-          getter.functions = holder.functions;
-          getter.labels = holder.labels;
-          getter.localVariables = holder.localVariables;
-          if (body.isAsynchronous) {
-            getter.asynchronous = true;
-          }
-          if (body.isGenerator) {
-            getter.generator = true;
-          }
-          getter.variable = variable;
-          getter.getter = true;
-          getter.static = true;
-          variable.getter = getter;
-          if (node.returnType == null) {
-            getter.hasImplicitReturnType = true;
-          }
-          _currentHolder.addAccessor(getter);
-          expression.element = getter;
-          propertyNameNode.staticElement = getter;
-        } else {
-          PropertyAccessorElementImpl setter =
-              new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setCodeRange(setter, node);
-          setter.metadata = _createElementAnnotations(node.metadata);
-          setElementDocumentationComment(setter, node);
-          if (node.externalKeyword != null) {
-            setter.external = true;
-          }
-          setter.functions = holder.functions;
-          setter.labels = holder.labels;
-          setter.localVariables = holder.localVariables;
-          setter.parameters = holder.parameters;
-          if (body.isAsynchronous) {
-            setter.asynchronous = true;
-          }
-          if (body.isGenerator) {
-            setter.generator = true;
-          }
-          setter.variable = variable;
-          setter.setter = true;
-          setter.static = true;
-          if (node.returnType == null) {
-            setter.hasImplicitReturnType = true;
-          }
-          variable.setter = setter;
-          variable.final2 = false;
-          _currentHolder.addAccessor(setter);
-          expression.element = setter;
-          propertyNameNode.staticElement = setter;
-        }
-      }
-      holder.validate();
-    }
-    return null;
-  }
-
-  @override
-  Object visitFunctionExpression(FunctionExpression node) {
-    if (node.parent is FunctionDeclaration) {
-      // visitFunctionDeclaration has already created the element for the
-      // declaration.  We just need to visit children.
-      return super.visitFunctionExpression(node);
-    }
-    ElementHolder holder = new ElementHolder();
-    bool wasInFunction = _inFunction;
-    _inFunction = true;
-    try {
-      _visitChildren(holder, node);
-    } finally {
-      _inFunction = wasInFunction;
-    }
-    FunctionBody body = node.body;
-    FunctionElementImpl element =
-        new FunctionElementImpl.forOffset(node.beginToken.offset);
-    _setCodeRange(element, node);
-    element.functions = holder.functions;
-    element.labels = holder.labels;
-    element.localVariables = holder.localVariables;
-    element.parameters = holder.parameters;
-    element.typeParameters = holder.typeParameters;
-    if (body.isAsynchronous) {
-      element.asynchronous = true;
-    }
-    if (body.isGenerator) {
-      element.generator = true;
-    }
-    if (_inFunction) {
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
-      if (enclosingBlock != null) {
-        element.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
-      }
-    }
-    if (_functionTypesToFix != null) {
-      _functionTypesToFix.add(element);
-    } else {
-      element.type = new FunctionTypeImpl(element);
-    }
-    element.hasImplicitReturnType = true;
-    _currentHolder.addFunction(element);
-    node.element = element;
-    holder.validate();
-    return null;
-  }
-
-  @override
-  Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    ElementHolder holder = new ElementHolder();
-    _visitChildren(holder, node);
-    SimpleIdentifier aliasName = node.name;
-    List<ParameterElement> parameters = holder.parameters;
-    List<TypeParameterElement> typeParameters = holder.typeParameters;
-    FunctionTypeAliasElementImpl element =
-        new FunctionTypeAliasElementImpl.forNode(aliasName);
-    _setCodeRange(element, node);
-    element.metadata = _createElementAnnotations(node.metadata);
-    setElementDocumentationComment(element, node);
-    element.parameters = parameters;
-    element.typeParameters = typeParameters;
-    _createTypeParameterTypes(typeParameters);
-    element.type = new FunctionTypeImpl.forTypedef(element);
-    _currentHolder.addTypeAlias(element);
-    aliasName.staticElement = element;
-    holder.validate();
     return null;
   }
 
@@ -896,200 +1425,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitImportDirective(ImportDirective node) {
-    List<ElementAnnotation> annotations =
-        _createElementAnnotations(node.metadata);
-    compilationUnitElement.setAnnotations(node.offset, annotations);
-    return super.visitImportDirective(node);
-  }
-
-  @override
-  Object visitLabeledStatement(LabeledStatement node) {
-    bool onSwitchStatement = node.statement is SwitchStatement;
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElementImpl element =
-          new LabelElementImpl.forNode(labelName, onSwitchStatement, false);
-      _currentHolder.addLabel(element);
-      labelName.staticElement = element;
-    }
-    return super.visitLabeledStatement(node);
-  }
-
-  @override
-  Object visitLibraryDirective(LibraryDirective node) {
-    List<ElementAnnotation> annotations =
-        _createElementAnnotations(node.metadata);
-    compilationUnitElement.setAnnotations(node.offset, annotations);
-    return super.visitLibraryDirective(node);
-  }
-
-  @override
-  Object visitMethodDeclaration(MethodDeclaration node) {
-    try {
-      ElementHolder holder = new ElementHolder();
-      bool wasInFunction = _inFunction;
-      _inFunction = true;
-      try {
-        _visitChildren(holder, node);
-      } finally {
-        _inFunction = wasInFunction;
-      }
-      bool isStatic = node.isStatic;
-      Token property = node.propertyKeyword;
-      FunctionBody body = node.body;
-      if (property == null) {
-        SimpleIdentifier methodName = node.name;
-        String nameOfMethod = methodName.name;
-        if (nameOfMethod == TokenType.MINUS.lexeme &&
-            node.parameters.parameters.length == 0) {
-          nameOfMethod = "unary-";
-        }
-        MethodElementImpl element =
-            new MethodElementImpl(nameOfMethod, methodName.offset);
-        _setCodeRange(element, node);
-        element.metadata = _createElementAnnotations(node.metadata);
-        setElementDocumentationComment(element, node);
-        element.abstract = node.isAbstract;
-        if (node.externalKeyword != null) {
-          element.external = true;
-        }
-        element.functions = holder.functions;
-        element.labels = holder.labels;
-        element.localVariables = holder.localVariables;
-        element.parameters = holder.parameters;
-        element.static = isStatic;
-        element.typeParameters = holder.typeParameters;
-        if (body.isAsynchronous) {
-          element.asynchronous = true;
-        }
-        if (body.isGenerator) {
-          element.generator = true;
-        }
-        if (node.returnType == null) {
-          element.hasImplicitReturnType = true;
-        }
-        _currentHolder.addMethod(element);
-        methodName.staticElement = element;
-      } else {
-        SimpleIdentifier propertyNameNode = node.name;
-        String propertyName = propertyNameNode.name;
-        FieldElementImpl field = _currentHolder.getField(propertyName,
-            synthetic: true) as FieldElementImpl;
-        if (field == null) {
-          field = new FieldElementImpl(node.name.name, -1);
-          field.final2 = true;
-          field.static = isStatic;
-          field.synthetic = true;
-          _currentHolder.addField(field);
-        }
-        if (node.isGetter) {
-          PropertyAccessorElementImpl getter =
-              new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setCodeRange(getter, node);
-          getter.metadata = _createElementAnnotations(node.metadata);
-          setElementDocumentationComment(getter, node);
-          if (node.externalKeyword != null) {
-            getter.external = true;
-          }
-          getter.functions = holder.functions;
-          getter.labels = holder.labels;
-          getter.localVariables = holder.localVariables;
-          if (body.isAsynchronous) {
-            getter.asynchronous = true;
-          }
-          if (body.isGenerator) {
-            getter.generator = true;
-          }
-          getter.variable = field;
-          getter.abstract = node.isAbstract;
-          getter.getter = true;
-          getter.static = isStatic;
-          field.getter = getter;
-          if (node.returnType == null) {
-            getter.hasImplicitReturnType = true;
-          }
-          _currentHolder.addAccessor(getter);
-          propertyNameNode.staticElement = getter;
-        } else {
-          PropertyAccessorElementImpl setter =
-              new PropertyAccessorElementImpl.forNode(propertyNameNode);
-          _setCodeRange(setter, node);
-          setter.metadata = _createElementAnnotations(node.metadata);
-          setElementDocumentationComment(setter, node);
-          if (node.externalKeyword != null) {
-            setter.external = true;
-          }
-          setter.functions = holder.functions;
-          setter.labels = holder.labels;
-          setter.localVariables = holder.localVariables;
-          setter.parameters = holder.parameters;
-          if (body.isAsynchronous) {
-            setter.asynchronous = true;
-          }
-          if (body.isGenerator) {
-            setter.generator = true;
-          }
-          setter.variable = field;
-          setter.abstract = node.isAbstract;
-          setter.setter = true;
-          setter.static = isStatic;
-          if (node.returnType == null) {
-            setter.hasImplicitReturnType = true;
-          }
-          field.setter = setter;
-          field.final2 = false;
-          _currentHolder.addAccessor(setter);
-          propertyNameNode.staticElement = setter;
-        }
-      }
-      holder.validate();
-    } catch (exception, stackTrace) {
-      if (node.name.staticElement == null) {
-        ClassDeclaration classNode =
-            node.getAncestor((node) => node is ClassDeclaration);
-        StringBuffer buffer = new StringBuffer();
-        buffer.write("The element for the method ");
-        buffer.write(node.name);
-        buffer.write(" in ");
-        buffer.write(classNode.name);
-        buffer.write(" was not set while trying to build the element model.");
-        AnalysisEngine.instance.logger.logError(
-            buffer.toString(), new CaughtException(exception, stackTrace));
-      } else {
-        String message =
-            "Exception caught in ElementBuilder.visitMethodDeclaration()";
-        AnalysisEngine.instance.logger
-            .logError(message, new CaughtException(exception, stackTrace));
-      }
-    } finally {
-      if (node.name.staticElement == null) {
-        ClassDeclaration classNode =
-            node.getAncestor((node) => node is ClassDeclaration);
-        StringBuffer buffer = new StringBuffer();
-        buffer.write("The element for the method ");
-        buffer.write(node.name);
-        buffer.write(" in ");
-        buffer.write(classNode.name);
-        buffer.write(" was not set while trying to resolve types.");
-        AnalysisEngine.instance.logger.logError(
-            buffer.toString(),
-            new CaughtException(
-                new AnalysisException(buffer.toString()), null));
-      }
-    }
-    return null;
-  }
-
-  @override
-  Object visitPartDirective(PartDirective node) {
-    List<ElementAnnotation> annotations =
-        _createElementAnnotations(node.metadata);
-    compilationUnitElement.setAnnotations(node.offset, annotations);
-    return super.visitPartDirective(node);
-  }
-
-  @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
     if (node.parent is! DefaultFormalParameter) {
       SimpleIdentifier parameterName = node.identifier;
@@ -1113,30 +1448,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
-  Object visitSwitchCase(SwitchCase node) {
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElementImpl element =
-          new LabelElementImpl.forNode(labelName, false, true);
-      _currentHolder.addLabel(element);
-      labelName.staticElement = element;
-    }
-    return super.visitSwitchCase(node);
-  }
-
-  @override
-  Object visitSwitchDefault(SwitchDefault node) {
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElementImpl element =
-          new LabelElementImpl.forNode(labelName, false, true);
-      _currentHolder.addLabel(element);
-      labelName.staticElement = element;
-    }
-    return super.visitSwitchDefault(node);
-  }
-
-  @override
   Object visitTypeParameter(TypeParameter node) {
     SimpleIdentifier parameterName = node.name;
     TypeParameterElementImpl typeParameter =
@@ -1151,141 +1462,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return super.visitTypeParameter(node);
   }
 
-  @override
-  Object visitVariableDeclaration(VariableDeclaration node) {
-    bool isConst = node.isConst;
-    bool isFinal = node.isFinal;
-    bool hasInitializer = node.initializer != null;
-    VariableDeclarationList varList = node.parent;
-    FieldDeclaration fieldNode =
-        varList.parent is FieldDeclaration ? varList.parent : null;
-    VariableElementImpl element;
-    if (fieldNode != null) {
-      SimpleIdentifier fieldName = node.name;
-      FieldElementImpl field;
-      if ((isConst || isFinal && !fieldNode.isStatic) && hasInitializer) {
-        field = new ConstFieldElementImpl.forNode(fieldName);
-      } else {
-        field = new FieldElementImpl.forNode(fieldName);
-      }
-      element = field;
-      field.static = fieldNode.isStatic;
-      _setCodeRange(element, node);
-      setElementDocumentationComment(element, fieldNode);
-      field.hasImplicitType = varList.type == null;
-      _currentHolder.addField(field);
-      fieldName.staticElement = field;
-    } else if (_inFunction) {
-      SimpleIdentifier variableName = node.name;
-      LocalVariableElementImpl variable;
-      if (isConst && hasInitializer) {
-        variable = new ConstLocalVariableElementImpl.forNode(variableName);
-      } else {
-        variable = new LocalVariableElementImpl.forNode(variableName);
-      }
-      element = variable;
-      _setCodeRange(element, node);
-      _setVariableVisibleRange(variable, node);
-      variable.hasImplicitType = varList.type == null;
-      _currentHolder.addLocalVariable(variable);
-      variableName.staticElement = element;
-    } else {
-      SimpleIdentifier variableName = node.name;
-      TopLevelVariableElementImpl variable;
-      if (isConst && hasInitializer) {
-        variable = new ConstTopLevelVariableElementImpl.forNode(variableName);
-      } else {
-        variable = new TopLevelVariableElementImpl.forNode(variableName);
-      }
-      element = variable;
-      _setCodeRange(element, node);
-      if (varList.parent is TopLevelVariableDeclaration) {
-        setElementDocumentationComment(element, varList.parent);
-      }
-      variable.hasImplicitType = varList.type == null;
-      _currentHolder.addTopLevelVariable(variable);
-      variableName.staticElement = element;
-    }
-    element.const3 = isConst;
-    element.final2 = isFinal;
-    if (hasInitializer) {
-      ElementHolder holder = new ElementHolder();
-      _visit(holder, node.initializer);
-      FunctionElementImpl initializer =
-          new FunctionElementImpl.forOffset(node.initializer.beginToken.offset);
-      initializer.hasImplicitReturnType = true;
-      initializer.functions = holder.functions;
-      initializer.labels = holder.labels;
-      initializer.localVariables = holder.localVariables;
-      initializer.synthetic = true;
-      initializer.type = new FunctionTypeImpl(initializer);
-      element.initializer = initializer;
-      holder.validate();
-    }
-    if (element is PropertyInducingElementImpl) {
-      PropertyAccessorElementImpl_ImplicitGetter getter =
-          new PropertyAccessorElementImpl_ImplicitGetter(element);
-      _currentHolder.addAccessor(getter);
-      if (!isConst && !isFinal) {
-        PropertyAccessorElementImpl_ImplicitSetter setter =
-            new PropertyAccessorElementImpl_ImplicitSetter(element);
-        _currentHolder.addAccessor(setter);
-      }
-    }
-    return null;
-  }
-
-  @override
-  Object visitVariableDeclarationList(VariableDeclarationList node) {
-    super.visitVariableDeclarationList(node);
-    AstNode parent = node.parent;
-    List<ElementAnnotation> elementAnnotations;
-    if (parent is FieldDeclaration) {
-      elementAnnotations = _createElementAnnotations(parent.metadata);
-    } else if (parent is TopLevelVariableDeclaration) {
-      elementAnnotations = _createElementAnnotations(parent.metadata);
-    } else {
-      // Local variable declaration
-      elementAnnotations = _createElementAnnotations(node.metadata);
-    }
-    for (VariableDeclaration variableDeclaration in node.variables) {
-      ElementImpl element = variableDeclaration.element as ElementImpl;
-      _setCodeRange(element, node.parent);
-      element.metadata = elementAnnotations;
-    }
-    return null;
-  }
-
-  /**
-   * Build the table mapping field names to field elements for the fields defined in the current
-   * class.
-   *
-   * @param fields the field elements defined in the current class
-   */
-  void _buildFieldMap(List<FieldElement> fields) {
-    _fieldMap = new HashMap<String, FieldElement>();
-    int count = fields.length;
-    for (int i = 0; i < count; i++) {
-      FieldElement field = fields[i];
-      _fieldMap[field.name] ??= field;
-    }
-  }
-
-  /**
-   * Creates the [ConstructorElement]s array with the single default constructor element.
-   *
-   * @param interfaceType the interface type for which to create a default constructor
-   * @return the [ConstructorElement]s array with the single default constructor element
-   */
-  List<ConstructorElement> _createDefaultConstructors(
-      ClassElementImpl definingClass) {
-    ConstructorElementImpl constructor =
-        new ConstructorElementImpl.forNode(null);
-    constructor.synthetic = true;
-    constructor.enclosingElement = definingClass;
-    return <ConstructorElement>[constructor];
-  }
-
   /**
    * For each [Annotation] found in [annotations], create a new
    * [ElementAnnotation] object and set the [Annotation] to point to it.
@@ -1297,32 +1473,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     return annotations.map((Annotation a) {
       ElementAnnotationImpl elementAnnotation =
-          new ElementAnnotationImpl(compilationUnitElement);
+          new ElementAnnotationImpl(_unitElement);
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
-  }
-
-  /**
-   * Create the types associated with the given type parameters, setting the type of each type
-   * parameter, and return an array of types corresponding to the given parameters.
-   *
-   * @param typeParameters the type parameters for which types are to be created
-   * @return an array of types corresponding to the given parameters
-   */
-  List<DartType> _createTypeParameterTypes(
-      List<TypeParameterElement> typeParameters) {
-    int typeParameterCount = typeParameters.length;
-    List<DartType> typeArguments = new List<DartType>(typeParameterCount);
-    for (int i = 0; i < typeParameterCount; i++) {
-      TypeParameterElementImpl typeParameter =
-          typeParameters[i] as TypeParameterElementImpl;
-      TypeParameterTypeImpl typeParameterType =
-          new TypeParameterTypeImpl(typeParameter);
-      typeParameter.type = typeParameterType;
-      typeArguments[i] = typeParameterType;
-    }
-    return typeArguments;
   }
 
   /**
@@ -1345,6 +1499,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.setCodeRange(node.offset, node.length);
   }
 
+  void _setFieldParameterField(FieldFormalParameterElementImpl parameter) {}
+
   /**
    * Sets the visible source range for formal parameter.
    */
@@ -1356,16 +1512,13 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
   }
 
-  void _setVariableVisibleRange(
-      LocalVariableElementImpl element, VariableDeclaration node) {
-    AstNode scopeNode;
-    AstNode parent2 = node.parent.parent;
-    if (parent2 is ForStatement) {
-      scopeNode = parent2;
-    } else {
-      scopeNode = node.getAncestor((node) => node is Block);
+  void _setVariableDeclarationListAnnotations(VariableDeclarationList node,
+      List<ElementAnnotation> elementAnnotations) {
+    for (VariableDeclaration variableDeclaration in node.variables) {
+      ElementImpl element = variableDeclaration.element as ElementImpl;
+      _setCodeRange(element, node.parent);
+      element.metadata = elementAnnotations;
     }
-    element.setVisibleRange(scopeNode.offset, scopeNode.length);
   }
 
   /**
@@ -1406,7 +1559,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 }
 
 class _ElementBuilder_visitClassDeclaration extends UnifyingAstVisitor<Object> {
-  final ElementBuilder builder;
+  final ApiElementBuilder builder;
 
   List<ClassMember> nonFields;
 

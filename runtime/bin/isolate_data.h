@@ -16,6 +16,8 @@ namespace bin {
 class EventHandler;
 class Loader;
 
+typedef void (*ExitHook)(int64_t exit_code);
+
 // Data associated with every isolate in the standalone VM
 // embedding. This is used to free external resources for each isolate
 // when the isolate shuts down.
@@ -29,7 +31,8 @@ class IsolateData {
         packages_file(NULL),
         udp_receive_buffer(NULL),
         builtin_lib_(NULL),
-        loader_(NULL) {
+        loader_(NULL),
+        exit_hook_(NULL) {
     if (package_root != NULL) {
       ASSERT(packages_file == NULL);
       this->package_root = strdup(package_root);
@@ -64,6 +67,9 @@ class IsolateData {
     builtin_lib_ = Dart_NewPersistentHandle(lib);
   }
 
+  ExitHook exit_hook() const { return exit_hook_; }
+  void set_exit_hook(ExitHook hook) { exit_hook_ = hook; }
+
   char* script_url;
   char* package_root;
   char* packages_file;
@@ -83,6 +89,7 @@ class IsolateData {
  private:
   Dart_Handle builtin_lib_;
   Loader* loader_;
+  ExitHook exit_hook_;
 
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };

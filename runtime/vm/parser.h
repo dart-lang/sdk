@@ -115,6 +115,7 @@ class ParsedFunction : public ZoneAllocated {
     // Every function has a local variable for the current context.
     LocalVariable* temp = new(zone()) LocalVariable(
         function.token_pos(),
+        function.token_pos(),
         Symbols::CurrentContextVar(),
         Object::dynamic_type());
     ASSERT(temp != NULL);

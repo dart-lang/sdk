@@ -3767,16 +3767,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInNativeClass || list.isSynthetic) {
       return;
     }
-
+    bool isConst = list.isConst;
+    if (!(isConst || list.isFinal)) {
+      return;
+    }
     NodeList<VariableDeclaration> variables = list.variables;
     for (VariableDeclaration variable in variables) {
       if (variable.initializer == null) {
-        if (list.isConst) {
+        if (isConst) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_NOT_INITIALIZED,
               variable.name,
               [variable.name.name]);
-        } else if (list.isFinal) {
+        } else {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.FINAL_NOT_INITIALIZED,
               variable.name,
@@ -4256,7 +4259,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
           name,
-          [name.name]);
+          [name.name, _getKind(element), element.enclosingElement.name]);
     }
   }
 
@@ -4952,7 +4955,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         declaration.name,
-        [superType.displayName]);
+        [superType.displayName, _enclosingClass.displayName]);
   }
 
   /**
@@ -5773,7 +5776,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _errorReporter.reportErrorForNode(
         StaticTypeWarningCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND,
         parameter,
-        [element.displayName]);
+        [element.displayName, bound.displayName]);
   }
 
   /**
@@ -5868,14 +5871,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (enclosingElement is! ClassElement) {
       return;
     }
-    if ((element is MethodElement && !element.isStatic) ||
-        (element is PropertyAccessorElement && !element.isStatic)) {
+    if (element is ExecutableElement && !element.isStatic) {
       return;
     }
     _errorReporter.reportErrorForNode(
         StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
         name,
-        [name.name]);
+        [enclosingElement.name]);
   }
 
   void _checkForValidField(FieldFormalParameter parameter) {
@@ -6311,6 +6313,32 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Return a human-readable representation of the kind of the [element].
+   */
+  String _getKind(ExecutableElement element) {
+    if (element is MethodElement) {
+      return 'method';
+    } else if (element is PropertyAccessorElement) {
+      if (element.isSynthetic) {
+        PropertyInducingElement variable = element.variable;
+        if (variable is FieldElement) {
+          return 'field';
+        }
+        return 'variable';
+      } else if (element.isGetter) {
+        return 'getter';
+      } else {
+        return 'setter';
+      }
+    } else if (element is ConstructorElement) {
+      return 'constructor';
+    } else if (element is FunctionElement) {
+      return 'function';
+    }
+    return 'member';
   }
 
   /**

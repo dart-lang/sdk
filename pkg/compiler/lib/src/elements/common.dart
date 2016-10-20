@@ -215,20 +215,22 @@ abstract class ClassElementCommon implements ClassElement {
    * When called on the implementation element both members declared in the
    * origin and the patch class are returned.
    */
-  Element lookupByName(Name memberName) {
-    return internalLookupByName(memberName, isSuperLookup: false);
+  Element lookupByName(Name memberName, {ClassElement stopAt}) {
+    return internalLookupByName(memberName,
+        isSuperLookup: false, stopAtSuperclass: stopAt);
   }
 
   Element lookupSuperByName(Name memberName) {
     return internalLookupByName(memberName, isSuperLookup: true);
   }
 
-  Element internalLookupByName(Name memberName, {bool isSuperLookup}) {
+  Element internalLookupByName(Name memberName,
+      {bool isSuperLookup, ClassElement stopAtSuperclass}) {
     String name = memberName.text;
     bool isPrivate = memberName.isPrivate;
     LibraryElement library = memberName.library;
     for (ClassElement current = isSuperLookup ? superclass : this;
-        current != null;
+        current != null && current != stopAtSuperclass;
         current = current.superclass) {
       Element member = current.lookupLocalMember(name);
       if (member == null && current.isPatched) {

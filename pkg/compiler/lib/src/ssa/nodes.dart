@@ -1627,6 +1627,11 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
       : super(selector, mask, element, inputs, type);
   toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
+
+  bool get isTearOff => element != null && element.isFunction;
+
+  // There might be an interceptor input, so `inputs.last` is the dart receiver.
+  bool canThrow() => isTearOff ? inputs.last.canBeNull() : super.canThrow();
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
@@ -1935,10 +1940,11 @@ class HForeignCode extends HForeign {
   int typeCode() => HInstruction.FOREIGN_CODE_TYPECODE;
   bool typeEquals(other) => other is HForeignCode;
   bool dataEquals(HForeignCode other) {
-    return codeTemplate.source == other.codeTemplate.source;
+    return codeTemplate.source != null &&
+        codeTemplate.source == other.codeTemplate.source;
   }
 
-  String toString() => 'HForeignCode("${codeTemplate.source}", $inputs)';
+  String toString() => 'HForeignCode("${codeTemplate.source}")';
 }
 
 abstract class HInvokeBinary extends HInstruction {

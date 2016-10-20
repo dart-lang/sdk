@@ -474,14 +474,14 @@ main() {
     // No fix for ";".
     {
       AnalysisError error = errors[0];
-      expect(error.message, "Expected to find ';'");
+      expect(error.message, "Expected to find ';'.");
       List<Fix> fixes = await _computeFixes(error);
       expect(fixes, isEmpty);
     }
     // Has fix for "await".
     {
       AnalysisError error = errors[1];
-      expect(error.message, startsWith("Undefined name 'await';"));
+      expect(error.message, startsWith("Undefined name 'await'."));
       List<Fix> fixes = await _computeFixes(error);
       // has exactly one fix
       expect(fixes, hasLength(1));

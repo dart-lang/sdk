@@ -74,9 +74,43 @@ bool File::IsClosed() {
 }
 
 
-void* File::Map(MapType type, int64_t position, int64_t length) {
-  UNIMPLEMENTED();
-  return NULL;
+void* File::Map(File::MapType type, int64_t position, int64_t length) {
+  DWORD prot_alloc;
+  DWORD prot_final;
+  switch (type) {
+    case File::kReadOnly:
+      prot_alloc = PAGE_READWRITE;
+      prot_final = PAGE_READONLY;
+      break;
+    case File::kReadExecute:
+      prot_alloc = PAGE_EXECUTE_READWRITE;
+      prot_final = PAGE_EXECUTE_READ;
+      break;
+    default:
+      return NULL;
+  }
+
+  void* addr = VirtualAlloc(NULL, length, MEM_COMMIT | MEM_RESERVE, prot_alloc);
+  if (addr == NULL) {
+    Log::PrintErr("VirtualAlloc failed %d\n", GetLastError());
+    return NULL;
+  }
+
+  SetPosition(position);
+  if (!ReadFully(addr, length)) {
+    Log::PrintErr("ReadFully failed %d\n", GetLastError());
+    VirtualFree(addr, 0, MEM_RELEASE);
+    return NULL;
+  }
+
+  DWORD old_prot;
+  bool result = VirtualProtect(addr, length, prot_final, &old_prot);
+  if (!result) {
+    Log::PrintErr("VirtualProtect failed %d\n", GetLastError());
+    VirtualFree(addr, 0, MEM_RELEASE);
+    return NULL;
+  }
+  return addr;
 }
 
 
@@ -635,7 +669,12 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
 
 
 File::Type File::GetType(const char* pathname, bool follow_links) {
-  const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
+  // Convert to wchar_t string.
+  int name_len = MultiByteToWideChar(CP_UTF8, 0, pathname, -1, NULL, 0);
+  wchar_t* name;
+  name = new wchar_t[name_len];
+  MultiByteToWideChar(CP_UTF8, 0, pathname, -1, name, name_len);
+
   DWORD attributes = GetFileAttributesW(name);
   File::Type result = kIsFile;
   if (attributes == INVALID_FILE_ATTRIBUTES) {
@@ -662,6 +701,7 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   } else if ((attributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
     result = kIsDirectory;
   }
+  delete[] name;
   return result;
 }
 

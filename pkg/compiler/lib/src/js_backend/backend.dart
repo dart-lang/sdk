@@ -2490,9 +2490,11 @@ class JavaScriptBackend extends Backend {
       return;
     }
 
-    if ((element.isFunction || element.isConstructor) &&
-        annotations.noInline(element)) {
-      inlineCache.markAsNonInlinable(element);
+    Element implementation = element.implementation;
+    if (element.isFunction || element.isConstructor) {
+      if (annotations.noInline(implementation)) {
+        inlineCache.markAsNonInlinable(implementation);
+      }
     }
 
     LibraryElement library = element.library;

@@ -37,6 +37,8 @@ DEFINE_FLAG(uint64_t, trace_sim_after, ULLONG_MAX,
 DEFINE_FLAG(uint64_t, stop_sim_at, ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
+#define LIKELY(cond) __builtin_expect((cond), 1)
+
 // SimulatorSetjmpBuffer are linked together, and the last created one
 // is referenced by the Simulator. When an exception is thrown, the exception
 // runtime looks at where to jump and finds the corresponding
@@ -239,6 +241,202 @@ class SimulatorHelpers {
     return false;
   }
 
+  static bool Double_getIsNan(Thread* thread,
+                              RawObject** FP,
+                              RawObject** result) {
+    RawObject** args = FrameArguments(FP, 1);
+    RawDouble* d = static_cast<RawDouble*>(args[0]);
+    *result = isnan(d->ptr()->value_)
+            ? Bool::True().raw()
+            : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_getIsInfinite(Thread* thread,
+                                   RawObject** FP,
+                                   RawObject** result) {
+    RawObject** args = FrameArguments(FP, 1);
+    RawDouble* d = static_cast<RawDouble*>(args[0]);
+    *result = isinf(d->ptr()->value_)
+            ? Bool::True().raw()
+            : Bool::False().raw();
+    return true;
+  }
+
+  static bool ObjectEquals(Thread* thread,
+                           RawObject** FP,
+                           RawObject** result) {
+    RawObject** args = FrameArguments(FP, 2);
+    *result = args[0] == args[1] ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool ObjectRuntimeType(Thread* thread,
+                                RawObject** FP,
+                                RawObject** result) {
+    RawObject** args = FrameArguments(FP, 1);
+    const intptr_t cid = GetClassId(args[0]);
+    if (cid == kClosureCid) {
+      return false;
+    }
+    RawClass* cls = thread->isolate()->class_table()->At(cid);
+    if (cls->ptr()->num_type_arguments_ != 0) {
+      return false;
+    }
+    RawType* typ = cls->ptr()->canonical_type_;
+    if (typ == Object::null()) {
+      return false;
+    }
+    *result = static_cast<RawObject*>(typ);
+    return true;
+  }
+
+  static bool GetDoubleOperands(RawObject** args, double* d1, double* d2) {
+    RawObject* obj2 = args[1];
+    if (!obj2->IsHeapObject()) {
+      *d2 = static_cast<double>(
+          reinterpret_cast<intptr_t>(obj2) >> kSmiTagSize);
+    } else if (obj2->GetClassId() == kDoubleCid) {
+      RawDouble* obj2d = static_cast<RawDouble*>(obj2);
+      *d2 = obj2d->ptr()->value_;
+    } else {
+      return false;
+    }
+    RawDouble* obj1 = static_cast<RawDouble*>(args[0]);
+    *d1 = obj1->ptr()->value_;
+    return true;
+  }
+
+  static RawObject* AllocateDouble(Thread* thread, double value) {
+    const intptr_t instance_size = Double::InstanceSize();
+    const uword start =
+        thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      uword tags = 0;
+      tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
+      tags = RawObject::SizeTag::update(instance_size, tags);
+      *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
+      *reinterpret_cast<double*>(start + Double::value_offset()) = value;
+      return reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+    }
+    return NULL;
+  }
+
+  static bool Double_add(Thread* thread,
+                         RawObject** FP,
+                         RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    RawObject* new_double = AllocateDouble(thread, d1 + d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
+  }
+
+  static bool Double_mul(Thread* thread,
+                         RawObject** FP,
+                         RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    RawObject* new_double = AllocateDouble(thread, d1 * d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
+  }
+
+  static bool Double_sub(Thread* thread,
+                         RawObject** FP,
+                         RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    RawObject* new_double = AllocateDouble(thread, d1 - d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
+  }
+
+  static bool Double_div(Thread* thread,
+                         RawObject** FP,
+                         RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    RawObject* new_double = AllocateDouble(thread, d1 / d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
+  }
+
+  static bool Double_greaterThan(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 > d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_greaterEqualThan(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 >= d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_lessThan(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 < d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_equal(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 == d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_lessEqualThan(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 <= d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
   DART_FORCE_INLINE static RawCode* FrameCode(RawObject** FP) {
     ASSERT(GetClassId(FP[kPcMarkerSlotFromFp]) == kCodeCid);
     return static_cast<RawCode*>(FP[kPcMarkerSlotFromFp]);
@@ -290,6 +488,33 @@ void Simulator::InitOnce() {
       SimulatorHelpers::GrowableArraySetIndexed;
   intrinsics_[kGrowableArrayGetIndexedIntrinsic] =
       SimulatorHelpers::GrowableArrayGetIndexed;
+  intrinsics_[kObjectEqualsIntrinsic] =
+      SimulatorHelpers::ObjectEquals;
+  intrinsics_[kObjectRuntimeTypeIntrinsic] =
+      SimulatorHelpers::ObjectRuntimeType;
+
+  intrinsics_[kDouble_getIsNaNIntrinsic] =
+      SimulatorHelpers::Double_getIsNan;
+  intrinsics_[kDouble_getIsInfiniteIntrinsic] =
+      SimulatorHelpers::Double_getIsInfinite;
+  intrinsics_[kDouble_addIntrinsic] =
+      SimulatorHelpers::Double_add;
+  intrinsics_[kDouble_mulIntrinsic] =
+      SimulatorHelpers::Double_mul;
+  intrinsics_[kDouble_subIntrinsic] =
+      SimulatorHelpers::Double_sub;
+  intrinsics_[kDouble_divIntrinsic] =
+      SimulatorHelpers::Double_div;
+  intrinsics_[kDouble_greaterThanIntrinsic] =
+      SimulatorHelpers::Double_greaterThan;
+  intrinsics_[kDouble_greaterEqualThanIntrinsic] =
+      SimulatorHelpers::Double_greaterEqualThan;
+  intrinsics_[kDouble_lessThanIntrinsic] =
+      SimulatorHelpers::Double_lessThan;
+  intrinsics_[kDouble_equalIntrinsic] =
+      SimulatorHelpers::Double_equal;
+  intrinsics_[kDouble_lessEqualThanIntrinsic] =
+      SimulatorHelpers::Double_lessEqualThan;
 }
 
 
@@ -480,9 +705,6 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
 #endif
   return (res != 0);
 }
-
-
-#define LIKELY(cond) __builtin_expect((cond), 1)
 
 
 DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
@@ -2007,6 +2229,20 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(DoubleIsNaN, A_D);
+    const double v = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = isnan(v) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleIsInfinite, A_D);
+    const double v = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = isinf(v) ? true_value : false_value;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(LoadIndexedFloat32, A_B_C);
     uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
     const uint32_t value = *reinterpret_cast<uint32_t*>(data);
@@ -2233,6 +2469,18 @@ RawObject* Simulator::Call(const Code& code,
 
   {
     BYTECODE(FloatToDouble, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleIsNaN, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleIsInfinite, A_D);
     UNREACHABLE();
     DISPATCH();
   }
@@ -2880,10 +3128,6 @@ RawObject* Simulator::Call(const Code& code,
         const intptr_t desired_cid = Bytecode::DecodeD(*(pc + i));
         if (cid == desired_cid) {
           pc++;
-          break;
-        }
-        // The cids are sorted in descending order.
-        if (cid > desired_cid) {
           break;
         }
       }

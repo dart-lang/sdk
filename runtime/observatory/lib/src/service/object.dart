@@ -3254,6 +3254,7 @@ class Script extends HeapObject implements M.Script {
 
   Script._empty(ServiceObjectOwner owner) : super._empty(owner);
 
+  /// Retrieves line number [line] if it exists.
   ScriptLine getLine(int line) {
     assert(_loaded);
     assert(line >= 1);
@@ -3261,10 +3262,12 @@ class Script extends HeapObject implements M.Script {
   }
 
   /// This function maps a token position to a line number.
+  /// The VM considers the first line to be line 1.
   int tokenToLine(int tokenPos) => _tokenToLine[tokenPos];
   Map _tokenToLine = {};
 
   /// This function maps a token position to a column number.
+  /// The VM considers the first column to be column 1.
   int tokenToCol(int tokenPos) => _tokenToCol[tokenPos];
   Map _tokenToCol = {};
 
@@ -3327,7 +3330,7 @@ class Script extends HeapObject implements M.Script {
 
   static bool _isIdentifierChar(int c) {
     if (_isInitialIdentifierChar(c)) return true;
-    return c >= 48 && c <= 75; // Digit
+    return c >= 48 && c <= 57; // Digit
   }
 
   void _update(Map map, bool mapIsRef) {
@@ -3405,6 +3408,28 @@ class Script extends HeapObject implements M.Script {
       if (bpt.location.script == this) {
         _addBreakpoint(bpt);
       }
+    }
+  }
+
+  // Note, this may return source beyond the token length if [guessTokenLength]
+  // fails.
+  String getToken(int tokenPos) {
+    final int line = tokenToLine(tokenPos);
+    int column = tokenToCol(tokenPos);
+    if ((line == null) || (column == null)) {
+      return null;
+    }
+    // Line and column numbers start at 1 in the VM.
+    column -= 1;
+    String sourceLine = getLine(line).text;
+    if (sourceLine == null) {
+      return null;
+    }
+    final int length = guessTokenLength(line, column);
+    if (length == null) {
+      return sourceLine.substring(column);
+    } else {
+      return sourceLine.substring(column, column + length);
     }
   }
 
@@ -3610,13 +3635,20 @@ class LocalVarDescriptor implements M.LocalVarDescriptorsRef {
   final String id;
   final String name;
   final int index;
+  final int declarationPos;
   final int beginPos;
   final int endPos;
   final int scopeId;
   final String kind;
 
-  LocalVarDescriptor(this.id, this.name, this.index, this.beginPos, this.endPos,
-      this.scopeId, this.kind);
+  LocalVarDescriptor(this.id,
+                     this.name,
+                     this.index,
+                     this.declarationPos,
+                     this.beginPos,
+                     this.endPos,
+                     this.scopeId,
+                     this.kind);
 }
 
 class LocalVarDescriptors extends ServiceObject {
@@ -3638,12 +3670,13 @@ class LocalVarDescriptors extends ServiceObject {
       var id = descriptor['name'];
       var name = descriptor['name'];
       var index = descriptor['index'];
-      var beginPos = descriptor['beginPos'];
-      var endPos = descriptor['endPos'];
+      var declarationPos = descriptor['declarationTokenPos'];
+      var beginPos = descriptor['scopeStartTokenPos'];
+      var endPos = descriptor['scopeEndTokenPos'];
       var scopeId = descriptor['scopeId'];
       var kind = descriptor['kind'].trim();
       descriptors.add(new LocalVarDescriptor(
-          id, name, index, beginPos, endPos, scopeId, kind));
+          id, name, index, declarationPos, beginPos, endPos, scopeId, kind));
     }
   }
 }

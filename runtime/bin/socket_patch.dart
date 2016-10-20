@@ -449,7 +449,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               connectNext();
             } else {
               // Query the local port, for error messages.
-              socket.port;
+              try {
+                socket.port;
+              } catch (e) {
+                error = createError(e, "Connection failed", address, port);
+                connectNext();
+              }
               // Set up timer for when we should retry the next address
               // (if any).
               var duration = address.isLoopback ?

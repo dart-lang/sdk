@@ -2188,7 +2188,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
 
 RawField* Isolate::GetDeoptimizingBoxedField() {
   ASSERT(Thread::Current()->IsMutatorThread());
-  MutexLocker ml(field_list_mutex_);
+  SafepointMutexLocker ml(field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
     return Field::null();
   }

@@ -18,7 +18,7 @@ regExpGetNative(JSSyntaxRegExp regexp) => regexp._nativeRegExp;
  */
 regExpGetGlobalNative(JSSyntaxRegExp regexp) {
   var nativeRegexp = regexp._nativeGlobalVersion;
-  JS("void", "#.lastIndex = 0", nativeRegexp);
+  JS('void', '#.lastIndex = 0', nativeRegexp);
   return nativeRegexp;
 }
 
@@ -34,7 +34,7 @@ regExpGetGlobalNative(JSSyntaxRegExp regexp) {
  */
 int regExpCaptureCount(JSSyntaxRegExp regexp) {
   var nativeAnchoredRegExp = regexp._nativeAnchoredVersion;
-  var match = JS('JSExtendableArray', "#.exec('')", nativeAnchoredRegExp);
+  var match = JS('JSExtendableArray', '#.exec("")', nativeAnchoredRegExp);
   // The native-anchored regexp always have one capture more than the original,
   // and always matches the empty string.
   return match.length - 2;
@@ -46,7 +46,7 @@ class JSSyntaxRegExp implements RegExp {
   var _nativeGlobalRegExp;
   var _nativeAnchoredRegExp;
 
-  String toString() => "RegExp/$pattern/";
+  String toString() => 'RegExp/$pattern/';
 
   JSSyntaxRegExp(String source,
                  { bool multiLine: false,
@@ -70,14 +70,14 @@ class JSSyntaxRegExp implements RegExp {
     // that it tries, and you can see if the original regexp matched, or it
     // was the added zero-width match that matched, by looking at the last
     // capture. If it is a String, the match participated, otherwise it didn't.
-    return _nativeAnchoredRegExp = makeNative("$pattern|()",
+    return _nativeAnchoredRegExp = makeNative('$pattern|()',
                                               _isMultiLine,
                                               _isCaseSensitive,
                                               true);
   }
 
-  bool get _isMultiLine => JS("bool", "#.multiline", _nativeRegExp);
-  bool get _isCaseSensitive => JS("bool", "!#.ignoreCase", _nativeRegExp);
+  bool get _isMultiLine => JS('bool', '#.multiline', _nativeRegExp);
+  bool get _isCaseSensitive => JS('bool', '!#.ignoreCase', _nativeRegExp);
 
   static makeNative(
       String source, bool multiLine, bool caseSensitive, bool global) {
@@ -135,21 +135,20 @@ class JSSyntaxRegExp implements RegExp {
 
   Match _execGlobal(String string, int start) {
     Object regexp = _nativeGlobalVersion;
-    JS("void", "#.lastIndex = #", regexp, start);
-    List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
+    JS('void', '#.lastIndex = #', regexp, start);
+    List match = JS('JSExtendableArray|Null', '#.exec(#)', regexp, string);
     if (match == null) return null;
     return new _MatchImplementation(this, match);
   }
 
   Match _execAnchored(String string, int start) {
     Object regexp = _nativeAnchoredVersion;
-    JS("void", "#.lastIndex = #", regexp, start);
-    List match = JS("JSExtendableArray|Null", "#.exec(#)", regexp, string);
+    JS('void', '#.lastIndex = #', regexp, start);
+    List match = JS('JSExtendableArray|Null', '#.exec(#)', regexp, string);
     if (match == null) return null;
     // If the last capture group participated, the original regexp did not
     // match at the start position.
-    if (match[match.length - 1] != null) return null;
-    match.length -= 1;
+    if (match.removeLast() != null) return null;
     return new _MatchImplementation(this, match);
   }
 
@@ -167,17 +166,23 @@ class JSSyntaxRegExp implements RegExp {
 class _MatchImplementation implements Match {
   final Pattern pattern;
   // Contains a JS RegExp match object.
-  // It is an Array of String values with extra "index" and "input" properties.
+  // It is an Array of String values with extra 'index' and 'input' properties.
   final List<String> _match;
 
   _MatchImplementation(this.pattern, this._match) {
-    assert(JS("var", "#.input", _match) is String);
-    assert(JS("var", "#.index", _match) is int);
+    assert(JS('var', '#.input', _match) is String);
+    assert(JS('var', '#.index', _match) is int);
   }
 
-  String get input => JS("String", "#.input", _match);
-  int get start => JS("int", "#.index", _match);
-  int get end => start + _match[0].length;
+  String get input => JS('String', '#.input', _match);
+
+  int get start =>
+      JS('returns:int;depends:none;effects:none;gvn:true', '#.index', _match);
+
+  int get end =>
+      start +
+      JS('returns:int;depends:none;effects:none;gvn:true', '#[0].length',
+          _match);
 
   String group(int index) => _match[index];
   String operator [](int index) => group(index);

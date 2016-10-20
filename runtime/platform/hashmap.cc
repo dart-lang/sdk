@@ -166,9 +166,7 @@ void HashMap::Initialize(uint32_t capacity) {
   ASSERT(dart::Utils::IsPowerOfTwo(capacity));
   map_ = new Entry[capacity];
   if (map_ == NULL) {
-    // TODO(sgjesse): Handle out of memory.
-    FATAL("Cannot allocate memory for hashmap");
-    return;
+    OUT_OF_MEMORY();
   }
   capacity_ = capacity;
   occupancy_ = 0;

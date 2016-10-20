@@ -1676,7 +1676,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void registerMethodInvoke(HInvokeDynamic node) {
     Selector selector = node.selector;
-    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
 
     // If we don't know what we're calling or if we are calling a getter,
     // we need to register that fact that we may be calling a closure
@@ -1689,19 +1688,49 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Selector call = new Selector.callClosureFrom(selector);
       registry.registerDynamicUse(new DynamicUse(call, null));
     }
-    registry.registerDynamicUse(new DynamicUse(selector, mask));
+    if (target != null) {
+      // This is a dynamic invocation which we have found to have a single
+      // target but for some reason haven't inlined. We are _still_ accessing
+      // the target dynamically but we don't need to enqueue more than target
+      // for this to work.
+      assert(invariant(node, selector.applies(target),
+          message: '$selector does not apply to $target'));
+      registry.registerStaticUse(
+          new StaticUse.directInvoke(target, selector.callStructure));
+    } else {
+      TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+      registry.registerDynamicUse(new DynamicUse(selector, mask));
+    }
   }
 
   void registerSetter(HInvokeDynamic node) {
-    Selector selector = node.selector;
-    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-    registry.registerDynamicUse(new DynamicUse(selector, mask));
+    if (node.element != null) {
+      // This is a dynamic update which we have found to have a single
+      // target but for some reason haven't inlined. We are _still_ accessing
+      // the target dynamically but we don't need to enqueue more than target
+      // for this to work.
+      registry.registerStaticUse(new StaticUse.directSet(node.element));
+    } else {
+      Selector selector = node.selector;
+      TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+      registry.registerDynamicUse(new DynamicUse(selector, mask));
+    }
   }
 
   void registerGetter(HInvokeDynamic node) {
-    Selector selector = node.selector;
-    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
-    registry.registerDynamicUse(new DynamicUse(selector, mask));
+    if (node.element != null &&
+        (node.element.isGetter || node.element.isField)) {
+      // This is a dynamic read which we have found to have a single target but
+      // for some reason haven't inlined. We are _still_ accessing the target
+      // dynamically but we don't need to enqueue more than target for this to
+      // work. The test above excludes non-getter functions since the element
+      // represents two targets - a tearoff getter and the torn-off method.
+      registry.registerStaticUse(new StaticUse.directGet(node.element));
+    } else {
+      Selector selector = node.selector;
+      TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+      registry.registerDynamicUse(new DynamicUse(selector, mask));
+    }
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {

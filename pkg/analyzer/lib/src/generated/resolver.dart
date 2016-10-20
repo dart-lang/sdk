@@ -9379,6 +9379,31 @@ class TypeProviderImpl extends TypeProviderBase {
 }
 
 /**
+ * Modes in which [TypeResolverVisitor] works.
+ */
+enum TypeResolverMode {
+  /**
+   * Resolve all names types of all nodes.
+   */
+  everything,
+
+  /**
+   * Resolve only type names outside of function bodies, variable initializers,
+   * and parameter default values.
+   */
+  api,
+
+  /**
+   * Resolve only type names that would be skipped during [api].
+   *
+   * Resolution must start from a unit member or a class member. For example
+   * it is not allowed to resolve types in a separate statement, or a function
+   * body.
+   */
+  local
+}
+
+/**
  * Instances of the class `TypeResolverVisitor` are used to resolve the types associated with
  * the elements in the element model. This includes the types of superclasses, mixins, interfaces,
  * fields, methods, parameters, and local variables. As a side-effect, this also finishes building
@@ -9415,6 +9440,19 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   TypeNameResolver _typeNameResolver;
 
+  final TypeResolverMode mode;
+
+  /**
+   * Is `true` when we are visiting all nodes in [TypeResolverMode.local] mode.
+   */
+  bool _localModeVisitAll = false;
+
+  /**
+   * Is `true` if we are in [TypeResolverMode.local] mode, and the initial
+   * [nameScope] was computed.
+   */
+  bool _localModeScopeReady = false;
+
   /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
@@ -9432,7 +9470,7 @@ class TypeResolverVisitor extends ScopedVisitor {
    */
   TypeResolverVisitor(LibraryElement definingLibrary, Source source,
       TypeProvider typeProvider, AnalysisErrorListener errorListener,
-      {Scope nameScope})
+      {Scope nameScope, this.mode: TypeResolverMode.everything})
       : super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
@@ -9739,6 +9777,112 @@ class TypeResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
+  }
+
+  @override
+  Object visitNode(AstNode node) {
+    // In API mode we need to skip:
+    //   - function bodies;
+    //   - default values of parameters;
+    //   - initializers of top-level variables.
+    if (mode == TypeResolverMode.api) {
+      if (node is FunctionBody) {
+        return null;
+      }
+      if (node is DefaultFormalParameter) {
+        node.parameter.accept(this);
+        return null;
+      }
+      if (node is VariableDeclaration) {
+        return null;
+      }
+    }
+
+    // In local mode we need to resolve only:
+    //   - function bodies;
+    //   - default values of parameters;
+    //   - initializers of top-level variables.
+    // So, we carefully visit only nodes that are, or contain, these nodes.
+    // The client may choose to start visiting any node, but we still want to
+    // resolve only type names that are local.
+    if (mode == TypeResolverMode.local) {
+      // We are in the state of visiting all nodes.
+      if (_localModeVisitAll) {
+        return super.visitNode(node);
+      }
+
+      // Ensure that the name scope is ready.
+      if (!_localModeScopeReady) {
+        void fillNameScope(AstNode node) {
+          if (node is FunctionBody ||
+              node is FormalParameterList ||
+              node is VariableDeclaration) {
+            throw new StateError(
+                'Local type resolution must start from a class or unit member.');
+          }
+          // Create enclosing name scopes.
+          AstNode parent = node.parent;
+          if (parent != null) {
+            fillNameScope(parent);
+          }
+          // Create the name scope for the node.
+          if (node is ClassDeclaration) {
+            ClassElement classElement = node.element;
+            nameScope = new TypeParameterScope(nameScope, classElement);
+            nameScope = new ClassScope(nameScope, classElement);
+          }
+        }
+
+        fillNameScope(node);
+        _localModeScopeReady = true;
+      }
+
+      /**
+       * Visit the given [node] and all its children.
+       */
+      void visitAllNodes(AstNode node) {
+        if (node != null) {
+          bool wasVisitAllInLocalMode = _localModeVisitAll;
+          try {
+            _localModeVisitAll = true;
+            node.accept(this);
+          } finally {
+            _localModeVisitAll = wasVisitAllInLocalMode;
+          }
+        }
+      }
+
+      // Visit only nodes that may contain type names to resolve.
+      if (node is CompilationUnit) {
+        node.declarations.forEach(visitNode);
+      } else if (node is ClassDeclaration) {
+        node.members.forEach(visitNode);
+      } else if (node is DefaultFormalParameter) {
+        visitAllNodes(node.defaultValue);
+      } else if (node is FieldDeclaration) {
+        visitNode(node.fields);
+      } else if (node is FunctionBody) {
+        visitAllNodes(node);
+      } else if (node is FunctionDeclaration) {
+        visitNode(node.functionExpression.parameters);
+        visitAllNodes(node.functionExpression.body);
+      } else if (node is FormalParameterList) {
+        node.parameters.accept(this);
+      } else if (node is MethodDeclaration) {
+        visitNode(node.parameters);
+        visitAllNodes(node.body);
+      } else if (node is TopLevelVariableDeclaration) {
+        visitNode(node.variables);
+      } else if (node is VariableDeclaration) {
+        visitAllNodes(node.initializer);
+      } else if (node is VariableDeclarationList) {
+        node.variables.forEach(visitNode);
+      }
+      return null;
+    }
+
+    // The mode in which we visit all nodes.
+    return super.visitNode(node);
   }
 
   @override

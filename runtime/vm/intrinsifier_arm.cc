@@ -1422,6 +1422,31 @@ void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Double_getIsInfinite(Assembler* assembler) {
+  if (TargetCPUFeatures::vfp_supported()) {
+    __ ldr(R0, Address(SP, 0 * kWordSize));
+    // R1 <- value[0:31], R2 <- value[32:63]
+    __ LoadFieldFromOffset(kWord, R1, R0, Double::value_offset());
+    __ LoadFieldFromOffset(kWord, R2, R0, Double::value_offset() + kWordSize);
+
+    // If the low word isn't 0, then it isn't infinity.
+    __ cmp(R1, Operand(0));
+    __ LoadObject(R0, Bool::False(), NE);
+    __ bx(LR, NE);  // Return if NE.
+
+    // Mask off the sign bit.
+    __ AndImmediate(R2, R2, 0x7FFFFFFF);
+    // Compare with +infinity.
+    __ CompareImmediate(R2, 0x7FF00000);
+    __ LoadObject(R0, Bool::False(), NE);
+    __ bx(LR, NE);
+
+    __ LoadObject(R0, Bool::True());
+    __ Ret();
+  }
+}
+
+
 void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     Label is_false, is_true, is_zero;

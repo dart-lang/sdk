@@ -23,14 +23,6 @@ main() {
 
 @reflectiveTest
 class StaticTypeWarningCodeTest extends ResolverTestCase {
-  void fail_inaccessibleSetter() {
-    // TODO(rnystrom): This doesn't look right.
-    assertErrorsInCode(
-        r'''
-''',
-        [StaticTypeWarningCode.INACCESSIBLE_SETTER]);
-  }
-
   void fail_method_lookup_mixin_of_extends() {
     // See dartbug.com/25605
     resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);

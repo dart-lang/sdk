@@ -1151,7 +1151,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // about the error which will occur at runtime.
     if (type is MethodTypeVariableType) {
       reporter.reportWarningMessage(
-          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC);
     }
 
     registry.registerTypeUse(new TypeUse.asCast(type));

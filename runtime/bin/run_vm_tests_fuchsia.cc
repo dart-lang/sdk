@@ -5,11 +5,11 @@
 #include <fcntl.h>
 #include <launchpad/launchpad.h>
 #include <launchpad/vmo.h>
+#include <magenta/status.h>
 #include <magenta/syscalls.h>
+#include <magenta/syscalls/object.h>
 #include <mxio/util.h>
 #include <pthread.h>
-#include <runtime/status.h>
-#include <runtime/sysinfo.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -140,15 +140,13 @@ static bool isBug(const char* test) {
   return contains(kBugs, sizeof(kBugs) / sizeof(kBugs[0]), test);
 }
 
-
 #define RETURN_IF_ERROR(status)                                                \
   if (status < 0) {                                                            \
-    fprintf(stderr, "%s:%d: Magenta call failed: %s\n",                        \
-        __FILE__, __LINE__, mx_strstatus(static_cast<mx_status_t>(status)));   \
+    fprintf(stderr, "%s:%d: Magenta call failed: %s\n", __FILE__, __LINE__,    \
+            mx_status_get_string(static_cast<mx_status_t>(status)));           \
     fflush(0);                                                                 \
     return status;                                                             \
-  }                                                                            \
-
+  }
 
 // This is mostly taken from //magenta/system/uapp/mxsh with the addtion of
 // launchpad_add_pipe calls to setup pipes for stdout and stderr.

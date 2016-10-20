@@ -8,10 +8,8 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
 $if DART2JS
   factory Comment([String data]) {
-    if (data != null) {
-      return JS('Comment', '#.createComment(#)', document, data);
-    }
-    return JS('Comment', '#.createComment("")', document);
+    return JS('returns:Comment;depends:none;effects:none;new:true',
+        '#.createComment(#)', document, data == null ? "" : data);
   }
 $endif
 $!MEMBERS}

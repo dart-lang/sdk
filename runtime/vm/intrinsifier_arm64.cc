@@ -1507,13 +1507,26 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
 
 
 void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
-  Label is_true;
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadDFieldFromOffset(V0, R0, Double::value_offset());
   __ fcmpd(V0, V0);
   __ LoadObject(TMP, Bool::False());
   __ LoadObject(R0, Bool::True());
   __ csel(R0, TMP, R0, VC);
+  __ ret();
+}
+
+
+void Intrinsifier::Double_getIsInfinite(Assembler* assembler) {
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ LoadFieldFromOffset(R0, R0, Double::value_offset());
+  // Mask off the sign.
+  __ AndImmediate(R0, R0, 0x7FFFFFFFFFFFFFFFLL);
+  // Compare with +infinity.
+  __ CompareImmediate(R0, 0x7FF0000000000000LL);
+  __ LoadObject(R0, Bool::False());
+  __ LoadObject(TMP, Bool::True());
+  __ csel(R0, TMP, R0, EQ);
   __ ret();
 }
 

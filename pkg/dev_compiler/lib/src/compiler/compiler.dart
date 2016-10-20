@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/source_io.dart'
     show Source, SourceKind, UriResolver;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
     show InSummarySource, InputPackagesResultProvider, SummaryDataStore;
+import 'package:analyzer/src/error/codes.dart' show StaticTypeWarningCode;
 import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/src/usage_exception.dart' show UsageException;
 import 'package:func/func.dart' show Func1;
@@ -97,6 +98,21 @@ class ModuleCompiler {
     return new ModuleCompiler.withContext(context, summaryData);
   }
 
+  bool _isFatalError(AnalysisError e, CompilerOptions options) {
+    if (errorSeverity(context, e) != ErrorSeverity.ERROR) return false;
+
+    // These errors are not fatal in the REPL compile mode as we
+    // allow access to private members across library boundaries
+    // and those accesses will show up as undefined members unless
+    // additional analyzer changes are made to support them.
+    // TODO(jacobr): consider checking that the identifier name
+    // referenced by the error is private.
+    return !options.replCompile ||
+        (e.errorCode != StaticTypeWarningCode.UNDEFINED_GETTER &&
+            e.errorCode != StaticTypeWarningCode.UNDEFINED_SETTER &&
+            e.errorCode != StaticTypeWarningCode.UNDEFINED_METHOD);
+  }
+
   /// Compiles a single Dart build unit into a JavaScript module.
   ///
   /// *Warning* - this may require resolving the entire world.
@@ -111,10 +127,10 @@ class ModuleCompiler {
     var compilingSdk = false;
     for (var sourcePath in unit.sources) {
       var sourceUri = Uri.parse(sourcePath);
-      if (sourceUri.scheme == 'dart') {
-        compilingSdk = true;
-      } else if (sourceUri.scheme != 'package') {
+      if (sourceUri.scheme == '') {
         sourceUri = path.toUri(path.absolute(sourcePath));
+      } else if (sourceUri.scheme == 'dart') {
+        compilingSdk = true;
       }
       Source source = context.sourceFactory.forUri2(sourceUri);
 
@@ -159,6 +175,7 @@ class ModuleCompiler {
     }
 
     sortErrors(context, errors);
+
     var messages = <String>[];
     for (var e in errors) {
       var m = formatError(context, e);
@@ -166,10 +183,9 @@ class ModuleCompiler {
     }
 
     if (!options.unsafeForceCompile &&
-        errors.any((e) => errorSeverity(context, e) == ErrorSeverity.ERROR)) {
+        errors.any((e) => _isFatalError(e, options))) {
       return new JSModuleFile.invalid(unit.name, messages, options);
     }
-
     var codeGenerator =
         new CodeGenerator(context, summaryData, options, _extensionTypes);
     return codeGenerator.compile(unit, trees, messages);
@@ -203,6 +219,10 @@ class CompilerOptions {
 
   /// Whether to force compilation of code with static errors.
   final bool unsafeForceCompile;
+
+  /// Whether to compile code in a more permissive REPL mode allowing access
+  /// to private members across library boundaries.
+  final bool replCompile;
 
   /// Whether to emit Closure Compiler-friendly code.
   final bool closure;
@@ -248,6 +268,7 @@ class CompilerOptions {
       this.summarizeApi: true,
       this.summaryExtension: 'sum',
       this.unsafeForceCompile: false,
+      this.replCompile: false,
       this.emitMetadata: false,
       this.closure: false,
       this.destructureNamedParams: false,
@@ -265,6 +286,7 @@ class CompilerOptions {
         summarizeApi = args['summarize'],
         summaryExtension = args['summary-extension'],
         unsafeForceCompile = args['unsafe-force-compile'],
+        replCompile = args['repl-compile'],
         emitMetadata = args['emit-metadata'],
         closure = args['closure-experimental'],
         destructureNamedParams = args['destructure-named-params'],
@@ -301,6 +323,11 @@ class CompilerOptions {
       ..addFlag('unsafe-force-compile',
           help: 'Compile code even if it has errors. ಠ_ಠ\n'
               'This has undefined behavior!',
+          defaultsTo: false,
+          hide: true)
+      ..addFlag('repl-compile',
+          help: 'Compile code more permissively when in REPL mode allowing '
+              'access to private members across library boundaries.',
           defaultsTo: false,
           hide: true)
       ..addFlag('hoist-instance-creation',
@@ -503,7 +530,7 @@ Map placeSourceMap(
     if (match != null) return match;
 
     // Fall back to a relative path.
-    return path.toUri(path.relative(uri, from: dir)).toString();
+    return path.toUri(path.relative(path.fromUri(uri), from: dir)).toString();
   }
 
   for (int i = 0; i < list.length; i++) {

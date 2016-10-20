@@ -461,6 +461,10 @@ class ClassSet {
     return true;
   }
 
+  Iterable<ClassHierarchyNode> get subtypeNodes {
+    return _subtypes ?? const <ClassHierarchyNode>[];
+  }
+
   /// Returns an [Iterable] of the subclasses of [cls] possibly including [cls].
   ///
   /// Subclasses are included if their instantiation properties intersect with
