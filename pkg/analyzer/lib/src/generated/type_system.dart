@@ -1595,7 +1595,7 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
         //
         // This will typically lead to top with the current rules, but it will
         // work with `bottom` or if we remove Future flattening.
-        var f = upperBound as FutureUnionType;
+        var f = lowerBound as FutureUnionType;
         lowerBound = _typeSystem.getLeastUpperBound(
             _typeProvider, f.futureOfType, f.type);
       }
