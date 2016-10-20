@@ -55,6 +55,11 @@ class ContextBuilderTest extends EngineTestCase {
   ContentCache contentCache;
 
   /**
+   * The options passed to the context builder.
+   */
+  ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+
+  /**
    * The context builder to be used in the test.
    */
   ContextBuilder builder;
@@ -83,7 +88,8 @@ const Map<String, LibraryInfo> libraries = const {
 };
 ''');
     sdkManager = new DartSdkManager(defaultSdkPath, false);
-    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
+    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: builderOptions);
   }
 
   void createFile(String path, String content) {
@@ -98,7 +104,8 @@ const Map<String, LibraryInfo> libraries = const {
     sdkManager =
         new DartSdkManager(resourceProvider.convertPath('/sdk'), false);
     contentCache = new ContentCache();
-    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache);
+    builder = new ContextBuilder(resourceProvider, sdkManager, contentCache,
+        options: builderOptions);
   }
 
   @failingTest
@@ -142,7 +149,7 @@ const Map<String, LibraryInfo> libraries = const {
     defaultOptions.enableStrictCallChecks =
         !defaultOptions.enableStrictCallChecks;
     defaultOptions.enableSuperMixins = !defaultOptions.enableSuperMixins;
-    builder.defaultOptions = defaultOptions;
+    builderOptions.defaultOptions = defaultOptions;
     AnalysisOptions options = builder.createDefaultOptions();
     _expectEqualOptions(options, defaultOptions);
   }
@@ -165,7 +172,7 @@ const Map<String, LibraryInfo> libraries = const {
     resourceProvider.newFolder(fooPath);
     resourceProvider.newFolder(barPath);
 
-    builder.defaultPackagesDirectoryPath = packageDirPath;
+    builderOptions.defaultPackagesDirectoryPath = packageDirPath;
 
     Packages packages = builder.createPackageMap(projectPath);
     expect(packages, isNotNull);
@@ -209,7 +216,7 @@ foo:$fooUri
 bar:$barUri
 ''');
 
-    builder.defaultPackageFilePath = packageFilePath;
+    builderOptions.defaultPackageFilePath = packageFilePath;
     Packages packages = builder.createPackageMap(projectPath);
     expect(packages, isNotNull);
     Map<String, Uri> map = packages.asMap();
@@ -410,7 +417,7 @@ b:${pathContext.toUri(packageB)}
   void test_declareVariables_emptyMap() {
     AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     Iterable<String> expected = context.declaredVariables.variableNames;
-    builder.declaredVariables = <String, String>{};
+    builderOptions.declaredVariables = <String, String>{};
 
     builder.declareVariables(context);
     expect(context.declaredVariables.variableNames, unorderedEquals(expected));
@@ -422,7 +429,7 @@ b:${pathContext.toUri(packageB)}
     expect(expected, isNot(contains('a')));
     expect(expected, isNot(contains('b')));
     expected.addAll(['a', 'b']);
-    builder.declaredVariables = <String, String>{'a': 'a', 'b': 'b'};
+    builderOptions.declaredVariables = <String, String>{'a': 'a', 'b': 'b'};
 
     builder.declareVariables(context);
     expect(context.declaredVariables.variableNames, unorderedEquals(expected));
@@ -491,7 +498,7 @@ b:${pathContext.toUri(packageB)}
   void test_getAnalysisOptions_default_noOverrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.enableGenericMethods = true;
-    builder.defaultOptions = defaultOptions;
+    builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableGenericMethods = true;
     String path = resourceProvider.convertPath('/some/directory/path');
@@ -513,7 +520,7 @@ linter:
   void test_getAnalysisOptions_default_overrides() {
     AnalysisOptionsImpl defaultOptions = new AnalysisOptionsImpl();
     defaultOptions.enableGenericMethods = true;
-    builder.defaultOptions = defaultOptions;
+    builderOptions.defaultOptions = defaultOptions;
     AnalysisOptionsImpl expected = new AnalysisOptionsImpl();
     expected.enableSuperMixins = true;
     expected.enableGenericMethods = true;
@@ -611,7 +618,7 @@ analyzer:
     String filePath = resourceProvider.convertPath('/options/analysis.yaml');
     resourceProvider.newFile(filePath, '');
 
-    builder.defaultAnalysisOptionsFilePath = filePath;
+    builderOptions.defaultAnalysisOptionsFilePath = filePath;
     File result = builder.getOptionsFile(path);
     expect(result, isNotNull);
     expect(result.path, filePath);

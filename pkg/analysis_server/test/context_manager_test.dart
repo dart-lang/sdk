@@ -2707,9 +2707,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   @override
   ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options) {
     DartSdkManager sdkManager = new DartSdkManager('/', false);
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, new ContentCache());
-    builder.defaultOptions = options;
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    builderOptions.defaultOptions = options;
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, sdkManager, new ContentCache(),
+        options: builderOptions);
     return builder;
   }
 

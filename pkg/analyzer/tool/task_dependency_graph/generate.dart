@@ -154,17 +154,19 @@ ${generateGraphData()}
     DartSdk sdk = new FolderBasedDartSdk(resourceProvider,
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     context = AnalysisEngine.instance.createAnalysisContext();
-    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
     if (Platform.packageRoot != null) {
-      builder.defaultPackagesDirectoryPath =
-        Uri.parse(Platform.packageRoot).toFilePath();
+      builderOptions.defaultPackagesDirectoryPath =
+          Uri.parse(Platform.packageRoot).toFilePath();
     } else if (Platform.packageConfig != null) {
-      builder.defaultPackageFilePath =
-        Uri.parse(Platform.packageConfig).toFilePath();
+      builderOptions.defaultPackageFilePath =
+          Uri.parse(Platform.packageConfig).toFilePath();
     } else {
       // Let the context builder use the default algorithm for package
       // resolution.
     }
+    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null,
+        options: builderOptions);
     List<UriResolver> uriResolvers = [
       new DartUriResolver(sdk),
       new PackageMapUriResolver(resourceProvider,

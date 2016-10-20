@@ -373,8 +373,10 @@ class Driver implements CommandLineStarter {
     UriResolver packageUriResolver;
 
     if (options.packageRootPath != null) {
-      ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
-      builder.defaultPackagesDirectoryPath = options.packageRootPath;
+      ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+      builderOptions.defaultPackagesDirectoryPath = options.packageRootPath;
+      ContextBuilder builder = new ContextBuilder(resourceProvider, null, null,
+          options: builderOptions);
       packageUriResolver = new PackageMapUriResolver(resourceProvider,
           builder.convertPackagesToMap(builder.createPackageMap('')));
     } else if (options.packageConfigPath == null) {

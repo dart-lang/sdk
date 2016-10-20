@@ -246,9 +246,11 @@ class StressTest {
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
     sdkManager = new DartSdkManager(sdkDirectory.path, false);
     contentCache = new ContentCache();
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
-    builder.defaultOptions = new AnalysisOptionsImpl();
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    builderOptions.defaultOptions = new AnalysisOptionsImpl();
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, sdkManager, contentCache,
+        options: builderOptions);
     expectedContext = builder.buildContext(folderPath);
     actualContext = builder.buildContext(folderPath);
     expectedContext.analysisOptions =
