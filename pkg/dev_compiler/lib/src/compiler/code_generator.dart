@@ -217,7 +217,10 @@ class CodeGenerator extends GeneralizingAstVisitor
             true)
         .forEach(assembler.addLinkedLibrary);
 
-    return assembler.assemble().toBuffer();
+    var bundle = assembler.assemble();
+    // Preserve only API-level information in the summary.
+    bundle.flushInformative();
+    return bundle.toBuffer();
   }
 
   JS.Program _emitModule(List<CompilationUnit> compilationUnits) {
