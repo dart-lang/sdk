@@ -75,9 +75,9 @@ void EventHandlerImplementation::HandleInterruptFd() {
       UNIMPLEMENTED();
     }
   }
-  // status == ERR_BAD_STATE when we try to read and there are no messages
-  // available, so it is an error if we get here and status != ERR_BAD_STATE.
-  if (status != ERR_BAD_STATE) {
+  // status == ERR_SHOULD_WAIT when we try to read and there are no messages
+  // available, so it is an error if we get here and status != ERR_SHOULD_WAIT.
+  if (status != ERR_SHOULD_WAIT) {
     FATAL1("mx_msgpipe_read failed: %s\n", mx_status_get_string(status));
   }
 }
