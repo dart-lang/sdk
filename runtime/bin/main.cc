@@ -44,14 +44,12 @@ extern const uint8_t* isolate_snapshot_buffer;
 
 /**
  * Global state used to control and store generation of application snapshots
- * (script/full).
- * A full application snapshot can be generated and run using the following
- * commands
- * - Generating a full application snapshot :
- * dart_bootstrap --full-snapshot-after-run=<filename> --package-root=<dirs>
- *   <script_uri> [<script_options>]
- * - Running the full application snapshot generated above :
- * dart --run-full-snapshot=<filename> <script_uri> [<script_options>]
+ * An application snapshot can be generated and run using the following
+ * command
+ *   dart --snapshot-kind=app-jit --snapshot=<app_snapshot_filename>
+ *       <script_uri> [<script_options>]
+ * To Run the application snapshot generated above, use :
+ *   dart <app_snapshot_filename> [<script_options>]
  */
 static bool run_app_snapshot = false;
 static const char* snapshot_filename = NULL;
@@ -59,8 +57,7 @@ enum SnapshotKind {
   kNone,
   kScript,
   kAppAOT,
-  kAppJITAfterRun,
-  kAppAfterRun,
+  kAppJIT,
 };
 static SnapshotKind gen_snapshot_kind = kNone;
 
@@ -360,15 +357,12 @@ static bool ProcessSnapshotKindOption(const char* kind,
   } else if (strcmp(kind, "app-aot") == 0) {
     gen_snapshot_kind = kAppAOT;
     return true;
-  } else if (strcmp(kind, "app-jit-after-run") == 0) {
-    gen_snapshot_kind = kAppJITAfterRun;
-    return true;
-  } else if (strcmp(kind, "app-after-run") == 0) {
-    gen_snapshot_kind = kAppAfterRun;
+  } else if (strcmp(kind, "app-jit") == 0) {
+    gen_snapshot_kind = kAppJIT;
     return true;
   }
   Log::PrintErr("Unrecognized snapshot kind: '%s'\nValid kinds are: "
-                "script, app-aot, app-jit-after-run, app-after-run\n", kind);
+                "script, app-aot, app-jit\n", kind);
   return false;
 }
 
@@ -804,8 +798,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   IsolateData* isolate_data = new IsolateData(script_uri,
                                               package_root,
                                               packages_config);
-  if ((gen_snapshot_kind == kAppAfterRun) ||
-      (gen_snapshot_kind == kAppJITAfterRun)) {
+  if (gen_snapshot_kind == kAppJIT) {
     isolate_data->set_exit_hook(SnapshotOnExitHook);
   }
   Dart_Isolate isolate = Dart_CreateIsolate(script_uri,
@@ -1159,27 +1152,16 @@ static bool FileModifiedCallback(const char* url, int64_t since) {
 }
 
 
-static void WriteSnapshotFile(const char* snapshot_directory,
-                              const char* filename,
+static void WriteSnapshotFile(const char* filename,
                               bool write_magic_number,
                               const uint8_t* buffer,
                               const intptr_t size) {
   char* concat = NULL;
-  const char* qualified_filename;
-  if ((snapshot_directory != NULL) && (strlen(snapshot_directory) > 0)) {
-    intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, filename);
-    concat = new char[len + 1];
-    snprintf(concat, len + 1, "%s/%s", snapshot_directory, filename);
-    qualified_filename = concat;
-  } else {
-    qualified_filename = filename;
-  }
-
-  File* file = File::Open(qualified_filename, File::kWriteTruncate);
+  File* file = File::Open(filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode,
               "Unable to open file %s for writing snapshot\n",
-              qualified_filename);
+              filename);
   }
 
   if (write_magic_number) {
@@ -1190,7 +1172,7 @@ static void WriteSnapshotFile(const char* snapshot_directory,
   if (!file->WriteFully(buffer, size)) {
     ErrorExit(kErrorExitCode,
               "Unable to write file %s for writing snapshot\n",
-              qualified_filename);
+              filename);
   }
   file->Release();
   if (concat != NULL) {
@@ -1410,7 +1392,7 @@ static void GenerateScriptSnapshot() {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
 
-  WriteSnapshotFile(NULL, snapshot_filename, true, buffer, size);
+  WriteSnapshotFile(snapshot_filename, true, buffer, size);
 }
 
 
@@ -1455,7 +1437,7 @@ static void GeneratePrecompiledSnapshot() {
                      rodata_blob_buffer,
                      rodata_blob_size);
   } else {
-    WriteSnapshotFile(NULL, snapshot_filename,
+    WriteSnapshotFile(snapshot_filename,
                       false,
                       assembly_buffer,
                       assembly_size);
@@ -1496,9 +1478,16 @@ static void GeneratePrecompiledJITSnapshot() {
 }
 
 
-static void GenerateFullSnapshot() {
-  // Create a full snapshot of the script.
+static void GenerateAppSnapshot() {
   Dart_Handle result;
+#if defined(TARGET_ARCH_X64)
+  result = Dart_PrecompileJIT();
+  if (Dart_IsError(result)) {
+    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
+  }
+  GeneratePrecompiledJITSnapshot();
+#else
+  // Create an application snapshot of the script.
   uint8_t* vm_isolate_buffer = NULL;
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
@@ -1518,7 +1507,9 @@ static void GenerateFullSnapshot() {
                    isolate_buffer,
                    isolate_size,
                    NULL, 0, NULL, 0);
+#endif  // defined(TARGET_ARCH_X64)
 }
+
 
 
 #define CHECK_RESULT(result)                                                   \
@@ -1536,12 +1527,7 @@ static void GenerateFullSnapshot() {
 
 static void SnapshotOnExitHook(int64_t exit_code) {
   if (exit_code == 0) {
-    if (gen_snapshot_kind == kAppAfterRun) {
-      GenerateFullSnapshot();
-    } else {
-      Dart_PrecompileJIT();
-      GeneratePrecompiledJITSnapshot();
-    }
+    GenerateAppSnapshot();
   }
 }
 
@@ -1599,9 +1585,8 @@ bool RunMainIsolate(const char* script_name,
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
     if (is_noopt ||
-        (gen_snapshot_kind == kAppAfterRun) ||
         (gen_snapshot_kind == kAppAOT) ||
-        (gen_snapshot_kind == kAppJITAfterRun)) {
+        (gen_snapshot_kind == kAppJIT)) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the app snapshot.
       if (!VmService::LoadForGenPrecompiled()) {
@@ -1703,17 +1688,10 @@ bool RunMainIsolate(const char* script_name,
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       // Generate an app snapshot after execution if specified.
-      if ((gen_snapshot_kind == kAppAfterRun) ||
-          (gen_snapshot_kind == kAppJITAfterRun)) {
+      if ((gen_snapshot_kind == kAppJIT)) {
         if (!Dart_IsCompilationError(result) &&
             !Dart_IsVMRestartRequest(result)) {
-          if (gen_snapshot_kind == kAppAfterRun) {
-            GenerateFullSnapshot();
-          } else {
-            Dart_Handle prepare_result = Dart_PrecompileJIT();
-            CHECK_RESULT(prepare_result);
-            GeneratePrecompiledJITSnapshot();
-          }
+          GenerateAppSnapshot();
         }
       }
       CHECK_RESULT(result);
@@ -1891,7 +1869,7 @@ void main(int argc, char** argv) {
   }
 #endif
 
-  if (gen_snapshot_kind == kAppJITAfterRun) {
+  if (gen_snapshot_kind == kAppJIT) {
     vm_options.AddArgument("--fields_may_be_reset");
   }
   if ((gen_snapshot_kind == kAppAOT) || is_noopt) {

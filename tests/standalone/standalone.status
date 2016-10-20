@@ -229,7 +229,7 @@ assert_test: Pass, RuntimeError
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 
-[ $noopt || $compiler == precompiler || $compiler == dart2appjit ]
+[ $noopt || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 io/test_extension_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
 io/platform_test: Skip # Platform.executable
