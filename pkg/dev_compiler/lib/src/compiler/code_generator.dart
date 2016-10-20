@@ -738,15 +738,15 @@ class CodeGenerator extends GeneralizingAstVisitor
     var virtualFields = <FieldElement, JS.TemporaryId>{};
     var virtualFieldSymbols = <JS.Statement>[];
     var staticFieldOverrides = new HashSet<FieldElement>();
+    var extensions = _extensionsToImplement(classElem);
     _registerPropertyOverrides(classElem, className, superclasses, allFields,
-        virtualFields, virtualFieldSymbols, staticFieldOverrides);
+        virtualFields, virtualFieldSymbols, staticFieldOverrides, extensions);
 
     var classExpr = _emitClassExpression(classElem,
         _emitClassMethods(node, ctors, fields, superclasses, virtualFields),
         fields: allFields);
 
     var body = <JS.Statement>[];
-    var extensions = _extensionsToImplement(classElem);
     _initExtensionSymbols(classElem, methods, fields, body);
     _emitSuperHelperSymbols(_superHelperSymbols, body);
 
@@ -760,7 +760,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     _emitClassTypeTests(classElem, className, body);
 
     _defineNamedConstructors(ctors, body, className, isCallable);
-    _emitVirtualFieldSymbols(virtualFieldSymbols, body);
+    body.addAll(virtualFieldSymbols);
     _emitClassSignature(
         methods, allFields, classElem, ctors, extensions, className, body);
     _defineExtensionMembers(extensions, className, body);
@@ -1001,22 +1001,25 @@ class CodeGenerator extends GeneralizingAstVisitor
       List<FieldDeclaration> fields,
       Map<FieldElement, JS.TemporaryId> virtualFields,
       List<JS.Statement> virtualFieldSymbols,
-      Set<FieldElement> staticFieldOverrides) {
+      Set<FieldElement> staticFieldOverrides,
+      Iterable<ExecutableElement> extensionMembers) {
+    var extensionNames =
+        new HashSet<String>.from(extensionMembers.map((e) => e.name));
     for (var field in fields) {
-      for (VariableDeclaration field in field.fields.variables) {
-        var overrideInfo =
-            checkForPropertyOverride(field.element, superclasses);
-        if (overrideInfo.foundGetter || overrideInfo.foundSetter) {
-          if (field.element.isStatic) {
-            staticFieldOverrides.add(field.element);
+      for (VariableDeclaration fieldDecl in field.fields.variables) {
+        var field = fieldDecl.element as FieldElement;
+        var overrideInfo = checkForPropertyOverride(field, superclasses);
+        if (overrideInfo.foundGetter ||
+            overrideInfo.foundSetter ||
+            extensionNames.contains(field.name)) {
+          if (field.isStatic) {
+            staticFieldOverrides.add(field);
           } else {
-            var fieldName =
-                _emitMemberName(field.element.name, type: classElem.type);
-            var virtualField = new JS.TemporaryId(field.element.name);
-            virtualFields[field.element] = virtualField;
+            var virtualField = new JS.TemporaryId(field.name);
+            virtualFields[field] = virtualField;
             virtualFieldSymbols.add(js.statement(
                 'const # = Symbol(#.name + "." + #.toString());',
-                [virtualField, className, fieldName]));
+                [virtualField, className, _declareMemberName(field.getter)]));
           }
         }
       }
@@ -1040,11 +1043,6 @@ class CodeGenerator extends GeneralizingAstVisitor
     } else {
       body.add(js.statement('# = #;', [className, callableClass ?? classExpr]));
     }
-  }
-
-  void _emitVirtualFieldSymbols(
-      List<JS.Statement> virtualFields, List<JS.Statement> body) {
-    body.addAll(virtualFields);
   }
 
   List<JS.Identifier> _emitTypeFormals(List<TypeParameterElement> typeFormals) {
@@ -1214,7 +1212,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         // Generate getter
         var fn = new JS.Fun([], js.statement('{ return this.#; }', [name]));
         var method =
-            new JS.Method(_elementMemberName(field.getter), fn, isGetter: true);
+            new JS.Method(_declareMemberName(field.getter), fn, isGetter: true);
         jsMethods.add(method);
 
         // Generate setter
@@ -1222,7 +1220,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           var value = new JS.TemporaryId('value');
           fn = new JS.Fun(
               [value], js.statement('{ this.# = #; }', [name, value]));
-          method = new JS.Method(_elementMemberName(field.setter), fn,
+          method = new JS.Method(_declareMemberName(field.setter), fn,
               isSetter: true);
           jsMethods.add(method);
         }
@@ -1434,7 +1432,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     var fnBody =
         js.call('this.noSuchMethod(new dart.InvocationImpl(#, #, #))', [
-      _elementMemberName(method),
+      _declareMemberName(method),
       positionalArgs,
       new JS.ObjectInitializer(invocationProps)
     ]);
@@ -1449,7 +1447,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     // TODO(jmesserly): generic type arguments will get dropped.
     // We have a similar issue with `dgsend` helpers.
     return new JS.Method(
-        _elementMemberName(method,
+        _declareMemberName(method,
             useExtension:
                 _extensionTypes.isNativeClass(method.enclosingElement)),
         _makeGenericFunction(fn),
@@ -1482,8 +1480,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       Map<FieldElement, JS.TemporaryId> virtualFields) {
     var virtualField = virtualFields[field.element];
     var result = <JS.Method>[];
-    var name = _emitMemberName(field.element.name,
-        type: (field.element.enclosingElement as ClassElement).type);
+    var name = _declareMemberName((field.element as FieldElement).getter);
     var getter = js.call('function() { return this[#]; }', [virtualField]);
     result.add(new JS.Method(name, getter, isGetter: true));
 
@@ -1512,8 +1509,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         checkForPropertyOverride(methodElement.variable, superclasses);
 
     // Generate a corresponding virtual getter / setter.
-    var name = _elementMemberName(methodElement,
-        useExtension: _extensionTypes.isNativeClass(type.element));
+    var name = _declareMemberName(methodElement);
     if (method.isGetter) {
       // Generate a setter
       if (field.setter != null || !propertyOverrideResult.foundSetter)
@@ -1676,7 +1672,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     if (extensions.isNotEmpty) {
       var methodNames = <JS.Expression>[];
       for (var e in extensions) {
-        methodNames.add(_elementMemberName(e, useExtension: false));
+        methodNames.add(_declareMemberName(e, useExtension: false));
       }
       body.add(js.statement('dart.defineExtensionMembers(#, #);', [
         className,
@@ -1742,8 +1738,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       if (inheritedElement != null && inheritedElement.type == element.type) {
         continue;
       }
-      var memberName = _elementMemberName(element,
-          useExtension: _extensionTypes.isNativeClass(classElem));
+      var memberName = _declareMemberName(element);
       var property = new JS.Property(memberName, type);
       tMember.add(property);
       // TODO(vsm): Why do we need this?
@@ -1757,8 +1752,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (FieldDeclaration node in fields) {
       for (VariableDeclaration field in node.fields.variables) {
         var element = field.element as FieldElement;
-        var memberName = _elementMemberName(element.getter,
-            useExtension: _extensionTypes.isNativeClass(classElem));
+        var memberName = _declareMemberName(element.getter);
         var type = _emitAnnotatedType(element.type, node.metadata);
         var property = new JS.Property(memberName, type);
         (node.isStatic ? tStaticFields : tInstanceFields).add(property);
@@ -1841,7 +1835,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       var dartxNames = <JS.Expression>[];
       for (var m in methods) {
         if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
-          dartxNames.add(_elementMemberName(m.element, useExtension: false));
+          dartxNames.add(_declareMemberName(m.element, useExtension: false));
         }
       }
       for (var fieldDecl in fields) {
@@ -1849,7 +1843,7 @@ class CodeGenerator extends GeneralizingAstVisitor
           for (var field in fieldDecl.fields.variables) {
             var e = field.element as FieldElement;
             if (e.isPublic) {
-              dartxNames.add(_elementMemberName(e.getter, useExtension: false));
+              dartxNames.add(_declareMemberName(e.getter, useExtension: false));
             }
           }
         }
@@ -2153,13 +2147,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     var body = <JS.Statement>[];
     fields.forEach((FieldElement e, JS.Expression initialValue) {
-      if (virtualFields.containsKey(e)) {
-        body.add(
-            js.statement('this[#] = #;', [virtualFields[e], initialValue]));
-      } else {
-        var access = _emitMemberName(e.name, type: e.enclosingElement.type);
-        body.add(js.statement('this.# = #;', [access, initialValue]));
-      }
+      JS.Expression access = virtualFields[e] ?? _declareMemberName(e.getter);
+      body.add(js.statement('this.# = #;', [access, initialValue]));
     });
 
     if (isConst) _loader.finishTopLevel(cls.element);
@@ -2297,10 +2286,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
 
     return annotate(
-        new JS.Method(
-            _elementMemberName(node.element,
-                useExtension: _extensionTypes.isNativeClass(type.element)),
-            fn,
+        new JS.Method(_declareMemberName(node.element), fn,
             isGetter: node.isGetter,
             isSetter: node.isSetter,
             isStatic: node.isStatic),
@@ -5220,7 +5206,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  JS.Expression _elementMemberName(ExecutableElement e, {bool useExtension}) {
+  JS.Expression _declareMemberName(ExecutableElement e, {bool useExtension}) {
     String name;
     if (e is PropertyAccessorElement) {
       name = e.variable.name;
@@ -5228,9 +5214,9 @@ class CodeGenerator extends GeneralizingAstVisitor
       name = e.name;
     }
     return _emitMemberName(name,
-        type: (e.enclosingElement as ClassElement).type,
         isStatic: e.isStatic,
-        useExtension: useExtension);
+        useExtension:
+            useExtension ?? _extensionTypes.isNativeClass(e.enclosingElement));
   }
 
   /// This handles member renaming for private names and operators.

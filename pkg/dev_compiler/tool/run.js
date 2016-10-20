@@ -9,11 +9,19 @@ if (args.length != 1) {
 var test = args[0];
 
 var requirejs = require('requirejs');
-var ddcdir = __dirname + '/..';
+var ddcdir = __dirname + '/../';
 requirejs.config({
-  baseUrl: ddcdir + '/gen/codegen_output',
+  baseUrl: ddcdir + 'gen/codegen_output',
   paths: {
-    dart_sdk: ddcdir + '/lib/js/amd/dart_sdk'
+    dart_sdk: ddcdir + 'lib/js/amd/dart_sdk',
+    async_helper: ddcdir + 'gen/codegen_output/pkg/async_helper',
+    expect: ddcdir + 'gen/codegen_output/pkg/expect',
+    js: ddcdir + 'gen/codegen_output/pkg/js',
+    matcher: ddcdir + 'gen/codegen_output/pkg/matcher',
+    minitest: ddcdir + 'gen/codegen_output/pkg/minitest',
+    path: ddcdir + 'gen/codegen_output/pkg/path',
+    stack_trace: ddcdir + 'gen/codegen_output/pkg/stack_trace',
+    unittest: ddcdir + 'gen/codegen_output/pkg/unittest',
   }
 });
 
