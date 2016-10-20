@@ -2,33 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler.dart';
 import '../common/names.dart';
+import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart';
 import '../elements/elements.dart';
-import '../kernel/kernel.dart';
+import 'kernel.dart';
 import 'package:kernel/ast.dart' as ir;
-
-import 'backend.dart';
 
 /// Visits the compiler main function and builds the kernel representation.
 ///
 /// This creates a mapping from kernel nodes to AST nodes to be used later.
-class KernelTask {
+class KernelTask extends CompilerTask {
+  get name => "kernel";
+
   final Compiler _compiler;
   final Kernel kernel;
 
-  KernelTask(JavaScriptBackend backend)
-      : this._compiler = backend.compiler,
-        this.kernel = new Kernel(backend.compiler);
+  KernelTask(Compiler compiler)
+      : this._compiler = compiler,
+        this.kernel = new Kernel(compiler),
+        super(compiler.measurer);
 
   ir.Program program;
 
   /// Builds the kernel IR for the main function.
   ///
   /// May enqueue more elements to the resolution queue.
-  void buildKernelIr() {
+  void buildKernelIr() => measure(() {
     program = buildProgram(_compiler.mainApp);
-  }
+  });
 
   /// Builds the kernel IR program for the main function exported from
   /// [library].

@@ -72,7 +72,7 @@ import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
 import 'enqueuer.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
-import 'kernel_task.dart';
+import '../kernel/task.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'namer.dart';
 import 'native_data.dart' show NativeData;
@@ -476,6 +476,7 @@ class JavaScriptBackend extends Backend {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
     result.add(patchResolverTask);
+    result.add(kernelTask);
     return result;
   }
 
@@ -629,7 +630,7 @@ class JavaScriptBackend extends Backend {
     jsInteropAnalysis = new JsInteropAnalysis(this);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
-    kernelTask = new KernelTask(this);
+    kernelTask = new KernelTask(compiler);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
