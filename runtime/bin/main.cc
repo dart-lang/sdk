@@ -1445,6 +1445,7 @@ static void GeneratePrecompiledSnapshot() {
 }
 
 
+#if defined(TARGET_ARCH_X64)
 static void GeneratePrecompiledJITSnapshot() {
   uint8_t* vm_isolate_buffer = NULL;
   intptr_t vm_isolate_size = 0;
@@ -1476,6 +1477,7 @@ static void GeneratePrecompiledJITSnapshot() {
                    rodata_blob_buffer,
                    rodata_blob_size);
 }
+#endif  // defined(TARGET_ARCH_X64)
 
 
 static void GenerateAppSnapshot() {
