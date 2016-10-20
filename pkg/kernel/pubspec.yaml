@@ -1,4 +1,10 @@
 name: kernel
+version: 0.1.0
+author: Dart Team <misc@dartlang.org>
+description: Dart IR (Intermediate Representation)
+homepage: https://github.com/dart-lang/kernel
+environment:
+  sdk: ">=1.8.0"
 dependencies:
   # We import some of the analyzer's internal files, so lock the patch version.
   analyzer: 0.29.0-alpha.1
@@ -7,9 +13,6 @@ dependencies:
   logging: ^0.11.2
   package_config: ^1.0.0
 dev_dependencies:
-  test: 0.12.15+6
+  test: ^0.12.15+6
   stack_trace: ^1.6.6
   ansicolor: ^0.0.9
-dependency_overrides:
-  analyzer: 0.29.0-alpha.1
-  test: 0.12.15+6 # Override version constraint on package:test
