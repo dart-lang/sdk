@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
+// OtherResources=readline_test1.dat
+//
 // VMOptions=
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
@@ -18,7 +20,7 @@ part "testing_server.dart";
 
 
 String getDataFilename(String path) =>
-    new File(path).existsSync() ? path : '../$path';
+    Platform.script.resolve(path).toFilePath();
 
 
 bool compareFileContent(String fileName1, String fileName2) {
@@ -47,7 +49,7 @@ class PipeServerGame {
 
     void connectHandler() {
       String srcFileName =
-          getDataFilename("tests/standalone/io/readline_test1.dat");
+          getDataFilename("readline_test1.dat");
       Stream fileInput = new File(srcFileName).openRead();
       fileInput.pipe(_socket).then((_) {
         var tempDir = Directory.systemTemp.createTempSync('dart_pipe_server');
