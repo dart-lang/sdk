@@ -28,6 +28,7 @@ main() {
     defineReflectiveTests(NodeLocatorTest);
     defineReflectiveTests(NodeLocator2Test);
     defineReflectiveTests(ResolutionCopierTest);
+    // ignore: deprecated_member_use
     defineReflectiveTests(ToSourceVisitorTest);
     defineReflectiveTests(ToSourceVisitor2Test);
   });
@@ -3344,6 +3345,7 @@ class ToSourceVisitor2Test extends EngineTestCase {
   }
 }
 
+@deprecated
 @reflectiveTest
 class ToSourceVisitorTest extends EngineTestCase {
   void test_visitAdjacentStrings() {

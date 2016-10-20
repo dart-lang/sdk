@@ -6769,7 +6769,10 @@ class ScopedNameFinder extends GeneralizingAstVisitor<Object> {
 /**
  * A visitor used to write a source representation of a visited AST node (and
  * all of it's children) to a writer.
+ *
+ * This class has been deprecated. Use the class ToSourceVisitor2 instead.
  */
+@deprecated
 class ToSourceVisitor implements AstVisitor<Object> {
   /**
    * The writer to which the source is to be written.
