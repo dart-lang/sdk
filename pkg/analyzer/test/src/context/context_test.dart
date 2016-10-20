@@ -2475,6 +2475,7 @@ void topLevelFunctionWithLocalFunction() {
 }
 
 void functionWithGenericFunctionTypedParam/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {}
+void functionWithClosureAsDefaultParam([x = () => null]) {}
 ''');
     context.resolveCompilationUnit2(source, source);
     LibraryElement firstElement = context.computeLibraryElement(source);

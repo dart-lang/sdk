@@ -126,7 +126,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       });
     }
     _walk(new ElementWalker.forParameter(element), () {
-      super.visitDefaultFormalParameter(node);
+      node.parameter.accept(this);
     });
     _resolveMetadata(node, node.metadata, element);
     return null;
