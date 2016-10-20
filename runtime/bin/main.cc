@@ -1688,7 +1688,7 @@ bool RunMainIsolate(const char* script_name,
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       // Generate an app snapshot after execution if specified.
-      if ((gen_snapshot_kind == kAppJIT)) {
+      if (gen_snapshot_kind == kAppJIT) {
         if (!Dart_IsCompilationError(result) &&
             !Dart_IsVMRestartRequest(result)) {
           GenerateAppSnapshot();
