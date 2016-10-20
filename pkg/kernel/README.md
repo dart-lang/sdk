@@ -61,14 +61,7 @@ pub run test
 ```
 
 
-Library and Program Files
+Linking
 -------------------------
-Kernel distinguishes between **library files** and **program files**.
-
-Program files are self-contained and cannot reference anything outside the file.
-Library files contain exactly one library and can import other libraries by a
-URI equivalent to how imports work in a .dart file.
-
-Library files are a provisional concept and should not be used for anything
-serious yet, but can be used for quick experiments, like measuring the binary
-file size on a per-library basis.
+Linking from binary files is not yet implemented.  In order to compile a whole
+program, currently everything must be compiled from source at once.
