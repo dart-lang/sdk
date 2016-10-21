@@ -92,7 +92,7 @@ void FUNCTION_NAME(File_Open)(Dart_NativeArguments args) {
   // reading. This is to prevent the opening of directories as
   // files. Directories can be opened for reading using the posix
   // 'open' call.
-  File* file = File::ScopedOpen(filename, file_mode);
+  File* file = File::Open(filename, file_mode);
   if (file != NULL) {
     Dart_SetReturnValue(args,
                         Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
@@ -677,7 +677,7 @@ CObject* File::OpenRequest(const CObjectArray& request) {
     File::DartFileOpenMode dart_file_mode =
         static_cast<File::DartFileOpenMode>(mode.Value());
     File::FileOpenMode file_mode = File::DartModeToFileMode(dart_file_mode);
-    file = File::ScopedOpen(filename.CString(), file_mode);
+    file = File::Open(filename.CString(), file_mode);
     if (file != NULL) {
       return new CObjectIntptr(
           CObject::NewIntptr(reinterpret_cast<intptr_t>(file)));

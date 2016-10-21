@@ -732,10 +732,11 @@ config("optimize") {
 # Turn off optimizations.
 config("no_optimize") {
   if (is_win) {
+    # The only difference on windows is that the inlining is less aggressive.
+    # (We accept the default level). Otherwise it is very slow.
     cflags = [
       "/O2",  # Do some optimizations.
       "/Oy-",  # Disable omitting frame pointers, must be after /O2.
-      "/Ob0",  # Disable all inlining (on by default).
     ]
   } else if (is_android) {
     # On Android we kind of optimize some things that don't affect debugging

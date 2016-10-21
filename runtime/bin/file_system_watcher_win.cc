@@ -40,8 +40,8 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       int events,
                                       bool recursive) {
   USE(id);
-  const wchar_t* name = StringUtilsWin::Utf8ToWide(path);
-  HANDLE dir = CreateFileW(name,
+  Utf8ToWideScope name(path);
+  HANDLE dir = CreateFileW(name.wide(),
                            FILE_LIST_DIRECTORY,
                            FILE_SHARE_READ |
                                FILE_SHARE_WRITE |
