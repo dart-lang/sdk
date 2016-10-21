@@ -270,6 +270,8 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     } else {
 #if defined(DART_PRECOMPILED_RUNTIME)
       return strdup("Precompiled runtime requires a precompiled snapshot");
+#elif !defined(DART_NO_SNAPSHOT)
+      return strdup("Missing vm isolate snapshot");
 #else
       snapshot_kind_ = Snapshot::kNone;
       StubCode::InitOnce();
@@ -522,7 +524,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
       const String& message = String::Handle(
-          String::New("Invalid snapshot."));
+          String::New("Invalid snapshot"));
       return ApiError::New(message);
     }
     ASSERT(Snapshot::IsFull(snapshot->kind()));
@@ -551,7 +553,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    ASSERT(snapshot_kind_ == Snapshot::kNone);
+    if (snapshot_kind_ != Snapshot::kNone) {
+      const String& message = String::Handle(
+          String::New("Missing isolate snapshot"));
+      return ApiError::New(message);
+    }
   }
 
   Object::VerifyBuiltinVtables();
