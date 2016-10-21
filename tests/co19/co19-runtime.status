@@ -33,6 +33,7 @@ LibTest/isolate/Isolate/spawn_A04_t01: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A04_t04: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A06_t03: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A06_t05: Skip # Issue 15974
+LibTest/isolate/Isolate/spawn_A04_t03: Skip # Flaky, Issue 27202
 
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
