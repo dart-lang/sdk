@@ -9,6 +9,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/apiimpl.dart';
+import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/kernel/task.dart';
+import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart'
@@ -51,20 +55,36 @@ main(List<String> args) async {
 
   await setup(entryUri);
 
-  if (bench == 'scan') {
-    Set<SourceFile> files = await scanReachableFiles(entryUri);
-    // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) scanFiles(files);
-  } else if (bench == 'parse') {
-    Set<SourceFile> files = await scanReachableFiles(entryUri);
-    // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) parseFiles(files);
-  } else {
-    print('unsupported bench-id: $bench. Please specify "scan" or "parse"');
+  var handlers = {
+    'scan': () async {
+      Set<SourceFile> files = await scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) scanFiles(files);
+    },
+    'parse': () async {
+      Set<SourceFile> files = await scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) parseFiles(files);
+    },
+    'kernel_gen_e2e': () async {
+      // TODO(sigmund): remove. This is used to compute the input size, we
+      // should extract input size from frontend instead.
+      await scanReachableFiles(entryUri);
+      // TODO(sigmund): replace this warmup. Note that for very large programs,
+      // the GC pressure on the VM seems to make this worse with time (maybe we
+      // are leaking memory?). That's why we run it twice and not 10 times.
+      for (int i = 0; i < 2; i++) await generateKernel(entryUri);
+    },
+  };
+
+  var handler = handlers[bench];
+  if (handler == null) {
     // TODO(sigmund): implement the remaining benchmarks.
+    print('unsupported bench-id: $bench. Please specify one of the following: '
+        '${handler.keys.join(", ")}');
     exit(1);
   }
-
+  await handler();
   totalTimer.stop();
   report("total", totalTimer.elapsedMicroseconds);
 }
@@ -316,4 +336,69 @@ class _Loader {
 class _ParserOptions implements ParserOptions {
   const _ParserOptions();
   bool get enableGenericMethodSyntax => true;
+}
+
+generateKernel(Uri entryUri) async {
+  var timer = new Stopwatch()..start();
+  var options = new CompilerOptions(
+      entryPoint: entryUri,
+      libraryRoot: _libraryRoot,
+      packagesDiscoveryProvider: findPackages,
+      platformConfigUri: _platformConfigUri,
+      useKernel: true,
+      verbose: false); // set to true to debug internal timings
+  var inputProvider = new CompilerSourceFileProvider();
+  var diagnosticHandler = new FormattingDiagnosticHandler(inputProvider)
+    ..verbose = options.verbose;
+  var compiler = new MyCompiler(inputProvider, diagnosticHandler, options);
+  await compiler.run(entryUri);
+  timer.stop();
+  report("kernel_gen_e2e", timer.elapsedMicroseconds);
+}
+
+// We subclass compiler to skip phases and stop after creating kernel.
+class MyCompiler extends CompilerImpl {
+  MyCompiler(CompilerInput provider, CompilerDiagnostics handler,
+      CompilerOptions options)
+      : super(provider, null, handler, options) {}
+
+  /// Performs the compilation when all libraries have been loaded.
+  void compileLoadedLibraries() =>
+      selfTask.measureSubtask("KernelCompiler.compileLoadedLibraries", () {
+        computeMain();
+        mirrorUsageAnalyzerTask.analyzeUsage(mainApp);
+
+        deferredLoadTask.beforeResolution(this);
+        impactStrategy = backend.createImpactStrategy(
+            supportDeferredLoad: deferredLoadTask.isProgramSplit,
+            supportDumpInfo: options.dumpInfo,
+            supportSerialization: serialization.supportSerialization);
+
+        phase = Compiler.PHASE_RESOLVING;
+
+        // Note: we enqueue everything in the program so we measure generating
+        // kernel for the entire code, not just what's reachable from main.
+        libraryLoader.libraries.forEach((LibraryElement library) {
+          fullyEnqueueLibrary(library, enqueuer.resolution);
+        });
+
+        backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+        resolveLibraryMetadata();
+        reporter.log('Resolving...');
+        processQueue(enqueuer.resolution, mainFunction);
+        enqueuer.resolution.logSummary(reporter.log);
+
+        (reporter as CompilerDiagnosticReporter)
+            .reportSuppressedMessagesSummary();
+
+        if (compilationFailed) {
+          // TODO(sigmund): more diagnostics?
+          print("compilation failed!");
+          exit(1);
+        }
+
+        closeResolution();
+        var program = (backend as dynamic).kernelTask.program;
+        print('total libraries: ${program.libraries.length}');
+      });
 }
