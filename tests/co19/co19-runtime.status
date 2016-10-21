@@ -26,20 +26,13 @@ Language/Statements/Assert/execution_t03: skip # co19 issue 734
 Language/Statements/Assert/type_t02: skip # co19 issue 734
 Language/Statements/Assert/type_t05: skip # co19 issue 734
 
-
-LibTest/core/DateTime/DateTime.now_A01_t02: Pass, Fail # co19 issue 709
-
-LibTest/isolate/Isolate/spawnUri_A01_t02: Skip # Issue 15974
-LibTest/isolate/Isolate/spawnUri_A01_t03: Skip # Issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t02: Skip # Issue 15974
 LibTest/isolate/Isolate/spawnUri_A02_t03: Skip # Issue 15974
-LibTest/isolate/Isolate/spawnUri_A02_t04: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A03_t02: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A04_t01: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A04_t04: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A06_t03: Skip # Issue 15974
 LibTest/isolate/Isolate/spawn_A06_t05: Skip # Issue 15974
-LibTest/isolate/Isolate/spawn_A04_t03: Pass, RuntimeError # Issue 27202
 
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Issue 13596
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Issue 13596
@@ -55,9 +48,6 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $mode == debug ]
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Issue 27201
-
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && $system == windows ]
-Language/Expressions/Function_Invocation/async_invokation_t04: Pass, RuntimeError # co19 issue 54
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
@@ -78,8 +68,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t01: Skip  # Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Skip  # Timeout
 LibTest/core/Uri/Uri_A06_t03: Skip  # Timeout
-LibTest/isolate/Isolate/spawnUri_A01_t06: Pass, Fail # Issue 27378
-LibTest/isolate/Isolate/spawnUri_A01_t07: Pass, Fail # Issue 27378
 
 [ $system == windows ]
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Slow
@@ -171,7 +159,7 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01: Skip # Eager lo
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: Skip # Eager loading
 
 [ $runtime == dart_precompiled || $runtime == dart_app ]
-LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
+LibTest/isolate/Isolate/spawnUri*: SkipByDesign # Isolate.spawnUri
 
 [ $noopt || $compiler == precompiler ]
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
@@ -184,7 +172,6 @@ Language/Mixins/Mixin_Application/error_t01: Pass
 Language/Mixins/Mixin_Application/error_t02: Pass
 Language/Mixins/declaring_constructor_t01: Pass
 
-
 [ ($arch == simdbc || $arch == simdbc64) && $mode == debug ]
 # TODO(vegorov) These tests are very slow on unoptimized SIMDBC
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout
@@ -192,8 +179,6 @@ LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 *: Skip # Issue 27294
-LibTest/isolate/*: Skip # Issue #26373
-Language/Expressions/Spawning_an_Isolate/new_isolate_t01: Skip # Issue #26373
 
 LibTest/math/log_A01_t01: RuntimeError # Precision of Math.log (Issue #18998)
 Language/Expressions/Object_Identity/double_t02: RuntimeError # Issue #26374
