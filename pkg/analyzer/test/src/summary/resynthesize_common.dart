@@ -1259,6 +1259,8 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     } else if (modifier == Modifier.STATIC) {
       if (element is ExecutableElement) {
         return element.isStatic;
+      } else if (element is FieldElement) {
+        return element.isStatic;
       }
       return false;
     } else if (modifier == Modifier.SYNTHETIC) {

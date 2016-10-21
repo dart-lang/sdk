@@ -1236,6 +1236,7 @@ class ClassElementImpl extends AbstractClassElementImpl
           field.synthetic = true;
           field.final2 = e.kind == UnlinkedExecutableKind.getter;
           field.type = fieldType;
+          field.static = e.isStatic;
         } else {
           field.final2 = false;
         }
