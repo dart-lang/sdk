@@ -65,14 +65,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitCatchClause(CatchClause node) {
-    SimpleIdentifier exceptionParameter = node.exceptionParameter;
-    if (exceptionParameter != null) {
-      _match(exceptionParameter, _walker.getVariable());
-      SimpleIdentifier stackTraceParameter = node.stackTraceParameter;
-      if (stackTraceParameter != null) {
-        _match(stackTraceParameter, _walker.getVariable());
-      }
-    }
+    _walker.elementBuilder.buildCatchVariableElements(node);
     return super.visitCatchClause(node);
   }
 
@@ -98,8 +91,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    ConstructorElement element = _match(node.name, _walker.getConstructor());
-    _walk(new ElementWalker.forExecutable(element), () {
+    ConstructorElement element = _match(node.name, _walker.getConstructor(),
+        offset: node.name?.offset ?? node.returnType.offset);
+    _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       node.element = element;
       super.visitConstructorDeclaration(node);
     });
@@ -109,9 +103,8 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
-    VariableElement element = _match(node.identifier, _walker.getVariable());
-    super.visitDeclaredIdentifier(node);
-    _resolveMetadata(node, node.metadata, element);
+    // Declared identifiers can only occur inside executable elements.
+    _walker.elementBuilder.visitDeclaredIdentifier(node);
     return null;
   }
 
@@ -121,7 +114,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
         _match(node.parameter.identifier, _walker.getParameter());
     Expression defaultValue = node.defaultValue;
     if (defaultValue != null) {
-      _walk(new ElementWalker.forExecutable(element.initializer), () {
+      _walk(
+          new ElementWalker.forExecutable(element.initializer, _enclosingUnit),
+          () {
         defaultValue.accept(this);
       });
     }
@@ -194,7 +189,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       }
     }
     node.functionExpression.element = element;
-    _walk(new ElementWalker.forExecutable(element), () {
+    _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);
     });
     _resolveMetadata(node, node.metadata, element);
@@ -205,8 +200,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   Object visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       FunctionElement element = _walker.getFunction();
+      _matchOffset(element, node.offset);
       node.element = element;
-      _walk(new ElementWalker.forExecutable(element), () {
+      _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
         super.visitFunctionExpression(node);
       });
       return null;
@@ -250,9 +246,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitLabeledStatement(LabeledStatement node) {
-    for (Label label in node.labels) {
-      _match(label.label, _walker.getLabel());
-    }
+    bool onSwitchStatement = node.statement is SwitchStatement;
+    _walker.elementBuilder
+        .buildLabelElements(node.labels, onSwitchStatement, false);
     return super.visitLabeledStatement(node);
   }
 
@@ -287,7 +283,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
             elementName: nameOfMethod + '=');
       }
     }
-    _walk(new ElementWalker.forExecutable(element), () {
+    _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitMethodDeclaration(node);
     });
     _resolveMetadata(node, node.metadata, element);
@@ -325,17 +321,13 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitSwitchCase(SwitchCase node) {
-    for (Label label in node.labels) {
-      _match(label.label, _walker.getLabel());
-    }
+    _walker.elementBuilder.buildLabelElements(node.labels, false, true);
     return super.visitSwitchCase(node);
   }
 
   @override
   Object visitSwitchDefault(SwitchDefault node) {
-    for (Label label in node.labels) {
-      _match(label.label, _walker.getLabel());
-    }
+    _walker.elementBuilder.buildLabelElements(node.labels, false, true);
     return super.visitSwitchDefault(node);
   }
 
@@ -359,7 +351,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     VariableElement element = _match(node.name, _walker.getVariable());
     Expression initializer = node.initializer;
     if (initializer != null) {
-      _walk(new ElementWalker.forExecutable(element.initializer), () {
+      _walk(
+          new ElementWalker.forExecutable(element.initializer, _enclosingUnit),
+          () {
         super.visitVariableDeclaration(node);
       });
       return null;
@@ -370,12 +364,16 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitVariableDeclarationList(VariableDeclarationList node) {
-    super.visitVariableDeclarationList(node);
-    if (node.parent is! FieldDeclaration &&
-        node.parent is! TopLevelVariableDeclaration) {
-      _resolveMetadata(node, node.metadata, node.variables[0].element);
+    if (_walker.elementBuilder != null) {
+      return _walker.elementBuilder.visitVariableDeclarationList(node);
+    } else {
+      super.visitVariableDeclarationList(node);
+      if (node.parent is! FieldDeclaration &&
+          node.parent is! TopLevelVariableDeclaration) {
+        _resolveMetadata(node, node.metadata, node.variables[0].element);
+      }
+      return null;
     }
-    return null;
   }
 
   /**
@@ -390,14 +388,24 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    */
   Element/*=E*/ _match/*<E extends Element>*/(
       SimpleIdentifier identifier, Element/*=E*/ element,
-      {String elementName}) {
+      {String elementName, int offset}) {
     elementName ??= identifier?.name ?? '';
+    offset ??= identifier.offset;
     if (element.name != elementName) {
       throw new StateError(
           'Expected an element matching `$elementName`, got `${element.name}`');
     }
     identifier?.staticElement = element;
+    _matchOffset(element, offset);
     return element;
+  }
+
+  void _matchOffset(Element element, int offset) {
+    if (element.nameOffset != 0 && element.nameOffset != offset) {
+      throw new StateError('Element offset mismatch');
+    } else {
+      (element as ElementImpl).nameOffset = offset;
+    }
   }
 
   /**
@@ -461,6 +469,19 @@ class ElementWalker {
    */
   final Element element;
 
+  /**
+   * If [element] is an executable element, an element builder which is
+   * accumulating the executable element's local variables and labels.
+   * Otherwise `null`.
+   */
+  LocalElementBuilder elementBuilder;
+
+  /**
+   * If [element] is an executable element, the element holder associated with
+   * [elementBuilder].  Otherwise `null`.
+   */
+  ElementHolder _elementHolder;
+
   List<PropertyAccessorElement> _accessors;
   int _accessorIndex = 0;
   List<ClassElement> _classes;
@@ -471,8 +492,6 @@ class ElementWalker {
   int _enumIndex = 0;
   List<ExecutableElement> _functions;
   int _functionIndex = 0;
-  List<LabelElement> _labels;
-  int _labelIndex = 0;
   List<ParameterElement> _parameters;
   int _parameterIndex = 0;
   List<FunctionTypeAliasElement> _typedefs;
@@ -514,13 +533,9 @@ class ElementWalker {
    * Creates an [ElementWalker] which walks the child elements of a compilation
    * unit element.
    */
-  ElementWalker.forExecutable(ExecutableElement element)
-      : element = element,
-        _functions = element.functions,
-        _labels = element.labels,
-        _parameters = element.parameters,
-        _typeParameters = element.typeParameters,
-        _variables = element.localVariables;
+  ElementWalker.forExecutable(
+      ExecutableElement element, CompilationUnitElement compilationUnit)
+      : this._forExecutable(element, compilationUnit, new ElementHolder());
 
   /**
    * Creates an [ElementWalker] which walks the child elements of a parameter
@@ -537,6 +552,16 @@ class ElementWalker {
    */
   ElementWalker.forTypedef(FunctionTypeAliasElement element)
       : element = element,
+        _parameters = element.parameters,
+        _typeParameters = element.typeParameters;
+
+  ElementWalker._forExecutable(ExecutableElement element,
+      CompilationUnitElement compilationUnit, ElementHolder elementHolder)
+      : element = element,
+        elementBuilder =
+            new LocalElementBuilder(elementHolder, compilationUnit),
+        _elementHolder = elementHolder,
+        _functions = element.functions,
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
@@ -570,12 +595,6 @@ class ElementWalker {
    * more.
    */
   ExecutableElement getFunction() => _functions[_functionIndex++];
-
-  /**
-   * Returns the next non-synthetic child of [element] which is a label; throws
-   * an [IndexError] if there are no more.
-   */
-  LabelElement getLabel() => _labels[_labelIndex++];
 
   /**
    * Returns the next non-synthetic child of [element] which is a parameter;
@@ -620,11 +639,15 @@ class ElementWalker {
     check(_constructors, _constructorIndex);
     check(_enums, _enumIndex);
     check(_functions, _functionIndex);
-    check(_labels, _labelIndex);
     check(_parameters, _parameterIndex);
     check(_typedefs, _typedefIndex);
     check(_typeParameters, _typeParameterIndex);
     check(_variables, _variableIndex);
+    Element element = this.element;
+    if (element is ExecutableElementImpl) {
+      element.labels = _elementHolder.labels;
+      element.localVariables = _elementHolder.localVariables;
+    }
   }
 
   static bool _isNotSynthetic(Element e) => !e.isSynthetic;

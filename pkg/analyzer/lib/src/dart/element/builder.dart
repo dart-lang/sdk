@@ -1078,8 +1078,11 @@ class LocalElementBuilder extends _BaseElementBuilder {
       CompilationUnitElementImpl compilationUnitElement)
       : super(initialHolder, compilationUnitElement);
 
-  @override
-  Object visitCatchClause(CatchClause node) {
+  /**
+   * Builds the variable elements associated with [node] and stores them in
+   * the element holder.
+   */
+  void buildCatchVariableElements(CatchClause node) {
     SimpleIdentifier exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null) {
       // exception
@@ -1102,6 +1105,26 @@ class LocalElementBuilder extends _BaseElementBuilder {
         stackTraceParameter.staticElement = stackTrace;
       }
     }
+  }
+
+  /**
+   * Builds the label elements associated with [labels] and stores them in the
+   * element holder.
+   */
+  void buildLabelElements(
+      NodeList<Label> labels, bool onSwitchStatement, bool onSwitchMember) {
+    for (Label label in labels) {
+      SimpleIdentifier labelName = label.label;
+      LabelElementImpl element = new LabelElementImpl.forNode(
+          labelName, onSwitchStatement, onSwitchMember);
+      labelName.staticElement = element;
+      _currentHolder.addLabel(element);
+    }
+  }
+
+  @override
+  Object visitCatchClause(CatchClause node) {
+    buildCatchVariableElements(node);
     return super.visitCatchClause(node);
   }
 
@@ -1226,37 +1249,19 @@ class LocalElementBuilder extends _BaseElementBuilder {
   @override
   Object visitLabeledStatement(LabeledStatement node) {
     bool onSwitchStatement = node.statement is SwitchStatement;
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElementImpl element =
-          new LabelElementImpl.forNode(labelName, onSwitchStatement, false);
-      _currentHolder.addLabel(element);
-      labelName.staticElement = element;
-    }
+    buildLabelElements(node.labels, onSwitchStatement, false);
     return super.visitLabeledStatement(node);
   }
 
   @override
   Object visitSwitchCase(SwitchCase node) {
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElementImpl element =
-          new LabelElementImpl.forNode(labelName, false, true);
-      _currentHolder.addLabel(element);
-      labelName.staticElement = element;
-    }
+    buildLabelElements(node.labels, false, true);
     return super.visitSwitchCase(node);
   }
 
   @override
   Object visitSwitchDefault(SwitchDefault node) {
-    for (Label label in node.labels) {
-      SimpleIdentifier labelName = label.label;
-      LabelElementImpl element =
-          new LabelElementImpl.forNode(labelName, false, true);
-      _currentHolder.addLabel(element);
-      labelName.staticElement = element;
-    }
+    buildLabelElements(node.labels, false, true);
     return super.visitSwitchDefault(node);
   }
 

@@ -5257,7 +5257,11 @@ class _ElementComparer extends GeneralizingElementVisitor {
   @override
   void visitElement(Element element) {
     Element previousElement = previousElements[element];
-    if (!identical(previousElement, element)) {
+    bool expectIdentical = element is! LocalVariableElement;
+    bool ok = expectIdentical
+        ? identical(previousElement, element)
+        : previousElement == element;
+    if (!ok) {
       if (overwrittenCount == 0) {
         buffer.writeln();
       }
