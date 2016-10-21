@@ -6,7 +6,7 @@
 library front_end.tool.perf;
 
 import 'dart:async';
-import 'dart:io' show exit;
+import 'dart:io' show exit, stderr;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -22,6 +22,8 @@ import 'package:analyzer/src/dart/sdk/sdk.dart' show FolderBasedDartSdk;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:kernel/analyzer/loader.dart';
+import 'package:kernel/kernel.dart';
 import 'package:package_config/discovery.dart';
 
 /// Cumulative total number of chars scanned.
@@ -46,19 +48,36 @@ main(List<String> args) async {
 
   await setup(entryUri);
 
-  if (bench == 'scan') {
-    Set<Source> files = scanReachableFiles(entryUri);
-    // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) scanFiles(files);
-  } else if (bench == 'parse') {
-    Set<Source> files = scanReachableFiles(entryUri);
-    // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) parseFiles(files);
-  } else {
-    print('unsupported bench-id: $bench. Please specify "scan" or "parse"');
+  var handlers = {
+    'scan': () async {
+      Set<Source> files = scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) scanFiles(files);
+    },
+    'parse': () async {
+      Set<Source> files = scanReachableFiles(entryUri);
+      // TODO(sigmund): replace the warmup with instrumented snapshots.
+      for (int i = 0; i < 10; i++) parseFiles(files);
+    },
+    'kernel_gen_e2e': () async {
+      // TODO(sigmund): remove. This is used to compute the input size, we
+      // should extract input size from frontend instead.
+      scanReachableFiles(entryUri);
+      // TODO(sigmund): replace this warmup. Note that for very large programs,
+      // the GC pressure on the VM seems to make this worse with time (maybe we
+      // are leaking memory?). That's why we run it twice and not 10 times.
+      for (int i = 0; i < 2; i++) await generateKernel(entryUri);
+    },
+  };
+
+  var handler = handlers[bench];
+  if (handler == null) {
     // TODO(sigmund): implement the remaining benchmarks.
+    print('unsupported bench-id: $bench. Please specify one of the following: '
+        '${handler.keys.join(", ")}');
     exit(1);
   }
+  await handler();
 
   totalTimer.stop();
   report("total", totalTimer.elapsedMicroseconds);
@@ -200,4 +219,27 @@ void report(String name, int time) {
   sb.write('$name: $time us, ${time ~/ 1000} ms');
   sb.write(', ${scanTotalChars * 1000 ~/ time} chars/ms');
   print('$sb');
+}
+
+// TODO(sigmund): replace this once kernel is produced by the frontend directly.
+Future<Program> generateKernel(Uri entryUri) async {
+  var dartkTimer = new Stopwatch()..start();
+  var options = new DartOptions(strongMode: false, sdk: 'sdk');
+  var packages =
+      await createPackages(options.packagePath, discoveryPath: entryUri.path);
+  var repository = new Repository();
+  DartLoader loader = new DartLoader(repository, options, packages);
+
+  Program program = loader.loadProgram(entryUri.path);
+  List errors = loader.errors;
+  if (errors.isNotEmpty) {
+    const int errorLimit = 100;
+    stderr.writeln(errors.take(errorLimit).join('\n'));
+    if (errors.length > errorLimit) {
+      stderr.writeln('[error] ${errors.length - errorLimit} errors not shown');
+    }
+  }
+  dartkTimer.stop();
+  report("kernel_gen_e2e", dartkTimer.elapsedMicroseconds);
+  return program;
 }
