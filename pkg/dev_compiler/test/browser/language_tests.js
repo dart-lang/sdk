@@ -413,14 +413,11 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
     'lib/html': {
       'async_spawnuri_test': async_unittest,
       'async_test': async_unittest,
-      'audiobuffersourcenode_test': 'fail', // sdk#27578.
-      'audiocontext_test': 'fail', // sdk#27578.
-      'blob_constructor_test': 'fail', // sdk#27578.
-      'cache_test': 'fail', // sdk#27578.
+      'audiocontext_test': 'fail', // was sdk#27578, needs triage
+      'blob_constructor_test': 'fail', // was sdk#27578, needs triage
       'canvas_test': ['unittest'],
       'canvasrenderingcontext2d_test': ['unittest'],
       'cross_domain_iframe_test': async_unittest,
-      'crypto_test': 'fail', // sdk#27578.
       'cssstyledeclaration_test': async_unittest,
       'css_test': async_unittest,
 
@@ -431,8 +428,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'custom_element_name_clash_test': async_unittest,
       'custom_elements_23127_test': async_unittest,
       'custom_elements_test': async_unittest,
-      'datalistelement_test': 'fail', // sdk#27578.
-      'dom_constructors_test': 'fail', // sdk#27578.
+      'dom_constructors_test': 'fail', // was sdk#27578, needs triage
       'element_animate_test': async_unittest,
       'element_classes_test': 'fail', // sdk#27579.
       'element_classes_svg_test': 'fail', // sdk#27579.
@@ -440,7 +436,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       // Failure: 'Expected 56 to be in the inclusive range [111, 160].'.
       'element_offset_test': 'fail',
       'element_test': async_unittest,
-      'element_types_test': 'fail', // sdk#27578.
       'event_customevent_test': async_unittest,
       'events_test': async_unittest,
 
@@ -460,7 +455,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'indexeddb_3_test': async_unittest,
       'indexeddb_4_test': async_unittest,
       'indexeddb_5_test': async_unittest,
-      'input_element_test': 'fail', // sdk#27578.
+      'input_element_test': 'fail', // was sdk#27578, needs triage
       'interactive_test': async_unittest,
       'isolates_test': async_unittest,
 
@@ -475,32 +470,26 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'js_util_test': 'fail',
       'keyboard_event_test': async_unittest,
 
-      'mediasource_test': 'fail', // sdk#27578.
-      'media_stream_test': 'fail', // sdk#27578.
-      'messageevent_test': 'fail', // sdk#27578.
+      'mediasource_test': 'fail', // was sdk#27578, needs triage
+      'media_stream_test': 'fail', // was sdk#27578, needs triage
+      'messageevent_test': 'fail', // was sdk#27578, needs triage
 
       // Should throw but does not.
       'mirrors_js_typed_interop_test': 'fail',
 
       'mutationobserver_test': async_unittest,
       'native_gc_test': async_unittest,
-      'node_validator_important_if_you_suppress_make_the_bug_critical_test': 'fail', // sdk#27578.
-      'notification_test': 'fail', // sdk#27578.
-      'performance_api_test': 'fail', // sdk#27578.
+      'notification_test': 'fail', // was sdk#27578, needs triage
       'postmessage_structured_test': async_unittest,
-      'range_test': 'fail', // sdk#27578.
       'request_animation_frame_test': async_unittest,
       'resource_http_test': async_unittest,
-      'rtc_test': 'fail', // sdk#27578.
+      'rtc_test': 'fail', // was sdk#27578, needs triage
 
       // Expected 1, got null.
       'serialized_script_value_test': 'fail',
-      'shadow_dom_test': 'fail', // sdk#27578.
-      'shadowroot_test': 'fail', // sdk#27578.
-      'speechrecognition_test': 'fail', // sdk#27578.
-      'svgelement_test': 'fail', // sdk#27578.
-      'touchevent_test': 'fail', // sdk#27578.
-      'track_element_constructor_test': 'fail', // sdk#27578.
+      'speechrecognition_test': 'fail', // was sdk#27578, needs triage
+      'svgelement_test': 'fail', // was sdk#27578, needs triage
+      'touchevent_test': 'fail', // was sdk#27578, needs triage
       'transferables_test': async_unittest,
       'transition_event_test': async_unittest,
       'url_test': async_unittest,
@@ -512,7 +501,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
 
       'xhr_cross_origin_test': async_unittest,
       'xhr_test': async_unittest,
-      'xsltprocessor_test': 'fail', // sdk#27578.
 
       // Failing when it gets 3 instead of 42.
       'js_typed_interop_default_arg_test_default_value_multi': 'fail',
