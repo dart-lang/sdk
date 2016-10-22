@@ -71,10 +71,3 @@ application_snapshot("utils_wrapper") {
   main_dart = "$root_gen_dir/utils_wrapper.dart"
   training_args = [ "--help" ]
 }
-
-group("compiler") {
-  deps = [
-    ":dart2js",
-    ":utils_wrapper",
-  ]
-}

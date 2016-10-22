@@ -13,12 +13,23 @@
 import subprocess
 import sys
 
+def run_command(command):
+  try:
+    subprocess.check_output(command, stderr=subprocess.STDOUT)
+    return 0
+  except subprocess.CalledProcessError as e:
+    return ("Command failed: " + ' '.join(command) + "\n" +
+            "output: " + e.output)
+
 def main(argv):
   if len(argv) < 2:
     print "Requires path to Dart VM binary as first argument"
     return -1
-  command = argv[1:]
-  return subprocess.call(command)
+  result = run_command(argv[1:])
+  if result != 0:
+    print result
+    return -1
+  return 0
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
