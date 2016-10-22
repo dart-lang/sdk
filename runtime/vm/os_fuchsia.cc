@@ -33,21 +33,39 @@ intptr_t OS::ProcessId() {
 }
 
 
+static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
+  time_t seconds = static_cast<time_t>(seconds_since_epoch);
+  if (seconds != seconds_since_epoch) {
+    return false;
+  }
+  struct tm* error_code = localtime_r(&seconds, tm_result);
+  return error_code != NULL;
+}
+
+
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  UNIMPLEMENTED();
-  return "";
+  tm decomposed;
+  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
+  // If unsuccessful, return an empty string like V8 does.
+  return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
 }
 
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
-  UNIMPLEMENTED();
-  return 0;
+  tm decomposed;
+  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
+  // Even if the offset was 24 hours it would still easily fit into 32 bits.
+  // If unsuccessful, return zero like V8 does.
+  return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
 }
 
 
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  UNIMPLEMENTED();
-  return 0;
+  // TODO(floitsch): avoid excessive calls to tzset?
+  tzset();
+  // Even if the offset was 24 hours it would still easily fit into 32 bits.
+  // Note that Unix and Dart disagree on the sign.
+  return static_cast<int>(-timezone);
 }
 
 
