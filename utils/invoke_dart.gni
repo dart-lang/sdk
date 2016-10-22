@@ -50,7 +50,9 @@ template("invoke_dart") {
 
 template("application_snapshot") {
   assert(defined(invoker.main_dart), "Must specify 'main_dart'")
+  assert(defined(invoker.training_args), "Must specify 'training_args'")
   main_dart = invoker.main_dart
+  training_args = invoker.training_args
   name = target_name
   if (defined(invoker.name)) {
     name = invoker.name
@@ -85,7 +87,8 @@ template("application_snapshot") {
     args = [
       "--packages=$dot_packages",
       "--snapshot=$abs_output",
-      main_file
-    ]
+      "--snapshot-kind=app-jit",
+      main_file,
+    ] + training_args
   }
 }

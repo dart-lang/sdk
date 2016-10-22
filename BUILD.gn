@@ -56,7 +56,7 @@ action("create_sdk") {
   deps = [
     "runtime/bin:dart",
     "utils/analysis_server",
-    "utils/compiler:dart2js",
+    "utils/compiler",
     "utils/dartanalyzer:generate_dartanalyzer_snapshot",
     "utils/dartanalyzer:generate_summary_spec",
     "utils/dartanalyzer:generate_summary_strong",

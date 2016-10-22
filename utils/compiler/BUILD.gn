@@ -20,35 +20,61 @@ create_timestamp_file("dartdoc_files_stamp") {
   output = "$target_gen_dir/dartdoc_files.stamp"
 }
 
-invoke_dart("dart2js") {
+invoke_dart("dart2js_create_snapshot_entries") {
   deps = [
     ":dart2js_files_stamp",
     ":runtime_lib_files_stamp",
     ":dartdoc_files_stamp",
   ]
 
+  dot_packages = rebase_path("../../.packages")
+  create_snapshot_entry = rebase_path("create_snapshot_entry.dart")
+  output_dir = rebase_path(root_gen_dir)
+
   inputs = [
     "../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
-    "create_snapshot.dart",
+    create_snapshot_entry,
     "$root_gen_dir/dart2js_files.stamp",
     "../../tools/VERSION",
   ]
 
-  utils_output = "$root_gen_dir/utils_wrapper.dart.snapshot"
-  dart2js_output = "$root_gen_dir/dart2js.dart.snapshot"
+  utils_output = "$root_gen_dir/utils_wrapper.dart"
+  dart2js_output = "$root_gen_dir/dart2js.dart"
   outputs = [
     utils_output,
     dart2js_output,
   ]
 
-  dot_packages = rebase_path("../../.packages")
-  create_snapshot = rebase_path("create_snapshot.dart")
-  output_dir = rebase_path(root_gen_dir)
-
   args = [
     "--packages=$dot_packages",
-    create_snapshot,
+    create_snapshot_entry,
     "--output_dir=$output_dir",
     "--dart2js_main=pkg/compiler/lib/src/dart2js.dart",
+  ]
+}
+
+application_snapshot("dart2js") {
+  deps = [
+    ":dart2js_create_snapshot_entries"
+  ]
+  main_dart = "$root_gen_dir/dart2js.dart"
+  training_args = [
+    "--library-root=" + rebase_path("../../sdk"),
+    rebase_path("../../tests/language/first_test.dart")
+  ]
+}
+
+application_snapshot("utils_wrapper") {
+  deps = [
+    ":dart2js_create_snapshot_entries"
+  ]
+  main_dart = "$root_gen_dir/utils_wrapper.dart"
+  training_args = [ "--help" ]
+}
+
+group("compiler") {
+  deps = [
+    ":dart2js",
+    ":utils_wrapper",
   ]
 }
