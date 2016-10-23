@@ -7,6 +7,8 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 
 /**
  * [ByteStore] that stores values as [File]s.
+ *
+ * TODO(scheglov) Add some eviction policies.
  */
 class FileByteStore implements ByteStore {
   final Folder folder;

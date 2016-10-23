@@ -7,8 +7,11 @@ import 'dart:collection';
 /**
  * Store of bytes associated with string keys.
  *
+ * Each key must be not longer than 100 characters and consist of only `[a-z]`,
+ * `[0-9]`, `.` and `_` characters. It cannot have the sequence `..` in it.
+ *
  * Note that associations are not guaranteed to be persistent. The value
- * associated with a key can change or become `null` at any point of time.
+ * associated with a key can change or become `null` at any point in time.
  */
 abstract class ByteStore {
   /**
@@ -24,7 +27,9 @@ abstract class ByteStore {
 }
 
 /**
- * [ByteStore] with LRU cache.
+ * A wrapper around [ByteStore] which adds an in-memory LRU cache to it.
+ *
+ * TODO(scheglov) Consider implementing size and/or time eviction policies.
  */
 class MemoryCachingByteStore implements ByteStore {
   final ByteStore store;

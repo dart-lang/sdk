@@ -6,18 +6,51 @@ import 'dart:async';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
+ *
+ * Let the set of "explicitly analyzed files" denote the set of paths that have
+ * been passed to [addFile] but not subsequently passed to [removeFile]. Let
+ * the "current analysis results" denote the map from the set of explicitly
+ * analyzed files to the most recent [AnalysisResult] delivered to [results]
+ * for each file. Let the "current file state" represent a map from file path
+ * to the file contents most recently read from that file, or fetched from the
+ * content cache (considering all possible possible file paths, regardless of
+ * whether they're in the set of explicitly analyzed files). Let the
+ * "analysis state" be either "analyzing" or "idle".
+ *
+ * (These are theoretical constructs; they may not necessarily reflect data
+ * structures maintained explicitly by the driver).
+ *
+ * Then we make the following guarantees:
+ *
+ *    - Whenever the analysis state is idle, the current analysis results are
+ *      consistent with the current file state.
+ *
+ *    - A call to [addFile] or [changeFile] causes the analysis state to
+ *      transition to "analyzing", and schedules the contents of the given
+ *      files to be read into the current file state prior to the next time
+ *      the analysis state transitions back to "idle".
+ *
+ *    - If at any time the client stops making calls to [addFile], [changeFile],
+ *      and [removeFile], the analysis state will eventually transition back to
+ *      "idle" after a finite amount of processing.
+ *
+ * As a result of these guarantees, a client may ensure that the analysis
+ * results are "eventually consistent" with the file system by simply calling
+ * [changeFile] any time the contents of a file on the file system have changed.
+ *
+ *
+ * TODO(scheglov) Clean up the list of implicitly analyzed files.
  */
 class AnalysisDriver {
   /**
    * The byte storage to get and put serialized data.
    *
-   * It can be shared between other [AnalysisDriver]s.
+   * It can be shared with other [AnalysisDriver]s.
    */
   final ByteStore _byteStore;
 
@@ -42,7 +75,7 @@ class AnalysisDriver {
    *
    * The driver will produce the results through the [results] stream. The
    * exact order in which results are produced is not defined, neither
-   * between priority files, not between them and not priority files.
+   * between priority files, nor between priority and non-priority files.
    */
   void set priorityFiles(List<String> priorityPaths) {
     // TODO(scheglov) implement
@@ -54,9 +87,12 @@ class AnalysisDriver {
    * Analysis starts when the client starts listening to the stream, and stops
    * when the client cancels the subscription.
    *
-   * Analysis is eventual, the driver will try to produce results that are at
-   * some point more consistent with the state of the files, but does not
-   * guarantee that this will ever happen.
+   * When the client starts listening, the analysis state transitions to
+   * "analyzing" and an analysis result is produced for every added file prior
+   * to the next time the analysis state transitions to "idle".
+   *
+   * Invocation of [addFile] or [changeFile] might result in producing more
+   * analysis results that reflect the new current file state.
    *
    * More than one result might be produced for the same file, even if the
    * client does not change the state of the files.
@@ -85,14 +121,17 @@ class AnalysisDriver {
    *
    * The [path] must be absolute and normalized.
    *
-   * The driver might use this information to decide that new analysis results
-   * should be produced, but does not guarantee this, nor for the given file,
-   * nor for any other file.
+   * The [path] can be any file - explicitly or implicitly analyzed, or neither.
+   *
+   * Causes the analysis state to transition to "analyzing" (if it is not in
+   * that state already). Schedules the file contents for [path] to be read
+   * into the current file state prior to the next time the analysis state
+   * transitions to "idle".
    *
    * Invocation of this method will not prevent a [Future] returned from
-   * [getResult] from completing with a result, and does not guarantee that the
-   * result will reflect the state of the file at the moment before, at or
-   * after the invocation of [changeFile].
+   * [getResult] from completing with a result, but the result is not
+   * guaranteed to be consistent with the new current file state after this
+   * [changeFile] invocation.
    */
   void changeFile(String path) {
     // TODO(scheglov) implement
@@ -104,11 +143,13 @@ class AnalysisDriver {
    *
    * The [path] must be absolute and normalized.
    *
-   * The result is not guaranteed to be produced for the state of the file
-   * which is closest to the moment of the invocation. But if the client
-   * continues invoking this method, eventually one of the invocations will
-   * return a [Future] that completes with the result that is closer to the
-   * state of the files.
+   * The [path] can be any file - explicitly or implicitly analyzed, or neither.
+   *
+   * Causes the analysis state to transition to "analyzing" (if it is not in
+   * that state already), the driver will read the file and produce the analysis
+   * result for it, which is consistent with the current file state (including
+   * the new state of the file), prior to the next time the analysis state
+   * transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
     // TODO(scheglov) implement
