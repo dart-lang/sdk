@@ -8,10 +8,13 @@ import 'dart:collection';
  * Store of bytes associated with string keys.
  *
  * Each key must be not longer than 100 characters and consist of only `[a-z]`,
- * `[0-9]`, `.` and `_` characters. It cannot have the sequence `..` in it.
+ * `[0-9]`, `.` and `_` characters. The key cannot be an empty string, the
+ * literal `.`, or contain the sequence `..`.
  *
  * Note that associations are not guaranteed to be persistent. The value
  * associated with a key can change or become `null` at any point in time.
+ *
+ * TODO(scheglov) Research using asynchronous API.
  */
 abstract class ByteStore {
   /**
