@@ -128,9 +128,14 @@ class AnalysisDriver {
   /**
    * The current file state.
    *
-   * It maps file paths to MD5 hash of the file content.
+   * It maps file paths to the MD5 hash of the file content.
    */
   final _fileContentHashMap = <String, String>{};
+
+  /**
+   * Mapping from library URIs to the linked hash of the library.
+   */
+  final _linkedHashMap = <Uri, String>{};
 
   /**
    * TODO(scheglov) document and improve
@@ -233,6 +238,7 @@ class AnalysisDriver {
   void changeFile(String path) {
     // TODO(scheglov) Don't clear, schedule API signature validation.
     _fileContentHashMap.clear();
+    _linkedHashMap.clear();
     _filesToAnalyze.add(path);
     _filesToAnalyze.addAll(_explicitFiles);
     // TODO(scheglov) name?!
@@ -277,6 +283,25 @@ class AnalysisDriver {
    * TODO(scheglov) replace with actual [AnalysisResult] computing.
    */
   List<String> _computeAndPrintErrors(_File file) {
+    // TODO(scheglov) Computing resolved unit fails for these units.
+    // pkg/analyzer/lib/plugin/embedded_resolver_provider.dart
+    // pkg/analyzer/lib/plugin/embedded_resolver_provider.dart
+    if (file.path.endsWith(
+            'pkg/analyzer/lib/plugin/embedded_resolver_provider.dart') ||
+        file.path.endsWith('pkg/analyzer/lib/source/embedder.dart') ||
+        file.path.endsWith('pkg/analyzer/lib/src/generated/ast.dart') ||
+        file.path.endsWith('pkg/analyzer/lib/src/generated/element.dart') ||
+        file.path
+            .endsWith('pkg/analyzer/lib/src/generated/element_handle.dart') ||
+        file.path.endsWith('pkg/analyzer/lib/src/generated/error.dart') ||
+        file.path.endsWith('pkg/analyzer/lib/src/generated/scanner.dart') ||
+        file.path.endsWith('pkg/analyzer/lib/src/generated/sdk_io.dart') ||
+        file.path.endsWith('pkg/analyzer/lib/src/generated/visitors.dart') ||
+        file.path.endsWith('pkg/analyzer/test/generated/constant_test.dart') ||
+        file.path.endsWith('pkg/analyzer/test/source/embedder_test.dart')) {
+      return [];
+    }
+
     List<String> errorStrings = _logger.run('Compute errors $file', () {
       LibraryContext libraryContext = _createLibraryContext(file);
 
@@ -299,9 +324,14 @@ class AnalysisDriver {
       }
 
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
-      analysisContext.resolveCompilationUnit2(
-          libraryContext.file.source, libraryContext.file.source);
+      analysisContext.setContents(file.source, file.content);
       try {
+        // Compute resolved unit.
+//        _logger.runTimed('Computed resolved unit', () {
+//          analysisContext.resolveCompilationUnit2(
+//              libraryContext.file.source, libraryContext.file.source);
+//        });
+        // Compute errors.
         List<AnalysisError> errors;
         try {
           errors = _logger.runTimed('Computed errors', () {
@@ -874,10 +904,8 @@ class _LibraryNode {
   bool get isReady => linked != null;
 
   String get linkedHash {
-    if (_linkedHash == null) {
-      if (transitiveDependencies == null) {
-        computeTransitiveDependencies();
-      }
+    _linkedHash ??= driver._linkedHashMap.putIfAbsent(uri, () {
+      computeTransitiveDependencies();
 
       // Add all unlinked API signatures.
       List<String> signatures = <String>[];
@@ -893,8 +921,8 @@ class _LibraryNode {
       ApiSignature signature = new ApiSignature();
       signature.addString(uri.toString());
       signatures.forEach(signature.addString);
-      _linkedHash = signature.toHex();
-    }
+      return signature.toHex();
+    });
     return _linkedHash;
   }
 
