@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
@@ -941,9 +940,9 @@ abstract class AstNodeImpl implements AstNode {
 
   @override
   String toSource() {
-    PrintStringWriter writer = new PrintStringWriter();
-    accept(new ToSourceVisitor(writer));
-    return writer.toString();
+    StringBuffer buffer = new StringBuffer();
+    accept(new ToSourceVisitor2(buffer));
+    return buffer.toString();
   }
 
   @override

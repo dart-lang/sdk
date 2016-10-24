@@ -122,13 +122,17 @@ class _CacheTable {
 class _GeneratorTable extends _CacheTable {
   final _defs = new HashMap<DartType, JS.Expression>();
 
+  final JS.Identifier _runtimeModule;
+
+  _GeneratorTable(this._runtimeModule);
+
   JS.Statement _dischargeType(DartType t) {
     var name = _names.remove(t);
     if (name != null) {
       JS.Expression init = _defs.remove(t);
       assert(init != null);
-      return js.statement(
-          'let # = () => ((# = dart.constFn(#))());', [name, name, init]);
+      return js.statement('let # = () => ((# = #.constFn(#))());',
+          [name, name, _runtimeModule, init]);
     }
     return null;
   }
@@ -154,10 +158,10 @@ class TypeTable {
   final _definiteCacheNames = new _CacheTable();
 
   /// Generator variable names for hoisted types.
-  final _generators = new _GeneratorTable();
+  final _GeneratorTable _generators;
 
   /// Generator variable names for hoisted definite function types.
-  final _definiteGenerators = new _GeneratorTable();
+  final _GeneratorTable _definiteGenerators;
 
   /// Mapping from type parameters to the types which must have their
   /// cache/generator variables discharged at the binding site for the
@@ -165,6 +169,10 @@ class TypeTable {
   /// parameter.
   final _scopeDependencies =
       new HashMap<TypeParameterElement, List<DartType>>();
+
+  TypeTable(JS.Identifier runtime)
+      : _generators = new _GeneratorTable(runtime),
+        _definiteGenerators = new _GeneratorTable(runtime);
 
   /// Emit a list of statements declaring the cache variables and generator
   /// definitions tracked by the table.  If [formals] is present, only

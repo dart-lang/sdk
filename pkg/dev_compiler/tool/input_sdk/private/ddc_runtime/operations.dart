@@ -312,10 +312,10 @@ dsend(obj, method, @rest args) => _callMethod(obj, method, null, args, method);
 dgsend(obj, typeArgs, method, @rest args) =>
     _callMethod(obj, method, typeArgs, args, method);
 
-dindex(obj, index) => _callMethod(obj, 'get', null, JS('', '[#]', index), '[]');
+dindex(obj, index) => _callMethod(obj, '_get', null, JS('', '[#]', index), '[]');
 
 dsetindex(obj, index, value) =>
-    _callMethod(obj, 'set', null, JS('', '[#, #]', index, value), '[]=');
+    _callMethod(obj, '_set', null, JS('', '[#, #]', index, value), '[]=');
 
 /// TODO(leafp): This duplicates code in types.dart.
 /// I haven't found a way to factor it out that makes the
@@ -535,11 +535,11 @@ map(values, [K, V]) => JS(
     for (let i = 0, end = $values.length - 1; i < end; i += 2) {
       let key = $values[i];
       let value = $values[i + 1];
-      map.set(key, value);
+      map._set(key, value);
     }
   } else if (typeof $values === 'object') {
     for (let key of $getOwnPropertyNames($values)) {
-      map.set(key, $values[key]);
+      map._set(key, $values[key]);
     }
   }
   return map;

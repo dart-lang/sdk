@@ -231,9 +231,6 @@ issue_24243_parent_isolate_test: Skip # Requires checked mode
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
 
-[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
-*: Skip # Issue #26373
-
 [ $hot_reload || $hot_reload_rollback ]
 function_send_test: Pass, Fail # Closure identity
 message3_test/fun: Pass, Fail # Closure identity

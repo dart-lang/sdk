@@ -298,7 +298,14 @@ abstract class ErrorCode {
     // Manually generated. You can mostly reproduce this list by running the
     // following command from the root of the analyzer package:
     //
-    // > cat lib/src/dart/error/syntactic_errors.dart src/error/codes.dart |
+    // > cat
+    //       lib/src/analysis_options/error/option_codes.dart';
+    //       lib/src/dart/error/hint_codes.dart';
+    //       lib/src/dart/error/lint_codes.dart';
+    //       lib/src/dart/error/todo_codes.dart';
+    //       lib/src/html/error/html_codes.dart';
+    //       lib/src/dart/error/syntactic_errors.dart
+    //       lib/src/error/codes.dart |
     //     grep 'static const .*Code' |
     //     awk '{print $3"."$4","}' |
     //     sort > codes.txt
@@ -350,7 +357,8 @@ abstract class ErrorCode {
     CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
     CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-    CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode
+        .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
     CompileTimeErrorCode.CONST_INSTANCE_FIELD,
     CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
     CompileTimeErrorCode.CONST_NOT_INITIALIZED,
@@ -444,7 +452,8 @@ abstract class ErrorCode {
     CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
     CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
     CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
-    CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode
+        .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY,
     CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
     CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
     CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,

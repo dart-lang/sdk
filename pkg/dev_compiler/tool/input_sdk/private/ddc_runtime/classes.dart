@@ -459,11 +459,6 @@ defineExtensionMembers(type, methodNames) => JS(
   let proto = $type.prototype;
   for (let name of $methodNames) {
     let method = $getOwnPropertyDescriptor(proto, name);
-    // TODO(vsm): We should be able to generate code to avoid this case.
-    // The method may be null if this type implements a potentially native
-    // interface but isn't native itself.  For a field on this type, we're not
-    // generating a corresponding getter/setter method - it's just a field.
-    if (!method) continue;
     $defineProperty(proto, $getExtensionSymbol(name), method);
   }
   // Ensure the signature is available too.

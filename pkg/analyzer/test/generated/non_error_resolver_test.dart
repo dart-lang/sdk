@@ -3727,6 +3727,18 @@ int m(a) native 'string';''');
     // Cannot verify the AST because the import's URI cannot be resolved.
   }
 
+  void test_nativeConstConstructor() {
+    Source source = addSource(r'''
+import 'dart-ext:x';
+class Foo {
+  const Foo() native 'Foo_Foo';
+  const factory Foo.foo() native 'Foo_Foo_foo';
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    // Cannot verify the AST because the import's URI cannot be resolved.
+  }
+
   void test_newWithAbstractClass_factory() {
     Source source = addSource(r'''
 abstract class A {

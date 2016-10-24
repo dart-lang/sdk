@@ -254,10 +254,6 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 # The following tests are supposed to fail.
 library_env_test/has_mirror_support: RuntimeError, OK
 
-[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
-vm/optimized_guarded_field_isolates_test: Skip # Issue #26373
-issue23244_test: Skip # Issue #26373
-
 [ $hot_reload || $hot_reload_rollback ]
 static_closure_identical_test: Pass, Fail # Closure identity
 cha_deopt1_test: Crash # Requires deferred libraries

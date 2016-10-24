@@ -2337,12 +2337,14 @@ abstract class UnlinkedParam extends base.SummaryClass {
   /**
    * The length of the visible range.
    */
+  @informative
   @Id(10)
   int get visibleLength;
 
   /**
    * The beginning of the visible range.
    */
+  @informative
   @Id(11)
   int get visibleOffset;
 }
@@ -2818,12 +2820,14 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * If a local variable, the length of the visible range; zero otherwise.
    */
+  @informative
   @Id(11)
   int get visibleLength;
 
   /**
    * If a local variable, the beginning of the visible range; zero otherwise.
    */
+  @informative
   @Id(12)
   int get visibleOffset;
 }

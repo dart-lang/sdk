@@ -62,7 +62,9 @@ inline uint64_t Utils::HostToLittleEndian64(uint64_t value) {
 
 
 inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
-  snprintf(buffer, bufsize, "errno = %d", err);
+  if (strerror_r(err, buffer, bufsize) != 0) {
+    snprintf(buffer, bufsize, "%s", "strerror_r failed");
+  }
   return buffer;
 }
 

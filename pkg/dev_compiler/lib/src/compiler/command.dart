@@ -81,6 +81,15 @@ $stackTrace
   }
 }
 
+bool _changed(List<int> list1, List<int> list2) {
+  var length = list1.length;
+  if (length != list2.length) return true;
+  for (var i = 0; i < length; ++i) {
+    if (list1[i] != list2[i]) return true;
+  }
+  return false;
+}
+
 void _compile(ArgResults argResults, void printFn(Object obj)) {
   var compiler =
       new ModuleCompiler(new AnalyzerOptions.fromArguments(argResults));
@@ -150,7 +159,13 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
     if (module.summaryBytes != null) {
       var summaryPath =
           path.withoutExtension(outPath) + '.${compilerOpts.summaryExtension}';
-      new File(summaryPath).writeAsBytesSync(module.summaryBytes);
+      // Only overwrite if summary changed.  This plays better with timestamp
+      // based build systems.
+      var file = new File(summaryPath);
+      if (!file.existsSync() ||
+          _changed(file.readAsBytesSync(), module.summaryBytes)) {
+        file.writeAsBytesSync(module.summaryBytes);
+      }
     }
   }
 }

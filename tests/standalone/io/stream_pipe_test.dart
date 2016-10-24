@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
+// OtherResources=readline_test1.dat
+//
 // VMOptions=
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
@@ -15,7 +17,7 @@ import "package:expect/expect.dart";
 // Helper method to be able to run the test from the runtime
 // directory, or the top directory.
 String getDataFilename(String path) =>
-    new File(path).existsSync() ? path : '../$path';
+    Platform.script.resolve(path).toFilePath();
 
 
 bool compareFileContent(String fileName1,
@@ -64,7 +66,7 @@ testFileToFilePipe1() {
   asyncStart();
 
   String srcFileName =
-      getDataFilename("tests/standalone/io/readline_test1.dat");
+      getDataFilename("readline_test1.dat");
   var srcStream = new File(srcFileName).openRead();
 
   var tempDir = Directory.systemTemp.createTempSync('dart_stream_pipe');
@@ -89,7 +91,7 @@ testFileToFilePipe2() {
   asyncStart();
 
   String srcFileName =
-      getDataFilename("tests/standalone/io/readline_test1.dat");
+      getDataFilename("readline_test1.dat");
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openRead();
 
@@ -131,7 +133,7 @@ testFileToFilePipe3() {
   asyncStart();
 
   String srcFileName =
-      getDataFilename("tests/standalone/io/readline_test1.dat");
+      getDataFilename("readline_test1.dat");
   var srcFile = new File(srcFileName);
   var srcStream = srcFile.openRead();
 

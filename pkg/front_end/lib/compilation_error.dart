@@ -13,14 +13,14 @@ import 'package:source_span/source_span.dart' show SourceSpan;
 ///
 /// TODO(paulberry): add a reference to the analyzer error code.
 ///
-/// TODO(paulberry): add a correction message, once most analyzer errors have
-/// one.
-///
 /// Not intended to be implemented or extended by clients.
 abstract class CompilationError {
-  /// A text description of the compile error.
-  String get message;
+  /// A text description of how the user can fix the error.  May be `null`.
+  String get correction;
 
   /// The source location where the error occurred.
   SourceSpan get location;
+
+  /// A text description of the compile error.
+  String get message;
 }

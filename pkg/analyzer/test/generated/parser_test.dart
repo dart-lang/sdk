@@ -3123,6 +3123,14 @@ class RecoveryParserTest extends ParserTestCase {
         BinaryExpression, expression.leftOperand);
   }
 
+  void test_assignableSelector() {
+    IndexExpression expression =
+        parseExpression("a.b[]", [ParserErrorCode.MISSING_IDENTIFIER]);
+    Expression index = expression.index;
+    expect(index, new isInstanceOf<SimpleIdentifier>());
+    expect(index.isSynthetic, isTrue);
+  }
+
   void test_assignmentExpression_missing_compound1() {
     AssignmentExpression expression =
         parseExpression("= y = 0", [ParserErrorCode.MISSING_IDENTIFIER]);

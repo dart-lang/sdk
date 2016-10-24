@@ -2475,6 +2475,7 @@ void topLevelFunctionWithLocalFunction() {
 }
 
 void functionWithGenericFunctionTypedParam/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {}
+void functionWithClosureAsDefaultParam([x = () => null]) {}
 ''');
     context.resolveCompilationUnit2(source, source);
     LibraryElement firstElement = context.computeLibraryElement(source);
@@ -5256,7 +5257,11 @@ class _ElementComparer extends GeneralizingElementVisitor {
   @override
   void visitElement(Element element) {
     Element previousElement = previousElements[element];
-    if (!identical(previousElement, element)) {
+    bool expectIdentical = element is! LocalVariableElement;
+    bool ok = expectIdentical
+        ? identical(previousElement, element)
+        : previousElement == element;
+    if (!ok) {
       if (overwrittenCount == 0) {
         buffer.writeln();
       }

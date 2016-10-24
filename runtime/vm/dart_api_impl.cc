@@ -113,6 +113,11 @@ class FunctionVisitor : public ObjectVisitor {
   void VisitObject(RawObject* obj) {
     if (obj->IsFunction()) {
       funcHandle_ ^= obj;
+      if (funcHandle_.IsSignatureFunction()) {
+        // TODO(27606): Remove signature function case.
+        return;
+      }
+
       classHandle_ ^= funcHandle_.Owner();
       // Verify that the result type of a function is canonical or a
       // TypeParameter.

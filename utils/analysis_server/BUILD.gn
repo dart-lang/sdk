@@ -6,4 +6,5 @@ import("../invoke_dart.gni")
 
 application_snapshot("analysis_server") {
   main_dart = "../../pkg/analysis_server/bin/server.dart"
+  training_args = [ "--help" ]
 }

@@ -30,10 +30,6 @@ PropertyOverrideResult checkForPropertyOverride(
     var setter = superprop.setter;
     bool hasSetter = setter != null && !setter.isAbstract;
     if (hasSetter) foundSetter = true;
-
-    // Stop if this is an abstract getter/setter
-    // TODO(jmesserly): why were we doing this?
-    if (!hasGetter && !hasSetter) break;
   }
 
   return new PropertyOverrideResult(foundGetter, foundSetter);

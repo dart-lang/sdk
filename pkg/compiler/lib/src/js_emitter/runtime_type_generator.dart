@@ -81,11 +81,13 @@ class RuntimeTypeGenerator {
       if (!method.isAbstract) {
         ClosureClassMap closureData = compiler.closureToClassMapper
             .getClosureToClassMapping(method.resolvedAst);
-        ClosureFieldElement thisLocal =
-            closureData.freeVariableMap[closureData.thisLocal];
-        if (thisLocal != null) {
-          jsAst.Name thisName = namer.instanceFieldPropertyName(thisLocal);
-          thisAccess = js('this.#', thisName);
+        if (closureData != null) {
+          ClosureFieldElement thisLocal =
+              closureData.freeVariableMap[closureData.thisLocal];
+          if (thisLocal != null) {
+            jsAst.Name thisName = namer.instanceFieldPropertyName(thisLocal);
+            thisAccess = js('this.#', thisName);
+          }
         }
       }
 

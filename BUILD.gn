@@ -57,6 +57,7 @@ action("create_sdk") {
     "runtime/bin:dart",
     "utils/analysis_server",
     "utils/compiler:dart2js",
+    "utils/compiler:utils_wrapper",
     "utils/dartanalyzer:generate_dartanalyzer_snapshot",
     "utils/dartanalyzer:generate_summary_spec",
     "utils/dartanalyzer:generate_summary_strong",

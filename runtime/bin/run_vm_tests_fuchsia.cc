@@ -98,17 +98,12 @@ const char* kExpectFail[] = {
   "Fail2",
   "AllocGeneric_Overflow",
   "CodeImmutability",
+  // Assumes initial thread's stack is the same size as spawned thread stacks.
+  "StackOverflowStacktraceInfo",
 };
 
 // Bugs to fix, or things that are not yet implemented.
 const char* kBugs[] = {
-  // Needs NativeSymbolResolver
-  "Service_PersistentHandles",
-  // Needs lstat
-  "DirectoryCreateTemp",
-  "DirectoryCreateDelete",
-  // Needs rename
-  "DirectoryRename",
   // Needs read of RSS.
   "InitialRSS",
 };
@@ -346,7 +341,7 @@ static void* test_runner_thread(void* arg) {
 static void run_all_tests(runner_args_t* args) {
   const intptr_t num_cpus = sysconf(_SC_NPROCESSORS_CONF);
   pthread_t* threads =
-    reinterpret_cast<pthread_t*>(malloc(num_cpus * sizeof(pthread_t)));
+      reinterpret_cast<pthread_t*>(malloc(num_cpus * sizeof(pthread_t)));
   for (int i = 0; i < num_cpus; i++) {
     pthread_create(&threads[i], NULL, test_runner_thread, args);
   }

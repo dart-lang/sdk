@@ -780,6 +780,13 @@ class Parser {
         }
         Token operator = getAndAdvance();
         return new PropertyAccess(prefix, operator, parseSimpleIdentifier());
+      } else if (type == TokenType.INDEX) {
+        _splitIndex();
+        Token leftBracket = getAndAdvance();
+        Expression index = parseSimpleIdentifier();
+        Token rightBracket = getAndAdvance();
+        return new IndexExpression.forTarget(
+            prefix, leftBracket, index, rightBracket);
       } else {
         if (!optional) {
           // Report the missing selector.
@@ -3510,19 +3517,9 @@ class Parser {
    */
   ListLiteral parseListLiteral(Token modifier, TypeArgumentList typeArguments) {
     if (_matches(TokenType.INDEX)) {
-      // Split the token into two separate tokens.
-      BeginToken leftBracket = _createToken(
-          _currentToken, TokenType.OPEN_SQUARE_BRACKET,
-          isBegin: true);
-      Token rightBracket =
-          new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
-      leftBracket.endToken = rightBracket;
-      rightBracket.setNext(_currentToken.next);
-      leftBracket.setNext(rightBracket);
-      _currentToken.previous.setNext(leftBracket);
-      _currentToken = _currentToken.next;
+      _splitIndex();
       return new ListLiteral(
-          modifier, typeArguments, leftBracket, null, rightBracket);
+          modifier, typeArguments, getAndAdvance(), null, getAndAdvance());
     }
     Token leftBracket = getAndAdvance();
     if (_matches(TokenType.CLOSE_SQUARE_BRACKET)) {
@@ -4119,7 +4116,8 @@ class Parser {
         type == TokenType.PERIOD ||
         type == TokenType.QUESTION_PERIOD ||
         type == TokenType.OPEN_PAREN ||
-        (parseGenericMethods && type == TokenType.LT)) {
+        (parseGenericMethods && type == TokenType.LT) ||
+        type == TokenType.INDEX) {
       do {
         if (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
@@ -4143,7 +4141,8 @@ class Parser {
       } while (type == TokenType.OPEN_SQUARE_BRACKET ||
           type == TokenType.PERIOD ||
           type == TokenType.QUESTION_PERIOD ||
-          type == TokenType.OPEN_PAREN);
+          type == TokenType.OPEN_PAREN ||
+          type == TokenType.INDEX);
       return operand;
     }
     if (!_currentToken.type.isIncrementOperator) {
@@ -6252,7 +6251,8 @@ class Parser {
           parseFunctionBody(true, ParserErrorCode.MISSING_FUNCTION_BODY, false);
       if (constKeyword != null &&
           factoryKeyword != null &&
-          externalKeyword == null) {
+          externalKeyword == null &&
+          body is! NativeFunctionBody) {
         _reportErrorForToken(ParserErrorCode.CONST_FACTORY, factoryKeyword);
       } else if (body is EmptyFunctionBody) {
         if (factoryKeyword != null &&
@@ -6262,7 +6262,7 @@ class Parser {
               ParserErrorCode.FACTORY_WITHOUT_BODY, factoryKeyword);
         }
       } else {
-        if (constKeyword != null) {
+        if (constKeyword != null && body is! NativeFunctionBody) {
           _reportErrorForNode(
               ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body);
         } else if (externalKeyword != null) {
@@ -7581,6 +7581,24 @@ class Parser {
       next = next.next;
     }
     return next;
+  }
+
+  /**
+   * Assuming that the current token is an index token ('[]'), split it into two
+   * tokens ('[' and ']'), leaving the left bracket as the current token.
+   */
+  void _splitIndex() {
+    // Split the token into two separate tokens.
+    BeginToken leftBracket = _createToken(
+        _currentToken, TokenType.OPEN_SQUARE_BRACKET,
+        isBegin: true);
+    Token rightBracket =
+        new Token(TokenType.CLOSE_SQUARE_BRACKET, _currentToken.offset + 1);
+    leftBracket.endToken = rightBracket;
+    rightBracket.setNext(_currentToken.next);
+    leftBracket.setNext(rightBracket);
+    _currentToken.previous.setNext(leftBracket);
+    _currentToken = leftBracket;
   }
 
   /**

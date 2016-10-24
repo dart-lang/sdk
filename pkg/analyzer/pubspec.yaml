@@ -1,5 +1,5 @@
 name: analyzer
-version: 0.29.0
+version: 0.30.0-alpha.0
 author: Dart Team <misc@dartlang.org>
 description: Static analyzer for Dart.
 homepage: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer

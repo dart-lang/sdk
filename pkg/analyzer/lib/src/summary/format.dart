@@ -6970,6 +6970,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _nameOffset = null;
     _parameters?.forEach((b) => b.flushInformative());
     _type?.flushInformative();
+    _visibleLength = null;
+    _visibleOffset = null;
   }
 
   /**
@@ -6999,8 +7001,6 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
         x?.collectApiSignature(signature);
       }
     }
-    signature.addInt(this._visibleLength ?? 0);
-    signature.addInt(this._visibleOffset ?? 0);
     signature.addBool(this._initializer != null);
     this._initializer?.collectApiSignature(signature);
     signature.addInt(this._inheritsCovariantSlot ?? 0);
@@ -9245,6 +9245,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _initializer?.flushInformative();
     _nameOffset = null;
     _type?.flushInformative();
+    _visibleLength = null;
+    _visibleOffset = null;
   }
 
   /**
@@ -9267,8 +9269,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       }
     }
     signature.addInt(this._inferredTypeSlot ?? 0);
-    signature.addInt(this._visibleLength ?? 0);
-    signature.addInt(this._visibleOffset ?? 0);
     signature.addBool(this._initializer != null);
     this._initializer?.collectApiSignature(signature);
   }

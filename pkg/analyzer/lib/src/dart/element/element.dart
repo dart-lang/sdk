@@ -870,10 +870,11 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   int get nameOffset {
-    if (_unlinkedClass != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedClass != null) {
       return _unlinkedClass.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -1236,6 +1237,7 @@ class ClassElementImpl extends AbstractClassElementImpl
           field.synthetic = true;
           field.final2 = e.kind == UnlinkedExecutableKind.getter;
           field.type = fieldType;
+          field.static = e.isStatic;
         } else {
           field.final2 = false;
         }
@@ -1851,10 +1853,11 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 
   @override
   int get nameOffset {
-    if (_unlinkedEnumValue != null) {
+    int offset = super.nameOffset;
+    if (offset == -1 && _unlinkedEnumValue != null) {
       return _unlinkedEnumValue.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -3477,10 +3480,11 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   int get nameOffset {
-    if (_unlinkedEnum != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedEnum != null && _unlinkedEnum.nameOffset != 0) {
       return _unlinkedEnum.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -3826,10 +3830,11 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   int get nameOffset {
-    if (serializedExecutable != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && serializedExecutable != null) {
       return serializedExecutable.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -4103,10 +4108,11 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   int get nameOffset {
-    if (_unlinkedExportNonPublic != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedExportNonPublic != null) {
       return _unlinkedExportNonPublic.offset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -4676,10 +4682,11 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   int get nameOffset {
-    if (_unlinkedTypedef != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedTypedef != null) {
       return _unlinkedTypedef.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -5013,13 +5020,14 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   int get nameOffset {
-    if (_unlinkedImport != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedImport != null) {
       if (_unlinkedImport.isImplicit) {
         return -1;
       }
       return _unlinkedImport.offset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   PrefixElement get prefix {
@@ -5222,10 +5230,13 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
 
   @override
   int get nameOffset {
-    if (_unlinkedLabel != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 &&
+        _unlinkedLabel != null &&
+        _unlinkedLabel.nameOffset != 0) {
       return _unlinkedLabel.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -6763,10 +6774,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   int get nameOffset {
-    if (_unlinkedVariable != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedVariable != null) {
       return _unlinkedVariable.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -7067,13 +7079,14 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   int get nameOffset {
-    if (_unlinkedParam != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedParam != null) {
       if (isSynthetic) {
         return -1;
       }
       return _unlinkedParam.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -7389,10 +7402,11 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
 
   @override
   int get nameOffset {
-    if (_unlinkedImport != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedImport != null) {
       return _unlinkedImport.prefixOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   @override
@@ -8037,10 +8051,11 @@ class TypeParameterElementImpl extends ElementImpl
 
   @override
   int get nameOffset {
-    if (_unlinkedTypeParam != null) {
+    int offset = super.nameOffset;
+    if (offset == 0 && _unlinkedTypeParam != null) {
       return _unlinkedTypeParam.nameOffset;
     }
-    return super.nameOffset;
+    return offset;
   }
 
   TypeParameterType get type {

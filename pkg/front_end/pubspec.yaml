@@ -9,3 +9,11 @@ dependencies:
   analyzer: '^0.29.0'
   path: '^1.3.9'
   source_span: '^1.2.3'
+dev_dependencies:
+  package_config: '^1.0.0'
+  # TODO(sigmund): update to a version constraint once we roll the latest kernel
+  # to the repo.
+  kernel: {path: ../../third_party/pkg/kernel}
+# TODO(sigmund): remove once kernel is moved into the sdk repo.
+dependency_overrides:
+  analyzer: '^0.29.0'

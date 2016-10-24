@@ -370,12 +370,12 @@ bool Socket::ReverseLookup(const RawAddr& addr,
 
 bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
   int result;
-  const wchar_t* system_address = StringUtilsWin::Utf8ToWide(address);
+  Utf8ToWideScope system_address(address);
   if (type == SocketAddress::TYPE_IPV4) {
-    result = InetPton(AF_INET, system_address, &addr->in.sin_addr);
+    result = InetPton(AF_INET, system_address.wide(), &addr->in.sin_addr);
   } else {
     ASSERT(type == SocketAddress::TYPE_IPV6);
-    result = InetPton(AF_INET6, system_address, &addr->in6.sin6_addr);
+    result = InetPton(AF_INET6, system_address.wide(), &addr->in6.sin6_addr);
   }
   return result == 1;
 }

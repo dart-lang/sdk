@@ -139,10 +139,12 @@ List<UriResolver> createFileResolvers(AnalyzerOptions options,
     {ResourceProvider resourceProvider}) {
   resourceProvider ??= PhysicalResourceProvider.INSTANCE;
   UriResolver packageResolver() {
-    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
     if (options.packageRoot != null) {
-      builder.defaultPackagesDirectoryPath = options.packageRoot;
+      builderOptions.defaultPackagesDirectoryPath = options.packageRoot;
     }
+    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null,
+        options: builderOptions);
     return new PackageMapUriResolver(resourceProvider,
         builder.convertPackagesToMap(builder.createPackageMap('')));
   }

@@ -1645,16 +1645,18 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       }
     }
 
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    builderOptions.defaultOptions = options;
+    builderOptions.defaultPackageFilePath = defaultPackageFilePath;
+    builderOptions.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
+    if (analysisServer.options.enablePubSummaryManager) {
+      builderOptions.pubSummaryManager = analysisServer.pubSummaryManager;
+    }
     ContextBuilder builder = new ContextBuilder(resourceProvider,
-        analysisServer.sdkManager, analysisServer.overlayState);
-    builder.defaultOptions = options;
+        analysisServer.sdkManager, analysisServer.overlayState,
+        options: builderOptions);
     builder.fileResolverProvider = analysisServer.fileResolverProvider;
     builder.packageResolverProvider = analysisServer.packageResolverProvider;
-    builder.defaultPackageFilePath = defaultPackageFilePath;
-    builder.defaultPackagesDirectoryPath = defaultPackagesDirectoryPath;
-    if (analysisServer.options.enablePubSummaryManager) {
-      builder.pubSummaryManager = analysisServer.pubSummaryManager;
-    }
     return builder;
   }
 

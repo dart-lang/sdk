@@ -1,4 +1,7 @@
 ## 1.21.0
+### Core library changes
+
+* `dart:core`: `Set.difference` now takes a `Set<Object>` as argument.
 
 ### Language
 

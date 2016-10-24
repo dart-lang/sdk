@@ -261,7 +261,7 @@ class DebugSet<E> extends DebugIterable<E> implements Set<E> {
 
   Set<E> union(Set<E> other) => set.union(other);
 
-  Set<E> difference(Set<E> other) => set.difference(other);
+  Set<E> difference(Set<Object> other) => set.difference(other);
 
   void clear() => set.clear();
 

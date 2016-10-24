@@ -250,7 +250,7 @@ class Setlet<E> extends IterableBase<E> implements Set<E> {
   Setlet<E> intersection(Set<E> other) =>
       new Setlet<E>.from(this.where((e) => other.contains(e)));
 
-  Setlet<E> difference(Set<E> other) =>
+  Setlet<E> difference(Set<Object> other) =>
       new Setlet<E>.from(this.where((e) => !other.contains(e)));
 
   Setlet<E> toSet() {

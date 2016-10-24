@@ -45,13 +45,16 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
   CompilationUnit unit;
   CompilationUnit unit2;
 
-  void checkMetadata(String search) {
+  void checkMetadata(String search, {bool expectDifferent: false}) {
     NodeList<Annotation> metadata = _findMetadata(unit, search);
     NodeList<Annotation> metadata2 = _findMetadata(unit2, search);
     expect(metadata, isNotEmpty);
     for (int i = 0; i < metadata.length; i++) {
-      expect(
-          metadata2[i].elementAnnotation, same(metadata[i].elementAnnotation));
+      Matcher expectation = same(metadata[i].elementAnnotation);
+      if (expectDifferent) {
+        expectation = isNot(expectation);
+      }
+      expect(metadata2[i].elementAnnotation, expectation);
     }
   }
 
@@ -83,7 +86,7 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
 
   void test_metadata_declaredIdentifier() {
     setupCode('f(x, y) { for (@a var x in y) {} }');
-    checkMetadata('var');
+    checkMetadata('var', expectDifferent: true);
   }
 
   void test_metadata_enumDeclaration() {
@@ -175,7 +178,7 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
 
   void test_metadata_localVariableDeclaration() {
     setupCode('f() { @a int x; }');
-    checkMetadata('x');
+    checkMetadata('x', expectDifferent: true);
   }
 
   void test_metadata_methodDeclaration_getter() {
@@ -256,6 +259,70 @@ class DeclarationResolverTest extends ResolverTestCase {
   @override
   void setUp() {
     super.setUp();
+  }
+
+  void test_closure_inside_catch_block() {
+    String code = '''
+f() {
+  try {
+  } catch (e) {
+    return () => null;
+  }
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_closure_inside_labeled_statement() {
+    String code = '''
+f(b) {
+  foo: while (true) {
+    if (b) {
+      break foo;
+    }
+    return () => null;
+  }
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_closure_inside_switch_case() {
+    String code = '''
+void f(k, m) {
+  switch (k) {
+    case 0:
+      m.forEach((key, value) {});
+    break;
+  }
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_closure_inside_switch_default() {
+    String code = '''
+void f(k, m) {
+  switch (k) {
+    default:
+      m.forEach((key, value) {});
+    break;
+  }
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
   }
 
   void test_enumConstant_partiallyResolved() {
