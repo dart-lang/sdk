@@ -295,6 +295,11 @@ class LazyTypeEnvironment {
 
   DartType parse(String type) => parseDartType(type, lookup);
 
+  Supertype parseSuper(String type) {
+    InterfaceType interfaceType = parse(type);
+    return new Supertype(interfaceType.classNode, interfaceType.typeArguments);
+  }
+
   DartType parseFresh(String type) {
     clearTypeParameters();
     return parse(type);

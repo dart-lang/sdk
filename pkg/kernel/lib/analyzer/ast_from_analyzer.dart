@@ -320,6 +320,22 @@ class TypeScope extends ReferenceScope {
     return new TypeAnnotationBuilder(this).buildFromDartType(type);
   }
 
+  ast.Supertype buildSupertype(DartType type) {
+    if (type is InterfaceType) {
+      var classElement = type.element;
+      if (classElement == null) return getRootClassReference().asRawSupertype;
+      var classNode = getClassReference(classElement);
+      if (classNode.typeParameters.isEmpty ||
+          classNode.typeParameters.length != type.typeArguments.length) {
+        return classNode.asRawSupertype;
+      } else {
+        return new ast.Supertype(classNode,
+          type.typeArguments.map(buildType).toList(growable: false));
+      }
+    }
+    return getRootClassReference().asRawSupertype;
+  }
+
   ast.DartType buildTypeAnnotation(AstNode node) {
     return new TypeAnnotationBuilder(this).build(node);
   }
@@ -2274,7 +2290,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
   /// This should only be used to recover from a compile-time error.
   void buildBrokenClass() {
     currentClass.name = element.name;
-    currentClass.supertype = scope.getRootClassReference().rawType;
+    currentClass.supertype = scope.getRootClassReference().asRawSupertype;
     currentClass.constructors.add(
         new ast.Constructor(new ast.FunctionNode(new ast.InvalidStatement())));
   }

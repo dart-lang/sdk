@@ -267,6 +267,7 @@ class Visitor<R> extends TreeVisitor<R>
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
 
   R visitName(Name node) => defaultNode(node);
+  R visitSupertype(Supertype node) => defaultNode(node);
 }
 
 class RecursiveVisitor<R> extends Visitor<R> {
@@ -305,6 +306,8 @@ class Transformer extends TreeVisitor<TreeNode> {
   ///
   /// By default, recursion stops at this point.
   DartType visitDartType(DartType node) => node;
+
+  Supertype visitSupertype(Supertype node) => node;
 
   TreeNode defaultTreeNode(TreeNode node) {
     node.transformChildren(this);

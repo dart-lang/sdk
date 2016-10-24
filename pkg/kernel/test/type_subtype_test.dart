@@ -121,7 +121,7 @@ MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
   LazyTypeEnvironment environment = new LazyTypeEnvironment();
   Class objectClass = environment.lookup('Object');
   Class functionClass = environment.lookup('Function');
-  functionClass.supertype = objectClass.rawType;
+  functionClass.supertype = objectClass.asRawSupertype;
   for (var typeString in testcase.keys) {
     InterfaceType type = environment.parseFresh(typeString);
     Class class_ = type.classNode;
@@ -130,9 +130,9 @@ MockSubtypeTester makeSubtypeTester(Map<String, List<String>> testcase) {
     }
     for (var supertypeString in testcase[typeString]) {
       if (class_.supertype == null) {
-        class_.supertype = environment.parse(supertypeString);
+        class_.supertype = environment.parseSuper(supertypeString);
       } else {
-        class_.implementedTypes.add(environment.parse(supertypeString));
+        class_.implementedTypes.add(environment.parseSuper(supertypeString));
       }
     }
   }

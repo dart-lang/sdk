@@ -274,51 +274,46 @@ class DartLoader implements ReferenceLevelLoader {
     // Initialize supertypes.
     Iterable<InterfaceType> mixins = element.mixins;
     if (element.isMixinApplication && mixins.isNotEmpty) {
-      var last = scope.buildType(mixins.last);
-      if (last is ast.InterfaceType) {
-        classNode.mixedInType = last;
-      }
+      classNode.mixedInType = scope.buildSupertype(mixins.last);
       mixins = mixins.take(mixins.length - 1);
     }
     if (element.supertype != null) {
-      ast.InterfaceType supertype = scope.buildType(element.supertype);
+      ast.Supertype supertype = scope.buildSupertype(element.supertype);
       bool useSharedMixin = true;
       for (var mixin in mixins) {
-        var mixinType = scope.buildType(mixin);
-        if (mixinType is ast.InterfaceType) {
-          if (useSharedMixin &&
-              areDistinctUnboundTypeVariables(supertype, mixinType)) {
-            // Use a shared mixin application class for this library.
-            var mixinClass = getSharedMixinApplicationClass(
-                scope.currentLibrary, supertype.classNode, mixinType.classNode);
-            supertype = new ast.InterfaceType(
-                mixinClass,
-                supertype.typeArguments.length > mixinType.typeArguments.length
-                    ? supertype.typeArguments
-                    : mixinType.typeArguments);
-          } else {
-            // Generate a new class specific for this mixin application.
-            var freshParameters =
-                getFreshTypeParameters(classNode.typeParameters);
-            var mixinClass = new ast.Class(
-                name: '${classNode.name}^${mixinType.classNode.name}',
-                isAbstract: true,
-                typeParameters: freshParameters.freshTypeParameters,
-                supertype: freshParameters.substitute(supertype),
-                mixedInType: freshParameters.substitute(mixinType));
-            mixinClass.level = ast.ClassLevel.Type;
-            supertype = new ast.InterfaceType(mixinClass,
-                classNode.typeParameters.map(makeTypeParameterType).toList());
-            addMixinClassToLibrary(mixinClass, classNode.enclosingLibrary);
-            // This class cannot be used from anywhere else, so don't try to
-            // generate shared mixin applications using it.
-            useSharedMixin = false;
-          }
+        var mixinType = scope.buildSupertype(mixin);
+        if (useSharedMixin &&
+            areDistinctUnboundTypeVariables(supertype, mixinType)) {
+          // Use a shared mixin application class for this library.
+          var mixinClass = getSharedMixinApplicationClass(
+              scope.currentLibrary, supertype.classNode, mixinType.classNode);
+          supertype = new ast.Supertype(
+              mixinClass,
+              supertype.typeArguments.length > mixinType.typeArguments.length
+                  ? supertype.typeArguments
+                  : mixinType.typeArguments);
+        } else {
+          // Generate a new class specific for this mixin application.
+          var freshParameters =
+              getFreshTypeParameters(classNode.typeParameters);
+          var mixinClass = new ast.Class(
+              name: '${classNode.name}^${mixinType.classNode.name}',
+              isAbstract: true,
+              typeParameters: freshParameters.freshTypeParameters,
+              supertype: freshParameters.substituteSuper(supertype),
+              mixedInType: freshParameters.substituteSuper(mixinType));
+          mixinClass.level = ast.ClassLevel.Type;
+          supertype = new ast.Supertype(mixinClass,
+              classNode.typeParameters.map(makeTypeParameterType).toList());
+          addMixinClassToLibrary(mixinClass, classNode.enclosingLibrary);
+          // This class cannot be used from anywhere else, so don't try to
+          // generate shared mixin applications using it.
+          useSharedMixin = false;
         }
       }
       classNode.supertype = supertype;
       for (var implementedType in element.interfaces) {
-        classNode.implementedTypes.add(scope.buildType(implementedType));
+        classNode.implementedTypes.add(scope.buildSupertype(implementedType));
       }
     }
   }
@@ -495,7 +490,7 @@ class DartLoader implements ReferenceLevelLoader {
   /// `T1 ... TN` are distinct type variables with no upper bound, where
   /// `N = max(m,n)`.
   bool areDistinctUnboundTypeVariables(
-      ast.InterfaceType first, ast.InterfaceType second) {
+      ast.Supertype first, ast.Supertype second) {
     var seen = new Set<ast.TypeParameter>();
     if (first.typeArguments.length < second.typeArguments.length) {
       var tmp = first;
@@ -560,8 +555,8 @@ class DartLoader implements ReferenceLevelLoader {
           name: name,
           isAbstract: true,
           typeParameters: fresh.freshTypeParameters,
-          supertype: new ast.InterfaceType(superclass, superArgs),
-          mixedInType: new ast.InterfaceType(mixedInClass, mixinArgs),
+          supertype: new ast.Supertype(superclass, superArgs),
+          mixedInType: new ast.Supertype(mixedInClass, mixinArgs),
           fileUri: mixedInClass.fileUri);
       result.level = ast.ClassLevel.Type;
       library.addClass(result);

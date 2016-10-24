@@ -293,13 +293,13 @@ class Class extends TreeNode {
   final List<TypeParameter> typeParameters;
 
   /// The immediate super type, or `null` if this is the root class.
-  InterfaceType supertype;
+  Supertype supertype;
 
   /// The mixed-in type if this is a mixin application, otherwise `null`.
-  InterfaceType mixedInType;
+  Supertype mixedInType;
 
   /// The types from the `implements` clause.
-  final List<InterfaceType> implementedTypes;
+  final List<Supertype> implementedTypes;
 
   /// Fields declared in the class.
   ///
@@ -326,7 +326,7 @@ class Class extends TreeNode {
       List<Field> fields,
       this.fileUri})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.implementedTypes = implementedTypes ?? <InterfaceType>[],
+        this.implementedTypes = implementedTypes ?? <Supertype>[],
         this.fields = fields ?? <Field>[],
         this.constructors = constructors ?? <Constructor>[],
         this.procedures = procedures ?? <Procedure>[] {
@@ -361,7 +361,7 @@ class Class extends TreeNode {
   ///
   /// This getter is for convenience, not efficiency.  Consider manually
   /// iterating the super types to speed up code in production.
-  Iterable<InterfaceType> get supers => <Iterable<InterfaceType>>[
+  Iterable<Supertype> get supers => <Iterable<Supertype>>[
         supertype == null ? const [] : [supertype],
         mixedInType == null ? const [] : [mixedInType],
         implementedTypes
@@ -405,6 +405,15 @@ class Class extends TreeNode {
   /// [ClassLevel.Hierarchy] level.
   bool get isInExternalLibrary => enclosingLibrary.isExternal;
 
+  Supertype get asRawSupertype {
+    return new Supertype(this,
+        new List<DartType>.filled(typeParameters.length, const DynamicType()));
+  }
+
+  Supertype get asThisSupertype {
+    return new Supertype(this, _getAsTypeArguments(typeParameters));
+  }
+
   InterfaceType _rawType;
   InterfaceType get rawType => _rawType ??= new InterfaceType(this);
 
@@ -439,12 +448,12 @@ class Class extends TreeNode {
     transformList(annotations, v, this);
     transformList(typeParameters, v, this);
     if (supertype != null) {
-      supertype = v.visitDartType(supertype);
+      supertype = v.visitSupertype(supertype);
     }
     if (mixedInType != null) {
-      mixedInType = v.visitDartType(mixedInType);
+      mixedInType = v.visitSupertype(mixedInType);
     }
-    transformTypeList(implementedTypes, v);
+    transformSupertypeList(implementedTypes, v);
     transformList(constructors, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
@@ -1311,7 +1320,9 @@ class PropertyGet extends Expression {
     if (interfaceTarget != null) {
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      return substituteThisType(interfaceTarget.getterType, receiverType);
+      return Substitution
+          .fromInterfaceType(receiverType)
+          .substituteType(interfaceTarget.getterType);
     }
     // Treat the properties of Object specially.
     String nameString = name.name;
@@ -1408,7 +1419,9 @@ class DirectPropertyGet extends Expression {
   DartType getStaticType(TypeEnvironment types) {
     Class superclass = target.enclosingClass;
     var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-    return substituteThisType(target.getterType, receiverType);
+    return Substitution
+        .fromInterfaceType(receiverType)
+        .substituteType(target.getterType);
   }
 }
 
@@ -1482,10 +1495,12 @@ class DirectMethodInvocation extends Expression {
     }
     Class superclass = target.enclosingClass;
     var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-    var returnType =
-        substituteThisType(target.function.returnType, receiverType);
-    return substitutePairwise(
-        returnType, target.function.typeParameters, arguments.types);
+    var returnType = Substitution
+        .fromInterfaceType(receiverType)
+        .substituteType(target.function.returnType);
+    return Substitution
+        .fromPairs(target.function.typeParameters, arguments.types)
+        .substituteType(returnType);
   }
 }
 
@@ -1513,7 +1528,9 @@ class SuperPropertyGet extends Expression {
     }
     var receiver =
         types.hierarchy.getTypeAsInstanceOf(types.thisType, declaringClass);
-    return substituteThisType(interfaceTarget.getterType, receiver);
+    return Substitution
+        .fromInterfaceType(receiver)
+        .substituteType(interfaceTarget.getterType);
   }
 
   accept(ExpressionVisitor v) => v.visitSuperPropertyGet(this);
@@ -1699,10 +1716,12 @@ class MethodInvocation extends InvocationExpression {
       }
       Class superclass = interfaceTarget.enclosingClass;
       var receiverType = receiver.getStaticTypeAsInstanceOf(superclass, types);
-      var returnType =
-          substituteThisType(interfaceTarget.function.returnType, receiverType);
-      return substitutePairwise(
-          returnType, interfaceTarget.function.typeParameters, arguments.types);
+      var returnType = Substitution
+          .fromInterfaceType(receiverType)
+          .substituteType(interfaceTarget.function.returnType);
+      return Substitution
+          .fromPairs(interfaceTarget.function.typeParameters, arguments.types)
+          .substituteType(returnType);
     }
     if (name.name == 'call') {
       var receiverType = receiver.getStaticType(types);
@@ -1710,8 +1729,9 @@ class MethodInvocation extends InvocationExpression {
         if (receiverType.typeParameters.length != arguments.types.length) {
           return const BottomType();
         }
-        return substitutePairwise(receiverType.returnType,
-            receiverType.typeParameters, arguments.types);
+        return Substitution
+            .fromPairs(receiverType.typeParameters, arguments.types)
+            .substituteType(receiverType.returnType);
       }
     }
     if (name.name == '==') {
@@ -1759,10 +1779,12 @@ class SuperMethodInvocation extends InvocationExpression {
     Class superclass = interfaceTarget.enclosingClass;
     var receiverType =
         types.hierarchy.getTypeAsInstanceOf(types.thisType, superclass);
-    var returnType =
-        substituteThisType(interfaceTarget.function.returnType, receiverType);
-    return substitutePairwise(
-        returnType, interfaceTarget.function.typeParameters, arguments.types);
+    var returnType = Substitution
+        .fromInterfaceType(receiverType)
+        .substituteType(interfaceTarget.function.returnType);
+    return Substitution
+        .fromPairs(interfaceTarget.function.typeParameters, arguments.types)
+        .substituteType(returnType);
   }
 
   accept(ExpressionVisitor v) => v.visitSuperMethodInvocation(this);
@@ -1798,8 +1820,9 @@ class StaticInvocation extends InvocationExpression {
   }
 
   DartType getStaticType(TypeEnvironment types) {
-    return substitutePairwise(target.function.returnType,
-        target.function.typeParameters, arguments.types);
+    return Substitution
+        .fromPairs(target.function.typeParameters, arguments.types)
+        .substituteType(target.function.returnType);
   }
 
   accept(ExpressionVisitor v) => v.visitStaticInvocation(this);
@@ -3403,6 +3426,46 @@ class TypeParameter extends TreeNode {
   String toString() => debugQualifiedTypeParameterName(this);
 }
 
+class Supertype extends Node {
+  final Class classNode;
+  final List<DartType> typeArguments;
+
+  Supertype(this.classNode, this.typeArguments);
+
+  accept(Visitor v) => v.visitSupertype(this);
+
+  visitChildren(Visitor v) {
+    classNode.acceptReference(v);
+    visitList(typeArguments, v);
+  }
+
+  InterfaceType get asInterfaceType {
+    return new InterfaceType(classNode, typeArguments);
+  }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is Supertype) {
+      if (classNode != other.classNode) return false;
+      if (typeArguments.length != other.typeArguments.length) return false;
+      for (int i = 0; i < typeArguments.length; ++i) {
+        if (typeArguments[i] != other.typeArguments[i]) return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  int get hashCode {
+    int hash = 0x3fffffff & classNode.hashCode;
+    for (int i = 0; i < typeArguments.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
+    }
+    return hash;
+  }
+}
+
 // ------------------------------------------------------------------------
 //                                PROGRAM
 // ------------------------------------------------------------------------
@@ -3463,6 +3526,20 @@ void transformTypeList(List<DartType> nodes, Transformer visitor) {
   int storeIndex = 0;
   for (int i = 0; i < nodes.length; ++i) {
     var result = visitor.visitDartType(nodes[i]);
+    if (result != null) {
+      nodes[storeIndex] = result;
+      ++storeIndex;
+    }
+  }
+  if (storeIndex < nodes.length) {
+    nodes.length = storeIndex;
+  }
+}
+
+void transformSupertypeList(List<Supertype> nodes, Transformer visitor) {
+  int storeIndex = 0;
+  for (int i = 0; i < nodes.length; ++i) {
+    var result = visitor.visitSupertype(nodes[i]);
     if (result != null) {
       nodes[storeIndex] = result;
       ++storeIndex;

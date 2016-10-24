@@ -175,7 +175,7 @@ class Builder {
       if (class_.mixedInType != null) {
         supers.add(getLatticePointForSubtypesOfClass(class_.mixedInClass));
       }
-      for (InterfaceType supertype in class_.implementedTypes) {
+      for (Supertype supertype in class_.implementedTypes) {
         supers.add(getLatticePointForSubtypesOfClass(supertype.classNode));
       }
       int subtypePoint = newLatticePoint(supers, class_,

@@ -870,6 +870,17 @@ class BinaryPrinter extends Visitor {
     }
   }
 
+  visitSupertype(Supertype node) {
+    if (node.typeArguments.isEmpty) {
+      writeByte(Tag.SimpleInterfaceType);
+      writeClassReference(node.classNode);
+    } else {
+      writeByte(Tag.InterfaceType);
+      writeClassReference(node.classNode);
+      writeNodeList(node.typeArguments);
+    }
+  }
+
   visitFunctionType(FunctionType node) {
     if (node.requiredParameterCount == node.positionalParameters.length &&
         node.typeParameters.isEmpty &&

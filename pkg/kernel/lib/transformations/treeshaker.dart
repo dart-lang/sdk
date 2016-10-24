@@ -662,7 +662,7 @@ class _TreeShakingTransformer extends Transformer {
         // The class is only a namespace for static members.  Remove its
         // hierarchy information.   This is mandatory, since these references
         // might otherwise become dangling.
-        node.supertype = shaker.coreTypes.objectClass.rawType;
+        node.supertype = shaker.coreTypes.objectClass.asRawSupertype;
         node.implementedTypes.clear();
         node.typeParameters.clear();
         // Mixin applications cannot have static members.

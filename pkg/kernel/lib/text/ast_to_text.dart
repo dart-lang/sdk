@@ -419,6 +419,19 @@ class Printer extends Visitor<Null> {
     }
   }
 
+  visitSupertype(Supertype type) {
+    if (type == null) {
+      print('<No Supertype>');
+    } else {
+      writeClassReference(type.classNode);
+      if (type.typeArguments.isNotEmpty) {
+        writeSymbol('<');
+        writeList(type.typeArguments, writeType);
+        writeSymbol('>');
+      }
+    }
+  }
+
   void writeModifier(bool isThere, String name) {
     if (isThere) {
       writeWord(name);
@@ -709,16 +722,16 @@ class Printer extends Visitor<Null> {
     writeTypeParameterList(node.typeParameters);
     if (node.isMixinApplication) {
       writeSpaced('=');
-      writeType(node.supertype);
+      visitSupertype(node.supertype);
       writeSpaced('with');
-      writeType(node.mixedInType);
+      visitSupertype(node.mixedInType);
     } else if (node.supertype != null) {
       writeSpaced('extends');
-      writeType(node.supertype);
+      visitSupertype(node.supertype);
     }
     if (node.implementedTypes.isNotEmpty) {
       writeSpaced('implements');
-      writeList(node.implementedTypes, writeType);
+      writeList(node.implementedTypes, visitSupertype);
     }
     var endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {

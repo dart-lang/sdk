@@ -64,21 +64,23 @@ class ClassHierarchy {
 
   /// Returns the instantiation of [superclass] that is implemented by [class_],
   /// or `null` if [class_] does not implement [superclass] at all.
-  InterfaceType getClassAsInstanceOf(Class class_, Class superclass) {
-    if (identical(class_, superclass)) return class_.thisType;
+  Supertype getClassAsInstanceOf(Class class_, Class superclass) {
+    if (identical(class_, superclass)) return class_.asThisSupertype;
     _ClassInfo info = _infoFor[class_];
     _ClassInfo superInfo = _infoFor[superclass];
     if (!info.isSubtypeOf(superInfo)) return null;
-    if (superclass.typeParameters.isEmpty) return superclass.rawType;
+    if (superclass.typeParameters.isEmpty) return superclass.asRawSupertype;
     return info.genericSuperTypes[superclass];
   }
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
   InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass) {
-    InterfaceType castedType = getClassAsInstanceOf(type.classNode, superclass);
+    Supertype castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
-    return substituteThisType(castedType, type);
+    return Substitution
+        .fromInterfaceType(type)
+        .substituteType(castedType.asInterfaceType);
   }
 
   /// Returns the instance member that would respond to a dynamic dispatch of
@@ -355,7 +357,7 @@ class ClassHierarchy {
     List<Member> allInheritedMembers = <Member>[];
     List<Member> declared =
         setters ? info.declaredSetters : info.declaredGettersAndCalls;
-    void inheritFrom(InterfaceType type) {
+    void inheritFrom(Supertype type) {
       if (type == null) return;
       List<Member> inherited = _buildInterfaceMembers(
           type.classNode, _infoFor[type.classNode],
@@ -491,7 +493,7 @@ class ClassHierarchy {
     return result;
   }
 
-  void _recordSuperTypes(_ClassInfo subInfo, InterfaceType supertype) {
+  void _recordSuperTypes(_ClassInfo subInfo, Supertype supertype) {
     _ClassInfo superInfo = _infoFor[supertype.classNode];
     if (supertype.typeArguments.isEmpty) {
       if (superInfo.genericSuperTypes == null) return;
@@ -508,18 +510,18 @@ class ClassHierarchy {
         superInfo.ownsGenericSuperTypeMap = false;
       } else {
         // Copy over the super type entries.
-        subInfo.genericSuperTypes ??= <Class, InterfaceType>{};
+        subInfo.genericSuperTypes ??= <Class, Supertype>{};
         subInfo.genericSuperTypes.addAll(superInfo.genericSuperTypes);
       }
     } else {
       // Copy over all transitive generic super types, and substitute the
       // free variables with those provided in [supertype].
       Class superclass = supertype.classNode;
-      var substitution = new Map<TypeParameter, DartType>.fromIterables(
+      var substitution = Substitution.fromPairs(
           superclass.typeParameters, supertype.typeArguments);
-      subInfo.genericSuperTypes ??= <Class, InterfaceType>{};
-      superInfo.genericSuperTypes?.forEach((Class key, InterfaceType type) {
-        subInfo.genericSuperTypes[key] = substitute(type, substitution);
+      subInfo.genericSuperTypes ??= <Class, Supertype>{};
+      superInfo.genericSuperTypes?.forEach((Class key, Supertype type) {
+        subInfo.genericSuperTypes[key] = substitution.substituteSupertype(type);
       });
       subInfo.genericSuperTypes[superclass] = supertype;
     }
@@ -820,7 +822,7 @@ class _ClassInfo {
   ///
   /// In this case, a single map object `{A: A<String>, Q: Q<int>}` may be
   /// shared by the classes `B` and `C`.
-  Map<Class, InterfaceType> genericSuperTypes;
+  Map<Class, Supertype> genericSuperTypes;
 
   /// If true, this is the current "owner" of [genericSuperTypes], meaning
   /// we may add additional entries to the map or transfer ownership to another

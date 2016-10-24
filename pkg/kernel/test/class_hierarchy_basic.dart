@@ -14,8 +14,8 @@ class BasicClassHierarchy implements ClassHierarchy {
   final Map<Class, Set<Class>> superclasses = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> superMixtures = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> supertypes = <Class, Set<Class>>{};
-  final Map<Class, Map<Class, InterfaceType>> supertypeInstantiations =
-      <Class, Map<Class, InterfaceType>>{};
+  final Map<Class, Map<Class, Supertype>> supertypeInstantiations =
+      <Class, Map<Class, Supertype>>{};
   final Map<Class, Map<Name, Member>> gettersAndCalls =
       <Class, Map<Name, Member>>{};
   final Map<Class, Map<Name, Member>> setters = <Class, Map<Name, Member>>{};
@@ -112,14 +112,17 @@ class BasicClassHierarchy implements ClassHierarchy {
 
   void buildSuperTypeInstantiations(Class node) {
     if (supertypeInstantiations.containsKey(node)) return;
-    supertypeInstantiations[node] = <Class, InterfaceType>{node: node.thisType};
+    supertypeInstantiations[node] = <Class, Supertype>{
+      node: node.asThisSupertype
+    };
     for (var supertype in node.supers) {
       var superclass = supertype.classNode;
       buildSuperTypeInstantiations(superclass);
-      var substitution = new Map<TypeParameter, DartType>.fromIterables(
+      var substitution = Substitution.fromPairs(
           superclass.typeParameters, supertype.typeArguments);
       supertypeInstantiations[superclass].forEach((key, type) {
-        supertypeInstantiations[node][key] = substitute(type, substitution);
+        supertypeInstantiations[node][key] =
+            substitution.substituteSupertype(type);
       });
     }
   }
@@ -163,7 +166,7 @@ class BasicClassHierarchy implements ClassHierarchy {
     if (interfaceGettersAndCalls.containsKey(node)) return;
     interfaceGettersAndCalls[node] = <Name, List<Member>>{};
     interfaceSetters[node] = <Name, List<Member>>{};
-    void inheritFrom(InterfaceType type) {
+    void inheritFrom(Supertype type) {
       if (type == null) return;
       buildInterfaceTable(type.classNode);
       mergeMaps(interfaceGettersAndCalls[type.classNode],
@@ -203,7 +206,7 @@ class BasicClassHierarchy implements ClassHierarchy {
     return supertypes[subtype].contains(supertype);
   }
 
-  InterfaceType getClassAsInstanceOf(Class type, Class supertype) {
+  Supertype getClassAsInstanceOf(Class type, Class supertype) {
     return supertypeInstantiations[type][supertype];
   }
 

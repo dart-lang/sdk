@@ -329,8 +329,8 @@ class BinaryBuilder {
     node.annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'normal-class');
     readAndPushTypeParameterList(node.typeParameters, node);
-    node.supertype = readDartTypeOption();
-    _fillNonTreeNodeList(node.implementedTypes, readDartType);
+    node.supertype = readSupertypeOption();
+    _fillNonTreeNodeList(node.implementedTypes, readSupertype);
     _fillLazilyLoadedList(node.fields, (int tag, int index) {
       readField(loader.getClassMemberReference(node, tag, index), tag);
     });
@@ -355,8 +355,8 @@ class BinaryBuilder {
     node.annotations = readAnnotationList(node);
     debugPath.add(node.name ?? 'mixin-class');
     readAndPushTypeParameterList(node.typeParameters, node);
-    node.supertype = readDartType();
-    node.mixedInType = readDartType();
+    node.supertype = readSupertype();
+    node.mixedInType = readSupertype();
     _fillNonTreeNodeList(node.implementedTypes, readDartType);
     _fillLazilyLoadedList(node.constructors, (int tag, int index) {
       readConstructor(loader.getClassMemberReference(node, tag, index), tag);
@@ -801,6 +801,19 @@ class BinaryBuilder {
     var body = readStatementList();
     variableStack.length = stackHeight;
     return new Block(body);
+  }
+
+  Supertype readSupertype() {
+    InterfaceType type = readDartType();
+    return new Supertype(type.classNode, type.typeArguments);
+  }
+
+  Supertype readSupertypeOption() {
+    return readAndCheckOptionTag() ? readSupertype() : null;
+  }
+
+  List<Supertype> readSupertypeList() {
+    return new List<Supertype>.generate(readUInt(), (i) => readSupertype());
   }
 
   List<DartType> readDartTypeList() {

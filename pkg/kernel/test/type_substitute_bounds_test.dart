@@ -72,7 +72,9 @@ main() {
         upperBounds[parameter] = environment.parse(bounds.upper);
         lowerBounds[parameter] = environment.parse(bounds.lower);
       });
-      var substituted = substituteBounds(type, upperBounds, lowerBounds);
+      var substituted = Substitution
+          .fromUpperAndLowerBounds(upperBounds, lowerBounds)
+          .substituteType(type);
       var expected = environment.parse(testCase.expected);
       if (substituted != expected) {
         fail('Expected `$expected` but got `$substituted`');

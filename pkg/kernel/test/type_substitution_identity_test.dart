@@ -13,7 +13,7 @@ checkType(DartType type) {
   if (!identical(type, other)) {
     fail('Identity substitution test failed for $type');
   }
-  other = substituteBounds(type, map, map);
+  other = Substitution.fromUpperAndLowerBounds(map, map).substituteType(type);
   if (!identical(type, other)) {
     fail('Identity bounded substitution test failed for $type');
   }

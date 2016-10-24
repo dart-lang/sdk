@@ -4,7 +4,6 @@
 library kernel.type_algebra;
 
 import 'ast.dart';
-import 'type_algebra.dart' as toplevel;
 
 /// Returns a type where all occurrences of the given type parameters have been
 /// replaced with the corresponding types.
@@ -17,70 +16,18 @@ import 'type_algebra.dart' as toplevel;
 /// to efficiently check if a distinct type was created.
 DartType substitute(DartType type, Map<TypeParameter, DartType> substitution) {
   if (substitution.isEmpty) return type;
-  return new _TypeSubstitutor(substitution, substitution).visit(type);
+  return Substitution.fromMap(substitution).substituteType(type);
 }
 
 /// Returns a mapping from the type parameters declared on the class of [type]
 /// to the actual type arguments provided in [type].
 ///
 /// This can be passed as argument to [substitute].
-Map<TypeParameter, DartType> getSubstitutionMap(InterfaceType type) {
+Map<TypeParameter, DartType> getSubstitutionMap(Supertype type) {
   return type.typeArguments.isEmpty
       ? const <TypeParameter, DartType>{}
       : new Map<TypeParameter, DartType>.fromIterables(
           type.classNode.typeParameters, type.typeArguments);
-}
-
-/// Like [substitute], but the substitution map is given as a list of keys
-/// and a list of values.
-DartType substitutePairwise(DartType type, List<TypeParameter> typeParameters,
-    List<DartType> typeArguments) {
-  if (typeParameters.isEmpty) return type;
-  // TODO: Investigate if it is more efficient to implement substitution based
-  // on parallel pairwise lists instead of Maps.
-  return substitute(
-      type,
-      new Map<TypeParameter, DartType>.fromIterables(
-          typeParameters, typeArguments));
-}
-
-/// Returns [type] where the type parameters declared on the class of [thisType]
-/// have been substituted with the type arguments provided in [thisType].
-///
-/// For example, if [thisType] is `Iterable<String>`, this will substitute
-/// `Iterable::E` with `String` in [type].
-///
-/// If `thisType` is null, nothing is substituted.
-DartType substituteThisType(DartType type, InterfaceType thisType) {
-  if (thisType == null) return type;
-  return substitutePairwise(
-      type, thisType.classNode.typeParameters, thisType.typeArguments);
-}
-
-/// Returns a type where all occurrences of the given type parameters have been
-/// replaced with the corresponding upper or lower bound, depending on the
-/// variance of the context where it occurs.
-///
-/// For example the type `(T) => T` with the bounds `bottom <: T <: num`
-/// becomes `(bottom) => num` (in this example, `num` is the upper bound,
-/// and `bottom` is the lower bound).
-///
-/// This is a way to obtain an upper bound for a type while eliminating all
-/// references to certain type variables.
-///
-/// This will copy only the subterms of [type] that contain substituted
-/// variables; all other [DartType] objects will be reused.
-///
-/// In particular, if no variables were substituted, this is guaranteed to
-/// return the [type] instance (not a copy), so the caller may use [identical]
-/// to efficiently check if a distinct type was created.
-DartType substituteBounds(
-    DartType type,
-    Map<TypeParameter, DartType> upperBounds,
-    Map<TypeParameter, DartType> lowerBounds) {
-  assert(upperBounds.length == lowerBounds.length);
-  if (upperBounds.isEmpty) return type;
-  return new _TypeSubstitutor(upperBounds, lowerBounds).visit(type);
 }
 
 /// Like [substitute], except when a type in the [substitution] map references
@@ -146,33 +93,158 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
   var freshParameters = new List<TypeParameter>.generate(
       typeParameters.length, (i) => new TypeParameter(typeParameters[i].name),
       growable: true);
-  var substitution = <TypeParameter, DartType>{};
+  var map = <TypeParameter, DartType>{};
   for (int i = 0; i < typeParameters.length; ++i) {
-    substitution[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
-    freshParameters[i].bound =
-        substitute(typeParameters[i].bound, substitution);
+    map[typeParameters[i]] = new TypeParameterType(freshParameters[i]);
+    freshParameters[i].bound = substitute(typeParameters[i].bound, map);
   }
-  return new FreshTypeParameters(freshParameters, substitution);
+  return new FreshTypeParameters(freshParameters, Substitution.fromMap(map));
 }
 
 class FreshTypeParameters {
   final List<TypeParameter> freshTypeParameters;
-  final Map<TypeParameter, DartType> substitution;
+  final Substitution substitution;
 
   FreshTypeParameters(this.freshTypeParameters, this.substitution);
 
-  DartType substitute(DartType type) => toplevel.substitute(type, substitution);
+  DartType substitute(DartType type) => substitution.substituteType(type);
+
+  Supertype substituteSuper(Supertype type) {
+    return substitution.substituteSupertype(type);
+  }
 }
 
 // ------------------------------------------------------------------------
 //                              IMPLEMENTATION
 // ------------------------------------------------------------------------
 
-class _TypeSubstitutor extends DartTypeVisitor<DartType> {
-  final Map<TypeParameter, DartType> upperBounds;
-  final Map<TypeParameter, DartType> lowerBounds;
+abstract class Substitution {
+  /// Substitutes each parameter to the type it maps to in [map].
+  static Substitution fromMap(Map<TypeParameter, DartType> map) {
+    if (map.isEmpty) return _NullSubstitution.instance;
+    return new _MapSubstitution(map, map);
+  }
+
+  /// Substitutes all occurrences of the given type parameters with the
+  /// corresponding upper or lower bound, depending on the variance of the
+  /// context where it occurs.
+  ///
+  /// For example the type `(T) => T` with the bounds `bottom <: T <: num`
+  /// becomes `(bottom) => num` (in this example, `num` is the upper bound,
+  /// and `bottom` is the lower bound).
+  ///
+  /// This is a way to obtain an upper bound for a type while eliminating all
+  /// references to certain type variables.
+  static Substitution fromUpperAndLowerBounds(
+      Map<TypeParameter, DartType> upper, Map<TypeParameter, DartType> lower) {
+    if (upper.isEmpty && lower.isEmpty) return _NullSubstitution.instance;
+    return new _MapSubstitution(upper, lower);
+  }
+
+  /// Substitutes the type parameters on the class of [supertype] with the
+  /// type arguments provided in [supertype].
+  static Substitution fromSupertype(Supertype supertype) {
+    if (supertype.typeArguments.isEmpty) return _NullSubstitution.instance;
+    return fromMap(new Map<TypeParameter, DartType>.fromIterables(
+        supertype.classNode.typeParameters, supertype.typeArguments));
+  }
+
+  /// Substitutes the type parameters on the class of [type] with the
+  /// type arguments provided in [type].
+  static Substitution fromInterfaceType(InterfaceType type) {
+    if (type.typeArguments.isEmpty) return _NullSubstitution.instance;
+    return fromMap(new Map<TypeParameter, DartType>.fromIterables(
+        type.classNode.typeParameters, type.typeArguments));
+  }
+
+  /// Substitutes the Nth parameter in [parameters] with the Nth type in
+  /// [types].
+  static Substitution fromPairs(
+      List<TypeParameter> parameters, List<DartType> types) {
+    // TODO(asgerf): Investigate if it is more efficient to implement
+    // substitution based on parallel pairwise lists instead of Maps.
+    assert(parameters.length == types.length);
+    if (parameters.isEmpty) return _NullSubstitution.instance;
+    return fromMap(
+        new Map<TypeParameter, DartType>.fromIterables(parameters, types));
+  }
+
+  DartType getSubstitute(TypeParameter parameter, bool upperBound);
+
+  DartType substituteType(DartType node) {
+    return new _TopSubstitutor(this).visit(node);
+  }
+
+  Supertype substituteSupertype(Supertype node) {
+    return new _TopSubstitutor(this).visitSupertype(node);
+  }
+}
+
+class _NullSubstitution extends Substitution {
+  static final _NullSubstitution instance = new _NullSubstitution();
+
+  DartType getSubstitute(TypeParameter parameter, bool upperBound) {
+    return new TypeParameterType(parameter);
+  }
+
+  @override
+  DartType substituteType(DartType node) => node;
+
+  @override
+  Supertype substituteSupertype(Supertype node) => node;
+}
+
+class _MapSubstitution extends Substitution {
+  final Map<TypeParameter, DartType> upper;
+  final Map<TypeParameter, DartType> lower;
+
+  _MapSubstitution(this.upper, this.lower);
+
+  DartType getSubstitute(TypeParameter parameter, bool upperBound) {
+    return upperBound ? upper[parameter] : lower[parameter];
+  }
+}
+
+class _TopSubstitutor extends _TypeSubstitutor {
+  final Substitution substitution;
+
+  _TopSubstitutor(this.substitution) : super(null);
+
+  DartType lookup(TypeParameter parameter, bool upperBound) {
+    return substitution.getSubstitute(parameter, upperBound);
+  }
+
+  TypeParameter freshTypeParameter(TypeParameter node) {
+    throw 'Create a fresh environment first';
+  }
+}
+
+class _InnerTypeSubstitutor extends _TypeSubstitutor {
+  final Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
+
+  _InnerTypeSubstitutor(_TypeSubstitutor outer) : super(outer);
+
+  DartType lookup(TypeParameter parameter, bool upperBound) {
+    return substitution[parameter];
+  }
+
+  TypeParameter freshTypeParameter(TypeParameter node) {
+    var fresh = new TypeParameter(node.name);
+    substitution[node] = new TypeParameterType(fresh);
+    fresh.bound = visit(node.bound);
+    return fresh;
+  }
+}
+
+abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   final _TypeSubstitutor outer;
   bool covariantContext = true;
+
+  _TypeSubstitutor(this.outer) {
+    covariantContext = outer == null ? true : outer.covariantContext;
+  }
+
+  DartType lookup(TypeParameter parameter, bool upperBound);
 
   /// The number of times a variable from this environment has been used in
   /// a substitution.
@@ -182,17 +254,20 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   /// check quickly if anything happened in a substitution.
   int useCounter = 0;
 
-  _TypeSubstitutor(this.upperBounds, this.lowerBounds, [this.outer]) {
-    covariantContext = outer == null ? true : outer.covariantContext;
-  }
-
-  _TypeSubstitutor newInnerEnvironment() {
-    var map = <TypeParameter, DartType>{};
-    return new _TypeSubstitutor(map, map, this);
+  _InnerTypeSubstitutor newInnerEnvironment() {
+    return new _InnerTypeSubstitutor(this);
   }
 
   void invertVariance() {
     covariantContext = !covariantContext;
+  }
+
+  Supertype visitSupertype(Supertype node) {
+    if (node.typeArguments.isEmpty) return node;
+    int before = useCounter;
+    var typeArguments = node.typeArguments.map(visit).toList();
+    if (useCounter == before) return node;
+    return new Supertype(node.classNode, typeArguments);
   }
 
   DartType visit(DartType node) => node.accept(this);
@@ -215,15 +290,9 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return parameters.map(freshTypeParameter).toList();
   }
 
-  TypeParameter freshTypeParameter(TypeParameter node) {
-    var fresh = new TypeParameter(node.name);
-    upperBounds[node] = new TypeParameterType(fresh);
-    fresh.bound = visit(node.bound);
-    return fresh;
-  }
+  TypeParameter freshTypeParameter(TypeParameter node);
 
   DartType visitFunctionType(FunctionType node) {
-    assert(!node.typeParameters.any(upperBounds.containsKey));
     // This is a bit tricky because we have to generate fresh type parameters
     // in order to change the bounds.  At the same time, if the function type
     // was unaltered, we have to return the [node] object (not a copy!).
@@ -267,9 +336,7 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   DartType getSubstitute(TypeParameter variable) {
     var environment = this;
     while (environment != null) {
-      var replacement = covariantContext
-          ? environment.upperBounds[variable]
-          : environment.lowerBounds[variable];
+      var replacement = environment.lookup(variable, covariantContext);
       if (replacement != null) {
         bumpCountersUntil(environment);
         return replacement;
@@ -284,13 +351,15 @@ class _TypeSubstitutor extends DartTypeVisitor<DartType> {
   }
 }
 
-class _DeepTypeSubstitutor extends _TypeSubstitutor {
+class _DeepTypeSubstitutor extends _InnerTypeSubstitutor {
   int depth = 0;
   bool isInfinite = false;
 
   _DeepTypeSubstitutor(Map<TypeParameter, DartType> substitution,
       [_DeepTypeSubstitutor outer])
-      : super(substitution, substitution, outer);
+      : super(outer) {
+    this.substitution.addAll(substitution);
+  }
 
   @override
   _TypeSubstitutor newInnerEnvironment() {
@@ -303,14 +372,14 @@ class _DeepTypeSubstitutor extends _TypeSubstitutor {
     if (replacement == null) return node;
     if (isInfinite) return replacement;
     ++depth;
-    if (depth > upperBounds.length) {
+    if (depth > substitution.length) {
       isInfinite = true;
       --depth;
       return replacement;
     } else {
       replacement = visit(replacement);
       // Update type to the fully fleshed-out type.
-      upperBounds[node.parameter] = replacement;
+      substitution[node.parameter] = replacement;
       --depth;
       return replacement;
     }
