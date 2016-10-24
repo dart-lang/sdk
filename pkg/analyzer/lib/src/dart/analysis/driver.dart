@@ -113,7 +113,7 @@ class AnalysisDriver {
    * The mapping from the files for which analysis was requested using
    * [getResult] to the [Completer]s to report the result.
    */
-  final _requestedFiles = <String, Completer<AnalysisResult>>{};
+  final _requestedFiles = <String, List<Completer<AnalysisResult>>>{};
 
   /**
    * The set of explicitly analyzed files.
@@ -139,9 +139,9 @@ class AnalysisDriver {
   final _fileContentHashMap = <String, String>{};
 
   /**
-   * Mapping from library URIs to the linked hash of the library.
+   * Mapping from library URIs to the dependency signature of the library.
    */
-  final _linkedHashMap = <Uri, String>{};
+  final _dependencySignatureMap = <Uri, String>{};
 
   /**
    * TODO(scheglov) document and improve
@@ -192,7 +192,7 @@ class AnalysisDriver {
         await for (String why in _hasWorkStreamController.stream) {
           // Analyze the first file in the general queue.
           if (_filesToAnalyze.isNotEmpty) {
-            _logger.runTimed('Analyzed ${_filesToAnalyze.length} files', () {
+            _logger.run('Analyze ${_filesToAnalyze.length} files', () {
               while (_filesToAnalyze.isNotEmpty) {
                 String path = _filesToAnalyze.first;
                 _filesToAnalyze.remove(path);
@@ -244,7 +244,7 @@ class AnalysisDriver {
   void changeFile(String path) {
     // TODO(scheglov) Don't clear, schedule API signature validation.
     _fileContentHashMap.clear();
-    _linkedHashMap.clear();
+    _dependencySignatureMap.clear();
     _filesToAnalyze.add(path);
     _filesToAnalyze.addAll(_explicitFiles);
     // TODO(scheglov) name?!
@@ -267,7 +267,10 @@ class AnalysisDriver {
    */
   Future<AnalysisResult> getResult(String path) {
     var completer = new Completer<AnalysisResult>();
-    _requestedFiles[path] = completer;
+    _requestedFiles
+        .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
+        .add(completer);
+    _hasWorkStreamController.add(path);
     return completer.future;
   }
 
@@ -309,12 +312,12 @@ class AnalysisDriver {
     }
 
     List<String> errorStrings = _logger.run('Compute errors $file', () {
-      LibraryContext libraryContext = _createLibraryContext(file);
+      _LibraryContext libraryContext = _createLibraryContext(file);
 
       String errorsKey;
       {
         ApiSignature signature = new ApiSignature();
-        signature.addString(libraryContext.node.linkedHash);
+        signature.addString(libraryContext.node.dependencySignature);
         signature.addString(file.contentHash);
         errorsKey = '${signature.toHex()}.errors';
       }
@@ -340,7 +343,7 @@ class AnalysisDriver {
         // Compute errors.
         List<AnalysisError> errors;
         try {
-          errors = _logger.runTimed('Computed errors', () {
+          errors = _logger.run('Compute errors', () {
             return analysisContext.computeErrors(file.source);
           });
         } catch (e, st) {
@@ -378,7 +381,7 @@ class AnalysisDriver {
     return errorStrings;
   }
 
-  AnalysisContext _createAnalysisContext(LibraryContext libraryContext) {
+  AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
 
@@ -392,28 +395,32 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the content in which the library represented by the given
+   * Return the context in which the library represented by the given
    * [libraryFile] should be analyzed it.
    *
-   * TODO(scheglov) We often don't need [SummaryDataStore], only linked hash.
+   * TODO(scheglov) We often don't need [SummaryDataStore], only dependency
+   * signature.
    */
-  LibraryContext _createLibraryContext(_File libraryFile) {
-    Map<String, _LibraryNode> nodes = <String, _LibraryNode>{};
-
+  _LibraryContext _createLibraryContext(_File libraryFile) {
     return _logger.run('Create library context', () {
+      Map<String, _LibraryNode> nodes = <String, _LibraryNode>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
       store.addBundle(null, _sdkBundle);
 
-      void createLibraryNodes(_File libraryFile) {
+      _LibraryNode createLibraryNodes(_File libraryFile) {
         Uri libraryUri = libraryFile.uri;
+
+        // URIs with the 'dart:' scheme are served from the SDK bundle.
         if (libraryUri.scheme == 'dart') {
-          return;
+          return null;
         }
-        String uriStr = libraryUri.toString();
-        if (!nodes.containsKey(uriStr)) {
-          _LibraryNode node = new _LibraryNode(this, nodes, libraryUri);
-          nodes[uriStr] = node;
-          ReferencedUris referenced = _getReferencedUris(libraryFile);
+
+        String libraryUriStr = libraryUri.toString();
+        _LibraryNode node = nodes[libraryUriStr];
+        if (node == null) {
+          node = new _LibraryNode(this, nodes, libraryUri);
+          nodes[libraryUriStr] = node;
+          _ReferencedUris referenced = _getReferencedUris(libraryFile);
 
           // Append unlinked bundles.
           for (String uri in referenced.parted) {
@@ -433,31 +440,33 @@ class AnalysisDriver {
             createLibraryNodes(file);
           }
         }
+
+        // Done with this node.
+        return node;
       }
 
-      _logger.runTimed2(() {
-        createLibraryNodes(libraryFile);
-      }, () => 'Computed ${nodes.length} nodes');
-      _LibraryNode libraryNode = nodes[libraryFile.uri.toString()];
+      _LibraryNode libraryNode = _logger.run('Compute library nodes', () {
+        return createLibraryNodes(libraryFile);
+      });
 
       Set<String> libraryUrisToLink = new Set<String>();
-      int numberOfNodesWithLinked = 0;
-      _logger.runTimed2(() {
+      _logger.run('Load linked bundles', () {
         for (_LibraryNode node in nodes.values) {
-          String key = '${node.linkedHash}.linked';
+          String key = '${node.dependencySignature}.linked';
           List<int> bytes = _byteStore.get(key);
           if (bytes != null) {
             PackageBundle linked = new PackageBundle.fromBuffer(bytes);
             store.addBundle(null, linked);
-            numberOfNodesWithLinked++;
           } else {
             libraryUrisToLink.add(node.uri.toString());
           }
         }
-      }, () => 'Loaded $numberOfNodesWithLinked linked bundles');
+        int numOfLoaded = nodes.length - libraryUrisToLink.length;
+        _logger.writeln('Loaded $numOfLoaded linked bundles.');
+      });
 
       Map<String, LinkedLibraryBuilder> linkedLibraries = {};
-      _logger.runTimed2(() {
+      _logger.run('Link bundles', () {
         linkedLibraries = link(libraryUrisToLink, (String uri) {
           LinkedLibrary linkedLibrary = store.linkedMap[uri];
           if (linkedLibrary == null) {
@@ -471,11 +480,12 @@ class AnalysisDriver {
           }
           return unlinkedUnit;
         }, (_) => null, _analysisOptions.strongMode);
-      }, () => 'Linked ${linkedLibraries.length} bundles');
+        _logger.writeln('Linked ${linkedLibraries.length} bundles.');
+      });
 
       linkedLibraries.forEach((uri, linkedBuilder) {
         _LibraryNode node = nodes[uri];
-        String key = '${node.linkedHash}.linked';
+        String key = '${node.dependencySignature}.linked';
         List<int> bytes;
         {
           PackageBundleAssembler assembler = new PackageBundleAssembler();
@@ -487,7 +497,7 @@ class AnalysisDriver {
         _byteStore.put(key, bytes);
       });
 
-      return new LibraryContext(libraryFile, libraryNode, store);
+      return new _LibraryContext(libraryFile, libraryNode, store);
     });
   }
 
@@ -504,7 +514,7 @@ class AnalysisDriver {
   /**
    * TODO(scheglov) It would be nice to get URIs of "parts" from unlinked.
    */
-  ReferencedUris _getReferencedUris(_File file) {
+  _ReferencedUris _getReferencedUris(_File file) {
     // Try to get from the store.
     {
       String key = '${file.contentHash}.uris';
@@ -518,7 +528,7 @@ class AnalysisDriver {
         List<String> imported = stringListReader.vTableGet(bp, table, 1);
         List<String> exported = stringListReader.vTableGet(bp, table, 2);
         List<String> parted = stringListReader.vTableGet(bp, table, 3);
-        ReferencedUris referencedUris = new ReferencedUris();
+        _ReferencedUris referencedUris = new _ReferencedUris();
         referencedUris.isLibrary = isLibrary;
         referencedUris.imported.addAll(imported);
         referencedUris.exported.addAll(exported);
@@ -528,7 +538,7 @@ class AnalysisDriver {
     }
 
     // Compute URIs.
-    ReferencedUris referencedUris = new ReferencedUris();
+    _ReferencedUris referencedUris = new _ReferencedUris();
     referencedUris.parted.add(file.uri.toString());
     for (Directive directive in file.unit.directives) {
       if (directive is PartOfDirective) {
@@ -594,7 +604,7 @@ class AnalysisDriver {
     }
     // If no cached unlinked bundle, compute it.
     if (bytes == null) {
-      _logger.runTimed('Create unlinked for $file', () {
+      _logger.run('Create unlinked for $file', () {
         // We read the content and recomputed the hash.
         // So, we need to update the key.
         String key = '${file.contentHash}.unlinked';
@@ -658,19 +668,22 @@ class AnalysisResult {
       this.errors);
 }
 
-class LibraryContext {
-  final _File file;
-  final _LibraryNode node;
-  final SummaryDataStore store;
-  LibraryContext(this.file, this.node, this.store);
-}
-
+/**
+ * This class is used to gather and print performance information.
+ */
 class PerformanceLog {
   final StringSink sink;
   int _level = 0;
 
   PerformanceLog(this.sink);
 
+  /**
+   * Return the result of the function [f] invocation and log the elapsed time.
+   *
+   * Each invocation of [run] creates a new enclosed section in the log,
+   * which begins with printing [msg], then any log output produced during
+   * [f] invocation, and ends with printing [msg] with the elapsed time.
+   */
   /*=T*/ run/*<T>*/(String msg, /*=T*/ f()) {
     Stopwatch timer = new Stopwatch()..start();
     try {
@@ -684,48 +697,25 @@ class PerformanceLog {
     }
   }
 
-  /*=T*/ runTimed/*<T>*/(String msg, /*=T*/ f()) {
-    _level++;
-    Stopwatch timer = new Stopwatch()..start();
-    try {
-      return f();
-    } finally {
-      _level--;
-      int ms = timer.elapsedMilliseconds;
-      writeln('$msg in $ms ms.');
-    }
-  }
-
-  runTimed2(f(), String getMsg()) {
-    _level++;
-    Stopwatch timer = new Stopwatch()..start();
-    try {
-      return f();
-    } finally {
-      _level--;
-      int ms = timer.elapsedMilliseconds;
-      String msg = getMsg();
-      writeln('$msg in $ms ms.');
-    }
-  }
-
+  /**
+   * Write a new line into the log
+   */
   void writeln(String msg) {
     String indent = '\t' * _level;
     sink.writeln('$indent$msg');
   }
 }
 
-class ReferencedUris {
-  bool isLibrary = true;
-  final List<String> imported = <String>[];
-  final List<String> exported = <String>[];
-  final List<String> parted = <String>[];
-}
-
 /**
  * Information about a file being analyzed, explicitly or implicitly.
  *
  * It keeps a consistent view on its [content], [contentHash] and [unit].
+ *
+ * Instances of this class may only be used during computing a single analysis
+ * result and should not be cached anywhere. We need this limitation to prevent
+ * references from caches to the resolved [unit], so to element models, etc.
+ * The data structures should be short lived - computed, returned to the client,
+ * processed there and quickly thrown away.
  */
 class _File {
   /**
@@ -768,7 +758,7 @@ class _File {
    * value. Otherwise, read the [content], compute the hash, put it into
    * the current file state, and update the [contentHash] field.
    *
-   * The client cannot remember values of this property, because its value
+   * The client should not remember values of this property, because its value
    * might change when [content] is read and the hash is recomputed.
    */
   String get contentHash {
@@ -782,11 +772,11 @@ class _File {
   String get path => source.fullName;
 
   /**
-   * Return the [CompilationUnit] of the file.
+   * Return the unresolved [CompilationUnit] of the file.
    *
-   * Current this unit is resolved, it is used to compute unlinked summaries
-   * and and URIs. We use a separate analysis context to perform resolution
-   * and computing errors. But this might change in the future.
+   * Performing resolution and computing errors is done in a separate analysis
+   * context. In the future we might push the existing unresolved unit into the
+   * analysis context, so at some point the unit might become resolved.
    */
   CompilationUnit get unit {
     AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
@@ -823,7 +813,7 @@ class _File {
   /**
    * Fill the [_content] and [_contentHash] fields.
    *
-   * If the [_content] field if it is still `null`, get the content from the
+   * If the [_content] field is still `null`, get the content from the
    * content cache or from the [source]. If the content cannot be accessed
    * because of an exception, it considers to be an empty string.
    *
@@ -835,6 +825,10 @@ class _File {
       _content = driver._contentCache.getContents(source);
       _content ??= source.contents.data;
     } catch (_) {
+      // TODO(scheglov) Fix the bug with not existing sources.
+      // We should not put "self URI" into cached _ReferencedUris.
+      // Otherwise such not-existing/empty sources all have the same hash,
+      // but their "self URIs" must be all different.
       _content = '';
     }
     // Compute the content hash.
@@ -846,6 +840,16 @@ class _File {
   }
 }
 
+/**
+ * TODO(scheglov) document
+ */
+class _LibraryContext {
+  final _File file;
+  final _LibraryNode node;
+  final SummaryDataStore store;
+  _LibraryContext(this.file, this.node, this.store);
+}
+
 class _LibraryNode {
   final AnalysisDriver driver;
   final Map<String, _LibraryNode> nodes;
@@ -854,7 +858,7 @@ class _LibraryNode {
 
   Set<_LibraryNode> transitiveDependencies;
   List<_LibraryNode> _dependencies;
-  String _linkedHash;
+  String _dependencySignature;
 
   _LibraryNode(this.driver, this.nodes, this.uri);
 
@@ -901,11 +905,9 @@ class _LibraryNode {
     return _dependencies;
   }
 
-  @override
-  int get hashCode => uri.hashCode;
-
-  String get linkedHash {
-    _linkedHash ??= driver._linkedHashMap.putIfAbsent(uri, () {
+  String get dependencySignature {
+    return _dependencySignature ??=
+        driver._dependencySignatureMap.putIfAbsent(uri, () {
       computeTransitiveDependencies();
 
       // Add all unlinked API signatures.
@@ -924,8 +926,10 @@ class _LibraryNode {
       signatures.forEach(signature.addString);
       return signature.toHex();
     });
-    return _linkedHash;
   }
+
+  @override
+  int get hashCode => uri.hashCode;
 
   bool operator ==(other) {
     return other is _LibraryNode && other.uri == uri;
@@ -947,4 +951,14 @@ class _LibraryNode {
 
   @override
   String toString() => uri.toString();
+}
+
+/**
+ * TODO(scheglov) document
+ */
+class _ReferencedUris {
+  bool isLibrary = true;
+  final List<String> imported = <String>[];
+  final List<String> exported = <String>[];
+  final List<String> parted = <String>[];
 }
