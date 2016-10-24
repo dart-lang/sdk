@@ -576,7 +576,7 @@ class HelperNodes {
 
     var completerClass = findClass(asyncLibrary, 'Completer');
     var futureClass = findClass(asyncLibrary, 'Future');
-    var streamIteratorClass = findClass(asyncLibrary, '_StreamIteratorImpl');
+    var streamIteratorClass = findClass(asyncLibrary, '_StreamIterator');
     var syncIterableClass = findClass(coreLibrary, '_SyncIterable');
     var streamControllerClass = findClass(
         asyncLibrary, '_AsyncStarStreamController');
