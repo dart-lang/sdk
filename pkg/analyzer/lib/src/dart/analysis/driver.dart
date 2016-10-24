@@ -121,6 +121,13 @@ class AnalysisDriver {
   final _explicitFiles = new LinkedHashSet<String>();
 
   /**
+   * The set of files were reported as changed through [changeFile] and for
+   * which API signatures should be recomputed and compared before performing
+   * any other analysis.
+   */
+  final _filesToVerifyUnlinkedSignature = new Set<String>();
+
+  /**
    * The set of files that are currently scheduled for analysis.
    */
   final _filesToAnalyze = new LinkedHashSet<String>();
@@ -192,6 +199,8 @@ class AnalysisDriver {
       while (true) {
         // TODO(scheglov) implement state transitioning
         await for (String why in _hasWorkStreamController.stream) {
+          _verifyUnlinkedSignatureOfChangedFiles();
+
           // Analyze the first file in the general queue.
           if (_filesToAnalyze.isNotEmpty) {
             _logger.run('Analyze ${_filesToAnalyze.length} files', () {
@@ -244,12 +253,8 @@ class AnalysisDriver {
    * [changeFile] invocation.
    */
   void changeFile(String path) {
-    // TODO(scheglov) Don't clear, schedule API signature validation.
-    _fileContentHashMap.clear();
-    _dependencySignatureMap.clear();
+    _filesToVerifyUnlinkedSignature.add(path);
     _filesToAnalyze.add(path);
-    _filesToAnalyze.addAll(_explicitFiles);
-    // TODO(scheglov) name?!
     _hasWorkStreamController.add('do it!');
   }
 
@@ -507,6 +512,15 @@ class AnalysisDriver {
   }
 
   /**
+   * Return the unlinked bundle of [file] for the current file state, or `null`.
+   */
+  PackageBundle _getCurrentUnlinked(_File file) {
+    String key = '${file.currentContentHash}.unlinked';
+    List<int> bytes = _byteStore.get(key);
+    return bytes != null ? new PackageBundle.fromBuffer(bytes) : null;
+  }
+
+  /**
    * TODO(scheglov) It would be nice to get URIs of "parts" from unlinked.
    */
   _ReferencedUris _getReferencedUris(_File file) {
@@ -583,35 +597,56 @@ class AnalysisDriver {
   /**
    * Return the unlinked bundle of [file] for the current file state.
    *
-   * That is, if there is an existing bundle for the current content hash
-   * of the [file] in the [_byteStore], then it is returned. Otherwise, the
-   * [file] content is read, the content hash is computed and the current file
-   * state is updated accordingly. That the content is parsed into the
-   * [CompilationUnit] and serialized into a new unlinked bundle. The bundle
-   * is then put into the [_byteStore] and returned.
+   * Return [_getCurrentUnlinked] or read the [file] content is read, compute
+   * the content hash and update the current file state accordingly. Parse the
+   * content into the [CompilationUnit] and serialize into a new unlinked
+   * bundle. The bundle is then put into the [_byteStore] and returned.
    */
   PackageBundle _getUnlinked(_File file) {
-    // Try to get bytes for file's unlinked bundle.
-    List<int> bytes;
-    {
-      String key = '${file.contentHash}.unlinked';
-      bytes = _byteStore.get(key);
+    return _getCurrentUnlinked(file) ??
+        _logger.run('Create unlinked for $file', () {
+          String key = '${file.contentHash}.unlinked';
+          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(file.unit);
+          PackageBundleAssembler assembler = new PackageBundleAssembler();
+          assembler.addUnlinkedUnitWithHash(
+              file.uri.toString(), unlinkedUnit, key);
+          List<int> bytes = assembler.assemble().toBuffer();
+          _byteStore.put(key, bytes);
+          return new PackageBundle.fromBuffer(bytes);
+        });
+  }
+
+  /**
+   * Verify the API signatures for the changed files, and decide which linked
+   * libraries should be invalidated, and files reanalyzed.
+   */
+  void _verifyUnlinkedSignatureOfChangedFiles() {
+    if (_filesToVerifyUnlinkedSignature.isEmpty) {
+      return;
     }
-    // If no cached unlinked bundle, compute it.
-    if (bytes == null) {
-      _logger.run('Create unlinked for $file', () {
-        // We read the content and recomputed the hash.
-        // So, we need to update the key.
-        String key = '${file.contentHash}.unlinked';
-        UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(file.unit);
-        PackageBundleAssembler assembler = new PackageBundleAssembler();
-        assembler.addUnlinkedUnitWithHash(
-            file.uri.toString(), unlinkedUnit, key);
-        bytes = assembler.assemble().toBuffer();
-        _byteStore.put(key, bytes);
-      });
-    }
-    return new PackageBundle.fromBuffer(bytes);
+    int numOfFiles = _filesToVerifyUnlinkedSignature.length;
+    _logger.run('Verify API signatures of $numOfFiles files', () {
+      for (String path in _filesToVerifyUnlinkedSignature) {
+        _File file = _fileForPath(path);
+        // Get the existing old API signature, maybe null.
+        String oldSignature = _getCurrentUnlinked(file)?.apiSignature;
+        // Clear the content hash cache, so force the file reading.
+        _fileContentHashMap.remove(path);
+        // Compute the new API signature.
+        String newSignature = _getUnlinked(file).apiSignature;
+        // If the signatures are not the same, then potentially every linked
+        // library is inconsistent and should be recomputed, and every explicit
+        // file has inconsistent analysis results which also should be recomputed.
+        if (oldSignature != newSignature) {
+          _logger.writeln('API signature mismatch found for $file.');
+          _dependencySignatureMap.clear();
+          _filesToAnalyze.addAll(_explicitFiles);
+          // Stop the verification, and restart analysis.
+          break;
+        }
+      }
+      _filesToVerifyUnlinkedSignature.clear();
+    });
   }
 }
 
@@ -747,21 +782,33 @@ class _File {
   }
 
   /**
-   * Ensure that the [contentHash] is filled.
+   * Ensure that the content hash is set for this [_File] instance, return it.
    *
-   * If the hash is already in the current file state, return the current
-   * value. Otherwise, read the [content], compute the hash, put it into
-   * the current file state, and update the [contentHash] field.
+   * If the content hash has already been set for this [_File] instance, it is
+   * not updated here. But the hash value might be updated on [content] access.
+   *
+   * If the content hash is known in the current file state, use it.
+   *
+   * Otherwise, read the [content], compute the hash, put it into the current
+   * file state, and update the [contentHash] field.
    *
    * The client should not remember values of this property, because its value
    * might change when [content] is read and the hash is recomputed.
    */
   String get contentHash {
-    _contentHash ??= driver._fileContentHashMap[path];
+    _contentHash ??= currentContentHash;
     if (_contentHash == null) {
       _readContentAndComputeHash();
     }
     return _contentHash;
+  }
+
+  /**
+   * Return the hash of the file content in the current file state, or `null`
+   * if the current file state does not know the current file content hash.
+   */
+  String get currentContentHash {
+    return driver._fileContentHashMap[path];
   }
 
   String get path => source.fullName;
