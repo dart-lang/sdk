@@ -296,6 +296,28 @@ class AnalysisDriver {
   }
 
   /**
+   * TODO(scheglov) see [_addToStoreUnlinked]
+   */
+  void _addToStoreLinked(
+      SummaryDataStore store, String uri, LinkedLibrary linked) {
+    store.linkedMap[uri] = linked;
+  }
+
+  /**
+   * TODO(scheglov) The existing [SummaryDataStore.addBundle] uses
+   * [PackageBundle.unlinkedUnitUris] to add [PackageBundle.unlinkedUnits].
+   * But we store unlinked bundles with the hash of the file content. This
+   * means that when two files are the same, but have different URIs, we
+   * add [UnlinkedUnit] with wrong URI.
+   *
+   * We need to clean this up.
+   */
+  void _addToStoreUnlinked(
+      SummaryDataStore store, String uri, UnlinkedUnit unlinked) {
+    store.unlinkedMap[uri] = unlinked;
+  }
+
+  /**
    * TODO(scheglov) replace with actual [AnalysisResult] computing.
    */
   List<String> _computeAndPrintErrors(_File file) {
@@ -422,12 +444,21 @@ class AnalysisDriver {
           nodes[libraryUriStr] = node;
           _ReferencedUris referenced = _getReferencedUris(libraryFile);
 
+          // Append the defining unit.
+          {
+            PackageBundle unlinked = _getUnlinked(libraryFile);
+            node.unlinkedBundles.add(unlinked);
+            _addToStoreUnlinked(
+                store, libraryUriStr, unlinked.unlinkedUnits.single);
+          }
+
           // Append unlinked bundles.
           for (String uri in referenced.parted) {
             _File file = libraryFile.resolveUri(uri);
             PackageBundle unlinked = _getUnlinked(file);
             node.unlinkedBundles.add(unlinked);
-            store.addBundle(null, unlinked);
+            _addToStoreUnlinked(
+                store, file.uri.toString(), unlinked.unlinkedUnits.single);
           }
 
           // Create nodes for referenced libraries.
@@ -456,7 +487,8 @@ class AnalysisDriver {
           List<int> bytes = _byteStore.get(key);
           if (bytes != null) {
             PackageBundle linked = new PackageBundle.fromBuffer(bytes);
-            store.addBundle(null, linked);
+            _addToStoreLinked(
+                store, node.uri.toString(), linked.linkedLibraries.single);
           } else {
             libraryUrisToLink.add(node.uri.toString());
           }
@@ -493,7 +525,7 @@ class AnalysisDriver {
           bytes = assembler.assemble().toBuffer();
         }
         PackageBundle linked = new PackageBundle.fromBuffer(bytes);
-        store.addBundle(null, linked);
+        _addToStoreLinked(store, uri, linked.linkedLibraries.single);
         _byteStore.put(key, bytes);
       });
 
@@ -548,7 +580,6 @@ class AnalysisDriver {
 
     // Compute URIs.
     _ReferencedUris referencedUris = new _ReferencedUris();
-    referencedUris.parted.add(file.uri.toString());
     for (Directive directive in file.unit.directives) {
       if (directive is PartOfDirective) {
         referencedUris.isLibrary = false;
@@ -859,7 +890,7 @@ class _File {
    *
    * If the [_content] field is still `null`, get the content from the
    * content cache or from the [source]. If the content cannot be accessed
-   * because of an exception, it considers to be an empty string.
+   * because of an exception, it is considered to be an empty string.
    *
    * When a new content is read, the new [_contentHash] should be computed and
    * the current file state should be updated.
@@ -869,11 +900,14 @@ class _File {
       _content = driver._contentCache.getContents(source);
       _content ??= source.contents.data;
     } catch (_) {
-      // TODO(scheglov) Fix the bug with not existing sources.
-      // We should not put "self URI" into cached _ReferencedUris.
-      // Otherwise such not-existing/empty sources all have the same hash,
-      // but their "self URIs" must be all different.
       _content = '';
+      // TODO(scheglov) We fail to report URI_DOES_NOT_EXIST.
+      // On one hand we need to provide an unlinked bundle to prevent
+      // analysis context from reading the file (we want it to work
+      // hermetically and handle one one file at a time). OTOH,
+      // ResynthesizerResultProvider happily reports that any source in the
+      // SummaryDataStore has MODIFICATION_TIME `0`. We need to return `-1`
+      // for missing files. Maybe add this feature to SummaryDataStore?
     }
     // Compute the content hash.
     List<int> textBytes = UTF8.encode(_content);
