@@ -448,7 +448,6 @@ class AnalysisDriver {
           List<int> bytes = _byteStore.get(key);
           if (bytes != null) {
             PackageBundle linked = new PackageBundle.fromBuffer(bytes);
-            node.linked = linked;
             store.addBundle(null, linked);
             numberOfNodesWithLinked++;
           } else {
@@ -484,7 +483,6 @@ class AnalysisDriver {
           bytes = assembler.assemble().toBuffer();
         }
         PackageBundle linked = new PackageBundle.fromBuffer(bytes);
-        node.linked = linked;
         store.addBundle(null, linked);
         _byteStore.put(key, bytes);
       });
@@ -858,9 +856,6 @@ class _LibraryNode {
   List<_LibraryNode> _dependencies;
   String _linkedHash;
 
-  List<int> linkedNewBytes;
-  PackageBundle linked;
-
   _LibraryNode(this.driver, this.nodes, this.uri);
 
   /**
@@ -908,8 +903,6 @@ class _LibraryNode {
 
   @override
   int get hashCode => uri.hashCode;
-
-  bool get isReady => linked != null;
 
   String get linkedHash {
     _linkedHash ??= driver._linkedHashMap.putIfAbsent(uri, () {
