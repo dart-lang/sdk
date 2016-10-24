@@ -126,8 +126,10 @@ class AnalysisDriver {
   final _filesToAnalyze = new LinkedHashSet<String>();
 
   /**
-   * The mapping of [Uri]s to the mapping of textual URIs to the [Source]
-   * that correspond in the current [_sourceFactory].
+   * Cache of URI resolution. The outer map key is the absolute URI of the
+   * containing file. The inner map key is the URI text of a directive
+   * contained in that file. The inner map value is the [Source] object which
+   * that URI text resolves to.
    */
   final _uriResolutionCache = <Uri, Map<String, Source>>{};
 
@@ -341,16 +343,9 @@ class AnalysisDriver {
 //              libraryContext.file.source, libraryContext.file.source);
 //        });
         // Compute errors.
-        List<AnalysisError> errors;
-        try {
-          errors = _logger.run('Compute errors', () {
-            return analysisContext.computeErrors(file.source);
-          });
-        } catch (e, st) {
-          // TODO(scheglov) why does it fail?
-          // Caused by Bad state: Unmatched TypeParameterElementImpl T
-          errors = [];
-        }
+        List<AnalysisError> errors = _logger.run('Compute errors', () {
+          return analysisContext.computeErrors(file.source);
+        });
         List<String> errorStrings = errors
             .where((error) => error.errorCode is! TodoCode)
             .map((error) => error.toString())
@@ -801,6 +796,8 @@ class _File {
    * Return the [_File] for the [uri] referenced in this file.
    */
   _File resolveUri(String uri) {
+    // TODO(scheglov) Consider removing this caching after implementing other
+    // optimizations, e.g. changeFile() optimization.
     Source uriSource = driver._uriResolutionCache
         .putIfAbsent(this.uri, () => <String, Source>{})
         .putIfAbsent(uri, () => driver._sourceFactory.resolveUri(source, uri));
