@@ -126,6 +126,12 @@ class AnalysisDriver {
   final _filesToAnalyze = new LinkedHashSet<String>();
 
   /**
+   * The mapping of [Uri]s to the mapping of textual URIs to the [Source]
+   * that correspond in the current [_sourceFactory].
+   */
+  final _uriResolutionCache = <Uri, Map<String, Source>>{};
+
+  /**
    * The current file state.
    *
    * It maps file paths to the MD5 hash of the file content.
@@ -807,7 +813,9 @@ class _File {
    * Return the [_File] for the [uri] referenced in this file.
    */
   _File resolveUri(String uri) {
-    Source uriSource = driver._sourceFactory.resolveUri(source, uri);
+    Source uriSource = driver._uriResolutionCache
+        .putIfAbsent(this.uri, () => <String, Source>{})
+        .putIfAbsent(uri, () => driver._sourceFactory.resolveUri(source, uri));
     return new _File(driver, uriSource);
   }
 
