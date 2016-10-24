@@ -1,8 +1,8 @@
 dev_compiler
 ============
 
-[![Build Status](https://travis-ci.org/dart-lang/dev_compiler.svg?branch=master)](https://travis-ci.org/dart-lang/dev_compiler)
-[![Coverage Status](https://coveralls.io/repos/dart-lang/dev_compiler/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/dev_compiler)
+[![Build Status](https://travis-ci.org/dart-lang/sdk.svg?branch=master)](https://travis-ci.org/dart-lang/sdk)
+[![Coverage Status](https://coveralls.io/repos/dart-lang/sdk/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/sdk)
 
 The Dart Dev Compiler (DDC) is an **experimental** development tool and transpiler.  It is at a very early stage today.  Its aims include the following:
 
