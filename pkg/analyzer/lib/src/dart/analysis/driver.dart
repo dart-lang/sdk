@@ -442,23 +442,24 @@ class AnalysisDriver {
         if (node == null) {
           node = new _LibraryNode(this, nodes, libraryUri);
           nodes[libraryUriStr] = node;
-          _ReferencedUris referenced = _getReferencedUris(libraryFile);
 
           // Append the defining unit.
+          _ReferencedUris referenced;
           {
-            PackageBundle unlinked = _getUnlinked(libraryFile);
-            node.unlinkedBundles.add(unlinked);
-            _addToStoreUnlinked(
-                store, libraryUriStr, unlinked.unlinkedUnits.single);
+            PackageBundle bundle = _getUnlinked(libraryFile);
+            UnlinkedUnit unlinked = bundle.unlinkedUnits.single;
+            referenced = new _ReferencedUris(unlinked);
+            node.unlinkedBundles.add(bundle);
+            _addToStoreUnlinked(store, libraryUriStr, unlinked);
           }
 
-          // Append unlinked bundles.
+          // Append parts.
           for (String uri in referenced.parted) {
             _File file = libraryFile.resolveUri(uri);
-            PackageBundle unlinked = _getUnlinked(file);
-            node.unlinkedBundles.add(unlinked);
-            _addToStoreUnlinked(
-                store, file.uri.toString(), unlinked.unlinkedUnits.single);
+            PackageBundle bundle = _getUnlinked(file);
+            UnlinkedUnit unlinked = bundle.unlinkedUnits.single;
+            node.unlinkedBundles.add(bundle);
+            _addToStoreUnlinked(store, file.uri.toString(), unlinked);
           }
 
           // Create nodes for referenced libraries.
@@ -553,79 +554,6 @@ class AnalysisDriver {
   }
 
   /**
-   * TODO(scheglov) It would be nice to get URIs of "parts" from unlinked.
-   */
-  _ReferencedUris _getReferencedUris(_File file) {
-    // Try to get from the store.
-    {
-      String key = '${file.contentHash}.uris';
-      List<int> bytes = _byteStore.get(key);
-      if (bytes != null) {
-        fb.BufferContext bp = new fb.BufferContext.fromBytes(bytes);
-        int table = bp.derefObject(0);
-        const fb.ListReader<String> stringListReader =
-            const fb.ListReader<String>(const fb.StringReader());
-        bool isLibrary = const fb.BoolReader().vTableGet(bp, table, 0);
-        List<String> imported = stringListReader.vTableGet(bp, table, 1);
-        List<String> exported = stringListReader.vTableGet(bp, table, 2);
-        List<String> parted = stringListReader.vTableGet(bp, table, 3);
-        _ReferencedUris referencedUris = new _ReferencedUris();
-        referencedUris.isLibrary = isLibrary;
-        referencedUris.imported.addAll(imported);
-        referencedUris.exported.addAll(exported);
-        referencedUris.parted.addAll(parted);
-        return referencedUris;
-      }
-    }
-
-    // Compute URIs.
-    _ReferencedUris referencedUris = new _ReferencedUris();
-    for (Directive directive in file.unit.directives) {
-      if (directive is PartOfDirective) {
-        referencedUris.isLibrary = false;
-      } else if (directive is UriBasedDirective) {
-        String uri = directive.uri.stringValue;
-        if (directive is ImportDirective) {
-          referencedUris.imported.add(uri);
-        } else if (directive is ExportDirective) {
-          referencedUris.exported.add(uri);
-        } else if (directive is PartDirective) {
-          referencedUris.parted.add(uri);
-        }
-      }
-    }
-
-    // Serialize into bytes.
-    List<int> bytes;
-    {
-      fb.Builder fbBuilder = new fb.Builder();
-      var importedOffset = fbBuilder.writeList(referencedUris.imported
-          .map((uri) => fbBuilder.writeString(uri))
-          .toList());
-      var exportedOffset = fbBuilder.writeList(referencedUris.exported
-          .map((uri) => fbBuilder.writeString(uri))
-          .toList());
-      var partedOffset = fbBuilder.writeList(referencedUris.parted
-          .map((uri) => fbBuilder.writeString(uri))
-          .toList());
-      fbBuilder.startTable();
-      fbBuilder.addBool(0, referencedUris.isLibrary);
-      fbBuilder.addOffset(1, importedOffset);
-      fbBuilder.addOffset(2, exportedOffset);
-      fbBuilder.addOffset(3, partedOffset);
-      var offset = fbBuilder.endTable();
-      bytes = fbBuilder.finish(offset, 'SoRU');
-    }
-
-    // We read the content and recomputed the hash.
-    // So, we need to update the key.
-    String key = '${file.contentHash}.uris';
-    _byteStore.put(key, bytes);
-
-    return referencedUris;
-  }
-
-  /**
    * Return the unlinked bundle of [file] for the current file state.
    *
    * Return [_getCurrentUnlinked] or read the [file] content is read, compute
@@ -634,9 +562,12 @@ class AnalysisDriver {
    * bundle. The bundle is then put into the [_byteStore] and returned.
    */
   PackageBundle _getUnlinked(_File file) {
+    // By accessing 'contentHash' we ensure that the current file state
+    // has some version of the file content hash, so we will be able to
+    // use it to attempt to get the current unlinked bundle.
+    String key = '${file.contentHash}.unlinked';
     return _getCurrentUnlinked(file) ??
         _logger.run('Create unlinked for $file', () {
-          String key = '${file.contentHash}.unlinked';
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(file.unit);
           PackageBundleAssembler assembler = new PackageBundleAssembler();
           assembler.addUnlinkedUnitWithHash(
@@ -650,6 +581,8 @@ class AnalysisDriver {
   /**
    * Verify the API signatures for the changed files, and decide which linked
    * libraries should be invalidated, and files reanalyzed.
+   *
+   * TODO(scheglov) I see that adding a local var changes (full) API signature.
    */
   void _verifyUnlinkedSignatureOfChangedFiles() {
     if (_filesToVerifyUnlinkedSignature.isEmpty) {
@@ -1039,4 +972,20 @@ class _ReferencedUris {
   final List<String> imported = <String>[];
   final List<String> exported = <String>[];
   final List<String> parted = <String>[];
+
+  factory _ReferencedUris(UnlinkedUnit unit) {
+    _ReferencedUris referenced = new _ReferencedUris._();
+    referenced.parted.addAll(unit.publicNamespace.parts);
+    for (UnlinkedImport import in unit.imports) {
+      if (!import.isImplicit) {
+        referenced.imported.add(import.uri);
+      }
+    }
+    for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
+      referenced.exported.add(export.uri);
+    }
+    return referenced;
+  }
+
+  _ReferencedUris._();
 }
