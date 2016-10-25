@@ -14,7 +14,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/error/todo_codes.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -23,7 +22,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
@@ -185,8 +183,10 @@ class AnalysisDriver {
    * "analyzing" and an analysis result is produced for every added file prior
    * to the next time the analysis state transitions to "idle".
    *
-   * Invocation of [addFile] or [changeFile] might result in producing more
-   * analysis results that reflect the new current file state.
+   * At least one analysis result is produced for every file passed to
+   * [addFile] or [changeFile] prior to the next time the analysis state
+   * transitions to "idle". Analysis results for other files are produced
+   * only if the changes affect analysis results of other files.
    *
    * More than one result might be produced for the same file, even if the
    * client does not change the state of the files.
@@ -203,15 +203,20 @@ class AnalysisDriver {
 
           // Analyze the first file in the general queue.
           if (_filesToAnalyze.isNotEmpty) {
-            _logger.run('Analyze ${_filesToAnalyze.length} files', () {
+            PerformanceLogSection analysisSection =
+                _logger.enter('Analyze ${_filesToAnalyze.length} files');
+            try {
+              // TODO(scheglov) The loop is strange for now.
               while (_filesToAnalyze.isNotEmpty) {
                 String path = _filesToAnalyze.first;
                 _filesToAnalyze.remove(path);
                 _File file = _fileForPath(path);
-                _computeAndPrintErrors(file);
-                // TODO(scheglov) yield the result
+                AnalysisResult result = _computeAnalysisResult(file);
+                yield result;
               }
-            });
+            } finally {
+              analysisSection.exit();
+            }
           }
         }
         // TODO(scheglov) implement
@@ -318,9 +323,9 @@ class AnalysisDriver {
   }
 
   /**
-   * TODO(scheglov) replace with actual [AnalysisResult] computing.
+   * Compute the [AnalysisResult] for the [file].
    */
-  List<String> _computeAndPrintErrors(_File file) {
+  AnalysisResult _computeAnalysisResult(_File file) {
     // TODO(scheglov) Computing resolved unit fails for these units.
     // pkg/analyzer/lib/plugin/embedded_resolver_provider.dart
     // pkg/analyzer/lib/plugin/embedded_resolver_provider.dart
@@ -337,70 +342,21 @@ class AnalysisDriver {
         file.path.endsWith('pkg/analyzer/lib/src/generated/visitors.dart') ||
         file.path.endsWith('pkg/analyzer/test/generated/constant_test.dart') ||
         file.path.endsWith('pkg/analyzer/test/source/embedder_test.dart')) {
-      return [];
+      return new AnalysisResult(
+          file.path, file.uri, null, file.contentHash, null, []);
     }
 
-    List<String> errorStrings = _logger.run('Compute errors $file', () {
+    return _logger.run('Compute analysis result for $file', () {
       _LibraryContext libraryContext = _createLibraryContext(file);
-
-      String errorsKey;
-      {
-        ApiSignature signature = new ApiSignature();
-        signature.addString(libraryContext.node.dependencySignature);
-        signature.addString(file.contentHash);
-        errorsKey = '${signature.toHex()}.errors';
-      }
-
-      {
-        List<int> bytes = _byteStore.get(errorsKey);
-        if (bytes != null) {
-          fb.BufferContext bp = new fb.BufferContext.fromBytes(bytes);
-          int table = bp.derefObject(0);
-          return const fb.ListReader<String>(const fb.StringReader())
-              .vTableGet(bp, table, 0);
-        }
-      }
-
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       analysisContext.setContents(file.source, file.content);
-      try {
-        // Compute resolved unit.
-//        _logger.runTimed('Computed resolved unit', () {
-//          analysisContext.resolveCompilationUnit2(
-//              libraryContext.file.source, libraryContext.file.source);
-//        });
-        // Compute errors.
-        List<AnalysisError> errors = _logger.run('Compute errors', () {
-          return analysisContext.computeErrors(file.source);
-        });
-        List<String> errorStrings = errors
-            .where((error) => error.errorCode is! TodoCode)
-            .map((error) => error.toString())
-            .toList();
-        {
-          fb.Builder fbBuilder = new fb.Builder();
-          var exportedOffset = fbBuilder.writeList(errorStrings
-              .map((errorStr) => fbBuilder.writeString(errorStr))
-              .toList());
-          fbBuilder.startTable();
-          fbBuilder.addOffset(0, exportedOffset);
-          var offset = fbBuilder.endTable();
-          List<int> bytes = fbBuilder.finish(offset, 'CErr');
-          _byteStore.put(errorsKey, bytes);
-        }
-
-        return errorStrings;
-      } finally {
-        analysisContext.dispose();
-      }
+      // TODO(scheglov) Add support for parts.
+      CompilationUnit resolvedUnit =
+          analysisContext.resolveCompilationUnit2(file.source, file.source);
+      List<AnalysisError> errors = analysisContext.computeErrors(file.source);
+      return new AnalysisResult(file.path, file.uri, file.content,
+          file.contentHash, resolvedUnit, errors);
     });
-
-    if (errorStrings.isNotEmpty) {
-      errorStrings.forEach((errorString) => print('\t$errorString'));
-    } else {
-      print('\tNO ERRORS');
-    }
-    return errorStrings;
   }
 
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
@@ -672,6 +628,18 @@ class PerformanceLog {
   PerformanceLog(this.sink);
 
   /**
+   * Enter a new execution section, which starts at one point of code, runs
+   * some time, and then ends at the other point of code.
+   *
+   * The client must call [PerformanceLogSection.exit] for every [enter].
+   */
+  PerformanceLogSection enter(String msg) {
+    writeln('+++ $msg.');
+    _level++;
+    return new PerformanceLogSection(this, msg);
+  }
+
+  /**
    * Return the result of the function [f] invocation and log the elapsed time.
    *
    * Each invocation of [run] creates a new enclosed section in the log,
@@ -697,6 +665,30 @@ class PerformanceLog {
   void writeln(String msg) {
     String indent = '\t' * _level;
     sink.writeln('$indent$msg');
+  }
+}
+
+/**
+ * The performance measurement section for operations that start and end
+ * at different place in code, so cannot be run using [PerformanceLog.run].
+ *
+ * The client must call [exit] for every [PerformanceLog.enter].
+ */
+class PerformanceLogSection {
+  final PerformanceLog _logger;
+  final String _msg;
+  final Stopwatch _timer = new Stopwatch()..start();
+
+  PerformanceLogSection(this._logger, this._msg);
+
+  /**
+   * Stop the timer, log the time.
+   */
+  void exit() {
+    _timer.stop();
+    _logger._level--;
+    int ms = _timer.elapsedMilliseconds;
+    _logger.writeln('--- $_msg in $ms ms.');
   }
 }
 
