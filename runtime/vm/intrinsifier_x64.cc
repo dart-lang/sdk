@@ -1573,25 +1573,176 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+static void RangeCheck(Assembler* assembler,
+                       Register reg,
+                       intptr_t low,
+                       intptr_t high,
+                       Condition cc,
+                       Label* target) {
+  __ subq(reg, Immediate(low));
+  __ cmpq(reg, Immediate(high - low));
+  __ j(cc, target);
+}
+
+
+const Condition kIfNotInRange = ABOVE;
+const Condition kIfInRange = BELOW_EQUAL;
+
+
+static void JumpIfInteger(Assembler* assembler,
+                          Register cid,
+                          Label* target) {
+  RangeCheck(assembler, cid, kSmiCid, kBigintCid, kIfInRange, target);
+}
+
+
+static void JumpIfNotInteger(Assembler* assembler,
+                             Register cid,
+                             Label* target) {
+  RangeCheck(assembler, cid, kSmiCid, kBigintCid, kIfNotInRange, target);
+}
+
+
+static void JumpIfString(Assembler* assembler,
+                          Register cid,
+                          Label* target) {
+  RangeCheck(assembler,
+             cid,
+             kOneByteStringCid,
+             kExternalTwoByteStringCid,
+             kIfInRange,
+             target);
+}
+
+
+static void JumpIfNotString(Assembler* assembler,
+                            Register cid,
+                            Label* target) {
+  RangeCheck(assembler,
+             cid,
+             kOneByteStringCid,
+             kExternalTwoByteStringCid,
+             kIfNotInRange,
+             target);
+}
+
+
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, use_canonical_type, not_integer, not_double;
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ LoadClassIdMayBeSmi(RCX, RAX);
 
   // RCX: untagged cid of instance (RAX).
   __ cmpq(RCX, Immediate(kClosureCid));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Instance is a closure.
+  __ j(EQUAL, &fall_through);  // Instance is a closure.
 
+  __ cmpl(RCX, Immediate(kNumPredefinedCids));
+  __ j(ABOVE, &use_canonical_type);
+
+  // If object is a instance of _Double return double type.
+  __ cmpl(RCX, Immediate(kDoubleCid));
+  __ j(NOT_EQUAL, &not_double);
+
+  __ LoadIsolate(RAX);
+  __ movq(RAX, Address(RAX, Isolate::object_store_offset()));
+  __ movq(RAX, Address(RAX, ObjectStore::double_type_offset()));
+  __ ret();
+
+  __ Bind(&not_double);
+  // If object is an integer (smi, mint or bigint) return int type.
+  __ movl(RAX, RCX);
+  JumpIfNotInteger(assembler, RAX, &not_integer);
+
+  __ LoadIsolate(RAX);
+  __ movq(RAX, Address(RAX, Isolate::object_store_offset()));
+  __ movq(RAX, Address(RAX, ObjectStore::int_type_offset()));
+  __ ret();
+
+  __ Bind(&not_integer);
+  // If object is a string (one byte, two byte or external variants) return
+  // string type.
+  __ movq(RAX, RCX);
+  JumpIfNotString(assembler, RAX, &use_canonical_type);
+
+  __ LoadIsolate(RAX);
+  __ movq(RAX, Address(RAX, Isolate::object_store_offset()));
+  __ movq(RAX, Address(RAX, ObjectStore::string_type_offset()));
+  __ ret();
+
+  // Object is neither double, nor integer, nor string.
+  __ Bind(&use_canonical_type);
   __ LoadClassById(RDI, RCX);
-  // RDI: class of instance (RAX).
-
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   __ movq(RAX, FieldAddress(RDI, Class::canonical_type_offset()));
   __ CompareObject(RAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
+  Label fall_through, different_cids, equal, not_equal, not_integer;
+
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ LoadClassIdMayBeSmi(RCX, RAX);
+
+  // Check if left hand size is a closure. Closures are handled in the runtime.
+  __ cmpq(RCX, Immediate(kClosureCid));
+  __ j(EQUAL, &fall_through);
+
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));
+  __ LoadClassIdMayBeSmi(RDX, RAX);
+
+  // Check whether class ids match. If class ids don't match objects can still
+  // have the same runtime type (e.g. multiple string implementation classes
+  // map to a single String type).
+  __ cmpq(RCX, RDX);
+  __ j(NOT_EQUAL, &different_cids);
+
+  // Objects have the same class and neither is a closure.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(RDI, RCX);
+  __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
+  __ cmpq(RCX, Immediate(0));
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ Bind(&equal);
+  __ LoadObject(RAX, Bool::True());
+  __ ret();
+
+  // Class ids are different. Check if we are comparing runtime types of
+  // two strings (with different representations) or two integers.
+  __ Bind(&different_cids);
+  __ cmpq(RCX, Immediate(kNumPredefinedCids));
+  __ j(ABOVE_EQUAL, &not_equal);
+
+  __ movq(RAX, RCX);
+  JumpIfNotInteger(assembler, RAX, &not_integer);
+
+  // First object is an integer. Check if the second is an integer too.
+  // Otherwise types are unequal because only integers have the same runtime
+  // type as other integers.
+  JumpIfInteger(assembler, RDX, &equal);
+  __ jmp(&not_equal);
+
+  __ Bind(&not_integer);
+  // Check if the first object is a string. If it is not then
+  // objects don't have the same runtime type because they have
+  // different class ids and they are not strings or integers.
+  JumpIfNotString(assembler, RCX, &not_equal);
+  // First object is a string. Check if the second is a string too.
+  JumpIfString(assembler, RDX, &equal);
+  // Strings only have the same runtime type as other strings.
+  // Fall-through to the not equal case.
+
+  __ Bind(&not_equal);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
 
   __ Bind(&fall_through);

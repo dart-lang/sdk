@@ -53,6 +53,8 @@
 
   @patch Type get runtimeType native "Object_runtimeType";
 
+  static bool _haveSameRuntimeType(a, b) native "Object_haveSameRuntimeType";
+
   // Call this function instead of inlining instanceof, thus collecting
   // type feedback and reducing code size of unoptimized code.
   bool _instanceOf(instantiator_type_arguments, type, bool negate)

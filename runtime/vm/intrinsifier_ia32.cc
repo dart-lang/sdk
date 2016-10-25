@@ -1709,22 +1709,175 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+static void RangeCheck(Assembler* assembler,
+                       Register reg,
+                       intptr_t low,
+                       intptr_t high,
+                       Condition cc,
+                       Label* target) {
+  __ subl(reg, Immediate(low));
+  __ cmpl(reg, Immediate(high - low));
+  __ j(cc, target);
+}
+
+
+const Condition kIfNotInRange = ABOVE;
+const Condition kIfInRange = BELOW_EQUAL;
+
+
+static void JumpIfInteger(Assembler* assembler,
+                          Register cid,
+                          Label* target) {
+  RangeCheck(assembler, cid, kSmiCid, kBigintCid, kIfInRange, target);
+}
+
+
+static void JumpIfNotInteger(Assembler* assembler,
+                             Register cid,
+                             Label* target) {
+  RangeCheck(assembler, cid, kSmiCid, kBigintCid, kIfNotInRange, target);
+}
+
+
+static void JumpIfString(Assembler* assembler,
+                          Register cid,
+                          Label* target) {
+  RangeCheck(assembler,
+             cid,
+             kOneByteStringCid,
+             kExternalTwoByteStringCid,
+             kIfInRange,
+             target);
+}
+
+
+static void JumpIfNotString(Assembler* assembler,
+                            Register cid,
+                            Label* target) {
+  RangeCheck(assembler,
+             cid,
+             kOneByteStringCid,
+             kExternalTwoByteStringCid,
+             kIfNotInRange,
+             target);
+}
+
+
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, use_canonical_type, not_double, not_integer;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ LoadClassIdMayBeSmi(EDI, EAX);
-  __ cmpl(EDI, Immediate(kClosureCid));
-  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Instance is a closure.
-  __ LoadClassById(EBX, EDI);
-  // EBX: class of instance (EAX).
 
+  __ cmpl(EDI, Immediate(kClosureCid));
+  __ j(EQUAL, &fall_through);  // Instance is a closure.
+
+  __ cmpl(EDI, Immediate(kNumPredefinedCids));
+  __ j(ABOVE, &use_canonical_type);
+
+  // If object is a instance of _Double return double type.
+  __ cmpl(EDI, Immediate(kDoubleCid));
+  __ j(NOT_EQUAL, &not_double);
+
+  __ LoadIsolate(EAX);
+  __ movl(EAX, Address(EAX, Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, ObjectStore::double_type_offset()));
+  __ ret();
+
+  __ Bind(&not_double);
+  // If object is an integer (smi, mint or bigint) return int type.
+  __ movl(EAX, EDI);
+  JumpIfNotInteger(assembler, EAX, &not_integer);
+
+  __ LoadIsolate(EAX);
+  __ movl(EAX, Address(EAX, Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, ObjectStore::int_type_offset()));
+  __ ret();
+
+  __ Bind(&not_integer);
+  // If object is a string (one byte, two byte or external variants) return
+  // string type.
+  __ movl(EAX, EDI);
+  JumpIfNotString(assembler, EAX, &use_canonical_type);
+
+  __ LoadIsolate(EAX);
+  __ movl(EAX, Address(EAX, Isolate::object_store_offset()));
+  __ movl(EAX, Address(EAX, ObjectStore::string_type_offset()));
+  __ ret();
+
+  // Object is neither double, nor integer, nor string.
+  __ Bind(&use_canonical_type);
+  __ LoadClassById(EBX, EDI);
   __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
   __ cmpl(EDI, Immediate(0));
   __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
   __ movl(EAX, FieldAddress(EBX, Class::canonical_type_offset()));
   __ CompareObject(EAX, Object::null_object());
   __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
+  Label fall_through, different_cids, equal, not_equal, not_integer;
+
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  __ LoadClassIdMayBeSmi(EDI, EAX);
+
+  // Check if left hand size is a closure. Closures are handled in the runtime.
+  __ cmpl(EDI, Immediate(kClosureCid));
+  __ j(EQUAL, &fall_through);
+
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));
+  __ LoadClassIdMayBeSmi(EBX, EAX);
+
+  // Check whether class ids match. If class ids don't match objects can still
+  // have the same runtime type (e.g. multiple string implementation classes
+  // map to a single String type).
+  __ cmpl(EDI, EBX);
+  __ j(NOT_EQUAL, &different_cids);
+
+  // Objects have the same class and neither is a closure.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(EBX, EDI);
+  __ movzxw(EBX, FieldAddress(EBX, Class::num_type_arguments_offset()));
+  __ cmpl(EBX, Immediate(0));
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ Bind(&equal);
+  __ LoadObject(EAX, Bool::True());
+  __ ret();
+
+  // Class ids are different. Check if we are comparing runtime types of
+  // two strings (with different representations) or two integers.
+  __ Bind(&different_cids);
+  __ cmpl(EDI, Immediate(kNumPredefinedCids));
+  __ j(ABOVE_EQUAL, &not_equal);
+
+  __ movl(EAX, EDI);
+  JumpIfNotInteger(assembler, EAX, &not_integer);
+
+  // First object is an integer. Check if the second is an integer too.
+  // Otherwise types are unequal because only integers have the same runtime
+  // type as other integers.
+  JumpIfInteger(assembler, EBX, &equal);
+  __ jmp(&not_equal);
+
+  __ Bind(&not_integer);
+  // Check if the first object is a string. If it is not then
+  // objects don't have the same runtime type because they have
+  // different class ids and they are not strings or integers.
+  JumpIfNotString(assembler, EDI, &not_equal);
+  // First object is a string. Check if the second is a string too.
+  JumpIfString(assembler, EBX, &equal);
+  // Strings only have the same runtime type as other strings.
+  // Fall-through to the not equal case.
+
+  __ Bind(&not_equal);
+  __ LoadObject(EAX, Bool::False());
   __ ret();
 
   __ Bind(&fall_through);

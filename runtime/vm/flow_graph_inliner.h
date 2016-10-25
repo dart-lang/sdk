@@ -19,6 +19,7 @@ class InstanceCallInstr;
 class Instruction;
 class StaticCallInstr;
 class TargetEntryInstr;
+class Precompiler;
 
 class FlowGraphInliner : ValueObject {
  public:
@@ -27,7 +28,8 @@ class FlowGraphInliner : ValueObject {
                    GrowableArray<TokenPosition>* inline_id_to_token_pos,
                    GrowableArray<intptr_t>* caller_inline_id,
                    bool use_speculative_inlining,
-                   GrowableArray<intptr_t>* inlining_black_list);
+                   GrowableArray<intptr_t>* inlining_black_list,
+                   Precompiler* precompiler);
 
   // The flow graph is destructively updated upon inlining.
   void Inline();
@@ -77,6 +79,7 @@ class FlowGraphInliner : ValueObject {
   const bool trace_inlining_;
   const bool use_speculative_inlining_;
   GrowableArray<intptr_t>* inlining_black_list_;
+  Precompiler* precompiler_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphInliner);
 };

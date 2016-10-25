@@ -403,6 +403,8 @@ class ObjectPointerVisitor;
   V(_name, "_name")                                                            \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
+  V(GetRuntimeType, "get:runtimeType")                                         \
+  V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

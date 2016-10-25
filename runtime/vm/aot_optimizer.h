@@ -13,13 +13,16 @@ namespace dart {
 class CSEInstructionMap;
 template <typename T> class GrowableArray;
 class ParsedFunction;
+class Precompiler;
 class RawBool;
 
 class AotOptimizer : public FlowGraphVisitor {
  public:
-  AotOptimizer(FlowGraph* flow_graph,
+  AotOptimizer(Precompiler* precompiler,
+               FlowGraph* flow_graph,
                bool use_speculative_inlining,
                GrowableArray<intptr_t>* inlining_black_list);
+
   virtual ~AotOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -101,6 +104,9 @@ class AotOptimizer : public FlowGraphVisitor {
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
+  bool RecognizeRuntimeTypeGetter(InstanceCallInstr* call);
+  bool TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call);
+
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;
 
@@ -131,6 +137,7 @@ class AotOptimizer : public FlowGraphVisitor {
 
   bool IsAllowedForInlining(intptr_t deopt_id);
 
+  Precompiler* precompiler_;
   FlowGraph* flow_graph_;
 
   const bool use_speculative_inlining_;

@@ -83,8 +83,6 @@ abstract class _StringBase {
         "_StringBase can't be instaniated");
   }
 
-  Type get runtimeType => String;
-
   int get hashCode native "String_getHashCode";
 
   bool get _isOneByte {

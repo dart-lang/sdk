@@ -356,16 +356,25 @@ class Precompiler : public ValueObject {
       Dart_QualifiedFunctionName embedder_entry_points[],
       bool reset_fields);
 
-  static RawError* CompileFunction(Thread* thread,
+  static RawError* CompileFunction(Precompiler* precompiler,
+                                   Thread* thread,
                                    Zone* zone,
-                                   const Function& function,
-                                   FieldTypeMap* field_type_map = NULL);
+                                   const Function& function);
 
   static RawObject* EvaluateStaticInitializer(const Field& field);
   static RawObject* ExecuteOnce(SequenceNode* fragment);
 
   static RawFunction* CompileStaticInitializer(const Field& field,
                                                bool compute_type);
+
+  // Returns true if get:runtimeType is not overloaded by any class.
+  bool get_runtime_type_is_unique() const {
+    return get_runtime_type_is_unique_;
+  }
+
+  FieldTypeMap* field_type_map() {
+    return &field_type_map_;
+  }
 
  private:
   Precompiler(Thread* thread, bool reset_fields);
@@ -466,6 +475,8 @@ class Precompiler : public ValueObject {
   InstanceSet consts_to_retain_;
   FieldTypeMap field_type_map_;
   Error& error_;
+
+  bool get_runtime_type_is_unique_;
 };
 
 
