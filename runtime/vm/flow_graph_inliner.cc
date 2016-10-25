@@ -3833,7 +3833,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
           *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
                                            call->GetBlock()->try_index());
           (*entry)->InheritDeoptTarget(Z, call);
-          *last = new(Z) ConstantInstr(type);
+          *last = new(Z) ConstantInstr(Type::ZoneHandle(Z, type.raw()));
           flow_graph->AppendTo(*entry, *last,
                                call->deopt_id() != Thread::kNoDeoptId ?
                                call->env() : NULL,
