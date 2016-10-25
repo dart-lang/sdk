@@ -152,11 +152,9 @@ class DartPrecompilationPipeline : public DartCompilationPipeline {
 
 class PrecompileParsedFunctionHelper : public ValueObject {
  public:
-  PrecompileParsedFunctionHelper(Precompiler* precompiler,
-                                 ParsedFunction* parsed_function,
+  PrecompileParsedFunctionHelper(ParsedFunction* parsed_function,
                                  bool optimized)
-      : precompiler_(precompiler),
-        parsed_function_(parsed_function),
+      : parsed_function_(parsed_function),
         optimized_(optimized),
         thread_(Thread::Current()) {
   }
@@ -173,7 +171,6 @@ class PrecompileParsedFunctionHelper : public ValueObject {
                            FlowGraphCompiler* graph_compiler,
                            FlowGraph* flow_graph);
 
-  Precompiler* precompiler_;
   ParsedFunction* parsed_function_;
   const bool optimized_;
   Thread* const thread_;
@@ -317,8 +314,7 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     types_to_retain_(),
     consts_to_retain_(),
     field_type_map_(),
-    error_(Error::Handle()),
-    get_runtime_type_is_unique_(false) {
+    error_(Error::Handle()) {
 }
 
 
@@ -487,8 +483,9 @@ void Precompiler::PrecompileStaticInitializers() {
 void Precompiler::PrecompileConstructors() {
   class ConstructorVisitor : public FunctionVisitor {
    public:
-    explicit ConstructorVisitor(Precompiler* precompiler, Zone* zone)
-        : precompiler_(precompiler), zone_(zone) {
+    explicit ConstructorVisitor(Zone* zone, FieldTypeMap* map)
+        : zone_(zone), field_type_map_(map) {
+      ASSERT(map != NULL);
     }
     void Visit(const Function& function) {
       if (!function.IsGenerativeConstructor()) return;
@@ -500,19 +497,18 @@ void Precompiler::PrecompileConstructors() {
       if (FLAG_trace_precompiler) {
         THR_Print("Precompiling constructor %s\n", function.ToCString());
       }
-      CompileFunction(precompiler_,
-                      Thread::Current(),
+      CompileFunction(Thread::Current(),
                       zone_,
-                      function);
+                      function,
+                      field_type_map_);
     }
-
    private:
-    Precompiler* precompiler_;
     Zone* zone_;
+    FieldTypeMap* field_type_map_;
   };
 
   HANDLESCOPE(T);
-  ConstructorVisitor visitor(this, zone_);
+  ConstructorVisitor visitor(zone_, &field_type_map_);
   VisitFunctions(&visitor);
 
   FieldTypeMap::Iterator it(field_type_map_.GetIterator());
@@ -800,7 +796,7 @@ void Precompiler::ProcessFunction(const Function& function) {
     ASSERT(!function.is_abstract());
     ASSERT(!function.IsRedirectingFactory());
 
-    error_ = CompileFunction(this, thread_, zone_, function);
+    error_ = CompileFunction(thread_, zone_, function);
     if (!error_.IsNull()) {
       Jump(error_);
     }
@@ -1138,8 +1134,7 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
 
   parsed_function->AllocateVariables();
   DartPrecompilationPipeline pipeline(zone.GetZone());
-  PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
-                                        parsed_function,
+  PrecompileParsedFunctionHelper helper(parsed_function,
                                         /* optimized = */ true);
   bool success = helper.Compile(&pipeline);
   ASSERT(success);
@@ -1240,8 +1235,7 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
 
     // Non-optimized code generator.
     DartPrecompilationPipeline pipeline(Thread::Current()->zone());
-    PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
-                                          parsed_function,
+    PrecompileParsedFunctionHelper helper(parsed_function,
                                           /* optimized = */ false);
     helper.Compile(&pipeline);
     Code::Handle(func.unoptimized_code()).set_var_descriptors(
@@ -1516,10 +1510,6 @@ void Precompiler::CollectDynamicFunctionNames() {
       functions_set.Insert(function);
     }
   }
-
-  farray ^= table.GetOrNull(Symbols::GetRuntimeType());
-
-  get_runtime_type_is_unique_ = !farray.IsNull() && (farray.Length() == 1);
 
   if (FLAG_print_unique_targets) {
     UniqueFunctionsSet::Iterator unique_iter(&functions_set);
@@ -2829,8 +2819,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
-        AotOptimizer optimizer(precompiler_,
-                               flow_graph,
+        AotOptimizer optimizer(flow_graph,
                                use_speculative_inlining,
                                &inlining_black_list);
         optimizer.PopulateWithICData();
@@ -2872,8 +2861,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                    &inline_id_to_token_pos,
                                    &caller_inline_id,
                                    use_speculative_inlining,
-                                   &inlining_black_list,
-                                   precompiler_);
+                                   &inlining_black_list);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -3252,8 +3240,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 }
 
 
-static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
-                                          CompilationPipeline* pipeline,
+static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
                                           const Function& function,
                                           bool optimized) {
   // Check that we optimize, except if the function is not optimizable.
@@ -3295,8 +3282,7 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
                num_tokens_after - num_tokens_before);
     }
 
-    PrecompileParsedFunctionHelper helper(
-        precompiler, parsed_function, optimized);
+    PrecompileParsedFunctionHelper helper(parsed_function, optimized);
     const bool success = helper.Compile(pipeline);
     if (!success) {
       // Encountered error.
@@ -3344,18 +3330,17 @@ static RawError* PrecompileFunctionHelper(Precompiler* precompiler,
 }
 
 
-RawError* Precompiler::CompileFunction(Precompiler* precompiler,
-                                       Thread* thread,
+RawError* Precompiler::CompileFunction(Thread* thread,
                                        Zone* zone,
-                                       const Function& function) {
+                                       const Function& function,
+                                       FieldTypeMap* field_type_map) {
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
   TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
   ASSERT(FLAG_precompiled_mode);
   const bool optimized = function.IsOptimizable();  // False for natives.
-  DartPrecompilationPipeline pipeline(zone,
-      (precompiler != NULL) ? precompiler->field_type_map() : NULL);
-  return PrecompileFunctionHelper(precompiler, &pipeline, function, optimized);
+  DartPrecompilationPipeline pipeline(zone, field_type_map);
+  return PrecompileFunctionHelper(&pipeline, function, optimized);
 }
 
 #endif  // DART_PRECOMPILER

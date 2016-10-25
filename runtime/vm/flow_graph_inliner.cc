@@ -848,8 +848,7 @@ class CallSiteInliner : public ValueObject {
           // Deopt-ids overlap between caller and callee.
           if (FLAG_precompiled_mode) {
 #ifdef DART_PRECOMPILER
-            AotOptimizer optimizer(inliner_->precompiler_,
-                                   callee_graph,
+            AotOptimizer optimizer(callee_graph,
                                    inliner_->use_speculative_inlining_,
                                    inliner_->inlining_black_list_);
             optimizer.PopulateWithICData();
@@ -1900,16 +1899,14 @@ FlowGraphInliner::FlowGraphInliner(
     GrowableArray<TokenPosition>* inline_id_to_token_pos,
     GrowableArray<intptr_t>* caller_inline_id,
     bool use_speculative_inlining,
-    GrowableArray<intptr_t>* inlining_black_list,
-    Precompiler* precompiler)
+    GrowableArray<intptr_t>* inlining_black_list)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
       inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
       trace_inlining_(ShouldTraceInlining(flow_graph)),
       use_speculative_inlining_(use_speculative_inlining),
-      inlining_black_list_(inlining_black_list),
-      precompiler_(precompiler) {
+      inlining_black_list_(inlining_black_list) {
   ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
 }
 
@@ -3809,36 +3806,6 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                FlowGraph::kValue);
           return true;
         }
-      }
-      return false;
-    }
-
-    case MethodRecognizer::kObjectRuntimeType: {
-      Type& type = Type::Handle(Z);
-      if (RawObject::IsStringClassId(receiver_cid)) {
-        type = Type::StringType();
-      } else if (receiver_cid == kDoubleCid) {
-        type = Type::Double();
-      } else if (RawObject::IsIntegerClassId(receiver_cid)) {
-        type = Type::IntType();
-      } else if (receiver_cid != kClosureCid) {
-        const Class& cls = Class::Handle(Z,
-            flow_graph->isolate()->class_table()->At(receiver_cid));
-        if (!cls.IsGeneric()) {
-          type = cls.CanonicalType();
-        }
-      }
-
-      if (!type.IsNull()) {
-          *entry = new(Z) TargetEntryInstr(flow_graph->allocate_block_id(),
-                                           call->GetBlock()->try_index());
-          (*entry)->InheritDeoptTarget(Z, call);
-          *last = new(Z) ConstantInstr(Type::ZoneHandle(Z, type.raw()));
-          flow_graph->AppendTo(*entry, *last,
-                               call->deopt_id() != Thread::kNoDeoptId ?
-                               call->env() : NULL,
-                               FlowGraph::kValue);
-          return true;
       }
       return false;
     }

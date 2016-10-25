@@ -2965,10 +2965,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   virtual EffectSet Effects() const { return EffectSet::All(); }
 
-  virtual Definition* Canonicalize(FlowGraph* graph);
-
-  static RawType* ComputeRuntimeType(const ICData& ic_data);
-
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
@@ -3328,7 +3324,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
   DECLARE_INSTRUCTION(StaticCall)
   virtual CompileType ComputeType() const;
-  virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
