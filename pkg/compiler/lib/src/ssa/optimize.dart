@@ -2110,29 +2110,22 @@ class SsaTypeConversionInserter extends HBaseVisitor
       return;
     }
 
-    List<HInstruction> ifUsers = <HInstruction>[];
-    List<HInstruction> notIfUsers = <HInstruction>[];
+    List<HBasicBlock> trueTargets = <HBasicBlock>[];
+    List<HBasicBlock> falseTargets = <HBasicBlock>[];
 
-    collectIfUsers(instruction, ifUsers, notIfUsers);
+    collectTargets(instruction, trueTargets, falseTargets);
 
-    if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
+    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
 
     TypeMask convertedType =
         new TypeMask.nonNullSubtype(element, compiler.closedWorld);
     HInstruction input = instruction.expression;
 
-    for (HIf ifUser in ifUsers) {
-      insertTypePropagationForDominatedUsers(
-          ifUser.thenBlock, input, convertedType);
-      // TODO(ngeoffray): Also change uses for the else block on a type
-      // that knows it is not of a specific type.
+    for (HBasicBlock block in trueTargets) {
+      insertTypePropagationForDominatedUsers(block, input, convertedType);
     }
-    for (HIf ifUser in notIfUsers) {
-      insertTypePropagationForDominatedUsers(
-          ifUser.elseBlock, input, convertedType);
-      // TODO(ngeoffray): Also change uses for the then block on a type
-      // that knows it is not of a specific type.
-    }
+    // TODO(sra): Also strengthen uses for when the condition is known
+    // false. Avoid strengthening to `null`.
   }
 
   void visitIdentity(HIdentity instruction) {
@@ -2151,34 +2144,50 @@ class SsaTypeConversionInserter extends HBaseVisitor
 
     if (!input.instructionType.isNullable) return;
 
-    List<HInstruction> ifUsers = <HInstruction>[];
-    List<HInstruction> notIfUsers = <HInstruction>[];
+    List<HBasicBlock> trueTargets = <HBasicBlock>[];
+    List<HBasicBlock> falseTargets = <HBasicBlock>[];
 
-    collectIfUsers(instruction, ifUsers, notIfUsers);
+    collectTargets(instruction, trueTargets, falseTargets);
 
-    if (ifUsers.isEmpty && notIfUsers.isEmpty) return;
+    if (trueTargets.isEmpty && falseTargets.isEmpty) return;
 
     TypeMask nonNullType = input.instructionType.nonNullable();
 
-    for (HIf ifUser in ifUsers) {
-      insertTypePropagationForDominatedUsers(
-          ifUser.elseBlock, input, nonNullType);
-      // Uses in thenBlock are `null`, but probably not common.
+    for (HBasicBlock block in falseTargets) {
+      insertTypePropagationForDominatedUsers(block, input, nonNullType);
     }
-    for (HIf ifUser in notIfUsers) {
-      insertTypePropagationForDominatedUsers(
-          ifUser.thenBlock, input, nonNullType);
-      // Uses in elseBlock are `null`, but probably not common.
-    }
+    // We don't strengthen the known-true references. It doesn't happen often
+    // and we don't want "if (x==null) return x;" to convert between JavaScript
+    // 'null' and 'undefined'.
   }
 
-  collectIfUsers(HInstruction instruction, List<HInstruction> ifUsers,
-      List<HInstruction> notIfUsers) {
+  collectTargets(HInstruction instruction, List<HBasicBlock> trueTargets,
+                 List<HBasicBlock> falseTargets) {
     for (HInstruction user in instruction.usedBy) {
       if (user is HIf) {
-        ifUsers.add(user);
+        trueTargets?.add(user.thenBlock);
+        falseTargets?.add(user.elseBlock);
       } else if (user is HNot) {
-        collectIfUsers(user, notIfUsers, ifUsers);
+        collectTargets(user, falseTargets, trueTargets);
+      } else if (user is HPhi) {
+        List<HInstruction> inputs = user.inputs;
+        if (inputs.length == 2) {
+          assert(inputs.contains(instruction));
+          HInstruction other = inputs[(inputs[0] == instruction) ? 1 : 0];
+          if (other.isConstantTrue()) {
+            // The condition flows to a HPhi(true, user), which means that a
+            // downstream HIf has true-branch control flow that does not depend
+            // on the original instruction, so stop collecting [trueTargets].
+            collectTargets(user, null, falseTargets);
+          } else if (other.isConstantFalse()) {
+            // Ditto for false.
+            collectTargets(user, trueTargets, null);
+          }
+        }
+      } else if (user is HBoolify) {
+        // We collect targets for strictly boolean operations so HBoolify cannot
+        // change the result.
+        collectTargets(user, trueTargets, falseTargets);
       }
     }
   }
