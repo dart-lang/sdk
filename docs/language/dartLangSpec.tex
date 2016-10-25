@@ -5970,7 +5970,10 @@ In other words, there is no implicit fall-through between non-empty cases. The l
 }
 
 \LMHash{}
-It is a static warning if the type of $e$ may not be assigned to the type of $e_k$. It is a static warning if the last statement of the statement sequence $s_k$ is not a \BREAK{}, \CONTINUE{}, \RETURN{} or \THROW{} statement.
+It is a static warning if the type of $e$ may not be assigned to the type of $e_k$.
+Let $s$ be the last statement of the statement sequence $s_k$.
+If $s$ is a non-empty block statement, let $s$ instead be the last statment of the block statement.
+It is a static warning $s$ is not a \BREAK{}, \CONTINUE{}, \REHTROW{} or \RETURN{} statement or an expression statment where the expression is a \THROW{} expression.
 
 \rationale{
 The behavior of switch cases intentionally differs from the C tradition.  Implicit fall through is a known cause of programming errors and therefore disallowed.  Why not simply break the flow implicitly at the end of every case, rather than requiring explicit code to do so?  This would indeed be cleaner.  It would also be cleaner to insist that each case have a single (possibly compound) statement.  We have chosen not to do so in order to facilitate porting of switch statements from other languages.  Implicitly breaking the control flow at the end of a case would silently alter the meaning of ported code that relied on fall-through, potentially forcing the programmer to deal with subtle bugs. Our design ensures that the difference is immediately brought to the coder's attention.  The programmer will be notified at compile-time if they forget to end a case with a statement that terminates the straight-line control flow. We could make this warning a compile-time error, but refrain from doing so because do not wish to force the programmer to deal with this issue immediately while porting code.  If developers ignore the warning and run their code, a run time error will prevent the program from misbehaving in hard-to-debug ways (at least with respect to this issue).
