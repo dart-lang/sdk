@@ -349,13 +349,17 @@ class AnalysisDriver {
     return _logger.run('Compute analysis result for $file', () {
       _LibraryContext libraryContext = _createLibraryContext(file);
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
-      analysisContext.setContents(file.source, file.content);
-      // TODO(scheglov) Add support for parts.
-      CompilationUnit resolvedUnit =
-          analysisContext.resolveCompilationUnit2(file.source, file.source);
-      List<AnalysisError> errors = analysisContext.computeErrors(file.source);
-      return new AnalysisResult(file.path, file.uri, file.content,
-          file.contentHash, resolvedUnit, errors);
+      try {
+        analysisContext.setContents(file.source, file.content);
+        // TODO(scheglov) Add support for parts.
+        CompilationUnit resolvedUnit =
+            analysisContext.resolveCompilationUnit2(file.source, file.source);
+        List<AnalysisError> errors = analysisContext.computeErrors(file.source);
+        return new AnalysisResult(file.path, file.uri, file.content,
+            file.contentHash, resolvedUnit, errors);
+      } finally {
+        analysisContext.dispose();
+      }
     });
   }
 
@@ -402,7 +406,7 @@ class AnalysisDriver {
           // Append the defining unit.
           _ReferencedUris referenced;
           {
-            PackageBundle bundle = _getUnlinked(libraryFile);
+            PackageBundle bundle = libraryFile.unlinked;
             UnlinkedUnit unlinked = bundle.unlinkedUnits.single;
             referenced = new _ReferencedUris(unlinked);
             node.unlinkedBundles.add(bundle);
@@ -412,7 +416,7 @@ class AnalysisDriver {
           // Append parts.
           for (String uri in referenced.parted) {
             _File file = libraryFile.resolveUri(uri);
-            PackageBundle bundle = _getUnlinked(file);
+            PackageBundle bundle = file.unlinked;
             UnlinkedUnit unlinked = bundle.unlinkedUnits.single;
             node.unlinkedBundles.add(bundle);
             _addToStoreUnlinked(store, file.uri.toString(), unlinked);
@@ -501,40 +505,6 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the unlinked bundle of [file] for the current file state, or `null`.
-   */
-  PackageBundle _getCurrentUnlinked(_File file) {
-    String key = '${file.currentContentHash}.unlinked';
-    List<int> bytes = _byteStore.get(key);
-    return bytes != null ? new PackageBundle.fromBuffer(bytes) : null;
-  }
-
-  /**
-   * Return the unlinked bundle of [file] for the current file state.
-   *
-   * Return [_getCurrentUnlinked] or read the [file] content is read, compute
-   * the content hash and update the current file state accordingly. Parse the
-   * content into the [CompilationUnit] and serialize into a new unlinked
-   * bundle. The bundle is then put into the [_byteStore] and returned.
-   */
-  PackageBundle _getUnlinked(_File file) {
-    // By accessing 'contentHash' we ensure that the current file state
-    // has some version of the file content hash, so we will be able to
-    // use it to attempt to get the current unlinked bundle.
-    String key = '${file.contentHash}.unlinked';
-    return _getCurrentUnlinked(file) ??
-        _logger.run('Create unlinked for $file', () {
-          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(file.unit);
-          PackageBundleAssembler assembler = new PackageBundleAssembler();
-          assembler.addUnlinkedUnitWithHash(
-              file.uri.toString(), unlinkedUnit, key);
-          List<int> bytes = assembler.assemble().toBuffer();
-          _byteStore.put(key, bytes);
-          return new PackageBundle.fromBuffer(bytes);
-        });
-  }
-
-  /**
    * Verify the API signatures for the changed files, and decide which linked
    * libraries should be invalidated, and files reanalyzed.
    *
@@ -549,11 +519,11 @@ class AnalysisDriver {
       for (String path in _filesToVerifyUnlinkedSignature) {
         _File file = _fileForPath(path);
         // Get the existing old API signature, maybe null.
-        String oldSignature = _getCurrentUnlinked(file)?.apiSignature;
+        String oldSignature = file.currentUnlinked?.apiSignature;
         // Clear the content hash cache, so force the file reading.
         _fileContentHashMap.remove(path);
         // Compute the new API signature.
-        String newSignature = _getUnlinked(file).apiSignature;
+        String newSignature = file.unlinked.apiSignature;
         // If the signatures are not the same, then potentially every linked
         // library is inconsistent and should be recomputed, and every explicit
         // file has inconsistent analysis results which also should be recomputed.
@@ -767,6 +737,21 @@ class _File {
     return driver._fileContentHashMap[path];
   }
 
+  /**
+   * Return the unlinked bundle for the current file state, or `null`.
+   */
+  PackageBundle get currentUnlinked {
+    String hash = currentContentHash;
+    if (hash != null) {
+      String key = '$hash.unlinked';
+      List<int> bytes = driver._byteStore.get(key);
+      if (bytes != null) {
+        return new PackageBundle.fromBuffer(bytes);
+      }
+    }
+    return null;
+  }
+
   String get path => source.fullName;
 
   /**
@@ -777,20 +762,44 @@ class _File {
    * analysis context, so at some point the unit might become resolved.
    */
   CompilationUnit get unit {
-    AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
+    if (_unit == null) {
+      AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
 
-    CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = driver._analysisOptions.strongMode;
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+      CharSequenceReader reader = new CharSequenceReader(content);
+      Scanner scanner = new Scanner(source, reader, errorListener);
+      scanner.scanGenericMethodComments = driver._analysisOptions.strongMode;
+      Token token = scanner.tokenize();
+      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
 
-    Parser parser = new Parser(source, errorListener);
-    parser.parseGenericMethodComments = driver._analysisOptions.strongMode;
-    _unit = parser.parseCompilationUnit(token);
-    _unit.lineInfo = lineInfo;
-
+      Parser parser = new Parser(source, errorListener);
+      parser.parseGenericMethodComments = driver._analysisOptions.strongMode;
+      _unit = parser.parseCompilationUnit(token);
+      _unit.lineInfo = lineInfo;
+    }
     return _unit;
+  }
+
+  /**
+   * Return the unlinked bundle for the current file state.
+   *
+   * If the file [contentHash] is cached, try to load the bundle with this
+   * hash. Otherwise, read the content, compute the new hash and try to find
+   * the existing bundle, or parse the content and compute a new bundle.
+   */
+  PackageBundle get unlinked {
+    String key = '$contentHash.unlinked';
+    List<int> bytes = driver._byteStore.get(key);
+    if (bytes == null) {
+      driver._logger.run('Create unlinked for $this', () {
+        UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+        PackageBundleAssembler assembler = new PackageBundleAssembler();
+        assembler.addUnlinkedUnitWithHash(
+            uri.toString(), unlinkedUnit, contentHash);
+        bytes = assembler.assemble().toBuffer();
+        driver._byteStore.put(key, bytes);
+      });
+    }
+    return new PackageBundle.fromBuffer(bytes);
   }
 
   Uri get uri => source.uri;
