@@ -8,6 +8,6 @@ application_snapshot("dartdoc") {
   main_dart = "../../third_party/pkg/dartdoc/bin/dartdoc.dart"
   training_args = [ "--help" ]
   inputs = exec_script("../../tools/list_dart_files.py",
-                       [rebase_path("../../third_party/pkg/dartdoc")],
+                       [ rebase_path("../../third_party/pkg/dartdoc") ],
                        "list lines")
 }

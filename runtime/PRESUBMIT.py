@@ -44,9 +44,15 @@ def RunLint(input_api, output_api):
   return result
 
 
+def CheckGn(input_api, output_api):
+  return input_api.canned_checks.CheckGNFormatted(input_api, output_api)
+
+
 def CheckChangeOnUpload(input_api, output_api):
-  return RunLint(input_api, output_api)
+  return (RunLint(input_api, output_api) +
+          CheckGn(input_api, output_api))
 
 
 def CheckChangeOnCommit(input_api, output_api):
-  return RunLint(input_api, output_api)
+  return (RunLint(input_api, output_api) +
+          CheckGn(input_api, output_api))

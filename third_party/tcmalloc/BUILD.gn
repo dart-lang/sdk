@@ -30,9 +30,7 @@ config("internal_config") {
     "-fno-builtin-pvalloc",
   ]
   if (is_clang) {
-    cflags += [
-      "-Wno-unused-const-variable",
-    ]
+    cflags += [ "-Wno-unused-const-variable" ]
   }
 }
 
@@ -62,19 +60,18 @@ source_set("dynamic_annotations") {
 }
 
 tcmalloc_sources_list = exec_script("../../tools/gypi_to_gn.py",
-                              [rebase_path("tcmalloc_sources.gypi")],
-                              "scope",
-                              ["tcmalloc_sources.gypi"])
-
+                                    [ rebase_path("tcmalloc_sources.gypi") ],
+                                    "scope",
+                                    [ "tcmalloc_sources.gypi" ])
 
 source_set("tcmalloc") {
   configs -= [ "//build/config/compiler:chromium_code" ]
   configs += [ ":internal_config" ]
 
-  public_configs = [":link_config"]
+  public_configs = [ ":link_config" ]
 
   deps = [
-    ":dynamic_annotations"
+    ":dynamic_annotations",
   ]
 
   include_dirs = [
@@ -87,15 +84,14 @@ source_set("tcmalloc") {
   defines = [
     "ENABLE_EMERGENCY_MALLOC",
     "NO_HEAP_CHECK",
+
     # Disable debug even in a Dart Debug build. It is too slow.
     "NDEBUG",
   ]
 
   # Disable stack sampling for heap profiling in Product builds.
   if (is_product) {
-    defines += [
-      "NO_TCMALLOC_SAMPLES",
-    ]
+    defines += [ "NO_TCMALLOC_SAMPLES" ]
   }
 
   cflags = [
@@ -106,25 +102,25 @@ source_set("tcmalloc") {
   ]
 
   if (!is_clang && current_cpu == "x86") {
-    cflags += [
-      "-Wno-format"
-    ]
+    cflags += [ "-Wno-format" ]
   }
 
   set_sources_assignment_filter([
-    # No debug allocator.
-    "gperftools/src/debugallocation.cc",
-    # Not needed when using emergency malloc.
-    "gperftools/src/fake_stacktrace_scope.cc",
-    # Not using the cpuprofiler
-    "gperftools/src/base/thread_lister.c",
-    "gperftools/src/base/thread_lister.h",
-    "gperftools/src/profile-handler.cc",
-    "gperftools/src/profile-handler.h",
-    "gperftools/src/profiledata.cc",
-    "gperftools/src/profiledata.h",
-    "gperftools/src/profiler.cc",
-  ])
+                                  # No debug allocator.
+                                  "gperftools/src/debugallocation.cc",
+
+                                  # Not needed when using emergency malloc.
+                                  "gperftools/src/fake_stacktrace_scope.cc",
+
+                                  # Not using the cpuprofiler
+                                  "gperftools/src/base/thread_lister.c",
+                                  "gperftools/src/base/thread_lister.h",
+                                  "gperftools/src/profile-handler.cc",
+                                  "gperftools/src/profile-handler.h",
+                                  "gperftools/src/profiledata.cc",
+                                  "gperftools/src/profiledata.h",
+                                  "gperftools/src/profiler.cc",
+                                ])
 
   sources = tcmalloc_sources_list.sources
 }

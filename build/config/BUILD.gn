@@ -5,15 +5,11 @@
 # Debug/release ----------------------------------------------------------------
 
 config("debug") {
-  defines = [
-    "DEBUG",
-  ]
+  defines = [ "DEBUG" ]
 }
 
 config("release") {
-  defines = [
-    "NDEBUG"
-  ]
+  defines = [ "NDEBUG" ]
 }
 
 config("product") {

@@ -8,9 +8,9 @@ application_snapshot("pub") {
   main_dart = "../../third_party/pkg/pub/bin/pub.dart"
   training_args = [ "--help" ]
   deps = [
-    "../compiler:dart2js_files_stamp"
+    "../compiler:dart2js_files_stamp",
   ]
   inputs = [
-    "$root_gen_dir/dart2js_files.stamp"
+    "$root_gen_dir/dart2js_files.stamp",
   ]
 }
