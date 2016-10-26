@@ -166,6 +166,16 @@ class AnalysisDriver {
    */
   final _Monitor _hasWork = new _Monitor();
 
+  /**
+   * The controller for the [status] stream.
+   */
+  final _statusController = new StreamController<AnalysisStatus>();
+
+  /**
+   * The last status sent to the [status] stream.
+   */
+  AnalysisStatus _currentStatus = AnalysisStatus.IDLE;
+
   AnalysisDriver(this._logger, this._resourceProvider, this._byteStore,
       this._contentCache, this._sourceFactory, this._analysisOptions) {
     _sdkBundle = _sourceFactory.dartSdk.getLinkedBundle();
@@ -183,6 +193,7 @@ class AnalysisDriver {
   void set priorityFiles(List<String> priorityPaths) {
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
+    _transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -214,7 +225,6 @@ class AnalysisDriver {
       while (true) {
         await _hasWork.signal;
 
-        // TODO(scheglov) implement state transitioning
         if (analysisSection == null) {
           analysisSection = _logger.enter('Analyzing');
         }
@@ -272,11 +282,17 @@ class AnalysisDriver {
         // There is nothing to do.
         analysisSection.exit();
         analysisSection = null;
+        _transitionToIdle();
       }
     } finally {
       print('The stream was cancelled.');
     }
   }
+
+  /**
+   * Return the stream that produces [AnalysisStatus] events.
+   */
+  Stream<AnalysisStatus> get status => _statusController.stream;
 
   /**
    * Add the file with the given [path] to the set of files to analyze.
@@ -288,6 +304,7 @@ class AnalysisDriver {
   void addFile(String path) {
     _explicitFiles.add(path);
     _filesToAnalyze.add(path);
+    _transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -312,6 +329,7 @@ class AnalysisDriver {
   void changeFile(String path) {
     _changedFiles.add(path);
     _filesToAnalyze.add(path);
+    _transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -334,6 +352,7 @@ class AnalysisDriver {
     _requestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
         .add(completer);
+    _transitionToAnalyzing();
     _hasWork.notify();
     return completer.future;
   }
@@ -620,6 +639,27 @@ class AnalysisDriver {
   }
 
   /**
+   * Send a notifications to the [status] stream that the driver started
+   * analyzing.
+   */
+  void _transitionToAnalyzing() {
+    if (_currentStatus != AnalysisStatus.ANALYZING) {
+      _currentStatus = AnalysisStatus.ANALYZING;
+      _statusController.add(AnalysisStatus.ANALYZING);
+    }
+  }
+
+  /**
+   * Send a notifications to the [status] stream that the driver is idle.
+   */
+  void _transitionToIdle() {
+    if (_currentStatus != AnalysisStatus.IDLE) {
+      _currentStatus = AnalysisStatus.IDLE;
+      _statusController.add(AnalysisStatus.IDLE);
+    }
+  }
+
+  /**
    * Verify the API signature for the file with the given [path], and decide
    * which linked libraries should be invalidated, and files reanalyzed.
    *
@@ -701,6 +741,28 @@ class AnalysisResult {
 
   AnalysisResult(this.path, this.uri, this.content, this.contentHash, this.unit,
       this.errors);
+}
+
+/**
+ * The status of [AnalysisDriver]
+ */
+class AnalysisStatus {
+  static const IDLE = const AnalysisStatus._(false);
+  static const ANALYZING = const AnalysisStatus._(true);
+
+  final bool _analyzing;
+
+  const AnalysisStatus._(this._analyzing);
+
+  /**
+   * Return `true` is the driver is analyzing.
+   */
+  bool get isAnalyzing => _analyzing;
+
+  /**
+   * Return `true` is the driver is idle.
+   */
+  bool get isIdle => !_analyzing;
 }
 
 /**
