@@ -158,9 +158,9 @@ class AnalysisDriver {
   final _dependencySignatureMap = <Uri, String>{};
 
   /**
-   * TODO(scheglov) document and improve
+   * The monitor that is signalled when there is work to do.
    */
-  final _hasWorkStreamController = new StreamController<String>();
+  final _Monitor _hasWork = new _Monitor();
 
   AnalysisDriver(this._logger, this._resourceProvider, this._byteStore,
       this._contentCache, this._sourceFactory, this._analysisOptions) {
@@ -203,31 +203,36 @@ class AnalysisDriver {
    */
   Stream<AnalysisResult> get results async* {
     try {
+      PerformanceLogSection analysisSection = null;
       while (true) {
         // TODO(scheglov) implement state transitioning
-        await for (String why in _hasWorkStreamController.stream) {
-          _verifyUnlinkedSignatureOfChangedFiles();
+        await _hasWork.signal;
 
-          // Analyze the first file in the general queue.
-          if (_filesToAnalyze.isNotEmpty) {
-            PerformanceLogSection analysisSection =
-                _logger.enter('Analyze ${_filesToAnalyze.length} files');
-            try {
-              // TODO(scheglov) The loop is strange for now.
-              while (_filesToAnalyze.isNotEmpty) {
-                String path = _filesToAnalyze.first;
-                _filesToAnalyze.remove(path);
-                _File file = _fileForPath(path);
-                AnalysisResult result = _computeAnalysisResult(file);
-                yield result;
-              }
-            } finally {
-              analysisSection.exit();
-            }
-          }
+        if (analysisSection == null) {
+          analysisSection = _logger.enter('Analyzing');
         }
-        // TODO(scheglov) implement
+
+        // TODO(scheglov) verify one file at a time
+        _verifyUnlinkedSignatureOfChangedFiles();
+
+        // Analyze the first file in the general queue.
+        if (_filesToAnalyze.isNotEmpty) {
+          String path = _filesToAnalyze.first;
+          _filesToAnalyze.remove(path);
+          _File file = _fileForPath(path);
+          AnalysisResult result = _computeAnalysisResult(file);
+          yield result;
+        }
+
+        // If there is work to do, notify the monitor.
+        if (_filesToAnalyze.isNotEmpty) {
+          _hasWork.notify();
+        } else {
+          analysisSection.exit();
+          analysisSection = null;
+        }
       }
+      // TODO(scheglov) implement
     } finally {
       print('The stream was cancelled.');
     }
@@ -243,7 +248,7 @@ class AnalysisDriver {
   void addFile(String path) {
     _explicitFiles.add(path);
     _filesToAnalyze.add(path);
-    _hasWorkStreamController.add('do it!');
+    _hasWork.notify();
   }
 
   /**
@@ -267,7 +272,7 @@ class AnalysisDriver {
   void changeFile(String path) {
     _filesToVerifyUnlinkedSignature.add(path);
     _filesToAnalyze.add(path);
-    _hasWorkStreamController.add('do it!');
+    _hasWork.notify();
   }
 
   /**
@@ -289,7 +294,7 @@ class AnalysisDriver {
     _requestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
         .add(completer);
-    _hasWorkStreamController.add(path);
+    _hasWork.notify();
     return completer.future;
   }
 
@@ -939,6 +944,35 @@ class _LibraryNode {
 
   @override
   String toString() => uri.toString();
+}
+
+/**
+ * [_Monitor] can be used to wait for a signal.
+ *
+ * Signals are not queued, the client will receive exactly one signal
+ * regardless of the number of [notify] invocations. The [signal] is reset
+ * after completion and will not complete until [notify] is called next time.
+ */
+class _Monitor {
+  Completer<Null> _completer = new Completer<Null>();
+
+  /**
+   * Return a [Future] that completes when [notify] is called at least once.
+   */
+  Future<Null> get signal async {
+    await _completer.future;
+    _completer = new Completer<Null>();
+  }
+
+  /**
+   * Complete the [signal] future if it is not completed yet. It is safe to
+   * call this method multiple times, but the [signal] will complete only once.
+   */
+  void notify() {
+    if (!_completer.isCompleted) {
+      _completer.complete(true);
+    }
+  }
 }
 
 /**
