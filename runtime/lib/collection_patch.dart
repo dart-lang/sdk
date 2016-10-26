@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+import 'dart:_internal' as internal;
+
 @patch class HashMap<K, V> {
   @patch factory HashMap({ bool equals(K key1, K key2),
-                                 int hashCode(K key),
-                                 bool isValidKey(potentialKey) }) {
+                           int hashCode(K key),
+                           bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
