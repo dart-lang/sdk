@@ -144,6 +144,13 @@ gen_library_src_path("generate_js_cc_file") {
   output = "$target_gen_dir/js_gen.cc"
 }
 
+gen_library_src_path("generate_js_util_cc_file") {
+  name = "js_util"
+  kind = "source"
+  sources = ["../../sdk/lib/js_util/dartium/js_util_dartium.dart"]
+  output = "$target_gen_dir/js_util_gen.cc"
+}
+
 gen_library_src_path("generate_blink_cc_file") {
   name = "_blink"
   kind = "source"
@@ -161,7 +168,7 @@ gen_library_src_path("generate_indexed_db_cc_file") {
 gen_library_src_path("generate_cached_patches_cc_file") {
   name = "cached_patches"
   library_name = "cached_patches.dart"
-  kind = "sources"
+  kind = "source"
   sources = ["../../sdk/lib/js/dartium/cached_patches.dart"]
   output = "$target_gen_dir/cached_patches_gen.cc"
 }
@@ -233,6 +240,7 @@ static_library("libdart_builtin") {
     ":generate_html_cc_file",
     ":generate_html_common_cc_file",
     ":generate_js_cc_file",
+    ":generate_js_util_cc_file",
     ":generate_blink_cc_file",
     ":generate_indexed_db_cc_file",
     ":generate_cached_patches_cc_file",
@@ -364,75 +372,90 @@ source_set("libdart_embedder_noio") {
 }
 
 # A source set for the implementation of 'dart:io' library.
-source_set("embedded_dart_io") {
-  configs += ["..:dart_config",
-              "..:dart_maybe_product_config"]
-  custom_sources_filter = [
-    "*_test.cc",
-    "*_test.h",
-    "builtin.cc",
-    "builtin_gen_snapshot.cc",
-  ]
-  if (!is_mac && !is_ios) {
-    # Dart tree uses *_macos.* instead of *_mac.*
-    custom_sources_filter += [
-      "*_macos.h",
-      "*_macos.cc",
-    ]
+template("dart_io") {
+  extra_sources = []
+  if (defined(invoker.extra_sources)) {
+    extra_sources += invoker.extra_sources
   }
-  set_sources_assignment_filter(custom_sources_filter)
-
-  defines = []
-  if (is_mac || is_ios) {
-    libs = [
-      "CoreFoundation.framework",
-      "Security.framework",
+  source_set(target_name) {
+    configs += ["..:dart_config",
+                "..:dart_maybe_product_config"]
+    custom_sources_filter = [
+      "*_test.cc",
+      "*_test.h",
+      "builtin.cc",
+      "builtin_gen_snapshot.cc",
     ]
-
-    if (is_mac) {
-      libs += [
-        "CoreServices.framework",
+    if (!is_mac && !is_ios) {
+      # Dart tree uses *_macos.* instead of *_mac.*
+      custom_sources_filter += [
+        "*_macos.h",
+        "*_macos.cc",
       ]
     }
-  } else if (defined(is_fuchsia) && is_fuchsia) {
-    defines += [
-      "DART_IO_SECURE_SOCKET_DISABLED"
-    ]
-  } else {
-    deps = [
-      "//third_party/boringssl",
+    set_sources_assignment_filter(custom_sources_filter)
+
+    defines = []
+    if (is_mac || is_ios) {
+      libs = [
+        "CoreFoundation.framework",
+        "Security.framework",
+      ]
+
+      if (is_mac) {
+        libs += [
+          "CoreServices.framework",
+        ]
+      }
+    } else if (defined(is_fuchsia) && is_fuchsia) {
+      defines += [
+        "DART_IO_SECURE_SOCKET_DISABLED"
+      ]
+    } else {
+      deps = [
+        "//third_party/boringssl",
+      ]
+    }
+
+    sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
+    sources += [
+      "builtin_natives.cc",
+      "io_natives.cc",
+      "io_natives.h",
+      "log_android.cc",
+      "log_linux.cc",
+      "log_macos.cc",
+      "log_win.cc",
+      "log.h",
+    ] + extra_sources
+
+    if (is_linux || is_win) {
+      if (dart_use_fallback_root_certificates) {
+        sources += [ "//third_party/root_certificates/root_certificates.cc"]
+      } else {
+        defines += [
+          "DART_IO_ROOT_CERTS_DISABLED",
+        ]
+      }
+    }
+
+    include_dirs = [
+      "..",
+      "//third_party"
     ]
   }
+}
 
-  sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
-  sources += [
+dart_io("embedded_dart_io") {
+  extra_sources = [
     "builtin_nolib.cc",
-    "builtin_natives.cc",
-    "io_natives.cc",
-    "io_natives.h",
     "embedded_dart_io.cc",
     "embedded_dart_io.h",
-    "log_android.cc",
-    "log_linux.cc",
-    "log_macos.cc",
-    "log_win.cc",
-    "log.h",
   ]
+}
 
-  if (is_linux || is_win) {
-    if (dart_use_fallback_root_certificates) {
-      sources += [ "//third_party/root_certificates/root_certificates.cc"]
-    } else {
-      defines += [
-        "DART_IO_ROOT_CERTS_DISABLED",
-      ]
-    }
-  }
-
-  include_dirs = [
-    "..",
-    "//third_party"
-  ]
+dart_io("standalone_dart_io") {
+  extra_sources = []
 }
 
 action("generate_snapshot_bin") {
@@ -532,7 +555,7 @@ template("dart_executable") {
 
     deps = [
       ":gen_resources_cc",
-      ":embedded_dart_io",
+      ":standalone_dart_io",
       ":libdart_builtin",
       "$dart_zlib_path",
     ] + extra_deps
@@ -586,6 +609,9 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
       ":dart_snapshot_cc",
       "../observatory:standalone_observatory_archive",
     ]
+    extra_sources = [
+      "builtin_nolib.cc",
+    ]
   }
 
   dart_executable("dart_noopt") {
@@ -597,6 +623,9 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
       ":dart_snapshot_cc",
       "../observatory:standalone_observatory_archive",
     ]
+    extra_sources = [
+      "builtin_nolib.cc",
+    ]
   }
 
   dart_executable("dart_precompiled_runtime") {
@@ -605,8 +634,11 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
     ]
     extra_deps = [
       "..:libdart_precompiled_runtime",
-      ":dart_snapshot_cc",
       "../observatory:standalone_observatory_archive",
+    ]
+    extra_sources = [
+      "builtin_nolib.cc",
+      "snapshot_empty.cc",
     ]
   }
 }
@@ -617,14 +649,47 @@ dart_executable("dart_bootstrap") {
     "..:dart_no_snapshot_config",
   ]
   extra_deps = [
-    "..:libdart",
+    ":generate_builtin_cc_file",
+    ":generate_io_cc_file",
+    ":generate_io_patch_cc_file",
+    ":generate_html_cc_file",
+    ":generate_html_common_cc_file",
+    ":generate_js_cc_file",
+    ":generate_js_util_cc_file",
+    ":generate_blink_cc_file",
+    ":generate_indexed_db_cc_file",
+    ":generate_cached_patches_cc_file",
+    ":generate_web_gl_cc_file",
+    ":generate_metadata_cc_file",
+    ":generate_web_sql_cc_file",
+    ":generate_svg_cc_file",
+    ":generate_web_audio_cc_file",
+    "..:libdart_nosnapshot_with_precompiler",
   ]
   extra_defines = [
     "NO_OBSERVATORY",
   ]
   extra_sources = [
+    "builtin.cc",
+    "builtin.h",
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
+    # Include generated source files.
+    "$target_gen_dir/builtin_gen.cc",
+    "$target_gen_dir/io_gen.cc",
+    "$target_gen_dir/io_patch_gen.cc",
+    "$target_gen_dir/html_gen.cc",
+    "$target_gen_dir/html_common_gen.cc",
+    "$target_gen_dir/js_gen.cc",
+    "$target_gen_dir/js_util_gen.cc",
+    "$target_gen_dir/blink_gen.cc",
+    "$target_gen_dir/indexed_db_gen.cc",
+    "$target_gen_dir/cached_patches_gen.cc",
+    "$target_gen_dir/web_gl_gen.cc",
+    "$target_gen_dir/metadata_gen.cc",
+    "$target_gen_dir/web_sql_gen.cc",
+    "$target_gen_dir/svg_gen.cc",
+    "$target_gen_dir/web_audio_gen.cc",
   ]
 }
 
@@ -705,7 +770,7 @@ executable("run_vm_tests") {
   deps = [
     "..:libdart",
     ":libdart_builtin",
-    ":embedded_dart_io",
+    ":standalone_dart_io",
     ":dart_snapshot_cc",
     ":generate_snapshot_test_dat_file",
     "$dart_zlib_path",
@@ -743,6 +808,7 @@ executable("run_vm_tests") {
                   ["builtin_impl_sources.gypi"])
 
   sources = [
+    "builtin_nolib.cc",
     "run_vm_tests.cc",
   ] + builtin_impl_tests_list.sources + vm_tests
 
