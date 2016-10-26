@@ -8,6 +8,8 @@
   'sources': [
     'mirrors.cc',
     'mirrors.h',
+    # mirrors_patch.dart needs to be the first dart file because it contains
+    # imports.
     'mirrors_patch.dart',
     'mirrors_impl.dart',
     'mirror_reference.dart',

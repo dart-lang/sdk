@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:nativewrappers';
+
 @patch class _IOCrypto {
   @patch static Uint8List getRandomBytes(int count)
       native "Crypto_GetRandomBytes";

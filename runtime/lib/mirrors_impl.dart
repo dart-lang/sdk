@@ -4,9 +4,6 @@
 
 // VM-specific implementation of the dart:mirrors library.
 
-import "dart:collection" show UnmodifiableListView, UnmodifiableMapView;
-import "dart:async" show Future;
-
 var dirty = false;
 final emptyList = new UnmodifiableListView([]);
 final emptyMap = new UnmodifiableMapView({});

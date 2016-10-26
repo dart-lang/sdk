@@ -42,6 +42,7 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/corelib'),
   new Path('tests/html'),
   new Path('tests/isolate'),
+  new Path('tests/kernel'),
   new Path('tests/language'),
   new Path('tests/lib'),
   new Path('tests/standalone'),

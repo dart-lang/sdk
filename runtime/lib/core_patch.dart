@@ -2,8 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:async";
+import "dart:collection" show LinkedList, LinkedListEntry;
+import 'dart:convert' show ASCII, JSON;
+import "dart:isolate";
 import "dart:math";
 import "dart:typed_data";
+import 'dart:_internal' as internal;
 
 // Equivalent of calling FATAL from C++ code.
 _fatal(msg) native "DartCore_fatal";

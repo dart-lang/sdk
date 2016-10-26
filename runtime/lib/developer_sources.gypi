@@ -7,6 +7,8 @@
 {
   'sources': [
     'developer.cc',
+    # developer.dart needs to be the first dart file because it contains
+    # imports.
     'developer.dart',
     'profiler.cc',
     'profiler.dart',
