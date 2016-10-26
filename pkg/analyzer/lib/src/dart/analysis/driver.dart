@@ -228,7 +228,18 @@ class AnalysisDriver {
           continue;
         }
 
-        // TODO(scheglov) analyze requested files
+        // Analyze a requested file.
+        if (_requestedFiles.isNotEmpty) {
+          String path = _requestedFiles.keys.first;
+          AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
+          _requestedFiles.remove(path).forEach((completer) {
+            completer.complete(result);
+          });
+          yield result;
+          // Repeat the processing loop.
+          _hasWork.notify();
+          continue;
+        }
 
         // Analyze a priority file.
         if (_priorityFiles.isNotEmpty) {
