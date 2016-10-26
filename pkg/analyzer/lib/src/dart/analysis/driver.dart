@@ -198,8 +198,9 @@ class AnalysisDriver {
    *
    * At least one analysis result is produced for every file passed to
    * [addFile] or [changeFile] prior to the next time the analysis state
-   * transitions to "idle". Analysis results for other files are produced
-   * only if the changes affect analysis results of other files.
+   * transitions to "idle", unless the file is later removed from analysis
+   * using [removeFile]. Analysis results for other files are produced only if
+   * the changes affect analysis results of other files.
    *
    * More than one result might be produced for the same file, even if the
    * client does not change the state of the files.
@@ -708,7 +709,7 @@ class _File {
   final AnalysisDriver driver;
 
   /**
-   * The [Source] this [_File] instance represent.
+   * The [Source] this [_File] instance represents.
    */
   final Source source;
 
