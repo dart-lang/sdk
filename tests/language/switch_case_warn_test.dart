@@ -11,7 +11,7 @@
 void testSwitch(int x) {
   // Catch all control flow leaving the switch.
   // Run switch in catch clause to check rethrow.
-  try {
+  TRY: try {
     throw x;
   } catch (x) {
     // Add loop as break/continue target.
@@ -92,14 +92,16 @@ void testSwitch(int x) {
     } while (false);
   } finally {
     // Catch all control flow leaving the switch and ignore it.
-    return;
+    // Use break instead of return to avoid warning for `return` and `return e`
+    // in same function.
+    break TRY;
   }
 }
 
 // All these switch cases should cause warnings.
 void testSwitchWarn(x) {
   // Catch all control flow from the switch and ignore it.
-  try {
+  TRY: try {
     throw 0;
   } catch (e) {
     // Wrap in loop as target for continue/break.
@@ -183,7 +185,9 @@ void testSwitchWarn(x) {
     } while (false);
   } finally {
     // Catch all control flow leaving the switch and ignore it.
-    return;
+    // Use break instead of return to avoid warning for `return` and `return e`
+    // in same function.
+    break TRY;
   }
 }
 
