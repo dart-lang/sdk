@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/declaration_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -165,6 +166,20 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
   void test_metadata_libraryDirective() {
     setupCode('@a library L;');
     checkMetadata('L');
+  }
+
+  void test_metadata_libraryDirective_resynthesized() {
+    CompilationUnit unit = resolveSource('@a library L; const a = null;');
+    expect(unit.directives.single.metadata.single.name.name, 'a');
+    var unitElement = unit.element as CompilationUnitElementImpl;
+    // Damage the unit element - as if "setAnnotations" were not called.
+    // The LibraryElement still has the metadata, we should use it.
+    unitElement.setAnnotations(unit.directives.single.offset, []);
+    expect(unitElement.library.metadata, hasLength(1));
+    // DeclarationResolver on the clone should succeed.
+    CompilationUnit clonedUnit = AstCloner.clone(unit);
+    new DeclarationResolver().resolve(clonedUnit, unit.element);
+    expect(clonedUnit.directives.single.metadata.single.name.name, 'a');
   }
 
   void test_metadata_localFunctionDeclaration() {

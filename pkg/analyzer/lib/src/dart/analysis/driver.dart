@@ -367,26 +367,6 @@ class AnalysisDriver {
    * Compute the [AnalysisResult] for the [file].
    */
   AnalysisResult _computeAnalysisResult(_File file) {
-    // TODO(scheglov) Computing resolved unit fails for these units.
-    // pkg/analyzer/lib/plugin/embedded_resolver_provider.dart
-    // pkg/analyzer/lib/plugin/embedded_resolver_provider.dart
-    if (file.path.endsWith(
-            'pkg/analyzer/lib/plugin/embedded_resolver_provider.dart') ||
-        file.path.endsWith('pkg/analyzer/lib/source/embedder.dart') ||
-        file.path.endsWith('pkg/analyzer/lib/src/generated/ast.dart') ||
-        file.path.endsWith('pkg/analyzer/lib/src/generated/element.dart') ||
-        file.path
-            .endsWith('pkg/analyzer/lib/src/generated/element_handle.dart') ||
-        file.path.endsWith('pkg/analyzer/lib/src/generated/error.dart') ||
-        file.path.endsWith('pkg/analyzer/lib/src/generated/scanner.dart') ||
-        file.path.endsWith('pkg/analyzer/lib/src/generated/sdk_io.dart') ||
-        file.path.endsWith('pkg/analyzer/lib/src/generated/visitors.dart') ||
-        file.path.endsWith('pkg/analyzer/test/generated/constant_test.dart') ||
-        file.path.endsWith('pkg/analyzer/test/source/embedder_test.dart')) {
-      return new AnalysisResult(
-          file.path, file.uri, null, file.contentHash, null, []);
-    }
-
     return _logger.run('Compute analysis result for $file', () {
       _LibraryContext libraryContext = _createLibraryContext(file);
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
