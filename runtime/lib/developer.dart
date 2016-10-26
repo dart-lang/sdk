@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:isolate';
-import 'dart:_internal';
 
 @patch bool debugger({bool when: true,
                      String message}) native "Developer_debugger";
