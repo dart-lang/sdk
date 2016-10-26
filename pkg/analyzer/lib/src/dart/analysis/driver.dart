@@ -119,11 +119,10 @@ class AnalysisDriver {
   final _explicitFiles = new LinkedHashSet<String>();
 
   /**
-   * The set of files were reported as changed through [changeFile] and for
-   * which API signatures should be recomputed and compared before performing
-   * any other analysis.
+   * The set of files were reported as changed through [changeFile] and not
+   * checked for actual changes yet.
    */
-  final _filesToVerifyUnlinkedSignature = new Set<String>();
+  final _changedFiles = new LinkedHashSet<String>();
 
   /**
    * The set of files that are currently scheduled for analysis.
@@ -205,32 +204,36 @@ class AnalysisDriver {
     try {
       PerformanceLogSection analysisSection = null;
       while (true) {
-        // TODO(scheglov) implement state transitioning
         await _hasWork.signal;
 
+        // TODO(scheglov) implement state transitioning
         if (analysisSection == null) {
           analysisSection = _logger.enter('Analyzing');
         }
 
-        // TODO(scheglov) verify one file at a time
-        _verifyUnlinkedSignatureOfChangedFiles();
+        // Verify all changed files one at a time.
+        if (_changedFiles.isNotEmpty) {
+          String path = _removeFirst(_changedFiles);
+          _verifyApiSignatureOfChangedFile(path);
+          // Repeat the processing loop.
+          _hasWork.notify();
+          continue;
+        }
 
         // Analyze the first file in the general queue.
         if (_filesToAnalyze.isNotEmpty) {
-          String path = _filesToAnalyze.first;
-          _filesToAnalyze.remove(path);
+          String path = _removeFirst(_filesToAnalyze);
           _File file = _fileForPath(path);
           AnalysisResult result = _computeAnalysisResult(file);
           yield result;
+          // Repeat the processing loop.
+          _hasWork.notify();
+          continue;
         }
 
-        // If there is work to do, notify the monitor.
-        if (_filesToAnalyze.isNotEmpty) {
-          _hasWork.notify();
-        } else {
-          analysisSection.exit();
-          analysisSection = null;
-        }
+        // There is nothing to do.
+        analysisSection.exit();
+        analysisSection = null;
       }
       // TODO(scheglov) implement
     } finally {
@@ -270,7 +273,7 @@ class AnalysisDriver {
    * [changeFile] invocation.
    */
   void changeFile(String path) {
-    _filesToVerifyUnlinkedSignature.add(path);
+    _changedFiles.add(path);
     _filesToAnalyze.add(path);
     _hasWork.notify();
   }
@@ -517,41 +520,37 @@ class AnalysisDriver {
   }
 
   /**
-   * Verify the API signatures for the changed files, and decide which linked
-   * libraries should be invalidated, and files reanalyzed.
+   * Verify the API signature for the file with the given [path], and decide
+   * which linked libraries should be invalidated, and files reanalyzed.
    *
    * TODO(scheglov) I see that adding a local var changes (full) API signature.
    */
-  void _verifyUnlinkedSignatureOfChangedFiles() {
-    if (_filesToVerifyUnlinkedSignature.isEmpty) {
-      return;
-    }
-    int numOfFiles = _filesToVerifyUnlinkedSignature.length;
-    _logger.run('Verify API signatures of $numOfFiles files', () {
-      bool hasMismatch = false;
-      for (String path in _filesToVerifyUnlinkedSignature) {
-        String oldSignature = _fileApiSignatureMap[path];
-        // Compute the new API signature.
-        // _File.forResolution() also updates the content hash in the cache.
-        _File newFile = _fileForPath(path);
-        String newSignature = newFile.unlinked.apiSignature;
-        // If the old API signature is not null, then the file was used to
-        // compute at least one dependency signature. If the new API signature
-        // is different, then potentially all dependency signatures and
-        // resolution results are invalid.
-        if (oldSignature != null && oldSignature != newSignature) {
-          _logger.writeln('API signature mismatch found for $newFile.');
-          hasMismatch = true;
-        }
-      }
-      if (hasMismatch) {
+  void _verifyApiSignatureOfChangedFile(String path) {
+    _logger.run('Verify API signature of $path', () {
+      String oldSignature = _fileApiSignatureMap[path];
+      // Compute the new API signature.
+      // _File.forResolution() also updates the content hash in the cache.
+      _File newFile = _fileForPath(path);
+      String newSignature = newFile.unlinked.apiSignature;
+      // If the old API signature is not null, then the file was used to
+      // compute at least one dependency signature. If the new API signature
+      // is different, then potentially all dependency signatures and
+      // resolution results are invalid.
+      if (oldSignature != null && oldSignature != newSignature) {
+        _logger.writeln('API signatures mismatch found for $newFile');
         _dependencySignatureMap.clear();
         _filesToAnalyze.addAll(_explicitFiles);
-      } else {
-        _logger.writeln('All API signatures match.');
       }
-      _filesToVerifyUnlinkedSignature.clear();
     });
+  }
+
+  /**
+   * Remove and return the first item in the given [set].
+   */
+  static Object/*=T*/ _removeFirst/*<T>*/(LinkedHashSet<Object/*=T*/ > set) {
+    Object/*=T*/ element = set.first;
+    set.remove(element);
+    return element;
   }
 }
 
