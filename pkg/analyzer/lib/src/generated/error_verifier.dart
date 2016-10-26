@@ -2598,7 +2598,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       Statement statement = statements.last;
       if (statement is Block && statement.statements.isNotEmpty) {
-        statement = statement.statements.last;
+        Block block = statement;
+        statement = block.statements.last;
       }
       // terminated with statement
       if (statement is BreakStatement ||
