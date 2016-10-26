@@ -1707,20 +1707,13 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     // we don't have one target.
     const Function& target =
         Function::Handle(Z, unary_checks.GetTargetAt(0));
-    if (target.recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
-      has_one_target =
-          PolymorphicInstanceCallInstr::ComputeRuntimeType(unary_checks) !=
-              Type::null();
-    } else {
-      const bool polymorphic_target =
-          MethodRecognizer::PolymorphicTarget(target);
-      has_one_target = !polymorphic_target;
-    }
+    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
+    has_one_target = !polymorphic_target;
   }
 
   if (has_one_target) {
-    const Function& target = Function::Handle(Z, unary_checks.GetTargetAt(0));
-    const RawFunction::Kind function_kind = target.kind();
+    RawFunction::Kind function_kind =
+        Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
     if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
       PolymorphicInstanceCallInstr* call =
           new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,

@@ -3231,67 +3231,6 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
 
-RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
-    const ICData& ic_data) {
-  bool is_string = true;
-  bool is_integer = true;
-  bool is_double = true;
-
-  const intptr_t num_checks = ic_data.NumberOfChecks();
-  for (intptr_t i = 0; i < num_checks; i++) {
-    const intptr_t cid = ic_data.GetReceiverClassIdAt(i);
-    is_string = is_string && RawObject::IsStringClassId(cid);
-    is_integer = is_integer && RawObject::IsIntegerClassId(cid);
-    is_double = is_double && (cid == kDoubleCid);
-  }
-
-  if (is_string) {
-    return Type::StringType();
-  } else if (is_integer) {
-    return Type::IntType();
-  } else if (is_double) {
-    return Type::Double();
-  }
-
-  return Type::null();
-}
-
-
-Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!HasSingleRecognizedTarget() || with_checks()) {
-    return this;
-  }
-
-  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
-  if (target.recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
-    const AbstractType& type =
-        AbstractType::Handle(ComputeRuntimeType(ic_data()));
-    if (!type.IsNull()) {
-      return flow_graph->GetConstant(type);
-    }
-  }
-
-  return this;
-}
-
-
-Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
-  if (!FLAG_precompiled_mode) {
-    return this;
-  }
-
-  if (function().recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
-    if (input_use_list() == NULL) {
-      // This function has only environment uses. In precompiled mode it is
-      // fine to remove it - because we will never deoptimize.
-      return flow_graph->constant_dead();
-    }
-  }
-
-  return this;
-}
-
-
 LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
   return MakeCallSummary(zone);
