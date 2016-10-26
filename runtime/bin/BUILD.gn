@@ -745,7 +745,10 @@ dart_executable("dart_no_observatory") {
     extra_deps += [ ":hello_fuchsia" ]
   }
   extra_defines = [ "NO_OBSERVATORY" ]
-  extra_sources = [ "observatory_assets_empty.cc" ]
+  extra_sources = [
+    "builtin_nolib.cc",
+    "observatory_assets_empty.cc",
+  ]
 }
 
 executable("process_test") {
