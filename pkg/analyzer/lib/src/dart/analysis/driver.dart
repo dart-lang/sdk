@@ -146,6 +146,13 @@ class AnalysisDriver {
   final _fileContentHashMap = <String, String>{};
 
   /**
+   * The API signatures corresponding to [_fileContentHashMap].
+   *
+   * It maps file paths to the unlinked API signatures.
+   */
+  final _fileApiSignatureMap = <String, String>{};
+
+  /**
    * Mapping from library URIs to the dependency signature of the library.
    */
   final _dependencySignatureMap = <Uri, String>{};
@@ -501,7 +508,7 @@ class AnalysisDriver {
     Source fileSource = _resourceProvider.getFile(path).createSource();
     Uri uri = _sourceFactory.restoreUri(fileSource);
     Source source = _resourceProvider.getFile(path).createSource(uri);
-    return new _File(this, source);
+    return new _File.forResolution(this, source);
   }
 
   /**
@@ -516,24 +523,27 @@ class AnalysisDriver {
     }
     int numOfFiles = _filesToVerifyUnlinkedSignature.length;
     _logger.run('Verify API signatures of $numOfFiles files', () {
+      bool hasMismatch = false;
       for (String path in _filesToVerifyUnlinkedSignature) {
-        _File file = _fileForPath(path);
-        // Get the existing old API signature, maybe null.
-        String oldSignature = file.currentUnlinked?.apiSignature;
-        // Clear the content hash cache, so force the file reading.
-        _fileContentHashMap.remove(path);
+        String oldSignature = _fileApiSignatureMap[path];
         // Compute the new API signature.
-        String newSignature = file.unlinked.apiSignature;
-        // If the signatures are not the same, then potentially every linked
-        // library is inconsistent and should be recomputed, and every explicit
-        // file has inconsistent analysis results which also should be recomputed.
-        if (oldSignature != newSignature) {
-          _logger.writeln('API signature mismatch found for $file.');
-          _dependencySignatureMap.clear();
-          _filesToAnalyze.addAll(_explicitFiles);
-          // Stop the verification, and restart analysis.
-          break;
+        // _File.forResolution() also updates the content hash in the cache.
+        _File newFile = _fileForPath(path);
+        String newSignature = newFile.unlinked.apiSignature;
+        // If the old API signature is not null, then the file was used to
+        // compute at least one dependency signature. If the new API signature
+        // is different, then potentially all dependency signatures and
+        // resolution results are invalid.
+        if (oldSignature != null && oldSignature != newSignature) {
+          _logger.writeln('API signature mismatch found for $newFile.');
+          hasMismatch = true;
         }
+      }
+      if (hasMismatch) {
+        _dependencySignatureMap.clear();
+        _filesToAnalyze.addAll(_explicitFiles);
+      } else {
+        _logger.writeln('All API signatures match.');
       }
       _filesToVerifyUnlinkedSignature.clear();
     });
@@ -665,13 +675,21 @@ class PerformanceLogSection {
 /**
  * Information about a file being analyzed, explicitly or implicitly.
  *
- * It keeps a consistent view on its [content], [contentHash] and [unit].
+ * It provides a stable, consistent view on its [content], [contentHash],
+ * [unlinked] and [unit].
  *
- * Instances of this class may only be used during computing a single analysis
- * result and should not be cached anywhere. We need this limitation to prevent
- * references from caches to the resolved [unit], so to element models, etc.
- * The data structures should be short lived - computed, returned to the client,
- * processed there and quickly thrown away.
+ * A new file can be created either for resolution or for linking.
+ *
+ * When file is created for linking, it assumes that the file has not been
+ * changed since the last time its content was read and hashed. So, this
+ * content hash is also used to look for an existing unlinked bundle in the
+ * [AnalysisDriver._byteStore]. If any of the caches is empty, the file is
+ * created without caching, as for resolution.
+ *
+ * When file is created for resolution, we always read the content, compute its
+ * hash and update [AnalysisDriver._fileContentHashMap], parse the content,
+ * compute the unlinked bundle and update [AnalysisDriver._fileApiSignatureMap].
+ * It is important to keep these two maps in sync.
  */
 class _File {
   /**
@@ -684,157 +702,50 @@ class _File {
    */
   final Source source;
 
-  String _content;
-  String _contentHash;
-  CompilationUnit _unit;
-
-  _File(this.driver, this.source);
+  /**
+   * The [source] content, or `null` if this file is for linking.
+   */
+  final String content;
 
   /**
-   * Return the current content of the file.
-   *
-   * If the [_content] field if it is still `null`, get the content from the
-   * content cache or from the [source]. If the content cannot be accessed
-   * because of an exception, it considers to be an empty string.
-   *
-   * When a new content is read, the new [_contentHash] is computed and the
-   * current file state is updated.
+   * The [source] content hash, not `null` even if [content] is `null`.
    */
-  String get content {
-    if (_content == null) {
-      _readContentAndComputeHash();
-    }
-    return _content;
-  }
+  final String contentHash;
 
   /**
-   * Ensure that the content hash is set for this [_File] instance, return it.
-   *
-   * If the content hash has already been set for this [_File] instance, it is
-   * not updated here. But the hash value might be updated on [content] access.
-   *
-   * If the content hash is known in the current file state, use it.
-   *
-   * Otherwise, read the [content], compute the hash, put it into the current
-   * file state, and update the [contentHash] field.
-   *
-   * The client should not remember values of this property, because its value
-   * might change when [content] is read and the hash is recomputed.
+   * The unlinked bundle, not `null`.
    */
-  String get contentHash {
-    _contentHash ??= currentContentHash;
-    if (_contentHash == null) {
-      _readContentAndComputeHash();
-    }
-    return _contentHash;
-  }
+  final PackageBundle unlinked;
 
   /**
-   * Return the hash of the file content in the current file state, or `null`
-   * if the current file state does not know the current file content hash.
+   * The unresolved unit, not `null` if this file is for resolution.
    */
-  String get currentContentHash {
-    return driver._fileContentHashMap[path];
-  }
+  final CompilationUnit unit;
 
-  /**
-   * Return the unlinked bundle for the current file state, or `null`.
-   */
-  PackageBundle get currentUnlinked {
-    String hash = currentContentHash;
-    if (hash != null) {
-      String key = '$hash.unlinked';
+  factory _File.forLinking(AnalysisDriver driver, Source source) {
+    // If we have enough cached information, use it.
+    String contentHash = driver._fileContentHashMap[source.fullName];
+    if (contentHash != null) {
+      String key = '$contentHash.unlinked';
       List<int> bytes = driver._byteStore.get(key);
       if (bytes != null) {
-        return new PackageBundle.fromBuffer(bytes);
+        PackageBundle unlinked = new PackageBundle.fromBuffer(bytes);
+        return new _File._(driver, source, null, contentHash, unlinked, null);
       }
     }
-    return null;
+    // Otherwise, read the source, parse and build a new unlinked bundle.
+    return new _File.forResolution(driver, source);
   }
 
-  String get path => source.fullName;
-
-  /**
-   * Return the unresolved [CompilationUnit] of the file.
-   *
-   * Performing resolution and computing errors is done in a separate analysis
-   * context. In the future we might push the existing unresolved unit into the
-   * analysis context, so at some point the unit might become resolved.
-   */
-  CompilationUnit get unit {
-    if (_unit == null) {
-      AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
-
-      CharSequenceReader reader = new CharSequenceReader(content);
-      Scanner scanner = new Scanner(source, reader, errorListener);
-      scanner.scanGenericMethodComments = driver._analysisOptions.strongMode;
-      Token token = scanner.tokenize();
-      LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-      Parser parser = new Parser(source, errorListener);
-      parser.parseGenericMethodComments = driver._analysisOptions.strongMode;
-      _unit = parser.parseCompilationUnit(token);
-      _unit.lineInfo = lineInfo;
-    }
-    return _unit;
-  }
-
-  /**
-   * Return the unlinked bundle for the current file state.
-   *
-   * If the file [contentHash] is cached, try to load the bundle with this
-   * hash. Otherwise, read the content, compute the new hash and try to find
-   * the existing bundle, or parse the content and compute a new bundle.
-   */
-  PackageBundle get unlinked {
-    String key = '$contentHash.unlinked';
-    List<int> bytes = driver._byteStore.get(key);
-    if (bytes == null) {
-      driver._logger.run('Create unlinked for $this', () {
-        UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-        PackageBundleAssembler assembler = new PackageBundleAssembler();
-        assembler.addUnlinkedUnitWithHash(
-            uri.toString(), unlinkedUnit, contentHash);
-        bytes = assembler.assemble().toBuffer();
-        driver._byteStore.put(key, bytes);
-      });
-    }
-    return new PackageBundle.fromBuffer(bytes);
-  }
-
-  Uri get uri => source.uri;
-
-  /**
-   * Return the [_File] for the [uri] referenced in this file.
-   */
-  _File resolveUri(String uri) {
-    // TODO(scheglov) Consider removing this caching after implementing other
-    // optimizations, e.g. changeFile() optimization.
-    Source uriSource = driver._uriResolutionCache
-        .putIfAbsent(this.uri, () => <String, Source>{})
-        .putIfAbsent(uri, () => driver._sourceFactory.resolveUri(source, uri));
-    return new _File(driver, uriSource);
-  }
-
-  @override
-  String toString() => uri.toString();
-
-  /**
-   * Fill the [_content] and [_contentHash] fields.
-   *
-   * If the [_content] field is still `null`, get the content from the
-   * content cache or from the [source]. If the content cannot be accessed
-   * because of an exception, it is considered to be an empty string.
-   *
-   * When a new content is read, the new [_contentHash] should be computed and
-   * the current file state should be updated.
-   */
-  void _readContentAndComputeHash() {
+  factory _File.forResolution(AnalysisDriver driver, Source source) {
+    String path = source.fullName;
+    // Read the content.
+    String content;
     try {
-      _content = driver._contentCache.getContents(source);
-      _content ??= source.contents.data;
+      content = driver._contentCache.getContents(source);
+      content ??= source.contents.data;
     } catch (_) {
-      _content = '';
+      content = '';
       // TODO(scheglov) We fail to report URI_DOES_NOT_EXIST.
       // On one hand we need to provide an unlinked bundle to prevent
       // analysis context from reading the file (we want it to work
@@ -844,11 +755,76 @@ class _File {
       // for missing files. Maybe add this feature to SummaryDataStore?
     }
     // Compute the content hash.
-    List<int> textBytes = UTF8.encode(_content);
+    List<int> textBytes = UTF8.encode(content);
     List<int> hashBytes = md5.convert(textBytes).bytes;
-    _contentHash = hex.encode(hashBytes);
+    String contentHash = hex.encode(hashBytes);
+    driver._fileContentHashMap[path] = contentHash;
+    // Parse the unit.
+    CompilationUnit unit = _parse(driver, source, content);
+    // Prepare the unlinked bundle.
+    PackageBundle unlinked;
+    {
+      String key = '$contentHash.unlinked';
+      List<int> bytes = driver._byteStore.get(key);
+      if (bytes == null) {
+        driver._logger.run('Create unlinked for $path', () {
+          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+          PackageBundleAssembler assembler = new PackageBundleAssembler();
+          assembler.addUnlinkedUnitWithHash(
+              source.uri.toString(), unlinkedUnit, contentHash);
+          bytes = assembler.assemble().toBuffer();
+          driver._byteStore.put(key, bytes);
+        });
+      }
+      unlinked = new PackageBundle.fromBuffer(bytes);
+      driver._fileApiSignatureMap[path] = unlinked.apiSignature;
+    }
     // Update the current file state.
-    driver._fileContentHashMap[path] = _contentHash;
+    return new _File._(driver, source, content, contentHash, unlinked, unit);
+  }
+
+  _File._(this.driver, this.source, this.content, this.contentHash,
+      this.unlinked, this.unit);
+
+  String get path => source.fullName;
+
+  Uri get uri => source.uri;
+
+  /**
+   * Return the [_File] for the [uri] referenced in this file.
+   *
+   * This [_File] can be used only for linking.
+   */
+  _File resolveUri(String uri) {
+    // TODO(scheglov) Consider removing this caching after implementing other
+    // optimizations, e.g. changeFile() optimization.
+    Source uriSource = driver._uriResolutionCache
+        .putIfAbsent(this.uri, () => <String, Source>{})
+        .putIfAbsent(uri, () => driver._sourceFactory.resolveUri(source, uri));
+    return new _File.forLinking(driver, uriSource);
+  }
+
+  @override
+  String toString() => path;
+
+  /**
+   * Return the parsed unresolved [CompilationUnit] for the given [content].
+   */
+  static CompilationUnit _parse(
+      AnalysisDriver driver, Source source, String content) {
+    AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
+
+    CharSequenceReader reader = new CharSequenceReader(content);
+    Scanner scanner = new Scanner(source, reader, errorListener);
+    scanner.scanGenericMethodComments = driver._analysisOptions.strongMode;
+    Token token = scanner.tokenize();
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+    Parser parser = new Parser(source, errorListener);
+    parser.parseGenericMethodComments = driver._analysisOptions.strongMode;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = lineInfo;
+    return unit;
   }
 }
 
