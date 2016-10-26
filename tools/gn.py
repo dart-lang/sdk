@@ -91,6 +91,8 @@ def to_gn_args(args, mode, arch, target_os):
   gn_args['dart_use_tcmalloc'] = (gn_args['target_os'] == 'linux'
                                   and not args.asan)
 
+  gn_args['arm_float_abi'] = 'hard'
+
   gn_args['is_debug'] = mode == 'debug'
   gn_args['is_release'] = mode == 'release'
   gn_args['is_product'] = mode == 'product'
