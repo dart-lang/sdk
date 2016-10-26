@@ -81,6 +81,9 @@ class ObjectStore {
   void set_int_type(const Type& value) {
     int_type_ = value.raw();
   }
+  static intptr_t int_type_offset() {
+    return OFFSET_OF(ObjectStore, int_type_);
+  }
 
   RawClass* integer_implementation_class() const {
     return integer_implementation_class_;
@@ -93,14 +96,16 @@ class ObjectStore {
   void set_smi_class(const Class& value) { smi_class_ = value.raw(); }
 
   RawType* smi_type() const { return smi_type_; }
-  void set_smi_type(const Type& value) { smi_type_ = value.raw();
-  }
+  void set_smi_type(const Type& value) { smi_type_ = value.raw(); }
 
   RawClass* double_class() const { return double_class_; }
   void set_double_class(const Class& value) { double_class_ = value.raw(); }
 
   RawType* double_type() const { return double_type_; }
   void set_double_type(const Type& value) { double_type_ = value.raw(); }
+  static intptr_t double_type_offset() {
+    return OFFSET_OF(ObjectStore, double_type_);
+  }
 
   RawClass* mint_class() const { return mint_class_; }
   void set_mint_class(const Class& value) { mint_class_ = value.raw(); }
@@ -114,6 +119,9 @@ class ObjectStore {
   RawType* string_type() const { return string_type_; }
   void set_string_type(const Type& value) {
     string_type_ = value.raw();
+  }
+  static intptr_t string_type_offset() {
+    return OFFSET_OF(ObjectStore, string_type_);
   }
 
   RawClass* compiletime_error_class() const {

@@ -72,11 +72,11 @@ DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, support_externalizable_strings);
 
-
 static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
 static const char* const kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
+
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.
 RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];

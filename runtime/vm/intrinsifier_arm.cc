@@ -1579,16 +1579,103 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+static void RangeCheck(Assembler* assembler,
+                       Register val,
+                       Register tmp,
+                       intptr_t low,
+                       intptr_t high,
+                       Condition cc,
+                       Label* target) {
+  __ AddImmediate(tmp, val, -low);
+  __ CompareImmediate(tmp, high - low);
+  __ b(target, cc);
+}
+
+
+const Condition kIfNotInRange = HI;
+const Condition kIfInRange = LS;
+
+
+static void JumpIfInteger(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kSmiCid, kBigintCid, kIfInRange, target);
+}
+
+
+static void JumpIfNotInteger(Assembler* assembler,
+                             Register cid,
+                             Register tmp,
+                             Label* target) {
+  RangeCheck(assembler, cid, tmp, kSmiCid, kBigintCid, kIfNotInRange, target);
+}
+
+
+static void JumpIfString(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler,
+             cid,
+             tmp,
+             kOneByteStringCid,
+             kExternalTwoByteStringCid,
+             kIfInRange,
+             target);
+}
+
+
+static void JumpIfNotString(Assembler* assembler,
+                            Register cid,
+                            Register tmp,
+                            Label* target) {
+  RangeCheck(assembler,
+             cid,
+             tmp,
+             kOneByteStringCid,
+             kExternalTwoByteStringCid,
+             kIfNotInRange,
+             target);
+}
+
+
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, use_canonical_type, not_double, not_integer;
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
+
   __ CompareImmediate(R1, kClosureCid);
   __ b(&fall_through, EQ);  // Instance is a closure.
-  __ LoadClassById(R2, R1);
-  // R2: class of instance (R0).
 
+  __ CompareImmediate(R1, kNumPredefinedCids);
+  __ b(&use_canonical_type, HI);
+
+  __ CompareImmediate(R1, kDoubleCid);
+  __ b(&not_double, NE);
+
+  __ LoadIsolate(R0);
+  __ LoadFromOffset(kWord, R0, R0, Isolate::object_store_offset());
+  __ LoadFromOffset(kWord, R0, R0, ObjectStore::double_type_offset());
+  __ Ret();
+
+  __ Bind(&not_double);
+  JumpIfNotInteger(assembler, R1, R0, &not_integer);
+  __ LoadIsolate(R0);
+  __ LoadFromOffset(kWord, R0, R0, Isolate::object_store_offset());
+  __ LoadFromOffset(kWord, R0, R0, ObjectStore::int_type_offset());
+  __ Ret();
+
+  __ Bind(&not_integer);
+  JumpIfNotString(assembler, R1, R0, &use_canonical_type);
+  __ LoadIsolate(R0);
+  __ LoadFromOffset(kWord, R0, R0, Isolate::object_store_offset());
+  __ LoadFromOffset(kWord, R0, R0, ObjectStore::string_type_offset());
+  __ Ret();
+
+  __ Bind(&use_canonical_type);
+  __ LoadClassById(R2, R1);
   __ ldrh(R3, FieldAddress(R2, Class::num_type_arguments_offset()));
   __ CompareImmediate(R3, 0);
   __ b(&fall_through, NE);
@@ -1596,6 +1683,61 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ ldr(R0, FieldAddress(R2, Class::canonical_type_offset()));
   __ CompareObject(R0, Object::null_object());
   __ b(&fall_through, EQ);
+  __ Ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
+  Label fall_through, different_cids, equal, not_equal, not_integer;
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ LoadClassIdMayBeSmi(R1, R0);
+
+  // Check if left hand size is a closure. Closures are handled in the runtime.
+  __ CompareImmediate(R1, kClosureCid);
+  __ b(&fall_through, EQ);
+
+  __ ldr(R0, Address(SP, 1 * kWordSize));
+  __ LoadClassIdMayBeSmi(R2, R0);
+
+  // Check whether class ids match. If class ids don't match objects can still
+  // have the same runtime type (e.g. multiple string implementation classes
+  // map to a single String type).
+  __ cmp(R1, Operand(R2));
+  __ b(&different_cids, NE);
+
+  // Objects have the same class and neither is a closure.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(R3, R1);
+  __ ldrh(R3, FieldAddress(R3, Class::num_type_arguments_offset()));
+  __ CompareImmediate(R3, 0);
+  __ b(&fall_through, NE);
+
+  __ Bind(&equal);
+  __ LoadObject(R0, Bool::True());
+  __ Ret();
+
+  // Class ids are different. Check if we are comparing runtime types of
+  // two strings (with different representations) or two integers.
+  __ Bind(&different_cids);
+  __ CompareImmediate(R1, kNumPredefinedCids);
+  __ b(&not_equal, HI);
+
+  // Check if both are integers.
+  JumpIfNotInteger(assembler, R1, R0, &not_integer);
+  JumpIfInteger(assembler, R2, R0, &equal);
+  __ b(&not_equal);
+
+  __ Bind(&not_integer);
+  // Check if both are strings.
+  JumpIfNotString(assembler, R1, R0, &not_equal);
+  JumpIfString(assembler, R2, R0, &equal);
+
+  // Neither strings nor integers and have different class ids.
+  __ Bind(&not_equal);
+  __ LoadObject(R0, Bool::False());
   __ Ret();
 
   __ Bind(&fall_through);

@@ -224,6 +224,9 @@ class Isolate : public BaseIsolate {
 
   ObjectStore* object_store() const { return object_store_; }
   void set_object_store(ObjectStore* value) { object_store_ = value; }
+  static intptr_t object_store_offset() {
+    return OFFSET_OF(Isolate, object_store_);
+  }
 
   ApiState* api_state() const { return api_state_; }
   void set_api_state(ApiState* value) { api_state_ = value; }
