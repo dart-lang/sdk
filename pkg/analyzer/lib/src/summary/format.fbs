@@ -782,6 +782,46 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
+ * Information about a resolved unit.
+ */
+table AnalysisDriverResolvedUnit {
+  /**
+   * The full list of analysis errors, both syntactic and semantic.
+   */
+  errors:[AnalysisDriverUnitError] (id: 0);
+}
+
+/**
+ * Information about an error in a resolved unit.
+ */
+table AnalysisDriverUnitError {
+  /**
+   * The optional correction hint for the error.
+   */
+  correction:string (id: 4);
+
+  /**
+   * The length of the error in the file.
+   */
+  length:uint (id: 1);
+
+  /**
+   * The message of the error.
+   */
+  message:string (id: 3);
+
+  /**
+   * The offset from the beginning of the file.
+   */
+  offset:uint (id: 0);
+
+  /**
+   * The unique name of the error code.
+   */
+  uniqueName:string (id: 2);
+}
+
+/**
  * Information about an element code range.
  */
 table CodeRange {

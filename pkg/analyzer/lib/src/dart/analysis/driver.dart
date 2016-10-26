@@ -236,7 +236,8 @@ class AnalysisDriver {
           for (String path in _priorityFiles) {
             if (_filesToAnalyze.remove(path)) {
               _File file = _fileForPath(path);
-              AnalysisResult result = _computeAnalysisResult(file);
+              AnalysisResult result =
+                  _computeAnalysisResult(file, withUnit: true);
               yield result;
               break;
             }
@@ -252,7 +253,7 @@ class AnalysisDriver {
         if (_filesToAnalyze.isNotEmpty) {
           String path = _removeFirst(_filesToAnalyze);
           _File file = _fileForPath(path);
-          AnalysisResult result = _computeAnalysisResult(file);
+          AnalysisResult result = _computeAnalysisResult(file, withUnit: false);
           yield result;
           // Repeat the processing loop.
           _hasWork.notify();
@@ -366,10 +367,32 @@ class AnalysisDriver {
 
   /**
    * Compute the [AnalysisResult] for the [file].
+   *
+   * The result will have the fully resolved unit only if [withUnit] is `true`.
    */
-  AnalysisResult _computeAnalysisResult(_File file) {
+  AnalysisResult _computeAnalysisResult(_File file, {bool withUnit: false}) {
+    // If we don't need to the fully resolved unit, check for a cached result.
+    if (!withUnit) {
+      AnalysisResult result = _getCachedAnalysisResult(file);
+      if (result != null) {
+        return result;
+      }
+    }
+
+    // We need the fully resolved unit, or the result is not cached.
     return _logger.run('Compute analysis result for $file', () {
       _LibraryContext libraryContext = _createLibraryContext(file);
+
+      // We recomputed the dependency hash, and we might have a cached result.
+      if (!withUnit) {
+        AnalysisResult result = _getCachedAnalysisResult(file);
+        if (result != null) {
+          _logger.writeln('Return the cached analysis result.');
+          return result;
+        }
+      }
+
+      // Still no result, compute and store it.
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
         analysisContext.setContents(file.source, file.content);
@@ -377,6 +400,25 @@ class AnalysisDriver {
         CompilationUnit resolvedUnit =
             analysisContext.resolveCompilationUnit2(file.source, file.source);
         List<AnalysisError> errors = analysisContext.computeErrors(file.source);
+
+        // Store the result into the cache.
+        {
+          List<int> bytes = new AnalysisDriverResolvedUnitBuilder(
+                  errors: errors
+                      .map((error) => new AnalysisDriverUnitErrorBuilder(
+                          offset: error.offset,
+                          length: error.length,
+                          uniqueName: error.errorCode.uniqueName,
+                          message: error.message,
+                          correction: error.correction))
+                      .toList())
+              .toBuffer();
+          String key = _getResolvedUnitKey(file);
+          _byteStore.put(key, bytes);
+        }
+
+        // Return the full result.
+        _logger.writeln('Computed new analysis result.');
         return new AnalysisResult(file.path, file.uri, file.content,
             file.contentHash, resolvedUnit, errors);
       } finally {
@@ -524,6 +566,47 @@ class AnalysisDriver {
     Uri uri = _sourceFactory.restoreUri(fileSource);
     Source source = _resourceProvider.getFile(path).createSource(uri);
     return new _File.forResolution(this, source);
+  }
+
+  /**
+   * If we know the dependency signature for the [file], try to load the
+   * analysis result from the cache. Return `null` if not found.
+   */
+  AnalysisResult _getCachedAnalysisResult(_File file) {
+    String key = _getResolvedUnitKey(file);
+    if (key != null) {
+      List<int> bytes = _byteStore.get(key);
+      if (bytes != null) {
+        var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
+        List<AnalysisError> errors = unit.errors
+            .map((error) => new AnalysisError.forValues(
+                file.source,
+                error.offset,
+                error.length,
+                ErrorCode.byUniqueName(error.uniqueName),
+                error.message,
+                error.correction))
+            .toList();
+        return new AnalysisResult(
+            file.path, file.uri, null, file.contentHash, null, errors);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Return the key to store fully resolved results for the [file] into the
+   * cache. Return `null` if the dependency signature is not known yet.
+   */
+  String _getResolvedUnitKey(_File file) {
+    String dependencyHash = _dependencySignatureMap[file.uri];
+    if (dependencyHash != null) {
+      ApiSignature signature = new ApiSignature();
+      signature.addString(dependencyHash);
+      signature.addString(file.contentHash);
+      return '${signature.toHex()}.resolved';
+    }
+    return null;
   }
 
   /**
