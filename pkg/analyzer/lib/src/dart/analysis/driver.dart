@@ -108,15 +108,20 @@ class AnalysisDriver {
   PackageBundle _sdkBundle;
 
   /**
+   * The set of explicitly analyzed files.
+   */
+  final _explicitFiles = new LinkedHashSet<String>();
+
+  /**
+   * The set of priority files, that should be analyzed sooner.
+   */
+  final _priorityFiles = new LinkedHashSet<String>();
+
+  /**
    * The mapping from the files for which analysis was requested using
    * [getResult] to the [Completer]s to report the result.
    */
   final _requestedFiles = <String, List<Completer<AnalysisResult>>>{};
-
-  /**
-   * The set of explicitly analyzed files.
-   */
-  final _explicitFiles = new LinkedHashSet<String>();
 
   /**
    * The set of files were reported as changed through [changeFile] and not
@@ -176,7 +181,9 @@ class AnalysisDriver {
    * between priority files, nor between priority and non-priority files.
    */
   void set priorityFiles(List<String> priorityPaths) {
-    // TODO(scheglov) implement
+    _priorityFiles.clear();
+    _priorityFiles.addAll(priorityPaths);
+    _hasWork.notify();
   }
 
   /**
@@ -220,7 +227,27 @@ class AnalysisDriver {
           continue;
         }
 
-        // Analyze the first file in the general queue.
+        // TODO(scheglov) analyze requested files
+
+        // Analyze a priority file.
+        if (_priorityFiles.isNotEmpty) {
+          bool analyzed = false;
+          for (String path in _priorityFiles) {
+            if (_filesToAnalyze.remove(path)) {
+              _File file = _fileForPath(path);
+              AnalysisResult result = _computeAnalysisResult(file);
+              yield result;
+              break;
+            }
+          }
+          // Repeat the processing loop.
+          if (analyzed) {
+            _hasWork.notify();
+            continue;
+          }
+        }
+
+        // Analyze a general file.
         if (_filesToAnalyze.isNotEmpty) {
           String path = _removeFirst(_filesToAnalyze);
           _File file = _fileForPath(path);
@@ -235,7 +262,6 @@ class AnalysisDriver {
         analysisSection.exit();
         analysisSection = null;
       }
-      // TODO(scheglov) implement
     } finally {
       print('The stream was cancelled.');
     }
