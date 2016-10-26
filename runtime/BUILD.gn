@@ -303,8 +303,8 @@ executable("libdart_dependency_helper") {
     "third_party/double-conversion/src:libdouble_conversion",
     "vm:libdart_lib",
     "vm:libdart_lib_nosnapshot",
-    "vm:libdart_platform",
     "vm:libdart_vm",
+    "vm:libdart_vm_nosnapshot",
   ]
   sources = [
     "vm/libdart_dependency_helper.cc",
