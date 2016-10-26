@@ -26,7 +26,6 @@ const List<String> defaultTestSelectors = const [
   'pkg',
   'analyze_library',
   'service',
-  'kernel',
   'observatory_ui'
 ];
 
@@ -76,15 +75,9 @@ class TestOptionsParser {
 
    dart2app:
    dart2appjit: Compile the Dart code into an app snapshot before running test
-          (only valid with dart_app runtime)
-
-   dartk: Compile the Dart source into Kernel before running test.
-
-   dartkp: Compiler the Dart source into Kernel and then Kernel into AOT
-   snapshot before running the test.''',
+          (only valid with dart_app runtime)''',
           ['-c', '--compiler'],
-          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app',
-           'dart2appjit', 'dartk', 'dartkp'],
+          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app', 'dart2appjit'],
           'none'),
       // TODO(antonm): fix the option drt.
       new _TestOptionSpecification(
@@ -162,16 +155,6 @@ class TestOptionsParser {
             'simdbc64',
           ],
           'x64'),
-      new _TestOptionSpecification(
-          'kernel_transformers',
-          'The kernel transformations to apply in order (separated by comma). '
-          'A transformer can either be just a "name" (in which case it must be '
-          'available in kernel/bin/tansform.dart) or a "name:path" pair '
-          '(in which case "path" must point to an executable script which takes'
-          ' `input-file` and `output-file` as arguments).',
-          ['--kernel_transformers'],
-          [],
-          ''),
       new _TestOptionSpecification(
           'system',
           'The operating system to run tests on',
@@ -694,12 +677,6 @@ Note: currently only implemented for dart2js.''',
       case 'precompiler':
         validRuntimes = const ['dart_precompiled'];
         break;
-      case 'dartk':
-        validRuntimes = const ['vm'];
-        break;
-      case 'dartkp':
-        validRuntimes = const ['dart_precompiled'];
-        break;
       case 'none':
         validRuntimes = const [
           'vm',
@@ -709,13 +686,6 @@ Note: currently only implemented for dart2js.''',
           'DartiumOnAndroid'
         ];
         break;
-    }
-    var kernelCompilers = const ['dartk', 'dartkp'];
-    if (config['kernel_transformers']?.length > 0 &&
-        !kernelCompilers.contains(config['compiler'])) {
-      isValid = false;
-      print("Warning: The `--kernel_transformers` option can only be used in "
-            "combination with the ${kernelCompilers.join(', ')} compilers.");
     }
     if (!validRuntimes.contains(config['runtime'])) {
       isValid = false;
@@ -868,9 +838,9 @@ Note: currently only implemented for dart2js.''',
     if (configuration['package_root'] == null &&
         configuration['packages'] == null) {
       configuration['packages'] =
-        TestUtils.dartDirUri.resolve('.packages').toFilePath();
+        TestUtils.dartDirUri.resolve('.packages').toFilePath();     
     }
-
+    
     // Expand the architectures.
     if (configuration['arch'].contains(',')) {
       return _expandHelper('arch', configuration);
