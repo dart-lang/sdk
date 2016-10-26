@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_UTILS_H_
-#define BIN_UTILS_H_
+#ifndef RUNTIME_BIN_UTILS_H_
+#define RUNTIME_BIN_UTILS_H_
 
 #include <stdlib.h>
 #include <string.h>
@@ -123,4 +123,4 @@ class TimerUtils {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_UTILS_H_
+#endif  // RUNTIME_BIN_UTILS_H_

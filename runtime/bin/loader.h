@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_LOADER_H_
-#define BIN_LOADER_H_
+#ifndef RUNTIME_BIN_LOADER_H_
+#define RUNTIME_BIN_LOADER_H_
 
 #include "bin/isolate_data.h"
 #include "include/dart_api.h"
@@ -146,4 +146,4 @@ class Loader {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_LOADER_H_
+#endif  // RUNTIME_BIN_LOADER_H_

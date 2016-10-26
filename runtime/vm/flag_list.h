@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLAG_LIST_H_
-#define VM_FLAG_LIST_H_
+#ifndef RUNTIME_VM_FLAG_LIST_H_
+#define RUNTIME_VM_FLAG_LIST_H_
 
 // Don't use USING_DBC outside of this file.
 #if defined(TARGET_ARCH_DBC)
@@ -201,4 +201,4 @@ R(verify_before_gc, false, bool, false,                                        \
 D(verify_on_transition, bool, false,                                           \
   "Verify on dart <==> VM.")                                                   \
 
-#endif  // VM_FLAG_LIST_H_
+#endif  // RUNTIME_VM_FLAG_LIST_H_

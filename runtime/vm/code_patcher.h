@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for patching compiled code.
 
-#ifndef VM_CODE_PATCHER_H_
-#define VM_CODE_PATCHER_H_
+#ifndef RUNTIME_VM_CODE_PATCHER_H_
+#define RUNTIME_VM_CODE_PATCHER_H_
 
 #include "vm/allocation.h"
 #include "vm/native_entry.h"
@@ -95,4 +95,4 @@ class CodePatcher : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_CODE_PATCHER_H_
+#endif  // RUNTIME_VM_CODE_PATCHER_H_

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_IL_PRINTER_H_
-#define VM_IL_PRINTER_H_
+#ifndef RUNTIME_VM_IL_PRINTER_H_
+#define RUNTIME_VM_IL_PRINTER_H_
 
 #include "vm/flow_graph.h"
 #include "vm/intermediate_language.h"
@@ -76,4 +76,4 @@ class FlowGraphPrinter : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_IL_PRINTER_H_
+#endif  // RUNTIME_VM_IL_PRINTER_H_

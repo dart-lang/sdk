@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CLASS_FINALIZER_H_
-#define VM_CLASS_FINALIZER_H_
+#ifndef RUNTIME_VM_CLASS_FINALIZER_H_
+#define RUNTIME_VM_CLASS_FINALIZER_H_
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
@@ -180,4 +180,4 @@ class ClassFinalizer : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_CLASS_FINALIZER_H_
+#endif  // RUNTIME_VM_CLASS_FINALIZER_H_

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CODE_GENERATOR_H_
-#define VM_CODE_GENERATOR_H_
+#ifndef RUNTIME_VM_CODE_GENERATOR_H_
+#define RUNTIME_VM_CODE_GENERATOR_H_
 
 #include "vm/globals.h"
 #include "vm/runtime_entry.h"
@@ -25,4 +25,4 @@ void SinCos(double arg, double* sin_res, double* cos_res);
 
 }  // namespace dart
 
-#endif  // VM_CODE_GENERATOR_H_
+#endif  // RUNTIME_VM_CODE_GENERATOR_H_

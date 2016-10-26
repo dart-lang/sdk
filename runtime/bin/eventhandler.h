@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_EVENTHANDLER_H_
-#define BIN_EVENTHANDLER_H_
+#ifndef RUNTIME_BIN_EVENTHANDLER_H_
+#define RUNTIME_BIN_EVENTHANDLER_H_
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -669,4 +669,4 @@ class EventHandler {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_EVENTHANDLER_H_
+#endif  // RUNTIME_BIN_EVENTHANDLER_H_

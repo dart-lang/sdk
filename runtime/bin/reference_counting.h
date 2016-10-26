@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_REFERENCE_COUNTING_H_
-#define BIN_REFERENCE_COUNTING_H_
+#ifndef RUNTIME_BIN_REFERENCE_COUNTING_H_
+#define RUNTIME_BIN_REFERENCE_COUNTING_H_
 
 #include "vm/atomic.h"
 
@@ -156,4 +156,4 @@ class RetainedPointer {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_REFERENCE_COUNTING_H_
+#endif  // RUNTIME_BIN_REFERENCE_COUNTING_H_

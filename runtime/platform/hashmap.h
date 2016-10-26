@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_HASHMAP_H_
-#define PLATFORM_HASHMAP_H_
+#ifndef RUNTIME_PLATFORM_HASHMAP_H_
+#define RUNTIME_PLATFORM_HASHMAP_H_
 
 #include "platform/globals.h"
 
@@ -105,4 +105,4 @@ class HashMap {
 
 }  // namespace dart
 
-#endif  // PLATFORM_HASHMAP_H_
+#endif  // RUNTIME_PLATFORM_HASHMAP_H_

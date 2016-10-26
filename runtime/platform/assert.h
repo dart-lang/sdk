@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_ASSERT_H_
-#define PLATFORM_ASSERT_H_
+#ifndef RUNTIME_PLATFORM_ASSERT_H_
+#define RUNTIME_PLATFORM_ASSERT_H_
 
 // TODO(5411406): include sstream for now, once we have a Utils::toString()
 // implemented for all the primitive types we can replace the usage of
@@ -379,4 +379,4 @@ struct CompileAssert {
 
 #endif  // defined(TESTING)
 
-#endif  // PLATFORM_ASSERT_H_
+#endif  // RUNTIME_PLATFORM_ASSERT_H_

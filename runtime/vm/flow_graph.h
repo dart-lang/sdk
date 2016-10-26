@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLOW_GRAPH_H_
-#define VM_FLOW_GRAPH_H_
+#ifndef RUNTIME_VM_FLOW_GRAPH_H_
+#define RUNTIME_VM_FLOW_GRAPH_H_
 
 #include "vm/bit_vector.h"
 #include "vm/growable_array.h"
@@ -566,4 +566,4 @@ class DefinitionWorklist : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_FLOW_GRAPH_H_
+#endif  // RUNTIME_VM_FLOW_GRAPH_H_

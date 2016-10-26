@@ -4,8 +4,8 @@
 
 // A simple interpreter for the Irregexp byte code.
 
-#ifndef VM_REGEXP_INTERPRETER_H_
-#define VM_REGEXP_INTERPRETER_H_
+#ifndef RUNTIME_VM_REGEXP_INTERPRETER_H_
+#define RUNTIME_VM_REGEXP_INTERPRETER_H_
 
 #include "vm/allocation.h"
 #include "vm/object.h"
@@ -30,4 +30,4 @@ class IrregexpInterpreter : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_REGEXP_INTERPRETER_H_
+#endif  // RUNTIME_VM_REGEXP_INTERPRETER_H_

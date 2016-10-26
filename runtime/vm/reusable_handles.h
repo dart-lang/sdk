@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_REUSABLE_HANDLES_H_
-#define VM_REUSABLE_HANDLES_H_
+#ifndef RUNTIME_VM_REUSABLE_HANDLES_H_
+#define RUNTIME_VM_REUSABLE_HANDLES_H_
 
 #include "vm/allocation.h"
 #include "vm/handles.h"
@@ -121,4 +121,4 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
 
 }  // namespace dart
 
-#endif  // VM_REUSABLE_HANDLES_H_
+#endif  // RUNTIME_VM_REUSABLE_HANDLES_H_

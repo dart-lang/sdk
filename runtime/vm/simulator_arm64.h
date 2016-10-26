@@ -9,10 +9,10 @@
 // which will start execution in the Simulator or forwards to the real entry
 // on a ARM64 HW platform.
 
-#ifndef VM_SIMULATOR_ARM64_H_
-#define VM_SIMULATOR_ARM64_H_
+#ifndef RUNTIME_VM_SIMULATOR_ARM64_H_
+#define RUNTIME_VM_SIMULATOR_ARM64_H_
 
-#ifndef VM_SIMULATOR_H_
+#ifndef RUNTIME_VM_SIMULATOR_H_
 #error Do not include simulator_arm64.h directly; use simulator.h.
 #endif
 
@@ -282,4 +282,4 @@ class Simulator {
 
 }  // namespace dart
 
-#endif  // VM_SIMULATOR_ARM64_H_
+#endif  // RUNTIME_VM_SIMULATOR_ARM64_H_

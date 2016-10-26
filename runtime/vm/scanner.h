@@ -6,8 +6,8 @@
 // and produces a stream of tokens which is used by the parser.
 //
 
-#ifndef VM_SCANNER_H_
-#define VM_SCANNER_H_
+#ifndef RUNTIME_VM_SCANNER_H_
+#define RUNTIME_VM_SCANNER_H_
 
 #include "vm/growable_array.h"
 #include "vm/token.h"
@@ -218,4 +218,4 @@ class Scanner : ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_SCANNER_H_
+#endif  // RUNTIME_VM_SCANNER_H_

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_STDIO_H_
-#define BIN_STDIO_H_
+#ifndef RUNTIME_BIN_STDIO_H_
+#define RUNTIME_BIN_STDIO_H_
 
 #if defined(DART_IO_DISABLED)
 #error "stdio.h can only be included on builds with IO enabled"
@@ -45,4 +45,4 @@ class Stdout {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_STDIO_H_
+#endif  // RUNTIME_BIN_STDIO_H_
