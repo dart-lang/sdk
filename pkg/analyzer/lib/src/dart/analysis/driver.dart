@@ -235,9 +235,8 @@ class AnalysisDriver {
           bool analyzed = false;
           for (String path in _priorityFiles) {
             if (_filesToAnalyze.remove(path)) {
-              _File file = _fileForPath(path);
               AnalysisResult result =
-                  _computeAnalysisResult(file, withUnit: true);
+                  _computeAnalysisResult(path, withUnit: true);
               yield result;
               break;
             }
@@ -252,8 +251,7 @@ class AnalysisDriver {
         // Analyze a general file.
         if (_filesToAnalyze.isNotEmpty) {
           String path = _removeFirst(_filesToAnalyze);
-          _File file = _fileForPath(path);
-          AnalysisResult result = _computeAnalysisResult(file, withUnit: false);
+          AnalysisResult result = _computeAnalysisResult(path, withUnit: false);
           yield result;
           // Repeat the processing loop.
           _hasWork.notify();
@@ -366,33 +364,38 @@ class AnalysisDriver {
   }
 
   /**
-   * Compute the [AnalysisResult] for the [file].
+   * Return the cached or newly computed analysis result of the file with the
+   * given [path].
    *
-   * The result will have the fully resolved unit only if [withUnit] is `true`.
+   * The result will have the fully resolved unit and will always be newly
+   * compute only if [withUnit] is `true`.
    */
-  AnalysisResult _computeAnalysisResult(_File file, {bool withUnit: false}) {
-    // If we don't need to the fully resolved unit, check for a cached result.
+  AnalysisResult _computeAnalysisResult(String path, {bool withUnit: false}) {
+    Source source = _sourceForPath(path);
+
+    // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      AnalysisResult result = _getCachedAnalysisResult(file);
+      _File file = new _File.forLinking(this, source);
+      // Prepare the key for the cached result.
+      String key = _getResolvedUnitKey(file);
+      if (key == null) {
+        _logger.run('Compute the dependency hash for $source', () {
+          _createLibraryContext(file);
+          key = _getResolvedUnitKey(file);
+        });
+      }
+      // Check for the cached result.
+      AnalysisResult result = _getCachedAnalysisResult(file, key);
       if (result != null) {
         return result;
       }
     }
 
     // We need the fully resolved unit, or the result is not cached.
-    return _logger.run('Compute analysis result for $file', () {
-      _LibraryContext libraryContext = _createLibraryContext(file);
-
-      // We recomputed the dependency hash, and we might have a cached result.
-      if (!withUnit) {
-        AnalysisResult result = _getCachedAnalysisResult(file);
-        if (result != null) {
-          _logger.writeln('Return the cached analysis result.');
-          return result;
-        }
-      }
-
+    return _logger.run('Compute analysis result for $source', () {
       // Still no result, compute and store it.
+      _File file = new _File.forResolution(this, source);
+      _LibraryContext libraryContext = _createLibraryContext(file);
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
         analysisContext.setContents(file.source, file.content);
@@ -559,37 +562,24 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the [_File] for the given [path] in [_sourceFactory].
+   * If we know the result [key] for the [file], try to load the analysis
+   * result from the cache. Return `null` if not found.
    */
-  _File _fileForPath(String path) {
-    Source fileSource = _resourceProvider.getFile(path).createSource();
-    Uri uri = _sourceFactory.restoreUri(fileSource);
-    Source source = _resourceProvider.getFile(path).createSource(uri);
-    return new _File.forResolution(this, source);
-  }
-
-  /**
-   * If we know the dependency signature for the [file], try to load the
-   * analysis result from the cache. Return `null` if not found.
-   */
-  AnalysisResult _getCachedAnalysisResult(_File file) {
-    String key = _getResolvedUnitKey(file);
-    if (key != null) {
-      List<int> bytes = _byteStore.get(key);
-      if (bytes != null) {
-        var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
-        List<AnalysisError> errors = unit.errors
-            .map((error) => new AnalysisError.forValues(
-                file.source,
-                error.offset,
-                error.length,
-                ErrorCode.byUniqueName(error.uniqueName),
-                error.message,
-                error.correction))
-            .toList();
-        return new AnalysisResult(
-            file.path, file.uri, null, file.contentHash, null, errors);
-      }
+  AnalysisResult _getCachedAnalysisResult(_File file, String key) {
+    List<int> bytes = _byteStore.get(key);
+    if (bytes != null) {
+      var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
+      List<AnalysisError> errors = unit.errors
+          .map((error) => new AnalysisError.forValues(
+              file.source,
+              error.offset,
+              error.length,
+              ErrorCode.byUniqueName(error.uniqueName),
+              error.message,
+              error.correction))
+          .toList();
+      return new AnalysisResult(
+          file.path, file.uri, null, file.contentHash, null, errors);
     }
     return null;
   }
@@ -610,6 +600,15 @@ class AnalysisDriver {
   }
 
   /**
+   * Return the [Source] for the given [path] in [_sourceFactory].
+   */
+  Source _sourceForPath(String path) {
+    Source fileSource = _resourceProvider.getFile(path).createSource();
+    Uri uri = _sourceFactory.restoreUri(fileSource);
+    return _resourceProvider.getFile(path).createSource(uri);
+  }
+
+  /**
    * Verify the API signature for the file with the given [path], and decide
    * which linked libraries should be invalidated, and files reanalyzed.
    *
@@ -620,7 +619,8 @@ class AnalysisDriver {
       String oldSignature = _fileApiSignatureMap[path];
       // Compute the new API signature.
       // _File.forResolution() also updates the content hash in the cache.
-      _File newFile = _fileForPath(path);
+      Source source = _sourceForPath(path);
+      _File newFile = new _File.forResolution(this, source);
       String newSignature = newFile.unlinked.apiSignature;
       // If the old API signature is not null, then the file was used to
       // compute at least one dependency signature. If the new API signature
@@ -816,22 +816,10 @@ class _File {
    */
   final CompilationUnit unit;
 
-  factory _File.forLinking(AnalysisDriver driver, Source source) {
-    // If we have enough cached information, use it.
-    String contentHash = driver._fileContentHashMap[source.fullName];
-    if (contentHash != null) {
-      String key = '$contentHash.unlinked';
-      List<int> bytes = driver._byteStore.get(key);
-      if (bytes != null) {
-        PackageBundle unlinked = new PackageBundle.fromBuffer(bytes);
-        return new _File._(driver, source, null, contentHash, unlinked, null);
-      }
-    }
-    // Otherwise, read the source, parse and build a new unlinked bundle.
-    return new _File.forResolution(driver, source);
-  }
-
-  factory _File.forResolution(AnalysisDriver driver, Source source) {
+  /**
+   * Return the file with consistent [content] and [contentHash].
+   */
+  factory _File.forContent(AnalysisDriver driver, Source source) {
     String path = source.fullName;
     // Read the content.
     String content;
@@ -853,6 +841,37 @@ class _File {
     List<int> hashBytes = md5.convert(textBytes).bytes;
     String contentHash = hex.encode(hashBytes);
     driver._fileContentHashMap[path] = contentHash;
+    // Return information about the file content.
+    return new _File._(driver, source, content, contentHash, null, null);
+  }
+
+  factory _File.forLinking(AnalysisDriver driver, Source source) {
+    String path = source.fullName;
+    String contentHash = driver._fileContentHashMap[path];
+    // If we don't have the file content hash, compute it.
+    if (contentHash == null) {
+      _File file = new _File.forContent(driver, source);
+      contentHash = file.contentHash;
+    }
+    // If we have the cached unlinked bundle, use it.
+    {
+      String key = '$contentHash.unlinked';
+      List<int> bytes = driver._byteStore.get(key);
+      if (bytes != null) {
+        PackageBundle unlinked = new PackageBundle.fromBuffer(bytes);
+        driver._fileApiSignatureMap[path] = unlinked.apiSignature;
+        return new _File._(driver, source, null, contentHash, unlinked, null);
+      }
+    }
+    // Otherwise, read the source, parse and build a new unlinked bundle.
+    return new _File.forResolution(driver, source);
+  }
+
+  factory _File.forResolution(AnalysisDriver driver, Source source) {
+    _File file = new _File.forContent(driver, source);
+    String path = file.path;
+    String content = file.content;
+    String contentHash = file.contentHash;
     // Parse the unit.
     CompilationUnit unit = _parse(driver, source, content);
     // Prepare the unlinked bundle.
@@ -873,7 +892,7 @@ class _File {
       unlinked = new PackageBundle.fromBuffer(bytes);
       driver._fileApiSignatureMap[path] = unlinked.apiSignature;
     }
-    // Update the current file state.
+    // Return the full file.
     return new _File._(driver, source, content, contentHash, unlinked, unit);
   }
 
