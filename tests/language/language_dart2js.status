@@ -371,3 +371,6 @@ regress_26855_test/1: Crash # Issue 26867
 regress_26855_test/2: Crash # Issue 26867
 regress_26855_test/3: Crash # Issue 26867
 regress_26855_test/4: Crash # Issue 26867
+
+[ $compiler != dart2analyzer]
+switch_case_warn_test: SKIP # Analyzer only, see language_analyzer2.status

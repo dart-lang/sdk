@@ -3,6 +3,10 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dart2analyzer ]
+# Issue #27664
+switch_case_warn_test/none: StaticWarning
+switch_case_warn_test/retnon: StaticWarning
+switch_case_warn_test/retval: StaticWarning
 
 regress_26668_test: Fail # Issue 26678
 regress_27617_test/1: MissingCompileTimeError
