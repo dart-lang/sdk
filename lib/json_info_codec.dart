@@ -150,6 +150,7 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     var programInfo = new ProgramInfo()
       ..entrypoint = parseId(json['entrypoint'])
       ..size = json['size']
+      ..compilationMoment = DateTime.parse(json['compilationMoment'])
       ..dart2jsVersion = json['dart2jsVersion']
       ..noSuchMethodEnabled = json['noSuchMethodEnabled']
       ..minified = json['minified'];
