@@ -1600,7 +1600,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/super_operator_index_test_07_multi',
   'language/super_operator_test',
   'language/super_test',
-  'language/switch6_test',
   'language/switch_bad_case_test_01_multi',
   'language/switch_bad_case_test_02_multi',
   'language/switch_case_test_00_multi',
