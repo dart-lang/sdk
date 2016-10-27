@@ -5,8 +5,6 @@
 
 // VM implementation of int.
 
-import 'dart:_internal' as internal;
-
 @patch class int {
 
   @patch const factory int.fromEnvironment(String name,

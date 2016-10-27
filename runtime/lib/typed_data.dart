@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Unlike the other SDK libraries, this file is not a patch that is applied to
+// dart:typed_data.  Instead, it completely replaces the implementation from the
+// SDK.
 library dart.typed_data;
 
 import "dart:_internal";

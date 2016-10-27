@@ -26,6 +26,7 @@ const List<String> defaultTestSelectors = const [
   'pkg',
   'analyze_library',
   'service',
+  'kernel',
   'observatory_ui'
 ];
 
@@ -75,9 +76,15 @@ class TestOptionsParser {
 
    dart2app:
    dart2appjit: Compile the Dart code into an app snapshot before running test
-          (only valid with dart_app runtime)''',
+          (only valid with dart_app runtime)
+
+   dartk: Compile the Dart source into Kernel before running test.
+
+   dartkp: Compiler the Dart source into Kernel and then Kernel into AOT
+   snapshot before running the test.''',
           ['-c', '--compiler'],
-          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app', 'dart2appjit'],
+          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app',
+           'dart2appjit', 'dartk', 'dartkp'],
           'none'),
       // TODO(antonm): fix the option drt.
       new _TestOptionSpecification(
@@ -677,6 +684,12 @@ Note: currently only implemented for dart2js.''',
       case 'precompiler':
         validRuntimes = const ['dart_precompiled'];
         break;
+      case 'dartk':
+        validRuntimes = const ['vm'];
+        break;
+      case 'dartkp':
+        validRuntimes = const ['dart_precompiled'];
+        break;
       case 'none':
         validRuntimes = const [
           'vm',
@@ -838,9 +851,9 @@ Note: currently only implemented for dart2js.''',
     if (configuration['package_root'] == null &&
         configuration['packages'] == null) {
       configuration['packages'] =
-        TestUtils.dartDirUri.resolve('.packages').toFilePath();     
+        TestUtils.dartDirUri.resolve('.packages').toFilePath();
     }
-    
+
     // Expand the architectures.
     if (configuration['arch'].contains(',')) {
       return _expandHelper('arch', configuration);

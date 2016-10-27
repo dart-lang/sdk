@@ -29,6 +29,7 @@ group("runtime") {
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
+    "runtime/vm:patched_sdk",
   ]
 }
 
@@ -36,6 +37,7 @@ group("runtime_precompiled") {
   deps = [
     "runtime/bin:dart_bootstrap($host_toolchain)",
     "runtime/bin:dart_precompiled_runtime",
+    "runtime/vm:patched_sdk",
   ]
 }
 
@@ -48,6 +50,7 @@ group("runtime_and_noopt") {
     "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
     "runtime/bin:test_extension",
+    "runtime/vm:patched_sdk",
   ]
 }
 

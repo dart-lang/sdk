@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @patch class _StdIOUtils {
-  static Stdin _getStdioInputStream() {
+  @patch static Stdin _getStdioInputStream() {
     switch (_getStdioHandleType(0)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
       case _STDIO_HANDLE_TYPE_PIPE:
@@ -16,7 +16,7 @@
     }
   }
 
-  static _getStdioOutputStream(int fd) {
+  @patch static _getStdioOutputStream(int fd) {
     assert(fd == 1 || fd == 2);
     switch (_getStdioHandleType(fd)) {
       case _STDIO_HANDLE_TYPE_TERMINAL:
@@ -29,12 +29,12 @@
     }
   }
 
-  static int _socketType(Socket socket) {
+  @patch static int _socketType(Socket socket) {
     if (socket is _Socket) return _nativeSocketType(socket._nativeSocket);
     return null;
   }
 
-  static int _nativeSocketType(_NativeSocket nativeSocket) {
+  @patch static int _nativeSocketType(_NativeSocket nativeSocket) {
     var result = _getSocketType(nativeSocket);
     if (result is OSError) {
       throw new FileSystemException(
@@ -43,7 +43,7 @@
     return result;
   }
 
-  static _getStdioHandleType(int fd) native "File_GetStdioHandleType";
+  @patch static _getStdioHandleType(int fd) native "File_GetStdioHandleType";
 }
 
 @patch class Stdin {

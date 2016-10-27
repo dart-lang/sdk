@@ -967,6 +967,10 @@
       ]
     },
     {
+      # Unlike the other libraries in the SDK, dart:typed_data is not
+      # implemented as a patch applied to the base SDK implementation.
+      # Instead the VM has a complete replacement library and the
+      # implementation in the SDK is ignored.
       'target_name': 'generate_typed_data_cc_file',
       'type': 'none',
       'toolsets':['host'],
@@ -1233,6 +1237,454 @@
           'message': 'Generating ''<(vmservice_patch_cc_file)'' file.'
         },
       ]
+    },
+    {
+      'target_name': 'generate_patched_sdk',
+      'type': 'none',
+      'toolsets': ['host'],
+      'dependencies': [
+        'generate_async_library_patch',
+        'generate_collection_library_patch',
+        'generate_convert_library_patch',
+        'generate_core_library_patch',
+        'generate_developer_library_patch',
+        'generate_internal_library_patch',
+        'generate_io_library_patch',
+        'generate_isolate_library_patch',
+        'generate_math_library_patch',
+        'generate_mirrors_library_patch',
+        'generate_profiler_library_patch',
+        'generate_vmservice_library_patch',
+      ],
+      'actions': [
+        {
+          'action_name': 'patch_sdk',
+          'inputs': [
+            '<!@(["python", "../tools/list_files.py",' '"dart$",' '"sdk/lib"])',
+            '../../tools/patch_sdk.py',
+            '../../tools/patch_sdk.dart',
+            # Unlike the other libraries in the SDK, dart:typed_data is not
+            # implemented as a patch applied to the base SDK implementation.
+            # Instead the VM has a complete replacement library and the
+            # implementation in the SDK is ignored.
+            '../lib/typed_data.dart',
+            # Unlike the other libraries in the SDK, dart:_builtin and
+            # dart:nativewrappers are only available for the Dart VM.
+            '../bin/builtin.dart',
+            '../bin/vmservice/vmservice_io.dart',
+            '../bin/vmservice/loader.dart',
+            '../bin/vmservice/server.dart',
+            '<(gen_source_dir)/patches/async_patch.dart',
+            '<(gen_source_dir)/patches/collection_patch.dart',
+            '<(gen_source_dir)/patches/convert_patch.dart',
+            '<(gen_source_dir)/patches/core_patch.dart',
+            '<(gen_source_dir)/patches/developer_patch.dart',
+            '<(gen_source_dir)/patches/internal_patch.dart',
+            '<(gen_source_dir)/patches/io_patch.dart',
+            '<(gen_source_dir)/patches/isolate_patch.dart',
+            '<(gen_source_dir)/patches/math_patch.dart',
+            '<(gen_source_dir)/patches/mirrors_patch.dart',
+            '<(gen_source_dir)/patches/profiler_patch.dart',
+            '<(gen_source_dir)/patches/vmservice_patch.dart',
+          ],
+          'outputs': [
+            # Instead of listing all outputs we list a single well-known one.
+            '<(gen_source_dir)/patched_sdk/lib/core/core.dart',
+          ],
+          'action': [
+            'python',
+            '../tools/patch_sdk.py',
+            'vm',
+            '../sdk',
+            '<(gen_source_dir)/patches',
+            '<(gen_source_dir)/patched_sdk',
+          ],
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'async',
+        'library_uri': 'dart:async',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/async_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'collection',
+        'library_uri': 'dart:collection',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/collection_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'convert',
+        'library_uri': 'dart:convert',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/convert_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'core',
+        'library_uri': 'dart:core',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/core_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'developer',
+        'library_uri': 'dart:developer',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/developer_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'internal',
+        'library_uri': 'dart:_internal',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/internal_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'io',
+        'library_uri': 'dart:io',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../bin/io_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'isolate',
+        'library_uri': 'dart:isolate',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/isolate_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'math',
+        'library_uri': 'dart:math',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/math_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'mirrors',
+        'library_uri': 'dart:mirrors',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/mirrors_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'profiler',
+        'library_uri': 'dart:profiler',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/profiler_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
+    },
+    {
+      'variables': {
+        'library_name': 'vmservice',
+        'library_uri': 'dart:_vmservice',
+      },
+      'target_name': 'generate_<(library_name)_library_patch',
+      'type': 'none',
+      'toolsets': ['host'],
+      'includes': [
+        '../lib/vmservice_sources.gypi',
+      ],
+      'actions': [
+        {
+          'action_name': 'concatenate_<(library_name)_patches',
+          'inputs': [
+            '../tools/concatenate_patches.py',
+            '<@(_sources)',
+          ],
+          'outputs': [
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart'
+          ],
+          'action': [
+            'python',
+            'tools/concatenate_patches.py',
+            '--output',
+            '<(gen_source_dir)/patches/<(library_name)_patch.dart',
+            '<@(_sources)',
+          ],
+          'message': 'Generating <(library_uri) patch.',
+        },
+      ],
     },
   ]
 }

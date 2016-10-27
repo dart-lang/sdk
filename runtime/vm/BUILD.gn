@@ -148,17 +148,13 @@ static_library("libdart_vm_nosnapshot_with_precompiler") {
   include_dirs = [ ".." ]
 }
 
-template("generate_library_source") {
-  assert(defined(invoker.libname), "Need libname in $target_name")
-  assert(defined(invoker.filename), "Need a filename in $target_name")
-  assert(defined(invoker.kind), "Need kind in $target_name")
+template("process_library_source") {
+  assert(defined(invoker.filename), "Need filename in $target_name")
   assert(defined(invoker.output), "Need output in $target_name")
   assert(defined(invoker.path), "Need path in $target_name")
   action(target_name) {
     visibility = [ ":*" ]  # Only targets in this file can see this.
-    libname = invoker.libname
     filename = invoker.filename
-    kind = invoker.kind
     path = invoker.path
 
     lib_sources_gypi =
@@ -168,27 +164,45 @@ template("generate_library_source") {
                     [ "${path}/${filename}_sources.gypi" ])
     lib_sources = rebase_path(lib_sources_gypi.sources, ".", path)
 
-    script = "../tools/gen_library_src_paths.py"
-    inputs = [
-      "../tools/gen_library_src_paths.py",
-      "../lib/libgen_in.cc",
-    ]
+    script = invoker.script
+    inputs = invoker.inputs + [ script ]
     inputs += lib_sources
     outputs = [
       invoker.output,
     ]
+    args = invoker.args + rebase_path(lib_sources, root_build_dir)
+  }
+}
+
+template("generate_library_source") {
+  assert(defined(invoker.libname), "Need libname in $target_name")
+  assert(defined(invoker.filename), "Need a filename in $target_name")
+  assert(defined(invoker.kind), "Need kind in $target_name")
+  assert(defined(invoker.output), "Need output in $target_name")
+  assert(defined(invoker.path), "Need path in $target_name")
+
+  process_library_source(target_name) {
+    libname = invoker.libname
+    filename = invoker.filename
+    kind = invoker.kind
+    output = invoker.output
+    path = invoker.path
+    script = "../tools/gen_library_src_paths.py"
+    inputs = [
+      "../lib/libgen_in.cc",
+    ]
     args = [
-             "--output",
-             rebase_path(invoker.output, root_build_dir),
-             "--input_cc",
-             rebase_path("../lib/libgen_in.cc", root_build_dir),
-             "--include",
-             "vm/bootstrap.h",
-             "--var_name",
-             "dart::Bootstrap::${libname}_${kind}_paths_",
-             "--library_name",
-             "dart:${libname}",
-           ] + rebase_path(lib_sources, root_build_dir)
+      "--output",
+      rebase_path(invoker.output, root_build_dir),
+      "--input_cc",
+      rebase_path("../lib/libgen_in.cc", root_build_dir),
+      "--include",
+      "vm/bootstrap.h",
+      "--var_name",
+      "dart::Bootstrap::${libname}_${kind}_paths_",
+      "--library_name",
+      "dart:${libname}",
+    ]
   }
 }
 
@@ -378,6 +392,149 @@ generate_core_libraries("core_libraries") {
       true,
       "../../sdk/lib/vmservice",
       "../lib",
+    ],
+  ]
+}
+
+template("concatenate_patch") {
+  assert(defined(invoker.libname), "Need a name in $target_name")
+  assert(defined(invoker.dir), "Need a dir in $target_name")
+  assert(defined(invoker.output), "Need an output in $target_name")
+
+  process_library_source(target_name) {
+    output = invoker.output
+    path = "../${invoker.dir}"
+    filename = invoker.libname
+    script = "../tools/concatenate_patches.py"
+    args = [
+      "--output",
+      rebase_path(output, root_build_dir),
+    ]
+    inputs = []
+  }
+}
+
+template("generate_patched_sdk") {
+  assert(defined(invoker.libraries), "Need libraries in $target_name")
+
+  concatenation_target_names = []
+  concatenation_files = []
+
+  # Concatenate vm library patches.
+  foreach(library, invoker.libraries) {
+    name = library[1]
+
+    target_output = "$target_gen_dir/patches/${name}_patch.dart"
+    concatenate_patch("concatenate_${name}_patch") {
+      libname = name
+      dir = library[0]
+      output = target_output
+    }
+    concatenation_target_names += [ ":concatenate_${name}_patch" ]
+    concatenation_files += [ target_output ]
+  }
+
+  # Build the patched sdk out of the concatenated patches and the special
+  # libraries.
+  action(target_name) {
+    deps = concatenation_target_names
+
+    patches_dir = "$target_gen_dir/patches"
+    patched_sdk_dir = "$target_gen_dir/patched_sdk"
+
+    script = "../../tools/patch_sdk.py"
+
+    # We list all files which make up the sdk (modulo patches) and get them back
+    # as a GN list object.
+    shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
+                                     [ "../../sdk/lib" ],
+                                     "list lines")
+
+    # We list the `patch_sdk.dart` tool here because the [script] (which is
+    # implicitly an input) will call it.
+    inputs = [
+      "../../tools/patch_sdk.dart",
+    ]
+
+    # Files below are not patches, they will not be in [concatenation_files] but
+    # the `patch_sdk.dart` script will copy them into the patched sdk.
+    inputs += [
+      "../lib/typed_data.dart",
+      "../bin/builtin.dart",
+      "../bin/vmservice/vmservice_io.dart",
+      "../bin/vmservice/loader.dart",
+      "../bin/vmservice/server.dart",
+    ]
+
+    # Add all the normal sdk sources.
+    inputs += shared_sdk_sources
+
+    # Add all the concatenated patch files.
+    inputs += concatenation_files
+
+    outputs = [
+      # Instead of listing all outputs we list a single well-known one.
+      "${patched_sdk_dir}/lib/core/core.dart",
+    ]
+
+    args = [
+      "vm",
+      rebase_path("../../sdk"),
+      rebase_path(patches_dir, root_build_dir),
+      rebase_path(patched_sdk_dir, root_build_dir),
+    ]
+  }
+}
+
+generate_patched_sdk("patched_sdk") {
+  libraries = [
+    [
+      "lib",
+      "async",
+    ],
+    [
+      "lib",
+      "collection",
+    ],
+    [
+      "lib",
+      "convert",
+    ],
+    [
+      "lib",
+      "core",
+    ],
+    [
+      "lib",
+      "developer",
+    ],
+    [
+      "lib",
+      "internal",
+    ],
+    [
+      "lib",
+      "isolate",
+    ],
+    [
+      "lib",
+      "math",
+    ],
+    [
+      "lib",
+      "mirrors",
+    ],
+    [
+      "lib",
+      "profiler",
+    ],
+    [
+      "lib",
+      "vmservice",
+    ],
+    [
+      "bin",
+      "io",
     ],
   ]
 }

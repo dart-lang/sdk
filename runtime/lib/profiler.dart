@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal';
-
 @patch class UserTag {
   @patch factory UserTag(String label) {
     return new _UserTag(label);
