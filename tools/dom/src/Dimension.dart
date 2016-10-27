@@ -43,7 +43,7 @@ class Dimension {
   /**
    * Set this CSS Dimension to the specified number of x-heights.
    *
-   * One ex is equal to the the x-height of a font's baseline to its mean line,
+   * One ex is equal to the x-height of a font's baseline to its mean line,
    * generally the height of the letter "x" in the font, which is usually about
    * half the font-size.
    */

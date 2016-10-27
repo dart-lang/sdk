@@ -1395,7 +1395,7 @@ void IsolateReloadContext::ResetUnoptimizedICsOnStack() {
     if (code.is_optimized()) {
       // If this code is optimized, we need to reset the ICs in the
       // corresponding unoptimized code, which will be executed when the stack
-      // unwinds to the the optimized code.
+      // unwinds to the optimized code.
       function = code.function();
       code = function.unoptimized_code();
       ASSERT(!code.IsNull());
