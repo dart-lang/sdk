@@ -9,7 +9,7 @@ application_snapshot("dartdevc") {
   training_args = [
     "--dart-sdk",
     rebase_path("../../sdk"),
-    "--help"
+    "--help",
   ]
   inputs = exec_script("../../tools/list_dart_files.py",
                        [ rebase_path("../../pkg/dev_compiler/bin") ],

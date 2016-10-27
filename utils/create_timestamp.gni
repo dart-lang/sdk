@@ -18,15 +18,18 @@ template("create_timestamp_file") {
   path = invoker.path
   output = invoker.output
   action(target_name) {
-    list_args = [path]
+    list_args = [ path ]
     if (defined(invoker.pattern)) {
-      list_args += [invoker.pattern]
+      list_args += [ invoker.pattern ]
     }
-    files = exec_script(
-        "$_dart_root/tools/list_dart_files.py", list_args, "list lines")
-    inputs = ["$_dart_root/tools/list_dart_files.py"] +
+    files = exec_script("$_dart_root/tools/list_dart_files.py",
+                        list_args,
+                        "list lines")
+    inputs = [ "$_dart_root/tools/list_dart_files.py" ] +
              rebase_path(files, new_base, current_base)
-    outputs = [ output ]
+    outputs = [
+      output,
+    ]
     script = "$_dart_root/tools/create_timestamp_file.py"
     args = [ rebase_path(output) ]
   }
