@@ -4,7 +4,7 @@
 
 // Tests of loops.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 fact(n) {
   var f = 1;

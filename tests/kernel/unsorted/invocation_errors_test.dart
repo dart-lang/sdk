@@ -4,7 +4,7 @@
 
 // Erroneous cases of invocations.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 test0(x) {
   print('test0');

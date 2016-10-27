@@ -4,7 +4,7 @@
 
 // Tests of conditional expressions and statements and negation.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 mkTrue() => true;
 mkFalse() => false;

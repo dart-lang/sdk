@@ -4,7 +4,7 @@
 
 // Tests of for-in loops and list literals.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 fact4() {
   var f = 1;

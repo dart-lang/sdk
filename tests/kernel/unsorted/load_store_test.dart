@@ -4,7 +4,7 @@
 
 // Tests of reading and writing to variables.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 test0() {
   var x0 = 0, x1;

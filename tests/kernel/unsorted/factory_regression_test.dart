@@ -4,7 +4,7 @@
 
 import 'dart:typed_data';
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 var list = [1, 2, 3];
 

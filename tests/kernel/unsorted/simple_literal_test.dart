@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Tests of literals (and imports, return, ==, and static methods).
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 test0() {
   return 'Hello, world!';

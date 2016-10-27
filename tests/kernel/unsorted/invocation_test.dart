@@ -4,7 +4,7 @@
 
 // Tests of invocations.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 test0(x) {
   Expect.isTrue(x == 'argument0');

@@ -4,7 +4,7 @@
 
 // Tests of function expressions and function statements.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 main() {
   var even;

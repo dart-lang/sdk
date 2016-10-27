@@ -4,7 +4,7 @@
 
 // Tests of return (and imports, literals, ==, and static methods).
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 test0() {}
 

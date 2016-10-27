@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 // Test that the context depth is correct in the presence of control flow,
 // specifically branching and joining in the presence of break.  The

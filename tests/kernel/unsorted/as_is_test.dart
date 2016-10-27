@@ -4,7 +4,7 @@
 
 // Tests of class literals, is, and as expressions.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 class C {}
 

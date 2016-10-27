@@ -4,7 +4,7 @@
 
 // Tests of block scoping.
 
-import 'expect.dart';
+import 'package:expect/expect.dart';
 
 bool oracle() => true;
 
@@ -57,4 +57,4 @@ test1() {
 main() {
   test0();
   test1();
-}  
+}
