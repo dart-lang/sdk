@@ -19,8 +19,12 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
     result.classes.addAll((elements['class'] as Map).values.map(parseClass));
     result.functions
         .addAll((elements['function'] as Map).values.map(parseFunction));
-    result.closures
-        .addAll((elements['closure'] as Map).values.map(parseClosure));
+
+    // TODO(het): Revert this when the dart2js with the new codec is in stable
+    if (elements['closure'] != null) {
+      result.closures
+          .addAll((elements['closure'] as Map).values.map(parseClosure));
+    }
     result.fields.addAll((elements['field'] as Map).values.map(parseField));
     result.typedefs
         .addAll((elements['typedef'] as Map).values.map(parseTypedef));
@@ -142,17 +146,61 @@ class JsonToAllInfoConverter extends Converter<Map<String, dynamic>, AllInfo> {
       ..size = 0;
   }
 
-  ProgramInfo parseProgram(Map json) => new ProgramInfo()
-    ..entrypoint = parseId(json['entrypoint'])
-    ..size = json['size']
-    ..dart2jsVersion = json['dart2jsVersion']
-    ..compilationMoment = DateTime.parse(json['compilationMoment'])
-    ..compilationDuration =
-        new Duration(microseconds: json['compilationDuration'])
-    ..toJsonDuration = new Duration(microseconds: json['toJsonDuration'])
-    ..dumpInfoDuration = new Duration(microseconds: json['dumpInfoDuration'])
-    ..noSuchMethodEnabled = json['noSuchMethodEnabled']
-    ..minified = json['minified'];
+  ProgramInfo parseProgram(Map json) {
+    var programInfo = new ProgramInfo()
+      ..entrypoint = parseId(json['entrypoint'])
+      ..size = json['size']
+      ..dart2jsVersion = json['dart2jsVersion']
+      ..noSuchMethodEnabled = json['noSuchMethodEnabled']
+      ..minified = json['minified'];
+
+    // TODO(het): Revert this when the dart2js with the new codec is in stable
+    var compilationDuration = json['compilationDuration'];
+    if (compilationDuration is String) {
+      programInfo.compilationDuration = _parseDuration(compilationDuration);
+    } else {
+      assert(compilationDuration is int);
+      programInfo.compilationDuration =
+          new Duration(microseconds: compilationDuration);
+    }
+
+    var toJsonDuration = json['toJsonDuration'];
+    if (toJsonDuration is String) {
+      programInfo.toJsonDuration = _parseDuration(toJsonDuration);
+    } else {
+      assert(toJsonDuration is int);
+      programInfo.toJsonDuration = new Duration(microseconds: toJsonDuration);
+    }
+
+    var dumpInfoDuration = json['dumpInfoDuration'];
+    if (dumpInfoDuration is String) {
+      programInfo.dumpInfoDuration = _parseDuration(dumpInfoDuration);
+    } else {
+      assert(dumpInfoDuration is int);
+      programInfo.dumpInfoDuration =
+          new Duration(microseconds: dumpInfoDuration);
+    }
+
+    return programInfo;
+  }
+
+  /// Parse a string formatted as "XX:YY:ZZ.ZZZZZ" into a [Duration].
+  Duration _parseDuration(String duration) {
+    if (!duration.contains(':')) {
+      return new Duration(milliseconds: int.parse(duration));
+    }
+    var parts = duration.split(':');
+    var hours = double.parse(parts[0]);
+    var minutes = double.parse(parts[1]);
+    var seconds = double.parse(parts[2]);
+    const secondsInMillis = 1000;
+    const minutesInMillis = 60 * secondsInMillis;
+    const hoursInMillis = 60 * minutesInMillis;
+    var totalMillis = secondsInMillis * seconds +
+        minutesInMillis * minutes +
+        hoursInMillis * hours;
+    return new Duration(milliseconds: totalMillis.round());
+  }
 
   FunctionInfo parseFunction(Map json) {
     FunctionInfo result = parseId(json['id']);
