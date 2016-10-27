@@ -259,6 +259,7 @@ class AnalysisDriver {
           bool analyzed = false;
           for (String path in _priorityFiles) {
             if (_filesToAnalyze.remove(path)) {
+              analyzed = true;
               AnalysisResult result =
                   _computeAnalysisResult(path, withUnit: true);
               yield result;
@@ -331,7 +332,9 @@ class AnalysisDriver {
    */
   void changeFile(String path) {
     _changedFiles.add(path);
-    _filesToAnalyze.add(path);
+    if (_explicitFiles.contains(path)) {
+      _filesToAnalyze.add(path);
+    }
     _transitionToAnalyzing();
     _hasWork.notify();
   }
@@ -472,6 +475,7 @@ class AnalysisDriver {
   AnalysisContext _createAnalysisContext(_LibraryContext libraryContext) {
     AnalysisContextImpl analysisContext =
         AnalysisEngine.instance.createAnalysisContext();
+    analysisContext.analysisOptions = _analysisOptions;
 
     analysisContext.sourceFactory =
         new SourceFactory((_sourceFactory as SourceFactoryImpl).resolvers);
@@ -941,7 +945,7 @@ class _File {
       List<int> bytes = driver._byteStore.get(key);
       if (bytes != null) {
         PackageBundle unlinked = new PackageBundle.fromBuffer(bytes);
-        driver._fileApiSignatureMap[path] = unlinked.apiSignature;
+        _updateApiSignature(driver, path, unlinked.apiSignature);
         return new _File._(driver, source, null, contentHash, unlinked, null);
       }
     }
@@ -972,7 +976,7 @@ class _File {
         });
       }
       unlinked = new PackageBundle.fromBuffer(bytes);
-      driver._fileApiSignatureMap[path] = unlinked.apiSignature;
+      _updateApiSignature(driver, path, unlinked.apiSignature);
     }
     // Return the full file.
     return new _File._(driver, source, content, contentHash, unlinked, unit);
@@ -1020,6 +1024,15 @@ class _File {
     CompilationUnit unit = parser.parseCompilationUnit(token);
     unit.lineInfo = lineInfo;
     return unit;
+  }
+
+  static void _updateApiSignature(
+      AnalysisDriver driver, String path, String newSignature) {
+    String oldSignature = driver._fileApiSignatureMap[path];
+    if (oldSignature != null && oldSignature != newSignature) {
+      driver._dependencySignatureMap.clear();
+    }
+    driver._fileApiSignatureMap[path] = newSignature;
   }
 }
 
