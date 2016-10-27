@@ -242,9 +242,12 @@ class AnalysisDriver {
         if (_requestedFiles.isNotEmpty) {
           String path = _requestedFiles.keys.first;
           AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
+          // Notify the completers.
           _requestedFiles.remove(path).forEach((completer) {
             completer.complete(result);
           });
+          // Remove from to be analyzed and produce it now.
+          _filesToAnalyze.remove(path);
           yield result;
           // Repeat the processing loop.
           _hasWork.notify();
@@ -430,8 +433,9 @@ class AnalysisDriver {
       try {
         analysisContext.setContents(file.source, file.content);
         // TODO(scheglov) Add support for parts.
-        CompilationUnit resolvedUnit =
-            analysisContext.resolveCompilationUnit2(file.source, file.source);
+        CompilationUnit resolvedUnit = withUnit
+            ? analysisContext.resolveCompilationUnit2(file.source, file.source)
+            : null;
         List<AnalysisError> errors = analysisContext.computeErrors(file.source);
 
         // Store the result into the cache.
@@ -450,10 +454,15 @@ class AnalysisDriver {
           _byteStore.put(key, bytes);
         }
 
-        // Return the full result.
+        // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return new AnalysisResult(file.path, file.uri, file.content,
-            file.contentHash, resolvedUnit, errors);
+        return new AnalysisResult(
+            file.path,
+            file.uri,
+            withUnit ? file.content : null,
+            file.contentHash,
+            resolvedUnit,
+            errors);
       } finally {
         analysisContext.dispose();
       }
@@ -1151,7 +1160,7 @@ class _Monitor {
    */
   void notify() {
     if (!_completer.isCompleted) {
-      _completer.complete(true);
+      _completer.complete(null);
     }
   }
 }

@@ -6,6 +6,7 @@ library analyzer.test.src.dart.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'analysis/test_all.dart' as analysis;
 import 'ast/test_all.dart' as ast;
 import 'constant/test_all.dart' as constant;
 import 'element/test_all.dart' as element;
@@ -14,6 +15,7 @@ import 'sdk/test_all.dart' as sdk;
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
+    analysis.main();
     ast.main();
     constant.main();
     element.main();

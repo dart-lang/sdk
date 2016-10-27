@@ -33,6 +33,18 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/task/dart.dart';
 
 /**
+ * Assert that the given [object] is null, which in the places where this
+ * function is called means that the element is not resynthesized.
+ */
+void _assertNotResynthesized(Object object) {
+  // TODO(scheglov) I comment this check for now.
+  // When we make a decision about switch to the new analysis driver,
+  // we will need to rework the analysis code to don't call the setters
+  // or restore / inline it.
+//  assert(object == null);
+}
+
+/**
  * A concrete implementation of a [ClassElement].
  */
 abstract class AbstractClassElementImpl extends ElementImpl
@@ -505,7 +517,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    * Set whether this class is abstract.
    */
   void set abstract(bool isAbstract) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
@@ -519,7 +531,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   void set accessors(List<PropertyAccessorElement> accessors) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     super.accessors = accessors;
   }
 
@@ -574,7 +586,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    * Should only be used for class elements that are not mixin applications.
    */
   void set constructors(List<ConstructorElement> constructors) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     assert(!isMixinApplication);
     for (ConstructorElement constructor in constructors) {
       (constructor as ConstructorElementImpl).enclosingElement = this;
@@ -647,7 +659,7 @@ class ClassElementImpl extends AbstractClassElementImpl
 
   @override
   void set fields(List<FieldElement> fields) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     super.fields = fields;
   }
 
@@ -659,7 +671,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   void set hasBeenInferred(bool hasBeenInferred) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     _hasBeenInferred = hasBeenInferred;
   }
 
@@ -749,7 +761,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   void set interfaces(List<InterfaceType> interfaces) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     _interfaces = interfaces;
   }
 
@@ -828,7 +840,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    * Set the methods contained in this class to the given [methods].
    */
   void set methods(List<MethodElement> methods) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     for (MethodElement method in methods) {
       (method as MethodElementImpl).enclosingElement = this;
     }
@@ -839,7 +851,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    * Set whether this class is a mixin application.
    */
   void set mixinApplication(bool isMixinApplication) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
@@ -856,7 +868,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   void set mixins(List<InterfaceType> mixins) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     _mixins = mixins;
   }
 
@@ -898,7 +910,7 @@ class ClassElementImpl extends AbstractClassElementImpl
   }
 
   void set supertype(InterfaceType supertype) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     _supertype = supertype;
   }
 
@@ -928,7 +940,7 @@ class ClassElementImpl extends AbstractClassElementImpl
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
-    assert(_unlinkedClass == null);
+    _assertNotResynthesized(_unlinkedClass);
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
@@ -1478,7 +1490,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * Set the enums contained in this compilation unit to the given [enums].
    */
   void set enums(List<ClassElement> enums) {
-    assert(_unlinkedUnit == null);
+    _assertNotResynthesized(_unlinkedUnit);
     for (ClassElement enumDeclaration in enums) {
       (enumDeclaration as EnumElementImpl).enclosingElement = this;
     }
@@ -1592,7 +1604,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * given [typeAliases].
    */
   void set typeAliases(List<FunctionTypeAliasElement> typeAliases) {
-    assert(_unlinkedUnit == null);
+    _assertNotResynthesized(_unlinkedUnit);
     for (FunctionTypeAliasElement typeAlias in typeAliases) {
       (typeAlias as FunctionTypeAliasElementImpl).enclosingElement = this;
     }
@@ -1616,7 +1628,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * Set the types contained in this compilation unit to the given [types].
    */
   void set types(List<ClassElement> types) {
-    assert(_unlinkedUnit == null);
+    _assertNotResynthesized(_unlinkedUnit);
     for (ClassElement type in types) {
       // Another implementation of ClassElement is _DeferredClassElement,
       // which is used to resynthesize classes lazily. We cannot cast it
@@ -2022,7 +2034,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * Set whether this constructor represents a 'const' constructor.
    */
   void set const2(bool isConst) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.CONST, isConst);
   }
 
@@ -2037,7 +2049,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   void set constantInitializers(
       List<ConstructorInitializer> constantInitializers) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     _constantInitializers = constantInitializers;
   }
 
@@ -2053,7 +2065,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
    * Set whether this constructor represents a factory method.
    */
   void set factory(bool isFactory) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.FACTORY, isFactory);
   }
 
@@ -2124,7 +2136,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   void set nameEnd(int nameEnd) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     _nameEnd = nameEnd;
   }
 
@@ -2139,7 +2151,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   void set periodOffset(int periodOffset) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     _periodOffset = periodOffset;
   }
 
@@ -2163,7 +2175,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   void set redirectedConstructor(ConstructorElement redirectedConstructor) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     _redirectedConstructor = redirectedConstructor;
   }
 
@@ -2335,7 +2347,7 @@ abstract class ConstVariableElement
   }
 
   void set constantInitializer(Expression constantInitializer) {
-    assert(_unlinkedConst == null);
+    _assertNotResynthesized(_unlinkedConst);
     _constantInitializer = constantInitializer;
   }
 
@@ -3358,7 +3370,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
    * Set whether this class is abstract.
    */
   void set abstract(bool isAbstract) {
-    assert(_unlinkedEnum == null);
+    _assertNotResynthesized(_unlinkedEnum);
   }
 
   @override
@@ -3371,7 +3383,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   void set accessors(List<PropertyAccessorElement> accessors) {
-    assert(_unlinkedEnum == null);
+    _assertNotResynthesized(_unlinkedEnum);
     super.accessors = accessors;
   }
 
@@ -3421,7 +3433,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 
   @override
   void set fields(List<FieldElement> fields) {
-    assert(_unlinkedEnum == null);
+    _assertNotResynthesized(_unlinkedEnum);
     super.fields = fields;
   }
 
@@ -3629,7 +3641,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * Set whether this executable element's body is asynchronous.
    */
   void set asynchronous(bool isAsynchronous) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
   }
 
@@ -3669,7 +3681,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * Set whether this executable element is external.
    */
   void set external(bool isExternal) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.EXTERNAL, isExternal);
   }
 
@@ -3687,7 +3699,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * [functions].
    */
   void set functions(List<FunctionElement> functions) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     for (FunctionElement function in functions) {
       (function as FunctionElementImpl).enclosingElement = this;
     }
@@ -3698,7 +3710,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * Set whether this method's body is a generator.
    */
   void set generator(bool isGenerator) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.GENERATOR, isGenerator);
   }
 
@@ -3715,7 +3727,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * Set whether this executable element has an implicit return type.
    */
   void set hasImplicitReturnType(bool hasImplicitReturnType) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.IMPLICIT_TYPE, hasImplicitReturnType);
   }
 
@@ -3771,7 +3783,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * [labels].
    */
   void set labels(List<LabelElement> labels) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     for (LabelElement label in labels) {
       (label as LabelElementImpl).enclosingElement = this;
     }
@@ -3804,7 +3816,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * [variables].
    */
   void set localVariables(List<LocalVariableElement> variables) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     for (LocalVariableElement variable in variables) {
       (variable as LocalVariableElementImpl).enclosingElement = this;
     }
@@ -3851,7 +3863,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * [parameters].
    */
   void set parameters(List<ParameterElement> parameters) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     for (ParameterElement parameter in parameters) {
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
@@ -3874,7 +3886,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   void set returnType(DartType returnType) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     _returnType = returnType;
   }
 
@@ -3888,7 +3900,7 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   void set type(FunctionType type) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     _type = type;
   }
 
@@ -3908,7 +3920,7 @@ abstract class ExecutableElementImpl extends ElementImpl
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     for (TypeParameterElement parameter in typeParameters) {
       (parameter as TypeParameterElementImpl).enclosingElement = this;
     }
@@ -4067,7 +4079,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   void set combinators(List<NamespaceCombinator> combinators) {
-    assert(_unlinkedExportPublic == null);
+    _assertNotResynthesized(_unlinkedExportPublic);
     _combinators = combinators;
   }
 
@@ -4081,7 +4093,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   void set exportedLibrary(LibraryElement exportedLibrary) {
-    assert(_unlinkedExportNonPublic == null);
+    _assertNotResynthesized(_unlinkedExportNonPublic);
     _exportedLibrary = exportedLibrary;
   }
 
@@ -4102,7 +4114,7 @@ class ExportElementImpl extends UriReferencedElementImpl
   }
 
   void set metadata(List<ElementAnnotation> metadata) {
-    assert(_unlinkedExportNonPublic == null);
+    _assertNotResynthesized(_unlinkedExportNonPublic);
     super.metadata = metadata;
   }
 
@@ -4126,7 +4138,7 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   void set uri(String uri) {
-    assert(_unlinkedExportPublic == null);
+    _assertNotResynthesized(_unlinkedExportPublic);
     super.uri = uri;
   }
 
@@ -4140,7 +4152,7 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   void set uriEnd(int uriEnd) {
-    assert(_unlinkedExportNonPublic == null);
+    _assertNotResynthesized(_unlinkedExportNonPublic);
     super.uriEnd = uriEnd;
   }
 
@@ -4154,7 +4166,7 @@ class ExportElementImpl extends UriReferencedElementImpl
 
   @override
   void set uriOffset(int uriOffset) {
-    assert(_unlinkedExportNonPublic == null);
+    _assertNotResynthesized(_unlinkedExportNonPublic);
     super.uriOffset = uriOffset;
   }
 
@@ -4239,7 +4251,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
    * Set whether this field is static.
    */
   void set static(bool isStatic) {
-    assert(_unlinkedVariable == null);
+    _assertNotResynthesized(_unlinkedVariable);
     setModifier(Modifier.STATIC, isStatic);
   }
 
@@ -4299,7 +4311,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   }
 
   void set field(FieldElement field) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     _field = field;
   }
 
@@ -4316,7 +4328,7 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 
   @override
   void set type(DartType type) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     _type = type;
   }
 
@@ -4443,7 +4455,7 @@ class FunctionElementImpl extends ExecutableElementImpl
    * [offset] with the given [length].
    */
   void setVisibleRange(int offset, int length) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
@@ -4702,7 +4714,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    * Set the parameters defined by this type alias to the given [parameters].
    */
   void set parameters(List<ParameterElement> parameters) {
-    assert(_unlinkedTypedef == null);
+    _assertNotResynthesized(_unlinkedTypedef);
     if (parameters != null) {
       for (ParameterElement parameter in parameters) {
         (parameter as ParameterElementImpl).enclosingElement = this;
@@ -4721,7 +4733,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   }
 
   void set returnType(DartType returnType) {
-    assert(_unlinkedTypedef == null);
+    _assertNotResynthesized(_unlinkedTypedef);
     _returnType = returnType;
   }
 
@@ -4734,7 +4746,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
   }
 
   void set type(FunctionType type) {
-    assert(_unlinkedTypedef == null);
+    _assertNotResynthesized(_unlinkedTypedef);
     _type = type;
   }
 
@@ -4754,7 +4766,7 @@ class FunctionTypeAliasElementImpl extends ElementImpl
    * [typeParameters].
    */
   void set typeParameters(List<TypeParameterElement> typeParameters) {
-    assert(_unlinkedTypedef == null);
+    _assertNotResynthesized(_unlinkedTypedef);
     for (TypeParameterElement typeParameter in typeParameters) {
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
@@ -4861,7 +4873,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
   }
 
   void set hiddenNames(List<String> hiddenNames) {
-    assert(_unlinkedCombinator == null);
+    _assertNotResynthesized(_unlinkedCombinator);
     _hiddenNames = hiddenNames;
   }
 
@@ -4948,7 +4960,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   void set combinators(List<NamespaceCombinator> combinators) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     _combinators = combinators;
   }
 
@@ -4956,7 +4968,7 @@ class ImportElementImpl extends UriReferencedElementImpl
    * Set whether this import is for a deferred library.
    */
   void set deferred(bool isDeferred) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     setModifier(Modifier.DEFERRED, isDeferred);
   }
 
@@ -4980,7 +4992,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   void set importedLibrary(LibraryElement importedLibrary) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     _importedLibrary = importedLibrary;
   }
 
@@ -5014,7 +5026,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   void set metadata(List<ElementAnnotation> metadata) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     super.metadata = metadata;
   }
 
@@ -5041,7 +5053,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   void set prefix(PrefixElement prefix) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     _prefix = prefix;
   }
 
@@ -5054,7 +5066,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   }
 
   void set prefixOffset(int prefixOffset) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     _prefixOffset = prefixOffset;
   }
 
@@ -5072,7 +5084,7 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   void set uri(String uri) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     super.uri = uri;
   }
 
@@ -5089,7 +5101,7 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   void set uriEnd(int uriEnd) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     super.uriEnd = uriEnd;
   }
 
@@ -5106,7 +5118,7 @@ class ImportElementImpl extends UriReferencedElementImpl
 
   @override
   void set uriOffset(int uriOffset) {
-    assert(_unlinkedImport == null);
+    _assertNotResynthesized(_unlinkedImport);
     super.uriOffset = uriOffset;
   }
 
@@ -5485,7 +5497,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * given list of [exports].
    */
   void set exports(List<ExportElement> exports) {
-    assert(_unlinkedDefiningUnit == null);
+    _assertNotResynthesized(_unlinkedDefiningUnit);
     for (ExportElement exportElement in exports) {
       (exportElement as ExportElementImpl).enclosingElement = this;
     }
@@ -5555,7 +5567,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * given list of [imports].
    */
   void set imports(List<ImportElement> imports) {
-    assert(_unlinkedDefiningUnit == null);
+    _assertNotResynthesized(_unlinkedDefiningUnit);
     for (ImportElement importElement in imports) {
       (importElement as ImportElementImpl).enclosingElement = this;
       PrefixElementImpl prefix = importElement.prefix as PrefixElementImpl;
@@ -6085,7 +6097,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
    * [offset] with the given [length].
    */
   void setVisibleRange(int offset, int length) {
-    assert(_unlinkedVariable == null);
+    _assertNotResynthesized(_unlinkedVariable);
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
@@ -6117,7 +6129,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * Set whether this method is abstract.
    */
   void set abstract(bool isAbstract) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
@@ -6182,7 +6194,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
    * Set whether this method is static.
    */
   void set static(bool isStatic) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.STATIC, isStatic);
   }
 
@@ -6684,7 +6696,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   void set const3(bool isConst) {
-    assert(_unlinkedVariable == null);
+    _assertNotResynthesized(_unlinkedVariable);
     super.const3 = isConst;
   }
 
@@ -6698,7 +6710,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   void set final2(bool isFinal) {
-    assert(_unlinkedVariable == null);
+    _assertNotResynthesized(_unlinkedVariable);
     super.final2 = isFinal;
   }
 
@@ -6712,7 +6724,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   void set hasImplicitType(bool hasImplicitType) {
-    assert(_unlinkedVariable == null);
+    _assertNotResynthesized(_unlinkedVariable);
     super.hasImplicitType = hasImplicitType;
   }
 
@@ -6735,7 +6747,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
    * [function].
    */
   void set initializer(FunctionElement function) {
-    assert(_unlinkedVariable == null);
+    _assertNotResynthesized(_unlinkedVariable);
     super.initializer = function;
   }
 
@@ -6793,7 +6805,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   void set type(DartType type) {
-    assert(_unlinkedVariable == null);
+    _assertNotResynthesized(_unlinkedVariable);
     _type = type;
   }
 
@@ -6931,7 +6943,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   void set const3(bool isConst) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     super.const3 = isConst;
   }
 
@@ -6950,13 +6962,13 @@ class ParameterElementImpl extends VariableElementImpl
    * Set Dart code of the default value.
    */
   void set defaultValueCode(String defaultValueCode) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     this._defaultValueCode = StringUtilities.intern(defaultValueCode);
   }
 
   @override
   void set final2(bool isFinal) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     super.final2 = isFinal;
   }
 
@@ -6970,7 +6982,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   @override
   void set hasImplicitType(bool hasImplicitType) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     super.hasImplicitType = hasImplicitType;
   }
 
@@ -6992,7 +7004,7 @@ class ParameterElementImpl extends VariableElementImpl
    * Record whether or not this parameter inherits from a covariant parameter.
    */
   void set inheritsCovariant(bool value) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     _inheritsCovariant = value;
   }
 
@@ -7015,7 +7027,7 @@ class ParameterElementImpl extends VariableElementImpl
    * [function].
    */
   void set initializer(FunctionElement function) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     super.initializer = function;
   }
 
@@ -7108,7 +7120,7 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   void set parameterKind(ParameterKind parameterKind) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     _parameterKind = parameterKind;
   }
 
@@ -7211,7 +7223,7 @@ class ParameterElementImpl extends VariableElementImpl
    * [offset] with the given [length].
    */
   void setVisibleRange(int offset, int length) {
-    assert(_unlinkedParam == null);
+    _assertNotResynthesized(_unlinkedParam);
     _visibleRangeOffset = offset;
     _visibleRangeLength = length;
   }
@@ -7463,7 +7475,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
    * Set whether this accessor is abstract.
    */
   void set abstract(bool isAbstract) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.ABSTRACT, isAbstract);
   }
 
@@ -7510,7 +7522,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
    * Set whether this accessor is a getter.
    */
   void set getter(bool isGetter) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.GETTER, isGetter);
   }
 
@@ -7569,7 +7581,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
    * Set whether this accessor is a setter.
    */
   void set setter(bool isSetter) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.SETTER, isSetter);
   }
 
@@ -7577,7 +7589,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
    * Set whether this accessor is static.
    */
   void set static(bool isStatic) {
-    assert(serializedExecutable == null);
+    _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.STATIC, isStatic);
   }
 
@@ -7739,7 +7751,7 @@ abstract class PropertyInducingElementImpl
   }
 
   void set propagatedType(DartType propagatedType) {
-    assert(_unlinkedVariable == null);
+    _assertNotResynthesized(_unlinkedVariable);
     _propagatedType = propagatedType;
   }
 }
@@ -7846,7 +7858,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   }
 
   void set end(int end) {
-    assert(_unlinkedCombinator == null);
+    _assertNotResynthesized(_unlinkedCombinator);
     _end = end;
   }
 
@@ -7859,7 +7871,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   }
 
   void set offset(int offset) {
-    assert(_unlinkedCombinator == null);
+    _assertNotResynthesized(_unlinkedCombinator);
     _offset = offset;
   }
 
@@ -7872,7 +7884,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
   }
 
   void set shownNames(List<String> shownNames) {
-    assert(_unlinkedCombinator == null);
+    _assertNotResynthesized(_unlinkedCombinator);
     _shownNames = shownNames;
   }
 
@@ -8006,7 +8018,7 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   void set bound(DartType bound) {
-    assert(_unlinkedTypeParam == null);
+    _assertNotResynthesized(_unlinkedTypeParam);
     _bound = bound;
   }
 
