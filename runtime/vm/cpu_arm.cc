@@ -5,8 +5,10 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
-#include "vm/assembler.h"
 #include "vm/cpu.h"
+#include "vm/cpu_arm.h"
+
+#include "vm/assembler.h"
 #include "vm/cpuinfo.h"
 #include "vm/heap.h"
 #include "vm/isolate.h"

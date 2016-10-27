@@ -826,7 +826,7 @@ static RawFunction* ComputeTypeCheckTarget(const Instance& receiver,
                          ? store->simple_instance_of_true_function()
                          : store->simple_instance_of_false_function());
   ASSERT(!target.IsNull());
-  return target.raw();;
+  return target.raw();
 }
 
 

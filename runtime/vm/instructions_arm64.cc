@@ -5,10 +5,12 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_ARM64.
 #if defined(TARGET_ARCH_ARM64)
 
+#include "vm/instructions.h"
+#include "vm/instructions_arm64.h"
+
 #include "vm/assembler.h"
 #include "vm/constants_arm64.h"
 #include "vm/cpu.h"
-#include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {

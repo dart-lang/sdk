@@ -120,7 +120,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   while (offset < bytes) {
     struct inotify_event* e =
         reinterpret_cast<struct inotify_event*>(buffer + offset);
-    if ((e->mask & IN_IGNORED) == 0) {;
+    if ((e->mask & IN_IGNORED) == 0) {
       Dart_Handle event = Dart_NewList(5);
       int mask = InotifyEventToMask(e);
       Dart_ListSetAt(event, 0, Dart_NewInteger(mask));

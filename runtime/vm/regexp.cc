@@ -1234,7 +1234,7 @@ static void SplitSearchSpace(ZoneGrowableArray<int>* ranges,
       last - first > kSize * 2 &&
       binary_chop_index > *new_start_index &&
       ranges->At(binary_chop_index) >= first + 2 * kSize) {
-    intptr_t scan_forward_for_section_border = binary_chop_index;;
+    intptr_t scan_forward_for_section_border = binary_chop_index;
     intptr_t new_border = (ranges->At(binary_chop_index) | kMask) + 1;
 
     while (scan_forward_for_section_border < end_index) {

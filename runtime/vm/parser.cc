@@ -9240,7 +9240,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
         new(Z) LocalVariable(loop_var_assignment_pos,
                              loop_var_assignment_pos,
                              *loop_var_name,
-                             loop_var_type);;
+                             loop_var_type);
     if (loop_var_is_final) {
       loop_var->set_is_final();
     }
@@ -9479,7 +9479,7 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
        new(Z) LocalVariable(loop_var_pos,
                             loop_var_assignment_pos,
                             *loop_var_name,
-                            loop_var_type);;
+                            loop_var_type);
     if (loop_var_is_final) {
       loop_var->set_is_final();
     }

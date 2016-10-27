@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-
 #if defined(TARGET_ARCH_MIPS)
 
 #include "vm/cpu.h"
+#include "vm/cpu_mips.h"
+
 #include "vm/cpuinfo.h"
 #include "vm/simulator.h"
 
