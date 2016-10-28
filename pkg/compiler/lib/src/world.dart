@@ -25,6 +25,7 @@ import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
+import 'util/enumset.dart';
 import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
@@ -48,8 +49,25 @@ abstract class ClosedWorld implements World {
   /// Returns `true` if [cls] is either directly or indirectly instantiated.
   bool isInstantiated(ClassElement cls);
 
-  /// Returns `true` if [cls] is directly instantiated.
+  /// Returns `true` if [cls] is directly instantiated. This means that at
+  /// runtime instances of exactly [cls] are assumed to exist.
   bool isDirectlyInstantiated(ClassElement cls);
+
+  /// Returns `true` if [cls] is abstractly instantiated. This means that at
+  /// runtime instances of [cls] or unknown subclasses of [cls] are assumed to
+  /// exist.
+  ///
+  /// This is used to mark native and/or reflectable classes as instantiated.
+  /// For native classes we do not know the exact class that instantiates [cls]
+  /// so [cls] here represents the root of the subclasses. For reflectable
+  /// classes we need event abstract classes to be 'live' even though they
+  /// cannot themselves be instantiated.
+  bool isAbstractlyInstantiated(ClassElement cls);
+
+  /// Returns `true` if [cls] is either directly or abstractly instantiated.
+  ///
+  /// See [isDirectlyInstantiated] and [isAbstractlyInstantiated].
+  bool isExplicitlyInstantiated(ClassElement cls);
 
   /// Returns `true` if [cls] is indirectly instantiated, that is through a
   /// subclass.
@@ -393,6 +411,20 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   }
 
   @override
+  bool isAbstractlyInstantiated(ClassElement cls) {
+    assert(isClosed);
+    ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
+    return node != null && node.isAbstractlyInstantiated;
+  }
+
+  @override
+  bool isExplicitlyInstantiated(ClassElement cls) {
+    assert(isClosed);
+    ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
+    return node != null && node.isExplicitlyInstantiated;
+  }
+
+  @override
   bool isIndirectlyInstantiated(ClassElement cls) {
     assert(isClosed);
     ClassHierarchyNode node = _classHierarchyNodes[cls.declaration];
@@ -414,7 +446,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     assert(isClosed);
     ClassHierarchyNode hierarchy = _classHierarchyNodes[cls.declaration];
     if (hierarchy == null) return const <ClassElement>[];
-    return hierarchy.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED);
+    return hierarchy
+        .subclassesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -423,7 +456,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
-    return subclasses.subclassesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+    return subclasses.subclassesByMask(
+        ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -443,7 +477,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     assert(isClosed);
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return;
-    subclasses.forEachSubclass(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+    subclasses.forEachSubclass(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -454,7 +488,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return false;
     return subclasses.anySubclass(
-        predicate, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -466,7 +500,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     if (classSet == null) {
       return const <ClassElement>[];
     } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED);
+      return classSet
+          .subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED);
     }
   }
 
@@ -478,7 +513,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     if (classSet == null) {
       return const <ClassElement>[];
     } else {
-      return classSet.subtypesByMask(ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+      return classSet.subtypesByMask(ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
           strict: true);
     }
   }
@@ -499,7 +534,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     assert(isClosed);
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return;
-    classSet.forEachSubtype(f, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+    classSet.forEachSubtype(f, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -510,7 +545,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return false;
     return classSet.anySubtype(
-        predicate, ClassHierarchyNode.DIRECTLY_INSTANTIATED,
+        predicate, ClassHierarchyNode.EXPLICITLY_INSTANTIATED,
         strict: true);
   }
 
@@ -769,7 +804,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
         // The root subclass has a concrete implementation so no subclass needs
         // noSuchMethod handling.
         return false;
-      } else if (rootNode.isDirectlyInstantiated) {
+      } else if (rootNode.isExplicitlyInstantiated) {
         // The root class need noSuchMethod handling.
         return true;
       }
@@ -781,7 +816,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
           // Stop fast - we found a need for noSuchMethod handling.
           return IterationStep.STOP;
         }
-      }, ClassHierarchyNode.DIRECTLY_INSTANTIATED, strict: true);
+      }, ClassHierarchyNode.EXPLICITLY_INSTANTIATED, strict: true);
       // We stopped fast so we need noSuchMethod handling.
       return result == IterationStep.STOP;
     }
@@ -943,11 +978,14 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
   }
 
   void _updateClassHierarchyNodeForClass(ClassElement cls,
-      {bool directlyInstantiated: false}) {
+      {bool directlyInstantiated: false, bool abstractlyInstantiated: false}) {
     ClassHierarchyNode node = getClassHierarchyNode(cls);
     _updateSuperClassHierarchyNodeForClass(node);
     if (directlyInstantiated) {
       node.isDirectlyInstantiated = true;
+    }
+    if (abstractlyInstantiated) {
+      node.isAbstractlyInstantiated = true;
     }
   }
 
@@ -955,7 +993,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     /// properties of the [ClassHierarchyNode] for [cls].
 
-    void addSubtypes(ClassElement cls) {
+    void addSubtypes(ClassElement cls, EnumSet<Instantiation> instantiations) {
       if (_compiler.options.hasIncrementalSupport &&
           !alreadyPopulated.add(cls)) {
         return;
@@ -965,7 +1003,11 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
         reporter.internalError(cls, 'Class "${cls.name}" is not resolved.');
       }
 
-      _updateClassHierarchyNodeForClass(cls, directlyInstantiated: true);
+      _updateClassHierarchyNodeForClass(cls,
+          directlyInstantiated:
+              instantiations.contains(Instantiation.DIRECTLY_INSTANTIATED),
+          abstractlyInstantiated:
+              instantiations.contains(Instantiation.ABSTRACTLY_INSTANTIATED));
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.
@@ -985,7 +1027,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     // classes: if the superclass of these classes require RTI, then
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
-    _compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
+    _compiler.resolverWorld.forEachInstantiatedClass(addSubtypes);
 
     _closed = true;
     return this;

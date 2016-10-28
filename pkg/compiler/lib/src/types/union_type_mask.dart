@@ -88,6 +88,8 @@ class UnionTypeMask implements TypeMask {
   }
 
   static TypeMask flatten(List<FlatTypeMask> masks, ClosedWorld closedWorld) {
+    // TODO(johnniwinther): Move this computation to [ClosedWorld] and use the
+    // class set structures.
     assert(masks.length > 1);
     // If either type mask is a subtype type mask, we cannot use a
     // subclass type mask to represent their union.
@@ -104,7 +106,7 @@ class UnionTypeMask implements TypeMask {
     for (Entity candidate in candidates) {
       bool isInstantiatedStrictSubclass(cls) =>
           cls != candidate &&
-          closedWorld.isDirectlyInstantiated(cls) &&
+          closedWorld.isExplicitlyInstantiated(cls) &&
           closedWorld.isSubclassOf(cls, candidate);
 
       int size;
