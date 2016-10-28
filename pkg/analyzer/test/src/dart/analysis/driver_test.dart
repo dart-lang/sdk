@@ -77,7 +77,7 @@ class DriverTest {
           })
         ], null, provider),
         new AnalysisOptionsImpl()..strongMode = true);
-    driver.status.lastWhere((status) {
+    driver.status.listen((status) {
       allStatuses.add(status);
       if (status.isIdle) {
         idleStatusMonitor.notify();
@@ -139,6 +139,30 @@ var A = B;
       AnalysisResult ar = allResults.firstWhere((r) => r.path == a);
       expect(_getTopLevelVarType(ar.unit, 'A'), 'double');
     }
+  }
+
+  test_changeFile_noContentChange_noNewResult() async {
+    _addTestFile('main() {}', priority: true);
+
+    // Initial analysis.
+    await _waitForIdle();
+    expect(allResults, hasLength(1));
+
+    // Update the file, but don't notify the driver.
+    // Don't update the file in the file system.
+    // But tell the driver the the file was changed.
+    // The driver should eventually check the file and ignore.
+    allStatuses.clear();
+    allResults.clear();
+    driver.changeFile(testFile);
+
+    // The driver switched to analysis and back to idle.
+    await _waitForIdle();
+    expect(allStatuses, hasLength(2));
+    expect(allStatuses.map((status) => status.isAnalyzing), [true, false]);
+
+    // No new results.
+    expect(allResults, isEmpty);
   }
 
   test_changeFile_selfConsistent() async {
