@@ -177,8 +177,9 @@ class AnalysisDriver {
   AnalysisStatus _currentStatus = AnalysisStatus.IDLE;
 
   AnalysisDriver(this._logger, this._resourceProvider, this._byteStore,
-      this._contentCache, this._sourceFactory, this._analysisOptions) {
-    _sdkBundle = _sourceFactory.dartSdk.getLinkedBundle();
+      this._contentCache, SourceFactory sourceFactory, this._analysisOptions)
+      : _sourceFactory = sourceFactory.clone() {
+    _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
   }
 
   /**
