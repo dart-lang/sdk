@@ -718,7 +718,7 @@ abstract class Element implements AnalysisTarget {
    * Use the given [visitor] to visit this element. Return the value returned by
    * the visitor as a result of visiting this element.
    */
-  accept(ElementVisitor visitor);
+  /*=T*/ accept/*<T>*/(ElementVisitor<dynamic/*=T*/> visitor);
 
   /**
    * Return the documentation comment for this element as it appears in the
