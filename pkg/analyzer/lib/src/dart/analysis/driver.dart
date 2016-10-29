@@ -208,6 +208,12 @@ class AnalysisDriver {
    * "analyzing" and an analysis result is produced for every added file prior
    * to the next time the analysis state transitions to "idle".
    *
+   * At least one analysis result is produced for every file passed to
+   * [addFile] or [changeFile] prior to the next time the analysis state
+   * transitions to "idle", unless the file is later removed from analysis
+   * using [removeFile]. Analysis results for other files are produced only if
+   * the changes affect analysis results of other files.
+   *
    * More than one result might be produced for the same file, even if the
    * client does not change the state of the files.
    *
@@ -299,11 +305,6 @@ class AnalysisDriver {
    * The [path] must be absolute and normalized.
    *
    * The results of analysis are eventually produced by the [results] stream.
-   *
-   * Causes the analysis state to transition to "analyzing" (if it is not in
-   * that state already). At least one analysis result will be produced the
-   * file prior to the next time the analysis state transitions to "idle",
-   * unless the file is later removed from analysis using [removeFile].
    */
   void addFile(String path) {
     _explicitFiles.add(path);
@@ -324,11 +325,6 @@ class AnalysisDriver {
    * that state already). Schedules the file contents for [path] to be read
    * into the current file state prior to the next time the analysis state
    * transitions to "idle".
-   *
-   * If the file content is the same, no new results will be produced because
-   * of this notification, including no result for the file itself. Otherwise,
-   * one or more results will be produced - for the file itself and other
-   * files that that change in the file might affect.
    *
    * Invocation of this method will not prevent a [Future] returned from
    * [getResult] from completing with a result, but the result is not
@@ -685,22 +681,16 @@ class AnalysisDriver {
    */
   void _verifyApiSignatureOfChangedFile(String path) {
     _logger.run('Verify API signature of $path', () {
-      String oldContentHash = _fileContentHashMap[path];
       String oldSignature = _fileApiSignatureMap[path];
       // Compute the new API signature.
       // _File.forResolution() also updates the content hash in the cache.
       Source source = _sourceForPath(path);
       _File newFile = new _File.forResolution(this, source);
-      // If the file content hash is the same, we don't need analyzing it.
-      if (newFile.contentHash == oldContentHash) {
-        _filesToAnalyze.remove(path);
-        return;
-      }
+      String newSignature = newFile.unlinked.apiSignature;
       // If the old API signature is not null, then the file was used to
       // compute at least one dependency signature. If the new API signature
       // is different, then potentially all dependency signatures and
       // resolution results are invalid.
-      String newSignature = newFile.unlinked.apiSignature;
       if (oldSignature != null && oldSignature != newSignature) {
         _logger.writeln('API signatures mismatch found for $newFile');
         _dependencySignatureMap.clear();
