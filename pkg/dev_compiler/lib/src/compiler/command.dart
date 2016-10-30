@@ -15,7 +15,7 @@ import 'compiler.dart' show BuildUnit, CompilerOptions, ModuleCompiler;
 import 'module_builder.dart';
 
 final ArgParser _argParser = () {
-  var argParser = new ArgParser()
+  var argParser = new ArgParser(allowTrailingOptions: true)
     ..addFlag('help', abbr: 'h', help: 'Display this message.')
     ..addOption('out',
         abbr: 'o', allowMultiple: true, help: 'Output file (required).')
