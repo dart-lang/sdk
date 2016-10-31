@@ -69,22 +69,14 @@ class EditDomainHandler implements RequestHandler {
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
-    ContextSourcePair contextSource = server.getContextSourcePair(file);
-
-    engine.AnalysisContext context = contextSource.context;
-    if (context == null) {
-      return new Response.formatInvalidFile(request);
-    }
-
-    Source source = contextSource.source;
-    engine.TimestampedData<String> contents;
+    String unformattedSource;
     try {
-      contents = context.getContents(source);
+      Source source = server.resourceProvider.getFile(file).createSource();
+      unformattedSource = server.overlayState.getContents(source);
+      unformattedSource ??= source.contents.data;
     } catch (e) {
       return new Response.formatInvalidFile(request);
     }
-
-    String unformattedSource = contents.data;
 
     int start = params.selectionOffset;
     int length = params.selectionLength;
