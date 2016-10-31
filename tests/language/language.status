@@ -148,6 +148,9 @@ issue23244_test: Fail # Issue 23244
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
+[ $compiler == precompiler && $runtime == dart_precompiled ]
+vm/regress_27671_test: Skip # Unsupported
+
 [ $noopt || $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
 full_stacktrace1_test: Pass, RuntimeError
