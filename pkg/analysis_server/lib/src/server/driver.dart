@@ -245,6 +245,11 @@ class Driver implements ServerStarter {
   /**
    * The name of the option used to enable using pub summary manager.
    */
+  static const String ENABLE_NEW_ANALYSIS_DRIVER = 'enable-new-analysis-driver';
+
+  /**
+   * The name of the option used to enable using pub summary manager.
+   */
   static const String ENABLE_PUB_SUMMARY_MANAGER = 'enable-pub-summary-manager';
 
   /**
@@ -383,6 +388,8 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.enableNewAnalysisDriver =
+      results[ENABLE_NEW_ANALYSIS_DRIVER];
     analysisServerOptions.enablePubSummaryManager =
         results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
@@ -530,6 +537,10 @@ class Driver implements ServerStarter {
         help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(ENABLE_NEW_ANALYSIS_DRIVER,
+        help: "enable using new analysis driver",
         defaultsTo: false,
         negatable: false);
     parser.addFlag(ENABLE_PUB_SUMMARY_MANAGER,

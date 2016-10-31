@@ -135,6 +135,10 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Future getAssists(Request request) async {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      return;
+    }
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
     ContextSourcePair pair = server.getContextSourcePair(params.file);
     engine.AnalysisContext context = pair.context;
@@ -152,7 +156,11 @@ class EditDomainHandler implements RequestHandler {
     server.sendResponse(response);
   }
 
-  getFixes(Request request) async {
+  Future getFixes(Request request) async {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      return;
+    }
     var params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -184,7 +192,7 @@ class EditDomainHandler implements RequestHandler {
       }
     }
     // respond
-    return server.sendResponse(
+    server.sendResponse(
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 
