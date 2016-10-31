@@ -2363,7 +2363,6 @@ final notYetStrongTests = new HashSet<String>.from([
   'language/private_member1_negative_test',
   'language/private_member2_negative_test',
   'language/private_member3_negative_test',
-  'language/regress_18535_test',
   'language/script1_negative_test',
   'language/script2_negative_test',
   'language/setter4_test',
