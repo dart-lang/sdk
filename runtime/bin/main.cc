@@ -105,6 +105,9 @@ extern const char* kPrecompiledDataSymbolName;
 static bool trace_loading = false;
 
 
+static Dart_Isolate main_isolate = NULL;
+
+
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 // VM Service options.
@@ -798,9 +801,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   IsolateData* isolate_data = new IsolateData(script_uri,
                                               package_root,
                                               packages_config);
-  if (gen_snapshot_kind == kAppJIT) {
-    isolate_data->set_exit_hook(SnapshotOnExitHook);
-  }
   Dart_Isolate isolate = Dart_CreateIsolate(script_uri,
                                             main,
                                             isolate_snapshot_buffer,
@@ -1539,6 +1539,11 @@ static void GenerateAppSnapshot() {
 
 
 static void SnapshotOnExitHook(int64_t exit_code) {
+  if (Dart_CurrentIsolate() != main_isolate) {
+    Log::PrintErr("A snapshot was requested, but a secondary isolate "
+                  "performed a hard exit (%" Pd64 ").\n", exit_code);
+    Platform::Exit(kErrorExitCode);
+  }
   if (exit_code == 0) {
     GenerateAppSnapshot();
   }
@@ -1577,6 +1582,7 @@ bool RunMainIsolate(const char* script_name,
     EventHandler::Stop();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
+  main_isolate = isolate;
   delete [] isolate_name;
 
   Dart_EnterIsolate(isolate);
@@ -1891,6 +1897,9 @@ void main(int argc, char** argv) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
+  if (gen_snapshot_kind == kAppJIT) {
+    Process::SetExitHook(SnapshotOnExitHook);
+  }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
