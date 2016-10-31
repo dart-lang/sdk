@@ -1176,8 +1176,7 @@ class BlockEntryInstr : public Instruction {
 
   // Perform a depth first search to prune code not reachable from an OSR
   // entry point.
-  bool PruneUnreachable(FlowGraphBuilder* builder,
-                        GraphEntryInstr* graph_entry,
+  bool PruneUnreachable(GraphEntryInstr* graph_entry,
                         Instruction* parent,
                         intptr_t osr_id,
                         BitVector* block_marks);

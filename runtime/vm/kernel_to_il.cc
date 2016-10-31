@@ -2750,7 +2750,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
   const Function& dart_function = parsed_function_->function();
   TargetEntryInstr* normal_entry = BuildTargetEntry();
   graph_entry_ = new (Z)
-      GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
+      GraphEntryInstr(*parsed_function_, normal_entry, osr_id_);
 
   SetupDefaultParameterValues(function);
 
@@ -2917,6 +2917,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
   }
   normal_entry->LinkTo(body.entry);
 
+  // When compiling for OSR, use a depth first search to prune instructions
+  // unreachable from the OSR entry. Catch entries are always considered
+  // reachable, even if they become unreachable after OSR.
+  if (osr_id_ != Compiler::kNoOSRDeoptId) {
+    BitVector* block_marks = new(Z) BitVector(Z, next_block_id_);
+    bool found = graph_entry_->PruneUnreachable(graph_entry_, NULL, osr_id_,
+                                                block_marks);
+    ASSERT(found);
+  }
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, next_block_id_ - 1);
 }
 

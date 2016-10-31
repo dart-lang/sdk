@@ -975,8 +975,7 @@ bool BlockEntryInstr::DiscoverBlock(
 }
 
 
-bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
-                                       GraphEntryInstr* graph_entry,
+bool BlockEntryInstr::PruneUnreachable(GraphEntryInstr* graph_entry,
                                        Instruction* parent,
                                        intptr_t osr_id,
                                        BitVector* block_marks) {
@@ -1012,8 +1011,7 @@ bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
 
   // Recursively search the successors.
   for (intptr_t i = instr->SuccessorCount() - 1; i >= 0; --i) {
-    if (instr->SuccessorAt(i)->PruneUnreachable(builder,
-                                                graph_entry,
+    if (instr->SuccessorAt(i)->PruneUnreachable(graph_entry,
                                                 instr,
                                                 osr_id,
                                                 block_marks)) {
