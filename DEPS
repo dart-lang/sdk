@@ -50,7 +50,7 @@ vars = {
   "chrome_rev" : "@19997",
   "cli_util_tag" : "@0.0.1+3",
   "code_transformers_tag": "@v0.4.2+3",
-  "collection_tag": "@1.9.1",
+  "collection_tag": "@1.10.1",
   "convert_tag": "@2.0.1",
   "crypto_tag" : "@2.0.1",
   "csslib_tag" : "@0.13.2",
