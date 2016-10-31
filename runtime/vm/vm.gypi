@@ -1243,6 +1243,7 @@
       'type': 'none',
       'toolsets': ['host'],
       'dependencies': [
+        'dart_bootstrap#host',
         'generate_async_library_patch',
         'generate_collection_library_patch',
         'generate_convert_library_patch',
@@ -1294,6 +1295,8 @@
           'action': [
             'python',
             '../tools/patch_sdk.py',
+            '--dart-executable',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
             'vm',
             '../sdk',
             '<(gen_source_dir)/patches',
