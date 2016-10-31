@@ -144,9 +144,10 @@ void MagentaWaitManyInfo::GrowArraysIfNeeded(intptr_t desired_size) {
 
 
 EventHandlerImplementation::EventHandlerImplementation() {
-  mx_status_t status = mx_msgpipe_create(interrupt_handles_, 0);
+  mx_status_t status = mx_channel_create(0, &interrupt_handles_[0],
+                                         &interrupt_handles_[1]);
   if (status != NO_ERROR) {
-    FATAL1("mx_msgpipe_create failed: %s\n", mx_status_get_string(status));
+    FATAL1("mx_channel_create failed: %s\n", mx_status_get_string(status));
   }
   shutdown_ = false;
   info_.AddHandle(interrupt_handles_[0],
@@ -178,9 +179,9 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   msg.data = data;
 
   mx_status_t status =
-    mx_msgpipe_write(interrupt_handles_[1], &msg, sizeof(msg), NULL, 0, 0);
+    mx_channel_write(interrupt_handles_[1], 0, &msg, sizeof(msg), NULL, 0);
   if (status != NO_ERROR) {
-    FATAL1("mx_msgpipe_write failed: %s\n", mx_status_get_string(status));
+    FATAL1("mx_channel_write failed: %s\n", mx_status_get_string(status));
   }
   LOG_INFO("WakeupHandler(%ld, %ld, %lld)\n", id, dart_port, data);
 }
@@ -192,8 +193,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
   uint32_t bytes = kInterruptMessageSize;
   mx_status_t status;
   while (true) {
-    status = mx_msgpipe_read(
-        interrupt_handles_[0], &msg, &bytes, NULL, NULL, 0);
+    status = mx_channel_read(
+        interrupt_handles_[0], 0, &msg, bytes, &bytes, NULL, 0, NULL);
     if (status != NO_ERROR) {
       break;
     }
@@ -213,7 +214,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
   // status == ERR_SHOULD_WAIT when we try to read and there are no messages
   // available, so it is an error if we get here and status != ERR_SHOULD_WAIT.
   if (status != ERR_SHOULD_WAIT) {
-    FATAL1("mx_msgpipe_read failed: %s\n", mx_status_get_string(status));
+    FATAL1("mx_channel_read failed: %s\n", mx_status_get_string(status));
   }
   LOG_INFO("HandleInterruptFd exit\n");
 }

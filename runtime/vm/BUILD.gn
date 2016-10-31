@@ -414,6 +414,8 @@ template("concatenate_patch") {
   }
 }
 
+if (!defined(is_fuchsia) || !is_fuchsia) {
+
 template("generate_patched_sdk") {
   assert(defined(invoker.libraries), "Need libraries in $target_name")
 
@@ -537,4 +539,6 @@ generate_patched_sdk("patched_sdk") {
       "io",
     ],
   ]
+}
+
 }
