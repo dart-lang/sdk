@@ -1082,6 +1082,10 @@ void IsolateReloadContext::Commit() {
         new_lib = Library::RawCast(lib_map.GetKey(entry));
         lib = Library::RawCast(lib_map.GetPayload(entry, 0));
         new_lib.set_debuggable(lib.IsDebuggable());
+        // Native extension support.
+        new_lib.set_native_entry_resolver(lib.native_entry_resolver());
+        new_lib.set_native_entry_symbol_resolver(
+            lib.native_entry_symbol_resolver());
       }
     }
 
