@@ -1106,7 +1106,20 @@ class AnalysisServer {
       Map<AnalysisService, Set<String>> subscriptions) {
     if (options.enableNewAnalysisDriver) {
       this.analysisServices = subscriptions;
-      // TODO(scheglov) send notifications for new files
+      Iterable<nd.AnalysisDriver> drivers = driverMap.values;
+      if (drivers.isNotEmpty) {
+        Set<String> allNewFiles =
+            subscriptions.values.expand((files) => files).toSet();
+        for (String file in allNewFiles) {
+          nd.AnalysisDriver driver = drivers.firstWhere(
+              (driver) => driver.isAddedFile(file),
+              orElse: () => drivers.first);
+          // The result will be produced by the "results" stream with
+          // the fully resolved unit, and processed with sending analysis
+          // notifications as it happens after content changes.
+          driver.getResult(file);
+        }
+      }
       return;
     }
     // send notifications for already analyzed sources

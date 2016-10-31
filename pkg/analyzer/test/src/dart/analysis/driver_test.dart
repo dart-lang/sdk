@@ -350,6 +350,19 @@ var A2 = B1;
     expect(result1.unit, isNotNull);
   }
 
+  test_isAddedFile() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    driver.addFile(a);
+    expect(driver.isAddedFile(a), isTrue);
+    expect(driver.isAddedFile(b), isFalse);
+
+    driver.removeFile(a);
+    expect(driver.isAddedFile(a), isFalse);
+    expect(driver.isAddedFile(b), isFalse);
+  }
+
   test_removeFile_changeFile_implicitlyAnalyzed() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');

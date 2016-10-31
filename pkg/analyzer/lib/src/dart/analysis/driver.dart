@@ -377,6 +377,14 @@ class AnalysisDriver {
   }
 
   /**
+   * Return `true` if the file with the given [path] was explicitly added
+   * to analysis using [addFile].
+   */
+  bool isAddedFile(String path) {
+    return _explicitFiles.contains(path);
+  }
+
+  /**
    * Returns a [Future] that completes after pumping the event queue [times]
    * times. By default, this should pump the event queue enough times to allow
    * any code to run, as long as it's not waiting on some external event.
