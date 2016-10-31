@@ -377,11 +377,6 @@ TEST_CASE(SerializeFalse) {
 }
 
 
-static uword allocator(intptr_t size) {
-  return reinterpret_cast<uword>(malloc(size));
-}
-
-
 TEST_CASE(SerializeCapability) {
   // Write snapshot with object content.
   const Capability& capability = Capability::Handle(Capability::New(12345));
@@ -425,7 +420,8 @@ TEST_CASE(SerializeBigint) {
   Bigint& obj = Bigint::Handle();
   obj ^= reader.ReadObject();
 
-  EXPECT_STREQ(bigint.ToHexCString(allocator), obj.ToHexCString(allocator));
+  Zone* zone = Thread::Current()->zone();
+  EXPECT_STREQ(bigint.ToHexCString(zone), obj.ToHexCString(zone));
 
   // Read object back from the snapshot into a C structure.
   ApiNativeScope scope;
@@ -455,11 +451,9 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
     MessageSnapshotReader reader(buffer, buffer_len, thread);
     Bigint& serialized_bigint = Bigint::Handle();
     serialized_bigint ^= reader.ReadObject();
-    const char* str1 = bigint.ToHexCString(allocator);
-    const char* str2 = serialized_bigint.ToHexCString(allocator);
+    const char* str1 = bigint.ToHexCString(thread->zone());
+    const char* str2 = serialized_bigint.ToHexCString(thread->zone());
     EXPECT_STREQ(str1, str2);
-    free(const_cast<char*>(str1));
-    free(const_cast<char*>(str2));
   }
 
   // Read object back from the snapshot into a C structure.

@@ -6637,8 +6637,8 @@ class Bigint : public Integer {
   intptr_t Used() const;
   uint32_t DigitAt(intptr_t index) const;
 
-  const char* ToDecCString(uword (*allocator)(intptr_t size)) const;
-  const char* ToHexCString(uword (*allocator)(intptr_t size)) const;
+  const char* ToDecCString(Zone* zone) const;
+  const char* ToHexCString(Zone* zone) const;
 
   static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint._DIGIT_BITS
   static const intptr_t kBytesPerDigit = 4;
