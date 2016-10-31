@@ -158,7 +158,8 @@ class _ServiceTesteeLauncher {
                                    bool pause_on_exit,
                                    bool pause_on_unhandled_exceptions,
                                    bool trace_service,
-                                   bool trace_compiler) {
+                                   bool trace_compiler,
+                                   bool testeeControlsServer) {
     assert(_shouldLaunchSkyShell());
 
     String dartExecutable = _skyShellPath();
