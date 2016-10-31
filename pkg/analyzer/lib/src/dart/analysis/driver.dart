@@ -12,7 +12,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -177,6 +176,12 @@ class AnalysisDriver {
    */
   AnalysisStatus _currentStatus = AnalysisStatus.IDLE;
 
+  /**
+   * Create a new instance of [AnalysisDriver].
+   *
+   * The given [SourceFactory] is cloned to ensure that it does not contain a
+   * reference to a [AnalysisContext] in which it could have been used.
+   */
   AnalysisDriver(this._logger, this._resourceProvider, this._byteStore,
       this._contentCache, SourceFactory sourceFactory, this._analysisOptions)
       : _sourceFactory = sourceFactory.clone() {
@@ -499,8 +504,7 @@ class AnalysisDriver {
         AnalysisEngine.instance.createAnalysisContext();
     analysisContext.analysisOptions = _analysisOptions;
 
-    analysisContext.sourceFactory =
-        new SourceFactory((_sourceFactory as SourceFactoryImpl).resolvers);
+    analysisContext.sourceFactory = _sourceFactory.clone();
     analysisContext.resultProvider =
         new InputPackagesResultProvider(analysisContext, libraryContext.store);
     analysisContext
