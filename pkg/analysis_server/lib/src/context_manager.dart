@@ -1379,11 +1379,15 @@ class ContextManagerImpl implements ContextManager {
         if (resource is File) {
           File file = resource;
           if (_shouldFileBeAnalyzed(file)) {
-            ChangeSet changeSet = new ChangeSet();
-            Source source = createSourceInContext(info.context, file);
-            changeSet.addedSource(source);
-            callbacks.applyChangesToContext(info.folder, changeSet);
-            info.sources[path] = source;
+            if (enableNewAnalysisDriver) {
+              info.analysisDriver.addFile(path);
+            } else {
+              ChangeSet changeSet = new ChangeSet();
+              Source source = createSourceInContext(info.context, file);
+              changeSet.addedSource(source);
+              callbacks.applyChangesToContext(info.folder, changeSet);
+              info.sources[path] = source;
+            }
           }
         }
         break;
@@ -1420,24 +1424,32 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
-        List<Source> sources = info.context.getSourcesWithFullName(path);
-        if (!sources.isEmpty) {
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach((Source source) {
-            changeSet.removedSource(source);
-          });
-          callbacks.applyChangesToContext(info.folder, changeSet);
-          info.sources.remove(path);
+        if (enableNewAnalysisDriver) {
+          info.analysisDriver.removeFile(path);
+        } else {
+          List<Source> sources = info.context.getSourcesWithFullName(path);
+          if (!sources.isEmpty) {
+            ChangeSet changeSet = new ChangeSet();
+            sources.forEach((Source source) {
+              changeSet.removedSource(source);
+            });
+            callbacks.applyChangesToContext(info.folder, changeSet);
+            info.sources.remove(path);
+          }
         }
         break;
       case ChangeType.MODIFY:
-        List<Source> sources = info.context.getSourcesWithFullName(path);
-        if (!sources.isEmpty) {
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach((Source source) {
-            changeSet.changedSource(source);
-          });
-          callbacks.applyChangesToContext(info.folder, changeSet);
+        if (enableNewAnalysisDriver) {
+          info.analysisDriver.changeFile(path);
+        } else {
+          List<Source> sources = info.context.getSourcesWithFullName(path);
+          if (!sources.isEmpty) {
+            ChangeSet changeSet = new ChangeSet();
+            sources.forEach((Source source) {
+              changeSet.changedSource(source);
+            });
+            callbacks.applyChangesToContext(info.folder, changeSet);
+          }
         }
         break;
     }
