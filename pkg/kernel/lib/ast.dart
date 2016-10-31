@@ -134,6 +134,22 @@ abstract class TreeNode extends Node {
     parent?.replaceChild(this, null);
     parent = null;
   }
+
+  Program get enclosingProgram => parent?.enclosingProgram;
+
+  /// Returns the best known source location of the given AST node, or `null` if
+  /// the node is orphaned.
+  ///
+  /// This getter is intended for diagnostics and debugging, and should be
+  /// avoided in production code.
+  Location get location {
+    if (fileOffset == noOffset) return parent?.location;
+    return _getLocationInEnclosingFile(fileOffset);
+  }
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return parent?._getLocationInEnclosingFile(offset);
+  }
 }
 
 // ------------------------------------------------------------------------
@@ -224,6 +240,10 @@ class Library extends TreeNode implements Comparable<Library> {
   /// Returns a possibly synthesized name for this library, consistent with
   /// the names across all [toString] calls.
   String toString() => debugLibraryName(this);
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return enclosingProgram.getLocation(fileUri, offset);
+  }
 }
 
 /// The degree to which the contents of a class have been loaded into memory.
@@ -457,6 +477,10 @@ class Class extends TreeNode {
     transformList(constructors, v, this);
     transformList(procedures, v, this);
     transformList(fields, v, this);
+  }
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return enclosingProgram.getLocation(fileUri, offset);
   }
 }
 
@@ -725,6 +749,10 @@ class Field extends Member {
   void replaceSetterInterfaceWith(Procedure setter) {
     _setterInterface.target = setter;
     _setterInterface = new _MemberAccessor(this);
+  }
+
+  Location _getLocationInEnclosingFile(int offset) {
+    return enclosingProgram.getLocation(fileUri, offset);
   }
 }
 
@@ -3498,6 +3526,40 @@ class Program extends TreeNode {
   transformChildren(Transformer v) {
     transformList(libraries, v, this);
   }
+
+  Program get enclosingProgram => this;
+
+  /// Translates an offset to line and column numbers in the given file.
+  Location getLocation(String file, int offset) {
+    List<int> lines = uriToLineStarts[file];
+    int low = 0, high = lines.length - 1;
+    while (low < high) {
+      int mid = high - ((high - low) >> 1); // Get middle, rounding up.
+      int pivot = lines[mid];
+      if (pivot <= offset) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    int lineIndex = low;
+    int lineStart = lines[lineIndex];
+    int lineNumber = 1 + lineIndex;
+    int columnNumber = offset - lineStart;
+    return new Location(file, lineNumber, columnNumber);
+  }
+}
+
+/// A tuple with file, line, and column number, for displaying human-readable
+/// locations.
+class Location {
+  final String file;
+  final int line; // 1-based.
+  final int column; // 1-based.
+
+  Location(this.file, this.line, this.column);
+
+  String toString() => '$file:$line:$column';
 }
 
 // ------------------------------------------------------------------------
