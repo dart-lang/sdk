@@ -15,6 +15,16 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
+NavigationCollector computeSimpleDartNavigation(
+    NavigationCollector collector, CompilationUnit unit) {
+  _DartNavigationCollector dartCollector =
+      new _DartNavigationCollector(collector);
+  _DartNavigationComputerVisitor visitor =
+      new _DartNavigationComputerVisitor(dartCollector);
+  unit.accept(visitor);
+  return collector;
+}
+
 /**
  * A computer for navigation regions in a Dart [CompilationUnit].
  */

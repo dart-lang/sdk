@@ -16,6 +16,8 @@ import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
+import 'package:analysis_server/src/domains/analysis/navigation.dart';
+import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
@@ -1103,7 +1105,8 @@ class AnalysisServer {
   void setAnalysisSubscriptions(
       Map<AnalysisService, Set<String>> subscriptions) {
     if (options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
+      this.analysisServices = subscriptions;
+      // TODO(scheglov) send notifications for new files
       return;
     }
     // send notifications for already analyzed sources
@@ -1541,6 +1544,10 @@ class AnalysisServer {
     });
   }
 
+  bool _hasAnalysisServiceSubscription(AnalysisService service, String file) {
+    return analysisServices[service]?.contains(file) ?? false;
+  }
+
   _scheduleAnalysisImplementedNotification() async {
     Set<String> files = analysisServices[AnalysisService.IMPLEMENTED];
     if (files != null) {
@@ -1691,27 +1698,27 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     });
     analysisDriver.results.listen((result) {
       new_sendErrorNotification(analysisServer, result);
+      CompilationUnit unit = result.unit;
+      if (unit != null) {
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.HIGHLIGHTS, result.path)) {
+          sendAnalysisNotificationHighlights(analysisServer, result.path, unit);
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.NAVIGATION, result.path)) {
+          NavigationCollectorImpl collector = new NavigationCollectorImpl();
+          computeSimpleDartNavigation(collector, unit);
+          collector.createRegions();
+          var params = new AnalysisNavigationParams(result.path,
+              collector.regions, collector.targets, collector.files);
+          analysisServer.sendNotification(params.toNotification());
+        }
+      }
       // TODO(scheglov) Implement more notifications.
-      // HIGHLIGHTS
       // IMPLEMENTED
-      // NAVIGATION
       // OVERRIDES
       // OCCURRENCES (not used in IDEA)
       // OUTLINE (not used in IDEA)
-//      {
-//        var unit = result.unit;
-//        if (unit != null) {
-//          print('[results][${analysisDriver.name}] ${result.path}');
-//          sendAnalysisNotificationHighlights(analysisServer, result.path, unit);
-//          {
-//            NavigationCollectorImpl collector =
-//                computeSimpleDartNavigation(unit);
-//            var params = new protocol.AnalysisNavigationParams(result.path,
-//                collector.regions, collector.targets, collector.files);
-//            analysisServer.sendNotification(params.toNotification());
-//          }
-//        }
-//      }
     });
     analysisServer.driverMap[folder] = analysisDriver;
     return analysisDriver;
