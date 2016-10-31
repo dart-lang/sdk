@@ -1649,20 +1649,51 @@ EMIT_NATIVE_CODE(BinaryDoubleOp, 2, Location::RequiresRegister()) {
 }
 
 
-EMIT_NATIVE_CODE(DoubleTestOp, 1, Location::RequiresRegister()) {
+Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
+  UNREACHABLE();
+  return Condition();
+}
+
+
+void DoubleTestOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
   ASSERT(compiler->is_optimizing());
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
   const Register value = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
   switch (op_kind()) {
     case MethodRecognizer::kDouble_getIsNaN:
-      __ DoubleIsNaN(result, value);
+      __ DoubleIsNaN(value);
       break;
     case MethodRecognizer::kDouble_getIsInfinite:
-      __ DoubleIsInfinite(result, value);
+      __ DoubleIsInfinite(value);
       break;
     default:
       UNREACHABLE();
   }
+  const bool is_negated = kind() != Token::kEQ;
+  EmitBranchOnCondition(
+      compiler, is_negated ? NEXT_IS_FALSE : NEXT_IS_TRUE, labels);
+}
+
+
+EMIT_NATIVE_CODE(DoubleTestOp, 1, Location::RequiresRegister()) {
+  ASSERT(compiler->is_optimizing());
+  const Register value = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  const bool is_negated = kind() != Token::kEQ;
+  __ LoadConstant(result, is_negated ? Bool::True() : Bool::False());
+  switch (op_kind()) {
+    case MethodRecognizer::kDouble_getIsNaN:
+      __ DoubleIsNaN(value);
+      break;
+    case MethodRecognizer::kDouble_getIsInfinite:
+      __ DoubleIsInfinite(value);
+      break;
+    default:
+      UNREACHABLE();
+  }
+  __ LoadConstant(result, is_negated ? Bool::False() : Bool::True());
 }
 
 
@@ -1832,8 +1863,7 @@ static Condition EmitSmiComparisonOp(FlowGraphCompiler* compiler,
 
 static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
                                         LocationSummary* locs,
-                                        Token::Kind kind,
-                                        BranchLabels labels) {
+                                        Token::Kind kind) {
   const Register left = locs->in(0).reg();
   const Register right = locs->in(1).reg();
   Token::Kind comparison = kind;
@@ -1854,7 +1884,7 @@ Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     return EmitSmiComparisonOp(compiler, locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
-    return EmitDoubleComparisonOp(compiler, locs(), kind(), labels);
+    return EmitDoubleComparisonOp(compiler, locs(), kind());
   }
 }
 
@@ -1890,7 +1920,7 @@ Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
     return EmitSmiComparisonOp(compiler, locs(), kind(), labels);
   } else {
     ASSERT(operation_cid() == kDoubleCid);
-    return EmitDoubleComparisonOp(compiler, locs(), kind(), labels);
+    return EmitDoubleComparisonOp(compiler, locs(), kind());
   }
 }
 

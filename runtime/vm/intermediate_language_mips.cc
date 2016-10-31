@@ -3704,36 +3704,76 @@ LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
 }
 
 
-void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(compiler->is_optimizing());
+Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
   const DRegister value = locs()->in(0).fpu_reg();
-  const Register result = locs()->out(0).reg();
+  const bool is_negated = kind() != Token::kEQ;
   if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
-    Label is_not_nan;
-    __ LoadObject(result, Bool::False());
     __ cund(value, value);
-    __ bc1f(&is_not_nan);
-    __ LoadObject(result, Bool::True());
-    __ Bind(&is_not_nan);
+    if (labels.fall_through == labels.true_label) {
+      if (is_negated) {
+        __ bc1t(labels.false_label);
+      } else {
+        __ bc1f(labels.false_label);
+      }
+    } else if (labels.fall_through == labels.false_label) {
+      if (is_negated) {
+        __ bc1f(labels.true_label);
+      } else {
+        __ bc1t(labels.true_label);
+      }
+    } else {
+      if (is_negated) {
+        __ bc1t(labels.false_label);
+      } else {
+        __ bc1f(labels.false_label);
+      }
+      __ b(labels.true_label);
+    }
+    return Condition();  // Unused.
   } else {
     ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    Label not_inf, done;
-    __ mfc1(TMP, EvenFRegisterOf(value));
-    __ mfc1(result, OddFRegisterOf(value));
+    __ mfc1(CMPRES1, EvenFRegisterOf(value));
     // If the low word isn't zero, then it isn't infinity.
-    __ bne(TMP, ZR, &not_inf);
+    __ bne(CMPRES1, ZR, is_negated ? labels.true_label : labels.false_label);
+    __ mfc1(CMPRES1, OddFRegisterOf(value));
     // Mask off the sign bit.
-    __ AndImmediate(result, result, 0x7FFFFFFF);
+    __ AndImmediate(CMPRES1, CMPRES1, 0x7FFFFFFF);
     // Compare with +infinity.
-    __ BranchNotEqual(result, Immediate(0x7FF00000), &not_inf);
-
-    __ LoadObject(result, Bool::True());
-    __ b(&done);
-
-    __ Bind(&not_inf);
-    __ LoadObject(result, Bool::False());
-    __ Bind(&done);
+    __ LoadImmediate(CMPRES2, 0x7FF00000);
+    return Condition(CMPRES1, CMPRES2, is_negated ? NE : EQ);
   }
+}
+
+void DoubleTestOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
+  ASSERT(compiler->is_optimizing());
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  // Branches for isNaN are emitted in EmitComparisonCode already.
+  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+    EmitBranchOnCondition(compiler, true_condition, labels);
+  }
+}
+
+
+void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  // Branches for isNaN are emitted in EmitComparisonCode already.
+  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+    EmitBranchOnCondition(compiler,  true_condition, labels);
+  }
+  const Register result = locs()->out(0).reg();
+  Label done;
+  __ Comment("return bool");
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False());
+  __ b(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
 }
 
 

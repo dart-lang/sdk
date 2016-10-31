@@ -124,6 +124,8 @@ static Condition NegateCondition(Condition condition) {
     case LS: return HI;
     case HI: return LS;
     case CS: return CC;
+    case VC: return VS;
+    case VS: return VC;
     default:
       UNREACHABLE();
       return EQ;
@@ -4154,31 +4156,57 @@ LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
 }
 
 
-void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(compiler->is_optimizing());
+Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
   const DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
   const Register result = locs()->out(0).reg();
+  const bool is_negated = kind() != Token::kEQ;
   if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
-    __ LoadObject(result, Bool::False());
     __ vcmpd(value, value);
     __ vmstat();
-    __ LoadObject(result, Bool::True(), VS);
+    return is_negated ? VC : VS;
   } else {
     ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
     Label done;
     // TMP <- value[0:31], result <- value[32:63]
     __ vmovrrd(TMP, result, value);
     __ cmp(TMP, Operand(0));
-    __ LoadObject(result, Bool::False(), NE);
-    __ b(&done, NE);
+    __ b(is_negated ? labels.true_label : labels.false_label, NE);
 
     // Mask off the sign bit.
     __ AndImmediate(result, result, 0x7FFFFFFF);
     // Compare with +infinity.
     __ CompareImmediate(result, 0x7FF00000);
-    __ LoadObject(result, Bool::False(), NE);
-    __ b(&done, NE);
+    return is_negated ? NE : EQ;
+  }
+}
 
+void DoubleTestOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
+  ASSERT(compiler->is_optimizing());
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(compiler->is_optimizing());
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  const Register result = locs()->out(0).reg();
+  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
+    __ LoadObject(result, Bool::True(), true_condition);
+    __ LoadObject(result, Bool::False(), NegateCondition(true_condition));
+  } else {
+    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
+    EmitBranchOnCondition(compiler, true_condition, labels);
+    Label done;
+    __ Bind(&is_false);
+    __ LoadObject(result, Bool::False());
+    __ b(&done);
+    __ Bind(&is_true);
     __ LoadObject(result, Bool::True());
     __ Bind(&done);
   }

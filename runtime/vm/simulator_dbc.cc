@@ -2229,16 +2229,20 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(DoubleIsNaN, A_D);
-    const double v = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = isnan(v) ? true_value : false_value;
+    BYTECODE(DoubleIsNaN, A);
+    const double v = bit_cast<double, RawObject*>(FP[rA]);
+    if (!isnan(v)) {
+      pc++;
+    }
     DISPATCH();
   }
 
   {
-    BYTECODE(DoubleIsInfinite, A_D);
-    const double v = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = isinf(v) ? true_value : false_value;
+    BYTECODE(DoubleIsInfinite, A);
+    const double v = bit_cast<double, RawObject*>(FP[rA]);
+    if (!isinf(v)) {
+      pc++;
+    }
     DISPATCH();
   }
 

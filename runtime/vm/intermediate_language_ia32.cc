@@ -388,6 +388,8 @@ static Condition NegateCondition(Condition condition) {
     case BELOW_EQUAL:   return ABOVE;
     case ABOVE:         return BELOW_EQUAL;
     case ABOVE_EQUAL:   return BELOW;
+    case PARITY_ODD:    return PARITY_EVEN;
+    case PARITY_EVEN:   return PARITY_ODD;
     default:
       UNIMPLEMENTED();
       return EQUAL;
@@ -3902,50 +3904,76 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (op_kind() == MethodRecognizer::kDouble_getIsInfinite) ? 1 : 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
+  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 
-void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
   ASSERT(compiler->is_optimizing());
   const XmmRegister value = locs()->in(0).fpu_reg();
-  const Register result = locs()->out(0).reg();
+  const bool is_negated = kind() != Token::kEQ;
   if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
     Label is_nan;
-    __ LoadObject(result, Bool::True());
     __ comisd(value, value);
-    __ j(PARITY_EVEN, &is_nan, Assembler::kNearJump);
-    __ LoadObject(result, Bool::False());
-    __ Bind(&is_nan);
+    return is_negated ? PARITY_ODD : PARITY_EVEN;
   } else {
     ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    Label not_inf, done;
+    const Register temp = locs()->temp(0).reg();
+    Label check_upper;
     __ AddImmediate(ESP, Immediate(-kDoubleSize));
     __ movsd(Address(ESP, 0), value);
-    __ movl(result, Address(ESP, 0));
+    __ movl(temp, Address(ESP, 0));
     // If the low word isn't zero, then it isn't infinity.
-    __ cmpl(result, Immediate(0));
-    __ j(NOT_EQUAL, &not_inf, Assembler::kNearJump);
-    // Check the high word.
-    __ movl(result, Address(ESP, kWordSize));
-    // Mask off sign bit.
-    __ andl(result, Immediate(0x7FFFFFFF));
-    // Compare with +infinity.
-    __ cmpl(result, Immediate(0x7FF00000));
-    __ j(NOT_EQUAL, &not_inf, Assembler::kNearJump);
-    __ LoadObject(result, Bool::True());
-    __ jmp(&done);
-
-    __ Bind(&not_inf);
-    __ LoadObject(result, Bool::False());
-    __ Bind(&done);
+    __ cmpl(temp, Immediate(0));
+    __ j(EQUAL, &check_upper, Assembler::kNearJump);
     __ AddImmediate(ESP, Immediate(kDoubleSize));
+    __ jmp(is_negated ? labels.true_label : labels.false_label);
+    __ Bind(&check_upper);
+    // Check the high word.
+    __ movl(temp, Address(ESP, kWordSize));
+    __ AddImmediate(ESP, Immediate(kDoubleSize));
+    // Mask off sign bit.
+    __ andl(temp, Immediate(0x7FFFFFFF));
+    // Compare with +infinity.
+    __ cmpl(temp, Immediate(0x7FF00000));
+    return is_negated ? NOT_EQUAL : EQUAL;
   }
+}
+
+
+void DoubleTestOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
+  ASSERT(compiler->is_optimizing());
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler,  true_condition, labels);
+
+  Register result = locs()->out(0).reg();
+  Label done;
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False());
+  __ jmp(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
 }
 
 

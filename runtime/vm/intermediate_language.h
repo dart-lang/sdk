@@ -910,6 +910,9 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
  private:
+  friend class BranchInstr;  // For RawSetInputAt.
+  friend class IfThenElseInstr;  // For RawSetInputAt.
+
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
   enum {
@@ -2354,10 +2357,10 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
 };
 
 
-class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class ComparisonInstr : public Definition {
  public:
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
+  Value* left() const { return InputAt(0); }
+  Value* right() const { return InputAt(1); }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
@@ -2396,17 +2399,11 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
  protected:
   ComparisonInstr(TokenPosition token_pos,
                   Token::Kind kind,
-                  Value* left,
-                  Value* right,
                   intptr_t deopt_id = Thread::kNoDeoptId)
-      : TemplateDefinition(deopt_id),
+      : Definition(deopt_id),
         token_pos_(token_pos),
         kind_(kind),
         operation_cid_(kIllegalCid) {
-    SetInputAt(0, left);
-    if (right != NULL) {
-      SetInputAt(1, right);
-    }
   }
 
  private:
@@ -2415,6 +2412,47 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
   intptr_t operation_cid_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
+};
+
+
+class PureComparison : public ComparisonInstr {
+ public:
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+ protected:
+  PureComparison(TokenPosition token_pos, Token::Kind kind, intptr_t deopt_id)
+      : ComparisonInstr(token_pos, kind, deopt_id) { }
+};
+
+
+template<intptr_t N,
+         typename ThrowsTrait,
+         template<typename Impure, typename Pure> class CSETrait = NoCSE>
+class TemplateComparison : public CSETrait<
+    ComparisonInstr, PureComparison>::Base {
+ public:
+  TemplateComparison(TokenPosition token_pos,
+                     Token::Kind kind,
+                     intptr_t deopt_id = Thread::kNoDeoptId)
+      : CSETrait<ComparisonInstr, PureComparison>::Base(
+            token_pos, kind, deopt_id),
+        inputs_() { }
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
 };
 
 
@@ -2976,7 +3014,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 };
 
 
-class StrictCompareInstr : public ComparisonInstr {
+class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   StrictCompareInstr(TokenPosition token_pos,
                      Token::Kind kind,
@@ -3018,14 +3056,16 @@ class StrictCompareInstr : public ComparisonInstr {
 
 // Comparison instruction that is equivalent to the (left & right) == 0
 // comparison pattern.
-class TestSmiInstr : public ComparisonInstr {
+class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   TestSmiInstr(TokenPosition token_pos,
                Token::Kind kind,
                Value* left,
                Value* right)
-      : ComparisonInstr(token_pos, kind, left, right) {
+      : TemplateComparison(token_pos, kind) {
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
+    SetInputAt(0, left);
+    SetInputAt(1, right);
   }
 
   DECLARE_INSTRUCTION(TestSmi);
@@ -3053,23 +3093,20 @@ class TestSmiInstr : public ComparisonInstr {
 
 // Checks the input value cid against cids stored in a table and returns either
 // a result or deoptimizes.
-// TODO(srdjan): Modify ComparisonInstr to allow 1 or 2 arguments, since
-// TestCidInstr needs only one argument
-class TestCidsInstr : public ComparisonInstr {
+class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
  public:
   TestCidsInstr(TokenPosition token_pos,
                 Token::Kind kind,
                 Value* value,
                 const ZoneGrowableArray<intptr_t>& cid_results,
                 intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, value, NULL, deopt_id),
+      : TemplateComparison(token_pos, kind, deopt_id),
         cid_results_(cid_results),
         licm_hoisted_(false) {
     ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
+    SetInputAt(0, value);
     set_operation_cid(kObjectCid);
   }
-
-  virtual intptr_t InputCount() const { return 1; }
 
   const ZoneGrowableArray<intptr_t>& cid_results() const {
     return cid_results_;
@@ -3110,7 +3147,7 @@ class TestCidsInstr : public ComparisonInstr {
 };
 
 
-class EqualityCompareInstr : public ComparisonInstr {
+class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   EqualityCompareInstr(TokenPosition token_pos,
                        Token::Kind kind,
@@ -3118,8 +3155,10 @@ class EqualityCompareInstr : public ComparisonInstr {
                        Value* right,
                        intptr_t cid,
                        intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, left, right, deopt_id) {
+      : TemplateComparison(token_pos, kind, deopt_id) {
     ASSERT(Token::IsEqualityOperator(kind));
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     set_operation_cid(cid);
   }
 
@@ -3151,7 +3190,7 @@ class EqualityCompareInstr : public ComparisonInstr {
 };
 
 
-class RelationalOpInstr : public ComparisonInstr {
+class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   RelationalOpInstr(TokenPosition token_pos,
                     Token::Kind kind,
@@ -3159,8 +3198,10 @@ class RelationalOpInstr : public ComparisonInstr {
                     Value* right,
                     intptr_t cid,
                     intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, left, right, deopt_id) {
+      : TemplateComparison(token_pos, kind, deopt_id) {
     ASSERT(Token::IsRelationalOperator(kind));
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     set_operation_cid(cid);
   }
 
@@ -5343,35 +5384,26 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 };
 
 
-class DoubleTestOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
  public:
   DoubleTestOpInstr(MethodRecognizer::Kind op_kind,
-                    Value* d,
+                    Value* value,
                     intptr_t deopt_id,
                     TokenPosition token_pos)
-      : TemplateDefinition(deopt_id),
-        op_kind_(op_kind),
-        token_pos_(token_pos) {
-    SetInputAt(0, d);
+      : TemplateComparison(token_pos, Token::kEQ, deopt_id),
+        op_kind_(op_kind) {
+    SetInputAt(0, value);
   }
 
-  Value* value() const { return inputs_[0]; }
+  Value* value() const { return InputAt(0); }
 
   MethodRecognizer::Kind op_kind() const { return op_kind_; }
-
-  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
     return kUnboxedDouble;
-  }
-
-  virtual intptr_t DeoptimizationTarget() const {
-    // Direct access since this instruction cannot deoptimize, and the deopt-id
-    // was inherited from another instruction that could deoptimize.
-    return GetDeoptId();
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -5382,12 +5414,20 @@ class DoubleTestOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return op_kind_ == other->AsDoubleTestOp()->op_kind();
+    return op_kind_ == other->AsDoubleTestOp()->op_kind()
+        && ComparisonInstr::AttributesEqual(other);
   }
+
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch);
+
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
+                                       BranchLabels labels);
 
  private:
   const MethodRecognizer::Kind op_kind_;
-  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
 };

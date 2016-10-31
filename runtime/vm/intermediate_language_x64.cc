@@ -121,6 +121,8 @@ static Condition NegateCondition(Condition condition) {
     case BELOW_EQUAL:   return ABOVE;
     case ABOVE:         return BELOW_EQUAL;
     case ABOVE_EQUAL:   return BELOW;
+    case PARITY_EVEN:   return PARITY_ODD;
+    case PARITY_ODD:    return PARITY_EVEN;
     default:
       UNIMPLEMENTED();
       return EQUAL;
@@ -3763,46 +3765,67 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      (op_kind() == MethodRecognizer::kDouble_getIsInfinite) ? 1 : 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
+  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 
-void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
   ASSERT(compiler->is_optimizing());
   const XmmRegister value = locs()->in(0).fpu_reg();
-  const Register result = locs()->out(0).reg();
+  const bool is_negated = kind() != Token::kEQ;
   if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
     Label is_nan;
-    __ LoadObject(result, Bool::True());
     __ comisd(value, value);
-    __ j(PARITY_EVEN, &is_nan, Assembler::kNearJump);
-    __ LoadObject(result, Bool::False());
-    __ Bind(&is_nan);
+    return is_negated ? PARITY_ODD : PARITY_EVEN;
   } else {
     ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    Label is_inf, done;
+    const Register temp = locs()->temp(0).reg();
     __ AddImmediate(RSP, Immediate(-kDoubleSize));
     __ movsd(Address(RSP, 0), value);
-    __ movq(result, Address(RSP, 0));
-    // Mask off the sign.
-    __ AndImmediate(result, Immediate(0x7FFFFFFFFFFFFFFFLL));
-    // Compare with +infinity.
-    __ CompareImmediate(result, Immediate(0x7FF0000000000000LL));
-    __ j(EQUAL, &is_inf, Assembler::kNearJump);
-    __ LoadObject(result, Bool::False());
-    __ jmp(&done);
-
-    __ Bind(&is_inf);
-    __ LoadObject(result, Bool::True());
-
-    __ Bind(&done);
+    __ movq(temp, Address(RSP, 0));
     __ AddImmediate(RSP, Immediate(kDoubleSize));
+    // Mask off the sign.
+    __ AndImmediate(temp, Immediate(0x7FFFFFFFFFFFFFFFLL));
+    // Compare with +infinity.
+    __ CompareImmediate(temp, Immediate(0x7FF0000000000000LL));
+    return is_negated ? NOT_EQUAL : EQUAL;
   }
+}
+
+
+void DoubleTestOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
+  ASSERT(compiler->is_optimizing());
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler,  true_condition, labels);
+
+  Register result = locs()->out(0).reg();
+  Label done;
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False());
+  __ jmp(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
 }
 
 

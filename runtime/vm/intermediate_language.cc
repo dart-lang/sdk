@@ -3020,13 +3020,13 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
                                        Value* left,
                                        Value* right,
                                        bool needs_number_check)
-    : ComparisonInstr(token_pos,
-                      kind,
-                      left,
-                      right,
-                      Thread::Current()->GetNextDeoptId()),
+    : TemplateComparison(token_pos,
+                         kind,
+                         Thread::Current()->GetNextDeoptId()),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
+  SetInputAt(0, left);
+  SetInputAt(1, right);
 }
 
 
@@ -3419,6 +3419,13 @@ void Environment::DeepCopyToOuter(Zone* zone, Instruction* instr) const {
     value->set_use_index(use_index++);
     value->definition()->AddEnvUse(value);
   }
+}
+
+
+ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
+                                                        Value* new_right) {
+  UNREACHABLE();
+  return NULL;
 }
 
 
