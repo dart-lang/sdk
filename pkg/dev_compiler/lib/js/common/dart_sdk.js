@@ -15609,113 +15609,113 @@
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getFloat32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_getFloat32](byteOffset, littleEndian) {
-      return this.getFloat32(byteOffset, littleEndian);
+    [_getFloat32](...args) {
+      return this.getFloat32.apply(this, args);
     }
     [dartx.getFloat64](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getFloat64](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_getFloat64](byteOffset, littleEndian) {
-      return this.getFloat64(byteOffset, littleEndian);
+    [_getFloat64](...args) {
+      return this.getFloat64.apply(this, args);
     }
     [dartx.getInt16](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getInt16](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_getInt16](byteOffset, littleEndian) {
-      return this.getInt16(byteOffset, littleEndian);
+    [_getInt16](...args) {
+      return this.getInt16.apply(this, args);
     }
     [dartx.getInt32](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getInt32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_getInt32](byteOffset, littleEndian) {
-      return this.getInt32(byteOffset, littleEndian);
+    [_getInt32](...args) {
+      return this.getInt32.apply(this, args);
     }
     [dartx.getInt64](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       dart.throw(new core.UnsupportedError('Int64 accessor not supported by dart2js.'));
     }
-    [dartx.getInt8](byteOffset) {
-      return this.getInt8(byteOffset);
+    [dartx.getInt8](...args) {
+      return this.getInt8.apply(this, args);
     }
     [dartx.getUint16](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getUint16](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_getUint16](byteOffset, littleEndian) {
-      return this.getUint16(byteOffset, littleEndian);
+    [_getUint16](...args) {
+      return this.getUint16.apply(this, args);
     }
     [dartx.getUint32](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_getUint32](byteOffset, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_getUint32](byteOffset, littleEndian) {
-      return this.getUint32(byteOffset, littleEndian);
+    [_getUint32](...args) {
+      return this.getUint32.apply(this, args);
     }
     [dartx.getUint64](byteOffset, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       dart.throw(new core.UnsupportedError('Uint64 accessor not supported by dart2js.'));
     }
-    [dartx.getUint8](byteOffset) {
-      return this.getUint8(byteOffset);
+    [dartx.getUint8](...args) {
+      return this.getUint8.apply(this, args);
     }
     [dartx.setFloat32](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setFloat32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_setFloat32](byteOffset, value, littleEndian) {
-      return this.setFloat32(byteOffset, value, littleEndian);
+    [_setFloat32](...args) {
+      return this.setFloat32.apply(this, args);
     }
     [dartx.setFloat64](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setFloat64](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_setFloat64](byteOffset, value, littleEndian) {
-      return this.setFloat64(byteOffset, value, littleEndian);
+    [_setFloat64](...args) {
+      return this.setFloat64.apply(this, args);
     }
     [dartx.setInt16](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setInt16](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_setInt16](byteOffset, value, littleEndian) {
-      return this.setInt16(byteOffset, value, littleEndian);
+    [_setInt16](...args) {
+      return this.setInt16.apply(this, args);
     }
     [dartx.setInt32](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setInt32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_setInt32](byteOffset, value, littleEndian) {
-      return this.setInt32(byteOffset, value, littleEndian);
+    [_setInt32](...args) {
+      return this.setInt32.apply(this, args);
     }
     [dartx.setInt64](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       dart.throw(new core.UnsupportedError('Int64 accessor not supported by dart2js.'));
     }
-    [dartx.setInt8](byteOffset, value) {
-      return this.setInt8(byteOffset, value);
+    [dartx.setInt8](...args) {
+      return this.setInt8.apply(this, args);
     }
     [dartx.setUint16](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setUint16](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_setUint16](byteOffset, value, littleEndian) {
-      return this.setUint16(byteOffset, value, littleEndian);
+    [_setUint16](...args) {
+      return this.setUint16.apply(this, args);
     }
     [dartx.setUint32](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       return this[_setUint32](byteOffset, value, dart.equals(typed_data.Endianness.LITTLE_ENDIAN, endian));
     }
-    [_setUint32](byteOffset, value, littleEndian) {
-      return this.setUint32(byteOffset, value, littleEndian);
+    [_setUint32](...args) {
+      return this.setUint32.apply(this, args);
     }
     [dartx.setUint64](byteOffset, value, endian) {
       if (endian === void 0) endian = typed_data.Endianness.BIG_ENDIAN;
       dart.throw(new core.UnsupportedError('Uint64 accessor not supported by dart2js.'));
     }
-    [dartx.setUint8](byteOffset, value) {
-      return this.setUint8(byteOffset, value);
+    [dartx.setUint8](...args) {
+      return this.setUint8.apply(this, args);
     }
     static _create1(arg) {
       return new DataView(new ArrayBuffer(arg));
@@ -38349,21 +38349,21 @@
     get [dartx.source]() {
       return this.source;
     }
-    [dartx.advance](count) {
-      return this.advance(count);
+    [dartx.advance](...args) {
+      return this.advance.apply(this, args);
     }
-    [dartx.continuePrimaryKey](key, primaryKey) {
-      return this.continuePrimaryKey(key, primaryKey);
+    [dartx.continuePrimaryKey](...args) {
+      return this.continuePrimaryKey.apply(this, args);
     }
-    [_delete]() {
-      return this.delete();
+    [_delete](...args) {
+      return this.delete.apply(this, args);
     }
     [_update](value) {
       let value_1 = html_common.convertDartToNative_SerializedScriptValue(value);
       return this[_update_1](value_1);
     }
-    [_update_1](value) {
-      return this.update(value);
+    [_update_1](...args) {
+      return this.update.apply(this, args);
     }
   };
   dart.setSignature(indexed_db.Cursor, {
@@ -38441,14 +38441,14 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [_addEventListener](type, listener, capture) {
-      return this.addEventListener(type, listener, capture);
+    [_addEventListener](...args) {
+      return this.addEventListener.apply(this, args);
     }
-    [dartx.dispatchEvent](event) {
-      return this.dispatchEvent(event);
+    [dartx.dispatchEvent](...args) {
+      return this.dispatchEvent.apply(this, args);
     }
-    [_removeEventListener](type, listener, capture) {
-      return this.removeEventListener(type, listener, capture);
+    [_removeEventListener](...args) {
+      return this.removeEventListener.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.EventTarget, '_created');
@@ -38521,8 +38521,8 @@
       }
       return this[_transaction](storeNames, mode);
     }
-    [_transaction](stores, mode) {
-      return this.transaction(stores, mode);
+    [_transaction](...args) {
+      return this.transaction.apply(this, args);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -38536,8 +38536,8 @@
     get [dartx.version]() {
       return this.version;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
     [_createObjectStore](name, options) {
       if (options === void 0) options = null;
@@ -38547,14 +38547,14 @@
       }
       return this[_createObjectStore_2](name);
     }
-    [_createObjectStore_1](name, options) {
-      return this.createObjectStore(name, options);
+    [_createObjectStore_1](...args) {
+      return this.createObjectStore.apply(this, args);
     }
-    [_createObjectStore_2](name) {
-      return this.createObjectStore(name);
+    [_createObjectStore_2](...args) {
+      return this.createObjectStore.apply(this, args);
     }
-    [dartx.deleteObjectStore](name) {
-      return this.deleteObjectStore(name);
+    [dartx.deleteObjectStore](...args) {
+      return this.deleteObjectStore.apply(this, args);
     }
     get [dartx.onAbort]() {
       return indexed_db.Database.abortEvent.forTarget(this);
@@ -38693,17 +38693,17 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.cmp](first, second) {
-      return this.cmp(first, second);
+    [dartx.cmp](...args) {
+      return this.cmp.apply(this, args);
     }
-    [_deleteDatabase](name) {
-      return this.deleteDatabase(name);
+    [_deleteDatabase](...args) {
+      return this.deleteDatabase.apply(this, args);
     }
-    [_open](name, version) {
-      return this.open(name, version);
+    [_open](...args) {
+      return this.open.apply(this, args);
     }
-    [_webkitGetDatabaseNames]() {
-      return this.webkitGetDatabaseNames();
+    [_webkitGetDatabaseNames](...args) {
+      return this.webkitGetDatabaseNames.apply(this, args);
     }
   };
   dart.setSignature(indexed_db.IdbFactory, {
@@ -38846,26 +38846,26 @@
     get [dartx.unique]() {
       return this.unique;
     }
-    [_count$0](key) {
-      return this.count(key);
+    [_count$0](...args) {
+      return this.count.apply(this, args);
     }
-    [_get$](key) {
-      return this.get(key);
+    [_get$](...args) {
+      return this.get.apply(this, args);
     }
-    [dartx.getAll](range, maxCount) {
-      return this.getAll(range, maxCount);
+    [dartx.getAll](...args) {
+      return this.getAll.apply(this, args);
     }
-    [dartx.getAllKeys](range, maxCount) {
-      return this.getAllKeys(range, maxCount);
+    [dartx.getAllKeys](...args) {
+      return this.getAllKeys.apply(this, args);
     }
-    [_getKey$](key) {
-      return this.getKey(key);
+    [_getKey$](...args) {
+      return this.getKey.apply(this, args);
     }
-    [_openCursor](range, direction) {
-      return this.openCursor(range, direction);
+    [_openCursor](...args) {
+      return this.openCursor.apply(this, args);
     }
-    [_openKeyCursor](range, direction) {
-      return this.openKeyCursor(range, direction);
+    [_openKeyCursor](...args) {
+      return this.openKeyCursor.apply(this, args);
     }
   };
   dart.setSignature(indexed_db.Index, {
@@ -39119,17 +39119,17 @@
       let value_1 = html_common.convertDartToNative_SerializedScriptValue(value);
       return this[_add_2](value_1);
     }
-    [_add_1](value, key) {
-      return this.add(value, key);
+    [_add_1](...args) {
+      return this.add.apply(this, args);
     }
-    [_add_2](value) {
-      return this.add(value);
+    [_add_2](...args) {
+      return this.add.apply(this, args);
     }
-    [_clear$0]() {
-      return this.clear();
+    [_clear$0](...args) {
+      return this.clear.apply(this, args);
     }
-    [_count$0](key) {
-      return this.count(key);
+    [_count$0](...args) {
+      return this.count.apply(this, args);
     }
     [_createIndex](name, keyPath, options) {
       if (options === void 0) options = null;
@@ -39139,35 +39139,35 @@
       }
       return this[_createIndex_2](name, keyPath);
     }
-    [_createIndex_1](name, keyPath, options) {
-      return this.createIndex(name, keyPath, options);
+    [_createIndex_1](...args) {
+      return this.createIndex.apply(this, args);
     }
-    [_createIndex_2](name, keyPath) {
-      return this.createIndex(name, keyPath);
+    [_createIndex_2](...args) {
+      return this.createIndex.apply(this, args);
     }
-    [_delete](key) {
-      return this.delete(key);
+    [_delete](...args) {
+      return this.delete.apply(this, args);
     }
-    [dartx.deleteIndex](name) {
-      return this.deleteIndex(name);
+    [dartx.deleteIndex](...args) {
+      return this.deleteIndex.apply(this, args);
     }
-    [_get$](key) {
-      return this.get(key);
+    [_get$](...args) {
+      return this.get.apply(this, args);
     }
-    [dartx.getAll](range, maxCount) {
-      return this.getAll(range, maxCount);
+    [dartx.getAll](...args) {
+      return this.getAll.apply(this, args);
     }
-    [dartx.getAllKeys](range, maxCount) {
-      return this.getAllKeys(range, maxCount);
+    [dartx.getAllKeys](...args) {
+      return this.getAllKeys.apply(this, args);
     }
-    [dartx.index](name) {
-      return this.index(name);
+    [dartx.index](...args) {
+      return this.index.apply(this, args);
     }
-    [_openCursor](range, direction) {
-      return this.openCursor(range, direction);
+    [_openCursor](...args) {
+      return this.openCursor.apply(this, args);
     }
-    [dartx.openKeyCursor](range, direction) {
-      return this.openKeyCursor(range, direction);
+    [dartx.openKeyCursor](...args) {
+      return this.openKeyCursor.apply(this, args);
     }
     [_put](value, key) {
       if (key === void 0) key = null;
@@ -39179,11 +39179,11 @@
       let value_1 = html_common.convertDartToNative_SerializedScriptValue(value);
       return this[_put_2](value_1);
     }
-    [_put_1](value, key) {
-      return this.put(value, key);
+    [_put_1](...args) {
+      return this.put.apply(this, args);
     }
-    [_put_2](value) {
-      return this.put(value);
+    [_put_2](...args) {
+      return this.put.apply(this, args);
     }
     static _cursorStreamFromResult(T) {
       return (request, autoAdvance) => {
@@ -39398,11 +39398,11 @@
     get [dartx.objectStoreNames]() {
       return this.objectStoreNames;
     }
-    [dartx.abort]() {
-      return this.abort();
+    [dartx.abort](...args) {
+      return this.abort.apply(this, args);
     }
-    [dartx.objectStore](name) {
-      return this.objectStore(name);
+    [dartx.objectStore](...args) {
+      return this.objectStore.apply(this, args);
     }
     get [dartx.onAbort]() {
       return indexed_db.Transaction.abortEvent.forTarget(this);
@@ -39549,17 +39549,17 @@
     get [dartx.type]() {
       return this.type;
     }
-    [_initEvent](type, bubbles, cancelable) {
-      return this.initEvent(type, bubbles, cancelable);
+    [_initEvent](...args) {
+      return this.initEvent.apply(this, args);
     }
-    [dartx.preventDefault]() {
-      return this.preventDefault();
+    [dartx.preventDefault](...args) {
+      return this.preventDefault.apply(this, args);
     }
-    [dartx.stopImmediatePropagation]() {
-      return this.stopImmediatePropagation();
+    [dartx.stopImmediatePropagation](...args) {
+      return this.stopImmediatePropagation.apply(this, args);
     }
-    [dartx.stopPropagation]() {
-      return this.stopPropagation();
+    [dartx.stopPropagation](...args) {
+      return this.stopPropagation.apply(this, args);
     }
   };
   dart.setSignature(html$.Event, {
@@ -39860,26 +39860,26 @@
     set [dartx.text](value) {
       this.textContent = value;
     }
-    [dartx.append](node) {
-      return this.appendChild(node);
+    [dartx.append](...args) {
+      return this.appendChild.apply(this, args);
     }
-    [dartx.clone](deep) {
-      return this.cloneNode(deep);
+    [dartx.clone](...args) {
+      return this.cloneNode.apply(this, args);
     }
-    [dartx.contains](other) {
-      return this.contains(other);
+    [dartx.contains](...args) {
+      return this.contains.apply(this, args);
     }
-    [dartx.hasChildNodes]() {
-      return this.hasChildNodes();
+    [dartx.hasChildNodes](...args) {
+      return this.hasChildNodes.apply(this, args);
     }
-    [dartx.insertBefore](node, child) {
-      return this.insertBefore(node, child);
+    [dartx.insertBefore](...args) {
+      return this.insertBefore.apply(this, args);
     }
-    [_removeChild](child) {
-      return this.removeChild(child);
+    [_removeChild](...args) {
+      return this.removeChild.apply(this, args);
     }
-    [_replaceChild](node, child) {
-      return this.replaceChild(node, child);
+    [_replaceChild](...args) {
+      return this.replaceChild.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.Node, '_created');
@@ -40359,8 +40359,8 @@
       let convertedTiming = core.Map.is(timing) ? html_common.convertDartToNative_Dictionary(timing) : timing;
       return convertedTiming == null ? this[_animate](convertedFrames) : this[_animate](convertedFrames, convertedTiming);
     }
-    [_animate](effect, timing) {
-      return this.animate(effect, timing);
+    [_animate](...args) {
+      return this.animate.apply(this, args);
     }
     [dartx.attributeChanged](name, oldValue, newValue) {}
     get [_xtag]() {
@@ -40420,8 +40420,8 @@
         this[_insertAdjacentNode](where, html$.Text.new(text));
       }
     }
-    [_insertAdjacentText](where, text) {
-      return this.insertAdjacentText(where, text);
+    [_insertAdjacentText](...args) {
+      return this.insertAdjacentText.apply(this, args);
     }
     [dartx.insertAdjacentHtml](where, html, opts) {
       let validator = opts && 'validator' in opts ? opts.validator : null;
@@ -40432,8 +40432,8 @@
         this[_insertAdjacentNode](where, this[dartx.createFragment](html, {validator: validator, treeSanitizer: treeSanitizer}));
       }
     }
-    [_insertAdjacentHtml](where, text) {
-      return this.insertAdjacentHTML(where, text);
+    [_insertAdjacentHtml](...args) {
+      return this.insertAdjacentHTML.apply(this, args);
     }
     [dartx.insertAdjacentElement](where, element) {
       if (!!this.insertAdjacentElement) {
@@ -40443,8 +40443,8 @@
       }
       return element;
     }
-    [_insertAdjacentElement](where, element) {
-      return this.insertAdjacentElement(where, element);
+    [_insertAdjacentElement](...args) {
+      return this.insertAdjacentElement.apply(this, args);
     }
     [_insertAdjacentNode](where, node) {
       switch (where[dartx.toLowerCase]()) {
@@ -40758,14 +40758,14 @@
     set [dartx.dropzone](value) {
       this.webkitdropzone = value;
     }
-    [dartx.blur]() {
-      return this.blur();
+    [dartx.blur](...args) {
+      return this.blur.apply(this, args);
     }
-    [dartx.click]() {
-      return this.click();
+    [dartx.click](...args) {
+      return this.click.apply(this, args);
     }
-    [dartx.focus]() {
-      return this.focus();
+    [dartx.focus](...args) {
+      return this.focus.apply(this, args);
     }
     get [_attributes$]() {
       return this.attributes;
@@ -40830,50 +40830,50 @@
     get [dartx.tagName]() {
       return this.tagName;
     }
-    [dartx.closest](selectors) {
-      return this.closest(selectors);
+    [dartx.closest](...args) {
+      return this.closest.apply(this, args);
     }
-    [dartx.getAnimations]() {
-      return this.getAnimations();
+    [dartx.getAnimations](...args) {
+      return this.getAnimations.apply(this, args);
     }
-    [dartx.getAttribute](name) {
-      return this.getAttribute(name);
+    [dartx.getAttribute](...args) {
+      return this.getAttribute.apply(this, args);
     }
-    [dartx.getAttributeNS](namespaceURI, localName) {
-      return this.getAttributeNS(namespaceURI, localName);
+    [dartx.getAttributeNS](...args) {
+      return this.getAttributeNS.apply(this, args);
     }
-    [dartx.getBoundingClientRect]() {
-      return this.getBoundingClientRect();
+    [dartx.getBoundingClientRect](...args) {
+      return this.getBoundingClientRect.apply(this, args);
     }
-    [dartx.getClientRects]() {
-      return this.getClientRects();
+    [dartx.getClientRects](...args) {
+      return this.getClientRects.apply(this, args);
     }
-    [dartx.getDestinationInsertionPoints]() {
-      return this.getDestinationInsertionPoints();
+    [dartx.getDestinationInsertionPoints](...args) {
+      return this.getDestinationInsertionPoints.apply(this, args);
     }
-    [dartx.getElementsByClassName](classNames) {
-      return this.getElementsByClassName(classNames);
+    [dartx.getElementsByClassName](...args) {
+      return this.getElementsByClassName.apply(this, args);
     }
-    [_getElementsByTagName](localName) {
-      return this.getElementsByTagName(localName);
+    [_getElementsByTagName](...args) {
+      return this.getElementsByTagName.apply(this, args);
     }
-    [_hasAttribute](name) {
-      return this.hasAttribute(name);
+    [_hasAttribute](...args) {
+      return this.hasAttribute.apply(this, args);
     }
-    [_hasAttributeNS](namespaceURI, localName) {
-      return this.hasAttributeNS(namespaceURI, localName);
+    [_hasAttributeNS](...args) {
+      return this.hasAttributeNS.apply(this, args);
     }
-    [_removeAttribute](name) {
-      return this.removeAttribute(name);
+    [_removeAttribute](...args) {
+      return this.removeAttribute.apply(this, args);
     }
-    [_removeAttributeNS](namespaceURI, localName) {
-      return this.removeAttributeNS(namespaceURI, localName);
+    [_removeAttributeNS](...args) {
+      return this.removeAttributeNS.apply(this, args);
     }
-    [dartx.requestFullscreen]() {
-      return this.requestFullscreen();
+    [dartx.requestFullscreen](...args) {
+      return this.requestFullscreen.apply(this, args);
     }
-    [dartx.requestPointerLock]() {
-      return this.requestPointerLock();
+    [dartx.requestPointerLock](...args) {
+      return this.requestPointerLock.apply(this, args);
     }
     [dartx.scroll](options_OR_x, y) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -40893,14 +40893,14 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scroll_1]() {
-      return this.scroll();
+    [_scroll_1](...args) {
+      return this.scroll.apply(this, args);
     }
-    [_scroll_2](options) {
-      return this.scroll(options);
+    [_scroll_2](...args) {
+      return this.scroll.apply(this, args);
     }
-    [_scroll_3](x, y) {
-      return this.scroll(x, y);
+    [_scroll_3](...args) {
+      return this.scroll.apply(this, args);
     }
     [dartx.scrollBy](options_OR_x, y) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -40920,20 +40920,20 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scrollBy_1]() {
-      return this.scrollBy();
+    [_scrollBy_1](...args) {
+      return this.scrollBy.apply(this, args);
     }
-    [_scrollBy_2](options) {
-      return this.scrollBy(options);
+    [_scrollBy_2](...args) {
+      return this.scrollBy.apply(this, args);
     }
-    [_scrollBy_3](x, y) {
-      return this.scrollBy(x, y);
+    [_scrollBy_3](...args) {
+      return this.scrollBy.apply(this, args);
     }
-    [_scrollIntoView](alignWithTop) {
-      return this.scrollIntoView(alignWithTop);
+    [_scrollIntoView](...args) {
+      return this.scrollIntoView.apply(this, args);
     }
-    [_scrollIntoViewIfNeeded](centerIfNeeded) {
-      return this.scrollIntoViewIfNeeded(centerIfNeeded);
+    [_scrollIntoViewIfNeeded](...args) {
+      return this.scrollIntoViewIfNeeded.apply(this, args);
     }
     [dartx.scrollTo](options_OR_x, y) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -40953,26 +40953,26 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scrollTo_1]() {
-      return this.scrollTo();
+    [_scrollTo_1](...args) {
+      return this.scrollTo.apply(this, args);
     }
-    [_scrollTo_2](options) {
-      return this.scrollTo(options);
+    [_scrollTo_2](...args) {
+      return this.scrollTo.apply(this, args);
     }
-    [_scrollTo_3](x, y) {
-      return this.scrollTo(x, y);
+    [_scrollTo_3](...args) {
+      return this.scrollTo.apply(this, args);
     }
-    [dartx.setAttribute](name, value) {
-      return this.setAttribute(name, value);
+    [dartx.setAttribute](...args) {
+      return this.setAttribute.apply(this, args);
     }
-    [dartx.setAttributeNS](namespaceURI, name, value) {
-      return this.setAttributeNS(namespaceURI, name, value);
+    [dartx.setAttributeNS](...args) {
+      return this.setAttributeNS.apply(this, args);
     }
-    [dartx.after](nodes) {
-      return this.after(nodes);
+    [dartx.after](...args) {
+      return this.after.apply(this, args);
     }
-    [dartx.before](nodes) {
-      return this.before(nodes);
+    [dartx.before](...args) {
+      return this.before.apply(this, args);
     }
     get [dartx.nextElementSibling]() {
       return this.nextElementSibling;
@@ -40992,11 +40992,11 @@
     get [_lastElementChild]() {
       return this.lastElementChild;
     }
-    [dartx.querySelector](selectors) {
-      return this.querySelector(selectors);
+    [dartx.querySelector](...args) {
+      return this.querySelector.apply(this, args);
     }
-    [_querySelectorAll](selectors) {
-      return this.querySelectorAll(selectors);
+    [_querySelectorAll](...args) {
+      return this.querySelectorAll.apply(this, args);
     }
     get [dartx.onAbort]() {
       return html$.Element.abortEvent.forElement(this);
@@ -42052,20 +42052,20 @@
     set [dartx.startTime](value) {
       this.startTime = value;
     }
-    [dartx.cancel]() {
-      return this.cancel();
+    [dartx.cancel](...args) {
+      return this.cancel.apply(this, args);
     }
-    [dartx.finish]() {
-      return this.finish();
+    [dartx.finish](...args) {
+      return this.finish.apply(this, args);
     }
-    [dartx.pause]() {
-      return this.pause();
+    [dartx.pause](...args) {
+      return this.pause.apply(this, args);
     }
-    [dartx.play]() {
-      return this.play();
+    [dartx.play](...args) {
+      return this.play.apply(this, args);
     }
-    [dartx.reverse]() {
-      return this.reverse();
+    [dartx.reverse](...args) {
+      return this.reverse.apply(this, args);
     }
   };
   dart.setSignature(html$.Animation, {
@@ -42316,11 +42316,11 @@
     set [dartx.playbackRate](value) {
       this.playbackRate = value;
     }
-    [dartx.getAnimations]() {
-      return this.getAnimations();
+    [dartx.getAnimations](...args) {
+      return this.getAnimations.apply(this, args);
     }
-    [dartx.play](source) {
-      return this.play(source);
+    [dartx.play](...args) {
+      return this.play.apply(this, args);
     }
   };
   dart.setSignature(html$.AnimationTimeline, {
@@ -42382,14 +42382,14 @@
     get [dartx.status]() {
       return this.status;
     }
-    [dartx.abort]() {
-      return this.abort();
+    [dartx.abort](...args) {
+      return this.abort.apply(this, args);
     }
-    [dartx.swapCache]() {
-      return this.swapCache();
+    [dartx.swapCache](...args) {
+      return this.swapCache.apply(this, args);
     }
-    [dartx.update]() {
-      return this.update();
+    [dartx.update](...args) {
+      return this.update.apply(this, args);
     }
     get [dartx.onCached]() {
       return html$.ApplicationCache.cachedEvent.forTarget(this);
@@ -42936,35 +42936,35 @@
     get [dartx.videoDecodedByteCount]() {
       return this.webkitVideoDecodedByteCount;
     }
-    [dartx.addTextTrack](kind, label, language) {
-      return this.addTextTrack(kind, label, language);
+    [dartx.addTextTrack](...args) {
+      return this.addTextTrack.apply(this, args);
     }
-    [dartx.canPlayType](type, keySystem) {
-      return this.canPlayType(type, keySystem);
+    [dartx.canPlayType](...args) {
+      return this.canPlayType.apply(this, args);
     }
-    [dartx.load]() {
-      return this.load();
+    [dartx.load](...args) {
+      return this.load.apply(this, args);
     }
-    [dartx.pause]() {
-      return this.pause();
+    [dartx.pause](...args) {
+      return this.pause.apply(this, args);
     }
-    [dartx.play]() {
-      return this.play();
+    [dartx.play](...args) {
+      return this.play.apply(this, args);
     }
-    [dartx.setMediaKeys](mediaKeys) {
-      return this.setMediaKeys(mediaKeys);
+    [dartx.setMediaKeys](...args) {
+      return this.setMediaKeys.apply(this, args);
     }
-    [dartx.setSinkId](sinkId) {
-      return this.setSinkId(sinkId);
+    [dartx.setSinkId](...args) {
+      return this.setSinkId.apply(this, args);
     }
-    [dartx.addKey](keySystem, key, initData, sessionId) {
-      return this.webkitAddKey(keySystem, key, initData, sessionId);
+    [dartx.addKey](...args) {
+      return this.webkitAddKey.apply(this, args);
     }
-    [dartx.cancelKeyRequest](keySystem, sessionId) {
-      return this.webkitCancelKeyRequest(keySystem, sessionId);
+    [dartx.cancelKeyRequest](...args) {
+      return this.webkitCancelKeyRequest.apply(this, args);
     }
-    [dartx.generateKeyRequest](keySystem, initData) {
-      return this.webkitGenerateKeyRequest(keySystem, initData);
+    [dartx.generateKeyRequest](...args) {
+      return this.webkitGenerateKeyRequest.apply(this, args);
     }
     get [dartx.onKeyAdded]() {
       return html$.MediaElement.keyAddedEvent.forElement(this);
@@ -43168,11 +43168,11 @@
     get [dartx.length]() {
       return this.length;
     }
-    [__getter__](index) {
-      return this.__getter__(index);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [dartx.getTrackById](id) {
-      return this.getTrackById(id);
+    [dartx.getTrackById](...args) {
+      return this.getTrackById.apply(this, args);
     }
     get [dartx.onChange]() {
       return html$.AudioTrackList.changeEvent.forTarget(this);
@@ -43372,8 +43372,8 @@
     get [dartx.userChoice]() {
       return this.userChoice;
     }
-    [dartx.prompt]() {
-      return this.prompt();
+    [dartx.prompt](...args) {
+      return this.prompt.apply(this, args);
     }
   };
   dart.setSignature(html$.BeforeInstallPromptEvent, {
@@ -43428,11 +43428,11 @@
     get [dartx.type]() {
       return this.type;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
-    [dartx.slice](start, end, contentType) {
-      return this.slice(start, end, contentType);
+    [dartx.slice](...args) {
+      return this.slice.apply(this, args);
     }
     static new(blobParts, type, endings) {
       if (type === void 0) type = null;
@@ -43492,8 +43492,8 @@
       let options_1 = html_common.convertDartToNative_Dictionary(options);
       return this[_requestDevice_1](options_1);
     }
-    [_requestDevice_1](options) {
-      return this.requestDevice(options);
+    [_requestDevice_1](...args) {
+      return this.requestDevice.apply(this, args);
     }
   };
   dart.setSignature(html$.Bluetooth, {
@@ -43543,8 +43543,8 @@
     get [dartx.vendorIDSource]() {
       return this.vendorIDSource;
     }
-    [dartx.connectGatt]() {
-      return this.connectGATT();
+    [dartx.connectGatt](...args) {
+      return this.connectGATT.apply(this, args);
     }
   };
   dart.setSignature(html$.BluetoothDevice, {
@@ -43574,11 +43574,11 @@
     get [dartx.uuid]() {
       return this.uuid;
     }
-    [dartx.readValue]() {
-      return this.readValue();
+    [dartx.readValue](...args) {
+      return this.readValue.apply(this, args);
     }
-    [dartx.writeValue](value) {
-      return this.writeValue(value);
+    [dartx.writeValue](...args) {
+      return this.writeValue.apply(this, args);
     }
   };
   dart.setSignature(html$.BluetoothGattCharacteristic, {
@@ -43601,8 +43601,8 @@
     get [dartx.connected]() {
       return this.connected;
     }
-    [dartx.getPrimaryService](service) {
-      return this.getPrimaryService(service);
+    [dartx.getPrimaryService](...args) {
+      return this.getPrimaryService.apply(this, args);
     }
   };
   dart.setSignature(html$.BluetoothGattRemoteServer, {
@@ -43626,8 +43626,8 @@
     get [dartx.uuid]() {
       return this.uuid;
     }
-    [dartx.getCharacteristic](characteristic) {
-      return this.getCharacteristic(characteristic);
+    [dartx.getCharacteristic](...args) {
+      return this.getCharacteristic.apply(this, args);
     }
   };
   dart.setSignature(html$.BluetoothGattService, {
@@ -43669,17 +43669,17 @@
     get [dartx.bodyUsed]() {
       return this.bodyUsed;
     }
-    [dartx.arrayBuffer]() {
-      return this.arrayBuffer();
+    [dartx.arrayBuffer](...args) {
+      return this.arrayBuffer.apply(this, args);
     }
-    [dartx.blob]() {
-      return this.blob();
+    [dartx.blob](...args) {
+      return this.blob.apply(this, args);
     }
-    [dartx.json]() {
-      return this.json();
+    [dartx.json](...args) {
+      return this.json.apply(this, args);
     }
-    [dartx.text]() {
-      return this.text();
+    [dartx.text](...args) {
+      return this.text.apply(this, args);
     }
   };
   dart.setSignature(html$.Body, {
@@ -43953,14 +43953,14 @@
     get [dartx.willValidate]() {
       return this.willValidate;
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
-    [dartx.setCustomValidity](error) {
-      return this.setCustomValidity(error);
+    [dartx.setCustomValidity](...args) {
+      return this.setCustomValidity.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.ButtonElement, 'created');
@@ -44021,26 +44021,26 @@
     get [dartx.length]() {
       return this.length;
     }
-    [dartx.appendData](data) {
-      return this.appendData(data);
+    [dartx.appendData](...args) {
+      return this.appendData.apply(this, args);
     }
-    [dartx.deleteData](offset, count) {
-      return this.deleteData(offset, count);
+    [dartx.deleteData](...args) {
+      return this.deleteData.apply(this, args);
     }
-    [dartx.insertData](offset, data) {
-      return this.insertData(offset, data);
+    [dartx.insertData](...args) {
+      return this.insertData.apply(this, args);
     }
-    [dartx.replaceData](offset, count, data) {
-      return this.replaceData(offset, count, data);
+    [dartx.replaceData](...args) {
+      return this.replaceData.apply(this, args);
     }
-    [dartx.substringData](offset, count) {
-      return this.substringData(offset, count);
+    [dartx.substringData](...args) {
+      return this.substringData.apply(this, args);
     }
-    [dartx.after](nodes) {
-      return this.after(nodes);
+    [dartx.after](...args) {
+      return this.after.apply(this, args);
     }
-    [dartx.before](nodes) {
-      return this.before(nodes);
+    [dartx.before](...args) {
+      return this.before.apply(this, args);
     }
     get [dartx.nextElementSibling]() {
       return this.nextElementSibling;
@@ -44084,11 +44084,11 @@
     get [dartx.wholeText]() {
       return this.wholeText;
     }
-    [dartx.getDestinationInsertionPoints]() {
-      return this.getDestinationInsertionPoints();
+    [dartx.getDestinationInsertionPoints](...args) {
+      return this.getDestinationInsertionPoints.apply(this, args);
     }
-    [dartx.splitText](offset) {
-      return this.splitText(offset);
+    [dartx.splitText](...args) {
+      return this.splitText.apply(this, args);
     }
   };
   dart.setSignature(html$.Text, {
@@ -44125,14 +44125,14 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.delete](cacheName) {
-      return this.delete(cacheName);
+    [dartx.delete](...args) {
+      return this.delete.apply(this, args);
     }
-    [dartx.has](cacheName) {
-      return this.has(cacheName);
+    [dartx.has](...args) {
+      return this.has.apply(this, args);
     }
-    [dartx.keys]() {
-      return this.keys();
+    [dartx.keys](...args) {
+      return this.keys.apply(this, args);
     }
     [dartx.match](request, options) {
       if (options === void 0) options = null;
@@ -44142,14 +44142,14 @@
       }
       return this[_match_2](request);
     }
-    [_match_1](request, options) {
-      return this.match(request, options);
+    [_match_1](...args) {
+      return this.match.apply(this, args);
     }
-    [_match_2](request) {
-      return this.match(request);
+    [_match_2](...args) {
+      return this.match.apply(this, args);
     }
-    [dartx.open](cacheName) {
-      return this.open(cacheName);
+    [dartx.open](...args) {
+      return this.open.apply(this, args);
     }
   };
   dart.setSignature(html$.CacheStorage, {
@@ -44215,14 +44215,14 @@
       }
       return this[_getContext_2](contextId);
     }
-    [_getContext_1](contextId, attributes) {
-      return this.getContext(contextId, attributes);
+    [_getContext_1](...args) {
+      return this.getContext.apply(this, args);
     }
-    [_getContext_2](contextId) {
-      return this.getContext(contextId);
+    [_getContext_2](...args) {
+      return this.getContext.apply(this, args);
     }
-    [_toDataUrl](type, arguments_OR_quality) {
-      return this.toDataURL(type, arguments_OR_quality);
+    [_toDataUrl](...args) {
+      return this.toDataURL.apply(this, args);
     }
     get [dartx.onWebGlContextLost]() {
       return html$.CanvasElement.webGlContextLostEvent.forElement(this);
@@ -44299,8 +44299,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.addColorStop](offset, color) {
-      return this.addColorStop(offset, color);
+    [dartx.addColorStop](...args) {
+      return this.addColorStop.apply(this, args);
     }
   };
   dart.setSignature(html$.CanvasGradient, {
@@ -44315,8 +44315,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.setTransform](transform) {
-      return this.setTransform(transform);
+    [dartx.setTransform](...args) {
+      return this.setTransform.apply(this, args);
     }
   };
   dart.setSignature(html$.CanvasPattern, {
@@ -44545,23 +44545,23 @@
       this[_addHitRegion_2]();
       return;
     }
-    [_addHitRegion_1](options) {
-      return this.addHitRegion(options);
+    [_addHitRegion_1](...args) {
+      return this.addHitRegion.apply(this, args);
     }
-    [_addHitRegion_2]() {
-      return this.addHitRegion();
+    [_addHitRegion_2](...args) {
+      return this.addHitRegion.apply(this, args);
     }
-    [dartx.beginPath]() {
-      return this.beginPath();
+    [dartx.beginPath](...args) {
+      return this.beginPath.apply(this, args);
     }
-    [dartx.clearHitRegions]() {
-      return this.clearHitRegions();
+    [dartx.clearHitRegions](...args) {
+      return this.clearHitRegions.apply(this, args);
     }
-    [dartx.clearRect](x, y, width, height) {
-      return this.clearRect(x, y, width, height);
+    [dartx.clearRect](...args) {
+      return this.clearRect.apply(this, args);
     }
-    [dartx.clip](path_OR_winding, winding) {
-      return this.clip(path_OR_winding, winding);
+    [dartx.clip](...args) {
+      return this.clip.apply(this, args);
     }
     [dartx.createImageData](imagedata_OR_sw, sh) {
       if (sh === void 0) sh = null;
@@ -44574,53 +44574,53 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_createImageData_1](imagedata) {
-      return this.createImageData(imagedata);
+    [_createImageData_1](...args) {
+      return this.createImageData.apply(this, args);
     }
-    [_createImageData_2](sw, sh) {
-      return this.createImageData(sw, sh);
+    [_createImageData_2](...args) {
+      return this.createImageData.apply(this, args);
     }
-    [dartx.createLinearGradient](x0, y0, x1, y1) {
-      return this.createLinearGradient(x0, y0, x1, y1);
+    [dartx.createLinearGradient](...args) {
+      return this.createLinearGradient.apply(this, args);
     }
-    [dartx.createPattern](image, repetitionType) {
-      return this.createPattern(image, repetitionType);
+    [dartx.createPattern](...args) {
+      return this.createPattern.apply(this, args);
     }
-    [dartx.createRadialGradient](x0, y0, r0, x1, y1, r1) {
-      return this.createRadialGradient(x0, y0, r0, x1, y1, r1);
+    [dartx.createRadialGradient](...args) {
+      return this.createRadialGradient.apply(this, args);
     }
-    [dartx.drawFocusIfNeeded](element_OR_path, element) {
-      return this.drawFocusIfNeeded(element_OR_path, element);
+    [dartx.drawFocusIfNeeded](...args) {
+      return this.drawFocusIfNeeded.apply(this, args);
     }
-    [dartx.fillRect](x, y, width, height) {
-      return this.fillRect(x, y, width, height);
+    [dartx.fillRect](...args) {
+      return this.fillRect.apply(this, args);
     }
     [dartx.getContextAttributes]() {
       return html_common.convertNativeToDart_Dictionary(this[_getContextAttributes_1]());
     }
-    [_getContextAttributes_1]() {
-      return this.getContextAttributes();
+    [_getContextAttributes_1](...args) {
+      return this.getContextAttributes.apply(this, args);
     }
     [dartx.getImageData](sx, sy, sw, sh) {
       return html_common.convertNativeToDart_ImageData(this[_getImageData_1](sx, sy, sw, sh));
     }
-    [_getImageData_1](sx, sy, sw, sh) {
-      return this.getImageData(sx, sy, sw, sh);
+    [_getImageData_1](...args) {
+      return this.getImageData.apply(this, args);
     }
-    [_getLineDash]() {
-      return this.getLineDash();
+    [_getLineDash](...args) {
+      return this.getLineDash.apply(this, args);
     }
-    [dartx.isContextLost]() {
-      return this.isContextLost();
+    [dartx.isContextLost](...args) {
+      return this.isContextLost.apply(this, args);
     }
-    [dartx.isPointInPath](path_OR_x, x_OR_y, winding_OR_y, winding) {
-      return this.isPointInPath(path_OR_x, x_OR_y, winding_OR_y, winding);
+    [dartx.isPointInPath](...args) {
+      return this.isPointInPath.apply(this, args);
     }
-    [dartx.isPointInStroke](path_OR_x, x_OR_y, y) {
-      return this.isPointInStroke(path_OR_x, x_OR_y, y);
+    [dartx.isPointInStroke](...args) {
+      return this.isPointInStroke.apply(this, args);
     }
-    [dartx.measureText](text) {
-      return this.measureText(text);
+    [dartx.measureText](...args) {
+      return this.measureText.apply(this, args);
     }
     [dartx.putImageData](imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
       if (dirtyX === void 0) dirtyX = null;
@@ -44639,77 +44639,77 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_putImageData_1](imagedata, dx, dy) {
-      return this.putImageData(imagedata, dx, dy);
+    [_putImageData_1](...args) {
+      return this.putImageData.apply(this, args);
     }
-    [_putImageData_2](imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) {
-      return this.putImageData(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
+    [_putImageData_2](...args) {
+      return this.putImageData.apply(this, args);
     }
-    [dartx.removeHitRegion](id) {
-      return this.removeHitRegion(id);
+    [dartx.removeHitRegion](...args) {
+      return this.removeHitRegion.apply(this, args);
     }
-    [dartx.resetTransform]() {
-      return this.resetTransform();
+    [dartx.resetTransform](...args) {
+      return this.resetTransform.apply(this, args);
     }
-    [dartx.restore]() {
-      return this.restore();
+    [dartx.restore](...args) {
+      return this.restore.apply(this, args);
     }
-    [dartx.rotate](angle) {
-      return this.rotate(angle);
+    [dartx.rotate](...args) {
+      return this.rotate.apply(this, args);
     }
-    [dartx.save]() {
-      return this.save();
+    [dartx.save](...args) {
+      return this.save.apply(this, args);
     }
-    [dartx.scale](x, y) {
-      return this.scale(x, y);
+    [dartx.scale](...args) {
+      return this.scale.apply(this, args);
     }
-    [dartx.scrollPathIntoView](path) {
-      return this.scrollPathIntoView(path);
+    [dartx.scrollPathIntoView](...args) {
+      return this.scrollPathIntoView.apply(this, args);
     }
-    [dartx.setTransform](a, b, c, d, e, f) {
-      return this.setTransform(a, b, c, d, e, f);
+    [dartx.setTransform](...args) {
+      return this.setTransform.apply(this, args);
     }
-    [dartx.stroke](path) {
-      return this.stroke(path);
+    [dartx.stroke](...args) {
+      return this.stroke.apply(this, args);
     }
-    [dartx.strokeRect](x, y, width, height) {
-      return this.strokeRect(x, y, width, height);
+    [dartx.strokeRect](...args) {
+      return this.strokeRect.apply(this, args);
     }
-    [dartx.strokeText](text, x, y, maxWidth) {
-      return this.strokeText(text, x, y, maxWidth);
+    [dartx.strokeText](...args) {
+      return this.strokeText.apply(this, args);
     }
-    [dartx.transform](a, b, c, d, e, f) {
-      return this.transform(a, b, c, d, e, f);
+    [dartx.transform](...args) {
+      return this.transform.apply(this, args);
     }
-    [dartx.translate](x, y) {
-      return this.translate(x, y);
+    [dartx.translate](...args) {
+      return this.translate.apply(this, args);
     }
-    [_arc](x, y, radius, startAngle, endAngle, anticlockwise) {
-      return this.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+    [_arc](...args) {
+      return this.arc.apply(this, args);
     }
-    [dartx.arcTo](x1, y1, x2, y2, radius) {
-      return this.arcTo(x1, y1, x2, y2, radius);
+    [dartx.arcTo](...args) {
+      return this.arcTo.apply(this, args);
     }
-    [dartx.bezierCurveTo](cp1x, cp1y, cp2x, cp2y, x, y) {
-      return this.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+    [dartx.bezierCurveTo](...args) {
+      return this.bezierCurveTo.apply(this, args);
     }
-    [dartx.closePath]() {
-      return this.closePath();
+    [dartx.closePath](...args) {
+      return this.closePath.apply(this, args);
     }
-    [dartx.ellipse](x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise) {
-      return this.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
+    [dartx.ellipse](...args) {
+      return this.ellipse.apply(this, args);
     }
-    [dartx.lineTo](x, y) {
-      return this.lineTo(x, y);
+    [dartx.lineTo](...args) {
+      return this.lineTo.apply(this, args);
     }
-    [dartx.moveTo](x, y) {
-      return this.moveTo(x, y);
+    [dartx.moveTo](...args) {
+      return this.moveTo.apply(this, args);
     }
-    [dartx.quadraticCurveTo](cpx, cpy, x, y) {
-      return this.quadraticCurveTo(cpx, cpy, x, y);
+    [dartx.quadraticCurveTo](...args) {
+      return this.quadraticCurveTo.apply(this, args);
     }
-    [dartx.rect](x, y, width, height) {
-      return this.rect(x, y, width, height);
+    [dartx.rect](...args) {
+      return this.rect.apply(this, args);
     }
     [dartx.createImageDataFromImageData](imagedata) {
       return this.createImageData(imagedata);
@@ -44745,14 +44745,14 @@
         this[dartx.drawImageScaledFromSource](source, sourceRect[dartx.left], sourceRect[dartx.top], sourceRect[dartx.width], sourceRect[dartx.height], destRect[dartx.left], destRect[dartx.top], destRect[dartx.width], destRect[dartx.height]);
       }
     }
-    [dartx.drawImage](source, destX, destY) {
-      return this.drawImage(source, destX, destY);
+    [dartx.drawImage](...args) {
+      return this.drawImage.apply(this, args);
     }
-    [dartx.drawImageScaled](source, destX, destY, destWidth, destHeight) {
-      return this.drawImage(source, destX, destY, destWidth, destHeight);
+    [dartx.drawImageScaled](...args) {
+      return this.drawImage.apply(this, args);
     }
-    [dartx.drawImageScaledFromSource](source, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight) {
-      return this.drawImage(source, sourceX, sourceY, sourceWidth, sourceHeight, destX, destY, destWidth, destHeight);
+    [dartx.drawImageScaledFromSource](...args) {
+      return this.drawImage.apply(this, args);
     }
     get [dartx.lineDashOffset]() {
       return this.lineDashOffset || this.webkitLineDashOffset;
@@ -44999,11 +44999,11 @@
       this[_postMessage_2](message_1);
       return;
     }
-    [_postMessage_1](message, transfer) {
-      return this.postMessage(message, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message) {
-      return this.postMessage(message);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
   };
   dart.setSignature(html$.Client, {
@@ -45031,8 +45031,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.claim]() {
-      return this.claim();
+    [dartx.claim](...args) {
+      return this.claim.apply(this, args);
     }
     [dartx.matchAll](options) {
       if (options === void 0) options = null;
@@ -45042,14 +45042,14 @@
       }
       return this[_matchAll_2]();
     }
-    [_matchAll_1](options) {
-      return this.matchAll(options);
+    [_matchAll_1](...args) {
+      return this.matchAll.apply(this, args);
     }
-    [_matchAll_2]() {
-      return this.matchAll();
+    [_matchAll_2](...args) {
+      return this.matchAll.apply(this, args);
     }
-    [dartx.openWindow](url) {
-      return this.openWindow(url);
+    [dartx.openWindow](...args) {
+      return this.openWindow.apply(this, args);
     }
   };
   dart.setSignature(html$.Clients, {
@@ -45207,8 +45207,8 @@
     get [_which]() {
       return this.which;
     }
-    [_initUIEvent](type, bubbles, cancelable, view, detail) {
-      return this.initUIEvent(type, bubbles, cancelable, view, detail);
+    [_initUIEvent](...args) {
+      return this.initUIEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.UIEvent, {
@@ -45271,8 +45271,8 @@
     get [dartx.data]() {
       return this.data;
     }
-    [_initCompositionEvent](type, bubbles, cancelable, view, data) {
-      return this.initCompositionEvent(type, bubbles, cancelable, view, data);
+    [_initCompositionEvent](...args) {
+      return this.initCompositionEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.CompositionEvent, {
@@ -45331,11 +45331,11 @@
     set [dartx.transform](value) {
       this.transform = value;
     }
-    [dartx.disconnect]() {
-      return this.disconnect();
+    [dartx.disconnect](...args) {
+      return this.disconnect.apply(this, args);
     }
-    [dartx.supports](attribute) {
-      return this.supports(attribute);
+    [dartx.supports](...args) {
+      return this.supports.apply(this, args);
     }
   };
   dart.setSignature(html$.CompositorProxy, {
@@ -45384,14 +45384,14 @@
       this[_postMessage_2](message_1);
       return;
     }
-    [_postMessage_1](message, transfer) {
-      return this.postMessage(message, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message) {
-      return this.postMessage(message);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [dartx.terminate]() {
-      return this.terminate();
+    [dartx.terminate](...args) {
+      return this.terminate.apply(this, args);
     }
     get [dartx.onError]() {
       return html$.CompositorWorker.errorEvent.forTarget(this);
@@ -45490,8 +45490,8 @@
     get [dartx.self]() {
       return this.self;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
     [dartx.fetch](input, init) {
       if (init === void 0) init = null;
@@ -45501,17 +45501,17 @@
       }
       return this[_fetch_2](input);
     }
-    [_fetch_1](input, init) {
-      return this.fetch(input, init);
+    [_fetch_1](...args) {
+      return this.fetch.apply(this, args);
     }
-    [_fetch_2](input) {
-      return this.fetch(input);
+    [_fetch_2](...args) {
+      return this.fetch.apply(this, args);
     }
-    [dartx.importScripts](urls) {
-      return this.importScripts(urls);
+    [dartx.importScripts](...args) {
+      return this.importScripts.apply(this, args);
     }
-    [_webkitRequestFileSystem](type, size, successCallback, errorCallback) {
-      return this.webkitRequestFileSystem(type, size, successCallback, errorCallback);
+    [_webkitRequestFileSystem](...args) {
+      return this.webkitRequestFileSystem.apply(this, args);
     }
     [dartx.webkitRequestFileSystem](type, size) {
       let completer = CompleterOfFileSystem().new();
@@ -45522,14 +45522,14 @@
       }, FileErrorTovoid()));
       return completer.future;
     }
-    [dartx.requestFileSystemSync](type, size) {
-      return this.webkitRequestFileSystemSync(type, size);
+    [dartx.requestFileSystemSync](...args) {
+      return this.webkitRequestFileSystemSync.apply(this, args);
     }
-    [dartx.resolveLocalFileSystemSyncUrl](url) {
-      return this.webkitResolveLocalFileSystemSyncURL(url);
+    [dartx.resolveLocalFileSystemSyncUrl](...args) {
+      return this.webkitResolveLocalFileSystemSyncURL.apply(this, args);
     }
-    [_webkitResolveLocalFileSystemUrl](url, successCallback, errorCallback) {
-      return this.webkitResolveLocalFileSystemURL(url, successCallback, errorCallback);
+    [_webkitResolveLocalFileSystemUrl](...args) {
+      return this.webkitResolveLocalFileSystemURL.apply(this, args);
     }
     [dartx.webkitResolveLocalFileSystemUrl](url) {
       let completer = CompleterOfEntry().new();
@@ -45540,29 +45540,29 @@
       }, FileErrorTovoid()));
       return completer.future;
     }
-    [dartx.atob](atob) {
-      return this.atob(atob);
+    [dartx.atob](...args) {
+      return this.atob.apply(this, args);
     }
-    [dartx.btoa](btoa) {
-      return this.btoa(btoa);
+    [dartx.btoa](...args) {
+      return this.btoa.apply(this, args);
     }
-    [_setInterval_String](handler, timeout, arguments$) {
-      return this.setInterval(handler, timeout, arguments$);
+    [_setInterval_String](...args) {
+      return this.setInterval.apply(this, args);
     }
-    [_setTimeout_String](handler, timeout, arguments$) {
-      return this.setTimeout(handler, timeout, arguments$);
+    [_setTimeout_String](...args) {
+      return this.setTimeout.apply(this, args);
     }
-    [_clearInterval](handle) {
-      return this.clearInterval(handle);
+    [_clearInterval](...args) {
+      return this.clearInterval.apply(this, args);
     }
-    [_clearTimeout](handle) {
-      return this.clearTimeout(handle);
+    [_clearTimeout](...args) {
+      return this.clearTimeout.apply(this, args);
     }
-    [_setInterval](handler, timeout) {
-      return this.setInterval(handler, timeout);
+    [_setInterval](...args) {
+      return this.setInterval.apply(this, args);
     }
-    [_setTimeout](handler, timeout) {
-      return this.setTimeout(handler, timeout);
+    [_setTimeout](...args) {
+      return this.setTimeout.apply(this, args);
     }
     get [dartx.onError]() {
       return html$.WorkerGlobalScope.errorEvent.forTarget(this);
@@ -45627,8 +45627,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.cancelAnimationFrame](handle) {
-      return this.cancelAnimationFrame(handle);
+    [dartx.cancelAnimationFrame](...args) {
+      return this.cancelAnimationFrame.apply(this, args);
     }
     [dartx.postMessage](message, transfer) {
       if (transfer === void 0) transfer = null;
@@ -45641,14 +45641,14 @@
       this[_postMessage_2](message_1);
       return;
     }
-    [_postMessage_1](message, transfer) {
-      return this.postMessage(message, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message) {
-      return this.postMessage(message);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [dartx.requestAnimationFrame](callback) {
-      return this.requestAnimationFrame(callback);
+    [dartx.requestAnimationFrame](...args) {
+      return this.requestAnimationFrame.apply(this, args);
     }
     get [dartx.onMessage]() {
       return html$.CompositorWorkerGlobalScope.messageEvent.forTarget(this);
@@ -45798,14 +45798,14 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.assertCondition](condition, arg) {
-      return this.assert(condition, arg);
+    [dartx.assertCondition](...args) {
+      return this.assert.apply(this, args);
     }
-    [dartx.timeline](title) {
-      return this.timeline(title);
+    [dartx.timeline](...args) {
+      return this.timeline.apply(this, args);
     }
-    [dartx.timelineEnd](title) {
-      return this.timelineEnd(title);
+    [dartx.timelineEnd](...args) {
+      return this.timelineEnd.apply(this, args);
     }
   };
   dart.setSignature(html$.ConsoleBase, {
@@ -45841,8 +45841,8 @@
     set [dartx.select](value) {
       this.select = value;
     }
-    [dartx.getDistributedNodes]() {
-      return this.getDistributedNodes();
+    [dartx.getDistributedNodes](...args) {
+      return this.getDistributedNodes.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.ContentElement, 'created');
@@ -45949,8 +45949,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.notifySignedIn](credential) {
-      return this.notifySignedIn(credential);
+    [dartx.notifySignedIn](...args) {
+      return this.notifySignedIn.apply(this, args);
     }
     [dartx.request](options) {
       if (options === void 0) options = null;
@@ -45960,14 +45960,14 @@
       }
       return this[_request_2]();
     }
-    [_request_1](options) {
-      return this.request(options);
+    [_request_1](...args) {
+      return this.request.apply(this, args);
     }
-    [_request_2]() {
-      return this.request();
+    [_request_2](...args) {
+      return this.request.apply(this, args);
     }
-    [dartx.requireUserMediation]() {
-      return this.requireUserMediation();
+    [dartx.requireUserMediation](...args) {
+      return this.requireUserMediation.apply(this, args);
     }
   };
   dart.setSignature(html$.CredentialsContainer, {
@@ -45992,8 +45992,8 @@
     get [dartx.client]() {
       return this.client;
     }
-    [dartx.acceptConnection](shouldAccept) {
-      return this.acceptConnection(shouldAccept);
+    [dartx.acceptConnection](...args) {
+      return this.acceptConnection.apply(this, args);
     }
   };
   dart.setSignature(html$.CrossOriginConnectEvent, {
@@ -46028,11 +46028,11 @@
       this[_postMessage_2](message_1);
       return;
     }
-    [_postMessage_1](message, transfer) {
-      return this.postMessage(message, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message) {
-      return this.postMessage(message);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
   };
   dart.setSignature(html$.CrossOriginServiceWorkerClient, {
@@ -46066,8 +46066,8 @@
     get [dartx.subtle]() {
       return this.subtle;
     }
-    [_getRandomValues](array) {
-      return this.getRandomValues(array);
+    [_getRandomValues](...args) {
+      return this.getRandomValues.apply(this, args);
     }
   };
   dart.setSignature(html$.Crypto, {
@@ -46236,11 +46236,11 @@
     get [dartx.cssRules]() {
       return this.cssRules;
     }
-    [dartx.deleteRule](index) {
-      return this.deleteRule(index);
+    [dartx.deleteRule](...args) {
+      return this.deleteRule.apply(this, args);
     }
-    [dartx.insertRule](rule, index) {
-      return this.insertRule(rule, index);
+    [dartx.insertRule](...args) {
+      return this.insertRule.apply(this, args);
     }
   };
   dart.setSignature(html$.CssGroupingRule, {
@@ -46328,17 +46328,17 @@
     set [dartx.name](value) {
       this.name = value;
     }
-    [__getter__](index) {
-      return this.__getter__(index);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [dartx.appendRule](rule) {
-      return this.appendRule(rule);
+    [dartx.appendRule](...args) {
+      return this.appendRule.apply(this, args);
     }
-    [dartx.deleteRule](select) {
-      return this.deleteRule(select);
+    [dartx.deleteRule](...args) {
+      return this.deleteRule.apply(this, args);
     }
-    [dartx.findRule](select) {
-      return this.findRule(select);
+    [dartx.findRule](...args) {
+      return this.findRule.apply(this, args);
     }
   };
   dart.setSignature(html$.CssKeyframesRule, {
@@ -50876,17 +50876,17 @@
     get [dartx.parentRule]() {
       return this.parentRule;
     }
-    [dartx.getPropertyPriority](property) {
-      return this.getPropertyPriority(property);
+    [dartx.getPropertyPriority](...args) {
+      return this.getPropertyPriority.apply(this, args);
     }
-    [_getPropertyValue](property) {
-      return this.getPropertyValue(property);
+    [_getPropertyValue](...args) {
+      return this.getPropertyValue.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.removeProperty](property) {
-      return this.removeProperty(property);
+    [dartx.removeProperty](...args) {
+      return this.removeProperty.apply(this, args);
     }
     get [dartx.background]() {
       return this[_background];
@@ -52868,17 +52868,17 @@
     get [dartx.rules]() {
       return this.rules;
     }
-    [dartx.addRule](selector, style, index) {
-      return this.addRule(selector, style, index);
+    [dartx.addRule](...args) {
+      return this.addRule.apply(this, args);
     }
-    [dartx.deleteRule](index) {
-      return this.deleteRule(index);
+    [dartx.deleteRule](...args) {
+      return this.deleteRule.apply(this, args);
     }
-    [dartx.insertRule](rule, index) {
-      return this.insertRule(rule, index);
+    [dartx.insertRule](...args) {
+      return this.insertRule.apply(this, args);
     }
-    [dartx.removeRule](index) {
-      return this.removeRule(index);
+    [dartx.removeRule](...args) {
+      return this.removeRule.apply(this, args);
     }
   };
   dart.setSignature(html$.CssStyleSheet, {
@@ -52912,11 +52912,11 @@
     get [dartx.cssRules]() {
       return this.cssRules;
     }
-    [dartx.deleteRule](index) {
-      return this.deleteRule(index);
+    [dartx.deleteRule](...args) {
+      return this.deleteRule.apply(this, args);
     }
-    [dartx.insertRule](rule, index) {
-      return this.insertRule(rule, index);
+    [dartx.insertRule](...args) {
+      return this.insertRule.apply(this, args);
     }
   };
   dart.setSignature(html$.CssSupportsRule, {
@@ -53006,8 +53006,8 @@
     get [_get__detail]() {
       return this.detail;
     }
-    [_initCustomEvent](type, bubbles, cancelable, detail) {
-      return this.initCustomEvent(type, bubbles, cancelable, detail);
+    [_initCustomEvent](...args) {
+      return this.initCustomEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.CustomEvent, {
@@ -53119,17 +53119,17 @@
     get [dartx.types]() {
       return this.types;
     }
-    [dartx.clearData](format) {
-      return this.clearData(format);
+    [dartx.clearData](...args) {
+      return this.clearData.apply(this, args);
     }
-    [dartx.getData](format) {
-      return this.getData(format);
+    [dartx.getData](...args) {
+      return this.getData.apply(this, args);
     }
-    [dartx.setData](format, data) {
-      return this.setData(format, data);
+    [dartx.setData](...args) {
+      return this.setData.apply(this, args);
     }
-    [dartx.setDragImage](image, x, y) {
-      return this.setDragImage(image, x, y);
+    [dartx.setDragImage](...args) {
+      return this.setDragImage.apply(this, args);
     }
   };
   dart.setSignature(html$.DataTransfer, {
@@ -53167,11 +53167,11 @@
     get [dartx.type]() {
       return this.type;
     }
-    [dartx.getAsFile]() {
-      return this.getAsFile();
+    [dartx.getAsFile](...args) {
+      return this.getAsFile.apply(this, args);
     }
-    [_getAsString](callback) {
-      return this.getAsString(callback);
+    [_getAsString](...args) {
+      return this.getAsString.apply(this, args);
     }
     [dartx.getAsString]() {
       let completer = CompleterOfString().new();
@@ -53180,8 +53180,8 @@
       }, StringTovoid$()));
       return completer.future;
     }
-    [dartx.getAsEntry]() {
-      return this.webkitGetAsEntry();
+    [dartx.getAsEntry](...args) {
+      return this.webkitGetAsEntry.apply(this, args);
     }
   };
   dart.setSignature(html$.DataTransferItem, {
@@ -53215,23 +53215,23 @@
     get [dartx.length]() {
       return this.length;
     }
-    [dartx.add](data_OR_file, type) {
-      return this.add(data_OR_file, type);
+    [dartx.add](...args) {
+      return this.add.apply(this, args);
     }
-    [dartx.addData](data, type) {
-      return this.add(data, type);
+    [dartx.addData](...args) {
+      return this.add.apply(this, args);
     }
-    [dartx.addFile](file) {
-      return this.add(file);
+    [dartx.addFile](...args) {
+      return this.add.apply(this, args);
     }
-    [dartx.clear]() {
-      return this.clear();
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.remove](index) {
-      return this.remove(index);
+    [dartx.remove](...args) {
+      return this.remove.apply(this, args);
     }
     [dartx._get](index) {
       return this[index];
@@ -53271,11 +53271,11 @@
       this[_postMessage_2](message_1);
       return;
     }
-    [_postMessage_1](message, transfer) {
-      return this.postMessage(message, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message) {
-      return this.postMessage(message);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
     get [dartx.onMessage]() {
       return html$.DedicatedWorkerGlobalScope.messageEvent.forTarget(this);
@@ -53343,11 +53343,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.queryUsageAndQuota](storageType, usageCallback, errorCallback) {
-      return this.queryUsageAndQuota(storageType, usageCallback, errorCallback);
+    [dartx.queryUsageAndQuota](...args) {
+      return this.queryUsageAndQuota.apply(this, args);
     }
-    [dartx.requestQuota](storageType, newQuotaInBytes, quotaCallback, errorCallback) {
-      return this.requestQuota(storageType, newQuotaInBytes, quotaCallback, errorCallback);
+    [dartx.requestQuota](...args) {
+      return this.requestQuota.apply(this, args);
     }
   };
   dart.setSignature(html$.DeprecatedStorageInfo, {
@@ -53372,11 +53372,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.queryUsageAndQuota](usageCallback, errorCallback) {
-      return this.queryUsageAndQuota(usageCallback, errorCallback);
+    [dartx.queryUsageAndQuota](...args) {
+      return this.queryUsageAndQuota.apply(this, args);
     }
-    [dartx.requestQuota](newQuotaInBytes, quotaCallback, errorCallback) {
-      return this.requestQuota(newQuotaInBytes, quotaCallback, errorCallback);
+    [dartx.requestQuota](...args) {
+      return this.requestQuota.apply(this, args);
     }
   };
   dart.setSignature(html$.DeprecatedStorageQuota, {
@@ -53511,8 +53511,8 @@
     get [dartx.rotationRate]() {
       return this.rotationRate;
     }
-    [dartx.initDeviceMotionEvent](type, bubbles, cancelable, acceleration, accelerationIncludingGravity, rotationRate, interval) {
-      return this.initDeviceMotionEvent(type, bubbles, cancelable, acceleration, accelerationIncludingGravity, rotationRate, interval);
+    [dartx.initDeviceMotionEvent](...args) {
+      return this.initDeviceMotionEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.DeviceMotionEvent, {
@@ -53560,8 +53560,8 @@
     get [dartx.gamma]() {
       return this.gamma;
     }
-    [_initDeviceOrientationEvent](type, bubbles, cancelable, alpha, beta, gamma, absolute) {
-      return this.initDeviceOrientationEvent(type, bubbles, cancelable, alpha, beta, gamma, absolute);
+    [_initDeviceOrientationEvent](...args) {
+      return this.initDeviceOrientationEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.DeviceOrientationEvent, {
@@ -53634,14 +53634,14 @@
     set [dartx.returnValue](value) {
       this.returnValue = value;
     }
-    [dartx.close](returnValue) {
-      return this.close(returnValue);
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
-    [dartx.show]() {
-      return this.show();
+    [dartx.show](...args) {
+      return this.show.apply(this, args);
     }
-    [dartx.showModal]() {
-      return this.showModal();
+    [dartx.showModal](...args) {
+      return this.showModal.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.DialogElement, 'created');
@@ -53711,8 +53711,8 @@
     get [dartx.name]() {
       return this.name;
     }
-    [_copyTo](parent, opts) {
-      return this.copyTo(parent, opts);
+    [_copyTo](...args) {
+      return this.copyTo.apply(this, args);
     }
     [dartx.copyTo](parent, opts) {
       let name = opts && 'name' in opts ? opts.name : null;
@@ -53724,8 +53724,8 @@
         }, FileErrorTovoid())});
       return completer.future;
     }
-    [_getMetadata](successCallback, errorCallback) {
-      return this.getMetadata(successCallback, errorCallback);
+    [_getMetadata](...args) {
+      return this.getMetadata.apply(this, args);
     }
     [dartx.getMetadata]() {
       let completer = CompleterOfMetadata().new();
@@ -53736,8 +53736,8 @@
       }, FileErrorTovoid()));
       return completer.future;
     }
-    [_getParent](successCallback, errorCallback) {
-      return this.getParent(successCallback, errorCallback);
+    [_getParent](...args) {
+      return this.getParent.apply(this, args);
     }
     [dartx.getParent]() {
       let completer = CompleterOfEntry().new();
@@ -53748,8 +53748,8 @@
       }, FileErrorTovoid()));
       return completer.future;
     }
-    [_moveTo](parent, opts) {
-      return this.moveTo(parent, opts);
+    [_moveTo](...args) {
+      return this.moveTo.apply(this, args);
     }
     [dartx.moveTo](parent, opts) {
       let name = opts && 'name' in opts ? opts.name : null;
@@ -53761,8 +53761,8 @@
         }, FileErrorTovoid())});
       return completer.future;
     }
-    [_remove$](successCallback, errorCallback) {
-      return this.remove(successCallback, errorCallback);
+    [_remove$](...args) {
+      return this.remove.apply(this, args);
     }
     [dartx.remove]() {
       let completer = async.Completer.new();
@@ -53773,8 +53773,8 @@
       }, FileErrorTovoid()));
       return completer.future;
     }
-    [dartx.toUrl]() {
-      return this.toURL();
+    [dartx.toUrl](...args) {
+      return this.toURL.apply(this, args);
     }
   };
   dart.setSignature(html$.Entry, {
@@ -53827,8 +53827,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.createReader]() {
-      return this.createReader();
+    [dartx.createReader](...args) {
+      return this.createReader.apply(this, args);
     }
     [__getDirectory](path, opts) {
       let options = opts && 'options' in opts ? opts.options : null;
@@ -53852,17 +53852,17 @@
       this[__getDirectory_4](path);
       return;
     }
-    [__getDirectory_1](path, options, successCallback, errorCallback) {
-      return this.getDirectory(path, options, successCallback, errorCallback);
+    [__getDirectory_1](...args) {
+      return this.getDirectory.apply(this, args);
     }
-    [__getDirectory_2](path, options, successCallback) {
-      return this.getDirectory(path, options, successCallback);
+    [__getDirectory_2](...args) {
+      return this.getDirectory.apply(this, args);
     }
-    [__getDirectory_3](path, options) {
-      return this.getDirectory(path, options);
+    [__getDirectory_3](...args) {
+      return this.getDirectory.apply(this, args);
     }
-    [__getDirectory_4](path) {
-      return this.getDirectory(path);
+    [__getDirectory_4](...args) {
+      return this.getDirectory.apply(this, args);
     }
     [_getDirectory](path, opts) {
       let options = opts && 'options' in opts ? opts.options : null;
@@ -53896,17 +53896,17 @@
       this[__getFile_4](path);
       return;
     }
-    [__getFile_1](path, options, successCallback, errorCallback) {
-      return this.getFile(path, options, successCallback, errorCallback);
+    [__getFile_1](...args) {
+      return this.getFile.apply(this, args);
     }
-    [__getFile_2](path, options, successCallback) {
-      return this.getFile(path, options, successCallback);
+    [__getFile_2](...args) {
+      return this.getFile.apply(this, args);
     }
-    [__getFile_3](path, options) {
-      return this.getFile(path, options);
+    [__getFile_3](...args) {
+      return this.getFile.apply(this, args);
     }
-    [__getFile_4](path) {
-      return this.getFile(path);
+    [__getFile_4](...args) {
+      return this.getFile.apply(this, args);
     }
     [_getFile](path, opts) {
       let options = opts && 'options' in opts ? opts.options : null;
@@ -53918,8 +53918,8 @@
         }, FileErrorTovoid())});
       return completer.future;
     }
-    [_removeRecursively](successCallback, errorCallback) {
-      return this.removeRecursively(successCallback, errorCallback);
+    [_removeRecursively](...args) {
+      return this.removeRecursively.apply(this, args);
     }
     [dartx.removeRecursively]() {
       let completer = async.Completer.new();
@@ -53964,8 +53964,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [_readEntries](successCallback, errorCallback) {
-      return this.readEntries(successCallback, errorCallback);
+    [_readEntries](...args) {
+      return this.readEntries.apply(this, args);
     }
     [dartx.readEntries]() {
       let completer = CompleterOfListOfEntry().new();
@@ -54262,93 +54262,93 @@
     get [_webkitVisibilityState]() {
       return this.webkitVisibilityState;
     }
-    [dartx.adoptNode](node) {
-      return this.adoptNode(node);
+    [dartx.adoptNode](...args) {
+      return this.adoptNode.apply(this, args);
     }
-    [_caretRangeFromPoint](x, y) {
-      return this.caretRangeFromPoint(x, y);
+    [_caretRangeFromPoint](...args) {
+      return this.caretRangeFromPoint.apply(this, args);
     }
-    [dartx.createDocumentFragment]() {
-      return this.createDocumentFragment();
+    [dartx.createDocumentFragment](...args) {
+      return this.createDocumentFragment.apply(this, args);
     }
-    [_createElement](localName_OR_tagName, typeExtension) {
-      return this.createElement(localName_OR_tagName, typeExtension);
+    [_createElement](...args) {
+      return this.createElement.apply(this, args);
     }
-    [_createElementNS](namespaceURI, qualifiedName, typeExtension) {
-      return this.createElementNS(namespaceURI, qualifiedName, typeExtension);
+    [_createElementNS](...args) {
+      return this.createElementNS.apply(this, args);
     }
-    [_createEvent](eventType) {
-      return this.createEvent(eventType);
+    [_createEvent](...args) {
+      return this.createEvent.apply(this, args);
     }
-    [dartx.createRange]() {
-      return this.createRange();
+    [dartx.createRange](...args) {
+      return this.createRange.apply(this, args);
     }
-    [_createTextNode](data) {
-      return this.createTextNode(data);
+    [_createTextNode](...args) {
+      return this.createTextNode.apply(this, args);
     }
     [_createTouch](window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force) {
       let target_1 = html$._convertDartToNative_EventTarget(target);
       return this[_createTouch_1](window, target_1, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force);
     }
-    [_createTouch_1](window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force) {
-      return this.createTouch(window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force);
+    [_createTouch_1](...args) {
+      return this.createTouch.apply(this, args);
     }
-    [_createTouchList](touches) {
-      return this.createTouchList(touches);
+    [_createTouchList](...args) {
+      return this.createTouchList.apply(this, args);
     }
-    [_elementFromPoint](x, y) {
-      return this.elementFromPoint(x, y);
+    [_elementFromPoint](...args) {
+      return this.elementFromPoint.apply(this, args);
     }
-    [dartx.elementsFromPoint](x, y) {
-      return this.elementsFromPoint(x, y);
+    [dartx.elementsFromPoint](...args) {
+      return this.elementsFromPoint.apply(this, args);
     }
-    [dartx.execCommand](commandId, showUI, value) {
-      return this.execCommand(commandId, showUI, value);
+    [dartx.execCommand](...args) {
+      return this.execCommand.apply(this, args);
     }
-    [dartx.exitFullscreen]() {
-      return this.exitFullscreen();
+    [dartx.exitFullscreen](...args) {
+      return this.exitFullscreen.apply(this, args);
     }
-    [dartx.exitPointerLock]() {
-      return this.exitPointerLock();
+    [dartx.exitPointerLock](...args) {
+      return this.exitPointerLock.apply(this, args);
     }
-    [_getCssCanvasContext](contextId, name, width, height) {
-      return this.getCSSCanvasContext(contextId, name, width, height);
+    [_getCssCanvasContext](...args) {
+      return this.getCSSCanvasContext.apply(this, args);
     }
-    [dartx.getElementsByClassName](classNames) {
-      return this.getElementsByClassName(classNames);
+    [dartx.getElementsByClassName](...args) {
+      return this.getElementsByClassName.apply(this, args);
     }
-    [dartx.getElementsByName](elementName) {
-      return this.getElementsByName(elementName);
+    [dartx.getElementsByName](...args) {
+      return this.getElementsByName.apply(this, args);
     }
-    [dartx.getElementsByTagName](localName) {
-      return this.getElementsByTagName(localName);
+    [dartx.getElementsByTagName](...args) {
+      return this.getElementsByTagName.apply(this, args);
     }
-    [dartx.importNode](node, deep) {
-      return this.importNode(node, deep);
+    [dartx.importNode](...args) {
+      return this.importNode.apply(this, args);
     }
-    [dartx.queryCommandEnabled](commandId) {
-      return this.queryCommandEnabled(commandId);
+    [dartx.queryCommandEnabled](...args) {
+      return this.queryCommandEnabled.apply(this, args);
     }
-    [dartx.queryCommandIndeterm](commandId) {
-      return this.queryCommandIndeterm(commandId);
+    [dartx.queryCommandIndeterm](...args) {
+      return this.queryCommandIndeterm.apply(this, args);
     }
-    [dartx.queryCommandState](commandId) {
-      return this.queryCommandState(commandId);
+    [dartx.queryCommandState](...args) {
+      return this.queryCommandState.apply(this, args);
     }
-    [dartx.queryCommandSupported](commandId) {
-      return this.queryCommandSupported(commandId);
+    [dartx.queryCommandSupported](...args) {
+      return this.queryCommandSupported.apply(this, args);
     }
-    [dartx.queryCommandValue](commandId) {
-      return this.queryCommandValue(commandId);
+    [dartx.queryCommandValue](...args) {
+      return this.queryCommandValue.apply(this, args);
     }
-    [dartx.transformDocumentToTreeView](noStyleMessage) {
-      return this.transformDocumentToTreeView(noStyleMessage);
+    [dartx.transformDocumentToTreeView](...args) {
+      return this.transformDocumentToTreeView.apply(this, args);
     }
-    [_webkitExitFullscreen]() {
-      return this.webkitExitFullscreen();
+    [_webkitExitFullscreen](...args) {
+      return this.webkitExitFullscreen.apply(this, args);
     }
-    [dartx.getElementById](elementId) {
-      return this.getElementById(elementId);
+    [dartx.getElementById](...args) {
+      return this.getElementById.apply(this, args);
     }
     get [_childElementCount]() {
       return this.childElementCount;
@@ -54362,11 +54362,11 @@
     get [_lastElementChild]() {
       return this.lastElementChild;
     }
-    [dartx.querySelector](selectors) {
-      return this.querySelector(selectors);
+    [dartx.querySelector](...args) {
+      return this.querySelector.apply(this, args);
     }
-    [_querySelectorAll](selectors) {
-      return this.querySelectorAll(selectors);
+    [_querySelectorAll](...args) {
+      return this.querySelectorAll.apply(this, args);
     }
     get [dartx.onAbort]() {
       return html$.Element.abortEvent.forTarget(this);
@@ -54901,8 +54901,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getElementById](elementId) {
-      return this.getElementById(elementId);
+    [dartx.getElementById](...args) {
+      return this.getElementById.apply(this, args);
     }
     get [_childElementCount]() {
       return this.childElementCount;
@@ -54913,11 +54913,11 @@
     get [_lastElementChild]() {
       return this.lastElementChild;
     }
-    [dartx.querySelector](selectors) {
-      return this.querySelector(selectors);
+    [dartx.querySelector](...args) {
+      return this.querySelector.apply(this, args);
     }
-    [_querySelectorAll](selectors) {
-      return this.querySelectorAll(selectors);
+    [_querySelectorAll](...args) {
+      return this.querySelectorAll.apply(this, args);
     }
   };
   html$.DocumentFragment[dart.implements] = () => [html$.NonElementParentNode, html$.ParentNode];
@@ -55082,17 +55082,17 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.createDocument](namespaceURI, qualifiedName, doctype) {
-      return this.createDocument(namespaceURI, qualifiedName, doctype);
+    [dartx.createDocument](...args) {
+      return this.createDocument.apply(this, args);
     }
-    [dartx.createDocumentType](qualifiedName, publicId, systemId) {
-      return this.createDocumentType(qualifiedName, publicId, systemId);
+    [dartx.createDocumentType](...args) {
+      return this.createDocumentType.apply(this, args);
     }
-    [dartx.createHtmlDocument](title) {
-      return this.createHTMLDocument(title);
+    [dartx.createHtmlDocument](...args) {
+      return this.createHTMLDocument.apply(this, args);
     }
-    [dartx.hasFeature]() {
-      return this.hasFeature();
+    [dartx.hasFeature](...args) {
+      return this.hasFeature.apply(this, args);
     }
   };
   dart.setSignature(html$.DomImplementation, {
@@ -55112,8 +55112,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.next](value) {
-      return this.next(value);
+    [dartx.next](...args) {
+      return this.next.apply(this, args);
     }
   };
   dart.setSignature(html$.DomIterator, {
@@ -55230,26 +55230,26 @@
     get [dartx.m44]() {
       return this.m44;
     }
-    [dartx.multiply](other) {
-      return this.multiply(other);
+    [dartx.multiply](...args) {
+      return this.multiply.apply(this, args);
     }
-    [dartx.scale](scale, originX, originY) {
-      return this.scale(scale, originX, originY);
+    [dartx.scale](...args) {
+      return this.scale.apply(this, args);
     }
-    [dartx.scale3d](scale, originX, originY, originZ) {
-      return this.scale3d(scale, originX, originY, originZ);
+    [dartx.scale3d](...args) {
+      return this.scale3d.apply(this, args);
     }
-    [dartx.scaleNonUniform](scaleX, scaleY, scaleZn, originX, originY, originZ) {
-      return this.scaleNonUniform(scaleX, scaleY, scaleZn, originX, originY, originZ);
+    [dartx.scaleNonUniform](...args) {
+      return this.scaleNonUniform.apply(this, args);
     }
-    [dartx.toFloat32Array]() {
-      return this.toFloat32Array();
+    [dartx.toFloat32Array](...args) {
+      return this.toFloat32Array.apply(this, args);
     }
-    [dartx.toFloat64Array]() {
-      return this.toFloat64Array();
+    [dartx.toFloat64Array](...args) {
+      return this.toFloat64Array.apply(this, args);
     }
-    [dartx.translate](tx, ty, tz) {
-      return this.translate(tx, ty, tz);
+    [dartx.translate](...args) {
+      return this.translate.apply(this, args);
     }
   };
   dart.setSignature(html$.DomMatrixReadOnly, {
@@ -55495,23 +55495,23 @@
     set [dartx.m44](value) {
       this.m44 = value;
     }
-    [dartx.multiplySelf](other) {
-      return this.multiplySelf(other);
+    [dartx.multiplySelf](...args) {
+      return this.multiplySelf.apply(this, args);
     }
-    [dartx.preMultiplySelf](other) {
-      return this.preMultiplySelf(other);
+    [dartx.preMultiplySelf](...args) {
+      return this.preMultiplySelf.apply(this, args);
     }
-    [dartx.scale3dSelf](scale, originX, originY, originZ) {
-      return this.scale3dSelf(scale, originX, originY, originZ);
+    [dartx.scale3dSelf](...args) {
+      return this.scale3dSelf.apply(this, args);
     }
-    [dartx.scaleNonUniformSelf](scaleX, scaleY, scaleZ, originX, originY, originZ) {
-      return this.scaleNonUniformSelf(scaleX, scaleY, scaleZ, originX, originY, originZ);
+    [dartx.scaleNonUniformSelf](...args) {
+      return this.scaleNonUniformSelf.apply(this, args);
     }
-    [dartx.scaleSelf](scale, originX, originY) {
-      return this.scaleSelf(scale, originX, originY);
+    [dartx.scaleSelf](...args) {
+      return this.scaleSelf.apply(this, args);
     }
-    [dartx.translateSelf](tx, ty, tz) {
-      return this.translateSelf(tx, ty, tz);
+    [dartx.translateSelf](...args) {
+      return this.translateSelf.apply(this, args);
     }
   };
   dart.setSignature(html$.DomMatrix, {
@@ -55571,8 +55571,8 @@
     static _create_1() {
       return new DOMParser();
     }
-    [dartx.parseFromString](str, type) {
-      return this.parseFromString(str, type);
+    [dartx.parseFromString](...args) {
+      return this.parseFromString.apply(this, args);
     }
   };
   dart.setSignature(html$.DomParser, {
@@ -55891,20 +55891,20 @@
     get [dartx.length]() {
       return this.length;
     }
-    [dartx.add](tokens) {
-      return this.add(tokens);
+    [dartx.add](...args) {
+      return this.add.apply(this, args);
     }
-    [dartx.contains](token) {
-      return this.contains(token);
+    [dartx.contains](...args) {
+      return this.contains.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.remove](tokens) {
-      return this.remove(tokens);
+    [dartx.remove](...args) {
+      return this.remove.apply(this, args);
     }
-    [dartx.toggle](token, force) {
-      return this.toggle(token, force);
+    [dartx.toggle](...args) {
+      return this.toggle.apply(this, args);
     }
   };
   dart.setSignature(html$.DomTokenList, {
@@ -56129,11 +56129,11 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [__getter__](index) {
-      return this.__getter__(index);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$.DomStringList[dart.implements] = () => [ListOfString()];
@@ -56857,11 +56857,11 @@
     set [dartx.width](value) {
       this.width = value;
     }
-    [__getter__](index_OR_name) {
-      return this.__getter__(index_OR_name);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [__setter__](index_OR_name, value) {
-      return this.__setter__(index_OR_name, value);
+    [__setter__](...args) {
+      return this.__setter__.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.EmbedElement, 'created');
@@ -56989,8 +56989,8 @@
     get [dartx.withCredentials]() {
       return this.withCredentials;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
     get [dartx.onError]() {
       return html$.EventSource.errorEvent.forTarget(this);
@@ -57105,8 +57105,8 @@
     static _create_2(type) {
       return new ExtendableEvent(type);
     }
-    [dartx.waitUntil](value) {
-      return this.waitUntil(value);
+    [dartx.waitUntil](...args) {
+      return this.waitUntil.apply(this, args);
     }
   };
   dart.setSignature(html$.ExtendableEvent, {
@@ -57186,8 +57186,8 @@
     get [dartx.request]() {
       return this.request;
     }
-    [dartx.respondWith](value) {
-      return this.respondWith(value);
+    [dartx.respondWith](...args) {
+      return this.respondWith.apply(this, args);
     }
   };
   dart.setSignature(html$.FetchEvent, {
@@ -57268,14 +57268,14 @@
     get [dartx.willValidate]() {
       return this.willValidate;
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
-    [dartx.setCustomValidity](error) {
-      return this.setCustomValidity(error);
+    [dartx.setCustomValidity](...args) {
+      return this.setCustomValidity.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.FieldSetElement, 'created');
@@ -57373,8 +57373,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [_createWriter](successCallback, errorCallback) {
-      return this.createWriter(successCallback, errorCallback);
+    [_createWriter](...args) {
+      return this.createWriter.apply(this, args);
     }
     [dartx.createWriter]() {
       let completer = CompleterOfFileWriter().new();
@@ -57385,8 +57385,8 @@
       }, FileErrorTovoid()));
       return completer.future;
     }
-    [_file](successCallback, errorCallback) {
-      return this.file(successCallback, errorCallback);
+    [_file](...args) {
+      return this.file.apply(this, args);
     }
     [dartx.file]() {
       let completer = CompleterOfFile().new();
@@ -57503,8 +57503,8 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$.FileList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfFile()];
@@ -57563,17 +57563,17 @@
     get [dartx.readyState]() {
       return this.readyState;
     }
-    [dartx.abort]() {
-      return this.abort();
+    [dartx.abort](...args) {
+      return this.abort.apply(this, args);
     }
-    [dartx.readAsArrayBuffer](blob) {
-      return this.readAsArrayBuffer(blob);
+    [dartx.readAsArrayBuffer](...args) {
+      return this.readAsArrayBuffer.apply(this, args);
     }
-    [dartx.readAsDataUrl](blob) {
-      return this.readAsDataURL(blob);
+    [dartx.readAsDataUrl](...args) {
+      return this.readAsDataURL.apply(this, args);
     }
-    [dartx.readAsText](blob, label) {
-      return this.readAsText(blob, label);
+    [dartx.readAsText](...args) {
+      return this.readAsText.apply(this, args);
     }
     get [dartx.onAbort]() {
       return html$.FileReader.abortEvent.forTarget(this);
@@ -57732,17 +57732,17 @@
     get [dartx.readyState]() {
       return this.readyState;
     }
-    [dartx.abort]() {
-      return this.abort();
+    [dartx.abort](...args) {
+      return this.abort.apply(this, args);
     }
-    [dartx.seek](position) {
-      return this.seek(position);
+    [dartx.seek](...args) {
+      return this.seek.apply(this, args);
     }
-    [dartx.truncate](size) {
-      return this.truncate(size);
+    [dartx.truncate](...args) {
+      return this.truncate.apply(this, args);
     }
-    [dartx.write](data) {
-      return this.write(data);
+    [dartx.write](...args) {
+      return this.write.apply(this, args);
     }
     get [dartx.onAbort]() {
       return html$.FileWriter.abortEvent.forTarget(this);
@@ -57943,8 +57943,8 @@
     set [dartx.weight](value) {
       this.weight = value;
     }
-    [dartx.load]() {
-      return this.load();
+    [dartx.load](...args) {
+      return this.load.apply(this, args);
     }
   };
   dart.setSignature(html$.FontFace, {
@@ -57991,23 +57991,23 @@
     get [dartx.status]() {
       return this.status;
     }
-    [dartx.add](fontFace) {
-      return this.add(fontFace);
+    [dartx.add](...args) {
+      return this.add.apply(this, args);
     }
-    [dartx.check](font, text) {
-      return this.check(font, text);
+    [dartx.check](...args) {
+      return this.check.apply(this, args);
     }
-    [dartx.clear]() {
-      return this.clear();
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.delete](fontFace) {
-      return this.delete(fontFace);
+    [dartx.delete](...args) {
+      return this.delete.apply(this, args);
     }
-    [dartx.forEach](callback, thisArg) {
-      return this.forEach(callback, thisArg);
+    [dartx.forEach](...args) {
+      return this.forEach.apply(this, args);
     }
-    [dartx.has](fontFace) {
-      return this.has(fontFace);
+    [dartx.has](...args) {
+      return this.has.apply(this, args);
     }
   };
   dart.setSignature(html$.FontFaceSet, {
@@ -58072,26 +58072,26 @@
     static get supported() {
       return !!window.FormData;
     }
-    [dartx.append](name, value) {
-      return this.append(name, value);
+    [dartx.append](...args) {
+      return this.append.apply(this, args);
     }
-    [dartx.appendBlob](name, value, filename) {
-      return this.append(name, value, filename);
+    [dartx.appendBlob](...args) {
+      return this.append.apply(this, args);
     }
-    [dartx.delete](name) {
-      return this.delete(name);
+    [dartx.delete](...args) {
+      return this.delete.apply(this, args);
     }
-    [dartx.get](name) {
-      return this.get(name);
+    [dartx.get](...args) {
+      return this.get.apply(this, args);
     }
-    [dartx.getAll](name) {
-      return this.getAll(name);
+    [dartx.getAll](...args) {
+      return this.getAll.apply(this, args);
     }
-    [dartx.has](name) {
-      return this.has(name);
+    [dartx.has](...args) {
+      return this.has.apply(this, args);
     }
-    [dartx.set](name, value, filename) {
-      return this.set(name, value, filename);
+    [dartx.set](...args) {
+      return this.set.apply(this, args);
     }
   };
   dart.setSignature(html$.FormData, {
@@ -58212,31 +58212,31 @@
     set [dartx.target](value) {
       this.target = value;
     }
-    [__getter__](name) {
-      return this.__getter__(name);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
     [dartx.requestAutocomplete](details) {
       let details_1 = html_common.convertDartToNative_Dictionary(details);
       this[_requestAutocomplete_1](details_1);
       return;
     }
-    [_requestAutocomplete_1](details) {
-      return this.requestAutocomplete(details);
+    [_requestAutocomplete_1](...args) {
+      return this.requestAutocomplete.apply(this, args);
     }
-    [dartx.reset]() {
-      return this.reset();
+    [dartx.reset](...args) {
+      return this.reset.apply(this, args);
     }
-    [dartx.submit]() {
-      return this.submit();
+    [dartx.submit](...args) {
+      return this.submit.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.FormElement, 'created');
@@ -58389,14 +58389,14 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getRegisteredRegions]() {
-      return this.getRegisteredRegions();
+    [dartx.getRegisteredRegions](...args) {
+      return this.getRegisteredRegions.apply(this, args);
     }
-    [dartx.registerRegion](region) {
-      return this.registerRegion(region);
+    [dartx.registerRegion](...args) {
+      return this.registerRegion.apply(this, args);
     }
-    [dartx.unregisterRegion](regionId) {
-      return this.unregisterRegion(regionId);
+    [dartx.unregisterRegion](...args) {
+      return this.unregisterRegion.apply(this, args);
     }
   };
   dart.setSignature(html$.Geofencing, {
@@ -58516,8 +58516,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [_clearWatch](watchID) {
-      return this.clearWatch(watchID);
+    [_clearWatch](...args) {
+      return this.clearWatch.apply(this, args);
     }
     [_getCurrentPosition](successCallback, errorCallback, options) {
       if (errorCallback === void 0) errorCallback = null;
@@ -58534,14 +58534,14 @@
       this[_getCurrentPosition_3](successCallback);
       return;
     }
-    [_getCurrentPosition_1](successCallback, errorCallback, options) {
-      return this.getCurrentPosition(successCallback, errorCallback, options);
+    [_getCurrentPosition_1](...args) {
+      return this.getCurrentPosition.apply(this, args);
     }
-    [_getCurrentPosition_2](successCallback, errorCallback) {
-      return this.getCurrentPosition(successCallback, errorCallback);
+    [_getCurrentPosition_2](...args) {
+      return this.getCurrentPosition.apply(this, args);
     }
-    [_getCurrentPosition_3](successCallback) {
-      return this.getCurrentPosition(successCallback);
+    [_getCurrentPosition_3](...args) {
+      return this.getCurrentPosition.apply(this, args);
     }
     [_watchPosition](successCallback, errorCallback, options) {
       if (errorCallback === void 0) errorCallback = null;
@@ -58555,14 +58555,14 @@
       }
       return this[_watchPosition_3](successCallback);
     }
-    [_watchPosition_1](successCallback, errorCallback, options) {
-      return this.watchPosition(successCallback, errorCallback, options);
+    [_watchPosition_1](...args) {
+      return this.watchPosition.apply(this, args);
     }
-    [_watchPosition_2](successCallback, errorCallback) {
-      return this.watchPosition(successCallback, errorCallback);
+    [_watchPosition_2](...args) {
+      return this.watchPosition.apply(this, args);
     }
-    [_watchPosition_3](successCallback) {
-      return this.watchPosition(successCallback);
+    [_watchPosition_3](...args) {
+      return this.watchPosition.apply(this, args);
     }
   };
   dart.setSignature(html$.Geolocation, {
@@ -59233,8 +59233,8 @@
     get [dartx.oldUrl]() {
       return this.oldURL;
     }
-    [_initHashChangeEvent](type, canBubble, cancelable, oldURL, newURL) {
-      return this.initHashChangeEvent(type, canBubble, cancelable, oldURL, newURL);
+    [_initHashChangeEvent](...args) {
+      return this.initHashChangeEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.HashChangeEvent, {
@@ -59401,14 +59401,14 @@
     get [_get_state]() {
       return this.state;
     }
-    [dartx.back]() {
-      return this.back();
+    [dartx.back](...args) {
+      return this.back.apply(this, args);
     }
-    [dartx.forward]() {
-      return this.forward();
+    [dartx.forward](...args) {
+      return this.forward.apply(this, args);
     }
-    [dartx.go](delta) {
-      return this.go(delta);
+    [dartx.go](...args) {
+      return this.go.apply(this, args);
     }
     [dartx.pushState](data, title, url, options) {
       if (options === void 0) options = null;
@@ -59422,11 +59422,11 @@
       this[_pushState_2](data_1, title, url);
       return;
     }
-    [_pushState_1](data, title, url, options) {
-      return this.pushState(data, title, url, options);
+    [_pushState_1](...args) {
+      return this.pushState.apply(this, args);
     }
-    [_pushState_2](data, title, url) {
-      return this.pushState(data, title, url);
+    [_pushState_2](...args) {
+      return this.pushState.apply(this, args);
     }
     [dartx.replaceState](data, title, url, options) {
       if (options === void 0) options = null;
@@ -59440,11 +59440,11 @@
       this[_replaceState_2](data_1, title, url);
       return;
     }
-    [_replaceState_1](data, title, url, options) {
-      return this.replaceState(data, title, url, options);
+    [_replaceState_1](...args) {
+      return this.replaceState.apply(this, args);
     }
-    [_replaceState_2](data, title, url) {
-      return this.replaceState(data, title, url);
+    [_replaceState_2](...args) {
+      return this.replaceState.apply(this, args);
     }
   };
   html$.History[dart.implements] = () => [html$.HistoryBase];
@@ -59509,11 +59509,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getEyeParameters](whichEye) {
-      return this.getEyeParameters(whichEye);
+    [dartx.getEyeParameters](...args) {
+      return this.getEyeParameters.apply(this, args);
     }
-    [dartx.setFieldOfView](leftFov, rightFov) {
-      return this.setFieldOfView(leftFov, rightFov);
+    [dartx.setFieldOfView](...args) {
+      return this.setFieldOfView.apply(this, args);
     }
   };
   dart.setSignature(html$.HmdvrDevice, {
@@ -59578,11 +59578,11 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.namedItem](name) {
-      return this.namedItem(name);
+    [dartx.namedItem](...args) {
+      return this.namedItem.apply(this, args);
     }
   };
   html$.HtmlCollection[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfNode()];
@@ -59748,11 +59748,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.namedItem](name) {
-      return this.namedItem(name);
+    [dartx.namedItem](...args) {
+      return this.namedItem.apply(this, args);
     }
   };
   dart.setSignature(html$.HtmlFormControlsCollection, {
@@ -59784,8 +59784,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [_item](index) {
-      return this.item(index);
+    [_item](...args) {
+      return this.item.apply(this, args);
     }
   };
   dart.setSignature(html$.HtmlOptionsCollection, {
@@ -60038,8 +60038,8 @@
       }
       return headers;
     }
-    [dartx.open](method, url, opts) {
-      return this.open(method, url, opts);
+    [dartx.open](...args) {
+      return this.open.apply(this, args);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -60095,23 +60095,23 @@
     set [dartx.withCredentials](value) {
       this.withCredentials = value;
     }
-    [dartx.abort]() {
-      return this.abort();
+    [dartx.abort](...args) {
+      return this.abort.apply(this, args);
     }
-    [dartx.getAllResponseHeaders]() {
-      return this.getAllResponseHeaders();
+    [dartx.getAllResponseHeaders](...args) {
+      return this.getAllResponseHeaders.apply(this, args);
     }
-    [dartx.getResponseHeader](name) {
-      return this.getResponseHeader(name);
+    [dartx.getResponseHeader](...args) {
+      return this.getResponseHeader.apply(this, args);
     }
-    [dartx.overrideMimeType](mime) {
-      return this.overrideMimeType(mime);
+    [dartx.overrideMimeType](...args) {
+      return this.overrideMimeType.apply(this, args);
     }
-    [dartx.send](body_OR_data) {
-      return this.send(body_OR_data);
+    [dartx.send](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.setRequestHeader](name, value) {
-      return this.setRequestHeader(name, value);
+    [dartx.setRequestHeader](...args) {
+      return this.setRequestHeader.apply(this, args);
     }
     get [dartx.onReadyStateChange]() {
       return html$.HttpRequest.readyStateChangeEvent.forTarget(this);
@@ -60513,8 +60513,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.inspect](objectId, hints) {
-      return this.inspect(objectId, hints);
+    [dartx.inspect](...args) {
+      return this.inspect.apply(this, args);
     }
   };
   dart.setSignature(html$.InjectedScriptHost, {
@@ -60977,29 +60977,29 @@
     get [dartx.willValidate]() {
       return this.willValidate;
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
-    [dartx.select]() {
-      return this.select();
+    [dartx.select](...args) {
+      return this.select.apply(this, args);
     }
-    [dartx.setCustomValidity](error) {
-      return this.setCustomValidity(error);
+    [dartx.setCustomValidity](...args) {
+      return this.setCustomValidity.apply(this, args);
     }
-    [dartx.setRangeText](replacement, opts) {
-      return this.setRangeText(replacement, opts);
+    [dartx.setRangeText](...args) {
+      return this.setRangeText.apply(this, args);
     }
-    [dartx.setSelectionRange](start, end, direction) {
-      return this.setSelectionRange(start, end, direction);
+    [dartx.setSelectionRange](...args) {
+      return this.setSelectionRange.apply(this, args);
     }
-    [dartx.stepDown](n) {
-      return this.stepDown(n);
+    [dartx.stepDown](...args) {
+      return this.stepDown.apply(this, args);
     }
-    [dartx.stepUp](n) {
-      return this.stepUp(n);
+    [dartx.stepUp](...args) {
+      return this.stepUp.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.InputElement, 'created');
@@ -62294,8 +62294,8 @@
     get [dartx.shiftKey]() {
       return this.shiftKey;
     }
-    [dartx.getModifierState](keyArg) {
-      return this.getModifierState(keyArg);
+    [dartx.getModifierState](...args) {
+      return this.getModifierState.apply(this, args);
     }
   };
   dart.setSignature(html$.KeyboardEvent, {
@@ -62470,14 +62470,14 @@
     get [dartx.willValidate]() {
       return this.willValidate;
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
-    [dartx.setCustomValidity](error) {
-      return this.setCustomValidity(error);
+    [dartx.setCustomValidity](...args) {
+      return this.setCustomValidity.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.KeygenElement, 'created');
@@ -62802,14 +62802,14 @@
     set [dartx.search](value) {
       this.search = value;
     }
-    [dartx.assign](url) {
-      return this.assign(url);
+    [dartx.assign](...args) {
+      return this.assign.apply(this, args);
     }
-    [dartx.reload]() {
-      return this.reload();
+    [dartx.reload](...args) {
+      return this.reload.apply(this, args);
     }
-    [dartx.replace](url) {
-      return this.replace(url);
+    [dartx.replace](...args) {
+      return this.replace.apply(this, args);
     }
     get [dartx.origin]() {
       if ("origin" in this) {
@@ -62956,14 +62956,14 @@
     set [dartx.volume](value) {
       this.volume = value;
     }
-    [dartx.pause]() {
-      return this.pause();
+    [dartx.pause](...args) {
+      return this.pause.apply(this, args);
     }
-    [dartx.play]() {
-      return this.play();
+    [dartx.play](...args) {
+      return this.play.apply(this, args);
     }
-    [dartx.unpause]() {
-      return this.unpause();
+    [dartx.unpause](...args) {
+      return this.unpause.apply(this, args);
     }
   };
   dart.setSignature(html$.MediaController, {
@@ -63035,15 +63035,15 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.enumerateDevices]() {
-      return this.enumerateDevices();
+    [dartx.enumerateDevices](...args) {
+      return this.enumerateDevices.apply(this, args);
     }
     [dartx.getUserMedia](options) {
       let options_1 = html_common.convertDartToNative_Dictionary(options);
       return this[_getUserMedia_1](options_1);
     }
-    [_getUserMedia_1](options) {
-      return this.getUserMedia(options);
+    [_getUserMedia_1](...args) {
+      return this.getUserMedia.apply(this, args);
     }
   };
   dart.setSignature(html$.MediaDevices, {
@@ -63305,20 +63305,20 @@
     get [dartx.sessionId]() {
       return this.sessionId;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
-    [dartx.generateRequest](initDataType, initData) {
-      return this.generateRequest(initDataType, initData);
+    [dartx.generateRequest](...args) {
+      return this.generateRequest.apply(this, args);
     }
-    [dartx.load](sessionId) {
-      return this.load(sessionId);
+    [dartx.load](...args) {
+      return this.load.apply(this, args);
     }
-    [dartx.remove]() {
-      return this.remove();
+    [dartx.remove](...args) {
+      return this.remove.apply(this, args);
     }
-    [_update$](response) {
-      return this.update(response);
+    [_update$](...args) {
+      return this.update.apply(this, args);
     }
   };
   dart.setSignature(html$.MediaKeySession, {
@@ -63367,14 +63367,14 @@
     get [dartx.keySystem]() {
       return this.keySystem;
     }
-    [dartx.createMediaKeys]() {
-      return this.createMediaKeys();
+    [dartx.createMediaKeys](...args) {
+      return this.createMediaKeys.apply(this, args);
     }
     [dartx.getConfiguration]() {
       return html_common.convertNativeToDart_Dictionary(this[_getConfiguration_1]());
     }
-    [_getConfiguration_1]() {
-      return this.getConfiguration();
+    [_getConfiguration_1](...args) {
+      return this.getConfiguration.apply(this, args);
     }
   };
   dart.setSignature(html$.MediaKeySystemAccess, {
@@ -63395,11 +63395,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [_createSession](sessionType) {
-      return this.createSession(sessionType);
+    [_createSession](...args) {
+      return this.createSession.apply(this, args);
     }
-    [dartx.setServerCertificate](serverCertificate) {
-      return this.setServerCertificate(serverCertificate);
+    [dartx.setServerCertificate](...args) {
+      return this.setServerCertificate.apply(this, args);
     }
   };
   dart.setSignature(html$.MediaKeys, {
@@ -63430,14 +63430,14 @@
     set [dartx.mediaText](value) {
       this.mediaText = value;
     }
-    [dartx.appendMedium](medium) {
-      return this.appendMedium(medium);
+    [dartx.appendMedium](...args) {
+      return this.appendMedium.apply(this, args);
     }
-    [dartx.deleteMedium](medium) {
-      return this.deleteMedium(medium);
+    [dartx.deleteMedium](...args) {
+      return this.deleteMedium.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   dart.setSignature(html$.MediaList, {
@@ -63470,11 +63470,11 @@
     get [dartx.media]() {
       return this.media;
     }
-    [dartx.addListener](listener) {
-      return this.addListener(listener);
+    [dartx.addListener](...args) {
+      return this.addListener.apply(this, args);
     }
-    [dartx.removeListener](listener) {
-      return this.removeListener(listener);
+    [dartx.removeListener](...args) {
+      return this.removeListener.apply(this, args);
     }
     get [dartx.onChange]() {
       return html$.MediaQueryList.changeEvent.forTarget(this);
@@ -63558,11 +63558,11 @@
     static _create_1() {
       return new MediaSession();
     }
-    [dartx.activate]() {
-      return this.activate();
+    [dartx.activate](...args) {
+      return this.activate.apply(this, args);
     }
-    [dartx.deactivate]() {
-      return this.deactivate();
+    [dartx.deactivate](...args) {
+      return this.deactivate.apply(this, args);
     }
   };
   dart.setSignature(html$.MediaSession, {
@@ -63615,14 +63615,14 @@
     get [dartx.sourceBuffers]() {
       return this.sourceBuffers;
     }
-    [dartx.addSourceBuffer](type) {
-      return this.addSourceBuffer(type);
+    [dartx.addSourceBuffer](...args) {
+      return this.addSourceBuffer.apply(this, args);
     }
-    [dartx.endOfStream](error) {
-      return this.endOfStream(error);
+    [dartx.endOfStream](...args) {
+      return this.endOfStream.apply(this, args);
     }
-    [dartx.removeSourceBuffer](buffer) {
-      return this.removeSourceBuffer(buffer);
+    [dartx.removeSourceBuffer](...args) {
+      return this.removeSourceBuffer.apply(this, args);
     }
   };
   dart.setSignature(html$.MediaSource, {
@@ -63704,29 +63704,29 @@
     get [dartx.label]() {
       return this.label;
     }
-    [dartx.addTrack](track) {
-      return this.addTrack(track);
+    [dartx.addTrack](...args) {
+      return this.addTrack.apply(this, args);
     }
-    [dartx.clone]() {
-      return this.clone();
+    [dartx.clone](...args) {
+      return this.clone.apply(this, args);
     }
-    [dartx.getAudioTracks]() {
-      return this.getAudioTracks();
+    [dartx.getAudioTracks](...args) {
+      return this.getAudioTracks.apply(this, args);
     }
-    [dartx.getTrackById](trackId) {
-      return this.getTrackById(trackId);
+    [dartx.getTrackById](...args) {
+      return this.getTrackById.apply(this, args);
     }
-    [dartx.getTracks]() {
-      return this.getTracks();
+    [dartx.getTracks](...args) {
+      return this.getTracks.apply(this, args);
     }
-    [dartx.getVideoTracks]() {
-      return this.getVideoTracks();
+    [dartx.getVideoTracks](...args) {
+      return this.getVideoTracks.apply(this, args);
     }
-    [dartx.removeTrack](track) {
-      return this.removeTrack(track);
+    [dartx.removeTrack](...args) {
+      return this.removeTrack.apply(this, args);
     }
-    [dartx.stop]() {
-      return this.stop();
+    [dartx.stop](...args) {
+      return this.stop.apply(this, args);
     }
     get [dartx.onAddTrack]() {
       return html$.MediaStream.addTrackEvent.forTarget(this);
@@ -63872,8 +63872,8 @@
     get [dartx.readyState]() {
       return this.readyState;
     }
-    [dartx.clone]() {
-      return this.clone();
+    [dartx.clone](...args) {
+      return this.clone.apply(this, args);
     }
     static getSources() {
       let completer = CompleterOfListOfSourceInfo().new();
@@ -63882,8 +63882,8 @@
       }, ListOfSourceInfoTovoid()));
       return completer.future;
     }
-    [dartx.stop]() {
-      return this.stop();
+    [dartx.stop](...args) {
+      return this.stop.apply(this, args);
     }
     get [dartx.onEnded]() {
       return html$.MediaStreamTrack.endedEvent.forTarget(this);
@@ -64194,8 +64194,8 @@
     get [_get_source]() {
       return this.source;
     }
-    [_initMessageEvent](typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, portsArg) {
-      return this.initMessageEvent(typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, sourceArg, portsArg);
+    [_initMessageEvent](...args) {
+      return this.initMessageEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.MessageEvent, {
@@ -64231,8 +64231,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
     [dartx.postMessage](message, transfer) {
       if (transfer === void 0) transfer = null;
@@ -64245,14 +64245,14 @@
       this[_postMessage_2](message_1);
       return;
     }
-    [_postMessage_1](message, transfer) {
-      return this.postMessage(message, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message) {
-      return this.postMessage(message);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [dartx.start]() {
-      return this.start();
+    [dartx.start](...args) {
+      return this.start.apply(this, args);
     }
     get [dartx.onMessage]() {
       return html$.MessagePort.messageEvent.forTarget(this);
@@ -64546,11 +64546,11 @@
     get [dartx.version]() {
       return this.version;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
-    [dartx.open]() {
-      return this.open();
+    [dartx.open](...args) {
+      return this.open.apply(this, args);
     }
   };
   dart.setSignature(html$.MidiPort, {
@@ -64660,8 +64660,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.send](data, timestamp) {
-      return this.send(data, timestamp);
+    [dartx.send](...args) {
+      return this.send.apply(this, args);
     }
   };
   dart.setSignature(html$.MidiOutput, {
@@ -64772,11 +64772,11 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.namedItem](name) {
-      return this.namedItem(name);
+    [dartx.namedItem](...args) {
+      return this.namedItem.apply(this, args);
     }
   };
   html$.MimeTypeArray[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfMimeType()];
@@ -64983,8 +64983,8 @@
       this[_initMouseEvent_1](type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
       return;
     }
-    [_initMouseEvent_1](type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) {
-      return this.initMouseEvent(type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
+    [_initMouseEvent_1](...args) {
+      return this.initMouseEvent.apply(this, args);
     }
     get [dartx.client]() {
       return new (PointOfnum())(this[_clientX], this[_clientY]);
@@ -65077,19 +65077,19 @@
     'observe'
   ]);
   html$.MutationObserver = class MutationObserver extends _interceptors.Interceptor {
-    [dartx.disconnect]() {
-      return this.disconnect();
+    [dartx.disconnect](...args) {
+      return this.disconnect.apply(this, args);
     }
     [_observe](target, options) {
       let options_1 = html_common.convertDartToNative_Dictionary(options);
       this[_observe_1](target, options_1);
       return;
     }
-    [_observe_1](target, options) {
-      return this.observe(target, options);
+    [_observe_1](...args) {
+      return this.observe.apply(this, args);
     }
-    [dartx.takeRecords]() {
-      return this.takeRecords();
+    [dartx.takeRecords](...args) {
+      return this.takeRecords.apply(this, args);
     }
     static get supported() {
       return !!(window.MutationObserver || window.WebKitMutationObserver);
@@ -65127,8 +65127,8 @@
     static _fixupList(list) {
       return list;
     }
-    [_call](target, options) {
-      return this.observe(target, options);
+    [_call](...args) {
+      return this.observe.apply(this, args);
     }
     static new(callback) {
       0;
@@ -65282,8 +65282,8 @@
         this.getUserMedia = this.getUserMedia || this.webkitGetUserMedia || this.mozGetUserMedia || this.msGetUserMedia;
       }
     }
-    [_getUserMedia](options, success, error) {
-      return this.getUserMedia(options, success, error);
+    [_getUserMedia](...args) {
+      return this.getUserMedia.apply(this, args);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -65342,17 +65342,17 @@
     get [dartx.temporaryStorage]() {
       return this.webkitTemporaryStorage;
     }
-    [dartx.getBattery]() {
-      return this.getBattery();
+    [dartx.getBattery](...args) {
+      return this.getBattery.apply(this, args);
     }
-    [dartx.getGamepads]() {
-      return this.getGamepads();
+    [dartx.getGamepads](...args) {
+      return this.getGamepads.apply(this, args);
     }
-    [dartx.getVRDevices]() {
-      return this.getVRDevices();
+    [dartx.getVRDevices](...args) {
+      return this.getVRDevices.apply(this, args);
     }
-    [dartx.registerProtocolHandler](scheme, url, title) {
-      return this.registerProtocolHandler(scheme, url, title);
+    [dartx.registerProtocolHandler](...args) {
+      return this.registerProtocolHandler.apply(this, args);
     }
     [dartx.requestMidiAccess](options) {
       if (options === void 0) options = null;
@@ -65362,17 +65362,17 @@
       }
       return this[_requestMidiAccess_2]();
     }
-    [_requestMidiAccess_1](options) {
-      return this.requestMIDIAccess(options);
+    [_requestMidiAccess_1](...args) {
+      return this.requestMIDIAccess.apply(this, args);
     }
-    [_requestMidiAccess_2]() {
-      return this.requestMIDIAccess();
+    [_requestMidiAccess_2](...args) {
+      return this.requestMIDIAccess.apply(this, args);
     }
-    [dartx.requestMediaKeySystemAccess](keySystem, supportedConfigurations) {
-      return this.requestMediaKeySystemAccess(keySystem, supportedConfigurations);
+    [dartx.requestMediaKeySystemAccess](...args) {
+      return this.requestMediaKeySystemAccess.apply(this, args);
     }
-    [dartx.sendBeacon](url, data) {
-      return this.sendBeacon(url, data);
+    [dartx.sendBeacon](...args) {
+      return this.sendBeacon.apply(this, args);
     }
     get [dartx.hardwareConcurrency]() {
       return this.hardwareConcurrency;
@@ -65407,8 +65407,8 @@
     get [dartx.cookieEnabled]() {
       return this.cookieEnabled;
     }
-    [dartx.getStorageUpdates]() {
-      return this.getStorageUpdates();
+    [dartx.getStorageUpdates](...args) {
+      return this.getStorageUpdates.apply(this, args);
     }
   };
   html$.Navigator[dart.implements] = () => [html$.NavigatorStorageUtils, html$.NavigatorCpu, html$.NavigatorLanguage, html$.NavigatorOnLine, html$.NavigatorID];
@@ -65629,8 +65629,8 @@
     get [dartx.cookieEnabled]() {
       return this.cookieEnabled;
     }
-    [dartx.getStorageUpdates]() {
-      return this.getStorageUpdates();
+    [dartx.getStorageUpdates](...args) {
+      return this.getStorageUpdates.apply(this, args);
     }
   };
   dart.setSignature(html$.NavigatorStorageUtils, {
@@ -65937,14 +65937,14 @@
     get [dartx.whatToShow]() {
       return this.whatToShow;
     }
-    [dartx.detach]() {
-      return this.detach();
+    [dartx.detach](...args) {
+      return this.detach.apply(this, args);
     }
-    [dartx.nextNode]() {
-      return this.nextNode();
+    [dartx.nextNode](...args) {
+      return this.nextNode.apply(this, args);
     }
-    [dartx.previousNode]() {
-      return this.previousNode();
+    [dartx.previousNode](...args) {
+      return this.previousNode.apply(this, args);
     }
   };
   dart.setSignature(html$.NodeIterator, {
@@ -66017,8 +66017,8 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [_item](index) {
-      return this.item(index);
+    [_item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$.NodeList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfNode()];
@@ -66070,8 +66070,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getElementById](elementId) {
-      return this.getElementById(elementId);
+    [dartx.getElementById](...args) {
+      return this.getElementById.apply(this, args);
     }
   };
   dart.setSignature(html$.NonElementParentNode, {
@@ -66161,8 +66161,8 @@
     get [dartx.vibrate]() {
       return this.vibrate;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
     static requestPermission() {
       let completer = CompleterOfString().new();
@@ -66415,20 +66415,20 @@
     get [dartx.willValidate]() {
       return this.willValidate;
     }
-    [__getter__](index_OR_name) {
-      return this.__getter__(index_OR_name);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [__setter__](index_OR_name, value) {
-      return this.__setter__(index_OR_name, value);
+    [__setter__](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
-    [dartx.setCustomValidity](error) {
-      return this.setCustomValidity(error);
+    [dartx.setCustomValidity](...args) {
+      return this.setCustomValidity.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.ObjectElement, 'created');
@@ -66702,14 +66702,14 @@
     get [dartx.willValidate]() {
       return this.willValidate;
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
-    [dartx.setCustomValidity](error) {
-      return this.setCustomValidity(error);
+    [dartx.setCustomValidity](...args) {
+      return this.setCustomValidity.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.OutputElement, 'created');
@@ -66943,35 +66943,35 @@
     static _create_3(path_OR_text) {
       return new Path2D(path_OR_text);
     }
-    [dartx.addPath](path, transform) {
-      return this.addPath(path, transform);
+    [dartx.addPath](...args) {
+      return this.addPath.apply(this, args);
     }
-    [dartx.arc](x, y, radius, startAngle, endAngle, anticlockwise) {
-      return this.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+    [dartx.arc](...args) {
+      return this.arc.apply(this, args);
     }
-    [dartx.arcTo](x1, y1, x2, y2, radius) {
-      return this.arcTo(x1, y1, x2, y2, radius);
+    [dartx.arcTo](...args) {
+      return this.arcTo.apply(this, args);
     }
-    [dartx.bezierCurveTo](cp1x, cp1y, cp2x, cp2y, x, y) {
-      return this.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+    [dartx.bezierCurveTo](...args) {
+      return this.bezierCurveTo.apply(this, args);
     }
-    [dartx.closePath]() {
-      return this.closePath();
+    [dartx.closePath](...args) {
+      return this.closePath.apply(this, args);
     }
-    [dartx.ellipse](x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise) {
-      return this.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
+    [dartx.ellipse](...args) {
+      return this.ellipse.apply(this, args);
     }
-    [dartx.lineTo](x, y) {
-      return this.lineTo(x, y);
+    [dartx.lineTo](...args) {
+      return this.lineTo.apply(this, args);
     }
-    [dartx.moveTo](x, y) {
-      return this.moveTo(x, y);
+    [dartx.moveTo](...args) {
+      return this.moveTo.apply(this, args);
     }
-    [dartx.quadraticCurveTo](cpx, cpy, x, y) {
-      return this.quadraticCurveTo(cpx, cpy, x, y);
+    [dartx.quadraticCurveTo](...args) {
+      return this.quadraticCurveTo.apply(this, args);
     }
-    [dartx.rect](x, y, width, height) {
-      return this.rect(x, y, width, height);
+    [dartx.rect](...args) {
+      return this.rect.apply(this, args);
     }
   };
   html$.Path2D[dart.implements] = () => [html$._CanvasPathMethods];
@@ -67034,41 +67034,41 @@
     get [dartx.timing]() {
       return this.timing;
     }
-    [dartx.clearFrameTimings]() {
-      return this.clearFrameTimings();
+    [dartx.clearFrameTimings](...args) {
+      return this.clearFrameTimings.apply(this, args);
     }
-    [dartx.clearMarks](markName) {
-      return this.clearMarks(markName);
+    [dartx.clearMarks](...args) {
+      return this.clearMarks.apply(this, args);
     }
-    [dartx.clearMeasures](measureName) {
-      return this.clearMeasures(measureName);
+    [dartx.clearMeasures](...args) {
+      return this.clearMeasures.apply(this, args);
     }
-    [dartx.getEntries]() {
-      return this.getEntries();
+    [dartx.getEntries](...args) {
+      return this.getEntries.apply(this, args);
     }
-    [dartx.getEntriesByName](name, entryType) {
-      return this.getEntriesByName(name, entryType);
+    [dartx.getEntriesByName](...args) {
+      return this.getEntriesByName.apply(this, args);
     }
-    [dartx.getEntriesByType](entryType) {
-      return this.getEntriesByType(entryType);
+    [dartx.getEntriesByType](...args) {
+      return this.getEntriesByType.apply(this, args);
     }
-    [dartx.mark](markName) {
-      return this.mark(markName);
+    [dartx.mark](...args) {
+      return this.mark.apply(this, args);
     }
-    [dartx.measure](measureName, startMark, endMark) {
-      return this.measure(measureName, startMark, endMark);
+    [dartx.measure](...args) {
+      return this.measure.apply(this, args);
     }
-    [dartx.now]() {
-      return this.now();
+    [dartx.now](...args) {
+      return this.now.apply(this, args);
     }
-    [dartx.setFrameTimingBufferSize](maxSize) {
-      return this.setFrameTimingBufferSize(maxSize);
+    [dartx.setFrameTimingBufferSize](...args) {
+      return this.setFrameTimingBufferSize.apply(this, args);
     }
-    [dartx.clearResourceTimings]() {
-      return this.webkitClearResourceTimings();
+    [dartx.clearResourceTimings](...args) {
+      return this.webkitClearResourceTimings.apply(this, args);
     }
-    [dartx.setResourceTimingBufferSize](maxSize) {
-      return this.webkitSetResourceTimingBufferSize(maxSize);
+    [dartx.setResourceTimingBufferSize](...args) {
+      return this.webkitSetResourceTimingBufferSize.apply(this, args);
     }
     get [dartx.onResourceTimingBufferFull]() {
       return html$.Performance.resourceTimingBufferFullEvent.forTarget(this);
@@ -67461,14 +67461,14 @@
     get [dartx.minPossiblePeriod]() {
       return this.minPossiblePeriod;
     }
-    [dartx.getRegistration](tag) {
-      return this.getRegistration(tag);
+    [dartx.getRegistration](...args) {
+      return this.getRegistration.apply(this, args);
     }
-    [dartx.getRegistrations]() {
-      return this.getRegistrations();
+    [dartx.getRegistrations](...args) {
+      return this.getRegistrations.apply(this, args);
     }
-    [dartx.permissionState]() {
-      return this.permissionState();
+    [dartx.permissionState](...args) {
+      return this.permissionState.apply(this, args);
     }
     [dartx.register](options) {
       if (options === void 0) options = null;
@@ -67478,11 +67478,11 @@
       }
       return this[_register_2]();
     }
-    [_register_1](options) {
-      return this.register(options);
+    [_register_1](...args) {
+      return this.register.apply(this, args);
     }
-    [_register_2]() {
-      return this.register();
+    [_register_2](...args) {
+      return this.register.apply(this, args);
     }
   };
   dart.setSignature(html$.PeriodicSyncManager, {
@@ -67521,8 +67521,8 @@
     get [dartx.tag]() {
       return this.tag;
     }
-    [dartx.unregister]() {
-      return this.unregister();
+    [dartx.unregister](...args) {
+      return this.unregister.apply(this, args);
     }
   };
   dart.setSignature(html$.PeriodicSyncRegistration, {
@@ -67577,8 +67577,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.query](permission) {
-      return this.query(permission);
+    [dartx.query](...args) {
+      return this.query.apply(this, args);
     }
   };
   dart.setSignature(html$.Permissions, {
@@ -67626,11 +67626,11 @@
     get [dartx.name]() {
       return this.name;
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.namedItem](name) {
-      return this.namedItem(name);
+    [dartx.namedItem](...args) {
+      return this.namedItem.apply(this, args);
     }
   };
   dart.setSignature(html$.Plugin, {
@@ -67702,14 +67702,14 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.namedItem](name) {
-      return this.namedItem(name);
+    [dartx.namedItem](...args) {
+      return this.namedItem.apply(this, args);
     }
-    [dartx.refresh](reload) {
-      return this.refresh(reload);
+    [dartx.refresh](...args) {
+      return this.refresh.apply(this, args);
     }
   };
   html$.PluginArray[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfPlugin()];
@@ -67758,8 +67758,8 @@
     set [dartx.message](value) {
       this.message = value;
     }
-    [dartx.createdCallback]() {
-      return this.createdCallback();
+    [dartx.createdCallback](...args) {
+      return this.createdCallback.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.PluginPlaceholderElement, 'created');
@@ -67934,14 +67934,14 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getImmediateState]() {
-      return this.getImmediateState();
+    [dartx.getImmediateState](...args) {
+      return this.getImmediateState.apply(this, args);
     }
-    [dartx.getState]() {
-      return this.getState();
+    [dartx.getState](...args) {
+      return this.getState.apply(this, args);
     }
-    [dartx.resetSensor]() {
-      return this.resetSensor();
+    [dartx.resetSensor](...args) {
+      return this.resetSensor.apply(this, args);
     }
   };
   dart.setSignature(html$.PositionSensorVRDevice, {
@@ -67986,14 +67986,14 @@
     get [dartx.session]() {
       return this.session;
     }
-    [dartx.getAvailability](url) {
-      return this.getAvailability(url);
+    [dartx.getAvailability](...args) {
+      return this.getAvailability.apply(this, args);
     }
-    [dartx.joinSession](url, presentationId) {
-      return this.joinSession(url, presentationId);
+    [dartx.joinSession](...args) {
+      return this.joinSession.apply(this, args);
     }
-    [dartx.startSession](url) {
-      return this.startSession(url);
+    [dartx.startSession](...args) {
+      return this.startSession.apply(this, args);
     }
   };
   dart.setSignature(html$.Presentation, {
@@ -68057,11 +68057,11 @@
     get [dartx.state]() {
       return this.state;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
-    [dartx.send](data_OR_message) {
-      return this.send(data_OR_message);
+    [dartx.send](...args) {
+      return this.send.apply(this, args);
     }
     get [dartx.onMessage]() {
       return html$.PresentationSession.messageEvent.forTarget(this);
@@ -68314,8 +68314,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getSubscription]() {
-      return this.getSubscription();
+    [dartx.getSubscription](...args) {
+      return this.getSubscription.apply(this, args);
     }
     [dartx.permissionState](options) {
       if (options === void 0) options = null;
@@ -68325,11 +68325,11 @@
       }
       return this[_permissionState_2]();
     }
-    [_permissionState_1](options) {
-      return this.permissionState(options);
+    [_permissionState_1](...args) {
+      return this.permissionState.apply(this, args);
     }
-    [_permissionState_2]() {
-      return this.permissionState();
+    [_permissionState_2](...args) {
+      return this.permissionState.apply(this, args);
     }
     [dartx.subscribe](options) {
       if (options === void 0) options = null;
@@ -68339,11 +68339,11 @@
       }
       return this[_subscribe_2]();
     }
-    [_subscribe_1](options) {
-      return this.subscribe(options);
+    [_subscribe_1](...args) {
+      return this.subscribe.apply(this, args);
     }
-    [_subscribe_2]() {
-      return this.subscribe();
+    [_subscribe_2](...args) {
+      return this.subscribe.apply(this, args);
     }
   };
   dart.setSignature(html$.PushManager, {
@@ -68375,17 +68375,17 @@
     static _create_1(message) {
       return new PushMessageData(message);
     }
-    [dartx.arrayBuffer]() {
-      return this.arrayBuffer();
+    [dartx.arrayBuffer](...args) {
+      return this.arrayBuffer.apply(this, args);
     }
-    [dartx.blob]() {
-      return this.blob();
+    [dartx.blob](...args) {
+      return this.blob.apply(this, args);
     }
-    [dartx.json]() {
-      return this.json();
+    [dartx.json](...args) {
+      return this.json.apply(this, args);
     }
-    [dartx.text]() {
-      return this.text();
+    [dartx.text](...args) {
+      return this.text.apply(this, args);
     }
   };
   dart.setSignature(html$.PushMessageData, {
@@ -68414,8 +68414,8 @@
     get [dartx.endpoint]() {
       return this.endpoint;
     }
-    [dartx.unsubscribe]() {
-      return this.unsubscribe();
+    [dartx.unsubscribe](...args) {
+      return this.unsubscribe.apply(this, args);
     }
   };
   dart.setSignature(html$.PushSubscription, {
@@ -68517,74 +68517,74 @@
     get [dartx.startOffset]() {
       return this.startOffset;
     }
-    [dartx.cloneContents]() {
-      return this.cloneContents();
+    [dartx.cloneContents](...args) {
+      return this.cloneContents.apply(this, args);
     }
-    [dartx.cloneRange]() {
-      return this.cloneRange();
+    [dartx.cloneRange](...args) {
+      return this.cloneRange.apply(this, args);
     }
-    [dartx.collapse](toStart) {
-      return this.collapse(toStart);
+    [dartx.collapse](...args) {
+      return this.collapse.apply(this, args);
     }
-    [dartx.compareBoundaryPoints](how, sourceRange) {
-      return this.compareBoundaryPoints(how, sourceRange);
+    [dartx.compareBoundaryPoints](...args) {
+      return this.compareBoundaryPoints.apply(this, args);
     }
-    [dartx.comparePoint](node, offset) {
-      return this.comparePoint(node, offset);
+    [dartx.comparePoint](...args) {
+      return this.comparePoint.apply(this, args);
     }
-    [dartx.createContextualFragment](fragment) {
-      return this.createContextualFragment(fragment);
+    [dartx.createContextualFragment](...args) {
+      return this.createContextualFragment.apply(this, args);
     }
-    [dartx.deleteContents]() {
-      return this.deleteContents();
+    [dartx.deleteContents](...args) {
+      return this.deleteContents.apply(this, args);
     }
-    [dartx.detach]() {
-      return this.detach();
+    [dartx.detach](...args) {
+      return this.detach.apply(this, args);
     }
-    [dartx.expand](unit) {
-      return this.expand(unit);
+    [dartx.expand](...args) {
+      return this.expand.apply(this, args);
     }
-    [dartx.extractContents]() {
-      return this.extractContents();
+    [dartx.extractContents](...args) {
+      return this.extractContents.apply(this, args);
     }
-    [dartx.getBoundingClientRect]() {
-      return this.getBoundingClientRect();
+    [dartx.getBoundingClientRect](...args) {
+      return this.getBoundingClientRect.apply(this, args);
     }
-    [dartx.getClientRects]() {
-      return this.getClientRects();
+    [dartx.getClientRects](...args) {
+      return this.getClientRects.apply(this, args);
     }
-    [dartx.insertNode](node) {
-      return this.insertNode(node);
+    [dartx.insertNode](...args) {
+      return this.insertNode.apply(this, args);
     }
-    [dartx.isPointInRange](node, offset) {
-      return this.isPointInRange(node, offset);
+    [dartx.isPointInRange](...args) {
+      return this.isPointInRange.apply(this, args);
     }
-    [dartx.selectNode](node) {
-      return this.selectNode(node);
+    [dartx.selectNode](...args) {
+      return this.selectNode.apply(this, args);
     }
-    [dartx.selectNodeContents](node) {
-      return this.selectNodeContents(node);
+    [dartx.selectNodeContents](...args) {
+      return this.selectNodeContents.apply(this, args);
     }
-    [dartx.setEnd](node, offset) {
-      return this.setEnd(node, offset);
+    [dartx.setEnd](...args) {
+      return this.setEnd.apply(this, args);
     }
-    [dartx.setEndAfter](node) {
-      return this.setEndAfter(node);
+    [dartx.setEndAfter](...args) {
+      return this.setEndAfter.apply(this, args);
     }
-    [dartx.setEndBefore](node) {
-      return this.setEndBefore(node);
+    [dartx.setEndBefore](...args) {
+      return this.setEndBefore.apply(this, args);
     }
-    [dartx.setStart](node, offset) {
-      return this.setStart(node, offset);
+    [dartx.setStart](...args) {
+      return this.setStart.apply(this, args);
     }
-    [dartx.setStartAfter](node) {
-      return this.setStartAfter(node);
+    [dartx.setStartAfter](...args) {
+      return this.setStartAfter.apply(this, args);
     }
-    [dartx.setStartBefore](node) {
-      return this.setStartBefore(node);
+    [dartx.setStartBefore](...args) {
+      return this.setStartBefore.apply(this, args);
     }
-    [dartx.surroundContents](newParent) {
-      return this.surroundContents(newParent);
+    [dartx.surroundContents](...args) {
+      return this.surroundContents.apply(this, args);
     }
     static get supportsCreateContextualFragment() {
       return "createContextualFragment" in window.Range.prototype;
@@ -68650,11 +68650,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.cancel](reason) {
-      return this.cancel(reason);
+    [dartx.cancel](...args) {
+      return this.cancel.apply(this, args);
     }
-    [dartx.getReader]() {
-      return this.getReader();
+    [dartx.getReader](...args) {
+      return this.getReader.apply(this, args);
     }
   };
   dart.setSignature(html$.ReadableByteStream, {
@@ -68678,14 +68678,14 @@
     get [dartx.closed]() {
       return this.closed;
     }
-    [dartx.cancel](reason) {
-      return this.cancel(reason);
+    [dartx.cancel](...args) {
+      return this.cancel.apply(this, args);
     }
-    [dartx.read]() {
-      return this.read();
+    [dartx.read](...args) {
+      return this.read.apply(this, args);
     }
-    [dartx.releaseLock]() {
-      return this.releaseLock();
+    [dartx.releaseLock](...args) {
+      return this.releaseLock.apply(this, args);
     }
   };
   dart.setSignature(html$.ReadableByteStreamReader, {
@@ -68706,11 +68706,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.cancel](reason) {
-      return this.cancel(reason);
+    [dartx.cancel](...args) {
+      return this.cancel.apply(this, args);
     }
-    [dartx.getReader]() {
-      return this.getReader();
+    [dartx.getReader](...args) {
+      return this.getReader.apply(this, args);
     }
   };
   dart.setSignature(html$.ReadableStream, {
@@ -68734,14 +68734,14 @@
     get [dartx.closed]() {
       return this.closed;
     }
-    [dartx.cancel](reason) {
-      return this.cancel(reason);
+    [dartx.cancel](...args) {
+      return this.cancel.apply(this, args);
     }
-    [dartx.read]() {
-      return this.read();
+    [dartx.read](...args) {
+      return this.read.apply(this, args);
     }
-    [dartx.releaseLock]() {
-      return this.releaseLock();
+    [dartx.releaseLock](...args) {
+      return this.releaseLock.apply(this, args);
     }
   };
   dart.setSignature(html$.ReadableStreamReader, {
@@ -68876,23 +68876,23 @@
     get [dartx.reliable]() {
       return this.reliable;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
-    [dartx.send](data) {
-      return this.send(data);
+    [dartx.send](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.sendBlob](data) {
-      return this.send(data);
+    [dartx.sendBlob](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.sendByteBuffer](data) {
-      return this.send(data);
+    [dartx.sendByteBuffer](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.sendString](data) {
-      return this.send(data);
+    [dartx.sendString](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.sendTypedData](data) {
-      return this.send(data);
+    [dartx.sendTypedData](...args) {
+      return this.send.apply(this, args);
     }
     get [dartx.onClose]() {
       return html$.RtcDataChannel.closeEvent.forTarget(this);
@@ -69003,8 +69003,8 @@
     get [dartx.track]() {
       return this.track;
     }
-    [dartx.insertDtmf](tones, duration, interToneGap) {
-      return this.insertDTMF(tones, duration, interToneGap);
+    [dartx.insertDtmf](...args) {
+      return this.insertDTMF.apply(this, args);
     }
     get [dartx.onToneChange]() {
       return html$.RtcDtmfSender.toneChangeEvent.forTarget(this);
@@ -69229,8 +69229,8 @@
     get [dartx.signalingState]() {
       return this.signalingState;
     }
-    [dartx.addIceCandidate](candidate, successCallback, failureCallback) {
-      return this.addIceCandidate(candidate, successCallback, failureCallback);
+    [dartx.addIceCandidate](...args) {
+      return this.addIceCandidate.apply(this, args);
     }
     [dartx.addStream](stream, mediaConstraints) {
       if (mediaConstraints === void 0) mediaConstraints = null;
@@ -69242,14 +69242,14 @@
       this[_addStream_2](stream);
       return;
     }
-    [_addStream_1](stream, mediaConstraints) {
-      return this.addStream(stream, mediaConstraints);
+    [_addStream_1](...args) {
+      return this.addStream.apply(this, args);
     }
-    [_addStream_2](stream) {
-      return this.addStream(stream);
+    [_addStream_2](...args) {
+      return this.addStream.apply(this, args);
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
     [_createAnswer](successCallback, failureCallback, mediaConstraints) {
       if (failureCallback === void 0) failureCallback = null;
@@ -69262,14 +69262,14 @@
       this[_createAnswer_2](successCallback, failureCallback);
       return;
     }
-    [_createAnswer_1](successCallback, failureCallback, mediaConstraints) {
-      return this.createAnswer(successCallback, failureCallback, mediaConstraints);
+    [_createAnswer_1](...args) {
+      return this.createAnswer.apply(this, args);
     }
-    [_createAnswer_2](successCallback, failureCallback) {
-      return this.createAnswer(successCallback, failureCallback);
+    [_createAnswer_2](...args) {
+      return this.createAnswer.apply(this, args);
     }
-    [dartx.createDtmfSender](track) {
-      return this.createDTMFSender(track);
+    [dartx.createDtmfSender](...args) {
+      return this.createDTMFSender.apply(this, args);
     }
     [dartx.createDataChannel](label, options) {
       if (options === void 0) options = null;
@@ -69279,11 +69279,11 @@
       }
       return this[_createDataChannel_2](label);
     }
-    [_createDataChannel_1](label, options) {
-      return this.createDataChannel(label, options);
+    [_createDataChannel_1](...args) {
+      return this.createDataChannel.apply(this, args);
     }
-    [_createDataChannel_2](label) {
-      return this.createDataChannel(label);
+    [_createDataChannel_2](...args) {
+      return this.createDataChannel.apply(this, args);
     }
     [_createOffer](successCallback, failureCallback, rtcOfferOptions) {
       if (failureCallback === void 0) failureCallback = null;
@@ -69296,29 +69296,29 @@
       this[_createOffer_2](successCallback, failureCallback);
       return;
     }
-    [_createOffer_1](successCallback, failureCallback, rtcOfferOptions) {
-      return this.createOffer(successCallback, failureCallback, rtcOfferOptions);
+    [_createOffer_1](...args) {
+      return this.createOffer.apply(this, args);
     }
-    [_createOffer_2](successCallback, failureCallback) {
-      return this.createOffer(successCallback, failureCallback);
+    [_createOffer_2](...args) {
+      return this.createOffer.apply(this, args);
     }
-    [dartx.getLocalStreams]() {
-      return this.getLocalStreams();
+    [dartx.getLocalStreams](...args) {
+      return this.getLocalStreams.apply(this, args);
     }
-    [dartx.getRemoteStreams]() {
-      return this.getRemoteStreams();
+    [dartx.getRemoteStreams](...args) {
+      return this.getRemoteStreams.apply(this, args);
     }
-    [_getStats](successCallback, selector) {
-      return this.getStats(successCallback, selector);
+    [_getStats](...args) {
+      return this.getStats.apply(this, args);
     }
-    [dartx.getStreamById](streamId) {
-      return this.getStreamById(streamId);
+    [dartx.getStreamById](...args) {
+      return this.getStreamById.apply(this, args);
     }
-    [dartx.removeStream](stream) {
-      return this.removeStream(stream);
+    [dartx.removeStream](...args) {
+      return this.removeStream.apply(this, args);
     }
-    [_setLocalDescription](description, successCallback, failureCallback) {
-      return this.setLocalDescription(description, successCallback, failureCallback);
+    [_setLocalDescription](...args) {
+      return this.setLocalDescription.apply(this, args);
     }
     [dartx.setLocalDescription](description) {
       let completer = async.Completer.new();
@@ -69329,8 +69329,8 @@
       }, StringTovoid$()));
       return completer.future;
     }
-    [_setRemoteDescription](description, successCallback, failureCallback) {
-      return this.setRemoteDescription(description, successCallback, failureCallback);
+    [_setRemoteDescription](...args) {
+      return this.setRemoteDescription.apply(this, args);
     }
     [dartx.setRemoteDescription](description) {
       let completer = async.Completer.new();
@@ -69358,14 +69358,14 @@
       this[_updateIce_3]();
       return;
     }
-    [_updateIce_1](configuration, mediaConstraints) {
-      return this.updateIce(configuration, mediaConstraints);
+    [_updateIce_1](...args) {
+      return this.updateIce.apply(this, args);
     }
-    [_updateIce_2](configuration) {
-      return this.updateIce(configuration);
+    [_updateIce_2](...args) {
+      return this.updateIce.apply(this, args);
     }
-    [_updateIce_3]() {
-      return this.updateIce();
+    [_updateIce_3](...args) {
+      return this.updateIce.apply(this, args);
     }
     get [dartx.onAddStream]() {
       return html$.RtcPeerConnection.addStreamEvent.forTarget(this);
@@ -69540,11 +69540,11 @@
     get [dartx.type]() {
       return this.type;
     }
-    [dartx.names]() {
-      return this.names();
+    [dartx.names](...args) {
+      return this.names.apply(this, args);
     }
-    [dartx.stat](name) {
-      return this.stat(name);
+    [dartx.stat](...args) {
+      return this.stat.apply(this, args);
     }
   };
   dart.setSignature(html$.RtcStatsReport, {
@@ -69569,11 +69569,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.namedItem](name) {
-      return this.namedItem(name);
+    [dartx.namedItem](...args) {
+      return this.namedItem.apply(this, args);
     }
-    [dartx.result]() {
-      return this.result();
+    [dartx.result](...args) {
+      return this.result.apply(this, args);
     }
   };
   dart.setSignature(html$.RtcStatsResponse, {
@@ -69664,11 +69664,11 @@
     get [dartx.type]() {
       return this.type;
     }
-    [dartx.lock](orientation) {
-      return this.lock(orientation);
+    [dartx.lock](...args) {
+      return this.lock.apply(this, args);
     }
-    [dartx.unlock]() {
-      return this.unlock();
+    [dartx.unlock](...args) {
+      return this.unlock.apply(this, args);
     }
     get [dartx.onChange]() {
       return html$.ScreenOrientation.changeEvent.forTarget(this);
@@ -69898,8 +69898,8 @@
     get [dartx.velocityY]() {
       return this.velocityY;
     }
-    [dartx.consumeDelta](x, y) {
-      return this.consumeDelta(x, y);
+    [dartx.consumeDelta](...args) {
+      return this.consumeDelta.apply(this, args);
     }
   };
   dart.setSignature(html$.ScrollState, {
@@ -70141,26 +70141,26 @@
     get [dartx.willValidate]() {
       return this.willValidate;
     }
-    [__setter__](index, option) {
-      return this.__setter__(index, option);
+    [__setter__](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [dartx.add](element, before) {
-      return this.add(element, before);
+    [dartx.add](...args) {
+      return this.add.apply(this, args);
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.namedItem](name) {
-      return this.namedItem(name);
+    [dartx.namedItem](...args) {
+      return this.namedItem.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
-    [dartx.setCustomValidity](error) {
-      return this.setCustomValidity(error);
+    [dartx.setCustomValidity](...args) {
+      return this.setCustomValidity.apply(this, args);
     }
     get [dartx.options]() {
       let options = ListOfOptionElement().from(this[dartx.querySelectorAll](html$.Element)('option'));
@@ -70278,47 +70278,47 @@
     get [dartx.type]() {
       return this.type;
     }
-    [dartx.addRange](range) {
-      return this.addRange(range);
+    [dartx.addRange](...args) {
+      return this.addRange.apply(this, args);
     }
-    [dartx.collapse](node, offset) {
-      return this.collapse(node, offset);
+    [dartx.collapse](...args) {
+      return this.collapse.apply(this, args);
     }
-    [dartx.collapseToEnd]() {
-      return this.collapseToEnd();
+    [dartx.collapseToEnd](...args) {
+      return this.collapseToEnd.apply(this, args);
     }
-    [dartx.collapseToStart]() {
-      return this.collapseToStart();
+    [dartx.collapseToStart](...args) {
+      return this.collapseToStart.apply(this, args);
     }
-    [dartx.containsNode](node, allowPartialContainment) {
-      return this.containsNode(node, allowPartialContainment);
+    [dartx.containsNode](...args) {
+      return this.containsNode.apply(this, args);
     }
-    [dartx.deleteFromDocument]() {
-      return this.deleteFromDocument();
+    [dartx.deleteFromDocument](...args) {
+      return this.deleteFromDocument.apply(this, args);
     }
-    [dartx.empty]() {
-      return this.empty();
+    [dartx.empty](...args) {
+      return this.empty.apply(this, args);
     }
-    [dartx.extend](node, offset) {
-      return this.extend(node, offset);
+    [dartx.extend](...args) {
+      return this.extend.apply(this, args);
     }
-    [dartx.getRangeAt](index) {
-      return this.getRangeAt(index);
+    [dartx.getRangeAt](...args) {
+      return this.getRangeAt.apply(this, args);
     }
-    [dartx.modify](alter, direction, granularity) {
-      return this.modify(alter, direction, granularity);
+    [dartx.modify](...args) {
+      return this.modify.apply(this, args);
     }
-    [dartx.removeAllRanges]() {
-      return this.removeAllRanges();
+    [dartx.removeAllRanges](...args) {
+      return this.removeAllRanges.apply(this, args);
     }
-    [dartx.selectAllChildren](node) {
-      return this.selectAllChildren(node);
+    [dartx.selectAllChildren](...args) {
+      return this.selectAllChildren.apply(this, args);
     }
-    [dartx.setBaseAndExtent](baseNode, baseOffset, extentNode, extentOffset) {
-      return this.setBaseAndExtent(baseNode, baseOffset, extentNode, extentOffset);
+    [dartx.setBaseAndExtent](...args) {
+      return this.setBaseAndExtent.apply(this, args);
     }
-    [dartx.setPosition](node, offset) {
-      return this.setPosition(node, offset);
+    [dartx.setPosition](...args) {
+      return this.setPosition.apply(this, args);
     }
   };
   dart.setSignature(html$.Selection, {
@@ -70374,8 +70374,8 @@
     get [dartx.targetUrl]() {
       return this.targetURL;
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
     [dartx.postMessage](message, transfer) {
       if (transfer === void 0) transfer = null;
@@ -70388,11 +70388,11 @@
       this[_postMessage_2](message_1);
       return;
     }
-    [_postMessage_1](message, transfer) {
-      return this.postMessage(message, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message) {
-      return this.postMessage(message);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
   };
   dart.setSignature(html$.ServicePort, {
@@ -70430,18 +70430,18 @@
       }
       return this[_connect_2](url);
     }
-    [_connect_1](url, options) {
-      return this.connect(url, options);
+    [_connect_1](...args) {
+      return this.connect.apply(this, args);
     }
-    [_connect_2](url) {
-      return this.connect(url);
+    [_connect_2](...args) {
+      return this.connect.apply(this, args);
     }
     [dartx.match](options) {
       let options_1 = html_common.convertDartToNative_Dictionary(options);
       return this[_match_1](options_1);
     }
-    [_match_1](options) {
-      return this.match(options);
+    [_match_1](...args) {
+      return this.match.apply(this, args);
     }
     [dartx.matchAll](options) {
       if (options === void 0) options = null;
@@ -70451,11 +70451,11 @@
       }
       return this[_matchAll_2]();
     }
-    [_matchAll_1](options) {
-      return this.matchAll(options);
+    [_matchAll_1](...args) {
+      return this.matchAll.apply(this, args);
     }
-    [_matchAll_2]() {
-      return this.matchAll();
+    [_matchAll_2](...args) {
+      return this.matchAll.apply(this, args);
     }
     get [dartx.onMessage]() {
       return html$.ServicePortCollection.messageEvent.forTarget(this);
@@ -70511,8 +70511,8 @@
     get [dartx.targetUrl]() {
       return this.targetURL;
     }
-    [dartx.respondWith](response) {
-      return this.respondWith(response);
+    [dartx.respondWith](...args) {
+      return this.respondWith.apply(this, args);
     }
   };
   dart.setSignature(html$.ServicePortConnectEvent, {
@@ -70550,11 +70550,11 @@
     get [dartx.ready]() {
       return this.ready;
     }
-    [dartx.getRegistration](documentURL) {
-      return this.getRegistration(documentURL);
+    [dartx.getRegistration](...args) {
+      return this.getRegistration.apply(this, args);
     }
-    [dartx.getRegistrations]() {
-      return this.getRegistrations();
+    [dartx.getRegistrations](...args) {
+      return this.getRegistrations.apply(this, args);
     }
     [dartx.register](url, options) {
       if (options === void 0) options = null;
@@ -70564,11 +70564,11 @@
       }
       return this[_register_2](url);
     }
-    [_register_1](url, options) {
-      return this.register(url, options);
+    [_register_1](...args) {
+      return this.register.apply(this, args);
     }
-    [_register_2](url) {
-      return this.register(url);
+    [_register_2](...args) {
+      return this.register.apply(this, args);
     }
     get [dartx.onMessage]() {
       return html$.ServiceWorkerContainer.messageEvent.forTarget(this);
@@ -70616,8 +70616,8 @@
     get [dartx.registration]() {
       return this.registration;
     }
-    [dartx.skipWaiting]() {
-      return this.skipWaiting();
+    [dartx.skipWaiting](...args) {
+      return this.skipWaiting.apply(this, args);
     }
     get [dartx.onMessage]() {
       return html$.ServiceWorkerGlobalScope.messageEvent.forTarget(this);
@@ -70758,11 +70758,11 @@
       }
       return this[_getNotifications_2]();
     }
-    [_getNotifications_1](filter) {
-      return this.getNotifications(filter);
+    [_getNotifications_1](...args) {
+      return this.getNotifications.apply(this, args);
     }
-    [_getNotifications_2]() {
-      return this.getNotifications();
+    [_getNotifications_2](...args) {
+      return this.getNotifications.apply(this, args);
     }
     [dartx.showNotification](title, options) {
       if (options === void 0) options = null;
@@ -70772,17 +70772,17 @@
       }
       return this[_showNotification_2](title);
     }
-    [_showNotification_1](title, options) {
-      return this.showNotification(title, options);
+    [_showNotification_1](...args) {
+      return this.showNotification.apply(this, args);
     }
-    [_showNotification_2](title) {
-      return this.showNotification(title);
+    [_showNotification_2](...args) {
+      return this.showNotification.apply(this, args);
     }
-    [dartx.unregister]() {
-      return this.unregister();
+    [dartx.unregister](...args) {
+      return this.unregister.apply(this, args);
     }
-    [dartx.update]() {
-      return this.update();
+    [dartx.update](...args) {
+      return this.update.apply(this, args);
     }
   };
   dart.setSignature(html$.ServiceWorkerRegistration, {
@@ -70825,8 +70825,8 @@
     static get supported() {
       return html$.Element.isTagSupported('shadow');
     }
-    [dartx.getDistributedNodes]() {
-      return this.getDistributedNodes();
+    [dartx.getDistributedNodes](...args) {
+      return this.getDistributedNodes.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.ShadowElement, 'created');
@@ -70881,17 +70881,17 @@
     get [dartx.styleSheets]() {
       return this.styleSheets;
     }
-    [dartx.clone](deep) {
-      return this.cloneNode(deep);
+    [dartx.clone](...args) {
+      return this.cloneNode.apply(this, args);
     }
-    [dartx.elementFromPoint](x, y) {
-      return this.elementFromPoint(x, y);
+    [dartx.elementFromPoint](...args) {
+      return this.elementFromPoint.apply(this, args);
     }
-    [dartx.elementsFromPoint](x, y) {
-      return this.elementsFromPoint(x, y);
+    [dartx.elementsFromPoint](...args) {
+      return this.elementsFromPoint.apply(this, args);
     }
-    [dartx.getSelection]() {
-      return this.getSelection();
+    [dartx.getSelection](...args) {
+      return this.getSelection.apply(this, args);
     }
     static get supported() {
       return !!(Element.prototype.createShadowRoot || Element.prototype.webkitCreateShadowRoot);
@@ -71101,20 +71101,20 @@
     get [dartx.updating]() {
       return this.updating;
     }
-    [dartx.abort]() {
-      return this.abort();
+    [dartx.abort](...args) {
+      return this.abort.apply(this, args);
     }
-    [dartx.appendBuffer](data) {
-      return this.appendBuffer(data);
+    [dartx.appendBuffer](...args) {
+      return this.appendBuffer.apply(this, args);
     }
-    [dartx.appendStream](stream, maxSize) {
-      return this.appendStream(stream, maxSize);
+    [dartx.appendStream](...args) {
+      return this.appendStream.apply(this, args);
     }
-    [dartx.appendTypedData](data) {
-      return this.appendBuffer(data);
+    [dartx.appendTypedData](...args) {
+      return this.appendBuffer.apply(this, args);
     }
-    [dartx.remove](start, end) {
-      return this.remove(start, end);
+    [dartx.remove](...args) {
+      return this.remove.apply(this, args);
     }
   };
   dart.setSignature(html$.SourceBuffer, {
@@ -71190,8 +71190,8 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$.SourceBufferList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfSourceBuffer()];
@@ -71435,14 +71435,14 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.addFromString](string, weight) {
-      return this.addFromString(string, weight);
+    [dartx.addFromString](...args) {
+      return this.addFromString.apply(this, args);
     }
-    [dartx.addFromUri](src, weight) {
-      return this.addFromUri(src, weight);
+    [dartx.addFromUri](...args) {
+      return this.addFromUri.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$.SpeechGrammarList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfSpeechGrammar()];
@@ -71542,14 +71542,14 @@
     set [dartx.serviceUri](value) {
       this.serviceURI = value;
     }
-    [dartx.abort]() {
-      return this.abort();
+    [dartx.abort](...args) {
+      return this.abort.apply(this, args);
     }
-    [dartx.start]() {
-      return this.start();
+    [dartx.start](...args) {
+      return this.start.apply(this, args);
     }
-    [dartx.stop]() {
-      return this.stop();
+    [dartx.stop](...args) {
+      return this.stop.apply(this, args);
     }
     get [dartx.onAudioEnd]() {
       return html$.SpeechRecognition.audioEndEvent.forTarget(this);
@@ -71809,8 +71809,8 @@
     get [dartx.length]() {
       return this.length;
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   dart.setSignature(html$.SpeechRecognitionResult, {
@@ -71845,20 +71845,20 @@
     get [dartx.speaking]() {
       return this.speaking;
     }
-    [dartx.cancel]() {
-      return this.cancel();
+    [dartx.cancel](...args) {
+      return this.cancel.apply(this, args);
     }
-    [dartx.getVoices]() {
-      return this.getVoices();
+    [dartx.getVoices](...args) {
+      return this.getVoices.apply(this, args);
     }
-    [dartx.pause]() {
-      return this.pause();
+    [dartx.pause](...args) {
+      return this.pause.apply(this, args);
     }
-    [dartx.resume]() {
-      return this.resume();
+    [dartx.resume](...args) {
+      return this.resume.apply(this, args);
     }
-    [dartx.speak](utterance) {
-      return this.speak(utterance);
+    [dartx.speak](...args) {
+      return this.speak.apply(this, args);
     }
   };
   dart.setSignature(html$.SpeechSynthesis, {
@@ -72123,8 +72123,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.add](name, port) {
-      return this.add(name, port);
+    [dartx.add](...args) {
+      return this.add.apply(this, args);
     }
     get [dartx.onMessage]() {
       return html$.StashedPortCollection.messageEvent.forTarget(this);
@@ -72227,29 +72227,29 @@
     get [_length$2]() {
       return this.length;
     }
-    [__delete__](index_OR_name) {
-      return this.__delete__(index_OR_name);
+    [__delete__](...args) {
+      return this.__delete__.apply(this, args);
     }
-    [__getter__](index_OR_name) {
-      return this.__getter__(index_OR_name);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [__setter__](index_OR_name, value) {
-      return this.__setter__(index_OR_name, value);
+    [__setter__](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [_clear$1]() {
-      return this.clear();
+    [_clear$1](...args) {
+      return this.clear.apply(this, args);
     }
-    [_getItem](key) {
-      return this.getItem(key);
+    [_getItem](...args) {
+      return this.getItem.apply(this, args);
     }
-    [_key](index) {
-      return this.key(index);
+    [_key](...args) {
+      return this.key.apply(this, args);
     }
-    [_removeItem](key) {
-      return this.removeItem(key);
+    [_removeItem](...args) {
+      return this.removeItem.apply(this, args);
     }
-    [_setItem](key, data) {
-      return this.setItem(key, data);
+    [_setItem](...args) {
+      return this.setItem.apply(this, args);
     }
   };
   html$.Storage[dart.implements] = () => [MapOfString$String()];
@@ -72335,8 +72335,8 @@
     get [dartx.url]() {
       return this.url;
     }
-    [_initStorageEvent](typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg) {
-      return this.initStorageEvent(typeArg, canBubbleArg, cancelableArg, keyArg, oldValueArg, newValueArg, urlArg, storageAreaArg);
+    [_initStorageEvent](...args) {
+      return this.initStorageEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.StorageEvent, {
@@ -72394,11 +72394,11 @@
     get [dartx.supportedTypes]() {
       return this.supportedTypes;
     }
-    [dartx.queryInfo](type) {
-      return this.queryInfo(type);
+    [dartx.queryInfo](...args) {
+      return this.queryInfo.apply(this, args);
     }
-    [dartx.requestPersistentQuota](newQuota) {
-      return this.requestPersistentQuota(newQuota);
+    [dartx.requestPersistentQuota](...args) {
+      return this.requestPersistentQuota.apply(this, args);
     }
   };
   dart.setSignature(html$.StorageQuota, {
@@ -72481,8 +72481,8 @@
     get [dartx.type]() {
       return this.type;
     }
-    [dartx.matchMedium](mediaquery) {
-      return this.matchMedium(mediaquery);
+    [dartx.matchMedium](...args) {
+      return this.matchMedium.apply(this, args);
     }
   };
   dart.setSignature(html$.StyleMedia, {
@@ -72529,14 +72529,14 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getRegistration](tag) {
-      return this.getRegistration(tag);
+    [dartx.getRegistration](...args) {
+      return this.getRegistration.apply(this, args);
     }
-    [dartx.getRegistrations]() {
-      return this.getRegistrations();
+    [dartx.getRegistrations](...args) {
+      return this.getRegistrations.apply(this, args);
     }
-    [dartx.permissionState]() {
-      return this.permissionState();
+    [dartx.permissionState](...args) {
+      return this.permissionState.apply(this, args);
     }
     [dartx.register](options) {
       if (options === void 0) options = null;
@@ -72546,11 +72546,11 @@
       }
       return this[_register_2]();
     }
-    [_register_1](options) {
-      return this.register(options);
+    [_register_1](...args) {
+      return this.register.apply(this, args);
     }
-    [_register_2]() {
-      return this.register();
+    [_register_2](...args) {
+      return this.register.apply(this, args);
     }
   };
   dart.setSignature(html$.SyncManager, {
@@ -72576,8 +72576,8 @@
     get [dartx.tag]() {
       return this.tag;
     }
-    [dartx.unregister]() {
-      return this.unregister();
+    [dartx.unregister](...args) {
+      return this.unregister.apply(this, args);
     }
   };
   dart.setSignature(html$.SyncRegistration, {
@@ -72755,8 +72755,8 @@
       this[dartx.children][dartx.add](tbody);
       return html$.TableSectionElement._check(tbody);
     }
-    [_nativeCreateTBody]() {
-      return this.createTBody();
+    [_nativeCreateTBody](...args) {
+      return this.createTBody.apply(this, args);
     }
     [dartx.createFragment](html, opts) {
       let validator = opts && 'validator' in opts ? opts.validator : null;
@@ -72808,29 +72808,29 @@
     set [dartx.tHead](value) {
       this.tHead = value;
     }
-    [_createCaption]() {
-      return this.createCaption();
+    [_createCaption](...args) {
+      return this.createCaption.apply(this, args);
     }
-    [_createTFoot]() {
-      return this.createTFoot();
+    [_createTFoot](...args) {
+      return this.createTFoot.apply(this, args);
     }
-    [_createTHead]() {
-      return this.createTHead();
+    [_createTHead](...args) {
+      return this.createTHead.apply(this, args);
     }
-    [dartx.deleteCaption]() {
-      return this.deleteCaption();
+    [dartx.deleteCaption](...args) {
+      return this.deleteCaption.apply(this, args);
     }
-    [dartx.deleteRow](index) {
-      return this.deleteRow(index);
+    [dartx.deleteRow](...args) {
+      return this.deleteRow.apply(this, args);
     }
-    [dartx.deleteTFoot]() {
-      return this.deleteTFoot();
+    [dartx.deleteTFoot](...args) {
+      return this.deleteTFoot.apply(this, args);
     }
-    [dartx.deleteTHead]() {
-      return this.deleteTHead();
+    [dartx.deleteTHead](...args) {
+      return this.deleteTHead.apply(this, args);
     }
-    [_insertRow](index) {
-      return this.insertRow(index);
+    [_insertRow](...args) {
+      return this.insertRow.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.TableElement, 'created');
@@ -72925,11 +72925,11 @@
     get [dartx.sectionRowIndex]() {
       return this.sectionRowIndex;
     }
-    [dartx.deleteCell](index) {
-      return this.deleteCell(index);
+    [dartx.deleteCell](...args) {
+      return this.deleteCell.apply(this, args);
     }
-    [_insertCell](index) {
-      return this.insertCell(index);
+    [_insertCell](...args) {
+      return this.insertCell.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.TableRowElement, 'created');
@@ -72991,11 +72991,11 @@
     get [_rows]() {
       return this.rows;
     }
-    [dartx.deleteRow](index) {
-      return this.deleteRow(index);
+    [dartx.deleteRow](...args) {
+      return this.deleteRow.apply(this, args);
     }
-    [_insertRow](index) {
-      return this.insertRow(index);
+    [_insertRow](...args) {
+      return this.insertRow.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.TableSectionElement, 'created');
@@ -73259,23 +73259,23 @@
     set [dartx.wrap](value) {
       this.wrap = value;
     }
-    [dartx.checkValidity]() {
-      return this.checkValidity();
+    [dartx.checkValidity](...args) {
+      return this.checkValidity.apply(this, args);
     }
-    [dartx.reportValidity]() {
-      return this.reportValidity();
+    [dartx.reportValidity](...args) {
+      return this.reportValidity.apply(this, args);
     }
-    [dartx.select]() {
-      return this.select();
+    [dartx.select](...args) {
+      return this.select.apply(this, args);
     }
-    [dartx.setCustomValidity](error) {
-      return this.setCustomValidity(error);
+    [dartx.setCustomValidity](...args) {
+      return this.setCustomValidity.apply(this, args);
     }
-    [dartx.setRangeText](replacement, opts) {
-      return this.setRangeText(replacement, opts);
+    [dartx.setRangeText](...args) {
+      return this.setRangeText.apply(this, args);
     }
-    [dartx.setSelectionRange](start, end, direction) {
-      return this.setSelectionRange(start, end, direction);
+    [dartx.setSelectionRange](...args) {
+      return this.setSelectionRange.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.TextAreaElement, 'created');
@@ -73346,8 +73346,8 @@
     get [dartx.data]() {
       return this.data;
     }
-    [_initTextEvent](typeArg, canBubbleArg, cancelableArg, viewArg, dataArg) {
-      return this.initTextEvent(typeArg, canBubbleArg, cancelableArg, viewArg, dataArg);
+    [_initTextEvent](...args) {
+      return this.initTextEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.TextEvent, {
@@ -73478,17 +73478,17 @@
     get [dartx.regions]() {
       return this.regions;
     }
-    [dartx.addCue](cue) {
-      return this.addCue(cue);
+    [dartx.addCue](...args) {
+      return this.addCue.apply(this, args);
     }
-    [dartx.addRegion](region) {
-      return this.addRegion(region);
+    [dartx.addRegion](...args) {
+      return this.addRegion.apply(this, args);
     }
-    [dartx.removeCue](cue) {
-      return this.removeCue(cue);
+    [dartx.removeCue](...args) {
+      return this.removeCue.apply(this, args);
     }
-    [dartx.removeRegion](region) {
-      return this.removeRegion(region);
+    [dartx.removeRegion](...args) {
+      return this.removeRegion.apply(this, args);
     }
     get [dartx.onCueChange]() {
       return html$.TextTrack.cueChangeEvent.forTarget(this);
@@ -73649,11 +73649,11 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.getCueById](id) {
-      return this.getCueById(id);
+    [dartx.getCueById](...args) {
+      return this.getCueById.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$.TextTrackCueList[dart.implements] = () => [ListOfTextTrackCue(), _js_helper.JavaScriptIndexingBehavior];
@@ -73731,11 +73731,11 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.getTrackById](id) {
-      return this.getTrackById(id);
+    [dartx.getTrackById](...args) {
+      return this.getTrackById.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
     get [dartx.onAddTrack]() {
       return html$.TextTrackList.addTrackEvent.forTarget(this);
@@ -73789,11 +73789,11 @@
     get [dartx.length]() {
       return this.length;
     }
-    [dartx.end](index) {
-      return this.end(index);
+    [dartx.end](...args) {
+      return this.end.apply(this, args);
     }
-    [dartx.start](index) {
-      return this.start(index);
+    [dartx.start](...args) {
+      return this.start.apply(this, args);
     }
   };
   dart.setSignature(html$.TimeRanges, {
@@ -74016,8 +74016,8 @@
     get [dartx.touches]() {
       return this.touches;
     }
-    [_initTouchEvent](touches, targetTouches, changedTouches, type, view, unused1, unused2, unused3, unused4, ctrlKey, altKey, shiftKey, metaKey) {
-      return this.initTouchEvent(touches, targetTouches, changedTouches, type, view, unused1, unused2, unused3, unused4, ctrlKey, altKey, shiftKey, metaKey);
+    [_initTouchEvent](...args) {
+      return this.initTouchEvent.apply(this, args);
     }
     static get supported() {
       return html_common.Device.isEventTypeSupported('TouchEvent');
@@ -74100,8 +74100,8 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$.TouchList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfTouch()];
@@ -74211,8 +74211,8 @@
     get [dartx.length]() {
       return this.length;
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   dart.setSignature(html$.TrackDefaultList, {
@@ -74448,26 +74448,26 @@
     get [dartx.whatToShow]() {
       return this.whatToShow;
     }
-    [dartx.firstChild]() {
-      return this.firstChild();
+    [dartx.firstChild](...args) {
+      return this.firstChild.apply(this, args);
     }
-    [dartx.lastChild]() {
-      return this.lastChild();
+    [dartx.lastChild](...args) {
+      return this.lastChild.apply(this, args);
     }
-    [dartx.nextNode]() {
-      return this.nextNode();
+    [dartx.nextNode](...args) {
+      return this.nextNode.apply(this, args);
     }
-    [dartx.nextSibling]() {
-      return this.nextSibling();
+    [dartx.nextSibling](...args) {
+      return this.nextSibling.apply(this, args);
     }
-    [dartx.parentNode]() {
-      return this.parentNode();
+    [dartx.parentNode](...args) {
+      return this.parentNode.apply(this, args);
     }
-    [dartx.previousNode]() {
-      return this.previousNode();
+    [dartx.previousNode](...args) {
+      return this.previousNode.apply(this, args);
     }
-    [dartx.previousSibling]() {
-      return this.previousSibling();
+    [dartx.previousSibling](...args) {
+      return this.previousSibling.apply(this, args);
     }
   };
   dart.setSignature(html$.TreeWalker, {
@@ -75177,14 +75177,14 @@
     set [dartx.width](value) {
       this.width = value;
     }
-    [dartx.getVideoPlaybackQuality]() {
-      return this.getVideoPlaybackQuality();
+    [dartx.getVideoPlaybackQuality](...args) {
+      return this.getVideoPlaybackQuality.apply(this, args);
     }
-    [dartx.enterFullscreen]() {
-      return this.webkitEnterFullscreen();
+    [dartx.enterFullscreen](...args) {
+      return this.webkitEnterFullscreen.apply(this, args);
     }
-    [dartx.exitFullscreen]() {
-      return this.webkitExitFullscreen();
+    [dartx.exitFullscreen](...args) {
+      return this.webkitExitFullscreen.apply(this, args);
     }
   };
   dart.defineNamedConstructor(html$.VideoElement, 'created');
@@ -75301,11 +75301,11 @@
     get [dartx.selectedIndex]() {
       return this.selectedIndex;
     }
-    [__getter__](index) {
-      return this.__getter__(index);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [dartx.getTrackById](id) {
-      return this.getTrackById(id);
+    [dartx.getTrackById](...args) {
+      return this.getTrackById.apply(this, args);
     }
     get [dartx.onChange]() {
       return html$.VideoTrackList.changeEvent.forTarget(this);
@@ -75400,8 +75400,8 @@
     set [dartx.vertical](value) {
       this.vertical = value;
     }
-    [dartx.getCueAsHtml]() {
-      return this.getCueAsHTML();
+    [dartx.getCueAsHtml](...args) {
+      return this.getCueAsHTML.apply(this, args);
     }
   };
   dart.setSignature(html$.VttCue, {
@@ -75529,11 +75529,11 @@
     get [dartx.length]() {
       return this.length;
     }
-    [dartx.getRegionById](id) {
-      return this.getRegionById(id);
+    [dartx.getRegionById](...args) {
+      return this.getRegionById.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   dart.setSignature(html$.VttRegionList, {
@@ -75604,23 +75604,23 @@
     get [dartx.url]() {
       return this.url;
     }
-    [dartx.close](code, reason) {
-      return this.close(code, reason);
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
-    [dartx.send](data) {
-      return this.send(data);
+    [dartx.send](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.sendBlob](data) {
-      return this.send(data);
+    [dartx.sendBlob](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.sendByteBuffer](data) {
-      return this.send(data);
+    [dartx.sendByteBuffer](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.sendString](data) {
-      return this.send(data);
+    [dartx.sendString](...args) {
+      return this.send.apply(this, args);
     }
-    [dartx.sendTypedData](data) {
-      return this.send(data);
+    [dartx.sendTypedData](...args) {
+      return this.send.apply(this, args);
     }
     get [dartx.onClose]() {
       return html$.WebSocket.closeEvent.forTarget(this);
@@ -75791,14 +75791,14 @@
     get [_hasInitMouseScrollEvent]() {
       return !!this.initMouseScrollEvent;
     }
-    [_initMouseScrollEvent](type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget, axis) {
-      return this.initMouseScrollEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget, axis);
+    [_initMouseScrollEvent](...args) {
+      return this.initMouseScrollEvent.apply(this, args);
     }
     get [_hasInitWheelEvent]() {
       return !!this.initWheelEvent;
     }
-    [_initWheelEvent](eventType, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, button, relatedTarget, modifiersList, deltaX, deltaY, deltaZ, deltaMode) {
-      return this.initWheelEvent(eventType, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, button, relatedTarget, modifiersList, deltaX, deltaY, deltaZ, deltaMode);
+    [_initWheelEvent](...args) {
+      return this.initWheelEvent.apply(this, args);
     }
   };
   dart.setSignature(html$.WheelEvent, {
@@ -76060,11 +76060,11 @@
       this[_ensureRequestAnimationFrame]();
       this[_cancelAnimationFrame](id);
     }
-    [_requestAnimationFrame](callback) {
-      return this.requestAnimationFrame(callback);
+    [_requestAnimationFrame](...args) {
+      return this.requestAnimationFrame.apply(this, args);
     }
-    [_cancelAnimationFrame](id) {
-      return this.cancelAnimationFrame(id);
+    [_cancelAnimationFrame](...args) {
+      return this.cancelAnimationFrame.apply(this, args);
     }
     [_ensureRequestAnimationFrame]() {
       if (!!(this.requestAnimationFrame && this.cancelAnimationFrame)) return;
@@ -76257,20 +76257,20 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [__getter___1](index) {
-      return this.__getter__(index);
+    [__getter___1](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [__getter___2](name) {
-      return this.__getter__(name);
+    [__getter___2](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [dartx.alert](message) {
-      return this.alert(message);
+    [dartx.alert](...args) {
+      return this.alert.apply(this, args);
     }
-    [dartx.close]() {
-      return this.close();
+    [dartx.close](...args) {
+      return this.close.apply(this, args);
     }
-    [dartx.confirm](message) {
-      return this.confirm(message);
+    [dartx.confirm](...args) {
+      return this.confirm.apply(this, args);
     }
     [dartx.fetch](input, init) {
       if (init === void 0) init = null;
@@ -76280,35 +76280,35 @@
       }
       return this[_fetch_2](input);
     }
-    [_fetch_1](input, init) {
-      return this.fetch(input, init);
+    [_fetch_1](...args) {
+      return this.fetch.apply(this, args);
     }
-    [_fetch_2](input) {
-      return this.fetch(input);
+    [_fetch_2](...args) {
+      return this.fetch.apply(this, args);
     }
-    [dartx.find](string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog) {
-      return this.find(string, caseSensitive, backwards, wrap, wholeWord, searchInFrames, showDialog);
+    [dartx.find](...args) {
+      return this.find.apply(this, args);
     }
-    [_getComputedStyle](elt, pseudoElt) {
-      return this.getComputedStyle(elt, pseudoElt);
+    [_getComputedStyle](...args) {
+      return this.getComputedStyle.apply(this, args);
     }
-    [dartx.getMatchedCssRules](element, pseudoElement) {
-      return this.getMatchedCSSRules(element, pseudoElement);
+    [dartx.getMatchedCssRules](...args) {
+      return this.getMatchedCSSRules.apply(this, args);
     }
-    [dartx.getSelection]() {
-      return this.getSelection();
+    [dartx.getSelection](...args) {
+      return this.getSelection.apply(this, args);
     }
-    [dartx.matchMedia](query) {
-      return this.matchMedia(query);
+    [dartx.matchMedia](...args) {
+      return this.matchMedia.apply(this, args);
     }
-    [dartx.moveBy](x, y) {
-      return this.moveBy(x, y);
+    [dartx.moveBy](...args) {
+      return this.moveBy.apply(this, args);
     }
-    [_moveTo](x, y) {
-      return this.moveTo(x, y);
+    [_moveTo](...args) {
+      return this.moveTo.apply(this, args);
     }
-    [dartx.openDatabase](name, version, displayName, estimatedSize, creationCallback) {
-      return this.openDatabase(name, version, displayName, estimatedSize, creationCallback);
+    [dartx.openDatabase](...args) {
+      return this.openDatabase.apply(this, args);
     }
     [dartx.postMessage](message, targetOrigin, transfer) {
       if (transfer === void 0) transfer = null;
@@ -76321,20 +76321,20 @@
       this[_postMessage_2](message_1, targetOrigin);
       return;
     }
-    [_postMessage_1](message, targetOrigin, transfer) {
-      return this.postMessage(message, targetOrigin, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message, targetOrigin) {
-      return this.postMessage(message, targetOrigin);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [dartx.print]() {
-      return this.print();
+    [dartx.print](...args) {
+      return this.print.apply(this, args);
     }
-    [dartx.resizeBy](x, y) {
-      return this.resizeBy(x, y);
+    [dartx.resizeBy](...args) {
+      return this.resizeBy.apply(this, args);
     }
-    [dartx.resizeTo](x, y) {
-      return this.resizeTo(x, y);
+    [dartx.resizeTo](...args) {
+      return this.resizeTo.apply(this, args);
     }
     [dartx.scroll](options_OR_x, y, scrollOptions) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -76364,20 +76364,20 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scroll_1]() {
-      return this.scroll();
+    [_scroll_1](...args) {
+      return this.scroll.apply(this, args);
     }
-    [_scroll_2](options) {
-      return this.scroll(options);
+    [_scroll_2](...args) {
+      return this.scroll.apply(this, args);
     }
-    [_scroll_3](x, y) {
-      return this.scroll(x, y);
+    [_scroll_3](...args) {
+      return this.scroll.apply(this, args);
     }
-    [_scroll_4](x, y) {
-      return this.scroll(x, y);
+    [_scroll_4](...args) {
+      return this.scroll.apply(this, args);
     }
-    [_scroll_5](x, y, scrollOptions) {
-      return this.scroll(x, y, scrollOptions);
+    [_scroll_5](...args) {
+      return this.scroll.apply(this, args);
     }
     [dartx.scrollBy](options_OR_x, y, scrollOptions) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -76407,20 +76407,20 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scrollBy_1]() {
-      return this.scrollBy();
+    [_scrollBy_1](...args) {
+      return this.scrollBy.apply(this, args);
     }
-    [_scrollBy_2](options) {
-      return this.scrollBy(options);
+    [_scrollBy_2](...args) {
+      return this.scrollBy.apply(this, args);
     }
-    [_scrollBy_3](x, y) {
-      return this.scrollBy(x, y);
+    [_scrollBy_3](...args) {
+      return this.scrollBy.apply(this, args);
     }
-    [_scrollBy_4](x, y) {
-      return this.scrollBy(x, y);
+    [_scrollBy_4](...args) {
+      return this.scrollBy.apply(this, args);
     }
-    [_scrollBy_5](x, y, scrollOptions) {
-      return this.scrollBy(x, y, scrollOptions);
+    [_scrollBy_5](...args) {
+      return this.scrollBy.apply(this, args);
     }
     [dartx.scrollTo](options_OR_x, y, scrollOptions) {
       if (options_OR_x === void 0) options_OR_x = null;
@@ -76450,26 +76450,26 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_scrollTo_1]() {
-      return this.scrollTo();
+    [_scrollTo_1](...args) {
+      return this.scrollTo.apply(this, args);
     }
-    [_scrollTo_2](options) {
-      return this.scrollTo(options);
+    [_scrollTo_2](...args) {
+      return this.scrollTo.apply(this, args);
     }
-    [_scrollTo_3](x, y) {
-      return this.scrollTo(x, y);
+    [_scrollTo_3](...args) {
+      return this.scrollTo.apply(this, args);
     }
-    [_scrollTo_4](x, y) {
-      return this.scrollTo(x, y);
+    [_scrollTo_4](...args) {
+      return this.scrollTo.apply(this, args);
     }
-    [_scrollTo_5](x, y, scrollOptions) {
-      return this.scrollTo(x, y, scrollOptions);
+    [_scrollTo_5](...args) {
+      return this.scrollTo.apply(this, args);
     }
-    [dartx.stop]() {
-      return this.stop();
+    [dartx.stop](...args) {
+      return this.stop.apply(this, args);
     }
-    [__requestFileSystem](type, size, successCallback, errorCallback) {
-      return this.webkitRequestFileSystem(type, size, successCallback, errorCallback);
+    [__requestFileSystem](...args) {
+      return this.webkitRequestFileSystem.apply(this, args);
     }
     [_requestFileSystem](type, size) {
       let completer = CompleterOfFileSystem().new();
@@ -76480,8 +76480,8 @@
       }, FileErrorTovoid()));
       return completer.future;
     }
-    [_resolveLocalFileSystemUrl](url, successCallback, errorCallback) {
-      return this.webkitResolveLocalFileSystemURL(url, successCallback, errorCallback);
+    [_resolveLocalFileSystemUrl](...args) {
+      return this.webkitResolveLocalFileSystemURL.apply(this, args);
     }
     [dartx.resolveLocalFileSystemUrl](url) {
       let completer = CompleterOfEntry().new();
@@ -76492,29 +76492,29 @@
       }, FileErrorTovoid()));
       return completer.future;
     }
-    [dartx.atob](atob) {
-      return this.atob(atob);
+    [dartx.atob](...args) {
+      return this.atob.apply(this, args);
     }
-    [dartx.btoa](btoa) {
-      return this.btoa(btoa);
+    [dartx.btoa](...args) {
+      return this.btoa.apply(this, args);
     }
-    [_setInterval_String](handler, timeout, arguments$) {
-      return this.setInterval(handler, timeout, arguments$);
+    [_setInterval_String](...args) {
+      return this.setInterval.apply(this, args);
     }
-    [_setTimeout_String](handler, timeout, arguments$) {
-      return this.setTimeout(handler, timeout, arguments$);
+    [_setTimeout_String](...args) {
+      return this.setTimeout.apply(this, args);
     }
-    [_clearInterval](handle) {
-      return this.clearInterval(handle);
+    [_clearInterval](...args) {
+      return this.clearInterval.apply(this, args);
     }
-    [_clearTimeout](handle) {
-      return this.clearTimeout(handle);
+    [_clearTimeout](...args) {
+      return this.clearTimeout.apply(this, args);
     }
-    [_setInterval](handler, timeout) {
-      return this.setInterval(handler, timeout);
+    [_setInterval](...args) {
+      return this.setInterval.apply(this, args);
     }
-    [_setTimeout](handler, timeout) {
-      return this.setTimeout(handler, timeout);
+    [_setTimeout](...args) {
+      return this.setTimeout.apply(this, args);
     }
     get [dartx.onContentLoaded]() {
       return html$.Window.contentLoadedEvent.forTarget(this);
@@ -77228,8 +77228,8 @@
     get [dartx.visibilityState]() {
       return this.visibilityState;
     }
-    [dartx.focus]() {
-      return this.focus();
+    [dartx.focus](...args) {
+      return this.focus.apply(this, args);
     }
   };
   dart.setSignature(html$.WindowClient, {
@@ -77359,14 +77359,14 @@
       this[_postMessage_2](message_1);
       return;
     }
-    [_postMessage_1](message, transfer) {
-      return this.postMessage(message, transfer);
+    [_postMessage_1](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [_postMessage_2](message) {
-      return this.postMessage(message);
+    [_postMessage_2](...args) {
+      return this.postMessage.apply(this, args);
     }
-    [dartx.terminate]() {
-      return this.terminate();
+    [dartx.terminate](...args) {
+      return this.terminate.apply(this, args);
     }
     get [dartx.onError]() {
       return html$.Worker.errorEvent.forTarget(this);
@@ -77437,35 +77437,35 @@
     get [dartx.memory]() {
       return this.memory;
     }
-    [dartx.clearMarks](markName) {
-      return this.clearMarks(markName);
+    [dartx.clearMarks](...args) {
+      return this.clearMarks.apply(this, args);
     }
-    [dartx.clearMeasures](measureName) {
-      return this.clearMeasures(measureName);
+    [dartx.clearMeasures](...args) {
+      return this.clearMeasures.apply(this, args);
     }
-    [dartx.getEntries]() {
-      return this.getEntries();
+    [dartx.getEntries](...args) {
+      return this.getEntries.apply(this, args);
     }
-    [dartx.getEntriesByName](name, entryType) {
-      return this.getEntriesByName(name, entryType);
+    [dartx.getEntriesByName](...args) {
+      return this.getEntriesByName.apply(this, args);
     }
-    [dartx.getEntriesByType](entryType) {
-      return this.getEntriesByType(entryType);
+    [dartx.getEntriesByType](...args) {
+      return this.getEntriesByType.apply(this, args);
     }
-    [dartx.mark](markName) {
-      return this.mark(markName);
+    [dartx.mark](...args) {
+      return this.mark.apply(this, args);
     }
-    [dartx.measure](measureName, startMark, endMark) {
-      return this.measure(measureName, startMark, endMark);
+    [dartx.measure](...args) {
+      return this.measure.apply(this, args);
     }
-    [dartx.now]() {
-      return this.now();
+    [dartx.now](...args) {
+      return this.now.apply(this, args);
     }
-    [dartx.clearResourceTimings]() {
-      return this.webkitClearResourceTimings();
+    [dartx.clearResourceTimings](...args) {
+      return this.webkitClearResourceTimings.apply(this, args);
     }
-    [dartx.setResourceTimingBufferSize](maxSize) {
-      return this.webkitSetResourceTimingBufferSize(maxSize);
+    [dartx.setResourceTimingBufferSize](...args) {
+      return this.webkitSetResourceTimingBufferSize.apply(this, args);
     }
   };
   dart.setSignature(html$.WorkerPerformance, {
@@ -77500,14 +77500,14 @@
     static _create_1() {
       return new XPathEvaluator();
     }
-    [dartx.createExpression](expression, resolver) {
-      return this.createExpression(expression, resolver);
+    [dartx.createExpression](...args) {
+      return this.createExpression.apply(this, args);
     }
-    [dartx.createNSResolver](nodeResolver) {
-      return this.createNSResolver(nodeResolver);
+    [dartx.createNSResolver](...args) {
+      return this.createNSResolver.apply(this, args);
     }
-    [dartx.evaluate](expression, contextNode, resolver, type, inResult) {
-      return this.evaluate(expression, contextNode, resolver, type, inResult);
+    [dartx.evaluate](...args) {
+      return this.evaluate.apply(this, args);
     }
   };
   dart.setSignature(html$.XPathEvaluator, {
@@ -77531,8 +77531,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.evaluate](contextNode, type, inResult) {
-      return this.evaluate(contextNode, type, inResult);
+    [dartx.evaluate](...args) {
+      return this.evaluate.apply(this, args);
     }
   };
   dart.setSignature(html$.XPathExpression, {
@@ -77547,8 +77547,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.lookupNamespaceUri](prefix) {
-      return this.lookupNamespaceURI(prefix);
+    [dartx.lookupNamespaceUri](...args) {
+      return this.lookupNamespaceURI.apply(this, args);
     }
   };
   dart.setSignature(html$.XPathNSResolver, {
@@ -77592,11 +77592,11 @@
     get [dartx.stringValue]() {
       return this.stringValue;
     }
-    [dartx.iterateNext]() {
-      return this.iterateNext();
+    [dartx.iterateNext](...args) {
+      return this.iterateNext.apply(this, args);
     }
-    [dartx.snapshotItem](index) {
-      return this.snapshotItem(index);
+    [dartx.snapshotItem](...args) {
+      return this.snapshotItem.apply(this, args);
     }
   };
   dart.setSignature(html$.XPathResult, {
@@ -77660,8 +77660,8 @@
     static _create_1() {
       return new XMLSerializer();
     }
-    [dartx.serializeToString](root) {
-      return this.serializeToString(root);
+    [dartx.serializeToString](...args) {
+      return this.serializeToString.apply(this, args);
     }
   };
   dart.setSignature(html$.XmlSerializer, {
@@ -77697,29 +77697,29 @@
     static get supported() {
       return !!window.XSLTProcessor;
     }
-    [dartx.clearParameters]() {
-      return this.clearParameters();
+    [dartx.clearParameters](...args) {
+      return this.clearParameters.apply(this, args);
     }
-    [dartx.getParameter](namespaceURI, localName) {
-      return this.getParameter(namespaceURI, localName);
+    [dartx.getParameter](...args) {
+      return this.getParameter.apply(this, args);
     }
-    [dartx.importStylesheet](style) {
-      return this.importStylesheet(style);
+    [dartx.importStylesheet](...args) {
+      return this.importStylesheet.apply(this, args);
     }
-    [dartx.removeParameter](namespaceURI, localName) {
-      return this.removeParameter(namespaceURI, localName);
+    [dartx.removeParameter](...args) {
+      return this.removeParameter.apply(this, args);
     }
-    [dartx.reset]() {
-      return this.reset();
+    [dartx.reset](...args) {
+      return this.reset.apply(this, args);
     }
-    [dartx.setParameter](namespaceURI, localName, value) {
-      return this.setParameter(namespaceURI, localName, value);
+    [dartx.setParameter](...args) {
+      return this.setParameter.apply(this, args);
     }
-    [dartx.transformToDocument](source) {
-      return this.transformToDocument(source);
+    [dartx.transformToDocument](...args) {
+      return this.transformToDocument.apply(this, args);
     }
-    [dartx.transformToFragment](source, output) {
-      return this.transformToFragment(source, output);
+    [dartx.transformToFragment](...args) {
+      return this.transformToFragment.apply(this, args);
     }
   };
   dart.setSignature(html$.XsltProcessor, {
@@ -77984,11 +77984,11 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [__getter__](index) {
-      return this.__getter__(index);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$._ClientRectList[dart.implements] = () => [ListOfRectangleOfnum()];
@@ -78064,8 +78064,8 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$._CssRuleList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfCssRule()];
@@ -78317,8 +78317,8 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$._GamepadList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfGamepad()];
@@ -78343,8 +78343,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [_item](index) {
-      return this.item(index);
+    [_item](...args) {
+      return this.item.apply(this, args);
     }
   };
   dart.setSignature(html$._HTMLAllCollection, {
@@ -78508,26 +78508,26 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.getNamedItem](name) {
-      return this.getNamedItem(name);
+    [dartx.getNamedItem](...args) {
+      return this.getNamedItem.apply(this, args);
     }
-    [dartx.getNamedItemNS](namespaceURI, localName) {
-      return this.getNamedItemNS(namespaceURI, localName);
+    [dartx.getNamedItemNS](...args) {
+      return this.getNamedItemNS.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
-    [dartx.removeNamedItem](name) {
-      return this.removeNamedItem(name);
+    [dartx.removeNamedItem](...args) {
+      return this.removeNamedItem.apply(this, args);
     }
-    [dartx.removeNamedItemNS](namespaceURI, localName) {
-      return this.removeNamedItemNS(namespaceURI, localName);
+    [dartx.removeNamedItemNS](...args) {
+      return this.removeNamedItemNS.apply(this, args);
     }
-    [dartx.setNamedItem](attr) {
-      return this.setNamedItem(attr);
+    [dartx.setNamedItem](...args) {
+      return this.setNamedItem.apply(this, args);
     }
-    [dartx.setNamedItemNS](attr) {
-      return this.setNamedItemNS(attr);
+    [dartx.setNamedItemNS](...args) {
+      return this.setNamedItemNS.apply(this, args);
     }
   };
   html$._NamedNodeMap[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfNode()];
@@ -78609,8 +78609,8 @@
     get [dartx.url]() {
       return this.url;
     }
-    [dartx.clone]() {
-      return this.clone();
+    [dartx.clone](...args) {
+      return this.clone.apply(this, args);
     }
   };
   dart.setSignature(html$._Request, {
@@ -78736,8 +78736,8 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$._SpeechRecognitionResultList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfSpeechRecognitionResult()];
@@ -78811,11 +78811,11 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [__getter__](name) {
-      return this.__getter__(name);
+    [__getter__](...args) {
+      return this.__getter__.apply(this, args);
     }
-    [dartx.item](index) {
-      return this.item(index);
+    [dartx.item](...args) {
+      return this.item.apply(this, args);
     }
   };
   html$._StyleSheetList[dart.implements] = () => [_js_helper.JavaScriptIndexingBehavior, ListOfStyleSheet()];
@@ -84007,11 +84007,11 @@
     get [dartx.viewportElement]() {
       return this.viewportElement;
     }
-    [dartx.blur]() {
-      return this.blur();
+    [dartx.blur](...args) {
+      return this.blur.apply(this, args);
     }
-    [dartx.focus]() {
-      return this.focus();
+    [dartx.focus](...args) {
+      return this.focus.apply(this, args);
     }
     get [dartx.onAbort]() {
       return svg$.SvgElement.abortEvent.forElement(this);
@@ -84440,17 +84440,17 @@
     get [dartx.transform]() {
       return this.transform;
     }
-    [dartx.getBBox]() {
-      return this.getBBox();
+    [dartx.getBBox](...args) {
+      return this.getBBox.apply(this, args);
     }
-    [dartx.getCtm]() {
-      return this.getCTM();
+    [dartx.getCtm](...args) {
+      return this.getCTM.apply(this, args);
     }
-    [dartx.getScreenCtm]() {
-      return this.getScreenCTM();
+    [dartx.getScreenCtm](...args) {
+      return this.getScreenCTM.apply(this, args);
     }
-    [dartx.getTransformToElement](element) {
-      return this.getTransformToElement(element);
+    [dartx.getTransformToElement](...args) {
+      return this.getTransformToElement.apply(this, args);
     }
     get [dartx.requiredExtensions]() {
       return this.requiredExtensions;
@@ -84461,8 +84461,8 @@
     get [dartx.systemLanguage]() {
       return this.systemLanguage;
     }
-    [dartx.hasExtension](extension) {
-      return this.hasExtension(extension);
+    [dartx.hasExtension](...args) {
+      return this.hasExtension.apply(this, args);
     }
   };
   dart.defineNamedConstructor(svg$.GraphicsElement, 'created');
@@ -84559,11 +84559,11 @@
     set [dartx.valueInSpecifiedUnits](value) {
       this.valueInSpecifiedUnits = value;
     }
-    [dartx.convertToSpecifiedUnits](unitType) {
-      return this.convertToSpecifiedUnits(unitType);
+    [dartx.convertToSpecifiedUnits](...args) {
+      return this.convertToSpecifiedUnits.apply(this, args);
     }
-    [dartx.newValueSpecifiedUnits](unitType, valueInSpecifiedUnits) {
-      return this.newValueSpecifiedUnits(unitType, valueInSpecifiedUnits);
+    [dartx.newValueSpecifiedUnits](...args) {
+      return this.newValueSpecifiedUnits.apply(this, args);
     }
   };
   dart.setSignature(svg$.Angle, {
@@ -84623,26 +84623,26 @@
     get [dartx.targetElement]() {
       return this.targetElement;
     }
-    [dartx.beginElement]() {
-      return this.beginElement();
+    [dartx.beginElement](...args) {
+      return this.beginElement.apply(this, args);
     }
-    [dartx.beginElementAt](offset) {
-      return this.beginElementAt(offset);
+    [dartx.beginElementAt](...args) {
+      return this.beginElementAt.apply(this, args);
     }
-    [dartx.endElement]() {
-      return this.endElement();
+    [dartx.endElement](...args) {
+      return this.endElement.apply(this, args);
     }
-    [dartx.endElementAt](offset) {
-      return this.endElementAt(offset);
+    [dartx.endElementAt](...args) {
+      return this.endElementAt.apply(this, args);
     }
-    [dartx.getCurrentTime]() {
-      return this.getCurrentTime();
+    [dartx.getCurrentTime](...args) {
+      return this.getCurrentTime.apply(this, args);
     }
-    [dartx.getSimpleDuration]() {
-      return this.getSimpleDuration();
+    [dartx.getSimpleDuration](...args) {
+      return this.getSimpleDuration.apply(this, args);
     }
-    [dartx.getStartTime]() {
-      return this.getStartTime();
+    [dartx.getStartTime](...args) {
+      return this.getStartTime.apply(this, args);
     }
     get [dartx.requiredExtensions]() {
       return this.requiredExtensions;
@@ -84653,8 +84653,8 @@
     get [dartx.systemLanguage]() {
       return this.systemLanguage;
     }
-    [dartx.hasExtension](extension) {
-      return this.hasExtension(extension);
+    [dartx.hasExtension](...args) {
+      return this.hasExtension.apply(this, args);
     }
   };
   dart.defineNamedConstructor(svg$.AnimationElement, 'created');
@@ -85057,11 +85057,11 @@
     created() {
       super.created();
     }
-    [dartx.isPointInFill](point) {
-      return this.isPointInFill(point);
+    [dartx.isPointInFill](...args) {
+      return this.isPointInFill.apply(this, args);
     }
-    [dartx.isPointInStroke](point) {
-      return this.isPointInStroke(point);
+    [dartx.isPointInStroke](...args) {
+      return this.isPointInStroke.apply(this, args);
     }
   };
   dart.defineNamedConstructor(svg$.GeometryElement, 'created');
@@ -86187,8 +86187,8 @@
     get [dartx.stdDeviationY]() {
       return this.stdDeviationY;
     }
-    [dartx.setStdDeviation](stdDeviationX, stdDeviationY) {
-      return this.setStdDeviation(stdDeviationX, stdDeviationY);
+    [dartx.setStdDeviation](...args) {
+      return this.setStdDeviation.apply(this, args);
     }
     get [dartx.height]() {
       return this.height;
@@ -87273,11 +87273,11 @@
     set [dartx.valueInSpecifiedUnits](value) {
       this.valueInSpecifiedUnits = value;
     }
-    [dartx.convertToSpecifiedUnits](unitType) {
-      return this.convertToSpecifiedUnits(unitType);
+    [dartx.convertToSpecifiedUnits](...args) {
+      return this.convertToSpecifiedUnits.apply(this, args);
     }
-    [dartx.newValueSpecifiedUnits](unitType, valueInSpecifiedUnits) {
-      return this.newValueSpecifiedUnits(unitType, valueInSpecifiedUnits);
+    [dartx.newValueSpecifiedUnits](...args) {
+      return this.newValueSpecifiedUnits.apply(this, args);
     }
   };
   dart.setSignature(svg$.Length, {
@@ -87382,29 +87382,29 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [__setter__$](index, newItem) {
-      return this.__setter__(index, newItem);
+    [__setter__$](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [dartx.appendItem](newItem) {
-      return this.appendItem(newItem);
+    [dartx.appendItem](...args) {
+      return this.appendItem.apply(this, args);
     }
-    [dartx.clear]() {
-      return this.clear();
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.getItem](index) {
-      return this.getItem(index);
+    [dartx.getItem](...args) {
+      return this.getItem.apply(this, args);
     }
-    [dartx.initialize](newItem) {
-      return this.initialize(newItem);
+    [dartx.initialize](...args) {
+      return this.initialize.apply(this, args);
     }
-    [dartx.insertItemBefore](newItem, index) {
-      return this.insertItemBefore(newItem, index);
+    [dartx.insertItemBefore](...args) {
+      return this.insertItemBefore.apply(this, args);
     }
-    [dartx.removeItem](index) {
-      return this.removeItem(index);
+    [dartx.removeItem](...args) {
+      return this.removeItem.apply(this, args);
     }
-    [dartx.replaceItem](newItem, index) {
-      return this.replaceItem(newItem, index);
+    [dartx.replaceItem](...args) {
+      return this.replaceItem.apply(this, args);
     }
   };
   svg$.LengthList[dart.implements] = () => [ListOfLength()];
@@ -87636,11 +87636,11 @@
     get [dartx.refY]() {
       return this.refY;
     }
-    [dartx.setOrientToAngle](angle) {
-      return this.setOrientToAngle(angle);
+    [dartx.setOrientToAngle](...args) {
+      return this.setOrientToAngle.apply(this, args);
     }
-    [dartx.setOrientToAuto]() {
-      return this.setOrientToAuto();
+    [dartx.setOrientToAuto](...args) {
+      return this.setOrientToAuto.apply(this, args);
     }
     get [dartx.preserveAspectRatio]() {
       return this.preserveAspectRatio;
@@ -87746,8 +87746,8 @@
     get [dartx.systemLanguage]() {
       return this.systemLanguage;
     }
-    [dartx.hasExtension](extension) {
-      return this.hasExtension(extension);
+    [dartx.hasExtension](...args) {
+      return this.hasExtension.apply(this, args);
     }
   };
   dart.defineNamedConstructor(svg$.MaskElement, 'created');
@@ -87831,38 +87831,38 @@
     set [dartx.f](value) {
       this.f = value;
     }
-    [dartx.flipX]() {
-      return this.flipX();
+    [dartx.flipX](...args) {
+      return this.flipX.apply(this, args);
     }
-    [dartx.flipY]() {
-      return this.flipY();
+    [dartx.flipY](...args) {
+      return this.flipY.apply(this, args);
     }
-    [dartx.inverse]() {
-      return this.inverse();
+    [dartx.inverse](...args) {
+      return this.inverse.apply(this, args);
     }
-    [dartx.multiply](secondMatrix) {
-      return this.multiply(secondMatrix);
+    [dartx.multiply](...args) {
+      return this.multiply.apply(this, args);
     }
-    [dartx.rotate](angle) {
-      return this.rotate(angle);
+    [dartx.rotate](...args) {
+      return this.rotate.apply(this, args);
     }
-    [dartx.rotateFromVector](x, y) {
-      return this.rotateFromVector(x, y);
+    [dartx.rotateFromVector](...args) {
+      return this.rotateFromVector.apply(this, args);
     }
-    [dartx.scale](scaleFactor) {
-      return this.scale(scaleFactor);
+    [dartx.scale](...args) {
+      return this.scale.apply(this, args);
     }
-    [dartx.scaleNonUniform](scaleFactorX, scaleFactorY) {
-      return this.scaleNonUniform(scaleFactorX, scaleFactorY);
+    [dartx.scaleNonUniform](...args) {
+      return this.scaleNonUniform.apply(this, args);
     }
-    [dartx.skewX](angle) {
-      return this.skewX(angle);
+    [dartx.skewX](...args) {
+      return this.skewX.apply(this, args);
     }
-    [dartx.skewY](angle) {
-      return this.skewY(angle);
+    [dartx.skewY](...args) {
+      return this.skewY.apply(this, args);
     }
-    [dartx.translate](x, y) {
-      return this.translate(x, y);
+    [dartx.translate](...args) {
+      return this.translate.apply(this, args);
     }
   };
   dart.setSignature(svg$.Matrix, {
@@ -87988,29 +87988,29 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [__setter__$](index, newItem) {
-      return this.__setter__(index, newItem);
+    [__setter__$](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [dartx.appendItem](newItem) {
-      return this.appendItem(newItem);
+    [dartx.appendItem](...args) {
+      return this.appendItem.apply(this, args);
     }
-    [dartx.clear]() {
-      return this.clear();
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.getItem](index) {
-      return this.getItem(index);
+    [dartx.getItem](...args) {
+      return this.getItem.apply(this, args);
     }
-    [dartx.initialize](newItem) {
-      return this.initialize(newItem);
+    [dartx.initialize](...args) {
+      return this.initialize.apply(this, args);
     }
-    [dartx.insertItemBefore](newItem, index) {
-      return this.insertItemBefore(newItem, index);
+    [dartx.insertItemBefore](...args) {
+      return this.insertItemBefore.apply(this, args);
     }
-    [dartx.removeItem](index) {
-      return this.removeItem(index);
+    [dartx.removeItem](...args) {
+      return this.removeItem.apply(this, args);
     }
-    [dartx.replaceItem](newItem, index) {
-      return this.replaceItem(newItem, index);
+    [dartx.replaceItem](...args) {
+      return this.replaceItem.apply(this, args);
     }
   };
   svg$.NumberList[dart.implements] = () => [ListOfNumber()];
@@ -88097,71 +88097,71 @@
     get [dartx.pathSegList]() {
       return this.pathSegList;
     }
-    [dartx.createSvgPathSegArcAbs](x, y, r1, r2, angle, largeArcFlag, sweepFlag) {
-      return this.createSVGPathSegArcAbs(x, y, r1, r2, angle, largeArcFlag, sweepFlag);
+    [dartx.createSvgPathSegArcAbs](...args) {
+      return this.createSVGPathSegArcAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegArcRel](x, y, r1, r2, angle, largeArcFlag, sweepFlag) {
-      return this.createSVGPathSegArcRel(x, y, r1, r2, angle, largeArcFlag, sweepFlag);
+    [dartx.createSvgPathSegArcRel](...args) {
+      return this.createSVGPathSegArcRel.apply(this, args);
     }
-    [dartx.createSvgPathSegClosePath]() {
-      return this.createSVGPathSegClosePath();
+    [dartx.createSvgPathSegClosePath](...args) {
+      return this.createSVGPathSegClosePath.apply(this, args);
     }
-    [dartx.createSvgPathSegCurvetoCubicAbs](x, y, x1, y1, x2, y2) {
-      return this.createSVGPathSegCurvetoCubicAbs(x, y, x1, y1, x2, y2);
+    [dartx.createSvgPathSegCurvetoCubicAbs](...args) {
+      return this.createSVGPathSegCurvetoCubicAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegCurvetoCubicRel](x, y, x1, y1, x2, y2) {
-      return this.createSVGPathSegCurvetoCubicRel(x, y, x1, y1, x2, y2);
+    [dartx.createSvgPathSegCurvetoCubicRel](...args) {
+      return this.createSVGPathSegCurvetoCubicRel.apply(this, args);
     }
-    [dartx.createSvgPathSegCurvetoCubicSmoothAbs](x, y, x2, y2) {
-      return this.createSVGPathSegCurvetoCubicSmoothAbs(x, y, x2, y2);
+    [dartx.createSvgPathSegCurvetoCubicSmoothAbs](...args) {
+      return this.createSVGPathSegCurvetoCubicSmoothAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegCurvetoCubicSmoothRel](x, y, x2, y2) {
-      return this.createSVGPathSegCurvetoCubicSmoothRel(x, y, x2, y2);
+    [dartx.createSvgPathSegCurvetoCubicSmoothRel](...args) {
+      return this.createSVGPathSegCurvetoCubicSmoothRel.apply(this, args);
     }
-    [dartx.createSvgPathSegCurvetoQuadraticAbs](x, y, x1, y1) {
-      return this.createSVGPathSegCurvetoQuadraticAbs(x, y, x1, y1);
+    [dartx.createSvgPathSegCurvetoQuadraticAbs](...args) {
+      return this.createSVGPathSegCurvetoQuadraticAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegCurvetoQuadraticRel](x, y, x1, y1) {
-      return this.createSVGPathSegCurvetoQuadraticRel(x, y, x1, y1);
+    [dartx.createSvgPathSegCurvetoQuadraticRel](...args) {
+      return this.createSVGPathSegCurvetoQuadraticRel.apply(this, args);
     }
-    [dartx.createSvgPathSegCurvetoQuadraticSmoothAbs](x, y) {
-      return this.createSVGPathSegCurvetoQuadraticSmoothAbs(x, y);
+    [dartx.createSvgPathSegCurvetoQuadraticSmoothAbs](...args) {
+      return this.createSVGPathSegCurvetoQuadraticSmoothAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegCurvetoQuadraticSmoothRel](x, y) {
-      return this.createSVGPathSegCurvetoQuadraticSmoothRel(x, y);
+    [dartx.createSvgPathSegCurvetoQuadraticSmoothRel](...args) {
+      return this.createSVGPathSegCurvetoQuadraticSmoothRel.apply(this, args);
     }
-    [dartx.createSvgPathSegLinetoAbs](x, y) {
-      return this.createSVGPathSegLinetoAbs(x, y);
+    [dartx.createSvgPathSegLinetoAbs](...args) {
+      return this.createSVGPathSegLinetoAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegLinetoHorizontalAbs](x) {
-      return this.createSVGPathSegLinetoHorizontalAbs(x);
+    [dartx.createSvgPathSegLinetoHorizontalAbs](...args) {
+      return this.createSVGPathSegLinetoHorizontalAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegLinetoHorizontalRel](x) {
-      return this.createSVGPathSegLinetoHorizontalRel(x);
+    [dartx.createSvgPathSegLinetoHorizontalRel](...args) {
+      return this.createSVGPathSegLinetoHorizontalRel.apply(this, args);
     }
-    [dartx.createSvgPathSegLinetoRel](x, y) {
-      return this.createSVGPathSegLinetoRel(x, y);
+    [dartx.createSvgPathSegLinetoRel](...args) {
+      return this.createSVGPathSegLinetoRel.apply(this, args);
     }
-    [dartx.createSvgPathSegLinetoVerticalAbs](y) {
-      return this.createSVGPathSegLinetoVerticalAbs(y);
+    [dartx.createSvgPathSegLinetoVerticalAbs](...args) {
+      return this.createSVGPathSegLinetoVerticalAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegLinetoVerticalRel](y) {
-      return this.createSVGPathSegLinetoVerticalRel(y);
+    [dartx.createSvgPathSegLinetoVerticalRel](...args) {
+      return this.createSVGPathSegLinetoVerticalRel.apply(this, args);
     }
-    [dartx.createSvgPathSegMovetoAbs](x, y) {
-      return this.createSVGPathSegMovetoAbs(x, y);
+    [dartx.createSvgPathSegMovetoAbs](...args) {
+      return this.createSVGPathSegMovetoAbs.apply(this, args);
     }
-    [dartx.createSvgPathSegMovetoRel](x, y) {
-      return this.createSVGPathSegMovetoRel(x, y);
+    [dartx.createSvgPathSegMovetoRel](...args) {
+      return this.createSVGPathSegMovetoRel.apply(this, args);
     }
-    [dartx.getPathSegAtLength](distance) {
-      return this.getPathSegAtLength(distance);
+    [dartx.getPathSegAtLength](...args) {
+      return this.getPathSegAtLength.apply(this, args);
     }
-    [dartx.getPointAtLength](distance) {
-      return this.getPointAtLength(distance);
+    [dartx.getPointAtLength](...args) {
+      return this.getPointAtLength.apply(this, args);
     }
-    [dartx.getTotalLength]() {
-      return this.getTotalLength();
+    [dartx.getTotalLength](...args) {
+      return this.getTotalLength.apply(this, args);
     }
   };
   dart.defineNamedConstructor(svg$.PathElement, 'created');
@@ -88973,29 +88973,29 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [__setter__$](index, newItem) {
-      return this.__setter__(index, newItem);
+    [__setter__$](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [dartx.appendItem](newItem) {
-      return this.appendItem(newItem);
+    [dartx.appendItem](...args) {
+      return this.appendItem.apply(this, args);
     }
-    [dartx.clear]() {
-      return this.clear();
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.getItem](index) {
-      return this.getItem(index);
+    [dartx.getItem](...args) {
+      return this.getItem.apply(this, args);
     }
-    [dartx.initialize](newItem) {
-      return this.initialize(newItem);
+    [dartx.initialize](...args) {
+      return this.initialize.apply(this, args);
     }
-    [dartx.insertItemBefore](newItem, index) {
-      return this.insertItemBefore(newItem, index);
+    [dartx.insertItemBefore](...args) {
+      return this.insertItemBefore.apply(this, args);
     }
-    [dartx.removeItem](index) {
-      return this.removeItem(index);
+    [dartx.removeItem](...args) {
+      return this.removeItem.apply(this, args);
     }
-    [dartx.replaceItem](newItem, index) {
-      return this.replaceItem(newItem, index);
+    [dartx.replaceItem](...args) {
+      return this.replaceItem.apply(this, args);
     }
   };
   svg$.PathSegList[dart.implements] = () => [ListOfPathSeg()];
@@ -89156,8 +89156,8 @@
     get [dartx.systemLanguage]() {
       return this.systemLanguage;
     }
-    [dartx.hasExtension](extension) {
-      return this.hasExtension(extension);
+    [dartx.hasExtension](...args) {
+      return this.hasExtension.apply(this, args);
     }
     get [dartx.href]() {
       return this.href;
@@ -89210,8 +89210,8 @@
     set [dartx.y](value) {
       this.y = value;
     }
-    [dartx.matrixTransform](matrix) {
-      return this.matrixTransform(matrix);
+    [dartx.matrixTransform](...args) {
+      return this.matrixTransform.apply(this, args);
     }
   };
   dart.setSignature(svg$.Point, {
@@ -89244,29 +89244,29 @@
     get [dartx.numberOfItems]() {
       return this.numberOfItems;
     }
-    [__setter__$](index, newItem) {
-      return this.__setter__(index, newItem);
+    [__setter__$](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [dartx.appendItem](newItem) {
-      return this.appendItem(newItem);
+    [dartx.appendItem](...args) {
+      return this.appendItem.apply(this, args);
     }
-    [dartx.clear]() {
-      return this.clear();
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.getItem](index) {
-      return this.getItem(index);
+    [dartx.getItem](...args) {
+      return this.getItem.apply(this, args);
     }
-    [dartx.initialize](newItem) {
-      return this.initialize(newItem);
+    [dartx.initialize](...args) {
+      return this.initialize.apply(this, args);
     }
-    [dartx.insertItemBefore](newItem, index) {
-      return this.insertItemBefore(newItem, index);
+    [dartx.insertItemBefore](...args) {
+      return this.insertItemBefore.apply(this, args);
     }
-    [dartx.removeItem](index) {
-      return this.removeItem(index);
+    [dartx.removeItem](...args) {
+      return this.removeItem.apply(this, args);
     }
-    [dartx.replaceItem](newItem, index) {
-      return this.replaceItem(newItem, index);
+    [dartx.replaceItem](...args) {
+      return this.replaceItem.apply(this, args);
     }
   };
   dart.setSignature(svg$.PointList, {
@@ -89738,29 +89738,29 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [__setter__$](index, newItem) {
-      return this.__setter__(index, newItem);
+    [__setter__$](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [dartx.appendItem](newItem) {
-      return this.appendItem(newItem);
+    [dartx.appendItem](...args) {
+      return this.appendItem.apply(this, args);
     }
-    [dartx.clear]() {
-      return this.clear();
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.getItem](index) {
-      return this.getItem(index);
+    [dartx.getItem](...args) {
+      return this.getItem.apply(this, args);
     }
-    [dartx.initialize](newItem) {
-      return this.initialize(newItem);
+    [dartx.initialize](...args) {
+      return this.initialize.apply(this, args);
     }
-    [dartx.insertItemBefore](item, index) {
-      return this.insertItemBefore(item, index);
+    [dartx.insertItemBefore](...args) {
+      return this.insertItemBefore.apply(this, args);
     }
-    [dartx.removeItem](index) {
-      return this.removeItem(index);
+    [dartx.removeItem](...args) {
+      return this.removeItem.apply(this, args);
     }
-    [dartx.replaceItem](newItem, index) {
-      return this.replaceItem(newItem, index);
+    [dartx.replaceItem](...args) {
+      return this.replaceItem.apply(this, args);
     }
   };
   svg$.StringList[dart.implements] = () => [ListOfString()];
@@ -89987,74 +89987,74 @@
     get [dartx.y]() {
       return this.y;
     }
-    [dartx.animationsPaused]() {
-      return this.animationsPaused();
+    [dartx.animationsPaused](...args) {
+      return this.animationsPaused.apply(this, args);
     }
-    [dartx.checkEnclosure](element, rect) {
-      return this.checkEnclosure(element, rect);
+    [dartx.checkEnclosure](...args) {
+      return this.checkEnclosure.apply(this, args);
     }
-    [dartx.checkIntersection](element, rect) {
-      return this.checkIntersection(element, rect);
+    [dartx.checkIntersection](...args) {
+      return this.checkIntersection.apply(this, args);
     }
-    [dartx.createSvgAngle]() {
-      return this.createSVGAngle();
+    [dartx.createSvgAngle](...args) {
+      return this.createSVGAngle.apply(this, args);
     }
-    [dartx.createSvgLength]() {
-      return this.createSVGLength();
+    [dartx.createSvgLength](...args) {
+      return this.createSVGLength.apply(this, args);
     }
-    [dartx.createSvgMatrix]() {
-      return this.createSVGMatrix();
+    [dartx.createSvgMatrix](...args) {
+      return this.createSVGMatrix.apply(this, args);
     }
-    [dartx.createSvgNumber]() {
-      return this.createSVGNumber();
+    [dartx.createSvgNumber](...args) {
+      return this.createSVGNumber.apply(this, args);
     }
-    [dartx.createSvgPoint]() {
-      return this.createSVGPoint();
+    [dartx.createSvgPoint](...args) {
+      return this.createSVGPoint.apply(this, args);
     }
-    [dartx.createSvgRect]() {
-      return this.createSVGRect();
+    [dartx.createSvgRect](...args) {
+      return this.createSVGRect.apply(this, args);
     }
-    [dartx.createSvgTransform]() {
-      return this.createSVGTransform();
+    [dartx.createSvgTransform](...args) {
+      return this.createSVGTransform.apply(this, args);
     }
-    [dartx.createSvgTransformFromMatrix](matrix) {
-      return this.createSVGTransformFromMatrix(matrix);
+    [dartx.createSvgTransformFromMatrix](...args) {
+      return this.createSVGTransformFromMatrix.apply(this, args);
     }
-    [dartx.deselectAll]() {
-      return this.deselectAll();
+    [dartx.deselectAll](...args) {
+      return this.deselectAll.apply(this, args);
     }
-    [dartx.forceRedraw]() {
-      return this.forceRedraw();
+    [dartx.forceRedraw](...args) {
+      return this.forceRedraw.apply(this, args);
     }
-    [dartx.getCurrentTime]() {
-      return this.getCurrentTime();
+    [dartx.getCurrentTime](...args) {
+      return this.getCurrentTime.apply(this, args);
     }
-    [dartx.getElementById](elementId) {
-      return this.getElementById(elementId);
+    [dartx.getElementById](...args) {
+      return this.getElementById.apply(this, args);
     }
-    [dartx.getEnclosureList](rect, referenceElement) {
-      return this.getEnclosureList(rect, referenceElement);
+    [dartx.getEnclosureList](...args) {
+      return this.getEnclosureList.apply(this, args);
     }
-    [dartx.getIntersectionList](rect, referenceElement) {
-      return this.getIntersectionList(rect, referenceElement);
+    [dartx.getIntersectionList](...args) {
+      return this.getIntersectionList.apply(this, args);
     }
-    [dartx.pauseAnimations]() {
-      return this.pauseAnimations();
+    [dartx.pauseAnimations](...args) {
+      return this.pauseAnimations.apply(this, args);
     }
-    [dartx.setCurrentTime](seconds) {
-      return this.setCurrentTime(seconds);
+    [dartx.setCurrentTime](...args) {
+      return this.setCurrentTime.apply(this, args);
     }
-    [dartx.suspendRedraw](maxWaitMilliseconds) {
-      return this.suspendRedraw(maxWaitMilliseconds);
+    [dartx.suspendRedraw](...args) {
+      return this.suspendRedraw.apply(this, args);
     }
-    [dartx.unpauseAnimations]() {
-      return this.unpauseAnimations();
+    [dartx.unpauseAnimations](...args) {
+      return this.unpauseAnimations.apply(this, args);
     }
-    [dartx.unsuspendRedraw](suspendHandleId) {
-      return this.unsuspendRedraw(suspendHandleId);
+    [dartx.unsuspendRedraw](...args) {
+      return this.unsuspendRedraw.apply(this, args);
     }
-    [dartx.unsuspendRedrawAll]() {
-      return this.unsuspendRedrawAll();
+    [dartx.unsuspendRedrawAll](...args) {
+      return this.unsuspendRedrawAll.apply(this, args);
     }
     get [dartx.preserveAspectRatio]() {
       return this.preserveAspectRatio;
@@ -90207,32 +90207,32 @@
     get [dartx.textLength]() {
       return this.textLength;
     }
-    [dartx.getCharNumAtPosition](point) {
-      return this.getCharNumAtPosition(point);
+    [dartx.getCharNumAtPosition](...args) {
+      return this.getCharNumAtPosition.apply(this, args);
     }
-    [dartx.getComputedTextLength]() {
-      return this.getComputedTextLength();
+    [dartx.getComputedTextLength](...args) {
+      return this.getComputedTextLength.apply(this, args);
     }
-    [dartx.getEndPositionOfChar](charnum) {
-      return this.getEndPositionOfChar(charnum);
+    [dartx.getEndPositionOfChar](...args) {
+      return this.getEndPositionOfChar.apply(this, args);
     }
-    [dartx.getExtentOfChar](charnum) {
-      return this.getExtentOfChar(charnum);
+    [dartx.getExtentOfChar](...args) {
+      return this.getExtentOfChar.apply(this, args);
     }
-    [dartx.getNumberOfChars]() {
-      return this.getNumberOfChars();
+    [dartx.getNumberOfChars](...args) {
+      return this.getNumberOfChars.apply(this, args);
     }
-    [dartx.getRotationOfChar](charnum) {
-      return this.getRotationOfChar(charnum);
+    [dartx.getRotationOfChar](...args) {
+      return this.getRotationOfChar.apply(this, args);
     }
-    [dartx.getStartPositionOfChar](charnum) {
-      return this.getStartPositionOfChar(charnum);
+    [dartx.getStartPositionOfChar](...args) {
+      return this.getStartPositionOfChar.apply(this, args);
     }
-    [dartx.getSubStringLength](charnum, nchars) {
-      return this.getSubStringLength(charnum, nchars);
+    [dartx.getSubStringLength](...args) {
+      return this.getSubStringLength.apply(this, args);
     }
-    [dartx.selectSubString](charnum, nchars) {
-      return this.selectSubString(charnum, nchars);
+    [dartx.selectSubString](...args) {
+      return this.selectSubString.apply(this, args);
     }
   };
   dart.defineNamedConstructor(svg$.TextContentElement, 'created');
@@ -90499,23 +90499,23 @@
     get [dartx.type]() {
       return this.type;
     }
-    [dartx.setMatrix](matrix) {
-      return this.setMatrix(matrix);
+    [dartx.setMatrix](...args) {
+      return this.setMatrix.apply(this, args);
     }
-    [dartx.setRotate](angle, cx, cy) {
-      return this.setRotate(angle, cx, cy);
+    [dartx.setRotate](...args) {
+      return this.setRotate.apply(this, args);
     }
-    [dartx.setScale](sx, sy) {
-      return this.setScale(sx, sy);
+    [dartx.setScale](...args) {
+      return this.setScale.apply(this, args);
     }
-    [dartx.setSkewX](angle) {
-      return this.setSkewX(angle);
+    [dartx.setSkewX](...args) {
+      return this.setSkewX.apply(this, args);
     }
-    [dartx.setSkewY](angle) {
-      return this.setSkewY(angle);
+    [dartx.setSkewY](...args) {
+      return this.setSkewY.apply(this, args);
     }
-    [dartx.setTranslate](tx, ty) {
-      return this.setTranslate(tx, ty);
+    [dartx.setTranslate](...args) {
+      return this.setTranslate.apply(this, args);
     }
   };
   dart.setSignature(svg$.Transform, {
@@ -90616,35 +90616,35 @@
     [dartx.elementAt](index) {
       return this[dartx._get](index);
     }
-    [__setter__$](index, newItem) {
-      return this.__setter__(index, newItem);
+    [__setter__$](...args) {
+      return this.__setter__.apply(this, args);
     }
-    [dartx.appendItem](newItem) {
-      return this.appendItem(newItem);
+    [dartx.appendItem](...args) {
+      return this.appendItem.apply(this, args);
     }
-    [dartx.clear]() {
-      return this.clear();
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.consolidate]() {
-      return this.consolidate();
+    [dartx.consolidate](...args) {
+      return this.consolidate.apply(this, args);
     }
-    [dartx.createSvgTransformFromMatrix](matrix) {
-      return this.createSVGTransformFromMatrix(matrix);
+    [dartx.createSvgTransformFromMatrix](...args) {
+      return this.createSVGTransformFromMatrix.apply(this, args);
     }
-    [dartx.getItem](index) {
-      return this.getItem(index);
+    [dartx.getItem](...args) {
+      return this.getItem.apply(this, args);
     }
-    [dartx.initialize](newItem) {
-      return this.initialize(newItem);
+    [dartx.initialize](...args) {
+      return this.initialize.apply(this, args);
     }
-    [dartx.insertItemBefore](newItem, index) {
-      return this.insertItemBefore(newItem, index);
+    [dartx.insertItemBefore](...args) {
+      return this.insertItemBefore.apply(this, args);
     }
-    [dartx.removeItem](index) {
-      return this.removeItem(index);
+    [dartx.removeItem](...args) {
+      return this.removeItem.apply(this, args);
     }
-    [dartx.replaceItem](newItem, index) {
-      return this.replaceItem(newItem, index);
+    [dartx.replaceItem](...args) {
+      return this.replaceItem.apply(this, args);
     }
   };
   svg$.TransformList[dart.implements] = () => [ListOfTransform()];
@@ -91052,11 +91052,11 @@
     get [dartx.numberOfOutputs]() {
       return this.numberOfOutputs;
     }
-    [_connect](destination, output, input) {
-      return this.connect(destination, output, input);
+    [_connect](...args) {
+      return this.connect.apply(this, args);
     }
-    [dartx.disconnect](output) {
-      return this.disconnect(output);
+    [dartx.disconnect](...args) {
+      return this.disconnect.apply(this, args);
     }
     [dartx.connectNode](destination, output, input) {
       if (output === void 0) output = 0;
@@ -91128,17 +91128,17 @@
     set [dartx.smoothingTimeConstant](value) {
       this.smoothingTimeConstant = value;
     }
-    [dartx.getByteFrequencyData](array) {
-      return this.getByteFrequencyData(array);
+    [dartx.getByteFrequencyData](...args) {
+      return this.getByteFrequencyData.apply(this, args);
     }
-    [dartx.getByteTimeDomainData](array) {
-      return this.getByteTimeDomainData(array);
+    [dartx.getByteTimeDomainData](...args) {
+      return this.getByteTimeDomainData.apply(this, args);
     }
-    [dartx.getFloatFrequencyData](array) {
-      return this.getFloatFrequencyData(array);
+    [dartx.getFloatFrequencyData](...args) {
+      return this.getFloatFrequencyData.apply(this, args);
     }
-    [dartx.getFloatTimeDomainData](array) {
-      return this.getFloatTimeDomainData(array);
+    [dartx.getFloatTimeDomainData](...args) {
+      return this.getFloatTimeDomainData.apply(this, args);
     }
   };
   dart.setSignature(web_audio.AnalyserNode, {
@@ -91182,8 +91182,8 @@
     get [dartx.sampleRate]() {
       return this.sampleRate;
     }
-    [dartx.getChannelData](channelIndex) {
-      return this.getChannelData(channelIndex);
+    [dartx.getChannelData](...args) {
+      return this.getChannelData.apply(this, args);
     }
   };
   dart.setSignature(web_audio.AudioBuffer, {
@@ -91345,59 +91345,59 @@
     get [dartx.sampleRate]() {
       return this.sampleRate;
     }
-    [dartx.createAnalyser]() {
-      return this.createAnalyser();
+    [dartx.createAnalyser](...args) {
+      return this.createAnalyser.apply(this, args);
     }
-    [dartx.createBiquadFilter]() {
-      return this.createBiquadFilter();
+    [dartx.createBiquadFilter](...args) {
+      return this.createBiquadFilter.apply(this, args);
     }
-    [dartx.createBuffer](numberOfChannels, numberOfFrames, sampleRate) {
-      return this.createBuffer(numberOfChannels, numberOfFrames, sampleRate);
+    [dartx.createBuffer](...args) {
+      return this.createBuffer.apply(this, args);
     }
-    [dartx.createBufferSource]() {
-      return this.createBufferSource();
+    [dartx.createBufferSource](...args) {
+      return this.createBufferSource.apply(this, args);
     }
-    [dartx.createChannelMerger](numberOfInputs) {
-      return this.createChannelMerger(numberOfInputs);
+    [dartx.createChannelMerger](...args) {
+      return this.createChannelMerger.apply(this, args);
     }
-    [dartx.createChannelSplitter](numberOfOutputs) {
-      return this.createChannelSplitter(numberOfOutputs);
+    [dartx.createChannelSplitter](...args) {
+      return this.createChannelSplitter.apply(this, args);
     }
-    [dartx.createConvolver]() {
-      return this.createConvolver();
+    [dartx.createConvolver](...args) {
+      return this.createConvolver.apply(this, args);
     }
-    [dartx.createDelay](maxDelayTime) {
-      return this.createDelay(maxDelayTime);
+    [dartx.createDelay](...args) {
+      return this.createDelay.apply(this, args);
     }
-    [dartx.createDynamicsCompressor]() {
-      return this.createDynamicsCompressor();
+    [dartx.createDynamicsCompressor](...args) {
+      return this.createDynamicsCompressor.apply(this, args);
     }
-    [dartx.createMediaElementSource](mediaElement) {
-      return this.createMediaElementSource(mediaElement);
+    [dartx.createMediaElementSource](...args) {
+      return this.createMediaElementSource.apply(this, args);
     }
-    [dartx.createMediaStreamDestination]() {
-      return this.createMediaStreamDestination();
+    [dartx.createMediaStreamDestination](...args) {
+      return this.createMediaStreamDestination.apply(this, args);
     }
-    [dartx.createMediaStreamSource](mediaStream) {
-      return this.createMediaStreamSource(mediaStream);
+    [dartx.createMediaStreamSource](...args) {
+      return this.createMediaStreamSource.apply(this, args);
     }
-    [dartx.createOscillator]() {
-      return this.createOscillator();
+    [dartx.createOscillator](...args) {
+      return this.createOscillator.apply(this, args);
     }
-    [dartx.createPanner]() {
-      return this.createPanner();
+    [dartx.createPanner](...args) {
+      return this.createPanner.apply(this, args);
     }
-    [dartx.createPeriodicWave](real, imag) {
-      return this.createPeriodicWave(real, imag);
+    [dartx.createPeriodicWave](...args) {
+      return this.createPeriodicWave.apply(this, args);
     }
-    [dartx.createWaveShaper]() {
-      return this.createWaveShaper();
+    [dartx.createWaveShaper](...args) {
+      return this.createWaveShaper.apply(this, args);
     }
-    [_decodeAudioData](audioData, successCallback, errorCallback) {
-      return this.decodeAudioData(audioData, successCallback, errorCallback);
+    [_decodeAudioData](...args) {
+      return this.decodeAudioData.apply(this, args);
     }
-    [dartx.startRendering]() {
-      return this.startRendering();
+    [dartx.startRendering](...args) {
+      return this.startRendering.apply(this, args);
     }
     get [dartx.onComplete]() {
       return web_audio.AudioContext.completeEvent.forTarget(this);
@@ -91518,14 +91518,14 @@
     set [dartx.speedOfSound](value) {
       this.speedOfSound = value;
     }
-    [dartx.setOrientation](x, y, z, xUp, yUp, zUp) {
-      return this.setOrientation(x, y, z, xUp, yUp, zUp);
+    [dartx.setOrientation](...args) {
+      return this.setOrientation.apply(this, args);
     }
-    [dartx.setPosition](x, y, z) {
-      return this.setPosition(x, y, z);
+    [dartx.setPosition](...args) {
+      return this.setPosition.apply(this, args);
     }
-    [dartx.setVelocity](x, y, z) {
-      return this.setVelocity(x, y, z);
+    [dartx.setVelocity](...args) {
+      return this.setVelocity.apply(this, args);
     }
   };
   dart.setSignature(web_audio.AudioListener, {
@@ -91564,23 +91564,23 @@
     set [dartx.value](value) {
       this.value = value;
     }
-    [dartx.cancelScheduledValues](startTime) {
-      return this.cancelScheduledValues(startTime);
+    [dartx.cancelScheduledValues](...args) {
+      return this.cancelScheduledValues.apply(this, args);
     }
-    [dartx.exponentialRampToValueAtTime](value, time) {
-      return this.exponentialRampToValueAtTime(value, time);
+    [dartx.exponentialRampToValueAtTime](...args) {
+      return this.exponentialRampToValueAtTime.apply(this, args);
     }
-    [dartx.linearRampToValueAtTime](value, time) {
-      return this.linearRampToValueAtTime(value, time);
+    [dartx.linearRampToValueAtTime](...args) {
+      return this.linearRampToValueAtTime.apply(this, args);
     }
-    [dartx.setTargetAtTime](target, time, timeConstant) {
-      return this.setTargetAtTime(target, time, timeConstant);
+    [dartx.setTargetAtTime](...args) {
+      return this.setTargetAtTime.apply(this, args);
     }
-    [dartx.setValueAtTime](value, time) {
-      return this.setValueAtTime(value, time);
+    [dartx.setValueAtTime](...args) {
+      return this.setValueAtTime.apply(this, args);
     }
-    [dartx.setValueCurveAtTime](values, time, duration) {
-      return this.setValueCurveAtTime(values, time, duration);
+    [dartx.setValueCurveAtTime](...args) {
+      return this.setValueCurveAtTime.apply(this, args);
     }
   };
   dart.setSignature(web_audio.AudioParam, {
@@ -91657,8 +91657,8 @@
     set [dartx.type](value) {
       this.type = value;
     }
-    [dartx.getFrequencyResponse](frequencyHz, magResponse, phaseResponse) {
-      return this.getFrequencyResponse(frequencyHz, magResponse, phaseResponse);
+    [dartx.getFrequencyResponse](...args) {
+      return this.getFrequencyResponse.apply(this, args);
     }
   };
   dart.setSignature(web_audio.BiquadFilterNode, {
@@ -91909,20 +91909,20 @@
     set [dartx.type](value) {
       this.type = value;
     }
-    [dartx.noteOff](when) {
-      return this.noteOff(when);
+    [dartx.noteOff](...args) {
+      return this.noteOff.apply(this, args);
     }
-    [dartx.noteOn](when) {
-      return this.noteOn(when);
+    [dartx.noteOn](...args) {
+      return this.noteOn.apply(this, args);
     }
-    [dartx.setPeriodicWave](periodicWave) {
-      return this.setPeriodicWave(periodicWave);
+    [dartx.setPeriodicWave](...args) {
+      return this.setPeriodicWave.apply(this, args);
     }
-    [dartx.start](when) {
-      return this.start(when);
+    [dartx.start](...args) {
+      return this.start.apply(this, args);
     }
-    [dartx.stop](when) {
-      return this.stop(when);
+    [dartx.stop](...args) {
+      return this.stop.apply(this, args);
     }
     get [dartx.onEnded]() {
       return web_audio.OscillatorNode.endedEvent.forTarget(this);
@@ -92013,14 +92013,14 @@
     set [dartx.rolloffFactor](value) {
       this.rolloffFactor = value;
     }
-    [dartx.setOrientation](x, y, z) {
-      return this.setOrientation(x, y, z);
+    [dartx.setOrientation](...args) {
+      return this.setOrientation.apply(this, args);
     }
-    [dartx.setPosition](x, y, z) {
-      return this.setPosition(x, y, z);
+    [dartx.setPosition](...args) {
+      return this.setPosition.apply(this, args);
     }
-    [dartx.setVelocity](x, y, z) {
-      return this.setVelocity(x, y, z);
+    [dartx.setVelocity](...args) {
+      return this.setVelocity.apply(this, args);
     }
   };
   dart.setSignature(web_audio.PannerNode, {
@@ -92065,8 +92065,8 @@
     get [dartx.bufferSize]() {
       return this.bufferSize;
     }
-    [dartx.setEventListener](eventListener) {
-      return this.setEventListener(eventListener);
+    [dartx.setEventListener](...args) {
+      return this.setEventListener.apply(this, args);
     }
     get [dartx.onAudioProcess]() {
       return web_audio.ScriptProcessorNode.audioProcessEvent.forTarget(this);
@@ -92297,323 +92297,323 @@
     get [dartx.drawingBufferWidth]() {
       return this.drawingBufferWidth;
     }
-    [dartx.activeTexture](texture) {
-      return this.activeTexture(texture);
+    [dartx.activeTexture](...args) {
+      return this.activeTexture.apply(this, args);
     }
-    [dartx.attachShader](program, shader) {
-      return this.attachShader(program, shader);
+    [dartx.attachShader](...args) {
+      return this.attachShader.apply(this, args);
     }
-    [dartx.bindAttribLocation](program, index, name) {
-      return this.bindAttribLocation(program, index, name);
+    [dartx.bindAttribLocation](...args) {
+      return this.bindAttribLocation.apply(this, args);
     }
-    [dartx.bindBuffer](target, buffer) {
-      return this.bindBuffer(target, buffer);
+    [dartx.bindBuffer](...args) {
+      return this.bindBuffer.apply(this, args);
     }
-    [dartx.bindFramebuffer](target, framebuffer) {
-      return this.bindFramebuffer(target, framebuffer);
+    [dartx.bindFramebuffer](...args) {
+      return this.bindFramebuffer.apply(this, args);
     }
-    [dartx.bindRenderbuffer](target, renderbuffer) {
-      return this.bindRenderbuffer(target, renderbuffer);
+    [dartx.bindRenderbuffer](...args) {
+      return this.bindRenderbuffer.apply(this, args);
     }
-    [dartx.bindTexture](target, texture) {
-      return this.bindTexture(target, texture);
+    [dartx.bindTexture](...args) {
+      return this.bindTexture.apply(this, args);
     }
-    [dartx.blendColor](red, green, blue, alpha) {
-      return this.blendColor(red, green, blue, alpha);
+    [dartx.blendColor](...args) {
+      return this.blendColor.apply(this, args);
     }
-    [dartx.blendEquation](mode) {
-      return this.blendEquation(mode);
+    [dartx.blendEquation](...args) {
+      return this.blendEquation.apply(this, args);
     }
-    [dartx.blendEquationSeparate](modeRGB, modeAlpha) {
-      return this.blendEquationSeparate(modeRGB, modeAlpha);
+    [dartx.blendEquationSeparate](...args) {
+      return this.blendEquationSeparate.apply(this, args);
     }
-    [dartx.blendFunc](sfactor, dfactor) {
-      return this.blendFunc(sfactor, dfactor);
+    [dartx.blendFunc](...args) {
+      return this.blendFunc.apply(this, args);
     }
-    [dartx.blendFuncSeparate](srcRGB, dstRGB, srcAlpha, dstAlpha) {
-      return this.blendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+    [dartx.blendFuncSeparate](...args) {
+      return this.blendFuncSeparate.apply(this, args);
     }
-    [dartx.bufferByteData](target, data, usage) {
-      return this.bufferData(target, data, usage);
+    [dartx.bufferByteData](...args) {
+      return this.bufferData.apply(this, args);
     }
-    [dartx.bufferData](target, data_OR_size, usage) {
-      return this.bufferData(target, data_OR_size, usage);
+    [dartx.bufferData](...args) {
+      return this.bufferData.apply(this, args);
     }
-    [dartx.bufferDataTyped](target, data, usage) {
-      return this.bufferData(target, data, usage);
+    [dartx.bufferDataTyped](...args) {
+      return this.bufferData.apply(this, args);
     }
-    [dartx.bufferSubByteData](target, offset, data) {
-      return this.bufferSubData(target, offset, data);
+    [dartx.bufferSubByteData](...args) {
+      return this.bufferSubData.apply(this, args);
     }
-    [dartx.bufferSubData](target, offset, data) {
-      return this.bufferSubData(target, offset, data);
+    [dartx.bufferSubData](...args) {
+      return this.bufferSubData.apply(this, args);
     }
-    [dartx.bufferSubDataTyped](target, offset, data) {
-      return this.bufferSubData(target, offset, data);
+    [dartx.bufferSubDataTyped](...args) {
+      return this.bufferSubData.apply(this, args);
     }
-    [dartx.checkFramebufferStatus](target) {
-      return this.checkFramebufferStatus(target);
+    [dartx.checkFramebufferStatus](...args) {
+      return this.checkFramebufferStatus.apply(this, args);
     }
-    [dartx.clear](mask) {
-      return this.clear(mask);
+    [dartx.clear](...args) {
+      return this.clear.apply(this, args);
     }
-    [dartx.clearColor](red, green, blue, alpha) {
-      return this.clearColor(red, green, blue, alpha);
+    [dartx.clearColor](...args) {
+      return this.clearColor.apply(this, args);
     }
-    [dartx.clearDepth](depth) {
-      return this.clearDepth(depth);
+    [dartx.clearDepth](...args) {
+      return this.clearDepth.apply(this, args);
     }
-    [dartx.clearStencil](s) {
-      return this.clearStencil(s);
+    [dartx.clearStencil](...args) {
+      return this.clearStencil.apply(this, args);
     }
-    [dartx.colorMask](red, green, blue, alpha) {
-      return this.colorMask(red, green, blue, alpha);
+    [dartx.colorMask](...args) {
+      return this.colorMask.apply(this, args);
     }
-    [dartx.compileShader](shader) {
-      return this.compileShader(shader);
+    [dartx.compileShader](...args) {
+      return this.compileShader.apply(this, args);
     }
-    [dartx.compressedTexImage2D](target, level, internalformat, width, height, border, data) {
-      return this.compressedTexImage2D(target, level, internalformat, width, height, border, data);
+    [dartx.compressedTexImage2D](...args) {
+      return this.compressedTexImage2D.apply(this, args);
     }
-    [dartx.compressedTexSubImage2D](target, level, xoffset, yoffset, width, height, format, data) {
-      return this.compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, data);
+    [dartx.compressedTexSubImage2D](...args) {
+      return this.compressedTexSubImage2D.apply(this, args);
     }
-    [dartx.copyTexImage2D](target, level, internalformat, x, y, width, height, border) {
-      return this.copyTexImage2D(target, level, internalformat, x, y, width, height, border);
+    [dartx.copyTexImage2D](...args) {
+      return this.copyTexImage2D.apply(this, args);
     }
-    [dartx.copyTexSubImage2D](target, level, xoffset, yoffset, x, y, width, height) {
-      return this.copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+    [dartx.copyTexSubImage2D](...args) {
+      return this.copyTexSubImage2D.apply(this, args);
     }
-    [dartx.createBuffer]() {
-      return this.createBuffer();
+    [dartx.createBuffer](...args) {
+      return this.createBuffer.apply(this, args);
     }
-    [dartx.createFramebuffer]() {
-      return this.createFramebuffer();
+    [dartx.createFramebuffer](...args) {
+      return this.createFramebuffer.apply(this, args);
     }
-    [dartx.createProgram]() {
-      return this.createProgram();
+    [dartx.createProgram](...args) {
+      return this.createProgram.apply(this, args);
     }
-    [dartx.createRenderbuffer]() {
-      return this.createRenderbuffer();
+    [dartx.createRenderbuffer](...args) {
+      return this.createRenderbuffer.apply(this, args);
     }
-    [dartx.createShader](type) {
-      return this.createShader(type);
+    [dartx.createShader](...args) {
+      return this.createShader.apply(this, args);
     }
-    [dartx.createTexture]() {
-      return this.createTexture();
+    [dartx.createTexture](...args) {
+      return this.createTexture.apply(this, args);
     }
-    [dartx.cullFace](mode) {
-      return this.cullFace(mode);
+    [dartx.cullFace](...args) {
+      return this.cullFace.apply(this, args);
     }
-    [dartx.deleteBuffer](buffer) {
-      return this.deleteBuffer(buffer);
+    [dartx.deleteBuffer](...args) {
+      return this.deleteBuffer.apply(this, args);
     }
-    [dartx.deleteFramebuffer](framebuffer) {
-      return this.deleteFramebuffer(framebuffer);
+    [dartx.deleteFramebuffer](...args) {
+      return this.deleteFramebuffer.apply(this, args);
     }
-    [dartx.deleteProgram](program) {
-      return this.deleteProgram(program);
+    [dartx.deleteProgram](...args) {
+      return this.deleteProgram.apply(this, args);
     }
-    [dartx.deleteRenderbuffer](renderbuffer) {
-      return this.deleteRenderbuffer(renderbuffer);
+    [dartx.deleteRenderbuffer](...args) {
+      return this.deleteRenderbuffer.apply(this, args);
     }
-    [dartx.deleteShader](shader) {
-      return this.deleteShader(shader);
+    [dartx.deleteShader](...args) {
+      return this.deleteShader.apply(this, args);
     }
-    [dartx.deleteTexture](texture) {
-      return this.deleteTexture(texture);
+    [dartx.deleteTexture](...args) {
+      return this.deleteTexture.apply(this, args);
     }
-    [dartx.depthFunc](func) {
-      return this.depthFunc(func);
+    [dartx.depthFunc](...args) {
+      return this.depthFunc.apply(this, args);
     }
-    [dartx.depthMask](flag) {
-      return this.depthMask(flag);
+    [dartx.depthMask](...args) {
+      return this.depthMask.apply(this, args);
     }
-    [dartx.depthRange](zNear, zFar) {
-      return this.depthRange(zNear, zFar);
+    [dartx.depthRange](...args) {
+      return this.depthRange.apply(this, args);
     }
-    [dartx.detachShader](program, shader) {
-      return this.detachShader(program, shader);
+    [dartx.detachShader](...args) {
+      return this.detachShader.apply(this, args);
     }
-    [dartx.disable](cap) {
-      return this.disable(cap);
+    [dartx.disable](...args) {
+      return this.disable.apply(this, args);
     }
-    [dartx.disableVertexAttribArray](index) {
-      return this.disableVertexAttribArray(index);
+    [dartx.disableVertexAttribArray](...args) {
+      return this.disableVertexAttribArray.apply(this, args);
     }
-    [dartx.drawArrays](mode, first, count) {
-      return this.drawArrays(mode, first, count);
+    [dartx.drawArrays](...args) {
+      return this.drawArrays.apply(this, args);
     }
-    [dartx.drawElements](mode, count, type, offset) {
-      return this.drawElements(mode, count, type, offset);
+    [dartx.drawElements](...args) {
+      return this.drawElements.apply(this, args);
     }
-    [dartx.enable](cap) {
-      return this.enable(cap);
+    [dartx.enable](...args) {
+      return this.enable.apply(this, args);
     }
-    [dartx.enableVertexAttribArray](index) {
-      return this.enableVertexAttribArray(index);
+    [dartx.enableVertexAttribArray](...args) {
+      return this.enableVertexAttribArray.apply(this, args);
     }
-    [dartx.finish]() {
-      return this.finish();
+    [dartx.finish](...args) {
+      return this.finish.apply(this, args);
     }
-    [dartx.flush]() {
-      return this.flush();
+    [dartx.flush](...args) {
+      return this.flush.apply(this, args);
     }
-    [dartx.framebufferRenderbuffer](target, attachment, renderbuffertarget, renderbuffer) {
-      return this.framebufferRenderbuffer(target, attachment, renderbuffertarget, renderbuffer);
+    [dartx.framebufferRenderbuffer](...args) {
+      return this.framebufferRenderbuffer.apply(this, args);
     }
-    [dartx.framebufferTexture2D](target, attachment, textarget, texture, level) {
-      return this.framebufferTexture2D(target, attachment, textarget, texture, level);
+    [dartx.framebufferTexture2D](...args) {
+      return this.framebufferTexture2D.apply(this, args);
     }
-    [dartx.frontFace](mode) {
-      return this.frontFace(mode);
+    [dartx.frontFace](...args) {
+      return this.frontFace.apply(this, args);
     }
-    [dartx.generateMipmap](target) {
-      return this.generateMipmap(target);
+    [dartx.generateMipmap](...args) {
+      return this.generateMipmap.apply(this, args);
     }
-    [dartx.getActiveAttrib](program, index) {
-      return this.getActiveAttrib(program, index);
+    [dartx.getActiveAttrib](...args) {
+      return this.getActiveAttrib.apply(this, args);
     }
-    [dartx.getActiveUniform](program, index) {
-      return this.getActiveUniform(program, index);
+    [dartx.getActiveUniform](...args) {
+      return this.getActiveUniform.apply(this, args);
     }
-    [dartx.getAttachedShaders](program) {
-      return this.getAttachedShaders(program);
+    [dartx.getAttachedShaders](...args) {
+      return this.getAttachedShaders.apply(this, args);
     }
-    [dartx.getAttribLocation](program, name) {
-      return this.getAttribLocation(program, name);
+    [dartx.getAttribLocation](...args) {
+      return this.getAttribLocation.apply(this, args);
     }
-    [dartx.getBufferParameter](target, pname) {
-      return this.getBufferParameter(target, pname);
+    [dartx.getBufferParameter](...args) {
+      return this.getBufferParameter.apply(this, args);
     }
     [dartx.getContextAttributes]() {
       return web_gl.ContextAttributes._check(html_common.convertNativeToDart_ContextAttributes(this[_getContextAttributes_1$]()));
     }
-    [_getContextAttributes_1$]() {
-      return this.getContextAttributes();
+    [_getContextAttributes_1$](...args) {
+      return this.getContextAttributes.apply(this, args);
     }
-    [dartx.getError]() {
-      return this.getError();
+    [dartx.getError](...args) {
+      return this.getError.apply(this, args);
     }
-    [dartx.getExtension](name) {
-      return this.getExtension(name);
+    [dartx.getExtension](...args) {
+      return this.getExtension.apply(this, args);
     }
-    [dartx.getFramebufferAttachmentParameter](target, attachment, pname) {
-      return this.getFramebufferAttachmentParameter(target, attachment, pname);
+    [dartx.getFramebufferAttachmentParameter](...args) {
+      return this.getFramebufferAttachmentParameter.apply(this, args);
     }
-    [dartx.getParameter](pname) {
-      return this.getParameter(pname);
+    [dartx.getParameter](...args) {
+      return this.getParameter.apply(this, args);
     }
-    [dartx.getProgramInfoLog](program) {
-      return this.getProgramInfoLog(program);
+    [dartx.getProgramInfoLog](...args) {
+      return this.getProgramInfoLog.apply(this, args);
     }
-    [dartx.getProgramParameter](program, pname) {
-      return this.getProgramParameter(program, pname);
+    [dartx.getProgramParameter](...args) {
+      return this.getProgramParameter.apply(this, args);
     }
-    [dartx.getRenderbufferParameter](target, pname) {
-      return this.getRenderbufferParameter(target, pname);
+    [dartx.getRenderbufferParameter](...args) {
+      return this.getRenderbufferParameter.apply(this, args);
     }
-    [dartx.getShaderInfoLog](shader) {
-      return this.getShaderInfoLog(shader);
+    [dartx.getShaderInfoLog](...args) {
+      return this.getShaderInfoLog.apply(this, args);
     }
-    [dartx.getShaderParameter](shader, pname) {
-      return this.getShaderParameter(shader, pname);
+    [dartx.getShaderParameter](...args) {
+      return this.getShaderParameter.apply(this, args);
     }
-    [dartx.getShaderPrecisionFormat](shadertype, precisiontype) {
-      return this.getShaderPrecisionFormat(shadertype, precisiontype);
+    [dartx.getShaderPrecisionFormat](...args) {
+      return this.getShaderPrecisionFormat.apply(this, args);
     }
-    [dartx.getShaderSource](shader) {
-      return this.getShaderSource(shader);
+    [dartx.getShaderSource](...args) {
+      return this.getShaderSource.apply(this, args);
     }
-    [dartx.getSupportedExtensions]() {
-      return this.getSupportedExtensions();
+    [dartx.getSupportedExtensions](...args) {
+      return this.getSupportedExtensions.apply(this, args);
     }
-    [dartx.getTexParameter](target, pname) {
-      return this.getTexParameter(target, pname);
+    [dartx.getTexParameter](...args) {
+      return this.getTexParameter.apply(this, args);
     }
-    [dartx.getUniform](program, location) {
-      return this.getUniform(program, location);
+    [dartx.getUniform](...args) {
+      return this.getUniform.apply(this, args);
     }
-    [dartx.getUniformLocation](program, name) {
-      return this.getUniformLocation(program, name);
+    [dartx.getUniformLocation](...args) {
+      return this.getUniformLocation.apply(this, args);
     }
-    [dartx.getVertexAttrib](index, pname) {
-      return this.getVertexAttrib(index, pname);
+    [dartx.getVertexAttrib](...args) {
+      return this.getVertexAttrib.apply(this, args);
     }
-    [dartx.getVertexAttribOffset](index, pname) {
-      return this.getVertexAttribOffset(index, pname);
+    [dartx.getVertexAttribOffset](...args) {
+      return this.getVertexAttribOffset.apply(this, args);
     }
-    [dartx.hint](target, mode) {
-      return this.hint(target, mode);
+    [dartx.hint](...args) {
+      return this.hint.apply(this, args);
     }
-    [dartx.isBuffer](buffer) {
-      return this.isBuffer(buffer);
+    [dartx.isBuffer](...args) {
+      return this.isBuffer.apply(this, args);
     }
-    [dartx.isContextLost]() {
-      return this.isContextLost();
+    [dartx.isContextLost](...args) {
+      return this.isContextLost.apply(this, args);
     }
-    [dartx.isEnabled](cap) {
-      return this.isEnabled(cap);
+    [dartx.isEnabled](...args) {
+      return this.isEnabled.apply(this, args);
     }
-    [dartx.isFramebuffer](framebuffer) {
-      return this.isFramebuffer(framebuffer);
+    [dartx.isFramebuffer](...args) {
+      return this.isFramebuffer.apply(this, args);
     }
-    [dartx.isProgram](program) {
-      return this.isProgram(program);
+    [dartx.isProgram](...args) {
+      return this.isProgram.apply(this, args);
     }
-    [dartx.isRenderbuffer](renderbuffer) {
-      return this.isRenderbuffer(renderbuffer);
+    [dartx.isRenderbuffer](...args) {
+      return this.isRenderbuffer.apply(this, args);
     }
-    [dartx.isShader](shader) {
-      return this.isShader(shader);
+    [dartx.isShader](...args) {
+      return this.isShader.apply(this, args);
     }
-    [dartx.isTexture](texture) {
-      return this.isTexture(texture);
+    [dartx.isTexture](...args) {
+      return this.isTexture.apply(this, args);
     }
-    [dartx.lineWidth](width) {
-      return this.lineWidth(width);
+    [dartx.lineWidth](...args) {
+      return this.lineWidth.apply(this, args);
     }
-    [dartx.linkProgram](program) {
-      return this.linkProgram(program);
+    [dartx.linkProgram](...args) {
+      return this.linkProgram.apply(this, args);
     }
-    [dartx.pixelStorei](pname, param) {
-      return this.pixelStorei(pname, param);
+    [dartx.pixelStorei](...args) {
+      return this.pixelStorei.apply(this, args);
     }
-    [dartx.polygonOffset](factor, units) {
-      return this.polygonOffset(factor, units);
+    [dartx.polygonOffset](...args) {
+      return this.polygonOffset.apply(this, args);
     }
-    [dartx.readPixels](x, y, width, height, format, type, pixels) {
-      return this.readPixels(x, y, width, height, format, type, pixels);
+    [dartx.readPixels](...args) {
+      return this.readPixels.apply(this, args);
     }
-    [dartx.renderbufferStorage](target, internalformat, width, height) {
-      return this.renderbufferStorage(target, internalformat, width, height);
+    [dartx.renderbufferStorage](...args) {
+      return this.renderbufferStorage.apply(this, args);
     }
-    [dartx.sampleCoverage](value, invert) {
-      return this.sampleCoverage(value, invert);
+    [dartx.sampleCoverage](...args) {
+      return this.sampleCoverage.apply(this, args);
     }
-    [dartx.scissor](x, y, width, height) {
-      return this.scissor(x, y, width, height);
+    [dartx.scissor](...args) {
+      return this.scissor.apply(this, args);
     }
-    [dartx.shaderSource](shader, string) {
-      return this.shaderSource(shader, string);
+    [dartx.shaderSource](...args) {
+      return this.shaderSource.apply(this, args);
     }
-    [dartx.stencilFunc](func, ref, mask) {
-      return this.stencilFunc(func, ref, mask);
+    [dartx.stencilFunc](...args) {
+      return this.stencilFunc.apply(this, args);
     }
-    [dartx.stencilFuncSeparate](face, func, ref, mask) {
-      return this.stencilFuncSeparate(face, func, ref, mask);
+    [dartx.stencilFuncSeparate](...args) {
+      return this.stencilFuncSeparate.apply(this, args);
     }
-    [dartx.stencilMask](mask) {
-      return this.stencilMask(mask);
+    [dartx.stencilMask](...args) {
+      return this.stencilMask.apply(this, args);
     }
-    [dartx.stencilMaskSeparate](face, mask) {
-      return this.stencilMaskSeparate(face, mask);
+    [dartx.stencilMaskSeparate](...args) {
+      return this.stencilMaskSeparate.apply(this, args);
     }
-    [dartx.stencilOp](fail, zfail, zpass) {
-      return this.stencilOp(fail, zfail, zpass);
+    [dartx.stencilOp](...args) {
+      return this.stencilOp.apply(this, args);
     }
-    [dartx.stencilOpSeparate](face, fail, zfail, zpass) {
-      return this.stencilOpSeparate(face, fail, zfail, zpass);
+    [dartx.stencilOpSeparate](...args) {
+      return this.stencilOpSeparate.apply(this, args);
     }
     [dartx.texImage2D](target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels) {
       if (format === void 0) format = null;
@@ -92642,43 +92642,43 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_texImage2D_1](target, level, internalformat, width, height, border, format, type, pixels) {
-      return this.texImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+    [_texImage2D_1](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [_texImage2D_2](target, level, internalformat, format, type, pixels) {
-      return this.texImage2D(target, level, internalformat, format, type, pixels);
+    [_texImage2D_2](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [_texImage2D_3](target, level, internalformat, format, type, image) {
-      return this.texImage2D(target, level, internalformat, format, type, image);
+    [_texImage2D_3](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [_texImage2D_4](target, level, internalformat, format, type, canvas) {
-      return this.texImage2D(target, level, internalformat, format, type, canvas);
+    [_texImage2D_4](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [_texImage2D_5](target, level, internalformat, format, type, video) {
-      return this.texImage2D(target, level, internalformat, format, type, video);
+    [_texImage2D_5](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [dartx.texImage2DCanvas](target, level, internalformat, format, type, canvas) {
-      return this.texImage2D(target, level, internalformat, format, type, canvas);
+    [dartx.texImage2DCanvas](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [dartx.texImage2DImage](target, level, internalformat, format, type, image) {
-      return this.texImage2D(target, level, internalformat, format, type, image);
+    [dartx.texImage2DImage](...args) {
+      return this.texImage2D.apply(this, args);
     }
     [dartx.texImage2DImageData](target, level, internalformat, format, type, pixels) {
       let pixels_1 = html_common.convertDartToNative_ImageData(pixels);
       this[_texImage2DImageData_1](target, level, internalformat, format, type, pixels_1);
       return;
     }
-    [_texImage2DImageData_1](target, level, internalformat, format, type, pixels) {
-      return this.texImage2D(target, level, internalformat, format, type, pixels);
+    [_texImage2DImageData_1](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [dartx.texImage2DVideo](target, level, internalformat, format, type, video) {
-      return this.texImage2D(target, level, internalformat, format, type, video);
+    [dartx.texImage2DVideo](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [dartx.texParameterf](target, pname, param) {
-      return this.texParameterf(target, pname, param);
+    [dartx.texParameterf](...args) {
+      return this.texParameterf.apply(this, args);
     }
-    [dartx.texParameteri](target, pname, param) {
-      return this.texParameteri(target, pname, param);
+    [dartx.texParameteri](...args) {
+      return this.texParameteri.apply(this, args);
     }
     [dartx.texSubImage2D](target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels) {
       if (type === void 0) type = null;
@@ -92706,142 +92706,142 @@
       }
       dart.throw(new core.ArgumentError("Incorrect number or type of arguments"));
     }
-    [_texSubImage2D_1](target, level, xoffset, yoffset, width, height, format, type, pixels) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, pixels);
+    [_texSubImage2D_1](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [_texSubImage2D_2](target, level, xoffset, yoffset, format, type, pixels) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, pixels);
+    [_texSubImage2D_2](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [_texSubImage2D_3](target, level, xoffset, yoffset, format, type, image) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, image);
+    [_texSubImage2D_3](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [_texSubImage2D_4](target, level, xoffset, yoffset, format, type, canvas) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, canvas);
+    [_texSubImage2D_4](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [_texSubImage2D_5](target, level, xoffset, yoffset, format, type, video) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, video);
+    [_texSubImage2D_5](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [dartx.texSubImage2DCanvas](target, level, xoffset, yoffset, format, type, canvas) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, canvas);
+    [dartx.texSubImage2DCanvas](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [dartx.texSubImage2DImage](target, level, xoffset, yoffset, format, type, image) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, image);
+    [dartx.texSubImage2DImage](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
     [dartx.texSubImage2DImageData](target, level, xoffset, yoffset, format, type, pixels) {
       let pixels_1 = html_common.convertDartToNative_ImageData(pixels);
       this[_texSubImage2DImageData_1](target, level, xoffset, yoffset, format, type, pixels_1);
       return;
     }
-    [_texSubImage2DImageData_1](target, level, xoffset, yoffset, format, type, pixels) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, pixels);
+    [_texSubImage2DImageData_1](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [dartx.texSubImage2DVideo](target, level, xoffset, yoffset, format, type, video) {
-      return this.texSubImage2D(target, level, xoffset, yoffset, format, type, video);
+    [dartx.texSubImage2DVideo](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [dartx.uniform1f](location, x) {
-      return this.uniform1f(location, x);
+    [dartx.uniform1f](...args) {
+      return this.uniform1f.apply(this, args);
     }
-    [dartx.uniform1fv](location, v) {
-      return this.uniform1fv(location, v);
+    [dartx.uniform1fv](...args) {
+      return this.uniform1fv.apply(this, args);
     }
-    [dartx.uniform1i](location, x) {
-      return this.uniform1i(location, x);
+    [dartx.uniform1i](...args) {
+      return this.uniform1i.apply(this, args);
     }
-    [dartx.uniform1iv](location, v) {
-      return this.uniform1iv(location, v);
+    [dartx.uniform1iv](...args) {
+      return this.uniform1iv.apply(this, args);
     }
-    [dartx.uniform2f](location, x, y) {
-      return this.uniform2f(location, x, y);
+    [dartx.uniform2f](...args) {
+      return this.uniform2f.apply(this, args);
     }
-    [dartx.uniform2fv](location, v) {
-      return this.uniform2fv(location, v);
+    [dartx.uniform2fv](...args) {
+      return this.uniform2fv.apply(this, args);
     }
-    [dartx.uniform2i](location, x, y) {
-      return this.uniform2i(location, x, y);
+    [dartx.uniform2i](...args) {
+      return this.uniform2i.apply(this, args);
     }
-    [dartx.uniform2iv](location, v) {
-      return this.uniform2iv(location, v);
+    [dartx.uniform2iv](...args) {
+      return this.uniform2iv.apply(this, args);
     }
-    [dartx.uniform3f](location, x, y, z) {
-      return this.uniform3f(location, x, y, z);
+    [dartx.uniform3f](...args) {
+      return this.uniform3f.apply(this, args);
     }
-    [dartx.uniform3fv](location, v) {
-      return this.uniform3fv(location, v);
+    [dartx.uniform3fv](...args) {
+      return this.uniform3fv.apply(this, args);
     }
-    [dartx.uniform3i](location, x, y, z) {
-      return this.uniform3i(location, x, y, z);
+    [dartx.uniform3i](...args) {
+      return this.uniform3i.apply(this, args);
     }
-    [dartx.uniform3iv](location, v) {
-      return this.uniform3iv(location, v);
+    [dartx.uniform3iv](...args) {
+      return this.uniform3iv.apply(this, args);
     }
-    [dartx.uniform4f](location, x, y, z, w) {
-      return this.uniform4f(location, x, y, z, w);
+    [dartx.uniform4f](...args) {
+      return this.uniform4f.apply(this, args);
     }
-    [dartx.uniform4fv](location, v) {
-      return this.uniform4fv(location, v);
+    [dartx.uniform4fv](...args) {
+      return this.uniform4fv.apply(this, args);
     }
-    [dartx.uniform4i](location, x, y, z, w) {
-      return this.uniform4i(location, x, y, z, w);
+    [dartx.uniform4i](...args) {
+      return this.uniform4i.apply(this, args);
     }
-    [dartx.uniform4iv](location, v) {
-      return this.uniform4iv(location, v);
+    [dartx.uniform4iv](...args) {
+      return this.uniform4iv.apply(this, args);
     }
-    [dartx.uniformMatrix2fv](location, transpose, array) {
-      return this.uniformMatrix2fv(location, transpose, array);
+    [dartx.uniformMatrix2fv](...args) {
+      return this.uniformMatrix2fv.apply(this, args);
     }
-    [dartx.uniformMatrix3fv](location, transpose, array) {
-      return this.uniformMatrix3fv(location, transpose, array);
+    [dartx.uniformMatrix3fv](...args) {
+      return this.uniformMatrix3fv.apply(this, args);
     }
-    [dartx.uniformMatrix4fv](location, transpose, array) {
-      return this.uniformMatrix4fv(location, transpose, array);
+    [dartx.uniformMatrix4fv](...args) {
+      return this.uniformMatrix4fv.apply(this, args);
     }
-    [dartx.useProgram](program) {
-      return this.useProgram(program);
+    [dartx.useProgram](...args) {
+      return this.useProgram.apply(this, args);
     }
-    [dartx.validateProgram](program) {
-      return this.validateProgram(program);
+    [dartx.validateProgram](...args) {
+      return this.validateProgram.apply(this, args);
     }
-    [dartx.vertexAttrib1f](indx, x) {
-      return this.vertexAttrib1f(indx, x);
+    [dartx.vertexAttrib1f](...args) {
+      return this.vertexAttrib1f.apply(this, args);
     }
-    [dartx.vertexAttrib1fv](indx, values) {
-      return this.vertexAttrib1fv(indx, values);
+    [dartx.vertexAttrib1fv](...args) {
+      return this.vertexAttrib1fv.apply(this, args);
     }
-    [dartx.vertexAttrib2f](indx, x, y) {
-      return this.vertexAttrib2f(indx, x, y);
+    [dartx.vertexAttrib2f](...args) {
+      return this.vertexAttrib2f.apply(this, args);
     }
-    [dartx.vertexAttrib2fv](indx, values) {
-      return this.vertexAttrib2fv(indx, values);
+    [dartx.vertexAttrib2fv](...args) {
+      return this.vertexAttrib2fv.apply(this, args);
     }
-    [dartx.vertexAttrib3f](indx, x, y, z) {
-      return this.vertexAttrib3f(indx, x, y, z);
+    [dartx.vertexAttrib3f](...args) {
+      return this.vertexAttrib3f.apply(this, args);
     }
-    [dartx.vertexAttrib3fv](indx, values) {
-      return this.vertexAttrib3fv(indx, values);
+    [dartx.vertexAttrib3fv](...args) {
+      return this.vertexAttrib3fv.apply(this, args);
     }
-    [dartx.vertexAttrib4f](indx, x, y, z, w) {
-      return this.vertexAttrib4f(indx, x, y, z, w);
+    [dartx.vertexAttrib4f](...args) {
+      return this.vertexAttrib4f.apply(this, args);
     }
-    [dartx.vertexAttrib4fv](indx, values) {
-      return this.vertexAttrib4fv(indx, values);
+    [dartx.vertexAttrib4fv](...args) {
+      return this.vertexAttrib4fv.apply(this, args);
     }
-    [dartx.vertexAttribPointer](indx, size, type, normalized, stride, offset) {
-      return this.vertexAttribPointer(indx, size, type, normalized, stride, offset);
+    [dartx.vertexAttribPointer](...args) {
+      return this.vertexAttribPointer.apply(this, args);
     }
-    [dartx.viewport](x, y, width, height) {
-      return this.viewport(x, y, width, height);
+    [dartx.viewport](...args) {
+      return this.viewport.apply(this, args);
     }
-    [dartx.texImage2DUntyped](targetTexture, levelOfDetail, internalFormat, format, type, data) {
-      return this.texImage2D(targetTexture, levelOfDetail, internalFormat, format, type, data);
+    [dartx.texImage2DUntyped](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [dartx.texImage2DTyped](targetTexture, levelOfDetail, internalFormat, width, height, border, format, type, data) {
-      return this.texImage2D(targetTexture, levelOfDetail, internalFormat, width, height, border, format, type, data);
+    [dartx.texImage2DTyped](...args) {
+      return this.texImage2D.apply(this, args);
     }
-    [dartx.texSubImage2DUntyped](targetTexture, levelOfDetail, xOffset, yOffset, format, type, data) {
-      return this.texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset, format, type, data);
+    [dartx.texSubImage2DUntyped](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
-    [dartx.texSubImage2DTyped](targetTexture, levelOfDetail, xOffset, yOffset, width, height, border, format, type, data) {
-      return this.texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset, width, height, border, format, type, data);
+    [dartx.texSubImage2DTyped](...args) {
+      return this.texSubImage2D.apply(this, args);
     }
   };
   web_gl.RenderingContext[dart.implements] = () => [html$.CanvasRenderingContext];
@@ -93962,14 +93962,14 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.drawArraysInstancedAngle](mode, first, count, primcount) {
-      return this.drawArraysInstancedANGLE(mode, first, count, primcount);
+    [dartx.drawArraysInstancedAngle](...args) {
+      return this.drawArraysInstancedANGLE.apply(this, args);
     }
-    [dartx.drawElementsInstancedAngle](mode, count, type, offset, primcount) {
-      return this.drawElementsInstancedANGLE(mode, count, type, offset, primcount);
+    [dartx.drawElementsInstancedAngle](...args) {
+      return this.drawElementsInstancedANGLE.apply(this, args);
     }
-    [dartx.vertexAttribDivisorAngle](index, divisor) {
-      return this.vertexAttribDivisorANGLE(index, divisor);
+    [dartx.vertexAttribDivisorAngle](...args) {
+      return this.vertexAttribDivisorANGLE.apply(this, args);
     }
   };
   dart.setSignature(web_gl.AngleInstancedArrays, {
@@ -94165,8 +94165,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.getTranslatedShaderSource](shader) {
-      return this.getTranslatedShaderSource(shader);
+    [dartx.getTranslatedShaderSource](...args) {
+      return this.getTranslatedShaderSource.apply(this, args);
     }
   };
   dart.setSignature(web_gl.DebugShaders, {
@@ -94192,8 +94192,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.drawBuffersWebgl](buffers) {
-      return this.drawBuffersWEBGL(buffers);
+    [dartx.drawBuffersWebgl](...args) {
+      return this.drawBuffersWEBGL.apply(this, args);
     }
   };
   dart.setSignature(web_gl.DrawBuffers, {
@@ -94336,11 +94336,11 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.loseContext]() {
-      return this.loseContext();
+    [dartx.loseContext](...args) {
+      return this.loseContext.apply(this, args);
     }
-    [dartx.restoreContext]() {
-      return this.restoreContext();
+    [dartx.restoreContext](...args) {
+      return this.restoreContext.apply(this, args);
     }
   };
   dart.setSignature(web_gl.LoseContext, {
@@ -94409,17 +94409,17 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.bindVertexArray](arrayObject) {
-      return this.bindVertexArrayOES(arrayObject);
+    [dartx.bindVertexArray](...args) {
+      return this.bindVertexArrayOES.apply(this, args);
     }
-    [dartx.createVertexArray]() {
-      return this.createVertexArrayOES();
+    [dartx.createVertexArray](...args) {
+      return this.createVertexArrayOES.apply(this, args);
     }
-    [dartx.deleteVertexArray](arrayObject) {
-      return this.deleteVertexArrayOES(arrayObject);
+    [dartx.deleteVertexArray](...args) {
+      return this.deleteVertexArrayOES.apply(this, args);
     }
-    [dartx.isVertexArray](arrayObject) {
-      return this.isVertexArrayOES(arrayObject);
+    [dartx.isVertexArray](...args) {
+      return this.isVertexArrayOES.apply(this, args);
     }
   };
   dart.setSignature(web_gl.OesVertexArrayObject, {
@@ -94544,14 +94544,14 @@
     get [dartx.version]() {
       return this.version;
     }
-    [dartx.changeVersion](oldVersion, newVersion, callback, errorCallback, successCallback) {
-      return this.changeVersion(oldVersion, newVersion, callback, errorCallback, successCallback);
+    [dartx.changeVersion](...args) {
+      return this.changeVersion.apply(this, args);
     }
-    [dartx.readTransaction](callback, errorCallback, successCallback) {
-      return this.readTransaction(callback, errorCallback, successCallback);
+    [dartx.readTransaction](...args) {
+      return this.readTransaction.apply(this, args);
     }
-    [dartx.transaction](callback, errorCallback, successCallback) {
-      return this.transaction(callback, errorCallback, successCallback);
+    [dartx.transaction](...args) {
+      return this.transaction.apply(this, args);
     }
   };
   dart.setSignature(web_sql.SqlDatabase, {
@@ -94691,8 +94691,8 @@
     [dartx.item](index) {
       return html_common.convertNativeToDart_Dictionary(this[_item_1](index));
     }
-    [_item_1](index) {
-      return this.item(index);
+    [_item_1](...args) {
+      return this.item.apply(this, args);
     }
   };
   web_sql.SqlResultSetRowList[dart.implements] = () => [ListOfMap()];
@@ -94721,8 +94721,8 @@
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
-    [dartx.executeSql](sqlStatement, arguments$, callback, errorCallback) {
-      return this.executeSql(sqlStatement, arguments$, callback, errorCallback);
+    [dartx.executeSql](...args) {
+      return this.executeSql.apply(this, args);
     }
   };
   dart.setSignature(web_sql.SqlTransaction, {

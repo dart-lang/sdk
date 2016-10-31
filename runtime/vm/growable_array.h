@@ -7,8 +7,8 @@
 // - MallocGrowableArray: allocates using malloc/realloc; free is only called
 //   at destruction.
 
-#ifndef VM_GROWABLE_ARRAY_H_
-#define VM_GROWABLE_ARRAY_H_
+#ifndef RUNTIME_VM_GROWABLE_ARRAY_H_
+#define RUNTIME_VM_GROWABLE_ARRAY_H_
 
 #include "platform/utils.h"
 #include "vm/allocation.h"
@@ -294,4 +294,4 @@ class MallocGrowableArray : public BaseGrowableArray<T, EmptyBase, Malloc> {
 
 }  // namespace dart
 
-#endif  // VM_GROWABLE_ARRAY_H_
+#endif  // RUNTIME_VM_GROWABLE_ARRAY_H_

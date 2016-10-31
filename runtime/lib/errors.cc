@@ -7,8 +7,48 @@
 #include "vm/object_store.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 
 namespace dart {
+
+// Scan the stack until we hit the first function in the _AssertionError
+// class. We then return the next frame's script taking inlining into account.
+static RawScript* FindScript(DartFrameIterator* iterator) {
+  StackFrame* stack_frame = iterator->NextFrame();
+  Code& code = Code::Handle();
+  Function& func = Function::Handle();
+  const Class& assert_error_class = Class::Handle(
+        Library::LookupCoreClass(Symbols::AssertionError()));
+  ASSERT(!assert_error_class.IsNull());
+  bool hit_assertion_error = false;
+  while (stack_frame != NULL) {
+    code ^= stack_frame->LookupDartCode();
+    if (code.is_optimized()) {
+      InlinedFunctionsIterator inlined_iterator(code, stack_frame->pc());
+      while (!inlined_iterator.Done()) {
+        func ^= inlined_iterator.function();
+        if (hit_assertion_error) {
+          return func.script();
+        }
+        ASSERT(!hit_assertion_error);
+        hit_assertion_error = (func.Owner() == assert_error_class.raw());
+        inlined_iterator.Advance();
+      }
+    } else {
+      func ^= code.function();
+      ASSERT(!func.IsNull());
+      if (hit_assertion_error) {
+        return func.script();
+      }
+      ASSERT(!hit_assertion_error);
+      hit_assertion_error = (func.Owner() == assert_error_class.raw());
+    }
+    stack_frame = iterator->NextFrame();
+  }
+  UNREACHABLE();
+  return Script::null();
+}
+
 
 // Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
@@ -26,8 +66,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 
   DartFrameIterator iterator;
   iterator.NextFrame();  // Skip native call.
-  iterator.NextFrame();  // Skip _AssertionError._checkAssertion frame
-  const Script& script = Script::Handle(Exceptions::GetCallerScript(&iterator));
+  const Script& script = Script::Handle(FindScript(&iterator));
 
   // Initialize argument 'failed_assertion' with source snippet.
   intptr_t from_line, from_column;

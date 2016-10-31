@@ -4,8 +4,8 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
-#ifndef INCLUDE_DART_API_H_
-#define INCLUDE_DART_API_H_
+#ifndef RUNTIME_INCLUDE_DART_API_H_
+#define RUNTIME_INCLUDE_DART_API_H_
 
 /** \mainpage Dart Embedding API Reference
  *

@@ -36,7 +36,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
   // The number of expected unittest errors should be zero but unfortunately
   // there are a lot of broken html unittests.
   let num_expected_unittest_fails = 3;
-  let num_expected_unittest_errors = 2;
+  let num_expected_unittest_errors = 0;
 
   // TODO(jmesserly): separate StrongModeError from other errors.
   let all_status = {
@@ -268,6 +268,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'regress_13462_1_test': skip_fail,
       'regress_14105_test': skip_fail,
       'regress_16640_test': skip_fail,
+      'regress_18535_test': fail,
       'regress_21795_test': skip_fail,
       'regress_22443_test': skip_fail,
       'regress_22666_test': skip_fail,

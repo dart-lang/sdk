@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' as internal;
-import 'dart:convert' show JSON;
-
 @patch class Error {
   @patch static String _objectToString(Object object) {
     return Object._toString(object);
@@ -206,6 +203,7 @@ class _InternalError {
   // that no information is available.
   final int _invocation_type;
 
+  @patch
   NoSuchMethodError(Object this._receiver,
                     Symbol this._memberName,
                     List this._arguments,

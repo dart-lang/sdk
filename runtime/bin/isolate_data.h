@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_ISOLATE_DATA_H_
-#define BIN_ISOLATE_DATA_H_
+#ifndef RUNTIME_BIN_ISOLATE_DATA_H_
+#define RUNTIME_BIN_ISOLATE_DATA_H_
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -97,4 +97,4 @@ class IsolateData {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_ISOLATE_DATA_H_
+#endif  // RUNTIME_BIN_ISOLATE_DATA_H_

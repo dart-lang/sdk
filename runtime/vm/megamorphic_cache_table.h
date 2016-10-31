@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_MEGAMORPHIC_CACHE_TABLE_H_
-#define VM_MEGAMORPHIC_CACHE_TABLE_H_
+#ifndef RUNTIME_VM_MEGAMORPHIC_CACHE_TABLE_H_
+#define RUNTIME_VM_MEGAMORPHIC_CACHE_TABLE_H_
 
 #include "vm/allocation.h"
 
@@ -34,4 +34,4 @@ class MegamorphicCacheTable : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_MEGAMORPHIC_CACHE_TABLE_H_
+#endif  // RUNTIME_VM_MEGAMORPHIC_CACHE_TABLE_H_

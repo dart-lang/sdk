@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_OBJECT_SET_H_
-#define VM_OBJECT_SET_H_
+#ifndef RUNTIME_VM_OBJECT_SET_H_
+#define RUNTIME_VM_OBJECT_SET_H_
 
 #include "platform/utils.h"
 #include "vm/bit_vector.h"
@@ -90,4 +90,4 @@ class ObjectSet : public ZoneAllocated {
 
 }  // namespace dart
 
-#endif  // VM_OBJECT_SET_H_
+#endif  // RUNTIME_VM_OBJECT_SET_H_

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_SECURE_SOCKET_BORINGSSL_H_
-#define BIN_SECURE_SOCKET_BORINGSSL_H_
+#ifndef RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_
+#define RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_
 
-#if !defined(BIN_SECURE_SOCKET_H_)
+#if !defined(RUNTIME_BIN_SECURE_SOCKET_H_)
 #error Do not include secure_socket_boringssl.h directly. Use secure_socket.h.
 #endif
 
@@ -162,4 +162,4 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_SECURE_SOCKET_BORINGSSL_H_
+#endif  // RUNTIME_BIN_SECURE_SOCKET_BORINGSSL_H_

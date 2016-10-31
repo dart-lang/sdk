@@ -6,6 +6,7 @@
 #if defined(TARGET_ARCH_IA32)
 
 #include "vm/cpu.h"
+#include "vm/cpu_ia32.h"
 
 #include "vm/assembler.h"
 #include "vm/constants_ia32.h"

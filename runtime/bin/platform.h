@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_PLATFORM_H_
-#define BIN_PLATFORM_H_
+#ifndef RUNTIME_BIN_PLATFORM_H_
+#define RUNTIME_BIN_PLATFORM_H_
 
 #include "bin/builtin.h"
 #include "platform/globals.h"
@@ -107,4 +107,4 @@ class Platform {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_PLATFORM_H_
+#endif  // RUNTIME_BIN_PLATFORM_H_

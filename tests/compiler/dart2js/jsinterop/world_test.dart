@@ -21,6 +21,7 @@ void main() {
 testClasses() async {
   test(String mainSource,
       {List<String> directlyInstantiated: const <String>[],
+      List<String> abstractlyInstantiated: const <String>[],
       List<String> indirectlyInstantiated: const <String>[]}) async {
     TypeEnvironment env = await TypeEnvironment.create(
         r"""
@@ -120,6 +121,13 @@ $mainSource
             "Expected $name to be directly instantiated in `${mainSource}`:"
             "\n${world.dump(cls)}");
       }
+      if (abstractlyInstantiated.contains(name)) {
+        isInstantiated = true;
+        Expect.isTrue(
+            world.isAbstractlyInstantiated(cls),
+            "Expected $name to be abstractly instantiated in `${mainSource}`:"
+            "\n${world.dump(cls)}");
+      }
       if (indirectlyInstantiated.contains(name)) {
         isInstantiated = true;
         Expect.isTrue(
@@ -139,19 +147,19 @@ $mainSource
   await test('main() {}');
 
   await test('main() => newA();',
-      directlyInstantiated: ['A', 'B', 'C', 'D'],
+      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
       indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
 
   await test('main() => newB();',
-      directlyInstantiated: ['A', 'B', 'C', 'D'],
+      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
       indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
 
   await test('main() => newC();',
-      directlyInstantiated: ['A', 'B', 'C', 'D'],
+      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
       indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
 
   await test('main() => newD();',
-      directlyInstantiated: ['A', 'B', 'C', 'D'],
+      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
       indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
 
   await test('main() => newE();', directlyInstantiated: ['E']);
@@ -159,6 +167,7 @@ $mainSource
   await test('main() => newF();', directlyInstantiated: ['F']);
 
   await test('main() => [newD(), newE()];',
-      directlyInstantiated: ['A', 'B', 'C', 'D', 'E'],
+      directlyInstantiated: ['E'],
+      abstractlyInstantiated: ['A', 'B', 'C', 'D'],
       indirectlyInstantiated: ['Object', 'Interceptor', 'JavaScriptObject']);
 }

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_PARSER_H_
-#define VM_PARSER_H_
+#ifndef RUNTIME_VM_PARSER_H_
+#define RUNTIME_VM_PARSER_H_
 
 #include "include/dart_api.h"
 
@@ -995,4 +995,4 @@ class Parser : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_PARSER_H_
+#endif  // RUNTIME_VM_PARSER_H_

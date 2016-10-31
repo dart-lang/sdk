@@ -30,6 +30,7 @@
         'runtime/dart-runtime.gyp:process_test',
         'runtime/dart-runtime.gyp:test_extension',
         'runtime/dart-runtime.gyp:sample_extension',
+        'runtime/dart-runtime.gyp:generate_patched_sdk#host',
       ],
     },
     {
@@ -41,6 +42,7 @@
       'dependencies': [
         'runtime/dart-runtime.gyp:dart_precompiled_runtime',
         'runtime/dart-runtime.gyp:dart_bootstrap#host',
+        'runtime/dart-runtime.gyp:generate_patched_sdk#host',
       ],
     },
     {
@@ -57,8 +59,10 @@
         'runtime/dart-runtime.gyp:process_test',
         'runtime/dart-runtime.gyp:test_extension',
         'runtime/dart-runtime.gyp:sample_extension',
+        'runtime/dart-runtime.gyp:generate_patched_sdk#host',
       ],
     },
+
     {
       'target_name': 'create_sdk',
       'type': 'none',

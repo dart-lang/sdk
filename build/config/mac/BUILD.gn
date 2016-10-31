@@ -5,9 +5,7 @@
 import("//build/config/sysroot.gni")
 
 config("sdk") {
-  common_flags = [
-    "-stdlib=libc++",
-  ]
+  common_flags = [ "-stdlib=libc++" ]
 
   cflags = common_flags
   ldflags = common_flags
@@ -20,7 +18,8 @@ config("mac_dynamic_flags") {
     "-L.",
 
     # Forces shared libraries to search for undefined symbols.
-    "-undefined",  "dynamic_lookup",
+    "-undefined",
+    "dynamic_lookup",
 
     # Path for loading shared libraries for unbundled binaries.
     "-Wl,-rpath,@loader_path/.",

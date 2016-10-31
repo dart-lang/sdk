@@ -8,6 +8,8 @@ compile_with_empty_libraries_test: Fail # Issue 24223
 
 kernel/*: Slow, Pass
 
+kernel/visitor_test: Fail # Issue 27684
+
 boolified_operator_test: Fail # Issue 8001
 
 # Don't mark these tests as failing. Instead, fix the errors/warnings that they

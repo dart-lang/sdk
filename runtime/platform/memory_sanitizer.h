@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_MEMORY_SANITIZER_H_
-#define PLATFORM_MEMORY_SANITIZER_H_
+#ifndef RUNTIME_PLATFORM_MEMORY_SANITIZER_H_
+#define RUNTIME_PLATFORM_MEMORY_SANITIZER_H_
 
 #include "platform/globals.h"
 
@@ -23,4 +23,4 @@ extern "C" void __msan_unpoison(void *, size_t);
 #define NO_SANITIZE_MEMORY
 #endif  // defined(__has_feature)
 
-#endif  // PLATFORM_MEMORY_SANITIZER_H_
+#endif  // RUNTIME_PLATFORM_MEMORY_SANITIZER_H_

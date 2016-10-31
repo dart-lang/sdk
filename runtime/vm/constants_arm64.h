@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CONSTANTS_ARM64_H_
-#define VM_CONSTANTS_ARM64_H_
+#ifndef RUNTIME_VM_CONSTANTS_ARM64_H_
+#define RUNTIME_VM_CONSTANTS_ARM64_H_
 
 #include "platform/assert.h"
 
@@ -1104,4 +1104,4 @@ class Instr {
 
 }  // namespace dart
 
-#endif  // VM_CONSTANTS_ARM64_H_
+#endif  // RUNTIME_VM_CONSTANTS_ARM64_H_

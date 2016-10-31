@@ -129,6 +129,296 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   }
 }
 
+class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
+  List<AnalysisDriverUnitErrorBuilder> _errors;
+
+  @override
+  List<AnalysisDriverUnitErrorBuilder> get errors => _errors ??= <AnalysisDriverUnitErrorBuilder>[];
+
+  /**
+   * The full list of analysis errors, both syntactic and semantic.
+   */
+  void set errors(List<AnalysisDriverUnitErrorBuilder> value) {
+    this._errors = value;
+  }
+
+  AnalysisDriverResolvedUnitBuilder({List<AnalysisDriverUnitErrorBuilder> errors})
+    : _errors = errors;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _errors?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._errors == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._errors.length);
+      for (var x in this._errors) {
+        x?.collectApiSignature(signature);
+      }
+    }
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "ADRU");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_errors;
+    if (!(_errors == null || _errors.isEmpty)) {
+      offset_errors = fbBuilder.writeList(_errors.map((b) => b.finish(fbBuilder)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_errors != null) {
+      fbBuilder.addOffset(0, offset_errors);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.AnalysisDriverResolvedUnit readAnalysisDriverResolvedUnit(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _AnalysisDriverResolvedUnitReader().read(rootRef, 0);
+}
+
+class _AnalysisDriverResolvedUnitReader extends fb.TableReader<_AnalysisDriverResolvedUnitImpl> {
+  const _AnalysisDriverResolvedUnitReader();
+
+  @override
+  _AnalysisDriverResolvedUnitImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverResolvedUnitImpl(bc, offset);
+}
+
+class _AnalysisDriverResolvedUnitImpl extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverResolvedUnitImpl(this._bc, this._bcOffset);
+
+  List<idl.AnalysisDriverUnitError> _errors;
+
+  @override
+  List<idl.AnalysisDriverUnitError> get errors {
+    _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(const _AnalysisDriverUnitErrorReader()).vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
+    return _errors;
+  }
+}
+
+abstract class _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (errors.isNotEmpty) _result["errors"] = errors.map((_value) => _value.toJson()).toList();
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "errors": errors,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class AnalysisDriverUnitErrorBuilder extends Object with _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+  String _correction;
+  int _length;
+  String _message;
+  int _offset;
+  String _uniqueName;
+
+  @override
+  String get correction => _correction ??= '';
+
+  /**
+   * The optional correction hint for the error.
+   */
+  void set correction(String value) {
+    this._correction = value;
+  }
+
+  @override
+  int get length => _length ??= 0;
+
+  /**
+   * The length of the error in the file.
+   */
+  void set length(int value) {
+    assert(value == null || value >= 0);
+    this._length = value;
+  }
+
+  @override
+  String get message => _message ??= '';
+
+  /**
+   * The message of the error.
+   */
+  void set message(String value) {
+    this._message = value;
+  }
+
+  @override
+  int get offset => _offset ??= 0;
+
+  /**
+   * The offset from the beginning of the file.
+   */
+  void set offset(int value) {
+    assert(value == null || value >= 0);
+    this._offset = value;
+  }
+
+  @override
+  String get uniqueName => _uniqueName ??= '';
+
+  /**
+   * The unique name of the error code.
+   */
+  void set uniqueName(String value) {
+    this._uniqueName = value;
+  }
+
+  AnalysisDriverUnitErrorBuilder({String correction, int length, String message, int offset, String uniqueName})
+    : _correction = correction,
+      _length = length,
+      _message = message,
+      _offset = offset,
+      _uniqueName = uniqueName;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._offset ?? 0);
+    signature.addInt(this._length ?? 0);
+    signature.addString(this._uniqueName ?? '');
+    signature.addString(this._message ?? '');
+    signature.addString(this._correction ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_correction;
+    fb.Offset offset_message;
+    fb.Offset offset_uniqueName;
+    if (_correction != null) {
+      offset_correction = fbBuilder.writeString(_correction);
+    }
+    if (_message != null) {
+      offset_message = fbBuilder.writeString(_message);
+    }
+    if (_uniqueName != null) {
+      offset_uniqueName = fbBuilder.writeString(_uniqueName);
+    }
+    fbBuilder.startTable();
+    if (offset_correction != null) {
+      fbBuilder.addOffset(4, offset_correction);
+    }
+    if (_length != null && _length != 0) {
+      fbBuilder.addUint32(1, _length);
+    }
+    if (offset_message != null) {
+      fbBuilder.addOffset(3, offset_message);
+    }
+    if (_offset != null && _offset != 0) {
+      fbBuilder.addUint32(0, _offset);
+    }
+    if (offset_uniqueName != null) {
+      fbBuilder.addOffset(2, offset_uniqueName);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AnalysisDriverUnitErrorReader extends fb.TableReader<_AnalysisDriverUnitErrorImpl> {
+  const _AnalysisDriverUnitErrorReader();
+
+  @override
+  _AnalysisDriverUnitErrorImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverUnitErrorImpl(bc, offset);
+}
+
+class _AnalysisDriverUnitErrorImpl extends Object with _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverUnitErrorImpl(this._bc, this._bcOffset);
+
+  String _correction;
+  int _length;
+  String _message;
+  int _offset;
+  String _uniqueName;
+
+  @override
+  String get correction {
+    _correction ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
+    return _correction;
+  }
+
+  @override
+  int get length {
+    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    return _length;
+  }
+
+  @override
+  String get message {
+    _message ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    return _message;
+  }
+
+  @override
+  int get offset {
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
+    return _offset;
+  }
+
+  @override
+  String get uniqueName {
+    _uniqueName ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _uniqueName;
+  }
+}
+
+abstract class _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (correction != '') _result["correction"] = correction;
+    if (length != 0) _result["length"] = length;
+    if (message != '') _result["message"] = message;
+    if (offset != 0) _result["offset"] = offset;
+    if (uniqueName != '') _result["uniqueName"] = uniqueName;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "correction": correction,
+    "length": length,
+    "message": message,
+    "offset": offset,
+    "uniqueName": uniqueName,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRange {
   int _length;
   int _offset;

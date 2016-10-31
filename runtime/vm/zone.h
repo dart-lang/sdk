@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ZONE_H_
-#define VM_ZONE_H_
+#ifndef RUNTIME_VM_ZONE_H_
+#define RUNTIME_VM_ZONE_H_
 
 #include "platform/utils.h"
 #include "vm/allocation.h"
@@ -259,4 +259,4 @@ inline ElementType* Zone::Realloc(ElementType* old_data,
 
 }  // namespace dart
 
-#endif  // VM_ZONE_H_
+#endif  // RUNTIME_VM_ZONE_H_

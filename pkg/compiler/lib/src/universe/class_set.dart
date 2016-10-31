@@ -6,6 +6,7 @@ library dart2js.world.class_set;
 
 import 'dart:collection' show IterableBase;
 
+import '../common.dart';
 import '../elements/elements.dart' show ClassElement;
 import '../util/enumset.dart' show EnumSet;
 import '../util/util.dart' show Link;
@@ -15,6 +16,7 @@ enum Instantiation {
   UNINSTANTIATED,
   DIRECTLY_INSTANTIATED,
   INDIRECTLY_INSTANTIATED,
+  ABSTRACTLY_INSTANTIATED,
 }
 
 /// Node for [cls] in a tree forming the subclass relation of [ClassElement]s.
@@ -49,16 +51,18 @@ class ClassHierarchyNode {
   static final EnumSet<Instantiation> INSTANTIATED =
       new EnumSet<Instantiation>.fromValues(const <Instantiation>[
     Instantiation.DIRECTLY_INSTANTIATED,
-    Instantiation.INDIRECTLY_INSTANTIATED
+    Instantiation.INDIRECTLY_INSTANTIATED,
+    Instantiation.ABSTRACTLY_INSTANTIATED,
   ], fixed: true);
 
-  /// Enum set for selecting directly instantiated classes in
+  /// Enum set for selecting directly and abstractly instantiated classes in
   /// [ClassHierarchyNode.subclassesByMask],
   /// [ClassHierarchyNode.subclassesByMask] and [ClassSet.subtypesByMask].
-  static final EnumSet<Instantiation> DIRECTLY_INSTANTIATED =
-      new EnumSet<Instantiation>.fromValues(
-          const <Instantiation>[Instantiation.DIRECTLY_INSTANTIATED],
-          fixed: true);
+  static final EnumSet<Instantiation> EXPLICITLY_INSTANTIATED =
+      new EnumSet<Instantiation>.fromValues(const <Instantiation>[
+    Instantiation.DIRECTLY_INSTANTIATED,
+    Instantiation.ABSTRACTLY_INSTANTIATED
+  ], fixed: true);
 
   /// Enum set for selecting all classes in
   /// [ClassHierarchyNode.subclassesByMask],
@@ -72,7 +76,8 @@ class ClassHierarchyNode {
   static EnumSet<Instantiation> createMask(
       {bool includeDirectlyInstantiated: true,
       bool includeIndirectlyInstantiated: true,
-      bool includeUninstantiated: true}) {
+      bool includeUninstantiated: true,
+      bool includeAbstractlyInstantiated: true}) {
     EnumSet<Instantiation> mask = new EnumSet<Instantiation>();
     if (includeDirectlyInstantiated) {
       mask.add(Instantiation.DIRECTLY_INSTANTIATED);
@@ -82,6 +87,9 @@ class ClassHierarchyNode {
     }
     if (includeUninstantiated) {
       mask.add(Instantiation.UNINSTANTIATED);
+    }
+    if (includeAbstractlyInstantiated) {
+      mask.add(Instantiation.ABSTRACTLY_INSTANTIATED);
     }
     return mask;
   }
@@ -106,23 +114,54 @@ class ClassHierarchyNode {
 
   void set isDirectlyInstantiated(bool value) {
     if (value != isDirectlyInstantiated) {
-      ClassHierarchyNode parent = parentNode;
-      if (value) {
-        _mask.remove(Instantiation.UNINSTANTIATED);
-        _mask.add(Instantiation.DIRECTLY_INSTANTIATED);
-        while (parent != null) {
-          parent._updateInstantiatedSubclassCount(1);
-          parent = parent.parentNode;
-        }
-      } else {
-        _mask.remove(Instantiation.DIRECTLY_INSTANTIATED);
-        if (_mask.isEmpty) {
-          _mask.add(Instantiation.UNINSTANTIATED);
-        }
-        while (parent != null) {
-          parent._updateInstantiatedSubclassCount(-1);
-          parent = parent.parentNode;
-        }
+      _updateParentInstantiatedSubclassCount(
+          Instantiation.DIRECTLY_INSTANTIATED,
+          add: value);
+    }
+  }
+
+  /// `true` if [cls] has been abstractly instantiated. This means that at
+  /// runtime instances of [cls] or unknown subclasses of [cls] are assumed to
+  /// exist.
+  ///
+  /// This is used to mark native and/or reflectable classes as instantiated.
+  /// For native classes we do not know the exact class that instantiates [cls]
+  /// so [cls] here represents the root of the subclasses. For reflectable
+  /// classes we need event abstract classes to be 'live' even though they
+  /// cannot themselves be instantiated.
+  bool get isAbstractlyInstantiated =>
+      _mask.contains(Instantiation.ABSTRACTLY_INSTANTIATED);
+
+  void set isAbstractlyInstantiated(bool value) {
+    if (value != isAbstractlyInstantiated) {
+      _updateParentInstantiatedSubclassCount(
+          Instantiation.ABSTRACTLY_INSTANTIATED,
+          add: value);
+    }
+  }
+
+  /// `true` if [cls] is either directly or abstractly instantiated.
+  bool get isExplicitlyInstantiated =>
+      isDirectlyInstantiated || isAbstractlyInstantiated;
+
+  void _updateParentInstantiatedSubclassCount(Instantiation instantiation,
+      {bool add}) {
+    ClassHierarchyNode parent = parentNode;
+    if (add) {
+      _mask.remove(Instantiation.UNINSTANTIATED);
+      _mask.add(instantiation);
+      while (parent != null) {
+        parent._updateInstantiatedSubclassCount(1);
+        parent = parent.parentNode;
+      }
+    } else {
+      _mask.remove(instantiation);
+      if (_mask.isEmpty) {
+        _mask.add(Instantiation.UNINSTANTIATED);
+      }
+      while (parent != null) {
+        parent._updateInstantiatedSubclassCount(-1);
+        parent = parent.parentNode;
       }
     }
   }
@@ -188,8 +227,9 @@ class ClassHierarchyNode {
     return false;
   }
 
-  /// `true` if [cls] has been directly or indirectly instantiated.
-  bool get isInstantiated => isDirectlyInstantiated || isIndirectlyInstantiated;
+  /// `true` if [cls] has been directly, indirectly, or abstractly instantiated.
+  bool get isInstantiated =>
+      isExplicitlyInstantiated || isIndirectlyInstantiated;
 
   /// Returns an [Iterable] of the subclasses of [cls] possibly including [cls].
   ///
@@ -270,8 +310,11 @@ class ClassHierarchyNode {
   }
 
   ClassElement _computeLeastUpperInstantiatedSubclass() {
-    if (isDirectlyInstantiated) {
+    if (isExplicitlyInstantiated) {
       return cls;
+    }
+    if (!isInstantiated) {
+      return null;
     }
     ClassHierarchyNode subclass;
     for (Link<ClassHierarchyNode> link = _directSubclasses;
@@ -310,6 +353,9 @@ class ClassHierarchyNode {
     }
     if (isIndirectlyInstantiated) {
       sb.write(' indirectly');
+    }
+    if (isAbstractlyInstantiated) {
+      sb.write(' abstractly');
     }
     sb.write(' [');
     if (_directSubclasses.isEmpty) {
@@ -439,7 +485,7 @@ class ClassSet {
     int count = node.instantiatedSubclassCount;
     if (_subtypes != null) {
       for (ClassHierarchyNode subtypeNode in _subtypes) {
-        if (subtypeNode.isDirectlyInstantiated) {
+        if (subtypeNode.isExplicitlyInstantiated) {
           count++;
         }
         count += subtypeNode.instantiatedSubclassCount;
@@ -647,7 +693,7 @@ class ClassSet {
   }
 
   ClassElement _computeLeastUpperInstantiatedSubtype() {
-    if (node.isDirectlyInstantiated) {
+    if (node.isExplicitlyInstantiated) {
       return cls;
     }
     if (_subtypes == null) {

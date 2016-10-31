@@ -5,9 +5,11 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_MIPS.
 #if defined(TARGET_ARCH_MIPS)
 
+#include "vm/instructions.h"
+#include "vm/instructions_mips.h"
+
 #include "vm/constants_mips.h"
 #include "vm/cpu.h"
-#include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {

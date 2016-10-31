@@ -408,6 +408,7 @@ def RunGN(target_os, mode, arch):
     '-m', mode,
     '-a', arch,
     '--os', gn_os,
+    '--check',
     '-v',
   ]
   process = subprocess.Popen(gn_command)

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_SIGNAL_BLOCKER_H_
-#define PLATFORM_SIGNAL_BLOCKER_H_
+#ifndef RUNTIME_PLATFORM_SIGNAL_BLOCKER_H_
+#define RUNTIME_PLATFORM_SIGNAL_BLOCKER_H_
 
 #include "platform/globals.h"
 #include "platform/assert.h"
@@ -105,4 +105,4 @@ class ThreadSignalBlocker {
 
 }  // namespace dart
 
-#endif  // PLATFORM_SIGNAL_BLOCKER_H_
+#endif  // RUNTIME_PLATFORM_SIGNAL_BLOCKER_H_

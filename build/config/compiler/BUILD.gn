@@ -78,7 +78,7 @@ config("compiler") {
     cflags_objcc += common_flags
 
     # Linker warnings.
-    if ((current_cpu != "arm") && !is_mac) {
+    if (current_cpu != "arm" && !is_mac) {
       # TODO(jochen): Enable this on chromeos on arm. http://crbug.com/356580
       ldflags += [ "-Wl,--fatal-warnings" ]
     }
@@ -86,9 +86,7 @@ config("compiler") {
     # Common options for AddressSanitizer, LeakSanitizer, ThreadSanitizer and
     # MemorySanitizer
     if (using_sanitizer) {
-      cflags += [
-        "-gline-tables-only",
-      ]
+      cflags += [ "-gline-tables-only" ]
     }
     if (is_asan) {
       cflags += [ "-fsanitize=address" ]
@@ -199,7 +197,6 @@ config("compiler") {
         ]
       }
     } else if (current_cpu == "arm") {
-
       cflags += [
         "-march=$arm_arch",
         "-mfloat-abi=$arm_float_abi",
@@ -234,7 +231,7 @@ config("compiler") {
       if (is_debug || is_release) {
         cflags += [
           "-fexceptions",
-          "-funwind-tables"
+          "-funwind-tables",
         ]
       }
 
@@ -295,9 +292,7 @@ config("compiler") {
   # Linux/Android common flags setup.
   # ---------------------------------
   if (is_linux || is_android) {
-    cflags += [
-      "-fPIC",
-    ]
+    cflags += [ "-fPIC" ]
 
     ldflags += [
       "-fPIC",
@@ -511,6 +506,7 @@ if (is_win) {
   default_warning_flags += [
     # Permanent.
     "/wd4091",  # typedef warning from dbghelp.h
+
     # Investigate.
     "/wd4312",  # int to pointer of greater size conversion.
     "/wd4838",  # Narrowing conversion required.

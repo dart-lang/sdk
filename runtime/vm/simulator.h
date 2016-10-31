@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SIMULATOR_H_
-#define VM_SIMULATOR_H_
+#ifndef RUNTIME_VM_SIMULATOR_H_
+#define RUNTIME_VM_SIMULATOR_H_
 
 #include "vm/globals.h"
 
@@ -24,4 +24,4 @@
 #endif  // defined(TARGET_ARCH_...)
 #endif  // defined(USING_SIMULATOR)
 
-#endif  // VM_SIMULATOR_H_
+#endif  // RUNTIME_VM_SIMULATOR_H_

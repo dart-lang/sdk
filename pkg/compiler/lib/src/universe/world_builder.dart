@@ -10,6 +10,8 @@ import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../universe/class_set.dart' show Instantiation;
+import '../util/enumset.dart';
 import '../util/util.dart';
 import '../world.dart' show World, ClosedWorld, OpenWorld;
 import 'selector.dart' show Selector;
@@ -156,6 +158,10 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
 
   /// Set of all fields that are statically known to be written to.
   Iterable<Element> get fieldSetters;
+
+  /// Call [f] for all directly or abstractly instantiated classes.
+  void forEachInstantiatedClass(
+      f(ClassElement cls, EnumSet<Instantiation> instantiations));
 }
 
 class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
@@ -166,8 +172,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   /// Invariant: Elements are declaration elements.
   // TODO(johnniwinther): [_directlyInstantiatedClasses] and
   // [_instantiatedTypes] sets should be merged.
-  final Set<ClassElement> _directlyInstantiatedClasses =
-      new Set<ClassElement>();
+  final Map<ClassElement, EnumSet<Instantiation>> _directlyInstantiatedClasses =
+      <ClassElement, EnumSet<Instantiation>>{};
 
   /// The set of all directly instantiated types, that is, the types of the
   /// directly instantiated classes.
@@ -237,7 +243,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   /// super-call.
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<ClassElement> get directlyInstantiatedClasses {
-    return _directlyInstantiatedClasses;
+    return _directlyInstantiatedClasses.keys;
   }
 
   /// All directly instantiated types, that is, the types of the directly
@@ -280,7 +286,13 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         // TODO(herhut): Track classes required by mirrors seperately.
         ||
         byMirrors) {
-      _directlyInstantiatedClasses.add(cls);
+      EnumSet<Instantiation> instantiations = _directlyInstantiatedClasses
+          .putIfAbsent(cls, () => new EnumSet<Instantiation>());
+      if (isNative || byMirrors) {
+        instantiations.add(Instantiation.ABSTRACTLY_INSTANTIATED);
+      } else {
+        instantiations.add(Instantiation.DIRECTLY_INSTANTIATED);
+      }
     }
 
     // TODO(johnniwinther): Replace this by separate more specific mappings that
@@ -293,6 +305,12 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
         }
       });
     }
+  }
+
+  @override
+  void forEachInstantiatedClass(
+      f(ClassElement cls, EnumSet<Instantiation> instantiations)) {
+    _directlyInstantiatedClasses.forEach(f);
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,

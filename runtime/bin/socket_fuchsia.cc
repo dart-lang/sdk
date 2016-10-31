@@ -115,7 +115,12 @@ intptr_t Socket::GetStdioHandle(intptr_t num) {
 AddressList<SocketAddress>* Socket::LookupAddress(const char* host,
                                                   int type,
                                                   OSError** os_error) {
-  UNIMPLEMENTED();
+  // UNIMPLEMENTED
+  ASSERT(*os_error == NULL);
+  *os_error = new OSError(-1,
+                          "Socket::LookupAddress not implemented in "
+                          "Fuchsia Dart VM runtime",
+                          OSError::kGetAddressInfo);
   return NULL;
 }
 

@@ -120,7 +120,7 @@
  *
  * The client connects to the WebSocket using the `connect()` method
  * and a URI that uses the Web Socket protocol.
- * The the client can write to the WebSocket with the `add()` method.
+ * The client can write to the WebSocket with the `add()` method.
  * For example,
  *
  *     WebSocket.connect('ws://127.0.0.1:4040/ws').then((socket) {

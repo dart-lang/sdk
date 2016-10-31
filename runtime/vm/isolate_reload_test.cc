@@ -313,7 +313,7 @@ TEST_CASE(IsolateReload_LibraryImportAdded) {
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");;
+  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");
 
   const char* kReloadScript =
       "import 'dart:math';\n"
@@ -346,7 +346,7 @@ TEST_CASE(IsolateReload_LibraryImportRemoved) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
 
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");;
+  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");
 }
 
 

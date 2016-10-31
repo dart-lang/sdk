@@ -15655,7 +15655,8 @@ RawAbstractType* Instance::GetType() const {
     const Class& scope_cls = Class::Handle(type.type_class());
     ASSERT(scope_cls.NumTypeArguments() > 0);
     TypeArguments& type_arguments = TypeArguments::Handle(GetTypeArguments());
-    type = Type::New(scope_cls, type_arguments, TokenPosition::kNoSource);
+    type = Type::New(
+        scope_cls, type_arguments, TokenPosition::kNoSource, Heap::kNew);
     type.set_signature(signature);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
@@ -17405,7 +17406,11 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     type ^= table.GetOrNull(CanonicalTypeKey(*this));
     if (type.IsNull()) {
       // Add this Type into the canonical list of types.
-      type ^= raw();
+      if (this->IsNew()) {
+        type ^= Object::Clone(*this, Heap::kOld);
+      } else {
+        type ^= this->raw();
+      }
       ASSERT(type.IsOld());
       type.SetCanonical();  // Mark object as being canonical.
       bool present = table.Insert(type);

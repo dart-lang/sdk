@@ -681,7 +681,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     if (!tmp.IsString()) {
       tmp = String::New(stacktrace.ToCString());
     }
-    stacktrace_str ^= tmp.raw();;
+    stacktrace_str ^= tmp.raw();
   } else {
     exc_str = String::New(result.ToErrorCString());
   }

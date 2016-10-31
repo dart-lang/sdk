@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_CRYPTO_H_
-#define BIN_CRYPTO_H_
+#ifndef RUNTIME_BIN_CRYPTO_H_
+#define RUNTIME_BIN_CRYPTO_H_
 
 #include "bin/builtin.h"
 #include "bin/utils.h"
@@ -23,5 +23,5 @@ class Crypto {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_CRYPTO_H_
+#endif  // RUNTIME_BIN_CRYPTO_H_
 

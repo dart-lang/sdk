@@ -25,32 +25,34 @@ group("runtime") {
   deps = [
     "runtime/bin:dart",
     "runtime/bin:dart_bootstrap($host_toolchain)",
-    "runtime/bin:run_vm_tests",
     "runtime/bin:process_test",
-    "runtime/bin:test_extension",
+    "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
+    "runtime/bin:test_extension",
+    "runtime/vm:patched_sdk",
   ]
 }
 
 group("runtime_precompiled") {
   deps = [
-    "runtime/bin:dart_precompiled_runtime",
     "runtime/bin:dart_bootstrap($host_toolchain)",
+    "runtime/bin:dart_precompiled_runtime",
+    "runtime/vm:patched_sdk",
   ]
 }
 
 group("runtime_and_noopt") {
   deps = [
     "runtime/bin:dart",
-    "runtime/bin:dart_noopt",
     "runtime/bin:dart_bootstrap($host_toolchain)",
-    "runtime/bin:run_vm_tests",
+    "runtime/bin:dart_noopt",
     "runtime/bin:process_test",
-    "runtime/bin:test_extension",
+    "runtime/bin:run_vm_tests",
     "runtime/bin:sample_extension",
+    "runtime/bin:test_extension",
+    "runtime/vm:patched_sdk",
   ]
 }
-
 
 action("create_sdk") {
   deps = [
@@ -68,35 +70,43 @@ action("create_sdk") {
   ]
 
   sdk_lib_files = exec_script("tools/list_dart_files.py",
-      [rebase_path("sdk/lib")],
-      "list lines")
+                              [ rebase_path("sdk/lib") ],
+                              "list lines")
 
-  preamble_files = exec_script("tools/list_files.py",
-      ["", rebase_path("sdk/lib/_internal/js_runtime/lib/preambles")],
-      "list lines")
+  preamble_files =
+      exec_script("tools/list_files.py",
+                  [
+                    "",
+                    rebase_path("sdk/lib/_internal/js_runtime/lib/preambles"),
+                  ],
+                  "list lines")
 
   sdk_bin_files = exec_script("tools/list_files.py",
-      ["", rebase_path("sdk/bin")],
-      "list lines")
+                              [
+                                "",
+                                rebase_path("sdk/bin"),
+                              ],
+                              "list lines")
 
   inputs = rebase_path(sdk_lib_files, "", "sdk/lib") +
-           rebase_path(preamble_files, "",  "sdk/lib") +
-           rebase_path(sdk_bin_files, "", "sdk/bin") + [
-    "sdk/lib/dart_client.platform",
-    "sdk/lib/dart_server.platform",
-    "sdk/lib/dart_shared.platform",
-    "$root_gen_dir/dart2js.dart.snapshot",
-    "$root_gen_dir/utils_wrapper.dart.snapshot",
-    "$root_gen_dir/pub.dart.snapshot",
-    "$root_gen_dir/dartanalyzer.dart.snapshot",
-    "$root_gen_dir/dartdevc.dart.snapshot",
-    "$root_gen_dir/dartfmt.dart.snapshot",
-    "$root_gen_dir/analysis_server.dart.snapshot",
-    "$root_gen_dir/dartdoc.dart.snapshot",
-    "$root_gen_dir/spec.sum",
-    "$root_gen_dir/strong.sum",
-    "tools/VERSION"
-  ]
+           rebase_path(preamble_files, "", "sdk/lib") +
+           rebase_path(sdk_bin_files, "", "sdk/bin") +
+           [
+             "sdk/lib/dart_client.platform",
+             "sdk/lib/dart_server.platform",
+             "sdk/lib/dart_shared.platform",
+             "$root_gen_dir/dart2js.dart.snapshot",
+             "$root_gen_dir/utils_wrapper.dart.snapshot",
+             "$root_gen_dir/pub.dart.snapshot",
+             "$root_gen_dir/dartanalyzer.dart.snapshot",
+             "$root_gen_dir/dartdevc.dart.snapshot",
+             "$root_gen_dir/dartfmt.dart.snapshot",
+             "$root_gen_dir/analysis_server.dart.snapshot",
+             "$root_gen_dir/dartdoc.dart.snapshot",
+             "$root_gen_dir/spec.sum",
+             "$root_gen_dir/strong.sum",
+             "tools/VERSION",
+           ]
 
   outputs = [
     "$root_out_dir/dart-sdk/README",
@@ -111,34 +121,33 @@ action("create_sdk") {
   ]
 }
 
-
 group("dart2js") {
   deps = [
-    "utils/compiler:dart2js"
+    "utils/compiler:dart2js",
   ]
 }
 
 group("dartanalyzer") {
   deps = [
-    "utils/dartanalyzer"
+    "utils/dartanalyzer",
   ]
 }
 
 group("dartdevc") {
   deps = [
-    "utils/dartdevc"
+    "utils/dartdevc",
   ]
 }
 
 group("dartfmt") {
   deps = [
-    "utils/dartfmt"
+    "utils/dartfmt",
   ]
 }
 
 group("analysis_server") {
   deps = [
-    "utils/analysis_server"
+    "utils/analysis_server",
   ]
 }
 
@@ -147,12 +156,12 @@ group("analysis_server") {
 # test suites.
 group("dart2js_bot") {
   deps = [
-    ":create_sdk"
+    ":create_sdk",
   ]
 }
 
 group("samples") {
   deps = [
-    "runtime/bin:sample_extension"
+    "runtime/bin:sample_extension",
   ]
 }

@@ -243,7 +243,7 @@ class JSString extends Interceptor implements String, JSIndexable<String> {
     return index;
   }
 
-  /// Finds the index after the the last non-whitespace character, or 0.
+  /// Finds the index after the last non-whitespace character, or 0.
   /// Start looking at position [index - 1].
   static int _skipTrailingWhitespace(String string, int index) {
     const int SPACE = 0x20;

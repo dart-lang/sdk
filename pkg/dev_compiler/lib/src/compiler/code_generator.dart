@@ -2261,22 +2261,18 @@ class CodeGenerator extends GeneralizingAstVisitor
   }
 
   JS.Fun _emitNativeFunctionBody(MethodDeclaration node) {
-    if (node.isStatic) {
-      // TODO(vsm): Do we need to handle this case?
-      return null;
-    }
-
-    var params = visitFormalParameterList(node.parameters, destructure: false);
     String name =
         getAnnotationName(node.element, isJSAnnotation) ?? node.name.name;
     if (node.isGetter) {
-      return new JS.Fun(params, js.statement('{ return this.#; }', [name]));
+      return new JS.Fun([], js.statement('{ return this.#; }', [name]));
     } else if (node.isSetter) {
+      var params =
+          visitFormalParameterList(node.parameters, destructure: false);
       return new JS.Fun(
           params, js.statement('{ this.# = #; }', [name, params.last]));
     } else {
-      return new JS.Fun(
-          params, js.statement('{ return this.#(#); }', [name, params]));
+      return js.call(
+          'function (...args) { return this.#.apply(this, args); }', name);
     }
   }
 
@@ -2287,9 +2283,11 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     JS.Fun fn;
     if (_externalOrNative(node)) {
+      if (node.isStatic) {
+        // TODO(vsm): Do we need to handle this case?
+        return null;
+      }
       fn = _emitNativeFunctionBody(node);
-      // TODO(vsm): Remove if / when we handle the static case above.
-      if (fn == null) return null;
     } else {
       fn = _emitFunctionBody(node.element, node.parameters, node.body);
 

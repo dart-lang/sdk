@@ -717,7 +717,8 @@ class StandardTestSuite extends TestSuite {
       '$directory/$name.status',
       '$directory/.status',
       '$directory/${name}_dart2js.status',
-      '$directory/${name}_analyzer2.status'
+      '$directory/${name}_analyzer2.status',
+      '$directory/${name}_kernel.status'
     ];
 
     return new StandardTestSuite(configuration, name, directory, status_paths,
@@ -1675,7 +1676,9 @@ class StandardTestSuite extends TestSuite {
    * configurations, so it may not use [configuration].
    */
   Map readOptionsFromFile(Path filePath) {
-    if (filePath.segments().contains('co19')) {
+    if (filePath.filename.endsWith('.dill')) {
+      return optionsFromKernelFile();
+    } else if (filePath.segments().contains('co19')) {
       return readOptionsFromCo19File(filePath);
     }
     RegExp testOptionsRegExp = new RegExp(r"// VMOptions=(.*)");
@@ -1798,6 +1801,25 @@ class StandardTestSuite extends TestSuite {
       "subtestNames": subtestNames,
       "isolateStubs": isolateStubs,
       "containsDomImport": containsDomImport
+    };
+  }
+
+  Map optionsFromKernelFile() {
+    return const {
+      "vmOptions": const [ const []],
+      "sharedOptions": const [],
+      "dartOptions": null,
+      "packageRoot": null,
+      "packages": null,
+      "hasCompileError": false,
+      "hasRuntimeError": false,
+      "hasStaticWarning": false,
+      "otherScripts": const [],
+      "isMultitest": false,
+      "isMultiHtmlTest": false,
+      "subtestNames": const [],
+      "isolateStubs": '',
+      "containsDomImport": false,
     };
   }
 

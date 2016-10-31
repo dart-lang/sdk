@@ -5130,7 +5130,7 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     //    }
     //  }
     Label done;
-    __ CompareRegisters(result_mod, ZR);;
+    __ CompareRegisters(result_mod, ZR);
     __ b(&done, GE);
     // Result is negative, adjust it.
     __ CompareRegisters(right, ZR);

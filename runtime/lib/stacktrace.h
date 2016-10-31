@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef LIB_STACKTRACE_H_
-#define LIB_STACKTRACE_H_
+#ifndef RUNTIME_LIB_STACKTRACE_H_
+#define RUNTIME_LIB_STACKTRACE_H_
 
 namespace dart {
 
@@ -18,4 +18,4 @@ const Stacktrace& GetCurrentStacktrace(int skip_frames);
 
 }  // namespace dart
 
-#endif  // LIB_STACKTRACE_H_
+#endif  // RUNTIME_LIB_STACKTRACE_H_

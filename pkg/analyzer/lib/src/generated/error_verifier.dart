@@ -2596,7 +2596,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
       // no other switch member after this one
     } else {
-      Statement statement = statements[statements.length - 1];
+      Statement statement = statements.last;
+      if (statement is Block && statement.statements.isNotEmpty) {
+        Block block = statement;
+        statement = block.statements.last;
+      }
       // terminated with statement
       if (statement is BreakStatement ||
           statement is ContinueStatement ||
@@ -2606,7 +2610,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // terminated with 'throw' expression
       if (statement is ExpressionStatement) {
         Expression expression = statement.expression;
-        if (expression is ThrowExpression) {
+        if (expression is ThrowExpression ||
+            expression is RethrowExpression) {
           return;
         }
       }
@@ -2618,7 +2623,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   /**
    * Verify that the switch cases in the given switch [statement] are terminated
-   * with 'break', 'continue', 'return' or 'throw'.
+   * with 'break', 'continue', 'rethrow', 'return' or 'throw'.
    *
    * See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
    */

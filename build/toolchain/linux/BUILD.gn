@@ -22,13 +22,13 @@ if (use_goma) {
 }
 
 gcc_toolchain("arm") {
-  cc = "${compiler_prefix}arm-linux-gnueabi-gcc"
-  cxx = "${compiler_prefix}arm-linux-gnueabi-g++"
+  cc = "${compiler_prefix}arm-linux-gnueabihf-gcc"
+  cxx = "${compiler_prefix}arm-linux-gnueabihf-g++"
 
-  ar = "arm-linux-gnueabi-ar"
+  ar = "arm-linux-gnueabihf-ar"
   ld = cxx
-  readelf = "arm-linux-gnueabi-readelf"
-  nm = "arm-linux-gnueabi-nm"
+  readelf = "arm-linux-gnueabihf-readelf"
+  nm = "arm-linux-gnueabihf-nm"
 
   toolchain_cpu = "arm"
   toolchain_os = "linux"

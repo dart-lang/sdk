@@ -3279,14 +3279,14 @@ class StaticWarningCode extends ErrorCode {
 
   /**
    * 13.9 Switch: It is a static warning if the last statement of the statement
-   * sequence <i>s<sub>k</sub></i> is not a break, continue, return or throw
-   * statement.
+   * sequence <i>s<sub>k</sub></i> is not a break, continue, rethrow, return
+   * or throw statement.
    */
   static const StaticWarningCode CASE_BLOCK_NOT_TERMINATED =
       const StaticWarningCode(
           'CASE_BLOCK_NOT_TERMINATED',
           "The last statement of the 'case' should be 'break', 'continue', "
-          "'return' or 'throw'.",
+          "'rethrow', 'return' or 'throw'.",
           "Try adding one of the required statements.");
 
   /**

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_UTILS_H_
-#define PLATFORM_UTILS_H_
+#ifndef RUNTIME_PLATFORM_UTILS_H_
+#define RUNTIME_PLATFORM_UTILS_H_
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -227,4 +227,4 @@ class Utils {
 #error Unknown target os.
 #endif
 
-#endif  // PLATFORM_UTILS_H_
+#endif  // RUNTIME_PLATFORM_UTILS_H_

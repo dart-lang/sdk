@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_UNIBROW_INL_H_
-#define VM_UNIBROW_INL_H_
+#ifndef RUNTIME_VM_UNIBROW_INL_H_
+#define RUNTIME_VM_UNIBROW_INL_H_
 
 #include "vm/unibrow.h"
 
@@ -45,4 +45,4 @@ template <class T, intptr_t s> intptr_t Mapping<T, s>::CalculateValue(
 
 }  // namespace unibrow
 
-#endif  // VM_UNIBROW_INL_H_
+#endif  // RUNTIME_VM_UNIBROW_INL_H_

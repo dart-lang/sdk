@@ -3504,12 +3504,10 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
     if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
-      // Parse and discard any formal parameters. They are accessed as
-      // context variables.
-      ParamList discarded_params;
-      ParseFormalParameterList(allow_explicit_default_values,
-                               false,
-                               &discarded_params);
+      // Skip formal parameters. They are accessed as context variables.
+      // Parsing them again (and discarding them) does not work in case of
+      // default values with same name as already parsed formal parameter.
+      SkipToMatchingParenthesis();
     }
   } else if (func.IsSyncGenClosure()) {
     AddSyncGenClosureParameters(&params);
@@ -3517,12 +3515,10 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     AddFormalParamsToScope(&params, current_block_->scope);
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
-      // Parse and discard any formal parameters. They are accessed as
-      // context variables.
-      ParamList discarded_params;
-      ParseFormalParameterList(allow_explicit_default_values,
-                               false,
-                               &discarded_params);
+      // Skip formal parameters. They are accessed as context variables.
+      // Parsing them again (and discarding them) does not work in case of
+      // default values with same name as already parsed formal parameter.
+      SkipToMatchingParenthesis();
     }
   } else if (func.IsAsyncGenClosure()) {
     AddAsyncGenClosureParameters(&params);
@@ -3531,12 +3527,10 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     ASSERT(AbstractType::Handle(Z, func.result_type()).IsResolved());
     ASSERT(func.NumParameters() == params.parameters->length());
     if (!Function::Handle(func.parent_function()).IsGetterFunction()) {
-      // Parse and discard any formal parameters. They are accessed as
-      // context variables.
-      ParamList discarded_params;
-      ParseFormalParameterList(allow_explicit_default_values,
-                               false,
-                               &discarded_params);
+      // Skip formal parameters. They are accessed as context variables.
+      // Parsing them again (and discarding them) does not work in case of
+      // default values with same name as already parsed formal parameter.
+      SkipToMatchingParenthesis();
     }
   } else {
     ParseFormalParameterList(allow_explicit_default_values, false, &params);
@@ -9246,7 +9240,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
         new(Z) LocalVariable(loop_var_assignment_pos,
                              loop_var_assignment_pos,
                              *loop_var_name,
-                             loop_var_type);;
+                             loop_var_type);
     if (loop_var_is_final) {
       loop_var->set_is_final();
     }
@@ -9485,7 +9479,7 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
        new(Z) LocalVariable(loop_var_pos,
                             loop_var_assignment_pos,
                             *loop_var_name,
-                            loop_var_type);;
+                            loop_var_type);
     if (loop_var_is_final) {
       loop_var->set_is_final();
     }
@@ -14702,10 +14696,7 @@ void Parser::SkipFunctionLiteral() {
     ExpectIdentifier("function name expected");
   }
   if (CurrentToken() == Token::kLPAREN) {
-    const bool allow_explicit_default_values = true;
-    ParamList params;
-    params.skipped = true;
-    ParseFormalParameterList(allow_explicit_default_values, false, &params);
+    SkipToMatchingParenthesis();
   }
   RawFunction::AsyncModifier async_modifier = ParseFunctionModifier();
   BoolScope allow_await(&this->await_is_keyword_,

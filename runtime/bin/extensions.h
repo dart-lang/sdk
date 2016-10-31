@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_EXTENSIONS_H_
-#define BIN_EXTENSIONS_H_
+#ifndef RUNTIME_BIN_EXTENSIONS_H_
+#define RUNTIME_BIN_EXTENSIONS_H_
 
 #include "include/dart_api.h"
 #include "platform/globals.h"
@@ -41,4 +41,4 @@ class Extensions {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_EXTENSIONS_H_
+#endif  // RUNTIME_BIN_EXTENSIONS_H_

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_MESSAGE_HANDLER_H_
-#define VM_MESSAGE_HANDLER_H_
+#ifndef RUNTIME_VM_MESSAGE_HANDLER_H_
+#define RUNTIME_VM_MESSAGE_HANDLER_H_
 
 #include "vm/isolate.h"
 #include "vm/lockers.h"
@@ -258,4 +258,4 @@ class MessageHandler {
 
 }  // namespace dart
 
-#endif  // VM_MESSAGE_HANDLER_H_
+#endif  // RUNTIME_VM_MESSAGE_HANDLER_H_

@@ -221,6 +221,20 @@ class CompilationCommand extends ProcessCommand {
       deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
 }
 
+class KernelCompilationCommand extends CompilationCommand {
+  KernelCompilationCommand._(
+      String displayName,
+      String outputFile,
+      bool neverSkipCompilation,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environmentOverrides)
+      : super._(displayName, outputFile, neverSkipCompilation,
+                bootstrapDependencies, executable, arguments,
+                environmentOverrides);
+}
+
 /// This is just a Pair(String, Map) class with hashCode and operator ==
 class AddFlagsKey {
   final String flags;
@@ -640,6 +654,25 @@ class CommandBuilder {
       List<String> arguments,
       Map<String, String> environment) {
     var command = new CompilationCommand._(
+        displayName,
+        outputFile,
+        neverSkipCompilation,
+        bootstrapDependencies,
+        executable,
+        arguments,
+        environment);
+    return _getUniqueCommand(command);
+  }
+
+  CompilationCommand getKernelCompilationCommand(
+      String displayName,
+      outputFile,
+      neverSkipCompilation,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environment) {
+    var command = new KernelCompilationCommand._(
         displayName,
         outputFile,
         neverSkipCompilation,
@@ -1609,6 +1642,29 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
+class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
+  KernelCompilationCommandOutputImpl(
+      Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr,
+      Duration time, bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+              compilationSkipped);
+
+  bool get canRunDependendCommands {
+    // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
+    // TODO(asgerf): When the frontend supports it, continue running even if
+    //   there were compile-time errors. See kernel_sdk issue #18.
+    return !hasCrashed && !timedOut && exitCode == 0;
+  }
+
+  // If the compiler was able to produce a Kernel IR file we want to run the
+  // result on the Dart VM.  We therefore mark the [KernelCompilationCommand] as
+  // successful.
+  // => This ensures we test that the DartVM produces correct CompileTime errors
+  //    as it is supposed to for our test suites.
+  bool get successful => canRunDependendCommands;
+}
+
 class JsCommandlineOutputImpl extends CommandOutputImpl
     with UnittestSuiteMessagesMixin {
   JsCommandlineOutputImpl(Command command, int exitCode, bool timedOut,
@@ -1683,6 +1739,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
   } else if (command is VmCommand) {
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
+  } else if (command is KernelCompilationCommand) {
+    return new KernelCompilationCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AdbPrecompilationCommand) {
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
@@ -2549,6 +2608,12 @@ class CommandExecutorImpl implements CommandExecutor {
 
     if (command is BrowserTestCommand) {
       return _startBrowserControllerTest(command, timeout);
+    } else if (command is KernelCompilationCommand) {
+      // For now, we always run dartk in batch mode.
+      var name = command.displayName;
+      assert(name == 'dartk');
+      return _getBatchRunner(name)
+          .runCommand(name, command, timeout, command.arguments);
     } else if (command is CompilationCommand && dart2jsBatchMode) {
       return _getBatchRunner("dart2js")
           .runCommand("dart2js", command, timeout, command.arguments);

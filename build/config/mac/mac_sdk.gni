@@ -12,7 +12,10 @@ declare_args() {
   mac_sdk_path = ""
 }
 
-find_sdk_args = [ "--print_sdk_path", mac_sdk_min ]
+find_sdk_args = [
+  "--print_sdk_path",
+  mac_sdk_min,
+]
 
 # The tool will print the SDK path on the first line, and the version on the
 # second line.

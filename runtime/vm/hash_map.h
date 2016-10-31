@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_HASH_MAP_H_
-#define VM_HASH_MAP_H_
+#ifndef RUNTIME_VM_HASH_MAP_H_
+#define RUNTIME_VM_HASH_MAP_H_
 
 #include "vm/growable_array.h"  // For Malloc, EmptyBase
 #include "vm/zone.h"
@@ -387,4 +387,4 @@ class RawPointerKeyValueTrait {
 
 }  // namespace dart
 
-#endif  // VM_HASH_MAP_H_
+#endif  // RUNTIME_VM_HASH_MAP_H_

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_BOOTSTRAP_NATIVES_H_
-#define VM_BOOTSTRAP_NATIVES_H_
+#ifndef RUNTIME_VM_BOOTSTRAP_NATIVES_H_
+#define RUNTIME_VM_BOOTSTRAP_NATIVES_H_
 
 #include "vm/native_entry.h"
 
@@ -426,4 +426,4 @@ class BootstrapNatives : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_BOOTSTRAP_NATIVES_H_
+#endif  // RUNTIME_VM_BOOTSTRAP_NATIVES_H_

@@ -23,8 +23,8 @@ create_timestamp_file("dartdoc_files_stamp") {
 invoke_dart("dart2js_create_snapshot_entries") {
   deps = [
     ":dart2js_files_stamp",
-    ":runtime_lib_files_stamp",
     ":dartdoc_files_stamp",
+    ":runtime_lib_files_stamp",
   ]
 
   dot_packages = rebase_path("../../.packages")
@@ -55,18 +55,18 @@ invoke_dart("dart2js_create_snapshot_entries") {
 
 application_snapshot("dart2js") {
   deps = [
-    ":dart2js_create_snapshot_entries"
+    ":dart2js_create_snapshot_entries",
   ]
   main_dart = "$root_gen_dir/dart2js.dart"
   training_args = [
     "--library-root=" + rebase_path("../../sdk"),
-    rebase_path("../../tests/language/first_test.dart")
+    rebase_path("../../tests/language/first_test.dart"),
   ]
 }
 
 application_snapshot("utils_wrapper") {
   deps = [
-    ":dart2js_create_snapshot_entries"
+    ":dart2js_create_snapshot_entries",
   ]
   main_dart = "$root_gen_dir/utils_wrapper.dart"
   training_args = [ "--help" ]

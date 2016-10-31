@@ -944,7 +944,7 @@ abstract class TypedefMirror implements TypeMirror {
   /**
    * The defining type for this typedef.
    *
-   * If the the type referred to by the reflectee is a function type *F*, the
+   * If the type referred to by the reflectee is a function type *F*, the
    * result will be [:FunctionTypeMirror:] reflecting *F* which is abstract
    * and has an abstract method [:call:] whose signature corresponds to *F*.
    * For instance [:void f(int):] is the referent for [:typedef void f(int):].

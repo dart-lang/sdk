@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_UTILS_MACOS_H_
-#define PLATFORM_UTILS_MACOS_H_
+#ifndef RUNTIME_PLATFORM_UTILS_MACOS_H_
+#define RUNTIME_PLATFORM_UTILS_MACOS_H_
 
 #include <libkern/OSByteOrder.h>  // NOLINT
 
@@ -69,4 +69,4 @@ inline char* Utils::StrError(int err, char* buffer, size_t bufsize) {
 
 }  // namespace dart
 
-#endif  // PLATFORM_UTILS_MACOS_H_
+#endif  // RUNTIME_PLATFORM_UTILS_MACOS_H_

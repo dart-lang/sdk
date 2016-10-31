@@ -255,8 +255,12 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitLibraryDirective(LibraryDirective node) {
     super.visitLibraryDirective(node);
-    _resolveAnnotations(
-        node, node.metadata, _enclosingUnit.getAnnotations(node.offset));
+    List<ElementAnnotation> annotations =
+        _enclosingUnit.getAnnotations(node.offset);
+    if (annotations.isEmpty && node.metadata.isNotEmpty) {
+      annotations = _walker.element.library.metadata;
+    }
+    _resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 

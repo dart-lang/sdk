@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_BUILTIN_H_
-#define BIN_BUILTIN_H_
+#ifndef RUNTIME_BIN_BUILTIN_H_
+#define RUNTIME_BIN_BUILTIN_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -103,4 +103,4 @@ class Builtin {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_BUILTIN_H_
+#endif  // RUNTIME_BIN_BUILTIN_H_

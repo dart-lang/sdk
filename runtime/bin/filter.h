@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_FILTER_H_
-#define BIN_FILTER_H_
+#ifndef RUNTIME_BIN_FILTER_H_
+#define RUNTIME_BIN_FILTER_H_
 
 #if defined(DART_IO_DISABLED)
 #error "filter.h can only be included on builds with IO enabled"
@@ -113,4 +113,4 @@ class ZLibInflateFilter : public Filter {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_FILTER_H_
+#endif  // RUNTIME_BIN_FILTER_H_

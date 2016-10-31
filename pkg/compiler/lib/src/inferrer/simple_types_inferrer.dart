@@ -481,9 +481,7 @@ class SimpleTypeInferrerVisitor<T>
         });
       }
       if (analyzedElement.isGenerativeConstructor && cls.isAbstract) {
-        if (compiler.closedWorld.isDirectlyInstantiated(cls)) {
-          returnType = types.nonNullExact(cls);
-        } else if (compiler.closedWorld.isIndirectlyInstantiated(cls)) {
+        if (compiler.closedWorld.isInstantiated(cls)) {
           returnType = types.nonNullSubclass(cls);
         } else {
           // TODO(johnniwinther): Avoid analyzing [analyzedElement] in this

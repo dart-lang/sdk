@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_GLOBALS_H_
-#define PLATFORM_GLOBALS_H_
+#ifndef RUNTIME_PLATFORM_GLOBALS_H_
+#define RUNTIME_PLATFORM_GLOBALS_H_
 
 // __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
 // enable platform independent printf format specifiers.
@@ -713,4 +713,4 @@ static inline T ReadUnaligned(const T* ptr) {
 
 }  // namespace dart
 
-#endif  // PLATFORM_GLOBALS_H_
+#endif  // RUNTIME_PLATFORM_GLOBALS_H_

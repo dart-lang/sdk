@@ -410,7 +410,6 @@ switch1_negative_test: CompileTimeError
 switch3_negative_test: CompileTimeError
 switch4_negative_test: CompileTimeError
 switch5_negative_test: CompileTimeError
-switch6_test: StaticWarning
 switch7_negative_test: CompileTimeError
 switch_fallthru_test: StaticWarning
 test_negative_test: CompileTimeError
