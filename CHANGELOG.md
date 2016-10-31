@@ -1,11 +1,15 @@
 ## 1.21.0
-### Core library changes
-
-* `dart:core`: `Set.difference` now takes a `Set<Object>` as argument.
 
 ### Language
 
 * Allow `=` as well as `:` as separator for named parameter default values.
+
+### Core library changes
+
+* `dart:core`: `Set.difference` now takes a `Set<Object>` as argument.
+
+* `dart:developer`:
+  * The service protocol http server can now be controlled from Dart code.
 
 ## 1.20.1 - 2016-10-13
 

@@ -3833,8 +3833,10 @@ static const MethodParameter* get_version_params[] = {
 static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
-  jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(5));
+  jsobj.AddProperty("major",
+                    static_cast<intptr_t>(SERVICE_PROTOCOL_MAJOR_VERSION));
+  jsobj.AddProperty("minor",
+                    static_cast<intptr_t>(SERVICE_PROTOCOL_MINOR_VERSION));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;

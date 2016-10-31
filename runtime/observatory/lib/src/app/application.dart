@@ -239,6 +239,7 @@ class ObservatoryApplication {
       final bool currentTargetConnected = (_vm != null) && !_vm.isDisconnected;
       if (!currentTarget || !currentTargetConnected) {
         _switchVM(new WebSocketVM(targets.current));
+        app.locationManager.go(Uris.vm());
       }
     });
 

@@ -105,3 +105,23 @@ void _reportTaskEvent(int start,
                       String argumentsAsJson) {
  // TODO.
 }
+
+@patch
+int _getServiceMajorVersion() {
+  return 0;
+}
+
+@patch
+int _getServiceMinorVersion() {
+  return 0;
+}
+
+@patch
+void _getServerInfo(SendPort sp) {
+  sp.send(null);
+}
+
+@patch
+void _webServerControl(SendPort sp, bool enable) {
+  sp.send(null);
+}
