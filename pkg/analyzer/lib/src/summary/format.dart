@@ -8668,6 +8668,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   List<UnlinkedExportNonPublicBuilder> _exports;
   String _fallbackModePath;
   List<UnlinkedImportBuilder> _imports;
+  bool _isPartOf;
   List<UnlinkedConstBuilder> _libraryAnnotations;
   UnlinkedDocumentationCommentBuilder _libraryDocumentationComment;
   String _libraryName;
@@ -8753,6 +8754,16 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    */
   void set imports(List<UnlinkedImportBuilder> value) {
     this._imports = value;
+  }
+
+  @override
+  bool get isPartOf => _isPartOf ??= false;
+
+  /**
+   * Indicates whether the unit contains a "part of" declaration.
+   */
+  void set isPartOf(bool value) {
+    this._isPartOf = value;
   }
 
   @override
@@ -8876,7 +8887,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     this._variables = value;
   }
 
-  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, bool isPartOf, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
     : _classes = classes,
       _codeRange = codeRange,
       _enums = enums,
@@ -8884,6 +8895,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       _exports = exports,
       _fallbackModePath = fallbackModePath,
       _imports = imports,
+      _isPartOf = isPartOf,
       _libraryAnnotations = libraryAnnotations,
       _libraryDocumentationComment = libraryDocumentationComment,
       _libraryName = libraryName,
@@ -9006,6 +9018,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       }
     }
     signature.addString(this._fallbackModePath ?? '');
+    signature.addBool(this._isPartOf == true);
   }
 
   List<int> toBuffer() {
@@ -9100,6 +9113,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     if (offset_imports != null) {
       fbBuilder.addOffset(5, offset_imports);
     }
+    if (_isPartOf == true) {
+      fbBuilder.addBool(18, true);
+    }
     if (offset_libraryAnnotations != null) {
       fbBuilder.addOffset(14, offset_libraryAnnotations);
     }
@@ -9162,6 +9178,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedExportNonPublic> _exports;
   String _fallbackModePath;
   List<idl.UnlinkedImport> _imports;
+  bool _isPartOf;
   List<idl.UnlinkedConst> _libraryAnnotations;
   idl.UnlinkedDocumentationComment _libraryDocumentationComment;
   String _libraryName;
@@ -9214,6 +9231,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedImport> get imports {
     _imports ??= const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedImport>[]);
     return _imports;
+  }
+
+  @override
+  bool get isPartOf {
+    _isPartOf ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 18, false);
+    return _isPartOf;
   }
 
   @override
@@ -9294,6 +9317,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
     if (fallbackModePath != '') _result["fallbackModePath"] = fallbackModePath;
     if (imports.isNotEmpty) _result["imports"] = imports.map((_value) => _value.toJson()).toList();
+    if (isPartOf != false) _result["isPartOf"] = isPartOf;
     if (libraryAnnotations.isNotEmpty) _result["libraryAnnotations"] = libraryAnnotations.map((_value) => _value.toJson()).toList();
     if (libraryDocumentationComment != null) _result["libraryDocumentationComment"] = libraryDocumentationComment.toJson();
     if (libraryName != '') _result["libraryName"] = libraryName;
@@ -9317,6 +9341,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     "exports": exports,
     "fallbackModePath": fallbackModePath,
     "imports": imports,
+    "isPartOf": isPartOf,
     "libraryAnnotations": libraryAnnotations,
     "libraryDocumentationComment": libraryDocumentationComment,
     "libraryName": libraryName,

@@ -298,6 +298,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   bool isCoreLibrary = false;
 
   /**
+   * True is a [PartOfDirective] was found, so the unit is a part.
+   */
+  bool isPartOf = false;
+
+  /**
    * If the library has a library directive, the library name derived from it.
    * Otherwise `null`.
    */
@@ -518,6 +523,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     compilationUnit.declarations.accept(this);
     UnlinkedUnitBuilder b = new UnlinkedUnitBuilder();
     b.lineStarts = compilationUnit.lineInfo?.lineStarts;
+    b.isPartOf = isPartOf;
     b.libraryName = libraryName;
     b.libraryNameOffset = libraryNameOffset;
     b.libraryNameLength = libraryNameLength;
@@ -1345,6 +1351,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitPartOfDirective(PartOfDirective node) {
     isCoreLibrary = node.libraryName.name == 'dart.core';
+    isPartOf = true;
   }
 
   @override

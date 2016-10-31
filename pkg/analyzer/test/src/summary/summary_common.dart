@@ -9274,6 +9274,13 @@ f(x) => 42;
     expect(unlinkedUnits[1].publicNamespace.names[0].name, 'C');
   }
 
+  test_part_isPartOf() {
+    addNamedSource('/a.dart', 'part of foo; class C {}');
+    serializeLibraryText('library foo; part "a.dart";');
+    expect(unlinkedUnits[0].isPartOf, isFalse);
+    expect(unlinkedUnits[1].isPartOf, isTrue);
+  }
+
   test_reference_zero() {
     // Element zero of the references table should be populated in a standard
     // way.

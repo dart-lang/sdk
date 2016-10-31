@@ -2695,6 +2695,12 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   List<UnlinkedImport> get imports;
 
   /**
+   * Indicates whether the unit contains a "part of" declaration.
+   */
+  @Id(18)
+  bool get isPartOf;
+
+  /**
    * Annotations for the library declaration, or the empty list if there is no
    * library declaration.
    */
