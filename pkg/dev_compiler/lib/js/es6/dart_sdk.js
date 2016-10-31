@@ -1911,7 +1911,8 @@ dart.runtimeType = function(obj) {
   if (result != null) return dart.wrapType(result);
   let extension = dart.getExtensionType(obj);
   if (extension != null) {
-    return obj[dartx.runtimeType];
+    result = obj[dartx.runtimeType];
+    return result != null ? result : dart.wrapType(extension);
   }
   if (typeof obj == "function") {
     return dart.wrapType(dart.getReifiedType(obj));
@@ -13197,6 +13198,10 @@ _js_mirrors._wrap = function(obj) {
   return _js_mirrors._dart.wrapType(obj);
 };
 dart.fn(_js_mirrors._wrap, dynamicTodynamic());
+_js_mirrors._runtimeType = function(obj) {
+  return _js_mirrors._wrap(_js_mirrors._dart.getReifiedType(obj));
+};
+dart.fn(_js_mirrors._runtimeType, dynamicTodynamic());
 _js_mirrors._unimplemented = function(t, i) {
   dart.throw(new core.UnimplementedError(dart.str`${t}.${_js_mirrors.getName(i.memberName)} unimplemented`));
 };
@@ -13309,7 +13314,7 @@ _js_mirrors.JsInstanceMirror = class JsInstanceMirror extends _js_mirrors.JsObje
   }
   get type() {
     if (this.reflectee == null) return mirrors.reflectClass(dart.wrapType(core.Null));
-    return mirrors.ClassMirror._check(_js_mirrors.reflectType(core.Type._check(dart.runtimeType(this.reflectee))));
+    return mirrors.ClassMirror._check(_js_mirrors.reflectType(core.Type._check(_js_mirrors._runtimeType(this.reflectee))));
   }
   _(reflectee) {
     this.reflectee = reflectee;

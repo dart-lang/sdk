@@ -795,7 +795,9 @@ runtimeType(obj) {
   // Delegate to the (possibly user-defined) method on the object.
   var extension = getExtensionType(obj);
   if (extension != null) {
-    return JS('', '#[dartx.runtimeType]', obj);
+    result = JS('', '#[dartx.runtimeType]', obj);
+    // If extension doesn't override runtimeType, return the extension type.
+    return result ?? wrapType(extension);
   }
   if (JS('bool', 'typeof # == "function"', obj)) {
     return wrapType(getReifiedType(obj));
