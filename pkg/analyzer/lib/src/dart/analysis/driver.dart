@@ -203,7 +203,8 @@ class AnalysisDriver {
    * Return the [Stream] that produces [AnalysisResult]s for added files.
    *
    * Analysis starts when the client starts listening to the stream, and stops
-   * when the client cancels the subscription.
+   * when the client cancels the subscription. Note that the stream supports
+   * only one single subscriber.
    *
    * When the client starts listening, the analysis state transitions to
    * "analyzing" and an analysis result is produced for every added file prior
@@ -309,8 +310,10 @@ class AnalysisDriver {
    * The results of analysis are eventually produced by the [results] stream.
    */
   void addFile(String path) {
-    _explicitFiles.add(path);
-    _filesToAnalyze.add(path);
+    if (AnalysisEngine.isDartFileName(path)) {
+      _explicitFiles.add(path);
+      _filesToAnalyze.add(path);
+    }
     _transitionToAnalyzing();
     _hasWork.notify();
   }
@@ -334,9 +337,11 @@ class AnalysisDriver {
    * [changeFile] invocation.
    */
   void changeFile(String path) {
-    _changedFiles.add(path);
-    if (_explicitFiles.contains(path)) {
-      _filesToAnalyze.add(path);
+    if (AnalysisEngine.isDartFileName(path)) {
+      _changedFiles.add(path);
+      if (_explicitFiles.contains(path)) {
+        _filesToAnalyze.add(path);
+      }
     }
     _transitionToAnalyzing();
     _hasWork.notify();
@@ -364,6 +369,20 @@ class AnalysisDriver {
     _transitionToAnalyzing();
     _hasWork.notify();
     return completer.future;
+  }
+
+  /**
+   * Returns a [Future] that completes after pumping the event queue [times]
+   * times. By default, this should pump the event queue enough times to allow
+   * any code to run, as long as it's not waiting on some external event.
+   */
+  Future pumpEventQueue([int times = 5000]) {
+    if (times == 0) return new Future.value();
+    // We use a delayed future to allow microtask events to finish. The
+    // Future.value or Future() constructors use scheduleMicrotask themselves and
+    // would therefore not wait for microtask callbacks that are scheduled after
+    // invoking this method.
+    return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
   }
 
   /**
@@ -708,20 +727,6 @@ class AnalysisDriver {
     Object/*=T*/ element = set.first;
     set.remove(element);
     return element;
-  }
-
-  /**
-   * Returns a [Future] that completes after pumping the event queue [times]
-   * times. By default, this should pump the event queue enough times to allow
-   * any code to run, as long as it's not waiting on some external event.
-   */
-  Future pumpEventQueue([int times = 5000]) {
-    if (times == 0) return new Future.value();
-    // We use a delayed future to allow microtask events to finish. The
-    // Future.value or Future() constructors use scheduleMicrotask themselves and
-    // would therefore not wait for microtask callbacks that are scheduled after
-    // invoking this method.
-    return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
   }
 }
 
