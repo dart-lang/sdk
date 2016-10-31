@@ -231,7 +231,17 @@ class AnalysisDriver {
     try {
       PerformanceLogSection analysisSection = null;
       while (true) {
-        await pumpEventQueue(100);
+        // Pump the event queue to allow IO and other asynchronous data
+        // processing while analysis is active. For example Analysis Server
+        // needs to be able to process `updateContent` or `setPriorityFiles`
+        // requests while background analysis is in progress.
+        //
+        // The number of pumpings is arbitrary, might be changed if we see that
+        // analysis or other data processing tasks are starving. Ideally we
+        // would need to be able to set priority of (continuous) asynchronous
+        // tasks.
+        await _pumpEventQueue(128);
+
         await _hasWork.signal;
 
         if (analysisSection == null) {
@@ -382,20 +392,6 @@ class AnalysisDriver {
    */
   bool isAddedFile(String path) {
     return _explicitFiles.contains(path);
-  }
-
-  /**
-   * Returns a [Future] that completes after pumping the event queue [times]
-   * times. By default, this should pump the event queue enough times to allow
-   * any code to run, as long as it's not waiting on some external event.
-   */
-  Future pumpEventQueue([int times = 5000]) {
-    if (times == 0) return new Future.value();
-    // We use a delayed future to allow microtask events to finish. The
-    // Future.value or Future() constructors use scheduleMicrotask themselves and
-    // would therefore not wait for microtask callbacks that are scheduled after
-    // invoking this method.
-    return new Future.delayed(Duration.ZERO, () => pumpEventQueue(times - 1));
   }
 
   /**
@@ -730,6 +726,17 @@ class AnalysisDriver {
         _filesToAnalyze.addAll(_explicitFiles);
       }
     });
+  }
+
+  /**
+   * Returns a [Future] that completes after performing [times] pumpings of
+   * the event queue.
+   */
+  static Future _pumpEventQueue(int times) {
+    if (times == 0) {
+      return new Future.value();
+    }
+    return new Future.delayed(Duration.ZERO, () => _pumpEventQueue(times - 1));
   }
 
   /**
