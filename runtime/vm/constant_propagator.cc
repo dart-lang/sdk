@@ -1170,16 +1170,21 @@ void ConstantPropagator::VisitBinaryDoubleOp(
 
 void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
+  const bool is_negated = instr->kind() != Token::kEQ;
   if (value.IsInteger()) {
-    SetValue(instr, Bool::False());
+    SetValue(instr, is_negated ? Bool::True() : Bool::False());
   } else if (IsIntegerOrDouble(value)) {
     switch (instr->op_kind()) {
-      case MethodRecognizer::kDouble_getIsNaN:
-        SetValue(instr, Bool::Get(isnan(ToDouble(value))));
+      case MethodRecognizer::kDouble_getIsNaN: {
+        const bool is_nan = isnan(ToDouble(value));
+        SetValue(instr, Bool::Get(is_negated ? !is_nan : is_nan));
         break;
-      case MethodRecognizer::kDouble_getIsInfinite:
-        SetValue(instr, Bool::Get(isinf(ToDouble(value))));
+      }
+      case MethodRecognizer::kDouble_getIsInfinite: {
+        const bool is_inf = isinf(ToDouble(value));
+        SetValue(instr, Bool::Get(is_negated ? !is_inf : is_inf));
         break;
+      }
       default:
         UNREACHABLE();
     }
