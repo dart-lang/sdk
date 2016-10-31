@@ -511,7 +511,7 @@ abstract class Stream<T> {
    * Creates a wrapper Stream that intercepts some errors from this stream.
    *
    * If this stream sends an error that matches [test], then it is intercepted
-   * by the [handle] function.
+   * by the [onError] function.
    *
    * The [onError] callback must be of type `void onError(error)` or
    * `void onError(error, StackTrace stackTrace)`. Depending on the function
@@ -519,10 +519,11 @@ abstract class Stream<T> {
    * trace. The stack trace argument might be `null` if the stream itself
    * received an error without stack trace.
    *
-   * An asynchronous error [:e:] is matched by a test function if [:test(e):]
-   * returns true. If [test] is omitted, every error is considered matching.
+   * An asynchronous error `error` is matched by a test function if
+   *`test(error)` returns true. If [test] is omitted, every error is considered
+   * matching.
    *
-   * If the error is intercepted, the [handle] function can decide what to do
+   * If the error is intercepted, the [onError] function can decide what to do
    * with it. It can throw if it wants to raise a new (or the same) error,
    * or simply return to make the stream forget the error.
    *
