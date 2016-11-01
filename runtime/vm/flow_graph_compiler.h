@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLOW_GRAPH_COMPILER_H_
-#define VM_FLOW_GRAPH_COMPILER_H_
+#ifndef RUNTIME_VM_FLOW_GRAPH_COMPILER_H_
+#define RUNTIME_VM_FLOW_GRAPH_COMPILER_H_
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
@@ -210,37 +210,6 @@ class SlowPathCode : public ZoneAllocated {
   Label exit_label_;
 
   DISALLOW_COPY_AND_ASSIGN(SlowPathCode);
-};
-
-
-class MegamorphicSlowPath : public SlowPathCode {
- public:
-  MegamorphicSlowPath(const ICData& ic_data,
-                      intptr_t argument_count,
-                      intptr_t deopt_id,
-                      TokenPosition token_pos,
-                      LocationSummary* locs,
-                      intptr_t try_index)
-    : SlowPathCode(),
-      ic_data_(ic_data),
-      argument_count_(argument_count),
-      deopt_id_(deopt_id),
-      token_pos_(token_pos),
-      locs_(locs),
-      try_index_(try_index) {}
-  virtual ~MegamorphicSlowPath() {}
-
- private:
-  virtual void EmitNativeCode(FlowGraphCompiler* comp);
-
-  const ICData& ic_data_;
-  intptr_t argument_count_;
-  intptr_t deopt_id_;
-  TokenPosition token_pos_;
-  LocationSummary* locs_;
-  const intptr_t try_index_;  // For try/catch ranges.
-
-  DISALLOW_COPY_AND_ASSIGN(MegamorphicSlowPath);
 };
 
 
@@ -536,7 +505,7 @@ class FlowGraphCompiler : public ValueObject {
   uint16_t ToEmbeddableCid(intptr_t cid, Instruction* instruction);
 #endif  // defined(TARGET_ARCH_DBC)
 
-  void AddDeoptIndexAtCall(intptr_t deopt_id, TokenPosition token_pos);
+  void AddDeoptIndexAtCall(intptr_t deopt_id);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
 
@@ -705,9 +674,6 @@ class FlowGraphCompiler : public ValueObject {
                                                    Label* is_instance_lbl,
                                                    Label* is_not_instance_lbl);
 
-  // Returns true if checking against this type is a direct class id comparison.
-  bool TypeCheckAsClassEquality(const AbstractType& type);
-
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 
   void CopyParameters();
@@ -822,8 +788,6 @@ class FlowGraphCompiler : public ValueObject {
   // In future AddDeoptStub should be moved out of the instruction template.
   Environment* pending_deoptimization_env_;
 
-  intptr_t lazy_deopt_pc_offset_;
-
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
 
   Array& edge_counters_array_;
@@ -838,4 +802,4 @@ class FlowGraphCompiler : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_FLOW_GRAPH_COMPILER_H_
+#endif  // RUNTIME_VM_FLOW_GRAPH_COMPILER_H_

@@ -7,10 +7,12 @@ library analyzer.src.generated.element_resolver;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show
         ChildEntities,
@@ -20,8 +22,8 @@ import 'package:analyzer/src/dart/ast/ast.dart'
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /**
@@ -419,7 +421,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFieldFormalParameter(FieldFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _resolveMetadataForParameter(node);
     return super.visitFieldFormalParameter(node);
   }
 
@@ -463,7 +465,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _resolveMetadataForParameter(node);
     return null;
   }
 
@@ -1055,7 +1057,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _resolveMetadataForParameter(node.element, node);
+    _resolveMetadataForParameter(node);
     return null;
   }
 
@@ -1617,6 +1619,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * invoked using the call operator '()'.
    */
   bool _isExecutableType(DartType type) {
+    type = type?.resolveToBound(_resolver.typeProvider.objectType);
     if (type.isDynamic || type is FunctionType) {
       return true;
     } else if (!_enableStrictCallChecks &&
@@ -1844,12 +1847,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   // for `staticType` and `propagatedType` on Expression.
   DartType _propagatedInvokeTypeIfBetter(
       DartType propagatedType, DartType staticType) {
-    if (propagatedType != null &&
-        (staticType == null || propagatedType.isMoreSpecificThan(staticType))) {
-      return propagatedType;
-    } else {
+    if (_resolver.strongMode || propagatedType == null) {
       return null;
     }
+    if (staticType == null || propagatedType.isMoreSpecificThan(staticType)) {
+      return propagatedType;
+    }
+    return null;
   }
 
   /**
@@ -1988,7 +1992,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             element2.lookUpGetter(name3, _definingLibrary);
         if (getter != null) {
           nameNode3.staticElement = getter;
-          annotation.element = element2;
+          annotation.element = getter;
           _resolveAnnotationElementGetter(annotation, getter);
           return;
         }
@@ -2216,8 +2220,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    */
   Element _resolveInvokedElementWithTarget(Expression target,
       DartType targetType, SimpleIdentifier methodName, bool isConditional) {
+    String name = methodName.name;
     if (targetType is InterfaceType) {
-      Element element = _lookUpMethod(target, targetType, methodName.name);
+      Element element = _lookUpMethod(target, targetType, name);
       if (element == null) {
         //
         // If there's no method, then it's possible that 'm' is a getter that
@@ -2225,13 +2230,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         //
         // TODO (collinsn): need to add union type support here too, in the
         // style of [lookUpMethod].
-        element = _lookUpGetter(target, targetType, methodName.name);
+        element = _lookUpGetter(target, targetType, name);
       }
       return element;
+    } else if (targetType is FunctionType &&
+        _resolver.typeProvider.isObjectMethod(name)) {
+      return _resolver.typeProvider.objectType.element.getMethod(name);
     } else if (target is SimpleIdentifier) {
       Element targetElement = target.staticElement;
       if (targetType is FunctionType &&
-          methodName.name == FunctionElement.CALL_METHOD_NAME) {
+          name == FunctionElement.CALL_METHOD_NAME) {
         return targetElement;
       }
       if (targetElement is PrefixElement) {
@@ -2266,8 +2274,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Given a [node] that can have annotations associated with it, resolve the
    * annotations in the element model representing annotations to the node.
    */
-  void _resolveMetadataForParameter(
-      Element element, NormalFormalParameter node) {
+  void _resolveMetadataForParameter(NormalFormalParameter node) {
     _resolveAnnotations(node.metadata);
   }
 
@@ -2449,9 +2456,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else if (element == null &&
         (identifier.inSetterContext() ||
             identifier.parent is CommentReference)) {
-      element = _resolver.nameScope.lookup(
-          new SyntheticIdentifier("${identifier.name}=", identifier),
-          _definingLibrary);
+      Identifier setterId =
+          new SyntheticIdentifier('${identifier.name}=', identifier);
+      element = _resolver.nameScope.lookup(setterId, _definingLibrary);
+      identifier.setProperty(LibraryImportScope.conflictingSdkElements,
+          setterId.getProperty(LibraryImportScope.conflictingSdkElements));
     }
     ClassElement enclosingClass = _resolver.enclosingClass;
     if (element == null && enclosingClass != null) {
@@ -2606,7 +2615,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   Element get bestElement => null;
 
   @override
-  Iterable get childEntities {
+  Iterable<SyntacticEntity> get childEntities {
     // Should never be called, since a SyntheticIdentifier never appears in the
     // AST--it is just used for lookup.
     assert(false);

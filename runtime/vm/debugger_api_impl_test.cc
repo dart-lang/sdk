@@ -38,6 +38,29 @@ static void SetBreakpointAtEntry(const char* cname, const char* fname) {
 }
 
 
+static void DisableDebuggabilityOfDartColonLibraries() {
+  const char* dart_colon = "dart:";
+  const intptr_t dart_colon_length = strlen(dart_colon);
+  // Disable debuggability of all dart: libraries.
+  Dart_Handle library_ids = Dart_GetLibraryIds();
+  intptr_t library_ids_length;
+  Dart_ListLength(library_ids, &library_ids_length);
+  for (intptr_t i = 0; i < library_ids_length; i++) {
+    Dart_Handle library_id_handle = Dart_ListGetAt(library_ids, i);
+    int64_t library_id;
+    Dart_IntegerToInt64(library_id_handle, &library_id);
+    Dart_Handle library_url_handle = Dart_GetLibraryURL(library_id);
+    const char* library_url;
+    Dart_StringToCString(library_url_handle, &library_url);
+    if (strncmp(library_url, dart_colon, dart_colon_length) == 0) {
+      Dart_SetLibraryDebuggable(library_id, false);
+    } else {
+      Dart_SetLibraryDebuggable(library_id, true);
+    }
+  }
+}
+
+
 static Dart_Handle Invoke(const char* func_name) {
   ASSERT(script_lib != NULL);
   ASSERT(!Dart_IsError(script_lib));
@@ -740,6 +763,8 @@ TEST_CASE(Debug_StepInto) {
 
   LoadScript(kScriptChars);
   Dart_SetPausedEventHandler(&TestStepIntoHandler);
+
+  DisableDebuggabilityOfDartColonLibraries();
 
   SetBreakpointAtEntry("", "main");
   breakpoint_hit = false;

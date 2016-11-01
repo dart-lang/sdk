@@ -25,6 +25,7 @@ packages_file_test: Skip # Uses Platform.executable
 
 [ ($runtime != vm && $runtime != dart_precompiled && $runtime != dart_app) && ($runtime != drt || $compiler != none)) ]
 no_assert_test: Fail, OK # This is testing a vm flag.
+env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) ]
 package/package_isolate_test: Fail # Issue 12474
@@ -75,6 +76,7 @@ out_of_memory_test: Skip
 map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
 regress_26031_test: SkipByDesign # Standalone only test
+env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
@@ -136,6 +138,12 @@ io/arguments_test: Fail # DartOptions not supported by dart2js, and issue 14200.
 medium_integer_test: Pass # The test only fails at runtime, not at compilation.
 oom_error_stacktrace_test: Pass # The test only fails at runtime.
 
+[ $compiler == dart2js && $fast_startup ]
+io/observatory_test: Fail # mirrors not supported.
+io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
+io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
+io/test_runner_test: CompileTimeError # Imports dart:mirrors
+
 [ $compiler == dart2js && $browser ]
 *: Skip
 
@@ -180,6 +188,7 @@ deferred_transitive_import_error_test: Skip # Contains intentional errors.
 [ $compiler == dart2analyzer ]
 package/package1_test: CompileTimeError
 package/package_test: CompileTimeError
+package/package_isolate_test: CompileTimeError
 package/scenarios/packages_dir_only/packages_dir_only_test: CompileTimeError
 package/scenarios/packages_file_only/packages_file_only_test: CompileTimeError
 package/scenarios/both_dir_and_file/prefers_packages_file_test: CompileTimeError
@@ -220,7 +229,7 @@ assert_test: Pass, RuntimeError
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 
-[ $noopt || $compiler == precompiler || $compiler == dart2appjit ]
+[ $noopt || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit ]
 io/test_extension_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
 io/platform_test: Skip # Platform.executable
@@ -271,8 +280,12 @@ io/named_pipe_script_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
 
+[ $runtime == dart_precompiled || $mode == product ]
+io/skipping_dart2js_compilations_test: CompileTimeError # Imports dart:mirrors
+io/test_harness_analyzer_test: CompileTimeError # Imports dart:mirrors
+io/test_runner_test: CompileTimeError # Imports dart:mirrors
+
 [ $runtime == dart_precompiled || $runtime == dart_app || $mode == product ]
-debugger/*: Skip
 assert_test: SkipByDesign # Requires checked mode.
 no_assert_test: SkipByDesign # Requires checked mode.
 io/code_collection_test: Skip # Incompatible flags
@@ -314,14 +327,33 @@ link_natives_lazily_test: SkipByDesign
 no_lazy_dispatchers_test: SkipByDesign
 
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
-io/*: Skip # Issue #26376
-
-typed_data_isolate_test: Skip # Issue #26376
-typed_array_test: Skip # Issue #26376
-typed_array_int64_uint64_test: Skip # Issue #26376
-
-oom_error_stacktrace_test: Skip # Issue #26377
-out_of_memory_test: Skip # Issue #26377
+# Issue 26376
+io/file_system_watcher_test: RuntimeError
+io/uri_platform_test: RuntimeError
+io/resolve_symbolic_links_test: RuntimeError
+io/file_stat_test: RuntimeError
+# Issue #27638
+io/raw_datagram_socket_test: RuntimeError
+io/http_proxy_advanced_test: RuntimeError
+io/regress_21160_test: RuntimeError
+io/secure_multiple_client_server_test: RuntimeError
+io/http_proxy_test: RuntimeError
+io/secure_session_resume_test: RuntimeError
+io/raw_secure_server_socket_test: RuntimeError
+io/raw_secure_server_closing_test: RuntimeError
+io/raw_secure_socket_pause_test: RuntimeError
+io/https_server_test: RuntimeError
+io/secure_server_client_certificate_test: RuntimeError
+io/secure_socket_alpn_test: RuntimeError
+io/secure_bad_certificate_test: RuntimeError
+io/secure_server_socket_test: RuntimeError
+io/secure_client_server_test: RuntimeError
+io/socket_upgrade_to_secure_test: RuntimeError
+io/secure_client_raw_server_test: RuntimeError
+io/secure_socket_test: RuntimeError
+io/raw_secure_socket_test: RuntimeError
+io/https_bad_certificate_test: RuntimeError
+io/secure_server_closing_test: RuntimeError
 
 [ $runtime == vm || $runtime == dart_app || $runtime == dart_precompiled ]
 deferred_transitive_import_error_test: Skip # Contains intentional errors.

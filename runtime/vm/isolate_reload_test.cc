@@ -313,7 +313,7 @@ TEST_CASE(IsolateReload_LibraryImportAdded) {
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");;
+  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");
 
   const char* kReloadScript =
       "import 'dart:math';\n"
@@ -346,7 +346,7 @@ TEST_CASE(IsolateReload_LibraryImportRemoved) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
 
-  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");;
+  EXPECT_ERROR(SimpleInvokeError(lib, "main"), "max");
 }
 
 
@@ -1536,7 +1536,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Instance) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("4 Class 'C' has no instance getter 'y'.",
+  EXPECT_STREQ("4 NoSuchMethodError: Class 'C' has no instance getter 'y'.",
                SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1595,8 +1595,8 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("4 No static getter 'y' declared in class 'C'.",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("4 NoSuchMethodError: No static getter 'y' declared "
+               "in class 'C'.", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1653,7 +1653,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Library) {
 
   TestCase::SetReloadTestScript(kScript);  // Root library does not change.
 
-  EXPECT_STREQ("4 No top-level getter 'y' declared.",
+  EXPECT_STREQ("4 NoSuchMethodError: No top-level getter 'y' declared.",
                SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1710,7 +1710,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Instance) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("null Class 'C' has no instance setter 'y='.",
+  EXPECT_STREQ("null NoSuchMethodError: Class 'C' has no instance setter 'y='.",
                SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1769,8 +1769,8 @@ TEST_CASE(IsolateReload_DanglingSetter_Class) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("5 No static setter 'y=' declared in class 'C'.",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("5 NoSuchMethodError: No static setter 'y=' declared in "
+               "class 'C'.", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1827,7 +1827,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Library) {
 
   TestCase::SetReloadTestScript(kScript);  // Root library does not change.
 
-  EXPECT_STREQ("5 No top-level setter 'y=' declared.",
+  EXPECT_STREQ("5 NoSuchMethodError: No top-level setter 'y=' declared.",
                SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
@@ -1883,8 +1883,8 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("1 Class 'C' has no instance method 'foo' with matching"
-               " arguments.", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("1 NoSuchMethodError: Class 'C' has no instance method "
+               "'foo' with matching arguments.", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1937,8 +1937,8 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("1 Closure call with mismatched arguments: function 'C.foo'",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("1 NoSuchMethodError: Closure call with mismatched arguments: "
+               "function 'C.foo'", SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -2775,6 +2775,105 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat7) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
 }
+
+
+// Regression for handle sharing bug: Change the shape of two classes and see
+// that their instances don't change class.
+TEST_CASE(IsolateReload_ChangeInstanceFormat8) {
+  const char* kScript =
+      "class A{\n"
+      "  var x;\n"
+      "}\n"
+      "class B {\n"
+      "  var x, y, z, w;\n"
+      "}\n"
+      "var a, b;\n"
+      "main() {\n"
+      "  a = new A();\n"
+      "  b = new B();\n"
+      "  return '$a $b';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of 'A' Instance of 'B'", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class A{\n"
+      "  var x, y;\n"
+      "}\n"
+      "class B {\n"
+      "  var x, y, z, w, v;\n"
+      "}\n"
+      "var a, b;\n"
+      "main() {\n"
+      "  return '$a $b';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("Instance of 'A' Instance of 'B'", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_ShapeChangeRetainsHash) {
+  const char* kScript =
+      "class A{\n"
+      "  var x;\n"
+      "}\n"
+      "var a, hash1, hash2;\n"
+      "main() {\n"
+      "  a = new A();\n"
+      "  hash1 = a.hashCode;\n"
+      "  return 'okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class A{\n"
+      "  var x, y, z;\n"
+      "}\n"
+      "var a, hash1, hash2;\n"
+      "main() {\n"
+      "  hash2 = a.hashCode;\n"
+      "  return (hash1 == hash2).toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_StaticTearOffRetainsHash) {
+  const char* kScript =
+      "foo() {}\n"
+      "var hash1, hash2;\n"
+      "main() {\n"
+      "  hash1 = foo.hashCode;\n"
+      "  return 'okay';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "foo() {}\n"
+      "var hash1, hash2;\n"
+      "main() {\n"
+      "  hash2 = foo.hashCode;\n"
+      "  return (hash1 == hash2).toString();\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
 
 static bool NothingModifiedCallback(const char* url, int64_t since) {
   return false;

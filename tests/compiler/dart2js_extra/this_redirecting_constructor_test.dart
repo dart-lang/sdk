@@ -10,9 +10,13 @@ import "package:expect/expect.dart";
 
 class C {
   var x;
-  C() { x = 1; }
-  C.C() { x = 2; }
-  C.redirecting(): this.C();
+  C() {
+    x = 1;
+  }
+  C.C() {
+    x = 2;
+  }
+  C.redirecting() : this.C();
 }
 
 main() {

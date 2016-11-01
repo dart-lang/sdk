@@ -224,6 +224,8 @@ class ErroneousElementX extends ElementX
 
   bool get isCyclicRedirection => false;
 
+  bool get isDefaultConstructor => false;
+
   bool get isMalformed => true;
 
   PrefixElement get redirectionDeferredPrefix => null;
@@ -1473,6 +1475,7 @@ abstract class VariableElementX extends ElementX
   final Token token;
   final VariableList variables;
   VariableDefinitions definitionsCache;
+  Expression definitionCache;
   Expression initializerCache;
 
   Modifiers get modifiers => variables.modifiers;
@@ -1505,6 +1508,16 @@ abstract class VariableElementX extends ElementX
     return definitionsCache;
   }
 
+  /// Returns the node that defines this field.
+  ///
+  /// For instance in `var a, b = true`, the definitions nodes for fields 'a'
+  /// and 'b' are the nodes for `a` and `b = true`, respectively.
+  Expression get definition {
+    assert(invariant(this, definitionCache != null,
+        message: "Definition node has not been computed for $this."));
+    return definitionCache;
+  }
+
   Expression get initializer {
     assert(invariant(this, definitionsCache != null,
         message: "Initializer has not been computed for $this."));
@@ -1522,8 +1535,6 @@ abstract class VariableElementX extends ElementX
   void createDefinitions(VariableDefinitions definitions) {
     assert(invariant(this, definitionsCache == null,
         message: "VariableDefinitions has already been computed for $this."));
-    Expression node;
-    int count = 0;
     for (Link<Node> link = definitions.definitions.nodes;
         !link.isEmpty;
         link = link.tail) {
@@ -1533,28 +1544,16 @@ abstract class VariableElementX extends ElementX
         SendSet sendSet = initializedIdentifier.asSendSet();
         identifier = sendSet.selector.asIdentifier();
         if (identical(name, identifier.source)) {
-          node = initializedIdentifier;
+          definitionCache = initializedIdentifier;
           initializerCache = sendSet.arguments.first;
         }
       } else if (identical(name, identifier.source)) {
-        node = initializedIdentifier;
+        definitionCache = initializedIdentifier;
       }
-      count++;
     }
-    invariant(definitions, node != null, message: "Could not find '$name'.");
-    if (count == 1) {
-      definitionsCache = definitions;
-    } else {
-      // Create a [VariableDefinitions] node for the single definition of
-      // [node].
-      definitionsCache = new VariableDefinitions(
-          definitions.type,
-          definitions.modifiers,
-          new NodeList(
-              definitions.definitions.beginToken,
-              const Link<Node>().prepend(node),
-              definitions.definitions.endToken));
-    }
+    invariant(definitions, definitionCache != null,
+        message: "Could not find '$name'.");
+    definitionsCache = definitions;
   }
 
   DartType computeType(Resolution resolution) {
@@ -1659,6 +1658,14 @@ class ErroneousFieldElementX extends ElementX
 
   Token get token => node.getBeginToken();
 
+  get definitionCache {
+    throw new UnsupportedError("definitionCache");
+  }
+
+  set definitionCache(_) {
+    throw new UnsupportedError("definitionCache=");
+  }
+
   get initializerCache {
     throw new UnsupportedError("initializerCache");
   }
@@ -1672,6 +1679,8 @@ class ErroneousFieldElementX extends ElementX
   }
 
   get initializer => null;
+
+  get definition => null;
 
   bool get isMalformed => true;
 
@@ -2229,6 +2238,8 @@ abstract class ConstructorElementX extends FunctionElementX
   // TODO(johnniwinther): This should also return true for cyclic redirecting
   // generative constructors.
   bool get isCyclicRedirection => effectiveTarget.isRedirectingFactory;
+
+  bool get isDefaultConstructor => false;
 
   /// These fields are set by the post process queue when checking for cycles.
   ConstructorElement effectiveTargetInternal;
@@ -3016,6 +3027,7 @@ class EnumFieldElementX extends FieldElementX {
     definitionsCache = new VariableDefinitions(
         null, variableList.modifiers, new NodeList.singleton(definition));
     initializerCache = initializer;
+    definitionCache = definition;
   }
 
   @override

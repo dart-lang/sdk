@@ -14,18 +14,19 @@ Future<Map<String, String>> generate(String code,
   Uri libraryRoot = script.resolve('../../../sdk/');
   Uri packageRoot = script.resolve('./packages/');
 
-  var provider = new MemorySourceFileProvider({ 'main.dart': code });
+  var provider = new MemorySourceFileProvider({'main.dart': code});
   var handler = new FormattingDiagnosticHandler(provider);
 
   Uri uri = Uri.parse('memory:main.dart');
-  CompilerImpl compiler = new CompilerImpl(provider,
-                                   const NullCompilerOutput(),
-                                   handler,
-                                   new CompilerOptions.parse(
-                                       entryPoint: uri,
-                                       libraryRoot: libraryRoot,
-                                       packageRoot: packageRoot,
-                                       options: options));
+  CompilerImpl compiler = new CompilerImpl(
+      provider,
+      const NullCompilerOutput(),
+      handler,
+      new CompilerOptions.parse(
+          entryPoint: uri,
+          libraryRoot: libraryRoot,
+          packageRoot: packageRoot,
+          options: options));
   return compiler.run(uri).then((success) {
     Expect.isTrue(success);
     Map<String, String> result = new Map<String, String>();

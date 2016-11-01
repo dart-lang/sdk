@@ -7,15 +7,6 @@
 
 
 /**
- * Kind of a source in the cache.
- */
-enum CacheSourceKind : byte {
-  library,
-
-  part
-}
-
-/**
  * Enum used to indicate the kind of a name in index.
  */
 enum IndexNameKind : byte {
@@ -791,75 +782,43 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
- * Information about an analysis error in a source.
+ * Information about a resolved unit.
  */
-table CacheAnalysisError {
+table AnalysisDriverResolvedUnit {
   /**
-   * The correction to be displayed for this error, or `null` if there is no
-   * correction information for this error. The correction should indicate how
-   * the user can fix the error.
+   * The full list of analysis errors, both syntactic and semantic.
+   */
+  errors:[AnalysisDriverUnitError] (id: 0);
+}
+
+/**
+ * Information about an error in a resolved unit.
+ */
+table AnalysisDriverUnitError {
+  /**
+   * The optional correction hint for the error.
    */
   correction:string (id: 4);
 
   /**
-   * The unique name of the error code.
+   * The length of the error in the file.
    */
-  errorCodeUniqueName:string (id: 0);
+  length:uint (id: 1);
 
   /**
-   * Length of the error range.
-   */
-  length:uint (id: 2);
-
-  /**
-   * The message to be displayed for this error. The message should indicate
-   * what is wrong and why it is wrong.
+   * The message of the error.
    */
   message:string (id: 3);
 
   /**
-   * Offset of the error range relative to the beginning of the file.
+   * The offset from the beginning of the file.
    */
-  offset:uint (id: 1);
-}
-
-/**
- * Information about a source that depends only on its content.
- */
-table CacheSourceContent {
-  /**
-   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
-   */
-  exportedUris:[string] (id: 2);
+  offset:uint (id: 0);
 
   /**
-   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   * The unique name of the error code.
    */
-  importedUris:[string] (id: 1);
-
-  /**
-   * The kind of the source.
-   */
-  kind:CacheSourceKind (id: 0);
-
-  /**
-   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
-   * [CacheSourceKind.part].
-   */
-  partUris:[string] (id: 3);
-}
-
-/**
- * Errors of a source in a library, which depends on the import/export closure
- * of the containing library and the source.
- */
-table CacheSourceErrorsInLibrary {
-  /**
-   * The list of errors in the source in the library.
-   */
-  errors:[CacheAnalysisError] (id: 0);
+  uniqueName:string (id: 2);
 }
 
 /**
@@ -1158,6 +1117,13 @@ table LinkedUnit {
    * corresponding to const constructors that are part of cycles.
    */
   constCycles:[uint] (id: 2);
+
+  /**
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
+   * corresponding to parameters that inherit `@covariant` behavior from a base
+   * class.
+   */
+  parametersInheritingCovariant:[uint] (id: 3);
 
   /**
    * Information about the resolution of references within the compilation
@@ -1533,6 +1499,28 @@ table UnlinkedCombinator {
 }
 
 /**
+ * Unlinked summary information about a single import or export configuration.
+ */
+table UnlinkedConfiguration {
+  /**
+   * The name of the declared variable whose value is being used in the
+   * condition.
+   */
+  name:string (id: 0);
+
+  /**
+   * The URI of the implementation library to be used if the condition is true.
+   */
+  uri:string (id: 2);
+
+  /**
+   * The value to which the value of the declared variable will be compared,
+   * or `true` if the condition does not include an equality test.
+   */
+  value:string (id: 1);
+}
+
+/**
  * Unlinked summary information about a compile-time constant expression, or a
  * potentially constant expression.
  *
@@ -1631,13 +1619,13 @@ table UnlinkedDocumentationComment {
   /**
    * Length of the documentation comment (prior to replacing '\r\n' with '\n').
    */
-  length:uint (id: 0);
+  length:uint (id: 0, deprecated);
 
   /**
    * Offset of the beginning of the documentation comment relative to the
    * beginning of the file.
    */
-  offset:uint (id: 2);
+  offset:uint (id: 2, deprecated);
 
   /**
    * Text of the documentation comment, with '\r\n' replaced by '\n'.
@@ -1931,9 +1919,15 @@ table UnlinkedExportNonPublic {
  */
 table UnlinkedExportPublic {
   /**
-   * Combinators contained in this import declaration.
+   * Combinators contained in this export declaration.
    */
   combinators:[UnlinkedCombinator] (id: 1);
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  configurations:[UnlinkedConfiguration] (id: 2);
 
   /**
    * URI used in the source code to reference the exported library.
@@ -1954,6 +1948,12 @@ table UnlinkedImport {
    * Combinators contained in this import declaration.
    */
   combinators:[UnlinkedCombinator] (id: 4);
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  configurations:[UnlinkedConfiguration] (id: 10);
 
   /**
    * Indicates whether the import declaration uses the `deferred` keyword.
@@ -2061,6 +2061,16 @@ table UnlinkedParam {
    * field.
    */
   inferredTypeSlot:uint (id: 2);
+
+  /**
+   * If this is a parameter of an instance method, a nonzero slot id which is
+   * unique within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then this parameter inherits
+   * `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  inheritsCovariantSlot:uint (id: 14);
 
   /**
    * The synthetic initializer function of the parameter.  Absent if the variable
@@ -2343,6 +2353,11 @@ table UnlinkedUnit {
    * Import declarations in the compilation unit.
    */
   imports:[UnlinkedImport] (id: 5);
+
+  /**
+   * Indicates whether the unit contains a "part of" declaration.
+   */
+  isPartOf:bool (id: 18);
 
   /**
    * Annotations for the library declaration, or the empty list if there is no

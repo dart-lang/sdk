@@ -49,7 +49,7 @@ Element _getLocalElement(SimpleIdentifier node) {
  */
 String _getNormalizedSource(String src) {
   List<Token> selectionTokens = TokenUtils.getTokens(src);
-  return StringUtils.join(selectionTokens, _TOKEN_SEPARATOR);
+  return selectionTokens.join(_TOKEN_SEPARATOR);
 }
 
 /**
@@ -565,7 +565,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (_selectionExpression != null) {
       _selectionExpression.accept(visitor);
     } else if (_selectionStatements != null) {
-      _selectionStatements.forEach((statement) => statement.accept(visitor));
+      _selectionStatements.forEach((statement) {
+        statement.accept(visitor);
+      });
     }
     _hasAwait = visitor.result;
   }

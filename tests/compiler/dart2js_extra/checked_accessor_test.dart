@@ -16,6 +16,7 @@ void main() {
   f(x) {
     x.field = true;
   }
+
   Expect.throws(() {
     [new E(), new WithGetter()].forEach(f);
     new missingType();

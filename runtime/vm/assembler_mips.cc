@@ -865,7 +865,6 @@ void Assembler::NoMonomorphicCheckedEntry() {
   break_(0);
   break_(0);
   break_(0);
-  break_(0);
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
 }
 
@@ -877,8 +876,7 @@ void Assembler::MonomorphicCheckedEntry() {
 
   Label have_cid, miss;
   Bind(&miss);
-  lw(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
-  lw(T9, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  lw(T9, Address(THR, Thread::monomorphic_miss_entry_offset()));
   jr(T9);
 
   Comment("MonomorphicCheckedEntry");
@@ -1238,6 +1236,18 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
 }
 
 
+void Assembler::LoadElementAddressForIntIndex(Register address,
+                                              bool is_external,
+                                              intptr_t cid,
+                                              intptr_t index_scale,
+                                              Register array,
+                                              intptr_t index) {
+  const int64_t offset = index * index_scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  AddImmediate(address, array, offset);
+}
+
+
 Address Assembler::ElementAddressForRegIndex(bool is_load,
                                              bool is_external,
                                              intptr_t cid,
@@ -1263,6 +1273,92 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   }
   ASSERT(Address::CanHoldOffset(offset));
   return Address(base, offset);
+}
+
+
+void Assembler::LoadElementAddressForRegIndex(Register address,
+                                              bool is_load,
+                                              bool is_external,
+                                              intptr_t cid,
+                                              intptr_t index_scale,
+                                              Register array,
+                                              Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  const int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  if (shift < 0) {
+    ASSERT(shift == -1);
+    sra(address, index, 1);
+    addu(address, array, address);
+  } else if (shift == 0) {
+    addu(address, array, index);
+  } else {
+    sll(address, index, shift);
+    addu(address, array, address);
+  }
+  if (offset != 0) {
+    AddImmediate(address, offset);
+  }
+}
+
+
+void Assembler::LoadHalfWordUnaligned(Register dst,
+                                      Register addr,
+                                      Register tmp) {
+  ASSERT(dst != addr);
+  lbu(dst, Address(addr, 0));
+  lb(tmp, Address(addr, 1));
+  sll(tmp, tmp, 8);
+  or_(dst, dst, tmp);
+}
+
+
+void Assembler::LoadHalfWordUnsignedUnaligned(Register dst,
+                                              Register addr,
+                                              Register tmp) {
+  ASSERT(dst != addr);
+  lbu(dst, Address(addr, 0));
+  lbu(tmp, Address(addr, 1));
+  sll(tmp, tmp, 8);
+  or_(dst, dst, tmp);
+}
+
+
+void Assembler::StoreHalfWordUnaligned(Register src,
+                                       Register addr,
+                                       Register tmp) {
+  sb(src, Address(addr, 0));
+  srl(tmp, src, 8);
+  sb(tmp, Address(addr, 1));
+}
+
+
+void Assembler::LoadWordUnaligned(Register dst, Register addr, Register tmp) {
+  // TODO(rmacnak): LWL + LWR
+  ASSERT(dst != addr);
+  lbu(dst, Address(addr, 0));
+  lbu(tmp, Address(addr, 1));
+  sll(tmp, tmp, 8);
+  or_(dst, dst, tmp);
+  lbu(tmp, Address(addr, 2));
+  sll(tmp, tmp, 16);
+  or_(dst, dst, tmp);
+  lbu(tmp, Address(addr, 3));
+  sll(tmp, tmp, 24);
+  or_(dst, dst, tmp);
+}
+
+
+void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
+  // TODO(rmacnak): SWL + SWR
+  sb(src, Address(addr, 0));
+  srl(tmp, src, 8);
+  sb(tmp, Address(addr, 1));
+  srl(tmp, src, 16);
+  sb(tmp, Address(addr, 2));
+  srl(tmp, src, 24);
+  sb(tmp, Address(addr, 3));
 }
 
 

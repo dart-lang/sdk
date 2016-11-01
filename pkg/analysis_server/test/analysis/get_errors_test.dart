@@ -8,15 +8,15 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(GetErrorsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(GetErrorsTest);
+  });
 }
 
 @reflectiveTest
@@ -26,7 +26,9 @@ class GetErrorsTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new AnalysisDomainHandler(server),];
+    server.handlers = [
+      new AnalysisDomainHandler(server),
+    ];
     createProject();
   }
 

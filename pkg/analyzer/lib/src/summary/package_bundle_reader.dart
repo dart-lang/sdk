@@ -1,6 +1,7 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
@@ -41,9 +43,8 @@ class InputPackagesResultProvider extends ResynthesizerResultProvider {
 /**
  * The [UriResolver] that knows about sources that are served from their
  * summaries.
- *
- * TODO(scheglov) rename to `InSummaryUriResolver` - it's not `package:` specific.
  */
+@deprecated
 class InSummaryPackageUriResolver extends UriResolver {
   final SummaryDataStore _dataStore;
 
@@ -117,6 +118,36 @@ class InSummarySource extends Source {
 }
 
 /**
+ * The [UriResolver] that knows about sources that are served from their
+ * summaries.
+ */
+class InSummaryUriResolver extends UriResolver {
+  ResourceProvider resourceProvider;
+  final SummaryDataStore _dataStore;
+
+  InSummaryUriResolver(this.resourceProvider, this._dataStore);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    actualUri ??= uri;
+    String uriString = uri.toString();
+    UnlinkedUnit unit = _dataStore.unlinkedMap[uriString];
+    if (unit != null) {
+      String summaryPath = _dataStore.uriToSummaryPath[uriString];
+      if (unit.fallbackModePath.isNotEmpty) {
+        return new _InSummaryFallbackFileSource(
+            resourceProvider.getFile(unit.fallbackModePath),
+            actualUri,
+            summaryPath);
+      } else {
+        return new InSummarySource(actualUri, summaryPath);
+      }
+    }
+    return null;
+  }
+}
+
+/**
  * The [ResultProvider] that provides results using summary resynthesizer.
  */
 abstract class ResynthesizerResultProvider extends ResultProvider {
@@ -150,7 +181,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
     // Constant expressions are always resolved in summaries.
     if (result == CONSTANT_EXPRESSION_RESOLVED &&
         target is ConstantEvaluationTarget) {
-      entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+      entry.setValue(
+          result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
       return true;
     }
     // Provide results for Source.
@@ -169,20 +201,28 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           result == LIBRARY_ELEMENT) {
         LibraryElement libraryElement =
             resynthesizer.getLibraryElement(uriString);
-        entry.setValue(result, libraryElement, TargetedResult.EMPTY_LIST);
+        entry.setValue(result as ResultDescriptor<LibraryElement>,
+            libraryElement, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == READY_LIBRARY_ELEMENT2 ||
           result == READY_LIBRARY_ELEMENT6 ||
           result == READY_LIBRARY_ELEMENT7) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        entry.setValue(
+            result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
+        return true;
+      } else if (result == MODIFICATION_TIME) {
+        entry.setValue(
+            result as ResultDescriptor<int>, 0, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
         if (_dataStore.linkedMap.containsKey(uriString)) {
-          entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<SourceKind>,
+              SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
           return true;
         }
         if (_dataStore.unlinkedMap.containsKey(uriString)) {
-          entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<SourceKind>,
+              SourceKind.PART, TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
@@ -194,7 +234,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
               .map((libraryUriString) =>
                   context.sourceFactory.resolveUri(target, libraryUriString))
               .toList(growable: false);
-          entry.setValue(result, librarySources, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<List<Source>>,
+              librarySources, TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
@@ -203,7 +244,8 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         List<int> lineStarts = unlinkedUnit.lineStarts;
         if (lineStarts.isNotEmpty) {
           LineInfo lineInfo = new LineInfo(lineStarts);
-          entry.setValue(result, lineInfo, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<LineInfo>, lineInfo,
+              TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
@@ -219,9 +261,9 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
           result == CREATED_RESOLVED_UNIT8 ||
           result == CREATED_RESOLVED_UNIT9 ||
           result == CREATED_RESOLVED_UNIT10 ||
-          result == CREATED_RESOLVED_UNIT11 ||
-          result == CREATED_RESOLVED_UNIT12) {
-        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+          result == CREATED_RESOLVED_UNIT11) {
+        entry.setValue(
+            result as ResultDescriptor<bool>, true, TargetedResult.EMPTY_LIST);
         return true;
       }
       if (result == COMPILATION_UNIT_ELEMENT) {
@@ -230,13 +272,15 @@ abstract class ResynthesizerResultProvider extends ResultProvider {
         CompilationUnitElement unit = resynthesizer.getElement(
             new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
         if (unit != null) {
-          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          entry.setValue(result as ResultDescriptor<CompilationUnitElement>,
+              unit, TargetedResult.EMPTY_LIST);
           return true;
         }
       }
     } else if (target is VariableElement) {
-      if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
-        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
+      if (result == INFERRED_STATIC_VARIABLE) {
+        entry.setValue(result as ResultDescriptor<VariableElement>, target,
+            TargetedResult.EMPTY_LIST);
         return true;
       }
     }
@@ -427,9 +471,24 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
 
 /**
  * A source that is part of a package whose summary was generated in fallback
- * mode.  This source behaves identically to a [FileBasedSource] except that it
+ * mode. This source behaves identically to a [FileSource] except that it also
+ * provides [summaryPath].
+ */
+class _InSummaryFallbackFileSource extends FileSource
+    implements InSummarySource {
+  @override
+  final String summaryPath;
+
+  _InSummaryFallbackFileSource(File file, Uri uri, this.summaryPath)
+      : super(file, uri);
+}
+
+/**
+ * A source that is part of a package whose summary was generated in fallback
+ * mode. This source behaves identically to a [FileBasedSource] except that it
  * also provides [summaryPath].
  */
+@deprecated
 class _InSummaryFallbackSource extends FileBasedSource
     implements InSummarySource {
   @override

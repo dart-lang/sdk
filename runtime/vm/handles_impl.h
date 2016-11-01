@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_HANDLES_IMPL_H_
-#define VM_HANDLES_IMPL_H_
+#ifndef RUNTIME_VM_HANDLES_IMPL_H_
+#define RUNTIME_VM_HANDLES_IMPL_H_
 
 #include "vm/heap.h"
 #include "vm/thread.h"
@@ -93,7 +93,6 @@ uword Handles<kHandleSizeInWords,
               kOffsetOfRawPtr>::AllocateHandle(Zone* zone) {
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
-  ASSERT(thread->zone() == zone);
   ASSERT(thread->top_handle_scope() != NULL);
   ASSERT(thread->no_handle_scope_depth() == 0);
 #endif  // DEBUG
@@ -369,4 +368,4 @@ int Handles<kHandleSizeInWords,
 
 }  // namespace dart
 
-#endif  // VM_HANDLES_IMPL_H_
+#endif  // RUNTIME_VM_HANDLES_IMPL_H_

@@ -21,12 +21,16 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
+import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:dart_style/dart_style.dart';
+
+int test_resetCount = 0;
 
 bool test_simulateRefactoringException_change = false;
 bool test_simulateRefactoringException_final = false;
@@ -65,22 +69,14 @@ class EditDomainHandler implements RequestHandler {
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
-    ContextSourcePair contextSource = server.getContextSourcePair(file);
-
-    engine.AnalysisContext context = contextSource.context;
-    if (context == null) {
-      return new Response.formatInvalidFile(request);
-    }
-
-    Source source = contextSource.source;
-    engine.TimestampedData<String> contents;
+    String unformattedSource;
     try {
-      contents = context.getContents(source);
+      Source source = server.resourceProvider.getFile(file).createSource();
+      unformattedSource = server.overlayState.getContents(source);
+      unformattedSource ??= source.contents.data;
     } catch (e) {
       return new Response.formatInvalidFile(request);
     }
-
-    String unformattedSource = contents.data;
 
     int start = params.selectionOffset;
     int length = params.selectionLength;
@@ -131,6 +127,10 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Future getAssists(Request request) async {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      return;
+    }
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
     ContextSourcePair pair = server.getContextSourcePair(params.file);
     engine.AnalysisContext context = pair.context;
@@ -148,7 +148,11 @@ class EditDomainHandler implements RequestHandler {
     server.sendResponse(response);
   }
 
-  getFixes(Request request) async {
+  Future getFixes(Request request) async {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      return;
+    }
     var params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -180,7 +184,7 @@ class EditDomainHandler implements RequestHandler {
       }
     }
     // respond
-    return server.sendResponse(
+    server.sendResponse(
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 
@@ -376,7 +380,7 @@ class _RefactoringManager {
 
   final AnalysisServer server;
   final SearchEngine searchEngine;
-  StreamSubscription onAnalysisStartedSubscription;
+  StreamSubscription subscriptionToReset;
 
   RefactoringKind kind;
   String file;
@@ -392,7 +396,6 @@ class _RefactoringManager {
   EditGetRefactoringResult result;
 
   _RefactoringManager(this.server, this.searchEngine) {
-    onAnalysisStartedSubscription = server.onAnalysisStarted.listen(_reset);
     _reset();
   }
 
@@ -422,9 +425,9 @@ class _RefactoringManager {
    * Cancels processing of the current request and cleans up.
    */
   void cancel() {
-    onAnalysisStartedSubscription.cancel();
     server.sendResponse(new Response.refactoringRequestCancelled(request));
     request = null;
+    _reset();
   }
 
   void getRefactoring(Request _request) {
@@ -492,6 +495,29 @@ class _RefactoringManager {
     });
   }
 
+  /**
+   * Perform enough analysis to be able to perform refactoring of the given
+   * [kind] in the given [file].
+   */
+  Future<Null> _analyzeForRefactoring(String file, RefactoringKind kind) async {
+    // "Extract Local" and "Inline Local" refactorings need only local analysis.
+    if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE ||
+        kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
+      ContextSourcePair pair = server.getContextSourcePair(file);
+      engine.AnalysisContext context = pair.context;
+      Source source = pair.source;
+      if (context != null && source != null) {
+        if (context.computeResult(source, SOURCE_KIND) == SourceKind.LIBRARY) {
+          await context.computeResolvedCompilationUnitAsync(source, source);
+          return;
+        }
+      }
+    }
+    // A refactoring for which we cannot optimize analysis.
+    // So, wait for full analysis.
+    await server.onAnalysisComplete;
+  }
+
   void _checkForReset_afterCreateChange() {
     if (test_simulateRefactoringReset_afterCreateChange) {
       _reset();
@@ -525,7 +551,7 @@ class _RefactoringManager {
    */
   Future _init(
       RefactoringKind kind, String file, int offset, int length) async {
-    await server.onAnalysisComplete;
+    await _analyzeForRefactoring(file, kind);
     // check if we can continue with the existing Refactoring instance
     if (this.kind == kind &&
         this.file == file &&
@@ -548,6 +574,7 @@ class _RefactoringManager {
       if (elements.isNotEmpty) {
         Element element = elements[0];
         if (element is ExecutableElement) {
+          _resetOnAnalysisStarted();
           refactoring =
               new ConvertGetterToMethodRefactoring(searchEngine, element);
         }
@@ -558,6 +585,7 @@ class _RefactoringManager {
       if (elements.isNotEmpty) {
         Element element = elements[0];
         if (element is ExecutableElement) {
+          _resetOnAnalysisStarted();
           refactoring =
               new ConvertMethodToGetterRefactoring(searchEngine, element);
         }
@@ -566,6 +594,7 @@ class _RefactoringManager {
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
+        _resetOnFileResolutionChanged(file);
         refactoring = new ExtractLocalRefactoring(units[0], offset, length);
         feedback = new ExtractLocalVariableFeedback(
             <String>[], <int>[], <int>[],
@@ -576,6 +605,7 @@ class _RefactoringManager {
     if (kind == RefactoringKind.EXTRACT_METHOD) {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
+        _resetOnAnalysisStarted();
         refactoring = new ExtractMethodRefactoring(
             searchEngine, units[0], offset, length);
         feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
@@ -585,6 +615,7 @@ class _RefactoringManager {
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
+        _resetOnFileResolutionChanged(file);
         refactoring =
             new InlineLocalRefactoring(searchEngine, units[0], offset);
       }
@@ -592,11 +623,13 @@ class _RefactoringManager {
     if (kind == RefactoringKind.INLINE_METHOD) {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
+        _resetOnAnalysisStarted();
         refactoring =
             new InlineMethodRefactoring(searchEngine, units[0], offset);
       }
     }
     if (kind == RefactoringKind.MOVE_FILE) {
+      _resetOnAnalysisStarted();
       ContextSourcePair contextSource = server.getContextSourcePair(file);
       engine.AnalysisContext context = contextSource.context;
       Source source = contextSource.source;
@@ -619,6 +652,7 @@ class _RefactoringManager {
           element = constructor.staticElement;
         }
         // do create the refactoring
+        _resetOnAnalysisStarted();
         refactoring = new RenameRefactoring(searchEngine, element);
         feedback =
             new RenameFeedback(node.offset, node.length, 'kind', 'oldName');
@@ -676,7 +710,8 @@ class _RefactoringManager {
     }
   }
 
-  void _reset([engine.AnalysisContext context]) {
+  void _reset() {
+    test_resetCount++;
     kind = null;
     offset = null;
     length = null;
@@ -685,6 +720,31 @@ class _RefactoringManager {
     initStatus = new RefactoringStatus();
     optionsStatus = new RefactoringStatus();
     finalStatus = new RefactoringStatus();
+    subscriptionToReset?.cancel();
+    subscriptionToReset = null;
+  }
+
+  void _resetOnAnalysisStarted() {
+    subscriptionToReset?.cancel();
+    subscriptionToReset = server.onAnalysisStarted.listen((_) => _reset());
+  }
+
+  /**
+   * We're performing a refactoring that affects only the given [file].
+   * So, when the [file] resolution is changed, we need to reset refactoring.
+   * But when any other file is changed or analyzed, we can continue.
+   */
+  void _resetOnFileResolutionChanged(String file) {
+    subscriptionToReset?.cancel();
+    subscriptionToReset = server
+        .getAnalysisContext(file)
+        ?.onResultChanged(RESOLVED_UNIT)
+        ?.listen((event) {
+      Source targetSource = event.target.source;
+      if (targetSource?.fullName == file) {
+        _reset();
+      }
+    });
   }
 
   void _sendResultResponse() {

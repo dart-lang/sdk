@@ -24,3 +24,6 @@ recursive_import_test: Crash # Issue 24485
 [ $hot_reload || $hot_reload_rollback ]
 recursive_import_test: Skip # Running dart2js under frequent reloads is slow.
 dummy_compiler_test: Skip # Running dart2js under frequent reloads is slow.
+
+[ $builder_tag == asan ]
+recursive_import_test: Skip # Issue 27441

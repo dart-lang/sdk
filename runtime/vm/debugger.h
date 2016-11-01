@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_DEBUGGER_H_
-#define VM_DEBUGGER_H_
+#ifndef RUNTIME_VM_DEBUGGER_H_
+#define RUNTIME_VM_DEBUGGER_H_
 
 #include "include/dart_tools_api.h"
 
@@ -285,8 +285,9 @@ class ActivationFrame : public ZoneAllocated {
 
   void VariableAt(intptr_t i,
                   String* name,
-                  TokenPosition* token_pos,
-                  TokenPosition* end_pos,
+                  TokenPosition* declaration_token_pos,
+                  TokenPosition* visible_start_token_pos,
+                  TokenPosition* visible_end_token_pos,
                   Object* value);
 
   RawArray* GetLocalVariables();
@@ -495,6 +496,9 @@ class Debugger {
   // Pause execution due to isolate interrupt.
   RawError* PauseInterrupted();
 
+  // Pause after a reload request.
+  RawError* PausePostRequest();
+
   // Pause execution due to an uncaught exception.
   void PauseException(const Instance& exc);
 
@@ -518,6 +522,8 @@ class Debugger {
     kStepOut,
     kSingleStep
   };
+
+  RawError* PauseRequest(ServiceEvent::EventKind kind);
 
   bool NeedsIsolateEvents();
   bool NeedsDebugEvents();
@@ -649,4 +655,4 @@ class Debugger {
 
 }  // namespace dart
 
-#endif  // VM_DEBUGGER_H_
+#endif  // RUNTIME_VM_DEBUGGER_H_

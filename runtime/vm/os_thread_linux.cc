@@ -17,12 +17,15 @@
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
 
+#include "vm/profiler.h"
+
 namespace dart {
 
 #define VALIDATE_PTHREAD_RESULT(result) \
   if (result != 0) { \
     const int kBufferSize = 1024; \
     char error_buf[kBufferSize]; \
+    NOT_IN_PRODUCT(Profiler::DumpStackTrace(true /* native_stack_trace */)); \
     FATAL2("pthread error: %d (%s)", result, \
            Utils::StrError(result, error_buf, kBufferSize)); \
   }

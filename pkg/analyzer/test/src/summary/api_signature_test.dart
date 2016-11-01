@@ -8,13 +8,13 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
-import 'package:unittest/unittest.dart';
-
-import '../../reflective_tests.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
-  groupSep = ' | ';
-  runReflectiveTests(ApiSignatureTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ApiSignatureTest);
+  });
 }
 
 @reflectiveTest

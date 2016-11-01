@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -287,7 +286,7 @@ class ElementFactory {
     int nameCount = names == null ? 0 : names.length;
     int typeCount = namedParameters == null ? 0 : namedParameters.length;
     if (names != null && nameCount != typeCount) {
-      throw new IllegalStateException(
+      throw new StateError(
           "The passed String[] and ClassElement[] arrays had different lengths.");
     }
     int totalCount = normalCount + nameCount;

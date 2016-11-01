@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-foo(x) { }
+foo(x) {}
 
 main() {
   for (var i = 0; i < 1; i++) {

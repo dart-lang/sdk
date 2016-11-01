@@ -566,4 +566,15 @@ intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
 }
 
 
+#if defined(DEBUG)
+void ValidateFrames() {
+  StackFrameIterator frames(StackFrameIterator::kValidateFrames);
+  StackFrame* frame = frames.NextFrame();
+  while (frame != NULL) {
+    frame = frames.NextFrame();
+  }
+}
+#endif
+
+
 }  // namespace dart

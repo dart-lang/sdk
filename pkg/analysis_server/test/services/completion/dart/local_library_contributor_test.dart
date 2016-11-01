@@ -6,15 +6,15 @@ library test.services.completion.contributor.dart.local_lib;
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(LocalLibraryContributorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LocalLibraryContributorTest);
+  });
 }
 
 @reflectiveTest
@@ -102,7 +102,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
+  test_partFile_InstanceCreationExpression_assignment_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
     addSource(
         '/testB.dart',
@@ -123,7 +123,9 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         part "/testA.dart";
         class Local { }
         main() {
-          A a = new ^
+          A a;
+          // FAIL:
+          a = new ^
         }
         var m;''');
     await computeLibrariesContaining();
@@ -155,7 +157,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_partFile_InstanceCreationExpression_assignment_filter() async {
+  test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
     addSource(
         '/testB.dart',
@@ -176,9 +178,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         part "/testA.dart";
         class Local { }
         main() {
-          A a;
-          // FAIL:
-          a = new ^
+          A a = new ^
         }
         var m;''');
     await computeLibrariesContaining();

@@ -32,21 +32,25 @@ Future runTest(String code, {MessageKind error}) async {
 
 void main() {
   asyncTest(() async {
-    await runTest('''
+    await runTest(
+        '''
 main() {}
 class Foo {
 	static void bar() {
 		baz());
 	}
 }
-''', error: MessageKind.UNMATCHED_TOKEN);
+''',
+        error: MessageKind.UNMATCHED_TOKEN);
 
-    await runTest('''
+    await runTest(
+        '''
 main() {}
 class C {
   C(v) {
     throw '');
   }
-}''', error: MessageKind.UNMATCHED_TOKEN);
+}''',
+        error: MessageKind.UNMATCHED_TOKEN);
   });
 }

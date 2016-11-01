@@ -9,26 +9,26 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/parser_test.dart' show ParserTestCase;
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(ClassDeclarationTest);
-  runReflectiveTests(ClassTypeAliasTest);
-  runReflectiveTests(ConstructorDeclarationTest);
-  runReflectiveTests(FieldFormalParameterTest);
-  runReflectiveTests(IndexExpressionTest);
-  runReflectiveTests(MethodDeclarationTest);
-  runReflectiveTests(NodeListTest);
-  runReflectiveTests(SimpleIdentifierTest);
-  runReflectiveTests(SimpleStringLiteralTest);
-  runReflectiveTests(StringInterpolationTest);
-  runReflectiveTests(VariableDeclarationTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ClassDeclarationTest);
+    defineReflectiveTests(ClassTypeAliasTest);
+    defineReflectiveTests(ConstructorDeclarationTest);
+    defineReflectiveTests(FieldFormalParameterTest);
+    defineReflectiveTests(IndexExpressionTest);
+    defineReflectiveTests(MethodDeclarationTest);
+    defineReflectiveTests(NodeListTest);
+    defineReflectiveTests(SimpleIdentifierTest);
+    defineReflectiveTests(SimpleStringLiteralTest);
+    defineReflectiveTests(StringInterpolationTest);
+    defineReflectiveTests(VariableDeclarationTest);
+  });
 }
 
 @reflectiveTest

@@ -6,7 +6,7 @@ library analyzer_cli.test.plugin_manager_test;
 
 import 'package:analyzer/src/plugin/plugin_configuration.dart';
 import 'package:analyzer_cli/src/plugin/plugin_manager.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
   group('plugin manager tests', () {

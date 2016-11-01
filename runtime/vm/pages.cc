@@ -10,6 +10,7 @@
 #include "vm/gc_sweeper.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
+#include "vm/object_set.h"
 #include "vm/os_thread.h"
 #include "vm/safepoint.h"
 #include "vm/virtual_memory.h"
@@ -588,16 +589,11 @@ bool PageSpace::Contains(uword addr, HeapPage::PageType type) const {
 }
 
 
-void PageSpace::StartEndAddress(uword* start, uword* end) const {
+void PageSpace::AddRegionsToObjectSet(ObjectSet* set) const {
   ASSERT((pages_ != NULL) || (exec_pages_ != NULL) || (large_pages_ != NULL));
-  *start = static_cast<uword>(~0);
-  *end = 0;
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    *start = Utils::Minimum(*start, it.page()->object_start());
-    *end = Utils::Maximum(*end, it.page()->object_end());
+    set->AddRegion(it.page()->object_start(), it.page()->object_end());
   }
-  ASSERT(*start != static_cast<uword>(~0));
-  ASSERT(*end != 0);
 }
 
 
@@ -1157,39 +1153,70 @@ void PageSpaceController::EvaluateGarbageCollection(
     SpaceUsage before, SpaceUsage after, int64_t start, int64_t end) {
   ASSERT(end >= start);
   history_.AddGarbageCollectionTime(start, end);
-  int gc_time_fraction = history_.GarbageCollectionTimeFraction();
+  const int gc_time_fraction = history_.GarbageCollectionTimeFraction();
   heap_->RecordData(PageSpace::kGCTimeFraction, gc_time_fraction);
 
   // Assume garbage increases linearly with allocation:
   // G = kA, and estimate k from the previous cycle.
-  intptr_t allocated_since_previous_gc =
+  const intptr_t allocated_since_previous_gc =
       before.used_in_words - last_usage_.used_in_words;
-  intptr_t garbage = before.used_in_words - after.used_in_words;
-  double k = garbage / static_cast<double>(allocated_since_previous_gc);
-  heap_->RecordData(PageSpace::kGarbageRatio, static_cast<int>(k * 100));
+  if (allocated_since_previous_gc > 0) {
+    const intptr_t garbage = before.used_in_words - after.used_in_words;
+    ASSERT(garbage >= 0);
+    const double k = garbage / static_cast<double>(allocated_since_previous_gc);
+    const int garbage_ratio = static_cast<int>(k * 100);
+    heap_->RecordData(PageSpace::kGarbageRatio, garbage_ratio);
 
-  // Define GC to be 'worthwhile' iff at least fraction t of heap is garbage.
-  double t = 1.0 - desired_utilization_;
-  // If we spend too much time in GC, strive for even more free space.
-  if (gc_time_fraction > garbage_collection_time_ratio_) {
-    t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
-  }
-
-  // Find minimum 'grow_heap_' such that after increasing capacity by
-  // 'grow_heap_' pages and filling them, we expect a GC to be worthwhile.
-  for (grow_heap_ = 0; grow_heap_ < heap_growth_max_; ++grow_heap_) {
-    intptr_t limit =
-        after.capacity_in_words + (grow_heap_ * PageSpace::kPageSizeInWords);
-    intptr_t allocated_before_next_gc = limit - after.used_in_words;
-    double estimated_garbage = k * allocated_before_next_gc;
-    if (t <= estimated_garbage / limit) {
-      break;
+    // Define GC to be 'worthwhile' iff at least fraction t of heap is garbage.
+    double t = 1.0 - desired_utilization_;
+    // If we spend too much time in GC, strive for even more free space.
+    if (gc_time_fraction > garbage_collection_time_ratio_) {
+      t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
     }
+
+    const intptr_t grow_ratio = (
+        static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
+        after.capacity_in_words) / PageSpace::kPageSizeInWords;
+    if (garbage_ratio == 0) {
+      // No garbage in the previous cycle so it would be hard to compute a
+      // grow_heap_ size based on estimated garbage so we use growth ratio
+      // heuristics instead.
+      grow_heap_ = Utils::Maximum(static_cast<intptr_t>(heap_growth_max_),
+                                  grow_ratio);
+    } else {
+      // Find minimum 'grow_heap_' such that after increasing capacity by
+      // 'grow_heap_' pages and filling them, we expect a GC to be worthwhile.
+      intptr_t max = heap_growth_max_;
+      intptr_t min = 0;
+      intptr_t local_grow_heap = 0;
+      while (min < max) {
+        local_grow_heap = (max + min) / 2;
+        const intptr_t limit = after.capacity_in_words +
+            (grow_heap_ * PageSpace::kPageSizeInWords);
+        const intptr_t allocated_before_next_gc = limit - after.used_in_words;
+        const double estimated_garbage = k * allocated_before_next_gc;
+        if (t <= estimated_garbage / limit) {
+          max = local_grow_heap - 1;
+        } else {
+          min = local_grow_heap + 1;
+        }
+      }
+      grow_heap_ = local_grow_heap;
+      ASSERT(grow_heap_ >= 0);
+      // If we are going to grow by heap_grow_max_ then ensure that we
+      // will be growing the heap at least by the growth ratio heuristics.
+      if ((grow_heap_ == heap_growth_max_) && (grow_ratio > grow_heap_)) {
+        grow_heap_ = grow_ratio;
+      }
+    }
+  } else {
+    heap_->RecordData(PageSpace::kGarbageRatio, 100);
+    grow_heap_ = 0;
   }
   heap_->RecordData(PageSpace::kPageGrowth, grow_heap_);
 
   // Limit shrinkage: allow growth by at least half the pages freed by GC.
-  intptr_t freed_pages =
+  const intptr_t freed_pages =
       (before.capacity_in_words - after.capacity_in_words) /
       PageSpace::kPageSizeInWords;
   grow_heap_ = Utils::Maximum(grow_heap_, freed_pages / 2);

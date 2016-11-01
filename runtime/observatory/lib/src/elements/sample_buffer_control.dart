@@ -22,7 +22,7 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
   RenderingScheduler<SampleBufferControlElement> _r;
 
   Stream<RenderedEvent<SampleBufferControlElement>> get onRendered =>
-                                                                  _r.onRendered;
+      _r.onRendered;
 
   StreamController<SampleBufferControlChangedElement> _onTagChange =
       new StreamController<SampleBufferControlChangedElement>.broadcast();
@@ -46,11 +46,11 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
   set showTag(bool value) => _showTag = _r.checkAndReact(_showTag, value);
   set profileVM(bool value) => _profileVM = _r.checkAndReact(_profileVM, value);
 
-
   factory SampleBufferControlElement(M.SampleProfileLoadingProgress progress,
       Stream<M.SampleProfileLoadingProgressEvent> progressStream,
       {M.SampleProfileTag selectedTag: M.SampleProfileTag.none,
-      bool showTag: true, RenderingQueue queue}) {
+      bool showTag: true,
+      RenderingQueue queue}) {
     assert(progress != null);
     assert(progressStream != null);
     assert(selectedTag != null);
@@ -78,7 +78,8 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
 
   @override
   void detached() {
-    super.detached(); _r.disable(notify: true);
+    super.detached();
+    _r.disable(notify: true);
     children = const [];
     _subscription.cancel();
   }
@@ -89,14 +90,14 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
       new HRElement()
     ];
     switch (_progress.status) {
-      case M.SampleProfileLoadingStatus.fetching :
+      case M.SampleProfileLoadingStatus.fetching:
         content.addAll(_createStatusMessage('Fetching profile from VM...'));
         break;
-      case M.SampleProfileLoadingStatus.loading :
+      case M.SampleProfileLoadingStatus.loading:
         content.addAll(_createStatusMessage('Loading profile...',
             progress: _progress.progress));
         break;
-      case M.SampleProfileLoadingStatus.disabled :
+      case M.SampleProfileLoadingStatus.disabled:
         content.addAll(_createDisabledMessage());
         break;
       case M.SampleProfileLoadingStatus.loaded:
@@ -104,41 +105,47 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
         break;
     }
     children = [
-      new DivElement()..classes = ['content-centered-big']
+      new DivElement()
+        ..classes = ['content-centered-big']
         ..children = content
     ];
   }
 
   static List<Element> _createStatusMessage(String message,
       {double progress: 0.0}) {
-    return [new DivElement()..classes = ['statusBox', 'shadow', 'center']
-      ..children = [
-        new DivElement()..classes = ['statusMessage']
-          ..text = message,
-        new DivElement()..style.background = '#0489c3'
-          ..style.width = '$progress%'
-          ..style.height = '15px'
-          ..style.borderRadius = '4px'
-      ]
+    return [
+      new DivElement()
+        ..classes = ['statusBox', 'shadow', 'center']
+        ..children = [
+          new DivElement()
+            ..classes = ['statusMessage']
+            ..text = message,
+          new DivElement()
+            ..style.background = '#0489c3'
+            ..style.width = '$progress%'
+            ..style.height = '15px'
+            ..style.borderRadius = '4px'
+        ]
     ];
   }
 
   static List<Element> _createDisabledMessage() {
-    return [new DivElement()..classes = ['statusBox' 'shadow' 'center']
-      ..children = [
-        new DivElement()
-          ..children = [
-            new HeadingElement.h1()
-            ..text = 'Profiling is disabled',
-            new BRElement(),
-            new DivElement()
-              ..innerHtml = 'Perhaps the <b>profile</b> '
-                            'flag has been disabled for this VM.',
-            new BRElement(),
-            new SpanElement()..text = 'See all',
-            new AnchorElement(href: Uris.flags())..text = 'vm flags'
-          ]
-      ]
+    return [
+      new DivElement()
+        ..classes = ['statusBox' 'shadow' 'center']
+        ..children = [
+          new DivElement()
+            ..children = [
+              new HeadingElement.h1()..text = 'Profiling is disabled',
+              new BRElement(),
+              new DivElement()
+                ..innerHtml = 'Perhaps the <b>profile</b> '
+                    'flag has been disabled for this VM.',
+              new BRElement(),
+              new SpanElement()..text = 'See all',
+              new AnchorElement(href: Uris.flags())..text = 'vm flags'
+            ]
+        ]
     ];
   }
 
@@ -149,45 +156,57 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     final refreshT = new DateTime.now();
     final stackDepth = _progress.profile.stackDepth;
     final sampleRate = _progress.profile.sampleRate.toStringAsFixed(0);
-    final timeSpan = _progress.profile.sampleCount == 0 ? '0s'
+    final timeSpan = _progress.profile.sampleCount == 0
+        ? '0s'
         : Utils.formatTimePrecise(_progress.profile.timeSpan);
 
     var content = <Element>[
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'Refreshed at',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = '$refreshT (fetched in ${fetchT}s) (loaded in ${loadT}s)'
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'Profile contains ',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = '$sampleCount samples (spanning $timeSpan)'
         ],
-      new DivElement()..classes = ['memberItem']
+      new DivElement()
+        ..classes = ['memberItem']
         ..children = [
-          new DivElement()..classes = ['memberName']
+          new DivElement()
+            ..classes = ['memberName']
             ..text = 'Sampling',
-          new DivElement()..classes = ['memberValue']
+          new DivElement()
+            ..classes = ['memberValue']
             ..text = '$stackDepth stack frames @ ${sampleRate}Hz'
         ],
     ];
     if (_showTag) {
-      content.add(
-        new DivElement()..classes = ['memberItem']
-          ..children = [
-            new DivElement()..classes = ['memberName']
-              ..text = 'Tag Order',
-            new DivElement()..classes = ['memberValue']
-              ..children = _createTagSelect()
-          ]
-      );
+      content.add(new DivElement()
+        ..classes = ['memberItem']
+        ..children = [
+          new DivElement()
+            ..classes = ['memberName']
+            ..text = 'Tag Order',
+          new DivElement()
+            ..classes = ['memberValue']
+            ..children = _createTagSelect()
+        ]);
     }
     return [
-      new DivElement()..classes = ['memberList']
+      new DivElement()
+        ..classes = ['memberList']
         ..children = content
     ];
   }
@@ -199,27 +218,33 @@ class SampleBufferControlElement extends HtmlElement implements Renderable {
     }
     var s;
     return [
-      s = new SelectElement()..classes = ['tag-select']
+      s = new SelectElement()
+        ..classes = ['tag-select']
         ..value = tagToString(_tag)
         ..children = values.map((tag) {
-            return new OptionElement(value : tagToString(tag),
-                selected: _tag == tag)
-              ..text = tagToString(tag);
-          }).toList(growable: false)
+          return new OptionElement(
+              value: tagToString(tag),
+              selected: _tag == tag)..text = tagToString(tag);
+        }).toList(growable: false)
         ..onChange.listen((_) {
-            _tag = values[s.selectedIndex];
-          })
+          _tag = values[s.selectedIndex];
+        })
         ..onChange.map(_toEvent).listen(_triggerModeChange),
     ];
   }
 
   static String tagToString(M.SampleProfileTag tag) {
     switch (tag) {
-      case M.SampleProfileTag.userVM: return 'User > VM';
-      case M.SampleProfileTag.userOnly: return 'User';
-      case M.SampleProfileTag.vmUser: return 'VM > User';
-      case M.SampleProfileTag.vmOnly: return 'VM';
-      case M.SampleProfileTag.none: return 'None';
+      case M.SampleProfileTag.userVM:
+        return 'User > VM';
+      case M.SampleProfileTag.userOnly:
+        return 'User';
+      case M.SampleProfileTag.vmUser:
+        return 'VM > User';
+      case M.SampleProfileTag.vmOnly:
+        return 'VM';
+      case M.SampleProfileTag.none:
+        return 'None';
     }
     throw new Exception('Unknown tagToString');
   }

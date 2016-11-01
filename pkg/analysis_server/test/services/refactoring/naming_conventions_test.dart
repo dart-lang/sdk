@@ -10,12 +10,12 @@ import 'package:analysis_server/src/services/refactoring/naming_conventions.dart
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(NamingConventionsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NamingConventionsTest);
+  });
 }
 
 @reflectiveTest

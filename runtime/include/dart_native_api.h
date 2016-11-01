@@ -4,8 +4,8 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
-#ifndef INCLUDE_DART_NATIVE_API_H_
-#define INCLUDE_DART_NATIVE_API_H_
+#ifndef RUNTIME_INCLUDE_DART_NATIVE_API_H_
+#define RUNTIME_INCLUDE_DART_NATIVE_API_H_
 
 #include "include/dart_api.h"
 
@@ -169,5 +169,11 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id);
  * TODO(turnidge): Document.
  */
 DART_EXPORT Dart_Handle Dart_CompileAll();
+
+/**
+ * Parses all loaded functions in the current isolate..
+ *
+ */
+DART_EXPORT Dart_Handle Dart_ParseAll();
 
 #endif  /* INCLUDE_DART_NATIVE_API_H_ */  /* NOLINT */

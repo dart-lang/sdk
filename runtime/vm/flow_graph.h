@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLOW_GRAPH_H_
-#define VM_FLOW_GRAPH_H_
+#ifndef RUNTIME_VM_FLOW_GRAPH_H_
+#define RUNTIME_VM_FLOW_GRAPH_H_
 
 #include "vm/bit_vector.h"
 #include "vm/growable_array.h"
@@ -305,6 +305,11 @@ class FlowGraph : public ZoneAllocated {
 
   bool IsReceiver(Definition* def) const;
 
+  // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
+  // shift can be a truncating Smi shift-left and result is always Smi.
+  // Merge instructions (only per basic-block).
+  void TryOptimizePatterns();
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -360,6 +365,19 @@ class FlowGraph : public ZoneAllocated {
   void ComputeIsReceiver(PhiInstr* phi) const;
   void ComputeIsReceiverRecursive(PhiInstr* phi,
                                   GrowableArray<PhiInstr*>* unmark) const;
+
+  void OptimizeLeftShiftBitAndSmiOp(
+      ForwardInstructionIterator* current_iterator,
+      Definition* bit_and_instr,
+      Definition* left_instr,
+      Definition* right_instr);
+
+  void TryMergeTruncDivMod(GrowableArray<BinarySmiOpInstr*>* merge_candidates);
+  void TryMergeMathUnary(
+      GrowableArray<InvokeMathCFunctionInstr*>* merge_candidates);
+
+  void AppendExtractNthOutputForMerged(Definition* instr, intptr_t ix,
+                                       Representation rep, intptr_t cid);
 
   Thread* thread_;
 
@@ -548,4 +566,4 @@ class DefinitionWorklist : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_FLOW_GRAPH_H_
+#endif  // RUNTIME_VM_FLOW_GRAPH_H_

@@ -24,6 +24,6 @@ confuse(x) => x;
 
 main() {
   var f = [new A(), new B()][confuse(0)].bar;
-  Expect.throws(() => reflect(f).invoke(#call, [], {}),
-                (e) => e is UnsupportedError);
+  Expect.throws(
+      () => reflect(f).invoke(#call, [], {}), (e) => e is UnsupportedError);
 }

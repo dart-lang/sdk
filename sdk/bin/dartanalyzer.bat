@@ -40,14 +40,7 @@ if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
 set ANALYZER=%DART_ROOT%\pkg\analyzer_cli\bin\analyzer.dart
 
-rem DART_CONFIGURATION defaults to ReleaseX64
-if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseX64
-
-set BUILD_DIR=%DART_ROOT%\out\%DART_CONFIGURATION%
-
-set PACKAGE_ROOT=%BUILD_DIR%\packages
-
-"%DART%" %EXTRA_VM_OPTIONS% "--package-root=%PACKAGE_ROOT%" "%ANALYZER%" "%SDK_ARG%" %*
+"%DART%" "--packages=%DART_ROOT%\.packages" %EXTRA_VM_OPTIONS% "%ANALYZER%" "%SDK_ARG%" %*
 
 endlocal
 

@@ -9,7 +9,7 @@ import 'dart:collection' show Queue;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart'
-    show Feature, ParsingContext, Resolution, ResolutionImpact, Target;
+    show ParsingContext, Resolution, ResolutionImpact, Target;
 import '../common/tasks.dart' show CompilerTask, Measurer;
 import '../compile_time_constants.dart' show ConstantCompiler;
 import '../constants/expressions.dart'
@@ -19,7 +19,7 @@ import '../constants/expressions.dart'
         ConstructedConstantExpression,
         ErroneousConstantExpression;
 import '../constants/values.dart' show ConstantValue;
-import '../core_types.dart' show CoreClasses, CoreTypes;
+import '../core_types.dart' show CoreClasses, CoreTypes, CommonElements;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
@@ -46,6 +46,7 @@ import '../tokens/token.dart'
         isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart' show Feature;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact;
 import '../util/util.dart' show Link, Setlet;
@@ -63,7 +64,7 @@ import 'typedefs.dart';
 class ResolverTask extends CompilerTask {
   final ConstantCompiler constantCompiler;
   final Resolution resolution;
-  final World world;
+  final OpenWorld world;
 
   ResolverTask(
       this.resolution, this.constantCompiler, this.world, Measurer measurer)
@@ -75,6 +76,7 @@ class ResolverTask extends CompilerTask {
   Target get target => resolution.target;
   CoreTypes get coreTypes => resolution.coreTypes;
   CoreClasses get coreClasses => resolution.coreClasses;
+  CommonElements get commonElements => resolution.commonElements;
   ParsingContext get parsingContext => resolution.parsingContext;
   CompilerOptions get options => resolution.options;
   ResolutionEnqueuer get enqueuer => resolution.enqueuer;
@@ -287,9 +289,9 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
 
-      resolution.target.resolveNativeElement(element, registry.worldImpact);
+      resolution.target.resolveNativeElement(element, registry.impactBuilder);
 
-      return registry.worldImpact;
+      return registry.impactBuilder;
     });
   }
 
@@ -318,7 +320,7 @@ class ResolverTask extends CompilerTask {
             registry.registerStaticUse(new StaticUse.superConstructorInvoke(
                 target, CallStructure.NO_ARGS));
           }
-          return registry.worldImpact;
+          return registry.impactBuilder;
         } else {
           assert(element.isDeferredLoaderGetter || element.isMalformed);
           _ensureTreeElements(element);
@@ -360,7 +362,7 @@ class ResolverTask extends CompilerTask {
       ResolutionRegistry registry = visitor.registry;
       // TODO(johnniwinther): Maybe remove this when placeholderCollector migrates
       // to the backend ast.
-      registry.defineElement(tree.definitions.nodes.head, element);
+      registry.defineElement(element.definition, element);
       // TODO(johnniwinther): Share the resolved type between all variables
       // declared in the same declaration.
       if (tree.type != null) {
@@ -398,8 +400,7 @@ class ResolverTask extends CompilerTask {
         reporter.reportErrorMessage(
             element, MessageKind.FINAL_WITHOUT_INITIALIZER);
       } else {
-        // TODO(johnniwinther): Register a feature instead.
-        registry.registerTypeUse(new TypeUse.instantiation(coreTypes.nullType));
+        registry.registerFeature(Feature.FIELD_WITHOUT_INITIALIZER);
       }
 
       if (Elements.isStaticOrTopLevelField(element)) {
@@ -422,23 +423,25 @@ class ResolverTask extends CompilerTask {
       // Perform various checks as side effect of "computing" the type.
       element.computeType(resolution);
 
-      resolution.target.resolveNativeElement(element, registry.worldImpact);
+      resolution.target.resolveNativeElement(element, registry.impactBuilder);
 
-      return registry.worldImpact;
+      return registry.impactBuilder;
     });
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
-    DartType type = resolveReturnType(element, annotation);
+    DartType type = _resolveReturnType(element, annotation);
     if (type.isVoid) {
       reporter.reportErrorMessage(annotation, MessageKind.VOID_NOT_ALLOWED);
     }
     return type;
   }
 
-  DartType resolveReturnType(Element element, TypeAnnotation annotation) {
+  DartType _resolveReturnType(Element element, TypeAnnotation annotation) {
     if (annotation == null) return const DynamicType();
     DartType result = visitorFor(element).resolveTypeAnnotation(annotation);
+    assert(invariant(annotation, result != null,
+        message: "No type computed for $annotation."));
     if (result == null) {
       // TODO(karklose): warning.
       return const DynamicType();
@@ -633,7 +636,6 @@ class ResolverTask extends CompilerTask {
                     new ClassResolverVisitor(resolution, element, registry);
                 visitor.visit(tree);
                 element.resolutionState = STATE_DONE;
-                resolution.onClassResolved(element);
                 pendingClassesToBePostProcessed.add(element);
               }));
       if (element.isPatched) {
@@ -1017,7 +1019,7 @@ class ResolverTask extends CompilerTask {
 
   WorldImpact resolveTypedef(TypedefElementX element) {
     if (element.isResolved) return const ResolutionImpact();
-    world.allTypedefs.add(element);
+    world.registerTypedef(element);
     return _resolveTypeDeclaration(element, () {
       ResolutionRegistry registry = new ResolutionRegistry(
           resolution.target, _ensureTreeElements(element));
@@ -1030,7 +1032,7 @@ class ResolverTask extends CompilerTask {
               new TypedefResolverVisitor(resolution, element, registry);
           visitor.visit(node);
           element.resolutionState = STATE_DONE;
-          return registry.worldImpact;
+          return registry.impactBuilder;
         });
       });
     });
@@ -1065,7 +1067,8 @@ class ResolverTask extends CompilerTask {
               switch (constant.kind) {
                 case ConstantExpressionKind.CONSTRUCTED:
                   ConstructedConstantExpression constructedConstant = constant;
-                  if (constructedConstant.type.isGeneric) {
+                  if (constructedConstant.type.isGeneric &&
+                      !constructedConstant.type.isRaw) {
                     // Const constructor calls cannot have type arguments.
                     // TODO(24312): Remove this.
                     reporter.reportErrorMessage(

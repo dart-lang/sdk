@@ -572,7 +572,14 @@ class DateTime implements Comparable<DateTime> {
    * Returns a new [DateTime] instance with [duration] added to [this].
    *
    *     DateTime today = new DateTime.now();
-   *     DateTime sixtyDaysFromNow = today.add(new Duration(days: 60));
+   *     DateTime fiftyDaysFromNow = today.add(new Duration(days: 50));
+   *
+   * Notice that the duration being added is actually 50 * 24 * 60 * 60
+   * seconds. If the resulting `DateTime` has a different daylight saving offset
+   * than `this`, then the result won't have the same time-of-day as `this`, and
+   * may not even hit the calendar date 50 days later.
+   *
+   * Be careful when working with dates in local time.
    */
   external DateTime add(Duration duration);
 
@@ -580,13 +587,14 @@ class DateTime implements Comparable<DateTime> {
    * Returns a new [DateTime] instance with [duration] subtracted from [this].
    *
    *     DateTime today = new DateTime.now();
-   *     DateTime sixtyDaysAgo = today.subtract(new Duration(days: 30));
+   *     DateTime fiftyDaysAgo = today.subtract(new Duration(days: 50));
    *
-   * Notice that duration being subtracted is actually 30 * 24 * 60 * 60 seconds
-   * and if that crosses a daylight saving time change, the resulting `DateTime`
-   * won't have the same time of day as `today`, and may not actually hit the
-   * calendar date 30 days earlier. Be careful when working with dates in local
-   * time.
+   * Notice that the duration being subtracted is actually 50 * 24 * 60 * 60
+   * seconds. If the resulting `DateTime` has a different daylight saving offset
+   * than `this`, then the result won't have the same time-of-day as `this`, and
+   * may not even hit the calendar date 50 days earlier.
+   *
+   * Be careful when working with dates in local time.
    */
   external DateTime subtract(Duration duration);
 
@@ -664,10 +672,14 @@ class DateTime implements Comparable<DateTime> {
   external int get microsecondsSinceEpoch;
 
   /**
-   * The time zone name provided by the platform.
+   * The time zone name.
    *
-   * On Unix-like systems this will probably be an abbreviation. On Windows
-   * this will probably be the full-name, e.g. "Pacific Standard Time".
+   * This value is provided by the operating system and may be an
+   * abbreviation or a full name.
+   *
+   * In the browser or on Unix-like systems commonly returns abbreviations,
+   * such as "CET" or "CEST". On Windows returns the full name, for example
+   * "Pacific Standard Time".
    */
   external String get timeZoneName;
 

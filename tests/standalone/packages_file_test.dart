@@ -209,7 +209,7 @@ Future runTests([List<ConfigurationTransformer> transformations]) async {
 // * A variable defined in a library loaded using a `package:` URI.
 //
 // The configurations all have URIs as `root`, `config` and `mainFile` strings,
-// have empty argument lists and `mainFile` points to the the `main.dart` file.
+// have empty argument lists and `mainFile` points to the `main.dart` file.
 void createConfigurations() {
   add(String description, String mainDir, {String root, String config,
       Map file, Map http, Map expect}) {

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_FLOATING_POINT_WIN_H_
-#define PLATFORM_FLOATING_POINT_WIN_H_
+#ifndef RUNTIME_PLATFORM_FLOATING_POINT_WIN_H_
+#define RUNTIME_PLATFORM_FLOATING_POINT_WIN_H_
 
 double atan2_ieee(double x, double y);
 double fmod_ieee(double x, double y);
 
-#endif  // PLATFORM_FLOATING_POINT_WIN_H_
+#endif  // RUNTIME_PLATFORM_FLOATING_POINT_WIN_H_

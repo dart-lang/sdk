@@ -44,22 +44,31 @@ doTest() {
   });
 }
 
+List<String> packageOptions() {
+  if (Platform.packageRoot != null) {
+    return <String>['--package-root=${Platform.packageRoot}'];
+  } else if (Platform.packageConfig != null) {
+    return <String>['--packages=${Platform.packageConfig}'];
+  } else {
+    return <String>[];
+  }
+}
 
 main(List<String> arguments) {
   if (arguments.contains("--run")) {
     doTest();
   } else {
     // Run the test and capture stdout.
-    var pr = Process.runSync(Platform.executable,
-        ["--verbose-gc",
+    var args = packageOptions();
+    args.addAll(["--verbose-gc",
          "--collect-code",
          "--code-collection-interval-in-us=0",
          "--old_gen_growth_rate=10",
          "--log-code-drop",
          "--optimization-counter-threshold=-1",
-         "--package-root=${Platform.packageRoot}",
          Platform.script.toFilePath(),
          "--run"]);
+    var pr = Process.runSync(Platform.executable, args);
 
     Expect.equals(0, pr.exitCode);
 

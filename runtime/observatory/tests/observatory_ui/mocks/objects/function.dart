@@ -19,13 +19,30 @@ class FunctionRefMock implements M.FunctionRef {
 class FunctionMock implements M.Function {
   final String id;
   final String name;
+  final M.ClassRef clazz;
+  final int size;
   final M.ObjectRef dartOwner;
   final bool isStatic;
   final bool isConst;
   final M.FunctionKind kind;
   final M.SourceLocation location;
   final M.CodeRef code;
-  const FunctionMock({this.id, this.name, this.dartOwner,
+  final M.CodeRef unoptimizedCode;
+  final M.FieldRef field;
+  final int usageCounter;
+  final M.InstanceRef icDataArray;
+  final int deoptimizations;
+  final bool isOptimizable;
+  final bool isInlinable;
+  final bool hasIntrinsic;
+  final bool isRecognized;
+  final bool isNative;
+  final String vmName;
+  const FunctionMock({this.id, this.name, this.clazz, this.size, this.dartOwner,
       this.isStatic : false, this.isConst : false, this.kind, this.location,
-      this.code});
+      this.code, this.unoptimizedCode, this.field, this.usageCounter: 0,
+      this.icDataArray: const InstanceRefMock(), this.deoptimizations: 0,
+      this.isOptimizable: false, this.isInlinable: false,
+      this.hasIntrinsic: false, this.isRecognized: false, this.isNative: false,
+      this.vmName: 'function-vm-name',});
 }

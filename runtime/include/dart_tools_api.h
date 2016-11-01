@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef INCLUDE_DART_TOOLS_API_H_
-#define INCLUDE_DART_TOOLS_API_H_
+#ifndef RUNTIME_INCLUDE_DART_TOOLS_API_H_
+#define RUNTIME_INCLUDE_DART_TOOLS_API_H_
 
 #include "include/dart_api.h"
 
@@ -1087,4 +1087,4 @@ DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
     Dart_EmbedderTimelineStartRecording start_recording,
     Dart_EmbedderTimelineStopRecording stop_recording);
 
-#endif  // INCLUDE_DART_TOOLS_API_H_
+#endif  // RUNTIME_INCLUDE_DART_TOOLS_API_H_

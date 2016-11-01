@@ -14,12 +14,13 @@ main() {
   final cTag = IsolateCounterChartElement.tag.name;
 
   const isolate = const IsolateMock();
+  final events = new EventRepositoryMock();
   test('instantiation', () {
-    final e = new IsolateSharedSummaryElement(isolate);
+    final e = new IsolateSharedSummaryElement(isolate, events);
     expect(e, isNotNull, reason: 'element correctly created');
   });
   test('elements created', () async {
-    final e = new IsolateSharedSummaryElement(isolate);
+    final e = new IsolateSharedSummaryElement(isolate, events);
     document.body.append(e);
     await e.onRendered.first;
     expect(e.children.length, isNonZero, reason: 'has elements');

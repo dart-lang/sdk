@@ -28,9 +28,9 @@ class Bar {
 
 main() {
   asyncTest(() => MockCompiler.create((MockCompiler compiler) {
-    testClass(TEST_0, compiler);
-    testClass(TEST_1, compiler);
-  }));
+        testClass(TEST_0, compiler);
+        testClass(TEST_1, compiler);
+      }));
 }
 
 testClass(String code, MockCompiler compiler) {

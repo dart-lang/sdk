@@ -23,10 +23,10 @@ class C {
 }
 
 main() {
-  C.bar();  // Call bar, so it is included in the program.
+  C.bar(); // Call bar, so it is included in the program.
 
   var mirror = reflect(new C()).type; // Workaround bug 12799.
   Expect.equals(1, mirror.invoke(const Symbol('foo'), []).reflectee);
-  Expect.throws(() => mirror.invoke(const Symbol('bar'),  []),
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => mirror.invoke(const Symbol('bar'), []),
+      (e) => e is NoSuchMethodError);
 }

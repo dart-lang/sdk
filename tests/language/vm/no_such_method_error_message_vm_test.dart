@@ -6,7 +6,7 @@
 import "package:expect/expect.dart";
 
 // Test error message with noSuchMethodError: non-existent names
-// should result in a "method not found" message.
+// should result in a message that reports the missing method.
 
 call_bar(x) => x.bar();
 
@@ -14,7 +14,7 @@ testMessage() {
   try {
     call_bar(5);
   } catch (e) {
-    Expect.isTrue(e.toString().indexOf("method not found") != -1);
+    Expect.isTrue(e.toString().indexOf("has no instance method 'bar'") != -1);
   }
 }
 

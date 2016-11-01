@@ -43,6 +43,9 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 #define VM_SERVICE_ISOLATE_STARTUP_MESSAGE_ID 1
 #define VM_SERVICE_ISOLATE_SHUTDOWN_MESSAGE_ID 2
 
+#define VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID 3
+#define VM_SERVICE_SERVER_INFO_MESSAGE_ID 4
+
 static RawArray* MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
                                            const String& name) {
   const Array& list = Array::Handle(Array::New(4));
@@ -54,6 +57,18 @@ static RawArray* MakeServiceControlMessage(Dart_Port port_id, intptr_t code,
   list.SetAt(1, port_int);
   list.SetAt(2, send_port);
   list.SetAt(3, name);
+  return list.raw();
+}
+
+
+static RawArray* MakeServerControlMessage(const SendPort& sp,
+                                          intptr_t code,
+                                          bool enable = false) {
+  const Array& list = Array::Handle(Array::New(3));
+  ASSERT(!list.IsNull());
+  list.SetAt(0, Integer::Handle(Integer::New(code)));
+  list.SetAt(1, sp);
+  list.SetAt(2, Bool::Get(enable));
   return list.raw();
 }
 
@@ -80,6 +95,36 @@ Monitor* ServiceIsolate::monitor_ = NULL;
 bool ServiceIsolate::initializing_ = true;
 bool ServiceIsolate::shutting_down_ = false;
 char* ServiceIsolate::server_address_ = NULL;
+
+void ServiceIsolate::RequestServerInfo(const SendPort& sp) {
+  const Array& message =
+      Array::Handle(
+          MakeServerControlMessage(sp,
+                                   VM_SERVICE_SERVER_INFO_MESSAGE_ID,
+                                   false /* ignored */));
+  ASSERT(!message.IsNull());
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator, false);
+  writer.WriteMessage(message);
+  intptr_t len = writer.BytesWritten();
+  PortMap::PostMessage(new Message(port_, data, len, Message::kNormalPriority));
+}
+
+
+void ServiceIsolate::ControlWebServer(const SendPort& sp, bool enable) {
+  const Array& message =
+      Array::Handle(
+          MakeServerControlMessage(sp,
+                                   VM_SERVICE_WEB_SERVER_CONTROL_MESSAGE_ID,
+                                   enable));
+  ASSERT(!message.IsNull());
+  uint8_t* data = NULL;
+  MessageWriter writer(&data, &allocator, false);
+  writer.WriteMessage(message);
+  intptr_t len = writer.BytesWritten();
+  PortMap::PostMessage(new Message(port_, data, len, Message::kNormalPriority));
+}
+
 
 void ServiceIsolate::SetServerAddress(const char* address) {
   if (server_address_ != NULL) {

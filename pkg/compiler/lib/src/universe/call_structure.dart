@@ -19,6 +19,7 @@ class CallStructure {
   static const CallStructure NO_ARGS = const CallStructure.unnamed(0);
   static const CallStructure ONE_ARG = const CallStructure.unnamed(1);
   static const CallStructure TWO_ARGS = const CallStructure.unnamed(2);
+  static const CallStructure THREE_ARGS = const CallStructure.unnamed(3);
 
   /// The numbers of arguments of the call. Includes named arguments.
   final int argumentCount;
@@ -36,6 +37,17 @@ class CallStructure {
       return new CallStructure.unnamed(argumentCount);
     }
     return new NamedCallStructure(argumentCount, namedArguments);
+  }
+
+  /// Creates the [CallStructure] corresponding to calling [signature] as
+  /// declared, that is, all named arguments are in the order of declaration.
+  factory CallStructure.fromSignature(FunctionSignature signature) {
+    List<String> namedParameters;
+    if (signature.optionalParametersAreNamed) {
+      namedParameters =
+          signature.optionalParameters.map((e) => e.name).toList();
+    }
+    return new CallStructure(signature.parameterCount, namedParameters);
   }
 
   /// `true` if this call has named arguments.
@@ -220,13 +232,7 @@ class CallStructure {
 
     // Synthesize a structure for the call.
     // TODO(ngeoffray): Should the resolver do it instead?
-    List<String> namedParameters;
-    if (signature.optionalParametersAreNamed) {
-      namedParameters =
-          signature.optionalParameters.map((e) => e.name).toList();
-    }
-    CallStructure callStructure =
-        new CallStructure(signature.parameterCount, namedParameters);
+    CallStructure callStructure = new CallStructure.fromSignature(signature);
     if (!callStructure.signatureApplies(signature)) {
       return false;
     }

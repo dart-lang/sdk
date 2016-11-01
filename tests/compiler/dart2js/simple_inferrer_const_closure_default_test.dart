@@ -7,8 +7,6 @@ import "package:async_helper/async_helper.dart";
 import 'compiler_helper.dart';
 import 'type_mask_test_helper.dart';
 
-
-
 const String TEST = """
 
 // [defaultFn_i] is called only via [foo_i]'s default value with a small integer.
@@ -40,45 +38,70 @@ main() {
 }
 """;
 
-
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.typesTask.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkArgument(String functionName, type) {
-      var functionElement = findElement(compiler, functionName);
-      var signature = functionElement.functionSignature;
-      var element = signature.requiredParameterCount > 0
-          ? signature.requiredParameters.first
-          : signature.optionalParameters.first;
-      Expect.equals(type,
-          simplify(typesInferrer.getTypeOfElement(element), compiler),
-          functionName);
-    }
+        checkArgument(String functionName, type) {
+          var functionElement = findElement(compiler, functionName);
+          var signature = functionElement.functionSignature;
+          var element = signature.requiredParameterCount > 0
+              ? signature.requiredParameters.first
+              : signature.optionalParameters.first;
+          Expect.equals(
+              type,
+              simplify(typesInferrer.getTypeOfElement(element), compiler),
+              functionName);
+        }
 
-    checkOptionalArgument(String functionName, type) {
-      var functionElement = findElement(compiler, functionName);
-      var signature = functionElement.functionSignature;
-      var element = signature.optionalParameters.first;
-      Expect.equals(type,
-          simplify(typesInferrer.getTypeOfElement(element), compiler),
-          functionName);
-    }
+        checkOptionalArgument(String functionName, type) {
+          var functionElement = findElement(compiler, functionName);
+          var signature = functionElement.functionSignature;
+          var element = signature.optionalParameters.first;
+          Expect.equals(
+              type,
+              simplify(typesInferrer.getTypeOfElement(element), compiler),
+              functionName);
+        }
 
-    checkArgument('foo1', compiler.typesTask.functionType);   /// 01: ok
-    checkArgument('foo2', compiler.typesTask.functionType);   /// 02: ok
-    checkArgument('foo3', compiler.typesTask.functionType);   /// 03: ok
-    checkArgument('foo4', compiler.typesTask.functionType);   /// 04: ok
-    checkArgument('foo5', compiler.typesTask.dynamicType);    /// 05: ok
-    checkArgument('foo6', compiler.typesTask.dynamicType);    /// 06: ok
+        checkArgument('foo1', compiler.commonMasks.functionType);
 
-    checkArgument('defaultFn1', compiler.typesTask.uint31Type);   /// 07: ok
-    checkArgument('defaultFn2', compiler.typesTask.uint31Type);   /// 08: ok
-    checkArgument('defaultFn3', compiler.typesTask.uint31Type);   /// 09: ok
-    checkArgument('defaultFn4', compiler.typesTask.uint31Type);   /// 10: ok
-    checkArgument('defaultFn5', compiler.typesTask.uint31Type);   /// 11: ok
-    checkArgument('defaultFn6', compiler.typesTask.uint31Type);   /// 12: ok
-  }));
+        /// 01: ok
+        checkArgument('foo2', compiler.commonMasks.functionType);
+
+        /// 02: ok
+        checkArgument('foo3', compiler.commonMasks.functionType);
+
+        /// 03: ok
+        checkArgument('foo4', compiler.commonMasks.functionType);
+
+        /// 04: ok
+        checkArgument('foo5', compiler.commonMasks.dynamicType);
+
+        /// 05: ok
+        checkArgument('foo6', compiler.commonMasks.dynamicType);
+
+        /// 06: ok
+
+        checkArgument('defaultFn1', compiler.commonMasks.uint31Type);
+
+        /// 07: ok
+        checkArgument('defaultFn2', compiler.commonMasks.uint31Type);
+
+        /// 08: ok
+        checkArgument('defaultFn3', compiler.commonMasks.uint31Type);
+
+        /// 09: ok
+        checkArgument('defaultFn4', compiler.commonMasks.uint31Type);
+
+        /// 10: ok
+        checkArgument('defaultFn5', compiler.commonMasks.uint31Type);
+
+        /// 11: ok
+        checkArgument('defaultFn6', compiler.commonMasks.uint31Type);
+
+        /// 12: ok
+      }));
 }

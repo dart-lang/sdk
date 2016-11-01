@@ -4,11 +4,9 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/types/types.dart'
-    show ContainerTypeMask, TypeMask;
+import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
 
 import 'compiler_helper.dart';
-
 
 String generateTest(String key, String value, bool initial) {
   return """
@@ -18,15 +16,16 @@ List aList = [42];
 consume(x) => x;
 
 main() {
-""" + (initial ?
-"""
+""" +
+      (initial
+          ? """
   var theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4, $key: $value};
-""" :
 """
+          : """
   var theMap = {'a': 2.2, 'b': 3.3, 'c': 4.4};
   theMap[$key] = $value;
 """) +
-"""
+      """
   for (var key in theMap.keys) {
     aDouble = theMap[key];
   }
@@ -49,27 +48,30 @@ void main() {
   doTest(value: "aList", initial: true);
 }
 
-void doTest({String key: "'d'", String value: "5.5", bool bail: false,
-             bool initial: false}) {
+void doTest(
+    {String key: "'d'",
+    String value: "5.5",
+    bool bail: false,
+    bool initial: false}) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(key, value, initial), uri,
       expectedErrors: 0, expectedWarnings: 0);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
-    var aDoubleType =
-        typesInferrer.getTypeOfElement(findElement(compiler, 'aDouble'));
-    var aListType =
-        typesInferrer.getTypeOfElement(findElement(compiler, 'aList'));
+        var commonMasks = compiler.commonMasks;
+        var typesInferrer = compiler.globalInference.typesInferrer;
+        var aDoubleType =
+            typesInferrer.getTypeOfElement(findElement(compiler, 'aDouble'));
+        var aListType =
+            typesInferrer.getTypeOfElement(findElement(compiler, 'aList'));
 
-    Expect.equals(aDoubleType, typesTask.doubleType);
-    Expect.isTrue(aListType is ContainerTypeMask);
-    ContainerTypeMask container = aListType;
-    TypeMask elementType = container.elementType;
-    if (bail) {
-      Expect.equals(elementType, typesTask.dynamicType);
-    } else {
-      Expect.equals(elementType, typesTask.uint31Type);
-    }
-  }));
+        Expect.equals(aDoubleType, commonMasks.doubleType);
+        Expect.isTrue(aListType is ContainerTypeMask);
+        ContainerTypeMask container = aListType;
+        TypeMask elementType = container.elementType;
+        if (bail) {
+          Expect.equals(elementType, commonMasks.dynamicType);
+        } else {
+          Expect.equals(elementType, commonMasks.uint31Type);
+        }
+      }));
 }

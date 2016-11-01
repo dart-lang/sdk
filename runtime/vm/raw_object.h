@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_RAW_OBJECT_H_
-#define VM_RAW_OBJECT_H_
+#ifndef RUNTIME_VM_RAW_OBJECT_H_
+#define RUNTIME_VM_RAW_OBJECT_H_
 
 #include "platform/assert.h"
 #include "vm/atomic.h"
@@ -39,6 +39,8 @@ namespace dart {
   V(ExceptionHandlers)                                                         \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
+  V(SingleTargetCache)                                                         \
+  V(UnlinkedCall)                                                              \
   V(ICData)                                                                    \
   V(MegamorphicCache)                                                          \
   V(SubtypeTestCache)                                                          \
@@ -149,6 +151,13 @@ enum ClassId {
   // Illegal class id.
   kIllegalCid = 0,
 
+  // The following entries describes classes for pseudo-objects in the heap
+  // that should never be reachable from live objects. Free list elements
+  // maintain the free list for old space, and forwarding corpses are used to
+  // implement one-way become.
+  kFreeListElement,
+  kForwardingCorpse,
+
   // List of Ids for predefined classes.
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   k##clazz##Cid,
@@ -179,13 +188,6 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
   kNullCid,
   kDynamicCid,
   kVoidCid,
-
-  // The following entries describes classes for pseudo-objects in the heap
-  // that should never be reachable from live objects. Free list elements
-  // maintain the free list for old space, and forwarding corpses are used to
-  // implement one-way become.
-  kFreeListElement,
-  kForwardingCorpse,
 
   kNumPredefinedCids,
 };
@@ -539,6 +541,11 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
     return ClassIdTag::decode(tags);
   }
 
+  void SetClassId(intptr_t new_cid) {
+    uword tags = ptr()->tags_;
+    ptr()->tags_ = ClassIdTag::update(new_cid, tags);
+  }
+
   template<class TagBitField>
   void UpdateTagBit(bool value) {
     uword tags = ptr()->tags_;
@@ -596,6 +603,7 @@ CLASS_LIST_TYPED_DATA(DEFINE_IS_CID)
   friend class Become;  // GetClassId
   friend class Bigint;
   friend class ByteBuffer;
+  friend class CidRewriteVisitor;
   friend class Closure;
   friend class Code;
   friend class Double;
@@ -719,6 +727,7 @@ class RawClass : public RawObject {
   friend class RawInstructions;
   friend class SnapshotReader;
   friend class InstanceSerializationCluster;
+  friend class CidRewriteVisitor;
 };
 
 
@@ -824,6 +833,8 @@ class RawFunction : public RawObject {
   static bool ShouldVisitCode(RawCode* raw_code);
   static bool CheckUsageCounter(RawFunction* raw_fun);
 
+  uword entry_point_;  // Accessed from generated code.
+
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
   RawObject* owner_;  // Class or patch class or mixin class
@@ -831,6 +842,7 @@ class RawFunction : public RawObject {
   RawAbstractType* result_type_;
   RawArray* parameter_types_;
   RawArray* parameter_names_;
+  RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawObject* data_;  // Additional data specific to the function kind.
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->data_);
@@ -839,23 +851,29 @@ class RawFunction : public RawObject {
   RawObject** to_no_code() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_array_);
   }
-  RawCode* code_;  // Currently active code.
-  RawCode* unoptimized_code_;  // Unoptimized code, keep it after optimization.
+  RawCode* code_;  // Currently active code. Accessed from generated code.
+  NOT_IN_PRECOMPILED(RawCode* unoptimized_code_);  // Unoptimized code, keep it
+                                                   // after optimization.
   RawObject** to() {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return reinterpret_cast<RawObject**>(&ptr()->code_);
+#else
     return reinterpret_cast<RawObject**>(&ptr()->unoptimized_code_);
+#endif
   }
-  uword entry_point_;
 
-  TokenPosition token_pos_;
-  TokenPosition end_token_pos_;
-  int32_t usage_counter_;  // Incremented while function is running.
+  NOT_IN_PRECOMPILED(TokenPosition token_pos_);
+  NOT_IN_PRECOMPILED(TokenPosition end_token_pos_);
+  NOT_IN_PRECOMPILED(int32_t usage_counter_);  // Accessed from generated code
+                                               // (JIT only).
+  uint32_t kind_tag_;  // See Function::KindTagBits.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
-  int8_t deoptimization_counter_;
-  int8_t was_compiled_;
-  uint32_t kind_tag_;  // See Function::KindTagBits.
-  uint16_t optimized_instruction_count_;
-  uint16_t optimized_call_site_count_;
+  NOT_IN_PRECOMPILED(void* kernel_function_);
+  NOT_IN_PRECOMPILED(uint16_t optimized_instruction_count_);
+  NOT_IN_PRECOMPILED(uint16_t optimized_call_site_count_);
+  NOT_IN_PRECOMPILED(int8_t deoptimization_counter_);
+  NOT_IN_PRECOMPILED(int8_t was_compiled_);
 };
 
 
@@ -924,8 +942,9 @@ class RawField : public RawObject {
     switch (kind) {
       case Snapshot::kCore:
       case Snapshot::kScript:
-      case Snapshot::kAppWithJIT:
         return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
+      case Snapshot::kAppWithJIT:
+        return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
       case Snapshot::kAppNoJIT:
         return reinterpret_cast<RawObject**>(&ptr()->initializer_);
       case Snapshot::kMessage:
@@ -947,6 +966,9 @@ class RawField : public RawObject {
   int8_t guarded_list_length_in_object_offset_;
 
   uint8_t kind_bits_;  // static, final, const, has initializer....
+  NOT_IN_PRECOMPILED(void* kernel_field_);
+
+  friend class CidRewriteVisitor;
 };
 
 
@@ -1103,15 +1125,14 @@ class RawCode : public RawObject {
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
-  uword entry_point_;
-  uword checked_entry_point_;
+  uword entry_point_;  // Accessed from generated code.
+  uword checked_entry_point_;  // Accessed from generated code (AOT only).
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->active_instructions_);
+    return reinterpret_cast<RawObject**>(&ptr()->object_pool_);
   }
-  RawInstructions* active_instructions_;
-  RawInstructions* instructions_;
-  RawObjectPool* object_pool_;
+  RawObjectPool* object_pool_;  // Accessed from generated code.
+  RawInstructions* instructions_;  // Accessed from generated code.
   // If owner_ is Function::null() the owner is a regular stub.
   // If owner_ is a Class the owner is the allocation stub for that class.
   // Else, owner_ is a regular Dart Function.
@@ -1119,30 +1140,33 @@ class RawCode : public RawObject {
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
   RawArray* stackmaps_;
-  RawArray* deopt_info_array_;
-  RawArray* static_calls_target_table_;  // (code-offset, function, code).
-  RawLocalVarDescriptors* var_descriptors_;
-  RawArray* inlined_metadata_;
-  RawCodeSourceMap* code_source_map_;
-  RawArray* comments_;
+  NOT_IN_PRECOMPILED(RawInstructions* active_instructions_);
+  NOT_IN_PRECOMPILED(RawArray* deopt_info_array_);
+  // (code-offset, function, code) triples.
+  NOT_IN_PRECOMPILED(RawArray* static_calls_target_table_);
+  NOT_IN_PRECOMPILED(RawArray* inlined_metadata_);
   // If return_address_metadata_ is a Smi, it is the offset to the prologue.
   // Else, return_address_metadata_ is null.
-  RawObject* return_address_metadata_;
+  NOT_IN_PRECOMPILED(RawObject* return_address_metadata_);
+  NOT_IN_PRECOMPILED(RawLocalVarDescriptors* var_descriptors_);
+  NOT_IN_PRECOMPILED(RawCodeSourceMap* code_source_map_);
+  NOT_IN_PRECOMPILED(RawArray* comments_);
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->return_address_metadata_);
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
+#else
+    return reinterpret_cast<RawObject**>(&ptr()->comments_);
+#endif
   }
 
   // Compilation timestamp.
-  int64_t compile_timestamp_;
+  NOT_IN_PRECOMPILED(int64_t compile_timestamp_);
 
   // state_bits_ is a bitfield with three fields:
   // The optimized bit, the alive bit, and a count of the number of pointer
   // offsets.
   // Alive: If true, the embedded object pointers will be visited during GC.
   int32_t state_bits_;
-
-  // PC offsets for code patching.
-  int32_t lazy_deopt_pc_offset_;
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
@@ -1331,6 +1355,7 @@ class RawLocalVarDescriptors : public RawObject {
   struct VarInfo {
     int32_t index_kind;  // Bitfield for slot index on stack or in context,
                          // and Entry kind of type VarInfoKind.
+    TokenPosition declaration_pos;   // Token position of declaration.
     TokenPosition begin_pos;   // Token position of scope start.
     TokenPosition end_pos;     // Token position of scope end.
     int16_t scope_id;    // Scope to which the variable belongs.
@@ -1433,6 +1458,7 @@ class RawContextScope : public RawObject {
   // TODO(iposva): Switch to conventional enum offset based structure to avoid
   // alignment mishaps.
   struct VariableDesc {
+    RawSmi* declaration_token_pos;
     RawSmi* token_pos;
     RawString* name;
     RawBool* is_final;
@@ -1471,6 +1497,34 @@ class RawContextScope : public RawObject {
 };
 
 
+class RawSingleTargetCache : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(SingleTargetCache);
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->target_);
+  }
+  RawCode* target_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->target_);
+  }
+  uword entry_point_;
+  classid_t lower_limit_;
+  classid_t upper_limit_;
+};
+
+
+class RawUnlinkedCall : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(UnlinkedCall);
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->target_name_);
+  }
+  RawString* target_name_;
+  RawArray* args_descriptor_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+  }
+};
+
+
 class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
@@ -1500,7 +1554,7 @@ class RawICData : public RawObject {
     UNREACHABLE();
     return NULL;
   }
-  int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
+  NOT_IN_PRECOMPILED(int32_t deopt_id_);
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons.
 #if defined(TAG_IC_DATA)
   intptr_t tag_;  // Debugging, verifying that the icdata is assigned to the
@@ -1566,7 +1620,7 @@ class RawLanguageError : public RawError {
   }
   TokenPosition token_pos_;  // Source position in script_.
   bool report_after_token_;  // Report message at or after the token.
-  int8_t kind_;  // Of type LanguageError::Kind.
+  int8_t kind_;  // Of type Report::Kind.
 };
 
 
@@ -1681,6 +1735,8 @@ class RawType : public RawAbstractType {
   }
   TokenPosition token_pos_;
   int8_t type_state_;
+
+  friend class CidRewriteVisitor;
 };
 
 
@@ -1708,11 +1764,17 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawSmi* hash_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
+  RawFunction* parameterized_function_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->parameterized_function_);
+  }
   classid_t parameterized_class_id_;
   TokenPosition token_pos_;
   int16_t index_;
+  uint8_t parent_level_;  // Max 255 levels of nested generic functions is OK.
   int8_t type_state_;
+
+  friend class CidRewriteVisitor;
 };
 
 
@@ -2431,4 +2493,4 @@ inline intptr_t RawObject::NumberOfTypedDataClasses() {
 
 }  // namespace dart
 
-#endif  // VM_RAW_OBJECT_H_
+#endif  // RUNTIME_VM_RAW_OBJECT_H_

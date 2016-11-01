@@ -20,4 +20,3 @@ main() {
 @AssumeDynamic()
 @NoInline()
 id(x) => x;
-

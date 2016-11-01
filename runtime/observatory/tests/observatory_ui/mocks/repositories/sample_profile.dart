@@ -28,24 +28,46 @@ class SampleProfileLoadingProgressMock
 }
 
 typedef Stream<M.SampleProfileLoadingProgressEvent>
-    ClassSampleProfileRepositoryMockCallback(M.ClassRef cls,
+    ClassSampleProfileRepositoryMockCallback(M.Isolate isolate, M.ClassRef cls,
         M.SampleProfileTag tag, bool clear);
+typedef Future ClassSampleProfileRepositoryMockToggleCallback(M.Isolate isolate,
+    M.ClassRef cls);
 
 class ClassSampleProfileRepositoryMock
     implements M.ClassSampleProfileRepository {
   final ClassSampleProfileRepositoryMockCallback _get;
+  final ClassSampleProfileRepositoryMockToggleCallback _enable;
+  final ClassSampleProfileRepositoryMockToggleCallback _disable;
 
-  Stream<M.SampleProfileLoadingProgressEvent> get(M.ClassRef cls,
-      M.SampleProfileTag tag, {bool clear: false}) {
+  Stream<M.SampleProfileLoadingProgressEvent> get(M.Isolate isolate,
+      M.ClassRef cls, M.SampleProfileTag tag, {bool clear: false}) {
     if (_get != null) {
-      return _get(cls, tag, clear);
+      return _get(isolate, cls, tag, clear);
     }
     return null;
   }
 
+  Future enable(M.Isolate isolate, M.ClassRef cls) {
+    if (_enable != null) {
+      return _enable(isolate, cls);
+    }
+    return new Future.value();
+  }
+
+  Future disable(M.Isolate isolate, M.ClassRef cls) {
+    if (_disable != null) {
+      return _disable(isolate, cls);
+    }
+    return new Future.value();
+  }
+
   ClassSampleProfileRepositoryMock(
-      {ClassSampleProfileRepositoryMockCallback getter})
-    : _get = getter;
+      {ClassSampleProfileRepositoryMockCallback getter,
+       ClassSampleProfileRepositoryMockToggleCallback enable,
+       ClassSampleProfileRepositoryMockToggleCallback disable})
+    : _get = getter,
+      _enable = enable,
+      _disable = disable;
 }
 
 typedef Stream<M.SampleProfileLoadingProgressEvent>

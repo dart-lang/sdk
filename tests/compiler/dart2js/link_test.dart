@@ -8,9 +8,9 @@ import 'link_helper.dart';
 
 main() {
   test(const Link<Comparable>().prepend('three').prepend(2).prepend('one'),
-       ['one', 2, 'three']);
+      ['one', 2, 'three']);
   test(const Link<Comparable>().prepend(3).prepend('two').prepend(1),
-       [1, 'two', 3]);
+      [1, 'two', 3]);
   test(const Link<String>().prepend('single'), ['single']);
   test(const Link(), []);
   testFromList([]);
@@ -51,7 +51,7 @@ test(Link link, List list) {
 
 testSkip() {
   var nonEmptyLink = LinkFromList([0, 1, 2, 3, 4, 5]);
-  for (int i = 0 ; i < 5; i++) {
+  for (int i = 0; i < 5; i++) {
     var link = nonEmptyLink.skip(i);
     Expect.isFalse(link.isEmpty);
     Expect.equals(i, link.head);

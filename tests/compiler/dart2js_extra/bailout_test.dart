@@ -131,8 +131,10 @@ void ifPhiBailout1(int bailout) {
   var a = 0;
   var c = 0;
 
-  if (a == 0) c = a++;
-  else c = a--;
+  if (a == 0)
+    c = a++;
+  else
+    c = a--;
 
   if (bailout == 1) {
     var o = myString;
@@ -143,8 +145,10 @@ void ifPhiBailout1(int bailout) {
   Expect.equals(1, a);
   Expect.equals(0, c);
 
-  if (a == 0) c = a++;
-  else c = a--;
+  if (a == 0)
+    c = a++;
+  else
+    c = a--;
 
   if (bailout == 2) {
     var o = myString;

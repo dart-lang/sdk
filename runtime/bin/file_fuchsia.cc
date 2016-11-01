@@ -75,7 +75,7 @@ bool File::IsClosed() {
 }
 
 
-void* File::MapExecutable(intptr_t* len) {
+void* File::Map(MapType type, int64_t position, int64_t length) {
   UNIMPLEMENTED();
   return NULL;
 }
@@ -164,7 +164,7 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
 }
 
 
-File* File::ScopedOpen(const char* name, FileOpenMode mode) {
+File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
@@ -198,12 +198,6 @@ File* File::ScopedOpen(const char* name, FileOpenMode mode) {
     }
   }
   return new File(new FileHandle(fd));
-}
-
-
-File* File::Open(const char* path, FileOpenMode mode) {
-  // ScopedOpen doesn't actually need a scope.
-  return ScopedOpen(path, mode);
 }
 
 

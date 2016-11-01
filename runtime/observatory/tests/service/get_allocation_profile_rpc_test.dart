@@ -3,10 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
+import 'dart:async';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
 import 'test_helper.dart';
+
+Future sleep(int milliseconds) {
+  Completer completer = new Completer();
+  Duration duration = new Duration(milliseconds: milliseconds);
+  new Timer(duration, () => completer.complete() );
+  return completer.future;
+}
 
 var tests = [
   (Isolate isolate) async {
@@ -15,10 +23,8 @@ var tests = [
     var result = await isolate.invokeRpcNoUpgrade(
         '_getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
-    var lastReset = result['dateLastAccumulatorReset'];
-    expect(lastReset, new isInstanceOf<String>());
-    var lastGC = result['dateLastServiceGC'];
-    expect(lastGC, new isInstanceOf<String>());
+    expect(result.containsKey('dateLastAccumulatorReset'), isFalse);
+    expect(result.containsKey('dateLastServiceGC'), isFalse);
     expect(result['heaps'].length, isPositive);
     expect(result['heaps']['new']['type'], equals('HeapSpace'));
     expect(result['heaps']['old']['type'], equals('HeapSpace'));
@@ -31,14 +37,20 @@ var tests = [
     };
     result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
-    var newReset = result['dateLastAccumulatorReset'];
-    expect(newReset, isNot(equals(lastReset)));
-    expect(result['dateLastServiceGC'], equals(lastGC));
+    var firstReset = result['dateLastAccumulatorReset'];
+    expect(firstReset, new isInstanceOf<String>());
+    expect(result.containsKey('dateLastServiceGC'), isFalse);
     expect(result['heaps'].length, isPositive);
     expect(result['heaps']['new']['type'], equals('HeapSpace'));
     expect(result['heaps']['old']['type'], equals('HeapSpace'));
     expect(result['members'].length, isPositive);
     expect(result['members'][0]['type'], equals('ClassHeapStats'));
+
+    await sleep(1000);
+
+    result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+    var secondReset = result['dateLastAccumulatorReset'];
+    expect(secondReset, isNot(equals(firstReset)));
 
     // gc.
     params = {
@@ -46,14 +58,20 @@ var tests = [
     };
     result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
     expect(result['type'], equals('AllocationProfile'));
-    expect(result['dateLastAccumulatorReset'], equals(newReset));
-    var newGC = result['dateLastServiceGCt'];
-    expect(newGC, isNot(equals(lastGC)));
+    expect(result['dateLastAccumulatorReset'], equals(secondReset));
+    var firstGC = result['dateLastServiceGC'];
+    expect(firstGC, new isInstanceOf<String>());
     expect(result['heaps'].length, isPositive);
     expect(result['heaps']['new']['type'], equals('HeapSpace'));
     expect(result['heaps']['old']['type'], equals('HeapSpace'));
     expect(result['members'].length, isPositive);
     expect(result['members'][0]['type'], equals('ClassHeapStats'));
+
+    await sleep(1000);
+
+    result = await isolate.invokeRpcNoUpgrade('_getAllocationProfile', params);
+    var secondGC = result['dateLastAccumulatorReset'];
+    expect(secondGC, isNot(equals(firstGC)));
   },
 
   (Isolate isolate) async {

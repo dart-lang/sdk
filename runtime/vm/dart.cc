@@ -92,27 +92,27 @@ static void CheckOffsets() {
   // These offsets are embedded in precompiled instructions. We need simarm
   // (compiler) and arm (runtime) to agree.
   CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
-  CHECK_OFFSET(Isolate::heap_offset(), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 36);
+  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
 #if defined(TARGET_ARCH_MIPS)
   // These offsets are embedded in precompiled instructions. We need simmips
   // (compiler) and mips (runtime) to agree.
   CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
-  CHECK_OFFSET(Isolate::heap_offset(), 8);
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 36);
+  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
 #if defined(TARGET_ARCH_ARM64)
   // These offsets are embedded in precompiled instructions. We need simarm64
   // (compiler) and arm64 (runtime) to agree.
   CHECK_OFFSET(Heap::TopOffset(Heap::kNew), 8);
-  CHECK_OFFSET(Isolate::heap_offset(), 16);
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
   CHECK_OFFSET(Thread::object_null_offset(), 72);
+  CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 28);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 208));
 #endif
 #undef CHECK_OFFSET
@@ -270,6 +270,8 @@ char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     } else {
 #if defined(DART_PRECOMPILED_RUNTIME)
       return strdup("Precompiled runtime requires a precompiled snapshot");
+#elif !defined(DART_NO_SNAPSHOT)
+      return strdup("Missing vm isolate snapshot");
 #else
       snapshot_kind_ = Snapshot::kNone;
       StubCode::InitOnce();
@@ -522,7 +524,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
       const String& message = String::Handle(
-          String::New("Invalid snapshot."));
+          String::New("Invalid snapshot"));
       return ApiError::New(message);
     }
     ASSERT(Snapshot::IsFull(snapshot->kind()));
@@ -551,7 +553,11 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    ASSERT(snapshot_kind_ == Snapshot::kNone);
+    if (snapshot_kind_ != Snapshot::kNone) {
+      const String& message = String::Handle(
+          String::New("Missing isolate snapshot"));
+      return ApiError::New(message);
+    }
   }
 
   Object::VerifyBuiltinVtables();

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test program for testing isolate communication with
 // typed objects.
-// VMOptions=--disassemble
+// VMOptions=--disassemble --no-background-compilation
 // VMOptions=--disassemble --print-variable-descriptors --no-background-compilation
 
 // Tests proper object recognition in disassembler.

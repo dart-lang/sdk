@@ -9,13 +9,15 @@ class NoSuchMethodInfo {
   String name;
   List args;
   NoSuchMethodInfo(Object r, String m, List a)
-    : receiver = r, name = m, args = a;
+      : receiver = r,
+        name = m,
+        args = a;
 }
 
 class A {
   noSuchMethod(Invocation invocation) {
-    topLevelInfo = new NoSuchMethodInfo(this, invocation.memberName,
-                                        invocation.positionalArguments);
+    topLevelInfo = new NoSuchMethodInfo(
+        this, invocation.memberName, invocation.positionalArguments);
     return topLevelInfo;
   }
 

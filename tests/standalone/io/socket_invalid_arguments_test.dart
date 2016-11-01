@@ -20,12 +20,17 @@ class NotAList {
 
 testSocketCreation(host, port) {
   asyncStart();
-  Socket.connect(host, port)
-      .then((socket) => Expect.fail("Shouldn't get connected"))
-      .catchError((e) {
-        Expect.isTrue(e is ArgumentError || e is SocketException);
-        asyncEnd();
-      });
+  try {
+    Socket.connect(host, port)
+        .then((socket) => Expect.fail("Shouldn't get connected"))
+        .catchError((e) {
+          Expect.isTrue(e is ArgumentError || e is SocketException);
+          asyncEnd();
+        });
+  } catch (e) {
+    Expect.isTrue(e is ArgumentError || e is SocketException);
+    asyncEnd();
+  }
 }
 
 testAdd(buffer) {
@@ -71,6 +76,8 @@ main() {
   testSocketCreation(123, 123);
   testSocketCreation("string", null);
   testSocketCreation(null, null);
+  testSocketCreation("localhost", -1);
+  testSocketCreation("localhost", 65536);
   testAdd(null);
   testAdd(new NotAList());
   testAdd(42);
@@ -82,4 +89,6 @@ main() {
   testServerSocketCreation(123, 123, 123);
   testServerSocketCreation("string", null, null);
   testServerSocketCreation("string", 123, null);
+  testServerSocketCreation("localhost", -1, 123);
+  testServerSocketCreation("localhost", 65536, 123);
 }

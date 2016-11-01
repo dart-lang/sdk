@@ -9,7 +9,7 @@ import 'memory_compiler.dart';
 // Use strict does not allow parameters or locals named "arguments" or "eval".
 
 const MEMORY_SOURCE_FILES = const {
-    'main.dart': '''
+  'main.dart': '''
       class A {
         final arguments;
         final eval;
@@ -42,7 +42,8 @@ const MEMORY_SOURCE_FILES = const {
         for (int i = 0; i < list.length; i++) {
           print(list[i].foo(i, i + 1));
         }
-      }'''};
+      }'''
+};
 
 main() {
   OutputCollector collector = new OutputCollector();
@@ -54,9 +55,8 @@ main() {
     // Skip comments.
     List<String> lines = jsOutput.split("\n");
     RegExp commentLine = new RegExp(r' *//');
-    String filtered = lines
-        .where((String line) => !commentLine.hasMatch(line))
-        .join("\n");
+    String filtered =
+        lines.where((String line) => !commentLine.hasMatch(line)).join("\n");
 
     // TODO(floitsch): we will need to adjust this filter if we start using
     // 'eval' or 'arguments' ourselves. Currently we disallow any 'eval' or

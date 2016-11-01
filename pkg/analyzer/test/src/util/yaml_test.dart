@@ -5,13 +5,9 @@
 library analyzer.src.test.util.yaml_test;
 
 import 'package:analyzer/src/util/yaml.dart';
-import 'package:unittest/unittest.dart';
-
-import '../../utils.dart';
+import 'package:test/test.dart';
 
 main() {
-  initializeTestEnvironment();
-
   group('yaml', () {
     group('merge', () {
       test('map', () {

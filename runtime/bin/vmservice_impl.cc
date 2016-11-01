@@ -91,27 +91,20 @@ class Resources {
 
 void NotifyServerState(Dart_NativeArguments args) {
   Dart_EnterScope();
-  const char* ip_chars;
-  Dart_Handle ip_arg = Dart_GetNativeArgument(args, 0);
-  if (Dart_IsError(ip_arg)) {
-    VmService::SetServerIPAndPort("", 0);
+  const char* uri_chars;
+  Dart_Handle uri_arg = Dart_GetNativeArgument(args, 0);
+  if (Dart_IsError(uri_arg)) {
+    VmService::SetServerAddress("");
     Dart_ExitScope();
     return;
   }
-  Dart_Handle result = Dart_StringToCString(ip_arg, &ip_chars);
+  Dart_Handle result = Dart_StringToCString(uri_arg, &uri_chars);
   if (Dart_IsError(result)) {
-    VmService::SetServerIPAndPort("", 0);
+    VmService::SetServerAddress("");
     Dart_ExitScope();
     return;
   }
-  Dart_Handle port_arg = Dart_GetNativeArgument(args, 1);
-  if (Dart_IsError(port_arg)) {
-    VmService::SetServerIPAndPort("", 0);
-    Dart_ExitScope();
-    return;
-  }
-  int64_t port = DartUtils::GetInt64ValueCheckRange(port_arg, 0, 65535);
-  VmService::SetServerIPAndPort(ip_chars, port);
+  VmService::SetServerAddress(uri_chars);
   Dart_ExitScope();
 }
 
@@ -129,7 +122,7 @@ struct VmServiceIONativeEntry {
 
 
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
-  {"VMServiceIO_NotifyServerState", 2, NotifyServerState},
+  {"VMServiceIO_NotifyServerState", 1, NotifyServerState},
   {"VMServiceIO_Shutdown", 0, Shutdown },
 };
 
@@ -156,8 +149,7 @@ static Dart_NativeFunction VmServiceIONativeResolver(Dart_Handle name,
 
 
 const char* VmService::error_msg_ = NULL;
-char VmService::server_ip_[kServerIpStringBufferSize];
-intptr_t VmService::server_port_ = 0;
+char VmService::server_uri_[kServerUriStringBufferSize];
 
 
 bool VmService::LoadForGenPrecompiled() {
@@ -180,7 +172,7 @@ bool VmService::Setup(const char* server_ip,
                       bool dev_mode_server) {
   Dart_Isolate isolate = Dart_CurrentIsolate();
   ASSERT(isolate != NULL);
-  SetServerIPAndPort("", 0);
+  SetServerAddress("");
 
   Dart_Handle result;
 
@@ -290,13 +282,16 @@ const char* VmService::GetErrorMessage() {
 }
 
 
-void VmService::SetServerIPAndPort(const char* ip, intptr_t port) {
-  if (ip == NULL) {
-    ip = "";
+void VmService::SetServerAddress(const char* server_uri) {
+  if (server_uri == NULL) {
+    server_uri = "";
   }
-  strncpy(server_ip_, ip, kServerIpStringBufferSize);
-  server_ip_[kServerIpStringBufferSize - 1] = '\0';
-  server_port_ = port;
+  const intptr_t server_uri_len = strlen(server_uri);
+  if (server_uri_len >= (kServerUriStringBufferSize - 1)) {
+    FATAL1("vm-service: Server URI exceeded length: %s\n", server_uri);
+  }
+  strncpy(server_uri_, server_uri, kServerUriStringBufferSize);
+  server_uri_[kServerUriStringBufferSize - 1] = '\0';
 }
 
 

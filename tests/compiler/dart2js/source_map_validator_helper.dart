@@ -11,21 +11,20 @@ import 'package:expect/expect.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/elements/elements.dart'
-    show AstElement,
-         ClassElement,
-         CompilationUnitElement,
-         Element,
-         FunctionElement,
-         LibraryElement,
-         MemberElement;
+    show
+        AstElement,
+        ClassElement,
+        CompilationUnitElement,
+        Element,
+        FunctionElement,
+        LibraryElement,
+        MemberElement;
 import 'package:compiler/src/io/source_file.dart' show SourceFile;
 import 'package:compiler/src/io/source_information.dart'
     show computeElementNameForSourceMaps;
 
 validateSourceMap(Uri targetUri,
-                  {Uri mainUri,
-                   Position mainPosition,
-                   CompilerImpl compiler}) {
+    {Uri mainUri, Position mainPosition, CompilerImpl compiler}) {
   Uri mapUri = getMapUri(targetUri);
   List<String> targetLines = new File.fromUri(targetUri).readAsLinesSync();
   SingleMapping sourceMap = getSourceMap(mapUri);
@@ -36,19 +35,19 @@ validateSourceMap(Uri targetUri,
     checkNames(targetUri, mapUri, sourceMap, compiler);
   }
   if (mainUri != null && mainPosition != null) {
-    checkMainPosition(targetUri, targetLines ,sourceMap, mainUri, mainPosition);
+    checkMainPosition(targetUri, targetLines, sourceMap, mainUri, mainPosition);
   }
 }
 
-checkIndexReferences(List<String> targetLines,
-                     Uri mapUri,
-                     SingleMapping sourceMap) {
+checkIndexReferences(
+    List<String> targetLines, Uri mapUri, SingleMapping sourceMap) {
   int urlsLength = sourceMap.urls.length;
   List<List<String>> sources = new List(urlsLength);
   print('Reading sources');
   for (int i = 0; i < urlsLength; i++) {
-    sources[i] = new File.fromUri(mapUri.resolve(sourceMap.urls[i])).
-        readAsStringSync().split('\n');
+    sources[i] = new File.fromUri(mapUri.resolve(sourceMap.urls[i]))
+        .readAsStringSync()
+        .split('\n');
   }
 
   sourceMap.lines.forEach((TargetLineEntry line) {
@@ -62,17 +61,17 @@ checkIndexReferences(List<String> targetLines,
       //
       // Expect.isTrue(entry.column < target[line.line].length);
       Expect.isTrue(entry.column >= 0);
-      Expect.isTrue(urlIndex == null ||
-          (urlIndex >= 0 && urlIndex < urlsLength));
+      Expect
+          .isTrue(urlIndex == null || (urlIndex >= 0 && urlIndex < urlsLength));
       Expect.isTrue(entry.sourceLine == null ||
           (entry.sourceLine >= 0 &&
-           entry.sourceLine < sources[urlIndex].length));
+              entry.sourceLine < sources[urlIndex].length));
       Expect.isTrue(entry.sourceColumn == null ||
           (entry.sourceColumn >= 0 &&
-           entry.sourceColumn < sources[urlIndex][entry.sourceLine].length));
+              entry.sourceColumn < sources[urlIndex][entry.sourceLine].length));
       Expect.isTrue(entry.sourceNameId == null ||
           (entry.sourceNameId >= 0 &&
-           entry.sourceNameId < sourceMap.names.length));
+              entry.sourceNameId < sourceMap.names.length));
     }
   });
 }
@@ -90,7 +89,8 @@ checkRedundancy(SingleMapping sourceMap) {
     TargetEntry previous = null;
     for (TargetEntry next in line.entries) {
       if (previous != null) {
-        Expect.isFalse(sameSourcePoint(previous, next),
+        Expect.isFalse(
+            sameSourcePoint(previous, next),
             '$previous and $next are consecutive entries on line $line in the '
             'source map but point to same source locations');
       }
@@ -99,8 +99,8 @@ checkRedundancy(SingleMapping sourceMap) {
   });
 }
 
-checkNames(Uri targetUri, Uri mapUri,
-           SingleMapping sourceMap, CompilerImpl compiler) {
+checkNames(
+    Uri targetUri, Uri mapUri, SingleMapping sourceMap, CompilerImpl compiler) {
   Map<Uri, CompilationUnitElement> compilationUnitMap = {};
 
   void mapCompilationUnits(LibraryElement library) {
@@ -120,15 +120,14 @@ checkNames(Uri targetUri, Uri mapUri,
     for (TargetEntry entry in line.entries) {
       if (entry.sourceNameId != null) {
         Uri uri = mapUri.resolve(sourceMap.urls[entry.sourceUrlId]);
-        Position targetPosition =
-            new Position(line.line, entry.column);
+        Position targetPosition = new Position(line.line, entry.column);
         Position sourcePosition =
             new Position(entry.sourceLine, entry.sourceColumn);
         String name = sourceMap.names[entry.sourceNameId];
 
         CompilationUnitElement compilationUnit = compilationUnitMap[uri];
-        Expect.isNotNull(compilationUnit,
-                         "No compilation unit found for $uri.");
+        Expect.isNotNull(
+            compilationUnit, "No compilation unit found for $uri.");
 
         SourceFile sourceFile = compilationUnit.script.file;
 
@@ -144,8 +143,8 @@ checkNames(Uri targetUri, Uri mapUri,
           var begin = element.node.getBeginToken().charOffset;
           var end = element.node.getEndToken();
           end = end.charOffset + end.charCount;
-          return new Interval(positionFromOffset(begin),
-                              positionFromOffset(end));
+          return new Interval(
+              positionFromOffset(begin), positionFromOffset(end));
         }
 
         AstElement findInnermost(AstElement element) {
@@ -177,8 +176,7 @@ checkNames(Uri targetUri, Uri mapUri,
           Interval interval = intervalFromElement(element);
           if (interval != null && interval.contains(sourcePosition)) {
             AstElement innerElement = findInnermost(element);
-            String expectedName =
-                computeElementNameForSourceMaps(innerElement);
+            String expectedName = computeElementNameForSourceMaps(innerElement);
             if (name != expectedName) {
               // For the code
               //    (){}();
@@ -191,12 +189,15 @@ checkNames(Uri targetUri, Uri mapUri,
                 var enclosingElement = innerElement.enclosingElement;
                 String expectedName2 =
                     computeElementNameForSourceMaps(enclosingElement);
-                Expect.isTrue(name == expectedName2,
+                Expect.isTrue(
+                    name == expectedName2,
                     "Unexpected name '${name}', "
                     "expected '${expectedName}' for $innerElement "
                     "or '${expectedName2}' for $enclosingElement.");
               } else {
-                Expect.equals(expectedName, name,
+                Expect.equals(
+                    expectedName,
+                    name,
                     "Unexpected name '${name}', "
                     "expected '${expectedName}' or for $innerElement.");
               }
@@ -221,11 +222,8 @@ RegExp mainSignaturePrefix = new RegExp(r'main: \[?function\(');
 
 // Check that the line pointing to by [mainPosition] in [mainUri] contains
 // the main function signature.
-checkMainPosition(Uri targetUri,
-                  List<String> targetLines,
-                  SingleMapping sourceMap,
-                  Uri mainUri,
-                  Position mainPosition) {
+checkMainPosition(Uri targetUri, List<String> targetLines,
+    SingleMapping sourceMap, Uri mainUri, Position mainPosition) {
   bool mainPositionFound = false;
   sourceMap.lines.forEach((TargetLineEntry lineEntry) {
     lineEntry.entries.forEach((TargetEntry entry) {
@@ -234,13 +232,13 @@ checkMainPosition(Uri targetUri,
       if (sourceUri != mainUri) return;
       if (entry.sourceLine + 1 == mainPosition.line &&
           entry.sourceColumn + 1 == mainPosition.column) {
-        Expect.isNotNull(entry.sourceNameId,
-                         "Main position has no name.");
+        Expect.isNotNull(entry.sourceNameId, "Main position has no name.");
         String name = sourceMap.names[entry.sourceNameId];
-        Expect.equals('main', name,
-                      "Main position name is not '$name', not 'main'.");
+        Expect.equals(
+            'main', name, "Main position name is not '$name', not 'main'.");
         String line = targetLines[lineEntry.line];
-        Expect.isTrue(line.contains(mainSignaturePrefix),
+        Expect.isTrue(
+            line.contains(mainSignaturePrefix),
             "Line mapped to main position "
             "([${lineEntry.line + 1},${entry.column + 1}]) "
             "expected to contain '${mainSignaturePrefix.pattern}':\n$line\n");
@@ -248,14 +246,12 @@ checkMainPosition(Uri targetUri,
       }
     });
   });
-  Expect.isTrue(mainPositionFound,
-                'No main position $mainPosition found in $mainUri');
+  Expect.isTrue(
+      mainPositionFound, 'No main position $mainPosition found in $mainUri');
 }
 
-
 sameSourcePoint(TargetEntry entry, TargetEntry otherEntry) {
-  return
-      (entry.sourceUrlId == otherEntry.sourceUrlId) &&
+  return (entry.sourceUrlId == otherEntry.sourceUrlId) &&
       (entry.sourceLine == otherEntry.sourceLine) &&
       (entry.sourceColumn == otherEntry.sourceColumn) &&
       (entry.sourceNameId == otherEntry.sourceNameId);
@@ -276,14 +272,13 @@ SingleMapping getSourceMap(Uri mapUri) {
   print('Accessing $mapUri');
   File mapFile = new File.fromUri(mapUri);
   Expect.isTrue(mapFile.existsSync());
-  return new SingleMapping.fromJson(
-      JSON.decode(mapFile.readAsStringSync()));
+  return new SingleMapping.fromJson(JSON.decode(mapFile.readAsStringSync()));
 }
 
 copyDirectory(Directory sourceDir, Directory destinationDir) {
   sourceDir.listSync().forEach((FileSystemEntity element) {
-    String newPath = path.join(destinationDir.path,
-                               path.basename(element.path));
+    String newPath =
+        path.join(destinationDir.path, path.basename(element.path));
     if (element is File) {
       element.copySync(newPath);
     } else if (element is Directory) {
@@ -309,8 +304,7 @@ class Position {
   const Position(this.line, this.column);
 
   bool operator <=(Position other) {
-    return line < other.line ||
-           line == other.line && column <= other.column;
+    return line < other.line || line == other.line && column <= other.column;
   }
 
   String toString() => '[${line + 1},${column + 1}]';

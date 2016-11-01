@@ -5,12 +5,16 @@
 library analyzer.src.dart.scanner.scanner;
 
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:charcode/ascii.dart';
+
+export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 
 /**
  * A state in a state machine used to scan keywords.
@@ -803,7 +807,8 @@ class Scanner {
   int _tokenizeFractionPart(int next, int start) {
     bool done = false;
     bool hasDigit = false;
-    LOOP: while (!done) {
+    LOOP:
+    while (!done) {
       if ($0 <= next && next <= $9) {
         hasDigit = true;
       } else if ($e == next || $E == next) {
@@ -1037,7 +1042,8 @@ class Scanner {
 
   int _tokenizeMultiLineRawString(int quoteChar, int start) {
     int next = _reader.advance();
-    outer: while (next != -1) {
+    outer:
+    while (next != -1) {
       while (next != quoteChar) {
         if (next == -1) {
           break outer;
@@ -1346,47 +1352,4 @@ class Scanner {
     return StringUtilities.startsWith3(value, 0, $slash, $slash, $slash) ||
         StringUtilities.startsWith3(value, 0, $slash, $asterisk, $asterisk);
   }
-}
-
-/**
- * The error codes used for errors detected by the scanner.
- */
-class ScannerErrorCode extends ErrorCode {
-  static const ScannerErrorCode ILLEGAL_CHARACTER =
-      const ScannerErrorCode('ILLEGAL_CHARACTER', "Illegal character {0}");
-
-  static const ScannerErrorCode MISSING_DIGIT =
-      const ScannerErrorCode('MISSING_DIGIT', "Decimal digit expected");
-
-  static const ScannerErrorCode MISSING_HEX_DIGIT =
-      const ScannerErrorCode('MISSING_HEX_DIGIT', "Hexidecimal digit expected");
-
-  static const ScannerErrorCode MISSING_QUOTE =
-      const ScannerErrorCode('MISSING_QUOTE', "Expected quote (' or \")");
-
-  static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
-      'UNABLE_GET_CONTENT', "Unable to get content: {0}");
-
-  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
-      const ScannerErrorCode(
-          'UNTERMINATED_MULTI_LINE_COMMENT', "Unterminated multi-line comment");
-
-  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
-      const ScannerErrorCode(
-          'UNTERMINATED_STRING_LITERAL', "Unterminated string literal");
-
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const ScannerErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
-
-  @override
-  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
 }

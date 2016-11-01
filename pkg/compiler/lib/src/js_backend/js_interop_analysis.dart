@@ -22,7 +22,7 @@ import '../elements/elements.dart'
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../universe/selector.dart' show Selector;
-import '../universe/universe.dart' show SelectorConstraints;
+import '../universe/world_builder.dart' show SelectorConstraints;
 import 'backend_helpers.dart' show BackendHelpers;
 import 'js_backend.dart' show JavaScriptBackend;
 
@@ -116,7 +116,7 @@ class JsInteropAnalysis {
 
       // Skip classes that are completely unreachable. This should only happen
       // when all of jsinterop types are unreachable from main.
-      if (!backend.compiler.world.isImplemented(classElement)) return;
+      if (!backend.compiler.resolverWorld.isImplemented(classElement)) return;
 
       if (!classElement.implementsInterface(helpers.jsJavaScriptObjectClass)) {
         backend.reporter.reportErrorMessage(classElement,

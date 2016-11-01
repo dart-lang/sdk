@@ -69,19 +69,20 @@ main() {
   });
   test('elements created', () async {
     final e = new CurlyBlockElement();
-    expect(e.shadowRoot, isNotNull, reason: 'shadowRoot is created');
+    expect(e.children.length, isZero, reason: 'is empty');
     document.body.append(e);
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isNonZero,
-      reason: 'shadowRoot has elements');
+    expect(e.children.length, isNonZero,
+      reason: 'has elements');
     e.remove();
     await e.onRendered.first;
-    expect(e.shadowRoot.children.length, isZero, reason: 'shadowRoot is empty');
+    expect(e.children.length, isZero, reason: 'is empty');
   });
   group('content', () {
     CurlyBlockElement e;
     setUp(() async {
       e = new CurlyBlockElement();
+      e.content = [document.createElement('content')];
       document.body.append(e);
       await e.onRendered.first;
     });
@@ -89,56 +90,56 @@ main() {
       e.remove();
     });
     test('toggles visibility', () async {
-      expect(e.shadowRoot.querySelector('content'), isNull);
+      expect(e.querySelector('content'), isNull);
       e.toggle();
       await e.onRendered.first;
-      expect(e.shadowRoot.querySelector('content'), isNotNull);
+      expect(e.querySelector('content'), isNotNull);
       e.toggle();
       await e.onRendered.first;
-      expect(e.shadowRoot.querySelector('content'), isNull);
+      expect(e.querySelector('content'), isNull);
       e.remove();
     });
     test('toggles visibility (manually)', () async {
-      expect(e.shadowRoot.querySelector('content'), isNull);
+      expect(e.querySelector('content'), isNull);
       e.expanded = true;
       await e.onRendered.first;
-      expect(e.shadowRoot.querySelector('content'), isNotNull);
+      expect(e.querySelector('content'), isNotNull);
       e.expanded = false;
       await e.onRendered.first;
-      expect(e.shadowRoot.querySelector('content'), isNull);
+      expect(e.querySelector('content'), isNull);
       e.remove();
     });
     test('does not toggle if disabled', () async {
       e.disabled = true;
       await e.onRendered.first;
       expect(e.expanded, isFalse);
-      expect(e.shadowRoot.querySelector('content'), isNull);
+      expect(e.querySelector('content'), isNull);
       e.toggle();
       await e.onRendered.first;
       expect(e.expanded, isFalse);
-      expect(e.shadowRoot.querySelector('content'), isNull);
+      expect(e.querySelector('content'), isNull);
       e.disabled = false;
       e.toggle();
       await e.onRendered.first;
       expect(e.expanded, isTrue);
-      expect(e.shadowRoot.querySelector('content'), isNotNull);
+      expect(e.querySelector('content'), isNotNull);
       e.disabled = true;
       e.toggle();
       await e.onRendered.first;
       expect(e.expanded, isTrue);
-      expect(e.shadowRoot.querySelector('content'), isNotNull);
+      expect(e.querySelector('content'), isNotNull);
       e.remove();
     });
     test('toggles visibility (manually) if disabled', () async {
       e.disabled = true;
       await e.onRendered.first;
-      expect(e.shadowRoot.querySelector('content'), isNull);
+      expect(e.querySelector('content'), isNull);
       e.expanded = true;
       await e.onRendered.first;
-      expect(e.shadowRoot.querySelector('content'), isNotNull);
+      expect(e.querySelector('content'), isNotNull);
       e.expanded = false;
       await e.onRendered.first;
-      expect(e.shadowRoot.querySelector('content'), isNull);
+      expect(e.querySelector('content'), isNull);
       e.remove();
     });
   });

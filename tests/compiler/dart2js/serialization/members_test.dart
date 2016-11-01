@@ -17,30 +17,25 @@ import '../memory_compiler.dart';
 import 'helper.dart';
 import 'test_helper.dart';
 
-
 main(List<String> args) {
   Arguments arguments = new Arguments.from(args);
   asyncTest(() async {
     SerializedData serializedData =
-    await serializeDartCore(arguments: arguments);
+        await serializeDartCore(arguments: arguments);
     if (arguments.filename != null) {
       Uri entryPoint = Uri.base.resolve(nativeToUriPath(arguments.filename));
-      await checkClassMembers(
-          serializedData, entryPoint, verbose: arguments.verbose);
+      await checkClassMembers(serializedData, entryPoint,
+          verbose: arguments.verbose);
     } else {
-      await checkClassMembers(
-          serializedData, Uris.dart_core, verbose: arguments.verbose);
+      await checkClassMembers(serializedData, Uris.dart_core,
+          verbose: arguments.verbose);
     }
   });
 }
 
-Future checkClassMembers(
-    SerializedData serializedData,
-    Uri entryPoint,
+Future checkClassMembers(SerializedData serializedData, Uri entryPoint,
     {bool verbose: false}) async {
-
-  Compiler compilerNormal = compilerFor(
-      options: [Flags.analyzeAll]);
+  Compiler compilerNormal = compilerFor(options: [Flags.analyzeAll]);
   await compilerNormal.run(entryPoint);
 
   Compiler compilerDeserialized = compilerFor(
@@ -52,22 +47,15 @@ Future checkClassMembers(
   checkAllMembers(compilerNormal, compilerDeserialized, verbose: true);
 }
 
-void checkAllMembers(
-    Compiler compiler1,
-    Compiler compiler2,
+void checkAllMembers(Compiler compiler1, Compiler compiler2,
     {bool verbose: false}) {
-  checkLoadedLibraryMembers(
-      compiler1,
-      compiler2,
-      (Element member1) => member1 is ClassElement,
-      checkMembers,
+  checkLoadedLibraryMembers(compiler1, compiler2,
+      (Element member1) => member1 is ClassElement, checkMembers,
       verbose: verbose);
 }
 
-
 /// Check equivalence of members of [class1] and [class2].
-void checkMembers(
-    Compiler compiler1, ClassMemberMixin class1,
+void checkMembers(Compiler compiler1, ClassMemberMixin class1,
     Compiler compiler2, ClassMemberMixin class2,
     {bool verbose: false}) {
   if (verbose) {
@@ -76,21 +64,24 @@ void checkMembers(
   MembersCreator.computeAllClassMembers(compiler1.resolution, class1);
   MembersCreator.computeAllClassMembers(compiler2.resolution, class2);
 
-  check(class1, class2, 'interfaceMemberAreClassMembers',
+  check(
+      class1,
+      class2,
+      'interfaceMemberAreClassMembers',
       class1.interfaceMembersAreClassMembers,
       class2.interfaceMembersAreClassMembers);
   class1.forEachClassMember((Member member1) {
     Name name1 = member1.name;
     Name name2 = convertName(name1, compiler2);
-    checkMember(class1, class2, 'classMember:$name1',
-        member1, class2.lookupClassMember(name2));
+    checkMember(class1, class2, 'classMember:$name1', member1,
+        class2.lookupClassMember(name2));
   });
 
   class1.forEachInterfaceMember((MemberSignature member1) {
     Name name1 = member1.name;
     Name name2 = convertName(name1, compiler2);
-    checkMemberSignature(class1, class2, 'interfaceMember:$name1',
-        member1, class2.lookupInterfaceMember(name2));
+    checkMemberSignature(class1, class2, 'interfaceMember:$name1', member1,
+        class2.lookupInterfaceMember(name2));
   });
 }
 
@@ -116,16 +107,16 @@ void checkMember(ClassElement class1, ClassElement class2, String property,
     throw "No member ${member1.name} in $class2 for $property";
   }
   checkMemberSignature(class1, class2, property, member1, member2);
-  checkElementIdentities(class1, class2, '$property.element',
-      member1.element, member2.element);
-  check(class1, class2, '$property.declarer',
-      member1.declarer, member2.declarer, areTypesEquivalent);
-  check(class1, class2, '$property.isStatic',
-      member1.isStatic, member2.isStatic);
+  checkElementIdentities(
+      class1, class2, '$property.element', member1.element, member2.element);
+  check(class1, class2, '$property.declarer', member1.declarer,
+      member2.declarer, areTypesEquivalent);
+  check(
+      class1, class2, '$property.isStatic', member1.isStatic, member2.isStatic);
   check(class1, class2, '$property.isDeclaredByField',
       member1.isDeclaredByField, member2.isDeclaredByField);
-  check(class1, class2, '$property.isAbstract',
-      member1.isAbstract, member2.isAbstract);
+  check(class1, class2, '$property.isAbstract', member1.isAbstract,
+      member2.isAbstract);
   if (member1.isAbstract && member1.implementation != null) {
     checkMember(class1, class2, '$property.implementation',
         member1.implementation, member2.implementation);
@@ -133,8 +124,7 @@ void checkMember(ClassElement class1, ClassElement class2, String property,
 }
 
 void checkMemberSignature(ClassElement class1, ClassElement class2,
-    String property,
-    MemberSignature member1, MemberSignature member2) {
+    String property, MemberSignature member1, MemberSignature member2) {
   if (member2 == null) {
     print('$class1 interface members:');
     class1.forEachInterfaceMember((m) => print(' ${m.name} $m'));
@@ -142,16 +132,16 @@ void checkMemberSignature(ClassElement class1, ClassElement class2,
     class2.forEachInterfaceMember((m) => print(' ${m.name} $m'));
     throw "No member ${member1.name} in $class2 for $property";
   }
-  check(class1, class2, '$property.name',
-      member1.name, member2.name, areNamesEquivalent);
-  check(class1, class2, '$property.type',
-      member1.type, member2.type, areTypesEquivalent);
-  check(class1, class2, '$property.functionType',
-      member1.functionType, member2.functionType, areTypesEquivalent);
-  check(class1, class2, '$property.isGetter',
-      member1.isGetter, member2.isGetter);
-  check(class1, class2, '$property.isSetter',
-      member1.isSetter, member2.isSetter);
-  check(class1, class2, '$property.isMethod',
-      member1.isMethod, member2.isMethod);
+  check(class1, class2, '$property.name', member1.name, member2.name,
+      areNamesEquivalent);
+  check(class1, class2, '$property.type', member1.type, member2.type,
+      areTypesEquivalent);
+  check(class1, class2, '$property.functionType', member1.functionType,
+      member2.functionType, areTypesEquivalent);
+  check(
+      class1, class2, '$property.isGetter', member1.isGetter, member2.isGetter);
+  check(
+      class1, class2, '$property.isSetter', member1.isSetter, member2.isSetter);
+  check(
+      class1, class2, '$property.isMethod', member1.isMethod, member2.isMethod);
 }

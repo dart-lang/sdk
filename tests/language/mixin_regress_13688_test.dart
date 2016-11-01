@@ -12,7 +12,11 @@ class ComparableMixin<E> {
 
 class KUID extends Object with ComparableMixin<KUID> { }
 
+@NoInline() @AssumeDynamic()
+dyn(x) => x;
+
 main() {
   var kuid = new KUID();
   Expect.equals(kuid.runtimeType.toString(), kuid.e().toString());
+  Expect.equals(dyn(kuid).runtimeType.toString(), dyn(kuid).e().toString());
 }

@@ -5,9 +5,11 @@
 #include "vm/globals.h"  // Needed here to get TARGET_ARCH_MIPS.
 #if defined(TARGET_ARCH_MIPS)
 
+#include "vm/instructions.h"
+#include "vm/instructions_mips.h"
+
 #include "vm/constants_mips.h"
 #include "vm/cpu.h"
-#include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -217,24 +219,6 @@ void NativeCallPattern::set_native_function(NativeFunction func) const {
 }
 
 
-void CallPattern::InsertDeoptCallAt(uword pc, uword target_address) {
-  Instr* lui = Instr::At(pc + (0 * Instr::kInstrSize));
-  Instr* ori = Instr::At(pc + (1 * Instr::kInstrSize));
-  Instr* jr = Instr::At(pc + (2 * Instr::kInstrSize));
-  Instr* nop = Instr::At(pc + (3 * Instr::kInstrSize));
-  uint16_t target_lo = target_address & 0xffff;
-  uint16_t target_hi = target_address >> 16;
-
-  lui->SetImmInstrBits(LUI, ZR, T9, target_hi);
-  ori->SetImmInstrBits(ORI, T9, T9, target_lo);
-  jr->SetSpecialInstrBits(JALR, T9, ZR, RA);
-  nop->SetInstructionBits(Instr::kNopInstruction);
-
-  ASSERT(kDeoptCallLengthInBytes == 4 * Instr::kInstrSize);
-  CPU::FlushICache(pc, kDeoptCallLengthInBytes);
-}
-
-
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       data_pool_index_(-1),
@@ -245,15 +229,15 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   ASSERT(*(reinterpret_cast<uword*>(pc) - 2) == 0x0320f809);
 
   Register reg;
-  uword stub_load_end =
-      InstructionPattern::DecodeLoadWordFromPool(pc - 3 * Instr::kInstrSize,
+  uword data_load_end =
+      InstructionPattern::DecodeLoadWordFromPool(pc - 2 * Instr::kInstrSize,
                                                  &reg,
-                                                 &target_pool_index_);
-  ASSERT(reg == CODE_REG);
-  InstructionPattern::DecodeLoadWordFromPool(stub_load_end,
-                                             &reg,
-                                             &data_pool_index_);
+                                                 &data_pool_index_);
   ASSERT(reg == S5);
+  InstructionPattern::DecodeLoadWordFromPool(data_load_end - Instr::kInstrSize,
+                                             &reg,
+                                             &target_pool_index_);
+  ASSERT(reg == CODE_REG);
 }
 
 

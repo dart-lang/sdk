@@ -111,7 +111,8 @@ LocalVariable* LetNode::AddInitializer(AstNode* node) {
   OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "",
       token_pos().ToCString(), vars_.length());
   LocalVariable* temp_var =
-      new LocalVariable(token_pos(),
+      new LocalVariable(TokenPosition::kNoSource,
+                        token_pos(),
                         String::ZoneHandle(zone, Symbols::New(thread, name)),
                         Object::dynamic_type());
   vars_.Add(temp_var);

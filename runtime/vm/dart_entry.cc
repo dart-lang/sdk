@@ -243,6 +243,10 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   allocation_args.SetAt(3, Bool::False());  // Not a super invocation.
   const Object& invocation_mirror = Object::Handle(
       InvokeFunction(allocation_function, allocation_args));
+  if (invocation_mirror.IsError()) {
+    Exceptions::PropagateError(Error::Cast(invocation_mirror));
+    UNREACHABLE();
+  }
 
   // Now use the invocation mirror object and invoke NoSuchMethod.
   const int kNumArguments = 2;
@@ -292,6 +296,14 @@ RawString* ArgumentsDescriptor::NameAt(intptr_t index) const {
   String& result = String::Handle();
   result ^= array_.At(offset);
   return result.raw();
+}
+
+
+intptr_t ArgumentsDescriptor::PositionAt(intptr_t index) const {
+  const intptr_t offset = kFirstNamedEntryIndex +
+                          (index * kNamedEntrySize) +
+                          kPositionOffset;
+  return Smi::Value(Smi::RawCast(array_.At(offset)));
 }
 
 

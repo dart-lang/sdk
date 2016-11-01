@@ -6,12 +6,11 @@ import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
 import 'memory_compiler.dart';
 
-import 'package:compiler/src/compiler.dart'
-       as dart2js;
+import 'package:compiler/src/compiler.dart' as dart2js;
 
 void main() {
   asyncTest(() async {
-    CompilationResult  result =
+    CompilationResult result =
         await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     dart2js.Compiler compiler = result.compiler;
 
@@ -39,7 +38,7 @@ void main() {
 // Make sure that the implicit references to supers are found by the deferred
 // loading dependency mechanism.
 const Map MEMORY_SOURCE_FILES = const {
-  "main.dart":"""
+  "main.dart": """
 import "lib.dart" deferred as lib;
 
 void main() {
@@ -51,7 +50,7 @@ void main() {
   });
 }
 """,
-  "lib.dart":"""
+  "lib.dart": """
 a() => print("123");
 
 b() => print("123");

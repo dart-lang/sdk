@@ -7,9 +7,10 @@ library context.directory.manager;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
@@ -23,10 +24,9 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' as context;
-import 'package:analyzer/src/context/source.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -89,6 +89,11 @@ class ContextInfo {
    * is no longer relevant.
    */
   Set<String> _dependencies = new Set<String>();
+
+  /**
+   * The analysis driver that was created for the [folder].
+   */
+  AnalysisDriver analysisDriver;
 
   /**
    * The analysis context that was created for the [folder].
@@ -247,6 +252,11 @@ abstract class ContextManager {
   void set callbacks(ContextManagerCallbacks value);
 
   /**
+   * A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
+   */
+  Map<Folder, AnalysisDriver> get driverMap;
+
+  /**
    * Return the list of excluded paths (folders and files) most recently passed
    * to [setRoots].
    */
@@ -322,12 +332,16 @@ abstract class ContextManager {
  */
 abstract class ContextManagerCallbacks {
   /**
-   * Create and return a new analysis context rooted at the given [folder], with
-   * the given analysis [options], allowing [disposition] to govern details of
-   * how the context is to be created.
+   * Create and return a new analysis driver rooted at the given [folder], with
+   * the given analysis [options].
    */
-  AnalysisContext addContext(
-      Folder folder, AnalysisOptions options, FolderDisposition disposition);
+  AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options);
+
+  /**
+   * Create and return a new analysis context rooted at the given [folder], with
+   * the given analysis [options].
+   */
+  AnalysisContext addContext(Folder folder, AnalysisOptions options);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -341,6 +355,12 @@ abstract class ContextManagerCallbacks {
    * [computing] is `true`) or has finished (if [computing] is `false`).
    */
   void computingPackageMap(bool computing);
+
+  /**
+   * Create and return a context builder that can be used to create a context
+   * for the files in the given [folder] when analyzed using the given [options].
+   */
+  ContextBuilder createContextBuilder(Folder folder, AnalysisOptions options);
 
   /**
    * Called when the context manager changes the folder with which a context is
@@ -476,6 +496,8 @@ class ContextManagerImpl implements ContextManager {
    */
   final InstrumentationService _instrumentationService;
 
+  final bool enableNewAnalysisDriver;
+
   @override
   ContextManagerCallbacks callbacks;
 
@@ -485,11 +507,14 @@ class ContextManagerImpl implements ContextManager {
    */
   final ContextInfo rootInfo = new ContextInfo._root();
 
+  @override
+  final Map<Folder, AnalysisDriver> driverMap =
+      new HashMap<Folder, AnalysisDriver>();
+
   /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
    */
-  @override
-  final Map<Folder, AnalysisContext> folderMap =
+  final Map<Folder, AnalysisContext> _folderMap =
       new HashMap<Folder, AnalysisContext>();
 
   /**
@@ -506,13 +531,22 @@ class ContextManagerImpl implements ContextManager {
       this._packageMapProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
-      this.defaultContextOptions) {
+      this.defaultContextOptions,
+      this.enableNewAnalysisDriver) {
     absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
 
   @override
   Iterable<AnalysisContext> get analysisContexts => folderMap.values;
+
+  Map<Folder, AnalysisContext> get folderMap {
+    if (enableNewAnalysisDriver) {
+      throw new StateError('Should not be used with the new analysis driver');
+    } else {
+      return _folderMap;
+    }
+  }
 
   @override
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
@@ -882,13 +916,11 @@ class ContextManagerImpl implements ContextManager {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       var analysisContext = info.context;
       if (analysisContext is context.AnalysisContextImpl) {
-        // TODO(brianwilkerson) This doesn't correctly update the source factory
-        // if the changes necessitate it (such as by changing the setting of the
-        // strong-mode option).
         Map<String, Object> options = readOptions(info.folder);
         processOptionsForContext(info, options,
             optionsRemoved: changeType == ChangeType.REMOVE);
-        analysisContext.invalidateCachedResults();
+        analysisContext.sourceFactory = _createSourceFactory(
+            analysisContext, analysisContext.analysisOptions, info.folder);
         callbacks.applyChangesToContext(info.folder, new ChangeSet());
       }
     }
@@ -899,55 +931,14 @@ class ContextManagerImpl implements ContextManager {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
     if (absolutePathContext.basename(path) == PACKAGE_SPEC_NAME) {
-      File packagespec = resourceProvider.getFile(path);
-      if (packagespec.exists) {
-        // Locate embedder yamls for this .packages file.
-        // If any embedder libs are contributed and this context does not
-        // have an embedded URI resolver, we need to create a new context.
-
-        List<int> bytes = packagespec.readAsStringSync().codeUnits;
-        Map<String, Uri> packages =
-            pkgfile.parse(bytes, new Uri.file(packagespec.path));
-
-        Map<String, List<Folder>> packageMap =
-            new PackagesFileDisposition(new MapPackages(packages))
-                .buildPackageMap(resourceProvider);
-        Map<Folder, YamlMap> embedderYamls =
-            new EmbedderYamlLocator(packageMap).embedderYamls;
-
-        SourceFactory sourceFactory = info.context.sourceFactory;
-
-        // Check for library embedders.
-        if (embedderYamls.values.any(definesEmbeddedLibs)) {
-          // If there is no embedded URI resolver, a new source factory needs to
-          // be recreated.
-          if (sourceFactory is SourceFactoryImpl) {
-            // Get all but the dart: Uri resolver.
-            List<UriResolver> resolvers = sourceFactory.resolvers
-                .where((r) => r is! DartUriResolver)
-                .toList();
-            // Add an embedded URI resolver in its place.
-            resolvers.add(new DartUriResolver(
-                new EmbedderSdk(resourceProvider, embedderYamls)));
-
-            // Set a new source factory.
-            SourceFactoryImpl newFactory = sourceFactory.clone();
-            newFactory.resolvers.clear();
-            newFactory.resolvers.addAll(resolvers);
-            info.context.sourceFactory = newFactory;
-            return;
-          }
-        }
-
-        // Next check for package URI updates.
-        if (info.isPathToPackageDescription(path)) {
-          Packages packages = _readPackagespec(packagespec);
-          if (packages != null) {
-            _updateContextPackageUriResolver(
-                folder, new PackagesFileDisposition(packages));
-          }
-        }
-      }
+      String contextRoot = info.folder.path;
+      ContextBuilder builder =
+          callbacks.createContextBuilder(info.folder, defaultContextOptions);
+      AnalysisOptions options =
+          builder.getAnalysisOptions(info.context, contextRoot);
+      SourceFactory factory = builder.createSourceFactory(contextRoot, options);
+      info.context.analysisOptions = options;
+      info.context.sourceFactory = factory;
     }
   }
 
@@ -1073,9 +1064,13 @@ class ContextManagerImpl implements ContextManager {
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);
-    info.context = callbacks.addContext(folder, options, disposition);
-    folderMap[folder] = info.context;
-    info.context.name = folder.path;
+    if (enableNewAnalysisDriver) {
+      info.analysisDriver = callbacks.addAnalysisDriver(folder, options);
+    } else {
+      info.context = callbacks.addContext(folder, options);
+      _folderMap[folder] = info.context;
+      info.context.name = folder.path;
+    }
 
     // Look for pubspec-specified analysis configuration.
     File pubspec;
@@ -1092,13 +1087,21 @@ class ContextManagerImpl implements ContextManager {
     }
     if (pubspec != null) {
       File pubSource = resourceProvider.getFile(pubspec.path);
-      setConfiguration(
-          info.context,
-          new AnalysisConfiguration.fromPubspec(
-              pubSource, resourceProvider, disposition.packages));
+      if (enableNewAnalysisDriver) {
+        // TODO(scheglov) implement for the new analysis driver
+      } else {
+        setConfiguration(
+            info.context,
+            new AnalysisConfiguration.fromPubspec(
+                pubSource, resourceProvider, disposition.packages));
+      }
     }
 
-    processOptionsForContext(info, optionMap);
+    if (enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+    } else {
+      processOptionsForContext(info, optionMap);
+    }
 
     return info;
   }
@@ -1164,42 +1167,10 @@ class ContextManagerImpl implements ContextManager {
    * Set up a [SourceFactory] that resolves packages as appropriate for the
    * given [disposition].
    */
-  SourceFactory _createSourceFactory(InternalAnalysisContext context,
-      AnalysisOptions options, FolderDisposition disposition, Folder folder) {
-    List<UriResolver> resolvers = [];
-    List<UriResolver> packageUriResolvers =
-        disposition.createPackageUriResolvers(resourceProvider);
-
-    EmbedderYamlLocator locator =
-        disposition.getEmbedderLocator(resourceProvider);
-    Map<Folder, YamlMap> embedderYamls = locator.embedderYamls;
-    EmbedderSdk embedderSdk = new EmbedderSdk(resourceProvider, embedderYamls);
-    if (embedderSdk.libraryMap.size() == 0) {
-      // There was no embedder file, or the file was empty, so used the default
-      // SDK.
-      resolvers.add(new DartUriResolver(sdkManager.getSdkForOptions(options)));
-    } else {
-      // The embedder file defines an alternate SDK, so use it.
-      List<String> paths = <String>[];
-      for (Folder folder in embedderYamls.keys) {
-        paths.add(folder
-            .getChildAssumingFile(EmbedderYamlLocator.EMBEDDER_FILE_NAME)
-            .path);
-      }
-      DartSdk dartSdk =
-          sdkManager.getSdk(new SdkDescription(paths, options), () {
-        embedderSdk.analysisOptions = options;
-        // TODO(brianwilkerson) Enable summary use after we have decided where
-        // summary files for embedder files will live.
-        embedderSdk.useSummary = false;
-        return embedderSdk;
-      });
-      resolvers.add(new DartUriResolver(dartSdk));
-    }
-
-    resolvers.addAll(packageUriResolvers);
-    resolvers.add(new ResourceUriResolver(resourceProvider));
-    return new SourceFactory(resolvers, disposition.packages);
+  SourceFactory _createSourceFactory(
+      InternalAnalysisContext context, AnalysisOptions options, Folder folder) {
+    ContextBuilder builder = callbacks.createContextBuilder(folder, options);
+    return builder.createSourceFactory(folder.path, options);
   }
 
   /**
@@ -1408,11 +1379,15 @@ class ContextManagerImpl implements ContextManager {
         if (resource is File) {
           File file = resource;
           if (_shouldFileBeAnalyzed(file)) {
-            ChangeSet changeSet = new ChangeSet();
-            Source source = createSourceInContext(info.context, file);
-            changeSet.addedSource(source);
-            callbacks.applyChangesToContext(info.folder, changeSet);
-            info.sources[path] = source;
+            if (enableNewAnalysisDriver) {
+              info.analysisDriver.addFile(path);
+            } else {
+              ChangeSet changeSet = new ChangeSet();
+              Source source = createSourceInContext(info.context, file);
+              changeSet.addedSource(source);
+              callbacks.applyChangesToContext(info.folder, changeSet);
+              info.sources[path] = source;
+            }
           }
         }
         break;
@@ -1449,24 +1424,32 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
-        List<Source> sources = info.context.getSourcesWithFullName(path);
-        if (!sources.isEmpty) {
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach((Source source) {
-            changeSet.removedSource(source);
-          });
-          callbacks.applyChangesToContext(info.folder, changeSet);
-          info.sources.remove(path);
+        if (enableNewAnalysisDriver) {
+          info.analysisDriver.removeFile(path);
+        } else {
+          List<Source> sources = info.context.getSourcesWithFullName(path);
+          if (!sources.isEmpty) {
+            ChangeSet changeSet = new ChangeSet();
+            sources.forEach((Source source) {
+              changeSet.removedSource(source);
+            });
+            callbacks.applyChangesToContext(info.folder, changeSet);
+            info.sources.remove(path);
+          }
         }
         break;
       case ChangeType.MODIFY:
-        List<Source> sources = info.context.getSourcesWithFullName(path);
-        if (!sources.isEmpty) {
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach((Source source) {
-            changeSet.changedSource(source);
-          });
-          callbacks.applyChangesToContext(info.folder, changeSet);
+        if (enableNewAnalysisDriver) {
+          info.analysisDriver.changeFile(path);
+        } else {
+          List<Source> sources = info.context.getSourcesWithFullName(path);
+          if (!sources.isEmpty) {
+            ChangeSet changeSet = new ChangeSet();
+            sources.forEach((Source source) {
+              changeSet.changedSource(source);
+            });
+            callbacks.applyChangesToContext(info.folder, changeSet);
+          }
         }
         break;
     }
@@ -1584,10 +1567,8 @@ class ContextManagerImpl implements ContextManager {
     // while we're rerunning "pub list", since any analysis we complete while
     // "pub list" is in progress is just going to get thrown away anyhow.
     List<String> dependencies = <String>[];
-    FolderDisposition disposition = _computeFolderDisposition(
-        info.folder, dependencies.add, _findPackageSpecFile(info.folder));
     info.setDependencies(dependencies);
-    _updateContextPackageUriResolver(info.folder, disposition);
+    _updateContextPackageUriResolver(info.folder);
   }
 
   /**
@@ -1627,11 +1608,10 @@ class ContextManagerImpl implements ContextManager {
     return null;
   }
 
-  void _updateContextPackageUriResolver(
-      Folder contextFolder, FolderDisposition disposition) {
+  void _updateContextPackageUriResolver(Folder contextFolder) {
     AnalysisContext context = folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(
-        context, context.analysisOptions, disposition, contextFolder);
+    context.sourceFactory =
+        _createSourceFactory(context, context.analysisOptions, contextFolder);
     callbacks.updateContextPackageUriResolver(context);
   }
 
@@ -1710,6 +1690,10 @@ class CustomPackageResolverDisposition extends FolderDisposition {
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
       new EmbedderYamlLocator(null);
+
+  @override
+  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) =>
+      new SdkExtensionFinder(null);
 }
 
 /**
@@ -1757,6 +1741,13 @@ abstract class FolderDisposition {
    * where that is necessary.
    */
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider);
+
+  /**
+   * Return the extension finder used to locate the `_sdkext` file used to add
+   * extensions to the SDK. The [resourceProvider] is used to access the file
+   * system in cases where that is necessary.
+   */
+  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider);
 }
 
 /**
@@ -1780,6 +1771,10 @@ class NoPackageFolderDisposition extends FolderDisposition {
   @override
   EmbedderYamlLocator getEmbedderLocator(ResourceProvider resourceProvider) =>
       new EmbedderYamlLocator(null);
+
+  @override
+  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) =>
+      new SdkExtensionFinder(null);
 }
 
 /**
@@ -1790,6 +1785,7 @@ class PackageMapDisposition extends FolderDisposition {
   final Map<String, List<Folder>> packageMap;
 
   EmbedderYamlLocator _embedderLocator;
+  SdkExtensionFinder _sdkExtensionFinder;
 
   @override
   final String packageRoot;
@@ -1814,6 +1810,11 @@ class PackageMapDisposition extends FolderDisposition {
     }
     return _embedderLocator;
   }
+
+  @override
+  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) {
+    return _sdkExtensionFinder ??= new SdkExtensionFinder(packageMap);
+  }
 }
 
 /**
@@ -1827,6 +1828,7 @@ class PackagesFileDisposition extends FolderDisposition {
   Map<String, List<Folder>> packageMap;
 
   EmbedderYamlLocator _embedderLocator;
+  SdkExtensionFinder _sdkExtensionFinder;
 
   PackagesFileDisposition(this.packages);
 
@@ -1867,5 +1869,11 @@ class PackagesFileDisposition extends FolderDisposition {
           new EmbedderYamlLocator(buildPackageMap(resourceProvider));
     }
     return _embedderLocator;
+  }
+
+  @override
+  SdkExtensionFinder getSdkExtensionFinder(ResourceProvider resourceProvider) {
+    return _sdkExtensionFinder ??=
+        new SdkExtensionFinder(buildPackageMap(resourceProvider));
   }
 }

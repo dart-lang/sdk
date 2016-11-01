@@ -12,12 +12,12 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ConvertGetterToMethodTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertGetterToMethodTest);
+  });
 }
 
 @reflectiveTest

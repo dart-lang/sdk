@@ -13,6 +13,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/os.h"
 #include "vm/port.h"
+#include "vm/safepoint.h"
 #include "vm/service.h"
 #include "vm/unit_test.h"
 
@@ -37,7 +38,6 @@ class ServiceTestMessageHandler : public MessageHandler {
     }
 
     // Parse the message.
-    String& response = String::Handle();
     Object& response_obj = Object::Handle();
     if (message->IsRaw()) {
       response_obj = message->raw_obj();
@@ -46,8 +46,20 @@ class ServiceTestMessageHandler : public MessageHandler {
       MessageSnapshotReader reader(message->data(), message->len(), thread);
       response_obj = reader.ReadObject();
     }
-    response ^= response_obj.raw();
-    _msg = strdup(response.ToCString());
+    if (response_obj.IsString()) {
+      String& response = String::Handle();
+      response ^= response_obj.raw();
+      _msg = strdup(response.ToCString());
+    } else {
+      ASSERT(response_obj.IsArray());
+      Array& response_array = Array::Handle();
+      response_array ^= response_obj.raw();
+      ASSERT(response_array.Length() == 1);
+      ExternalTypedData& response = ExternalTypedData::Handle();
+      response ^= response_array.At(0);
+      _msg = strdup(reinterpret_cast<char*>(response.DataAddr(0)));
+    }
+
     return kOK;
   }
 
@@ -115,6 +127,18 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
+static void HandleIsolateMessage(Isolate* isolate, const Array& msg) {
+  TransitionNativeToVM transition(Thread::Current());
+  Service::HandleIsolateMessage(isolate, msg);
+}
+
+
+static void HandleRootMessage(const Array& message) {
+  TransitionNativeToVM transition(Thread::Current());
+  Service::HandleRootMessage(message);
+}
+
+
 TEST_CASE(Service_IsolateStickyError) {
   const char* kScript =
       "main() => throw 'HI THERE STICKY';\n";
@@ -144,6 +168,7 @@ TEST_CASE(Service_IsolateStickyError) {
 
   // Set the sticky error.
   Dart_SetStickyError(result);
+  Dart_SetPausedOnExit(true);
   EXPECT(Dart_HasStickyError());
 
   {
@@ -245,7 +270,7 @@ TEST_CASE(Service_Code) {
   // Request an invalid code object.
   service_msg =
       Eval(lib, "[0, port, '0', 'getObject', ['objectId'], ['code/0']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 
@@ -255,7 +280,7 @@ TEST_CASE(Service_Code) {
                       "['objectId'], ['code/%" Px64"-%" Px "']]",
                       compile_timestamp,
                       entry);
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"type\":\"Code\"", handler.msg());
   {
@@ -276,7 +301,7 @@ TEST_CASE(Service_Code) {
                       "['objectId'], ['code/%" Px64"-%" Px "']]",
                       compile_timestamp,
                       address);
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 
@@ -287,7 +312,7 @@ TEST_CASE(Service_Code) {
                       "['objectId'], ['code/%" Px64"-%" Px "']]",
                       compile_timestamp - 1,
                       address);
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 
@@ -296,7 +321,7 @@ TEST_CASE(Service_Code) {
   service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['code/native-%" Px "']]",
                       address);
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // TODO(turnidge): It is pretty broken to return an Instance here.  Fix.
   EXPECT_SUBSTRING("\"kind\":\"Null\"",
@@ -306,7 +331,7 @@ TEST_CASE(Service_Code) {
   service_msg = EvalF(lib, "[0, port, '0', 'getObject', ['objectId'], "
                       "['code/native%" Px "']]",
                       address);
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 }
@@ -349,7 +374,7 @@ TEST_CASE(Service_TokenStream) {
   // Fetch object.
   service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['objects/%" Pd "']]", id);
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
 
   // Check type.
@@ -412,7 +437,7 @@ TEST_CASE(Service_PcDescriptors) {
   // Fetch object.
   service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['objects/%" Pd "']]", id);
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Check type.
   EXPECT_SUBSTRING("\"type\":\"Object\"", handler.msg());
@@ -474,7 +499,7 @@ TEST_CASE(Service_LocalVarDescriptors) {
   // Fetch object.
   service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
                       "['objectId'], ['objects/%" Pd "']]", id);
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Check type.
   EXPECT_SUBSTRING("\"type\":\"Object\"", handler.msg());
@@ -534,7 +559,7 @@ TEST_CASE(Service_PersistentHandles) {
 
   // Get persistent handles.
   service_msg = Eval(lib, "[0, port, '0', '_getPersistentHandles', [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Look for a heart beat.
   EXPECT_SUBSTRING("\"type\":\"_PersistentHandles\"", handler.msg());
@@ -549,7 +574,7 @@ TEST_CASE(Service_PersistentHandles) {
 
   // Get persistent handles (again).
   service_msg = Eval(lib, "[0, port, '0', '_getPersistentHandles', [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"type\":\"_PersistentHandles\"", handler.msg());
   // Verify that old persistent handles are not present.
@@ -595,7 +620,7 @@ TEST_CASE(Service_Address) {
                    "['address'], ['%" Px "']]"),
                 addr);
     service_msg = Eval(lib, buf);
-    Service::HandleIsolateMessage(isolate, service_msg);
+    HandleIsolateMessage(isolate, service_msg);
     EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
     EXPECT_SUBSTRING(ref ? "\"type\":\"@Instance\"" :
                            "\"type\":\"Instance\"",
@@ -606,7 +631,7 @@ TEST_CASE(Service_Address) {
   // Expect null when no object is found.
   service_msg = Eval(lib, "[0, port, '0', '_getObjectByAddress', "
                      "['address'], ['7']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // TODO(turnidge): Should this be a ServiceException instead?
   EXPECT_SUBSTRING("{\"type\":\"Sentinel\",\"kind\":\"Free\","
@@ -667,12 +692,12 @@ TEST_CASE(Service_EmbedderRootHandler) {
 
   Array& service_msg = Array::Handle();
   service_msg = Eval(lib, "[0, port, '\"', 'alpha', [], []]");
-  Service::HandleRootMessage(service_msg);
+  HandleRootMessage(service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha,\"id\":\"\\\"\"}",
                handler.msg());
   service_msg = Eval(lib, "[0, port, 1, 'beta', [], []]");
-  Service::HandleRootMessage(service_msg);
+  HandleRootMessage(service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":1}",
                handler.msg());
@@ -707,12 +732,12 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
 
   Array& service_msg = Array::Handle();
   service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"result\":alpha,\"id\":\"0\"}",
                handler.msg());
   service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":\"0\"}",
                handler.msg());
@@ -747,21 +772,21 @@ TEST_CASE(Service_Profile) {
 
   Array& service_msg = Array::Handle();
   service_msg = Eval(lib, "[0, port, '0', '_getCpuProfile', [], []]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Expect error (tags required).
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 
   service_msg =
       Eval(lib, "[0, port, '0', '_getCpuProfile', ['tags'], ['None']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Expect profile
   EXPECT_SUBSTRING("\"type\":\"_CpuProfile\"", handler.msg());
 
   service_msg =
       Eval(lib, "[0, port, '0', '_getCpuProfile', ['tags'], ['Bogus']]");
-  Service::HandleIsolateMessage(isolate, service_msg);
+  HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Expect error.
   EXPECT_SUBSTRING("\"error\"", handler.msg());

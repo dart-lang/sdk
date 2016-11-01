@@ -38,14 +38,16 @@ Future testReserialization(Uri entryPoint) async {
 
   SerializationResult result2 = await serialize(entryPoint,
       memorySourceFiles: serializedData1.toMemorySourceFiles(),
-      resolutionInputs: serializedData1.toUris());
+      resolutionInputs: serializedData1.toUris(),
+      deserializeCompilationDataForTesting: true);
   Compiler compiler2 = result2.compiler;
   SerializedData serializedData2 = result2.serializedData;
   Iterable<LibraryElement> libraries2 = compiler2.libraryLoader.libraries;
 
   SerializationResult result3 = await serialize(entryPoint,
       memorySourceFiles: serializedData2.toMemorySourceFiles(),
-      resolutionInputs: serializedData2.toUris());
+      resolutionInputs: serializedData2.toUris(),
+      deserializeCompilationDataForTesting: true);
   Compiler compiler3 = result3.compiler;
   Iterable<LibraryElement> libraries3 = compiler3.libraryLoader.libraries;
 
@@ -53,15 +55,15 @@ Future testReserialization(Uri entryPoint) async {
     LibraryElement library2 = libraries2.firstWhere((LibraryElement library2) {
       return library2.canonicalUri == library1.canonicalUri;
     });
-    Expect.isNotNull(library2,
-        "No library found for ${library1.canonicalUri}.");
+    Expect.isNotNull(
+        library2, "No library found for ${library1.canonicalUri}.");
     checkLibraryContent('library1', 'library2', 'library', library1, library2);
 
     LibraryElement library3 = libraries3.firstWhere((LibraryElement library3) {
       return library3.canonicalUri == library1.canonicalUri;
     });
-    Expect.isNotNull(library3,
-        "No library found for ${library1.canonicalUri}.");
+    Expect.isNotNull(
+        library3, "No library found for ${library1.canonicalUri}.");
     checkLibraryContent('library1', 'library3', 'library', library1, library3);
   }
 

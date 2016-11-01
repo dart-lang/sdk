@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:convert" show ASCII;
-
 // VM implementation of Uri.
 typedef Uri _UriBaseClosure();
 
@@ -16,18 +14,20 @@ Uri _unsupportedUriBase() {
 _UriBaseClosure _uriBaseClosure = _unsupportedUriBase;
 
 @patch class Uri {
-  static final bool _isWindowsCached = _isWindowsPlatform;
-
-  @patch static bool get _isWindows => _isWindowsCached;
-
   @patch static Uri get base => _uriBaseClosure();
+}
+
+@patch class _Uri {
+  static final bool _isWindowsCached = _isWindowsPlatform;
 
   static bool get _isWindowsPlatform native "Uri_isWindowsPlatform";
 
+  @patch static bool get _isWindows => _isWindowsCached;
+
   @patch static String _uriEncode(List<int> canonicalTable,
-                                        String text,
-                                        Encoding encoding,
-                                        bool spaceToPlus) {
+                                       String text,
+                                       Encoding encoding,
+                                       bool spaceToPlus) {
     // First check if the text will be changed by encoding.
     int i = 0;
     if (identical(encoding, UTF8) ||

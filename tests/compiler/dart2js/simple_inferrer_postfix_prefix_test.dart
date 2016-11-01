@@ -66,35 +66,40 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesTask = compiler.typesTask;
-    var typesInferrer = typesTask.typesInferrer;
+        var commonMasks = compiler.commonMasks;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkReturnInClass(String className, String methodName, type) {
-      var cls = findElement(compiler, className);
-      var element = cls.lookupLocalMember(methodName);
-      Expect.equals(type,
-          simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
-          methodName);
-    }
+        checkReturnInClass(String className, String methodName, type) {
+          var cls = findElement(compiler, className);
+          var element = cls.lookupLocalMember(methodName);
+          Expect.equals(
+              type,
+              simplify(typesInferrer.getReturnTypeOfElement(element), compiler),
+              methodName);
+        }
 
-    var subclassOfInterceptor =
-        findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
+        var subclassOfInterceptor =
+            findTypeMask(compiler, 'Interceptor', 'nonNullSubclass');
 
-    checkReturnInClass('A', 'returnNum1', typesTask.numType);
-    checkReturnInClass('A', 'returnNum2', typesTask.numType);
-    checkReturnInClass('A', 'returnNum3', typesTask.numType);
-    checkReturnInClass('A', 'returnNum4', typesTask.numType);
-    checkReturnInClass('A', 'returnEmpty1', const TypeMask.nonNullEmpty());
-    checkReturnInClass('A', 'returnEmpty2', const TypeMask.nonNullEmpty());
-    checkReturnInClass('A', 'returnDynamic1', subclassOfInterceptor);
-    checkReturnInClass('A', 'returnDynamic2', subclassOfInterceptor);
-    checkReturnInClass('A', 'returnEmpty3', const TypeMask.nonNullEmpty());
+        checkReturnInClass('A', 'returnNum1', commonMasks.numType);
+        checkReturnInClass('A', 'returnNum2', commonMasks.numType);
+        checkReturnInClass('A', 'returnNum3', commonMasks.numType);
+        checkReturnInClass('A', 'returnNum4', commonMasks.numType);
+        checkReturnInClass('A', 'returnEmpty1', const TypeMask.nonNullEmpty());
+        checkReturnInClass('A', 'returnEmpty2', const TypeMask.nonNullEmpty());
+        checkReturnInClass('A', 'returnDynamic1', subclassOfInterceptor);
+        checkReturnInClass('A', 'returnDynamic2', subclassOfInterceptor);
+        checkReturnInClass('A', 'returnEmpty3', const TypeMask.nonNullEmpty());
 
-    checkReturnInClass('B', 'returnString1', typesTask.stringType);
-    checkReturnInClass('B', 'returnString2', typesTask.stringType);
-    checkReturnInClass('B', 'returnDynamic1', const TypeMask.nonNullEmpty());
-    checkReturnInClass('B', 'returnDynamic2', const TypeMask.nonNullEmpty());
-    checkReturnInClass('B', 'returnDynamic3', const TypeMask.nonNullEmpty());
-    checkReturnInClass('B', 'returnDynamic4', const TypeMask.nonNullEmpty());
-  }));
+        checkReturnInClass('B', 'returnString1', commonMasks.stringType);
+        checkReturnInClass('B', 'returnString2', commonMasks.stringType);
+        checkReturnInClass(
+            'B', 'returnDynamic1', const TypeMask.nonNullEmpty());
+        checkReturnInClass(
+            'B', 'returnDynamic2', const TypeMask.nonNullEmpty());
+        checkReturnInClass(
+            'B', 'returnDynamic3', const TypeMask.nonNullEmpty());
+        checkReturnInClass(
+            'B', 'returnDynamic4', const TypeMask.nonNullEmpty());
+      }));
 }

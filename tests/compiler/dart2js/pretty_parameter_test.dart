@@ -74,33 +74,31 @@ int foo(var start, bool test) {
 
 main() {
   asyncTest(() => Future.wait([
-    compile(FOO, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains(r"function(a, b) {"));
-    }),
-
-    compile(BAR, entry: 'bar', check: (String generated) {
-      Expect.isTrue(generated.contains(r"function($eval, $$eval) {"));
-    }),
-
-    compile(PARAMETER_AND_TEMP, entry: 'bar', check: (String generated) {
-      Expect.isTrue(generated.contains(r"print(t00)"));
-      // Check that the second 't0' got another name.
-      Expect.isTrue(generated.contains(r"print(t01)"));
-    }),
-
-    compile(MULTIPLE_PHIS_ONE_LOCAL, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("var a;"));
-      // Check that there is only one var declaration.
-      checkNumberOfMatches(new RegExp("var").allMatches(generated).iterator, 1);
-    }),
-
-    compile(NO_LOCAL, entry: 'foo', check: (String generated) {
-      Expect.isFalse(generated.contains('var'));
-    }),
-
-    compile(PARAMETER_INIT, entry: 'foo', check: (String generated) {
-      // Check that there is only one var declaration.
-      checkNumberOfMatches(new RegExp("var").allMatches(generated).iterator, 1);
-    }),
-  ]));
+        compile(FOO, entry: 'foo', check: (String generated) {
+          Expect.isTrue(generated.contains(r"function(a, b) {"));
+        }),
+        compile(BAR, entry: 'bar', check: (String generated) {
+          Expect.isTrue(generated.contains(r"function($eval, $$eval) {"));
+        }),
+        compile(PARAMETER_AND_TEMP, entry: 'bar', check: (String generated) {
+          Expect.isTrue(generated.contains(r"print(t00)"));
+          // Check that the second 't0' got another name.
+          Expect.isTrue(generated.contains(r"print(t01)"));
+        }),
+        compile(MULTIPLE_PHIS_ONE_LOCAL, entry: 'foo',
+            check: (String generated) {
+          Expect.isTrue(generated.contains("var a;"));
+          // Check that there is only one var declaration.
+          checkNumberOfMatches(
+              new RegExp("var").allMatches(generated).iterator, 1);
+        }),
+        compile(NO_LOCAL, entry: 'foo', check: (String generated) {
+          Expect.isFalse(generated.contains('var'));
+        }),
+        compile(PARAMETER_INIT, entry: 'foo', check: (String generated) {
+          // Check that there is only one var declaration.
+          checkNumberOfMatches(
+              new RegExp("var").allMatches(generated).iterator, 1);
+        }),
+      ]));
 }

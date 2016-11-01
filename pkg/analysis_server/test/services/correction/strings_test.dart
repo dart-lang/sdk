@@ -5,14 +5,13 @@
 library test.services.correction.strings;
 
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:test/test.dart' hide isEmpty;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart' hide isEmpty;
-
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(StringsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(StringsTest);
+  });
 }
 
 @reflectiveTest
@@ -43,6 +42,7 @@ class StringsTest {
           oldStr.substring(diff.offset + diff.length);
       expect(applied, newStr);
     }
+
     assertDiff('', '');
     assertDiff('', 'a');
     assertDiff('abc', '');

@@ -29,18 +29,6 @@ DEFINE_FLAG(bool, unbox_doubles, true, "Optimize double arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 
-void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Assembler* assembler = compiler->assembler();
-#define __ assembler->
-  __ Bind(entry_label());
-  __ Comment("MegamorphicSlowPath");
-  compiler->EmitMegamorphicInstanceCall(ic_data_, argument_count_, deopt_id_,
-                                        token_pos_, locs_, try_index_);
-  __ b(exit_label());
-#undef __
-}
-
-
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -389,11 +377,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   } else {
     __ b(is_not_instance_lbl, EQ);
   }
-  // Compare if the classes are equal.
   const Register kClassIdReg = R2;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  __ CompareImmediate(kClassIdReg, type_class.id());
-  __ b(is_instance_lbl, EQ);
   // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
   // interfaces.
   // Bool interface can be implemented only by core class Bool.
@@ -403,15 +388,9 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ b(is_not_instance_lbl);
     return false;
   }
-  if (type.IsDartFunctionType()) {
-    // Check if instance is a closure.
-    __ CompareImmediate(kClassIdReg, kClosureCid);
-    __ b(is_instance_lbl, EQ);
-  }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(
-        Type::Handle(zone(), Type::Number()), NULL, NULL, Heap::kOld)) {
+  if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType()) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -419,6 +398,17 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (type.IsStringType()) {
     GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
     return false;
+  }
+  if (type.IsDartFunctionType()) {
+    // Check if instance is a closure.
+    __ CompareImmediate(kClassIdReg, kClosureCid);
+    __ b(is_instance_lbl, EQ);
+    return true;  // Fall through
+  }
+  // Compare if the classes are equal.
+  if (!type_class.is_abstract()) {
+    __ CompareImmediate(kClassIdReg, type_class.id());
+    __ b(is_instance_lbl, EQ);
   }
   // Otherwise fallthrough.
   return true;
@@ -1122,20 +1112,6 @@ void FlowGraphCompiler::CompileGraph() {
   __ bkpt(0);
   ASSERT(assembler()->constant_pool_allowed());
   GenerateDeferredCode();
-
-  BeginCodeSourceRange();
-  if (is_optimizing() && !FLAG_precompiled_mode) {
-    // Leave enough space for patching in case of lazy deoptimization from
-    // deferred code.
-    for (intptr_t i = 0;
-         i < CallPattern::DeoptCallPatternLengthInInstructions();
-         ++i) {
-      __ nop();
-    }
-    lazy_deopt_pc_offset_ = assembler()->CodeSize();
-    __ Branch(*StubCode::DeoptimizeLazy_entry());
-  }
-  EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }
 
 
@@ -1143,7 +1119,7 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
                                      const StubEntry& stub_entry,
                                      RawPcDescriptors::Kind kind,
                                      LocationSummary* locs) {
-  __ BranchLinkPatchable(stub_entry);
+  __ BranchLink(stub_entry);
   AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
 }
@@ -1161,7 +1137,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
@@ -1189,7 +1165,7 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
@@ -1213,7 +1189,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
     // deoptimization point in optimized code, after call.
     const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, token_pos);
+      AddDeoptIndexAtCall(deopt_id_after);
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
@@ -1332,7 +1308,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ Comment("Slow case: megamorphic call");
   }
   __ LoadObject(R9, cache);
-  __ ldr(LR, Address(THR, Thread::megamorphic_lookup_checked_entry_offset()));
+  __ ldr(LR, Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ blx(LR);
 
   __ Bind(&done);
@@ -1352,7 +1328,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   } else if (is_optimizing()) {
     AddCurrentDescriptor(RawPcDescriptors::kOther,
                          Thread::kNoDeoptId, token_pos);
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     AddCurrentDescriptor(RawPcDescriptors::kOther,
         Thread::kNoDeoptId, token_pos);
@@ -1373,21 +1349,21 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     LocationSummary* locs) {
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = Code::ZoneHandle(
-      StubCode::ICLookupThroughFunction_entry()->code());
+      StubCode::ICCallThroughFunction_entry()->code());
 
   __ Comment("SwitchableCall");
 
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
-  __ LoadUniqueObject(R9, ic_data);
   __ LoadUniqueObject(CODE_REG, initial_stub);
   __ ldr(LR, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ LoadUniqueObject(R9, ic_data);
   __ blx(LR);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther, Thread::kNoDeoptId, token_pos);
   RecordSafepoint(locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.

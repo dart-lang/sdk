@@ -12,19 +12,6 @@ import 'idl.dart' as idl;
 import 'dart:convert' as convert;
 import 'api_signature.dart' as api_sig;
 
-class _CacheSourceKindReader extends fb.Reader<idl.CacheSourceKind> {
-  const _CacheSourceKindReader() : super();
-
-  @override
-  int get size => 1;
-
-  @override
-  idl.CacheSourceKind read(fb.BufferContext bc, int offset) {
-    int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.CacheSourceKind.values.length ? idl.CacheSourceKind.values[index] : idl.CacheSourceKind.library;
-  }
-}
-
 class _IndexNameKindReader extends fb.Reader<idl.IndexNameKind> {
   const _IndexNameKindReader() : super();
 
@@ -142,412 +129,20 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   }
 }
 
-class CacheAnalysisErrorBuilder extends Object with _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
-  String _correction;
-  String _errorCodeUniqueName;
-  int _length;
-  String _message;
-  int _offset;
+class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
+  List<AnalysisDriverUnitErrorBuilder> _errors;
 
   @override
-  String get correction => _correction ??= '';
+  List<AnalysisDriverUnitErrorBuilder> get errors => _errors ??= <AnalysisDriverUnitErrorBuilder>[];
 
   /**
-   * The correction to be displayed for this error, or `null` if there is no
-   * correction information for this error. The correction should indicate how
-   * the user can fix the error.
+   * The full list of analysis errors, both syntactic and semantic.
    */
-  void set correction(String _value) {
-    _correction = _value;
+  void set errors(List<AnalysisDriverUnitErrorBuilder> value) {
+    this._errors = value;
   }
 
-  @override
-  String get errorCodeUniqueName => _errorCodeUniqueName ??= '';
-
-  /**
-   * The unique name of the error code.
-   */
-  void set errorCodeUniqueName(String _value) {
-    _errorCodeUniqueName = _value;
-  }
-
-  @override
-  int get length => _length ??= 0;
-
-  /**
-   * Length of the error range.
-   */
-  void set length(int _value) {
-    assert(_value == null || _value >= 0);
-    _length = _value;
-  }
-
-  @override
-  String get message => _message ??= '';
-
-  /**
-   * The message to be displayed for this error. The message should indicate
-   * what is wrong and why it is wrong.
-   */
-  void set message(String _value) {
-    _message = _value;
-  }
-
-  @override
-  int get offset => _offset ??= 0;
-
-  /**
-   * Offset of the error range relative to the beginning of the file.
-   */
-  void set offset(int _value) {
-    assert(_value == null || _value >= 0);
-    _offset = _value;
-  }
-
-  CacheAnalysisErrorBuilder({String correction, String errorCodeUniqueName, int length, String message, int offset})
-    : _correction = correction,
-      _errorCodeUniqueName = errorCodeUniqueName,
-      _length = length,
-      _message = message,
-      _offset = offset;
-
-  /**
-   * Flush [informative] data recursively.
-   */
-  void flushInformative() {
-  }
-
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addString(this._errorCodeUniqueName ?? '');
-    signature.addInt(this._offset ?? 0);
-    signature.addInt(this._length ?? 0);
-    signature.addString(this._message ?? '');
-    signature.addString(this._correction ?? '');
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_correction;
-    fb.Offset offset_errorCodeUniqueName;
-    fb.Offset offset_message;
-    if (_correction != null) {
-      offset_correction = fbBuilder.writeString(_correction);
-    }
-    if (_errorCodeUniqueName != null) {
-      offset_errorCodeUniqueName = fbBuilder.writeString(_errorCodeUniqueName);
-    }
-    if (_message != null) {
-      offset_message = fbBuilder.writeString(_message);
-    }
-    fbBuilder.startTable();
-    if (offset_correction != null) {
-      fbBuilder.addOffset(4, offset_correction);
-    }
-    if (offset_errorCodeUniqueName != null) {
-      fbBuilder.addOffset(0, offset_errorCodeUniqueName);
-    }
-    if (_length != null && _length != 0) {
-      fbBuilder.addUint32(2, _length);
-    }
-    if (offset_message != null) {
-      fbBuilder.addOffset(3, offset_message);
-    }
-    if (_offset != null && _offset != 0) {
-      fbBuilder.addUint32(1, _offset);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _CacheAnalysisErrorReader extends fb.TableReader<_CacheAnalysisErrorImpl> {
-  const _CacheAnalysisErrorReader();
-
-  @override
-  _CacheAnalysisErrorImpl createObject(fb.BufferContext bc, int offset) => new _CacheAnalysisErrorImpl(bc, offset);
-}
-
-class _CacheAnalysisErrorImpl extends Object with _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _CacheAnalysisErrorImpl(this._bc, this._bcOffset);
-
-  String _correction;
-  String _errorCodeUniqueName;
-  int _length;
-  String _message;
-  int _offset;
-
-  @override
-  String get correction {
-    _correction ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
-    return _correction;
-  }
-
-  @override
-  String get errorCodeUniqueName {
-    _errorCodeUniqueName ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
-    return _errorCodeUniqueName;
-  }
-
-  @override
-  int get length {
-    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
-    return _length;
-  }
-
-  @override
-  String get message {
-    _message ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
-    return _message;
-  }
-
-  @override
-  int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
-    return _offset;
-  }
-}
-
-abstract class _CacheAnalysisErrorMixin implements idl.CacheAnalysisError {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (correction != '') _result["correction"] = correction;
-    if (errorCodeUniqueName != '') _result["errorCodeUniqueName"] = errorCodeUniqueName;
-    if (length != 0) _result["length"] = length;
-    if (message != '') _result["message"] = message;
-    if (offset != 0) _result["offset"] = offset;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-    "correction": correction,
-    "errorCodeUniqueName": errorCodeUniqueName,
-    "length": length,
-    "message": message,
-    "offset": offset,
-  };
-
-  @override
-  String toString() => convert.JSON.encode(toJson());
-}
-
-class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin implements idl.CacheSourceContent {
-  List<String> _exportedUris;
-  List<String> _importedUris;
-  idl.CacheSourceKind _kind;
-  List<String> _partUris;
-
-  @override
-  List<String> get exportedUris => _exportedUris ??= <String>[];
-
-  /**
-   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
-   */
-  void set exportedUris(List<String> _value) {
-    _exportedUris = _value;
-  }
-
-  @override
-  List<String> get importedUris => _importedUris ??= <String>[];
-
-  /**
-   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
-   */
-  void set importedUris(List<String> _value) {
-    _importedUris = _value;
-  }
-
-  @override
-  idl.CacheSourceKind get kind => _kind ??= idl.CacheSourceKind.library;
-
-  /**
-   * The kind of the source.
-   */
-  void set kind(idl.CacheSourceKind _value) {
-    _kind = _value;
-  }
-
-  @override
-  List<String> get partUris => _partUris ??= <String>[];
-
-  /**
-   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
-   * [CacheSourceKind.part].
-   */
-  void set partUris(List<String> _value) {
-    _partUris = _value;
-  }
-
-  CacheSourceContentBuilder({List<String> exportedUris, List<String> importedUris, idl.CacheSourceKind kind, List<String> partUris})
-    : _exportedUris = exportedUris,
-      _importedUris = importedUris,
-      _kind = kind,
-      _partUris = partUris;
-
-  /**
-   * Flush [informative] data recursively.
-   */
-  void flushInformative() {
-  }
-
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._kind == null ? 0 : this._kind.index);
-    if (this._importedUris == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._importedUris.length);
-      for (var x in this._importedUris) {
-        signature.addString(x);
-      }
-    }
-    if (this._exportedUris == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._exportedUris.length);
-      for (var x in this._exportedUris) {
-        signature.addString(x);
-      }
-    }
-    if (this._partUris == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._partUris.length);
-      for (var x in this._partUris) {
-        signature.addString(x);
-      }
-    }
-  }
-
-  List<int> toBuffer() {
-    fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder), "CaSS");
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_exportedUris;
-    fb.Offset offset_importedUris;
-    fb.Offset offset_partUris;
-    if (!(_exportedUris == null || _exportedUris.isEmpty)) {
-      offset_exportedUris = fbBuilder.writeList(_exportedUris.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    if (!(_importedUris == null || _importedUris.isEmpty)) {
-      offset_importedUris = fbBuilder.writeList(_importedUris.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    if (!(_partUris == null || _partUris.isEmpty)) {
-      offset_partUris = fbBuilder.writeList(_partUris.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    fbBuilder.startTable();
-    if (offset_exportedUris != null) {
-      fbBuilder.addOffset(2, offset_exportedUris);
-    }
-    if (offset_importedUris != null) {
-      fbBuilder.addOffset(1, offset_importedUris);
-    }
-    if (_kind != null && _kind != idl.CacheSourceKind.library) {
-      fbBuilder.addUint8(0, _kind.index);
-    }
-    if (offset_partUris != null) {
-      fbBuilder.addOffset(3, offset_partUris);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-idl.CacheSourceContent readCacheSourceContent(List<int> buffer) {
-  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
-  return const _CacheSourceContentReader().read(rootRef, 0);
-}
-
-class _CacheSourceContentReader extends fb.TableReader<_CacheSourceContentImpl> {
-  const _CacheSourceContentReader();
-
-  @override
-  _CacheSourceContentImpl createObject(fb.BufferContext bc, int offset) => new _CacheSourceContentImpl(bc, offset);
-}
-
-class _CacheSourceContentImpl extends Object with _CacheSourceContentMixin implements idl.CacheSourceContent {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _CacheSourceContentImpl(this._bc, this._bcOffset);
-
-  List<String> _exportedUris;
-  List<String> _importedUris;
-  idl.CacheSourceKind _kind;
-  List<String> _partUris;
-
-  @override
-  List<String> get exportedUris {
-    _exportedUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 2, const <String>[]);
-    return _exportedUris;
-  }
-
-  @override
-  List<String> get importedUris {
-    _importedUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 1, const <String>[]);
-    return _importedUris;
-  }
-
-  @override
-  idl.CacheSourceKind get kind {
-    _kind ??= const _CacheSourceKindReader().vTableGet(_bc, _bcOffset, 0, idl.CacheSourceKind.library);
-    return _kind;
-  }
-
-  @override
-  List<String> get partUris {
-    _partUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
-    return _partUris;
-  }
-}
-
-abstract class _CacheSourceContentMixin implements idl.CacheSourceContent {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (exportedUris.isNotEmpty) _result["exportedUris"] = exportedUris;
-    if (importedUris.isNotEmpty) _result["importedUris"] = importedUris;
-    if (kind != idl.CacheSourceKind.library) _result["kind"] = kind.toString().split('.')[1];
-    if (partUris.isNotEmpty) _result["partUris"] = partUris;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-    "exportedUris": exportedUris,
-    "importedUris": importedUris,
-    "kind": kind,
-    "partUris": partUris,
-  };
-
-  @override
-  String toString() => convert.JSON.encode(toJson());
-}
-
-class CacheSourceErrorsInLibraryBuilder extends Object with _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
-  List<CacheAnalysisErrorBuilder> _errors;
-
-  @override
-  List<CacheAnalysisErrorBuilder> get errors => _errors ??= <CacheAnalysisErrorBuilder>[];
-
-  /**
-   * The list of errors in the source in the library.
-   */
-  void set errors(List<CacheAnalysisErrorBuilder> _value) {
-    _errors = _value;
-  }
-
-  CacheSourceErrorsInLibraryBuilder({List<CacheAnalysisErrorBuilder> errors})
+  AnalysisDriverResolvedUnitBuilder({List<AnalysisDriverUnitErrorBuilder> errors})
     : _errors = errors;
 
   /**
@@ -573,7 +168,7 @@ class CacheSourceErrorsInLibraryBuilder extends Object with _CacheSourceErrorsIn
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder), "CSEL");
+    return fbBuilder.finish(finish(fbBuilder), "ADRU");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -589,34 +184,34 @@ class CacheSourceErrorsInLibraryBuilder extends Object with _CacheSourceErrorsIn
   }
 }
 
-idl.CacheSourceErrorsInLibrary readCacheSourceErrorsInLibrary(List<int> buffer) {
+idl.AnalysisDriverResolvedUnit readAnalysisDriverResolvedUnit(List<int> buffer) {
   fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
-  return const _CacheSourceErrorsInLibraryReader().read(rootRef, 0);
+  return const _AnalysisDriverResolvedUnitReader().read(rootRef, 0);
 }
 
-class _CacheSourceErrorsInLibraryReader extends fb.TableReader<_CacheSourceErrorsInLibraryImpl> {
-  const _CacheSourceErrorsInLibraryReader();
+class _AnalysisDriverResolvedUnitReader extends fb.TableReader<_AnalysisDriverResolvedUnitImpl> {
+  const _AnalysisDriverResolvedUnitReader();
 
   @override
-  _CacheSourceErrorsInLibraryImpl createObject(fb.BufferContext bc, int offset) => new _CacheSourceErrorsInLibraryImpl(bc, offset);
+  _AnalysisDriverResolvedUnitImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverResolvedUnitImpl(bc, offset);
 }
 
-class _CacheSourceErrorsInLibraryImpl extends Object with _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
+class _AnalysisDriverResolvedUnitImpl extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _CacheSourceErrorsInLibraryImpl(this._bc, this._bcOffset);
+  _AnalysisDriverResolvedUnitImpl(this._bc, this._bcOffset);
 
-  List<idl.CacheAnalysisError> _errors;
+  List<idl.AnalysisDriverUnitError> _errors;
 
   @override
-  List<idl.CacheAnalysisError> get errors {
-    _errors ??= const fb.ListReader<idl.CacheAnalysisError>(const _CacheAnalysisErrorReader()).vTableGet(_bc, _bcOffset, 0, const <idl.CacheAnalysisError>[]);
+  List<idl.AnalysisDriverUnitError> get errors {
+    _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(const _AnalysisDriverUnitErrorReader()).vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
     return _errors;
   }
 }
 
-abstract class _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrorsInLibrary {
+abstract class _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
@@ -633,6 +228,197 @@ abstract class _CacheSourceErrorsInLibraryMixin implements idl.CacheSourceErrors
   String toString() => convert.JSON.encode(toJson());
 }
 
+class AnalysisDriverUnitErrorBuilder extends Object with _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+  String _correction;
+  int _length;
+  String _message;
+  int _offset;
+  String _uniqueName;
+
+  @override
+  String get correction => _correction ??= '';
+
+  /**
+   * The optional correction hint for the error.
+   */
+  void set correction(String value) {
+    this._correction = value;
+  }
+
+  @override
+  int get length => _length ??= 0;
+
+  /**
+   * The length of the error in the file.
+   */
+  void set length(int value) {
+    assert(value == null || value >= 0);
+    this._length = value;
+  }
+
+  @override
+  String get message => _message ??= '';
+
+  /**
+   * The message of the error.
+   */
+  void set message(String value) {
+    this._message = value;
+  }
+
+  @override
+  int get offset => _offset ??= 0;
+
+  /**
+   * The offset from the beginning of the file.
+   */
+  void set offset(int value) {
+    assert(value == null || value >= 0);
+    this._offset = value;
+  }
+
+  @override
+  String get uniqueName => _uniqueName ??= '';
+
+  /**
+   * The unique name of the error code.
+   */
+  void set uniqueName(String value) {
+    this._uniqueName = value;
+  }
+
+  AnalysisDriverUnitErrorBuilder({String correction, int length, String message, int offset, String uniqueName})
+    : _correction = correction,
+      _length = length,
+      _message = message,
+      _offset = offset,
+      _uniqueName = uniqueName;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addInt(this._offset ?? 0);
+    signature.addInt(this._length ?? 0);
+    signature.addString(this._uniqueName ?? '');
+    signature.addString(this._message ?? '');
+    signature.addString(this._correction ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_correction;
+    fb.Offset offset_message;
+    fb.Offset offset_uniqueName;
+    if (_correction != null) {
+      offset_correction = fbBuilder.writeString(_correction);
+    }
+    if (_message != null) {
+      offset_message = fbBuilder.writeString(_message);
+    }
+    if (_uniqueName != null) {
+      offset_uniqueName = fbBuilder.writeString(_uniqueName);
+    }
+    fbBuilder.startTable();
+    if (offset_correction != null) {
+      fbBuilder.addOffset(4, offset_correction);
+    }
+    if (_length != null && _length != 0) {
+      fbBuilder.addUint32(1, _length);
+    }
+    if (offset_message != null) {
+      fbBuilder.addOffset(3, offset_message);
+    }
+    if (_offset != null && _offset != 0) {
+      fbBuilder.addUint32(0, _offset);
+    }
+    if (offset_uniqueName != null) {
+      fbBuilder.addOffset(2, offset_uniqueName);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _AnalysisDriverUnitErrorReader extends fb.TableReader<_AnalysisDriverUnitErrorImpl> {
+  const _AnalysisDriverUnitErrorReader();
+
+  @override
+  _AnalysisDriverUnitErrorImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverUnitErrorImpl(bc, offset);
+}
+
+class _AnalysisDriverUnitErrorImpl extends Object with _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverUnitErrorImpl(this._bc, this._bcOffset);
+
+  String _correction;
+  int _length;
+  String _message;
+  int _offset;
+  String _uniqueName;
+
+  @override
+  String get correction {
+    _correction ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 4, '');
+    return _correction;
+  }
+
+  @override
+  int get length {
+    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 1, 0);
+    return _length;
+  }
+
+  @override
+  String get message {
+    _message ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 3, '');
+    return _message;
+  }
+
+  @override
+  int get offset {
+    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
+    return _offset;
+  }
+
+  @override
+  String get uniqueName {
+    _uniqueName ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _uniqueName;
+  }
+}
+
+abstract class _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (correction != '') _result["correction"] = correction;
+    if (length != 0) _result["length"] = length;
+    if (message != '') _result["message"] = message;
+    if (offset != 0) _result["offset"] = offset;
+    if (uniqueName != '') _result["uniqueName"] = uniqueName;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "correction": correction,
+    "length": length,
+    "message": message,
+    "offset": offset,
+    "uniqueName": uniqueName,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRange {
   int _length;
   int _offset;
@@ -643,9 +429,9 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
   /**
    * Length of the element code.
    */
-  void set length(int _value) {
-    assert(_value == null || _value >= 0);
-    _length = _value;
+  void set length(int value) {
+    assert(value == null || value >= 0);
+    this._length = value;
   }
 
   @override
@@ -654,9 +440,9 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
   /**
    * Offset of the element code relative to the beginning of the file.
    */
-  void set offset(int _value) {
-    assert(_value == null || _value >= 0);
-    _offset = _value;
+  void set offset(int value) {
+    assert(value == null || value >= 0);
+    this._offset = value;
   }
 
   CodeRangeBuilder({int length, int offset})
@@ -771,9 +557,9 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * generic class, then the type arguments in [typeArguments] are applied
    * first to the class and then to the method.
    */
-  void set implicitFunctionTypeIndices(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _implicitFunctionTypeIndices = _value;
+  void set implicitFunctionTypeIndices(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._implicitFunctionTypeIndices = value;
   }
 
   @override
@@ -798,9 +584,9 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * If the type being referred to is not a type parameter, [paramReference] is
    * zero.
    */
-  void set paramReference(int _value) {
-    assert(_value == null || _value >= 0);
-    _paramReference = _value;
+  void set paramReference(int value) {
+    assert(value == null || value >= 0);
+    this._paramReference = value;
   }
 
   @override
@@ -810,9 +596,9 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * Index into [UnlinkedUnit.references] for the entity being referred to, or
    * zero if this is a reference to a type parameter.
    */
-  void set reference(int _value) {
-    assert(_value == null || _value >= 0);
-    _reference = _value;
+  void set reference(int value) {
+    assert(value == null || value >= 0);
+    this._reference = value;
   }
 
   @override
@@ -825,9 +611,9 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    *
    * Otherwise zero.
    */
-  void set slot(int _value) {
-    assert(_value == null || _value >= 0);
-    _slot = _value;
+  void set slot(int value) {
+    assert(value == null || value >= 0);
+    this._slot = value;
   }
 
   @override
@@ -839,8 +625,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * synthesized by a LUB computation), the function parameters.  Otherwise
    * empty.
    */
-  void set syntheticParams(List<UnlinkedParamBuilder> _value) {
-    _syntheticParams = _value;
+  void set syntheticParams(List<UnlinkedParamBuilder> value) {
+    this._syntheticParams = value;
   }
 
   @override
@@ -852,8 +638,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * synthesized by a LUB computation), the return type of the function.
    * Otherwise `null`.
    */
-  void set syntheticReturnType(EntityRefBuilder _value) {
-    _syntheticReturnType = _value;
+  void set syntheticReturnType(EntityRefBuilder value) {
+    this._syntheticReturnType = value;
   }
 
   @override
@@ -863,8 +649,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it (if any).
    */
-  void set typeArguments(List<EntityRefBuilder> _value) {
-    _typeArguments = _value;
+  void set typeArguments(List<EntityRefBuilder> value) {
+    this._typeArguments = value;
   }
 
   EntityRefBuilder({List<int> implicitFunctionTypeIndices, int paramReference, int reference, int slot, List<UnlinkedParamBuilder> syntheticParams, EntityRefBuilder syntheticReturnType, List<EntityRefBuilder> typeArguments})
@@ -1067,8 +853,8 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
    * URI for the compilation units listed in the library's `part` declarations.
    * These URIs are relative to the importing library.
    */
-  void set parts(List<String> _value) {
-    _parts = _value;
+  void set parts(List<String> value) {
+    this._parts = value;
   }
 
   @override
@@ -1081,8 +867,8 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
    * `d/e.dart`, the URI listed for `a.dart`'s dependency on `e.dart` will be
    * `b/d/e.dart`.
    */
-  void set uri(String _value) {
-    _uri = _value;
+  void set uri(String value) {
+    this._uri = value;
   }
 
   LinkedDependencyBuilder({List<String> parts, String uri})
@@ -1191,9 +977,9 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    * Index into [LinkedLibrary.dependencies] for the library in which the
    * entity is defined.
    */
-  void set dependency(int _value) {
-    assert(_value == null || _value >= 0);
-    _dependency = _value;
+  void set dependency(int value) {
+    assert(value == null || value >= 0);
+    this._dependency = value;
   }
 
   @override
@@ -1202,8 +988,8 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
   /**
    * The kind of the entity being referred to.
    */
-  void set kind(idl.ReferenceKind _value) {
-    _kind = _value;
+  void set kind(idl.ReferenceKind value) {
+    this._kind = value;
   }
 
   @override
@@ -1213,8 +999,8 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    * Name of the exported entity.  For an exported setter, this name includes
    * the trailing '='.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -1226,9 +1012,9 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
    * zero represents the defining compilation unit, and nonzero values
    * represent parts in the order of the corresponding `part` declarations.
    */
-  void set unit(int _value) {
-    assert(_value == null || _value >= 0);
-    _unit = _value;
+  void set unit(int value) {
+    assert(value == null || value >= 0);
+    this._unit = value;
   }
 
   LinkedExportNameBuilder({int dependency, idl.ReferenceKind kind, String name, int unit})
@@ -1369,8 +1155,8 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * anti-dependency (e.g. the result of type propagation or type inference
    * depends on the lack of a certain declaration in the library).
    */
-  void set dependencies(List<LinkedDependencyBuilder> _value) {
-    _dependencies = _value;
+  void set dependencies(List<LinkedDependencyBuilder> value) {
+    this._dependencies = value;
   }
 
   @override
@@ -1380,9 +1166,9 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * For each export in [UnlinkedUnit.exports], an index into [dependencies]
    * of the library being exported.
    */
-  void set exportDependencies(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _exportDependencies = _value;
+  void set exportDependencies(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._exportDependencies = value;
   }
 
   @override
@@ -1395,8 +1181,8 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    *
    * Sorted by name.
    */
-  void set exportNames(List<LinkedExportNameBuilder> _value) {
-    _exportNames = _value;
+  void set exportNames(List<LinkedExportNameBuilder> value) {
+    this._exportNames = value;
   }
 
   @override
@@ -1406,8 +1192,8 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * Indicates whether this library was summarized in "fallback mode".  If
    * true, all other fields in the data structure have their default values.
    */
-  void set fallbackMode(bool _value) {
-    _fallbackMode = _value;
+  void set fallbackMode(bool value) {
+    this._fallbackMode = value;
   }
 
   @override
@@ -1417,9 +1203,9 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
    */
-  void set importDependencies(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _importDependencies = _value;
+  void set importDependencies(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._importDependencies = value;
   }
 
   @override
@@ -1430,9 +1216,9 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * dependencies (that is, the number of libraries in the direct imports plus
    * the transitive closure of exports, plus the library itself).
    */
-  void set numPrelinkedDependencies(int _value) {
-    assert(_value == null || _value >= 0);
-    _numPrelinkedDependencies = _value;
+  void set numPrelinkedDependencies(int value) {
+    assert(value == null || value >= 0);
+    this._numPrelinkedDependencies = value;
   }
 
   @override
@@ -1444,8 +1230,8 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
    * followed by the summary of each part, in the order of the `part`
    * declarations in the defining compilation unit.
    */
-  void set units(List<LinkedUnitBuilder> _value) {
-    _units = _value;
+  void set units(List<LinkedUnitBuilder> value) {
+    this._units = value;
   }
 
   LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<int> exportDependencies, List<LinkedExportNameBuilder> exportNames, bool fallbackMode, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
@@ -1687,9 +1473,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * LinkedUnit.references[i].containingReference != 0, then
    * LinkedUnit.references[i].containingReference < i.
    */
-  void set containingReference(int _value) {
-    assert(_value == null || _value >= 0);
-    _containingReference = _value;
+  void set containingReference(int value) {
+    assert(value == null || value >= 0);
+    this._containingReference = value;
   }
 
   @override
@@ -1702,9 +1488,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * Zero if this entity is contained within another entity (e.g. a class
    * member), or if [kind] is [ReferenceKind.prefix].
    */
-  void set dependency(int _value) {
-    assert(_value == null || _value >= 0);
-    _dependency = _value;
+  void set dependency(int value) {
+    assert(value == null || value >= 0);
+    this._dependency = value;
   }
 
   @override
@@ -1714,8 +1500,8 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * The kind of the entity being referred to.  For the pseudo-types `dynamic`
    * and `void`, the kind is [ReferenceKind.classOrEnum].
    */
-  void set kind(idl.ReferenceKind _value) {
-    _kind = _value;
+  void set kind(idl.ReferenceKind value) {
+    this._kind = value;
   }
 
   @override
@@ -1728,9 +1514,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * [ReferenceKind.variable], the index of the variable within
    * [UnlinkedExecutable.localVariables].  Otherwise zero.
    */
-  void set localIndex(int _value) {
-    assert(_value == null || _value >= 0);
-    _localIndex = _value;
+  void set localIndex(int value) {
+    assert(value == null || value >= 0);
+    this._localIndex = value;
   }
 
   @override
@@ -1741,8 +1527,8 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * name of the entity being referred to.  For the pseudo-type `dynamic`, the
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -1753,9 +1539,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * it declares (does not include type parameters of enclosing entities).
    * Otherwise zero.
    */
-  void set numTypeParameters(int _value) {
-    assert(_value == null || _value >= 0);
-    _numTypeParameters = _value;
+  void set numTypeParameters(int value) {
+    assert(value == null || value >= 0);
+    this._numTypeParameters = value;
   }
 
   @override
@@ -1770,9 +1556,9 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
    * Zero if this entity is contained within another entity (e.g. a class
    * member).
    */
-  void set unit(int _value) {
-    assert(_value == null || _value >= 0);
-    _unit = _value;
+  void set unit(int value) {
+    assert(value == null || value >= 0);
+    this._unit = value;
   }
 
   LinkedReferenceBuilder({int containingReference, int dependency, idl.ReferenceKind kind, int localIndex, String name, int numTypeParameters, int unit})
@@ -1929,6 +1715,7 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
 
 class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.LinkedUnit {
   List<int> _constCycles;
+  List<int> _parametersInheritingCovariant;
   List<LinkedReferenceBuilder> _references;
   List<EntityRefBuilder> _types;
 
@@ -1939,9 +1726,22 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
    * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
    * corresponding to const constructors that are part of cycles.
    */
-  void set constCycles(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _constCycles = _value;
+  void set constCycles(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._constCycles = value;
+  }
+
+  @override
+  List<int> get parametersInheritingCovariant => _parametersInheritingCovariant ??= <int>[];
+
+  /**
+   * List of slot ids (referring to [UnlinkedParam.inheritsCovariantSlot])
+   * corresponding to parameters that inherit `@covariant` behavior from a base
+   * class.
+   */
+  void set parametersInheritingCovariant(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._parametersInheritingCovariant = value;
   }
 
   @override
@@ -1955,8 +1755,8 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
    * additional elements are references that are only referred to implicitly
    * (e.g. elements involved in inferred or propagated types).
    */
-  void set references(List<LinkedReferenceBuilder> _value) {
-    _references = _value;
+  void set references(List<LinkedReferenceBuilder> value) {
+    this._references = value;
   }
 
   @override
@@ -1966,12 +1766,13 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
    * List associating slot ids found inside the unlinked summary for the
    * compilation unit with propagated and inferred types.
    */
-  void set types(List<EntityRefBuilder> _value) {
-    _types = _value;
+  void set types(List<EntityRefBuilder> value) {
+    this._types = value;
   }
 
-  LinkedUnitBuilder({List<int> constCycles, List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types})
+  LinkedUnitBuilder({List<int> constCycles, List<int> parametersInheritingCovariant, List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types})
     : _constCycles = constCycles,
+      _parametersInheritingCovariant = parametersInheritingCovariant,
       _references = references,
       _types = types;
 
@@ -2011,14 +1812,26 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
         signature.addInt(x);
       }
     }
+    if (this._parametersInheritingCovariant == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._parametersInheritingCovariant.length);
+      for (var x in this._parametersInheritingCovariant) {
+        signature.addInt(x);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_constCycles;
+    fb.Offset offset_parametersInheritingCovariant;
     fb.Offset offset_references;
     fb.Offset offset_types;
     if (!(_constCycles == null || _constCycles.isEmpty)) {
       offset_constCycles = fbBuilder.writeListUint32(_constCycles);
+    }
+    if (!(_parametersInheritingCovariant == null || _parametersInheritingCovariant.isEmpty)) {
+      offset_parametersInheritingCovariant = fbBuilder.writeListUint32(_parametersInheritingCovariant);
     }
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
@@ -2029,6 +1842,9 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     fbBuilder.startTable();
     if (offset_constCycles != null) {
       fbBuilder.addOffset(2, offset_constCycles);
+    }
+    if (offset_parametersInheritingCovariant != null) {
+      fbBuilder.addOffset(3, offset_parametersInheritingCovariant);
     }
     if (offset_references != null) {
       fbBuilder.addOffset(0, offset_references);
@@ -2054,6 +1870,7 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
   _LinkedUnitImpl(this._bc, this._bcOffset);
 
   List<int> _constCycles;
+  List<int> _parametersInheritingCovariant;
   List<idl.LinkedReference> _references;
   List<idl.EntityRef> _types;
 
@@ -2061,6 +1878,12 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
   List<int> get constCycles {
     _constCycles ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 2, const <int>[]);
     return _constCycles;
+  }
+
+  @override
+  List<int> get parametersInheritingCovariant {
+    _parametersInheritingCovariant ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 3, const <int>[]);
+    return _parametersInheritingCovariant;
   }
 
   @override
@@ -2081,6 +1904,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (constCycles.isNotEmpty) _result["constCycles"] = constCycles;
+    if (parametersInheritingCovariant.isNotEmpty) _result["parametersInheritingCovariant"] = parametersInheritingCovariant;
     if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
     if (types.isNotEmpty) _result["types"] = types.map((_value) => _value.toJson()).toList();
     return _result;
@@ -2089,6 +1913,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   @override
   Map<String, Object> toMap() => {
     "constCycles": constCycles,
+    "parametersInheritingCovariant": parametersInheritingCovariant,
     "references": references,
     "types": types,
   };
@@ -2116,8 +1941,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * including this one).  This can be used to identify when the API of a
    * package may have changed.
    */
-  void set apiSignature(String _value) {
-    _apiSignature = _value;
+  void set apiSignature(String value) {
+    this._apiSignature = value;
   }
 
   @override
@@ -2126,8 +1951,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   /**
    * Information about the packages this package depends on, if known.
    */
-  void set dependencies(List<PackageDependencyInfoBuilder> _value) {
-    _dependencies = _value;
+  void set dependencies(List<PackageDependencyInfoBuilder> value) {
+    this._dependencies = value;
   }
 
   @override
@@ -2136,8 +1961,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   /**
    * Linked libraries.
    */
-  void set linkedLibraries(List<LinkedLibraryBuilder> _value) {
-    _linkedLibraries = _value;
+  void set linkedLibraries(List<LinkedLibraryBuilder> value) {
+    this._linkedLibraries = value;
   }
 
   @override
@@ -2147,8 +1972,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * The list of URIs of items in [linkedLibraries], e.g. `dart:core` or
    * `package:foo/bar.dart`.
    */
-  void set linkedLibraryUris(List<String> _value) {
-    _linkedLibraryUris = _value;
+  void set linkedLibraryUris(List<String> value) {
+    this._linkedLibraryUris = value;
   }
 
   @override
@@ -2158,9 +1983,9 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * Major version of the summary format.  See
    * [PackageBundleAssembler.currentMajorVersion].
    */
-  void set majorVersion(int _value) {
-    assert(_value == null || _value >= 0);
-    _majorVersion = _value;
+  void set majorVersion(int value) {
+    assert(value == null || value >= 0);
+    this._majorVersion = value;
   }
 
   @override
@@ -2170,9 +1995,9 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * Minor version of the summary format.  See
    * [PackageBundleAssembler.currentMinorVersion].
    */
-  void set minorVersion(int _value) {
-    assert(_value == null || _value >= 0);
-    _minorVersion = _value;
+  void set minorVersion(int value) {
+    assert(value == null || value >= 0);
+    this._minorVersion = value;
   }
 
   @override
@@ -2182,8 +2007,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
    * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
    * is encoded as a hexadecimal string using lower case letters.
    */
-  void set unlinkedUnitHashes(List<String> _value) {
-    _unlinkedUnitHashes = _value;
+  void set unlinkedUnitHashes(List<String> value) {
+    this._unlinkedUnitHashes = value;
   }
 
   @override
@@ -2192,8 +2017,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   /**
    * Unlinked information for the compilation units constituting the package.
    */
-  void set unlinkedUnits(List<UnlinkedUnitBuilder> _value) {
-    _unlinkedUnits = _value;
+  void set unlinkedUnits(List<UnlinkedUnitBuilder> value) {
+    this._unlinkedUnits = value;
   }
 
   @override
@@ -2202,8 +2027,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   /**
    * The list of URIs of items in [unlinkedUnits], e.g. `dart:core/bool.dart`.
    */
-  void set unlinkedUnitUris(List<String> _value) {
-    _unlinkedUnitUris = _value;
+  void set unlinkedUnitUris(List<String> value) {
+    this._unlinkedUnitUris = value;
   }
 
   PackageBundleBuilder({String apiSignature, List<PackageDependencyInfoBuilder> dependencies, List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, int majorVersion, int minorVersion, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
@@ -2463,8 +2288,8 @@ class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMix
   /**
    * API signature of this dependency.
    */
-  void set apiSignature(String _value) {
-    _apiSignature = _value;
+  void set apiSignature(String value) {
+    this._apiSignature = value;
   }
 
   @override
@@ -2475,8 +2300,8 @@ class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMix
    * "package:<package_name>/...", a list of all such package names, sorted
    * lexicographically.  Otherwise empty.
    */
-  void set includedPackageNames(List<String> _value) {
-    _includedPackageNames = _value;
+  void set includedPackageNames(List<String> value) {
+    this._includedPackageNames = value;
   }
 
   @override
@@ -2486,8 +2311,8 @@ class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMix
    * Indicates whether this dependency summarizes any files whose URI takes the
    * form "dart:...".
    */
-  void set includesDartUris(bool _value) {
-    _includesDartUris = _value;
+  void set includesDartUris(bool value) {
+    this._includesDartUris = value;
   }
 
   @override
@@ -2497,8 +2322,8 @@ class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMix
    * Indicates whether this dependency summarizes any files whose URI takes the
    * form "file:...".
    */
-  void set includesFileUris(bool _value) {
-    _includesFileUris = _value;
+  void set includesFileUris(bool value) {
+    this._includesFileUris = value;
   }
 
   @override
@@ -2513,8 +2338,8 @@ class PackageDependencyInfoBuilder extends Object with _PackageDependencyInfoMix
    *
    * Absent if the path is not known.
    */
-  void set summaryPath(String _value) {
-    _summaryPath = _value;
+  void set summaryPath(String value) {
+    this._summaryPath = value;
   }
 
   PackageDependencyInfoBuilder({String apiSignature, List<String> includedPackageNames, bool includesDartUris, bool includesFileUris, String summaryPath})
@@ -2674,8 +2499,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * Each item of this list corresponds to a unique referenced element.  It is
    * the kind of the synthetic element.
    */
-  void set elementKinds(List<idl.IndexSyntheticElementKind> _value) {
-    _elementKinds = _value;
+  void set elementKinds(List<idl.IndexSyntheticElementKind> value) {
+    this._elementKinds = value;
   }
 
   @override
@@ -2688,9 +2513,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * client can quickly check whether an element is referenced in this
    * [PackageIndex].
    */
-  void set elementNameClassMemberIds(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _elementNameClassMemberIds = _value;
+  void set elementNameClassMemberIds(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._elementNameClassMemberIds = value;
   }
 
   @override
@@ -2703,9 +2528,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * client can quickly check whether an element is referenced in this
    * [PackageIndex].
    */
-  void set elementNameParameterIds(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _elementNameParameterIds = _value;
+  void set elementNameParameterIds(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._elementNameParameterIds = value;
   }
 
   @override
@@ -2717,9 +2542,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * the unit.  The list is sorted in ascending order, so that the client can
    * quickly check whether an element is referenced in this [PackageIndex].
    */
-  void set elementNameUnitMemberIds(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _elementNameUnitMemberIds = _value;
+  void set elementNameUnitMemberIds(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._elementNameUnitMemberIds = value;
   }
 
   @override
@@ -2730,9 +2555,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * the index into [unitLibraryUris] and [unitUnitUris] for the library
    * specific unit where the element is declared.
    */
-  void set elementUnits(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _elementUnits = _value;
+  void set elementUnits(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._elementUnits = value;
   }
 
   @override
@@ -2743,8 +2568,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * sorted in ascending order, so that the client can quickly check the
    * presence of a string in this [PackageIndex].
    */
-  void set strings(List<String> _value) {
-    _strings = _value;
+  void set strings(List<String> value) {
+    this._strings = value;
   }
 
   @override
@@ -2755,9 +2580,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * specific unit referenced in the [PackageIndex].  It is an index into
    * [strings] list.
    */
-  void set unitLibraryUris(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _unitLibraryUris = _value;
+  void set unitLibraryUris(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._unitLibraryUris = value;
   }
 
   @override
@@ -2766,8 +2591,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   /**
    * List of indexes of each unit in this [PackageIndex].
    */
-  void set units(List<UnitIndexBuilder> _value) {
-    _units = _value;
+  void set units(List<UnitIndexBuilder> value) {
+    this._units = value;
   }
 
   @override
@@ -2778,9 +2603,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
    * specific unit referenced in the [PackageIndex].  It is an index into
    * [strings] list.
    */
-  void set unitUnitUris(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _unitUnitUris = _value;
+  void set unitUnitUris(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._unitUnitUris = value;
   }
 
   PackageIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementNameClassMemberIds, List<int> elementNameParameterIds, List<int> elementNameUnitMemberIds, List<int> elementUnits, List<String> strings, List<int> unitLibraryUris, List<UnitIndexBuilder> units, List<int> unitUnitUris})
@@ -3090,8 +2915,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   /**
    * Each item of this list is the kind of an element defined in this unit.
    */
-  void set definedNameKinds(List<idl.IndexNameKind> _value) {
-    _definedNameKinds = _value;
+  void set definedNameKinds(List<idl.IndexNameKind> value) {
+    this._definedNameKinds = value;
   }
 
   @override
@@ -3101,9 +2926,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the name offset of an element defined in this
    * unit relative to the beginning of the file.
    */
-  void set definedNameOffsets(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _definedNameOffsets = _value;
+  void set definedNameOffsets(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._definedNameOffsets = value;
   }
 
   @override
@@ -3115,9 +2940,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * ascending order, so that the client can quickly find name definitions in
    * this [UnitIndex].
    */
-  void set definedNames(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _definedNames = _value;
+  void set definedNames(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._definedNames = value;
   }
 
   @override
@@ -3127,9 +2952,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Index into [PackageIndex.unitLibraryUris] and [PackageIndex.unitUnitUris]
    * for the library specific unit that corresponds to this [UnitIndex].
    */
-  void set unit(int _value) {
-    assert(_value == null || _value >= 0);
-    _unit = _value;
+  void set unit(int value) {
+    assert(value == null || value >= 0);
+    this._unit = value;
   }
 
   @override
@@ -3139,8 +2964,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the `true` if the corresponding element usage
    * is qualified with some prefix.
    */
-  void set usedElementIsQualifiedFlags(List<bool> _value) {
-    _usedElementIsQualifiedFlags = _value;
+  void set usedElementIsQualifiedFlags(List<bool> value) {
+    this._usedElementIsQualifiedFlags = value;
   }
 
   @override
@@ -3149,8 +2974,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   /**
    * Each item of this list is the kind of the element usage.
    */
-  void set usedElementKinds(List<idl.IndexRelationKind> _value) {
-    _usedElementKinds = _value;
+  void set usedElementKinds(List<idl.IndexRelationKind> value) {
+    this._usedElementKinds = value;
   }
 
   @override
@@ -3159,9 +2984,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   /**
    * Each item of this list is the length of the element usage.
    */
-  void set usedElementLengths(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _usedElementLengths = _value;
+  void set usedElementLengths(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedElementLengths = value;
   }
 
   @override
@@ -3171,9 +2996,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the offset of the element usage relative to the
    * beginning of the file.
    */
-  void set usedElementOffsets(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _usedElementOffsets = _value;
+  void set usedElementOffsets(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedElementOffsets = value;
   }
 
   @override
@@ -3184,9 +3009,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
    * that the client can quickly find element references in this [UnitIndex].
    */
-  void set usedElements(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _usedElements = _value;
+  void set usedElements(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedElements = value;
   }
 
   @override
@@ -3196,8 +3021,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the `true` if the corresponding name usage
    * is qualified with some prefix.
    */
-  void set usedNameIsQualifiedFlags(List<bool> _value) {
-    _usedNameIsQualifiedFlags = _value;
+  void set usedNameIsQualifiedFlags(List<bool> value) {
+    this._usedNameIsQualifiedFlags = value;
   }
 
   @override
@@ -3206,8 +3031,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   /**
    * Each item of this list is the kind of the name usage.
    */
-  void set usedNameKinds(List<idl.IndexRelationKind> _value) {
-    _usedNameKinds = _value;
+  void set usedNameKinds(List<idl.IndexRelationKind> value) {
+    this._usedNameKinds = value;
   }
 
   @override
@@ -3217,9 +3042,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * Each item of this list is the offset of the name usage relative to the
    * beginning of the file.
    */
-  void set usedNameOffsets(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _usedNameOffsets = _value;
+  void set usedNameOffsets(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedNameOffsets = value;
   }
 
   @override
@@ -3230,9 +3055,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
    * used name.  The list is sorted in ascending order, so that the client can
    * quickly find name uses in this [UnitIndex].
    */
-  void set usedNames(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _usedNames = _value;
+  void set usedNames(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._usedNames = value;
   }
 
   UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<bool> usedNameIsQualifiedFlags, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames})
@@ -3621,8 +3446,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Annotations for this class.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -3631,8 +3456,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Code range of the class.
    */
-  void set codeRange(CodeRangeBuilder _value) {
-    _codeRange = _value;
+  void set codeRange(CodeRangeBuilder value) {
+    this._codeRange = value;
   }
 
   @override
@@ -3642,8 +3467,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Documentation comment for the class, or `null` if there is no
    * documentation comment.
    */
-  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    _documentationComment = _value;
+  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+    this._documentationComment = value;
   }
 
   @override
@@ -3652,8 +3477,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Executable objects (methods, getters, and setters) contained in the class.
    */
-  void set executables(List<UnlinkedExecutableBuilder> _value) {
-    _executables = _value;
+  void set executables(List<UnlinkedExecutableBuilder> value) {
+    this._executables = value;
   }
 
   @override
@@ -3662,8 +3487,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Field declarations contained in the class.
    */
-  void set fields(List<UnlinkedVariableBuilder> _value) {
-    _fields = _value;
+  void set fields(List<UnlinkedVariableBuilder> value) {
+    this._fields = value;
   }
 
   @override
@@ -3673,8 +3498,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * Indicates whether this class is the core "Object" class (and hence has no
    * supertype)
    */
-  void set hasNoSupertype(bool _value) {
-    _hasNoSupertype = _value;
+  void set hasNoSupertype(bool value) {
+    this._hasNoSupertype = value;
   }
 
   @override
@@ -3683,8 +3508,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Interfaces appearing in an `implements` clause, if any.
    */
-  void set interfaces(List<EntityRefBuilder> _value) {
-    _interfaces = _value;
+  void set interfaces(List<EntityRefBuilder> value) {
+    this._interfaces = value;
   }
 
   @override
@@ -3693,8 +3518,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Indicates whether the class is declared with the `abstract` keyword.
    */
-  void set isAbstract(bool _value) {
-    _isAbstract = _value;
+  void set isAbstract(bool value) {
+    this._isAbstract = value;
   }
 
   @override
@@ -3703,8 +3528,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Indicates whether the class is declared using mixin application syntax.
    */
-  void set isMixinApplication(bool _value) {
-    _isMixinApplication = _value;
+  void set isMixinApplication(bool value) {
+    this._isMixinApplication = value;
   }
 
   @override
@@ -3713,8 +3538,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Mixins appearing in a `with` clause, if any.
    */
-  void set mixins(List<EntityRefBuilder> _value) {
-    _mixins = _value;
+  void set mixins(List<EntityRefBuilder> value) {
+    this._mixins = value;
   }
 
   @override
@@ -3723,8 +3548,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Name of the class.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -3733,9 +3558,9 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Offset of the class name relative to the beginning of the file.
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   @override
@@ -3746,8 +3571,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
    * explicitly declare a supertype (and hence has supertype `Object`), or (b)
    * the class *is* `Object` (and hence has no supertype).
    */
-  void set supertype(EntityRefBuilder _value) {
-    _supertype = _value;
+  void set supertype(EntityRefBuilder value) {
+    this._supertype = value;
   }
 
   @override
@@ -3756,8 +3581,8 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   /**
    * Type parameters of the class, if any.
    */
-  void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
-    _typeParameters = _value;
+  void set typeParameters(List<UnlinkedTypeParamBuilder> value) {
+    this._typeParameters = value;
   }
 
   UnlinkedClassBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedExecutableBuilder> executables, List<UnlinkedVariableBuilder> fields, bool hasNoSupertype, List<EntityRefBuilder> interfaces, bool isAbstract, bool isMixinApplication, List<EntityRefBuilder> mixins, String name, int nameOffset, EntityRefBuilder supertype, List<UnlinkedTypeParamBuilder> typeParameters})
@@ -4109,9 +3934,9 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
    * If this is a `show` combinator, offset of the end of the list of shown
    * names.  Otherwise zero.
    */
-  void set end(int _value) {
-    assert(_value == null || _value >= 0);
-    _end = _value;
+  void set end(int value) {
+    assert(value == null || value >= 0);
+    this._end = value;
   }
 
   @override
@@ -4120,8 +3945,8 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
   /**
    * List of names which are hidden.  Empty if this is a `show` combinator.
    */
-  void set hides(List<String> _value) {
-    _hides = _value;
+  void set hides(List<String> value) {
+    this._hides = value;
   }
 
   @override
@@ -4131,9 +3956,9 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
    * If this is a `show` combinator, offset of the `show` keyword.  Otherwise
    * zero.
    */
-  void set offset(int _value) {
-    assert(_value == null || _value >= 0);
-    _offset = _value;
+  void set offset(int value) {
+    assert(value == null || value >= 0);
+    this._offset = value;
   }
 
   @override
@@ -4142,8 +3967,8 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
   /**
    * List of names which are shown.  Empty if this is a `hide` combinator.
    */
-  void set shows(List<String> _value) {
-    _shows = _value;
+  void set shows(List<String> value) {
+    this._shows = value;
   }
 
   UnlinkedCombinatorBuilder({int end, List<String> hides, int offset, List<String> shows})
@@ -4274,6 +4099,147 @@ abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
   String toString() => convert.JSON.encode(toJson());
 }
 
+class UnlinkedConfigurationBuilder extends Object with _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+  String _name;
+  String _uri;
+  String _value;
+
+  @override
+  String get name => _name ??= '';
+
+  /**
+   * The name of the declared variable whose value is being used in the
+   * condition.
+   */
+  void set name(String value) {
+    this._name = value;
+  }
+
+  @override
+  String get uri => _uri ??= '';
+
+  /**
+   * The URI of the implementation library to be used if the condition is true.
+   */
+  void set uri(String value) {
+    this._uri = value;
+  }
+
+  @override
+  String get value => _value ??= '';
+
+  /**
+   * The value to which the value of the declared variable will be compared,
+   * or `true` if the condition does not include an equality test.
+   */
+  void set value(String value) {
+    this._value = value;
+  }
+
+  UnlinkedConfigurationBuilder({String name, String uri, String value})
+    : _name = name,
+      _uri = uri,
+      _value = value;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    signature.addString(this._name ?? '');
+    signature.addString(this._value ?? '');
+    signature.addString(this._uri ?? '');
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_name;
+    fb.Offset offset_uri;
+    fb.Offset offset_value;
+    if (_name != null) {
+      offset_name = fbBuilder.writeString(_name);
+    }
+    if (_uri != null) {
+      offset_uri = fbBuilder.writeString(_uri);
+    }
+    if (_value != null) {
+      offset_value = fbBuilder.writeString(_value);
+    }
+    fbBuilder.startTable();
+    if (offset_name != null) {
+      fbBuilder.addOffset(0, offset_name);
+    }
+    if (offset_uri != null) {
+      fbBuilder.addOffset(2, offset_uri);
+    }
+    if (offset_value != null) {
+      fbBuilder.addOffset(1, offset_value);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedConfigurationReader extends fb.TableReader<_UnlinkedConfigurationImpl> {
+  const _UnlinkedConfigurationReader();
+
+  @override
+  _UnlinkedConfigurationImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedConfigurationImpl(bc, offset);
+}
+
+class _UnlinkedConfigurationImpl extends Object with _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedConfigurationImpl(this._bc, this._bcOffset);
+
+  String _name;
+  String _uri;
+  String _value;
+
+  @override
+  String get name {
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 0, '');
+    return _name;
+  }
+
+  @override
+  String get uri {
+    _uri ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 2, '');
+    return _uri;
+  }
+
+  @override
+  String get value {
+    _value ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 1, '');
+    return _value;
+  }
+}
+
+abstract class _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (name != '') _result["name"] = name;
+    if (uri != '') _result["uri"] = uri;
+    if (value != '') _result["value"] = value;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "name": name,
+    "uri": uri,
+    "value": value,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
   List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
@@ -4289,8 +4255,8 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
   /**
    * Sequence of operators used by assignment operations.
    */
-  void set assignmentOperators(List<idl.UnlinkedExprAssignOperator> _value) {
-    _assignmentOperators = _value;
+  void set assignmentOperators(List<idl.UnlinkedExprAssignOperator> value) {
+    this._assignmentOperators = value;
   }
 
   @override
@@ -4299,8 +4265,8 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
   /**
    * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
    */
-  void set doubles(List<double> _value) {
-    _doubles = _value;
+  void set doubles(List<double> value) {
+    this._doubles = value;
   }
 
   @override
@@ -4311,9 +4277,9 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
    * `makeList`, and `makeMap`.
    */
-  void set ints(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _ints = _value;
+  void set ints(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._ints = value;
   }
 
   @override
@@ -4323,8 +4289,8 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * Indicates whether the expression is a valid potentially constant
    * expression.
    */
-  void set isValidConst(bool _value) {
-    _isValidConst = _value;
+  void set isValidConst(bool value) {
+    this._isValidConst = value;
   }
 
   @override
@@ -4334,8 +4300,8 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * Sequence of operations to execute (starting with an empty stack) to form
    * the constant value.
    */
-  void set operations(List<idl.UnlinkedConstOperation> _value) {
-    _operations = _value;
+  void set operations(List<idl.UnlinkedConstOperation> value) {
+    this._operations = value;
   }
 
   @override
@@ -4347,8 +4313,8 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * that in the case of `pushReference` (and sometimes `invokeConstructor` the
    * actual entity being referred to may be something other than a type.
    */
-  void set references(List<EntityRefBuilder> _value) {
-    _references = _value;
+  void set references(List<EntityRefBuilder> value) {
+    this._references = value;
   }
 
   @override
@@ -4358,8 +4324,8 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
    * Sequence of strings consumed by the operations `pushString` and
    * `invokeConstructor`.
    */
-  void set strings(List<String> _value) {
-    _strings = _value;
+  void set strings(List<String> value) {
+    this._strings = value;
   }
 
   UnlinkedConstBuilder({List<idl.UnlinkedExprAssignOperator> assignmentOperators, List<double> doubles, List<int> ints, bool isValidConst, List<idl.UnlinkedConstOperation> operations, List<EntityRefBuilder> references, List<String> strings})
@@ -4592,8 +4558,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * from [arguments] with index `i` such that `n + i - m >= 0`, should be used
    * with the name at `n + i - m`.
    */
-  void set argumentNames(List<String> _value) {
-    _argumentNames = _value;
+  void set argumentNames(List<String> value) {
+    this._argumentNames = value;
   }
 
   @override
@@ -4603,8 +4569,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
    * invocation.  Otherwise empty.
    */
-  void set arguments(List<UnlinkedConstBuilder> _value) {
-    _arguments = _value;
+  void set arguments(List<UnlinkedConstBuilder> value) {
+    this._arguments = value;
   }
 
   @override
@@ -4614,8 +4580,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * If [kind] is `field`, the expression of the field initializer.
    * Otherwise `null`.
    */
-  void set expression(UnlinkedConstBuilder _value) {
-    _expression = _value;
+  void set expression(UnlinkedConstBuilder value) {
+    this._expression = value;
   }
 
   @override
@@ -4624,8 +4590,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   /**
    * The kind of the constructor initializer (field, redirect, super).
    */
-  void set kind(idl.UnlinkedConstructorInitializerKind _value) {
-    _kind = _value;
+  void set kind(idl.UnlinkedConstructorInitializerKind value) {
+    this._kind = value;
   }
 
   @override
@@ -4637,8 +4603,8 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
    * class, to redirect to.  If [kind] is `superInvocation`, the name of the
    * constructor, declared in the superclass, to invoke.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   UnlinkedConstructorInitializerBuilder({List<String> argumentNames, List<UnlinkedConstBuilder> arguments, UnlinkedConstBuilder expression, idl.UnlinkedConstructorInitializerKind kind, String name})
@@ -4795,32 +4761,13 @@ abstract class _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConst
 }
 
 class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumentationComment {
-  int _length;
-  int _offset;
   String _text;
 
   @override
-  int get length => _length ??= 0;
-
-  /**
-   * Length of the documentation comment (prior to replacing '\r\n' with '\n').
-   */
-  void set length(int _value) {
-    assert(_value == null || _value >= 0);
-    _length = _value;
-  }
+  int get length => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset => _offset ??= 0;
-
-  /**
-   * Offset of the beginning of the documentation comment relative to the
-   * beginning of the file.
-   */
-  void set offset(int _value) {
-    assert(_value == null || _value >= 0);
-    _offset = _value;
-  }
+  int get offset => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get text => _text ??= '';
@@ -4831,14 +4778,12 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    * References appearing within the doc comment in square brackets are not
    * specially encoded.
    */
-  void set text(String _value) {
-    _text = _value;
+  void set text(String value) {
+    this._text = value;
   }
 
-  UnlinkedDocumentationCommentBuilder({int length, int offset, String text})
-    : _length = length,
-      _offset = offset,
-      _text = text;
+  UnlinkedDocumentationCommentBuilder({String text})
+    : _text = text;
 
   /**
    * Flush [informative] data recursively.
@@ -4850,9 +4795,7 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
    * Accumulate non-[informative] data into [signature].
    */
   void collectApiSignature(api_sig.ApiSignature signature) {
-    signature.addInt(this._length ?? 0);
     signature.addString(this._text ?? '');
-    signature.addInt(this._offset ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -4861,12 +4804,6 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
       offset_text = fbBuilder.writeString(_text);
     }
     fbBuilder.startTable();
-    if (_length != null && _length != 0) {
-      fbBuilder.addUint32(0, _length);
-    }
-    if (_offset != null && _offset != 0) {
-      fbBuilder.addUint32(2, _offset);
-    }
     if (offset_text != null) {
       fbBuilder.addOffset(1, offset_text);
     }
@@ -4887,21 +4824,13 @@ class _UnlinkedDocumentationCommentImpl extends Object with _UnlinkedDocumentati
 
   _UnlinkedDocumentationCommentImpl(this._bc, this._bcOffset);
 
-  int _length;
-  int _offset;
   String _text;
 
   @override
-  int get length {
-    _length ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 0, 0);
-    return _length;
-  }
+  int get length => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
-  int get offset {
-    _offset ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
-    return _offset;
-  }
+  int get offset => throw new UnimplementedError('attempt to access deprecated field');
 
   @override
   String get text {
@@ -4914,16 +4843,12 @@ abstract class _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumen
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (length != 0) _result["length"] = length;
-    if (offset != 0) _result["offset"] = offset;
     if (text != '') _result["text"] = text;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "length": length,
-    "offset": offset,
     "text": text,
   };
 
@@ -4945,8 +4870,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   /**
    * Annotations for this enum.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -4955,8 +4880,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   /**
    * Code range of the enum.
    */
-  void set codeRange(CodeRangeBuilder _value) {
-    _codeRange = _value;
+  void set codeRange(CodeRangeBuilder value) {
+    this._codeRange = value;
   }
 
   @override
@@ -4966,8 +4891,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
    * Documentation comment for the enum, or `null` if there is no documentation
    * comment.
    */
-  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    _documentationComment = _value;
+  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+    this._documentationComment = value;
   }
 
   @override
@@ -4976,8 +4901,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   /**
    * Name of the enum type.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -4986,9 +4911,9 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   /**
    * Offset of the enum name relative to the beginning of the file.
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   @override
@@ -4997,8 +4922,8 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   /**
    * Values listed in the enum declaration, in declaration order.
    */
-  void set values(List<UnlinkedEnumValueBuilder> _value) {
-    _values = _value;
+  void set values(List<UnlinkedEnumValueBuilder> value) {
+    this._values = value;
   }
 
   UnlinkedEnumBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedEnumValueBuilder> values})
@@ -5183,8 +5108,8 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
    * Documentation comment for the enum value, or `null` if there is no
    * documentation comment.
    */
-  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    _documentationComment = _value;
+  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+    this._documentationComment = value;
   }
 
   @override
@@ -5193,8 +5118,8 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
   /**
    * Name of the enumerated value.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -5203,9 +5128,9 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
   /**
    * Offset of the enum value name relative to the beginning of the file.
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   UnlinkedEnumValueBuilder({UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset})
@@ -5346,8 +5271,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Annotations for this executable.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -5358,8 +5283,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * to the right of the `=>`.  May be omitted if neither type inference nor
    * constant evaluation depends on the function body.
    */
-  void set bodyExpr(UnlinkedConstBuilder _value) {
-    _bodyExpr = _value;
+  void set bodyExpr(UnlinkedConstBuilder value) {
+    this._bodyExpr = value;
   }
 
   @override
@@ -5368,8 +5293,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Code range of the executable.
    */
-  void set codeRange(CodeRangeBuilder _value) {
-    _codeRange = _value;
+  void set codeRange(CodeRangeBuilder value) {
+    this._codeRange = value;
   }
 
   @override
@@ -5379,8 +5304,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * If a constant [UnlinkedExecutableKind.constructor], the constructor
    * initializers.  Otherwise empty.
    */
-  void set constantInitializers(List<UnlinkedConstructorInitializerBuilder> _value) {
-    _constantInitializers = _value;
+  void set constantInitializers(List<UnlinkedConstructorInitializerBuilder> value) {
+    this._constantInitializers = value;
   }
 
   @override
@@ -5394,9 +5319,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    *
    * Otherwise, zero.
    */
-  void set constCycleSlot(int _value) {
-    assert(_value == null || _value >= 0);
-    _constCycleSlot = _value;
+  void set constCycleSlot(int value) {
+    assert(value == null || value >= 0);
+    this._constCycleSlot = value;
   }
 
   @override
@@ -5406,8 +5331,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Documentation comment for the executable, or `null` if there is no
    * documentation comment.
    */
-  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    _documentationComment = _value;
+  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+    this._documentationComment = value;
   }
 
   @override
@@ -5420,9 +5345,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * no return type was inferred for this variable, so its static type is
    * `dynamic`.
    */
-  void set inferredReturnTypeSlot(int _value) {
-    assert(_value == null || _value >= 0);
-    _inferredReturnTypeSlot = _value;
+  void set inferredReturnTypeSlot(int value) {
+    assert(value == null || value >= 0);
+    this._inferredReturnTypeSlot = value;
   }
 
   @override
@@ -5431,8 +5356,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Indicates whether the executable is declared using the `abstract` keyword.
    */
-  void set isAbstract(bool _value) {
-    _isAbstract = _value;
+  void set isAbstract(bool value) {
+    this._isAbstract = value;
   }
 
   @override
@@ -5441,8 +5366,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Indicates whether the executable has body marked as being asynchronous.
    */
-  void set isAsynchronous(bool _value) {
-    _isAsynchronous = _value;
+  void set isAsynchronous(bool value) {
+    this._isAsynchronous = value;
   }
 
   @override
@@ -5451,8 +5376,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Indicates whether the executable is declared using the `const` keyword.
    */
-  void set isConst(bool _value) {
-    _isConst = _value;
+  void set isConst(bool value) {
+    this._isConst = value;
   }
 
   @override
@@ -5461,8 +5386,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Indicates whether the executable is declared using the `external` keyword.
    */
-  void set isExternal(bool _value) {
-    _isExternal = _value;
+  void set isExternal(bool value) {
+    this._isExternal = value;
   }
 
   @override
@@ -5471,8 +5396,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Indicates whether the executable is declared using the `factory` keyword.
    */
-  void set isFactory(bool _value) {
-    _isFactory = _value;
+  void set isFactory(bool value) {
+    this._isFactory = value;
   }
 
   @override
@@ -5481,8 +5406,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Indicates whether the executable has body marked as being a generator.
    */
-  void set isGenerator(bool _value) {
-    _isGenerator = _value;
+  void set isGenerator(bool value) {
+    this._isGenerator = value;
   }
 
   @override
@@ -5491,8 +5416,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * Indicates whether the executable is a redirected constructor.
    */
-  void set isRedirectedConstructor(bool _value) {
-    _isRedirectedConstructor = _value;
+  void set isRedirectedConstructor(bool value) {
+    this._isRedirectedConstructor = value;
   }
 
   @override
@@ -5505,8 +5430,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * not declared using the `static` keyword (even though they are considered
    * static for semantic purposes).
    */
-  void set isStatic(bool _value) {
-    _isStatic = _value;
+  void set isStatic(bool value) {
+    this._isStatic = value;
   }
 
   @override
@@ -5516,8 +5441,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * The kind of the executable (function/method, getter, setter, or
    * constructor).
    */
-  void set kind(idl.UnlinkedExecutableKind _value) {
-    _kind = _value;
+  void set kind(idl.UnlinkedExecutableKind value) {
+    this._kind = value;
   }
 
   @override
@@ -5526,8 +5451,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * The list of local functions.
    */
-  void set localFunctions(List<UnlinkedExecutableBuilder> _value) {
-    _localFunctions = _value;
+  void set localFunctions(List<UnlinkedExecutableBuilder> value) {
+    this._localFunctions = value;
   }
 
   @override
@@ -5536,8 +5461,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * The list of local labels.
    */
-  void set localLabels(List<UnlinkedLabelBuilder> _value) {
-    _localLabels = _value;
+  void set localLabels(List<UnlinkedLabelBuilder> value) {
+    this._localLabels = value;
   }
 
   @override
@@ -5546,8 +5471,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * The list of local variables.
    */
-  void set localVariables(List<UnlinkedVariableBuilder> _value) {
-    _localVariables = _value;
+  void set localVariables(List<UnlinkedVariableBuilder> value) {
+    this._localVariables = value;
   }
 
   @override
@@ -5558,8 +5483,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * named constructors, this excludes the class name and excludes the ".".
    * For unnamed constructors, this is the empty string.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -5569,9 +5494,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
    * the offset of the end of the constructor name.  Otherwise zero.
    */
-  void set nameEnd(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameEnd = _value;
+  void set nameEnd(int value) {
+    assert(value == null || value >= 0);
+    this._nameEnd = value;
   }
 
   @override
@@ -5583,9 +5508,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * For unnamed constructors, this is the offset of the class name (i.e. the
    * offset of the second "C" in "class C { C(); }").
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   @override
@@ -5596,8 +5521,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * parameters (hence this will be the empty list), and setters have a single
    * parameter.
    */
-  void set parameters(List<UnlinkedParamBuilder> _value) {
-    _parameters = _value;
+  void set parameters(List<UnlinkedParamBuilder> value) {
+    this._parameters = value;
   }
 
   @override
@@ -5607,9 +5532,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * If [kind] is [UnlinkedExecutableKind.constructor] and [name] is not empty,
    * the offset of the period before the constructor name.  Otherwise zero.
    */
-  void set periodOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _periodOffset = _value;
+  void set periodOffset(int value) {
+    assert(value == null || value >= 0);
+    this._periodOffset = value;
   }
 
   @override
@@ -5619,8 +5544,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * If [isRedirectedConstructor] and [isFactory] are both `true`, the
    * constructor to which this constructor redirects; otherwise empty.
    */
-  void set redirectedConstructor(EntityRefBuilder _value) {
-    _redirectedConstructor = _value;
+  void set redirectedConstructor(EntityRefBuilder value) {
+    this._redirectedConstructor = value;
   }
 
   @override
@@ -5631,8 +5556,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * name of the constructor that this constructor redirects to; otherwise
    * empty.
    */
-  void set redirectedConstructorName(String _value) {
-    _redirectedConstructorName = _value;
+  void set redirectedConstructorName(String value) {
+    this._redirectedConstructorName = value;
   }
 
   @override
@@ -5645,8 +5570,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * executables may have return types that are not accessible via direct
    * imports.
    */
-  void set returnType(EntityRefBuilder _value) {
-    _returnType = _value;
+  void set returnType(EntityRefBuilder value) {
+    this._returnType = value;
   }
 
   @override
@@ -5656,8 +5581,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
    * Type parameters of the executable, if any.  Empty if support for generic
    * method syntax is disabled.
    */
-  void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
-    _typeParameters = _value;
+  void set typeParameters(List<UnlinkedTypeParamBuilder> value) {
+    this._typeParameters = value;
   }
 
   @override
@@ -5666,9 +5591,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * If a local function, the length of the visible range; zero otherwise.
    */
-  void set visibleLength(int _value) {
-    assert(_value == null || _value >= 0);
-    _visibleLength = _value;
+  void set visibleLength(int value) {
+    assert(value == null || value >= 0);
+    this._visibleLength = value;
   }
 
   @override
@@ -5677,9 +5602,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   /**
    * If a local function, the beginning of the visible range; zero otherwise.
    */
-  void set visibleOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _visibleOffset = _value;
+  void set visibleOffset(int value) {
+    assert(value == null || value >= 0);
+    this._visibleOffset = value;
   }
 
   UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder bodyExpr, CodeRangeBuilder codeRange, List<UnlinkedConstructorInitializerBuilder> constantInitializers, int constCycleSlot, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isAsynchronous, bool isConst, bool isExternal, bool isFactory, bool isGenerator, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
@@ -5735,6 +5660,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _redirectedConstructor?.flushInformative();
     _returnType?.flushInformative();
     _typeParameters?.forEach((b) => b.flushInformative());
+    _visibleLength = null;
+    _visibleOffset = null;
   }
 
   /**
@@ -5795,8 +5722,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
         x?.collectApiSignature(signature);
       }
     }
-    signature.addInt(this._visibleLength ?? 0);
-    signature.addInt(this._visibleOffset ?? 0);
     signature.addInt(this._constCycleSlot ?? 0);
     signature.addBool(this._bodyExpr != null);
     this._bodyExpr?.collectApiSignature(signature);
@@ -6266,8 +6191,8 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   /**
    * Annotations for this export directive.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -6276,9 +6201,9 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
   /**
    * Offset of the "export" keyword.
    */
-  void set offset(int _value) {
-    assert(_value == null || _value >= 0);
-    _offset = _value;
+  void set offset(int value) {
+    assert(value == null || value >= 0);
+    this._offset = value;
   }
 
   @override
@@ -6288,9 +6213,9 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    * End of the URI string (including quotes) relative to the beginning of the
    * file.
    */
-  void set uriEnd(int _value) {
-    assert(_value == null || _value >= 0);
-    _uriEnd = _value;
+  void set uriEnd(int value) {
+    assert(value == null || value >= 0);
+    this._uriEnd = value;
   }
 
   @override
@@ -6300,9 +6225,9 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
    * Offset of the URI string (including quotes) relative to the beginning of
    * the file.
    */
-  void set uriOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _uriOffset = _value;
+  void set uriOffset(int value) {
+    assert(value == null || value >= 0);
+    this._uriOffset = value;
   }
 
   UnlinkedExportNonPublicBuilder({List<UnlinkedConstBuilder> annotations, int offset, int uriEnd, int uriOffset})
@@ -6425,16 +6350,28 @@ abstract class _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPub
 
 class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   List<UnlinkedCombinatorBuilder> _combinators;
+  List<UnlinkedConfigurationBuilder> _configurations;
   String _uri;
 
   @override
   List<UnlinkedCombinatorBuilder> get combinators => _combinators ??= <UnlinkedCombinatorBuilder>[];
 
   /**
-   * Combinators contained in this import declaration.
+   * Combinators contained in this export declaration.
    */
-  void set combinators(List<UnlinkedCombinatorBuilder> _value) {
-    _combinators = _value;
+  void set combinators(List<UnlinkedCombinatorBuilder> value) {
+    this._combinators = value;
+  }
+
+  @override
+  List<UnlinkedConfigurationBuilder> get configurations => _configurations ??= <UnlinkedConfigurationBuilder>[];
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  void set configurations(List<UnlinkedConfigurationBuilder> value) {
+    this._configurations = value;
   }
 
   @override
@@ -6443,12 +6380,13 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   /**
    * URI used in the source code to reference the exported library.
    */
-  void set uri(String _value) {
-    _uri = _value;
+  void set uri(String value) {
+    this._uri = value;
   }
 
-  UnlinkedExportPublicBuilder({List<UnlinkedCombinatorBuilder> combinators, String uri})
+  UnlinkedExportPublicBuilder({List<UnlinkedCombinatorBuilder> combinators, List<UnlinkedConfigurationBuilder> configurations, String uri})
     : _combinators = combinators,
+      _configurations = configurations,
       _uri = uri;
 
   /**
@@ -6456,6 +6394,7 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
    */
   void flushInformative() {
     _combinators?.forEach((b) => b.flushInformative());
+    _configurations?.forEach((b) => b.flushInformative());
   }
 
   /**
@@ -6471,13 +6410,25 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
         x?.collectApiSignature(signature);
       }
     }
+    if (this._configurations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._configurations.length);
+      for (var x in this._configurations) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_combinators;
+    fb.Offset offset_configurations;
     fb.Offset offset_uri;
     if (!(_combinators == null || _combinators.isEmpty)) {
       offset_combinators = fbBuilder.writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_configurations == null || _configurations.isEmpty)) {
+      offset_configurations = fbBuilder.writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_uri != null) {
       offset_uri = fbBuilder.writeString(_uri);
@@ -6485,6 +6436,9 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
     fbBuilder.startTable();
     if (offset_combinators != null) {
       fbBuilder.addOffset(1, offset_combinators);
+    }
+    if (offset_configurations != null) {
+      fbBuilder.addOffset(2, offset_configurations);
     }
     if (offset_uri != null) {
       fbBuilder.addOffset(0, offset_uri);
@@ -6507,12 +6461,19 @@ class _UnlinkedExportPublicImpl extends Object with _UnlinkedExportPublicMixin i
   _UnlinkedExportPublicImpl(this._bc, this._bcOffset);
 
   List<idl.UnlinkedCombinator> _combinators;
+  List<idl.UnlinkedConfiguration> _configurations;
   String _uri;
 
   @override
   List<idl.UnlinkedCombinator> get combinators {
     _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bc, _bcOffset, 1, const <idl.UnlinkedCombinator>[]);
     return _combinators;
+  }
+
+  @override
+  List<idl.UnlinkedConfiguration> get configurations {
+    _configurations ??= const fb.ListReader<idl.UnlinkedConfiguration>(const _UnlinkedConfigurationReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedConfiguration>[]);
+    return _configurations;
   }
 
   @override
@@ -6527,6 +6488,7 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (combinators.isNotEmpty) _result["combinators"] = combinators.map((_value) => _value.toJson()).toList();
+    if (configurations.isNotEmpty) _result["configurations"] = configurations.map((_value) => _value.toJson()).toList();
     if (uri != '') _result["uri"] = uri;
     return _result;
   }
@@ -6534,6 +6496,7 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   @override
   Map<String, Object> toMap() => {
     "combinators": combinators,
+    "configurations": configurations,
     "uri": uri,
   };
 
@@ -6544,6 +6507,7 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
 class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
   List<UnlinkedConstBuilder> _annotations;
   List<UnlinkedCombinatorBuilder> _combinators;
+  List<UnlinkedConfigurationBuilder> _configurations;
   bool _isDeferred;
   bool _isImplicit;
   int _offset;
@@ -6559,8 +6523,8 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   /**
    * Annotations for this import declaration.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -6569,8 +6533,19 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   /**
    * Combinators contained in this import declaration.
    */
-  void set combinators(List<UnlinkedCombinatorBuilder> _value) {
-    _combinators = _value;
+  void set combinators(List<UnlinkedCombinatorBuilder> value) {
+    this._combinators = value;
+  }
+
+  @override
+  List<UnlinkedConfigurationBuilder> get configurations => _configurations ??= <UnlinkedConfigurationBuilder>[];
+
+  /**
+   * Configurations used to control which library will actually be loaded at
+   * run-time.
+   */
+  void set configurations(List<UnlinkedConfigurationBuilder> value) {
+    this._configurations = value;
   }
 
   @override
@@ -6579,8 +6554,8 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   /**
    * Indicates whether the import declaration uses the `deferred` keyword.
    */
-  void set isDeferred(bool _value) {
-    _isDeferred = _value;
+  void set isDeferred(bool value) {
+    this._isDeferred = value;
   }
 
   @override
@@ -6589,8 +6564,8 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   /**
    * Indicates whether the import declaration is implicit.
    */
-  void set isImplicit(bool _value) {
-    _isImplicit = _value;
+  void set isImplicit(bool value) {
+    this._isImplicit = value;
   }
 
   @override
@@ -6600,9 +6575,9 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * If [isImplicit] is false, offset of the "import" keyword.  If [isImplicit]
    * is true, zero.
    */
-  void set offset(int _value) {
-    assert(_value == null || _value >= 0);
-    _offset = _value;
+  void set offset(int value) {
+    assert(value == null || value >= 0);
+    this._offset = value;
   }
 
   @override
@@ -6612,9 +6587,9 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * Offset of the prefix name relative to the beginning of the file, or zero
    * if there is no prefix.
    */
-  void set prefixOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _prefixOffset = _value;
+  void set prefixOffset(int value) {
+    assert(value == null || value >= 0);
+    this._prefixOffset = value;
   }
 
   @override
@@ -6626,9 +6601,9 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    *
    * Note that multiple imports can declare the same prefix.
    */
-  void set prefixReference(int _value) {
-    assert(_value == null || _value >= 0);
-    _prefixReference = _value;
+  void set prefixReference(int value) {
+    assert(value == null || value >= 0);
+    this._prefixReference = value;
   }
 
   @override
@@ -6637,8 +6612,8 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   /**
    * URI used in the source code to reference the imported library.
    */
-  void set uri(String _value) {
-    _uri = _value;
+  void set uri(String value) {
+    this._uri = value;
   }
 
   @override
@@ -6648,9 +6623,9 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * End of the URI string (including quotes) relative to the beginning of the
    * file.  If [isImplicit] is true, zero.
    */
-  void set uriEnd(int _value) {
-    assert(_value == null || _value >= 0);
-    _uriEnd = _value;
+  void set uriEnd(int value) {
+    assert(value == null || value >= 0);
+    this._uriEnd = value;
   }
 
   @override
@@ -6660,14 +6635,15 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
    * Offset of the URI string (including quotes) relative to the beginning of
    * the file.  If [isImplicit] is true, zero.
    */
-  void set uriOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _uriOffset = _value;
+  void set uriOffset(int value) {
+    assert(value == null || value >= 0);
+    this._uriOffset = value;
   }
 
-  UnlinkedImportBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedCombinatorBuilder> combinators, bool isDeferred, bool isImplicit, int offset, int prefixOffset, int prefixReference, String uri, int uriEnd, int uriOffset})
+  UnlinkedImportBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedCombinatorBuilder> combinators, List<UnlinkedConfigurationBuilder> configurations, bool isDeferred, bool isImplicit, int offset, int prefixOffset, int prefixReference, String uri, int uriEnd, int uriOffset})
     : _annotations = annotations,
       _combinators = combinators,
+      _configurations = configurations,
       _isDeferred = isDeferred,
       _isImplicit = isImplicit,
       _offset = offset,
@@ -6683,6 +6659,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   void flushInformative() {
     _annotations?.forEach((b) => b.flushInformative());
     _combinators?.forEach((b) => b.flushInformative());
+    _configurations?.forEach((b) => b.flushInformative());
     _offset = null;
     _prefixOffset = null;
     _uriEnd = null;
@@ -6713,17 +6690,29 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
       }
     }
     signature.addBool(this._isDeferred == true);
+    if (this._configurations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._configurations.length);
+      for (var x in this._configurations) {
+        x?.collectApiSignature(signature);
+      }
+    }
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_annotations;
     fb.Offset offset_combinators;
+    fb.Offset offset_configurations;
     fb.Offset offset_uri;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_combinators == null || _combinators.isEmpty)) {
       offset_combinators = fbBuilder.writeList(_combinators.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_configurations == null || _configurations.isEmpty)) {
+      offset_configurations = fbBuilder.writeList(_configurations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_uri != null) {
       offset_uri = fbBuilder.writeString(_uri);
@@ -6734,6 +6723,9 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     }
     if (offset_combinators != null) {
       fbBuilder.addOffset(4, offset_combinators);
+    }
+    if (offset_configurations != null) {
+      fbBuilder.addOffset(10, offset_configurations);
     }
     if (_isDeferred == true) {
       fbBuilder.addBool(9, true);
@@ -6778,6 +6770,7 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
 
   List<idl.UnlinkedConst> _annotations;
   List<idl.UnlinkedCombinator> _combinators;
+  List<idl.UnlinkedConfiguration> _configurations;
   bool _isDeferred;
   bool _isImplicit;
   int _offset;
@@ -6797,6 +6790,12 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
   List<idl.UnlinkedCombinator> get combinators {
     _combinators ??= const fb.ListReader<idl.UnlinkedCombinator>(const _UnlinkedCombinatorReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedCombinator>[]);
     return _combinators;
+  }
+
+  @override
+  List<idl.UnlinkedConfiguration> get configurations {
+    _configurations ??= const fb.ListReader<idl.UnlinkedConfiguration>(const _UnlinkedConfigurationReader()).vTableGet(_bc, _bcOffset, 10, const <idl.UnlinkedConfiguration>[]);
+    return _configurations;
   }
 
   @override
@@ -6854,6 +6853,7 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
     if (combinators.isNotEmpty) _result["combinators"] = combinators.map((_value) => _value.toJson()).toList();
+    if (configurations.isNotEmpty) _result["configurations"] = configurations.map((_value) => _value.toJson()).toList();
     if (isDeferred != false) _result["isDeferred"] = isDeferred;
     if (isImplicit != false) _result["isImplicit"] = isImplicit;
     if (offset != 0) _result["offset"] = offset;
@@ -6869,6 +6869,7 @@ abstract class _UnlinkedImportMixin implements idl.UnlinkedImport {
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "combinators": combinators,
+    "configurations": configurations,
     "isDeferred": isDeferred,
     "isImplicit": isImplicit,
     "offset": offset,
@@ -6896,8 +6897,8 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
    * Return `true` if this label is associated with a `switch` member (`case` or
    * `default`).
    */
-  void set isOnSwitchMember(bool _value) {
-    _isOnSwitchMember = _value;
+  void set isOnSwitchMember(bool value) {
+    this._isOnSwitchMember = value;
   }
 
   @override
@@ -6906,8 +6907,8 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
   /**
    * Return `true` if this label is associated with a `switch` statement.
    */
-  void set isOnSwitchStatement(bool _value) {
-    _isOnSwitchStatement = _value;
+  void set isOnSwitchStatement(bool value) {
+    this._isOnSwitchStatement = value;
   }
 
   @override
@@ -6916,8 +6917,8 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
   /**
    * Name of the label.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -6926,9 +6927,9 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
   /**
    * Offset of the label relative to the beginning of the file.
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   UnlinkedLabelBuilder({bool isOnSwitchMember, bool isOnSwitchStatement, String name, int nameOffset})
@@ -7046,6 +7047,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   CodeRangeBuilder _codeRange;
   String _defaultValueCode;
   int _inferredTypeSlot;
+  int _inheritsCovariantSlot;
   UnlinkedExecutableBuilder _initializer;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
@@ -7063,8 +7065,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * Annotations for this parameter.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -7073,8 +7075,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * Code range of the parameter.
    */
-  void set codeRange(CodeRangeBuilder _value) {
-    _codeRange = _value;
+  void set codeRange(CodeRangeBuilder value) {
+    this._codeRange = value;
   }
 
   @override
@@ -7084,8 +7086,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * If the parameter has a default value, the source text of the constant
    * expression in the default value.  Otherwise the empty string.
    */
-  void set defaultValueCode(String _value) {
-    _defaultValueCode = _value;
+  void set defaultValueCode(String value) {
+    this._defaultValueCode = value;
   }
 
   @override
@@ -7102,9 +7104,25 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * not specified, they always inherit the static type of the corresponding
    * field.
    */
-  void set inferredTypeSlot(int _value) {
-    assert(_value == null || _value >= 0);
-    _inferredTypeSlot = _value;
+  void set inferredTypeSlot(int value) {
+    assert(value == null || value >= 0);
+    this._inferredTypeSlot = value;
+  }
+
+  @override
+  int get inheritsCovariantSlot => _inheritsCovariantSlot ??= 0;
+
+  /**
+   * If this is a parameter of an instance method, a nonzero slot id which is
+   * unique within this compilation unit.  If this id is found in
+   * [LinkedUnit.parametersInheritingCovariant], then this parameter inherits
+   * `@covariant` behavior from a base class.
+   *
+   * Otherwise, zero.
+   */
+  void set inheritsCovariantSlot(int value) {
+    assert(value == null || value >= 0);
+    this._inheritsCovariantSlot = value;
   }
 
   @override
@@ -7114,8 +7132,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * The synthetic initializer function of the parameter.  Absent if the variable
    * does not have an initializer.
    */
-  void set initializer(UnlinkedExecutableBuilder _value) {
-    _initializer = _value;
+  void set initializer(UnlinkedExecutableBuilder value) {
+    this._initializer = value;
   }
 
   @override
@@ -7124,8 +7142,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * Indicates whether this is a function-typed parameter.
    */
-  void set isFunctionTyped(bool _value) {
-    _isFunctionTyped = _value;
+  void set isFunctionTyped(bool value) {
+    this._isFunctionTyped = value;
   }
 
   @override
@@ -7135,8 +7153,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * Indicates whether this is an initializing formal parameter (i.e. it is
    * declared using `this.` syntax).
    */
-  void set isInitializingFormal(bool _value) {
-    _isInitializingFormal = _value;
+  void set isInitializingFormal(bool value) {
+    this._isInitializingFormal = value;
   }
 
   @override
@@ -7145,8 +7163,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * Kind of the parameter.
    */
-  void set kind(idl.UnlinkedParamKind _value) {
-    _kind = _value;
+  void set kind(idl.UnlinkedParamKind value) {
+    this._kind = value;
   }
 
   @override
@@ -7155,8 +7173,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * Name of the parameter.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -7165,9 +7183,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * Offset of the parameter name relative to the beginning of the file.
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   @override
@@ -7176,8 +7194,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * If [isFunctionTyped] is `true`, the parameters of the function type.
    */
-  void set parameters(List<UnlinkedParamBuilder> _value) {
-    _parameters = _value;
+  void set parameters(List<UnlinkedParamBuilder> value) {
+    this._parameters = value;
   }
 
   @override
@@ -7188,8 +7206,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
    * [isFunctionTyped] is `false`, the declared type.  Absent if the type is
    * implicit.
    */
-  void set type(EntityRefBuilder _value) {
-    _type = _value;
+  void set type(EntityRefBuilder value) {
+    this._type = value;
   }
 
   @override
@@ -7198,9 +7216,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * The length of the visible range.
    */
-  void set visibleLength(int _value) {
-    assert(_value == null || _value >= 0);
-    _visibleLength = _value;
+  void set visibleLength(int value) {
+    assert(value == null || value >= 0);
+    this._visibleLength = value;
   }
 
   @override
@@ -7209,16 +7227,17 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   /**
    * The beginning of the visible range.
    */
-  void set visibleOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _visibleOffset = _value;
+  void set visibleOffset(int value) {
+    assert(value == null || value >= 0);
+    this._visibleOffset = value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _codeRange = codeRange,
       _defaultValueCode = defaultValueCode,
       _inferredTypeSlot = inferredTypeSlot,
+      _inheritsCovariantSlot = inheritsCovariantSlot,
       _initializer = initializer,
       _isFunctionTyped = isFunctionTyped,
       _isInitializingFormal = isInitializingFormal,
@@ -7241,6 +7260,8 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _nameOffset = null;
     _parameters?.forEach((b) => b.flushInformative());
     _type?.flushInformative();
+    _visibleLength = null;
+    _visibleOffset = null;
   }
 
   /**
@@ -7270,10 +7291,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
         x?.collectApiSignature(signature);
       }
     }
-    signature.addInt(this._visibleLength ?? 0);
-    signature.addInt(this._visibleOffset ?? 0);
     signature.addBool(this._initializer != null);
     this._initializer?.collectApiSignature(signature);
+    signature.addInt(this._inheritsCovariantSlot ?? 0);
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -7317,6 +7337,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     }
     if (_inferredTypeSlot != null && _inferredTypeSlot != 0) {
       fbBuilder.addUint32(2, _inferredTypeSlot);
+    }
+    if (_inheritsCovariantSlot != null && _inheritsCovariantSlot != 0) {
+      fbBuilder.addUint32(14, _inheritsCovariantSlot);
     }
     if (offset_initializer != null) {
       fbBuilder.addOffset(12, offset_initializer);
@@ -7369,6 +7392,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   idl.CodeRange _codeRange;
   String _defaultValueCode;
   int _inferredTypeSlot;
+  int _inheritsCovariantSlot;
   idl.UnlinkedExecutable _initializer;
   bool _isFunctionTyped;
   bool _isInitializingFormal;
@@ -7402,6 +7426,12 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   int get inferredTypeSlot {
     _inferredTypeSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 2, 0);
     return _inferredTypeSlot;
+  }
+
+  @override
+  int get inheritsCovariantSlot {
+    _inheritsCovariantSlot ??= const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
+    return _inheritsCovariantSlot;
   }
 
   @override
@@ -7473,6 +7503,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (defaultValueCode != '') _result["defaultValueCode"] = defaultValueCode;
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
+    if (inheritsCovariantSlot != 0) _result["inheritsCovariantSlot"] = inheritsCovariantSlot;
     if (initializer != null) _result["initializer"] = initializer.toJson();
     if (isFunctionTyped != false) _result["isFunctionTyped"] = isFunctionTyped;
     if (isInitializingFormal != false) _result["isInitializingFormal"] = isInitializingFormal;
@@ -7492,6 +7523,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
     "codeRange": codeRange,
     "defaultValueCode": defaultValueCode,
     "inferredTypeSlot": inferredTypeSlot,
+    "inheritsCovariantSlot": inheritsCovariantSlot,
     "initializer": initializer,
     "isFunctionTyped": isFunctionTyped,
     "isInitializingFormal": isInitializingFormal,
@@ -7519,8 +7551,8 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
   /**
    * Annotations for this part declaration.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -7530,9 +7562,9 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
    * End of the URI string (including quotes) relative to the beginning of the
    * file.
    */
-  void set uriEnd(int _value) {
-    assert(_value == null || _value >= 0);
-    _uriEnd = _value;
+  void set uriEnd(int value) {
+    assert(value == null || value >= 0);
+    this._uriEnd = value;
   }
 
   @override
@@ -7542,9 +7574,9 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
    * Offset of the URI string (including quotes) relative to the beginning of
    * the file.
    */
-  void set uriOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _uriOffset = _value;
+  void set uriOffset(int value) {
+    assert(value == null || value >= 0);
+    this._uriOffset = value;
   }
 
   UnlinkedPartBuilder({List<UnlinkedConstBuilder> annotations, int uriEnd, int uriOffset})
@@ -7663,8 +7695,8 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   /**
    * The kind of object referred to by the name.
    */
-  void set kind(idl.ReferenceKind _value) {
-    _kind = _value;
+  void set kind(idl.ReferenceKind value) {
+    this._kind = value;
   }
 
   @override
@@ -7678,8 +7710,8 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
    * Unnamed constructors are not included since they do not constitute a
    * separate name added to any namespace.
    */
-  void set members(List<UnlinkedPublicNameBuilder> _value) {
-    _members = _value;
+  void set members(List<UnlinkedPublicNameBuilder> value) {
+    this._members = value;
   }
 
   @override
@@ -7688,8 +7720,8 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
   /**
    * The name itself.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -7699,9 +7731,9 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
    * If the entity being referred to is generic, the number of type parameters
    * it accepts.  Otherwise zero.
    */
-  void set numTypeParameters(int _value) {
-    assert(_value == null || _value >= 0);
-    _numTypeParameters = _value;
+  void set numTypeParameters(int value) {
+    assert(value == null || value >= 0);
+    this._numTypeParameters = value;
   }
 
   UnlinkedPublicNameBuilder({idl.ReferenceKind kind, List<UnlinkedPublicNameBuilder> members, String name, int numTypeParameters})
@@ -7837,8 +7869,8 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
   /**
    * Export declarations in the compilation unit.
    */
-  void set exports(List<UnlinkedExportPublicBuilder> _value) {
-    _exports = _value;
+  void set exports(List<UnlinkedExportPublicBuilder> value) {
+    this._exports = value;
   }
 
   @override
@@ -7850,8 +7882,8 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
    * TODO(paulberry): consider sorting these names to reduce unnecessary
    * relinking.
    */
-  void set names(List<UnlinkedPublicNameBuilder> _value) {
-    _names = _value;
+  void set names(List<UnlinkedPublicNameBuilder> value) {
+    this._names = value;
   }
 
   @override
@@ -7860,8 +7892,8 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
   /**
    * URIs referenced by part declarations in the compilation unit.
    */
-  void set parts(List<String> _value) {
-    _parts = _value;
+  void set parts(List<String> value) {
+    this._parts = value;
   }
 
   UnlinkedPublicNamespaceBuilder({List<UnlinkedExportPublicBuilder> exports, List<UnlinkedPublicNameBuilder> names, List<String> parts})
@@ -8013,8 +8045,8 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
    * string is "dynamic".  For the pseudo-type `void`, the string is "void".
    * For the pseudo-type `bottom`, the string is "*bottom*".
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -8028,9 +8060,9 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
    * UnlinkedUnit.references[i].prefixReference != 0, then
    * UnlinkedUnit.references[i].prefixReference < i.
    */
-  void set prefixReference(int _value) {
-    assert(_value == null || _value >= 0);
-    _prefixReference = _value;
+  void set prefixReference(int value) {
+    assert(value == null || value >= 0);
+    this._prefixReference = value;
   }
 
   UnlinkedReferenceBuilder({String name, int prefixReference})
@@ -8131,8 +8163,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   /**
    * Annotations for this typedef.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -8141,8 +8173,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   /**
    * Code range of the typedef.
    */
-  void set codeRange(CodeRangeBuilder _value) {
-    _codeRange = _value;
+  void set codeRange(CodeRangeBuilder value) {
+    this._codeRange = value;
   }
 
   @override
@@ -8152,8 +8184,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
    * Documentation comment for the typedef, or `null` if there is no
    * documentation comment.
    */
-  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    _documentationComment = _value;
+  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+    this._documentationComment = value;
   }
 
   @override
@@ -8162,8 +8194,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   /**
    * Name of the typedef.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -8172,9 +8204,9 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   /**
    * Offset of the typedef name relative to the beginning of the file.
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   @override
@@ -8183,8 +8215,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   /**
    * Parameters of the executable, if any.
    */
-  void set parameters(List<UnlinkedParamBuilder> _value) {
-    _parameters = _value;
+  void set parameters(List<UnlinkedParamBuilder> value) {
+    this._parameters = value;
   }
 
   @override
@@ -8193,8 +8225,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   /**
    * Return type of the typedef.
    */
-  void set returnType(EntityRefBuilder _value) {
-    _returnType = _value;
+  void set returnType(EntityRefBuilder value) {
+    this._returnType = value;
   }
 
   @override
@@ -8203,8 +8235,8 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   /**
    * Type parameters of the typedef, if any.
    */
-  void set typeParameters(List<UnlinkedTypeParamBuilder> _value) {
-    _typeParameters = _value;
+  void set typeParameters(List<UnlinkedTypeParamBuilder> value) {
+    this._typeParameters = value;
   }
 
   UnlinkedTypedefBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
@@ -8436,8 +8468,8 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   /**
    * Annotations for this type parameter.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -8447,8 +8479,8 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
    * null.
    */
-  void set bound(EntityRefBuilder _value) {
-    _bound = _value;
+  void set bound(EntityRefBuilder value) {
+    this._bound = value;
   }
 
   @override
@@ -8457,8 +8489,8 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   /**
    * Code range of the type parameter.
    */
-  void set codeRange(CodeRangeBuilder _value) {
-    _codeRange = _value;
+  void set codeRange(CodeRangeBuilder value) {
+    this._codeRange = value;
   }
 
   @override
@@ -8467,8 +8499,8 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   /**
    * Name of the type parameter.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -8477,9 +8509,9 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   /**
    * Offset of the type parameter name relative to the beginning of the file.
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   UnlinkedTypeParamBuilder({List<UnlinkedConstBuilder> annotations, EntityRefBuilder bound, CodeRangeBuilder codeRange, String name, int nameOffset})
@@ -8636,6 +8668,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   List<UnlinkedExportNonPublicBuilder> _exports;
   String _fallbackModePath;
   List<UnlinkedImportBuilder> _imports;
+  bool _isPartOf;
   List<UnlinkedConstBuilder> _libraryAnnotations;
   UnlinkedDocumentationCommentBuilder _libraryDocumentationComment;
   String _libraryName;
@@ -8654,8 +8687,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Classes declared in the compilation unit.
    */
-  void set classes(List<UnlinkedClassBuilder> _value) {
-    _classes = _value;
+  void set classes(List<UnlinkedClassBuilder> value) {
+    this._classes = value;
   }
 
   @override
@@ -8664,8 +8697,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Code range of the unit.
    */
-  void set codeRange(CodeRangeBuilder _value) {
-    _codeRange = _value;
+  void set codeRange(CodeRangeBuilder value) {
+    this._codeRange = value;
   }
 
   @override
@@ -8674,8 +8707,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Enums declared in the compilation unit.
    */
-  void set enums(List<UnlinkedEnumBuilder> _value) {
-    _enums = _value;
+  void set enums(List<UnlinkedEnumBuilder> value) {
+    this._enums = value;
   }
 
   @override
@@ -8685,8 +8718,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Top level executable objects (functions, getters, and setters) declared in
    * the compilation unit.
    */
-  void set executables(List<UnlinkedExecutableBuilder> _value) {
-    _executables = _value;
+  void set executables(List<UnlinkedExecutableBuilder> value) {
+    this._executables = value;
   }
 
   @override
@@ -8695,8 +8728,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Export declarations in the compilation unit.
    */
-  void set exports(List<UnlinkedExportNonPublicBuilder> _value) {
-    _exports = _value;
+  void set exports(List<UnlinkedExportNonPublicBuilder> value) {
+    this._exports = value;
   }
 
   @override
@@ -8709,8 +8742,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * When this field is non-empty, all other fields in the data structure have
    * their default values.
    */
-  void set fallbackModePath(String _value) {
-    _fallbackModePath = _value;
+  void set fallbackModePath(String value) {
+    this._fallbackModePath = value;
   }
 
   @override
@@ -8719,8 +8752,18 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Import declarations in the compilation unit.
    */
-  void set imports(List<UnlinkedImportBuilder> _value) {
-    _imports = _value;
+  void set imports(List<UnlinkedImportBuilder> value) {
+    this._imports = value;
+  }
+
+  @override
+  bool get isPartOf => _isPartOf ??= false;
+
+  /**
+   * Indicates whether the unit contains a "part of" declaration.
+   */
+  void set isPartOf(bool value) {
+    this._isPartOf = value;
   }
 
   @override
@@ -8730,8 +8773,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Annotations for the library declaration, or the empty list if there is no
    * library declaration.
    */
-  void set libraryAnnotations(List<UnlinkedConstBuilder> _value) {
-    _libraryAnnotations = _value;
+  void set libraryAnnotations(List<UnlinkedConstBuilder> value) {
+    this._libraryAnnotations = value;
   }
 
   @override
@@ -8741,8 +8784,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Documentation comment for the library, or `null` if there is no
    * documentation comment.
    */
-  void set libraryDocumentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    _libraryDocumentationComment = _value;
+  void set libraryDocumentationComment(UnlinkedDocumentationCommentBuilder value) {
+    this._libraryDocumentationComment = value;
   }
 
   @override
@@ -8751,8 +8794,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Name of the library (from a "library" declaration, if present).
    */
-  void set libraryName(String _value) {
-    _libraryName = _value;
+  void set libraryName(String value) {
+    this._libraryName = value;
   }
 
   @override
@@ -8762,9 +8805,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Length of the library name as it appears in the source code (or 0 if the
    * library has no name).
    */
-  void set libraryNameLength(int _value) {
-    assert(_value == null || _value >= 0);
-    _libraryNameLength = _value;
+  void set libraryNameLength(int value) {
+    assert(value == null || value >= 0);
+    this._libraryNameLength = value;
   }
 
   @override
@@ -8774,9 +8817,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * Offset of the library name relative to the beginning of the file (or 0 if
    * the library has no name).
    */
-  void set libraryNameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _libraryNameOffset = _value;
+  void set libraryNameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._libraryNameOffset = value;
   }
 
   @override
@@ -8785,9 +8828,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Offsets of the first character of each line in the source code.
    */
-  void set lineStarts(List<int> _value) {
-    assert(_value == null || _value.every((e) => e >= 0));
-    _lineStarts = _value;
+  void set lineStarts(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._lineStarts = value;
   }
 
   @override
@@ -8796,8 +8839,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Part declarations in the compilation unit.
    */
-  void set parts(List<UnlinkedPartBuilder> _value) {
-    _parts = _value;
+  void set parts(List<UnlinkedPartBuilder> value) {
+    this._parts = value;
   }
 
   @override
@@ -8806,8 +8849,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Unlinked public namespace of this compilation unit.
    */
-  void set publicNamespace(UnlinkedPublicNamespaceBuilder _value) {
-    _publicNamespace = _value;
+  void set publicNamespace(UnlinkedPublicNamespaceBuilder value) {
+    this._publicNamespace = value;
   }
 
   @override
@@ -8820,8 +8863,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    * example [UnlinkedReference.prefixReference or
    * UnlinkedImport.prefixReference]).
    */
-  void set references(List<UnlinkedReferenceBuilder> _value) {
-    _references = _value;
+  void set references(List<UnlinkedReferenceBuilder> value) {
+    this._references = value;
   }
 
   @override
@@ -8830,8 +8873,8 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Typedefs declared in the compilation unit.
    */
-  void set typedefs(List<UnlinkedTypedefBuilder> _value) {
-    _typedefs = _value;
+  void set typedefs(List<UnlinkedTypedefBuilder> value) {
+    this._typedefs = value;
   }
 
   @override
@@ -8840,11 +8883,11 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   /**
    * Top level variables declared in the compilation unit.
    */
-  void set variables(List<UnlinkedVariableBuilder> _value) {
-    _variables = _value;
+  void set variables(List<UnlinkedVariableBuilder> value) {
+    this._variables = value;
   }
 
-  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, bool isPartOf, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
     : _classes = classes,
       _codeRange = codeRange,
       _enums = enums,
@@ -8852,6 +8895,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       _exports = exports,
       _fallbackModePath = fallbackModePath,
       _imports = imports,
+      _isPartOf = isPartOf,
       _libraryAnnotations = libraryAnnotations,
       _libraryDocumentationComment = libraryDocumentationComment,
       _libraryName = libraryName,
@@ -8974,6 +9018,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       }
     }
     signature.addString(this._fallbackModePath ?? '');
+    signature.addBool(this._isPartOf == true);
   }
 
   List<int> toBuffer() {
@@ -9068,6 +9113,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     if (offset_imports != null) {
       fbBuilder.addOffset(5, offset_imports);
     }
+    if (_isPartOf == true) {
+      fbBuilder.addBool(18, true);
+    }
     if (offset_libraryAnnotations != null) {
       fbBuilder.addOffset(14, offset_libraryAnnotations);
     }
@@ -9130,6 +9178,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedExportNonPublic> _exports;
   String _fallbackModePath;
   List<idl.UnlinkedImport> _imports;
+  bool _isPartOf;
   List<idl.UnlinkedConst> _libraryAnnotations;
   idl.UnlinkedDocumentationComment _libraryDocumentationComment;
   String _libraryName;
@@ -9182,6 +9231,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedImport> get imports {
     _imports ??= const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedImport>[]);
     return _imports;
+  }
+
+  @override
+  bool get isPartOf {
+    _isPartOf ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 18, false);
+    return _isPartOf;
   }
 
   @override
@@ -9262,6 +9317,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
     if (fallbackModePath != '') _result["fallbackModePath"] = fallbackModePath;
     if (imports.isNotEmpty) _result["imports"] = imports.map((_value) => _value.toJson()).toList();
+    if (isPartOf != false) _result["isPartOf"] = isPartOf;
     if (libraryAnnotations.isNotEmpty) _result["libraryAnnotations"] = libraryAnnotations.map((_value) => _value.toJson()).toList();
     if (libraryDocumentationComment != null) _result["libraryDocumentationComment"] = libraryDocumentationComment.toJson();
     if (libraryName != '') _result["libraryName"] = libraryName;
@@ -9285,6 +9341,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     "exports": exports,
     "fallbackModePath": fallbackModePath,
     "imports": imports,
+    "isPartOf": isPartOf,
     "libraryAnnotations": libraryAnnotations,
     "libraryDocumentationComment": libraryDocumentationComment,
     "libraryName": libraryName,
@@ -9324,8 +9381,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * Annotations for this variable.
    */
-  void set annotations(List<UnlinkedConstBuilder> _value) {
-    _annotations = _value;
+  void set annotations(List<UnlinkedConstBuilder> value) {
+    this._annotations = value;
   }
 
   @override
@@ -9334,8 +9391,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * Code range of the variable.
    */
-  void set codeRange(CodeRangeBuilder _value) {
-    _codeRange = _value;
+  void set codeRange(CodeRangeBuilder value) {
+    this._codeRange = value;
   }
 
   @override
@@ -9345,8 +9402,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * Documentation comment for the variable, or `null` if there is no
    * documentation comment.
    */
-  void set documentationComment(UnlinkedDocumentationCommentBuilder _value) {
-    _documentationComment = _value;
+  void set documentationComment(UnlinkedDocumentationCommentBuilder value) {
+    this._documentationComment = value;
   }
 
   @override
@@ -9358,9 +9415,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * there is no matching entry in [LinkedLibrary.types], then no type was
    * inferred for this variable, so its static type is `dynamic`.
    */
-  void set inferredTypeSlot(int _value) {
-    assert(_value == null || _value >= 0);
-    _inferredTypeSlot = _value;
+  void set inferredTypeSlot(int value) {
+    assert(value == null || value >= 0);
+    this._inferredTypeSlot = value;
   }
 
   @override
@@ -9370,8 +9427,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * The synthetic initializer function of the variable.  Absent if the variable
    * does not have an initializer.
    */
-  void set initializer(UnlinkedExecutableBuilder _value) {
-    _initializer = _value;
+  void set initializer(UnlinkedExecutableBuilder value) {
+    this._initializer = value;
   }
 
   @override
@@ -9380,8 +9437,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * Indicates whether the variable is declared using the `const` keyword.
    */
-  void set isConst(bool _value) {
-    _isConst = _value;
+  void set isConst(bool value) {
+    this._isConst = value;
   }
 
   @override
@@ -9390,8 +9447,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * Indicates whether the variable is declared using the `final` keyword.
    */
-  void set isFinal(bool _value) {
-    _isFinal = _value;
+  void set isFinal(bool value) {
+    this._isFinal = value;
   }
 
   @override
@@ -9404,8 +9461,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    * declared using the `static` keyword (even though they are considered
    * static for semantic purposes).
    */
-  void set isStatic(bool _value) {
-    _isStatic = _value;
+  void set isStatic(bool value) {
+    this._isStatic = value;
   }
 
   @override
@@ -9414,8 +9471,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * Name of the variable.
    */
-  void set name(String _value) {
-    _name = _value;
+  void set name(String value) {
+    this._name = value;
   }
 
   @override
@@ -9424,9 +9481,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * Offset of the variable name relative to the beginning of the file.
    */
-  void set nameOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _nameOffset = _value;
+  void set nameOffset(int value) {
+    assert(value == null || value >= 0);
+    this._nameOffset = value;
   }
 
   @override
@@ -9440,9 +9497,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
    *
    * Non-propagable variables have a [propagatedTypeSlot] of zero.
    */
-  void set propagatedTypeSlot(int _value) {
-    assert(_value == null || _value >= 0);
-    _propagatedTypeSlot = _value;
+  void set propagatedTypeSlot(int value) {
+    assert(value == null || value >= 0);
+    this._propagatedTypeSlot = value;
   }
 
   @override
@@ -9451,8 +9508,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * Declared type of the variable.  Absent if the type is implicit.
    */
-  void set type(EntityRefBuilder _value) {
-    _type = _value;
+  void set type(EntityRefBuilder value) {
+    this._type = value;
   }
 
   @override
@@ -9461,9 +9518,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * If a local variable, the length of the visible range; zero otherwise.
    */
-  void set visibleLength(int _value) {
-    assert(_value == null || _value >= 0);
-    _visibleLength = _value;
+  void set visibleLength(int value) {
+    assert(value == null || value >= 0);
+    this._visibleLength = value;
   }
 
   @override
@@ -9472,9 +9529,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   /**
    * If a local variable, the beginning of the visible range; zero otherwise.
    */
-  void set visibleOffset(int _value) {
-    assert(_value == null || _value >= 0);
-    _visibleOffset = _value;
+  void set visibleOffset(int value) {
+    assert(value == null || value >= 0);
+    this._visibleOffset = value;
   }
 
   UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
@@ -9503,6 +9560,8 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _initializer?.flushInformative();
     _nameOffset = null;
     _type?.flushInformative();
+    _visibleLength = null;
+    _visibleOffset = null;
   }
 
   /**
@@ -9525,8 +9584,6 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       }
     }
     signature.addInt(this._inferredTypeSlot ?? 0);
-    signature.addInt(this._visibleLength ?? 0);
-    signature.addInt(this._visibleOffset ?? 0);
     signature.addBool(this._initializer != null);
     this._initializer?.collectApiSignature(signature);
   }

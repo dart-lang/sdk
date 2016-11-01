@@ -21,7 +21,7 @@ import '../types/types.dart' show TypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 
 /**
  * The interface [InferrerVisitor] will use when working on types.
@@ -950,19 +950,12 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   T get thisType {
     if (_thisType != null) return _thisType;
     ClassElement cls = outermostElement.enclosingClass;
-    ClassWorld classWorld = compiler.world;
-    if (classWorld.isUsedAsMixin(cls)) {
+    ClosedWorld closedWorld = compiler.closedWorld;
+    if (closedWorld.isUsedAsMixin(cls)) {
       return _thisType = types.nonNullSubtype(cls);
     } else {
       return _thisType = types.nonNullSubclass(cls);
     }
-  }
-
-  T _superType;
-  T get superType {
-    if (_superType != null) return _superType;
-    return _superType =
-        types.nonNullExact(outermostElement.enclosingClass.superclass);
   }
 
   @override
@@ -974,7 +967,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     if (node.isThis()) {
       return thisType;
     } else if (node.isSuper()) {
-      return superType;
+      return internalError(node, 'Unexpected expression $node.');
     } else {
       Element element = elements[node];
       if (Elements.isLocal(element)) {

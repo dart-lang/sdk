@@ -31,18 +31,6 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 
 
-void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Assembler* assembler = compiler->assembler();
-#define __ assembler->
-  __ Bind(entry_label());
-  __ Comment("MegamorphicSlowPath");
-  compiler->EmitMegamorphicInstanceCall(ic_data_, argument_count_, deopt_id_,
-                                        token_pos_, locs_, try_index_);
-  __ jmp(exit_label());
-#undef __
-}
-
-
 FlowGraphCompiler::~FlowGraphCompiler() {
   // BlockInfos are zone-allocated, so their destructors are not called.
   // Verify the labels explicitly here.
@@ -390,11 +378,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   } else {
     __ j(ZERO, is_not_instance_lbl);
   }
-  // Compare if the classes are equal.
   const Register kClassIdReg = ECX;
   __ LoadClassId(kClassIdReg, kInstanceReg);
-  __ cmpl(kClassIdReg, Immediate(type_class.id()));
-  __ j(EQUAL, is_instance_lbl);
   // See ClassFinalizer::ResolveSuperTypeAndInterfaces for list of restricted
   // interfaces.
   // Bool interface can be implemented only by core class Bool.
@@ -404,15 +389,9 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ jmp(is_not_instance_lbl);
     return false;
   }
-  if (type.IsDartFunctionType()) {
-    // Check if instance is a closure.
-    __ cmpl(kClassIdReg, Immediate(kClosureCid));
-    __ j(EQUAL, is_instance_lbl);
-  }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(
-          Type::Handle(zone(), Type::Number()), NULL, NULL, Heap::kOld)) {
+  if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType()) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -420,6 +399,17 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (type.IsStringType()) {
     GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
     return false;
+  }
+  if (type.IsDartFunctionType()) {
+    // Check if instance is a closure.
+    __ cmpl(kClassIdReg, Immediate(kClosureCid));
+    __ j(EQUAL, is_instance_lbl);
+    return true;  // Fall through
+  }
+  // Compare if the classes are equal.
+  if (!type_class.is_abstract()) {
+    __ cmpl(kClassIdReg, Immediate(type_class.id()));
+    __ j(EQUAL, is_instance_lbl);
   }
   // Otherwise fallthrough.
   return true;
@@ -1133,16 +1123,6 @@ void FlowGraphCompiler::CompileGraph() {
 
   __ int3();
   GenerateDeferredCode();
-
-  BeginCodeSourceRange();
-  if (is_optimizing() && !FLAG_precompiled_mode) {
-    // Leave enough space for patching in case of lazy deoptimization from
-    // deferred code.
-    __ nop(CallPattern::pattern_length_in_bytes());
-    lazy_deopt_pc_offset_ = assembler()->CodeSize();
-    __ Jmp(*StubCode::DeoptimizeLazy_entry());
-  }
-  EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }
 
 
@@ -1168,7 +1148,7 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
@@ -1190,7 +1170,7 @@ void FlowGraphCompiler::GenerateRuntimeCall(TokenPosition token_pos,
     // deoptimization point in optimized code, after call.
     const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
     if (is_optimizing()) {
-      AddDeoptIndexAtCall(deopt_id_after, token_pos);
+      AddDeoptIndexAtCall(deopt_id_after);
     } else {
       // Add deoptimization continuation point after the call and before the
       // arguments are removed.
@@ -1309,7 +1289,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     __ Comment("Slow case: megamorphic call");
   }
   __ LoadObject(ECX, cache);
-  __ call(Address(THR, Thread::megamorphic_lookup_checked_entry_offset()));
+  __ call(Address(THR, Thread::megamorphic_call_checked_entry_offset()));
   __ call(EBX);
 
   __ Bind(&done);
@@ -1320,7 +1300,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   // Precompilation not implemented on ia32 platform.
   ASSERT(!FLAG_precompiled_mode);
   if (is_optimizing()) {
-    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+    AddDeoptIndexAtCall(deopt_id_after);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.

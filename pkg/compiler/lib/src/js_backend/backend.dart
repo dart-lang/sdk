@@ -11,20 +11,17 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart'
-    show Backend, ImpactTransformer, ForeignResolver, NativeRegistry;
+    show
+        Backend,
+        BackendClasses,
+        ImpactTransformer,
+        ForeignResolver,
+        NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Selectors, Uris;
-import '../common/registry.dart' show EagerRegistry, Registry;
-import '../common/resolution.dart'
-    show
-        Feature,
-        Frontend,
-        ListLiteralUse,
-        MapLiteralUse,
-        Resolution,
-        ResolutionImpact;
+import '../common/registry.dart' show Registry;
+import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
-import '../common/work.dart' show ItemCompilationContext;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
@@ -34,7 +31,8 @@ import '../dart_types.dart';
 import '../deferred_load.dart' show DeferredLoadTask;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
-import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
+import '../enqueue.dart'
+    show Enqueuer, ResolutionEnqueuer, TreeShakingEnqueuerStrategy;
 import '../io/position_information.dart' show PositionSourceInformationStrategy;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../io/start_end_information.dart'
@@ -46,13 +44,13 @@ import '../js/rewrite_async.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
-import '../ssa/builder.dart' show SsaFunctionCompiler;
-import '../ssa/nodes.dart' show HInstruction;
+import '../ssa/ssa.dart' show SsaFunctionCompiler;
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
-import '../universe/selector.dart' show Selector, SelectorKind;
-import '../universe/universe.dart';
+import '../universe/feature.dart';
+import '../universe/selector.dart' show Selector;
+import '../universe/world_builder.dart';
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart'
@@ -61,16 +59,20 @@ import '../universe/world_impact.dart'
         ImpactUseCase,
         TransformedWorldImpact,
         WorldImpact,
-        WorldImpactVisitor;
+        WorldImpactBuilder,
+        WorldImpactVisitor,
+        StagedWorldImpactBuilder;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
 import 'backend_serialization.dart' show JavaScriptBackendSerialization;
 import 'checked_mode_helpers.dart';
 import 'constant_handler_javascript.dart';
 import 'custom_elements_analysis.dart';
+import 'enqueuer.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
+import '../kernel/task.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
 import 'namer.dart';
 import 'native_data.dart' show NativeData;
@@ -81,11 +83,6 @@ import 'type_variable_handler.dart';
 part 'runtime_types.dart';
 
 const VERBOSE_OPTIMIZER_HINTS = false;
-
-class JavaScriptItemCompilationContext extends ItemCompilationContext {
-  final Set<HInstruction> boundsChecked = new Set<HInstruction>();
-  final Set<HInstruction> allocatedFixedLists = new Set<HInstruction>();
-}
 
 abstract class FunctionCompiler {
   /// Generates JavaScript code for `work.element`.
@@ -325,7 +322,7 @@ class JavaScriptBackend extends Backend {
    * The generated code as a js AST for compiled methods.
    */
   Map<Element, jsAst.Expression> get generatedCode {
-    return compiler.enqueuer.codegen.generatedCode;
+    return codegenEnqueuer.generatedCode;
   }
 
   FunctionInlineCache inlineCache = new FunctionInlineCache();
@@ -339,23 +336,24 @@ class JavaScriptBackend extends Backend {
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
   Element traceHelper;
 
-  TypeMask get stringType => compiler.typesTask.stringType;
-  TypeMask get doubleType => compiler.typesTask.doubleType;
-  TypeMask get intType => compiler.typesTask.intType;
-  TypeMask get uint32Type => compiler.typesTask.uint32Type;
-  TypeMask get uint31Type => compiler.typesTask.uint31Type;
-  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
-  TypeMask get numType => compiler.typesTask.numType;
-  TypeMask get boolType => compiler.typesTask.boolType;
-  TypeMask get dynamicType => compiler.typesTask.dynamicType;
-  TypeMask get nullType => compiler.typesTask.nullType;
+  TypeMask get stringType => compiler.commonMasks.stringType;
+  TypeMask get doubleType => compiler.commonMasks.doubleType;
+  TypeMask get intType => compiler.commonMasks.intType;
+  TypeMask get uint32Type => compiler.commonMasks.uint32Type;
+  TypeMask get uint31Type => compiler.commonMasks.uint31Type;
+  TypeMask get positiveIntType => compiler.commonMasks.positiveIntType;
+  TypeMask get numType => compiler.commonMasks.numType;
+  TypeMask get boolType => compiler.commonMasks.boolType;
+  TypeMask get dynamicType => compiler.commonMasks.dynamicType;
+  TypeMask get nullType => compiler.commonMasks.nullType;
   TypeMask get emptyType => const TypeMask.nonNullEmpty();
+  TypeMask get nonNullType => compiler.commonMasks.nonNullType;
 
   TypeMask _indexablePrimitiveTypeCache;
   TypeMask get indexablePrimitiveType {
     if (_indexablePrimitiveTypeCache == null) {
-      _indexablePrimitiveTypeCache =
-          new TypeMask.nonNullSubtype(helpers.jsIndexableClass, compiler.world);
+      _indexablePrimitiveTypeCache = new TypeMask.nonNullSubtype(
+          helpers.jsIndexableClass, compiler.closedWorld);
     }
     return _indexablePrimitiveTypeCache;
   }
@@ -363,8 +361,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _readableArrayTypeCache;
   TypeMask get readableArrayType {
     if (_readableArrayTypeCache == null) {
-      _readableArrayTypeCache =
-          new TypeMask.nonNullSubclass(helpers.jsArrayClass, compiler.world);
+      _readableArrayTypeCache = new TypeMask.nonNullSubclass(
+          helpers.jsArrayClass, compiler.closedWorld);
     }
     return _readableArrayTypeCache;
   }
@@ -373,7 +371,7 @@ class JavaScriptBackend extends Backend {
   TypeMask get mutableArrayType {
     if (_mutableArrayTypeCache == null) {
       _mutableArrayTypeCache = new TypeMask.nonNullSubclass(
-          helpers.jsMutableArrayClass, compiler.world);
+          helpers.jsMutableArrayClass, compiler.closedWorld);
     }
     return _mutableArrayTypeCache;
   }
@@ -381,8 +379,8 @@ class JavaScriptBackend extends Backend {
   TypeMask _fixedArrayTypeCache;
   TypeMask get fixedArrayType {
     if (_fixedArrayTypeCache == null) {
-      _fixedArrayTypeCache =
-          new TypeMask.nonNullExact(helpers.jsFixedArrayClass, compiler.world);
+      _fixedArrayTypeCache = new TypeMask.nonNullExact(
+          helpers.jsFixedArrayClass, compiler.closedWorld);
     }
     return _fixedArrayTypeCache;
   }
@@ -391,7 +389,7 @@ class JavaScriptBackend extends Backend {
   TypeMask get extendableArrayType {
     if (_extendableArrayTypeCache == null) {
       _extendableArrayTypeCache = new TypeMask.nonNullExact(
-          helpers.jsExtendableArrayClass, compiler.world);
+          helpers.jsExtendableArrayClass, compiler.closedWorld);
     }
     return _extendableArrayTypeCache;
   }
@@ -400,17 +398,9 @@ class JavaScriptBackend extends Backend {
   TypeMask get unmodifiableArrayType {
     if (_unmodifiableArrayTypeCache == null) {
       _unmodifiableArrayTypeCache = new TypeMask.nonNullExact(
-          helpers.jsUnmodifiableArrayClass, compiler.world);
+          helpers.jsUnmodifiableArrayClass, compiler.closedWorld);
     }
     return _fixedArrayTypeCache;
-  }
-
-  TypeMask _nonNullTypeCache;
-  TypeMask get nonNullType {
-    if (_nonNullTypeCache == null) {
-      _nonNullTypeCache = compiler.typesTask.dynamicType.nonNullable();
-    }
-    return _nonNullTypeCache;
   }
 
   /// Maps special classes to their implementation (JSXxx) class.
@@ -486,6 +476,7 @@ class JavaScriptBackend extends Backend {
     List<CompilerTask> result = functionCompiler.tasks;
     result.add(emitter);
     result.add(patchResolverTask);
+    result.add(kernelTask);
     return result;
   }
 
@@ -523,6 +514,9 @@ class JavaScriptBackend extends Backend {
 
   /// True if the html library has been loaded.
   bool htmlLibraryIsLoaded = false;
+
+  /// True when we enqueue the loadLibrary code.
+  bool isLoadLibraryFunctionResolved = false;
 
   /// List of constants from metadata.  If metadata must be preserved,
   /// these constants must be registered.
@@ -578,6 +572,9 @@ class JavaScriptBackend extends Backend {
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
 
+  /// Builds kernel representation for the program.
+  KernelTask kernelTask;
+
   JavaScriptConstantTask constantCompilerTask;
 
   JavaScriptImpactTransformer impactTransformer;
@@ -590,17 +587,25 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptBackendSerialization serialization;
 
+  StagedWorldImpactBuilder constantImpactsForResolution =
+      new StagedWorldImpactBuilder();
+
+  StagedWorldImpactBuilder constantImpactsForCodegen =
+      new StagedWorldImpactBuilder();
+
   final NativeData nativeData = new NativeData();
 
   final BackendHelpers helpers;
   final BackendImpacts impacts;
+  BackendClasses backendClasses;
 
   final JSFrontendAccess frontend;
 
   JavaScriptBackend(Compiler compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
-      bool useNewSourceInfo: false})
+      bool useNewSourceInfo: false,
+      bool useKernel: false})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
@@ -625,11 +630,14 @@ class JavaScriptBackend extends Backend {
     jsInteropAnalysis = new JsInteropAnalysis(this);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
+    kernelTask = new KernelTask(compiler);
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = new SsaFunctionCompiler(this, sourceInformationStrategy);
+    functionCompiler =
+        new SsaFunctionCompiler(this, sourceInformationStrategy, useKernel);
     serialization = new JavaScriptBackendSerialization(this);
+    backendClasses = new JavaScriptBackendClasses(helpers);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -646,6 +654,11 @@ class JavaScriptBackend extends Backend {
   /// constants.
   JavaScriptConstantCompiler get constants {
     return constantCompilerTask.jsConstantCompiler;
+  }
+
+  @override
+  bool isDefaultNoSuchMethod(MethodElement element) {
+    return noSuchMethodRegistry.isDefaultNoSuchMethodImplementation(element);
   }
 
   MethodElement resolveExternalFunction(MethodElement element) {
@@ -703,7 +716,7 @@ class JavaScriptBackend extends Backend {
   bool _isValidBackendUse(Element element) {
     assert(invariant(element, element.isDeclaration, message: ""));
     if (element == helpers.streamIteratorConstructor ||
-        element == helpers.compiler.symbolConstructor ||
+        compiler.commonElements.isSymbolConstructor(element) ||
         helpers.isSymbolValidatedConstructor(element) ||
         element == helpers.syncCompleterConstructor ||
         element == coreClasses.symbolClass ||
@@ -920,8 +933,9 @@ class JavaScriptBackend extends Backend {
     if (elements == null) return false;
     if (elements.isEmpty) return false;
     return elements.any((element) {
-      return selector.applies(element, compiler.world) &&
-          (mask == null || mask.canHit(element, selector, compiler.world));
+      return selector.applies(element) &&
+          (mask == null ||
+              mask.canHit(element, selector, compiler.closedWorld));
     });
   }
 
@@ -977,11 +991,11 @@ class JavaScriptBackend extends Backend {
   }
 
   Set<ClassElement> nativeSubclassesOfMixin(ClassElement mixin) {
-    ClassWorld classWorld = compiler.world;
-    Iterable<MixinApplicationElement> uses = classWorld.mixinUsesOf(mixin);
+    ClosedWorld closedWorld = compiler.closedWorld;
+    Iterable<MixinApplicationElement> uses = closedWorld.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      classWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
+      closedWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
         if (isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassElement>();
           result.add(subclass);
@@ -1071,17 +1085,20 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerCompileTimeConstant(ConstantValue constant, Registry registry) {
-    registerCompileTimeConstantInternal(constant, registry);
+  void computeImpactForCompileTimeConstant(ConstantValue constant,
+      WorldImpactBuilder impactBuilder, bool isForResolution) {
+    computeImpactForCompileTimeConstantInternal(
+        constant, impactBuilder, isForResolution);
 
-    if (!registry.isForResolution && lookupMapAnalysis.isLookupMap(constant)) {
+    if (!isForResolution && lookupMapAnalysis.isLookupMap(constant)) {
       // Note: internally, this registration will temporarily remove the
       // constant dependencies and add them later on-demand.
       lookupMapAnalysis.registerLookupMapReference(constant);
     }
 
     for (ConstantValue dependency in constant.getDependencies()) {
-      registerCompileTimeConstant(dependency, registry);
+      computeImpactForCompileTimeConstant(
+          dependency, impactBuilder, isForResolution);
     }
   }
 
@@ -1089,41 +1106,52 @@ class JavaScriptBackend extends Backend {
     constants.addCompileTimeConstantForEmission(constant);
   }
 
-  void registerCompileTimeConstantInternal(
-      ConstantValue constant, Registry registry) {
+  void computeImpactForCompileTimeConstantInternal(ConstantValue constant,
+      WorldImpactBuilder impactBuilder, bool isForResolution) {
     DartType type = constant.getType(compiler.coreTypes);
-    registerInstantiatedConstantType(type, registry);
+    computeImpactForInstantiatedConstantType(type, impactBuilder);
 
     if (constant.isFunction) {
       FunctionConstantValue function = constant;
-      registry.registerStaticUse(new StaticUse.staticTearOff(function.element));
+      impactBuilder
+          .registerStaticUse(new StaticUse.staticTearOff(function.element));
     } else if (constant.isInterceptor) {
       // An interceptor constant references the class's prototype chain.
       InterceptorConstantValue interceptor = constant;
-      registerInstantiatedConstantType(interceptor.dispatchedType, registry);
+      computeImpactForInstantiatedConstantType(
+          interceptor.dispatchedType, impactBuilder);
     } else if (constant.isType) {
-      enqueueInResolution(helpers.createRuntimeType, registry);
-      registry.registerInstantiation(typeImplementation.rawType);
+      if (isForResolution) {
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
+            // TODO(johnniwinther): Find the right [CallStructure].
+            helpers.createRuntimeType,
+            null));
+        registerBackendUse(helpers.createRuntimeType);
+      }
+      impactBuilder.registerTypeUse(
+          new TypeUse.instantiation(backendClasses.typeImplementation.rawType));
     }
     lookupMapAnalysis.registerConstantKey(constant);
   }
 
-  void registerInstantiatedConstantType(DartType type, Registry registry) {
+  void computeImpactForInstantiatedConstantType(
+      DartType type, WorldImpactBuilder impactBuilder) {
     DartType instantiatedType =
         type.isFunctionType ? coreTypes.functionType : type;
     if (type is InterfaceType) {
-      registry.registerInstantiation(instantiatedType);
-      if (!type.treatAsRaw && classNeedsRti(type.element)) {
-        registry.registerStaticUse(new StaticUse.staticInvoke(
+      impactBuilder
+          .registerTypeUse(new TypeUse.instantiation(instantiatedType));
+      if (classNeedsRtiField(type.element)) {
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
             helpers.setRuntimeTypeInfo,
             null));
       }
-      if (type.element == typeImplementation) {
+      if (type.element == backendClasses.typeImplementation) {
         // If we use a type literal in a constant, the compile time
         // constant emitter will generate a call to the createRuntimeType
         // helper so we register a use of that.
-        registry.registerStaticUse(new StaticUse.staticInvoke(
+        impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
             // TODO(johnniwinther): Find the right [CallStructure].
             helpers.createRuntimeType,
             null));
@@ -1283,7 +1311,8 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, helpers.isJsIndexable, registry);
     }
 
-    customElementsAnalysis.registerInstantiatedClass(cls, enqueuer);
+    customElementsAnalysis.registerInstantiatedClass(cls,
+        forResolution: enqueuer.isResolutionQueue);
     if (!enqueuer.isResolutionQueue) {
       lookupMapAnalysis.registerInstantiatedClass(cls);
     }
@@ -1292,25 +1321,9 @@ class JavaScriptBackend extends Backend {
   void registerInstantiatedType(
       InterfaceType type, Enqueuer enqueuer, Registry registry,
       {bool mirrorUsage: false}) {
-    lookupMapAnalysis.registerInstantiatedType(type, registry);
+    lookupMapAnalysis.registerInstantiatedType(type);
     super.registerInstantiatedType(type, enqueuer, registry,
         mirrorUsage: mirrorUsage);
-  }
-
-  void registerUseInterceptor(Enqueuer enqueuer) {
-    assert(!enqueuer.isResolutionQueue);
-    if (!enqueuer.nativeEnqueuer.hasInstantiatedNativeClasses()) return;
-    Registry registry = compiler.globalDependencies;
-    enqueue(enqueuer, helpers.getNativeInterceptorMethod, registry);
-    enqueueClass(enqueuer, helpers.jsJavaScriptObjectClass, registry);
-    enqueueClass(enqueuer, helpers.jsPlainJavaScriptObjectClass, registry);
-    enqueueClass(enqueuer, helpers.jsJavaScriptFunctionClass, registry);
-    needToInitializeIsolateAffinityTag = true;
-    needToInitializeDispatchProperty = true;
-  }
-
-  JavaScriptItemCompilationContext createItemCompilationContext() {
-    return new JavaScriptItemCompilationContext();
   }
 
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry) {
@@ -1368,7 +1381,6 @@ class JavaScriptBackend extends Backend {
     if (enqueuer.isResolutionQueue || methodNeedsRti(closure)) {
       registerComputeSignature(enqueuer, registry);
     }
-    super.registerClosureWithFreeTypeVariables(closure, enqueuer, registry);
   }
 
   void registerBoundClosure(Enqueuer enqueuer) {
@@ -1486,8 +1498,14 @@ class JavaScriptBackend extends Backend {
   }
 
   bool classNeedsRti(ClassElement cls) {
-    return rti.classesNeedingRti.contains(cls.declaration) ||
-        compiler.enabledRuntimeType;
+    if (compiler.enabledRuntimeType) return true;
+    return rti.classesNeedingRti.contains(cls.declaration);
+  }
+
+  bool classNeedsRtiField(ClassElement cls) {
+    if (cls.rawType.typeArguments.isEmpty) return false;
+    if (compiler.enabledRuntimeType) return true;
+    return rti.classesNeedingRti.contains(cls.declaration);
   }
 
   bool isComplexNoSuchMethod(FunctionElement element) =>
@@ -1570,6 +1588,12 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
+
+  CodegenEnqueuer createCodegenEnqueuer(Compiler compiler) {
+    return new CodegenEnqueuer(compiler, const TreeShakingEnqueuerStrategy());
+  }
+
   WorldImpact codegen(CodegenWorkItem work) {
     Element element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
@@ -1600,7 +1624,8 @@ class JavaScriptBackend extends Backend {
       if (constant != null) {
         ConstantValue initialValue = constants.getConstantValue(constant);
         if (initialValue != null) {
-          registerCompileTimeConstant(initialValue, work.registry);
+          computeImpactForCompileTimeConstant(
+              initialValue, work.registry.worldImpact, false);
           addCompileTimeConstantForEmission(initialValue);
           // We don't need to generate code for static or top-level
           // variables. For instance variables, we may need to generate
@@ -1687,7 +1712,8 @@ class JavaScriptBackend extends Backend {
         if (library.isInternalLibrary) continue;
         for (ImportElement import in library.imports) {
           LibraryElement importedLibrary = import.importedLibrary;
-          if (importedLibrary != compiler.mirrorsLibrary) continue;
+          if (importedLibrary != compiler.commonElements.mirrorsLibrary)
+            continue;
           MessageKind kind =
               compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(library)
                   ? MessageKind.MIRROR_IMPORT
@@ -1877,34 +1903,10 @@ class JavaScriptBackend extends Backend {
     if (!type.isRaw) return false;
     ClassElement classElement = type.element;
     if (isInterceptorClass(classElement)) return false;
-    return compiler.world.hasOnlySubclasses(classElement);
+    return compiler.closedWorld.hasOnlySubclasses(classElement);
   }
 
-  bool isNullImplementation(ClassElement cls) {
-    return cls == helpers.jsNullClass;
-  }
-
-  ClassElement get intImplementation => helpers.jsIntClass;
-  ClassElement get uint32Implementation => helpers.jsUInt32Class;
-  ClassElement get uint31Implementation => helpers.jsUInt31Class;
-  ClassElement get positiveIntImplementation => helpers.jsPositiveIntClass;
-  ClassElement get doubleImplementation => helpers.jsDoubleClass;
-  ClassElement get numImplementation => helpers.jsNumberClass;
-  ClassElement get stringImplementation => helpers.jsStringClass;
-  ClassElement get listImplementation => helpers.jsArrayClass;
-  ClassElement get constListImplementation => helpers.jsUnmodifiableArrayClass;
-  ClassElement get fixedListImplementation => helpers.jsFixedArrayClass;
-  ClassElement get growableListImplementation => helpers.jsExtendableArrayClass;
-  ClassElement get mapImplementation => helpers.mapLiteralClass;
-  ClassElement get constMapImplementation => helpers.constMapLiteralClass;
-  ClassElement get typeImplementation => helpers.typeLiteralClass;
-  ClassElement get boolImplementation => helpers.jsBoolClass;
-  ClassElement get nullImplementation => helpers.jsNullClass;
-  ClassElement get syncStarIterableImplementation => helpers.syncStarIterable;
-  ClassElement get asyncFutureImplementation => helpers.futureImplementation;
-  ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
-
-  void registerStaticUse(Element element, Enqueuer enqueuer) {
+  void registerStaticUse(Element element, {bool forResolution}) {
     if (element == helpers.disableTreeShakingMarker) {
       isTreeShakingDisabled = true;
     } else if (element == helpers.preserveNamesMarker) {
@@ -1919,15 +1921,16 @@ class JavaScriptBackend extends Backend {
       needToInitializeIsolateAffinityTag = true;
     } else if (element.isDeferredLoaderGetter) {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
-      if (compiler.loadLibraryFunction == null) {
-        compiler.loadLibraryFunction = helpers.loadLibraryWrapper;
+      if (!isLoadLibraryFunctionResolved) {
+        isLoadLibraryFunctionResolved = true;
         enqueueInResolution(
-            compiler.loadLibraryFunction, compiler.globalDependencies);
+            helpers.loadLibraryWrapper, compiler.globalDependencies);
       }
     } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
     }
-    customElementsAnalysis.registerStaticUse(element, enqueuer);
+    customElementsAnalysis.registerStaticUse(element,
+        forResolution: forResolution);
   }
 
   /// Called when [:const Symbol(name):] is seen.
@@ -2134,7 +2137,7 @@ class JavaScriptBackend extends Backend {
    */
   computeMembersNeededForReflection() {
     if (_membersNeededForReflection != null) return;
-    if (compiler.mirrorsLibrary == null) {
+    if (compiler.commonElements.mirrorsLibrary == null) {
       _membersNeededForReflection = const ImmutableEmptySet<Element>();
       return;
     }
@@ -2164,14 +2167,21 @@ class JavaScriptBackend extends Backend {
         });
         // 3) all members, including fields via getter/setters (if resolved)
         cls.forEachClassMember((Member member) {
-          if (resolution.hasBeenProcessed(member.element)) {
+          MemberElement element = member.element;
+          if (resolution.hasBeenProcessed(element)) {
             memberNames.add(member.name);
-            reflectableMembers.add(member.element);
+            reflectableMembers.add(element);
+            element.nestedClosures
+                .forEach((SynthesizedCallMethodElementX callFunction) {
+              reflectableMembers.add(callFunction);
+              reflectableMembers.add(callFunction.closureClass);
+            });
           }
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)
-        if (compiler.world.hasAnyStrictSubtype(cls)) {
-          compiler.world.forEachStrictSubtypeOf(cls, (ClassElement subcls) {
+        if (compiler.closedWorld.hasAnyStrictSubtype(cls)) {
+          compiler.closedWorld.forEachStrictSubtypeOf(cls,
+              (ClassElement subcls) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
@@ -2250,8 +2260,8 @@ class JavaScriptBackend extends Backend {
       reflectableMembers.add(helpers.boundClosureClass);
     }
     // Add typedefs.
-    reflectableMembers
-        .addAll(compiler.world.allTypedefs.where(referencedFromMirrorSystem));
+    reflectableMembers.addAll(
+        compiler.closedWorld.allTypedefs.where(referencedFromMirrorSystem));
     // Register all symbols of reflectable elements
     for (Element element in reflectableMembers) {
       symbolsUsed.add(element.name);
@@ -2292,25 +2302,28 @@ class JavaScriptBackend extends Backend {
     // Just checking for [:TypedData:] is not sufficient, as it is an
     // abstract class any user-defined class can implement. So we also
     // check for the interface [JavaScriptIndexingBehavior].
-    return compiler.typedDataClass != null &&
-        compiler.world.isInstantiated(compiler.typedDataClass) &&
-        mask.satisfies(compiler.typedDataClass, compiler.world) &&
-        mask.satisfies(helpers.jsIndexingBehaviorInterface, compiler.world);
+    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    return typedDataClass != null &&
+        compiler.closedWorld.isInstantiated(typedDataClass) &&
+        mask.satisfies(typedDataClass, compiler.closedWorld) &&
+        mask.satisfies(
+            helpers.jsIndexingBehaviorInterface, compiler.closedWorld);
   }
 
   bool couldBeTypedArray(TypeMask mask) {
     bool intersects(TypeMask type1, TypeMask type2) =>
-        !type1.intersection(type2, compiler.world).isEmpty;
+        !type1.intersection(type2, compiler.closedWorld).isEmpty;
     // TODO(herhut): Maybe cache the TypeMask for typedDataClass and
     //               jsIndexingBehaviourInterface.
-    return compiler.typedDataClass != null &&
-        compiler.world.isInstantiated(compiler.typedDataClass) &&
-        intersects(mask,
-            new TypeMask.subtype(compiler.typedDataClass, compiler.world)) &&
+    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    return typedDataClass != null &&
+        compiler.closedWorld.isInstantiated(typedDataClass) &&
+        intersects(
+            mask, new TypeMask.subtype(typedDataClass, compiler.closedWorld)) &&
         intersects(
             mask,
             new TypeMask.subtype(
-                helpers.jsIndexingBehaviorInterface, compiler.world));
+                helpers.jsIndexingBehaviorInterface, compiler.closedWorld));
   }
 
   /// Returns all static fields that are referenced through [targetsUsed].
@@ -2342,9 +2355,18 @@ class JavaScriptBackend extends Backend {
 
   /// Called when [enqueuer] is empty, but before it is closed.
   bool onQueueEmpty(Enqueuer enqueuer, Iterable<ClassElement> recentClasses) {
-    // Add elements referenced only via custom elements.  Return early if any
-    // elements are added to avoid counting the elements as due to mirrors.
-    customElementsAnalysis.onQueueEmpty(enqueuer);
+    // Add elements used synthetically, that is, through features rather than
+    // syntax, for instance custom elements.
+    //
+    // Return early if any elements are added to avoid counting the elements as
+    // due to mirrors.
+    enqueuer.applyImpact(customElementsAnalysis.flush(
+        forResolution: enqueuer.isResolutionQueue));
+    enqueuer.applyImpact(
+        lookupMapAnalysis.flush(forResolution: enqueuer.isResolutionQueue));
+    enqueuer.applyImpact(
+        typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
+
     if (!enqueuer.queueIsEmpty) return false;
 
     noSuchMethodRegistry.onQueueEmpty();
@@ -2353,6 +2375,10 @@ class JavaScriptBackend extends Backend {
             noSuchMethodRegistry.hasComplexNoSuchMethod)) {
       enableNoSuchMethod(enqueuer);
       enabledNoSuchMethod = true;
+    }
+
+    if (compiler.options.useKernel && compiler.mainApp != null) {
+      kernelTask.buildKernelIr();
     }
 
     if (compiler.options.hasIncrementalSupport) {
@@ -2384,6 +2410,9 @@ class JavaScriptBackend extends Backend {
 
       compiler.libraryLoader.libraries.forEach(retainMetadataOf);
 
+      StagedWorldImpactBuilder impactBuilder = enqueuer.isResolutionQueue
+          ? constantImpactsForResolution
+          : constantImpactsForResolution;
       if (enqueuer.isResolutionQueue && !enqueuer.queueIsClosed) {
         /// Register the constant value of [metadata] as live in resolution.
         void registerMetadataConstant(MetadataAnnotation metadata) {
@@ -2392,8 +2421,8 @@ class JavaScriptBackend extends Backend {
           Dependency dependency =
               new Dependency(constant, metadata.annotatedElement);
           metadataConstants.add(dependency);
-          registerCompileTimeConstant(dependency.constant,
-              new EagerRegistry('EagerRegistry for ${dependency}', enqueuer));
+          computeImpactForCompileTimeConstant(
+              dependency.constant, impactBuilder, enqueuer.isResolutionQueue);
         }
 
         // TODO(johnniwinther): We should have access to all recently processed
@@ -2402,11 +2431,12 @@ class JavaScriptBackend extends Backend {
             registerMetadataConstant);
       } else {
         for (Dependency dependency in metadataConstants) {
-          registerCompileTimeConstant(dependency.constant,
-              new EagerRegistry('EagerRegistry for ${dependency}', enqueuer));
+          computeImpactForCompileTimeConstant(
+              dependency.constant, impactBuilder, enqueuer.isResolutionQueue);
         }
         metadataConstants.clear();
       }
+      enqueuer.applyImpact(impactBuilder.flush());
     }
     return true;
   }
@@ -2461,9 +2491,11 @@ class JavaScriptBackend extends Backend {
       return;
     }
 
-    if ((element.isFunction || element.isConstructor) &&
-        annotations.noInline(element)) {
-      inlineCache.markAsNonInlinable(element);
+    Element implementation = element.implementation;
+    if (element.isFunction || element.isConstructor) {
+      if (annotations.noInline(implementation)) {
+        inlineCache.markAsNonInlinable(implementation);
+      }
     }
 
     LibraryElement library = element.library;
@@ -2506,14 +2538,14 @@ class JavaScriptBackend extends Backend {
           reporter.reportHintMessage(
               element, MessageKind.GENERIC, {'text': "Cannot throw"});
         }
-        compiler.world.registerCannotThrow(element);
+        compiler.inferenceWorld.registerCannotThrow(element);
       } else if (cls == helpers.noSideEffectsClass) {
         hasNoSideEffects = true;
         if (VERBOSE_OPTIMIZER_HINTS) {
           reporter.reportHintMessage(
               element, MessageKind.GENERIC, {'text': "Has no side effects"});
         }
-        compiler.world.registerSideEffectsFree(element);
+        compiler.inferenceWorld.registerSideEffectsFree(element);
       }
     }
     if (hasForceInline && hasNoInline) {
@@ -2802,8 +2834,11 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case Feature.FALL_THROUGH_ERROR:
           registerBackendImpact(transformed, impacts.fallThroughError);
           break;
-        case Feature.INC_DEC_OPERATION:
-          registerBackendImpact(transformed, impacts.incDecOperation);
+        case Feature.FIELD_WITHOUT_INITIALIZER:
+        case Feature.LOCAL_WITHOUT_INITIALIZER:
+          transformed.registerTypeUse(
+              new TypeUse.instantiation(backend.coreTypes.nullType));
+          registerBackendImpact(transformed, impacts.nullLiteral);
           break;
         case Feature.LAZY_FIELD:
           registerBackendImpact(transformed, impacts.lazyField);
@@ -2870,7 +2905,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
         case TypeUseKind.TYPE_LITERAL:
           backend.customElementsAnalysis.registerTypeLiteral(type);
           if (type.isTypedef) {
-            backend.compiler.world.allTypedefs.add(type.element);
+            backend.compiler.openWorld.registerTypedef(type.element);
           }
           if (type.isTypeVariable && type is! MethodTypeVariableType) {
             // GENERIC_METHODS: The `is!` test above filters away method type
@@ -2925,14 +2960,21 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (StaticUse staticUse in worldImpact.staticUses) {
-      if (staticUse.kind == StaticUseKind.CLOSURE) {
-        registerBackendImpact(transformed, impacts.closure);
-        LocalFunctionElement closure = staticUse.element;
-        if (closure.type.containsTypeVariables) {
-          resolutionEnqueuer.universe.closuresWithFreeTypeVariables
-              .add(closure);
-          registerBackendImpact(transformed, impacts.computeSignature);
-        }
+      switch (staticUse.kind) {
+        case StaticUseKind.CLOSURE:
+          registerBackendImpact(transformed, impacts.closure);
+          LocalFunctionElement closure = staticUse.element;
+          if (closure.type.containsTypeVariables) {
+            resolutionEnqueuer.universe.closuresWithFreeTypeVariables
+                .add(closure);
+            registerBackendImpact(transformed, impacts.computeSignature);
+          }
+          break;
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+          registerRequiredType(staticUse.type);
+          break;
+        default:
       }
     }
 
@@ -2976,6 +3018,10 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           // TODO(johnniwinther): Store the correct use in impacts.
           new StaticUse.foreignUse(staticUse));
     }
+    for (Selector selector in backendImpact.dynamicUses) {
+      assert(selector != null);
+      worldImpact.registerDynamicUse(new DynamicUse(selector, null));
+    }
     for (InterfaceType instantiatedType in backendImpact.instantiatedTypes) {
       backend.registerBackendUse(instantiatedType.element);
       worldImpact.registerTypeUse(new TypeUse.instantiation(instantiatedType));
@@ -2987,6 +3033,16 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
     for (BackendImpact otherImpact in backendImpact.otherImpacts) {
       registerBackendImpact(worldImpact, otherImpact);
+    }
+    for (BackendFeature feature in backendImpact.features) {
+      switch (feature) {
+        case BackendFeature.needToInitializeDispatchProperty:
+          backend.needToInitializeDispatchProperty = true;
+          break;
+        case BackendFeature.needToInitializeIsolateAffinityTag:
+          backend.needToInitializeIsolateAffinityTag = true;
+          break;
+      }
     }
   }
 
@@ -3079,14 +3135,12 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   @override
   WorldImpact transformCodegenImpact(CodegenImpact impact) {
     TransformedWorldImpact transformed = new TransformedWorldImpact(impact);
-    EagerRegistry registry = impact.registry;
-    Enqueuer world = registry.world;
 
     for (TypeUse typeUse in impact.typeUses) {
       DartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
-          backend.lookupMapAnalysis.registerInstantiatedType(type, registry);
+          backend.lookupMapAnalysis.registerInstantiatedType(type);
           break;
         case TypeUseKind.IS_CHECK:
           onIsCheckForCodegen(type, transformed);
@@ -3096,7 +3150,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (ConstantValue constant in impact.compileTimeConstants) {
-      backend.registerCompileTimeConstant(constant, registry);
+      backend.computeImpactForCompileTimeConstant(constant, transformed, false);
       backend.addCompileTimeConstantForEmission(constant);
     }
 
@@ -3106,11 +3160,18 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (StaticUse staticUse in impact.staticUses) {
-      if (staticUse.kind == StaticUseKind.CLOSURE) {
-        LocalFunctionElement closure = staticUse.element;
-        if (backend.methodNeedsRti(closure)) {
-          registerBackendImpact(transformed, impacts.computeSignature);
-        }
+      switch (staticUse.kind) {
+        case StaticUseKind.CLOSURE:
+          LocalFunctionElement closure = staticUse.element;
+          if (backend.methodNeedsRti(closure)) {
+            registerBackendImpact(transformed, impacts.computeSignature);
+          }
+          break;
+        case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+        case StaticUseKind.CONSTRUCTOR_INVOKE:
+          backend.lookupMapAnalysis.registerInstantiatedType(staticUse.type);
+          break;
+        default:
       }
     }
 
@@ -3123,7 +3184,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     if (impact.usesInterceptor) {
-      backend.registerUseInterceptor(world);
+      if (backend.codegenEnqueuer.nativeEnqueuer.hasInstantiatedNativeClasses) {
+        registerBackendImpact(transformed, impacts.interceptorUse);
+      }
     }
 
     for (ClassElement element in impact.typeConstants) {
@@ -3181,7 +3244,9 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
         impact.apply(visitor);
       } else {
         impact.apply(visitor);
-        resolution.uncacheWorldImpact(element);
+        if (element != null) {
+          resolution.uncacheWorldImpact(element);
+        }
       }
     } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
       impact.apply(visitor);
@@ -3202,4 +3267,31 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
       resolution.emptyCache();
     }
   }
+}
+
+class JavaScriptBackendClasses implements BackendClasses {
+  final BackendHelpers helpers;
+
+  JavaScriptBackendClasses(this.helpers);
+
+  ClassElement get intImplementation => helpers.jsIntClass;
+  ClassElement get uint32Implementation => helpers.jsUInt32Class;
+  ClassElement get uint31Implementation => helpers.jsUInt31Class;
+  ClassElement get positiveIntImplementation => helpers.jsPositiveIntClass;
+  ClassElement get doubleImplementation => helpers.jsDoubleClass;
+  ClassElement get numImplementation => helpers.jsNumberClass;
+  ClassElement get stringImplementation => helpers.jsStringClass;
+  ClassElement get listImplementation => helpers.jsArrayClass;
+  ClassElement get constListImplementation => helpers.jsUnmodifiableArrayClass;
+  ClassElement get fixedListImplementation => helpers.jsFixedArrayClass;
+  ClassElement get growableListImplementation => helpers.jsExtendableArrayClass;
+  ClassElement get mapImplementation => helpers.mapLiteralClass;
+  ClassElement get constMapImplementation => helpers.constMapLiteralClass;
+  ClassElement get typeImplementation => helpers.typeLiteralClass;
+  ClassElement get boolImplementation => helpers.jsBoolClass;
+  ClassElement get nullImplementation => helpers.jsNullClass;
+  ClassElement get syncStarIterableImplementation => helpers.syncStarIterable;
+  ClassElement get asyncFutureImplementation => helpers.futureImplementation;
+  ClassElement get asyncStarStreamImplementation => helpers.controllerStream;
+  ClassElement get functionImplementation => helpers.coreClasses.functionClass;
 }

@@ -8,6 +8,7 @@
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/extensions.h"
+#include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/utils.h"
 
@@ -261,12 +262,10 @@ static bool LibraryHandleError(Dart_Handle library, Dart_Handle error) {
 }
 
 
-static bool IsWindowsHost() {
-#if defined(TARGET_OS_WINDOWS)
-  return true;
-#else  // defined(TARGET_OS_WINDOWS)
-  return false;
-#endif  // defined(TARGET_OS_WINDOWS)
+static bool PathContainsSeparator(const char* path) {
+  return (strchr(path, '/') != NULL) ||
+         ((strncmp(File::PathSeparator(), "/", 1) != 0) &&
+          (strstr(path, File::PathSeparator()) != NULL));
 }
 
 
@@ -300,7 +299,6 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     return false;
   }
 
-
   if (result->tag == _Dart_kImportExtension) {
     ASSERT(library_uri != Dart_Null());
     Dart_Handle library = Dart_LookupLibrary(library_uri);
@@ -320,10 +318,10 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
       lib_path = lib_uri;
     }
     const char* extension_path = DartUtils::RemoveScheme(extension_uri);
-    if (strchr(extension_path, '/') != NULL ||
-        (IsWindowsHost() && strchr(extension_path, '\\') != NULL)) {
+    if (!File::IsAbsolutePath(extension_path) &&
+        PathContainsSeparator(extension_path)) {
       loader->error_ = DartUtils::NewError(
-          "Relative paths for dart extensions are not supported: '%s'",
+          "Native extension path must be absolute, or simply the file name: %s",
           extension_path);
       return false;
     }
@@ -338,15 +336,12 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   }
 
   // Check for payload and load accordingly.
-  bool is_snapshot = false;
   const uint8_t* payload = result->payload;
   intptr_t payload_length = result->payload_length;
-  payload =
-      DartUtils::SniffForMagicNumber(payload,
-                                     &payload_length,
-                                     &is_snapshot);
+  const DartUtils::MagicNumber payload_type =
+      DartUtils::SniffForMagicNumber(&payload, &payload_length);
   Dart_Handle source = Dart_Null();
-  if (!is_snapshot) {
+  if (payload_type == DartUtils::kUnknownMagicNumber) {
     source = Dart_NewStringFromUTF8(result->payload,
                                     result->payload_length);
     if (Dart_IsError(source)) {
@@ -379,8 +374,10 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     }
     break;
     case Dart_kScriptTag:
-      if (is_snapshot) {
+      if (payload_type == DartUtils::kSnapshotMagicNumber) {
         dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
+      } else if (payload_type == DartUtils::kKernelMagicNumber) {
+        dart_result = Dart_LoadKernel(payload, payload_length);
       } else {
         dart_result = Dart_LoadScript(uri, resolved_uri, source, 0, 0);
       }
@@ -667,6 +664,7 @@ Dart_Handle Loader::DartColonLibraryTagHandler(Dart_LibraryTag tag,
   }
   // All cases should have been handled above.
   UNREACHABLE();
+  return Dart_Null();
 }
 
 

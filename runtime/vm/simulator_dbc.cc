@@ -37,6 +37,8 @@ DEFINE_FLAG(uint64_t, trace_sim_after, ULLONG_MAX,
 DEFINE_FLAG(uint64_t, stop_sim_at, ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
+#define LIKELY(cond) __builtin_expect((cond), 1)
+
 // SimulatorSetjmpBuffer are linked together, and the last created one
 // is referenced by the Simulator. When an exception is thrown, the exception
 // runtime looks at where to jump and finds the corresponding
@@ -239,6 +241,202 @@ class SimulatorHelpers {
     return false;
   }
 
+  static bool Double_getIsNan(Thread* thread,
+                              RawObject** FP,
+                              RawObject** result) {
+    RawObject** args = FrameArguments(FP, 1);
+    RawDouble* d = static_cast<RawDouble*>(args[0]);
+    *result = isnan(d->ptr()->value_)
+            ? Bool::True().raw()
+            : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_getIsInfinite(Thread* thread,
+                                   RawObject** FP,
+                                   RawObject** result) {
+    RawObject** args = FrameArguments(FP, 1);
+    RawDouble* d = static_cast<RawDouble*>(args[0]);
+    *result = isinf(d->ptr()->value_)
+            ? Bool::True().raw()
+            : Bool::False().raw();
+    return true;
+  }
+
+  static bool ObjectEquals(Thread* thread,
+                           RawObject** FP,
+                           RawObject** result) {
+    RawObject** args = FrameArguments(FP, 2);
+    *result = args[0] == args[1] ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool ObjectRuntimeType(Thread* thread,
+                                RawObject** FP,
+                                RawObject** result) {
+    RawObject** args = FrameArguments(FP, 1);
+    const intptr_t cid = GetClassId(args[0]);
+    if (cid == kClosureCid) {
+      return false;
+    }
+    RawClass* cls = thread->isolate()->class_table()->At(cid);
+    if (cls->ptr()->num_type_arguments_ != 0) {
+      return false;
+    }
+    RawType* typ = cls->ptr()->canonical_type_;
+    if (typ == Object::null()) {
+      return false;
+    }
+    *result = static_cast<RawObject*>(typ);
+    return true;
+  }
+
+  static bool GetDoubleOperands(RawObject** args, double* d1, double* d2) {
+    RawObject* obj2 = args[1];
+    if (!obj2->IsHeapObject()) {
+      *d2 = static_cast<double>(
+          reinterpret_cast<intptr_t>(obj2) >> kSmiTagSize);
+    } else if (obj2->GetClassId() == kDoubleCid) {
+      RawDouble* obj2d = static_cast<RawDouble*>(obj2);
+      *d2 = obj2d->ptr()->value_;
+    } else {
+      return false;
+    }
+    RawDouble* obj1 = static_cast<RawDouble*>(args[0]);
+    *d1 = obj1->ptr()->value_;
+    return true;
+  }
+
+  static RawObject* AllocateDouble(Thread* thread, double value) {
+    const intptr_t instance_size = Double::InstanceSize();
+    const uword start =
+        thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      uword tags = 0;
+      tags = RawObject::ClassIdTag::update(kDoubleCid, tags);
+      tags = RawObject::SizeTag::update(instance_size, tags);
+      *reinterpret_cast<uword*>(start + Double::tags_offset()) = tags;
+      *reinterpret_cast<double*>(start + Double::value_offset()) = value;
+      return reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+    }
+    return NULL;
+  }
+
+  static bool Double_add(Thread* thread,
+                         RawObject** FP,
+                         RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    RawObject* new_double = AllocateDouble(thread, d1 + d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
+  }
+
+  static bool Double_mul(Thread* thread,
+                         RawObject** FP,
+                         RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    RawObject* new_double = AllocateDouble(thread, d1 * d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
+  }
+
+  static bool Double_sub(Thread* thread,
+                         RawObject** FP,
+                         RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    RawObject* new_double = AllocateDouble(thread, d1 - d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
+  }
+
+  static bool Double_div(Thread* thread,
+                         RawObject** FP,
+                         RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    RawObject* new_double = AllocateDouble(thread, d1 / d2);
+    if (new_double != NULL) {
+      *result = new_double;
+      return true;
+    }
+    return false;
+  }
+
+  static bool Double_greaterThan(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 > d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_greaterEqualThan(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 >= d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_lessThan(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 < d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_equal(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 == d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
+  static bool Double_lessEqualThan(Thread* thread,
+                                 RawObject** FP,
+                                 RawObject** result) {
+    double d1, d2;
+    if (!GetDoubleOperands(FrameArguments(FP, 2), &d1, &d2)) {
+      return false;
+    }
+    *result = d1 <= d2 ? Bool::True().raw() : Bool::False().raw();
+    return true;
+  }
+
   DART_FORCE_INLINE static RawCode* FrameCode(RawObject** FP) {
     ASSERT(GetClassId(FP[kPcMarkerSlotFromFp]) == kCodeCid);
     return static_cast<RawCode*>(FP[kPcMarkerSlotFromFp]);
@@ -248,6 +446,15 @@ class SimulatorHelpers {
   DART_FORCE_INLINE static void SetFrameCode(RawObject** FP, RawCode* code) {
     ASSERT(GetClassId(code) == kCodeCid);
     FP[kPcMarkerSlotFromFp] = code;
+  }
+
+  DART_FORCE_INLINE static uint8_t* GetTypedData(
+      RawObject* obj, RawObject* index) {
+    ASSERT(RawObject::IsTypedDataClassId(obj->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(obj);
+    const intptr_t byte_offset = Smi::Value(RAW_CAST(Smi, index));
+    ASSERT(byte_offset >= 0);
+    return array->ptr()->data() + byte_offset;
   }
 };
 
@@ -281,6 +488,33 @@ void Simulator::InitOnce() {
       SimulatorHelpers::GrowableArraySetIndexed;
   intrinsics_[kGrowableArrayGetIndexedIntrinsic] =
       SimulatorHelpers::GrowableArrayGetIndexed;
+  intrinsics_[kObjectEqualsIntrinsic] =
+      SimulatorHelpers::ObjectEquals;
+  intrinsics_[kObjectRuntimeTypeIntrinsic] =
+      SimulatorHelpers::ObjectRuntimeType;
+
+  intrinsics_[kDouble_getIsNaNIntrinsic] =
+      SimulatorHelpers::Double_getIsNan;
+  intrinsics_[kDouble_getIsInfiniteIntrinsic] =
+      SimulatorHelpers::Double_getIsInfinite;
+  intrinsics_[kDouble_addIntrinsic] =
+      SimulatorHelpers::Double_add;
+  intrinsics_[kDouble_mulIntrinsic] =
+      SimulatorHelpers::Double_mul;
+  intrinsics_[kDouble_subIntrinsic] =
+      SimulatorHelpers::Double_sub;
+  intrinsics_[kDouble_divIntrinsic] =
+      SimulatorHelpers::Double_div;
+  intrinsics_[kDouble_greaterThanIntrinsic] =
+      SimulatorHelpers::Double_greaterThan;
+  intrinsics_[kDouble_greaterEqualThanIntrinsic] =
+      SimulatorHelpers::Double_greaterEqualThan;
+  intrinsics_[kDouble_lessThanIntrinsic] =
+      SimulatorHelpers::Double_lessThan;
+  intrinsics_[kDouble_equalIntrinsic] =
+      SimulatorHelpers::Double_equal;
+  intrinsics_[kDouble_lessEqualThanIntrinsic] =
+      SimulatorHelpers::Double_lessEqualThan;
 }
 
 
@@ -473,9 +707,6 @@ DART_FORCE_INLINE static bool SignedMulWithOverflow(intptr_t lhs,
 }
 
 
-#define LIKELY(cond) __builtin_expect((cond), 1)
-
-
 DART_FORCE_INLINE static bool AreBothSmis(intptr_t a, intptr_t b) {
   return ((a | b) & kHeapObjectTag) == 0;
 }
@@ -542,6 +773,7 @@ DART_FORCE_INLINE void Simulator::Invoke(Thread* thread,
   callee_fp[kSavedCallerFpSlotFromFp] = reinterpret_cast<RawObject*>(*FP);
   *pp = code->ptr()->object_pool_->ptr();
   *pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+  pc_ = reinterpret_cast<uword>(*pc);  // For the profiler.
   *FP = callee_fp;
   *SP = *FP - 1;
 }
@@ -694,6 +926,7 @@ static DART_NOINLINE bool InvokeRuntime(
     thread->set_vm_tag(reinterpret_cast<uword>(drt));
     drt(args);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -711,6 +944,7 @@ static DART_NOINLINE bool InvokeNative(
     thread->set_vm_tag(reinterpret_cast<uword>(f));
     f(args);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -729,6 +963,7 @@ static DART_NOINLINE bool InvokeNativeWrapper(
     NativeEntry::NativeCallWrapper(reinterpret_cast<Dart_NativeArguments>(args),
                                    f);
     thread->set_vm_tag(VMTag::kDartTagId);
+    thread->set_top_exit_frame_info(0);
     return true;
   } else {
     return false;
@@ -930,6 +1165,7 @@ RawObject* Simulator::Call(const Code& code,
 
   // Save outer top_exit_frame_info.
   fp_[0] = reinterpret_cast<RawObject*>(thread->top_exit_frame_info());
+  thread->set_top_exit_frame_info(0);
 
   // Copy arguments and setup the Dart frame.
   const intptr_t argc = arguments.Length();
@@ -948,6 +1184,7 @@ RawObject* Simulator::Call(const Code& code,
   // Ready to start executing bytecode. Load entry point and corresponding
   // object pool.
   pc = reinterpret_cast<uint32_t*>(code.raw()->ptr()->entry_point_);
+  pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
   pp = code.object_pool()->ptr();
 
   // Cache some frequently used values in the frame.
@@ -1169,6 +1406,7 @@ RawObject* Simulator::Call(const Code& code,
       SimulatorHelpers::SetFrameCode(FP, code);
       pp = code->ptr()->object_pool_->ptr();
       pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+      pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
     }
     DISPATCH();
   }
@@ -1193,11 +1431,13 @@ RawObject* Simulator::Call(const Code& code,
       INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, args);
       {
         // DRT_OptimizeInvokedFunction returns the code object to execute.
-        ASSERT(FP[1]->GetClassId() == kCodeCid);
-        RawCode* code = static_cast<RawCode*>(FP[1]);
+        ASSERT(FP[1]->GetClassId() == kFunctionCid);
+        RawFunction* function = static_cast<RawFunction*>(FP[1]);
+        RawCode* code = function->ptr()->code_;
         SimulatorHelpers::SetFrameCode(FP, code);
         pp = code->ptr()->object_pool_->ptr();
-        pc = reinterpret_cast<uint32_t*>(code->ptr()->entry_point_);
+        pc = reinterpret_cast<uint32_t*>(function->ptr()->entry_point_);
+        pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
       }
     }
     DISPATCH();
@@ -1528,6 +1768,26 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(PushPolymorphicInstanceCall, A_D);
+    const uint8_t argc = rA;
+    const intptr_t cids_length = rD;
+    RawObject** args = SP - argc + 1;
+    const intptr_t receiver_cid = SimulatorHelpers::GetClassId(args[0]);
+    for (intptr_t i = 0; i < 2*cids_length; i+=2) {
+      const intptr_t icdata_cid = Bytecode::DecodeD(*(pc + i));
+      if (receiver_cid == icdata_cid) {
+        RawFunction* target =
+            RAW_CAST(Function, LOAD_CONSTANT(Bytecode::DecodeD(*(pc + i + 1))));
+        *++SP = target;
+        pc++;
+        break;
+      }
+    }
+    pc += 2 * cids_length;
+    DISPATCH();
+  }
+
+  {
     BYTECODE(NativeBootstrapCall, 0);
     RawFunction* function = FrameFunction(FP);
     RawObject** incoming_args =
@@ -1737,10 +1997,10 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(ShrImm, A_B_C);
+    BYTECODE(ShlImm, A_B_C);
     const uint8_t shift = rC;
-    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
-    *reinterpret_cast<intptr_t*>(&FP[rA]) = (lhs >> shift) << kSmiTagSize;
+    const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
+    FP[rA] = reinterpret_cast<RawObject*>(lhs << shift);
     DISPATCH();
   }
 
@@ -1760,13 +2020,35 @@ RawObject* Simulator::Call(const Code& code,
     DISPATCH();
   }
 
+  {
+    BYTECODE(UnboxInt32, A_B_C);
+    const intptr_t box_cid = SimulatorHelpers::GetClassId(FP[rB]);
+    const bool may_truncate = rC == 1;
+    if (box_cid == kSmiCid) {
+      const intptr_t value = reinterpret_cast<intptr_t>(FP[rB]) >> kSmiTagSize;
+      const int32_t value32 = static_cast<int32_t>(value);
+      if (may_truncate || (value == static_cast<intptr_t>(value32))) {
+        FP[rA] = reinterpret_cast<RawObject*>(value);
+        pc++;
+      }
+    } else if (box_cid == kMintCid) {
+      RawMint* mint = RAW_CAST(Mint, FP[rB]);
+      const int64_t value = mint->ptr()->value_;
+      const int32_t value32 = static_cast<int32_t>(value);
+      if (may_truncate || (value == static_cast<int64_t>(value32))) {
+        FP[rA] = reinterpret_cast<RawObject*>(value);
+        pc++;
+      }
+    }
+    DISPATCH();
+  }
+
 #if defined(ARCH_IS_64_BIT)
   {
     BYTECODE(WriteIntoDouble, A_D);
     const double value = bit_cast<double, RawObject*>(FP[rD]);
-    RawDouble* box = RAW_CAST(Double, *SP--);
+    RawDouble* box = RAW_CAST(Double, FP[rA]);
     box->ptr()->value_ = value;
-    FP[rA] = box;
     DISPATCH();
   }
 
@@ -1910,24 +2192,156 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadFloat64Indexed, A_B_C);
-    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
-    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
-    RawSmi* index = RAW_CAST(Smi, FP[rC]);
-    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    double* data = reinterpret_cast<double*>(array->ptr()->data());
-    FP[rA] = bit_cast<RawObject*, double>(data[Smi::Value(index)]);
+    BYTECODE(DTruncate, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(trunc(value));
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreFloat64Indexed, A_B_C);
+    BYTECODE(DFloor, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(floor(value));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DCeil, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    FP[rA] = bit_cast<RawObject*, double>(ceil(value));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleToFloat, A_D);
+    const double value = bit_cast<double, RawObject*>(FP[rD]);
+    const float valuef = static_cast<float>(value);
+    *reinterpret_cast<float*>(&FP[rA]) = valuef;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(FloatToDouble, A_D);
+    const float valuef = *reinterpret_cast<float*>(&FP[rD]);
+    const double value = static_cast<double>(valuef);
+    FP[rA] = bit_cast<RawObject*, double>(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleIsNaN, A);
+    const double v = bit_cast<double, RawObject*>(FP[rA]);
+    if (!isnan(v)) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleIsInfinite, A);
+    const double v = bit_cast<double, RawObject*>(FP[rA]);
+    if (!isinf(v)) {
+      pc++;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedFloat32, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    const uint32_t value = *reinterpret_cast<uint32_t*>(data);
+    const uint64_t value64 = value;
+    FP[rA] = reinterpret_cast<RawObject*>(value64);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexed4Float32, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    const uint32_t value =
+        reinterpret_cast<uint32_t*>(array->ptr()->data())[Smi::Value(index)];
+    const uint64_t value64 = value;  // sign extend to clear high bits.
+    FP[rA] = reinterpret_cast<RawObject*>(value64);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedFloat64, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    *reinterpret_cast<uint64_t*>(&FP[rA]) = *reinterpret_cast<uint64_t*>(data);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexed8Float64, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rB]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    const int64_t value =
+        reinterpret_cast<int64_t*>(array->ptr()->data())[Smi::Value(index)];
+    FP[rA] = reinterpret_cast<RawObject*>(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedFloat32, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB]);
+    const uint64_t value = reinterpret_cast<uint64_t>(FP[rC]);
+    const uint32_t value32 = value;
+    *reinterpret_cast<uint32_t*>(data) = value32;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexed4Float32, A_B_C);
     ASSERT(RawObject::IsTypedDataClassId(FP[rA]->GetClassId()));
     RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
     RawSmi* index = RAW_CAST(Smi, FP[rB]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
-    double* data = reinterpret_cast<double*>(array->ptr()->data());
-    data[Smi::Value(index)] = bit_cast<double, RawObject*>(FP[rC]);
+    const uint64_t value = reinterpret_cast<uint64_t>(FP[rC]);
+    const uint32_t value32 = value;
+    reinterpret_cast<uint32_t*>(array->ptr()->data())[Smi::Value(index)] =
+        value32;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedFloat64, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB]);
+    *reinterpret_cast<uint64_t*>(data) = reinterpret_cast<uint64_t>(FP[rC]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexed8Float64, A_B_C);
+    ASSERT(RawObject::IsTypedDataClassId(FP[rA]->GetClassId()));
+    RawTypedData* array = reinterpret_cast<RawTypedData*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    const int64_t value = reinterpret_cast<int64_t>(FP[rC]);
+    reinterpret_cast<int64_t*>(array->ptr()->data())[Smi::Value(index)] = value;
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxInt32, A_D);
+    // Casts sign-extend high 32 bits from low 32 bits.
+    const intptr_t value = reinterpret_cast<intptr_t>(FP[rD]);
+    const int32_t value32 = static_cast<int32_t>(value);
+    FP[rA] = Smi::New(static_cast<intptr_t>(value32));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxUint32, A_D);
+    // Casts to zero out high 32 bits.
+    const uintptr_t value = reinterpret_cast<uintptr_t>(FP[rD]);
+    const uint32_t value32 = static_cast<uint32_t>(value);
+    FP[rA] = Smi::New(static_cast<intptr_t>(value32));
     DISPATCH();
   }
 #else  // defined(ARCH_IS_64_BIT)
@@ -2034,13 +2448,103 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadFloat64Indexed, A_B_C);
+    BYTECODE(DTruncate, A_D);
     UNREACHABLE();
     DISPATCH();
   }
 
   {
-    BYTECODE(StoreFloat64Indexed, A_B_C);
+    BYTECODE(DFloor, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DCeil, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleToFloat, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(FloatToDouble, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleIsNaN, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(DoubleIsInfinite, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedFloat32, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexed4Float32, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedFloat64, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexed8Float64, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedFloat32, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexed4Float32, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedFloat64, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexed8Float64, A_B_C);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxInt32, A_D);
+    UNREACHABLE();
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(BoxUint32, A_D);
     UNREACHABLE();
     DISPATCH();
   }
@@ -2070,6 +2574,7 @@ RawObject* Simulator::Call(const Code& code,
   ReturnImpl:
     // Restore caller PC.
     pc = SavedCallerPC(FP);
+    pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
     if ((reinterpret_cast<uword>(pc) & 2) != 0) {
@@ -2115,7 +2620,20 @@ RawObject* Simulator::Call(const Code& code,
     const uint16_t value_reg = rC;
 
     RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
-    RawObject* value = reinterpret_cast<RawObject*>(FP[value_reg]);
+    RawObject* value = FP[value_reg];
+
+    instance->StorePointer(
+        reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
+        value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreFieldExt, A_D);
+    // The offset is stored in the following nop-instruction which is skipped.
+    const uint16_t offset_in_words = Bytecode::DecodeD(*pc++);
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[rA]);
+    RawObject* value = FP[rD];
 
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
@@ -2146,6 +2664,25 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(LoadFieldExt, A_D);
+    // The offset is stored in the following nop-instruction which is skipped.
+    const uint16_t offset_in_words = Bytecode::DecodeD(*pc++);
+    const uint16_t instance_reg = rD;
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
+    FP[rA] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadUntagged, A_B_C);
+    const uint16_t instance_reg = rB;
+    const uint16_t offset_in_words = rC;
+    RawInstance* instance = reinterpret_cast<RawInstance*>(FP[instance_reg]);
+    FP[rA] = reinterpret_cast<RawObject**>(instance)[offset_in_words];
+    DISPATCH();
+  }
+
+  {
     BYTECODE(LoadFieldTOS, A_D);
     const uint16_t offset_in_words = rD;
     RawInstance* instance = static_cast<RawInstance*>(SP[0]);
@@ -2171,6 +2708,25 @@ RawObject* Simulator::Call(const Code& code,
   // TODO(vegorov) allocation bytecodes can benefit from the new-space
   // allocation fast-path that does not transition into the runtime system.
   {
+    BYTECODE(AllocateUninitializedContext, A_D);
+    const uint16_t num_context_variables = rD;
+    const intptr_t instance_size = Context::InstanceSize(num_context_variables);
+    const uword start =
+        thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      uword tags = 0;
+      tags = RawObject::ClassIdTag::update(kContextCid, tags);
+      tags = RawObject::SizeTag::update(instance_size, tags);
+      *reinterpret_cast<uword*>(start + Array::tags_offset()) = tags;
+      *reinterpret_cast<uword*>(start + Context::num_variables_offset()) =
+          num_context_variables;
+      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+      pc += 2;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AllocateContext, A_D);
     const uint16_t num_context_variables = rD;
     {
@@ -2195,6 +2751,25 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(AllocateOpt, A_D);
+    const uword tags =
+        static_cast<uword>(Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD))));
+    const intptr_t instance_size = RawObject::SizeTag::decode(tags);
+    const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
+      for (intptr_t current_offset = sizeof(RawInstance);
+           current_offset < instance_size;
+           current_offset += kWordSize) {
+        *reinterpret_cast<RawObject**>(start + current_offset) = null_value;
+      }
+      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+      pc += 2;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(Allocate, A_D);
     SP[1] = 0;  // Space for the result.
     SP[2] = LOAD_CONSTANT(rD);  // Class object.
@@ -2207,6 +2782,28 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(AllocateTOpt, A_D);
+    const uword tags = Smi::Value(RAW_CAST(Smi, LOAD_CONSTANT(rD)));
+    const intptr_t instance_size = RawObject::SizeTag::decode(tags);
+    const uword start = thread->heap()->new_space()->TryAllocate(instance_size);
+    if (LIKELY(start != 0)) {
+      RawObject* type_args = SP[0];
+      const intptr_t type_args_offset = Bytecode::DecodeD(*pc);
+      *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
+      *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
+      for (intptr_t current_offset = sizeof(RawInstance);
+           current_offset < instance_size;
+           current_offset += kWordSize) {
+        *reinterpret_cast<RawObject**>(start + current_offset) = null_value;
+      }
+      FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+      SP -= 1;  // Consume the type arguments on the stack.
+      pc += 4;
+    }
+    DISPATCH();
+  }
+
+  {
     BYTECODE(AllocateT, 0);
     SP[1] = SP[-0];  // Class object.
     SP[2] = SP[-1];  // Type arguments
@@ -2214,6 +2811,38 @@ RawObject* Simulator::Call(const Code& code,
     NativeArguments args(thread, 2, SP + 1, SP - 1);
     INVOKE_RUNTIME(DRT_AllocateObject, args);
     SP -= 1;  // Result is in SP - 1.
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(CreateArrayOpt, A_B_C);
+    const intptr_t length = Smi::Value(RAW_CAST(Smi, FP[rB]));
+    if (LIKELY(length <= Array::kMaxElements)) {
+      const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+      const intptr_t instance_size =
+          (fixed_size + length*kWordSize) & ~(kObjectAlignment - 1);
+      const uword start =
+          thread->heap()->new_space()->TryAllocate(instance_size);
+      if (LIKELY(start != 0)) {
+        const intptr_t cid = kArrayCid;
+        uword tags = 0;
+        if (LIKELY(instance_size < RawObject::SizeTag::kMaxSizeTag)) {
+          tags = RawObject::SizeTag::update(instance_size, tags);
+        }
+        tags = RawObject::ClassIdTag::update(cid, tags);
+        *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
+        *reinterpret_cast<RawObject**>(start + Array::length_offset()) = FP[rB];
+        *reinterpret_cast<RawObject**>(start + Array::type_arguments_offset()) =
+            FP[rC];
+        RawObject** data =
+            reinterpret_cast<RawObject**>(start + Array::data_offset());
+        for (intptr_t i = 0; i < length; i++) {
+          data[i] = null_value;
+        }
+        FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
+        pc += 4;
+      }
+    }
     DISPATCH();
   }
 
@@ -2296,21 +2925,29 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(AssertAssignable, A_D);  // Stack: instance, type args, type, name
+    BYTECODE(BadTypeError, 0);  // Stack: instance, type args, type, name
     RawObject** args = SP - 3;
     if (args[0] != null_value) {
-      const AbstractType& dst_type =
-          AbstractType::Handle(static_cast<RawAbstractType*>(args[2]));
-      if (dst_type.IsMalformedOrMalbounded()) {
-        SP[1] = args[0];  // instance.
-        SP[2] = args[3];  // name.
-        SP[3] = args[2];  // type.
-        Exit(thread, FP, SP + 4, pc);
-        NativeArguments native_args(thread, 3, SP + 1, SP - 3);
-        INVOKE_RUNTIME(DRT_BadTypeError, native_args);
-        UNREACHABLE();
-      }
+      SP[1] = args[0];  // instance.
+      SP[2] = args[3];  // name.
+      SP[3] = args[2];  // type.
+      Exit(thread, FP, SP + 4, pc);
+      NativeArguments native_args(thread, 3, SP + 1, SP - 3);
+      INVOKE_RUNTIME(DRT_BadTypeError, native_args);
+      UNREACHABLE();
+    }
+    SP -= 3;
+    DISPATCH();
+  }
 
+  {
+    BYTECODE(AssertAssignable, A_D);  // Stack: instance, type args, type, name
+    RawObject** args = SP - 3;
+    const bool may_be_smi = (rA == 1);
+    const bool is_smi =
+        ((reinterpret_cast<intptr_t>(args[0]) & kSmiTagMask) == kSmiTag);
+    const bool smi_ok = is_smi && may_be_smi;
+    if (!smi_ok && (args[0] != null_value)) {
       RawSubtypeTestCache* cache =
           static_cast<RawSubtypeTestCache*>(LOAD_CONSTANT(rD));
       if (cache != null_value) {
@@ -2495,10 +3132,6 @@ RawObject* Simulator::Call(const Code& code,
         const intptr_t desired_cid = Bytecode::DecodeD(*(pc + i));
         if (cid == desired_cid) {
           pc++;
-          break;
-        }
-        // The cids are sorted.
-        if (cid < desired_cid) {
           break;
         }
       }
@@ -2824,8 +3457,44 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
+    BYTECODE(StoreIndexedUint8, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB]);
+    *data = Smi::Value(RAW_CAST(Smi, FP[rC]));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedExternalUint8, A_B_C);
+    uint8_t* array = reinterpret_cast<uint8_t*>(FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    RawSmi* value = RAW_CAST(Smi, FP[rC]);
+    array[Smi::Value(index)] = Smi::Value(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedOneByteString, A_B_C);
+    RawOneByteString* array = RAW_CAST(OneByteString, FP[rA]);
+    RawSmi* index = RAW_CAST(Smi, FP[rB]);
+    RawSmi* value = RAW_CAST(Smi, FP[rC]);
+    ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
+    array->ptr()->data()[Smi::Value(index)] = Smi::Value(value);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreIndexedUint32, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rA], FP[rB]);
+    const uintptr_t value = reinterpret_cast<uintptr_t>(FP[rC]);
+    *reinterpret_cast<uint32_t*>(data) = static_cast<uint32_t>(value);
+    DISPATCH();
+  }
+
+  {
     BYTECODE(LoadIndexed, A_B_C);
-    RawArray* array = RAW_CAST(Array, FP[rB]);
+    RawObject* obj = FP[rB];
+    ASSERT(obj->IsArray() || obj->IsImmutableArray());
+    RawArray* array = reinterpret_cast<RawArray*>(obj);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
     FP[rA] = array->ptr()->data()[Smi::Value(index)];
@@ -2833,7 +3502,51 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadOneByteStringIndexed, A_B_C);
+    BYTECODE(LoadIndexedUint8, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    FP[rA] = Smi::New(*data);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedInt8, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    FP[rA] = Smi::New(*reinterpret_cast<int8_t*>(data));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedUint32, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<uintptr_t*>(data));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedInt32, A_B_C);
+    uint8_t* data = SimulatorHelpers::GetTypedData(FP[rB], FP[rC]);
+    FP[rA] = reinterpret_cast<RawObject*>(*reinterpret_cast<intptr_t*>(data));
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedExternalUint8, A_B_C);
+    uint8_t* data = reinterpret_cast<uint8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedExternalInt8, A_B_C);
+    int8_t* data = reinterpret_cast<int8_t*>(FP[rB]);
+    RawSmi* index = RAW_CAST(Smi, FP[rC]);
+    FP[rA] = Smi::New(data[Smi::Value(index)]);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadIndexedOneByteString, A_B_C);
     RawOneByteString* array = RAW_CAST(OneByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
@@ -2842,7 +3555,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadTwoByteStringIndexed, A_B_C);
+    BYTECODE(LoadIndexedTwoByteString, A_B_C);
     RawTwoByteString* array = RAW_CAST(TwoByteString, FP[rB]);
     RawSmi* index = RAW_CAST(Smi, FP[rC]);
     ASSERT(SimulatorHelpers::CheckIndex(index, array->ptr()->length_));
@@ -2897,6 +3610,7 @@ RawObject* Simulator::Call(const Code& code,
 
     // Restore caller PC.
     pc = SavedCallerPC(FP);
+    pc_ = reinterpret_cast<uword>(pc);  // For the profiler.
 
     // Check if it is a fake PC marking the entry frame.
     ASSERT((reinterpret_cast<uword>(pc) & 2) == 0);

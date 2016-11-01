@@ -15,7 +15,7 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'integration_tests.dart';
 import 'protocol_matchers.dart';
@@ -32,7 +32,7 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * version ( String )
+   * version (String)
    *
    *   The version number of the analysis server.
    */
@@ -51,7 +51,7 @@ abstract class IntegrationTestMixin {
    */
   Future sendServerShutdown() async {
     var result = await server.send("server.shutdown", null);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -65,14 +65,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * subscriptions ( List<ServerService> )
+   * subscriptions (List<ServerService>)
    *
    *   A list of the services being subscribed to.
    */
   Future sendServerSetSubscriptions(List<ServerService> subscriptions) async {
     var params = new ServerSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("server.setSubscriptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -85,13 +85,17 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * version ( String )
+   * version (String)
    *
    *   The version number of the analysis server.
    *
-   * pid ( int )
+   * pid (int)
    *
    *   The process id of the analysis server process.
+   *
+   * sessionId (optional String)
+   *
+   *   The session id for this session.
    */
   Stream<ServerConnectedParams> onServerConnected;
 
@@ -111,16 +115,16 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * isFatal ( bool )
+   * isFatal (bool)
    *
    *   True if the error is a fatal error, meaning that the server will
    *   shutdown automatically after sending this notification.
    *
-   * message ( String )
+   * message (String)
    *
    *   The error message indicating what kind of error was encountered.
    *
-   * stackTrace ( String )
+   * stackTrace (String)
    *
    *   The stack trace associated with the generation of the error, used for
    *   debugging the server.
@@ -142,12 +146,12 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * analysis ( optional AnalysisStatus )
+   * analysis (optional AnalysisStatus)
    *
    *   The current status of analysis, including whether analysis is being
    *   performed and if so what is being analyzed.
    *
-   * pub ( optional PubStatus )
+   * pub (optional PubStatus)
    *
    *   The current status of pub execution, indicating whether we are currently
    *   running pub.
@@ -182,13 +186,13 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file for which errors are being requested.
    *
    * Returns
    *
-   * errors ( List<AnalysisError> )
+   * errors (List<AnalysisError>)
    *
    *   The errors associated with the file.
    */
@@ -206,17 +210,17 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file in which hover information is being requested.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset for which hover information is being requested.
    *
    * Returns
    *
-   * hovers ( List<HoverInformation> )
+   * hovers (List<HoverInformation>)
    *
    *   The hover information associated with the location. The list will be
    *   empty if no information could be determined for the location. The list
@@ -241,13 +245,13 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file for which reachable source information is being requested.
    *
    * Returns
    *
-   * sources ( Map<String, List<String>> )
+   * sources (Map<String, List<String>>)
    *
    *   A mapping from source URIs to directly reachable source URIs. For
    *   example, a file "foo.dart" that imports "bar.dart" would have the
@@ -273,12 +277,12 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * libraries ( List<FilePath> )
+   * libraries (List<FilePath>)
    *
    *   A list of the paths of library elements referenced by files in existing
    *   analysis roots.
    *
-   * packageMap ( Map<String, Map<String, List<FilePath>>> )
+   * packageMap (Map<String, Map<String, List<FilePath>>>)
    *
    *   A mapping from context source roots to package maps which map package
    *   names to source directories for use in client-side package URI
@@ -313,33 +317,33 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file in which navigation information is being requested.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset of the region for which navigation information is being
    *   requested.
    *
-   * length ( int )
+   * length (int)
    *
    *   The length of the region for which navigation information is being
    *   requested.
    *
    * Returns
    *
-   * files ( List<FilePath> )
+   * files (List<FilePath>)
    *
    *   A list of the paths of files that are referenced by the navigation
    *   targets.
    *
-   * targets ( List<NavigationTarget> )
+   * targets (List<NavigationTarget>)
    *
    *   A list of the navigation targets that are referenced by the navigation
    *   regions.
    *
-   * regions ( List<NavigationRegion> )
+   * regions (List<NavigationRegion>)
    *
    *   A list of the navigation regions within the requested region of the
    *   file.
@@ -365,14 +369,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * roots ( optional List<FilePath> )
+   * roots (optional List<FilePath>)
    *
    *   A list of the analysis roots that are to be re-analyzed.
    */
   Future sendAnalysisReanalyze({List<String> roots}) async {
     var params = new AnalysisReanalyzeParams(roots: roots).toJson();
     var result = await server.send("analysis.reanalyze", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -404,16 +408,16 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * included ( List<FilePath> )
+   * included (List<FilePath>)
    *
    *   A list of the files and directories that should be analyzed.
    *
-   * excluded ( List<FilePath> )
+   * excluded (List<FilePath>)
    *
    *   A list of the files and directories within the included directories that
    *   should not be analyzed.
    *
-   * packageRoots ( optional Map<FilePath, FilePath> )
+   * packageRoots (optional Map<FilePath, FilePath>)
    *
    *   A mapping from source directories to package roots that should override
    *   the normal package: URI resolution mechanism.
@@ -438,7 +442,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded, {Map<String, String> packageRoots}) async {
     var params = new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots).toJson();
     var result = await server.send("analysis.setAnalysisRoots", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -453,14 +457,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * subscriptions ( List<GeneralAnalysisService> )
+   * subscriptions (List<GeneralAnalysisService>)
    *
    *   A list of the services being subscribed to.
    */
   Future sendAnalysisSetGeneralSubscriptions(List<GeneralAnalysisService> subscriptions) async {
     var params = new AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("analysis.setGeneralSubscriptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -485,14 +489,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * files ( List<FilePath> )
+   * files (List<FilePath>)
    *
    *   The files that are to be a priority for analysis.
    */
   Future sendAnalysisSetPriorityFiles(List<String> files) async {
     var params = new AnalysisSetPriorityFilesParams(files).toJson();
     var result = await server.send("analysis.setPriorityFiles", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -523,7 +527,7 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * subscriptions ( Map<AnalysisService, List<FilePath>> )
+   * subscriptions (Map<AnalysisService, List<FilePath>>)
    *
    *   A table mapping services to a list of the files being subscribed to the
    *   service.
@@ -531,7 +535,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisSetSubscriptions(Map<AnalysisService, List<String>> subscriptions) async {
     var params = new AnalysisSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("analysis.setSubscriptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -545,8 +549,8 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * files ( Map<FilePath, AddContentOverlay | ChangeContentOverlay |
-   * RemoveContentOverlay> )
+   * files (Map<FilePath, AddContentOverlay | ChangeContentOverlay |
+   * RemoveContentOverlay>)
    *
    *   A table mapping the files whose content has changed to a description of
    *   the content change.
@@ -568,14 +572,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * options ( AnalysisOptions )
+   * options (AnalysisOptions)
    *
    *   The options that are to be used to control analysis.
    */
   Future sendAnalysisUpdateOptions(AnalysisOptions options) async {
     var params = new AnalysisUpdateOptionsParams(options).toJson();
     var result = await server.send("analysis.updateOptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -588,7 +592,7 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * directories ( List<FilePath> )
+   * directories (List<FilePath>)
    *
    *   A list of the paths of the files that are being analyzed.
    */
@@ -609,11 +613,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the errors.
    *
-   * errors ( List<AnalysisError> )
+   * errors (List<AnalysisError>)
    *
    *   The errors contained in the file.
    */
@@ -639,7 +643,7 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * files ( List<FilePath> )
+   * files (List<FilePath>)
    *
    *   The files that are no longer being analyzed.
    */
@@ -662,11 +666,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the folding regions.
    *
-   * regions ( List<FoldingRegion> )
+   * regions (List<FoldingRegion>)
    *
    *   The folding regions contained in the file.
    */
@@ -686,11 +690,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the highlight regions.
    *
-   * regions ( List<HighlightRegion> )
+   * regions (List<HighlightRegion>)
    *
    *   The highlight regions contained in the file. Each highlight region
    *   represents a particular syntactic or semantic meaning associated with
@@ -715,15 +719,15 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file with which the implementations are associated.
    *
-   * classes ( List<ImplementedClass> )
+   * classes (List<ImplementedClass>)
    *
    *   The classes defined in the file that are implemented or extended.
    *
-   * members ( List<ImplementedMember> )
+   * members (List<ImplementedMember>)
    *
    *   The member defined in the file that are implemented or overridden.
    */
@@ -744,19 +748,19 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file whose information has been invalidated.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset of the invalidated region.
    *
-   * length ( int )
+   * length (int)
    *
    *   The length of the invalidated region.
    *
-   * delta ( int )
+   * delta (int)
    *
    *   The delta to be applied to the offsets in information that follows the
    *   invalidated region in order to update it so that it doesn't need to be
@@ -778,11 +782,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the navigation regions.
    *
-   * regions ( List<NavigationRegion> )
+   * regions (List<NavigationRegion>)
    *
    *   The navigation regions contained in the file. The regions are sorted by
    *   their offsets. Each navigation region represents a list of targets
@@ -792,12 +796,12 @@ abstract class IntegrationTestMixin {
    *   versions of a package. Note that the navigation regions that are
    *   returned do not overlap other navigation regions.
    *
-   * targets ( List<NavigationTarget> )
+   * targets (List<NavigationTarget>)
    *
    *   The navigation targets referenced in the file. They are referenced by
    *   NavigationRegions by their index in this array.
    *
-   * files ( List<FilePath> )
+   * files (List<FilePath>)
    *
    *   The files containing navigation targets referenced in the file. They are
    *   referenced by NavigationTargets by their index in this array.
@@ -818,11 +822,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file in which the references occur.
    *
-   * occurrences ( List<Occurrences> )
+   * occurrences (List<Occurrences>)
    *
    *   The occurrences of references to elements within the file.
    */
@@ -842,15 +846,15 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file with which the outline is associated.
    *
-   * kind ( FileKind )
+   * kind (FileKind)
    *
    *   The kind of the file.
    *
-   * libraryName ( optional String )
+   * libraryName (optional String)
    *
    *   The name of the library defined by the file using a "library" directive,
    *   or referenced by a "part of" directive. If both "library" and "part of"
@@ -858,7 +862,7 @@ abstract class IntegrationTestMixin {
    *   This field will be omitted if the file has neither "library" nor "part
    *   of" directives.
    *
-   * outline ( Outline )
+   * outline (Outline)
    *
    *   The outline associated with the file.
    */
@@ -878,11 +882,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file with which the overrides are associated.
    *
-   * overrides ( List<Override> )
+   * overrides (List<Override>)
    *
    *   The overrides associated with the file.
    */
@@ -899,17 +903,17 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the point at which suggestions are to be made.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset within the file at which suggestions are to be made.
    *
    * Returns
    *
-   * id ( CompletionId )
+   * id (CompletionId)
    *
    *   The identifier used to associate results with this completion request.
    */
@@ -927,11 +931,11 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * id ( CompletionId )
+   * id (CompletionId)
    *
    *   The id associated with the completion.
    *
-   * replacementOffset ( int )
+   * replacementOffset (int)
    *
    *   The offset of the start of the text to be replaced. This will be
    *   different than the offset used to request the completion suggestions if
@@ -939,13 +943,13 @@ abstract class IntegrationTestMixin {
    *   particular, the replacementOffset will be the offset of the beginning of
    *   said identifier.
    *
-   * replacementLength ( int )
+   * replacementLength (int)
    *
    *   The length of the text to be replaced if the remainder of the identifier
    *   containing the cursor is to be replaced when the suggestion is applied
    *   (that is, the number of characters in the existing identifier).
    *
-   * results ( List<CompletionSuggestion> )
+   * results (List<CompletionSuggestion>)
    *
    *   The completion suggestions being reported. The notification contains all
    *   possible completions at the requested cursor position, even those that
@@ -953,7 +957,7 @@ abstract class IntegrationTestMixin {
    *   client to respond to further keystrokes from the user without having to
    *   make additional requests.
    *
-   * isLast ( bool )
+   * isLast (bool)
    *
    *   True if this is that last set of results that will be returned for the
    *   indicated completion.
@@ -974,23 +978,23 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the declaration of or reference to the element used
    *   to define the search.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset within the file of the declaration of or reference to the
    *   element.
    *
-   * includePotential ( bool )
+   * includePotential (bool)
    *
    *   True if potential matches are to be included in the results.
    *
    * Returns
    *
-   * id ( optional SearchId )
+   * id (optional SearchId)
    *
    *   The identifier used to associate results with this search request.
    *
@@ -998,7 +1002,7 @@ abstract class IntegrationTestMixin {
    *   absent, and no results will be reported via the search.results
    *   notification.
    *
-   * element ( optional Element )
+   * element (optional Element)
    *
    *   The element referenced or defined at the given offset and whose
    *   references will be returned in the search results.
@@ -1022,13 +1026,13 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * name ( String )
+   * name (String)
    *
    *   The name of the declarations to be found.
    *
    * Returns
    *
-   * id ( SearchId )
+   * id (SearchId)
    *
    *   The identifier used to associate results with this search request.
    */
@@ -1050,13 +1054,13 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * name ( String )
+   * name (String)
    *
    *   The name of the references to be found.
    *
    * Returns
    *
-   * id ( SearchId )
+   * id (SearchId)
    *
    *   The identifier used to associate results with this search request.
    */
@@ -1077,14 +1081,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * pattern ( String )
+   * pattern (String)
    *
    *   The regular expression used to match the names of the declarations to be
    *   found.
    *
    * Returns
    *
-   * id ( SearchId )
+   * id (SearchId)
    *
    *   The identifier used to associate results with this search request.
    */
@@ -1101,23 +1105,23 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the declaration or reference to the type for which a
    *   hierarchy is being requested.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset of the name of the type within the file.
    *
-   * superOnly ( optional bool )
+   * superOnly (optional bool)
    *
    *   True if the client is only requesting superclasses and interfaces
    *   hierarchy.
    *
    * Returns
    *
-   * hierarchyItems ( optional List<TypeHierarchyItem> )
+   * hierarchyItems (optional List<TypeHierarchyItem>)
    *
    *   A list of the types in the requested hierarchy. The first element of the
    *   list is the item representing the type for which the hierarchy was
@@ -1144,15 +1148,15 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * id ( SearchId )
+   * id (SearchId)
    *
    *   The id associated with the search.
    *
-   * results ( List<SearchResult> )
+   * results (List<SearchResult>)
    *
    *   The search results being reported.
    *
-   * isLast ( bool )
+   * isLast (bool)
    *
    *   True if this is that last set of results that will be returned for the
    *   indicated search.
@@ -1181,34 +1185,34 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the code to be formatted.
    *
-   * selectionOffset ( int )
+   * selectionOffset (int)
    *
    *   The offset of the current selection in the file.
    *
-   * selectionLength ( int )
+   * selectionLength (int)
    *
    *   The length of the current selection in the file.
    *
-   * lineLength ( optional int )
+   * lineLength (optional int)
    *
    *   The line length to be used by the formatter.
    *
    * Returns
    *
-   * edits ( List<SourceEdit> )
+   * edits (List<SourceEdit>)
    *
    *   The edit(s) to be applied in order to format the code. The list will be
    *   empty if the code was already formatted (there are no changes).
    *
-   * selectionOffset ( int )
+   * selectionOffset (int)
    *
    *   The offset of the selection after formatting the code.
    *
-   * selectionLength ( int )
+   * selectionLength (int)
    *
    *   The length of the selection after formatting the code.
    */
@@ -1227,21 +1231,21 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the code for which assists are being requested.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset of the code for which assists are being requested.
    *
-   * length ( int )
+   * length (int)
    *
    *   The length of the code for which assists are being requested.
    *
    * Returns
    *
-   * assists ( List<SourceChange> )
+   * assists (List<SourceChange>)
    *
    *   The assists that are available at the given location.
    */
@@ -1258,21 +1262,21 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the code on which the refactoring would be based.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset of the code on which the refactoring would be based.
    *
-   * length ( int )
+   * length (int)
    *
    *   The length of the code on which the refactoring would be based.
    *
    * Returns
    *
-   * kinds ( List<RefactoringKind> )
+   * kinds (List<RefactoringKind>)
    *
    *   The kinds of refactorings that are valid for the given selection.
    */
@@ -1289,17 +1293,17 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the errors for which fixes are being requested.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset used to select the errors for which fixes will be returned.
    *
    * Returns
    *
-   * fixes ( List<AnalysisErrorFixes> )
+   * fixes (List<AnalysisErrorFixes>)
    *
    *   The fixes that are available for the errors at the given offset.
    */
@@ -1318,28 +1322,28 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * kind ( RefactoringKind )
+   * kind (RefactoringKind)
    *
    *   The kind of refactoring to be performed.
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file containing the code involved in the refactoring.
    *
-   * offset ( int )
+   * offset (int)
    *
    *   The offset of the region involved in the refactoring.
    *
-   * length ( int )
+   * length (int)
    *
    *   The length of the region involved in the refactoring.
    *
-   * validateOnly ( bool )
+   * validateOnly (bool)
    *
    *   True if the client is only requesting that the values of the options be
    *   validated and no change be generated.
    *
-   * options ( optional RefactoringOptions )
+   * options (optional RefactoringOptions)
    *
    *   Data used to provide values provided by the user. The structure of the
    *   data is dependent on the kind of refactoring being performed. The data
@@ -1349,39 +1353,39 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * initialProblems ( List<RefactoringProblem> )
+   * initialProblems (List<RefactoringProblem>)
    *
    *   The initial status of the refactoring, i.e. problems related to the
    *   context in which the refactoring is requested. The array will be empty
    *   if there are no known problems.
    *
-   * optionsProblems ( List<RefactoringProblem> )
+   * optionsProblems (List<RefactoringProblem>)
    *
    *   The options validation status, i.e. problems in the given options, such
    *   as light-weight validation of a new name, flags compatibility, etc. The
    *   array will be empty if there are no known problems.
    *
-   * finalProblems ( List<RefactoringProblem> )
+   * finalProblems (List<RefactoringProblem>)
    *
    *   The final status of the refactoring, i.e. problems identified in the
    *   result of a full, potentially expensive validation and / or change
    *   creation. The array will be empty if there are no known problems.
    *
-   * feedback ( optional RefactoringFeedback )
+   * feedback (optional RefactoringFeedback)
    *
    *   Data used to provide feedback to the user. The structure of the data is
    *   dependent on the kind of refactoring being created. The data that is
    *   returned is documented in the section titled Refactorings, labeled as
    *   “Feedback”.
    *
-   * change ( optional SourceChange )
+   * change (optional SourceChange)
    *
    *   The changes that are to be applied to affect the refactoring. This field
    *   will be omitted if there are problems that prevent a set of changes from
    *   being computed, such as having no options specified for a refactoring
    *   that requires them, or if only validation was requested.
    *
-   * potentialEdits ( optional List<String> )
+   * potentialEdits (optional List<String>)
    *
    *   The ids of source edits that are not known to be valid. An edit is not
    *   known to be valid if there was insufficient type information for the
@@ -1410,13 +1414,13 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The Dart file to sort.
    *
    * Returns
    *
-   * edit ( SourceFileEdit )
+   * edit (SourceFileEdit)
    *
    *   The file edit that is to be applied to the given file to effect the
    *   sorting.
@@ -1441,13 +1445,13 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The Dart file to organize directives in.
    *
    * Returns
    *
-   * edit ( SourceFileEdit )
+   * edit (SourceFileEdit)
    *
    *   The file edit that is to be applied to the given file to effect the
    *   organizing.
@@ -1467,14 +1471,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * contextRoot ( FilePath )
+   * contextRoot (FilePath)
    *
    *   The path of the Dart or HTML file that will be launched, or the path of
    *   the directory containing the file.
    *
    * Returns
    *
-   * id ( ExecutionContextId )
+   * id (ExecutionContextId)
    *
    *   The identifier used to refer to the execution context that was created.
    */
@@ -1492,14 +1496,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * id ( ExecutionContextId )
+   * id (ExecutionContextId)
    *
    *   The identifier of the execution context that is to be deleted.
    */
   Future sendExecutionDeleteContext(String id) async {
     var params = new ExecutionDeleteContextParams(id).toJson();
     var result = await server.send("execution.deleteContext", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -1526,27 +1530,27 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * id ( ExecutionContextId )
+   * id (ExecutionContextId)
    *
    *   The identifier of the execution context in which the URI is to be
    *   mapped.
    *
-   * file ( optional FilePath )
+   * file (optional FilePath)
    *
    *   The path of the file to be mapped into a URI.
    *
-   * uri ( optional String )
+   * uri (optional String)
    *
    *   The URI to be mapped into a file path.
    *
    * Returns
    *
-   * file ( optional FilePath )
+   * file (optional FilePath)
    *
    *   The file to which the URI was mapped. This field is omitted if the uri
    *   field was not given in the request.
    *
-   * uri ( optional String )
+   * uri (optional String)
    *
    *   The URI to which the file path was mapped. This field is omitted if the
    *   file field was not given in the request.
@@ -1568,14 +1572,14 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * subscriptions ( List<ExecutionService> )
+   * subscriptions (List<ExecutionService>)
    *
    *   A list of the services being subscribed to.
    */
   Future sendExecutionSetSubscriptions(List<ExecutionService> subscriptions) async {
     var params = new ExecutionSetSubscriptionsParams(subscriptions).toJson();
     var result = await server.send("execution.setSubscriptions", params);
-    expect(result, isNull);
+    outOfTestExpect(result, isNull);
     return null;
   }
 
@@ -1588,17 +1592,17 @@ abstract class IntegrationTestMixin {
    *
    * Parameters
    *
-   * file ( FilePath )
+   * file (FilePath)
    *
    *   The file for which launch data is being provided. This will either be a
    *   Dart library or an HTML file.
    *
-   * kind ( optional ExecutableKind )
+   * kind (optional ExecutableKind)
    *
    *   The kind of the executable file. This field is omitted if the file is
    *   not a Dart file.
    *
-   * referencedFiles ( optional List<FilePath> )
+   * referencedFiles (optional List<FilePath>)
    *
    *   A list of the Dart files that are referenced by the file. This field is
    *   omitted if the file is not an HTML file.
@@ -1615,7 +1619,7 @@ abstract class IntegrationTestMixin {
    *
    * Returns
    *
-   * contexts ( List<ContextData> )
+   * contexts (List<ContextData>)
    *
    *   The list of analysis contexts.
    */
@@ -1674,71 +1678,71 @@ abstract class IntegrationTestMixin {
     ResponseDecoder decoder = new ResponseDecoder(null);
     switch (event) {
       case "server.connected":
-        expect(params, isServerConnectedParams);
+        outOfTestExpect(params, isServerConnectedParams);
         _onServerConnected.add(new ServerConnectedParams.fromJson(decoder, 'params', params));
         break;
       case "server.error":
-        expect(params, isServerErrorParams);
+        outOfTestExpect(params, isServerErrorParams);
         _onServerError.add(new ServerErrorParams.fromJson(decoder, 'params', params));
         break;
       case "server.status":
-        expect(params, isServerStatusParams);
+        outOfTestExpect(params, isServerStatusParams);
         _onServerStatus.add(new ServerStatusParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.analyzedFiles":
-        expect(params, isAnalysisAnalyzedFilesParams);
+        outOfTestExpect(params, isAnalysisAnalyzedFilesParams);
         _onAnalysisAnalyzedFiles.add(new AnalysisAnalyzedFilesParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.errors":
-        expect(params, isAnalysisErrorsParams);
+        outOfTestExpect(params, isAnalysisErrorsParams);
         _onAnalysisErrors.add(new AnalysisErrorsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.flushResults":
-        expect(params, isAnalysisFlushResultsParams);
+        outOfTestExpect(params, isAnalysisFlushResultsParams);
         _onAnalysisFlushResults.add(new AnalysisFlushResultsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.folding":
-        expect(params, isAnalysisFoldingParams);
+        outOfTestExpect(params, isAnalysisFoldingParams);
         _onAnalysisFolding.add(new AnalysisFoldingParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.highlights":
-        expect(params, isAnalysisHighlightsParams);
+        outOfTestExpect(params, isAnalysisHighlightsParams);
         _onAnalysisHighlights.add(new AnalysisHighlightsParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.implemented":
-        expect(params, isAnalysisImplementedParams);
+        outOfTestExpect(params, isAnalysisImplementedParams);
         _onAnalysisImplemented.add(new AnalysisImplementedParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.invalidate":
-        expect(params, isAnalysisInvalidateParams);
+        outOfTestExpect(params, isAnalysisInvalidateParams);
         _onAnalysisInvalidate.add(new AnalysisInvalidateParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.navigation":
-        expect(params, isAnalysisNavigationParams);
+        outOfTestExpect(params, isAnalysisNavigationParams);
         _onAnalysisNavigation.add(new AnalysisNavigationParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.occurrences":
-        expect(params, isAnalysisOccurrencesParams);
+        outOfTestExpect(params, isAnalysisOccurrencesParams);
         _onAnalysisOccurrences.add(new AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.outline":
-        expect(params, isAnalysisOutlineParams);
+        outOfTestExpect(params, isAnalysisOutlineParams);
         _onAnalysisOutline.add(new AnalysisOutlineParams.fromJson(decoder, 'params', params));
         break;
       case "analysis.overrides":
-        expect(params, isAnalysisOverridesParams);
+        outOfTestExpect(params, isAnalysisOverridesParams);
         _onAnalysisOverrides.add(new AnalysisOverridesParams.fromJson(decoder, 'params', params));
         break;
       case "completion.results":
-        expect(params, isCompletionResultsParams);
+        outOfTestExpect(params, isCompletionResultsParams);
         _onCompletionResults.add(new CompletionResultsParams.fromJson(decoder, 'params', params));
         break;
       case "search.results":
-        expect(params, isSearchResultsParams);
+        outOfTestExpect(params, isSearchResultsParams);
         _onSearchResults.add(new SearchResultsParams.fromJson(decoder, 'params', params));
         break;
       case "execution.launchData":
-        expect(params, isExecutionLaunchDataParams);
+        outOfTestExpect(params, isExecutionLaunchDataParams);
         _onExecutionLaunchData.add(new ExecutionLaunchDataParams.fromJson(decoder, 'params', params));
         break;
       default:

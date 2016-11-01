@@ -6,9 +6,11 @@ library analyzer_cli.src.driver;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' as io;
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' as file_system;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
@@ -21,22 +23,21 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/interner.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart'
     show PerformanceTag;
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart' show SummaryBasedDartSdk;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
-import 'package:analyzer_cli/src/incremental_analyzer.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
@@ -53,12 +54,12 @@ import 'package:yaml/yaml.dart';
 /// Shared IO sink for standard error reporting.
 ///
 /// *Visible for testing.*
-StringSink errorSink = stderr;
+StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
 ///
 /// *Visible for testing.*
-StringSink outSink = stdout;
+StringSink outSink = io.stdout;
 
 /// Test this option map to see if it specifies lint rules.
 bool containsLintRuleEntry(Map<String, YamlNode> options) {
@@ -77,7 +78,7 @@ class Driver implements CommandLineStarter {
 
   /// The context that was most recently created by a call to [_analyzeAll], or
   /// `null` if [_analyzeAll] hasn't been called yet.
-  AnalysisContext _context;
+  InternalAnalysisContext _context;
 
   /// The total number of source files loaded by an AnalysisContext.
   int _analyzedFileCount = 0;
@@ -85,8 +86,6 @@ class Driver implements CommandLineStarter {
   /// If [_context] is not `null`, the [CommandLineOptions] that guided its
   /// creation.
   CommandLineOptions _previousOptions;
-
-  IncrementalAnalysisSession incrementalSession;
 
   @override
   ResolverProvider packageResolverProvider;
@@ -132,7 +131,7 @@ class Driver implements CommandLineStarter {
       ErrorSeverity severity = _buildModeAnalyze(options);
       // In case of error propagate exit code.
       if (severity == ErrorSeverity.ERROR) {
-        exitCode = severity.ordinal;
+        io.exitCode = severity.ordinal;
       }
     } else if (options.shouldBatch) {
       _BatchRunner.runAsBatch(args, (List<String> args) {
@@ -143,7 +142,7 @@ class Driver implements CommandLineStarter {
       ErrorSeverity severity = _analyzeAll(options);
       // In case of error propagate exit code.
       if (severity == ErrorSeverity.ERROR) {
-        exitCode = severity.ordinal;
+        io.exitCode = severity.ordinal;
       }
     }
 
@@ -154,7 +153,7 @@ class Driver implements CommandLineStarter {
     if (options.perfReport != null) {
       String json = makePerfReport(
           startTime, currentTimeMillis(), options, _analyzedFileCount, stats);
-      new File(options.perfReport).writeAsStringSync(json);
+      new io.File(options.perfReport).writeAsStringSync(json);
     }
   }
 
@@ -191,14 +190,14 @@ class Driver implements CommandLineStarter {
       // Note that these files will all be analyzed in the same context.
       // This should be updated when the ContextManager re-work is complete
       // (See: https://github.com/dart-lang/sdk/issues/24133)
-      Iterable<File> files = _collectFiles(sourcePath);
+      Iterable<io.File> files = _collectFiles(sourcePath);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
-        exitCode = ErrorSeverity.ERROR.ordinal;
+        io.exitCode = ErrorSeverity.ERROR.ordinal;
         return ErrorSeverity.ERROR;
       }
 
-      for (File file in files) {
+      for (io.File file in files) {
         Source source = _computeLibrarySource(file.absolute.path);
         if (!knownSources.contains(source)) {
           changeSet.addedSource(source);
@@ -222,8 +221,6 @@ class Driver implements CommandLineStarter {
       libUris.add(source.uri);
     }
 
-    incrementalSession?.finish();
-
     // Check that each part has a corresponding source in the input list.
     for (Source part in parts) {
       bool found = false;
@@ -235,7 +232,7 @@ class Driver implements CommandLineStarter {
       if (!found) {
         errorSink.writeln("${part.fullName} is a part and cannot be analyzed.");
         errorSink.writeln("Please pass in a library that contains this part.");
-        exitCode = ErrorSeverity.ERROR.ordinal;
+        io.exitCode = ErrorSeverity.ERROR.ordinal;
         allResult = allResult.max(ErrorSeverity.ERROR);
       }
     }
@@ -283,6 +280,10 @@ class Driver implements CommandLineStarter {
     if (options.disableHints != _previousOptions.disableHints) {
       return false;
     }
+    if (options.enableInitializingFormalAccess !=
+        _previousOptions.enableInitializingFormalAccess) {
+      return false;
+    }
     if (options.enableStrictCallChecks !=
         _previousOptions.enableStrictCallChecks) {
       return false;
@@ -306,7 +307,11 @@ class Driver implements CommandLineStarter {
     if (options.enableSuperMixins != _previousOptions.enableSuperMixins) {
       return false;
     }
-    if (options.incrementalCachePath != _previousOptions.incrementalCachePath) {
+    if (!_equalLists(
+        options.buildSummaryInputs, _previousOptions.buildSummaryInputs)) {
+      return false;
+    }
+    if (options.disableCacheFlushing != _previousOptions.disableCacheFlushing) {
       return false;
     }
     return true;
@@ -342,8 +347,11 @@ class Driver implements CommandLineStarter {
   /// Decide on the appropriate method for resolving URIs based on the given
   /// [options] and [customUrlMappings] settings, and return a
   /// [SourceFactory] that has been configured accordingly.
-  SourceFactory _chooseUriResolutionPolicy(CommandLineOptions options,
-      Map<file_system.Folder, YamlMap> embedderMap, _PackageInfo packageInfo) {
+  SourceFactory _chooseUriResolutionPolicy(
+      CommandLineOptions options,
+      Map<file_system.Folder, YamlMap> embedderMap,
+      _PackageInfo packageInfo,
+      SummaryDataStore summaryDataStore) {
     // Create a custom package resolver if one has been specified.
     if (packageResolverProvider != null) {
       file_system.Folder folder = resourceProvider.getResource('.');
@@ -354,6 +362,7 @@ class Driver implements CommandLineStarter {
         // TODO(brianwilkerson) This doesn't handle sdk extensions.
         List<UriResolver> resolvers = <UriResolver>[
           sdkResolver,
+          new InSummaryUriResolver(resourceProvider, summaryDataStore),
           resolver,
           new file_system.ResourceUriResolver(resourceProvider)
         ];
@@ -364,8 +373,12 @@ class Driver implements CommandLineStarter {
     UriResolver packageUriResolver;
 
     if (options.packageRootPath != null) {
-      JavaFile packageDirectory = new JavaFile(options.packageRootPath);
-      packageUriResolver = new PackageUriResolver([packageDirectory]);
+      ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+      builderOptions.defaultPackagesDirectoryPath = options.packageRootPath;
+      ContextBuilder builder = new ContextBuilder(resourceProvider, null, null,
+          options: builderOptions);
+      packageUriResolver = new PackageMapUriResolver(resourceProvider,
+          builder.convertPackagesToMap(builder.createPackageMap('')));
     } else if (options.packageConfigPath == null) {
       // TODO(pq): remove?
       if (packageInfo.packageMap == null) {
@@ -410,6 +423,9 @@ class Driver implements CommandLineStarter {
       resolvers.add(new SdkExtUriResolver(packageInfo.packageMap));
     }
 
+    // Then package URIs from summaries.
+    resolvers.add(new InSummaryUriResolver(resourceProvider, summaryDataStore));
+
     // Then package URIs.
     if (packageUriResolver != null) {
       resolvers.add(packageUriResolver);
@@ -423,15 +439,15 @@ class Driver implements CommandLineStarter {
 
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
-  Iterable<File> _collectFiles(String filePath) {
-    List<File> files = <File>[];
-    File file = new File(filePath);
+  Iterable<io.File> _collectFiles(String filePath) {
+    List<io.File> files = <io.File>[];
+    io.File file = new io.File(filePath);
     if (file.existsSync()) {
       files.add(file);
     } else {
-      Directory directory = new Directory(filePath);
+      io.Directory directory = new io.Directory(filePath);
       if (directory.existsSync()) {
-        for (FileSystemEntity entry
+        for (io.FileSystemEntity entry
             in directory.listSync(recursive: true, followLinks: false)) {
           String relative = path.relative(entry.path, from: directory.path);
           if (AnalysisEngine.isDartFileName(entry.path) &&
@@ -449,17 +465,17 @@ class Driver implements CommandLineStarter {
   /// context.
   Source _computeLibrarySource(String sourcePath) {
     sourcePath = _normalizeSourcePath(sourcePath);
-    JavaFile sourceFile = new JavaFile(sourcePath);
-    Source source = sdk.fromFileUri(sourceFile.toURI());
+    File sourceFile = resourceProvider.getFile(sourcePath);
+    Source source = sdk.fromFileUri(sourceFile.toUri());
     if (source != null) {
       return source;
     }
-    source = new FileBasedSource(sourceFile, sourceFile.toURI());
+    source = new FileSource(sourceFile, sourceFile.toUri());
     Uri uri = _context.sourceFactory.restoreUri(source);
     if (uri == null) {
       return source;
     }
-    return new FileBasedSource(sourceFile, uri);
+    return new FileSource(sourceFile, uri);
   }
 
   /// Create an analysis context that is prepared to analyze sources according
@@ -498,17 +514,26 @@ class Driver implements CommandLineStarter {
     // No summaries in the presence of embedders or extenders.
     bool useSummaries = embedderMap.isEmpty && !hasSdkExt;
 
+    if (!useSummaries && options.buildSummaryInputs.isNotEmpty) {
+      throw new _DriverError(
+          'Summaries are not yet supported when using Flutter.');
+    }
+
+    // Read any input summaries.
+    SummaryDataStore summaryDataStore = new SummaryDataStore(
+        useSummaries ? options.buildSummaryInputs : <String>[]);
+
     // Once options and embedders are processed, setup the SDK.
     _setupSdk(options, useSummaries);
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
-    SourceFactory sourceFactory =
-        _chooseUriResolutionPolicy(options, embedderMap, packageInfo);
+    SourceFactory sourceFactory = _chooseUriResolutionPolicy(
+        options, embedderMap, packageInfo, summaryDataStore);
 
     _context.sourceFactory = sourceFactory;
-
-    incrementalSession = configureIncrementalAnalysis(options, context);
+    _context.resultProvider =
+        new InputPackagesResultProvider(_context, summaryDataStore);
   }
 
   /// Return discovered packagespec, or `null` if none is found.
@@ -538,7 +563,7 @@ class Driver implements CommandLineStarter {
       String packageConfigPath = options.packageConfigPath;
       Uri fileUri = new Uri.file(packageConfigPath);
       try {
-        File configFile = new File.fromUri(fileUri).absolute;
+        io.File configFile = new io.File.fromUri(fileUri).absolute;
         List<int> bytes = configFile.readAsBytesSync();
         Map<String, Uri> map = pkgfile.parse(bytes, configFile.uri);
         packages = new MapPackages(map);
@@ -605,14 +630,14 @@ class Driver implements CommandLineStarter {
   /// Analyze a single source.
   ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
     int startTime = currentTimeMillis();
-    AnalyzerImpl analyzer = new AnalyzerImpl(
-        _context, incrementalSession, source, options, stats, startTime);
+    AnalyzerImpl analyzer =
+        new AnalyzerImpl(_context, source, options, stats, startTime);
     var errorSeverity = analyzer.analyzeSync();
     if (errorSeverity == ErrorSeverity.ERROR) {
-      exitCode = errorSeverity.ordinal;
+      io.exitCode = errorSeverity.ordinal;
     }
     if (options.warningsAreFatal && errorSeverity == ErrorSeverity.WARNING) {
-      exitCode = errorSeverity.ordinal;
+      io.exitCode = errorSeverity.ordinal;
     }
     return errorSeverity;
   }
@@ -643,7 +668,10 @@ class Driver implements CommandLineStarter {
       CommandLineOptions options) {
     AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
     contextOptions.trackCacheDependencies = false;
+    contextOptions.disableCacheFlushing = options.disableCacheFlushing;
     contextOptions.hint = !options.disableHints;
+    contextOptions.enableInitializingFormalAccess =
+        options.enableInitializingFormalAccess;
     contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
     contextOptions.enableSuperMixins = options.enableSuperMixins;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;
@@ -684,6 +712,19 @@ class Driver implements CommandLineStarter {
     _processAnalysisOptions(resourceProvider, context, options);
   }
 
+  /// Perform a deep comparison of two string lists.
+  static bool _equalLists(List<String> l1, List<String> l2) {
+    if (l1.length != l2.length) {
+      return false;
+    }
+    for (int i = 0; i < l1.length; i++) {
+      if (l1[i] != l2[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// Perform a deep comparison of two string maps.
   static bool _equalMaps(Map<String, String> m1, Map<String, String> m2) {
     if (m1.length != m2.length) {
@@ -721,7 +762,7 @@ class Driver implements CommandLineStarter {
 
   /// Convert [sourcePath] into an absolute path.
   static String _normalizeSourcePath(String sourcePath) =>
-      path.normalize(new File(sourcePath).absolute.path);
+      path.normalize(new io.File(sourcePath).absolute.path);
 
   static void _processAnalysisOptions(
       file_system.ResourceProvider resourceProvider,
@@ -769,14 +810,14 @@ class _BatchRunner {
     ErrorSeverity batchResult = ErrorSeverity.NONE;
     // Read line from stdin.
     Stream cmdLine =
-        stdin.transform(UTF8.decoder).transform(new LineSplitter());
+        io.stdin.transform(UTF8.decoder).transform(new LineSplitter());
     cmdLine.listen((String line) {
       // Maybe finish.
       if (line.isEmpty) {
         var time = stopwatch.elapsedMilliseconds;
         outSink.writeln(
             '>>> BATCH END (${totalTests - testsFailed}/$totalTests) ${time}ms');
-        exitCode = batchResult.ordinal;
+        io.exitCode = batchResult.ordinal;
       }
       // Prepare arguments.
       var lineArgs = line.split(new RegExp('\\s+'));
@@ -828,7 +869,7 @@ class _PackageInfo {
 class _PackageRootPackageMapBuilder {
   static Map<String, List<file_system.Folder>> buildPackageMap(
       String packageRootPath) {
-    var packageRoot = new Directory(packageRootPath);
+    var packageRoot = new io.Directory(packageRootPath);
     if (!packageRoot.existsSync()) {
       throw new _DriverError(
           'Package root directory ($packageRootPath) does not exist.');

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLOW_GRAPH_TYPE_PROPAGATOR_H_
-#define VM_FLOW_GRAPH_TYPE_PROPAGATOR_H_
+#ifndef RUNTIME_VM_FLOW_GRAPH_TYPE_PROPAGATOR_H_
+#define RUNTIME_VM_FLOW_GRAPH_TYPE_PROPAGATOR_H_
 
 #include "vm/flow_graph.h"
 #include "vm/intermediate_language.h"
@@ -32,6 +32,9 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitCheckClassId(CheckClassIdInstr* instr);
   virtual void VisitGuardFieldClass(GuardFieldClassInstr* instr);
   virtual void VisitAssertAssignable(AssertAssignableInstr* instr);
+  virtual void VisitInstanceCall(InstanceCallInstr* instr);
+  virtual void VisitPolymorphicInstanceCall(
+      PolymorphicInstanceCallInstr* instr);
 
   // Current reaching type of the definition. Valid only during dominator tree
   // traversal.
@@ -95,4 +98,4 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
 }  // namespace dart
 
-#endif  // VM_FLOW_GRAPH_TYPE_PROPAGATOR_H_
+#endif  // RUNTIME_VM_FLOW_GRAPH_TYPE_PROPAGATOR_H_

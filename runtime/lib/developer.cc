@@ -9,6 +9,7 @@
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/message.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -118,6 +119,63 @@ DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
   }
   return Object::null();
 #endif  // PRODUCT
+}
+
+DEFINE_NATIVE_ENTRY(Developer_getServiceMajorVersion, 0) {
+#if defined(PRODUCT)
+  return Smi::New(0);
+#else
+  return Smi::New(SERVICE_PROTOCOL_MAJOR_VERSION);
+#endif
+}
+
+
+DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0) {
+#if defined(PRODUCT)
+  return Smi::New(0);
+#else
+  return Smi::New(SERVICE_PROTOCOL_MINOR_VERSION);
+#endif
+}
+
+
+static void SendNull(const SendPort& port) {
+  const Dart_Port destination_port_id = port.Id();
+  PortMap::PostMessage(new Message(
+        destination_port_id, Object::null(), Message::kNormalPriority));
+}
+
+
+DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+#if defined(PRODUCT)
+  SendNull(port);
+  return Object::null();
+#else
+  if (!ServiceIsolate::IsRunning()) {
+    SendNull(port);
+  } else {
+    ServiceIsolate::RequestServerInfo(port);
+  }
+  return Object::null();
+#endif
+}
+
+
+DEFINE_NATIVE_ENTRY(Developer_webServerControl, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
+#if defined(PRODUCT)
+  SendNull(port);
+  return Object::null();
+#else
+  GET_NON_NULL_NATIVE_ARGUMENT(Bool, enabled, arguments->NativeArgAt(1));
+  if (!ServiceIsolate::IsRunning()) {
+    SendNull(port);
+  } else {
+    ServiceIsolate::ControlWebServer(port, enabled.value());
+  }
+  return Object::null();
+#endif
 }
 
 }  // namespace dart

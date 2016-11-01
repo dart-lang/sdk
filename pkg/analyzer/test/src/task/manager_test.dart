@@ -4,18 +4,18 @@
 
 library analyzer.test.src.task.manager_test;
 
-import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(TaskManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(TaskManagerTest);
+  });
 }
 
 @reflectiveTest

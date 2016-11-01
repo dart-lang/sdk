@@ -12,6 +12,7 @@
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_range_analysis.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -120,6 +121,8 @@ static Condition NegateCondition(Condition condition) {
     case BELOW_EQUAL:   return ABOVE;
     case ABOVE:         return BELOW_EQUAL;
     case ABOVE_EQUAL:   return BELOW;
+    case PARITY_EVEN:   return PARITY_ODD;
+    case PARITY_ODD:    return PARITY_EVEN;
     default:
       UNIMPLEMENTED();
       return EQUAL;
@@ -2569,11 +2572,16 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 compiler->assembler()->CodeSize(),
                                 catch_handler_types_,
                                 needs_stacktrace());
-
-  // Restore the pool pointer.
-  __ RestoreCodePointer();
-  __ LoadPoolPointer(PP);
-
+  // On lazy deoptimization we patch the optimized code here to enter the
+  // deoptimization stub.
+  const intptr_t deopt_id = Thread::ToDeoptAfter(GetDeoptId());
+  if (compiler->is_optimizing()) {
+    compiler->AddDeoptIndexAtCall(deopt_id);
+  } else {
+    compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
+                                   deopt_id,
+                                   TokenPosition::kNoSource);
+  }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
@@ -2585,12 +2593,50 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(fp_sp_dist <= 0);
   __ leaq(RSP, Address(RBP, fp_sp_dist));
 
-  // Restore stack and initialize the two exception variables:
-  // exception and stack trace variables.
-  __ movq(Address(RBP, exception_var().index() * kWordSize),
-          kExceptionObjectReg);
-  __ movq(Address(RBP, stacktrace_var().index() * kWordSize),
-          kStackTraceObjectReg);
+  // Auxiliary variables introduced by the try catch can be captured if we are
+  // inside a function with yield/resume points. In this case we first need
+  // to restore the context to match the context at entry into the closure.
+  if (should_restore_closure_context()) {
+    const ParsedFunction& parsed_function = compiler->parsed_function();
+    ASSERT(parsed_function.function().IsClosureFunction());
+    LocalScope* scope = parsed_function.node_sequence()->scope();
+
+    LocalVariable* closure_parameter = scope->VariableAt(0);
+    ASSERT(!closure_parameter->is_captured());
+    __ movq(CTX, Address(RBP, closure_parameter->index() * kWordSize));
+    __ movq(CTX, FieldAddress(CTX, Closure::context_offset()));
+
+#ifdef DEBUG
+    Label ok;
+    __ LoadClassId(RBX, CTX);
+    __ cmpq(RBX, Immediate(kContextCid));
+    __ j(EQUAL, &ok, Assembler::kNearJump);
+    __ Stop("Incorrect context at entry");
+    __ Bind(&ok);
+#endif
+
+    const intptr_t context_index =
+        parsed_function.current_context_var()->index();
+    __ movq(Address(RBP, context_index * kWordSize), CTX);
+  }
+
+  // Initialize exception and stack trace variables.
+  if (exception_var().is_captured()) {
+    ASSERT(stacktrace_var().is_captured());
+    __ StoreIntoObject(
+        CTX,
+        FieldAddress(CTX, Context::variable_offset(exception_var().index())),
+        kExceptionObjectReg);
+    __ StoreIntoObject(
+        CTX,
+        FieldAddress(CTX, Context::variable_offset(stacktrace_var().index())),
+        kStackTraceObjectReg);
+  } else {
+    __ movq(Address(RBP, exception_var().index() * kWordSize),
+            kExceptionObjectReg);
+    __ movq(Address(RBP, stacktrace_var().index() * kWordSize),
+            kStackTraceObjectReg);
+  }
 }
 
 
@@ -3716,6 +3762,73 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps =
+      (op_kind() == MethodRecognizer::kDouble_getIsInfinite) ? 1 : 0;
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresFpuRegister());
+  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
+  ASSERT(compiler->is_optimizing());
+  const XmmRegister value = locs()->in(0).fpu_reg();
+  const bool is_negated = kind() != Token::kEQ;
+  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
+    Label is_nan;
+    __ comisd(value, value);
+    return is_negated ? PARITY_ODD : PARITY_EVEN;
+  } else {
+    ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
+    const Register temp = locs()->temp(0).reg();
+    __ AddImmediate(RSP, Immediate(-kDoubleSize));
+    __ movsd(Address(RSP, 0), value);
+    __ movq(temp, Address(RSP, 0));
+    __ AddImmediate(RSP, Immediate(kDoubleSize));
+    // Mask off the sign.
+    __ AndImmediate(temp, Immediate(0x7FFFFFFFFFFFFFFFLL));
+    // Compare with +infinity.
+    __ CompareImmediate(temp, Immediate(0x7FF0000000000000LL));
+    return is_negated ? NOT_EQUAL : EQUAL;
+  }
+}
+
+
+void DoubleTestOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
+  ASSERT(compiler->is_optimizing());
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler,  true_condition, labels);
+
+  Register result = locs()->out(0).reg();
+  Label done;
+  __ Bind(&is_false);
+  __ LoadObject(result, Bool::False());
+  __ jmp(&done);
+  __ Bind(&is_true);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
+}
+
+
 LocationSummary* BinaryFloat32x4OpInstr::MakeLocationSummary(Zone* zone,
                                                              bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -4747,22 +4860,6 @@ void BinaryInt32x4OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* MathUnaryInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
-  if ((kind() == MathUnaryInstr::kSin) || (kind() == MathUnaryInstr::kCos)) {
-    // Calling convention on x64 uses XMM0 and XMM1 to pass the first two
-    // double arguments and XMM0 to return the result. Unfortunately
-    // currently we can't specify these registers because ParallelMoveResolver
-    // assumes that XMM0 is free at all times.
-    // TODO(vegorov): allow XMM0 to be used.
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary = new(zone) LocationSummary(
-        zone, InputCount(), kNumTemps, LocationSummary::kCall);
-    summary->set_in(0, Location::FpuRegisterLocation(XMM1));
-    // R13 is chosen because it is callee saved so we do not need to back it
-    // up before calling into the runtime.
-    summary->set_temp(0, Location::RegisterLocation(R13));
-    summary->set_out(0, Location::FpuRegisterLocation(XMM1));
-    return summary;
-  }
   ASSERT((kind() == MathUnaryInstr::kSqrt) ||
          (kind() == MathUnaryInstr::kDoubleSquare));
   const intptr_t kNumInputs = 1;
@@ -4787,16 +4884,7 @@ void MathUnaryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mulsd(value_reg, value_reg);
     ASSERT(value_reg == locs()->out(0).fpu_reg());
   } else {
-    ASSERT((kind() == MathUnaryInstr::kSin) ||
-           (kind() == MathUnaryInstr::kCos));
-    // Save RSP.
-    __ movq(locs()->temp(0).reg(), RSP);
-    __ ReserveAlignedFrameSpace(0);
-    __ movaps(XMM0, locs()->in(0).fpu_reg());
-    __ CallRuntime(TargetFunction(), InputCount());
-    __ movaps(locs()->out(0).fpu_reg(), XMM0);
-    // Restore RSP.
-    __ movq(RSP, locs()->temp(0).reg());
+    UNREACHABLE();
   }
 }
 
@@ -6532,7 +6620,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // deoptimization point in optimized code, after call.
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
-    compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
+    compiler->AddDeoptIndexAtCall(deopt_id_after);
   }
   // Add deoptimization continuation point after the call and before the
   // arguments are removed.

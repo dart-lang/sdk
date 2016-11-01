@@ -8,9 +8,9 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     show SourceChange;
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 
 /**
  * A description of a single proposed fix for some problem.

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef LIB_MIRRORS_H_
-#define LIB_MIRRORS_H_
+#ifndef RUNTIME_LIB_MIRRORS_H_
+#define RUNTIME_LIB_MIRRORS_H_
 
 #include "vm/allocation.h"
 
@@ -32,4 +32,4 @@ class Mirrors : public AllStatic {
 
 }  // namespace dart
 
-#endif  // LIB_MIRRORS_H_
+#endif  // RUNTIME_LIB_MIRRORS_H_

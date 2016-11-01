@@ -7,16 +7,16 @@ library test.services.refactoring.organize_directives;
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(OrganizeDirectivesTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(OrganizeDirectivesTest);
+  });
 }
 
 @reflectiveTest

@@ -19,6 +19,17 @@ UnlinkedPublicNamespaceBuilder computePublicNamespace(CompilationUnit unit) {
       names: visitor.names, exports: visitor.exports, parts: visitor.parts);
 }
 
+/**
+ * Serialize a [Configuration] into a [UnlinkedConfigurationBuilder].
+ */
+UnlinkedConfigurationBuilder serializeConfiguration(
+    Configuration configuration) {
+  return new UnlinkedConfigurationBuilder(
+      name: configuration.name.components.map((i) => i.name).join('.'),
+      value: configuration.value?.stringValue ?? 'true',
+      uri: configuration.uri.stringValue);
+}
+
 class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
   _CombinatorEncoder();
 
@@ -140,7 +151,9 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
         uri: node.uri.stringValue,
         combinators: node.combinators
             .map((Combinator c) => c.accept(new _CombinatorEncoder()))
-            .toList()));
+            .toList(),
+        configurations:
+            node.configurations.map(serializeConfiguration).toList()));
   }
 
   @override

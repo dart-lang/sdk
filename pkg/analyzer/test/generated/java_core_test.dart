@@ -5,12 +5,9 @@
 library analyzer.test.generated.java_core_test;
 
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:unittest/unittest.dart';
-
-import '../utils.dart';
+import 'package:test/test.dart';
 
 main() {
-  initializeTestEnvironment();
   group('Character', () {
     group('isLetter', () {
       test('digits', () {

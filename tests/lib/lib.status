@@ -109,6 +109,27 @@ mirrors/reflected_type_generics_test/02: Fail # Issues in reflecting bounded typ
 [ $compiler == none && $runtime == vm && $unchecked ]
 mirrors/reflected_type_generics_test/02: SkipByDesign # Type check for a bounded type argument.
 
+[ $compiler == dart2js && $fast_startup ]
+mirrors/*: Fail # mirrors not supported
+mirrors/circular_factory_redirection_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/library_imports_bad_metadata_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/library_metadata2_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/1*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/2*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_allowed_values_test/3*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_constructor_arguments_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_nested_constructor_call_test/0*: Pass # expects failure, but it fails for the wrong reason
+mirrors/metadata_scope_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/mirror_in_static_init_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/parameter_is_const_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/syntax_error_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/variable_is_const_test/01: Pass # expects failure, but it fails for the wrong reason
+mirrors/model_test: Pass # this is ok
+
+[ $compiler == dart2js && $fast_startup ]
+mirrors/regress_16321_test/01: Pass # expects failure, but if fails for the wrong reason
+
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
@@ -123,7 +144,7 @@ typed_data/setRange_4_test: Fail # Safari doesn't fully implement spec for Typed
 typed_data/setRange_2_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 typed_data/setRange_3_test: RuntimeError # TODO(dart2js-team): Please triage this failure.
 
-[ $compiler == dart2js && $runtime != jsshell && $runtime != safarimobilesim && $runtime != safari && $runtime != ff &&  $runtime != ie10]
+[ $compiler == dart2js && ($runtime == d8 || $runtime == drt || $runtime == ie11) ]
 math/math_test: RuntimeError
 math/math2_test: RuntimeError
 
@@ -171,6 +192,7 @@ async/stream_asyncexpand_test: RuntimeError # Timer interface not supported: Iss
 async/stream_asyncmap_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_transformation_broadcast_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
+async/stream_subscription_cancel_test: Fail # Timer interface not supported: Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
 mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
@@ -261,6 +283,9 @@ mirrors/library_uri_io_test: SkipByDesign # Uses dart:io.
 mirrors/spawn_function_root_library_test: SkipByDesign # Uses spawnFunction.
 mirrors/local_isolate_test: RuntimeError # Issue 12188
 mirrors/deferred_type_test: RuntimeError, OK # Should be CompileTimeError. Issue 22072
+
+[ $compiler == none && $runtime == dartium && $system == macos ]
+convert/streamed_conversion_utf8_decode_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 async/multiple_timer_test: Fail, Pass # See Issue 10982
@@ -381,7 +406,6 @@ mirrors/accessor_cache_overflow_test: Skip
 
 [ $hot_reload || $hot_reload_rollback ]
 async/multiple_timer_test: Pass, Fail # Timing related
-math/double_pow_test: RuntimeError, Pass, Fail # Issue 26887
 async/stream_transformer_test: Pass, Fail # Closure identity
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/fake_function_with_call_test: SkipByDesign # Method equality

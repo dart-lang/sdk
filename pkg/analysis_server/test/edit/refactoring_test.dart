@@ -9,26 +9,27 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:plugin/manager.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
 import '../mocks.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(ConvertGetterMethodToMethodTest);
-  defineReflectiveTests(ConvertMethodToGetterTest);
-  defineReflectiveTests(ExtractLocalVariableTest);
-  defineReflectiveTests(ExtractMethodTest);
-  defineReflectiveTests(GetAvailableRefactoringsTest);
-  defineReflectiveTests(InlineLocalTest);
-  defineReflectiveTests(InlineMethodTest);
-  defineReflectiveTests(MoveFileTest);
-  defineReflectiveTests(RenameTest);
-  defineReflectiveTests(_NoSearchEngine);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertGetterMethodToMethodTest);
+    defineReflectiveTests(ConvertMethodToGetterTest);
+    defineReflectiveTests(ExtractLocalVariableTest);
+    defineReflectiveTests(ExtractMethodTest);
+    defineReflectiveTests(GetAvailableRefactoringsTest);
+    defineReflectiveTests(InlineLocalTest);
+    defineReflectiveTests(InlineMethodTest);
+    defineReflectiveTests(MoveFileTest);
+    defineReflectiveTests(RenameTest);
+    defineReflectiveTests(_NoSearchEngine);
+  });
 }
 
 @reflectiveTest
@@ -270,10 +271,34 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     test_simulateRefactoringException_init = false;
     test_simulateRefactoringException_final = false;
     test_simulateRefactoringException_change = false;
-    test_simulateRefactoringReset_afterInitialConditions = false;
-    test_simulateRefactoringReset_afterFinalConditions = false;
-    test_simulateRefactoringReset_afterCreateChange = false;
     super.tearDown();
+  }
+
+  test_analysis_onlyOneFile() async {
+    shouldWaitForFullAnalysis = false;
+    String otherFile = '$testFolder/other.dart';
+    addFile(
+        otherFile,
+        r'''
+foo(int myName) {}
+''');
+    addTestFile('''
+import 'other.dart';
+main() {
+  foo(1 + 2);
+}
+''');
+    // Start refactoring.
+    EditGetRefactoringResult result = await getRefactoringResult(() {
+      return sendStringRequest('1 + 2', 'res', true);
+    });
+    // We get the refactoring feedback....
+    ExtractLocalVariableFeedback feedback = result.feedback;
+    expect(feedback.names, contains('myName'));
+    // ...even though other.dart is not fully analyzed.
+    var otherSource = server.getContextSourcePair(otherFile).source;
+    var otherUnit = new LibrarySpecificUnit(otherSource, otherSource);
+    expect(testContext.getResult(otherUnit, RESOLVED_UNIT), isNull);
   }
 
   test_coveringExpressions() {
@@ -391,46 +416,48 @@ main() {
     });
   }
 
-  test_reset_afterCreateChange() {
-    test_simulateRefactoringReset_afterCreateChange = true;
+  test_resetOnFileChange() async {
+    String otherFile = '$testFolder/other.dart';
+    addFile(otherFile, '// other 1');
     addTestFile('''
 main() {
-  print(1 + 2);
+  foo(1 + 2);
 }
+foo(int myName) {}
 ''');
-    return waitForTasksFinished().then((_) {
-      return sendStringRequest('1 + 2', 'res', true).then((response) {
-        _expectRefactoringRequestCancelled(response);
+    // Send the first request.
+    {
+      EditGetRefactoringResult result = await getRefactoringResult(() {
+        return sendStringRequest('1 + 2', 'res', true);
       });
-    });
-  }
-
-  test_reset_afterFinalConditions() {
-    test_simulateRefactoringReset_afterFinalConditions = true;
-    addTestFile('''
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      expect(feedback.names, contains('myName'));
+    }
+    int initialResetCount = test_resetCount;
+    // Update the other.dart file.
+    // The refactoring is not reset, because it's a different file.
+    addFile(otherFile, '// other 2');
+    await pumpEventQueue();
+    expect(test_resetCount, initialResetCount);
+    // Update the test.dart file.
+    modifyTestFile('''
 main() {
-  print(1 + 2);
+  foo(1 + 2);
 }
+foo(int otherName) {}
 ''');
-    return waitForTasksFinished().then((_) {
-      return sendStringRequest('1 + 2', 'res', true).then((response) {
-        _expectRefactoringRequestCancelled(response);
+    // The refactoring was reset.
+    await pumpEventQueue();
+    expect(test_resetCount, initialResetCount + 1);
+    // Send the second request, with the same kind, file and offset.
+    {
+      EditGetRefactoringResult result = await getRefactoringResult(() {
+        return sendStringRequest('1 + 2', 'res', true);
       });
-    });
-  }
-
-  test_reset_afterInitialConditions() {
-    test_simulateRefactoringReset_afterInitialConditions = true;
-    addTestFile('''
-main() {
-  print(1 + 2);
-}
-''');
-    return waitForTasksFinished().then((_) {
-      return sendStringRequest('1 + 2', 'res', true).then((response) {
-        _expectRefactoringRequestCancelled(response);
-      });
-    });
+      ExtractLocalVariableFeedback feedback = result.feedback;
+      // The refactoring was reset, so we don't get stale results.
+      expect(feedback.names, contains('otherName'));
+    }
   }
 
   test_serverError_change() {
@@ -476,12 +503,6 @@ main() {
         expect(response.error.code, RequestErrorCode.SERVER_ERROR);
       });
     });
-  }
-
-  void _expectRefactoringRequestCancelled(Response response) {
-    expect(response.error, isNotNull);
-    expect(response,
-        isResponseFailure('0', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
   }
 }
 
@@ -930,6 +951,35 @@ main() {
 
 @reflectiveTest
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
+  test_analysis_onlyOneFile() async {
+    shouldWaitForFullAnalysis = false;
+    String otherFile = '$testFolder/other.dart';
+    addFile(
+        otherFile,
+        r'''
+foo(int p) {}
+''');
+    addTestFile('''
+import 'other.dart';
+main() {
+  int res = 1 + 2;
+  foo(res);
+  foo(res);
+}
+''');
+    // Start refactoring.
+    EditGetRefactoringResult result = await getRefactoringResult(() {
+      return _sendInlineRequest('res =');
+    });
+    // We get the refactoring feedback....
+    InlineLocalVariableFeedback feedback = result.feedback;
+    expect(feedback.occurrences, 2);
+    // ...even though other.dart is not fully analyzed.
+    var otherSource = server.getContextSourcePair(otherFile).source;
+    var otherUnit = new LibrarySpecificUnit(otherSource, otherSource);
+    expect(testContext.getResult(otherUnit, RESOLVED_UNIT), isNull);
+  }
+
   test_feedback() {
     addTestFile('''
 main() {
@@ -976,6 +1026,36 @@ main() {
   print(42);
 }
 ''');
+  }
+
+  test_resetOnFileChange() async {
+    String otherFile = '$testFolder/other.dart';
+    addFile(otherFile, '// other 1');
+    addTestFile('''
+main() {
+  int res = 1 + 2;
+  print(res);
+}
+''');
+    // Send the first request.
+    await getRefactoringResult(() {
+      return _sendInlineRequest('res = ');
+    });
+    int initialResetCount = test_resetCount;
+    // Update the other.dart file.
+    // The refactoring is not reset, because it's a different file.
+    addFile(otherFile, '// other 2');
+    await pumpEventQueue();
+    expect(test_resetCount, initialResetCount);
+    // Update the test.dart file.
+    modifyTestFile('''
+main() {
+  print(1 + 2);
+}
+''');
+    // The refactoring was reset.
+    await pumpEventQueue();
+    expect(test_resetCount, initialResetCount + 1);
   }
 
   Future<Response> _sendInlineRequest(String search) {
@@ -1162,6 +1242,13 @@ class RenameTest extends _AbstractGetRefactoring_Test {
             options: options)
         .toRequest(id);
     return serverChannel.sendRequest(request);
+  }
+
+  void tearDown() {
+    test_simulateRefactoringReset_afterInitialConditions = false;
+    test_simulateRefactoringReset_afterFinalConditions = false;
+    test_simulateRefactoringReset_afterCreateChange = false;
+    super.tearDown();
   }
 
   test_cancelPendingRequest() async {
@@ -1733,6 +1820,51 @@ main() {
     });
   }
 
+  test_reset_afterCreateChange() {
+    test_simulateRefactoringReset_afterCreateChange = true;
+    addTestFile('''
+test() {}
+main() {
+  test();
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendRenameRequest('test() {}', 'newName').then((response) {
+        _expectRefactoringRequestCancelled(response);
+      });
+    });
+  }
+
+  test_reset_afterFinalConditions() {
+    test_simulateRefactoringReset_afterFinalConditions = true;
+    addTestFile('''
+test() {}
+main() {
+  test();
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendRenameRequest('test() {}', 'newName').then((response) {
+        _expectRefactoringRequestCancelled(response);
+      });
+    });
+  }
+
+  test_reset_afterInitialConditions() {
+    test_simulateRefactoringReset_afterInitialConditions = true;
+    addTestFile('''
+test() {}
+main() {
+  test();
+}
+''');
+    return waitForTasksFinished().then((_) {
+      return sendRenameRequest('test() {}', 'newName').then((response) {
+        _expectRefactoringRequestCancelled(response);
+      });
+    });
+  }
+
   test_resetOnAnalysis() {
     addTestFile('''
 main() {
@@ -1767,6 +1899,12 @@ main() {
     });
   }
 
+  void _expectRefactoringRequestCancelled(Response response) {
+    expect(response.error, isNotNull);
+    expect(response,
+        isResponseFailure('0', RequestErrorCode.REFACTORING_REQUEST_CANCELLED));
+  }
+
   SourceEdit _findEditWithId(SourceChange change, String id) {
     SourceEdit potentialEdit;
     change.edits.forEach((fileEdit) {
@@ -1782,6 +1920,8 @@ main() {
 
 @reflectiveTest
 class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
+  bool shouldWaitForFullAnalysis = true;
+
   /**
    * Asserts that [problems] has a single ERROR problem.
    */
@@ -1865,7 +2005,9 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
 
   Future<EditGetRefactoringResult> getRefactoringResult(
       Future<Response> requestSender()) async {
-    await waitForTasksFinished();
+    if (shouldWaitForFullAnalysis) {
+      await waitForTasksFinished();
+    }
     Response response = await requestSender();
     return new EditGetRefactoringResult.fromResponse(response);
   }

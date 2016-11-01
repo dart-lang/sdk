@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_ASSERT_H_
-#define PLATFORM_ASSERT_H_
+#ifndef RUNTIME_PLATFORM_ASSERT_H_
+#define RUNTIME_PLATFORM_ASSERT_H_
 
 // TODO(5411406): include sstream for now, once we have a Utils::toString()
 // implemented for all the primitive types we can replace the usage of
@@ -14,6 +14,7 @@
 #endif
 
 #include "platform/globals.h"
+#include "platform/memory_sanitizer.h"
 
 #if !defined(DEBUG) && !defined(NDEBUG)
 #error neither DEBUG nor NDEBUG defined
@@ -34,6 +35,8 @@ class DynamicAssertionHelper {
       : file_(file), line_(line), kind_(kind) { }
 
   void Fail(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
+  static bool failed() { return failed_; }
 
 #if defined(TESTING)
   template<typename E, typename A>
@@ -71,6 +74,8 @@ class DynamicAssertionHelper {
   T NotNull(const T p);
 
  private:
+  static bool failed_;
+
   const char* const file_;
   const int line_;
   const Kind kind_;
@@ -138,6 +143,7 @@ void DynamicAssertionHelper::FloatEquals(const E& expected,
 
 
 template<typename E, typename A>
+NO_SANITIZE_MEMORY
 void DynamicAssertionHelper::StringEquals(const E& expected, const A& actual) {
   std::ostringstream ess, ass;
   ess << expected;
@@ -149,6 +155,7 @@ void DynamicAssertionHelper::StringEquals(const E& expected, const A& actual) {
 
 
 template<typename E, typename A>
+NO_SANITIZE_MEMORY
 void DynamicAssertionHelper::IsSubstring(const E& needle, const A& haystack) {
   std::ostringstream ess, ass;
   ess << needle;
@@ -161,6 +168,7 @@ void DynamicAssertionHelper::IsSubstring(const E& needle, const A& haystack) {
 
 
 template<typename E, typename A>
+NO_SANITIZE_MEMORY
 void DynamicAssertionHelper::IsNotSubstring(const E& needle,
                                             const A& haystack) {
   std::ostringstream ess, ass;
@@ -245,6 +253,9 @@ T DynamicAssertionHelper::NotNull(const T p) {
 
 #define UNREACHABLE()                                                          \
   FATAL("unreachable code")
+
+#define OUT_OF_MEMORY()                                                        \
+  FATAL("Out of memory.")
 
 
 #if defined(DEBUG)
@@ -368,4 +379,4 @@ struct CompileAssert {
 
 #endif  // defined(TESTING)
 
-#endif  // PLATFORM_ASSERT_H_
+#endif  // RUNTIME_PLATFORM_ASSERT_H_

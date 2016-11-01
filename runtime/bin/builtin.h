@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_BUILTIN_H_
-#define BIN_BUILTIN_H_
+#ifndef RUNTIME_BIN_BUILTIN_H_
+#define RUNTIME_BIN_BUILTIN_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,14 +75,14 @@ class Builtin {
   static const char* html_common_source_paths_[];
   static const char* js_source_paths_[];
   static const char* js_util_source_paths_[];
-  static const char* blink_source_paths_[];
-  static const char* indexeddb_source_paths_[];
+  static const char* _blink_source_paths_[];
+  static const char* indexed_db_source_paths_[];
   static const char* cached_patches_source_paths_[];
   static const char* web_gl_source_paths_[];
   static const char* metadata_source_paths_[];
-  static const char* websql_source_paths_[];
+  static const char* web_sql_source_paths_[];
   static const char* svg_source_paths_[];
-  static const char* webaudio_source_paths_[];
+  static const char* web_audio_source_paths_[];
 
   static Dart_Port load_port_;
   static const int num_libs_;
@@ -103,4 +103,4 @@ class Builtin {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_BUILTIN_H_
+#endif  // RUNTIME_BIN_BUILTIN_H_

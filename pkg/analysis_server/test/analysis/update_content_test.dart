@@ -12,16 +12,16 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(UpdateContentTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(UpdateContentTest);
+  });
 }
 
 compilationUnitMatcher(String file) {
@@ -170,7 +170,7 @@ f() {}
         {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
-      '/project/main.dart': ["1: Target of URI does not exist: 'target.dart'"],
+      '/project/main.dart': ["1: Target of URI doesn't exist: 'target.dart'."],
       '/project/target.dart': []
     });
 
@@ -178,8 +178,8 @@ f() {}
         {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
-      '/project/main.dart': ["1: Unused import"],
-      '/project/target.dart': ["1: Target of URI does not exist: 'none.dart'"],
+      '/project/main.dart': ["1: Unused import."],
+      '/project/target.dart': ["1: Target of URI doesn't exist: 'none.dart'."],
       '/project/none.dart': []
     });
   }

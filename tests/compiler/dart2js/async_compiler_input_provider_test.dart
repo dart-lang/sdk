@@ -47,13 +47,13 @@ main() {
   Uri packageRoot = script.resolve('./packages/');
 
   asyncTest(() => compiler.compile(entrypoint, libraryRoot, packageRoot,
-      provideInput, handleDiagnostic, []).then((code) {
-    Expect.isNotNull(code);
-  }));
+          provideInput, handleDiagnostic, []).then((code) {
+        Expect.isNotNull(code);
+      }));
 }
 
-void handleDiagnostic(Uri uri, int begin, int end, String message,
-                      compiler.Diagnostic kind) {
+void handleDiagnostic(
+    Uri uri, int begin, int end, String message, compiler.Diagnostic kind) {
   print(message);
   if (kind != compiler.Diagnostic.VERBOSE_INFO) {
     throw 'Unexpected diagnostic kind $kind';

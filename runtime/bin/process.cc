@@ -246,6 +246,7 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   int64_t status = 0;
   // Ignore result if passing invalid argument and just exit 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
+  Process::RunExitHook(status);
   Dart_ExitIsolate();
   Platform::Exit(static_cast<int>(status));
 }

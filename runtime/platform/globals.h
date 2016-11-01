@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_GLOBALS_H_
-#define PLATFORM_GLOBALS_H_
+#ifndef RUNTIME_PLATFORM_GLOBALS_H_
+#define RUNTIME_PLATFORM_GLOBALS_H_
 
 // __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
 // enable platform independent printf format specifiers.
@@ -138,10 +138,15 @@
 #endif  // defined(DEBUG)
 #endif  // defined(PRODUCT)
 
-
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
 #error DART_PRECOMPILED_RUNTIME and DART_PRECOMPILER are mutually exclusive
 #endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define NOT_IN_PRECOMPILED(code)
+#else
+#define NOT_IN_PRECOMPILED(code) code
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -289,6 +294,14 @@ typedef simd128_value_t fpu_register_t;
 #define DART_NORETURN __declspec(noreturn)
 #elif __GNUC__
 #define DART_NORETURN __attribute__((noreturn))
+#else
+#error Automatic compiler detection failed.
+#endif
+
+#ifdef _MSC_VER
+#define DART_PRETTY_FUNCTION __FUNCSIG__
+#elif __GNUC__
+#define DART_PRETTY_FUNCTION __PRETTY_FUNCTION__
 #else
 #error Automatic compiler detection failed.
 #endif
@@ -700,4 +713,4 @@ static inline T ReadUnaligned(const T* ptr) {
 
 }  // namespace dart
 
-#endif  // PLATFORM_GLOBALS_H_
+#endif  // RUNTIME_PLATFORM_GLOBALS_H_

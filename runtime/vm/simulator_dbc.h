@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SIMULATOR_DBC_H_
-#define VM_SIMULATOR_DBC_H_
+#ifndef RUNTIME_VM_SIMULATOR_DBC_H_
+#define RUNTIME_VM_SIMULATOR_DBC_H_
 
-#ifndef VM_SIMULATOR_H_
+#ifndef RUNTIME_VM_SIMULATOR_H_
 #error Do not include simulator_dbc.h directly; use simulator.h.
 #endif
 
@@ -50,7 +50,7 @@ class Simulator {
   uword StackBase() const { return reinterpret_cast<uword>(stack_); }
   uword StackTop() const;
 
-  // The isolate's top_exit_frame_info refers to a Dart frame in the simulator
+  // The thread's top_exit_frame_info refers to a Dart frame in the simulator
   // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
   // native stack.
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
@@ -71,9 +71,9 @@ class Simulator {
                RawObject* raw_stacktrace,
                Thread* thread);
 
-  uword get_sp() const {
-    return reinterpret_cast<uword>(sp_);
-  }
+  uword get_sp() const { return reinterpret_cast<uword>(sp_); }
+  uword get_fp() const { return reinterpret_cast<uword>(fp_); }
+  uword get_pc() const { return reinterpret_cast<uword>(pc_); }
 
   enum IntrinsicId {
 #define V(test_class_name, test_function_name, enum_name, type, fp) \
@@ -172,4 +172,4 @@ class Simulator {
 
 }  // namespace dart
 
-#endif  // VM_SIMULATOR_DBC_H_
+#endif  // RUNTIME_VM_SIMULATOR_DBC_H_

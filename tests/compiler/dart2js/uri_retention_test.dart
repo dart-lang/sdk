@@ -9,8 +9,7 @@ import 'dart:async';
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
 
-import 'memory_compiler.dart' show
-    runCompiler, OutputCollector;
+import 'memory_compiler.dart' show runCompiler, OutputCollector;
 
 Future<String> compileSources(sources, {bool minify, bool preserveUri}) async {
   var options = [];
@@ -24,9 +23,9 @@ Future<String> compileSources(sources, {bool minify, bool preserveUri}) async {
   return outputCollector.getOutput('', 'js');
 }
 
-Future test(sources, { bool libName, bool fileName }) {
-  return
-      compileSources(sources, minify: false, preserveUri: false).then((output) {
+Future test(sources, {bool libName, bool fileName}) {
+  return compileSources(sources, minify: false, preserveUri: false)
+      .then((output) {
     // Unminified the sources should always contain the library name and the
     // file name.
     Expect.isTrue(output.contains("main_lib"));
@@ -47,13 +46,14 @@ Future test(sources, { bool libName, bool fileName }) {
 void main() {
   asyncTest(() {
     return new Future.value()
-      .then((_) => test(MEMORY_SOURCE_FILES1, libName: false, fileName: false))
-      .then((_) => test(MEMORY_SOURCE_FILES2, libName: true, fileName: false))
-      .then((_) => test(MEMORY_SOURCE_FILES3, libName: true, fileName: true));
+        .then(
+            (_) => test(MEMORY_SOURCE_FILES1, libName: false, fileName: false))
+        .then((_) => test(MEMORY_SOURCE_FILES2, libName: true, fileName: false))
+        .then((_) => test(MEMORY_SOURCE_FILES3, libName: true, fileName: true));
   });
 }
 
-const MEMORY_SOURCE_FILES1 = const <String, String> {
+const MEMORY_SOURCE_FILES1 = const <String, String>{
   'main.dart': """
 library main_lib;
 
@@ -68,9 +68,8 @@ main() {
 """,
 };
 
-
 // Requires the library name, but not the URIs.
-const MEMORY_SOURCE_FILES2 = const <String, String> {
+const MEMORY_SOURCE_FILES2 = const <String, String>{
   'main.dart': """
 library main_lib;
 
@@ -89,7 +88,7 @@ main() {
   print(reflectClass(A).declarations.length);
 }
 """,
-    'file2.dart': """
+  'file2.dart': """
 library other_lib;
 
 class B {
@@ -99,7 +98,7 @@ class B {
 };
 
 // Requires the uri (and will contain the library-name, too).
-const MEMORY_SOURCE_FILES3 = const <String, String> {
+const MEMORY_SOURCE_FILES3 = const <String, String>{
   'main.dart': """
 library main_lib;
 

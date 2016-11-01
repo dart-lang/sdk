@@ -11,13 +11,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -25,31 +24,32 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:unittest/unittest.dart';
+import 'package:analyzer/src/source/source_resource.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
 import 'analysis_context_factory.dart';
+import 'parser_test.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(AnalysisDeltaTest);
-  runReflectiveTests(ChangeSetTest);
-  runReflectiveTests(DisableAsyncTestCase);
-  runReflectiveTests(EnclosedScopeTest);
-  runReflectiveTests(ErrorResolverTest);
-  runReflectiveTests(LibraryImportScopeTest);
-  runReflectiveTests(LibraryScopeTest);
-  runReflectiveTests(PrefixedNamespaceTest);
-  runReflectiveTests(ScopeTest);
-  runReflectiveTests(StrictModeTest);
-  runReflectiveTests(SubtypeManagerTest);
-  runReflectiveTests(TypeOverrideManagerTest);
-  runReflectiveTests(TypePropagationTest);
-  runReflectiveTests(TypeProviderImplTest);
-  runReflectiveTests(TypeResolverVisitorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisDeltaTest);
+    defineReflectiveTests(ChangeSetTest);
+    defineReflectiveTests(EnclosedScopeTest);
+    defineReflectiveTests(ErrorResolverTest);
+    defineReflectiveTests(LibraryImportScopeTest);
+    defineReflectiveTests(LibraryScopeTest);
+    defineReflectiveTests(PrefixedNamespaceTest);
+    defineReflectiveTests(ScopeTest);
+    defineReflectiveTests(StrictModeTest);
+    defineReflectiveTests(SubtypeManagerTest);
+    defineReflectiveTests(TypeOverrideManagerTest);
+    defineReflectiveTests(TypePropagationTest);
+    defineReflectiveTests(TypeProviderImplTest);
+    defineReflectiveTests(TypeResolverVisitorTest);
+  });
 }
 
 @reflectiveTest
@@ -105,7 +105,6 @@ class ChangeSetTest extends EngineTestCase {
     expect(map, hasLength(1));
     expect(map[source], same(content));
     expect(changeSet.changedRanges, hasLength(0));
-    expect(changeSet.deletedSources, hasLength(0));
     expect(changeSet.removedSources, hasLength(0));
     expect(changeSet.removedContainers, hasLength(0));
   }
@@ -126,7 +125,6 @@ class ChangeSetTest extends EngineTestCase {
     expect(change.offset, 1);
     expect(change.oldLength, 2);
     expect(change.newLength, 3);
-    expect(changeSet.deletedSources, hasLength(0));
     expect(changeSet.removedSources, hasLength(0));
     expect(changeSet.removedContainers, hasLength(0));
   }
@@ -137,7 +135,6 @@ class ChangeSetTest extends EngineTestCase {
     changeSet.changedSource(new TestSource());
     changeSet.changedContent(new TestSource(), "");
     changeSet.changedRange(new TestSource(), "", 0, 0, 0);
-    changeSet.deletedSource(new TestSource());
     changeSet.removedSource(new TestSource());
     changeSet
         .removedContainer(new SourceContainer_ChangeSetTest_test_toString());
@@ -146,78 +143,16 @@ class ChangeSetTest extends EngineTestCase {
 }
 
 @reflectiveTest
-class DisableAsyncTestCase extends ResolverTestCase {
-  @override
-  void setUp() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableAsync = false;
-    resetWithOptions(options);
-  }
-
-  void test_resolve() {
-    Source source = addSource(r'''
-class C {
-  foo() {
-    bar();
-  }
-  bar() {
-    //
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, []);
-  }
-
-  void test_resolve_async() {
-    Source source = addSource(r'''
-class C {
-  Future foo() async {
-    await bar();
-    return null;
-  }
-  Future bar() {
-    return new Future.delayed(new Duration(milliseconds: 10));
-  }
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      StaticWarningCode.UNDEFINED_CLASS,
-      StaticWarningCode.UNDEFINED_CLASS,
-      StaticWarningCode.UNDEFINED_CLASS,
-      StaticWarningCode.UNDEFINED_CLASS,
-      ParserErrorCode.ASYNC_NOT_SUPPORTED
-    ]);
-  }
-}
-
-@reflectiveTest
 class EnclosedScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope rootScope =
-        new Scope_EnclosedScopeTest_test_define_duplicate(listener);
+    Scope rootScope = new _RootScope();
     EnclosedScope scope = new EnclosedScope(rootScope);
-    VariableElement element1 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
-    VariableElement element2 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
+    SimpleIdentifier identifier = AstFactory.identifier3('v');
+    VariableElement element1 = ElementFactory.localVariableElement(identifier);
+    VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    listener.assertErrorsWithSeverities([ErrorSeverity.ERROR]);
-  }
-
-  void test_define_normal() {
-    GatheringErrorListener listener = new GatheringErrorListener();
-    Scope rootScope = new Scope_EnclosedScopeTest_test_define_normal(listener);
-    EnclosedScope outerScope = new EnclosedScope(rootScope);
-    EnclosedScope innerScope = new EnclosedScope(outerScope);
-    VariableElement element1 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
-    VariableElement element2 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v2"));
-    outerScope.define(element1);
-    innerScope.define(element2);
-    listener.assertNoErrors();
+    expect(scope.lookup(identifier, null), same(element1));
   }
 }
 
@@ -322,70 +257,8 @@ C toSpan(dynamic element) {
 
 @reflectiveTest
 class LibraryImportScopeTest extends ResolverTestCase {
-  void test_conflictingImports() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    String typeNameA = "A";
-    String typeNameB = "B";
-    String typeNameC = "C";
-    ClassElement typeA = ElementFactory.classElement2(typeNameA);
-    ClassElement typeB1 = ElementFactory.classElement2(typeNameB);
-    ClassElement typeB2 = ElementFactory.classElement2(typeNameB);
-    ClassElement typeC = ElementFactory.classElement2(typeNameC);
-    LibraryElement importedLibrary1 = createTestLibrary(context, "imported1");
-    (importedLibrary1.definingCompilationUnit as CompilationUnitElementImpl)
-        .types = <ClassElement>[typeA, typeB1];
-    ImportElementImpl import1 =
-        ElementFactory.importFor(importedLibrary1, null);
-    LibraryElement importedLibrary2 = createTestLibrary(context, "imported2");
-    (importedLibrary2.definingCompilationUnit as CompilationUnitElementImpl)
-        .types = <ClassElement>[typeB2, typeC];
-    ImportElementImpl import2 =
-        ElementFactory.importFor(importedLibrary2, null);
-    LibraryElementImpl importingLibrary =
-        createTestLibrary(context, "importing");
-    importingLibrary.imports = <ImportElement>[import1, import2];
-    {
-      GatheringErrorListener errorListener = new GatheringErrorListener();
-      Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-      expect(scope.lookup(AstFactory.identifier3(typeNameA), importingLibrary),
-          typeA);
-      errorListener.assertNoErrors();
-      expect(scope.lookup(AstFactory.identifier3(typeNameC), importingLibrary),
-          typeC);
-      errorListener.assertNoErrors();
-      Element element =
-          scope.lookup(AstFactory.identifier3(typeNameB), importingLibrary);
-      errorListener.assertErrorsWithCodes([StaticWarningCode.AMBIGUOUS_IMPORT]);
-      EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement,
-          MultiplyDefinedElement, element);
-      List<Element> conflictingElements =
-          (element as MultiplyDefinedElement).conflictingElements;
-      expect(conflictingElements, hasLength(2));
-      if (identical(conflictingElements[0], typeB1)) {
-        expect(conflictingElements[1], same(typeB2));
-      } else if (identical(conflictingElements[0], typeB2)) {
-        expect(conflictingElements[1], same(typeB1));
-      } else {
-        expect(conflictingElements[0], same(typeB1));
-      }
-    }
-    {
-      GatheringErrorListener errorListener = new GatheringErrorListener();
-      Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-      Identifier identifier = AstFactory.identifier3(typeNameB);
-      AstFactory.methodDeclaration(null, AstFactory.typeName3(identifier), null,
-          null, AstFactory.identifier3("foo"), null);
-      Element element = scope.lookup(identifier, importingLibrary);
-      errorListener.assertErrorsWithCodes([StaticWarningCode.AMBIGUOUS_IMPORT]);
-      EngineTestCase.assertInstanceOf((obj) => obj is MultiplyDefinedElement,
-          MultiplyDefinedElement, element);
-    }
-  }
-
   void test_creation_empty() {
-    LibraryElement definingLibrary = createDefaultTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    new LibraryImportScope(definingLibrary, errorListener);
+    new LibraryImportScope(createDefaultTestLibrary());
   }
 
   void test_creation_nonEmpty() {
@@ -401,66 +274,10 @@ class LibraryImportScopeTest extends ResolverTestCase {
     ImportElementImpl importElement = new ImportElementImpl(0);
     importElement.importedLibrary = importedLibrary;
     definingLibrary.imports = <ImportElement>[importElement];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(definingLibrary, errorListener);
+    Scope scope = new LibraryImportScope(definingLibrary);
     expect(
         scope.lookup(AstFactory.identifier3(importedTypeName), definingLibrary),
         importedType);
-  }
-
-  void test_getErrorListener() {
-    LibraryElement definingLibrary = createDefaultTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    LibraryImportScope scope =
-        new LibraryImportScope(definingLibrary, errorListener);
-    expect(scope.errorListener, errorListener);
-  }
-
-  void test_nonConflictingImports_fromSdk() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    String typeName = "List";
-    ClassElement type = ElementFactory.classElement2(typeName);
-    LibraryElement importedLibrary = createTestLibrary(context, "lib");
-    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
-        .types = <ClassElement>[type];
-    ImportElementImpl importCore = ElementFactory.importFor(
-        context.getLibraryElement(context.sourceFactory.forUri("dart:core")),
-        null);
-    ImportElementImpl importLib =
-        ElementFactory.importFor(importedLibrary, null);
-    LibraryElementImpl importingLibrary =
-        createTestLibrary(context, "importing");
-    importingLibrary.imports = <ImportElement>[importCore, importLib];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-    expect(
-        scope.lookup(AstFactory.identifier3(typeName), importingLibrary), type);
-    errorListener
-        .assertErrorsWithCodes([StaticWarningCode.CONFLICTING_DART_IMPORT]);
-  }
-
-  void test_nonConflictingImports_sameElement() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    String typeNameA = "A";
-    String typeNameB = "B";
-    ClassElement typeA = ElementFactory.classElement2(typeNameA);
-    ClassElement typeB = ElementFactory.classElement2(typeNameB);
-    LibraryElement importedLibrary = createTestLibrary(context, "imported");
-    (importedLibrary.definingCompilationUnit as CompilationUnitElementImpl)
-        .types = <ClassElement>[typeA, typeB];
-    ImportElementImpl import1 = ElementFactory.importFor(importedLibrary, null);
-    ImportElementImpl import2 = ElementFactory.importFor(importedLibrary, null);
-    LibraryElementImpl importingLibrary =
-        createTestLibrary(context, "importing");
-    importingLibrary.imports = <ImportElement>[import1, import2];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
-    expect(scope.lookup(AstFactory.identifier3(typeNameA), importingLibrary),
-        typeA);
-    errorListener.assertNoErrors();
-    expect(scope.lookup(AstFactory.identifier3(typeNameB), importingLibrary),
-        typeB);
-    errorListener.assertNoErrors();
   }
 
   void test_prefixedAndNonPrefixed() {
@@ -487,15 +304,12 @@ class LibraryImportScopeTest extends ResolverTestCase {
       prefixedImport,
       nonPrefixedImport
     ];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryImportScope(importingLibrary, errorListener);
+    Scope scope = new LibraryImportScope(importingLibrary);
     Element prefixedElement = scope.lookup(
         AstFactory.identifier5(prefixName, typeName), importingLibrary);
-    errorListener.assertNoErrors();
     expect(prefixedElement, same(prefixedType));
     Element nonPrefixedElement =
         scope.lookup(AstFactory.identifier3(typeName), importingLibrary);
-    errorListener.assertNoErrors();
     expect(nonPrefixedElement, same(nonPrefixedType));
   }
 }
@@ -503,9 +317,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
 @reflectiveTest
 class LibraryScopeTest extends ResolverTestCase {
   void test_creation_empty() {
-    LibraryElement definingLibrary = createDefaultTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    new LibraryScope(definingLibrary, errorListener);
+    new LibraryScope(createDefaultTestLibrary());
   }
 
   void test_creation_nonEmpty() {
@@ -521,18 +333,10 @@ class LibraryScopeTest extends ResolverTestCase {
     ImportElementImpl importElement = new ImportElementImpl(0);
     importElement.importedLibrary = importedLibrary;
     definingLibrary.imports = <ImportElement>[importElement];
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    Scope scope = new LibraryScope(definingLibrary, errorListener);
+    Scope scope = new LibraryScope(definingLibrary);
     expect(
         scope.lookup(AstFactory.identifier3(importedTypeName), definingLibrary),
         importedType);
-  }
-
-  void test_getErrorListener() {
-    LibraryElement definingLibrary = createDefaultTestLibrary();
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    LibraryScope scope = new LibraryScope(definingLibrary, errorListener);
-    expect(scope.errorListener, errorListener);
   }
 }
 
@@ -565,64 +369,16 @@ class PrefixedNamespaceTest extends ResolverTestCase {
   }
 }
 
-class Scope_EnclosedScopeTest_test_define_duplicate extends Scope {
-  GatheringErrorListener listener;
-
-  Scope_EnclosedScopeTest_test_define_duplicate(this.listener) : super();
-
-  @override
-  AnalysisErrorListener get errorListener => listener;
-
-  @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      null;
-}
-
-class Scope_EnclosedScopeTest_test_define_normal extends Scope {
-  GatheringErrorListener listener;
-
-  Scope_EnclosedScopeTest_test_define_normal(this.listener) : super();
-
-  @override
-  AnalysisErrorListener get errorListener => listener;
-
-  @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      null;
-}
-
 @reflectiveTest
 class ScopeTest extends ResolverTestCase {
   void test_define_duplicate() {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    ScopeTest_TestScope scope = new ScopeTest_TestScope(errorListener);
-    VariableElement element1 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
-    VariableElement element2 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
+    Scope scope = new _RootScope();
+    SimpleIdentifier identifier = AstFactory.identifier3('v');
+    VariableElement element1 = ElementFactory.localVariableElement(identifier);
+    VariableElement element2 = ElementFactory.localVariableElement(identifier);
     scope.define(element1);
     scope.define(element2);
-    errorListener.assertErrorsWithSeverities([ErrorSeverity.ERROR]);
-  }
-
-  void test_define_normal() {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    ScopeTest_TestScope scope = new ScopeTest_TestScope(errorListener);
-    VariableElement element1 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v1"));
-    VariableElement element2 =
-        ElementFactory.localVariableElement(AstFactory.identifier3("v2"));
-    scope.define(element1);
-    scope.define(element2);
-    errorListener.assertNoErrors();
-  }
-
-  void test_getErrorListener() {
-    GatheringErrorListener errorListener = new GatheringErrorListener();
-    ScopeTest_TestScope scope = new ScopeTest_TestScope(errorListener);
-    expect(scope.errorListener, errorListener);
+    expect(scope.localLookup('v', null), same(element1));
   }
 
   void test_isPrivateName_nonPrivate() {
@@ -632,23 +388,6 @@ class ScopeTest extends ResolverTestCase {
   void test_isPrivateName_private() {
     expect(Scope.isPrivateName("_Private"), isTrue);
   }
-}
-
-/**
- * A non-abstract subclass that can be used for testing purposes.
- */
-class ScopeTest_TestScope extends Scope {
-  /**
-   * The listener that is to be informed when an error is encountered.
-   */
-  final AnalysisErrorListener errorListener;
-
-  ScopeTest_TestScope(this.errorListener);
-
-  @override
-  Element internalLookup(Identifier identifier, String name,
-          LibraryElement referencingLibrary) =>
-      localLookup(name, referencingLibrary);
 }
 
 class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
@@ -1035,9 +774,10 @@ class SubtypeManagerTest {
   CompilationUnitElementImpl _definingCompilationUnit;
 
   void setUp() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source =
-        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
+    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
     _definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
     _definingCompilationUnit.librarySource =
         _definingCompilationUnit.source = source;
@@ -1126,24 +866,18 @@ class SubtypeManagerTest {
 class TypeOverrideManagerTest extends EngineTestCase {
   void test_exitScope_noScopes() {
     TypeOverrideManager manager = new TypeOverrideManager();
-    try {
+    expect(() {
       manager.exitScope();
-      fail("Expected IllegalStateException");
-    } on IllegalStateException {
-      // Expected
-    }
+    }, throwsStateError);
   }
 
   void test_exitScope_oneScope() {
     TypeOverrideManager manager = new TypeOverrideManager();
     manager.enterScope();
     manager.exitScope();
-    try {
+    expect(() {
       manager.exitScope();
-      fail("Expected IllegalStateException");
-    } on IllegalStateException {
-      // Expected
-    }
+    }, throwsStateError);
   }
 
   void test_exitScope_twoScopes() {
@@ -1152,12 +886,9 @@ class TypeOverrideManagerTest extends EngineTestCase {
     manager.exitScope();
     manager.enterScope();
     manager.exitScope();
-    try {
+    expect(() {
       manager.exitScope();
-      fail("Expected IllegalStateException");
-    } on IllegalStateException {
-      // Expected
-    }
+    }, throwsStateError);
   }
 
   void test_getType_enclosedOverride() {
@@ -1477,109 +1208,6 @@ main(CanvasElement canvas) {
     SimpleIdentifier identifier = EngineTestCase.findNode(
         unit, code, "context", (node) => node is SimpleIdentifier);
     expect(identifier.propagatedType.name, "CanvasRenderingContext2D");
-  }
-
-  void test_finalPropertyInducingVariable_classMember_instance() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f(A a) {
-  return a.v; // marker
-}''';
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void test_finalPropertyInducingVariable_classMember_instance_inherited() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-class B extends A {
-  m() {
-    return v; // marker
-  }
-}''';
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void
-      test_finalPropertyInducingVariable_classMember_instance_propagatedTarget() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  final v = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f(p) {
-  if (p is A) {
-    return p.v; // marker
-  }
-}''';
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void test_finalPropertyInducingVariable_classMember_instance_unprefixed() {
-    String code = r'''
-class A {
-  final v = 0;
-  m() {
-    v; // marker
-  }
-}''';
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void test_finalPropertyInducingVariable_classMember_static() {
-    addNamedSource(
-        "/lib.dart",
-        r'''
-class A {
-  static final V = 0;
-}''');
-    String code = r'''
-import 'lib.dart';
-f() {
-  return A.V; // marker
-}''';
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void test_finalPropertyInducingVariable_topLevelVariable_prefixed() {
-    addNamedSource("/lib.dart", "final V = 0;");
-    String code = r'''
-import 'lib.dart' as p;
-f() {
-  var v2 = p.V; // marker prefixed
-}''';
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
-  }
-
-  void test_finalPropertyInducingVariable_topLevelVariable_simple() {
-    addNamedSource("/lib.dart", "final V = 0;");
-    String code = r'''
-import 'lib.dart';
-f() {
-  return V; // marker simple
-}''';
-    assertTypeOfMarkedExpression(
-        code, typeProvider.dynamicType, typeProvider.intType);
   }
 
   void test_forEach() {
@@ -2878,79 +2506,6 @@ class TypeProviderImplTest extends EngineTestCase {
     expect(provider.typeType, same(typeType));
   }
 
-  void test_creation_no_async() {
-    //
-    // Create a mock library element with the types expected to be in dart:core.
-    // We cannot use either ElementFactory or TestTypeProvider (which uses
-    // ElementFactory) because we side-effect the elements in ways that would
-    // break other tests.
-    //
-    InterfaceType objectType = _classElement("Object", null).type;
-    InterfaceType boolType = _classElement("bool", objectType).type;
-    InterfaceType numType = _classElement("num", objectType).type;
-    InterfaceType doubleType = _classElement("double", numType).type;
-    InterfaceType functionType = _classElement("Function", objectType).type;
-    InterfaceType intType = _classElement("int", numType).type;
-    InterfaceType iterableType =
-        _classElement("Iterable", objectType, ["T"]).type;
-    InterfaceType listType = _classElement("List", objectType, ["E"]).type;
-    InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
-    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
-    InterfaceType stringType = _classElement("String", objectType).type;
-    InterfaceType symbolType = _classElement("Symbol", objectType).type;
-    InterfaceType typeType = _classElement("Type", objectType).type;
-    CompilationUnitElementImpl coreUnit =
-        new CompilationUnitElementImpl("core.dart");
-    coreUnit.types = <ClassElement>[
-      boolType.element,
-      doubleType.element,
-      functionType.element,
-      intType.element,
-      iterableType.element,
-      listType.element,
-      mapType.element,
-      objectType.element,
-      stackTraceType.element,
-      stringType.element,
-      symbolType.element,
-      typeType.element
-    ];
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
-        context, AstFactory.libraryIdentifier2(["dart.core"]));
-    coreLibrary.definingCompilationUnit = coreUnit;
-
-    Source asyncSource = new NonExistingSource(
-        'async.dart', Uri.parse('dart:async'), UriKind.DART_URI);
-    LibraryElementImpl mockAsyncLib = (context as AnalysisContextImpl)
-        .createMockAsyncLib(coreLibrary, asyncSource);
-    expect(mockAsyncLib.source, same(asyncSource));
-    expect(mockAsyncLib.definingCompilationUnit.source, same(asyncSource));
-    expect(mockAsyncLib.publicNamespace, isNotNull);
-
-    //
-    // Create a type provider and ensure that it can return the expected types.
-    //
-    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary, mockAsyncLib);
-    expect(provider.boolType, same(boolType));
-    expect(provider.bottomType, isNotNull);
-    expect(provider.doubleType, same(doubleType));
-    expect(provider.dynamicType, isNotNull);
-    expect(provider.functionType, same(functionType));
-    InterfaceType mockFutureType = mockAsyncLib.getType('Future').type;
-    expect(provider.futureType, same(mockFutureType));
-    expect(provider.intType, same(intType));
-    expect(provider.listType, same(listType));
-    expect(provider.mapType, same(mapType));
-    expect(provider.objectType, same(objectType));
-    expect(provider.stackTraceType, same(stackTraceType));
-    expect(provider.stringType, same(stringType));
-    expect(provider.symbolType, same(symbolType));
-    InterfaceType mockStreamType = mockAsyncLib.getType('Stream').type;
-    expect(provider.streamType, same(mockStreamType));
-    expect(provider.typeType, same(typeType));
-  }
-
   ClassElement _classElement(String typeName, InterfaceType superclassType,
       [List<String> parameterNames]) {
     ClassElementImpl element =
@@ -3022,18 +2577,414 @@ class TypeResolverVisitorTest {
 
   void setUp() {
     _listener = new GatheringErrorListener();
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
     Source librarySource =
-        new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
+        new FileSource(resourceProvider.getFile("/lib.dart"));
     LibraryElementImpl element = new LibraryElementImpl.forNode(
         context, AstFactory.libraryIdentifier2(["lib"]));
     element.definingCompilationUnit =
         new CompilationUnitElementImpl("lib.dart");
     _typeProvider = new TestTypeProvider();
-    libraryScope = new LibraryScope(element, _listener);
+    libraryScope = new LibraryScope(element);
     _visitor = new TypeResolverVisitor(
         element, librarySource, _typeProvider, _listener,
         nameScope: libraryScope);
+  }
+
+  void test_modeApi() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(r'''
+class C extends A with A implements A {
+  A f = new A();
+  A m() {
+    A v1;
+  }
+}
+A f([A p = const A()]) {
+  A v2;
+}
+A V = new A();
+''');
+    var unitElement = new CompilationUnitElementImpl('/test.dart');
+    ClassElementImpl A = ElementFactory.classElement2('A');
+
+    // Build API elements.
+    {
+      var holder = new ElementHolder();
+      unit.accept(new ApiElementBuilder(holder, unitElement));
+    }
+
+    // Resolve API types.
+    {
+      MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+      InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+          resourceProvider: resourceProvider);
+      var source = resourceProvider.getFile('/test.dart').createSource();
+      var libraryElement = new LibraryElementImpl.forNode(context, null)
+        ..definingCompilationUnit = unitElement;
+      var libraryScope = new LibraryScope(libraryElement);
+      var visitor = new TypeResolverVisitor(
+          libraryElement, source, _typeProvider, _listener,
+          nameScope: libraryScope, mode: TypeResolverMode.api);
+      libraryScope.define(A);
+      unit.accept(visitor);
+    }
+
+    // Top-level: C
+    {
+      var c = unit.declarations[0] as ClassDeclaration;
+
+      // The extends/with/implements types are resolved.
+      expect(c.extendsClause.superclass.toString(), 'A');
+      expect(c.withClause.mixinTypes[0].type.toString(), 'A');
+      expect(c.implementsClause.interfaces[0].type.toString(), 'A');
+
+      {
+        var fd = c.members[0] as FieldDeclaration;
+        // The field type is resolved.
+        expect(fd.fields.type.type.toString(), 'A');
+        // The type in the initializer is not resolved.
+        var f = fd.fields.variables[0];
+        var fi = f.initializer as InstanceCreationExpression;
+        expect(fi.constructorName.type.type, isNull);
+      }
+
+      {
+        var m = c.members[1] as MethodDeclaration;
+        // The return type is resolved.
+        expect(m.returnType.type.toString(), 'A');
+        // The local variable type is not resolved.
+        var body = m.body as BlockFunctionBody;
+        var vd = body.block.statements.single as VariableDeclarationStatement;
+        expect(vd.variables.type.type, isNull);
+      }
+    }
+
+    // Top-level: f
+    {
+      var f = unit.declarations[1] as FunctionDeclaration;
+      FunctionExpression fe = f.functionExpression;
+      // The return type is resolved.
+      expect(f.returnType.type.toString(), 'A');
+      // The parameter type is resolved.
+      var pd = fe.parameters.parameters[0] as DefaultFormalParameter;
+      var p = pd.parameter as SimpleFormalParameter;
+      expect(p.type.type.toString(), 'A');
+      // The parameter default is not resolved.
+      {
+        var pde = pd.defaultValue as InstanceCreationExpression;
+        expect(pde.constructorName.type.type, isNull);
+      }
+      // The local variable type is not resolved.
+      var body = fe.body as BlockFunctionBody;
+      var vd = body.block.statements.single as VariableDeclarationStatement;
+      expect(vd.variables.type.type, isNull);
+    }
+
+    // Top-level: V
+    {
+      var vd = unit.declarations[2] as TopLevelVariableDeclaration;
+      // The type is resolved.
+      expect(vd.variables.type.toString(), 'A');
+      // The initializer is not resolved.
+      VariableDeclaration v = vd.variables.variables[0];
+      var vi = v.initializer as InstanceCreationExpression;
+      expect(vi.constructorName.type.type, isNull);
+    }
+  }
+
+  void test_modeLocal_noContext() {
+    CompilationUnit unit;
+    _resolveTypeModeLocal(
+        r'''
+class C {
+  A f = new A();
+  A m([A p = const A()]) {
+    A v;
+  }
+}
+A f([A p = const A()]) {
+  A v1 = new A();
+  A f2(A p2) {
+    A v2;
+  }
+}
+A V = new A();
+A get G => new A();
+''', (CompilationUnit u) {
+      unit = u;
+      return u;
+    });
+
+    // Top-level: C
+    {
+      var c = unit.declarations[0] as ClassDeclaration;
+      {
+        var fd = c.members[0] as FieldDeclaration;
+        // The type of "f" is not resolved.
+        expect(fd.fields.type.type, isNull);
+        // The initializer of "f" is resolved.
+        var f = fd.fields.variables[0];
+        var fi = f.initializer as InstanceCreationExpression;
+        expect(fi.constructorName.type.type.toString(), 'A');
+      }
+      {
+        var m = c.members[1] as MethodDeclaration;
+        // The return type of "m" is not resolved.
+        expect(m.returnType.type, isNull);
+        // The type of the parameter "p" is not resolved.
+        var pd = m.parameters.parameters[0] as DefaultFormalParameter;
+        var p = pd.parameter as SimpleFormalParameter;
+        expect(p.type.type, isNull);
+        // The default value of the parameter "p" is resolved.
+        var pdd = pd.defaultValue as InstanceCreationExpression;
+        expect(pdd.constructorName.type.type.toString(), 'A');
+        // The type of "v" is resolved.
+        var mb = m.body as BlockFunctionBody;
+        var vd = mb.block.statements[0] as VariableDeclarationStatement;
+        expect(vd.variables.type.type.toString(), 'A');
+      }
+    }
+
+    // Top-level: f
+    {
+      var f = unit.declarations[1] as FunctionDeclaration;
+      // The return type of "f" is not resolved.
+      expect(f.returnType.type, isNull);
+      // The type of the parameter "p" is not resolved.
+      var fe = f.functionExpression;
+      var pd = fe.parameters.parameters[0] as DefaultFormalParameter;
+      var p = pd.parameter as SimpleFormalParameter;
+      expect(p.type.type, isNull);
+      // The default value of the parameter "p" is resolved.
+      var pdd = pd.defaultValue as InstanceCreationExpression;
+      expect(pdd.constructorName.type.type.toString(), 'A');
+      // The type of "v1" is resolved.
+      var fb = fe.body as BlockFunctionBody;
+      var vd = fb.block.statements[0] as VariableDeclarationStatement;
+      expect(vd.variables.type.type.toString(), 'A');
+      // The initializer of "v1" is resolved.
+      var v = vd.variables.variables[0];
+      var vi = v.initializer as InstanceCreationExpression;
+      expect(vi.constructorName.type.type.toString(), 'A');
+      // Local: f2
+      {
+        var f2s = fb.block.statements[1] as FunctionDeclarationStatement;
+        var f2 = f2s.functionDeclaration;
+        // The return type of "f2" is resolved.
+        expect(f2.returnType.type.toString(), 'A');
+        // The type of the parameter "p2" is resolved.
+        var f2e = f2.functionExpression;
+        var p2 = f2e.parameters.parameters[0] as SimpleFormalParameter;
+        expect(p2.type.type.toString(), 'A');
+        // The type of "v2" is resolved.
+        var f2b = f2e.body as BlockFunctionBody;
+        var v2d = f2b.block.statements[0] as VariableDeclarationStatement;
+        expect(v2d.variables.type.type.toString(), 'A');
+      }
+    }
+
+    // Top-level: V
+    {
+      var vd = unit.declarations[2] as TopLevelVariableDeclaration;
+      // The type is not resolved.
+      expect(vd.variables.type.type, isNull);
+      // The initializer is resolved.
+      VariableDeclaration v = vd.variables.variables[0];
+      var vi = v.initializer as InstanceCreationExpression;
+      expect(vi.constructorName.type.type.toString(), 'A');
+    }
+
+    // Top-level: G
+    {
+      var g = unit.declarations[3] as FunctionDeclaration;
+      // The return type is not resolved.
+      expect(g.returnType.type, isNull);
+      // The body is resolved.
+      var gb = g.functionExpression.body as ExpressionFunctionBody;
+      var ge = gb.expression as InstanceCreationExpression;
+      expect(ge.constructorName.type.type.toString(), 'A');
+    }
+  }
+
+  void test_modeLocal_withContext_bad_methodBody() {
+    expect(() {
+      _resolveTypeModeLocal(
+          r'''
+class C<T1> {
+  A m<T2>() {
+    T1 v1;
+    T2 v2;
+  }
+}
+''', (CompilationUnit u) {
+        var c = u.declarations[0] as ClassDeclaration;
+        var m = c.members[0] as MethodDeclaration;
+        var mb = m.body as BlockFunctionBody;
+        return mb;
+      });
+    }, throwsStateError);
+  }
+
+  void test_modeLocal_withContext_bad_topLevelVariable_declaration() {
+    expect(() {
+      _resolveTypeModeLocal(
+          r'''
+var v = new A();
+''', (CompilationUnit u) {
+        var tlv = u.declarations[0] as TopLevelVariableDeclaration;
+        return tlv.variables.variables[0];
+      });
+    }, throwsStateError);
+  }
+
+  void test_modeLocal_withContext_bad_topLevelVariable_initializer() {
+    expect(() {
+      _resolveTypeModeLocal(
+          r'''
+var v = new A();
+''', (CompilationUnit u) {
+        var tlv = u.declarations[0] as TopLevelVariableDeclaration;
+        return tlv.variables.variables[0].initializer;
+      });
+    }, throwsStateError);
+  }
+
+  void test_modeLocal_withContext_class() {
+    ClassDeclaration c;
+    _resolveTypeModeLocal(
+        r'''
+class C<T1> {
+  A m<T2>() {
+    T1 v1;
+    T2 v2;
+  }
+}
+''', (CompilationUnit u) {
+      c = u.declarations[0] as ClassDeclaration;
+      return c;
+    });
+    var m = c.members[0] as MethodDeclaration;
+
+    // The return type of "m" is not resolved.
+    expect(m.returnType.type, isNull);
+
+    var mb = m.body as BlockFunctionBody;
+    var ms = mb.block.statements;
+
+    // The type of "v1" is resolved.
+    {
+      var vd = ms[0] as VariableDeclarationStatement;
+      expect(vd.variables.type.type.toString(), 'T1');
+    }
+
+    // The type of "v2" is resolved.
+    {
+      var vd = ms[1] as VariableDeclarationStatement;
+      expect(vd.variables.type.type.toString(), 'T2');
+    }
+  }
+
+  void test_modeLocal_withContext_inClass_constructor() {
+    ConstructorDeclaration cc;
+    _resolveTypeModeLocal(
+        r'''
+class C<T> {
+  C() {
+    T v1;
+  }
+}
+''', (CompilationUnit u) {
+      var c = u.declarations[0] as ClassDeclaration;
+      cc = c.members[0] as ConstructorDeclaration;
+      return cc;
+    });
+
+    var ccb = cc.body as BlockFunctionBody;
+    var ccs = ccb.block.statements;
+
+    // The type of "v" is resolved.
+    {
+      var vd = ccs[0] as VariableDeclarationStatement;
+      expect(vd.variables.type.type.toString(), 'T');
+    }
+  }
+
+  void test_modeLocal_withContext_inClass_method() {
+    MethodDeclaration m;
+    _resolveTypeModeLocal(
+        r'''
+class C<T1> {
+  A m<T2>() {
+    T1 v1;
+    T2 v2;
+  }
+}
+''', (CompilationUnit u) {
+      var c = u.declarations[0] as ClassDeclaration;
+      m = c.members[0] as MethodDeclaration;
+      return m;
+    });
+
+    // The return type of "m" is not resolved.
+    expect(m.returnType.type, isNull);
+
+    var mb = m.body as BlockFunctionBody;
+    var ms = mb.block.statements;
+
+    // The type of "v1" is resolved.
+    {
+      var vd = ms[0] as VariableDeclarationStatement;
+      expect(vd.variables.type.type.toString(), 'T1');
+    }
+
+    // The type of "v2" is resolved.
+    {
+      var vd = ms[1] as VariableDeclarationStatement;
+      expect(vd.variables.type.type.toString(), 'T2');
+    }
+  }
+
+  void test_modeLocal_withContext_topLevelFunction() {
+    FunctionDeclaration f;
+    _resolveTypeModeLocal(
+        r'''
+A m<T>() {
+  T v;
+}
+''', (CompilationUnit u) {
+      f = u.declarations[0] as FunctionDeclaration;
+      return f;
+    });
+
+    // The return type of "f" is not resolved.
+    expect(f.returnType.type, isNull);
+
+    var fb = f.functionExpression.body as BlockFunctionBody;
+    var fs = fb.block.statements;
+
+    // The type of "v" is resolved.
+    var vd = fs[0] as VariableDeclarationStatement;
+    expect(vd.variables.type.type.toString(), 'T');
+  }
+
+  void test_modeLocal_withContext_topLevelVariable() {
+    TopLevelVariableDeclaration v;
+    _resolveTypeModeLocal(
+        r'''
+A v = new A();
+''', (CompilationUnit u) {
+      v = u.declarations[0] as TopLevelVariableDeclaration;
+      return v;
+    });
+
+    // The type of "v" is not resolved.
+    expect(v.variables.type.type, isNull);
+
+    // The type of "v" initializer is resolved.
+    var vi = v.variables.variables[0].initializer as InstanceCreationExpression;
+    expect(vi.constructorName.type.type.toString(), 'A');
   }
 
   void test_visitCatchClause_exception() {
@@ -3622,6 +3573,55 @@ class TypeResolverVisitorTest {
     }
     node.accept(_visitor);
   }
+
+  /**
+   * Parse the given [code], build elements and resolve in the
+   * [TypeResolverMode.local] mode. The [code] is allowed to use only the type
+   * named `A`.
+   */
+  void _resolveTypeModeLocal(
+      String code, AstNode getNodeToResolve(CompilationUnit unit)) {
+    CompilationUnit unit =
+        ParserTestCase.parseCompilationUnit2(code, parseGenericMethods: true);
+    var unitElement = new CompilationUnitElementImpl('/test.dart');
+
+    // Build API elements.
+    {
+      var holder = new ElementHolder();
+      unit.accept(new ElementBuilder(holder, unitElement));
+    }
+
+    // Prepare for resolution.
+    LibraryScope libraryScope;
+    TypeResolverVisitor visitor;
+    {
+      MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+      InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+          resourceProvider: resourceProvider);
+      var source = resourceProvider.getFile('/test.dart').createSource();
+      var libraryElement = new LibraryElementImpl.forNode(context, null)
+        ..definingCompilationUnit = unitElement;
+      libraryScope = new LibraryScope(libraryElement);
+      visitor = new TypeResolverVisitor(
+          libraryElement, source, _typeProvider, _listener,
+          nameScope: libraryScope, mode: TypeResolverMode.local);
+    }
+
+    // Define top-level types.
+    ClassElementImpl A = ElementFactory.classElement2('A');
+    libraryScope.define(A);
+
+    // Perform resolution.
+    AstNode nodeToResolve = getNodeToResolve(unit);
+    nodeToResolve.accept(visitor);
+  }
+}
+
+class _RootScope extends Scope {
+  @override
+  Element internalLookup(Identifier identifier, String name,
+          LibraryElement referencingLibrary) =>
+      null;
 }
 
 /**

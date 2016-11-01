@@ -6,14 +6,13 @@ library test.search.search_result;
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(SearchResultKindTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SearchResultKindTest);
+  });
 }
 
 @reflectiveTest

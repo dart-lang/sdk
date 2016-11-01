@@ -5,7 +5,7 @@
 library dart2js.resolution.types;
 
 import '../common.dart';
-import '../common/resolution.dart' show Feature, Resolution;
+import '../common/resolution.dart' show Resolution;
 import '../dart_types.dart';
 import '../elements/elements.dart'
     show
@@ -20,6 +20,7 @@ import '../elements/elements.dart'
 import '../elements/modelx.dart' show ErroneousElementX;
 import '../resolution/resolution.dart';
 import '../tree/tree.dart';
+import '../universe/feature.dart' show Feature;
 import '../util/util.dart' show Link;
 import 'members.dart' show lookupInScope;
 import 'registry.dart' show ResolutionRegistry;
@@ -175,7 +176,8 @@ class TypeResolver {
           } else {
             type = new InterfaceType(
                 cls.declaration, arguments.toList(growable: false));
-            addTypeVariableBoundsCheck = true;
+            addTypeVariableBoundsCheck =
+                arguments.any((DartType type) => !type.isDynamic);
           }
         }
       } else if (element.isTypedef) {
@@ -194,7 +196,8 @@ class TypeResolver {
             type = typdef.rawType;
           } else {
             type = new TypedefType(typdef, arguments.toList(growable: false));
-            addTypeVariableBoundsCheck = true;
+            addTypeVariableBoundsCheck =
+                arguments.any((DartType type) => !type.isDynamic);
           }
         }
       } else if (element.isTypeVariable) {
@@ -219,7 +222,6 @@ class TypeResolver {
             node, "Unexpected element kind ${element.kind}.");
       }
       if (addTypeVariableBoundsCheck) {
-        registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
         visitor.addDeferredAction(visitor.enclosingElement,
             () => checkTypeVariableBounds(node, type));
       }

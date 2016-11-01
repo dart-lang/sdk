@@ -4,4 +4,7 @@
 
 part of models;
 
-abstract class Frame {}
+abstract class Frame {
+  FunctionRef get function;
+  SourceLocation get location;
+}

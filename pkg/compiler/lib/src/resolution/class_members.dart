@@ -69,7 +69,8 @@ abstract class MembersCreator {
     computeMembers(null, null);
     if (!cls.isAbstract) {
       Member member = classMembers[Names.noSuchMethod_];
-      if (member != null && !member.declarer.isObject) {
+      if (member != null &&
+          !resolution.target.isDefaultNoSuchMethod(member.element)) {
         return;
       }
       // Check for unimplemented members on concrete classes that neither have
@@ -310,6 +311,7 @@ abstract class MembersCreator {
     assert(!cls.isAbstract);
 
     ClassElement functionClass = resolution.coreClasses.functionClass;
+    functionClass.ensureResolved(resolution);
     if (cls.asInstanceOf(functionClass) == null) return;
     if (cls.lookupMember(Identifiers.call) != null) return;
     // TODO(johnniwinther): Make separate methods for backend exceptions.

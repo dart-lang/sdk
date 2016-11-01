@@ -35,7 +35,7 @@ class Zone::Segment {
   // Computes the address of the nth byte in this segment.
   uword address(int n) { return reinterpret_cast<uword>(this) + n; }
 
-  static void Delete(Segment* segment) { delete[] segment; }
+  static void Delete(Segment* segment) { free(segment); }
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Segment);
 };
@@ -57,17 +57,43 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
 
 Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   ASSERT(size >= 0);
-  Segment* result = reinterpret_cast<Segment*>(new uint8_t[size]);
-  ASSERT(Utils::IsAligned(result->start(), Zone::kAlignment));
-  if (result != NULL) {
-#ifdef DEBUG
-    // Zap the entire allocated segment (including the header).
-    memset(result, kZapUninitializedByte, size);
-#endif
-    result->next_ = next;
-    result->size_ = size;
+  Segment* result = reinterpret_cast<Segment*>(malloc(size));
+  if (result == NULL) {
+    OUT_OF_MEMORY();
   }
+  ASSERT(Utils::IsAligned(result->start(), Zone::kAlignment));
+#ifdef DEBUG
+  // Zap the entire allocated segment (including the header).
+  memset(result, kZapUninitializedByte, size);
+#endif
+  result->next_ = next;
+  result->size_ = size;
   return result;
+}
+
+
+Zone::Zone()
+    : initial_buffer_(buffer_, kInitialChunkSize),
+      position_(initial_buffer_.start()),
+      limit_(initial_buffer_.end()),
+      head_(NULL),
+      large_segments_(NULL),
+      handles_(),
+      previous_(NULL) {
+  ASSERT(Utils::IsAligned(position_, kAlignment));
+#ifdef DEBUG
+  // Zap the entire initial buffer.
+  memset(initial_buffer_.pointer(), kZapUninitializedByte,
+         initial_buffer_.size());
+#endif
+}
+
+
+Zone::~Zone() {
+  if (FLAG_trace_zones) {
+    DumpZoneSizes();
+  }
+  DeleteAll();
 }
 
 
@@ -232,5 +258,26 @@ char* Zone::VPrint(const char* format, va_list args) {
   return OS::VSCreate(this, format, args);
 }
 
+
+StackZone::StackZone(Thread* thread) : StackResource(thread), zone_() {
+  if (FLAG_trace_zones) {
+    OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
+                 reinterpret_cast<intptr_t>(this),
+                 reinterpret_cast<intptr_t>(&zone_));
+  }
+  zone_.Link(thread->zone());
+  thread->set_zone(&zone_);
+}
+
+
+StackZone::~StackZone() {
+  ASSERT(thread()->zone() == &zone_);
+  thread()->set_zone(zone_.previous_);
+  if (FLAG_trace_zones) {
+    OS::PrintErr("*** Deleting Stack zone 0x%" Px "(0x%" Px ")\n",
+                 reinterpret_cast<intptr_t>(this),
+                 reinterpret_cast<intptr_t>(&zone_));
+  }
+}
 
 }  // namespace dart

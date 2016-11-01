@@ -128,6 +128,21 @@ class Required {
   const Required([this.reason]);
 }
 
+/// Used to annotate a parameter of an instance method that overrides another
+/// method.
+///
+/// Indicates that this parameter may have a tighter type than the parameter on
+/// its superclass. The actual argument will be checked at runtime to ensure it
+/// is a subtype of the overridden parameter type.
+const _Checked checked = const _Checked();
+
+/// Used to annotate a field is allowed to be overridden in Strong Mode.
+const _Virtual virtual = const _Virtual();
+
+class _Checked {
+  const _Checked();
+}
+
 class _Factory {
   const _Factory();
 }
@@ -146,6 +161,10 @@ class _OptionalTypeArgs {
 
 class _Protected {
   const _Protected();
+}
+
+class _Virtual {
+  const _Virtual();
 }
 
 class _VisibleForTesting {

@@ -6,11 +6,11 @@ part of repositories;
 
 class TargetChangeEvent implements M.TargetChangeEvent {
   final TargetRepository repository;
-  TargetChangeEvent(this.repository);
+  final bool disconnected;
+  TargetChangeEvent(this.repository, [this.disconnected = false]);
 }
 
 class TargetRepository implements M.TargetRepository {
-
   static const _historyKey = 'history';
 
   final StreamController<TargetChangeEvent> _onChange;
@@ -28,14 +28,18 @@ class TargetRepository implements M.TargetRepository {
 
   TargetRepository._(this._onChange, this.onChange) {
     _restore();
-    if (_list.isEmpty) {
-      _list.add(new SC.WebSocketVMTarget(_networkAddressOfDefaultTarget()));
+    // Add the default address if it doesn't already exist.
+    if (find(_networkAddressOfDefaultTarget()) == null) {
+      add(_networkAddressOfDefaultTarget());
     }
-    current = _list.first;
+    // Set the current target to the default target.
+    current = find(_networkAddressOfDefaultTarget());
   }
 
   void add(String address) {
-    if (_find(address) != null) return;
+    if (find(address) != null) {
+      return;
+    }
     _list.insert(0, new SC.WebSocketVMTarget(address));
     _onChange.add(new TargetChangeEvent(this));
     _store();
@@ -45,9 +49,17 @@ class TargetRepository implements M.TargetRepository {
 
   void setCurrent(M.Target t) {
     SC.WebSocketVMTarget target = t as SC.WebSocketVMTarget;
-    if (!_list.contains(target)) return;
+    if (!_list.contains(target)) {
+      return;
+    }
     current = target;
+    current.lastConnectionTime = new DateTime.now().millisecondsSinceEpoch;
     _onChange.add(new TargetChangeEvent(this));
+    _store();
+  }
+
+  void emitDisconnectEvent() {
+    _onChange.add(new TargetChangeEvent(this, true));
   }
 
   void delete(o) {
@@ -69,17 +81,17 @@ class TargetRepository implements M.TargetRepository {
     }
     _list.addAll(loaded.map((i) => new SC.WebSocketVMTarget.fromMap(i)));
     _list.sort((SC.WebSocketVMTarget a, SC.WebSocketVMTarget b) {
-       return b.lastConnectionTime.compareTo(a.lastConnectionTime);
+      return b.lastConnectionTime.compareTo(a.lastConnectionTime);
     });
   }
 
   /// After making a change, update settings.
   void _store() {
-    _settings.set(_historyKey,  _list);
+    _settings.set(_historyKey, _list);
   }
 
   /// Find by networkAddress.
-  SC.WebSocketVMTarget _find(String networkAddress) {
+  SC.WebSocketVMTarget find(String networkAddress) {
     for (SC.WebSocketVMTarget item in _list) {
       if (item.networkAddress == networkAddress) {
         return item;
@@ -89,14 +101,7 @@ class TargetRepository implements M.TargetRepository {
   }
 
   static String _networkAddressOfDefaultTarget() {
-    if (Utils.runningInJavaScript()) {
-      // We are running as JavaScript, use the same host that Observatory has
-      // been loaded from.
-      return 'ws://${window.location.host}/ws';
-    } else {
-      // Otherwise, assume we are running from Dart Editor and want to connect
-      // to the default host.
-      return 'ws://localhost:8181/ws';
-    }
+    Uri serverAddress = Uri.parse(window.location.toString());
+    return 'ws://${serverAddress.authority}${serverAddress.path}ws';
   }
 }

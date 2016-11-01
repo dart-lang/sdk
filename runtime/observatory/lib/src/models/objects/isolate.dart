@@ -16,6 +16,8 @@ abstract class IsolateRef {
   String get name;
 }
 
+enum IsolateStatus { loading, idle, running, paused }
+
 abstract class Isolate extends IsolateRef {
   /// The time that the VM started in milliseconds since the epoch.
   DateTime get startTime;
@@ -31,12 +33,12 @@ abstract class Isolate extends IsolateRef {
 
   /// The last pause event delivered to the isolate. If the isolate is
   /// running, this will be a resume event.
-  //Event get pauseEvent;
+  Event get pauseEvent;
 
   /// [optional] The root library for this isolate.
   ///
   /// Guaranteed to be initialized when the IsolateRunnable event fires.
-  //LibraryRef get rootLib;
+  LibraryRef get rootLibrary;
 
   /// A list of all libraries for this isolate.
   ///
@@ -52,11 +54,16 @@ abstract class Isolate extends IsolateRef {
   /// The current pause on exception mode for this isolate.
   //ExceptionPauseMode get exceptionPauseMode;
 
-  /// [optional]The list of service extension RPCs that are registered for this
+  /// [optional] The list of service extension RPCs that are registered for this
   /// isolate, if any.
   Iterable<String> get extensionRPCs;
 
   Map get counters;
   HeapSpace get newSpace;
   HeapSpace get oldSpace;
+
+  IsolateStatus get status;
+
+  /// [optional]
+  FunctionRef get entry;
 }

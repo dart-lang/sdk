@@ -28,17 +28,4 @@ DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
 DARTFMT="$DART_ROOT/third_party/pkg_tested/dart_style/bin/format.dart"
 
-if [ -z "$DART_CONFIGURATION" ];
-then
-  DART_CONFIGURATION="ReleaseX64"
-fi
-
-if [[ `uname` == 'Darwin' ]]; then
-  BUILD_DIR="$DART_ROOT/xcodebuild/$DART_CONFIGURATION"
-else
-  BUILD_DIR="$DART_ROOT/out/$DART_CONFIGURATION"
-fi
-
-PACKAGE_ROOT="$BUILD_DIR/packages/"
-
-exec "$DART" "--package-root=$PACKAGE_ROOT" "$DARTFMT" "$@"
+exec "$DART" "--packages=$DART_ROOT/.packages" "$DARTFMT" "$@"

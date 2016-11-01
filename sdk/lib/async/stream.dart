@@ -232,6 +232,7 @@ abstract class Stream<T> {
         onCancel: () {
           if (timer != null) timer.cancel();
           timer = null;
+          return Future._nullFuture;
         });
     return controller.stream;
   }
@@ -441,7 +442,7 @@ abstract class Stream<T> {
         onListen: onListen,
         onPause: () { subscription.pause(); },
         onResume: () { subscription.resume(); },
-        onCancel: () { subscription.cancel(); },
+        onCancel: () => subscription.cancel(),
         sync: true
       );
     }
@@ -499,7 +500,7 @@ abstract class Stream<T> {
         onListen: onListen,
         onPause: () { subscription.pause(); },
         onResume: () { subscription.resume(); },
-        onCancel: () { subscription.cancel(); },
+        onCancel: () => subscription.cancel(),
         sync: true
       );
     }
@@ -510,7 +511,7 @@ abstract class Stream<T> {
    * Creates a wrapper Stream that intercepts some errors from this stream.
    *
    * If this stream sends an error that matches [test], then it is intercepted
-   * by the [handle] function.
+   * by the [onError] function.
    *
    * The [onError] callback must be of type `void onError(error)` or
    * `void onError(error, StackTrace stackTrace)`. Depending on the function
@@ -518,10 +519,11 @@ abstract class Stream<T> {
    * trace. The stack trace argument might be `null` if the stream itself
    * received an error without stack trace.
    *
-   * An asynchronous error [:e:] is matched by a test function if [:test(e):]
-   * returns true. If [test] is omitted, every error is considered matching.
+   * An asynchronous error `error` is matched by a test function if
+   *`test(error)` returns true. If [test] is omitted, every error is considered
+   * matching.
    *
-   * If the error is intercepted, the [handle] function can decide what to do
+   * If the error is intercepted, the [onError] function can decide what to do
    * with it. It can throw if it wants to raise a new (or the same) error,
    * or simply return to make the stream forget the error.
    *
@@ -1407,7 +1409,10 @@ abstract class StreamSubscription<T> {
    * the subscription is canceled.
    *
    * Returns a future that is completed once the stream has finished
-   * its cleanup. May also return `null` if no cleanup was necessary.
+   * its cleanup.
+   *
+   * For historical reasons, may also return `null` if no cleanup was necessary.
+   * Returning `null` is deprecated and should be avoided.
    *
    * Typically, futures are returned when the stream needs to release resources.
    * For example, a stream might need to close an open file (as an asynchronous
@@ -1711,7 +1716,7 @@ abstract class StreamTransformer<S, T> {
    *             },
    *             onPause: () { subscription.pause(); },
    *             onResume: () { subscription.resume(); },
-   *             onCancel: () { subscription.cancel(); },
+   *             onCancel: () => subscription.cancel(),
    *             sync: true);
    *           return controller.stream.listen(null);
    *         });
@@ -1763,7 +1768,7 @@ abstract class StreamIterator<T> {
   factory StreamIterator(Stream<T> stream)
       // TODO(lrn): use redirecting factory constructor when type
       // arguments are supported.
-      => new _StreamIteratorImpl<T>(stream);
+      => new _StreamIterator<T>(stream);
 
   /**
    * Wait for the next stream value to be available.
@@ -1805,7 +1810,7 @@ abstract class StreamIterator<T> {
    * automatically closed, you must call [cancel] to ensure that the stream
    * is properly closed.
    *
-   * If [moveNext] has been called when the iterator is cancelled,
+   * If [moveNext] has been called when the iterator is canceled,
    * its returned future will complete with `false` as value,
    * as will all further calls to [moveNext].
    *

@@ -5,6 +5,7 @@
 [ $compiler == dart2analyzer ]
 
 regress_26668_test: Fail # Issue 26678
+regress_27617_test/1: MissingCompileTimeError
 
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
@@ -409,7 +410,6 @@ switch1_negative_test: CompileTimeError
 switch3_negative_test: CompileTimeError
 switch4_negative_test: CompileTimeError
 switch5_negative_test: CompileTimeError
-switch6_test: StaticWarning
 switch7_negative_test: CompileTimeError
 switch_fallthru_test: StaticWarning
 test_negative_test: CompileTimeError
@@ -505,10 +505,9 @@ generic_sends_test: CompileTimeError # Issue 25868
 generic_methods_new_test: CompiletimeError # Issue 25868
 generic_methods_function_type_test: CompiletimeError # Issue 25868
 generic_methods_type_expression_test: CompiletimeError # Issue 25868
+generic_methods_generic_function_parameter_test: CompiletimeError # Issue 25868
 
 # Experimental feature: Use initializing formals in initializers and constructor body.
-initializing_formal_access_test: CompiletimeError # Issue 26658
-initializing_formal_capture_test: CompiletimeError # Issue 26658
-initializing_formal_final_test: CompiletimeError # Issue 26658
-initializing_formal_promotion_test: StaticWarning # Issue 26658
-initializing_formal_type_test: CompiletimeError # Issue 26658
+initializing_formal_type_test: StaticWarning # Issue 26658
+
+regress_27572_test: StaticWarning # Warning about undefined method expected.

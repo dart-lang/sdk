@@ -26,6 +26,7 @@ class PartialParser extends Parser {
     // This method is overridden for two reasons:
     // 1. Avoid generating events for arguments.
     // 2. Avoid calling skip expression for each argument (which doesn't work).
+    listener.handleNoArguments(token);
     if (optional('(', token)) {
       BeginGroupToken begin = token;
       return begin.endGroup.next;

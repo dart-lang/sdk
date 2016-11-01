@@ -8,8 +8,7 @@ import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 import 'mock_compiler.dart';
 import 'package:compiler/src/elements/elements.dart'
-    show Element,
-         LibraryElement;
+    show Element, LibraryElement;
 
 final exportingLibraryUri = Uri.parse('exporting.dart');
 const String EXPORTING_LIBRARY_SOURCE = '''
@@ -26,21 +25,22 @@ export 'exporting.dart';
 void main() {
   MockCompiler compiler;
   asyncTest(() => MockCompiler.create((MockCompiler c) {
-    compiler = c;
-    compiler.registerSource(exportingLibraryUri, EXPORTING_LIBRARY_SOURCE);
-    compiler.registerSource(reexportingLibraryUri, REEXPORTING_LIBRARY_SOURCE);
-    return compiler.libraryLoader.loadLibrary(exportingLibraryUri);
-  }).then((exportingLibrary) {
-    Expect.isTrue(exportingLibrary.exportsHandled);
-    var foo = exportingLibrary.findExported('foo');
-    Expect.isNotNull(foo);
-    Expect.isTrue(foo.isField);
+        compiler = c;
+        compiler.registerSource(exportingLibraryUri, EXPORTING_LIBRARY_SOURCE);
+        compiler.registerSource(
+            reexportingLibraryUri, REEXPORTING_LIBRARY_SOURCE);
+        return compiler.libraryLoader.loadLibrary(exportingLibraryUri);
+      }).then((exportingLibrary) {
+        Expect.isTrue(exportingLibrary.exportsHandled);
+        var foo = exportingLibrary.findExported('foo');
+        Expect.isNotNull(foo);
+        Expect.isTrue(foo.isField);
 
-    // Load reexporting library when exports are handled on the exporting library.
-    return compiler.libraryLoader.loadLibrary(reexportingLibraryUri);
-  }).then((reexportingLibrary) {
-    var foo = reexportingLibrary.findExported('foo');
-    Expect.isNotNull(foo);
-    Expect.isTrue(foo.isField);
-  }));
+        // Load reexporting library when exports are handled on the exporting library.
+        return compiler.libraryLoader.loadLibrary(reexportingLibraryUri);
+      }).then((reexportingLibrary) {
+        var foo = reexportingLibrary.findExported('foo');
+        Expect.isNotNull(foo);
+        Expect.isTrue(foo.isField);
+      }));
 }

@@ -704,7 +704,10 @@ static void EnsureIdentifier(char* label) {
 }
 
 
-void AssemblyInstructionsWriter::Write() {
+void AssemblyInstructionsWriter::Write(uint8_t* vmisolate_buffer,
+                                       intptr_t vmisolate_length,
+                                       uint8_t* isolate_buffer,
+                                       intptr_t isolate_length) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread,
@@ -733,10 +736,10 @@ void AssemblyInstructionsWriter::Write() {
   // This head also provides the gap to make the instructions snapshot
   // look like a HeapPage.
   intptr_t instructions_length = next_offset_;
-  WriteWordLiteral(instructions_length);
+  WriteWordLiteralText(instructions_length);
   intptr_t header_words = InstructionsSnapshot::kHeaderSize / sizeof(uword);
   for (intptr_t i = 1; i < header_words; i++) {
-    WriteWordLiteral(0);
+    WriteWordLiteralText(0);
   }
 
   Object& owner = Object::Handle(zone);
@@ -763,13 +766,13 @@ void AssemblyInstructionsWriter::Write() {
       marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
       marked_tags = RawObject::MarkBit::update(true, marked_tags);
 
-      WriteWordLiteral(marked_tags);
+      WriteWordLiteralText(marked_tags);
       beginning += sizeof(uword);
 
       for (uword* cursor = reinterpret_cast<uword*>(beginning);
            cursor < reinterpret_cast<uword*>(entry);
            cursor++) {
-        WriteWordLiteral(*cursor);
+        WriteWordLiteralText(*cursor);
       }
     }
 
@@ -808,7 +811,7 @@ void AssemblyInstructionsWriter::Write() {
       for (uword* cursor = reinterpret_cast<uword*>(entry);
            cursor < reinterpret_cast<uword*>(end);
            cursor++) {
-        WriteWordLiteral(*cursor);
+        WriteWordLiteralText(*cursor);
       }
     }
   }
@@ -824,7 +827,7 @@ void AssemblyInstructionsWriter::Write() {
   // Start snapshot at page boundary.
   assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
   assembly_stream_.Print("_kDataSnapshot:\n");
-  WriteWordLiteral(next_object_offset_);  // Data length.
+  WriteWordLiteralData(next_object_offset_);  // Data length.
   COMPILE_ASSERT(OS::kMaxPreferredCodeAlignment >= kObjectAlignment);
   assembly_stream_.Print(".balign %" Pd ", 0\n",
                          OS::kMaxPreferredCodeAlignment);
@@ -841,18 +844,36 @@ void AssemblyInstructionsWriter::Write() {
     uword marked_tags = obj.raw()->ptr()->tags_;
     marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
     marked_tags = RawObject::MarkBit::update(true, marked_tags);
-    WriteWordLiteral(marked_tags);
+    WriteWordLiteralData(marked_tags);
     start += sizeof(uword);
     for (uword* cursor = reinterpret_cast<uword*>(start);
          cursor < reinterpret_cast<uword*>(end);
          cursor++) {
-      WriteWordLiteral(*cursor);
+      WriteWordLiteralData(*cursor);
     }
+  }
+
+
+  assembly_stream_.Print(".globl _kVmIsolateSnapshot\n");
+  assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
+  assembly_stream_.Print("_kVmIsolateSnapshot:\n");
+  for (intptr_t i = 0; i < vmisolate_length; i++) {
+    assembly_stream_.Print(".byte %" Pd "\n", vmisolate_buffer[i]);
+  }
+
+  assembly_stream_.Print(".globl _kIsolateSnapshot\n");
+  assembly_stream_.Print(".balign %" Pd ", 0\n", VirtualMemory::PageSize());
+  assembly_stream_.Print("_kIsolateSnapshot:\n");
+  for (intptr_t i = 0; i < isolate_length; i++) {
+    assembly_stream_.Print(".byte %" Pd "\n", isolate_buffer[i]);
   }
 }
 
 
-void BlobInstructionsWriter::Write() {
+void BlobInstructionsWriter::Write(uint8_t* vmisolate_buffer,
+                                   intptr_t vmisolate_len,
+                                   uint8_t* isolate_buffer,
+                                   intptr_t isolate_length) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread,

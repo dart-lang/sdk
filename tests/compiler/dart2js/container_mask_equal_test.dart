@@ -30,7 +30,7 @@ main() {
   asyncTest(() async {
     var result = await runCompiler(memorySourceFiles: MEMORY_SOURCE_FILES);
     var compiler = result.compiler;
-    var typesInferrer = compiler.typesTask.typesInferrer;
+    var typesInferrer = compiler.globalInference.typesInferrer;
 
     var element = compiler.mainApp.find('a');
     var mask1 = typesInferrer.getReturnTypeOfElement(element);
@@ -44,7 +44,7 @@ main() {
     element = compiler.mainApp.find('d');
     var mask4 = typesInferrer.getReturnTypeOfElement(element);
 
-    Expect.notEquals(mask1.union(mask2, compiler.world),
-                     mask3.union(mask4, compiler.world));
+    Expect.notEquals(mask1.union(mask2, compiler.closedWorld),
+        mask3.union(mask4, compiler.closedWorld));
   });
 }

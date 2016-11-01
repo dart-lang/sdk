@@ -7,26 +7,26 @@ library analyzer.test.src.task.inputs_test;
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(ConstantTaskInputBuilderTest);
-  runReflectiveTests(ConstantTaskInputTest);
-  runReflectiveTests(ListTaskInputImplTest);
-  runReflectiveTests(ListToListTaskInputTest);
-  runReflectiveTests(ListToListTaskInputBuilderTest);
-  runReflectiveTests(ListToMapTaskInputBuilderTest);
-  runReflectiveTests(ListToMapTaskInputTest);
-  runReflectiveTests(ObjectToListTaskInputBuilderTest);
-  runReflectiveTests(ObjectToListTaskInputTest);
-  runReflectiveTests(SimpleTaskInputTest);
-  runReflectiveTests(SimpleTaskInputBuilderTest);
-  runReflectiveTests(TopLevelTaskInputBuilderTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ConstantTaskInputBuilderTest);
+    defineReflectiveTests(ConstantTaskInputTest);
+    defineReflectiveTests(ListTaskInputImplTest);
+    defineReflectiveTests(ListToListTaskInputTest);
+    defineReflectiveTests(ListToListTaskInputBuilderTest);
+    defineReflectiveTests(ListToMapTaskInputBuilderTest);
+    defineReflectiveTests(ListToMapTaskInputTest);
+    defineReflectiveTests(ObjectToListTaskInputBuilderTest);
+    defineReflectiveTests(ObjectToListTaskInputTest);
+    defineReflectiveTests(SimpleTaskInputTest);
+    defineReflectiveTests(SimpleTaskInputBuilderTest);
+    defineReflectiveTests(TopLevelTaskInputBuilderTest);
+  });
 }
 
 @reflectiveTest
@@ -123,7 +123,7 @@ class ConstantTaskInputTest extends EngineTestCase {
 @reflectiveTest
 class ListTaskInputImplTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
-  static final result1 =
+  static final ResultDescriptor<List<AnalysisTarget>> result1 =
       new ResultDescriptorImpl<List<AnalysisTarget>>('result1', null);
   static final result2 = new ResultDescriptorImpl<int>('result2', null);
 
@@ -897,7 +897,7 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
 
   test_currentResult_afterTwoMoveNext_withConstantInput() {
     ConstantTaskInput<int> constantInput = new ConstantTaskInput<int>(11);
-    Map<String, TaskInput> inputDescriptors = {
+    Map<String, TaskInput> inputDescriptors = <String, TaskInput>{
       'one': input1,
       'constant': constantInput,
       'two': input2
@@ -947,7 +947,7 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
 
   test_currentTarget_afterTwoMoveNext_withConstantInput() {
     ConstantTaskInput<int> constantInput = new ConstantTaskInput<int>(11);
-    Map<String, TaskInput> inputDescriptors = {
+    Map<String, TaskInput> inputDescriptors = <String, TaskInput>{
       'one': input1,
       'constant': constantInput,
       'two': input2

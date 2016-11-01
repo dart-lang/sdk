@@ -7,13 +7,10 @@ library dart2js.analyze_test.test;
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/src/apiimpl.dart' show
-    CompilerImpl;
+import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/diagnostics/messages.dart' show
-    MessageKind;
-import 'package:compiler/src/filenames.dart' show
-    nativeToUriPath;
+import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
+import 'package:compiler/src/filenames.dart' show nativeToUriPath;
 
 import 'analyze_helper.dart';
 import 'memory_compiler.dart';
@@ -25,10 +22,10 @@ import 'memory_compiler.dart';
  * the error/warning message in the list of white-listings for each file.
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
-const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
-  "/test/src/util/": const [
-      "Library 'package:async/async.dart' doesn't export a "
-      "'ForkableStream' declaration.",
+const Map<String, List/*<String|MessageKind>*/ > WHITE_LIST = const {
+  "/test/lib/src/util/": const [
+    "Library 'package:async/async.dart' doesn't export a "
+        "'ForkableStream' declaration.",
   ],
 };
 
@@ -43,6 +40,24 @@ const List<String> SKIP_LIST = const <String>[
   // Package directory
   "packages/",
 ];
+
+List<Uri> computeInputUris({String filter}) {
+  List<Uri> uriList = <Uri>[];
+  Directory dir =
+      new Directory.fromUri(Uri.base.resolve('tests/compiler/dart2js/'));
+  for (FileSystemEntity entity in dir.listSync(recursive: true)) {
+    if (entity is File && entity.path.endsWith('.dart')) {
+      Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
+      if (filter != null && !'$file'.contains(filter)) {
+        continue;
+      }
+      if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
+        uriList.add(file);
+      }
+    }
+  }
+  return uriList;
+}
 
 main(List<String> arguments) {
   List<String> options = <String>[];
@@ -61,8 +76,8 @@ main(List<String> arguments) {
           if (line.startsWith('Analyzing uri: ')) {
             int filenameOffset = line.indexOf('tests/compiler/dart2js/');
             if (filenameOffset != -1) {
-              uriList.add(Uri.base.resolve(
-                  nativeToUriPath(line.substring(filenameOffset))));
+              uriList.add(Uri.base
+                  .resolve(nativeToUriPath(line.substring(filenameOffset))));
             }
           }
         }
@@ -78,24 +93,9 @@ main(List<String> arguments) {
 
   asyncTest(() async {
     if (uriList.isEmpty) {
-      Directory dir =
-          new Directory.fromUri(Uri.base.resolve('tests/compiler/dart2js/'));
-      for (FileSystemEntity entity in dir.listSync(recursive: true)) {
-        if (entity is File && entity.path.endsWith('.dart')) {
-          Uri file = Uri.base.resolve(nativeToUriPath(entity.path));
-          if (filter != null && !'$file'.contains(filter)) {
-            continue;
-          }
-          if (!SKIP_LIST.any((skip) => file.path.contains(skip))) {
-            uriList.add(file);
-          }
-        }
-      }
+      uriList = computeInputUris(filter: filter);
     }
-    await analyze(
-        uriList,
-        WHITE_LIST,
-        mode: AnalysisMode.URI,
-        options: options);
+    await analyze(uriList, WHITE_LIST,
+        mode: AnalysisMode.URI, options: options);
   });
 }

@@ -29,7 +29,7 @@ void _cancelAndError(StreamSubscription subscription,
                      error,
                      StackTrace stackTrace) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture is Future) {
+  if (cancelFuture is Future && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._completeError(error, stackTrace));
   } else {
     future._completeError(error, stackTrace);
@@ -61,7 +61,7 @@ _ErrorCallback _cancelAndErrorClosure(
   before completing with a value. */
 void _cancelAndValue(StreamSubscription subscription, _Future future, value) {
   var cancelFuture = subscription.cancel();
-  if (cancelFuture is Future) {
+  if (cancelFuture is Future && !identical(cancelFuture, Future._nullFuture)) {
     cancelFuture.whenComplete(() => future._complete(value));
   } else {
     future._complete(value);

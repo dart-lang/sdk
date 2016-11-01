@@ -15,8 +15,7 @@ _interceptors:_internal/js_runtime/lib/interceptors.dart
 _isolate_helper:_internal/js_runtime/lib/isolate_helper.dart
 """;
 
-String buildLibrarySource(
-    Map<String, String> elementMap,
+String buildLibrarySource(Map<String, String> elementMap,
     [Map<String, String> additionalElementMap = const <String, String>{}]) {
   Map<String, String> map = new Map<String, String>.from(elementMap);
   if (additionalElementMap != null) {
@@ -37,7 +36,7 @@ const Map<String, String> DEFAULT_CORE_LIBRARY = const <String, String>{
         DateTime(year);
         DateTime.utc(year);
       }''',
-      'Deprecated': r'''
+  'Deprecated': r'''
       class Deprecated extends Object {
         final String expires;
         const Deprecated(this.expires);
@@ -138,8 +137,7 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
     var target;
     var receiver;
   }''',
-  'buildFunctionType':
-      r'''buildFunctionType(returnType, parameterTypes,
+  'buildFunctionType': r'''buildFunctionType(returnType, parameterTypes,
                             optionalParameterTypes) {
             return new RuntimeFunctionType();
           }''',
@@ -157,6 +155,9 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
                                String contextName, var context,
                                var typeArguments) {}''',
   'checkMalformedType': 'checkMalformedType(value, message) {}',
+  'checkInt': 'checkInt(value) {}',
+  'checkNum': 'checkNum(value) {}',
+  'checkString': 'checkString(value) {}',
   'Closure': 'abstract class Closure implements Function { }',
   'closureFromTearOff':
       r'''closureFromTearOff(receiver, functions, reflectionInfo,
@@ -166,7 +167,6 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'ConstantMap': 'class ConstantMap<K, V> {}',
   'ConstantProtoMap': 'class ConstantProtoMap<K, V> {}',
   'ConstantStringMap': 'class ConstantStringMap<K, V> {}',
-  'copyTypeArguments': 'copyTypeArguments(source, target) {}',
   'createInvocationMirror': 'createInvocationMirror(a0, a1, a2, a3, a4, a5) {}',
   'createRuntimeType': 'createRuntimeType(a) {}',
   'doubleTypeCast': 'doubleTypeCast(value) {}',
@@ -265,13 +265,12 @@ const Map<String, String> DEFAULT_JS_HELPER_LIBRARY = const <String, String>{
   'wrapException': 'wrapException(x) { return x; }',
   'badMain': 'badMain() { throw "bad main"; }',
   'missingMain': 'missingMain() { throw "missing main"; }',
-  'mainHasTooManyParameters':
-      'mainHasTooManyParameters() '
+  'mainHasTooManyParameters': 'mainHasTooManyParameters() '
       '{ throw "main has too many parameters"; }',
 };
 
-const Map<String, String> DEFAULT_FOREIGN_HELPER_LIBRARY
-    = const <String, String>{
+const Map<String, String> DEFAULT_FOREIGN_HELPER_LIBRARY =
+    const <String, String>{
   'JS': r'''
       dynamic JS(String typeDescription, String codeTemplate,
         [var arg0, var arg1, var arg2, var arg3, var arg4, var arg5, var arg6,
@@ -279,8 +278,7 @@ const Map<String, String> DEFAULT_FOREIGN_HELPER_LIBRARY
 };
 
 const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
-  'findIndexForNativeSubclassType':
-      'findIndexForNativeSubclassType(type) {}',
+  'findIndexForNativeSubclassType': 'findIndexForNativeSubclassType(type) {}',
   'getDispatchProperty': 'getDispatchProperty(o) {}',
   'getInterceptor': 'getInterceptor(x) {}',
   'getNativeInterceptor': 'getNativeInterceptor(x) {}',
@@ -328,11 +326,10 @@ const Map<String, String> DEFAULT_INTERCEPTORS_LIBRARY = const <String, String>{
        }''',
   'JSMutableArray':
       'class JSMutableArray extends JSArray implements JSMutableIndexable {}',
-  'JSUnmodifiableArray':
-      'class JSUnmodifiableArray extends JSArray {}',
+  'JSUnmodifiableArray': 'class JSUnmodifiableArray extends JSArray {}',
   'JSMutableIndexable':
       'abstract class JSMutableIndexable extends JSIndexable {}',
-      'JSPositiveInt': 'class JSPositiveInt extends JSInt {}',
+  'JSPositiveInt': 'class JSPositiveInt extends JSInt {}',
   'JSNull': r'''
       class JSNull extends Interceptor {
         bool operator==(other) => identical(null, other);
@@ -410,8 +407,7 @@ const Map<String, String> DEFAULT_ISOLATE_HELPER_LIBRARY =
 
 const Map<String, String> DEFAULT_ASYNC_LIBRARY = const <String, String>{
   'DeferredLibrary': 'class DeferredLibrary {}',
-  'Future':
-      '''
+  'Future': '''
       class Future<T> {
         Future.value([value]);
       }

@@ -11,75 +11,62 @@ import 'package:analyzer/src/summary/pub_summary.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:unittest/unittest.dart' hide ERROR;
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 import '../context/abstract_context.dart';
+import '../context/mock_sdk.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(PubSummaryManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(PubSummaryManagerTest);
+  });
 }
 
 @reflectiveTest
 class PubSummaryManagerTest extends AbstractContextTest {
+  /**
+   * The path to the root of the pubcache directory used in these tests. The
+   * path has not been converted to the current platform, and is therefore only
+   * appropriate for composing paths that will later be converted.
+   */
   static const String CACHE = '/home/.pub-cache/hosted/pub.dartlang.org';
 
   PubSummaryManager manager;
 
-  void setUp() {
-    super.setUp();
-    manager = new PubSummaryManager(resourceProvider, '_.temp');
+  Folder getFolder(String path) =>
+      resourceProvider.getFolder(resourceProvider.convertPath(path));
+
+  File newFile(String path, String content) {
+    //, [int stamp]) {
+    return resourceProvider.newFile(
+        resourceProvider.convertPath(path), content);
   }
 
-  test_computeSdkExtension() async {
+  Folder newFolder(String path) =>
+      resourceProvider.newFolder(resourceProvider.convertPath(path));
+
+  void setUp() {
+    super.setUp();
+    _createManager();
+  }
+
+  test_computeUnlinkedForFolder() async {
     // Create package files.
-    resourceProvider.newFile(
-        '$CACHE/aaa/lib/a.dart',
+    newFile(
+        '/flutter/aaa/lib/a.dart',
         '''
 class A {}
 ''');
-    resourceProvider.newFile(
-        '$CACHE/aaa/sdk_ext/extA.dart',
-        '''
-library test.a;
-import 'dart:async';
-part 'src/p1.dart';
-part 'src/p2.dart';
-class ExtA {}
-int V0;
-''');
-    resourceProvider.newFile(
-        '$CACHE/aaa/sdk_ext/src/p1.dart',
-        '''
-part of test.a;
-class ExtAA {}
-double V1;
-''');
-    resourceProvider.newFile(
-        '$CACHE/aaa/sdk_ext/src/p2.dart',
-        '''
-part of test.a;
-class ExtAB {}
-Future V2;
-''');
-    resourceProvider.newFile(
-        '$CACHE/aaa/lib/_sdkext',
-        '''
-{
-  "dart:aaa.internal": "../sdk_ext/extA.dart"
-}
-''');
-    resourceProvider.newFile(
-        '$CACHE/bbb/lib/b.dart',
+    newFile(
+        '/flutter/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('/flutter/aaa/lib');
+    Folder libFolderB = newFolder('/flutter/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -89,65 +76,258 @@ class B {}
       })
     ]);
 
-    PackageBundle sdkBundle = sdk.getLinkedBundle();
-    PackageBundle bundle = manager.computeSdkExtension(context, sdkBundle);
-    expect(bundle, isNotNull);
-    expect(bundle.linkedLibraryUris, ['dart:aaa.internal']);
-    expect(bundle.unlinkedUnitUris, [
-      'dart:aaa.internal',
-      'dart:aaa.internal/src/p1.dart',
-      'dart:aaa.internal/src/p2.dart'
+    await manager.computeUnlinkedForFolder('aaa', libFolderA);
+    await manager.computeUnlinkedForFolder('bbb', libFolderB);
+
+    // The files must be created.
+    _assertFileExists(libFolderA.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolderA.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+  }
+
+  test_getLinkedBundles_cached() async {
+    String pathA1 = '$CACHE/aaa-1.0.0';
+    String pathA2 = '$CACHE/aaa-2.0.0';
+    newFile(
+        '$pathA1/lib/a.dart',
+        '''
+class A {}
+int a;
+''');
+    newFile(
+        '$pathA2/lib/a.dart',
+        '''
+class A2 {}
+int a;
+''');
+    newFile(
+        '$CACHE/bbb/lib/b.dart',
+        '''
+import 'package:aaa/a.dart';
+A b;
+''');
+    Folder folderA1 = getFolder(pathA1);
+    Folder folderA2 = getFolder(pathA2);
+    Folder folderB = getFolder('$CACHE/bbb');
+
+    // Configure packages resolution.
+    Folder libFolderA1 = newFolder('$pathA1/lib');
+    Folder libFolderA2 = newFolder('$pathA2/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA1],
+        'bbb': [libFolderB],
+      })
     ]);
-    expect(bundle.unlinkedUnits, hasLength(3));
-    expect(bundle.unlinkedUnits[0].classes.map((c) => c.name), ['ExtA']);
-    expect(bundle.unlinkedUnits[1].classes.map((c) => c.name), ['ExtAA']);
-    expect(bundle.unlinkedUnits[2].classes.map((c) => c.name), ['ExtAB']);
-    // The library is linked.
-    expect(bundle.linkedLibraries, hasLength(1));
-    LinkedLibrary linkedLibrary = bundle.linkedLibraries[0];
-    // V0 is linked
+
+    // Session 1.
+    // Create linked bundles and store them in files.
+    String linkedHashA;
+    String linkedHashB;
     {
-      UnlinkedUnit unlinkedUnit = bundle.unlinkedUnits[0];
-      LinkedUnit linkedUnit = linkedLibrary.units[0];
-      expect(unlinkedUnit.variables, hasLength(1));
-      UnlinkedVariable variable = unlinkedUnit.variables[0];
-      expect(variable.name, 'V0');
-      int typeRef = variable.type.reference;
-      expect(unlinkedUnit.references[typeRef].name, 'int');
-      LinkedReference linkedReference = linkedUnit.references[typeRef];
-      expect(linkedLibrary.dependencies[linkedReference.dependency].uri,
-          'dart:core');
+      // Ensure unlinked bundles.
+      manager.getUnlinkedBundles(context);
+      await manager.onUnlinkedComplete;
+
+      // Now we should be able to get linked bundles.
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(2));
+
+      // Verify that files with linked bundles were created.
+      LinkedPubPackage packageA = _getLinkedPackage(linkedPackages, 'aaa');
+      LinkedPubPackage packageB = _getLinkedPackage(linkedPackages, 'bbb');
+      linkedHashA = packageA.linkedHash;
+      linkedHashB = packageB.linkedHash;
+      _assertFileExists(folderA1, 'linked_spec_$linkedHashA.ds');
+      _assertFileExists(folderB, 'linked_spec_$linkedHashB.ds');
     }
-    // V1 is linked
+
+    // Session 2.
+    // Recreate manager and ask again.
     {
-      UnlinkedUnit unlinkedUnit = bundle.unlinkedUnits[1];
-      LinkedUnit linkedUnit = linkedLibrary.units[1];
-      expect(unlinkedUnit.variables, hasLength(1));
-      UnlinkedVariable variable = unlinkedUnit.variables[0];
-      expect(variable.name, 'V1');
-      int typeRef = variable.type.reference;
-      expect(unlinkedUnit.references[typeRef].name, 'double');
-      LinkedReference linkedReference = linkedUnit.references[typeRef];
-      expect(linkedLibrary.dependencies[linkedReference.dependency].uri,
-          'dart:core');
+      _createManager();
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(2));
+
+      // Verify that linked packages have the same hashes, so they must
+      // be have been read from the previously created files.
+      LinkedPubPackage packageA = _getLinkedPackage(linkedPackages, 'aaa');
+      LinkedPubPackage packageB = _getLinkedPackage(linkedPackages, 'bbb');
+      expect(packageA.linkedHash, linkedHashA);
+      expect(packageB.linkedHash, linkedHashB);
     }
-    // V2 is linked
+
+    // Session 2 with different 'aaa' version.
+    // Different linked bundles.
     {
-      UnlinkedUnit unlinkedUnit = bundle.unlinkedUnits[2];
-      LinkedUnit linkedUnit = linkedLibrary.units[2];
-      expect(unlinkedUnit.variables, hasLength(1));
-      UnlinkedVariable variable = unlinkedUnit.variables[0];
-      expect(variable.name, 'V2');
-      int typeRef = variable.type.reference;
-      expect(unlinkedUnit.references[typeRef].name, 'Future');
-      LinkedReference linkedReference = linkedUnit.references[typeRef];
-      expect(linkedLibrary.dependencies[linkedReference.dependency].uri,
-          'dart:async');
+      context.sourceFactory = new SourceFactory(<UriResolver>[
+        sdkResolver,
+        resourceResolver,
+        new PackageMapUriResolver(resourceProvider, {
+          'aaa': [libFolderA2],
+          'bbb': [libFolderB],
+        })
+      ]);
+
+      // Ensure unlinked bundles.
+      manager.getUnlinkedBundles(context);
+      await manager.onUnlinkedComplete;
+
+      // Now we should be able to get linked bundles.
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(2));
+
+      // Verify that new files with linked bundles were created.
+      LinkedPubPackage packageA = _getLinkedPackage(linkedPackages, 'aaa');
+      LinkedPubPackage packageB = _getLinkedPackage(linkedPackages, 'bbb');
+      expect(packageA.linkedHash, isNot(linkedHashA));
+      expect(packageB.linkedHash, isNot(linkedHashB));
+      _assertFileExists(folderA2, 'linked_spec_${packageA.linkedHash}.ds');
+      _assertFileExists(folderB, 'linked_spec_${packageB.linkedHash}.ds');
+    }
+  }
+
+  test_getLinkedBundles_cached_declaredVariables_export() async {
+    await _testImpl_getLinkedBundles_cached_declaredVariables('export');
+  }
+
+  test_getLinkedBundles_cached_declaredVariables_import() async {
+    await _testImpl_getLinkedBundles_cached_declaredVariables('import');
+  }
+
+  test_getLinkedBundles_cached_differentSdk() async {
+    String pathA = '$CACHE/aaa';
+    newFile(
+        '$pathA/lib/a.dart',
+        '''
+class A {}
+int a;
+''');
+    newFile(
+        '$CACHE/bbb/lib/b.dart',
+        '''
+import 'package:aaa/a.dart';
+A b;
+''');
+    Folder folderA = getFolder(pathA);
+    Folder folderB = getFolder('$CACHE/bbb');
+
+    // Configure packages resolution.
+    Folder libFolderA = newFolder('$pathA/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+        'bbb': [libFolderB],
+      })
+    ]);
+
+    // Session 1.
+    // Create linked bundles and store them in files.
+    String linkedHashA;
+    String linkedHashB;
+    {
+      // Ensure unlinked bundles.
+      manager.getUnlinkedBundles(context);
+      await manager.onUnlinkedComplete;
+
+      // Now we should be able to get linked bundles.
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(2));
+
+      // Verify that files with linked bundles were created.
+      LinkedPubPackage packageA = _getLinkedPackage(linkedPackages, 'aaa');
+      LinkedPubPackage packageB = _getLinkedPackage(linkedPackages, 'bbb');
+      linkedHashA = packageA.linkedHash;
+      linkedHashB = packageB.linkedHash;
+      _assertFileExists(folderA, 'linked_spec_$linkedHashA.ds');
+      _assertFileExists(folderB, 'linked_spec_$linkedHashB.ds');
+    }
+
+    // Session 2.
+    // Use DartSdk with a different API signature.
+    // Different linked bundles should be created.
+    {
+      MockSdk sdk = new MockSdk(resourceProvider: resourceProvider);
+      sdk.updateUriFile('dart:math', (String content) {
+        return content + '  class NewMathClass {}';
+      });
+      context.sourceFactory = new SourceFactory(<UriResolver>[
+        new DartUriResolver(sdk),
+        resourceResolver,
+        new PackageMapUriResolver(resourceProvider, {
+          'aaa': [libFolderA],
+          'bbb': [libFolderB],
+        })
+      ]);
+
+      // Ensure unlinked bundles.
+      manager.getUnlinkedBundles(context);
+      await manager.onUnlinkedComplete;
+
+      // Now we should be able to get linked bundles.
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(2));
+
+      // Verify that new files with linked bundles were created.
+      LinkedPubPackage packageA = _getLinkedPackage(linkedPackages, 'aaa');
+      LinkedPubPackage packageB = _getLinkedPackage(linkedPackages, 'bbb');
+      expect(packageA.linkedHash, isNot(linkedHashA));
+      expect(packageB.linkedHash, isNot(linkedHashB));
+      _assertFileExists(folderA, 'linked_spec_${packageA.linkedHash}.ds');
+      _assertFileExists(folderB, 'linked_spec_${packageB.linkedHash}.ds');
+    }
+  }
+
+  test_getLinkedBundles_cached_inconsistent_majorVersion() async {
+    String pathA = '$CACHE/aaa';
+    newFile(
+        '$pathA/lib/a.dart',
+        '''
+class A {}
+int a;
+''');
+    // Configure packages resolution.
+    Folder libFolderA = newFolder('$pathA/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+      })
+    ]);
+
+    // Session 1.
+    // Create the linked bundle and cache it in a file.
+    {
+      // Ensure unlinked bundles.
+      manager.getUnlinkedBundles(context);
+      await manager.onUnlinkedComplete;
+
+      // Now we should be able to get the linked bundle.
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(1));
+    }
+
+    // Session 2.
+    // Recreate manager with a different major version.
+    // It cannot use the previously cache linked bundle.
+    // The reason is that we cannot use the cached unlinked bundle.
+    {
+      _createManager(majorVersion: 12345);
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, isEmpty);
     }
   }
 
   test_getLinkedBundles_hasCycle() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
@@ -155,14 +335,14 @@ class A {}
 int a1;
 B a2;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:ccc/c.dart';
 class B {}
 C b;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ccc/lib/c.dart',
         '''
 import 'package:aaa/a.dart';
@@ -171,7 +351,7 @@ class C {}
 A c1;
 D c2;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ddd/lib/d.dart',
         '''
 class D {}
@@ -179,10 +359,10 @@ String d;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    Folder libFolderC = resourceProvider.newFolder('$CACHE/ccc/lib');
-    Folder libFolderD = resourceProvider.newFolder('$CACHE/ddd/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
+    Folder libFolderD = newFolder('$CACHE/ddd/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -207,8 +387,10 @@ String d;
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
       expect(linkedPackage.linked.linkedLibraryUris, ['package:aaa/a.dart']);
-      _assertHasLinkedVariable(linkedPackage, 'a1', 'int', 'dart:core');
-      _assertHasLinkedVariable(linkedPackage, 'a2', 'B', 'package:bbb/b.dart');
+      _assertHasLinkedVariable(linkedPackage, 'a1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a2', 'B',
+          expectedTypeNameUri: 'package:bbb/b.dart');
     }
 
     // package:bbb
@@ -216,7 +398,8 @@ String d;
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
       expect(linkedPackage.linked.linkedLibraryUris, ['package:bbb/b.dart']);
-      _assertHasLinkedVariable(linkedPackage, 'b', 'C', 'package:ccc/c.dart');
+      _assertHasLinkedVariable(linkedPackage, 'b', 'C',
+          expectedTypeNameUri: 'package:ccc/c.dart');
     }
 
     // package:ccc
@@ -224,8 +407,10 @@ String d;
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'ccc');
       expect(linkedPackage.linked.linkedLibraryUris, ['package:ccc/c.dart']);
-      _assertHasLinkedVariable(linkedPackage, 'c1', 'A', 'package:aaa/a.dart');
-      _assertHasLinkedVariable(linkedPackage, 'c2', 'D', 'package:ddd/d.dart');
+      _assertHasLinkedVariable(linkedPackage, 'c1', 'A',
+          expectedTypeNameUri: 'package:aaa/a.dart');
+      _assertHasLinkedVariable(linkedPackage, 'c2', 'D',
+          expectedTypeNameUri: 'package:ddd/d.dart');
     }
 
     // package:ddd
@@ -233,26 +418,27 @@ String d;
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'ddd');
       expect(linkedPackage.linked.linkedLibraryUris, ['package:ddd/d.dart']);
-      _assertHasLinkedVariable(linkedPackage, 'd', 'String', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'd', 'String',
+          expectedTypeNameUri: 'dart:core');
     }
   }
 
-  test_getLinkedBundles_missingBundle() async {
-    resourceProvider.newFile(
+  test_getLinkedBundles_missingBundle_listed() async {
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
-int a;
+import 'package:bbb/b.dart';
+B a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
-import 'package:ccc/c.dart';
-C b;
+class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -262,12 +448,98 @@ C b;
       })
     ]);
 
-    // Ensure unlinked bundles.
-    manager.getUnlinkedBundles(context);
-    await manager.onUnlinkedComplete;
+    // Ensure unlinked bundles for 'aaa'.
+    await manager.computeUnlinkedForFolder('aaa', libFolderA);
 
     // Try to link.
-    // Only 'aaa' can be linked, because 'bbb' references not available 'ccc'.
+    // Neither 'aaa' nor 'bbb' are linked.
+    // 'bbb' does not have the unlinked bundle.
+    // 'aaa' is not linked because it references 'bbb', which is listed.
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+    expect(linkedPackages, hasLength(0));
+  }
+
+  test_getLinkedBundles_missingBundle_listed_chained() async {
+    newFile(
+        '$CACHE/aaa/lib/a.dart',
+        '''
+import 'package:bbb/b.dart';
+''');
+    newFile(
+        '$CACHE/bbb/lib/b.dart',
+        '''
+import 'package:ccc/c.dart';
+''');
+    newFile(
+        '$CACHE/ccc/lib/c.dart',
+        '''
+class C {}
+''');
+
+    // Configure packages resolution.
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+        'bbb': [libFolderB],
+        'ccc': [libFolderC],
+      })
+    ]);
+
+    // Ensure unlinked bundles.
+    await manager.computeUnlinkedForFolder('aaa', libFolderA);
+    await manager.computeUnlinkedForFolder('bbb', libFolderB);
+
+    // Try to link.
+    // Neither 'aaa' nor 'bbb' are linked.
+    // 'ccc' is listed in the package map, but its unlinked bundle is not ready.
+    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+    expect(linkedPackages, hasLength(0));
+  }
+
+  test_getLinkedBundles_missingBundle_listed_partial() async {
+    newFile(
+        '$CACHE/aaa/lib/a.dart',
+        '''
+int a;
+''');
+    newFile(
+        '$CACHE/bbb/lib/b.dart',
+        '''
+import 'package:ccc/c.dart';
+C b;
+''');
+    newFile(
+        '$CACHE/ccc/lib/c.dart',
+        '''
+class C {}
+''');
+
+    // Configure packages resolution.
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+        'bbb': [libFolderB],
+        'ccc': [libFolderC],
+      })
+    ]);
+
+    // Ensure unlinked bundles for 'aaa'.
+    await manager.computeUnlinkedForFolder('aaa', libFolderA);
+    await manager.computeUnlinkedForFolder('bbb', libFolderB);
+
+    // Try to link.
+    // Only 'aaa' is linked.
+    // The package 'bbb' references the listed 'ccc' without unlinked bundle.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(1));
 
@@ -275,27 +547,28 @@ C b;
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'int', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'int',
+          expectedTypeNameUri: 'dart:core');
     }
   }
 
-  test_getLinkedBundles_missingBundle_chained() async {
-    resourceProvider.newFile(
+  test_getLinkedBundles_missingBundle_notListed() async {
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
-import 'package:bbb/b.dart';
 int a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:ccc/c.dart';
-int b;
+int b1;
+C b2;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -310,20 +583,40 @@ int b;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // No linked libraries, because 'aaa' needs 'bbb', and 'bbb' needs 'ccc'.
-    // But 'ccc' is not available, so the whole chain cannot be linked.
+    // Both 'aaa' and 'bbb' are linked.
+    // The package 'ccc' is not listed, so it cannot be resolved anyway,
+    // with summaries or without them.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, isEmpty);
+    expect(linkedPackages, hasLength(2));
+
+    // package:aaa
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'int',
+          expectedTypeNameUri: 'dart:core');
+    }
+
+    // package:bbb
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
+      _assertHasLinkedVariable(linkedPackage, 'b1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'b2', 'C',
+          expectedToBeResolved: false);
+    }
   }
 
   test_getLinkedBundles_missingLibrary() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b2.dart';
-int a;
+int a1;
+B2 a2;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
@@ -331,8 +624,8 @@ int b = 42;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -347,35 +640,47 @@ int b = 42;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // Only 'bbb', because 'aaa' references 'package:bbb/b2.dart', which does
-    // not exist in the bundle 'bbb'.
+    // Both 'aaa' and 'bbb' are linked.
+    // The name 'B2' in 'a.dart' is not resolved.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, hasLength(1));
+    expect(linkedPackages, hasLength(2));
+
+    // package:aaa
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
+      _assertHasLinkedVariable(linkedPackage, 'a1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a2', 'B2',
+          expectedToBeResolved: false);
+    }
 
     // package:bbb
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
-      _assertHasLinkedVariable(linkedPackage, 'b', 'int', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'b', 'int',
+          expectedTypeNameUri: 'dart:core');
     }
   }
 
   test_getLinkedBundles_missingLibrary_hasCycle() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
-int a;
+B a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:aaa/a.dart';
 import 'package:ccc/c2.dart';
 class B {}
-int b;
+int b1;
+C2 b2;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ccc/lib/c.dart',
         '''
 class C {}
@@ -383,9 +688,9 @@ int c;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    Folder libFolderC = resourceProvider.newFolder('$CACHE/ccc/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -401,28 +706,49 @@ int c;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // Only 'ccc' is linked.
-    // The 'aaa' + 'bbb' cycle cannot be linked because 'bbb' references
-    // 'package:ccc/c2.dart', which does not exist in the bundle 'ccc'.
+    // All bundles 'aaa' and 'bbb' and 'ccc' are linked.
+    // The name 'C2' in 'b.dart' is not resolved.
+    // We have the corresponding unlinked bundle, and it is full, so if it does
+    // not have the library 'package:ccc/c2.dart', this means that this library
+    // does not exist in 'ccc' at all.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, hasLength(1));
+    expect(linkedPackages, hasLength(3));
+
+    // package:aaa
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'B',
+          expectedTypeNameUri: 'package:bbb/b.dart');
+    }
+
+    // package:bbb
+    {
+      LinkedPubPackage linkedPackage = linkedPackages
+          .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
+      _assertHasLinkedVariable(linkedPackage, 'b1', 'int',
+          expectedTypeNameUri: 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'b2', 'C2',
+          expectedToBeResolved: false);
+    }
 
     // package:ccc
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'ccc');
-      _assertHasLinkedVariable(linkedPackage, 'c', 'int', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'c', 'int',
+          expectedTypeNameUri: 'dart:core');
     }
   }
 
   test_getLinkedBundles_noCycle() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 class A {}
 int a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 import 'package:aaa/a.dart';
@@ -430,8 +756,8 @@ A b;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -453,32 +779,34 @@ A b;
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'int', 'dart:core');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'int',
+          expectedTypeNameUri: 'dart:core');
     }
 
     // package:bbb
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
-      _assertHasLinkedVariable(linkedPackage, 'b', 'A', 'package:aaa/a.dart');
+      _assertHasLinkedVariable(linkedPackage, 'b', 'A',
+          expectedTypeNameUri: 'package:aaa/a.dart');
     }
   }
 
   test_getLinkedBundles_noCycle_relativeUri() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'src/a2.dart';
 A a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/src/a2.dart',
         '''
 class A {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -499,32 +827,33 @@ class A {}
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'A', 'src/a2.dart');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'A',
+          expectedTypeNameUri: 'src/a2.dart');
     }
   }
 
   test_getLinkedBundles_noCycle_withExport() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'package:bbb/b.dart';
 C a;
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 export 'package:ccc/c.dart';
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/ccc/lib/c.dart',
         '''
 class C {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    Folder libFolderC = resourceProvider.newFolder('$CACHE/ccc/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
+    Folder libFolderC = newFolder('$CACHE/ccc/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -547,81 +876,22 @@ class C {}
     {
       LinkedPubPackage linkedPackage = linkedPackages
           .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'C', 'package:ccc/c.dart');
-    }
-  }
-
-  test_getLinkedBundles_useSdkExtension() async {
-    resourceProvider.newFile(
-        '$CACHE/aaa/lib/a.dart',
-        '''
-import 'dart:bbb';
-ExtB a;
-''');
-    resourceProvider.newFile(
-        '$CACHE/bbb/lib/b.dart',
-        '''
-import 'dart:bbb';
-ExtB b;
-''');
-    resourceProvider.newFile(
-        '$CACHE/bbb/sdk_ext/extB.dart',
-        '''
-class ExtB {}
-''');
-    resourceProvider.newFile(
-        '$CACHE/bbb/lib/_sdkext',
-        '''
-{
-  "dart:bbb": "../sdk_ext/extB.dart"
-}
-''');
-
-    // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
-    context.sourceFactory = new SourceFactory(<UriResolver>[
-      sdkResolver,
-      resourceResolver,
-      new PackageMapUriResolver(resourceProvider, {
-        'aaa': [libFolderA],
-        'bbb': [libFolderB],
-      })
-    ]);
-
-    // Ensure unlinked bundles.
-    manager.getUnlinkedBundles(context);
-    await manager.onUnlinkedComplete;
-
-    // Now we should be able to get linked bundles.
-    List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
-    expect(linkedPackages, hasLength(2));
-
-    // package:aaa
-    {
-      LinkedPubPackage linkedPackage = linkedPackages
-          .singleWhere((linkedPackage) => linkedPackage.package.name == 'aaa');
-      _assertHasLinkedVariable(linkedPackage, 'a', 'ExtB', 'dart:bbb');
-    }
-
-    // package:bbb
-    {
-      LinkedPubPackage linkedPackage = linkedPackages
-          .singleWhere((linkedPackage) => linkedPackage.package.name == 'bbb');
-      _assertHasLinkedVariable(linkedPackage, 'b', 'ExtB', 'dart:bbb');
+      _assertHasLinkedVariable(linkedPackage, 'a', 'C',
+          expectedTypeNameUri: 'package:ccc/c.dart');
     }
   }
 
   test_getLinkedBundles_wrongScheme() async {
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 import 'xxx:yyy/zzz.dart';
-Z a;
+int a1;
+Z a2;
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -635,8 +905,8 @@ Z a;
     await manager.onUnlinkedComplete;
 
     // Try to link.
-    // The package 'aaa' cannot be linked because it uses not 'dart' or
-    // 'package' import URI scheme.
+    // The package 'aaa' is not linked.
+    // We don't know how to handle the URI scheme 'xxx'.
     List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
     expect(linkedPackages, hasLength(0));
   }
@@ -645,6 +915,7 @@ Z a;
     String getPackageName(String uriStr) {
       return PubSummaryManager.getPackageName(uriStr);
     }
+
     expect(getPackageName('package:foo/bar.dart'), 'foo');
     expect(getPackageName('package:foo/bar/baz.dart'), 'foo');
     expect(getPackageName('wrong:foo/bar.dart'), isNull);
@@ -653,25 +924,25 @@ Z a;
 
   test_getUnlinkedBundles() async {
     // Create package files.
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/a.dart',
         '''
 class A {}
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/aaa/lib/src/a2.dart',
         '''
 class A2 {}
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.newFolder('$CACHE/aaa/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = newFolder('$CACHE/aaa/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -719,23 +990,73 @@ class B {}
     _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
   }
 
+  test_getUnlinkedBundles_inconsistent_majorVersion() async {
+    // Create package files.
+    newFile(
+        '$CACHE/aaa/lib/a.dart',
+        '''
+class A {}
+''');
+
+    // Configure packages resolution.
+    Folder libFolder = newFolder('$CACHE/aaa/lib');
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolder],
+      })
+    ]);
+
+    /**
+     * Verify that the [manager] has exactly one cache bundle `aaa`.
+     */
+    void _assertSingleBundle() {
+      Map<PubPackage, PackageBundle> bundles =
+          manager.getUnlinkedBundles(context);
+      expect(bundles, hasLength(1));
+      PackageBundle bundle = _getBundleByPackageName(bundles, 'aaa');
+      expect(bundle.unlinkedUnitUris, ['package:aaa/a.dart']);
+    }
+
+    // Compute the bundle using a non-default major version.
+    _createManager(majorVersion: 12345);
+    manager.getUnlinkedBundles(context);
+    await manager.onUnlinkedComplete;
+    _assertSingleBundle();
+
+    // Recompute when using the default major version.
+    _createManager();
+    expect(manager.getUnlinkedBundles(context), isEmpty);
+
+    // Wait for the bundle to be computed.
+    await manager.onUnlinkedComplete;
+    _assertSingleBundle();
+    _assertFileExists(libFolder.parent, PubSummaryManager.UNLINKED_NAME);
+    _assertFileExists(libFolder.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
+
+    // Can read from the file again.
+    _createManager();
+    _assertSingleBundle();
+  }
+
   test_getUnlinkedBundles_notPubCache_dontCreate() async {
     String aaaPath = '/Users/user/projects/aaa';
     // Create package files.
-    resourceProvider.newFile(
+    newFile(
         '$aaaPath/lib/a.dart',
         '''
 class A {}
 ''');
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.getFolder('$aaaPath/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = getFolder('$aaaPath/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -776,7 +1097,7 @@ class B {}
     String aaaPath = '/Users/user/projects/aaa';
     // Create package files.
     {
-      File file = resourceProvider.newFile(
+      File file = newFile(
           '$aaaPath/lib/a.dart',
           '''
 class A {}
@@ -786,18 +1107,19 @@ class A {}
             file.createSource(FastUri.parse('package:aaa/a.dart')),
             new UnlinkedUnitBuilder());
       resourceProvider.newFileWithBytes(
-          '$aaaPath/${PubSummaryManager.UNLINKED_SPEC_NAME}',
+          resourceProvider
+              .convertPath('$aaaPath/${PubSummaryManager.UNLINKED_SPEC_NAME}'),
           assembler.assemble().toBuffer());
     }
-    resourceProvider.newFile(
+    newFile(
         '$CACHE/bbb/lib/b.dart',
         '''
 class B {}
 ''');
 
     // Configure packages resolution.
-    Folder libFolderA = resourceProvider.getFolder('$aaaPath/lib');
-    Folder libFolderB = resourceProvider.newFolder('$CACHE/bbb/lib');
+    Folder libFolderA = getFolder('$aaaPath/lib');
+    Folder libFolderB = newFolder('$CACHE/bbb/lib');
     context.sourceFactory = new SourceFactory(<UriResolver>[
       sdkResolver,
       resourceResolver,
@@ -843,6 +1165,47 @@ class B {}
     _assertFileExists(libFolderB.parent, PubSummaryManager.UNLINKED_SPEC_NAME);
   }
 
+  test_getUnlinkedBundles_notPubCache_useExisting_inconsistent() async {
+    String aaaPath = '/Users/user/projects/aaa';
+    // Create package files.
+    newFile(
+        '$aaaPath/lib/a.dart',
+        '''
+class A {}
+''');
+
+    // Compute the bundles.
+    Folder libFolderA = getFolder('$aaaPath/lib');
+    await new PubSummaryManager(resourceProvider, '_.temp')
+        .computeUnlinkedForFolder('aaa', libFolderA);
+
+    // Configure packages resolution.
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+      })
+    ]);
+
+    // Request already available unlinked bundles.
+    expect(manager.getUnlinkedBundles(context), hasLength(1));
+
+    // Update a Dart file.
+    // So, the cached bundle cannot be reused.
+    resourceProvider.updateFile(
+        resourceProvider.convertPath('$aaaPath/lib/a.dart'),
+        '''
+class A2 {}
+''');
+    _createManager();
+    expect(manager.getUnlinkedBundles(context), isEmpty);
+
+    // ...and because it is not in the pub cache, it will not be recomputed.
+    await manager.onUnlinkedComplete;
+    expect(manager.getUnlinkedBundles(context), isEmpty);
+  }
+
   test_getUnlinkedBundles_nullPackageMap() async {
     context.sourceFactory =
         new SourceFactory(<UriResolver>[sdkResolver, resourceResolver]);
@@ -881,11 +1244,10 @@ class B {}
     expect(folder.getChildAssumingFile(fileName).exists, isTrue);
   }
 
-  void _assertHasLinkedVariable(
-      LinkedPubPackage linkedPackage,
-      String variableName,
-      String expectedTypeName,
-      String expectedTypeNameUri) {
+  void _assertHasLinkedVariable(LinkedPubPackage linkedPackage,
+      String variableName, String expectedTypeName,
+      {bool expectedToBeResolved: true,
+      String expectedTypeNameUri: 'shouldBeSpecifiedIfResolved'}) {
     PackageBundle unlinked = linkedPackage.unlinked;
     PackageBundle linked = linkedPackage.linked;
     expect(unlinked, isNotNull);
@@ -905,8 +1267,12 @@ class B {}
               LinkedUnit linkedUnit = linkedLibrary.units.single;
               int typeNameDependency =
                   linkedUnit.references[typeNameReference].dependency;
-              expect(linkedLibrary.dependencies[typeNameDependency].uri,
-                  expectedTypeNameUri);
+              if (expectedToBeResolved) {
+                expect(linkedLibrary.dependencies[typeNameDependency].uri,
+                    expectedTypeNameUri);
+              } else {
+                expect(typeNameDependency, isZero);
+              }
               return;
             }
           }
@@ -915,6 +1281,100 @@ class B {}
       }
     }
     fail('Cannot find variable $variableName in $linkedPackage');
+  }
+
+  void _createManager(
+      {bool allowLinking: true,
+      int majorVersion: PackageBundleAssembler.currentMajorVersion}) {
+    manager = new PubSummaryManager(resourceProvider, '_.temp',
+        allowLinking: allowLinking, majorVersion: majorVersion);
+  }
+
+  LinkedPubPackage _getLinkedPackage(
+      List<LinkedPubPackage> packages, String name) {
+    return packages
+        .singleWhere((linkedPackage) => linkedPackage.package.name == name);
+  }
+
+  _testImpl_getLinkedBundles_cached_declaredVariables(
+      String importOrExport) async {
+    String pathA = '$CACHE/aaa/lib';
+    newFile('$pathA/foo.dart', 'class A {}');
+    newFile('$pathA/foo_io.dart', 'class A {}');
+    newFile('$pathA/foo_html.dart', 'class A {}');
+    newFile(
+        '$pathA/user.dart',
+        '''
+$importOrExport 'foo.dart'
+  if (dart.library.io) 'foo_io.dart'
+  if (dart.library.html) 'foo_html.dart';
+''');
+    // Configure packages resolution.
+    Folder libFolderA = newFolder(pathA);
+    context.sourceFactory = new SourceFactory(<UriResolver>[
+      sdkResolver,
+      resourceResolver,
+      new PackageMapUriResolver(resourceProvider, {
+        'aaa': [libFolderA],
+      })
+    ]);
+
+    void _assertDependencyInUser(PackageBundle bundle, String shortName) {
+      for (var i = 0; i < bundle.linkedLibraryUris.length; i++) {
+        if (bundle.linkedLibraryUris[i].endsWith('user.dart')) {
+          LinkedLibrary library = bundle.linkedLibraries[i];
+          expect(library.dependencies.map((d) => d.uri),
+              unorderedEquals(['', 'dart:core', shortName]));
+          return;
+        }
+      }
+      fail('Not found user.dart in $bundle');
+    }
+
+    // Session 1.
+    // Create the linked bundle and cache it in a file.
+    {
+      // Ensure unlinked bundles.
+      manager.getUnlinkedBundles(context);
+      await manager.onUnlinkedComplete;
+
+      // Now we should be able to get the linked bundle.
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(1));
+    }
+
+    // Session 2.
+    // Recreate manager and don't allow it to perform new linking.
+    // Set a declared variable, which is not used in the package.
+    // We still can get the cached linked bundle.
+    {
+      context.declaredVariables.define('not.used.variable', 'baz');
+      _createManager(allowLinking: false);
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(1));
+      _assertDependencyInUser(linkedPackages.single.linked, 'foo.dart');
+    }
+
+    // Session 3.
+    // Recreate manager and don't allow it to perform new linking.
+    // Set the value of a referenced declared variable.
+    // So, we cannot use the previously cached linked bundle.
+    {
+      context.declaredVariables.define('dart.library.io', 'does-not-matter');
+      _createManager(allowLinking: false);
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, isEmpty);
+    }
+
+    // Session 4.
+    // Enable new linking, and configure to use 'foo_html.dart'.
+    {
+      context.declaredVariables.define('dart.library.html', 'true');
+      _createManager();
+      List<LinkedPubPackage> linkedPackages = manager.getLinkedBundles(context);
+      expect(linkedPackages, hasLength(1));
+      _assertDependencyInUser(linkedPackages.single.linked, 'foo_html.dart');
+    }
   }
 
   static PackageBundle _getBundleByPackageName(

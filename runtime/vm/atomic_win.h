@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ATOMIC_WIN_H_
-#define VM_ATOMIC_WIN_H_
+#ifndef RUNTIME_VM_ATOMIC_WIN_H_
+#define RUNTIME_VM_ATOMIC_WIN_H_
 
-#if !defined VM_ATOMIC_H_
+#if !defined RUNTIME_VM_ATOMIC_H_
 #error Do not include atomic_win.h directly. Use atomic.h instead.
 #endif
 
@@ -21,6 +21,19 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
       InterlockedIncrement64(reinterpret_cast<LONGLONG*>(p))) - 1;
 #elif defined(HOST_ARCH_IA32)
   return static_cast<uintptr_t>(
+      InterlockedIncrement(reinterpret_cast<LONG*>(p))) - 1;
+#else
+#error Unsupported host architecture.
+#endif
+}
+
+
+inline intptr_t AtomicOperations::FetchAndIncrement(intptr_t* p) {
+#if defined(HOST_ARCH_X64)
+  return static_cast<intptr_t>(
+      InterlockedIncrement64(reinterpret_cast<LONGLONG*>(p))) - 1;
+#elif defined(HOST_ARCH_IA32)
+  return static_cast<intptr_t>(
       InterlockedIncrement(reinterpret_cast<LONG*>(p))) - 1;
 #else
 #error Unsupported host architecture.
@@ -57,6 +70,19 @@ inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
       InterlockedDecrement64(reinterpret_cast<LONGLONG*>(p))) + 1;
 #elif defined(HOST_ARCH_IA32)
   return static_cast<uintptr_t>(
+      InterlockedDecrement(reinterpret_cast<LONG*>(p))) + 1;
+#else
+#error Unsupported host architecture.
+#endif
+}
+
+
+inline intptr_t AtomicOperations::FetchAndDecrement(intptr_t* p) {
+#if defined(HOST_ARCH_X64)
+  return static_cast<intptr_t>(
+      InterlockedDecrement64(reinterpret_cast<LONGLONG*>(p))) + 1;
+#elif defined(HOST_ARCH_IA32)
+  return static_cast<intptr_t>(
       InterlockedDecrement(reinterpret_cast<LONG*>(p))) + 1;
 #else
 #error Unsupported host architecture.
@@ -111,4 +137,4 @@ inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
 
 }  // namespace dart
 
-#endif  // VM_ATOMIC_WIN_H_
+#endif  // RUNTIME_VM_ATOMIC_WIN_H_

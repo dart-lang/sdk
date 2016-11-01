@@ -96,7 +96,7 @@ getMangledTypeName(TypeImpl type) => type._typeName;
 @NoInline()
 Object setRuntimeTypeInfo(Object target, var rti) {
   assert(rti == null || isJsArray(rti));
-  JS('var', r'#.$builtinTypeInfo = #', target, rti);
+  JS('var', r'#.$ti = #', target, rti);
   return target;
 }
 
@@ -106,7 +106,7 @@ Object setRuntimeTypeInfo(Object target, var rti) {
  */
 getRuntimeTypeInfo(Object target) {
   if (target == null) return null;
-  return JS('var', r'#.$builtinTypeInfo', target);
+  return JS('var', r'#.$ti', target);
 }
 
 /**
@@ -132,10 +132,6 @@ getRuntimeTypeArgument(Object target, String substitutionName, int index) {
 getTypeArgumentByIndex(Object target, int index) {
   var rti = getRuntimeTypeInfo(target);
   return rti == null ? null : getIndex(rti, index);
-}
-
-void copyTypeArguments(Object source, Object target) {
-  JS('var', r'#.$builtinTypeInfo = #.$builtinTypeInfo', target, source);
 }
 
 /**
@@ -216,7 +212,7 @@ String joinArguments(var types, int startIndex,
 String getRuntimeTypeString(var object) {
   String className = getClassName(object);
   if (object == null) return className;
-  var rti = JS('var', r'#.$builtinTypeInfo', object);
+  var rti = JS('var', r'#.$ti', object);
   return "$className${joinArguments(rti, 0)}";
 }
 
@@ -232,23 +228,21 @@ Type getRuntimeType(var object) {
  * possible values for [substitution].
  */
 substitute(var substitution, var arguments) {
-  assert(substitution == null ||
-         isJsFunction(substitution));
+  if (substitution == null) return arguments;
+  assert(isJsFunction(substitution));
   assert(arguments == null || isJsArray(arguments));
+  substitution = invoke(substitution, arguments);
+  if (substitution == null) return null;
+  if (isJsArray(substitution)) {
+    // Substitutions are generated too late to mark Array as used, so use a
+    // tautological JS 'cast' to mark Array as used. This is needed only in
+    // some tiny tests where the substition is the only thing that creates an
+    // Array.
+    return JS('JSArray', '#', substitution);
+  }
   if (isJsFunction(substitution)) {
-    substitution = invoke(substitution, arguments);
-    if (substitution == null) return substitution;
-    if (isJsArray(substitution)) {
-      // Substitutions are generated too late to mark Array as used, so use a
-      // tautological JS 'cast' to mark Array as used. This is needed only in
-      // some tiny tests where the substition is the only thing that creates an
-      // Array.
-      return JS('JSArray', '#', substitution);
-    }
-    if (isJsFunction(substitution)) {
-      // TODO(johnniwinther): Check if this is still needed.
-      return invoke(substitution, arguments);
-    }
+    // TODO(johnniwinther): Check if this is still needed.
+    return invoke(substitution, arguments);
   }
   return arguments;
 }
@@ -471,12 +465,12 @@ bool isSubtype(var s, var t) {
   // Get the necessary substitution of the type arguments, if there is one.
   var substitution;
   if (isNotIdentical(typeOfT, typeOfS)) {
-    if (!builtinIsSubtype(typeOfS, runtimeTypeToString(typeOfT))) {
+    String typeOfTString = runtimeTypeToString(typeOfT);
+    if (!builtinIsSubtype(typeOfS, typeOfTString)) {
       return false;
     }
     var typeOfSPrototype = JS('', '#.prototype', typeOfS);
-    var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}'
-        '${runtimeTypeToString(typeOfT)}';
+    var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}${typeOfTString}';
     substitution = getField(typeOfSPrototype, field);
   }
   // The class of [s] is a subclass of the class of [t].  If [s] has no type

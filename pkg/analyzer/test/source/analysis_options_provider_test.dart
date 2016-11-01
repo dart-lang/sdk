@@ -4,23 +4,23 @@
 
 library analyzer.test.source.analysis_options_provider_test;
 
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
-import '../reflective_tests.dart';
 import '../resource_utils.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(AnalysisOptionsProviderOldTest);
-  runReflectiveTests(AnalysisOptionsProviderNewTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisOptionsProviderOldTest);
+    defineReflectiveTests(AnalysisOptionsProviderNewTest);
+  });
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
       var optionsProvider = new AnalysisOptionsProvider();
@@ -120,7 +120,7 @@ abstract class AnalysisOptionsProviderTest {
   String get optionsFileName;
 
   void setUp() {
-    var rawProvider = new MemoryResourceProvider(isWindows: isWindows);
+    var rawProvider = new MemoryResourceProvider();
     resourceProvider = new TestResourceProvider(rawProvider);
     pathTranslator = new TestPathTranslator(rawProvider);
   }

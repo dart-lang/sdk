@@ -64,8 +64,12 @@ class TypeCheckerTask extends CompilerTask {
             compiler, resolvedAst.elements, compiler.types);
         if (element.isField) {
           visitor.analyzingInitializer = true;
+          DartType type =
+              visitor.analyzeVariableTypeAnnotation(resolvedAst.node);
+          visitor.analyzeVariableInitializer(element, type, resolvedAst.body);
+        } else {
+          resolvedAst.node.accept(visitor);
         }
-        resolvedAst.node.accept(visitor);
       });
     });
   }
@@ -1641,6 +1645,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     checkPrivateAccess(node, element, element.name);
 
     DartType newType = elements.getType(node);
+    assert(invariant(node, newType != null,
+        message: "No new type registered in $elements."));
     DartType constructorType = computeConstructorType(element, newType);
     analyzeArguments(node.send, element, constructorType);
     return newType;
@@ -1758,12 +1764,25 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return elements.getType(node);
   }
 
-  DartType visitVariableDefinitions(VariableDefinitions node) {
+  DartType analyzeVariableTypeAnnotation(VariableDefinitions node) {
     DartType type = analyzeWithDefault(node.type, const DynamicType());
     if (type.isVoid) {
       reportTypeWarning(node.type, MessageKind.VOID_VARIABLE);
       type = const DynamicType();
     }
+    return type;
+  }
+
+  void analyzeVariableInitializer(
+      Spannable spannable, DartType declaredType, Node initializer) {
+    if (initializer == null) return;
+
+    DartType expressionType = analyzeNonVoid(initializer);
+    checkAssignable(spannable, expressionType, declaredType);
+  }
+
+  DartType visitVariableDefinitions(VariableDefinitions node) {
+    DartType type = analyzeVariableTypeAnnotation(node);
     for (Link<Node> link = node.definitions.nodes;
         !link.isEmpty;
         link = link.tail) {
@@ -1772,8 +1791,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           message: 'expected identifier or initialization');
       if (definition is SendSet) {
         SendSet initialization = definition;
-        DartType initializer = analyzeNonVoid(initialization.arguments.head);
-        checkAssignable(initialization.assignmentOperator, initializer, type);
+        analyzeVariableInitializer(initialization.assignmentOperator, type,
+            initialization.arguments.head);
         // TODO(sigmund): explore inferring a type for `var` using the RHS (like
         // DDC does), for example:
         // if (node.type == null && node.modifiers.isVar &&

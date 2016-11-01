@@ -6,8 +6,8 @@ library input.transformer.instrumentation;
 
 import 'dart:convert';
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:logging/logging.dart';
 
 import 'input_converter.dart';

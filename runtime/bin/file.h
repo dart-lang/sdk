@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_FILE_H_
-#define BIN_FILE_H_
+#ifndef RUNTIME_BIN_FILE_H_
+#define RUNTIME_BIN_FILE_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -88,7 +88,11 @@ class File : public ReferenceCounted<File> {
 
   intptr_t GetFD();
 
-  void* MapExecutable(intptr_t* num_bytes);
+  enum MapType {
+    kReadOnly = 0,
+    kReadExecute = 1,
+  };
+  void* Map(MapType type, int64_t position, int64_t length);
 
   // Read/Write attempt to transfer num_bytes to/from buffer. It returns
   // the number of bytes read/written.
@@ -153,9 +157,6 @@ class File : public ReferenceCounted<File> {
   // reading and writing. If mode contains kWrite and the file does
   // not exist the file is created. The file is truncated to length 0 if
   // mode contains kTruncate. Assumes we are in an API scope.
-  static File* ScopedOpen(const char* path, FileOpenMode mode);
-
-  // Like ScopedOpen(), but no API scope is needed.
   static File* Open(const char* path, FileOpenMode mode);
 
   // Create a file object for the specified stdio file descriptor
@@ -173,14 +174,16 @@ class File : public ReferenceCounted<File> {
   static int64_t LengthFromPath(const char* path);
   static void Stat(const char* path, int64_t* data);
   static time_t LastModified(const char* path);
-  static const char* LinkTarget(const char* pathname);
   static bool IsAbsolutePath(const char* path);
-  static const char* GetCanonicalPath(const char* path);
   static const char* PathSeparator();
   static const char* StringEscapedPathSeparator();
   static Type GetType(const char* path, bool follow_links);
   static Identical AreIdentical(const char* file_1, const char* file_2);
   static StdioHandleType GetStdioHandleType(int fd);
+
+  // LinkTarget and GetCanonicalPath may call Dart_ScopeAllocate.
+  static const char* LinkTarget(const char* pathname);
+  static const char* GetCanonicalPath(const char* path);
 
   static FileOpenMode DartModeToFileMode(DartFileOpenMode mode);
 
@@ -240,4 +243,4 @@ class File : public ReferenceCounted<File> {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_FILE_H_
+#endif  // RUNTIME_BIN_FILE_H_

@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:math';
 
 class Utils {
-
   static String formatPercentNormalized(double x) {
     var percent = 100.0 * x;
     return '${percent.toStringAsFixed(2)}%';
@@ -75,16 +74,16 @@ class Utils {
 
     if (hours > 0) {
       return ("${zeroPad(hours,2)}"
-               ":${zeroPad(minutes,2)}"
-               ":${zeroPad(seconds,2)}"
-               ".${zeroPad(millis,3)}");
+          ":${zeroPad(minutes,2)}"
+          ":${zeroPad(seconds,2)}"
+          ".${zeroPad(millis,3)}");
     } else if (minutes > 0) {
       return ("${zeroPad(minutes,2)}"
-              ":${zeroPad(seconds,2)}"
-              ".${zeroPad(millis,3)}");
+          ":${zeroPad(seconds,2)}"
+          ".${zeroPad(millis,3)}");
     } else {
       return ("${zeroPad(seconds,2)}"
-              ".${zeroPad(millis,3)}");
+          ".${zeroPad(millis,3)}");
     }
   }
 
@@ -137,20 +136,62 @@ class Utils {
 
   static String formatDateTime(DateTime now) {
     return '${now.year}-${now.month}-${now.day} '
-           '${now.hour.toString().padLeft(2)}:'
-           '${now.minute.toString().padLeft(2)}:'
-           '${now.second.toString().padLeft(2)}';
+        '${now.hour.toString().padLeft(2)}:'
+        '${now.minute.toString().padLeft(2)}:'
+        '${now.second.toString().padLeft(2)}';
   }
 
   static String formatSeconds(double x) {
     return x.toStringAsFixed(2);
   }
 
-  static String formatDurationInSeconds(Duration x) {
-    return formatSeconds(x.inMilliseconds / Duration.MILLISECONDS_PER_SECOND);
+  static String formatMillis(double x) {
+    return x.toStringAsFixed(2);
   }
 
+  static String formatDurationInSeconds(Duration x) =>
+      formatSeconds(x.inMicroseconds / Duration.MICROSECONDS_PER_SECOND);
+
+  static String formatDurationInMilliseconds(Duration x) =>
+      formatMillis(x.inMicroseconds / Duration.MICROSECONDS_PER_MILLISECOND);
+
   static bool runningInJavaScript() => identical(1.0, 1);
+
+  static formatStringAsLiteral(String value, [bool wasTruncated = false]) {
+    var result = new List();
+    result.add("'".codeUnitAt(0));
+    for (int codeUnit in value.codeUnits) {
+      if (codeUnit == '\n'.codeUnitAt(0))
+        result.addAll('\\n'.codeUnits);
+      else if (codeUnit == '\r'.codeUnitAt(0))
+        result.addAll('\\r'.codeUnits);
+      else if (codeUnit == '\f'.codeUnitAt(0))
+        result.addAll('\\f'.codeUnits);
+      else if (codeUnit == '\b'.codeUnitAt(0))
+        result.addAll('\\b'.codeUnits);
+      else if (codeUnit == '\t'.codeUnitAt(0))
+        result.addAll('\\t'.codeUnits);
+      else if (codeUnit == '\v'.codeUnitAt(0))
+        result.addAll('\\v'.codeUnits);
+      else if (codeUnit == '\$'.codeUnitAt(0))
+        result.addAll('\\\$'.codeUnits);
+      else if (codeUnit == '\\'.codeUnitAt(0))
+        result.addAll('\\\\'.codeUnits);
+      else if (codeUnit == "'".codeUnitAt(0))
+        result.addAll("'".codeUnits);
+      else if (codeUnit < 32) {
+        var escapeSequence = "\\u" + codeUnit.toRadixString(16).padLeft(4, "0");
+        result.addAll(escapeSequence.codeUnits);
+      } else
+        result.add(codeUnit);
+    }
+    if (wasTruncated) {
+      result.addAll("...".codeUnits);
+    } else {
+      result.add("'".codeUnitAt(0));
+    }
+    return new String.fromCharCodes(result);
+  }
 }
 
 /// A [Task] that can be scheduled on the Dart event queue.
@@ -168,8 +209,8 @@ class Task {
       return;
     }
     _timer = new Timer(Duration.ZERO, () {
-     _timer = null;
-     callback();
+      _timer = null;
+      callback();
     });
   }
 }

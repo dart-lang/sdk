@@ -3335,9 +3335,7 @@ void Assembler::NoMonomorphicCheckedEntry() {
 void Assembler::MonomorphicCheckedEntry() {
   Label immediate, have_cid, miss;
   Bind(&miss);
-  movq(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
-  movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  jmp(RCX);
+  jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));
 
   Bind(&immediate);
   movq(R10, Immediate(kSmiCid));
@@ -3354,6 +3352,7 @@ void Assembler::MonomorphicCheckedEntry() {
   Bind(&have_cid);
   cmpq(R10, RBX);
   j(NOT_EQUAL, &miss, Assembler::kNearJump);
+  nop();
 
   // Fall through to unchecked entry.
   ASSERT(CodeSize() == Instructions::kUncheckedEntryOffset);
@@ -3702,9 +3701,9 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   // if it is a Smi, which will be ignored.
   LoadClassId(result, object);
 
-  movq(object, Immediate(kSmiCid));
+  movq(TMP, Immediate(kSmiCid));
   // If object is a Smi, move the Smi cid into result. o/w leave alone.
-  cmoveq(result, object);
+  cmoveq(result, TMP);
 }
 
 
@@ -3767,7 +3766,7 @@ Address Assembler::ElementAddressForRegIndex(bool is_external,
 
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
   "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
-  "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"
+  "r8", "r9", "r10", "r11", "r12", "r13", "thr", "pp"
 };
 
 

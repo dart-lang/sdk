@@ -10,7 +10,6 @@
 #include <errno.h>
 #include <magenta/syscalls.h>
 #include <magenta/types.h>
-#include <runtime/sysinfo.h>
 
 #include "platform/assert.h"
 #include "vm/zone.h"
@@ -34,21 +33,39 @@ intptr_t OS::ProcessId() {
 }
 
 
+static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
+  time_t seconds = static_cast<time_t>(seconds_since_epoch);
+  if (seconds != seconds_since_epoch) {
+    return false;
+  }
+  struct tm* error_code = localtime_r(&seconds, tm_result);
+  return error_code != NULL;
+}
+
+
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
-  UNIMPLEMENTED();
-  return "";
+  tm decomposed;
+  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
+  // If unsuccessful, return an empty string like V8 does.
+  return (succeeded && (decomposed.tm_zone != NULL)) ? decomposed.tm_zone : "";
 }
 
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
-  UNIMPLEMENTED();
-  return 0;
+  tm decomposed;
+  bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
+  // Even if the offset was 24 hours it would still easily fit into 32 bits.
+  // If unsuccessful, return zero like V8 does.
+  return succeeded ? static_cast<int>(decomposed.tm_gmtoff) : 0;
 }
 
 
 int OS::GetLocalTimeZoneAdjustmentInSeconds() {
-  UNIMPLEMENTED();
-  return 0;
+  // TODO(floitsch): avoid excessive calls to tzset?
+  tzset();
+  // Even if the offset was 24 hours it would still easily fit into 32 bits.
+  // Note that Unix and Dart disagree on the sign.
+  return static_cast<int>(-timezone);
 }
 
 
@@ -82,23 +99,6 @@ int64_t OS::GetCurrentMonotonicMicros() {
 int64_t OS::GetCurrentThreadCPUMicros() {
   UNIMPLEMENTED();
   return 0;
-}
-
-
-void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
-  const int kMinimumAlignment = 16;
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  void* p = memalign(alignment, size);
-  if (p == NULL) {
-    UNREACHABLE();
-  }
-  return p;
-}
-
-
-void OS::AlignedFree(void* ptr) {
-  free(ptr);
 }
 
 
@@ -152,7 +152,13 @@ bool OS::AllowStackFrameIteratorFromAnotherThread() {
 
 
 int OS::NumberOfAvailableProcessors() {
-  return mxr_get_nprocs_conf();
+  return sysconf(_SC_NPROCESSORS_CONF);
+}
+
+
+uintptr_t OS::MaxRSS() {
+  UNIMPLEMENTED();
+  return 0;
 }
 
 

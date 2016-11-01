@@ -11,7 +11,8 @@ import 'memory_compiler.dart';
 import 'memory_source_file_helper.dart';
 
 const List<Test> TESTS = const <Test>[
-  const Test('''
+  const Test(
+      '''
 class A { A(b); }
 class B extends A {
   a() {}
@@ -23,12 +24,13 @@ class B extends A {
   var members;
 }
 main() => new B();''',
-  const {
-    MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
+      const {
+        MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
 class B extends A {
-^^^^^^^^^^^^^^^^^'''}),
-
-  const Test('''
+^^^^^^^^^^^^^^^^^'''
+      }),
+  const Test(
+      '''
 class I {}
 class A { A(b); }
 class B extends A implements I {
@@ -41,12 +43,13 @@ class B extends A implements I {
   var members;
 }
 main() => new B();''',
-  const {
-    MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
+      const {
+        MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
 class B extends A implements I {
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'''}),
-
-  const Test('''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'''
+      }),
+  const Test(
+      '''
 class M<T> {}
 class A { A(b); }
 class B extends A with M<int> {
@@ -59,12 +62,13 @@ class B extends A with M<int> {
   var members;
 }
 main() => new B();''',
-  const {
-    MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
+      const {
+        MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
 class B extends A with M<int> {
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'''}),
-
-  const Test('''
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^'''
+      }),
+  const Test(
+      '''
 class A { A(b); }
 class B
     extends A {
@@ -77,25 +81,27 @@ class B
   var members;
 }
 main() => new B();''',
-  const {
-    MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
+      const {
+        MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT: '''
 class B
     extends A {
-'''}),
-
-  const Test('''
+'''
+      }),
+  const Test(
+      '''
 void foo(int a) {
   // a
   // non-empty
   // body
 }
 main() => foo('');''',
-  const {
-    MessageKind.THIS_IS_THE_METHOD: '''
+      const {
+        MessageKind.THIS_IS_THE_METHOD: '''
 void foo(int a) {
-^^^^^^^^^^^^^^^'''}),
-
-  const Test('''
+^^^^^^^^^^^^^^^'''
+      }),
+  const Test(
+      '''
 void foo(int a,
          int b) {
   // a
@@ -103,13 +109,14 @@ void foo(int a,
   // body
 }
 main() => foo('', 0);''',
-  const {
-    MessageKind.THIS_IS_THE_METHOD: '''
+      const {
+        MessageKind.THIS_IS_THE_METHOD: '''
 void foo(int a,
          int b) {
-'''}),
-
-  const Test('''
+'''
+      }),
+  const Test(
+      '''
 class A {
   int foo() {
     // a
@@ -126,13 +133,14 @@ class B extends A {
   }
 }
 main() => new B();''',
-  const {
-    MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER: '''
+      const {
+        MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER: '''
   int get foo {
   ^^^^^^^^^^^''',
-    MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT: '''
+        MessageKind.CANNOT_OVERRIDE_METHOD_WITH_GETTER_CONT: '''
   int foo() {
-  ^^^^^^^^^'''}),
+  ^^^^^^^^^'''
+      }),
 ];
 
 class Test {
@@ -165,9 +173,11 @@ main() {
           String locationMessage =
               sourceFile.getLocationMessage(MARKER, message.begin, message.end);
           // Remove `filename:line:column:` and message.
-          String strippedLocationMessage = locationMessage.substring(
-              locationMessage.indexOf(MARKER) + MARKER.length + 1);
-          Expect.equals(expectedSpanText, strippedLocationMessage,
+          String strippedLocationMessage = locationMessage
+              .substring(locationMessage.indexOf(MARKER) + MARKER.length + 1);
+          Expect.equals(
+              expectedSpanText,
+              strippedLocationMessage,
               "Unexpected span for ${message.messageKind} in\n${test.code}"
               "\nExpected:${expectedSpanText.codeUnits}"
               "\nActual  :${strippedLocationMessage.codeUnits}");

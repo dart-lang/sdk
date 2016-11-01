@@ -78,17 +78,23 @@ bool File::IsClosed() {
 }
 
 
-void* File::MapExecutable(intptr_t* len) {
+void* File::Map(MapType type, int64_t position, int64_t length) {
   ASSERT(handle_->fd() >= 0);
-
-  intptr_t length = Length();
-  void* addr = mmap(0, length,
-                    PROT_READ | PROT_EXEC, MAP_PRIVATE,
-                    handle_->fd(), 0);
+  int prot = PROT_NONE;
+  switch (type) {
+    case kReadOnly:
+      prot = PROT_READ;
+      break;
+    case kReadExecute:
+      prot = PROT_READ | PROT_EXEC;
+      break;
+    default:
+      return NULL;
+  }
+  void* addr = mmap(NULL, length, prot, MAP_PRIVATE,
+                    handle_->fd(), position);
   if (addr == MAP_FAILED) {
-    *len = -1;
-  } else {
-    *len = length;
+    return NULL;
   }
   return addr;
 }
@@ -177,7 +183,7 @@ File* File::FileOpenW(const wchar_t* system_name, FileOpenMode mode) {
 }
 
 
-File* File::ScopedOpen(const char* name, FileOpenMode mode) {
+File* File::Open(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat st;
   if (NO_RETRY_EXPECTED(stat(name, &st)) == 0) {
@@ -211,12 +217,6 @@ File* File::ScopedOpen(const char* name, FileOpenMode mode) {
     }
   }
   return new File(new FileHandle(fd));
-}
-
-
-File* File::Open(const char* path, FileOpenMode mode) {
-  // ScopedOpen doesn't actually need a scope.
-  return ScopedOpen(path, mode);
 }
 
 

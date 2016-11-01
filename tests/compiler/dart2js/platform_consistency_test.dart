@@ -7,30 +7,27 @@ import "package:compiler/src/source_file_provider.dart";
 import "package:compiler/compiler_new.dart";
 import "package:expect/expect.dart";
 
-Uri unsupported =  Uri.parse("unsupported:");
+Uri unsupported = Uri.parse("unsupported:");
 
 main() async {
   CompilerInput input = new CompilerSourceFileProvider();
-  Map<String, Uri> client = await load(
-      Uri.base.resolve("sdk/lib/dart_client.platform"),
-      input);
-  Map<String, Uri> server = await load(
-      Uri.base.resolve("sdk/lib/dart_server.platform"),
-      input);
-  Map<String, Uri> shared = await load(
-      Uri.base.resolve("sdk/lib/dart_shared.platform"),
-      input);
+  Map<String, Uri> client =
+      await load(Uri.base.resolve("sdk/lib/dart_client.platform"), input);
+  Map<String, Uri> server =
+      await load(Uri.base.resolve("sdk/lib/dart_server.platform"), input);
+  Map<String, Uri> shared =
+      await load(Uri.base.resolve("sdk/lib/dart_shared.platform"), input);
   Expect.setEquals(new Set.from(shared.keys), new Set.from(client.keys));
   Expect.setEquals(new Set.from(shared.keys), new Set.from(server.keys));
 
   for (String libraryName in shared.keys) {
     test(Map<String, Uri> m) {
-      if (m[libraryName] != unsupported &&
-          shared[libraryName] != unsupported) {
+      if (m[libraryName] != unsupported && shared[libraryName] != unsupported) {
         Expect.equals(shared[libraryName], m[libraryName]);
       }
     }
+
     test(client);
     test(server);
   }
- }
+}

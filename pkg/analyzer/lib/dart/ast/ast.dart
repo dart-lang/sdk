@@ -36,6 +36,7 @@
  */
 library analyzer.dart.ast.ast;
 
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -510,7 +511,7 @@ abstract class AssignmentExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class AstNode {
+abstract class AstNode implements SyntacticEntity {
   /**
    * An empty list of AST nodes.
    */
@@ -536,7 +537,7 @@ abstract class AstNode {
    * (either AST nodes or tokens) that make up the contents of this node,
    * including doc comments but excluding other comments.
    */
-  Iterable /* AstNode | Token */ get childEntities;
+  Iterable<SyntacticEntity> get childEntities;
 
   /**
    * Return the offset of the character immediately following the last character
@@ -546,6 +547,7 @@ abstract class AstNode {
    * equivalent to the node's offset (because the length is zero (0) by
    * definition).
    */
+  @override
   int get end;
 
   /**
@@ -560,15 +562,10 @@ abstract class AstNode {
    */
   bool get isSynthetic;
 
-  /**
-   * Return the number of characters in the node's source range.
-   */
+  @override
   int get length;
 
-  /**
-   * Return the offset from the beginning of the file to the first character in
-   * the node's source range.
-   */
+  @override
   int get offset;
 
   /**
@@ -2039,12 +2036,14 @@ abstract class Configuration extends AstNode {
    * Return the URI of the implementation library to be used if the condition is
    * true.
    */
+  @deprecated
   StringLiteral get libraryUri;
 
   /**
    * Set the URI of the implementation library to be used if the condition is
    * true to the given [uri].
    */
+  @deprecated
   void set libraryUri(StringLiteral uri);
 
   /**
@@ -2068,6 +2067,28 @@ abstract class Configuration extends AstNode {
    * Set the token for the right parenthesis to the given [token].
    */
   void set rightParenthesis(Token token);
+
+  /**
+   * Return the URI of the implementation library to be used if the condition is
+   * true.
+   */
+  StringLiteral get uri;
+
+  /**
+   * Set the URI of the implementation library to be used if the condition is
+   * true to the given [uri].
+   */
+  void set uri(StringLiteral uri);
+
+  /**
+   * Return the source to which the [uri] was resolved.
+   */
+  Source get uriSource;
+
+  /**
+   * Set the source to which the [uri] was resolved to the given [source].
+   */
+  void set uriSource(Source source);
 
   /**
    * Return the value to which the value of the declared variable will be
@@ -4282,9 +4303,10 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
           TypeName returnType,
           SimpleIdentifier identifier,
           TypeParameterList typeParameters,
-          FormalParameterList parameters) =>
+          FormalParameterList parameters,
+          {Token question: null}) =>
       new FunctionTypedFormalParameterImpl(comment, metadata, returnType,
-          identifier, typeParameters, parameters);
+          identifier, typeParameters, parameters, question);
 
   /**
    * Return the parameters of the function-typed parameter.
@@ -4296,6 +4318,18 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
    * [parameters].
    */
   void set parameters(FormalParameterList parameters);
+
+  /**
+   * Return the question mark marking this as a nullable type, or `null` if
+   * the type is non-nullable.
+   */
+  Token get question;
+
+  /**
+   * Return the question mark marking this as a nullable type to the given
+   * [question].
+   */
+  void set question(Token question);
 
   /**
    * Return the return type of the function, or `null` if the function does not
@@ -5926,6 +5960,22 @@ abstract class NamespaceDirective extends UriBasedDirective {
    * ('import', 'export', 'library' or 'part') to the given [token].
    */
   void set keyword(Token token);
+
+  /**
+   * Return the source that was selected based on the declared variables. This
+   * will be the source from the first configuration whose condition is true, or
+   * the [uriSource] if either there are no configurations or if there are no
+   * configurations whose condition is true.
+   */
+  Source get selectedSource;
+
+  /**
+   * Return the content of the URI that was selected based on the declared
+   * variables. This will be the URI from the first configuration whose
+   * condition is true, or the [uriContent] if either there are no
+   * configurations or if there are no configurations whose condition is true.
+   */
+  String get selectedUriContent;
 
   /**
    * Return the semicolon terminating the directive.
@@ -7706,8 +7756,9 @@ abstract class TypeName extends AstNode {
    * Initialize a newly created type name. The [typeArguments] can be `null` if
    * there are no type arguments.
    */
-  factory TypeName(Identifier name, TypeArgumentList typeArguments) =>
-      new TypeNameImpl(name, typeArguments);
+  factory TypeName(Identifier name, TypeArgumentList typeArguments,
+          {Token question: null}) =>
+      new TypeNameImpl(name, typeArguments, question);
 
   /**
    * Return `true` if this type is a deferred type.
@@ -7726,6 +7777,18 @@ abstract class TypeName extends AstNode {
    * Set the name of the type to the given [identifier].
    */
   void set name(Identifier identifier);
+
+  /**
+   * Return the question mark marking this as a nullable type, or `null` if
+   * the type is non-nullable.
+   */
+  Token get question;
+
+  /**
+   * Return the question mark marking this as a nullable type to the given
+   * [question].
+   */
+  void set question(Token question);
 
   /**
    * Return the type being named, or `null` if the AST structure has not been
@@ -7851,11 +7914,13 @@ abstract class UriBasedDirective extends Directive {
   /**
    * Return the source to which the URI was resolved.
    */
+  @deprecated
   Source get source;
 
   /**
    * Set the source to which the URI was resolved to the given [source].
    */
+  @deprecated
   void set source(Source source);
 
   /**
@@ -7869,22 +7934,32 @@ abstract class UriBasedDirective extends Directive {
   void set uri(StringLiteral uri);
 
   /**
-   * Return the content of the URI.
+   * Return the content of the [uri].
    */
   String get uriContent;
 
   /**
-   * Set the content of the URI to the given [content].
+   * Set the content of the [uri] to the given [content].
    */
   void set uriContent(String content);
 
   /**
-   * Return the element associated with the URI of this directive, or `null` if
-   * the AST structure has not been resolved or if the URI could not be
+   * Return the element associated with the [uri] of this directive, or `null`
+   * if the AST structure has not been resolved or if the URI could not be
    * resolved. Examples of the latter case include a directive that contains an
    * invalid URL or a URL that does not exist.
    */
   Element get uriElement;
+
+  /**
+   * Return the source to which the [uri] was resolved.
+   */
+  Source get uriSource;
+
+  /**
+   * Set the source to which the [uri] was resolved to the given [source].
+   */
+  void set uriSource(Source source);
 
   /**
    * Validate this directive, but do not check for existence. Return a code

@@ -6,12 +6,13 @@ part of models;
 
 abstract class Notification {}
 
-abstract class ExceptionNotification implements Notification{
-  Exception get exception;
+abstract class ExceptionNotification implements Notification {
+  get exception;
+
   /// [optional]
   StackTrace get stacktrace;
 }
 
-abstract class EventNotification implements Notification{
+abstract class EventNotification implements Notification {
   Event get event;
 }

@@ -4,12 +4,85 @@
 
 library json_view_element;
 
-import 'package:polymer/polymer.dart';
-import 'observatory_element.dart';
-import 'package:observatory/service.dart';
+import 'dart:async';
+import 'dart:html';
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/nav/notify.dart';
+import 'package:observatory/src/elements/nav/top_menu.dart';
+import 'package:observatory/src/elements/view_footer.dart';
 
-class JsonPrettyPrinter {
-  String prettyPrint(ServiceMap map) {
+class JSONViewElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<JSONViewElement>('json-view',
+      dependencies: const [
+        NavTopMenuElement.tag,
+        NavNotifyElement.tag,
+        ViewFooterElement.tag
+      ]);
+
+  RenderingScheduler<JSONViewElement> _r;
+
+  Stream<RenderedEvent<JSONViewElement>> get onRendered => _r.onRendered;
+
+  M.NotificationRepository _notifications;
+  Map _map;
+
+  M.NotificationRepository get notifications => _notifications;
+  Map get map => _map;
+
+  factory JSONViewElement(Map map, M.NotificationRepository notifications,
+      {RenderingQueue queue}) {
+    assert(notifications != null);
+    assert(map != null);
+    JSONViewElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._notifications = notifications;
+    e._map = map;
+    return e;
+  }
+
+  JSONViewElement.created() : super.created();
+
+  @override
+  attached() {
+    super.attached();
+    _r.enable();
+  }
+
+  @override
+  detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
+  }
+
+  void render() {
+    children = [
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
+      new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = [
+          new HeadingElement.h2()..text = 'Object',
+          new HRElement(),
+          new PreElement()..text = JSONPretty.stringify(_map),
+          new HRElement(),
+          new ViewFooterElement(queue: _r.queue)
+        ]
+    ];
+  }
+}
+
+class JSONPretty {
+  JSONPretty._();
+
+  static String stringify(Map map) => new JSONPretty._()._stringify(map);
+
+  String _stringify(Map map) {
     _buffer.clear();
     _buffer.write('{\n');
     _printMap(map, 0);
@@ -17,7 +90,7 @@ class JsonPrettyPrinter {
     return _buffer.toString();
   }
 
-  void _printMap(ObservableMap map, int depth) {
+  void _printMap(Map map, int depth) {
     if (_seen.contains(map)) {
       return;
     }
@@ -45,7 +118,7 @@ class JsonPrettyPrinter {
     _seen.remove(map);
   }
 
-  void _printList(ObservableList list, int depth) {
+  void _printList(List list, int depth) {
     if (_seen.contains(list)) {
       return;
     }
@@ -73,23 +146,10 @@ class JsonPrettyPrinter {
   }
 
   void _writeIndent(int depth) {
-    const tab = '  ';  // 2 spaces.
+    const tab = '  '; // 2 spaces.
     _buffer.write(tab * depth);
   }
 
   final _buffer = new StringBuffer();
   final _seen = new Set();
-}
-
-
-@CustomTag('json-view')
-class JsonViewElement extends ObservatoryElement {
-  @published ServiceMap map;
-  @observable String mapAsString;
-  JsonViewElement.created() : super.created();
-
-  void mapChanged(oldValue) {
-    var jpp = new JsonPrettyPrinter();
-    mapAsString = jpp.prettyPrint(map);
-  }
 }

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SERVICE_H_
-#define VM_SERVICE_H_
+#ifndef RUNTIME_VM_SERVICE_H_
+#define RUNTIME_VM_SERVICE_H_
 
 #include "include/dart_tools_api.h"
 
@@ -12,6 +12,9 @@
 #include "vm/os_thread.h"
 
 namespace dart {
+
+#define SERVICE_PROTOCOL_MAJOR_VERSION 3
+#define SERVICE_PROTOCOL_MINOR_VERSION 5
 
 class Array;
 class EmbedderServiceHandler;
@@ -164,6 +167,8 @@ class Service : public AllStatic {
 
   static void PrintJSONForVM(JSONStream* js, bool ref);
 
+  static void CheckForPause(Isolate* isolate, JSONStream* stream);
+
  private:
   static void InvokeMethod(Isolate* isolate,
                            const Array& message,
@@ -180,21 +185,26 @@ class Service : public AllStatic {
                                        const Array& parameter_values,
                                        const Instance& reply_port,
                                        const Instance& id);
+  // Takes ownership of 'bytes'.
   static void SendEvent(const char* stream_id,
                         const char* event_type,
-                        const Object& eventMessage);
+                        uint8_t* bytes,
+                        intptr_t bytes_length);
 
   // Does not take ownership of 'data'.
   static void SendEventWithData(const char* stream_id,
                                 const char* event_type,
-                                const String& meta,
+                                const char* metadata,
+                                intptr_t metadata_size,
                                 const uint8_t* data,
-                                intptr_t size);
+                                intptr_t data_size);
 
   static void PostEvent(Isolate* isolate,
                         const char* stream_id,
                         const char* kind,
                         JSONStream* event);
+
+  static void MaybePause(Isolate* isolate);
 
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;
@@ -211,4 +221,4 @@ class Service : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_SERVICE_H_
+#endif  // RUNTIME_VM_SERVICE_H_

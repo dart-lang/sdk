@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ASSEMBLER_ARM64_H_
-#define VM_ASSEMBLER_ARM64_H_
+#ifndef RUNTIME_VM_ASSEMBLER_ARM64_H_
+#define RUNTIME_VM_ASSEMBLER_ARM64_H_
 
-#ifndef VM_ASSEMBLER_H_
+#ifndef RUNTIME_VM_ASSEMBLER_H_
 #error Do not include assembler_arm64.h directly; use assembler.h instead.
 #endif
 
@@ -1401,12 +1401,30 @@ class Assembler : public ValueObject {
                                     intptr_t index_scale,
                                     Register array,
                                     intptr_t index) const;
+  void LoadElementAddressForIntIndex(Register address,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     intptr_t index);
   Address ElementAddressForRegIndex(bool is_load,
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+  void LoadElementAddressForRegIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     Register index);
+
+  void LoadUnaligned(Register dst, Register addr, Register tmp,
+                     OperandSize sz);
+  void StoreUnaligned(Register src, Register addr, Register tmp,
+                      OperandSize sz);
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
@@ -1959,4 +1977,4 @@ class Assembler : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_ASSEMBLER_ARM64_H_
+#endif  // RUNTIME_VM_ASSEMBLER_ARM64_H_

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Classes that describe assembly patterns as used by inline caches.
 
-#ifndef VM_INSTRUCTIONS_IA32_H_
-#define VM_INSTRUCTIONS_IA32_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_IA32_H_
+#define RUNTIME_VM_INSTRUCTIONS_IA32_H_
 
-#ifndef VM_INSTRUCTIONS_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_H_
 #error Do not include instructions_ia32.h directly; use instructions.h instead.
 #endif
 
@@ -144,4 +144,4 @@ class SetFramePointerPattern :
 
 }  // namespace dart
 
-#endif  // VM_INSTRUCTIONS_IA32_H_
+#endif  // RUNTIME_VM_INSTRUCTIONS_IA32_H_

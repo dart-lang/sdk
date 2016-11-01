@@ -1,0 +1,19 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+unsorted/invocation_errors_test: RuntimeError
+
+[ $compiler == dartk && $runtime == vm ]
+
+[ $compiler == dartkp && $runtime == dart_precompiled ]
+
+[ $compiler == dart2analyzer && $runtime == none ]
+unsorted/invocation_errors_test: StaticWarning
+unsorted/super_mixin_test: CompileTimeError
+
+[ $compiler == dart2js ]
+unsorted/invocation_errors_test: Pass
+unsorted/super_initializer_test: Skip
+unsorted/super_mixin_test: CompileTimeError
+unsorted/loop_test: Skip

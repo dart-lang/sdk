@@ -17,15 +17,11 @@ export 'package:observatory/service_common.dart';
 class _IOWebSocket implements CommonWebSocket {
   WebSocket _webSocket;
 
-  void connect(String address,
-               void onOpen(),
-               void onMessage(dynamic data),
-               void onError(),
-               void onClose()) {
+  void connect(String address, void onOpen(), void onMessage(dynamic data),
+      void onError(), void onClose()) {
     WebSocket.connect(address).then((WebSocket socket) {
       _webSocket = socket;
-      _webSocket.listen(
-          onMessage,
+      _webSocket.listen(onMessage,
           onError: (dynamic) => onError(),
           onDone: onClose,
           cancelOnError: true);
@@ -52,9 +48,7 @@ class _IOWebSocket implements CommonWebSocket {
     assert(data is Uint8List);
     Logger.root.info('Binary data size in bytes: ${data.lengthInBytes}');
     return new Future.sync(() =>
-        new ByteData.view(data.buffer,
-                          data.offsetInBytes,
-                          data.lengthInBytes));
+        new ByteData.view(data.buffer, data.offsetInBytes, data.lengthInBytes));
   }
 }
 

@@ -4,11 +4,32 @@
 
 part of models;
 
-abstract class SourceLocation {
+abstract class Location {
   /// The script containing the source location.
   ScriptRef get script;
-  /// The first token of the location.
+
+  /// The last token of the location if this is a range. [optional]
   int get tokenPos;
+}
+
+abstract class SourceLocation implements Location {
+  /// The last token of the location if this is a range.
+  int get tokenPos;
+
   /// The last token of the location if this is a range. [optional]
   int get endTokenPos;
+}
+
+abstract class UnresolvedSourceLocation implements Location {
+  // [optional] The uri of the script containing the source location if the
+  // script has yet to be loaded.
+  String get scriptUri;
+
+  /// [optional] An approximate line number for the source location. This may
+  /// change when the location is resolved.
+  int get line;
+
+  /// [optional] An approximate column number for the source location. This may
+  /// change when the location is resolved.
+  int get column;
 }

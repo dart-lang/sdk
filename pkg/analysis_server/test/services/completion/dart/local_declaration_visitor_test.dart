@@ -7,18 +7,17 @@ library test.services.completion.local_declaration_visitor_test;
 import 'package:analysis_server/src/services/completion/dart/local_declaration_visitor.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
-
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(LocalDeclarationVisitorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LocalDeclarationVisitorTest);
+  });
 }
 
 @reflectiveTest

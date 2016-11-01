@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLAG_LIST_H_
-#define VM_FLAG_LIST_H_
+#ifndef RUNTIME_VM_FLAG_LIST_H_
+#define RUNTIME_VM_FLAG_LIST_H_
 
 // Don't use USING_DBC outside of this file.
 #if defined(TARGET_ARCH_DBC)
@@ -94,6 +94,8 @@ P(getter_setter_ratio, int, 13,                                                \
   "Ratio of getter/setter usage used for double field unboxing heuristics")    \
 P(guess_icdata_cid, bool, true,                                                \
   "Artificially create type feedback for arithmetic etc. operations")          \
+P(huge_method_cutoff_in_tokens, int, 20000,                                    \
+  "Huge method cutoff in tokens: Disables optimizations for huge methods.")    \
 P(interpret_irregexp, bool, USING_DBC,                                         \
   "Use irregexp bytecode interpreter")                                         \
 P(lazy_dispatchers, bool, true,                                                \
@@ -134,8 +136,6 @@ P(precompiled_mode, bool, false,                                               \
   "Precompilation compiler mode")                                              \
 C(precompiled_runtime, true, false, bool, false,                               \
   "Precompiled runtime mode")                                                  \
-R(print_ssa_liveness, false, bool, false,                                      \
-  "Print liveness for ssa variables.")                                         \
 R(print_ssa_liveranges, false, bool, false,                                    \
   "Print live ranges after allocation.")                                       \
 C(print_stop_message, false, false, bool, false,                               \
@@ -170,8 +170,10 @@ D(trace_isolates, bool, false,                                                 \
   "Trace isolate creation and shut down.")                                     \
 D(trace_handles, bool, false,                                                  \
   "Traces allocation of handles.")                                             \
+D(trace_kernel_binary, bool, false,                                            \
+  "Trace Kernel reader/writer.")                                               \
 D(trace_optimization, bool, false,                                             \
-  "Print optimization details.");                                              \
+  "Print optimization details.")                                               \
 R(trace_profiler, false, bool, false,                                          \
   "Profiler trace")                                                            \
 D(trace_profiler_verbose, bool, false,                                         \
@@ -199,4 +201,4 @@ R(verify_before_gc, false, bool, false,                                        \
 D(verify_on_transition, bool, false,                                           \
   "Verify on dart <==> VM.")                                                   \
 
-#endif  // VM_FLAG_LIST_H_
+#endif  // RUNTIME_VM_FLAG_LIST_H_

@@ -33,24 +33,24 @@ main() {
 }
 """;
 
-
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.typesTask.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkReturn(String name, type) {
-      var element = findElement(compiler, name);
-      Expect.equals(type,
-          typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
-          name);
-    }
+        checkReturn(String name, type) {
+          var element = findElement(compiler, name);
+          Expect.equals(
+              type,
+              typesInferrer.getReturnTypeOfElement(element).simplify(compiler),
+              name);
+        }
 
-    checkReturn('method1', compiler.typesTask.uint31Type);
-    checkReturn('returnInt1', compiler.typesTask.uint31Type);
+        checkReturn('method1', compiler.commonMasks.uint31Type);
+        checkReturn('returnInt1', compiler.commonMasks.uint31Type);
 
-    checkReturn('method2', compiler.typesTask.uint31Type);
-    checkReturn('returnInt2', compiler.typesTask.uint31Type);
-  }));
+        checkReturn('method2', compiler.commonMasks.uint31Type);
+        checkReturn('returnInt2', compiler.commonMasks.uint31Type);
+      }));
 }

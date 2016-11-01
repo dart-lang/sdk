@@ -9,10 +9,14 @@
 import 'package:expect/expect.dart';
 
 class N {
-  noSuchMethod(i) { print('x'); return 42; }
+  noSuchMethod(i) {
+    print('x');
+    return 42;
+  }
 }
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 get NEVER => false;
 
 main() {
@@ -20,7 +24,9 @@ main() {
   if (NEVER) c = new N();
   var e;
   try {
-    c..toString()..add(88);
+    c
+      ..toString()
+      ..add(88);
   } catch (ex) {
     e = ex;
   }

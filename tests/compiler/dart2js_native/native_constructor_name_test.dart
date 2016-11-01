@@ -11,15 +11,14 @@
 import "dart:_js_helper";
 import "package:expect/expect.dart";
 
-class A {
-}
+class A {}
 
 @Native("A")
 class Z {
   foo() => 100;
 }
 
-makeZ() native;
+makeZ() native ;
 
 void setup() native """
 function A(){}
@@ -34,5 +33,5 @@ main() {
 
   Expect.equals(100, z.foo());
 
-  Expect.throws(() => a.foo(),  (ex) => ex is NoSuchMethodError);
+  Expect.throws(() => a.foo(), (ex) => ex is NoSuchMethodError);
 }

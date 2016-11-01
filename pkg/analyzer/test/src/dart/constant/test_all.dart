@@ -4,19 +4,17 @@
 
 library analyzer.test.src.dart.constant.test_all;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../utils.dart';
 import 'evaluation_test.dart' as evaluation;
 import 'utilities_test.dart' as utilities;
 import 'value_test.dart' as value;
 
 /// Utility for manually running all tests.
 main() {
-  initializeTestEnvironment();
-  group('constant tests', () {
+  defineReflectiveSuite(() {
     evaluation.main();
     utilities.main();
     value.main();
-  });
+  }, name: 'constant');
 }

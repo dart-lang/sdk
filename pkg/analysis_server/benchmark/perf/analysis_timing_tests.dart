@@ -9,9 +9,8 @@ import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:args/args.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
-import '../../test/utils.dart';
 import 'performance_tests.dart';
 
 /**
@@ -21,7 +20,6 @@ import 'performance_tests.dart';
  * `analysis`.
  */
 main(List<String> arguments) {
-  initializeTestEnvironment();
   ArgParser parser = _createArgParser();
   var args = parser.parse(arguments);
   if (args[SOURCE_OPTION] == null) {
@@ -34,7 +32,6 @@ main(List<String> arguments) {
   for (var name in names) {
     metricNames.add(name as String);
   }
-  unittestConfiguration.timeout = new Duration(minutes: 20);
 
   var test;
 
@@ -44,7 +41,7 @@ main(List<String> arguments) {
     test = new SubscriptionTimingTest();
   }
 
-  Future.wait([test.test_timing()]);
+  Future.wait(<Future>[test.test_timing()]);
 }
 
 const DEFAULT_METRIC = 'analysis';
@@ -94,7 +91,7 @@ class Metric {
 
 /**
  * SubscriptionTimingTest measures the time taken by the analysis server to return
- * information for navigation, semantic highlighting, outline, get occurances,
+ * information for navigation, semantic highlighting, outline, get occurrences,
  * overrides, folding and implemented. These timings are wrt to the specified priority file
  * - the file that is currently opened and has focus in the editor. Measure the time from
  * when the client subscribes for the notifications till there is a response from the server.
@@ -103,8 +100,7 @@ class Metric {
 class SubscriptionTimingTest extends AbstractTimingTest {
   List<Metric> _metrics;
 
-  List<Metric> get metrics =>
-      _metrics ??= metricNames.map((name) => getMetric(name)).toList();
+  List<Metric> get metrics => _metrics ??= metricNames.map(getMetric).toList();
 
   Metric getMetric(String name) {
     switch (name) {

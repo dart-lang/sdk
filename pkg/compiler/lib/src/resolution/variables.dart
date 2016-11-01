@@ -9,6 +9,7 @@ import '../common/resolution.dart';
 import '../elements/modelx.dart' show LocalVariableElementX, VariableList;
 import '../tree/tree.dart';
 import '../universe/use.dart' show TypeUse;
+import '../universe/feature.dart';
 import '../util/util.dart' show Link;
 import 'members.dart' show ResolverVisitor;
 import 'registry.dart' show ResolutionRegistry;
@@ -42,9 +43,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<Identifier> {
 
   Identifier visitIdentifier(Identifier node) {
     // The variable is initialized to null.
-    // TODO(johnniwinther): Register a feature instead.
-    registry.registerTypeUse(
-        new TypeUse.instantiation(resolution.coreTypes.nullType));
+    registry.registerFeature(Feature.LOCAL_WITHOUT_INITIALIZER);
     if (definitions.modifiers.isConst) {
       if (resolver.inLoopVariable) {
         reporter.reportErrorMessage(node, MessageKind.CONST_LOOP_VARIABLE);

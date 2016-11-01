@@ -101,7 +101,7 @@ class ExpensiveSet<E> extends IterableBase<E> implements Set<E> {
     return _newSet()..addAll(this)..addAll(other);
   }
 
-  Set<E> difference(Set<E> other) {
+  Set<E> difference(Set<Object> other) {
     Set<E> result = _newSet();
     for (E element in this) {
       if (!other.contains(element)) result.add(element);

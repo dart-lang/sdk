@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_CLASS_TABLE_H_
-#define VM_CLASS_TABLE_H_
+#ifndef RUNTIME_VM_CLASS_TABLE_H_
+#define RUNTIME_VM_CLASS_TABLE_H_
 
 #include "platform/assert.h"
 #include "vm/bitfield.h"
@@ -191,6 +191,10 @@ class ClassTable {
   void Unregister(intptr_t index);
 #endif
 
+#if defined(DART_PRECOMPILER)
+  void Remap(intptr_t* old_to_new_cids);
+#endif
+
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   void Validate();
@@ -276,4 +280,4 @@ class ClassTable {
 
 }  // namespace dart
 
-#endif  // VM_CLASS_TABLE_H_
+#endif  // RUNTIME_VM_CLASS_TABLE_H_

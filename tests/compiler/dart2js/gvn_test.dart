@@ -108,40 +108,34 @@ main() {
 
 main() {
   asyncTest(() => Future.wait([
-    compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      RegExp regexp = new RegExp(r"1 \+ [a-z]+");
-      checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
-    }),
-
-    compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(
-          new RegExp("length").allMatches(generated).iterator, 1);
-    }),
-
-    compile(TEST_THREE, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(
-          new RegExp("number").allMatches(generated).iterator, 1);
-    }),
-
-    compile(TEST_FOUR, entry: 'foo', check: (String generated) {
-      checkNumberOfMatches(new RegExp("shr").allMatches(generated).iterator, 1);
-    }),
-
-    compileAll(TEST_FIVE).then((generated) {
-      checkNumberOfMatches(
-          new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
-    }),
-
-    compileAll(TEST_SIX).then((generated) {
-      Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
-    }),
-
-    compileAll(TEST_SEVEN).then((generated) {
-      Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
-    }),
-
-    compileAll(TEST_EIGHT).then((generated) {
-      Expect.isTrue(generated.contains('for (; i < t1; ++i)'));
-    }),
-  ]));
+        compile(TEST_ONE, entry: 'foo', check: (String generated) {
+          RegExp regexp = new RegExp(r"1 \+ [a-z]+");
+          checkNumberOfMatches(regexp.allMatches(generated).iterator, 1);
+        }),
+        compile(TEST_TWO, entry: 'foo', check: (String generated) {
+          checkNumberOfMatches(
+              new RegExp("length").allMatches(generated).iterator, 1);
+        }),
+        compile(TEST_THREE, entry: 'foo', check: (String generated) {
+          checkNumberOfMatches(
+              new RegExp("number").allMatches(generated).iterator, 1);
+        }),
+        compile(TEST_FOUR, entry: 'foo', check: (String generated) {
+          checkNumberOfMatches(
+              new RegExp("shr").allMatches(generated).iterator, 1);
+        }),
+        compileAll(TEST_FIVE).then((generated) {
+          checkNumberOfMatches(
+              new RegExp("get\\\$foo").allMatches(generated).iterator, 1);
+        }),
+        compileAll(TEST_SIX).then((generated) {
+          Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
+        }),
+        compileAll(TEST_SEVEN).then((generated) {
+          Expect.isTrue(generated.contains('for (t1 = a.field === 54; t1;)'));
+        }),
+        compileAll(TEST_EIGHT).then((generated) {
+          Expect.isTrue(generated.contains('for (; i < t1; ++i)'));
+        }),
+      ]));
 }

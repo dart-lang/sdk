@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_WEAK_TABLE_H_
-#define VM_WEAK_TABLE_H_
+#ifndef RUNTIME_VM_WEAK_TABLE_H_
+#define RUNTIME_VM_WEAK_TABLE_H_
 
 #include "vm/globals.h"
 
@@ -154,7 +154,7 @@ class WeakTable {
   void Rehash();
 
   static intptr_t Hash(RawObject* key) {
-    return reinterpret_cast<intptr_t>(key) * 92821;
+    return reinterpret_cast<uintptr_t>(key) * 92821;
   }
 
   // data_ contains size_ tuples of key/value.
@@ -171,4 +171,4 @@ class WeakTable {
 
 }  // namespace dart
 
-#endif  // VM_WEAK_TABLE_H_
+#endif  // RUNTIME_VM_WEAK_TABLE_H_

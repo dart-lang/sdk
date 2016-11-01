@@ -28,8 +28,7 @@ DART_PATH = os.path.join(SRC_PATH, 'dart')
 # We limit testing on drt since it takes a long time to run.
 DRT_FILTER = 'html'
 
-def RunDartTests(mode, component, suite, arch, checked, test_filter=None,
-                 is_win_ninja=False):
+def RunDartTests(mode, component, suite, arch, checked, test_filter=None):
   """Runs tests using the Dart test.py or the layout test runner.
   """
   cmd = []
@@ -46,9 +45,6 @@ def RunDartTests(mode, component, suite, arch, checked, test_filter=None,
   cmd.append('--' + checked)
   cmd.append('--no-show-results')
 
-  if is_win_ninja:
-    cmd.append('--win-ninja-build')
-
   if test_filter:
     cmd.append('--test-filter=' + test_filter)
 
@@ -57,6 +53,10 @@ def RunDartTests(mode, component, suite, arch, checked, test_filter=None,
     print '@@@STEP_FAILURE@@@'
   return status
 
+def ClearTemp():
+  if platform.system() == 'Windows':
+    shutil.rmtree('C:\\Users\\chrome-bot\\AppData\\Local\\Temp',
+                  ignore_errors=True)
 
 def Test(info, component, suite, checked, test_filter=None):
   """Test a particular component (e.g., dartium or content_shell(drt)).
@@ -67,13 +67,14 @@ def Test(info, component, suite, checked, test_filter=None):
                                          'layout-test-results')
   shutil.rmtree(layout_test_results_dir, ignore_errors=True)
   status = RunDartTests(info.mode, component, suite, info.arch, checked,
-                        test_filter=test_filter, is_win_ninja=info.is_win_ninja)
+                        test_filter=test_filter)
     # Archive test failures
   if suite == 'layout' and status != 0:
     upload_steps.UploadDartTestsResults(layout_test_results_dir,
                                         info.name,
                                         info.version,
                                         component, checked)
+  ClearTemp()
   return status
 
 
@@ -101,11 +102,10 @@ def main():
   if info.mode == 'Release' or platform.system() != 'Darwin':
     result = Test(info, 'drt', 'layout', 'unchecked') or result
     result = Test(info, 'drt', 'layout', 'checked') or result
-
   # Run dartium tests
   result = Test(info, 'dartium', 'core', 'unchecked') or result
   result = Test(info, 'dartium', 'core', 'checked') or result
-
+  
   # Run ContentShell tests
   # NOTE: We don't run ContentShell tests on dartium-*-inc builders to keep
   # cycle times down.
@@ -120,6 +120,7 @@ def main():
   # successful.
   if result == 0 and info.channel == 'be':
     result = upload_steps.ArchiveAndUpload(info, archive_latest=True) or result
+  return result
 
 if __name__ == '__main__':
   sys.exit(main())

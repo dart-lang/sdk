@@ -258,6 +258,11 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kTypeCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
+  if (ptr()->type_class_id_->IsHeapObject()) {
+    // Type class is still an unresolved class.
+    UNREACHABLE();
+  }
+
   // Lookup the type class.
   RawSmi* raw_type_class_id = Smi::RawCast(ptr()->type_class_id_);
   RawClass* type_class =
@@ -341,6 +346,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_token_pos(
       TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
   type_parameter.set_index(reader->Read<int16_t>());
+  type_parameter.set_parent_level(reader->Read<uint8_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -376,6 +382,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   // Write out all the non object pointer fields.
   writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
   writer->Write<int16_t>(ptr()->index_);
+  writer->Write<uint8_t>(ptr()->parent_level_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -707,6 +714,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
     func.set_deoptimization_counter(reader->Read<int8_t>());
     func.set_optimized_instruction_count(reader->Read<uint16_t>());
     func.set_optimized_call_site_count(reader->Read<uint16_t>());
+    func.set_kernel_function(NULL);
     func.set_was_compiled(false);
 
     // Set all the object fields.
@@ -764,11 +772,14 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     bool is_optimized = Code::IsOptimized(ptr()->code_);
 
     // Write out all the non object fields.
+#if !defined(DART_PRECOMPILED_RUNTIME)
     writer->Write<int32_t>(ptr()->token_pos_.SnapshotEncode());
     writer->Write<int32_t>(ptr()->end_token_pos_.SnapshotEncode());
+#endif
     writer->Write<int16_t>(ptr()->num_fixed_parameters_);
     writer->Write<int16_t>(ptr()->num_optional_parameters_);
     writer->Write<uint32_t>(ptr()->kind_tag_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
     if (is_optimized) {
       writer->Write<int32_t>(FLAG_optimization_counter_threshold);
     } else {
@@ -777,6 +788,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
     writer->Write<int8_t>(ptr()->deoptimization_counter_);
     writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
     writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
+#endif
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer, kAsReference);
@@ -809,6 +821,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_guarded_cid(reader->Read<int32_t>());
   field.set_is_nullable(reader->Read<int32_t>());
   field.set_kind_bits(reader->Read<uint8_t>());
+  field.set_kernel_field(NULL);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(field,
@@ -1178,7 +1191,8 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
                          reader->Read<int16_t>());
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_deferred_load_,
                          reader->Read<bool>());
-  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, reader->Read<bool>());
+  prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_,
+                         !prefix.raw_ptr()->is_deferred_load_);
 
   // Set all the object fields.
   READ_OBJECT_FIELDS(prefix,
@@ -1209,7 +1223,6 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   // Write out all non object fields.
   writer->Write<int16_t>(ptr()->num_imports_);
   writer->Write<bool>(ptr()->is_deferred_load_);
-  writer->Write<bool>(ptr()->is_loaded_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, kAsReference);
@@ -1472,6 +1485,7 @@ RawContextScope* ContextScope::ReadFrom(SnapshotReader* reader,
 
     // Create a descriptor for 'this' variable.
     context_scope.SetTokenIndexAt(0, TokenPosition::kMinSource);
+    context_scope.SetDeclarationTokenIndexAt(0, TokenPosition::kMinSource);
     context_scope.SetNameAt(0, Symbols::This());
     context_scope.SetIsFinalAt(0, true);
     context_scope.SetIsConstAt(0, false);
@@ -1514,6 +1528,42 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawSingleTargetCache* SingleTargetCache::ReadFrom(SnapshotReader* reader,
+                                                  intptr_t object_id,
+                                                  intptr_t tags,
+                                                  Snapshot::Kind kind,
+                                                  bool as_reference) {
+  UNREACHABLE();
+  return SingleTargetCache::null();
+}
+
+
+void RawSingleTargetCache::WriteTo(SnapshotWriter* writer,
+                                   intptr_t object_id,
+                                   Snapshot::Kind kind,
+                                   bool as_reference) {
+  UNREACHABLE();
+}
+
+
+RawUnlinkedCall* UnlinkedCall::ReadFrom(SnapshotReader* reader,
+                                        intptr_t object_id,
+                                        intptr_t tags,
+                                        Snapshot::Kind kind,
+                                        bool as_reference) {
+  UNREACHABLE();
+  return UnlinkedCall::null();
+}
+
+
+void RawUnlinkedCall::WriteTo(SnapshotWriter* writer,
+                              intptr_t object_id,
+                              Snapshot::Kind kind,
+                              bool as_reference) {
+  UNREACHABLE();
+}
+
+
 RawICData* ICData::ReadFrom(SnapshotReader* reader,
                             intptr_t object_id,
                             intptr_t tags,
@@ -1524,7 +1574,7 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
   ICData& result = ICData::ZoneHandle(reader->zone(), ICData::New());
   reader->AddBackRef(object_id, &result, kIsDeserialized);
 
-  result.set_deopt_id(reader->Read<int32_t>());
+  NOT_IN_PRECOMPILED(result.set_deopt_id(reader->Read<int32_t>()));
   result.set_state_bits(reader->Read<uint32_t>());
 #if defined(TAG_IC_DATA)
   result.set_tag(reader->Read<int16_t>());
@@ -1554,7 +1604,7 @@ void RawICData::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->Write<int32_t>(ptr()->deopt_id_);
+  NOT_IN_PRECOMPILED(writer->Write<int32_t>(ptr()->deopt_id_));
   writer->Write<uint32_t>(ptr()->state_bits_);
 #if defined(TAG_IC_DATA)
   writer->Write<int16_t>(ptr()->tag_);
@@ -2634,7 +2684,8 @@ RawExternalTypedData* ExternalTypedData::ReadFrom(SnapshotReader* reader,
   Dart_WeakPersistentHandleFinalizer callback =
       reinterpret_cast<Dart_WeakPersistentHandleFinalizer>(
           reader->ReadRawPointerValue());
-  obj.AddFinalizer(peer, callback);
+  intptr_t external_size = obj.LengthInBytes();
+  obj.AddFinalizer(peer, callback, external_size);
   return obj.raw();
 }
 

@@ -7,7 +7,6 @@
 
 #include "bin/platform.h"
 
-#include <runtime/sysinfo.h>
 #include <string.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
@@ -28,7 +27,7 @@ bool Platform::Initialize() {
 
 
 int Platform::NumberOfProcessors() {
-  return mxr_get_nprocs_conf();
+  return sysconf(_SC_NPROCESSORS_CONF);
 }
 
 

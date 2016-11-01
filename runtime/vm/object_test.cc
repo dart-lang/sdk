@@ -407,9 +407,8 @@ VM_TEST_CASE(StringEncodeIRI) {
       "file%3A%2F%2F%2Fusr%2Flocal%2Fjohnmccutchan%2Fworkspace%2F"
       "dart-repo%2Fdart%2Ftest.dart";
   const String& input = String::Handle(String::New(kInput));
-  const String& output = String::Handle(String::New(kOutput));
-  const String& encoded = String::Handle(String::EncodeIRI(input));
-  EXPECT(output.Equals(encoded));
+  const char* encoded = String::EncodeIRI(input);
+  EXPECT(strcmp(encoded, kOutput) == 0);
 }
 
 
@@ -449,7 +448,7 @@ VM_TEST_CASE(StringIRITwoByte) {
   const uint16_t kOutput[kOutputLen] =
       { 'x', '%', '2', 'F', '%', 'C', '4', '%', '8', '0' };
   const String& output = String::Handle(String::FromUTF16(kOutput, kOutputLen));
-  const String& encoded = String::Handle(String::EncodeIRI(input));
+  const String& encoded = String::Handle(String::New(String::EncodeIRI(input)));
   EXPECT(output.Equals(encoded));
   const String& decoded = String::Handle(String::DecodeIRI(output));
   EXPECT(input.Equals(decoded));
@@ -2536,17 +2535,26 @@ VM_TEST_CASE(ContextScope) {
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New(thread, "a"));
   LocalVariable* var_a =
-      new LocalVariable(TokenPosition::kNoSource, a, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource,
+                        a,
+                        dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(Symbols::New(thread, "b"));
   LocalVariable* var_b =
-      new LocalVariable(TokenPosition::kNoSource, b, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource,
+                        b,
+                        dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(Symbols::New(thread, "c"));
   LocalVariable* var_c =
-      new LocalVariable(TokenPosition::kNoSource, c, dynamic_type);
+      new LocalVariable(TokenPosition::kNoSource,
+                        TokenPosition::kNoSource,
+                        c,
+                        dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
@@ -4725,6 +4733,21 @@ VM_TEST_CASE(String_ScrubName) {
     result = String::ScrubName(test);
     EXPECT_STREQ(tests[i].out, result.ToCString());
   }
+}
+
+
+VM_TEST_CASE(String_EqualsUTF32) {
+  // Regression test for Issue 27433. Checks that comparisons between Strings
+  // and utf32 arrays happens after conversion to utf16 instead of utf32, as
+  // required for proper canonicalization of string literals with a lossy
+  // utf32->utf16 conversion.
+  int32_t char_codes[] = {
+    0, 0x0a, 0x0d, 0x7f, 0xff, 0xffff, 0xd800, 0xdc00, 0xdbff, 0xdfff
+  };
+
+  const String& str =
+      String::Handle(String::FromUTF32(char_codes, ARRAY_SIZE(char_codes)));
+  EXPECT(str.Equals(char_codes, ARRAY_SIZE(char_codes)));
 }
 
 }  // namespace dart

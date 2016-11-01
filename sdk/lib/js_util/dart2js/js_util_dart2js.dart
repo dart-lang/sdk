@@ -12,7 +12,7 @@ library dart.js_util;
 import 'dart:_foreign_helper' show JS;
 import 'dart:collection' show HashMap;
 
-/// WARNING: performance of this method is much worse than other uitil
+/// WARNING: performance of this method is much worse than other util
 /// methods in this library. Only use this method as a last resort.
 ///
 /// Recursively converts a JSON-like collection of Dart objects to a
@@ -20,7 +20,7 @@ import 'dart:collection' show HashMap;
 ///
 /// [object] must be a [Map] or [Iterable], the contents of which are also
 /// converted. Maps and Iterables are copied to a new JavaScript object.
-/// Primitives and other transferrable values are directly converted to their
+/// Primitives and other transferable values are directly converted to their
 /// JavaScript type, and all other objects are proxied.
 jsify(object) {
   if ((object is! Map) && (object is! Iterable)) {

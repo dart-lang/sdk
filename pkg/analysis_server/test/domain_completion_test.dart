@@ -12,18 +12,18 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
 import 'domain_completion_util.dart';
 import 'mocks.dart' show pumpEventQueue;
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(CompletionDomainHandlerTest);
-  defineReflectiveTests(_NoSearchEngine);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CompletionDomainHandlerTest);
+    defineReflectiveTests(_NoSearchEngine);
+  });
 }
 
 @reflectiveTest
@@ -48,6 +48,15 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     expect(suggestions, hasLength(2));
   }
 
+  test_ArgumentList_imported_function_named_param2() async {
+    addTestFile('mainx() {A a = new A(); a.foo(one: 7, ^);}'
+        'class A { foo({one, two}) {} }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(1));
+  }
+
   test_ArgumentList_imported_function_named_param_label1() async {
     addTestFile('main() { int.parse("16", r^: 16);}');
     await getSuggestions();
@@ -68,15 +77,6 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     expect(suggestions, hasLength(2));
   }
 
-  test_ArgumentList_imported_function_named_param2() async {
-    addTestFile('mainx() {A a = new A(); a.foo(one: 7, ^);}'
-        'class A { foo({one, two}) {} }');
-    await getSuggestions();
-    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
-        relevance: DART_RELEVANCE_NAMED_PARAMETER);
-    expect(suggestions, hasLength(1));
-  }
-
   test_html() {
     testFile = '/project/web/test.html';
     addTestFile('''
@@ -86,6 +86,20 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       expect(suggestions, hasLength(0));
+    });
+  }
+
+  test_import_uri_with_trailing() {
+    addFile('/project/bin/testA.dart', 'library libA;');
+    addTestFile('''
+      import '/project/bin/t^.dart';
+      main() {}''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset - 14));
+      expect(replacementLength, equals(5 + 14));
+      assertHasResult(
+          CompletionSuggestionKind.IMPORT, '/project/bin/testA.dart');
+      assertNoResult('test');
     });
   }
 
@@ -559,20 +573,6 @@ class B extends A {m() {^}}
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'test',
           relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
       assertNoResult('HtmlElement');
-    });
-  }
-
-  test_import_uri_with_trailing() {
-    addFile('/project/bin/testA.dart', 'library libA;');
-    addTestFile('''
-      import '/project/bin/t^.dart';
-      main() {}''');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset - 14));
-      expect(replacementLength, equals(5 + 14));
-      assertHasResult(
-          CompletionSuggestionKind.IMPORT, '/project/bin/testA.dart');
-      assertNoResult('test');
     });
   }
 }

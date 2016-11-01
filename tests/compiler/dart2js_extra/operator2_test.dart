@@ -4,17 +4,49 @@
 
 import "package:expect/expect.dart";
 
-int zero() { return 0; }
-int one() { return 1; }
-int minus1() { return 0 - 1; }
-int two() { return 2; }
-int three() { return 3; }
-int five() { return 5; }
-int minus5() { return 0 - 5; }
-int ninetyNine() { return 99; }
-int four99() { return 499; }
-int four99times99() { return 499 * 99; }
-int four99times99plus1() { return 499 * 99 + 1; }
+int zero() {
+  return 0;
+}
+
+int one() {
+  return 1;
+}
+
+int minus1() {
+  return 0 - 1;
+}
+
+int two() {
+  return 2;
+}
+
+int three() {
+  return 3;
+}
+
+int five() {
+  return 5;
+}
+
+int minus5() {
+  return 0 - 5;
+}
+
+int ninetyNine() {
+  return 99;
+}
+
+int four99() {
+  return 499;
+}
+
+int four99times99() {
+  return 499 * 99;
+}
+
+int four99times99plus1() {
+  return 499 * 99 + 1;
+}
 
 void addTest() {
   var m1 = 0 - 1;

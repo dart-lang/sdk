@@ -2,8 +2,17 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $browser == false || $runtime == drt ]
+[ $browser == false || $runtime == drt || $fast_startup]
 *: SkipByDesign
 
 [ $runtime == dartium ]
 isolate/*: Skip
+allocation_profile: Skip
+
+[ $runtime == ff || $runtime == safari ]
+allocation_profile: Skip
+cpu_profile_table: Skip
+persistent_handles_page: Skip
+
+[ $runtime == ff || $runtime == chrome ]
+vm_connect/element_test: Skip # Times out

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Classes that describe assembly patterns as used by inline caches.
 
-#ifndef VM_INSTRUCTIONS_X64_H_
-#define VM_INSTRUCTIONS_X64_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_X64_H_
+#define RUNTIME_VM_INSTRUCTIONS_X64_H_
 
-#ifndef VM_INSTRUCTIONS_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_H_
 #error Do not include instructions_ia32.h directly; use instructions.h instead.
 #endif
 
@@ -66,25 +66,6 @@ template<class P> class InstructionPattern : public ValueObject {
 };
 
 
-// 5 byte call instruction.
-class ShortCallPattern : public InstructionPattern<ShortCallPattern> {
- public:
-  explicit ShortCallPattern(uword pc) : InstructionPattern(pc) {}
-
-  void SetTargetAddress(uword new_target) const;
-
-  static int pattern_length_in_bytes() { return kLengthInBytes; }
-  static const int* pattern() {
-    static const int kCallPattern[kLengthInBytes] = {0xE8, -1, -1, -1, -1};
-    return kCallPattern;
-  }
-
- private:
-  static const int kLengthInBytes = 5;
-  DISALLOW_COPY_AND_ASSIGN(ShortCallPattern);
-};
-
-
 class ReturnPattern : public InstructionPattern<ReturnPattern> {
  public:
   explicit ReturnPattern(uword pc) : InstructionPattern(pc) {}
@@ -140,4 +121,4 @@ class SetFramePointerPattern :
 
 }  // namespace dart
 
-#endif  // VM_INSTRUCTIONS_X64_H_
+#endif  // RUNTIME_VM_INSTRUCTIONS_X64_H_

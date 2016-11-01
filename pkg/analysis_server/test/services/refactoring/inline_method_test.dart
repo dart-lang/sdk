@@ -11,15 +11,15 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/inline_method.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../utils.dart';
 import 'abstract_refactoring.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(InlineMethodTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(InlineMethodTest);
+  });
 }
 
 @reflectiveTest
@@ -64,6 +64,56 @@ class A {
     expect(refactoring.className, 'A');
     expect(refactoring.methodName, 'test');
     expect(refactoring.isDeclaration, isTrue);
+  }
+
+  test_bad_async_intoSyncStar() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> get test async => 42;
+  Iterable<Future<int>> foo() sync* {
+    yield test;
+  }
+}
+''');
+    _createRefactoring('test async');
+    // error
+    return _assertConditionsFatal('Cannot inline async into sync*.');
+  }
+
+  test_bad_async_targetIsSync_doesNotReturnFuture() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> get test async => 42;
+  double foo() {
+    test;
+    return 1.2;
+  }
+}
+''');
+    _createRefactoring('test async');
+    // error
+    return _assertConditionsFatal(
+        'Cannot inline async into a function that does not return a Future.');
+  }
+
+  test_bad_asyncStar() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Stream<int> test() async* {
+    yield 1;
+    yield 2;
+  }
+  foo() {
+    test();
+  }
+}
+''');
+    _createRefactoring('test() async*');
+    // error
+    return _assertConditionsFatal('Cannot inline a generator.');
   }
 
   test_bad_cascadeInvocation() async {
@@ -711,6 +761,100 @@ main() {
 ''');
   }
 
+  test_getter_async_targetIsAsync() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> get test async => 42;
+  Future<int> foo() async {
+    return test;
+  }
+}
+''');
+    _createRefactoring('test async');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  Future<int> foo() async {
+    return 42;
+  }
+}
+''');
+  }
+
+  test_getter_async_targetIsAsyncStar() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> get test async => 42;
+  Stream<int> foo() async {
+    return await test;
+  }
+}
+''');
+    _createRefactoring('test async');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  Stream<int> foo() async {
+    return await 42;
+  }
+}
+''');
+  }
+
+  test_getter_async_targetIsSync() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> get test async => 42;
+  Future<int> foo() {
+    return test;
+  }
+}
+''');
+    _createRefactoring('test async');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  Future<int> foo() async {
+    return 42;
+  }
+}
+''');
+  }
+
+  test_getter_async_targetIsSync2() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> get test async => 42;
+  Future<int> foo1() {
+    return test;
+  }
+  Future<int> foo2() {
+    return test;
+  }
+}
+''');
+    _createRefactoring('test async');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  Future<int> foo1() async {
+    return 42;
+  }
+  Future<int> foo2() async {
+    return 42;
+  }
+}
+''');
+  }
+
   test_getter_classMember_instance() {
     indexTestUnit(r'''
 class A {
@@ -801,6 +945,50 @@ main() {
     await refactoring.checkInitialConditions();
     expect(refactoring.deleteSource, false);
     expect(refactoring.inlineAll, false);
+  }
+
+  test_method_async() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> test() async => 42;
+  Future<int> foo() {
+    return test();
+  }
+}
+''');
+    _createRefactoring('test() async');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  Future<int> foo() async {
+    return 42;
+  }
+}
+''');
+  }
+
+  test_method_async2() {
+    indexTestUnit(r'''
+import 'dart:async';
+class A {
+  Future<int> test() async => 42;
+  Future foo() {
+    return [test(), test()];
+  }
+}
+''');
+    _createRefactoring('test() async');
+    // validate change
+    return _assertSuccessfulRefactoring(r'''
+import 'dart:async';
+class A {
+  Future foo() async {
+    return [42, 42];
+  }
+}
+''');
   }
 
   test_method_emptyBody() {

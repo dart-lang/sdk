@@ -261,6 +261,13 @@ void Become::ElementsForwardIdentity(const Array& before, const Array& after) {
     }
 
     ForwardObjectTo(before_obj, after_obj);
+
+    // Forward the identity hash too if it has one.
+    intptr_t hash = heap->GetHash(before_obj);
+    if (hash != 0) {
+      ASSERT(heap->GetHash(after_obj) == 0);
+      heap->SetHash(after_obj, hash);
+    }
   }
 
   {

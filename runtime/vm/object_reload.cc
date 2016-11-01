@@ -392,6 +392,9 @@ void Class::MigrateImplicitStaticClosures(IsolateReloadContext* irc,
         old_closure = old_func.ImplicitStaticClosure();
         new_func = new_func.ImplicitClosureFunction();
         new_closure = new_func.ImplicitStaticClosure();
+        if (old_closure.IsCanonical()) {
+          new_closure.SetCanonical();
+        }
         irc->AddBecomeMapping(old_closure, new_closure);
       }
     }

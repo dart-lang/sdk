@@ -152,6 +152,11 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Creates('Null')",
     ],
 
+    'Gamepad.buttons': [
+        "@Creates('JSExtendableArray|GamepadButton')",
+        "@Returns('JSExtendableArray')",
+    ],
+
     'HTMLCanvasElement.getContext': [
       "@Creates('CanvasRenderingContext2D|RenderingContext')",
       "@Returns('CanvasRenderingContext2D|RenderingContext|Null')",

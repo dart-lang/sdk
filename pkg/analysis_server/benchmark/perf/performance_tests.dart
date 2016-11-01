@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import '../../test/integration/integration_tests.dart';
 
@@ -43,7 +43,7 @@ abstract class AbstractAnalysisServerPerformanceTest
     });
     Completer serverConnected = new Completer();
     onServerConnected.listen((_) {
-      expect(serverConnected.isCompleted, isFalse);
+      outOfTestExpect(serverConnected.isCompleted, isFalse);
       serverConnected.complete();
     });
     return startServer(checked: false).then((_) {

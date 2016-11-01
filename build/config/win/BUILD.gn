@@ -65,6 +65,7 @@ config("common_linker_setup") {
     "/FIXED:NO",
     "/ignore:4199",
     "/ignore:4221",
+    "/ignore:4197",  # Disable multiple Dart_True export warning.
     "/NXCOMPAT",
 
     # Suggested by Microsoft Devrel to avoid
@@ -85,17 +86,9 @@ config("common_linker_setup") {
   } else {
     ldflags += [ "/DYNAMICBASE" ]
   }
-
-  # Delay loaded DLLs.
-  ldflags += [
-    "/DELAYLOAD:dbghelp.dll",
-    "/DELAYLOAD:dwmapi.dll",
-    "/DELAYLOAD:shell32.dll",
-    "/DELAYLOAD:uxtheme.dll",
-  ]
 }
 
-# Subsystem --------------------------------------------------------------------
+# Subsystem -------------------------------------------------------------------
 
 # This is appended to the subsystem to specify a minimum version.
 if (current_cpu == "x64") {
@@ -114,7 +107,7 @@ config("windowed") {
   ldflags = [ "/SUBSYSTEM:WINDOWS$subsystem_version_suffix" ]
 }
 
-# Incremental linking ----------------------------------------------------------
+# Incremental linking ---------------------------------------------------------
 
 incremental_linking_on_switch = [ "/INCREMENTAL" ]
 incremental_linking_off_switch = [ "/INCREMENTAL:NO" ]
@@ -141,7 +134,7 @@ config("no_incremental_linking") {
 # config should be applied to large modules to turn off incremental linking
 # when it won't work.
 config("default_large_module_incremental_linking") {
-  if (symbol_level > 0 && (current_cpu == "x86" || !is_component_build)) {
+  if (current_cpu == "x86" || !is_component_build) {
     # When symbols are on, things get so large that the tools fail due to the
     # size of the .ilk files.
     ldflags = incremental_linking_off_switch
@@ -151,7 +144,7 @@ config("default_large_module_incremental_linking") {
   }
 }
 
-# Character set ----------------------------------------------------------------
+# Character set ---------------------------------------------------------------
 
 # Not including this config means "ansi" (8-bit system codepage).
 config("unicode") {
@@ -161,7 +154,7 @@ config("unicode") {
   ]
 }
 
-# Lean and mean ----------------------------------------------------------------
+# Lean and mean ---------------------------------------------------------------
 
 # Some third party code might not compile with WIN32_LEAN_AND_MEAN so we have
 # to have a separate config for it. Remove this config from your target to

@@ -2,14 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-
 static_library("libdouble_conversion") {
-  configs += [ "../../..:dart_config", ]
+  configs += [ "../../..:dart_config" ]
   sources = [
-    "bignum.cc",
-    "bignum.h",
     "bignum-dtoa.cc",
     "bignum-dtoa.h",
+    "bignum.cc",
+    "bignum.h",
     "cached-powers.cc",
     "cached-powers.h",
     "diy-fp.cc",
@@ -25,8 +24,5 @@ static_library("libdouble_conversion") {
     "strtod.h",
     "utils.h",
   ]
-  include_dirs = [
-    ".",
-  ]
+  include_dirs = [ "." ]
 }
-

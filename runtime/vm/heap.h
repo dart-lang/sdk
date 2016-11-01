@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_HEAP_H_
-#define VM_HEAP_H_
+#ifndef RUNTIME_VM_HEAP_H_
+#define RUNTIME_VM_HEAP_H_
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
@@ -166,7 +166,8 @@ class Heap {
 
   intptr_t Collections(Space space) const;
 
-  ObjectSet* CreateAllocatedObjectSet(MarkExpectation mark_expectation) const;
+  ObjectSet* CreateAllocatedObjectSet(Zone* zone,
+                                      MarkExpectation mark_expectation) const;
 
   static const char* GCReasonToString(GCReason gc_reason);
 
@@ -253,10 +254,6 @@ class Heap {
   Monitor* barrier() const { return barrier_; }
   Monitor* barrier_done() const { return barrier_done_; }
 
-  Monitor* finalization_tasks_lock() const { return finalization_tasks_lock_; }
-  intptr_t finalization_tasks() const { return finalization_tasks_; }
-  void set_finalization_tasks(intptr_t count) { finalization_tasks_ = count; }
-
   void SetupExternalPage(void* pointer, uword size, bool is_executable) {
     old_space_.SetupExternalPage(pointer, size, is_executable);
   }
@@ -333,10 +330,7 @@ class Heap {
   bool BeginOldSpaceGC(Thread* thread);
   void EndOldSpaceGC();
 
-  // If this heap is non-empty, updates start and end to the smallest range that
-  // contains both the original [start, end) and the [lowest, highest) addresses
-  // of this heap.
-  void GetMergedAddressRange(uword* start, uword* end) const;
+  void AddRegionsToObjectSet(ObjectSet* set) const;
 
   Isolate* isolate_;
 
@@ -350,9 +344,6 @@ class Heap {
   Monitor* barrier_;
   Monitor* barrier_done_;
 
-  Monitor* finalization_tasks_lock_;
-  intptr_t finalization_tasks_;
-
   // GC stats collection.
   GCStats stats_;
 
@@ -365,6 +356,7 @@ class Heap {
   bool gc_old_space_in_progress_;
 
   friend class Become;  // VisitObjectPointers
+  friend class Precompiler;  // VisitObjects
   friend class ServiceEvent;
   friend class PageSpace;  // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects
@@ -404,4 +396,4 @@ class WritableVMIsolateScope : StackResource {
 
 }  // namespace dart
 
-#endif  // VM_HEAP_H_
+#endif  // RUNTIME_VM_HEAP_H_

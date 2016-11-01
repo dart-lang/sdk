@@ -5,12 +5,11 @@
 // Test that optimized JSArray indexers enerate the same error as dyncamically
 // dispatched calls.
 
-
 import 'package:expect/expect.dart';
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
-
 
 Error getError(action(), name, part) {
   try {
@@ -34,7 +33,6 @@ indexErrorContainsIndex() {
   Expect.equals('$e1'.length + 3, '$e2'.length);
   Expect.equals('$e1'.length + 9, '$e3'.length);
 }
-
 
 compare(name, fault1(), fault2(), fault3()) {
   var e1 = getError(fault1, name, 'fault1');
@@ -94,8 +92,8 @@ constantIndexHugeEmpty() {
     return [a[HUGE], a[1], a[2]];
   }
 
-  compare('constant index on empty list with huge index',
-      fault1, fault2, fault3);
+  compare(
+      'constant index on empty list with huge index', fault1, fault2, fault3);
 }
 
 constantIndexNonempty() {
@@ -137,8 +135,8 @@ constantIndexHugeNonempty() {
     return [a[HUGE], a[1], a[2]];
   }
 
-  compare('constant index on non-empty list with huge index',
-      fault1, fault2, fault3);
+  compare('constant index on non-empty list with huge index', fault1, fault2,
+      fault3);
 }
 
 constantIndexSetEmpty() {
@@ -195,7 +193,6 @@ constantIndexSetNonempty() {
   compare('constant index-set on non-empty list', fault1, fault2, fault3);
 }
 
-
 variableIndexEmpty(index, qualifier) {
   // Single dynamic receiver indexing might go via one-shot interceptor that
   // might have an accelerated path.
@@ -235,8 +232,8 @@ variableIndexNonempty(index, qualifier) {
     return [a[index], a[1], a[2]];
   }
 
-  compare('variable index on non-empty list $qualifier',
-      fault1, fault2, fault3);
+  compare(
+      'variable index on non-empty list $qualifier', fault1, fault2, fault3);
 }
 
 variableIndexSetEmpty(index, qualifier) {
@@ -265,8 +262,8 @@ variableIndexSetEmpty(index, qualifier) {
     return a;
   }
 
-  compare('variable index-set on empty list $qualifier',
-      fault1, fault2, fault3);
+  compare(
+      'variable index-set on empty list $qualifier', fault1, fault2, fault3);
 }
 
 variableIndexSetNonempty(index, qualifier) {
@@ -295,10 +292,9 @@ variableIndexSetNonempty(index, qualifier) {
     return a;
   }
 
-  compare('variable index-set on non-empty list $qualifier',
-      fault1, fault2, fault3);
+  compare('variable index-set on non-empty list $qualifier', fault1, fault2,
+      fault3);
 }
-
 
 main() {
   indexErrorContainsIndex();

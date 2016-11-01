@@ -7,10 +7,8 @@ mac_app_script = "//build/config/mac/mac_app.py"
 template("code_sign_mac") {
   assert(defined(invoker.entitlements_path),
          "The path to the entitlements .xcent file")
-  assert(defined(invoker.identity),
-         "The code signing identity")
-  assert(defined(invoker.application_path),
-         "The application to code sign")
+  assert(defined(invoker.identity), "The code signing identity")
+  assert(defined(invoker.application_path), "The application to code sign")
   assert(defined(invoker.deps))
 
   action(target_name) {
@@ -23,7 +21,7 @@ template("code_sign_mac") {
     script = mac_app_script
 
     outputs = [
-      "$_application_path/_CodeSignature/CodeResources"
+      "$_application_path/_CodeSignature/CodeResources",
     ]
 
     args = [
@@ -41,12 +39,9 @@ template("code_sign_mac") {
 }
 
 template("process_nibs_mac") {
-  assert(defined(invoker.sources),
-         "The nib sources must be specified")
-  assert(defined(invoker.module),
-         "The nib module must be specified")
-  assert(defined(invoker.output_dir),
-         "The output directory must be specified")
+  assert(defined(invoker.sources), "The nib sources must be specified")
+  assert(defined(invoker.module), "The nib module must be specified")
+  assert(defined(invoker.output_dir), "The output directory must be specified")
 
   action_foreach(target_name) {
     sources = invoker.sources
@@ -56,7 +51,7 @@ template("process_nibs_mac") {
     invoker_out_dir = invoker.output_dir
 
     outputs = [
-      "$root_build_dir/$invoker_out_dir/{{source_name_part}}.nib"
+      "$root_build_dir/$invoker_out_dir/{{source_name_part}}.nib",
     ]
 
     args = [
@@ -76,8 +71,7 @@ template("resource_copy_mac") {
          "The source list of resources to copy over")
   assert(defined(invoker.bundle_directory),
          "The directory within the bundle to place the sources in")
-  assert(defined(invoker.app_name),
-         "The name of the application")
+  assert(defined(invoker.app_name), "The name of the application")
 
   _bundle_directory = invoker.bundle_directory
   _app_name = invoker.app_name
@@ -86,7 +80,9 @@ template("resource_copy_mac") {
   copy(target_name) {
     set_sources_assignment_filter([])
     sources = _resources
-    outputs = [ "$root_build_dir/$_app_name.app/$_bundle_directory/Contents/Resources/{{source_file_part}}" ]
+    outputs = [
+      "$root_build_dir/$_app_name.app/$_bundle_directory/Contents/Resources/{{source_file_part}}",
+    ]
 
     if (defined(invoker.deps)) {
       deps = invoker.deps
@@ -95,7 +91,6 @@ template("resource_copy_mac") {
 }
 
 template("mac_app") {
-
   assert(defined(invoker.deps),
          "Dependencies must be specified for $target_name")
   assert(defined(invoker.info_plist),
@@ -104,6 +99,7 @@ template("mac_app") {
          "The name of Mac application for $target_name")
   assert(defined(invoker.xibs),
          "The list of XIB files must be specified for $target_name")
+
   # assert(defined(invoker.entitlements_path),
   #        "The entitlements path must be specified for $target_name")
   # assert(defined(invoker.code_signing_identity),
@@ -117,20 +113,20 @@ template("mac_app") {
   struct_gen_target_name = target_name + "_struct"
 
   action(struct_gen_target_name) {
-
     script = mac_app_script
 
     sources = []
-    outputs = [ "$root_build_dir/$app_name.app" ]
+    outputs = [
+      "$root_build_dir/$app_name.app",
+    ]
 
     args = [
       "structure",
       "-d",
       rebase_path(root_build_dir),
       "-n",
-      app_name
+      app_name,
     ]
-
   }
 
   # Generate the executable
@@ -147,11 +143,14 @@ template("mac_app") {
   plist_gen_target_name = target_name + "_plist"
 
   action(plist_gen_target_name) {
-
     script = mac_app_script
 
-    sources = [ invoker.info_plist ]
-    outputs = [ "$root_build_dir/plist/$app_name/Info.plist" ]
+    sources = [
+      invoker.info_plist,
+    ]
+    outputs = [
+      "$root_build_dir/plist/$app_name/Info.plist",
+    ]
 
     args = [
       "plist",
@@ -171,7 +170,7 @@ template("mac_app") {
     ]
 
     outputs = [
-      "$root_build_dir/$app_name.app/Contents/{{source_file_part}}"
+      "$root_build_dir/$app_name.app/Contents/{{source_file_part}}",
     ]
 
     deps = [
@@ -186,7 +185,7 @@ template("mac_app") {
     ]
 
     outputs = [
-      "$root_build_dir/$app_name.app/Contents/MacOS/{{source_file_part}}"
+      "$root_build_dir/$app_name.app/Contents/MacOS/{{source_file_part}}",
     ]
 
     deps = [
@@ -204,17 +203,18 @@ template("mac_app") {
   copy_all_target_name = target_name + "_all_copy"
   group(copy_all_target_name) {
     deps = [
-      ":$struct_gen_target_name",
-      ":$copy_plist_gen_target_name",
       ":$copy_bin_target_name",
+      ":$copy_plist_gen_target_name",
       ":$copy_xib_target_name",
+      ":$struct_gen_target_name",
     ]
   }
 
   # Top level group
 
   group(target_name) {
-    deps = [ ":$copy_all_target_name" ]
+    deps = [
+      ":$copy_all_target_name",
+    ]
   }
-
 }

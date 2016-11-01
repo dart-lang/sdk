@@ -10,17 +10,17 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(InstanceMemberInferrerTest);
-  runReflectiveTests(SetFieldTypeTest);
-  runReflectiveTests(VariableGathererTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(InstanceMemberInferrerTest);
+    defineReflectiveTests(SetFieldTypeTest);
+    defineReflectiveTests(VariableGathererTest);
+  });
 }
 
 @reflectiveTest

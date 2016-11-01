@@ -6,538 +6,172 @@ library script_inset_element;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:math';
-import 'observatory_element.dart';
-import 'service_ref.dart';
+import 'dart:svg';
+import 'package:observatory/app.dart';
 import 'package:observatory/models.dart' as M;
-import 'package:observatory/service.dart';
+import 'package:observatory/service.dart' as S;
+import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/utils.dart';
-import 'package:polymer/polymer.dart';
-import 'package:logging/logging.dart';
 
-const nbsp = "\u00A0";
+class ScriptInsetElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<ScriptInsetElement>('script-inset');
 
-void addInfoBox(Element content, Function infoBoxGenerator) {
-  var infoBox;
-  var show = false;
-  var originalBackground = content.style.backgroundColor;
-  buildInfoBox() {
-    infoBox = infoBoxGenerator();
-    infoBox.style.position = 'absolute';
-    infoBox.style.padding = '1em';
-    infoBox.style.border = 'solid black 2px';
-    infoBox.style.zIndex = '10';
-    infoBox.style.backgroundColor = 'white';
-    infoBox.style.cursor = 'auto';
-    // Don't inherit pre formating from the script lines.
-    infoBox.style.whiteSpace = 'normal';
-    content.append(infoBox);
-  }
-  content.onClick.listen((event) {
-    show = !show;
-    if (infoBox == null) buildInfoBox();  // Created lazily on the first click.
-    infoBox.style.display = show ? 'block' : 'none';
-    content.style.backgroundColor = show ? 'white' : originalBackground;
-  });
+  RenderingScheduler _r;
 
-  // Causes infoBox to be positioned relative to the bottom-left of content.
-  content.style.display = 'inline-block';
-  content.style.cursor = 'pointer';
-}
+  Stream<RenderedEvent<ScriptInsetElement>> get onRendered => _r.onRendered;
 
+  M.IsolateRef _isolate;
+  M.ScriptRef _script;
+  M.Script _loadedScript;
+  M.ScriptRepository _scripts;
+  M.InstanceRepository _instances;
+  M.EventRepository _events;
+  StreamSubscription _subscription;
+  int _startPos;
+  int _endPos;
+  int _currentPos;
+  bool _inDebuggerContext;
+  Iterable _variables;
 
-void addLink(Element content, String target) {
-  // Ick, destructive but still compatible with also adding an info box.
-  var a = new AnchorElement(href: target);
-  a.text = content.text;
-  content.text = '';
-  content.append(a);
-}
+  M.IsolateRef get isolate => _isolate;
+  M.ScriptRef get script => _script;
 
-
-abstract class Annotation implements Comparable<Annotation> {
-  int line;
-  int columnStart;
-  int columnStop;
-  int get priority;
-
-  void applyStyleTo(element);
-
-  int compareTo(Annotation other) {
-    if (line == other.line) {
-      if (columnStart == other.columnStart) {
-        return priority.compareTo(other.priority);
-      }
-      return columnStart.compareTo(other.columnStart);
-    }
-    return line.compareTo(other.line);
-  }
-
-  Element table() {
-    var e = new DivElement();
-    e.style.display = "table";
-    e.style.color = "#333";
-    e.style.font = "400 14px 'Montserrat', sans-serif";
+  factory ScriptInsetElement(
+      M.IsolateRef isolate,
+      M.ScriptRef script,
+      M.ScriptRepository scripts,
+      M.InstanceRepository instances,
+      M.EventRepository events,
+      {int startPos,
+      int endPos,
+      int currentPos,
+      bool inDebuggerContext: false,
+      Iterable variables: const [],
+      RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(script != null);
+    assert(scripts != null);
+    assert(instances != null);
+    assert(events != null);
+    assert(inDebuggerContext != null);
+    assert(variables != null);
+    ScriptInsetElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._script = script;
+    e._scripts = scripts;
+    e._instances = instances;
+    e._events = events;
+    e._startPos = startPos;
+    e._endPos = endPos;
+    e._currentPos = currentPos;
+    e._inDebuggerContext = inDebuggerContext;
+    e._variables = new List.unmodifiable(variables);
     return e;
   }
 
-  Element row([content]) {
-    var e = new DivElement();
-    e.style.display = "table-row";
-    if (content is String) e.text = content;
-    if (content is Element) e.children.add(content);
-    return e;
-  }
+  ScriptInsetElement.created() : super.created();
 
-  Element cell(content) {
-    var e = new DivElement();
-    e.style.display = "table-cell";
-    e.style.padding = "3px";
-    if (content is String) e.text = content;
-    if (content is Element) e.children.add(content);
-    return e;
-  }
+  bool get noSource => _startPos == -1;
 
-  Element serviceRef(object) {
-    AnyServiceRefElement e = new Element.tag("any-service-ref");
-    e.ref = object;
-    return e;
-  }
-}
-
-class CurrentExecutionAnnotation extends Annotation {
-  int priority = 0;  // highest priority.
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    element.classes.add("currentCol");
-    element.title = "Current execution";
-  }
-}
-
-class BreakpointAnnotation extends Annotation {
-  Breakpoint bpt;
-  int priority = 1;
-
-  BreakpointAnnotation(this.bpt) {
-    var script = bpt.location.script;
-    var location = bpt.location;
-    if (location.tokenPos != null) {
-      var pos = location.tokenPos;
-      line = script.tokenToLine(pos);
-      columnStart = script.tokenToCol(pos) - 1;  // tokenToCol is 1-origin.
-    } else if (location is UnresolvedSourceLocation) {
-      line = location.line;
-      columnStart = location.column;
-      if (columnStart == null) {
-        columnStart = 0;
-      }
-    }
-    var length = script.guessTokenLength(line, columnStart);
-    if (length == null) {
-      length = 1;
-    }
-    columnStop = columnStart + length;
-  }
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    var script = bpt.location.script;
-    var pos = bpt.location.tokenPos;
-    int line = script.tokenToLine(pos);
-    int column = script.tokenToCol(pos);
-    if (bpt.resolved) {
-      element.classes.add("resolvedBreakAnnotation");
-    } else {
-      element.classes.add("unresolvedBreakAnnotation");
-    }
-    element.title = "Breakpoint ${bpt.number} at ${line}:${column}";
-  }
-}
-
-class LibraryAnnotation extends Annotation {
-  Library target;
-  String url;
-  int priority = 2;
-
-  LibraryAnnotation(this.target, this.url);
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    element.title = "library ${target.uri}";
-    addLink(element, url);
-  }
-}
-
-class PartAnnotation extends Annotation {
-  Script part;
-  String url;
-  int priority = 2;
-
-  PartAnnotation(this.part, this.url);
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    element.title = "script ${part.uri}";
-    addLink(element, url);
-  }
-}
-
-class LocalVariableAnnotation extends Annotation {
-  final value;
-  int priority = 2;
-
-  LocalVariableAnnotation(LocalVarLocation location, this.value) {
-    line = location.line;
-    columnStart = location.column;
-    columnStop = location.endColumn;
-  }
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    element.style.fontWeight = "bold";
-    element.title = "${value.shortName}";
-  }
-}
-
-class CallSiteAnnotation extends Annotation {
-  CallSite callSite;
-  int priority = 2;
-
-  CallSiteAnnotation(this.callSite) {
-    line = callSite.line;
-    columnStart = callSite.column - 1;  // Call site is 1-origin.
-    var tokenLength = callSite.script.guessTokenLength(line, columnStart);
-    if (tokenLength == null) {
-      tokenLength = callSite.name.length;  // Approximate.
-      if (callSite.name.startsWith("get:") ||
-          callSite.name.startsWith("set:")) tokenLength -= 4;
-    }
-    columnStop = columnStart + tokenLength;
-  }
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    element.style.fontWeight = "bold";
-    element.title = "Call site: ${callSite.name}";
-
-    addInfoBox(element, () {
-      var details = table();
-      if (callSite.entries.isEmpty) {
-        details.append(row('Call of "${callSite.name}" did not execute'));
-      } else {
-        var r = row();
-        r.append(cell("Container"));
-        r.append(cell("Count"));
-        r.append(cell("Target"));
-        details.append(r);
-
-        for (var entry in callSite.entries) {
-          var r = row();
-          r.append(cell(serviceRef(entry.receiver)));
-          r.append(cell(entry.count.toString()));
-          r.append(cell(serviceRef(entry.target)));
-          details.append(r);
+  @override
+  void attached() {
+    super.attached();
+    _r.enable();
+    _subscription = _events.onDebugEvent
+        .where((e) =>
+            (e is M.BreakpointAddedEvent) ||
+            (e is M.BreakpointResolvedEvent) ||
+            (e is M.BreakpointRemovedEvent))
+        .map((e) => e.breakpoint)
+        .listen((M.Breakpoint b) {
+      final loc = b.location;
+      int line;
+      if (loc.script.id == script.id) {
+        if (loc.tokenPos != null) {
+          line = _loadedScript.tokenToLine(loc.tokenPos);
+        } else {
+          line = loc.line;
         }
+      } else {
+        line = loc.line;
       }
-      return details;
+      if ((line == null) || ((line >= _startLine) && (line <= _endLine))) {
+        _r.dirty();
+      }
     });
+    _refresh();
   }
-}
 
-abstract class DeclarationAnnotation extends Annotation {
-  String url;
-  int priority = 2;
+  @override
+  void detached() {
+    super.detached();
+    children = [];
+    _r.disable(notify: true);
+    _subscription.cancel();
+  }
 
-  DeclarationAnnotation(decl, this.url) {
-    assert(decl.loaded);
-    SourceLocation location = decl.location;
-    if (location == null) {
-      line = 0;
-      columnStart = 0;
-      columnStop = 0;
-      return;
-    }
-
-    Script script = location.script;
-    line = script.tokenToLine(location.tokenPos);
-    columnStart = script.tokenToCol(location.tokenPos);
-    if ((line == null) || (columnStart == null)) {
-      line = 0;
-      columnStart = 0;
-      columnStop = 0;
+  void render() {
+    if (noSource) {
+      children = [new SpanElement()..text = 'No source'];
+    } else if (_loadedScript == null) {
+      children = [new SpanElement()..text = 'Loading...'];
     } else {
-      columnStart--; // 1-origin -> 0-origin.
+      final table = linesTable();
+      var firstBuild = false;
+      if (container == null) {
+        // Indirect to avoid deleting the style element.
+        container = new DivElement();
 
-      // The method's token position is at the beginning of the method
-      // declaration, which may be a return type annotation, metadata, static
-      // modifier, etc. Try to scan forward to position this annotation on the
-      // function's name instead.
-      var lineSource = script.getLine(line).text;
-      var betterStart = lineSource.indexOf(decl.name, columnStart);
-      if (betterStart != -1) {
-        columnStart = betterStart;
+        firstBuild = true;
       }
-      columnStop = columnStart + decl.name.length;
-    }
-  }
-}
-
-class ClassDeclarationAnnotation extends DeclarationAnnotation {
-  Class klass;
-
-  ClassDeclarationAnnotation(Class cls, String url)
-    : klass = cls,
-      super(cls, url);
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    element.title = "class ${klass.name}";
-    addLink(element, url);
-  }
-}
-
-class FieldDeclarationAnnotation extends DeclarationAnnotation {
-  Field field;
-
-  FieldDeclarationAnnotation(Field fld, String url)
-    : field = fld,
-      super(fld, url);
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    var tooltip = "field ${field.name}";
-    element.title = tooltip;
-    addLink(element, url);
-  }
-}
-
-class FunctionDeclarationAnnotation extends DeclarationAnnotation {
-  ServiceFunction function;
-
-  FunctionDeclarationAnnotation(ServiceFunction func, String url)
-    : function = func,
-      super(func, url);
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return;  // TODO(rmacnak): Handling overlapping annotations.
-    }
-    var tooltip = "method ${function.name}";
-    if (function.isOptimizable == false) {
-      tooltip += "\nUnoptimizable!";
-    }
-    if (function.isInlinable == false) {
-      tooltip += "\nNot inlinable!";
-    }
-    if (function.deoptimizations > 0) {
-      tooltip += "\nDeoptimized ${function.deoptimizations} times!";
-    }
-    element.title = tooltip;
-
-    if (function.isOptimizable == false ||
-        function.isInlinable == false ||
-        function.deoptimizations >0) {
-      element.style.backgroundColor = "#EEA7A7";  // Low-saturation red.
-    }
-
-    addLink(element, url);
-  }
-}
-
-class ScriptLineProfile {
-  ScriptLineProfile(this.line, this.sampleCount);
-
-  static const kHotThreshold = 0.05;  // 5%.
-  static const kMediumThreshold = 0.02;  // 2%.
-
-  final int line;
-  final int sampleCount;
-
-  int selfTicks = 0;
-  int totalTicks = 0;
-
-  void process(int exclusive, int inclusive) {
-    selfTicks += exclusive;
-    totalTicks += inclusive;
-  }
-
-  String get formattedSelfTicks {
-    return Utils.formatPercent(selfTicks, sampleCount);
-  }
-
-  String get formattedTotalTicks {
-    return Utils.formatPercent(totalTicks, sampleCount);
-  }
-
-  double _percent(bool self) {
-    if (sampleCount == 0) {
-      return 0.0;
-    }
-    if (self) {
-      return selfTicks / sampleCount;
-    } else {
-      return totalTicks / sampleCount;
+      children = [container];
+      container.children.clear();
+      container.children.add(table);
+      _makeCssClassUncopyable(table, "noCopy");
+      if (firstBuild) {
+        _scrollToCurrentPos();
+      }
     }
   }
 
-  bool isHot(bool self) => _percent(self) > kHotThreshold;
-  bool isMedium(bool self) => _percent(self) > kMediumThreshold;
-}
+  Future _refresh() async {
+    _loadedScript = await _scripts.get(_isolate, _script.id);
+    await _refreshSourceReport();
+    await _computeAnnotations();
+    _r.dirty();
+  }
 
-/// Box with script source code in it.
-@CustomTag('script-inset')
-class ScriptInsetElement extends ObservatoryElement {
-  @published Script script;
-  @published int startPos;
-  @published int endPos;
-
-  /// Set the height to make the script inset scroll.  Otherwise it
-  /// will show from startPos to endPos.
-  @published String height = null;
-
-  @published int currentPos;
-  @published bool inDebuggerContext = false;
-  @published ObservableList variables;
-
-  @published Element scroller;
-  RefreshButtonElement _refreshButton;
-  ToggleButtonElement _toggleProfileButton;
+  ButtonElement _refreshButton;
+  ButtonElement _toggleProfileButton;
 
   int _currentLine;
   int _currentCol;
   int _startLine;
   int _endLine;
 
-  Map<int, List<ServiceMap>> _rangeMap = {};
-  Set _callSites = new Set<CallSite>();
+  Map<int, List<S.ServiceMap>> _rangeMap = {};
+  Set _callSites = new Set<S.CallSite>();
   Set _possibleBreakpointLines = new Set<int>();
   Map<int, ScriptLineProfile> _profileMap = {};
 
-  var annotations = [];
-  var annotationsCursor;
+  var _annotations = [];
+  var _annotationsCursor;
 
-  StreamSubscription _scriptChangeSubscription;
-  Future<StreamSubscription> _debugSubscriptionFuture;
-  StreamSubscription _scrollSubscription;
-
-  bool hasLoadedLibraryDeclarations = false;
   bool _includeProfile = false;
 
-  String makeLineId(int line) {
-    return 'line-$line';
+  String makeLineClass(int line) {
+    return 'script-inset-line-$line';
   }
 
   void _scrollToCurrentPos() {
-    var line = shadowRoot.getElementById(makeLineId(_currentLine));
-    if (line != null) {
-      line.scrollIntoView();
+    var lines = getElementsByClassName(makeLineClass(_currentLine));
+    if (lines.length > 0) {
+      lines[0].scrollIntoView();
     }
-  }
-
-  void attached() {
-    super.attached();
-    _debugSubscriptionFuture =
-        app.vm.listenEventStream(VM.kDebugStream, _onDebugEvent);
-    if (scroller != null) {
-      _scrollSubscription = scroller.onScroll.listen(_onScroll);
-    } else {
-      _scrollSubscription = window.onScroll.listen(_onScroll);
-    }
-  }
-
-  void detached() {
-    cancelFutureSubscription(_debugSubscriptionFuture);
-    _debugSubscriptionFuture = null;
-    if (_scrollSubscription != null) {
-      _scrollSubscription.cancel();
-      _scrollSubscription = null;
-    }
-    if (_scriptChangeSubscription != null) {
-      // Don't leak. If only Dart and Javascript exposed weak references...
-      _scriptChangeSubscription.cancel();
-      _scriptChangeSubscription = null;
-    }
-    super.detached();
-  }
-
-  void _onScroll(event) {
-    if (_refreshButton != null) {
-      var newTop = _buttonTop(_refreshButton);
-      if (_refreshButton.style.top != newTop) {
-        _refreshButton.style.top = '${newTop}px';
-      }
-    }
-    if (_toggleProfileButton != null) {
-      var newTop = _buttonTop(_toggleProfileButton);
-      if (_toggleProfileButton.style.top != newTop) {
-        _toggleProfileButton.style.top = '${newTop}px';
-      }
-    }
-  }
-
-  void _onDebugEvent(event) {
-    if (script == null) {
-      return;
-    }
-    switch (event.kind) {
-      case ServiceEvent.kBreakpointAdded:
-      case ServiceEvent.kBreakpointResolved:
-      case ServiceEvent.kBreakpointRemoved:
-        var loc = event.breakpoint.location;
-        if (loc.script == script) {
-          int line;
-          if (loc.tokenPos != null) {
-            line = script.tokenToLine(loc.tokenPos);
-          } else {
-            line = loc.line;
-          }
-          if ((line >= _startLine) && (line <= _endLine)) {
-            _updateTask.queue();
-          }
-        }
-        break;
-      default:
-        // Ignore.
-        break;
-    }
-  }
-
-  void currentPosChanged(oldValue) {
-    _updateTask.queue();
-    _scrollToCurrentPos();
-  }
-
-  void startPosChanged(oldValue) {
-    _updateTask.queue();
-  }
-
-  void endPosChanged(oldValue) {
-    _updateTask.queue();
-  }
-
-  void scriptChanged(oldValue) {
-    _updateTask.queue();
-  }
-
-  void variablesChanged(oldValue) {
-    _updateTask.queue();
   }
 
   Element a(String text) => new AnchorElement()..text = text;
@@ -548,26 +182,31 @@ class ScriptInsetElement extends ObservatoryElement {
     element.title = "";
     return element;
   }
+
   Element hitsUnknown(Element element) {
     element.classes.add('hitsNone');
     element.title = "";
     return element;
   }
+
   Element hitsNotExecuted(Element element) {
     element.classes.add('hitsNotExecuted');
     element.title = "Line did not execute";
     return element;
   }
+
   Element hitsExecuted(Element element) {
     element.classes.add('hitsExecuted');
     element.title = "Line did execute";
     return element;
   }
+
   Element hitsCompiled(Element element) {
     element.classes.add('hitsCompiled');
     element.title = "Line in compiled function";
     return element;
   }
+
   Element hitsNotCompiled(Element element) {
     element.classes.add('hitsNotCompiled');
     element.title = "Line in uncompiled function";
@@ -576,27 +215,28 @@ class ScriptInsetElement extends ObservatoryElement {
 
   Element container;
 
-  Future _refresh() async {
-    await update();
-  }
-
   // Build _rangeMap and _callSites from a source report.
   Future _refreshSourceReport() async {
-    var reports = [Isolate.kCallSitesReport,
-                   Isolate.kPossibleBreakpointsReport];
+    if (noSource) return;
+
+    var reports = [
+      S.Isolate.kCallSitesReport,
+      S.Isolate.kPossibleBreakpointsReport
+    ];
     if (_includeProfile) {
-      reports.add(Isolate.kProfileReport);
+      reports.add(S.Isolate.kProfileReport);
     }
-    var sourceReport = await script.isolate.getSourceReport(
-        reports,
-        script, startPos, endPos);
-    _possibleBreakpointLines = getPossibleBreakpointLines(sourceReport, script);
+    S.Isolate isolate = _isolate as S.Isolate;
+    var sourceReport =
+        await isolate.getSourceReport(reports, script, _startPos, _endPos);
+    _possibleBreakpointLines =
+        S.getPossibleBreakpointLines(sourceReport, script);
     _rangeMap.clear();
     _callSites.clear();
     _profileMap.clear();
     for (var range in sourceReport['ranges']) {
-      int startLine = script.tokenToLine(range['startPos']);
-      int endLine = script.tokenToLine(range['endPos']);
+      int startLine = _loadedScript.tokenToLine(range['startPos']);
+      int endLine = _loadedScript.tokenToLine(range['endPos']);
       // TODO(turnidge): Track down the root cause of null startLine/endLine.
       if ((startLine != null) && (endLine != null)) {
         for (var line = startLine; line <= endLine; line++) {
@@ -621,7 +261,7 @@ class ScriptInsetElement extends ObservatoryElement {
             // TODO(johnmccutchan): Add classifier data to UI.
             continue;
           }
-          int line = script.tokenToLine(positions[i]);
+          int line = _loadedScript.tokenToLine(positions[i]);
           ScriptLineProfile lineProfile = _profileMap[line];
           if (lineProfile == null) {
             lineProfile = new ScriptLineProfile(line, sampleCount);
@@ -634,126 +274,87 @@ class ScriptInsetElement extends ObservatoryElement {
         var rangeCallSites = range['callSites'];
         if (rangeCallSites != null) {
           for (var callSiteMap in rangeCallSites) {
-            _callSites.add(new CallSite.fromMap(callSiteMap, script));
+            _callSites.add(new S.CallSite.fromMap(callSiteMap, script));
           }
         }
       }
     }
   }
 
-  Task _updateTask;
-  Future update() async {
-    assert(_updateTask != null);
-    if (script == null) {
-      // We may have previously had a script.
-      if (container != null) {
-        container.children.clear();
-      }
-      return;
-    }
-    if (!script.loaded) {
-      await script.load();
-    }
-    if (_scriptChangeSubscription == null) {
-      _scriptChangeSubscription = script.changes.listen((_) => update());
-    }
-    await _refreshSourceReport();
-
-    computeAnnotations();
-
-    var table = linesTable();
-    var firstBuild = false;
-    if (container == null) {
-      // Indirect to avoid deleting the style element.
-      container = new DivElement();
-      shadowRoot.append(container);
-      firstBuild = true;
-    }
-    container.children.clear();
-    container.children.add(table);
-    makeCssClassUncopyable(table, "noCopy");
-    if (firstBuild) {
-      _scrollToCurrentPos();
-    }
-  }
-
-  void computeAnnotations() {
-    _startLine = (startPos != null
-                  ? script.tokenToLine(startPos)
-                  : 1 + script.lineOffset);
-    _currentLine = (currentPos != null
-                    ? script.tokenToLine(currentPos)
-                    : null);
-    _currentCol = (currentPos != null
-                   ? (script.tokenToCol(currentPos))
-                   : null);
+  Future _computeAnnotations() async {
+    _startLine = (_startPos != null
+        ? _loadedScript.tokenToLine(_startPos)
+        : 1 + _loadedScript.lineOffset);
+    _currentLine =
+        (_currentPos != null ? _loadedScript.tokenToLine(_currentPos) : null);
+    _currentCol =
+        (_currentPos != null ? (_loadedScript.tokenToCol(_currentPos)) : null);
     if (_currentCol != null) {
-      _currentCol--;  // make this 0-based.
+      _currentCol--; // make this 0-based.
     }
 
-    _endLine = (endPos != null
-                ? script.tokenToLine(endPos)
-                : script.lines.length + script.lineOffset);
+    S.Script script = _loadedScript as S.Script;
+
+    _endLine = (_endPos != null
+        ? _loadedScript.tokenToLine(_endPos)
+        : script.lines.length + _loadedScript.lineOffset);
 
     if (_startLine == null || _endLine == null) {
       return;
     }
 
-    annotations.clear();
+    _annotations.clear();
 
     addCurrentExecutionAnnotation();
     addBreakpointAnnotations();
 
-    if (!inDebuggerContext && script.library != null) {
-      if (hasLoadedLibraryDeclarations) {
-        addLibraryAnnotations();
-        addDependencyAnnotations();
-        addPartAnnotations();
-        addClassAnnotations();
-        addFieldAnnotations();
-        addFunctionAnnotations();
-        addCallSiteAnnotations();
-      } else {
-        loadDeclarationsOfLibrary(script.library).then((_) {
-          hasLoadedLibraryDeclarations = true;
-          update();
-        });
-      }
+    if (!_inDebuggerContext && script.library != null) {
+      await loadDeclarationsOfLibrary(script.library);
+      addLibraryAnnotations();
+      addDependencyAnnotations();
+      addPartAnnotations();
+      addClassAnnotations();
+      addFieldAnnotations();
+      addFunctionAnnotations();
+      addCallSiteAnnotations();
     }
 
     addLocalVariableAnnotations();
 
-    annotations.sort();
+    _annotations.sort();
   }
 
   void addCurrentExecutionAnnotation() {
     if (_currentLine != null) {
-      var a = new CurrentExecutionAnnotation();
+      var a = new CurrentExecutionAnnotation(_isolate, _instances, _r.queue);
       a.line = _currentLine;
       a.columnStart = _currentCol;
+      S.Script script = _loadedScript as S.Script;
       var length = script.guessTokenLength(_currentLine, _currentCol);
       if (length == null) {
         length = 1;
       }
       a.columnStop = _currentCol + length;
-      annotations.add(a);
+      _annotations.add(a);
     }
   }
 
   void addBreakpointAnnotations() {
+    S.Script script = _loadedScript as S.Script;
     for (var line = _startLine; line <= _endLine; line++) {
       var bpts = script.getLine(line).breakpoints;
       if (bpts != null) {
         for (var bpt in bpts) {
           if (bpt.location != null) {
-            annotations.add(new BreakpointAnnotation(bpt));
+            _annotations.add(
+                new BreakpointAnnotation(_isolate, _instances, _r.queue, bpt));
           }
         }
       }
     }
   }
 
-  Future loadDeclarationsOfLibrary(Library lib) {
+  Future loadDeclarationsOfLibrary(S.Library lib) {
     return lib.load().then((lib) {
       var loads = [];
       for (var func in lib.functions) {
@@ -769,7 +370,7 @@ class ScriptInsetElement extends ObservatoryElement {
     });
   }
 
-  Future loadDeclarationsOfClass(Class cls) {
+  Future loadDeclarationsOfClass(S.Class cls) {
     return cls.load().then((cls) {
       var loads = [];
       for (var func in cls.functions) {
@@ -782,61 +383,68 @@ class ScriptInsetElement extends ObservatoryElement {
     });
   }
 
-  String inspectLink(ServiceObject ref) {
-    return gotoLink('/inspect', ref);
-  }
-
   void addLibraryAnnotations() {
-    for (ScriptLine line in script.lines) {
+    S.Script script = _loadedScript as S.Script;
+    for (S.ScriptLine line in script.lines) {
       // TODO(rmacnak): Use a real scanner.
       var pattern = new RegExp("library ${script.library.name}");
       var match = pattern.firstMatch(line.text);
       if (match != null) {
-        var anno = new LibraryAnnotation(script.library,
-                                         inspectLink(script.library));
+        var anno = new LibraryAnnotation(
+            _isolate,
+            _instances,
+            _r.queue,
+            _loadedScript.library,
+            Uris.inspect(isolate, object: _loadedScript.library));
         anno.line = line.line;
         anno.columnStart = match.start + 8;
         anno.columnStop = match.end;
-        annotations.add(anno);
+        _annotations.add(anno);
       }
       // TODO(rmacnak): Use a real scanner.
       pattern = new RegExp("part of ${script.library.name}");
       match = pattern.firstMatch(line.text);
       if (match != null) {
-        var anno = new LibraryAnnotation(script.library,
-                                         inspectLink(script.library));
+        var anno = new LibraryAnnotation(
+            _isolate,
+            _instances,
+            _r.queue,
+            _loadedScript.library,
+            Uris.inspect(isolate, object: _loadedScript.library));
         anno.line = line.line;
         anno.columnStart = match.start + 8;
         anno.columnStop = match.end;
-        annotations.add(anno);
+        _annotations.add(anno);
       }
     }
   }
 
-  Library resolveDependency(String relativeUri) {
+  M.Library resolveDependency(String relativeUri) {
+    S.Script script = _loadedScript as S.Script;
     // This isn't really correct: we need to ask the embedder to do the
     // uri canonicalization for us, but Observatory isn't in a position
     // to invoke the library tag handler. Handle the most common cases.
-    var targetUri = Uri.parse(script.library.uri).resolve(relativeUri);
-    for (Library l in script.isolate.libraries) {
+    var targetUri = Uri.parse(_loadedScript.library.uri).resolve(relativeUri);
+    for (M.Library l in script.isolate.libraries) {
       if (targetUri.toString() == l.uri) {
         return l;
       }
     }
     if (targetUri.scheme == 'package') {
       targetUri = "packages/${targetUri.path}";
-      for (Library l in script.isolate.libraries) {
+      for (M.Library l in script.isolate.libraries) {
         if (targetUri.toString() == l.uri) {
           return l;
         }
       }
     }
 
-    Logger.root.info("Could not resolve library dependency: $relativeUri");
+    print("Could not resolve library dependency: $relativeUri");
     return null;
   }
 
   void addDependencyAnnotations() {
+    S.Script script = _loadedScript as S.Script;
     // TODO(rmacnak): Use a real scanner.
     var patterns = [
       new RegExp("import '(.*)'"),
@@ -844,56 +452,60 @@ class ScriptInsetElement extends ObservatoryElement {
       new RegExp("export '(.*)'"),
       new RegExp('export "(.*)"'),
     ];
-    for (ScriptLine line in script.lines) {
+    for (S.ScriptLine line in script.lines) {
       for (var pattern in patterns) {
         var match = pattern.firstMatch(line.text);
         if (match != null) {
-          Library target = resolveDependency(match[1]);
+          M.Library target = resolveDependency(match[1]);
           if (target != null) {
-            var anno = new LibraryAnnotation(target, inspectLink(target));
+            var anno = new LibraryAnnotation(_isolate, _instances, _r.queue,
+                target, Uris.inspect(isolate, object: target));
             anno.line = line.line;
             anno.columnStart = match.start + 8;
             anno.columnStop = match.end - 1;
-            annotations.add(anno);
+            _annotations.add(anno);
           }
         }
       }
     }
   }
 
-  Script resolvePart(String relativeUri) {
+  M.Script resolvePart(String relativeUri) {
+    S.Script script = _loadedScript as S.Script;
     var rootUri = Uri.parse(script.library.uri);
     if (rootUri.scheme == 'dart') {
       // The relative paths from dart:* libraries to their parts are not valid.
       rootUri = new Uri.directory(script.library.uri);
     }
     var targetUri = rootUri.resolve(relativeUri);
-    for (Script s in script.library.scripts) {
+    for (M.Script s in script.library.scripts) {
       if (targetUri.toString() == s.uri) {
         return s;
       }
     }
-    Logger.root.info("Could not resolve part: $relativeUri");
+    print("Could not resolve part: $relativeUri");
     return null;
   }
 
   void addPartAnnotations() {
+    S.Script script = _loadedScript as S.Script;
     // TODO(rmacnak): Use a real scanner.
     var patterns = [
       new RegExp("part '(.*)'"),
       new RegExp('part "(.*)"'),
     ];
-    for (ScriptLine line in script.lines) {
+    for (S.ScriptLine line in script.lines) {
       for (var pattern in patterns) {
         var match = pattern.firstMatch(line.text);
         if (match != null) {
-          Script part = resolvePart(match[1]);
+          S.Script part = resolvePart(match[1]);
           if (part != null) {
-            var anno = new PartAnnotation(part, inspectLink(part));
+            var anno = new PartAnnotation(_isolate, _instances, _r.queue, part,
+                Uris.inspect(isolate, object: part));
             anno.line = line.line;
             anno.columnStart = match.start + 6;
             anno.columnStop = match.end - 1;
-            annotations.add(anno);
+            _annotations.add(anno);
           }
         }
       }
@@ -901,32 +513,38 @@ class ScriptInsetElement extends ObservatoryElement {
   }
 
   void addClassAnnotations() {
+    S.Script script = _loadedScript as S.Script;
     for (var cls in script.library.classes) {
       if ((cls.location != null) && (cls.location.script == script)) {
-        var a = new ClassDeclarationAnnotation(cls, inspectLink(cls));
-        annotations.add(a);
+        var a = new ClassDeclarationAnnotation(_isolate, _instances, _r.queue,
+            cls, Uris.inspect(isolate, object: cls));
+        _annotations.add(a);
       }
     }
   }
 
   void addFieldAnnotations() {
+    S.Script script = _loadedScript as S.Script;
     for (var field in script.library.variables) {
       if ((field.location != null) && (field.location.script == script)) {
-        var a = new FieldDeclarationAnnotation(field, inspectLink(field));
-        annotations.add(a);
+        var a = new FieldDeclarationAnnotation(_isolate, _instances, _r.queue,
+            field, Uris.inspect(isolate, object: field));
+        _annotations.add(a);
       }
     }
     for (var cls in script.library.classes) {
       for (var field in cls.fields) {
         if ((field.location != null) && (field.location.script == script)) {
-          var a = new FieldDeclarationAnnotation(field, inspectLink(field));
-          annotations.add(a);
+          var a = new FieldDeclarationAnnotation(_isolate, _instances, _r.queue,
+              field, Uris.inspect(isolate, object: field));
+          _annotations.add(a);
         }
       }
     }
   }
 
   void addFunctionAnnotations() {
+    S.Script script = _loadedScript as S.Script;
     for (var func in script.library.functions) {
       if ((func.location != null) &&
           (func.location.script == script) &&
@@ -934,11 +552,13 @@ class ScriptInsetElement extends ObservatoryElement {
           (func.kind != M.FunctionKind.implicitSetter)) {
         // We annotate a field declaration with the field instead of the
         // implicit getter or setter.
-        var a = new FunctionDeclarationAnnotation(func, inspectLink(func));
-        annotations.add(a);
+        var a = new FunctionDeclarationAnnotation(_isolate, _instances,
+            _r.queue, func, Uris.inspect(isolate, object: func));
+        _annotations.add(a);
       }
     }
     for (var cls in script.library.classes) {
+      S.Script script = _loadedScript as S.Script;
       for (var func in cls.functions) {
         if ((func.location != null) &&
             (func.location.script == script) &&
@@ -946,8 +566,9 @@ class ScriptInsetElement extends ObservatoryElement {
             (func.kind != M.FunctionKind.implicitSetter)) {
           // We annotate a field declaration with the field instead of the
           // implicit getter or setter.
-          var a = new FunctionDeclarationAnnotation(func, inspectLink(func));
-          annotations.add(a);
+          var a = new FunctionDeclarationAnnotation(_isolate, _instances,
+              _r.queue, func, Uris.inspect(isolate, object: func));
+          _annotations.add(a);
         }
       }
     }
@@ -955,82 +576,61 @@ class ScriptInsetElement extends ObservatoryElement {
 
   void addCallSiteAnnotations() {
     for (var callSite in _callSites) {
-      annotations.add(new CallSiteAnnotation(callSite));
+      _annotations.add(
+          new CallSiteAnnotation(_isolate, _instances, _r.queue, callSite));
     }
   }
 
   void addLocalVariableAnnotations() {
+    S.Script script = _loadedScript as S.Script;
     // We have local variable information.
-    if (variables != null) {
+    if (_variables != null) {
       // For each variable.
-      for (var variable in variables) {
+      for (var variable in _variables) {
         // Find variable usage locations.
         var locations = script.scanForLocalVariableLocations(
-              variable['name'],
-              variable['_tokenPos'],
-              variable['_endTokenPos']);
+            variable['name'], variable['_tokenPos'], variable['_endTokenPos']);
 
         // Annotate locations.
         for (var location in locations) {
-          annotations.add(new LocalVariableAnnotation(location,
-                                                      variable['value']));
+          _annotations.add(new LocalVariableAnnotation(
+              _isolate, _instances, _r.queue, location, variable['value']));
         }
       }
     }
   }
 
-  int _buttonTop(Element element) {
-    if (element == null) {
-      return 5;
-    }
-    const padding = 5;
-    // TODO (cbernaschina) check if this is needed.
-    const navbarHeight = 40;
-    var rect = getBoundingClientRect();
-    var buttonHeight = element.clientHeight;
-    return min(max(0, navbarHeight - rect.top) + padding,
-               rect.height - (buttonHeight + padding));
-  }
-
-  RefreshButtonElement _newRefreshButton() {
-    var button = new Element.tag('refresh-button');
-    button.style.position = 'absolute';
-    button.style.display = 'inline-block';
-    button.style.top = '${_buttonTop(null)}px';
-    button.style.right = '5px';
-    button.callback = _refresh;
+  ButtonElement _newRefreshButton() {
+    var button = new ButtonElement();
+    button.classes = ['refresh'];
+    button.onClick.listen((_) async {
+      button.disabled = true;
+      await _refresh();
+      button.disabled = false;
+    });
     button.title = 'Refresh coverage';
+    button.children = [_iconRefresh.clone(true)];
     return button;
   }
 
-  ToggleButtonElement _newToggleProfileButton() {
-    ToggleButtonElement button = new Element.tag('toggle-button');
-    button.style.position = 'absolute';
-    button.style.display = 'inline-block';
-    button.style.top = '${_buttonTop(null)}px';
-    button.style.right = '30px';
+  ButtonElement _newToggleProfileButton() {
+    ButtonElement button = new ButtonElement();
+    button.classes =
+        _includeProfile ? ['toggle-profile', 'enabled'] : ['toggle-profile'];
     button.title = 'Toggle CPU profile information';
-    final String enabledColor = 'black';
-    final String disabledColor = 'rgba(0, 0, 0 ,.3)';
-    button.callback = (enabled) async {
-      _includeProfile = enabled;
-      if (button.children.length > 0) {
-        var content = button.children[0];
-        if (enabled) {
-          content.style.color = enabledColor;
-        } else {
-          content.style.color = disabledColor;
-        }
-      }
-      await update();
-    };
-    button.children.add(new Element.tag('icon-whatshot'));
-    button.children[0].style.color = disabledColor;
-    button.enabled = _includeProfile;
+    button.onClick.listen((_) async {
+      _includeProfile = !_includeProfile;
+      button.classes.toggle('enabled');
+      button.disabled = true;
+      _refresh();
+      button.disabled = false;
+    });
+    button.children = [_iconWhatsHot.clone(true)];
     return button;
   }
 
   Element linesTable() {
+    S.Script script = _loadedScript as S.Script;
     var table = new DivElement();
     table.classes.add("sourceTable");
 
@@ -1043,12 +643,12 @@ class ScriptInsetElement extends ObservatoryElement {
       return table;
     }
 
-    var endLine = (endPos != null
-                   ? script.tokenToLine(endPos)
-                   : script.lines.length + script.lineOffset);
+    var endLine = (_endPos != null
+        ? _loadedScript.tokenToLine(_endPos)
+        : script.lines.length + _loadedScript.lineOffset);
     var lineNumPad = endLine.toString().length;
 
-    annotationsCursor = 0;
+    _annotationsCursor = 0;
 
     int blankLineCount = 0;
     for (int i = _startLine; i <= _endLine; i++) {
@@ -1063,7 +663,7 @@ class ScriptInsetElement extends ObservatoryElement {
           int lastBlank = i - 1;
           if (blankLineCount < 4) {
             // Too few blank lines for an elipsis.
-            for (int j = firstBlank; j  <= lastBlank; j++) {
+            for (int j = firstBlank; j <= lastBlank; j++) {
               table.append(lineElement(script.getLine(j), lineNumPad));
             }
           } else {
@@ -1083,24 +683,24 @@ class ScriptInsetElement extends ObservatoryElement {
 
   // Assumes annotations are sorted.
   Annotation nextAnnotationOnLine(int line) {
-    if (annotationsCursor >= annotations.length) return null;
-    var annotation = annotations[annotationsCursor];
+    if (_annotationsCursor >= _annotations.length) return null;
+    var annotation = _annotations[_annotationsCursor];
 
     // Fast-forward past any annotations before the first line that
     // we are displaying.
     while (annotation.line < line) {
-      annotationsCursor++;
-      if (annotationsCursor >= annotations.length) return null;
-      annotation = annotations[annotationsCursor];
+      _annotationsCursor++;
+      if (_annotationsCursor >= _annotations.length) return null;
+      annotation = _annotations[_annotationsCursor];
     }
 
     // Next annotation is for a later line, don't advance past it.
     if (annotation.line != line) return null;
-    annotationsCursor++;
+    _annotationsCursor++;
     return annotation;
   }
 
-  Element lineElement(ScriptLine line, int lineNumPad) {
+  Element lineElement(S.ScriptLine line, int lineNumPad) {
     var e = new DivElement();
     e.classes.add("sourceRow");
     e.append(lineBreakpointElement(line));
@@ -1113,7 +713,7 @@ class ScriptInsetElement extends ObservatoryElement {
     return e;
   }
 
-  Element lineProfileElement(ScriptLine line, bool self) {
+  Element lineProfileElement(S.ScriptLine line, bool self) {
     var e = span('');
     e.classes.add('noCopy');
     if (self) {
@@ -1159,7 +759,7 @@ class ScriptInsetElement extends ObservatoryElement {
     return e;
   }
 
-  Element lineBreakpointElement(ScriptLine line) {
+  Element lineBreakpointElement(S.ScriptLine line) {
     var e = new DivElement();
     if (line == null || !_possibleBreakpointLines.contains(line.line)) {
       e.classes.add('noCopy');
@@ -1193,7 +793,6 @@ class ScriptInsetElement extends ObservatoryElement {
       }
     }
 
-    line.changes.listen((_) => update());
     e.onClick.listen((event) {
       if (busy) {
         return;
@@ -1201,17 +800,18 @@ class ScriptInsetElement extends ObservatoryElement {
       busy = true;
       if (line.breakpoints == null) {
         // No breakpoint.  Add it.
-        line.script.isolate.addBreakpoint(line.script, line.line)
-          .catchError((e, st) {
-            if (e is! ServerRpcException ||
-                (e as ServerRpcException).code !=
-                ServerRpcException.kCannotAddBreakpoint) {
-              app.handleException(e, st);
-            }})
-          .whenComplete(() {
-            busy = false;
-            update();
-          });
+        line.script.isolate
+            .addBreakpoint(line.script, line.line)
+            .catchError((e, st) {
+          if (e is! S.ServerRpcException ||
+              (e as S.ServerRpcException).code !=
+                  S.ServerRpcException.kCannotAddBreakpoint) {
+            ObservatoryApplication.app.handleException(e, st);
+          }
+        }).whenComplete(() {
+          busy = false;
+          update();
+        });
       } else {
         // Existing breakpoint.  Remove it.
         List pending = [];
@@ -1229,7 +829,7 @@ class ScriptInsetElement extends ObservatoryElement {
     return e;
   }
 
-  Element lineNumberElement(ScriptLine line, int lineNumPad) {
+  Element lineNumberElement(S.ScriptLine line, int lineNumPad) {
     var lineNumber = line == null ? "..." : line.line;
     var e = span("$nbsp${lineNumber.toString().padLeft(lineNumPad,nbsp)}$nbsp");
     e.classes.add('noCopy');
@@ -1281,21 +881,20 @@ class ScriptInsetElement extends ObservatoryElement {
     return e;
   }
 
-  Element lineSourceElement(ScriptLine line) {
+  Element lineSourceElement(S.ScriptLine line) {
     var e = new DivElement();
     e.classes.add("sourceItem");
 
     if (line != null) {
+      e.classes.add(makeLineClass(line.line));
       if (line.line == _currentLine) {
         e.classes.add("currentLine");
       }
 
-      e.id = makeLineId(line.line);
-
       var position = 0;
       consumeUntil(var stop) {
         if (stop <= position) {
-          return null;  // Empty gap between annotations/boundries.
+          return null; // Empty gap between annotations/boundries.
         }
         if (stop > line.text.length) {
           // Approximated token length can run past the end of the line.
@@ -1324,56 +923,482 @@ class ScriptInsetElement extends ObservatoryElement {
     return e;
   }
 
-  ScriptInsetElement.created()
-      : super.created() {
-    _updateTask = new Task(update);
+  /// Exclude nodes from being copied, for example the line numbers and
+  /// breakpoint toggles in script insets. Must be called after [root]'s
+  /// children have been added, and only supports one node at a time.
+  static void _makeCssClassUncopyable(Element root, String className) {
+    var noCopyNodes = root.getElementsByClassName(className);
+    for (var node in noCopyNodes) {
+      node.style.setProperty('-moz-user-select', 'none');
+      node.style.setProperty('-khtml-user-select', 'none');
+      node.style.setProperty('-webkit-user-select', 'none');
+      node.style.setProperty('-ms-user-select', 'none');
+      node.style.setProperty('user-select', 'none');
+    }
+    root.onCopy.listen((event) {
+      // Mark the nodes as hidden before the copy happens, then mark them as
+      // visible on the next event loop turn.
+      for (var node in noCopyNodes) {
+        node.style.visibility = 'hidden';
+      }
+      Timer.run(() {
+        for (var node in noCopyNodes) {
+          node.style.visibility = 'visible';
+        }
+      });
+    });
   }
 }
 
-@CustomTag('refresh-button')
-class RefreshButtonElement extends PolymerElement {
-  RefreshButtonElement.created() : super.created();
+const nbsp = "\u00A0";
 
-  @published var callback = null;
-  bool busy = false;
+void addInfoBox(Element content, Function infoBoxGenerator) {
+  var infoBox;
+  var show = false;
+  var originalBackground = content.style.backgroundColor;
+  buildInfoBox() {
+    infoBox = infoBoxGenerator();
+    infoBox.style.position = 'absolute';
+    infoBox.style.padding = '1em';
+    infoBox.style.border = 'solid black 2px';
+    infoBox.style.zIndex = '10';
+    infoBox.style.backgroundColor = 'white';
+    infoBox.style.cursor = 'auto';
+    // Don't inherit pre formating from the script lines.
+    infoBox.style.whiteSpace = 'normal';
+    content.append(infoBox);
+  }
 
-  Future buttonClick(var event, var b, var c) async {
-    if (busy) {
+  content.onClick.listen((event) {
+    show = !show;
+    if (infoBox == null) buildInfoBox(); // Created lazily on the first click.
+    infoBox.style.display = show ? 'block' : 'none';
+    content.style.backgroundColor = show ? 'white' : originalBackground;
+  });
+
+  // Causes infoBox to be positioned relative to the bottom-left of content.
+  content.style.display = 'inline-block';
+  content.style.cursor = 'pointer';
+}
+
+void addLink(Element content, String target) {
+  // Ick, destructive but still compatible with also adding an info box.
+  var a = new AnchorElement(href: target);
+  a.text = content.text;
+  content.text = '';
+  content.append(a);
+}
+
+abstract class Annotation implements Comparable<Annotation> {
+  M.IsolateRef _isolate;
+  M.InstanceRepository _instances;
+  RenderingQueue queue;
+  int line;
+  int columnStart;
+  int columnStop;
+  int get priority;
+
+  Annotation(this._isolate, this._instances, this.queue);
+
+  void applyStyleTo(element);
+
+  int compareTo(Annotation other) {
+    if (line == other.line) {
+      if (columnStart == other.columnStart) {
+        return priority.compareTo(other.priority);
+      }
+      return columnStart.compareTo(other.columnStart);
+    }
+    return line.compareTo(other.line);
+  }
+
+  Element table() {
+    var e = new DivElement();
+    e.style.display = "table";
+    e.style.color = "#333";
+    e.style.font = "400 14px 'Montserrat', sans-serif";
+    return e;
+  }
+
+  Element row([content]) {
+    var e = new DivElement();
+    e.style.display = "table-row";
+    if (content is String) e.text = content;
+    if (content is Element) e.children.add(content);
+    return e;
+  }
+
+  Element cell(content) {
+    var e = new DivElement();
+    e.style.display = "table-cell";
+    e.style.padding = "3px";
+    if (content is String) e.text = content;
+    if (content is Element) e.children.add(content);
+    return e;
+  }
+
+  Element serviceRef(object) {
+    return anyRef(_isolate, object, _instances, queue: queue);
+  }
+}
+
+class CurrentExecutionAnnotation extends Annotation {
+  int priority = 0; // highest priority.
+
+  CurrentExecutionAnnotation(M.IsolateRef isolate,
+      M.InstanceRepository instances, RenderingQueue queue)
+      : super(isolate, instances, queue);
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.classes.add("currentCol");
+    element.title = "Current execution";
+  }
+}
+
+class BreakpointAnnotation extends Annotation {
+  M.Breakpoint bpt;
+  int priority = 1;
+
+  BreakpointAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+      RenderingQueue queue, this.bpt)
+      : super(isolate, instances, queue) {
+    var script = bpt.location.script;
+    var location = bpt.location;
+    if (location.tokenPos != null) {
+      var pos = location.tokenPos;
+      line = script.tokenToLine(pos);
+      columnStart = script.tokenToCol(pos) - 1; // tokenToCol is 1-origin.
+    } else if (location is M.UnresolvedSourceLocation) {
+      line = location.line;
+      columnStart = location.column;
+      if (columnStart == null) {
+        columnStart = 0;
+      }
+    }
+    var length = script.guessTokenLength(line, columnStart);
+    if (length == null) {
+      length = 1;
+    }
+    columnStop = columnStart + length;
+  }
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
+    }
+    var script = bpt.location.script;
+    var pos = bpt.location.tokenPos;
+    int line = script.tokenToLine(pos);
+    int column = script.tokenToCol(pos);
+    if (bpt.resolved) {
+      element.classes.add("resolvedBreakAnnotation");
+    } else {
+      element.classes.add("unresolvedBreakAnnotation");
+    }
+    element.title = "Breakpoint ${bpt.number} at ${line}:${column}";
+  }
+}
+
+class LibraryAnnotation extends Annotation {
+  S.Library target;
+  String url;
+  int priority = 2;
+
+  LibraryAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+      RenderingQueue queue, this.target, this.url)
+      : super(isolate, instances, queue);
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.title = "library ${target.uri}";
+    addLink(element, url);
+  }
+}
+
+class PartAnnotation extends Annotation {
+  S.Script part;
+  String url;
+  int priority = 2;
+
+  PartAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+      RenderingQueue queue, this.part, this.url)
+      : super(isolate, instances, queue);
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.title = "script ${part.uri}";
+    addLink(element, url);
+  }
+}
+
+class LocalVariableAnnotation extends Annotation {
+  final value;
+  int priority = 2;
+
+  LocalVariableAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+      RenderingQueue queue, S.LocalVarLocation location, this.value)
+      : super(isolate, instances, queue) {
+    line = location.line;
+    columnStart = location.column;
+    columnStop = location.endColumn;
+  }
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "${value.shortName}";
+  }
+}
+
+class CallSiteAnnotation extends Annotation {
+  S.CallSite callSite;
+  int priority = 2;
+
+  CallSiteAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+      RenderingQueue queue, this.callSite)
+      : super(isolate, instances, queue) {
+    line = callSite.line;
+    columnStart = callSite.column - 1; // Call site is 1-origin.
+    var tokenLength = callSite.script.guessTokenLength(line, columnStart);
+    if (tokenLength == null) {
+      tokenLength = callSite.name.length; // Approximate.
+      if (callSite.name.startsWith("get:") || callSite.name.startsWith("set:"))
+        tokenLength -= 4;
+    }
+    columnStop = columnStart + tokenLength;
+  }
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
+    }
+    element.style.fontWeight = "bold";
+    element.title = "Call site: ${callSite.name}";
+
+    addInfoBox(element, () {
+      var details = table();
+      if (callSite.entries.isEmpty) {
+        details.append(row('Call of "${callSite.name}" did not execute'));
+      } else {
+        var r = row();
+        r.append(cell("Container"));
+        r.append(cell("Count"));
+        r.append(cell("Target"));
+        details.append(r);
+
+        for (var entry in callSite.entries) {
+          var r = row();
+          if (entry.receiver == null) {
+            r.append(cell(""));
+          } else {
+            r.append(cell(serviceRef(entry.receiver)));
+          }
+          r.append(cell(entry.count.toString()));
+          r.append(cell(serviceRef(entry.target)));
+          details.append(r);
+        }
+      }
+      return details;
+    });
+  }
+}
+
+abstract class DeclarationAnnotation extends Annotation {
+  String url;
+  int priority = 2;
+
+  DeclarationAnnotation(M.IsolateRef isolate, M.InstanceRepository instances,
+      RenderingQueue queue, decl, this.url)
+      : super(isolate, instances, queue) {
+    assert(decl.loaded);
+    S.SourceLocation location = decl.location;
+    if (location == null) {
+      line = 0;
+      columnStart = 0;
+      columnStop = 0;
       return;
     }
-    busy = true;
-    if (callback != null) {
-      await callback();
+
+    S.Script script = location.script;
+    line = script.tokenToLine(location.tokenPos);
+    columnStart = script.tokenToCol(location.tokenPos);
+    if ((line == null) || (columnStart == null)) {
+      line = 0;
+      columnStart = 0;
+      columnStop = 0;
+    } else {
+      columnStart--; // 1-origin -> 0-origin.
+
+      // The method's token position is at the beginning of the method
+      // declaration, which may be a return type annotation, metadata, static
+      // modifier, etc. Try to scan forward to position this annotation on the
+      // function's name instead.
+      var lineSource = script.getLine(line).text;
+      var betterStart = lineSource.indexOf(decl.name, columnStart);
+      if (betterStart != -1) {
+        columnStart = betterStart;
+      }
+      columnStop = columnStart + decl.name.length;
     }
-    busy = false;
   }
 }
 
+class ClassDeclarationAnnotation extends DeclarationAnnotation {
+  S.Class klass;
 
-@CustomTag('toggle-button')
-class ToggleButtonElement extends PolymerElement {
-  ToggleButtonElement.created() : super.created();
+  ClassDeclarationAnnotation(
+      M.IsolateRef isolate,
+      M.InstanceRepository instances,
+      RenderingQueue queue,
+      S.Class cls,
+      String url)
+      : klass = cls,
+        super(isolate, instances, queue, cls, url);
 
-  @published var callback = null;
-  @observable bool enabled = false;
-
-  Future buttonClick(var event, var b, var c) async {
-    enabled = !enabled;
-    if (callback != null) {
-      await callback(enabled);
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
     }
+    element.title = "class ${klass.name}";
+    addLink(element, url);
   }
 }
 
+class FieldDeclarationAnnotation extends DeclarationAnnotation {
+  S.Field field;
 
-@CustomTag('source-inset')
-class SourceInsetElement extends PolymerElement {
-  SourceInsetElement.created() : super.created();
+  FieldDeclarationAnnotation(
+      M.IsolateRef isolate,
+      M.InstanceRepository instances,
+      RenderingQueue queue,
+      S.Field fld,
+      String url)
+      : field = fld,
+        super(isolate, instances, queue, fld, url);
 
-  @published SourceLocation location;
-  @published String height = null;
-  @published int currentPos;
-  @published bool inDebuggerContext = false;
-  @published ObservableList variables;
-  @published Element scroller;
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
+    }
+    var tooltip = "field ${field.name}";
+    element.title = tooltip;
+    addLink(element, url);
+  }
 }
+
+class FunctionDeclarationAnnotation extends DeclarationAnnotation {
+  S.ServiceFunction function;
+
+  FunctionDeclarationAnnotation(
+      M.IsolateRef isolate,
+      M.InstanceRepository instances,
+      RenderingQueue queue,
+      S.ServiceFunction func,
+      String url)
+      : function = func,
+        super(isolate, instances, queue, func, url);
+
+  void applyStyleTo(element) {
+    if (element == null) {
+      return; // TODO(rmacnak): Handling overlapping annotations.
+    }
+    var tooltip = "method ${function.name}";
+    if (function.isOptimizable == false) {
+      tooltip += "\nUnoptimizable!";
+    }
+    if (function.isInlinable == false) {
+      tooltip += "\nNot inlinable!";
+    }
+    if (function.deoptimizations > 0) {
+      tooltip += "\nDeoptimized ${function.deoptimizations} times!";
+    }
+    element.title = tooltip;
+
+    if (function.isOptimizable == false ||
+        function.isInlinable == false ||
+        function.deoptimizations > 0) {
+      element.style.backgroundColor = "#EEA7A7"; // Low-saturation red.
+    }
+
+    addLink(element, url);
+  }
+}
+
+class ScriptLineProfile {
+  ScriptLineProfile(this.line, this.sampleCount);
+
+  static const kHotThreshold = 0.05; // 5%.
+  static const kMediumThreshold = 0.02; // 2%.
+
+  final int line;
+  final int sampleCount;
+
+  int selfTicks = 0;
+  int totalTicks = 0;
+
+  void process(int exclusive, int inclusive) {
+    selfTicks += exclusive;
+    totalTicks += inclusive;
+  }
+
+  String get formattedSelfTicks {
+    return Utils.formatPercent(selfTicks, sampleCount);
+  }
+
+  String get formattedTotalTicks {
+    return Utils.formatPercent(totalTicks, sampleCount);
+  }
+
+  double _percent(bool self) {
+    if (sampleCount == 0) {
+      return 0.0;
+    }
+    if (self) {
+      return selfTicks / sampleCount;
+    } else {
+      return totalTicks / sampleCount;
+    }
+  }
+
+  bool isHot(bool self) => _percent(self) > kHotThreshold;
+  bool isMedium(bool self) => _percent(self) > kMediumThreshold;
+}
+
+final SvgSvgElement _iconRefresh = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute(
+          'd',
+          'M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 '
+          '3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 '
+          '7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 '
+          '0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 '
+          '1.78L13 11h7V4l-2.35 2.35z')
+  ];
+
+final SvgSvgElement _iconWhatsHot = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute(
+          'd',
+          'M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 '
+          '3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 '
+          '4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 '
+          '17.41 3.8 13.5.67zM11.71 19c-1.78 '
+          '0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 '
+          '1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 '
+          '4.04 0 2.65-2.15 4.8-4.8 4.8z')
+  ];

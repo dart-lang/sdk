@@ -37,17 +37,17 @@ main() {
 main() {
   // Test that we know the type of captured, non-mutated variables.
   asyncTest(() => compileAll(TEST1).then((generated) {
-    Expect.isTrue(generated.contains('+ 87'));
-  }));
+        Expect.isTrue(generated.contains('+ 87'));
+      }));
 
   // Test that we know the type of captured, mutated variables.
   asyncTest(() => compileAll(TEST2).then((generated) {
-    Expect.isTrue(generated.contains('+ 87'));
-  }));
+        Expect.isTrue(generated.contains('+ 87'));
+      }));
 
   // Test that we know when types of a captured, mutated variable
   // conflict.
   asyncTest(() => compileAll(TEST3).then((generated) {
-    Expect.isFalse(generated.contains('+ 87'));
-  }));
+        Expect.isFalse(generated.contains('+ 87'));
+      }));
 }

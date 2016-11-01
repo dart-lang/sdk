@@ -2,6 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=certificates/server_chain.pem
+// OtherResources=certificates/server_key.pem
+// OtherResources=certificates/trusted_certs.pem
+// OtherResources=certificates/client_authority.pem
+// OtherResources=certificates/client1.pem
+// OtherResources=certificates/client1_key.pem
+// OtherResources=certificates/server_chain.p12
+// OtherResources=certificates/server_key.p12
+// OtherResources=certificates/trusted_certs.p12
+// OtherResources=certificates/client_authority.p12
+// OtherResources=certificates/client1.p12
+// OtherResources=certificates/client1_key.p12
+
 import "dart:async";
 import "dart:io";
 

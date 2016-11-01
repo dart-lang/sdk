@@ -8,6 +8,7 @@
 #include "include/dart_native_api.h"
 #include "platform/assert.h"
 #include "platform/text_buffer.h"
+#include "vm/atomic.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler.h"
@@ -142,19 +143,20 @@ NoOOBMessageScope::~NoOOBMessageScope() {
 }
 
 
-
 NoReloadScope::NoReloadScope(Isolate* isolate, Thread* thread)
     : StackResource(thread),
       isolate_(isolate) {
   ASSERT(isolate_ != NULL);
-  isolate_->no_reload_scope_depth_++;
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  AtomicOperations::FetchAndIncrement(&(isolate_->no_reload_scope_depth_));
+  ASSERT(
+      AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >= 0);
 }
 
 
 NoReloadScope::~NoReloadScope() {
-  isolate_->no_reload_scope_depth_--;
-  ASSERT(isolate_->no_reload_scope_depth_ >= 0);
+  AtomicOperations::FetchAndDecrement(&(isolate_->no_reload_scope_depth_));
+  ASSERT(
+      AtomicOperations::LoadRelaxed(&(isolate_->no_reload_scope_depth_)) >= 0);
 }
 
 
@@ -679,7 +681,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     if (!tmp.IsString()) {
       tmp = String::New(stacktrace.ToCString());
     }
-    stacktrace_str ^= tmp.raw();;
+    stacktrace_str ^= tmp.raw();
   } else {
     exc_str = String::New(result.ToErrorCString());
   }
@@ -811,6 +813,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       gc_prologue_callback_(NULL),
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
+      pending_deopts_(new MallocGrowableArray<PendingLazyDeopt>),
       deopt_context_(NULL),
       is_service_isolate_(false),
       stacktrace_(NULL),
@@ -836,11 +839,16 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0),
+#define ISOLATE_METRIC_CONSTRUCTORS(type, variable, name, unit)                \
+      metric_##variable##_(),
+      ISOLATE_METRIC_LIST(ISOLATE_METRIC_CONSTRUCTORS)
+#undef ISOLATE_METRIC_CONSTRUCTORS
       has_attempted_reload_(false),
       no_reload_scope_depth_(0),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
       reload_context_(NULL),
-      last_reload_timestamp_(OS::GetCurrentTimeMillis()) {
+      last_reload_timestamp_(OS::GetCurrentTimeMillis()),
+      should_pause_post_service_request_(false) {
   NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
@@ -876,6 +884,8 @@ Isolate::~Isolate() {
   constant_canonicalization_mutex_ = NULL;
   delete megamorphic_lookup_mutex_;
   megamorphic_lookup_mutex_ = NULL;
+  delete pending_deopts_;
+  pending_deopts_ = NULL;
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
@@ -1039,6 +1049,26 @@ void Isolate::set_debugger_name(const char* name) {
 }
 
 
+bool Isolate::IsPaused() const {
+  return (debugger_ != NULL) && (debugger_->PauseEvent() != NULL);
+}
+
+
+void Isolate::PausePostRequest() {
+  if (!FLAG_support_debugger) {
+    return;
+  }
+  if (debugger_ == NULL) {
+    return;
+  }
+  ASSERT(!IsPaused());
+  const Error& error = Error::Handle(debugger_->PausePostRequest());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+  }
+}
+
+
 void Isolate::BuildName(const char* name_prefix) {
   ASSERT(name_ == NULL);
   if (name_prefix == NULL) {
@@ -1074,7 +1104,8 @@ void Isolate::DoneLoading() {
 bool Isolate::CanReload() const {
 #ifndef PRODUCT
   return !ServiceIsolate::IsServiceIsolateDescendant(this) &&
-         is_runnable() && !IsReloading() && (no_reload_scope_depth_ == 0) &&
+         is_runnable() && !IsReloading() &&
+         (AtomicOperations::LoadRelaxed(&no_reload_scope_depth_) == 0) &&
          IsolateCreationEnabled();
 #else
   return false;
@@ -1501,6 +1532,9 @@ static void ShutdownIsolate(uword parameter) {
     // TODO(27003): Enable for precompiled.
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
     if (!isolate->HasAttemptedReload()) {
+      // For this verification we need to stop the background compiler earlier.
+      // This would otherwise happen in Dart::ShowdownIsolate.
+      isolate->StopBackgroundCompiler();
       isolate->heap()->CollectAllGarbage();
       VerifyCanonicalVisitor check_canonical(thread);
       isolate->heap()->IterateObjects(&check_canonical);
@@ -1518,9 +1552,10 @@ static void ShutdownIsolate(uword parameter) {
 
 
 void Isolate::SetStickyError(RawError* sticky_error) {
-  ASSERT(sticky_error_ == Error::null());
+  ASSERT(((sticky_error_ == Error::null()) ||
+         (sticky_error == Error::null())) &&
+         (sticky_error != sticky_error_));
   sticky_error_ = sticky_error;
-  message_handler()->PausedOnExit(true);
 }
 
 
@@ -1736,20 +1771,10 @@ void Isolate::Shutdown() {
   if (heap_ != NULL) {
     // Wait for any concurrent GC tasks to finish before shutting down.
     // TODO(koda): Support faster sweeper shutdown (e.g., after current page).
-    {
-      PageSpace* old_space = heap_->old_space();
-      MonitorLocker ml(old_space->tasks_lock());
-      while (old_space->tasks() > 0) {
-        ml.Wait();
-      }
-    }
-
-    // Wait for background finalization to finish before shutting down.
-    {
-      MonitorLocker ml(heap_->finalization_tasks_lock());
-      while (heap_->finalization_tasks() > 0) {
-        ml.Wait();
-      }
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
+      ml.Wait();
     }
   }
 
@@ -1895,8 +1920,50 @@ RawClass* Isolate::GetClassForHeapWalkAt(intptr_t cid) {
   raw_class = class_table()->At(cid);
 #endif  // !PRODUCT
   ASSERT(raw_class != NULL);
+#if !defined(DART_PRECOMPILER)
+  // This is temporarily untrue during a class id remap.
   ASSERT(raw_class->ptr()->id_ == cid);
+#endif
   return raw_class;
+}
+
+
+void Isolate::AddPendingDeopt(uword fp, uword pc) {
+  // GrowableArray::Add is not atomic and may be interrupt by a profiler
+  // stack walk.
+  MallocGrowableArray<PendingLazyDeopt>* old_pending_deopts = pending_deopts_;
+  MallocGrowableArray<PendingLazyDeopt>* new_pending_deopts
+      = new MallocGrowableArray<PendingLazyDeopt>(
+          old_pending_deopts->length() + 1);
+  for (intptr_t i = 0; i < old_pending_deopts->length(); i++) {
+    ASSERT((*old_pending_deopts)[i].fp() != fp);
+    new_pending_deopts->Add((*old_pending_deopts)[i]);
+  }
+  PendingLazyDeopt deopt(fp, pc);
+  new_pending_deopts->Add(deopt);
+
+  pending_deopts_ = new_pending_deopts;
+  delete old_pending_deopts;
+}
+
+
+uword Isolate::FindPendingDeopt(uword fp) const {
+  for (intptr_t i = 0; i < pending_deopts_->length(); i++) {
+    if ((*pending_deopts_)[i].fp() == fp) {
+      return (*pending_deopts_)[i].pc();
+    }
+  }
+  FATAL("Missing pending deopt entry");
+  return 0;
+}
+
+
+void Isolate::ClearPendingDeoptsAtOrBelow(uword fp) const {
+  for (intptr_t i = pending_deopts_->length() - 1; i >= 0; i--) {
+    if ((*pending_deopts_)[i].fp() <= fp) {
+      pending_deopts_->RemoveAt(i);
+    }
+  }
 }
 
 
@@ -1956,8 +2023,8 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
     ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
     jsobj.AddProperty("pauseEvent", &pause_event);
-  } else if (message_handler()->is_paused_on_exit()) {
-    ASSERT((debugger() == NULL) || (debugger()->PauseEvent() == NULL));
+  } else if (message_handler()->is_paused_on_exit() &&
+             ((debugger() == NULL) || (debugger()->PauseEvent() == NULL))) {
     ServiceEvent pause_event(this, ServiceEvent::kPauseExit);
     jsobj.AddProperty("pauseEvent", &pause_event);
   } else if ((debugger() != NULL) &&
@@ -1983,7 +2050,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("rootLib", lib);
   }
 
-  {
+  if (FLAG_profiler) {
     JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
@@ -2121,7 +2188,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
 
 RawField* Isolate::GetDeoptimizingBoxedField() {
   ASSERT(Thread::Current()->IsMutatorThread());
-  MutexLocker ml(field_list_mutex_);
+  SafepointMutexLocker ml(field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
     return Field::null();
   }
@@ -2192,12 +2259,10 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
           "[+%" Pd64 "ms] Isolate %s : _runExtension complete for %s\n",
           Dart::timestamp(), name(), method_name.ToCString());
     }
+    // Propagate the error.
     if (result.IsError()) {
-      if (result.IsUnwindError()) {
-        // Propagate the unwind error. Remaining service extension calls
-        // are dropped.
-        return result.raw();
-      } else {
+      // Remaining service extension calls are dropped.
+      if (!result.IsUnwindError()) {
         // Send error back over the protocol.
         Service::PostError(method_name,
                            parameter_keys,
@@ -2206,9 +2271,13 @@ RawObject* Isolate::InvokePendingServiceExtensionCalls() {
                            id,
                            Error::Cast(result));
       }
+      return result.raw();
     }
+    // Drain the microtask queue.
     result = DartLibraryCalls::DrainMicrotaskQueue();
+    // Propagate the error.
     if (result.IsError()) {
+      // Remaining service extension calls are dropped.
       return result.raw();
     }
   }

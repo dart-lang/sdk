@@ -32,10 +32,10 @@ class D extends C {
   bar() => 'D.bar';
 }
 
-makeA() native;
-makeB() native;
-makeC() native;
-makeD() native;
+makeA() native ;
+makeB() native ;
+makeC() native ;
+makeD() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
@@ -63,7 +63,6 @@ makeB = function(){return new B};
 makeC = function(){return new C};
 makeD = function(){return new D};
 """;
-
 
 main() {
   setup();

@@ -216,6 +216,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   _SourcePart _methodExpressionPart;
   _SourcePart _methodStatementsPart;
   List<_ReferenceProcessor> _referenceProcessors = [];
+  Set<FunctionBody> _alreadyMadeAsync = new Set<FunctionBody>();
 
   InlineMethodRefactoringImpl(this.searchEngine, this.unit, this.offset) {
     utils = new CorrectionUtils(unit);
@@ -285,6 +286,11 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // maybe operator
     if (_methodElement.isOperator) {
       result = new RefactoringStatus.fatal('Cannot inline operator.');
+      return new Future<RefactoringStatus>.value(result);
+    }
+    // maybe [a]sync*
+    if (_methodElement.isGenerator) {
+      result = new RefactoringStatus.fatal('Cannot inline a generator.');
       return new Future<RefactoringStatus>.value(result);
     }
     // analyze method body
@@ -559,6 +565,33 @@ class _ReferenceProcessor {
     // may be only single place should be inlined
     if (!_shouldProcess()) {
       return;
+    }
+    // If the element being inlined is async, ensure that the function
+    // body that encloses the method is also async.
+    if (ref._methodElement.isAsynchronous) {
+      FunctionBody body = _node.getAncestor((n) => n is FunctionBody);
+      if (body != null) {
+        if (body.isSynchronous) {
+          if (body.isGenerator) {
+            status.addFatalError(
+                'Cannot inline async into sync*.', newLocation_fromNode(_node));
+            return;
+          }
+          if (refElement is ExecutableElement) {
+            var executable = refElement as ExecutableElement;
+            if (!executable.returnType.isDartAsyncFuture) {
+              status.addFatalError(
+                  'Cannot inline async into a function that does not return a Future.',
+                  newLocation_fromNode(_node));
+              return;
+            }
+          }
+          if (ref._alreadyMadeAsync.add(body)) {
+            SourceRange bodyStart = rangeStartLength(body.offset, 0);
+            _addRefEdit(newSourceEdit_range(bodyStart, 'async '));
+          }
+        }
+      }
     }
     // may be invocation of inline method
     if (nodeParent is MethodInvocation) {

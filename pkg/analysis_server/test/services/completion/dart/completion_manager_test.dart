@@ -13,15 +13,15 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/imported_reference_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(CompletionManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CompletionManagerTest);
+  });
 }
 
 @reflectiveTest
@@ -91,6 +91,7 @@ part '$testFile';
         fail('Failed to find $expectedUri in $importedNames');
       });
     }
+
     void assertImportedLib(String expectedUri) {
       ImportElement importElem = importNamed(expectedUri);
       expect(importElem.importedLibrary.exportNamespace, isNotNull);

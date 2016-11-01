@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
 import 'service_test_common.dart';
 
-const int LINE_A = 19;
+const int LINE_A = 20;
 
 foo() async { }
 bar() { }
@@ -48,7 +49,7 @@ stepOverAwaitingResume(Isolate isolate) async {
 }
 
 smartNext(Isolate isolate) async {
-  if (isolate.pauseEvent.atAsyncSuspension) {
+  if (M.isAtAsyncSuspension(isolate.pauseEvent)) {
     print("next-async");
     return asyncStepOver(isolate);
   } else {

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_IO_SERVICE_H_
-#define BIN_IO_SERVICE_H_
+#ifndef RUNTIME_BIN_IO_SERVICE_H_
+#define RUNTIME_BIN_IO_SERVICE_H_
 
 #if defined(DART_IO_DISABLED) || defined(DART_IO_SECURE_SOCKET_DISABLED)
 #error "io_service.h can only be included on builds with IO and SSL enabled"
@@ -77,4 +77,4 @@ IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST)
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_IO_SERVICE_H_
+#endif  // RUNTIME_BIN_IO_SERVICE_H_

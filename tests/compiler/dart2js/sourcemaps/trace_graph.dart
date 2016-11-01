@@ -59,14 +59,8 @@ class TraceStep {
 
   List stack;
 
-  TraceStep(
-      this.kind,
-      this.id,
-      this.node,
-      this.offset,
-      this.text,
+  TraceStep(this.kind, this.id, this.node, this.offset, this.text,
       [this.sourceLocation]);
 
   String toString() => '<span style="background:${toColorCss(id)}">$id</span>';
 }
-

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_PROCESS_H_
-#define BIN_PROCESS_H_
+#ifndef RUNTIME_BIN_PROCESS_H_
+#define RUNTIME_BIN_PROCESS_H_
 
 #include "bin/builtin.h"
 #include "bin/io_buffer.h"
@@ -126,6 +126,16 @@ class Process {
     global_exit_code_ = exit_code;
   }
 
+  typedef void (*ExitHook)(int64_t exit_code);
+  static void SetExitHook(ExitHook hook) {
+    exit_hook_ = hook;
+  }
+  static void RunExitHook(int64_t exit_code) {
+    if (exit_hook_ != NULL) {
+      exit_hook_(exit_code);
+    }
+  }
+
   static intptr_t CurrentProcessId();
 
   static intptr_t SetSignalHandler(intptr_t signal);
@@ -139,6 +149,7 @@ class Process {
  private:
   static int global_exit_code_;
   static Mutex* global_exit_code_mutex_;
+  static ExitHook exit_hook_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
@@ -294,4 +305,4 @@ class BufferListBase {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_PROCESS_H_
+#endif  // RUNTIME_BIN_PROCESS_H_

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_STUB_CODE_H_
-#define VM_STUB_CODE_H_
+#ifndef RUNTIME_VM_STUB_CODE_H_
+#define RUNTIME_VM_STUB_CODE_H_
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
@@ -37,13 +37,16 @@ class Deserializer;
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
-  V(ICLookupThroughFunction)                                                   \
-  V(ICLookupThroughCode)                                                       \
-  V(MegamorphicLookup)                                                         \
+  V(UnlinkedCall)                                                              \
   V(MonomorphicMiss)                                                           \
+  V(SingleTargetCall)                                                          \
+  V(ICCallThroughFunction)                                                     \
+  V(ICCallThroughCode)                                                         \
+  V(MegamorphicCall)                                                           \
   V(FixAllocationStubTarget)                                                   \
   V(Deoptimize)                                                                \
-  V(DeoptimizeLazy)                                                            \
+  V(DeoptimizeLazyFromReturn)                                                  \
+  V(DeoptimizeLazyFromThrow)                                                   \
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \
   V(ICCallBreakpoint)                                                          \
@@ -71,7 +74,8 @@ class Deserializer;
   V(LazyCompile)                                                               \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
-  V(DeoptimizeLazy)                                                            \
+  V(DeoptimizeLazyFromReturn)                                                  \
+  V(DeoptimizeLazyFromThrow)                                                   \
   V(FrameAwaitingMaterialization)                                              \
 
 #endif  // !defined(TARGET_ARCH_DBC)
@@ -192,10 +196,11 @@ class StubCode : public AllStatic {
 
 
 enum DeoptStubKind {
-  kLazyDeopt,
+  kLazyDeoptFromReturn,
+  kLazyDeoptFromThrow,
   kEagerDeopt
 };
 
 }  // namespace dart
 
-#endif  // VM_STUB_CODE_H_
+#endif  // RUNTIME_VM_STUB_CODE_H_

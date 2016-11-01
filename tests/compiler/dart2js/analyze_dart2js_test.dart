@@ -21,16 +21,14 @@ import 'related_types.dart';
  */
 // TODO(johnniwinther): Support canonical URIs as keys and message kinds as
 // values.
-const Map<String,List<String>> WHITE_LIST = const {
-};
+const Map<String, List<String>> WHITE_LIST = const {};
 
 void main() {
   var uri = currentDirectory.resolve('pkg/compiler/lib/src/dart2js.dart');
   asyncTest(() => analyze([uri], WHITE_LIST, checkResults: checkResults));
 }
 
-bool checkResults(Compiler compiler,
-                  CollectingDiagnosticHandler handler) {
+bool checkResults(Compiler compiler, CollectingDiagnosticHandler handler) {
   checkRelatedTypes(compiler);
   return !handler.hasHint;
 }

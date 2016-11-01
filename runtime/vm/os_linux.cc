@@ -19,6 +19,7 @@
 #include <fcntl.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
+#include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/code_observers.h"
 #include "vm/dart.h"
@@ -188,23 +189,6 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 }
 
 
-void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
-  const int kMinimumAlignment = 16;
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  void* p = memalign(alignment, size);
-  if (p == NULL) {
-    UNREACHABLE();
-  }
-  return p;
-}
-
-
-void OS::AlignedFree(void* ptr) {
-  free(ptr);
-}
-
-
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_linux.cc
 intptr_t OS::ActivationFrameAlignment() {
@@ -257,6 +241,15 @@ bool OS::AllowStackFrameIteratorFromAnotherThread() {
 
 int OS::NumberOfAvailableProcessors() {
   return sysconf(_SC_NPROCESSORS_ONLN);
+}
+
+
+uintptr_t OS::MaxRSS() {
+  struct rusage usage;
+  usage.ru_maxrss = 0;
+  int r = getrusage(RUSAGE_SELF, &usage);
+  ASSERT(r == 0);
+  return usage.ru_maxrss * KB;
 }
 
 
@@ -329,6 +322,7 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
 
 
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
+  MSAN_UNPOISON(str, size);
   int retval = vsnprintf(str, size, format, args);
   if (retval < 0) {
     FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);

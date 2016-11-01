@@ -99,20 +99,16 @@ testExport() {
 }
 
 testConditionalImport() {
-  testUnparseTopLevelWithMetadata(
-      'import "søhest" if(some.dotted.id)"other";');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest" if(id=="some str")"other";');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest"'
+  testUnparseTopLevelWithMetadata('import "søhest" if(some.dotted.id)"other";');
+  testUnparseTopLevelWithMetadata('import "søhest" if(id=="some str")"other";');
+  testUnparseTopLevelWithMetadata('import "søhest"'
       ' if(id=="some str")"other"'
       ' if(id)"other2";');
   testUnparseTopLevelWithMetadata(
       'import "søhest" if(some.dotted.id)"other" as fiskehest;');
   testUnparseTopLevelWithMetadata(
       'import "søhest" if(id=="some str")"other" as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest"'
+  testUnparseTopLevelWithMetadata('import "søhest"'
       ' if(id=="some str")"other"'
       ' if(id)"other2"'
       ' as fiskehest;');
@@ -120,13 +116,11 @@ testConditionalImport() {
       'import "søhest" if(some.dotted.id)"other" deferred as fiskehest;');
   testUnparseTopLevelWithMetadata(
       'import "søhest" if(id=="some str")"other" deferred as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest"'
+  testUnparseTopLevelWithMetadata('import "søhest"'
       ' if(id=="some str")"other"'
       ' if(id)"other2"'
       ' deferred as fiskehest;');
-  testUnparseTopLevelWithMetadata(
-      'import "søhest"'
+  testUnparseTopLevelWithMetadata('import "søhest"'
       ' if(id=="some str")"other"'
       ' if(id)"other2"'
       ' deferred as fiskehest'
@@ -134,16 +128,12 @@ testConditionalImport() {
 }
 
 testConditionalExport() {
-  testUnparseTopLevelWithMetadata(
-      'export "søhest" if(some.dotted.id)"other";');
-  testUnparseTopLevelWithMetadata(
-      'export "søhest" if(id=="some str")"other";');
-  testUnparseTopLevelWithMetadata(
-      'export "søhest"'
+  testUnparseTopLevelWithMetadata('export "søhest" if(some.dotted.id)"other";');
+  testUnparseTopLevelWithMetadata('export "søhest" if(id=="some str")"other";');
+  testUnparseTopLevelWithMetadata('export "søhest"'
       ' if(id=="some str")"other"'
       ' if(id)"other2";');
-  testUnparseTopLevelWithMetadata(
-      'export "søhest"'
+  testUnparseTopLevelWithMetadata('export "søhest"'
       ' if(id=="some str")"other"'
       ' if(id)"other2"'
       ' show foo,bar;');
@@ -277,15 +267,13 @@ testRedirectingFactoryConstructors() {
   testUnparseMemberAndAsMemberOfFoo("factory Foo()=prefix.Bar<T>;");
   testUnparseMemberAndAsMemberOfFoo("factory Foo()=prefix.Bar<List<T>,T>;");
   testUnparseMemberAndAsMemberOfFoo("factory Foo()=prefix.Bar<T>.baz;");
-  testUnparseMemberAndAsMemberOfFoo(
-      "factory Foo()=prefix.Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("factory Foo()=prefix.Bar<List<T>,T>.baz;");
   testUnparseMemberAndAsMemberOfFoo("const factory Foo()=Bar;");
   testUnparseMemberAndAsMemberOfFoo("const factory Foo()=Bar.baz;");
   testUnparseMemberAndAsMemberOfFoo("const factory Foo()=Bar<T>;");
   testUnparseMemberAndAsMemberOfFoo("const factory Foo()=Bar<List<T>,T>;");
   testUnparseMemberAndAsMemberOfFoo("const factory Foo()=Bar<T>.baz;");
-  testUnparseMemberAndAsMemberOfFoo(
-      "const factory Foo()=Bar<List<T>,T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("const factory Foo()=Bar<List<T>,T>.baz;");
   testUnparseMemberAndAsMemberOfFoo("const factory Foo()=prefix.Bar;");
   testUnparseMemberAndAsMemberOfFoo("const factory Foo()=prefix.Bar.baz;");
   testUnparseMemberAndAsMemberOfFoo("const factory Foo()=prefix.Bar<T>;");
@@ -315,12 +303,10 @@ testRedirectingFactoryConstructors() {
   testUnparseMemberAndAsMemberOfFoo("external const factory Foo()=Bar<T>;");
   testUnparseMemberAndAsMemberOfFoo(
       "external const factory Foo()=Bar<List<T>,T>;");
-  testUnparseMemberAndAsMemberOfFoo(
-      "external const factory Foo()=Bar<T>.baz;");
+  testUnparseMemberAndAsMemberOfFoo("external const factory Foo()=Bar<T>.baz;");
   testUnparseMemberAndAsMemberOfFoo(
       "external const factory Foo()=Bar<List<T>,T>.baz;");
-  testUnparseMemberAndAsMemberOfFoo(
-      "external const factory Foo()=prefix.Bar;");
+  testUnparseMemberAndAsMemberOfFoo("external const factory Foo()=prefix.Bar;");
   testUnparseMemberAndAsMemberOfFoo(
       "external const factory Foo()=prefix.Bar.baz;");
   testUnparseMemberAndAsMemberOfFoo(
@@ -378,22 +364,20 @@ testUnparseParameters(List<String> variableDeclarations) {
     Expect.equals(variableDeclarations[index], unparse(parameter));
     index++;
   }
-
 }
 
 testParameters() {
-  testUnparseParameters(
-      ["foo", "bar=0", "int baz", "int boz=0"]);
+  testUnparseParameters(["foo", "bar=0", "int baz", "int boz=0"]);
   testUnparseParameters(
       ["this.foo", "this.bar=0", "int this.baz", "int this.boz=0"]);
   testUnparseParameters(
       ["foo()", "void bar()", "int baz(a)", "int boz(int a,int b)=null"]);
-  testUnparseParameters(
-      ["this.foo()",
-       //"void this.bar()", // Commented out due to Issue 7852
-       //"int this.baz(a)", // Commented out due to Issue 7852
-       //"int this.boz(int a,int b)=null" // Commented out due to Issue 7852
-       ]);
+  testUnparseParameters([
+    "this.foo()",
+    //"void this.bar()", // Commented out due to Issue 7852
+    //"int this.baz(a)", // Commented out due to Issue 7852
+    //"int this.boz(int a,int b)=null" // Commented out due to Issue 7852
+  ]);
   testUnparseParameters(
       ["@a foo", "@b @c bar=0", "@D(0) int baz", "@E([f],{g:h}) int boz=0"]);
 }

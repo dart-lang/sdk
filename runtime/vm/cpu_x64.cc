@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/globals.h"
-
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/cpu.h"
+#include "vm/cpu_x64.h"
 
 #include "vm/assembler.h"
 #include "vm/constants_x64.h"

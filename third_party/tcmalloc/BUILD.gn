@@ -1,0 +1,126 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+config("internal_config") {
+  visibility = [ ":*" ]  # Only targets in this file can depend on this.
+  cflags = [
+    "-Wall",
+    "-Wextra",
+    "-Wno-missing-field-initializers",
+    "-Wno-sign-compare",
+    "-Wno-type-limits",
+    "-Wno-unused-result",
+    "-Wno-unused-parameter",
+    "-Wno-unused-function",
+    "-Wno-vla",
+    "-g3",
+    "-ggdb3",
+    "-fstack-protector",
+    "-Wa,--noexecstack",
+    "-fno-omit-frame-pointer",
+    "-fno-builtin-malloc",
+    "-fno-builtin-free",
+    "-fno-builtin-realloc",
+    "-fno-builtin-calloc",
+    "-fno-builtin-cfree",
+    "-fno-builtin-memalign",
+    "-fno-builtin-posix_memalign",
+    "-fno-builtin-valloc",
+    "-fno-builtin-pvalloc",
+  ]
+  if (is_clang) {
+    cflags += [ "-Wno-unused-const-variable" ]
+  }
+}
+
+config("link_config") {
+  visibility = [ ":*" ]  # Only targets in this file can depend on this.
+  ldflags = [
+    # Don't let linker rip this symbol out, otherwise the heap&cpu
+    # profilers will not initialize properly on startup.
+    "-Wl,-uIsHeapProfilerRunning,-uProfilerStart",
+  ]
+}
+
+source_set("dynamic_annotations") {
+  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs += [ ":internal_config" ]
+
+  include_dirs = [
+    "include",
+    "gperftools/src/base",
+    "gperftools/src",
+  ]
+
+  sources = [
+    "gperftools/src/base/dynamic_annotations.c",
+    "gperftools/src/base/dynamic_annotations.h",
+  ]
+}
+
+tcmalloc_sources_list = exec_script("../../tools/gypi_to_gn.py",
+                                    [ rebase_path("tcmalloc_sources.gypi") ],
+                                    "scope",
+                                    [ "tcmalloc_sources.gypi" ])
+
+source_set("tcmalloc") {
+  configs -= [ "//build/config/compiler:chromium_code" ]
+  configs += [ ":internal_config" ]
+
+  public_configs = [ ":link_config" ]
+
+  deps = [
+    ":dynamic_annotations",
+  ]
+
+  include_dirs = [
+    "include",
+    "gperftools/src/base",
+    "gperftools/src",
+  ]
+
+  # Disable the heap checker in tcmalloc.
+  defines = [
+    "ENABLE_EMERGENCY_MALLOC",
+    "NO_HEAP_CHECK",
+
+    # Disable debug even in a Dart Debug build. It is too slow.
+    "NDEBUG",
+  ]
+
+  # Disable stack sampling for heap profiling in Product builds.
+  if (is_product) {
+    defines += [ "NO_TCMALLOC_SAMPLES" ]
+  }
+
+  cflags = [
+    "-Wnon-virtual-dtor",
+    "-Woverloaded-virtual",
+    "-fno-rtti",
+    "-fpermissive",
+  ]
+
+  if (!is_clang && current_cpu == "x86") {
+    cflags += [ "-Wno-format" ]
+  }
+
+  set_sources_assignment_filter([
+                                  # No debug allocator.
+                                  "gperftools/src/debugallocation.cc",
+
+                                  # Not needed when using emergency malloc.
+                                  "gperftools/src/fake_stacktrace_scope.cc",
+
+                                  # Not using the cpuprofiler
+                                  "gperftools/src/base/thread_lister.c",
+                                  "gperftools/src/base/thread_lister.h",
+                                  "gperftools/src/profile-handler.cc",
+                                  "gperftools/src/profile-handler.h",
+                                  "gperftools/src/profiledata.cc",
+                                  "gperftools/src/profiledata.h",
+                                  "gperftools/src/profiler.cc",
+                                ])
+
+  sources = tcmalloc_sources_list.sources
+}

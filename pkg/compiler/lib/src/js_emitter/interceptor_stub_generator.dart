@@ -57,7 +57,7 @@ class InterceptorStubGenerator {
     bool hasString = false;
     bool hasNative = false;
     bool anyNativeClasses =
-        compiler.enqueuer.codegen.nativeEnqueuer.hasInstantiatedNativeClasses();
+        compiler.enqueuer.codegen.nativeEnqueuer.hasInstantiatedNativeClasses;
 
     for (ClassElement cls in classes) {
       if (cls == helpers.jsArrayClass ||
@@ -248,7 +248,7 @@ class InterceptorStubGenerator {
       bool containsJsIndexable =
           helpers.jsIndexingBehaviorInterface.isResolved &&
               classes.any((cls) {
-                return compiler.world
+                return compiler.closedWorld
                     .isSubtypeOf(cls, helpers.jsIndexingBehaviorInterface);
               });
       // The index set operator requires a check on its set value in

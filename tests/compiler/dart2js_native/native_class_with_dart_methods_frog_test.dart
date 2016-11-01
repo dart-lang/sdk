@@ -9,22 +9,22 @@ import "package:expect/expect.dart";
 
 @Native("A")
 class A {
-
   var _field;
 
   int get X => _field;
-  void set X(int x) { _field = x; }
+  void set X(int x) {
+    _field = x;
+  }
 
   int method(int z) => _field + z;
 }
 
-A makeA() native;
+A makeA() native ;
 
 void setup() native """
 function A() {}
 makeA = function(){return new A;};
 """;
-
 
 main() {
   setup();

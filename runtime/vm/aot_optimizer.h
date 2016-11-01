@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_AOT_OPTIMIZER_H_
-#define VM_AOT_OPTIMIZER_H_
+#ifndef RUNTIME_VM_AOT_OPTIMIZER_H_
+#define RUNTIME_VM_AOT_OPTIMIZER_H_
 
 #include "vm/intermediate_language.h"
 #include "vm/flow_graph.h"
@@ -17,16 +17,9 @@ class RawBool;
 
 class AotOptimizer : public FlowGraphVisitor {
  public:
-  AotOptimizer(
-      FlowGraph* flow_graph,
-      bool use_speculative_inlining,
-      GrowableArray<intptr_t>* inlining_black_list)
-      : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        flow_graph_(flow_graph),
-        use_speculative_inlining_(use_speculative_inlining),
-        inlining_black_list_(inlining_black_list) {
-    ASSERT(!use_speculative_inlining || (inlining_black_list != NULL));
-  }
+  AotOptimizer(FlowGraph* flow_graph,
+               bool use_speculative_inlining,
+               GrowableArray<intptr_t>* inlining_black_list);
   virtual ~AotOptimizer() {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
@@ -41,15 +34,12 @@ class AotOptimizer : public FlowGraphVisitor {
   // Use propagated class ids to optimize, replace or eliminate instructions.
   void ApplyClassIds();
 
-  // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
-  // shift can be a truncating Smi shift-left and result is always Smi.
-  // Merge instructions (only per basic-block).
-  void TryOptimizePatterns();
-
   void ReplaceArrayBoundChecks();
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
+  virtual void VisitPolymorphicInstanceCall(
+      PolymorphicInstanceCallInstr* instr);
   virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);
 
   void InsertBefore(Instruction* next,
@@ -78,18 +68,6 @@ class AotOptimizer : public FlowGraphVisitor {
                                const ICData& unary_ic_data);
 
   bool TryInlineInstanceMethod(InstanceCallInstr* call);
-  bool TryInlineFloat32x4Constructor(StaticCallInstr* call,
-                                     MethodRecognizer::Kind recognized_kind);
-  bool TryInlineFloat64x2Constructor(StaticCallInstr* call,
-                                     MethodRecognizer::Kind recognized_kind);
-  bool TryInlineInt32x4Constructor(StaticCallInstr* call,
-                                    MethodRecognizer::Kind recognized_kind);
-  bool TryInlineFloat32x4Method(InstanceCallInstr* call,
-                                MethodRecognizer::Kind recognized_kind);
-  bool TryInlineFloat64x2Method(InstanceCallInstr* call,
-                                MethodRecognizer::Kind recognized_kind);
-  bool TryInlineInt32x4Method(InstanceCallInstr* call,
-                               MethodRecognizer::Kind recognized_kind);
   void ReplaceWithInstanceOf(InstanceCallInstr* instr);
   bool TypeCheckAsClassEquality(const AbstractType& type);
   void ReplaceWithTypeCast(InstanceCallInstr* instr);
@@ -123,16 +101,9 @@ class AotOptimizer : public FlowGraphVisitor {
 
   void ReplaceCall(Definition* call, Definition* replacement);
 
-
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;
 
-  bool InlineFloat32x4Getter(InstanceCallInstr* call,
-                             MethodRecognizer::Kind getter);
-  bool InlineFloat64x2Getter(InstanceCallInstr* call,
-                             MethodRecognizer::Kind getter);
-  bool InlineInt32x4Getter(InstanceCallInstr* call,
-                            MethodRecognizer::Kind getter);
   bool InlineFloat32x4BinaryOp(InstanceCallInstr* call,
                                Token::Kind op_kind);
   bool InlineInt32x4BinaryOp(InstanceCallInstr* call,
@@ -148,14 +119,6 @@ class AotOptimizer : public FlowGraphVisitor {
   void ReplaceWithMathCFunction(InstanceCallInstr* call,
                                 MethodRecognizer::Kind recognized_kind);
 
-  void OptimizeLeftShiftBitAndSmiOp(Definition* bit_and_instr,
-                                    Definition* left_instr,
-                                    Definition* right_instr);
-  void TryMergeTruncDivMod(GrowableArray<BinarySmiOpInstr*>* merge_candidates);
-  void TryMergeMathUnary(GrowableArray<MathUnaryInstr*>* merge_candidates);
-
-  void AppendExtractNthOutputForMerged(Definition* instr, intptr_t ix,
-                                       Representation rep, intptr_t cid);
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
 
   RawField* GetField(intptr_t class_id, const String& field_name);
@@ -174,10 +137,12 @@ class AotOptimizer : public FlowGraphVisitor {
 
   GrowableArray<intptr_t>* inlining_black_list_;
 
+  bool has_unique_no_such_method_;
+
   DISALLOW_COPY_AND_ASSIGN(AotOptimizer);
 };
 
 
 }  // namespace dart
 
-#endif  // VM_AOT_OPTIMIZER_H_
+#endif  // RUNTIME_VM_AOT_OPTIMIZER_H_

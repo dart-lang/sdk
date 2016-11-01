@@ -18,7 +18,7 @@ import 'package:compiler/src/diagnostics/messages.dart'
 import 'output_collector.dart';
 
 runCompiler(String main, List<String> options,
-            onValue(String code, List errors, List warnings)) {
+    onValue(String code, List errors, List warnings)) {
   List errors = new List();
   List warnings = new List();
 
@@ -27,8 +27,8 @@ runCompiler(String main, List<String> options,
     return new Future<String>.value(main);
   }
 
-  void localHandler(Uri uri, int begin, int end,
-                    String message, Diagnostic kind) {
+  void localHandler(
+      Uri uri, int begin, int end, String message, Diagnostic kind) {
     dummy.handler(uri, begin, end, message, kind);
     if (kind == Diagnostic.ERROR) {
       errors.add(message);
@@ -42,137 +42,121 @@ runCompiler(String main, List<String> options,
   print('options: $options\n');
   asyncStart();
   OutputCollector outputCollector = new OutputCollector();
-  Future<CompilationResult> result =
-      compile(new Uri(scheme: 'main'),
-              new Uri(scheme: 'lib', path: '/'),
-              new Uri(scheme: 'package', path: '/'),
-              localProvider, localHandler, options, outputCollector);
-  result.then((_) {
-    onValue(outputCollector.getOutput('', 'js'), errors, warnings);
-  }, onError: (e, st) {
-    throw 'Compilation failed: ${e} ${st}';
-  }).then(asyncSuccess).catchError((error, stack) {
-    print('\n\n-----------------------------------------------');
-    print('main source:\n$main');
-    print('options: $options\n');
-    print('threw:\n $error\n$stack');
-    print('-----------------------------------------------\n\n');
-    throw error;
-  });
+  Future<CompilationResult> result = compile(
+      new Uri(scheme: 'main'),
+      new Uri(scheme: 'lib', path: '/'),
+      new Uri(scheme: 'package', path: '/'),
+      localProvider,
+      localHandler,
+      options,
+      outputCollector);
+  result
+      .then((_) {
+        onValue(outputCollector.getOutput('', 'js'), errors, warnings);
+      }, onError: (e, st) {
+        throw 'Compilation failed: ${e} ${st}';
+      })
+      .then(asyncSuccess)
+      .catchError((error, stack) {
+        print('\n\n-----------------------------------------------');
+        print('main source:\n$main');
+        print('options: $options\n');
+        print('threw:\n $error\n$stack');
+        print('-----------------------------------------------\n\n');
+        throw error;
+      });
 }
 
 main() {
-  runCompiler(
-    "",
-    [Flags.generateCodeWithCompileTimeErrors],
-    (String code, List errors, List warnings) {
-      Expect.isNotNull(code);
-      Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
-      MessageTemplate template =
-          MessageTemplate.TEMPLATES[MessageKind.MISSING_MAIN];
-      Expect.equals(
-          "${template.message({'main': 'main'})}",
-          warnings.single);
-    });
+  runCompiler("", [Flags.generateCodeWithCompileTimeErrors],
+      (String code, List errors, List warnings) {
+    Expect.isNotNull(code);
+    Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+    MessageTemplate template =
+        MessageTemplate.TEMPLATES[MessageKind.MISSING_MAIN];
+    Expect.equals("${template.message({'main': 'main'})}", warnings.single);
+  });
+
+  runCompiler("main() {}", [Flags.generateCodeWithCompileTimeErrors],
+      (String code, List errors, List warnings) {
+    Expect.isNotNull(code);
+    Expect.isTrue(errors.isEmpty);
+    Expect.isTrue(warnings.isEmpty);
+  });
+
+  runCompiler("", [Flags.analyzeOnly],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+    MessageTemplate template =
+        MessageTemplate.TEMPLATES[MessageKind.CONSIDER_ANALYZE_ALL];
+    Expect.equals("${template.message({'main': 'main'})}", warnings.single);
+  });
+
+  runCompiler("main() {}", [Flags.analyzeOnly],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty);
+    Expect.isTrue(warnings.isEmpty);
+  });
+
+  runCompiler("Foo foo; // Unresolved but not analyzed.", [Flags.analyzeOnly],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
+    MessageTemplate template =
+        MessageTemplate.TEMPLATES[MessageKind.CONSIDER_ANALYZE_ALL];
+    Expect.equals("${template.message({'main': 'main'})}", warnings.single);
+  });
 
   runCompiler(
-    "main() {}",
-    [Flags.generateCodeWithCompileTimeErrors],
-    (String code, List errors, List warnings) {
-      Expect.isNotNull(code);
-      Expect.isTrue(errors.isEmpty);
-      Expect.isTrue(warnings.isEmpty);
-    });
-
-  runCompiler(
-    "",
-    [Flags.analyzeOnly],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
-      MessageTemplate template =
-          MessageTemplate.TEMPLATES[MessageKind.CONSIDER_ANALYZE_ALL];
-      Expect.equals(
-          "${template.message({'main': 'main'})}",
-          warnings.single);
-    });
-
-  runCompiler(
-    "main() {}",
-    [Flags.analyzeOnly],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty);
-      Expect.isTrue(warnings.isEmpty);
-    });
-
-  runCompiler(
-    "Foo foo; // Unresolved but not analyzed.",
-    [Flags.analyzeOnly],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
-      MessageTemplate template =
-          MessageTemplate.TEMPLATES[MessageKind.CONSIDER_ANALYZE_ALL];
-      Expect.equals(
-          "${template.message({'main': 'main'})}",
-          warnings.single);
-    });
-
-  runCompiler(
-    """main() {
+      """main() {
          Foo foo; // Unresolved and analyzed.
        }""",
-    [Flags.analyzeOnly],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty);
-      Expect.equals(1, warnings.length);
-      Expect.equals(
-          "Cannot resolve type 'Foo'.", warnings[0].toString());
-    });
+      [Flags.analyzeOnly], (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty);
+    Expect.equals(1, warnings.length);
+    Expect.equals("Cannot resolve type 'Foo'.", warnings[0].toString());
+  });
 
   runCompiler(
-    """main() {
+      """main() {
          Foo foo; // Unresolved and analyzed.
        }""",
-    [Flags.analyzeOnly, Flags.analyzeSignaturesOnly],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty);
-      Expect.isTrue(warnings.isEmpty);
-    });
+      [Flags.analyzeOnly, Flags.analyzeSignaturesOnly],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty);
+    Expect.isTrue(warnings.isEmpty);
+  });
+
+  runCompiler("Foo foo; // Unresolved and analyzed.", [
+    Flags.analyzeOnly,
+    Flags.analyzeAll
+  ], (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty);
+    Expect.equals("Cannot resolve type 'Foo'.", warnings[0].toString());
+  });
 
   runCompiler(
-    "Foo foo; // Unresolved and analyzed.",
-    [Flags.analyzeOnly, Flags.analyzeAll],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty);
-      Expect.equals(
-          "Cannot resolve type 'Foo'.", warnings[0].toString());
-    });
-
-  runCompiler(
-    """Foo foo; // Unresolved and analyzed.
+      """Foo foo; // Unresolved and analyzed.
        main() {}""",
-    [Flags.analyzeOnly, Flags.analyzeAll],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty, 'Unexpected errors: $errors.');
-      Expect.equals(1, warnings.length, 'Unexpected warning count: $warnings.');
-      Expect.equals(
-          "Cannot resolve type 'Foo'.", warnings[0].toString());
-    });
+      [Flags.analyzeOnly, Flags.analyzeAll],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty, 'Unexpected errors: $errors.');
+    Expect.equals(1, warnings.length, 'Unexpected warning count: $warnings.');
+    Expect.equals("Cannot resolve type 'Foo'.", warnings[0].toString());
+  });
 
-  runCompiler(
-    "",
-    [Flags.analyzeOnly, Flags.analyzeAll],
-    (String code, List errors, List warnings) {
-      Expect.isNull(code);
-      Expect.isTrue(errors.isEmpty);
-      Expect.isTrue(warnings.isEmpty);
-    });
+  runCompiler("", [Flags.analyzeOnly, Flags.analyzeAll],
+      (String code, List errors, List warnings) {
+    Expect.isNull(code);
+    Expect.isTrue(errors.isEmpty);
+    Expect.isTrue(warnings.isEmpty);
+  });
 
   // --analyze-signatures-only implies --analyze-only
   runCompiler("", [Flags.analyzeSignaturesOnly, Flags.analyzeAll],
@@ -195,8 +179,7 @@ main() {
   runCompiler(
       """main() {}
       foo() native 'foo';""",
-      [Flags.analyzeOnly],
-      (String code, List errors, List warnings) {
+      [Flags.analyzeOnly], (String code, List errors, List warnings) {
     Expect.isNull(code);
     Expect.isTrue(
         errors.single.startsWith("'native' modifier is not supported."));

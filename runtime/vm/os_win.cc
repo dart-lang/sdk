@@ -9,6 +9,7 @@
 
 #include <malloc.h>  // NOLINT
 #include <process.h>  // NOLINT
+#include <psapi.h>  // NOLINT
 #include <time.h>  // NOLINT
 
 #include "platform/utils.h"
@@ -189,23 +190,6 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 }
 
 
-void* OS::AlignedAllocate(intptr_t size, intptr_t alignment) {
-  const int kMinimumAlignment = 16;
-  ASSERT(Utils::IsPowerOfTwo(alignment));
-  ASSERT(alignment >= kMinimumAlignment);
-  void* p = _aligned_malloc(size, alignment);
-  if (p == NULL) {
-    UNREACHABLE();
-  }
-  return p;
-}
-
-
-void OS::AlignedFree(void* ptr) {
-  _aligned_free(ptr);
-}
-
-
 intptr_t OS::ActivationFrameAlignment() {
 #ifdef _WIN64
   // Windows 64-bit ABI requires the stack to be 16-byte aligned.
@@ -232,6 +216,13 @@ int OS::NumberOfAvailableProcessors() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
   return info.dwNumberOfProcessors;
+}
+
+
+uintptr_t OS::MaxRSS() {
+  PROCESS_MEMORY_COUNTERS pmc;
+  GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc));
+  return pmc.PeakWorkingSetSize;
 }
 
 

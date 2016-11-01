@@ -8,16 +8,16 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(AnalysisNotificationHighlightsTest);
-  defineReflectiveTests(HighlightTypeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisNotificationHighlightsTest);
+    defineReflectiveTests(HighlightTypeTest);
+  });
 }
 
 @reflectiveTest

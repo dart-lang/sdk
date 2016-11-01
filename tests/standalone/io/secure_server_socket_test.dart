@@ -6,6 +6,9 @@
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
+// OtherResources=certificates/server_chain.pem
+// OtherResources=certificates/server_key.pem
+// OtherResources=certificates/trusted_certs.pem
 
 import "dart:async";
 import "dart:io";
@@ -116,7 +119,8 @@ void testSimpleConnectFail(SecurityContext serverContext,
       // TODO(whesse): When null context is supported, disallow
       // the ArgumentError type here.
       Expect.isTrue(error is ArgumentError ||
-                    error is HandshakeException);
+                    error is HandshakeException ||
+                    error is SocketException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         asyncEnd();

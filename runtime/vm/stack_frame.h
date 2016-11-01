@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_STACK_FRAME_H_
-#define VM_STACK_FRAME_H_
+#ifndef RUNTIME_VM_STACK_FRAME_H_
+#define RUNTIME_VM_STACK_FRAME_H_
 
 #include "vm/allocation.h"
 #include "vm/object.h"
@@ -51,8 +51,27 @@ class StackFrame : public ValueObject {
     return 0;
   }
 
+  uword IsMarkedForLazyDeopt() const {
+    uword raw_pc = *reinterpret_cast<uword*>(
+        sp() + (kSavedPcSlotFromSp * kWordSize));
+    return raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint();
+  }
+  void MarkForLazyDeopt() {
+    set_pc(StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint());
+  }
+  void UnmarkForLazyDeopt() {
+    // If this frame was marked for lazy deopt, pc_ was computed to be the
+    // original return address using the pending deopts table in GetCallerPc.
+    // Write this value back into the frame.
+    uword original_pc = pc();
+    ASSERT(original_pc !=
+           StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint());
+    set_pc(original_pc);
+  }
+
   void set_pc(uword value) {
     *reinterpret_cast<uword*>(sp() + (kSavedPcSlotFromSp * kWordSize)) = value;
+    pc_ = value;
   }
 
   void set_pc_marker(RawCode* code) {
@@ -110,8 +129,13 @@ class StackFrame : public ValueObject {
   }
 
   uword GetCallerPc() const {
-    return *(reinterpret_cast<uword*>(
+    uword raw_pc = *(reinterpret_cast<uword*>(
         fp() + (kSavedCallerPcSlotFromFp * kWordSize)));
+    ASSERT(raw_pc != StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint());
+    if (raw_pc == StubCode::DeoptimizeLazyFromReturn_entry()->EntryPoint()) {
+      return isolate()->FindPendingDeopt(GetCallerFp());
+    }
+    return raw_pc;
   }
 
   uword fp_;
@@ -348,6 +372,11 @@ class InlinedFunctionsIterator : public ValueObject {
 };
 
 
+#if defined(DEBUG)
+void ValidateFrames();
+#endif
+
+
 #if !defined(TARGET_ARCH_DBC)
 DART_FORCE_INLINE static intptr_t LocalVarIndex(intptr_t fp_offset,
                                                 intptr_t var_index) {
@@ -378,4 +407,4 @@ DART_FORCE_INLINE static uword LocalVarAddress(uword fp, intptr_t index) {
 
 }  // namespace dart
 
-#endif  // VM_STACK_FRAME_H_
+#endif  // RUNTIME_VM_STACK_FRAME_H_

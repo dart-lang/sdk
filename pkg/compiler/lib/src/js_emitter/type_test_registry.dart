@@ -106,7 +106,7 @@ class TypeTestRegistry {
       } else if (function.isInstanceMember) {
         if (!function.enclosingClass.isClosure) {
           return compiler.codegenWorld
-              .hasInvokedGetter(function, compiler.world);
+              .hasInvokedGetter(function, compiler.closedWorld);
         }
       }
       return false;

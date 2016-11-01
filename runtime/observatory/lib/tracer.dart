@@ -13,13 +13,13 @@ _deepCopy(src) {
   if (src is Map) {
     var dest = {};
     src.forEach((key, val) {
-        dest[key] = _deepCopy(val);
+      dest[key] = _deepCopy(val);
     });
     return dest;
   } else if (src is List) {
     var dest = [];
     src.forEach((val) {
-        dest.add(_deepCopy(val));
+      dest.add(_deepCopy(val));
     });
     return dest;
   } else {
@@ -54,6 +54,7 @@ class Tracer extends Observable {
       _current = new Tracer();
     }
   }
+
   static void stop() {
     if (_current != null) {
       _current.cancel();
@@ -74,9 +75,9 @@ class Tracer extends Observable {
     _time = new Stopwatch();
     _time.start();
     loggerSub = Logger.root.onRecord.listen((LogRecord rec) {
-        // Echo all log messages to the trace.
-        trace('${rec.level.name}: ${rec.message}');
-      });
+      // Echo all log messages to the trace.
+      trace('${rec.level.name}: ${rec.message}');
+    });
     reset();
   }
 

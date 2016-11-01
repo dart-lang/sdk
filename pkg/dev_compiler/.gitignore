@@ -1,0 +1,24 @@
+# Don’t commit the following files and directories created by pub.
+.pub
+build/
+packages
+.packages
+
+# Ignore files created by tools.
+*.dart.precompiled.js
+*.js_
+*.js.deps
+*.sw?
+.idea/
+.pub/
+node_modules
+doc/api/
+
+# Generated files go here.
+gen/
+
+# Ignore generated SDK summary.
+lib/js/*/*.sum
+
+# Created by ./tool/dependency_overrides.sh.
+dependency_overrides/

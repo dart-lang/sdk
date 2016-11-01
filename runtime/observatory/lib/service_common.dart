@@ -65,11 +65,8 @@ class _WebSocketRequest {
 
 /// Minimal common interface for 'WebSocket' in [dart:io] and [dart:html].
 abstract class CommonWebSocket {
-  void connect(String address,
-               void onOpen(),
-               void onMessage(dynamic data),
-               void onError(),
-               void onClose());
+  void connect(String address, void onOpen(), void onMessage(dynamic data),
+      void onError(), void onClose());
   bool get isOpen;
   void send(dynamic data);
   void close();
@@ -83,12 +80,11 @@ abstract class CommonWebSocketVM extends VM {
   final Completer _disconnected = new Completer<String>();
   final WebSocketVMTarget target;
   final Map<String, _WebSocketRequest> _delayedRequests =
-        new Map<String, _WebSocketRequest>();
+      new Map<String, _WebSocketRequest>();
   final Map<String, _WebSocketRequest> _pendingRequests =
       new Map<String, _WebSocketRequest>();
   int _requestSerial = 0;
   bool _hasInitiatedConnect = false;
-  bool _hasFinishedConnect = false;
   Utf8Decoder _utf8Decoder = const Utf8Decoder();
 
   String get displayName => '${name}@${target.name}';
@@ -100,28 +96,32 @@ abstract class CommonWebSocketVM extends VM {
   }
 
   void _notifyConnect() {
-    _hasFinishedConnect = true;
     if (!_connected.isCompleted) {
-      Logger.root.info('WebSocketVM connection opened: ${target.networkAddress}');
+      Logger.root
+          .info('WebSocketVM connection opened: ${target.networkAddress}');
       _connected.complete(this);
     }
   }
+
   Future get onConnect => _connected.future;
+  bool get wasOrIsConnected => _connected.isCompleted;
+  bool get isConnected => wasOrIsConnected && !isDisconnected;
   void _notifyDisconnect(String reason) {
-    if (!_hasFinishedConnect) {
-      return;
-    }
     if (!_disconnected.isCompleted) {
-      Logger.root.info('WebSocketVM connection error: ${target.networkAddress}');
+      Logger.root
+          .info('WebSocketVM connection error: ${target.networkAddress}');
       _disconnected.complete(reason);
     }
   }
+
   Future get onDisconnect => _disconnected.future;
   bool get isDisconnected => _disconnected.isCompleted;
 
-  void disconnect({String reason : 'WebSocket closed'}) {
+  void disconnect({String reason: 'WebSocket closed'}) {
     if (_hasInitiatedConnect) {
-      _webSocket.close();
+      if (_webSocket != null) {
+        _webSocket.close();
+      }
     }
     // We don't need to cancel requests and notify here.  These
     // functions will be called again when the onClose callback
@@ -134,8 +134,14 @@ abstract class CommonWebSocketVM extends VM {
   Future<Map> invokeRpcRaw(String method, Map params) {
     if (!_hasInitiatedConnect) {
       _hasInitiatedConnect = true;
-      _webSocket.connect(
-          target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
+      try {
+        _webSocket.connect(
+            target.networkAddress, _onOpen, _onMessage, _onError, _onClose);
+      } catch (_) {
+        _webSocket = null;
+        var exception = new NetworkRpcException('WebSocket closed');
+        return new Future.error(exception);
+      }
     }
     if (_disconnected.isCompleted) {
       // This connection was closed already.
@@ -144,7 +150,7 @@ abstract class CommonWebSocketVM extends VM {
     }
     String serial = (_requestSerial++).toString();
     var request = new _WebSocketRequest(method, params);
-    if (_webSocket.isOpen) {
+    if ((_webSocket != null) && _webSocket.isOpen) {
       // Already connected, send request immediately.
       _sendRequest(serial, request);
     } else {
@@ -180,12 +186,12 @@ abstract class CommonWebSocketVM extends VM {
       map = JSON.decode(message);
     } catch (e, st) {
       Logger.root.severe('Disconnecting: Error decoding message: $e\n$st');
-      disconnect(reason:'Connection saw corrupt JSON message: $e');
+      disconnect(reason: 'Connection saw corrupt JSON message: $e');
       return null;
     }
     if (map == null) {
       Logger.root.severe("Disconnecting: Unable to decode 'null' message");
-      disconnect(reason:"Connection saw 'null' message");
+      disconnect(reason: "Connection saw 'null' message");
       return null;
     }
     return map;
@@ -202,9 +208,7 @@ abstract class CommonWebSocketVM extends VM {
       var meta = _utf8Decoder.convert(new Uint8List.view(
           bytes.buffer, bytes.offsetInBytes + offset, metaSize));
       offset += metaSize;
-      var data = new ByteData.view(
-          bytes.buffer,
-          bytes.offsetInBytes + offset,
+      var data = new ByteData.view(bytes.buffer, bytes.offsetInBytes + offset,
           bytes.lengthInBytes - offset);
       var map = _parseJSON(meta);
       if (map == null || map['method'] != 'streamNotify') {
@@ -212,7 +216,9 @@ abstract class CommonWebSocketVM extends VM {
       }
       var event = map['params']['event'];
       var streamId = map['params']['streamId'];
-      scheduleMicrotask(() { postServiceEvent(streamId, event, data); });
+      scheduleMicrotask(() {
+        postServiceEvent(streamId, event, data);
+      });
     });
   }
 
@@ -225,7 +231,9 @@ abstract class CommonWebSocketVM extends VM {
     if (map['method'] == 'streamNotify') {
       var event = map['params']['event'];
       var streamId = map['params']['streamId'];
-      scheduleMicrotask(() { postServiceEvent(streamId, event, null); });
+      scheduleMicrotask(() {
+        postServiceEvent(streamId, event, null);
+      });
       return;
     }
 
@@ -241,8 +249,7 @@ abstract class CommonWebSocketVM extends VM {
     if (request.method != 'getTagProfile' &&
         request.method != 'getIsolateMetric' &&
         request.method != 'getVMMetric') {
-      Logger.root.info(
-          'RESPONSE [${serial}] ${request.method}');
+      Logger.root.info('RESPONSE [${serial}] ${request.method}');
     }
 
     var result = map['result'];
@@ -263,10 +270,11 @@ abstract class CommonWebSocketVM extends VM {
     }
   }
 
-  void _cancelRequests(Map<String,_WebSocketRequest> requests,
-                       String message) {
-    requests.forEach((_, _WebSocketRequest request) {
-      var exception = new NetworkRpcException(message);
+  void _cancelRequests(
+      Map<String, _WebSocketRequest> requests, String message) {
+    requests.forEach((String serial, _WebSocketRequest request) {
+      var exception = new NetworkRpcException(message +
+          '(id: $serial method: ${request.method} params: ${request.params})');
       request.completer.completeError(exception);
     });
     requests.clear();
@@ -300,7 +308,7 @@ abstract class CommonWebSocketVM extends VM {
 
   /// Send the request over WebSocket.
   void _sendRequest(String serial, _WebSocketRequest request) {
-    assert (_webSocket.isOpen);
+    assert(_webSocket.isOpen);
     // Mark request as pending.
     assert(_pendingRequests.containsKey(serial) == false);
     _pendingRequests[serial] = request;
@@ -310,15 +318,11 @@ abstract class CommonWebSocketVM extends VM {
       message = JSON.encode({
         'id': int.parse(serial),
         'method': 'Dart.observatoryQuery',
-        'params': {
-          'id': serial,
-          'query': request.method
-        }
+        'params': {'id': serial, 'query': request.method}
       });
     } else {
-      message = JSON.encode({'id': serial,
-                             'method': request.method,
-                             'params': request.params});
+      message = JSON.encode(
+          {'id': serial, 'method': request.method, 'params': request.params});
     }
     if (request.method != 'getTagProfile' &&
         request.method != 'getIsolateMetric' &&
@@ -329,4 +333,6 @@ abstract class CommonWebSocketVM extends VM {
     // Send message.
     _webSocket.send(message);
   }
+
+  String toString() => displayName;
 }

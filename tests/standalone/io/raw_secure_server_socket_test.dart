@@ -6,6 +6,11 @@
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
+// OtherResources=certificates/server_chain.pem
+// OtherResources=certificates/server_key.pem
+// OtherResources=certificates/trusted_certs.pem
+// OtherResources=certificates/untrusted_server_chain.pem
+// OtherResources=certificates/untrusted_server_key.pem
 
 import "dart:async";
 import "dart:io";
@@ -105,7 +110,8 @@ void testSimpleConnectFail(SecurityContext context, bool cancelOnError) {
       Expect.fail("No server connection expected.");
     },
     onError: (error) {
-      Expect.isTrue(error is HandshakeException);
+      Expect.isTrue(error is SocketException ||
+                    error is HandshakeException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         asyncEnd();

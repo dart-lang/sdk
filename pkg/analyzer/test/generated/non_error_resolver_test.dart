@@ -6,20 +6,21 @@ library analyzer.test.generated.non_error_resolver_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
 import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(NonErrorResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NonErrorResolverTest);
+  });
 }
 
 @reflectiveTest
@@ -30,6 +31,85 @@ enum E { ONE }
 E e() {
   return E.TWO;
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_superHasNoSuchMethod() {
+    Source source = addSource('''
+abstract class A {
+  int m();
+  noSuchMethod(_) => 42;
+}
+
+class B extends A {
+  int m() => super.m();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_superSuperHasConcrete_getter() {
+    Source source = addSource('''
+abstract class A {
+  int get m => 0;
+}
+
+abstract class B extends A {
+  int get m;
+}
+
+class C extends B {
+  int get m => super.m;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_superSuperHasConcrete_method() {
+    Source source = addSource('''
+void main() {
+  print(new C().m());
+}
+
+abstract class A {
+  int m() => 0;
+}
+
+abstract class B extends A {
+  int m();
+}
+
+class C extends B {
+  int m() => super.m();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_superSuperHasConcrete_setter() {
+    Source source = addSource('''
+abstract class A {
+  void set m(int v) {}
+}
+
+abstract class B extends A {
+  void set m(int v);
+}
+
+class C extends B {
+  void set m(int v) {
+    super.m = 0;
+  }
+}
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -1079,6 +1159,7 @@ abstract class A {
           EngineTestCase.findSimpleIdentifier(unit, code, search);
       expect(ref.staticElement, new isInstanceOf<ParameterElement>());
     }
+
     assertIsParameter('p1');
     assertIsParameter('p2');
     assertIsParameter('p3');
@@ -1623,6 +1704,19 @@ Map _globalMap = {
 
   void test_duplicateDefinition_getter() {
     Source source = addSource("bool get a => true;");
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_duplicatePart() {
+    addNamedSource('/part1.dart', 'part of lib;');
+    addNamedSource('/part2.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part1.dart';
+part 'part2.dart';
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -3162,6 +3256,23 @@ class B extends A {
     verify([source]);
   }
 
+  void test_invocationOfNonFunction_functionTypeTypeParameter() {
+    Source source = addSource(r'''
+typedef void Action<T>(T x);
+class C<T, U extends Action<T>> {
+  T value;
+  U action;
+  C(this.value, [this.action]);
+  void act() {
+    action(value);
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_invocationOfNonFunction_getter() {
     Source source = addSource(r'''
 class A {
@@ -3611,6 +3722,18 @@ class B extends A {
     Source source = addSource(r'''
 import 'dart-ext:x';
 int m(a) native 'string';''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    // Cannot verify the AST because the import's URI cannot be resolved.
+  }
+
+  void test_nativeConstConstructor() {
+    Source source = addSource(r'''
+import 'dart-ext:x';
+class Foo {
+  const Foo() native 'Foo_Foo';
+  const factory Foo.foo() native 'Foo_Foo_foo';
+}''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     // Cannot verify the AST because the import's URI cannot be resolved.

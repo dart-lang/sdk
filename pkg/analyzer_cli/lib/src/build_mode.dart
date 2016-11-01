@@ -4,19 +4,18 @@
 
 library analyzer_cli.src.build_mode;
 
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
@@ -131,13 +130,12 @@ class BuildMode {
 
   SummaryDataStore summaryDataStore;
   InternalAnalysisContext context;
-  Map<Uri, JavaFile> uriToFileMap;
+  Map<Uri, File> uriToFileMap;
   final List<Source> explicitSources = <Source>[];
 
   PackageBundleAssembler assembler;
   final Set<Source> processedSources = new Set<Source>();
   final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
-  PackageBundle sdkBundle;
 
   BuildMode(this.resourceProvider, this.options, this.stats);
 
@@ -167,13 +165,13 @@ class BuildMode {
     // Add sources.
     ChangeSet changeSet = new ChangeSet();
     for (Uri uri in uriToFileMap.keys) {
-      JavaFile file = uriToFileMap[uri];
-      if (!file.exists()) {
-        errorSink.writeln('File not found: ${file.getPath()}');
+      File file = uriToFileMap[uri];
+      if (!file.exists) {
+        errorSink.writeln('File not found: ${file.path}');
         io.exitCode = ErrorSeverity.ERROR.ordinal;
         return ErrorSeverity.ERROR;
       }
-      Source source = new FileBasedSource(file, uri);
+      Source source = new FileSource(file, uri);
       explicitSources.add(source);
       changeSet.addedSource(source);
     }
@@ -194,30 +192,7 @@ class BuildMode {
         excludeHashes: options.buildSummaryExcludeInformative &&
             options.buildSummaryOutputSemantic == null);
     if (_shouldOutputSummary) {
-      if (options.buildSummaryOnlyAst && !options.buildSummaryFallback) {
-        _serializeAstBasedSummary(explicitSources);
-      } else {
-        for (Source source in explicitSources) {
-          if (context.computeKindOf(source) == SourceKind.LIBRARY) {
-            if (options.buildSummaryFallback) {
-              assembler.addFallbackLibrary(source);
-            } else {
-              LibraryElement libraryElement =
-                  context.computeLibraryElement(source);
-              assembler.serializeLibraryElement(libraryElement);
-            }
-          }
-          if (options.buildSummaryFallback) {
-            assembler.addFallbackUnit(source);
-          }
-        }
-      }
-      if (!options.buildSummaryOnlyAst) {
-        // In non-AST mode, the SDK bundle wasn't added to the summaryDataStore
-        // because it is automatically loaded during analysis.  However we still
-        // want the SDK bundle to be noted as a dependency, so add it now.
-        summaryDataStore.addBundle(null, sdkBundle);
-      }
+      _serializeAstBasedSummary(explicitSources);
       // Write the whole package bundle.
       assembler.recordDependencies(summaryDataStore);
       PackageBundleBuilder bundle = assembler.assemble();
@@ -267,6 +242,7 @@ class BuildMode {
         recordDependencyInfo: _shouldOutputSummary);
 
     DartSdk sdk;
+    PackageBundle sdkBundle;
     if (options.dartSdkSummaryPath != null) {
       SummaryBasedDartSdk summarySdk = new SummaryBasedDartSdk(
           options.dartSdkSummaryPath, options.strongMode);
@@ -277,21 +253,19 @@ class BuildMode {
           resourceProvider.getFolder(options.dartSdkPath), options.strongMode);
       dartSdk.analysisOptions =
           Driver.createAnalysisOptionsForCommandLineOptions(options);
-      dartSdk.useSummary = !options.buildSummaryOnlyAst;
+      dartSdk.useSummary = !options.buildSummaryOnly;
       sdk = dartSdk;
       sdkBundle = dartSdk.getSummarySdkBundle(options.strongMode);
     }
 
-    // In AST mode include SDK bundle to avoid parsing SDK sources.
-    if (options.buildSummaryOnlyAst) {
-      summaryDataStore.addBundle(null, sdkBundle);
-    }
+    // Include SDK bundle to avoid parsing SDK sources.
+    summaryDataStore.addBundle(null, sdkBundle);
 
     // Create the context.
     context = AnalysisEngine.instance.createAnalysisContext();
     context.sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
-      new InSummaryPackageUriResolver(summaryDataStore),
+      new InSummaryUriResolver(resourceProvider, summaryDataStore),
       new ExplicitSourceResolver(uriToFileMap)
     ]);
 
@@ -303,12 +277,34 @@ class BuildMode {
       }
     });
 
-    if (!options.buildSummaryOnlyAst) {
+    if (!options.buildSummaryOnly) {
       // Configure using summaries.
       context.typeProvider = sdk.context.typeProvider;
       context.resultProvider =
           new InputPackagesResultProvider(context, summaryDataStore);
     }
+  }
+
+  /**
+   * Convert [sourceEntities] (a list of file specifications of the form
+   * "$uri|$path") to a map from URI to path.  If an error occurs, report the
+   * error and return null.
+   */
+  Map<Uri, File> _createUriToFileMap(List<String> sourceEntities) {
+    Map<Uri, File> uriToFileMap = <Uri, File>{};
+    for (String sourceFile in sourceEntities) {
+      int pipeIndex = sourceFile.indexOf('|');
+      if (pipeIndex == -1) {
+        // TODO(paulberry): add the ability to guess the URI from the path.
+        errorSink.writeln(
+            'Illegal input file (must be "\$uri|\$path"): $sourceFile');
+        return null;
+      }
+      Uri uri = Uri.parse(sourceFile.substring(0, pipeIndex));
+      String path = sourceFile.substring(pipeIndex + 1);
+      uriToFileMap[uri] = resourceProvider.getFile(path);
+    }
+    return uriToFileMap;
   }
 
   /**
@@ -373,30 +369,56 @@ class BuildMode {
       });
     }
 
-    Map<String, LinkedLibraryBuilder> linkResult =
-        link(sourceUris, _getDependency, _getUnit, options.strongMode);
+    Map<String, LinkedLibraryBuilder> linkResult = link(
+        sourceUris,
+        _getDependency,
+        _getUnit,
+        context.declaredVariables.get,
+        options.strongMode);
     linkResult.forEach(assembler.addLinkedLibrary);
+  }
+}
+
+/**
+ * Instances of the class [ExplicitSourceResolver] map URIs to files on disk
+ * using a fixed mapping provided at construction time.
+ */
+class ExplicitSourceResolver extends UriResolver {
+  final Map<Uri, File> uriToFileMap;
+  final Map<String, Uri> pathToUriMap;
+
+  /**
+   * Construct an [ExplicitSourceResolver] based on the given [uriToFileMap].
+   */
+  ExplicitSourceResolver(Map<Uri, File> uriToFileMap)
+      : uriToFileMap = uriToFileMap,
+        pathToUriMap = _computePathToUriMap(uriToFileMap);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    File file = uriToFileMap[uri];
+    actualUri ??= uri;
+    if (file == null) {
+      return new NonExistingSource(
+          uri.toString(), actualUri, UriKind.fromScheme(actualUri.scheme));
+    } else {
+      return new FileSource(file, actualUri);
+    }
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    return pathToUriMap[source.fullName];
   }
 
   /**
-   * Convert [sourceEntities] (a list of file specifications of the form
-   * "$uri|$path") to a map from URI to path.  If an error occurs, report the
-   * error and return null.
+   * Build the inverse mapping of [uriToSourceMap].
    */
-  static Map<Uri, JavaFile> _createUriToFileMap(List<String> sourceEntities) {
-    Map<Uri, JavaFile> uriToFileMap = <Uri, JavaFile>{};
-    for (String sourceFile in sourceEntities) {
-      int pipeIndex = sourceFile.indexOf('|');
-      if (pipeIndex == -1) {
-        // TODO(paulberry): add the ability to guess the URI from the path.
-        errorSink.writeln(
-            'Illegal input file (must be "\$uri|\$path"): $sourceFile');
-        return null;
-      }
-      Uri uri = Uri.parse(sourceFile.substring(0, pipeIndex));
-      String path = sourceFile.substring(pipeIndex + 1);
-      uriToFileMap[uri] = new JavaFile(path);
-    }
-    return uriToFileMap;
+  static Map<String, Uri> _computePathToUriMap(Map<Uri, File> uriToSourceMap) {
+    Map<String, Uri> pathToUriMap = <String, Uri>{};
+    uriToSourceMap.forEach((Uri uri, File file) {
+      pathToUriMap[file.path] = uri;
+    });
+    return pathToUriMap;
   }
 }

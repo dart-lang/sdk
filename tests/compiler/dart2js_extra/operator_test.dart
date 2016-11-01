@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
-@NoInline() @AssumeDynamic()
+
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
 
 @NoInline()
@@ -17,7 +19,7 @@ asNum(x) {
 uint31(x) {
   var result = confuse(x);
   if (x is int) {
-    var masked = 0x7fffffff & x;  // inferred uint31 type.
+    var masked = 0x7fffffff & x; // inferred uint31 type.
     if (masked == x) return masked;
   }
   throw new ArgumentError('Not uint31: $x');
@@ -27,47 +29,71 @@ uint31(x) {
 uint32(x) {
   var result = confuse(x);
   if (x is int) {
-    var masked = 0xffffffff & x;  // inferred uint32 type.
+    var masked = 0xffffffff & x; // inferred uint32 type.
     if (masked == x) return masked;
   }
   throw new ArgumentError('Not uint32: $x');
 }
 
 @NoInline()
-int zero() { return 0; }
+int zero() {
+  return 0;
+}
 
 @NoInline()
-int one() { return 1; }
+int one() {
+  return 1;
+}
 
 @NoInline()
-int minus1() { return 0 - 1; }
+int minus1() {
+  return 0 - 1;
+}
 
 @NoInline()
-int minus2() { return 0 - 2; }
+int minus2() {
+  return 0 - 2;
+}
 
 @NoInline()
-int two() { return 2; }
+int two() {
+  return 2;
+}
 
 @NoInline()
-int three() { return 3; }
+int three() {
+  return 3;
+}
 
 @NoInline()
-int five() { return 5; }
+int five() {
+  return 5;
+}
 
 @NoInline()
-int minus5() { return 0 - 5; }
+int minus5() {
+  return 0 - 5;
+}
 
 @NoInline()
-int ninetyNine() { return 99; }
+int ninetyNine() {
+  return 99;
+}
 
 @NoInline()
-int four99() { return 499; }
+int four99() {
+  return 499;
+}
 
 @NoInline()
-int four99times99() { return 499 * 99; }
+int four99times99() {
+  return 499 * 99;
+}
 
 @NoInline()
-int four99times99plus1() { return 499 * 99 + 1; }
+int four99times99plus1() {
+  return 499 * 99 + 1;
+}
 
 @NoInline()
 void addTest() {
@@ -159,42 +185,42 @@ void tdivTest() {
 
   // Signed int32 boundary is involved in optimizations.
 
-  Expect.equals(-0x80000000,  -0x80000000 ~/ 1.0);
-  Expect.equals(-0x80000000,  -0x80000000 ~/ 1.0000000000000001);
-  Expect.equals(-0x7fffffff,  -0x80000000 ~/ 1.0000000000000002);
+  Expect.equals(-0x80000000, -0x80000000 ~/ 1.0);
+  Expect.equals(-0x80000000, -0x80000000 ~/ 1.0000000000000001);
+  Expect.equals(-0x7fffffff, -0x80000000 ~/ 1.0000000000000002);
 
-  Expect.equals(-0x80000000,  asNum(-0x80000000) ~/ 1.0);
-  Expect.equals(-0x80000000,  asNum(-0x80000000) ~/ 1.0000000000000001);
-  Expect.equals(-0x7fffffff,  asNum(-0x80000000) ~/ 1.0000000000000002);
+  Expect.equals(-0x80000000, asNum(-0x80000000) ~/ 1.0);
+  Expect.equals(-0x80000000, asNum(-0x80000000) ~/ 1.0000000000000001);
+  Expect.equals(-0x7fffffff, asNum(-0x80000000) ~/ 1.0000000000000002);
 
-  Expect.equals(-0x80000000,  asNum(0x80000000) ~/ -1.0);
-  Expect.equals(-0x80000000,  asNum(0x80000000) ~/ -1.0000000000000001);
-  Expect.equals(-0x7fffffff,  asNum(0x80000000) ~/ -1.0000000000000002);
+  Expect.equals(-0x80000000, asNum(0x80000000) ~/ -1.0);
+  Expect.equals(-0x80000000, asNum(0x80000000) ~/ -1.0000000000000001);
+  Expect.equals(-0x7fffffff, asNum(0x80000000) ~/ -1.0000000000000002);
 
-  Expect.equals(0x7fffffff,  0x10000000 ~/ .12500000000000002);
-  Expect.equals(0x80000000,  0x10000000 ~/ .125);
-  Expect.equals(-0x7fffffff,  0x10000000 ~/ -.12500000000000002);
-  Expect.equals(-0x80000000,  0x10000000 ~/ -.125);
+  Expect.equals(0x7fffffff, 0x10000000 ~/ .12500000000000002);
+  Expect.equals(0x80000000, 0x10000000 ~/ .125);
+  Expect.equals(-0x7fffffff, 0x10000000 ~/ -.12500000000000002);
+  Expect.equals(-0x80000000, 0x10000000 ~/ -.125);
 
-  Expect.equals(0x7fffffff,  uint31(0x10000000) ~/ .12500000000000002);
-  Expect.equals(0x80000000,  uint31(0x10000000) ~/ .125);
-  Expect.equals(-0x7fffffff,  uint31(0x10000000) ~/ -.12500000000000002);
-  Expect.equals(-0x80000000,  uint31(0x10000000) ~/ -.125);
+  Expect.equals(0x7fffffff, uint31(0x10000000) ~/ .12500000000000002);
+  Expect.equals(0x80000000, uint31(0x10000000) ~/ .125);
+  Expect.equals(-0x7fffffff, uint31(0x10000000) ~/ -.12500000000000002);
+  Expect.equals(-0x80000000, uint31(0x10000000) ~/ -.125);
 
   // These can be compiled to `(a / 2) | 0`.
-  Expect.equals(100,  uint31(200) ~/ 2);
-  Expect.equals(100,  uint32(200) ~/ 2);
+  Expect.equals(100, uint31(200) ~/ 2);
+  Expect.equals(100, uint32(200) ~/ 2);
 
-  Expect.equals(100,  asNum(200) ~/ 2);
-  Expect.equals(100,  confuse(200) ~/ 2);
-  Expect.equals(-100,  uint31(200) ~/ -2);
-  Expect.equals(-100,  uint32(200) ~/ -2);
-  Expect.equals(-100,  asNum(200) ~/ -2);
-  Expect.equals(-100,  confuse(200) ~/ -2);
+  Expect.equals(100, asNum(200) ~/ 2);
+  Expect.equals(100, confuse(200) ~/ 2);
+  Expect.equals(-100, uint31(200) ~/ -2);
+  Expect.equals(-100, uint32(200) ~/ -2);
+  Expect.equals(-100, asNum(200) ~/ -2);
+  Expect.equals(-100, confuse(200) ~/ -2);
 
   // These can be compiled to `((a + b) / 2) | 0`.
-  Expect.equals(100,  (uint31(100) + uint31(100)) ~/ 2);
-  Expect.equals(0x7fffffff,  (uint31(0x7fffffff) + uint31(0x7fffffff)) ~/ 2);
+  Expect.equals(100, (uint31(100) + uint31(100)) ~/ 2);
+  Expect.equals(0x7fffffff, (uint31(0x7fffffff) + uint31(0x7fffffff)) ~/ 2);
 
   // NaN and Infinity results are errors.
   Expect.throws(() => -1 ~/ 0);
@@ -302,8 +328,8 @@ void andTest() {
   Expect.equals(34, four99() & 42);
   Expect.equals(3, minus5() & 7);
 
-  Expect.equals(0,  uint31(0x7ffffffe) & uint31(1));
-  Expect.equals(0,  asNum(0x7ffffffe) & asNum(1));
+  Expect.equals(0, uint31(0x7ffffffe) & uint31(1));
+  Expect.equals(0, asNum(0x7ffffffe) & asNum(1));
 }
 
 @NoInline()

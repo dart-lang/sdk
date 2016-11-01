@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_AST_H_
-#define VM_AST_H_
+#ifndef RUNTIME_VM_AST_H_
+#define RUNTIME_VM_AST_H_
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
@@ -1875,6 +1875,7 @@ class CatchClauseNode : public AstNode {
     ASSERT(stacktrace_var != NULL);
   }
 
+  SequenceNode* sequence() const { return catch_block_; }
   const Array& handler_types() const { return handler_types_; }
   const LocalVariable& context_var() const { return context_var_; }
   const LocalVariable& exception_var() const { return exception_var_; }
@@ -2025,4 +2026,4 @@ class InlinedFinallyNode : public AstNode {
 
 #undef DECLARE_COMMON_NODE_FUNCTIONS
 
-#endif  // VM_AST_H_
+#endif  // RUNTIME_VM_AST_H_

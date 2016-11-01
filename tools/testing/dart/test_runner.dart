@@ -135,7 +135,7 @@ class ProcessCommand extends Command {
 
   String get reproductionCommand {
     var env = new StringBuffer();
-    environmentOverrides.forEach((key, value) =>
+    environmentOverrides?.forEach((key, value) =>
         (io.Platform.operatingSystem == 'windows')
             ? env.write('set $key=${escapeCommandLineArgument(value)} & ')
             : env.write('$key=${escapeCommandLineArgument(value)} '));
@@ -219,6 +219,20 @@ class CompilationCommand extends ProcessCommand {
       _outputFile == other._outputFile &&
       _neverSkipCompilation == other._neverSkipCompilation &&
       deepJsonCompare(_bootstrapDependencies, other._bootstrapDependencies);
+}
+
+class KernelCompilationCommand extends CompilationCommand {
+  KernelCompilationCommand._(
+      String displayName,
+      String outputFile,
+      bool neverSkipCompilation,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environmentOverrides)
+      : super._(displayName, outputFile, neverSkipCompilation,
+                bootstrapDependencies, executable, arguments,
+                environmentOverrides);
 }
 
 /// This is just a Pair(String, Map) class with hashCode and operator ==
@@ -640,6 +654,25 @@ class CommandBuilder {
       List<String> arguments,
       Map<String, String> environment) {
     var command = new CompilationCommand._(
+        displayName,
+        outputFile,
+        neverSkipCompilation,
+        bootstrapDependencies,
+        executable,
+        arguments,
+        environment);
+    return _getUniqueCommand(command);
+  }
+
+  CompilationCommand getKernelCompilationCommand(
+      String displayName,
+      outputFile,
+      neverSkipCompilation,
+      List<Uri> bootstrapDependencies,
+      String executable,
+      List<String> arguments,
+      Map<String, String> environment) {
+    var command = new KernelCompilationCommand._(
         displayName,
         outputFile,
         neverSkipCompilation,
@@ -1609,6 +1642,29 @@ class CompilationCommandOutputImpl extends CommandOutputImpl {
   }
 }
 
+class KernelCompilationCommandOutputImpl extends CompilationCommandOutputImpl {
+  KernelCompilationCommandOutputImpl(
+      Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr,
+      Duration time, bool compilationSkipped)
+      : super(command, exitCode, timedOut, stdout, stderr, time,
+              compilationSkipped);
+
+  bool get canRunDependendCommands {
+    // See [BatchRunnerProcess]: 0 means success, 1 means compile-time error.
+    // TODO(asgerf): When the frontend supports it, continue running even if
+    //   there were compile-time errors. See kernel_sdk issue #18.
+    return !hasCrashed && !timedOut && exitCode == 0;
+  }
+
+  // If the compiler was able to produce a Kernel IR file we want to run the
+  // result on the Dart VM.  We therefore mark the [KernelCompilationCommand] as
+  // successful.
+  // => This ensures we test that the DartVM produces correct CompileTime errors
+  //    as it is supposed to for our test suites.
+  bool get successful => canRunDependendCommands;
+}
+
 class JsCommandlineOutputImpl extends CommandOutputImpl
     with UnittestSuiteMessagesMixin {
   JsCommandlineOutputImpl(Command command, int exitCode, bool timedOut,
@@ -1683,6 +1739,9 @@ CommandOutput createCommandOutput(Command command, int exitCode, bool timedOut,
   } else if (command is VmCommand) {
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
+  } else if (command is KernelCompilationCommand) {
+    return new KernelCompilationCommandOutputImpl(
+        command, exitCode, timedOut, stdout, stderr, time, compilationSkipped);
   } else if (command is AdbPrecompilationCommand) {
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
@@ -1854,8 +1913,42 @@ class RunningProcess {
           void timeoutHandler() {
             timedOut = true;
             if (process != null) {
-              if (!process.kill()) {
-                DebugLogger.error("Unable to kill ${process.pid}");
+              if (io.Platform.isLinux) {
+                // Try to print stack traces of the timed out process.
+                io.Process.run('eu-stack', ['-p ${process.pid}'])
+                .then((result) {
+                  io.stdout.write(result.stdout);
+                  io.stderr.write(result.stderr);
+                })
+                .catchError(
+                    (error) => print("Error when printing stack trace: $error"))
+                .whenComplete(() {
+                  if (!process.kill()) {
+                    DebugLogger.error("Unable to kill ${process.pid}");
+                  }
+                });
+              } else if (io.Platform.isMacOS) {
+                // Try to print stack traces of the timed out process.
+                // `sample` is a sampling profiler but we ask it sample for 1
+                // second with a 4 second delay between samples so that we only
+                // sample the threads once.
+                io.Process.run('/usr/bin/sample',
+                               ['${process.pid}', '1', '4000', '-mayDie'])
+                .then((result) {
+                  io.stdout.write(result.stdout);
+                  io.stderr.write(result.stderr);
+                })
+                .catchError(
+                    (error) => print("Error when printing stack trace: $error"))
+                .whenComplete(() {
+                  if (!process.kill()) {
+                    DebugLogger.error("Unable to kill ${process.pid}");
+                  }
+                });
+              } else {
+                if (!process.kill()) {
+                  DebugLogger.error("Unable to kill ${process.pid}");
+                }
               }
             }
           }
@@ -2515,6 +2608,12 @@ class CommandExecutorImpl implements CommandExecutor {
 
     if (command is BrowserTestCommand) {
       return _startBrowserControllerTest(command, timeout);
+    } else if (command is KernelCompilationCommand) {
+      // For now, we always run dartk in batch mode.
+      var name = command.displayName;
+      assert(name == 'dartk');
+      return _getBatchRunner(name)
+          .runCommand(name, command, timeout, command.arguments);
     } else if (command is CompilationCommand && dart2jsBatchMode) {
       return _getBatchRunner("dart2js")
           .runCommand("dart2js", command, timeout, command.arguments);
@@ -2548,7 +2647,6 @@ class CommandExecutorImpl implements CommandExecutor {
     // directory.
     List<String> files = new io.Directory(testdir)
         .listSync()
-        .where((fse) => fse is io.File)
         .map((file) => file.path)
         .map((path) => path.substring(path.lastIndexOf('/') + 1))
         .toList();
@@ -2573,22 +2671,19 @@ class CommandExecutorImpl implements CommandExecutor {
           .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
     }
 
-    if (command.useBlobs) {
-      steps.add(() => device.runAdbShellCommand(
-          [
-            '$devicedir/dart_precompiled_runtime',
-            '--run-app-snapshot=$deviceTestDir',
-            '--use-blobs'
-          ]..addAll(arguments),
-          timeout: timeoutDuration));
-    } else {
-      steps.add(() => device.runAdbShellCommand(
-          [
-            '$devicedir/dart_precompiled_runtime',
-            '--run-app-snapshot=$deviceTestDir'
-          ]..addAll(arguments),
-          timeout: timeoutDuration));
+    var args = new List();
+    args.addAll(arguments);
+    for (var i = 0; i < args.length; i++) {
+      if (args[i].endsWith(".dart")) {
+        args[i] = "$deviceTestDir/out.aotsnapshot";
+      }
     }
+
+    steps.add(() => device.runAdbShellCommand(
+        [
+          '$devicedir/dart_precompiled_runtime',
+        ]..addAll(args),
+        timeout: timeoutDuration));
 
     var stopwatch = new Stopwatch()..start();
     var writer = new StringBuffer();
@@ -2912,7 +3007,7 @@ class ProcessQueue {
         cancelDebugTimer();
         _debugTimer = new Timer(debugTimerDuration, () {
           print("The debug timer of test.dart expired. Please report this issue"
-              " to ricow/whesse and provide the following information:");
+              " to whesse@ and provide the following information:");
           print("");
           print("Graph is sealed: ${_graph.isSealed}");
           print("");

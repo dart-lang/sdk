@@ -11,17 +11,17 @@ import 'package:analysis_server/src/utilities/change_builder_dart.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(DartChangeBuilderImplTest);
-  defineReflectiveTests(DartEditBuilderImplTest);
-  defineReflectiveTests(DartFileEditBuilderImplTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DartChangeBuilderImplTest);
+    defineReflectiveTests(DartEditBuilderImplTest);
+    defineReflectiveTests(DartFileEditBuilderImplTest);
+  });
 }
 
 @reflectiveTest

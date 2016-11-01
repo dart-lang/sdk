@@ -24,10 +24,10 @@ class C {
 
 main() {
   var c = new C();
-  c.bar();  // Call bar, so it is included in the program.
+  c.bar(); // Call bar, so it is included in the program.
 
   var mirror = reflect(c);
   Expect.equals(1, mirror.invoke(const Symbol('foo'), []).reflectee);
-  Expect.throws(() => mirror.invoke(const Symbol('bar'),  []),
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => mirror.invoke(const Symbol('bar'), []),
+      (e) => e is NoSuchMethodError);
 }

@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 // Regression test for Issue 17856.
 
 void main() {
-  var all = { "a": new A(), "b": new B() };
+  var all = {"a": new A(), "b": new B()};
 
   A a = all["a"];
   a.load();
@@ -16,22 +16,20 @@ void main() {
 class A {
   Loader _loader = new Loader();
 
-  load() => _loader.loadAll({
-    'a1': {}
-  });
+  load() => _loader.loadAll({'a1': {}});
 }
 
 class B {
   Loader _loader = new Loader();
 
   load() => _loader.loadAll({
-    'a2': new DateTime.now(),
-  });
+        'a2': new DateTime.now(),
+      });
 }
 
 class Loader {
   loadAll(Map assets) {
-    for(String key in assets.keys) {
+    for (String key in assets.keys) {
       Expect.isTrue(assets[key] is Map);
     }
   }

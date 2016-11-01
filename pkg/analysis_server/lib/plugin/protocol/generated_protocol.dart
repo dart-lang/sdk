@@ -267,6 +267,7 @@ class ServerSetSubscriptionsResult {
  * {
  *   "version": String
  *   "pid": int
+ *   "sessionId": optional String
  * }
  *
  * Clients may not extend, implement or mix-in this class.
@@ -275,6 +276,8 @@ class ServerConnectedParams implements HasToJson {
   String _version;
 
   int _pid;
+
+  String _sessionId;
 
   /**
    * The version number of the analysis server.
@@ -302,9 +305,22 @@ class ServerConnectedParams implements HasToJson {
     this._pid = value;
   }
 
-  ServerConnectedParams(String version, int pid) {
+  /**
+   * The session id for this session.
+   */
+  String get sessionId => _sessionId;
+
+  /**
+   * The session id for this session.
+   */
+  void set sessionId(String value) {
+    this._sessionId = value;
+  }
+
+  ServerConnectedParams(String version, int pid, {String sessionId}) {
     this.version = version;
     this.pid = pid;
+    this.sessionId = sessionId;
   }
 
   factory ServerConnectedParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -324,7 +340,11 @@ class ServerConnectedParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "pid");
       }
-      return new ServerConnectedParams(version, pid);
+      String sessionId;
+      if (json.containsKey("sessionId")) {
+        sessionId = jsonDecoder.decodeString(jsonPath + ".sessionId", json["sessionId"]);
+      }
+      return new ServerConnectedParams(version, pid, sessionId: sessionId);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.connected params", json);
     }
@@ -339,6 +359,9 @@ class ServerConnectedParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["version"] = version;
     result["pid"] = pid;
+    if (sessionId != null) {
+      result["sessionId"] = sessionId;
+    }
     return result;
   }
 
@@ -353,7 +376,8 @@ class ServerConnectedParams implements HasToJson {
   bool operator==(other) {
     if (other is ServerConnectedParams) {
       return version == other.version &&
-          pid == other.pid;
+          pid == other.pid &&
+          sessionId == other.sessionId;
     }
     return false;
   }
@@ -363,6 +387,7 @@ class ServerConnectedParams implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
     hash = JenkinsSmiHash.combine(hash, pid.hashCode);
+    hash = JenkinsSmiHash.combine(hash, sessionId.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -11298,6 +11323,7 @@ class HighlightRegionType implements Enum {
  *   "dartdoc": optional String
  *   "elementDescription": optional String
  *   "elementKind": optional String
+ *   "isDeprecated": optional bool
  *   "parameter": optional String
  *   "propagatedType": optional String
  *   "staticType": optional String
@@ -11321,6 +11347,8 @@ class HoverInformation implements HasToJson {
   String _elementDescription;
 
   String _elementKind;
+
+  bool _isDeprecated;
 
   String _parameter;
 
@@ -11455,6 +11483,18 @@ class HoverInformation implements HasToJson {
   }
 
   /**
+   * True if the referenced element is deprecated.
+   */
+  bool get isDeprecated => _isDeprecated;
+
+  /**
+   * True if the referenced element is deprecated.
+   */
+  void set isDeprecated(bool value) {
+    this._isDeprecated = value;
+  }
+
+  /**
    * A human-readable description of the parameter corresponding to the
    * expression being hovered over. This data is omitted if the location is not
    * in an argument to a function.
@@ -11500,7 +11540,7 @@ class HoverInformation implements HasToJson {
     this._staticType = value;
   }
 
-  HoverInformation(int offset, int length, {String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType}) {
+  HoverInformation(int offset, int length, {String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, bool isDeprecated, String parameter, String propagatedType, String staticType}) {
     this.offset = offset;
     this.length = length;
     this.containingLibraryPath = containingLibraryPath;
@@ -11509,6 +11549,7 @@ class HoverInformation implements HasToJson {
     this.dartdoc = dartdoc;
     this.elementDescription = elementDescription;
     this.elementKind = elementKind;
+    this.isDeprecated = isDeprecated;
     this.parameter = parameter;
     this.propagatedType = propagatedType;
     this.staticType = staticType;
@@ -11555,6 +11596,10 @@ class HoverInformation implements HasToJson {
       if (json.containsKey("elementKind")) {
         elementKind = jsonDecoder.decodeString(jsonPath + ".elementKind", json["elementKind"]);
       }
+      bool isDeprecated;
+      if (json.containsKey("isDeprecated")) {
+        isDeprecated = jsonDecoder.decodeBool(jsonPath + ".isDeprecated", json["isDeprecated"]);
+      }
       String parameter;
       if (json.containsKey("parameter")) {
         parameter = jsonDecoder.decodeString(jsonPath + ".parameter", json["parameter"]);
@@ -11567,7 +11612,7 @@ class HoverInformation implements HasToJson {
       if (json.containsKey("staticType")) {
         staticType = jsonDecoder.decodeString(jsonPath + ".staticType", json["staticType"]);
       }
-      return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
+      return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, isDeprecated: isDeprecated, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "HoverInformation", json);
     }
@@ -11595,6 +11640,9 @@ class HoverInformation implements HasToJson {
     if (elementKind != null) {
       result["elementKind"] = elementKind;
     }
+    if (isDeprecated != null) {
+      result["isDeprecated"] = isDeprecated;
+    }
     if (parameter != null) {
       result["parameter"] = parameter;
     }
@@ -11621,6 +11669,7 @@ class HoverInformation implements HasToJson {
           dartdoc == other.dartdoc &&
           elementDescription == other.elementDescription &&
           elementKind == other.elementKind &&
+          isDeprecated == other.isDeprecated &&
           parameter == other.parameter &&
           propagatedType == other.propagatedType &&
           staticType == other.staticType;
@@ -11639,6 +11688,7 @@ class HoverInformation implements HasToJson {
     hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
     hash = JenkinsSmiHash.combine(hash, elementDescription.hashCode);
     hash = JenkinsSmiHash.combine(hash, elementKind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
     hash = JenkinsSmiHash.combine(hash, parameter.hashCode);
     hash = JenkinsSmiHash.combine(hash, propagatedType.hashCode);
     hash = JenkinsSmiHash.combine(hash, staticType.hashCode);
@@ -13895,12 +13945,37 @@ class RefactoringProblem implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringProblemSeverity implements Enum {
+  /**
+   * A minor code problem. No example, because it is not used yet.
+   */
   static const INFO = const RefactoringProblemSeverity._("INFO");
 
+  /**
+   * A minor code problem. For example names of local variables should be camel
+   * case and start with a lower case letter. Staring the name of a variable
+   * with an upper case is OK from the language point of view, but it is nice
+   * to warn the user.
+   */
   static const WARNING = const RefactoringProblemSeverity._("WARNING");
 
+  /**
+   * The refactoring technically can be performed, but there is a logical
+   * problem. For example the name of a local variable being extracted
+   * conflicts with another name in the scope, or duplicate parameter names in
+   * the method being extracted, or a conflict between a parameter name and a
+   * local variable, etc. In some cases the location of the problem is also
+   * provided, so the IDE can show user the location and the problem, and let
+   * the user decide whether she wants to perform the refactoring. For example
+   * the name conflict might be expected, and the user wants to fix it
+   * afterwards.
+   */
   static const ERROR = const RefactoringProblemSeverity._("ERROR");
 
+  /**
+   * A fatal error, which prevents performing the refactoring. For example the
+   * name of a local variable being extracted is not a valid identifier, or
+   * selection is not a valid expression.
+   */
   static const FATAL = const RefactoringProblemSeverity._("FATAL");
 
   /**

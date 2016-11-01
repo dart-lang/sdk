@@ -5,7 +5,7 @@
 import "package:expect/expect.dart";
 
 null1() {
-  return;  // implicit null;
+  return; // implicit null;
 }
 
 null2() {
@@ -13,7 +13,7 @@ null2() {
 }
 
 null3() {
-  var x;  // Implicit null value.
+  var x; // Implicit null value.
   return x;
 }
 

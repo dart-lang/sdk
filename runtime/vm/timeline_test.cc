@@ -175,6 +175,50 @@ TEST_CASE(TimelineEventDurationPrintJSON) {
 }
 
 
+TEST_CASE(TimelineEventPrintSystrace) {
+  const intptr_t kBufferLength = 1024;
+  char buffer[kBufferLength];
+
+  // Create a test stream.
+  TimelineStream stream;
+  stream.Init("testStream", true);
+
+  // Create a test event.
+  TimelineEvent event;
+  TimelineTestHelper::SetStream(&event, &stream);
+
+  // Test a Begin event.
+  event.Begin("apple", 1, 2);
+  event.PrintSystrace(&buffer[0], kBufferLength);
+  EXPECT_SUBSTRING("|apple", buffer);
+  EXPECT_SUBSTRING("B|", buffer);
+
+  // Test an End event.
+  event.End("apple", 2, 3);
+  event.PrintSystrace(&buffer[0], kBufferLength);
+  EXPECT_STREQ("E", buffer);
+
+  // Test a Counter event. We only report the first counter value (in this case
+  // "4").
+  event.Counter("CTR", 1);
+  // We have two counters.
+  event.SetNumArguments(2);
+  // Set the first counter value.
+  event.CopyArgument(0, "cats", "4");
+  // Set the second counter value.
+  event.CopyArgument(1, "dogs", "1");
+  event.PrintSystrace(&buffer[0], kBufferLength);
+  EXPECT_SUBSTRING("C|", buffer);
+  EXPECT_SUBSTRING("|CTR|4", buffer);
+
+  // Test a duration event. This event kind is not supported so we should
+  // serialize it to an empty string.
+  event.Duration("DUR", 0, 1, 2, 3);
+  event.PrintSystrace(&buffer[0], kBufferLength);
+  EXPECT_STREQ("", buffer);
+}
+
+
 TEST_CASE(TimelineEventArguments) {
   // Create a test stream.
   TimelineStream stream;

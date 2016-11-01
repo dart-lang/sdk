@@ -48,10 +48,6 @@ class CommandLineOptions {
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
 
-  /// Whether to create summaries using only ASTs, i.e. don't perform
-  /// resolution.
-  final bool buildSummaryOnlyAst;
-
   /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
@@ -66,9 +62,6 @@ class CommandLineOptions {
   /// build mode.
   final String buildSummaryOutputSemantic;
 
-  /// Whether to output a summary in "fallback mode".
-  final bool buildSummaryFallback;
-
   /// Whether to suppress a nonzero exit code in build mode.
   final bool buildSuppressExitCode;
 
@@ -81,11 +74,20 @@ class CommandLineOptions {
   /// A table mapping the names of defined variables to their values.
   final Map<String, String> definedVariables;
 
+  /// Whether to disable cache flushing.  This option can improve analysis
+  /// speed at the expense of memory usage.  It may also be useful for working
+  /// around bugs.
+  final bool disableCacheFlushing;
+
   /// Whether to report hints
   final bool disableHints;
 
   /// Whether to display version information
   final bool displayVersion;
+
+  /// A flag indicating whether access to field formal parameters should be
+  /// allowed in a constructor's initializer list.
+  final bool enableInitializingFormalAccess;
 
   /// Whether to enable null-aware operators (DEP 9).
   final bool enableNullAwareOperators;
@@ -115,9 +117,6 @@ class CommandLineOptions {
 
   /// Whether to use machine format for error display
   final bool machineFormat;
-
-  /// The path to the root folder of the incremental cache.
-  final String incrementalCachePath;
 
   /// The path to the package root
   final String packageRootPath;
@@ -165,10 +164,8 @@ class CommandLineOptions {
       : buildAnalysisOutput = args['build-analysis-output'],
         buildMode = args['build-mode'],
         buildModePersistentWorker = args['persistent_worker'],
-        buildSummaryFallback = args['build-summary-fallback'],
         buildSummaryInputs = args['build-summary-input'] as List<String>,
         buildSummaryOnly = args['build-summary-only'],
-        buildSummaryOnlyAst = args['build-summary-only-ast'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
         buildSummaryExcludeInformative =
             args['build-summary-exclude-informative'],
@@ -179,8 +176,10 @@ class CommandLineOptions {
         dartSdkSummaryPath = args['dart-sdk-summary'],
         definedVariables = definedVariables,
         analysisOptionsFile = args['options'],
+        disableCacheFlushing = args['disable-cache-flushing'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
+        enableInitializingFormalAccess = args['initializing-formal-access'],
         enableNullAwareOperators = args['enable-null-aware-operators'],
         enableStrictCallChecks = args['enable-strict-call-checks'],
         enableSuperMixins = args['supermixin'],
@@ -190,7 +189,6 @@ class CommandLineOptions {
         lints = args['lints'],
         log = args['log'],
         machineFormat = args['machine'] || args['format'] == 'machine',
-        incrementalCachePath = args['incremental-cache-path'],
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
         perfReport = args['x-perf-report'],
@@ -322,6 +320,7 @@ class CommandLineOptions {
           help: 'Do not show hint results.',
           defaultsTo: false,
           negatable: false)
+      ..addFlag('disable-cache-flushing', defaultsTo: false, hide: true)
       ..addFlag('ignore-unrecognized-flags',
           help: 'Ignore unrecognized command line flags.',
           defaultsTo: false,
@@ -368,13 +367,6 @@ class CommandLineOptions {
           allowMultiple: true,
           splitCommas: false)
       //
-      // Incremental analysis.
-      //
-      ..addOption('incremental-cache-path',
-          help: 'The path to the folder with information to support '
-              'incremental analysis, e.g. summary files, errors, etc.',
-          hide: true)
-      //
       // Build mode.
       //
       ..addFlag('persistent_worker',
@@ -411,7 +403,7 @@ class CommandLineOptions {
           negatable: false,
           hide: true)
       ..addFlag('build-summary-only-ast',
-          help: 'Generate summaries using ASTs.',
+          help: 'deprecated -- Generate summaries using ASTs.',
           defaultsTo: false,
           negatable: false,
           hide: true)
@@ -423,11 +415,6 @@ class CommandLineOptions {
       ..addFlag('build-summary-exclude-informative',
           help: 'Exclude @informative information (docs, offsets, etc).  '
               'Deprecated: please use --build-summary-output-semantic instead.',
-          defaultsTo: false,
-          negatable: false,
-          hide: true)
-      ..addFlag('build-summary-fallback',
-          help: 'If outputting a summary, output it in fallback mode.',
           defaultsTo: false,
           negatable: false,
           hide: true)
@@ -467,6 +454,12 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('enable-new-task-model',
           help: 'deprecated -- Ennable new task model.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('initializing-formal-access',
+          help:
+              'Enable support for allowing access to field formal parameters in a constructor\'s initializer list',
           defaultsTo: false,
           negatable: false,
           hide: true)

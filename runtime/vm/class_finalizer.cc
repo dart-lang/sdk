@@ -1693,6 +1693,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
     TypeParameter& cloned_param = TypeParameter::Handle(zone);
     String& param_name = String::Handle(zone);
     AbstractType& param_bound = AbstractType::Handle(zone);
+    Function& null_function = Function::Handle(zone);
     intptr_t cloned_index = 0;
 
     // First, clone the super class type parameters. Rename them so that
@@ -1718,6 +1719,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
         param_name = Symbols::FromConcat(thread,
                                          param_name, Symbols::Backtick());
         cloned_param = TypeParameter::New(mixin_app_class,
+                                          null_function,
                                           cloned_index,
                                           param_name,
                                           param_bound,
@@ -1756,6 +1758,7 @@ void ClassFinalizer::CloneMixinAppTypeParameters(const Class& mixin_app_class) {
           has_uninstantiated_bounds = true;
         }
         cloned_param = TypeParameter::New(mixin_app_class,
+                                          null_function,
                                           cloned_index,  // Unfinalized index.
                                           param_name,
                                           param_bound,

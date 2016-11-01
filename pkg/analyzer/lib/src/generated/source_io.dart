@@ -6,11 +6,11 @@ library analyzer.src.generated.source_io;
 
 import 'dart:collection';
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/generated/source.dart';
 
@@ -18,6 +18,7 @@ export 'package:analyzer/src/generated/source.dart';
  * Instances of the class [DirectoryBasedSourceContainer] represent a source container that
  * contains all sources within a given directory.
  */
+@deprecated
 class DirectoryBasedSourceContainer implements SourceContainer {
   /**
    * The container's path (not `null`).
@@ -85,6 +86,7 @@ class DirectoryBasedSourceContainer implements SourceContainer {
  * Instances of the class [ExplicitSourceResolver] map URIs to files on disk
  * using a fixed mapping provided at construction time.
  */
+@deprecated
 class ExplicitSourceResolver extends UriResolver {
   final Map<Uri, JavaFile> uriToFileMap;
   final Map<String, Uri> pathToUriMap;
@@ -221,7 +223,7 @@ class FileBasedSource extends Source {
   }
 
   @override
-  int get hashCode => id;
+  int get hashCode => uri.hashCode;
 
   @override
   bool get isInSystemLibrary => uri.scheme == DartUriResolver.DART_SCHEME;
@@ -349,6 +351,7 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
  * should be canonicalized, but to preserve relative links within a package, the remainder of the
  * path from the package directory to the leaf should not.
  */
+@deprecated
 class PackageUriResolver extends UriResolver {
   /**
    * The name of the `package` scheme.
@@ -374,7 +377,7 @@ class PackageUriResolver extends UriResolver {
    */
   PackageUriResolver(this._packagesDirectories) {
     if (_packagesDirectories.length < 1) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "At least one package directory must be provided");
     }
   }
@@ -405,7 +408,7 @@ class PackageUriResolver extends UriResolver {
     JavaFile pkgDir = new JavaFile.relative(packagesDirectory, pkgName);
     try {
       pkgDir = pkgDir.getCanonicalFile();
-    } on JavaIOException catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       if (!exception.toString().contains("Required key not available")) {
         AnalysisEngine.instance.logger.logError("Canonical failed: $pkgDir",
             new CaughtException(exception, stackTrace));
@@ -478,8 +481,8 @@ class PackageUriResolver extends UriResolver {
             String pkgCanonicalUri = _toFileUri(pkgFolder.getCanonicalPath());
             if (sourceUri.startsWith(pkgCanonicalUri)) {
               String relPath = sourceUri.substring(pkgCanonicalUri.length);
-              return parseUriWithException(
-                  "$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
+              return Uri
+                  .parse("$PACKAGE_SCHEME:${pkgFolder.getName()}$relPath");
             }
           } catch (e) {}
         }
@@ -506,8 +509,7 @@ class PackageUriResolver extends UriResolver {
    * Convert the given file path to a "file:" URI.  On Windows, this transforms
    * backslashes to forward slashes.
    */
-  String _toFileUri(String filePath) =>
-      JavaFile.pathContext.toUri(filePath).toString();
+  String _toFileUri(String filePath) => path.context.toUri(filePath).toString();
 
   /**
    * Return `true` if the given URI is a `package` URI.

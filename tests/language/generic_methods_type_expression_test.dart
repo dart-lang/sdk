@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // DartOptions=--generic-method-syntax
+// VMOptions=--generic-method-syntax
 
 /// Dart test on the usage of method type arguments in type expressions. With
 /// '--generic-method-syntax', the type argument is available at runtime,
@@ -32,6 +33,13 @@ class TypeValue<X> {
 
 Type f8<T>() => new TypeValue<List<T>>().value;
 
+bool f9<T>(Object o) => o is Map<T, String>;
+
+class IsMap<A> {
+  @NoInline()
+  bool check<B>(o) => o is Map<A, B>;
+}
+
 main() {
   String s = "Hello!";
   List<String> ss = <String>[s];
@@ -43,10 +51,17 @@ main() {
   Expect.throws(() => f3<String>(42), (e) => e is TypeError);
   Expect.equals(f4<int>(<int>[42]), false);
   Expect.equals(f4<String>(<int>[42]), false); // `is! List<dynamic>` is false.
-  Expect.throws(() => f5<String>(s), (e) => e is TypeError);
-  Expect.throws(() => f5<int>(s), (e) => e is TypeError);
+  Expect.equals(f5<String>(s), s); // `s as dynamic == s`
+  Expect.equals(f5<int>(s), s); // `s as dynamic == s`
   Expect.equals(f6<String>(ss), ss);
   Expect.equals(f6<int>(ss), ss); // `as List<dynamic>` succeeds.
   Expect.throws(() => f7<int>(), (e) => e is TypeError);
   Expect.equals(f8<int>(), List); // Returns `List<dynamic>`.
+
+  Expect.isTrue(f9<int>(<int,String>{}));
+  Expect.isTrue(f9<int>(<bool,String>{})); // `is Map<dynamic, String>` is true.
+  Expect.isFalse(f9<int>(<int,int>{}));
+
+  Expect.isTrue(new IsMap<int>().check<String>(<int,String>{}));
+  Expect.isTrue(new IsMap<int>().check<int>(<int,String>{}));
 }

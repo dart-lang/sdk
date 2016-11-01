@@ -4,7 +4,11 @@
 
 library analyzer.test.src.task.html_work_manager_test;
 
+import 'package:analyzer/error/error.dart' show AnalysisError;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/error/codes.dart' show HtmlErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
         AnalysisEngine,
@@ -13,9 +17,6 @@ import 'package:analyzer/src/generated/engine.dart'
         CacheState,
         ChangeNoticeImpl,
         InternalAnalysisContext;
-import 'package:analyzer/src/generated/error.dart'
-    show AnalysisError, HtmlErrorCode;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
@@ -23,16 +24,17 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(HtmlWorkManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(HtmlWorkManagerTest);
+    defineReflectiveTests(HtmlWorkManagerIntegrationTest);
+  });
 }
 
 @reflectiveTest
@@ -303,6 +305,53 @@ class HtmlWorkManagerTest {
   }
 }
 
+@reflectiveTest
+class HtmlWorkManagerIntegrationTest {
+  InternalAnalysisContext context = new AnalysisContextImpl();
+  HtmlWorkManager manager;
+
+  Source source1 = new TestSource('1.html');
+  Source source2 = new TestSource('2.html');
+  CacheEntry entry1;
+  CacheEntry entry2;
+
+  void expect_sourceQueue(List<Source> sources) {
+    expect(manager.sourceQueue, unorderedEquals(sources));
+  }
+
+  void setUp() {
+    manager = new HtmlWorkManager(context);
+    entry1 = context.getCacheEntry(source1);
+    entry2 = context.getCacheEntry(source2);
+  }
+
+  void test_onResultInvalidated_scheduleInvalidatedLibrariesAfterSetSourceFactory() {
+    // Change the source factory, changing the analysis cache from when
+    // the work manager was constructed. This used to create a failure
+    // case for test_onResultInvalidated_scheduleInvalidLibraries so its
+    // tested here.
+    context.sourceFactory = new _SourceFactoryMock();
+
+    // now just do the same checks as
+    // test_onResultInvalidated_scheduleInvalidLibraries
+
+    // set HTML_ERRORS for source1 and source2
+    entry1.setValue(HTML_ERRORS, [], []);
+    entry2.setValue(HTML_ERRORS, [], []);
+    // invalidate HTML_ERRORS for source1, schedule it
+    entry1.setState(HTML_ERRORS, CacheState.INVALID);
+    expect_sourceQueue([source1]);
+    // invalidate HTML_ERRORS for source2, schedule it
+    entry2.setState(HTML_ERRORS, CacheState.INVALID);
+    expect_sourceQueue([source1, source2]);
+  }
+
+}
+
+class _SourceFactoryMock extends TypedMock
+    implements SourceFactory {
+}
+
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
   @override
@@ -310,6 +359,12 @@ class _InternalAnalysisContextMock extends TypedMock
 
   @override
   AnalysisCache analysisCache;
+
+  // The production version is a stream that carries messages from the cache
+  // since the cache changes. Here, we can just pass the inner stream because
+  // it doesn't change.
+  @override
+  get onResultInvalidated => analysisCache.onResultInvalidated;
 
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 

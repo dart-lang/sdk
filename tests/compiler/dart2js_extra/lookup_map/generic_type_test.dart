@@ -5,10 +5,15 @@
 import 'package:lookup_map/lookup_map.dart';
 import 'package:expect/expect.dart';
 
-class A{}
-class M<T>{ get type => T; }
+class A {}
+
+class M<T> {
+  get type => T;
+}
+
 const map = const LookupMap(const [
-    A, 'the-text-for-A',
+  A,
+  'the-text-for-A',
 ]);
 
 main() {

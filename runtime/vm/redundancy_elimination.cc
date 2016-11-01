@@ -1549,6 +1549,15 @@ class LoadOptimizer : public ValueObject {
       FlowGraphPrinter::PrintGraph("Before LoadOptimizer", graph);
     }
 
+    // For now, bail out for large functions to avoid OOM situations.
+    // TODO(fschneider): Fix the memory consumption issue.
+    intptr_t function_length =
+        graph->function().end_token_pos().Pos() -
+        graph->function().token_pos().Pos();
+    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+      return false;
+    }
+
     DirectChainedHashMap<PointerKeyValueTrait<Place> > map;
     AliasedSet* aliased_set = NumberPlaces(graph, &map, kOptimizeLoads);
     if ((aliased_set != NULL) && !aliased_set->IsEmpty()) {
@@ -2514,6 +2523,15 @@ class StoreOptimizer : public LivenessAnalysis {
       FlowGraphPrinter::PrintGraph("Before StoreOptimizer", graph);
     }
 
+    // For now, bail out for large functions to avoid OOM situations.
+    // TODO(fschneider): Fix the memory consumption issue.
+    intptr_t function_length =
+        graph->function().end_token_pos().Pos() -
+        graph->function().token_pos().Pos();
+    if (function_length >= FLAG_huge_method_cutoff_in_tokens) {
+      return;
+    }
+
     DirectChainedHashMap<PointerKeyValueTrait<Place> > map;
     AliasedSet* aliased_set = NumberPlaces(graph, &map, kOptimizeStores);
     if ((aliased_set != NULL) && !aliased_set->IsEmpty()) {
@@ -3335,10 +3353,15 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
     GrowableArray<Definition*> cdefs(idefs->length());
     cdefs.AddArray(*idefs);
 
-    // exception_var and stacktrace_var are never constant.
-    intptr_t ex_idx = base - catch_entry->exception_var().index();
-    intptr_t st_idx = base - catch_entry->stacktrace_var().index();
-    cdefs[ex_idx] = cdefs[st_idx] = NULL;
+    // exception_var and stacktrace_var are never constant.  In asynchronous or
+    // generator functions they may be context-allocated in which case they are
+    // not tracked in the environment anyway.
+    if (!catch_entry->exception_var().is_captured()) {
+      cdefs[base - catch_entry->exception_var().index()] = NULL;
+    }
+    if (!catch_entry->stacktrace_var().is_captured()) {
+      cdefs[base - catch_entry->stacktrace_var().index()] = NULL;
+    }
 
     for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
          !block_it.Done();
@@ -3354,10 +3377,14 @@ void TryCatchAnalyzer::Optimize(FlowGraph* flow_graph) {
             ASSERT(env != NULL);
             for (intptr_t env_idx = 0; env_idx < cdefs.length(); ++env_idx) {
               if (cdefs[env_idx] != NULL &&
+                  !cdefs[env_idx]->IsConstant() &&
                   env->ValueAt(env_idx)->BindsToConstant()) {
+                // If the recorded definition is not a constant, record this
+                // definition as the current constant definition.
                 cdefs[env_idx] = env->ValueAt(env_idx)->definition();
               }
               if (cdefs[env_idx] != env->ValueAt(env_idx)->definition()) {
+                // Non-constant definitions are reset to NULL.
                 cdefs[env_idx] = NULL;
               }
             }

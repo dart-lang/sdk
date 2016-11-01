@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_LOCKERS_H_
-#define BIN_LOCKERS_H_
+#ifndef RUNTIME_BIN_LOCKERS_H_
+#define RUNTIME_BIN_LOCKERS_H_
 
 #include "bin/thread.h"
 #include "platform/assert.h"
@@ -61,4 +61,4 @@ class MonitorLocker {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_LOCKERS_H_
+#endif  // RUNTIME_BIN_LOCKERS_H_

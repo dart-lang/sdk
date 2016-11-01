@@ -4,66 +4,205 @@
 
 library eval_box_element;
 
-import 'dart:async';
 import 'dart:html';
-import 'observatory_element.dart';
-import 'package:polymer/polymer.dart';
+import 'dart:async';
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/instance_ref.dart';
 
+class EvalBoxElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<EvalBoxElement>('eval-box',
+      dependencies: const [InstanceRefElement.tag]);
 
-typedef Future evalType(String text);
+  RenderingScheduler<EvalBoxElement> _r;
 
+  Stream<RenderedEvent<EvalBoxElement>> get onRendered => _r.onRendered;
 
-@CustomTag('eval-box')
-class EvalBoxElement extends ObservatoryElement {
-  @observable String text;
-  @observable String lineMode = "1-line";
-  int _exprCount = 0;
+  M.IsolateRef _isolate;
+  M.ObjectRef _context;
+  M.InstanceRepository _instances;
+  M.EvalRepository _eval;
+  final _results = <_ExpressionDescription>[];
+  String _expression = '';
+  bool _multiline;
+  Iterable<String> _quickExpressions;
 
-  @published evalType callback;
-  @observable ObservableList results = toObservable([]);
+  M.IsolateRef get isolate => _isolate;
+  M.ObjectRef get context => _context;
 
-  void updateLineMode(Event e, var detail, Node target) {
-    lineMode = (e.target as InputElement).value;
-    if (lineMode == '1-line' && text != null) {
-      text = text.replaceAll('\n', ' ');
-    }
-  }
-
-  void evaluate(Event e, var detail, Node target) {
-    // Prevent any form action.
-    e.preventDefault();
-
-    // Clear the text box.
-    var expr = text;
-    text = '';
-
-    // Use provided callback to eval the expression.
-    if (callback != null) {
-      var map = toObservable({});
-      map['id'] = (_exprCount++).toString();
-      map['expr'] = expr;
-      results.insert(0, map);
-      callback(expr).then((result) {
-        map['value'] = result;
-      }).catchError((e, st) {
-        map['error'] = e.message;
-        app.handleException(e, st);
-      });
-    }
-  }
-
-  void selectExpr(MouseEvent e) {
-    assert(e.target is Element);
-    Element targetElement = e.target;
-    text = targetElement.getAttribute('expr');
-  }
-
-  void closeItem(MouseEvent e) {
-    assert(e.target is Element);
-    Element targetElement = e.target;
-    var closeId = targetElement.getAttribute('closeId');
-    results.removeWhere((item) => item['id'] == closeId);
+  factory EvalBoxElement(M.IsolateRef isolate, M.ObjectRef context,
+      M.InstanceRepository instances, M.EvalRepository eval,
+      {bool multiline: false,
+      Iterable<String> quickExpressions: const [],
+      RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(context != null);
+    assert(instances != null);
+    assert(eval != null);
+    assert(multiline != null);
+    assert(quickExpressions != null);
+    EvalBoxElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._context = context;
+    e._instances = instances;
+    e._eval = eval;
+    e._multiline = multiline;
+    e._quickExpressions = new List.unmodifiable(quickExpressions);
+    return e;
   }
 
   EvalBoxElement.created() : super.created();
+
+  @override
+  void attached() {
+    super.attached();
+    _r.enable();
+  }
+
+  @override
+  void detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
+    _results.clear();
+  }
+
+  void render() {
+    children = [
+      new DivElement()
+        ..classes = ['quicks']
+        ..children = _quickExpressions.map((q) => new ButtonElement()
+          ..text = q
+          ..onClick.listen((_) {
+            _expression = q;
+            _run();
+          })),
+      new DivElement()
+        ..classes = ['heading']
+        ..children = [
+          new FormElement()
+            ..autocomplete = 'on'
+            ..children = [
+              _multiline ? _createEvalTextArea() : _createEvalTextBox(),
+              new SpanElement()
+                ..classes = ['buttons']
+                ..children = [
+                  _createEvalButton(),
+                  _createMultilineCheckbox(),
+                  new SpanElement()..text = 'Multi-line'
+                ]
+            ]
+        ],
+      new TableElement()
+        ..children = _results.reversed
+            .map((result) => new TableRowElement()
+              ..children = [
+                new TableCellElement()
+                  ..classes = ['historyExpr']
+                  ..children = [
+                    new ButtonElement()
+                      ..text = result.expression
+                      ..onClick.listen((_) {
+                        _expression = result.expression;
+                        _r.dirty();
+                      })
+                  ],
+                new TableCellElement()
+                  ..classes = ['historyValue']
+                  ..children = [
+                    result.isPending
+                        ? (new SpanElement()..text = 'Pending...')
+                        : anyRef(_isolate, result.value, _instances,
+                            queue: _r.queue)
+                  ],
+                new TableCellElement()
+                  ..classes = ['historyDelete']
+                  ..children = [
+                    new ButtonElement()
+                      ..text = '✖ Remove'
+                      ..onClick.listen((_) {
+                        _results.remove(result);
+                        _r.dirty();
+                      })
+                  ]
+              ])
+            .toList()
+    ];
+  }
+
+  TextInputElement _createEvalTextArea() {
+    var area = new TextAreaElement()
+      ..classes = ['textbox']
+      ..placeholder = 'evaluate an expression'
+      ..value = _expression
+      ..onKeyUp.where((e) => e.key == '\n').listen((e) {
+        e.preventDefault();
+        _run();
+      });
+    area.onInput.listen((e) {
+      _expression = area.value;
+    });
+    return area;
+  }
+
+  TextInputElement _createEvalTextBox() {
+    _expression = (_expression ?? '').split('\n')[0];
+    var textbox = new TextInputElement()
+      ..classes = ['textbox']
+      ..placeholder = 'evaluate an expression'
+      ..value = _expression
+      ..onKeyUp.where((e) => e.key == '\n').listen((e) {
+        e.preventDefault();
+        _run();
+      });
+    textbox.onInput.listen((e) {
+      _expression = textbox.value;
+    });
+    return textbox;
+  }
+
+  ButtonElement _createEvalButton() {
+    final button = new ButtonElement()
+      ..text = 'Evaluate'
+      ..onClick.listen((e) {
+        e.preventDefault();
+        _run();
+      });
+    return button;
+  }
+
+  CheckboxInputElement _createMultilineCheckbox() {
+    final checkbox = new CheckboxInputElement()..checked = _multiline;
+    checkbox.onClick.listen((e) {
+      e.preventDefault();
+      _multiline = checkbox.checked;
+      _r.dirty();
+    });
+    return checkbox;
+  }
+
+  Future _run() async {
+    if (_expression == null || _expression.isEmpty) return;
+    final expression = _expression;
+    _expression = null;
+    final result = new _ExpressionDescription.pending(expression);
+    _results.add(result);
+    _r.dirty();
+    final index = _results.indexOf(result);
+    _results[index] = new _ExpressionDescription(
+        expression, await _eval.evaluate(_isolate, _context, expression));
+    _r.dirty();
+  }
+}
+
+class _ExpressionDescription {
+  final String expression;
+  final M.ObjectRef value;
+  bool get isPending => value == null;
+
+  _ExpressionDescription(this.expression, this.value);
+  _ExpressionDescription.pending(this.expression) : value = null;
 }

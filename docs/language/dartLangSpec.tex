@@ -592,7 +592,9 @@ An asynchronous constructor would, by definition, never return an instance of th
 One could allow modifiers for factories. A factory for \code{Future} could be modified by \ASYNC{}, a factory for \code{Stream} could be modified by \ASYNC* and a factory for \code{Iterable} could be modified by \SYNC*. No other scenario makes sense because the object returned by the factory would be of the wrong type. This situation is very unusual so it is not worth making an exception to the general rule for constructors in order to allow it.
 }
 \LMHash{}
-It is a static warning if the declared return type of a function marked \ASYNC{} may not be assigned to \code{Future}. It is a static warning if the declared return type of a function marked \SYNC* may not be assigned to \code{Iterable}. It is a static warning if the declared return type of  a function marked \ASYNC* may not be assigned to \code{Stream}.
+It is a static warning if the declared return type of a function marked \ASYNC{} is not a supertype of \code{Future$<$\mbox{$T$}$>$} for some type $T$.
+It is a static warning if the declared return type of a function marked \SYNC* is not a supertype of \code{Iterable$<$\mbox{$T$}$>$} for some type $T$.
+It is a static warning if the declared return type of a function marked \ASYNC* is not a supertype of \code{Stream$<$\mbox{$T$}$>$} for some type $T$.
 
 \subsection{Function Declarations}
 \LMLabel{functionDeclarations}
@@ -739,13 +741,24 @@ Optional parameters may be specified and provided with default values.
 
 \begin{grammar}
 {\bf defaultFormalParameter:}
-      normalFormalParameter ('=' expression)?
+      normalFormalParameter (`=' expression)?
     .
 
-{\bf defaultNamedParameter:}
+{\bf defaultNamedParameter:}normalFormalParameter (`=' expression)?;
       normalFormalParameter ( `{\escapegrammar :}' expression)?
     .
 \end{grammar}
+
+A {\bf defaultNamedParameter} on the form:
+\begin{code}
+   normalFormalParameter : expression
+\end{code}
+is equivalent to one on the form:
+\begin{code}
+   normalFormalParameter = expression
+\end{code}
+The colon-syntax is included only for backwards compatibility.
+It is deprecated and will be removed in a later version of the language specification.
 
 \LMHash{}
 It is a compile-time error if the default value of an optional parameter is not a compile-time constant (\ref{constants}). If no default is explicitly specified for an optional parameter an implicit default of \NULL{} is provided.
@@ -1227,7 +1240,15 @@ A {\em constructor parameter list} is a parenthesized, comma-separated list of f
 If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named \code{id} is $T_{id}$, where $T_{id}$ is the type of the field named \code{id} in the immediately enclosing class. It is a static warning if the static type of \code{id} is not assignable to $T_{id}$.
 
 \LMHash{}
-Using an initializing formal \code{\THIS{}.id} in a formal parameter list does not introduce a formal parameter name into the scope of the constructor. However, the initializing formal does effect the type of the constructor function exactly as if a formal parameter  named \code{id}  of the same type were introduced in the same position.
+Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
+When the formal parameter list of a non-redirecting generative constructor contains any initializing formals, a new scope is introduced, the {\em formal parameter initializer scope}, which is the current scope of the initializer list of the constructor, and which is enclosed in the scope where the constructor is declared.
+Each initializing formal in the formal parameter list introduces a final local variable into the formal parameter initializer scope, but not into the formal parameter scope; every other formal parameter introduces a local variable into both the formal parameter scope and the formal parameter initializer scope.
+
+\commentary{
+This means that formal parameters, including initializing formals, must have distinct names, and that initializing formals are in scope for the initializer list, but they are not in scope for the body of the constructor.
+When a formal parameter introduces a local variable into two scopes, it is still one variable and hence one storage location.
+The type of the constructor is defined in terms of its formal parameters, including the initializing formals.
+}
 
 \LMHash{}
 Initializing formals are executed during the execution of generative constructors detailed below. Executing an initializing formal  \code{\THIS{}.id} causes the field \code{id} of the immediately surrounding class to be assigned the value of the corresponding actual parameter, unless $id$ is a final variable that has already been initialized, in which case a runtime error occurs.
@@ -2075,10 +2096,9 @@ If, for example, $M$ declares an instance member $im$ whose type is at odds with
 }
 
 \LMHash{}
-The effect of a class definition of the form \code{\CLASS{} $C$ = $M$; } or the form
- \code{\CLASS{} $C<T_1, \ldots, T_n>$ = $M$; } in library $L$  is to introduce the name $C$ into the scope of $L$, bound to the class (\ref{classes}) defined by the mixin application $M$. The name of the class is also set to $C$. Iff the  class is prefixed by the built-in identifier \ABSTRACT{}, the class being defined is an abstract class.
+The effect of a class definition of the form \code{\CLASS{} $C$ = $M$; } or the form \code{\CLASS{} $C<T_1, \ldots, T_n>$ = $M$; } in library $L$  is to introduce the name $C$ into the scope of $L$, bound to the class (\ref{classes}) defined by the mixin application $M$. The name of the class is also set to $C$. Iff the  class is prefixed by the built-in identifier \ABSTRACT{}, the class being defined is an abstract class.
 
- Let $M_A$ be a mixin derived from a class $M$ with direct superclass $S_{static}$.
+Let $M_A$ be a mixin derived from a class $M$ with direct superclass $S_{static}$, e.g., as defined by the class declaration \code{class M extends S$_{static}$ \{ \ldots \}}.
 
 Let $A$ be an application of $M_A$. It is a static warning if the superclass of $A$ is not a subtype of $S_{static}$.
 
@@ -2461,8 +2481,8 @@ On the other hand, since implementations are free to compile code late, some com
 }
 
 \begin{dartCode}
-\CONST{} x = 1/0;
-\FINAL{} y = 1/0;
+\CONST{} x = 1 ~/ 0;
+\FINAL{} y = 1 ~/ 0;
 
 \CLASS{} K \{
   m1() \{
@@ -2582,7 +2602,7 @@ A {\em numeric literal} is either a decimal or hexadecimal integer of arbitrary 
  \end{grammar}
 
 \LMHash{}
-If a numeric literal begins with the prefix `0x' or `0X', it denotes the hexadecimal integer represented by the part of the literal following `0x' (respectively `0X'). Otherwise, if the numeric literal does not include a decimal point  it denotes a decimal integer.  Otherwise, the numeric literal  denotes a 64 bit double precision floating point number as specified by the IEEE 754 standard.
+If a numeric literal begins with the prefix `0x' or `0X', it denotes the hexadecimal integer represented by the part of the literal following `0x' (respectively `0X'). Otherwise, if the numeric literal contains only decimal digits, it denotes a decimal integer.  Otherwise, the numeric literal contains either a decimal point or an exponent part and it denotes a 64 bit double precision floating point number as specified by the IEEE 754 standard.
 
 \LMHash{}
 In principle, the range of integers supported by a Dart implementations is unlimited. In practice, it is limited by available memory. Implementations may also be limited by other considerations.
@@ -2782,7 +2802,7 @@ Strings support escape sequences for special characters. The escapes are:
 
 $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$\}.
 \item $\backslash$u $HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$, equivalent to $\backslash$u\{$HEX\_DIGIT_1$ $HEX\_DIGIT_2$ $HEX\_DIGIT_3$ $HEX\_DIGIT_4$\}.
-\item $\backslash$u\{$HEX\_DIGIT\_SEQUENCE$\} is the unicode scalar value represented by the $HEX\_DIGIT\_SEQUENCE$. It is a compile-time error if the value of the $HEX\_DIGIT\_SEQUENCE$ is not a valid unicode scalar value.
+\item $\backslash$u\{$HEX\_DIGIT\_SEQUENCE$\} is the Unicode code point represented by the $HEX\_DIGIT\_SEQUENCE$. It is a compile-time error if the value of the $HEX\_DIGIT\_SEQUENCE$ is not a valid Unicode code point.
 \item \$ indicating the beginning of an interpolated expression.
 \item Otherwise, $\backslash k$ indicates the character $k$ for any $k$ not in $\{n, r, f, b, t, v, x, u\}$.
  \end{itemize}
@@ -2864,7 +2884,7 @@ A {\em symbol literal} denotes the name of a declaration in a Dart program.
 A symbol literal \code{\#id} where \code{id} does not begin with an underscore ('\code{\_}')  is equivalent to the expression \code{\CONST{} Symbol('id')}.
 
 \LMHash{}
-A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{mirror.getPrivateSymbol('id')} where mirror is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
+A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{MirrorSystem.getSymbol("\_id", libraryMirror)} where \code{libraryMirror} is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not. However literal strings are already canonicalized in Dart.  Symbols are slightly easier to type compared to strings and their use can become strangely addictive, but this is not nearly sufficient justification for adding a literal form to the language. The primary motivation is related to the use of reflection and a web specific practice known as minification.
@@ -3141,7 +3161,7 @@ Here, a naive definition of $flatten$ diverges; there is not even a fixed point.
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\}) => e$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\}) => e$
 is
 
 $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow T_0$, where $T_0$ is the static type of $e$.
@@ -3149,7 +3169,7 @@ $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ \ASYNC{}  $=> e$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\})$ \ASYNC{}  $=> e$
 
 is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow Future<flatten(T_0)>$, where $T_0$ is the static type of $e$.
 
@@ -3190,21 +3210,21 @@ is $(T_1 \ldots, T_n, [T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}]) \rightarro
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\ASYNC{}$ $\{s\}$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\})$ $\ASYNC{}$ $\{s\}$
 
 is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Future{}$.
 
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\ASYNC*{}$ $\{s\}$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\})$ $\ASYNC*{}$ $\{s\}$
 
 is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Stream{}$.
 
 \LMHash{}
 The static type of a function literal of the form
 
-$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} : d_1, \ldots,  T_{n+k}$ $x_{n+k} : d_k\})$ $\SYNC*{}$ $\{s\}$
+$(T_1$ $a_1, \ldots, T_n$ $a_n, \{T_{n+1}$ $x_{n+1} = d_1, \ldots,  T_{n+k}$ $x_{n+k} = d_k\})$ $\SYNC*{}$ $\{s\}$
 
 is $(T_1 \ldots, T_n, \{T_{n+1}$ $x_{n+1}, \ldots, T_{n+k}$ $x_{n+k}\}) \rightarrow  Iterable{}$.
 
@@ -3850,15 +3870,15 @@ If the method lookup succeeded, the body of $f$ is executed with respect to the 
 If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $v_o$ with respect to $L$.
 If $v_o$ is an instance of \code{Type} but $o$ is not a constant type literal, then if $g$ is a getter that forwards to a static getter, getter lookup fails.
 If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $o.m$. Then the value of $i$ is the result of invoking
-the static method \code{Function.apply()} with arguments $v.g, [o_1, \ldots , o_n], \{x_{n+1}: o_{n+1}, \ldots , x_{n+k}: o_{n+k}\}$.
+the static method \code{Function.apply()} with arguments $v.g, [o_1, \ldots , o_n], \{\#x_{n+1}: o_{n+1}, \ldots , \#x_{n+k}: o_{n+k}\}$.
 
 \LMHash{}
-If  getter lookup has also failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
+If getter lookup has also failed, then a new instance $im$ of the predefined class \code{Invocation} is created, such that:
 \begin{itemize}
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to the symbol \code{m}.
-\item \code{im.positionalArguments} evaluates to an immutable list with the same values as  \code{[$o_1, \ldots, o_n$]}.
-\item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$x_{n+1}: o_{n+1}, \ldots, x_{n+k} : o_{n+k}$\}}.
+\item \code{im.positionalArguments} evaluates to an immutable list with the same values as \code{[$o_1, \ldots, o_n$]}.
+\item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$\#x_{n+1}: o_{n+1}, \ldots, \#x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
 
 \LMHash{}
@@ -3951,7 +3971,7 @@ If the method lookup succeeded, the body of $f$ is executed with respect to the 
 
 \LMHash{}
 If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $S_{dynamic}$ with respect to $L$. If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $\SUPER{}.m$. Then the value of $i$ is the result of invoking
-the static method \code{Function.apply()} with arguments $v_g, [o_1, \ldots , o_n], \{x_{n+1}: o_{n+1}, \ldots , x_{n+k}: o_{n+k}\}$.
+the static method \code{Function.apply()} with arguments $v_g, [o_1, \ldots , o_n], \{x_{n+1} = o_{n+1}, \ldots , x_{n+k} = o_{n+k}\}$.
 
 \LMHash{}
 If  getter lookup has also failed, then a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
@@ -3959,7 +3979,7 @@ If  getter lookup has also failed, then a new instance $im$  of the predefined c
 \item  \code{im.isMethod} evaluates to \code{\TRUE{}}.
 \item  \code{im.memberName} evaluates to the symbol \code{m}.
 \item \code{im.positionalArguments} evaluates to an immutable list with the same  values as  \code{[$o_1, \ldots, o_n$]}.
-\item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$x_{n+1}: o_{n+1}, \ldots, x_{n+k} : o_{n+k}$\}}.
+\item \code{im.namedArguments} evaluates to an immutable map with the same keys and values as \code{\{$\#x_{n+1}: o_{n+1}, \ldots, \#x_{n+k} : o_{n+k}$\}}.
 \end{itemize}
 Then the method \code{noSuchMethod()} is looked up in $S_{dynamic}$ and invoked on \THIS{} with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on \THIS{} with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
 \begin{itemize}
@@ -4264,7 +4284,7 @@ The {\em closurization of method $f$ on object $o$} is defined to be equivalent 
 \item $(a, b) \{\RETURN{}$ $u[a] = b;$\} if $f$ is named $[]=$.
 \item
 \begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
   \RETURN{} $ u.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
 \}
 \end{dartCode}
@@ -4314,7 +4334,7 @@ The {\em closurization of constructor $f$ of type $T$} is defined to be equivale
 \begin{itemize}
 \item
 \begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
   \RETURN{} \NEW{} $T.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
 \}
 \end{dartCode}
@@ -4345,7 +4365,7 @@ The {\em closurization of anonymous constructor $f$ of type $T$} is defined to b
 \begin{itemize}
 \item
 \begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
   \RETURN{} \NEW{} $T(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
 \}
 \end{dartCode}
@@ -4379,7 +4399,7 @@ The {\em closurization of method $f$ with respect to superclass $S$} is defined 
 \item $(a, b) \{\RETURN{}$ $\SUPER[a] = b;$\} if $f$ is named $[]=$.
 \item
 \begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 : d_1, \ldots , p_k : d_k\})$ \{
+$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
   \RETURN{} \SUPER$.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
 \}
 \end{dartCode}
@@ -5950,7 +5970,10 @@ In other words, there is no implicit fall-through between non-empty cases. The l
 }
 
 \LMHash{}
-It is a static warning if the type of $e$ may not be assigned to the type of $e_k$. It is a static warning if the last statement of the statement sequence $s_k$ is not a \BREAK{}, \CONTINUE{}, \RETURN{} or \THROW{} statement.
+It is a static warning if the type of $e$ may not be assigned to the type of $e_k$.
+Let $s$ be the last statement of the statement sequence $s_k$.
+If $s$ is a non-empty block statement, let $s$ instead be the last statment of the block statement.
+It is a static warning $s$ is not a \BREAK{}, \CONTINUE{}, \RETHROW{} or \RETURN{} statement or an expression statment where the expression is a \THROW{} expression.
 
 \rationale{
 The behavior of switch cases intentionally differs from the C tradition.  Implicit fall through is a known cause of programming errors and therefore disallowed.  Why not simply break the flow implicitly at the end of every case, rather than requiring explicit code to do so?  This would indeed be cleaner.  It would also be cleaner to insist that each case have a single (possibly compound) statement.  We have chosen not to do so in order to facilitate porting of switch statements from other languages.  Implicitly breaking the control flow at the end of a case would silently alter the meaning of ported code that relied on fall-through, potentially forcing the programmer to deal with subtle bugs. Our design ensures that the difference is immediately brought to the coder's attention.  The programmer will be notified at compile-time if they forget to end a case with a statement that terminates the straight-line control flow. We could make this warning a compile-time error, but refrain from doing so because do not wish to force the programmer to deal with this issue immediately while porting code.  If developers ignore the warning and run their code, a run time error will prevent the program from misbehaving in hard-to-debug ways (at least with respect to this issue).
@@ -6479,7 +6502,7 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 
 \begin{grammar}
 {\bf assertStatement:}
-   assert `(' conditionalExpression `)' `{\escapegrammar ;}'
+   assert `(' expression `)' `{\escapegrammar ;}'
       .
 \end{grammar}
 
@@ -6487,7 +6510,7 @@ An {\em assert statement} is used to disrupt normal execution if a given boolean
 The assert statement has no effect in production mode. In checked mode, execution of an assert statement \code{\ASSERT{}($e$);} proceeds as follows:
 
 \LMHash{}
-The conditional expression $e$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
+The expression $e$ is evaluated to an object $o$. If the class of $o$ is a subtype of \code{Function} then let $r$ be the result of invoking $o$ with no arguments. Otherwise, let $r$ be $o$.
 It is a dynamic type error if $o$ is not of type \code{bool} or of type \code{Function}, or if $r$ is not of type \code{bool}.  If $r$ is \FALSE{}, we say that the assertion failed. If $r$ is \TRUE{}, we say that the assertion succeeded. If the assertion succeeded, execution of the assert statement is complete. If the assertion failed, an \code{AssertionError} is thrown.
 
 %\Q{Might be cleaner to define it as \code{if (!$e$) \{\THROW{} \NEW{} AssertionError();\}} (in checked mode only).
@@ -6933,6 +6956,9 @@ A {\em part header} begins with  \PART{} \OF{}  followed by the name of the libr
 
 \LMHash{}
 Compiling a part directive of the form \code{\PART{} $s$;} causes the Dart system to attempt to compile the contents of the URI that is the value of $s$. The top-level declarations at that URI are then compiled by the Dart compiler in the scope of the current library. It is a compile-time error if the contents of the URI are not a valid part declaration. It is a static warning if the referenced part declaration $p$ names a library other than the current library as the library to which $p$ belongs.
+
+\LMHash{}
+It's a compile-time error if the same library contains two part directives with the same URI.
 
 \subsection{Scripts}
 \LMLabel{scripts}

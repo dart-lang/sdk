@@ -6,7 +6,7 @@ library analyzer.test.src.plugin.plugin_config_test;
 
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/src/plugin/plugin_configuration.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 main() {
@@ -16,7 +16,7 @@ main() {
         const optionsSrc = '''
 analyzer:
   plugins:
-    my_plugin1: ^0.1.0 #shorthand 
+    my_plugin1: ^0.1.0 #shorthand
     my_plugin2:
       version: ^0.2.0
     my_plugin3:
@@ -42,7 +42,7 @@ analyzer:
         const optionsSrc = '''
 analyzer:
   plugins:
-    # my_plugin1: ^0.1.0 #shorthand 
+    # my_plugin1: ^0.1.0 #shorthand
 ''';
         var config = parseConfig(optionsSrc);
         // Commented out plugins shouldn't cause a parse failure.
@@ -53,7 +53,7 @@ analyzer:
         const manifestSrc = '''
 class_name: AnalyzerPlugin
 library_uri: myplugin/analyzer_plugin.dart
-contributes_to: analyzer  
+contributes_to: analyzer
 ''';
         var manifest = parsePluginManifestString(manifestSrc);
         var plugin = manifest.plugin;
@@ -66,9 +66,9 @@ contributes_to: analyzer
         const manifestSrc = '''
 class_name: AnalyzerPlugin
 library_uri: myplugin/analyzer_plugin.dart
-contributes_to: 
+contributes_to:
   - analyzer
-  - analysis_server  
+  - analysis_server
 ''';
         var manifest = parsePluginManifestString(manifestSrc);
         var plugin = manifest.plugin;

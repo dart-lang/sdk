@@ -10,12 +10,21 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
+
+/**
+ * A function used to handle exceptions that are thrown by delegates while using
+ * an [ExceptionHandlingDelegatingAstVisitor].
+ */
+typedef void ExceptionInDelegateHandler(
+    AstNode node, AstVisitor visitor, dynamic exception, StackTrace stackTrace);
 
 /**
  * An AST visitor that will clone any AST structure that it visits. The cloner
@@ -71,8 +80,7 @@ class AstCloner implements AstVisitor<AstNode> {
    * Return a list containing cloned versions of the nodes in the given list of
    * [nodes].
    */
-  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(
-      List/*<E>*/ nodes) {
+  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(List/*<E>*/ nodes) {
     int count = nodes.length;
     List/*<E>*/ clonedNodes = new List/*<E>*/();
     for (int i = 0; i < count; i++) {
@@ -277,7 +285,7 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.equalToken),
       cloneNode(node.value),
       cloneToken(node.rightParenthesis),
-      cloneNode(node.libraryUri));
+      cloneNode(node.uri));
 
   @override
   ConstructorDeclaration visitConstructorDeclaration(
@@ -376,7 +384,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ExportDirective visitExportDirective(ExportDirective node) {
-    ExportDirective directive = new ExportDirective(
+    ExportDirectiveImpl directive = new ExportDirective(
         cloneNode(node.documentationComment),
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
@@ -384,7 +392,9 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNodeList(node.configurations),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.selectedUriContent = node.selectedUriContent;
+    directive.selectedSource = node.selectedSource;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }
@@ -547,7 +557,7 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   ImportDirective visitImportDirective(ImportDirective node) {
-    ImportDirective directive = new ImportDirective(
+    ImportDirectiveImpl directive = new ImportDirective(
         cloneNode(node.documentationComment),
         cloneNodeList(node.metadata),
         cloneToken(node.keyword),
@@ -558,7 +568,9 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneNode(node.prefix),
         cloneNodeList(node.combinators),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.selectedUriContent = node.selectedUriContent;
+    directive.selectedSource = node.selectedSource;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }
@@ -706,7 +718,7 @@ class AstCloner implements AstVisitor<AstNode> {
         cloneToken(node.partKeyword),
         cloneNode(node.uri),
         cloneToken(node.semicolon));
-    directive.source = node.source;
+    directive.uriSource = node.uriSource;
     directive.uriContent = node.uriContent;
     return directive;
   }
@@ -936,6 +948,7 @@ class AstCloner implements AstVisitor<AstNode> {
     Token nonComment(Token token) {
       return token is CommentToken ? token.parent : token;
     }
+
     token = nonComment(token);
     if (_lastCloned == null) {
       _lastCloned = new Token(TokenType.EOF, -1);
@@ -1264,7 +1277,7 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.equalToken, other.equalToken) &&
         isEqualNodes(node.value, other.value) &&
         isEqualTokens(node.rightParenthesis, other.rightParenthesis) &&
-        isEqualNodes(node.libraryUri, other.libraryUri);
+        isEqualNodes(node.uri, other.uri);
   }
 
   @override
@@ -2626,6 +2639,69 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
 }
 
 /**
+ * A [DelegatingAstVisitor] that will additionally catch all exceptions from the
+ * delegates without stopping the visiting. A function must be provided that
+ * will be invoked for each such exception.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ExceptionHandlingDelegatingAstVisitor<T> extends DelegatingAstVisitor<T> {
+  /**
+   * The function that will be executed for each exception that is thrown by one
+   * of the visit methods on the delegate.
+   */
+  final ExceptionInDelegateHandler handler;
+
+  /**
+   * Initialize a newly created visitor to use each of the given delegate
+   * visitors to visit the nodes of an AST structure.
+   */
+  ExceptionHandlingDelegatingAstVisitor(
+      Iterable<AstVisitor<T>> delegates, this.handler)
+      : super(delegates) {
+    if (handler == null) {
+      throw new ArgumentError('A handler must be provided');
+    }
+  }
+
+  @override
+  T visitNode(AstNode node) {
+    delegates.forEach((delegate) {
+      try {
+        node.accept(delegate);
+      } catch (exception, stackTrace) {
+        handler(node, delegate, exception, stackTrace);
+      }
+    });
+    node.visitChildren(this);
+    return null;
+  }
+
+  /**
+   * A function that can be used with instances of this class to log and then
+   * ignore any exceptions that are thrown by any of the delegates.
+   */
+  static void logException(AstNode node, AstVisitor visitor, dynamic exception,
+      StackTrace stackTrace) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
+    AstNode currentNode = node;
+    bool first = true;
+    while (currentNode != null) {
+      if (first) {
+        first = false;
+      } else {
+        buffer.write('in ');
+      }
+      buffer.write(currentNode.runtimeType);
+      currentNode = currentNode.parent;
+    }
+    AnalysisEngine.instance.logger.logError(
+        buffer.toString(), new CaughtException(exception, stackTrace));
+  }
+}
+
+/**
  * An object that will clone any AST structure that it visits. The cloner will
  * clone the structure, replacing the specified ASTNode with a new ASTNode,
  * mapping the old token stream to a new token stream, and preserving resolution
@@ -2853,7 +2929,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _mapToken(node.equalToken),
       _cloneNode(node.value),
       _mapToken(node.rightParenthesis),
-      _cloneNode(node.libraryUri));
+      _cloneNode(node.uri));
 
   @override
   ConstructorDeclaration visitConstructorDeclaration(
@@ -4167,8 +4243,8 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (identical(node.value, _oldNode)) {
       node.value = _newNode as StringLiteral;
       return true;
-    } else if (identical(node.libraryUri, _oldNode)) {
-      node.libraryUri = _newNode as StringLiteral;
+    } else if (identical(node.uri, _oldNode)) {
+      node.uri = _newNode as StringLiteral;
       return true;
     }
     return visitNode(node);
@@ -4706,8 +4782,7 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   bool visitNode(AstNode node) {
-    throw new IllegalArgumentException(
-        "The old node is not a child of it's parent");
+    throw new ArgumentError("The old node is not a child of it's parent");
   }
 
   bool visitNormalFormalParameter(NormalFormalParameter node) {
@@ -5065,21 +5140,18 @@ class NodeReplacer implements AstVisitor<bool> {
    * Replace the [oldNode] with the [newNode] in the AST structure containing
    * the old node. Return `true` if the replacement was successful.
    *
-   * Throws an [IllegalArgumentException] if either node is `null`, if the old
-   * node does not have a parent node, or if the AST structure has been
-   * corrupted.
+   * Throws an [ArgumentError] if either node is `null`, if the old node does
+   * not have a parent node, or if the AST structure has been corrupted.
    */
   static bool replace(AstNode oldNode, AstNode newNode) {
     if (oldNode == null || newNode == null) {
-      throw new IllegalArgumentException(
-          "The old and new nodes must be non-null");
+      throw new ArgumentError("The old and new nodes must be non-null");
     } else if (identical(oldNode, newNode)) {
       return true;
     }
     AstNode parent = oldNode.parent;
     if (parent == null) {
-      throw new IllegalArgumentException(
-          "The old node is not a child of another node");
+      throw new ArgumentError("The old node is not a child of another node");
     }
     NodeReplacer replacer = new NodeReplacer(oldNode, newNode);
     return parent.accept(replacer);
@@ -5361,7 +5433,7 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.equalToken, toNode.equalToken),
         _isEqualNodes(node.value, toNode.value),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
-        _isEqualNodes(node.libraryUri, toNode.libraryUri))) {
+        _isEqualNodes(node.uri, toNode.uri))) {
       return true;
     }
     return false;
@@ -6697,7 +6769,10 @@ class ScopedNameFinder extends GeneralizingAstVisitor<Object> {
 /**
  * A visitor used to write a source representation of a visited AST node (and
  * all of it's children) to a writer.
+ *
+ * This class has been deprecated. Use the class ToSourceVisitor2 instead.
  */
+@deprecated
 class ToSourceVisitor implements AstVisitor<Object> {
   /**
    * The writer to which the source is to be written.
@@ -6908,7 +6983,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNode(node.name);
     _visitNodeWithPrefix(" == ", node.value);
     _writer.print(') ');
-    _visitNode(node.libraryUri);
+    _visitNode(node.uri);
     return null;
   }
 
@@ -7204,6 +7279,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNode(node.identifier);
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
+    if (node.question != null) {
+      _writer.print('?');
+    }
     return null;
   }
 
@@ -7650,6 +7728,9 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitTypeName(TypeName node) {
     _visitNode(node.name);
     _visitNode(node.typeArguments);
+    if (node.question != null) {
+      _writer.print('?');
+    }
     return null;
   }
 
@@ -7834,5 +7915,1165 @@ class ToSourceVisitor implements AstVisitor<Object> {
       _writer.print(token.lexeme);
       _writer.print(suffix);
     }
+  }
+}
+
+/**
+ * A visitor used to write a source representation of a visited AST node (and
+ * all of it's children) to a sink.
+ */
+class ToSourceVisitor2 implements AstVisitor<Object> {
+  /**
+   * The sink to which the source is to be written.
+   */
+  @protected
+  final StringSink sink;
+
+  /**
+   * Initialize a newly created visitor to write source code representing the
+   * visited nodes to the given [sink].
+   */
+  ToSourceVisitor2(this.sink);
+
+  /**
+   * Visit the given function [body], printing the [prefix] before if the body
+   * is not empty.
+   */
+  @protected
+  void safelyVisitFunctionWithPrefix(String prefix, FunctionBody body) {
+    if (body is! EmptyFunctionBody) {
+      sink.write(prefix);
+    }
+    safelyVisitNode(body);
+  }
+
+  /**
+   * Safely visit the given [node].
+   */
+  @protected
+  void safelyVisitNode(AstNode node) {
+    if (node != null) {
+      node.accept(this);
+    }
+  }
+
+  /**
+   * Print a list of [nodes] without any separation.
+   */
+  @protected
+  void safelyVisitNodeList(NodeList<AstNode> nodes) {
+    safelyVisitNodeListWithSeparator(nodes, "");
+  }
+
+  /**
+   * Print a list of [nodes], separated by the given [separator].
+   */
+  @protected
+  void safelyVisitNodeListWithSeparator(
+      NodeList<AstNode> nodes, String separator) {
+    if (nodes != null) {
+      int size = nodes.length;
+      for (int i = 0; i < size; i++) {
+        if (i > 0) {
+          sink.write(separator);
+        }
+        nodes[i].accept(this);
+      }
+    }
+  }
+
+  /**
+   * Print a list of [nodes], prefixed by the given [prefix] if the list is not
+   * empty, and separated by the given [separator].
+   */
+  @protected
+  void safelyVisitNodeListWithSeparatorAndPrefix(
+      String prefix, NodeList<AstNode> nodes, String separator) {
+    if (nodes != null) {
+      int size = nodes.length;
+      if (size > 0) {
+        sink.write(prefix);
+        for (int i = 0; i < size; i++) {
+          if (i > 0) {
+            sink.write(separator);
+          }
+          nodes[i].accept(this);
+        }
+      }
+    }
+  }
+
+  /**
+   * Print a list of [nodes], separated by the given [separator], followed by
+   * the given [suffix] if the list is not empty.
+   */
+  @protected
+  void safelyVisitNodeListWithSeparatorAndSuffix(
+      NodeList<AstNode> nodes, String separator, String suffix) {
+    if (nodes != null) {
+      int size = nodes.length;
+      if (size > 0) {
+        for (int i = 0; i < size; i++) {
+          if (i > 0) {
+            sink.write(separator);
+          }
+          nodes[i].accept(this);
+        }
+        sink.write(suffix);
+      }
+    }
+  }
+
+  /**
+   * Safely visit the given [node], printing the [prefix] before the node if it
+   * is non-`null`.
+   */
+  @protected
+  void safelyVisitNodeWithPrefix(String prefix, AstNode node) {
+    if (node != null) {
+      sink.write(prefix);
+      node.accept(this);
+    }
+  }
+
+  /**
+   * Safely visit the given [node], printing the [suffix] after the node if it
+   * is non-`null`.
+   */
+  @protected
+  void safelyVisitNodeWithSuffix(AstNode node, String suffix) {
+    if (node != null) {
+      node.accept(this);
+      sink.write(suffix);
+    }
+  }
+
+  /**
+   * Safely visit the given [token], printing the [suffix] after the token if it
+   * is non-`null`.
+   */
+  @protected
+  void safelyVisitTokenWithSuffix(Token token, String suffix) {
+    if (token != null) {
+      sink.write(token.lexeme);
+      sink.write(suffix);
+    }
+  }
+
+  @override
+  Object visitAdjacentStrings(AdjacentStrings node) {
+    safelyVisitNodeListWithSeparator(node.strings, " ");
+    return null;
+  }
+
+  @override
+  Object visitAnnotation(Annotation node) {
+    sink.write('@');
+    safelyVisitNode(node.name);
+    safelyVisitNodeWithPrefix(".", node.constructorName);
+    safelyVisitNode(node.arguments);
+    return null;
+  }
+
+  @override
+  Object visitArgumentList(ArgumentList node) {
+    sink.write('(');
+    safelyVisitNodeListWithSeparator(node.arguments, ", ");
+    sink.write(')');
+    return null;
+  }
+
+  @override
+  Object visitAsExpression(AsExpression node) {
+    safelyVisitNode(node.expression);
+    sink.write(" as ");
+    safelyVisitNode(node.type);
+    return null;
+  }
+
+  @override
+  Object visitAssertStatement(AssertStatement node) {
+    sink.write("assert (");
+    safelyVisitNode(node.condition);
+    if (node.message != null) {
+      sink.write(', ');
+      safelyVisitNode(node.message);
+    }
+    sink.write(");");
+    return null;
+  }
+
+  @override
+  Object visitAssignmentExpression(AssignmentExpression node) {
+    safelyVisitNode(node.leftHandSide);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    safelyVisitNode(node.rightHandSide);
+    return null;
+  }
+
+  @override
+  Object visitAwaitExpression(AwaitExpression node) {
+    sink.write("await ");
+    safelyVisitNode(node.expression);
+    return null;
+  }
+
+  @override
+  Object visitBinaryExpression(BinaryExpression node) {
+    safelyVisitNode(node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    safelyVisitNode(node.rightOperand);
+    return null;
+  }
+
+  @override
+  Object visitBlock(Block node) {
+    sink.write('{');
+    safelyVisitNodeListWithSeparator(node.statements, " ");
+    sink.write('}');
+    return null;
+  }
+
+  @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    Token keyword = node.keyword;
+    if (keyword != null) {
+      sink.write(keyword.lexeme);
+      if (node.star != null) {
+        sink.write('*');
+      }
+      sink.write(' ');
+    }
+    safelyVisitNode(node.block);
+    return null;
+  }
+
+  @override
+  Object visitBooleanLiteral(BooleanLiteral node) {
+    sink.write(node.literal.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitBreakStatement(BreakStatement node) {
+    sink.write("break");
+    safelyVisitNodeWithPrefix(" ", node.label);
+    sink.write(";");
+    return null;
+  }
+
+  @override
+  Object visitCascadeExpression(CascadeExpression node) {
+    safelyVisitNode(node.target);
+    safelyVisitNodeList(node.cascadeSections);
+    return null;
+  }
+
+  @override
+  Object visitCatchClause(CatchClause node) {
+    safelyVisitNodeWithPrefix("on ", node.exceptionType);
+    if (node.catchKeyword != null) {
+      if (node.exceptionType != null) {
+        sink.write(' ');
+      }
+      sink.write("catch (");
+      safelyVisitNode(node.exceptionParameter);
+      safelyVisitNodeWithPrefix(", ", node.stackTraceParameter);
+      sink.write(") ");
+    } else {
+      sink.write(" ");
+    }
+    safelyVisitNode(node.body);
+    return null;
+  }
+
+  @override
+  Object visitClassDeclaration(ClassDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.abstractKeyword, " ");
+    sink.write("class ");
+    safelyVisitNode(node.name);
+    safelyVisitNode(node.typeParameters);
+    safelyVisitNodeWithPrefix(" ", node.extendsClause);
+    safelyVisitNodeWithPrefix(" ", node.withClause);
+    safelyVisitNodeWithPrefix(" ", node.implementsClause);
+    sink.write(" {");
+    safelyVisitNodeListWithSeparator(node.members, " ");
+    sink.write("}");
+    return null;
+  }
+
+  @override
+  Object visitClassTypeAlias(ClassTypeAlias node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    if (node.abstractKeyword != null) {
+      sink.write("abstract ");
+    }
+    sink.write("class ");
+    safelyVisitNode(node.name);
+    safelyVisitNode(node.typeParameters);
+    sink.write(" = ");
+    safelyVisitNode(node.superclass);
+    safelyVisitNodeWithPrefix(" ", node.withClause);
+    safelyVisitNodeWithPrefix(" ", node.implementsClause);
+    sink.write(";");
+    return null;
+  }
+
+  @override
+  Object visitComment(Comment node) => null;
+
+  @override
+  Object visitCommentReference(CommentReference node) => null;
+
+  @override
+  Object visitCompilationUnit(CompilationUnit node) {
+    ScriptTag scriptTag = node.scriptTag;
+    NodeList<Directive> directives = node.directives;
+    safelyVisitNode(scriptTag);
+    String prefix = scriptTag == null ? "" : " ";
+    safelyVisitNodeListWithSeparatorAndPrefix(prefix, directives, " ");
+    prefix = scriptTag == null && directives.isEmpty ? "" : " ";
+    safelyVisitNodeListWithSeparatorAndPrefix(prefix, node.declarations, " ");
+    return null;
+  }
+
+  @override
+  Object visitConditionalExpression(ConditionalExpression node) {
+    safelyVisitNode(node.condition);
+    sink.write(" ? ");
+    safelyVisitNode(node.thenExpression);
+    sink.write(" : ");
+    safelyVisitNode(node.elseExpression);
+    return null;
+  }
+
+  @override
+  Object visitConfiguration(Configuration node) {
+    sink.write('if (');
+    safelyVisitNode(node.name);
+    safelyVisitNodeWithPrefix(" == ", node.value);
+    sink.write(') ');
+    safelyVisitNode(node.uri);
+    return null;
+  }
+
+  @override
+  Object visitConstructorDeclaration(ConstructorDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
+    safelyVisitTokenWithSuffix(node.constKeyword, " ");
+    safelyVisitTokenWithSuffix(node.factoryKeyword, " ");
+    safelyVisitNode(node.returnType);
+    safelyVisitNodeWithPrefix(".", node.name);
+    safelyVisitNode(node.parameters);
+    safelyVisitNodeListWithSeparatorAndPrefix(" : ", node.initializers, ", ");
+    safelyVisitNodeWithPrefix(" = ", node.redirectedConstructor);
+    safelyVisitFunctionWithPrefix(" ", node.body);
+    return null;
+  }
+
+  @override
+  Object visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    safelyVisitTokenWithSuffix(node.thisKeyword, ".");
+    safelyVisitNode(node.fieldName);
+    sink.write(" = ");
+    safelyVisitNode(node.expression);
+    return null;
+  }
+
+  @override
+  Object visitConstructorName(ConstructorName node) {
+    safelyVisitNode(node.type);
+    safelyVisitNodeWithPrefix(".", node.name);
+    return null;
+  }
+
+  @override
+  Object visitContinueStatement(ContinueStatement node) {
+    sink.write("continue");
+    safelyVisitNodeWithPrefix(" ", node.label);
+    sink.write(";");
+    return null;
+  }
+
+  @override
+  Object visitDeclaredIdentifier(DeclaredIdentifier node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.keyword, " ");
+    safelyVisitNodeWithSuffix(node.type, " ");
+    safelyVisitNode(node.identifier);
+    return null;
+  }
+
+  @override
+  Object visitDefaultFormalParameter(DefaultFormalParameter node) {
+    safelyVisitNode(node.parameter);
+    if (node.separator != null) {
+      sink.write(" ");
+      sink.write(node.separator.lexeme);
+      safelyVisitNodeWithPrefix(" ", node.defaultValue);
+    }
+    return null;
+  }
+
+  @override
+  Object visitDoStatement(DoStatement node) {
+    sink.write("do ");
+    safelyVisitNode(node.body);
+    sink.write(" while (");
+    safelyVisitNode(node.condition);
+    sink.write(");");
+    return null;
+  }
+
+  @override
+  Object visitDottedName(DottedName node) {
+    safelyVisitNodeListWithSeparator(node.components, ".");
+    return null;
+  }
+
+  @override
+  Object visitDoubleLiteral(DoubleLiteral node) {
+    sink.write(node.literal.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitEmptyFunctionBody(EmptyFunctionBody node) {
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitEmptyStatement(EmptyStatement node) {
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitNode(node.name);
+    return null;
+  }
+
+  @override
+  Object visitEnumDeclaration(EnumDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    sink.write("enum ");
+    safelyVisitNode(node.name);
+    sink.write(" {");
+    safelyVisitNodeListWithSeparator(node.constants, ", ");
+    sink.write("}");
+    return null;
+  }
+
+  @override
+  Object visitExportDirective(ExportDirective node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    sink.write("export ");
+    safelyVisitNode(node.uri);
+    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    Token keyword = node.keyword;
+    if (keyword != null) {
+      sink.write(keyword.lexeme);
+      sink.write(' ');
+    }
+    sink.write("=> ");
+    safelyVisitNode(node.expression);
+    if (node.semicolon != null) {
+      sink.write(';');
+    }
+    return null;
+  }
+
+  @override
+  Object visitExpressionStatement(ExpressionStatement node) {
+    safelyVisitNode(node.expression);
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitExtendsClause(ExtendsClause node) {
+    sink.write("extends ");
+    safelyVisitNode(node.superclass);
+    return null;
+  }
+
+  @override
+  Object visitFieldDeclaration(FieldDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.staticKeyword, " ");
+    safelyVisitNode(node.fields);
+    sink.write(";");
+    return null;
+  }
+
+  @override
+  Object visitFieldFormalParameter(FieldFormalParameter node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.keyword, " ");
+    safelyVisitNodeWithSuffix(node.type, " ");
+    sink.write("this.");
+    safelyVisitNode(node.identifier);
+    safelyVisitNode(node.typeParameters);
+    safelyVisitNode(node.parameters);
+    return null;
+  }
+
+  @override
+  Object visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    if (node.awaitKeyword != null) {
+      sink.write("await ");
+    }
+    sink.write("for (");
+    if (loopVariable == null) {
+      safelyVisitNode(node.identifier);
+    } else {
+      safelyVisitNode(loopVariable);
+    }
+    sink.write(" in ");
+    safelyVisitNode(node.iterable);
+    sink.write(") ");
+    safelyVisitNode(node.body);
+    return null;
+  }
+
+  @override
+  Object visitFormalParameterList(FormalParameterList node) {
+    String groupEnd = null;
+    sink.write('(');
+    NodeList<FormalParameter> parameters = node.parameters;
+    int size = parameters.length;
+    for (int i = 0; i < size; i++) {
+      FormalParameter parameter = parameters[i];
+      if (i > 0) {
+        sink.write(", ");
+      }
+      if (groupEnd == null && parameter is DefaultFormalParameter) {
+        if (parameter.kind == ParameterKind.NAMED) {
+          groupEnd = "}";
+          sink.write('{');
+        } else {
+          groupEnd = "]";
+          sink.write('[');
+        }
+      }
+      parameter.accept(this);
+    }
+    if (groupEnd != null) {
+      sink.write(groupEnd);
+    }
+    sink.write(')');
+    return null;
+  }
+
+  @override
+  Object visitForStatement(ForStatement node) {
+    Expression initialization = node.initialization;
+    sink.write("for (");
+    if (initialization != null) {
+      safelyVisitNode(initialization);
+    } else {
+      safelyVisitNode(node.variables);
+    }
+    sink.write(";");
+    safelyVisitNodeWithPrefix(" ", node.condition);
+    sink.write(";");
+    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.updaters, ", ");
+    sink.write(") ");
+    safelyVisitNode(node.body);
+    return null;
+  }
+
+  @override
+  Object visitFunctionDeclaration(FunctionDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
+    safelyVisitNodeWithSuffix(node.returnType, " ");
+    safelyVisitTokenWithSuffix(node.propertyKeyword, " ");
+    safelyVisitNode(node.name);
+    safelyVisitNode(node.functionExpression);
+    return null;
+  }
+
+  @override
+  Object visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    safelyVisitNode(node.functionDeclaration);
+    return null;
+  }
+
+  @override
+  Object visitFunctionExpression(FunctionExpression node) {
+    safelyVisitNode(node.typeParameters);
+    safelyVisitNode(node.parameters);
+    if (node.body is! EmptyFunctionBody) {
+      sink.write(' ');
+    }
+    safelyVisitNode(node.body);
+    return null;
+  }
+
+  @override
+  Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    safelyVisitNode(node.function);
+    safelyVisitNode(node.typeArguments);
+    safelyVisitNode(node.argumentList);
+    return null;
+  }
+
+  @override
+  Object visitFunctionTypeAlias(FunctionTypeAlias node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    sink.write("typedef ");
+    safelyVisitNodeWithSuffix(node.returnType, " ");
+    safelyVisitNode(node.name);
+    safelyVisitNode(node.typeParameters);
+    safelyVisitNode(node.parameters);
+    sink.write(";");
+    return null;
+  }
+
+  @override
+  Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitNodeWithSuffix(node.returnType, " ");
+    safelyVisitNode(node.identifier);
+    safelyVisitNode(node.typeParameters);
+    safelyVisitNode(node.parameters);
+    if (node.question != null) {
+      sink.write('?');
+    }
+    return null;
+  }
+
+  @override
+  Object visitHideCombinator(HideCombinator node) {
+    sink.write("hide ");
+    safelyVisitNodeListWithSeparator(node.hiddenNames, ", ");
+    return null;
+  }
+
+  @override
+  Object visitIfStatement(IfStatement node) {
+    sink.write("if (");
+    safelyVisitNode(node.condition);
+    sink.write(") ");
+    safelyVisitNode(node.thenStatement);
+    safelyVisitNodeWithPrefix(" else ", node.elseStatement);
+    return null;
+  }
+
+  @override
+  Object visitImplementsClause(ImplementsClause node) {
+    sink.write("implements ");
+    safelyVisitNodeListWithSeparator(node.interfaces, ", ");
+    return null;
+  }
+
+  @override
+  Object visitImportDirective(ImportDirective node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    sink.write("import ");
+    safelyVisitNode(node.uri);
+    if (node.deferredKeyword != null) {
+      sink.write(" deferred");
+    }
+    safelyVisitNodeWithPrefix(" as ", node.prefix);
+    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.combinators, " ");
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitIndexExpression(IndexExpression node) {
+    if (node.isCascaded) {
+      sink.write("..");
+    } else {
+      safelyVisitNode(node.target);
+    }
+    sink.write('[');
+    safelyVisitNode(node.index);
+    sink.write(']');
+    return null;
+  }
+
+  @override
+  Object visitInstanceCreationExpression(InstanceCreationExpression node) {
+    safelyVisitTokenWithSuffix(node.keyword, " ");
+    safelyVisitNode(node.constructorName);
+    safelyVisitNode(node.argumentList);
+    return null;
+  }
+
+  @override
+  Object visitIntegerLiteral(IntegerLiteral node) {
+    sink.write(node.literal.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitInterpolationExpression(InterpolationExpression node) {
+    if (node.rightBracket != null) {
+      sink.write("\${");
+      safelyVisitNode(node.expression);
+      sink.write("}");
+    } else {
+      sink.write("\$");
+      safelyVisitNode(node.expression);
+    }
+    return null;
+  }
+
+  @override
+  Object visitInterpolationString(InterpolationString node) {
+    sink.write(node.contents.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitIsExpression(IsExpression node) {
+    safelyVisitNode(node.expression);
+    if (node.notOperator == null) {
+      sink.write(" is ");
+    } else {
+      sink.write(" is! ");
+    }
+    safelyVisitNode(node.type);
+    return null;
+  }
+
+  @override
+  Object visitLabel(Label node) {
+    safelyVisitNode(node.label);
+    sink.write(":");
+    return null;
+  }
+
+  @override
+  Object visitLabeledStatement(LabeledStatement node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
+    safelyVisitNode(node.statement);
+    return null;
+  }
+
+  @override
+  Object visitLibraryDirective(LibraryDirective node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    sink.write("library ");
+    safelyVisitNode(node.name);
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitLibraryIdentifier(LibraryIdentifier node) {
+    sink.write(node.name);
+    return null;
+  }
+
+  @override
+  Object visitListLiteral(ListLiteral node) {
+    if (node.constKeyword != null) {
+      sink.write(node.constKeyword.lexeme);
+      sink.write(' ');
+    }
+    safelyVisitNodeWithSuffix(node.typeArguments, " ");
+    sink.write("[");
+    safelyVisitNodeListWithSeparator(node.elements, ", ");
+    sink.write("]");
+    return null;
+  }
+
+  @override
+  Object visitMapLiteral(MapLiteral node) {
+    if (node.constKeyword != null) {
+      sink.write(node.constKeyword.lexeme);
+      sink.write(' ');
+    }
+    safelyVisitNodeWithSuffix(node.typeArguments, " ");
+    sink.write("{");
+    safelyVisitNodeListWithSeparator(node.entries, ", ");
+    sink.write("}");
+    return null;
+  }
+
+  @override
+  Object visitMapLiteralEntry(MapLiteralEntry node) {
+    safelyVisitNode(node.key);
+    sink.write(" : ");
+    safelyVisitNode(node.value);
+    return null;
+  }
+
+  @override
+  Object visitMethodDeclaration(MethodDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.externalKeyword, " ");
+    safelyVisitTokenWithSuffix(node.modifierKeyword, " ");
+    safelyVisitNodeWithSuffix(node.returnType, " ");
+    safelyVisitTokenWithSuffix(node.propertyKeyword, " ");
+    safelyVisitTokenWithSuffix(node.operatorKeyword, " ");
+    safelyVisitNode(node.name);
+    if (!node.isGetter) {
+      safelyVisitNode(node.typeParameters);
+      safelyVisitNode(node.parameters);
+    }
+    safelyVisitFunctionWithPrefix(" ", node.body);
+    return null;
+  }
+
+  @override
+  Object visitMethodInvocation(MethodInvocation node) {
+    if (node.isCascaded) {
+      sink.write("..");
+    } else {
+      if (node.target != null) {
+        node.target.accept(this);
+        sink.write(node.operator.lexeme);
+      }
+    }
+    safelyVisitNode(node.methodName);
+    safelyVisitNode(node.typeArguments);
+    safelyVisitNode(node.argumentList);
+    return null;
+  }
+
+  @override
+  Object visitNamedExpression(NamedExpression node) {
+    safelyVisitNode(node.name);
+    safelyVisitNodeWithPrefix(" ", node.expression);
+    return null;
+  }
+
+  @override
+  Object visitNativeClause(NativeClause node) {
+    sink.write("native ");
+    safelyVisitNode(node.name);
+    return null;
+  }
+
+  @override
+  Object visitNativeFunctionBody(NativeFunctionBody node) {
+    sink.write("native ");
+    safelyVisitNode(node.stringLiteral);
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitNullLiteral(NullLiteral node) {
+    sink.write("null");
+    return null;
+  }
+
+  @override
+  Object visitParenthesizedExpression(ParenthesizedExpression node) {
+    sink.write('(');
+    safelyVisitNode(node.expression);
+    sink.write(')');
+    return null;
+  }
+
+  @override
+  Object visitPartDirective(PartDirective node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    sink.write("part ");
+    safelyVisitNode(node.uri);
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitPartOfDirective(PartOfDirective node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    sink.write("part of ");
+    safelyVisitNode(node.libraryName);
+    sink.write(';');
+    return null;
+  }
+
+  @override
+  Object visitPostfixExpression(PostfixExpression node) {
+    safelyVisitNode(node.operand);
+    sink.write(node.operator.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitPrefixedIdentifier(PrefixedIdentifier node) {
+    safelyVisitNode(node.prefix);
+    sink.write('.');
+    safelyVisitNode(node.identifier);
+    return null;
+  }
+
+  @override
+  Object visitPrefixExpression(PrefixExpression node) {
+    sink.write(node.operator.lexeme);
+    safelyVisitNode(node.operand);
+    return null;
+  }
+
+  @override
+  Object visitPropertyAccess(PropertyAccess node) {
+    if (node.isCascaded) {
+      sink.write("..");
+    } else {
+      safelyVisitNode(node.target);
+      sink.write(node.operator.lexeme);
+    }
+    safelyVisitNode(node.propertyName);
+    return null;
+  }
+
+  @override
+  Object visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
+    sink.write("this");
+    safelyVisitNodeWithPrefix(".", node.constructorName);
+    safelyVisitNode(node.argumentList);
+    return null;
+  }
+
+  @override
+  Object visitRethrowExpression(RethrowExpression node) {
+    sink.write("rethrow");
+    return null;
+  }
+
+  @override
+  Object visitReturnStatement(ReturnStatement node) {
+    Expression expression = node.expression;
+    if (expression == null) {
+      sink.write("return;");
+    } else {
+      sink.write("return ");
+      expression.accept(this);
+      sink.write(";");
+    }
+    return null;
+  }
+
+  @override
+  Object visitScriptTag(ScriptTag node) {
+    sink.write(node.scriptTag.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitShowCombinator(ShowCombinator node) {
+    sink.write("show ");
+    safelyVisitNodeListWithSeparator(node.shownNames, ", ");
+    return null;
+  }
+
+  @override
+  Object visitSimpleFormalParameter(SimpleFormalParameter node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, ' ', ' ');
+    safelyVisitTokenWithSuffix(node.keyword, " ");
+    safelyVisitNodeWithSuffix(node.type, " ");
+    safelyVisitNode(node.identifier);
+    return null;
+  }
+
+  @override
+  Object visitSimpleIdentifier(SimpleIdentifier node) {
+    sink.write(node.token.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitSimpleStringLiteral(SimpleStringLiteral node) {
+    sink.write(node.literal.lexeme);
+    return null;
+  }
+
+  @override
+  Object visitStringInterpolation(StringInterpolation node) {
+    safelyVisitNodeList(node.elements);
+    return null;
+  }
+
+  @override
+  Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+    sink.write("super");
+    safelyVisitNodeWithPrefix(".", node.constructorName);
+    safelyVisitNode(node.argumentList);
+    return null;
+  }
+
+  @override
+  Object visitSuperExpression(SuperExpression node) {
+    sink.write("super");
+    return null;
+  }
+
+  @override
+  Object visitSwitchCase(SwitchCase node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
+    sink.write("case ");
+    safelyVisitNode(node.expression);
+    sink.write(": ");
+    safelyVisitNodeListWithSeparator(node.statements, " ");
+    return null;
+  }
+
+  @override
+  Object visitSwitchDefault(SwitchDefault node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.labels, " ", " ");
+    sink.write("default: ");
+    safelyVisitNodeListWithSeparator(node.statements, " ");
+    return null;
+  }
+
+  @override
+  Object visitSwitchStatement(SwitchStatement node) {
+    sink.write("switch (");
+    safelyVisitNode(node.expression);
+    sink.write(") {");
+    safelyVisitNodeListWithSeparator(node.members, " ");
+    sink.write("}");
+    return null;
+  }
+
+  @override
+  Object visitSymbolLiteral(SymbolLiteral node) {
+    sink.write("#");
+    List<Token> components = node.components;
+    for (int i = 0; i < components.length; i++) {
+      if (i > 0) {
+        sink.write(".");
+      }
+      sink.write(components[i].lexeme);
+    }
+    return null;
+  }
+
+  @override
+  Object visitThisExpression(ThisExpression node) {
+    sink.write("this");
+    return null;
+  }
+
+  @override
+  Object visitThrowExpression(ThrowExpression node) {
+    sink.write("throw ");
+    safelyVisitNode(node.expression);
+    return null;
+  }
+
+  @override
+  Object visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    safelyVisitNodeWithSuffix(node.variables, ";");
+    return null;
+  }
+
+  @override
+  Object visitTryStatement(TryStatement node) {
+    sink.write("try ");
+    safelyVisitNode(node.body);
+    safelyVisitNodeListWithSeparatorAndPrefix(" ", node.catchClauses, " ");
+    safelyVisitNodeWithPrefix(" finally ", node.finallyBlock);
+    return null;
+  }
+
+  @override
+  Object visitTypeArgumentList(TypeArgumentList node) {
+    sink.write('<');
+    safelyVisitNodeListWithSeparator(node.arguments, ", ");
+    sink.write('>');
+    return null;
+  }
+
+  @override
+  Object visitTypeName(TypeName node) {
+    safelyVisitNode(node.name);
+    safelyVisitNode(node.typeArguments);
+    if (node.question != null) {
+      sink.write('?');
+    }
+    return null;
+  }
+
+  @override
+  Object visitTypeParameter(TypeParameter node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitNode(node.name);
+    safelyVisitNodeWithPrefix(" extends ", node.bound);
+    return null;
+  }
+
+  @override
+  Object visitTypeParameterList(TypeParameterList node) {
+    sink.write('<');
+    safelyVisitNodeListWithSeparator(node.typeParameters, ", ");
+    sink.write('>');
+    return null;
+  }
+
+  @override
+  Object visitVariableDeclaration(VariableDeclaration node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitNode(node.name);
+    safelyVisitNodeWithPrefix(" = ", node.initializer);
+    return null;
+  }
+
+  @override
+  Object visitVariableDeclarationList(VariableDeclarationList node) {
+    safelyVisitNodeListWithSeparatorAndSuffix(node.metadata, " ", " ");
+    safelyVisitTokenWithSuffix(node.keyword, " ");
+    safelyVisitNodeWithSuffix(node.type, " ");
+    safelyVisitNodeListWithSeparator(node.variables, ", ");
+    return null;
+  }
+
+  @override
+  Object visitVariableDeclarationStatement(VariableDeclarationStatement node) {
+    safelyVisitNode(node.variables);
+    sink.write(";");
+    return null;
+  }
+
+  @override
+  Object visitWhileStatement(WhileStatement node) {
+    sink.write("while (");
+    safelyVisitNode(node.condition);
+    sink.write(") ");
+    safelyVisitNode(node.body);
+    return null;
+  }
+
+  @override
+  Object visitWithClause(WithClause node) {
+    sink.write("with ");
+    safelyVisitNodeListWithSeparator(node.mixinTypes, ", ");
+    return null;
+  }
+
+  @override
+  Object visitYieldStatement(YieldStatement node) {
+    if (node.star != null) {
+      sink.write("yield* ");
+    } else {
+      sink.write("yield ");
+    }
+    safelyVisitNode(node.expression);
+    sink.write(";");
+    return null;
   }
 }

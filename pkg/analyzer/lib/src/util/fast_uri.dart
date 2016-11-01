@@ -19,6 +19,8 @@ class FastUri implements Uri {
   static int _currentCacheLength = 0;
   static int _currentCacheGeneration = 0;
 
+  static bool _hashUsingText = _shouldComputeHashCodeUsingText();
+
   final int _cacheGeneration;
   final String _text;
   final String _scheme;
@@ -31,7 +33,7 @@ class FastUri implements Uri {
   final int _lastSlashIndex;
 
   /**
-   * The cached hashcode.
+   * The cached hash code.
    */
   int _hashCode;
 
@@ -63,21 +65,9 @@ class FastUri implements Uri {
 
   @override
   int get hashCode {
-    // This code is copied from the standard Uri implementation.
-    // It is important that Uri and FastUri generate compatible hashCodes
-    // because Uri and FastUri may be used as keys in the same map.
-    int combine(part, current) {
-      // The sum is truncated to 30 bits to make sure it fits into a Smi.
-      return (current * 31 + part.hashCode) & 0x3FFFFFFF;
-    }
-    return _hashCode ??= combine(
-        scheme,
-        combine(
-            userInfo,
-            combine(
-                host,
-                combine(port,
-                    combine(path, combine(query, combine(fragment, 1)))))));
+    return _hashCode ??= _hashUsingText
+        ? _computeHashUsingText(this)
+        : _computeHashUsingCombine(this);
   }
 
   @override
@@ -238,6 +228,38 @@ class FastUri implements Uri {
     return uri;
   }
 
+  /**
+   * This implementation was used before 'fast-URI' in Dart VM.
+   */
+  static int _computeHashUsingCombine(FastUri uri) {
+    // This code is copied from the standard Uri implementation.
+    // It is important that Uri and FastUri generate compatible hashCodes
+    // because Uri and FastUri may be used as keys in the same map.
+    int combine(part, current) {
+      // The sum is truncated to 30 bits to make sure it fits into a Smi.
+      return (current * 31 + part.hashCode) & 0x3FFFFFFF;
+    }
+
+    return combine(
+        uri.scheme,
+        combine(
+            uri.userInfo,
+            combine(
+                uri.host,
+                combine(
+                    uri.port,
+                    combine(uri.path,
+                        combine(uri.query, combine(uri.fragment, 1)))))));
+  }
+
+  /**
+   * This implementation should be used with 'fast-URI' in Dart VM.
+   * https://github.com/dart-lang/sdk/commit/afbbbb97cfcd86a64d0ba5dcfe1ab758954adaf4
+   */
+  static int _computeHashUsingText(FastUri uri) {
+    return uri._text.hashCode;
+  }
+
   static bool _isAlphabetic(int char) {
     return char >= 'A'.codeUnitAt(0) && char <= 'Z'.codeUnitAt(0) ||
         char >= 'a'.codeUnitAt(0) && char <= 'z'.codeUnitAt(0);
@@ -287,5 +309,16 @@ class FastUri implements Uri {
     }
     return new FastUri._(_currentCacheGeneration, text, scheme,
         hasEmptyAuthority, path, lastSlashIndex);
+  }
+
+  /**
+   * Determine whether VM has the text based hash code computation in [Uri],
+   * or the old combine style.
+   *
+   * See https://github.com/dart-lang/sdk/issues/27159 for details.
+   */
+  static bool _shouldComputeHashCodeUsingText() {
+    String text = 'package:foo/foo.dart';
+    return Uri.parse(text).hashCode == text.hashCode;
   }
 }

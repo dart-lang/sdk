@@ -20,7 +20,7 @@ void testNode(Node node, String expected, String text, [bool hard = true]) {
   Expect.isTrue(begin <= end, debug);
 
   if (hard) {
-  	Expect.stringEquals(expected, text.substring(begin, end), debug);
+    Expect.stringEquals(expected, text.substring(begin, end), debug);
   }
 }
 

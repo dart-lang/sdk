@@ -16,13 +16,11 @@ class _DOMWindowJs implements Window {
   final int document;
 }
 
-class Win implements Window {
-}
+class Win implements Window {}
 
 main() {
   // By not typing the variable, Frog does not try to optimize calls
   // on it.
   var win = new Win();
-  Expect.throws(() => win.document,
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => win.document, (e) => e is NoSuchMethodError);
 }

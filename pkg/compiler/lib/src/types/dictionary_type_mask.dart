@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of types;
+part of masks;
 
 /**
  * A [DictionaryTypeMask] is a [TypeMask] for a specific allocation
@@ -47,13 +47,13 @@ class DictionaryTypeMask extends MapTypeMask {
             (k) => typeMap.containsKey(k) && typeMap[k] == other.typeMap[k]);
   }
 
-  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
+  TypeMask intersection(TypeMask other, ClosedWorld closedWorld) {
+    TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
-  TypeMask union(other, ClassWorld classWorld) {
+  TypeMask union(other, ClosedWorld closedWorld) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -61,9 +61,9 @@ class DictionaryTypeMask extends MapTypeMask {
     } else if (other.isEmptyOrNull) {
       return other.isNullable ? this.nullable() : this;
     } else if (other.isDictionary) {
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);
-      TypeMask newKeyType = keyType.union(other.keyType, classWorld);
-      TypeMask newValueType = valueType.union(other.valueType, classWorld);
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
+      TypeMask newKeyType = keyType.union(other.keyType, closedWorld);
+      TypeMask newValueType = valueType.union(other.valueType, closedWorld);
       Map<String, TypeMask> mappings = <String, TypeMask>{};
       typeMap.forEach((k, v) {
         if (!other.typeMap.containsKey(k)) {
@@ -72,7 +72,7 @@ class DictionaryTypeMask extends MapTypeMask {
       });
       other.typeMap.forEach((k, v) {
         if (typeMap.containsKey(k)) {
-          mappings[k] = v.union(typeMap[k], classWorld);
+          mappings[k] = v.union(typeMap[k], closedWorld);
         } else {
           mappings[k] = v.nullable();
         }
@@ -82,13 +82,13 @@ class DictionaryTypeMask extends MapTypeMask {
     } else if (other.isMap &&
         (other.keyType != null) &&
         (other.valueType != null)) {
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);
-      TypeMask newKeyType = keyType.union(other.keyType, classWorld);
-      TypeMask newValueType = valueType.union(other.valueType, classWorld);
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
+      TypeMask newKeyType = keyType.union(other.keyType, closedWorld);
+      TypeMask newValueType = valueType.union(other.valueType, closedWorld);
       return new MapTypeMask(
           newForwardTo, null, null, newKeyType, newValueType);
     } else {
-      return forwardTo.union(other, classWorld);
+      return forwardTo.union(other, closedWorld);
     }
   }
 

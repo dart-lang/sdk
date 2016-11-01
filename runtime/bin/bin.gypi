@@ -290,7 +290,7 @@
         '--output', '<(blink_cc_file)',
         '--input_cc', '<(builtin_in_cc_file)',
         '--include', 'bin/builtin.h',
-        '--var_name', 'dart::bin::Builtin::blink_source_paths_',
+        '--var_name', 'dart::bin::Builtin::_blink_source_paths_',
         '--library_name', 'dart:_blink',
         '<@(_sources)',
         ],
@@ -322,7 +322,7 @@
         '--output', '<(indexeddb_cc_file)',
         '--input_cc', '<(builtin_in_cc_file)',
         '--include', 'bin/builtin.h',
-        '--var_name', 'dart::bin::Builtin::indexeddb_source_paths_',
+        '--var_name', 'dart::bin::Builtin::indexed_db_source_paths_',
         '--library_name', 'dart:indexed_db',
         '<@(_sources)',
         ],
@@ -450,7 +450,7 @@
         '--output', '<(websql_cc_file)',
         '--input_cc', '<(builtin_in_cc_file)',
         '--include', 'bin/builtin.h',
-        '--var_name', 'dart::bin::Builtin::websql_source_paths_',
+        '--var_name', 'dart::bin::Builtin::web_sql_source_paths_',
         '--library_name', 'dart:web_sql',
         '<@(_sources)',
         ],
@@ -514,7 +514,7 @@
         '--output', '<(webaudio_cc_file)',
         '--input_cc', '<(builtin_in_cc_file)',
         '--include', 'bin/builtin.h',
-        '--var_name', 'dart::bin::Builtin::webaudio_source_paths_',
+        '--var_name', 'dart::bin::Builtin::web_audio_source_paths_',
         '--library_name', 'dart:web_audio',
         '<@(_sources)',
         ],
@@ -1147,6 +1147,11 @@
             },
           },
         }],
+        ['OS == "linux" and asan == 0 and msan == 0', {
+          'dependencies': [
+            '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
+          ],
+        }],
       ],
       'configurations': {
         'Dart_Linux_Base': {
@@ -1392,6 +1397,11 @@
           'link_settings': {
             'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
           },
+        }],
+        ['OS == "linux" and asan == 0 and msan == 0', {
+          'dependencies': [
+            '../third_party/tcmalloc/tcmalloc.gypi:tcmalloc',
+          ],
         }],
       ],
       'configurations': {

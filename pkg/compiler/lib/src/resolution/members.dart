@@ -6,7 +6,7 @@ library dart2js.resolution.members;
 
 import '../common.dart';
 import '../common/names.dart' show Selectors;
-import '../common/resolution.dart' show Feature, Resolution;
+import '../common/resolution.dart' show Resolution;
 import '../compile_time_constants.dart';
 import '../constants/constructors.dart'
     show RedirectingFactoryConstantConstructor;
@@ -30,6 +30,7 @@ import '../options.dart';
 import '../tokens/token.dart' show isUserDefinableOperator;
 import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
+import '../universe/feature.dart' show Feature;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart' show Link;
@@ -455,8 +456,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             resolver.constantCompiler.compileConstant(parameter);
       });
     });
+    if (!functionSignature.returnType.isDynamic) {
+      registry.registerTypeUse(
+          new TypeUse.checkedModeCheck(functionSignature.returnType));
+    }
     functionSignature.forEachParameter((ParameterElement element) {
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
+      if (!element.type.isDynamic) {
+        registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
+      }
     });
   }
 
@@ -1110,12 +1117,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (notTypeNode != null) {
       // `e is! T`.
       Node typeNode = notTypeNode.receiver;
-      type = resolveTypeAnnotation(typeNode);
+      type = resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
       sendStructure = new IsNotStructure(type);
     } else {
       // `e is T`.
       Node typeNode = node.arguments.head;
-      type = resolveTypeAnnotation(typeNode);
+      type = resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
       sendStructure = new IsStructure(type);
     }
 
@@ -1137,13 +1144,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     visitExpression(expression);
 
     Node typeNode = node.arguments.head;
-    DartType type = resolveTypeAnnotation(typeNode);
+    DartType type =
+        resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
 
     // GENERIC_METHODS: Method type variables are not reified so we must warn
     // about the error which will occur at runtime.
     if (type is MethodTypeVariableType) {
       reporter.reportWarningMessage(
-          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_NOT_REIFIED);
+          node, MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC);
     }
 
     registry.registerTypeUse(new TypeUse.asCast(type));
@@ -2622,12 +2630,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // of parse errors to make [element] erroneous. Fix this!
     member.computeType(resolution);
 
-    if (member == resolution.mirrorSystemGetNameFunction &&
+    if (resolution.commonElements.isMirrorSystemGetNameFunction(member) &&
         !resolution.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
-      reporter
-          .reportHintMessage(node.selector, MessageKind.STATIC_FUNCTION_BLOAT, {
-        'class': resolution.mirrorSystemClass.name,
-        'name': resolution.mirrorSystemGetNameFunction.name
+      reporter.reportHintMessage(
+          node.selector, MessageKind.STATIC_FUNCTION_BLOAT, {
+        'class': resolution.commonElements.mirrorSystemClass.name,
+        'name': member.name
       });
     }
 
@@ -2653,7 +2661,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             registry.registerStaticUse(
                 new StaticUse.staticInvoke(semantics.element, callStructure));
             handleForeignCall(node, semantics.element, callStructure);
-            if (method == resolution.identicalFunction &&
+            if (method == resolution.commonElements.identicalFunction &&
                 argumentsResult.isValidAsConstant) {
               result = new ConstantResult(
                   node,
@@ -3402,7 +3410,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ? new PrefixStructure(semantics, operator)
           : new PostfixStructure(semantics, operator);
       registry.registerSendStructure(node, sendStructure);
-      registry.registerFeature(Feature.INC_DEC_OPERATION);
+      registry.registerConstantLiteral(new IntConstantExpression(1));
     } else {
       Node rhs = node.arguments.head;
       visitExpression(rhs);
@@ -3437,12 +3445,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.setSelector(node, setterSelector);
         registry.setOperatorSelectorInComplexSendSet(node, operatorSelector);
 
-        registry.registerDynamicUse(new DynamicUse(operatorSelector, null));
-
         SendStructure sendStructure;
         if (operator.kind == AssignmentOperatorKind.IF_NULL) {
+          registry.registerConstantLiteral(new NullConstantExpression());
+          registry.registerDynamicUse(new DynamicUse(Selectors.equals, null));
           sendStructure = new SetIfNullStructure(semantics);
         } else {
+          registry.registerDynamicUse(new DynamicUse(operatorSelector, null));
           sendStructure = new CompoundStructure(semantics, operator);
         }
         registry.registerSendStructure(node, sendStructure);
@@ -3658,6 +3667,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johnniwinther): Handle this (potentially) erroneous case.
       isValidAsConstant = false;
     }
+    if (type.typeArguments.any((DartType type) => !type.isDynamic)) {
+      registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+    }
 
     redirectionTarget.computeType(resolution);
     FunctionSignature targetSignature = redirectionTarget.functionSignature;
@@ -3676,7 +3688,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.registerTypeUse(new TypeUse.instantiation(redirectionTarget
         .enclosingClass.thisType
         .subst(type.typeArguments, targetClass.typeVariables)));
-    if (enclosingElement == resolution.symbolConstructor) {
+    if (resolution.commonElements.isSymbolConstructor(enclosingElement)) {
       registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
     if (isValidAsConstant) {
@@ -3875,18 +3887,25 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (!isInvalid) {
       // [constructor] might be the implementation element
       // and only declaration elements may be registered.
-      registry.registerStaticUse(new StaticUse.constructorInvoke(
-          constructor.declaration, callStructure));
       // TODO(johniwinther): Avoid registration of `type` in face of redirecting
       // factory constructors.
-      registry.registerTypeUse(new TypeUse.instantiation(type));
+      registry.registerStaticUse(node.isConst
+          ? new StaticUse.constConstructorInvoke(
+              constructor.declaration, callStructure, type)
+          : new StaticUse.typedConstructorInvoke(
+              constructor.declaration, callStructure, type));
+      InterfaceType interfaceType = type;
+      if (interfaceType.typeArguments.any((DartType type) => !type.isDynamic)) {
+        registry.registerFeature(Feature.TYPE_VARIABLE_BOUNDS_CHECK);
+      }
     }
 
     ResolutionResult resolutionResult = const NoneResult();
     if (node.isConst) {
       bool isValidAsConstant = !isInvalid && constructor.isConst;
 
-      if (constructor == resolution.symbolConstructor) {
+      CommonElements commonElements = resolution.commonElements;
+      if (commonElements.isSymbolConstructor(constructor)) {
         Node argumentNode = node.send.arguments.head;
         ConstantExpression constant = resolver.constantCompiler
             .compileNode(argumentNode, registry.mapping);
@@ -3902,7 +3921,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             registry.registerConstSymbol(nameString);
           }
         }
-      } else if (constructor == resolution.mirrorsUsedConstructor) {
+      } else if (commonElements.isMirrorsUsedConstructor(constructor)) {
         resolution.mirrorUsageAnalyzerTask.validate(node, registry.mapping);
       }
 
@@ -3962,7 +3981,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       analyzeConstantDeferred(node, onAnalyzed: onAnalyzed);
     } else {
       // Not constant.
-      if (constructor == resolution.symbolConstructor &&
+      if (resolution.commonElements.isSymbolConstructor(constructor) &&
           !resolution.mirrorUsageAnalyzerTask
               .hasMirrorUsage(enclosingElement)) {
         reporter.reportHintMessage(node.newToken, MessageKind.NON_CONST_BLOAT,
@@ -4055,11 +4074,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   DartType resolveTypeAnnotation(TypeAnnotation node,
-      {bool malformedIsError: false, bool deferredIsMalformed: true}) {
+      {bool malformedIsError: false,
+      bool deferredIsMalformed: true,
+      bool registerCheckedModeCheck: true}) {
     DartType type = typeResolver.resolveTypeAnnotation(this, node,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
-    registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
+    if (registerCheckedModeCheck && !type.isDynamic) {
+      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
+    }
     return type;
   }
 
@@ -4145,9 +4168,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitStringInterpolation(StringInterpolation node) {
     // TODO(johnniwinther): This should be a consequence of the registration
     // of [registerStringInterpolation].
-    registry.registerTypeUse(new TypeUse.instantiation(coreTypes.stringType));
     registry.registerFeature(Feature.STRING_INTERPOLATION);
-    registerImplicitInvocation(Selectors.toString_);
 
     bool isValidAsConstant = true;
     List<ConstantExpression> parts = <ConstantExpression>[];
@@ -4230,10 +4251,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
     registry.registerTargetOf(node, target);
     return const NoneResult();
-  }
-
-  registerImplicitInvocation(Selector selector) {
-    registry.registerDynamicUse(new DynamicUse(selector, null));
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
@@ -4588,6 +4605,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         reporter.reportErrorMessage(
             switchCase, MessageKind.INVALID_CASE_DEFAULT);
       }
+      if (cases.isNotEmpty && switchCase.statements.isNotEmpty) {
+        Node last = switchCase.statements.last;
+        if (last.asBreakStatement() == null &&
+            last.asContinueStatement() == null &&
+            last.asThrow() == null &&
+            last.asReturn() == null) {
+          registry.registerFeature(Feature.FALL_THROUGH_ERROR);
+        }
+      }
     }
 
     addDeferredAction(enclosingElement, () {
@@ -4609,7 +4635,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     });
     // TODO(15575): We should warn if we can detect a fall through
     // error.
-    registry.registerFeature(Feature.FALL_THROUGH_ERROR);
     return const NoneResult();
   }
 

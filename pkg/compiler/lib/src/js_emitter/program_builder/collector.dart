@@ -143,8 +143,10 @@ class Collector {
     }
 
     JavaScriptConstantCompiler handler = backend.constants;
-    List<ConstantValue> constants = handler.getConstantsForEmission(compiler
-        .options.hasIncrementalSupport ? null : emitter.compareConstants);
+    List<ConstantValue> constants = handler.getConstantsForEmission(
+        compiler.options.hasIncrementalSupport
+            ? null
+            : emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 
@@ -168,7 +170,7 @@ class Collector {
   void computeNeededDeclarations() {
     // Compute needed typedefs.
     typedefsNeededForReflection = Elements.sortedByPosition(compiler
-        .world.allTypedefs
+        .closedWorld.allTypedefs
         .where(backend.isAccessibleByReflection)
         .toList());
 

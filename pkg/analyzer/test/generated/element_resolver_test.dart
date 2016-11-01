@@ -8,27 +8,295 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
-import 'package:unittest/unittest.dart';
+import 'package:analyzer/src/source/source_resource.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
 import 'analysis_context_factory.dart';
+import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(ElementResolverTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ElementResolverCodeTest);
+    defineReflectiveTests(ElementResolverTest);
+  });
+}
+
+@reflectiveTest
+class ElementResolverCodeTest extends ResolverTestCase {
+  void test_annotation_class_namedConstructor() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  const A.named();
+}
+''');
+    _validateAnnotation('', '@A.named()', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement.displayName, 'A');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<ConstructorElement>());
+      expect(name2.staticElement.displayName, 'named');
+      expect(name3, isNull);
+      if (annotationElement is ConstructorElement) {
+        expect(annotationElement, same(name2.staticElement));
+        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.displayName, 'named');
+        expect(annotationElement.parameters, isEmpty);
+      } else {
+        fail('Expected "annotationElement" is ConstructorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_prefixed_namedConstructor() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  const A.named();
+}
+''');
+    _validateAnnotation('as p', '@p.A.named()', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement.displayName, 'p');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement.displayName, 'A');
+      expect(name3, isNotNull);
+      expect(name3.staticElement, new isInstanceOf<ConstructorElement>());
+      expect(name3.staticElement.displayName, 'named');
+      if (annotationElement is ConstructorElement) {
+        expect(annotationElement, same(name3.staticElement));
+        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.displayName, 'named');
+        expect(annotationElement.parameters, isEmpty);
+      } else {
+        fail('Expected "annotationElement" is ConstructorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_prefixed_staticConstField() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  static const V = 0;
+}
+''');
+    _validateAnnotation('as p', '@p.A.V', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement.displayName, 'p');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement.displayName, 'A');
+      expect(name3, isNotNull);
+      expect(name3.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name3.staticElement.displayName, 'V');
+      if (annotationElement is PropertyAccessorElement) {
+        expect(annotationElement, same(name3.staticElement));
+        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.displayName, 'V');
+      } else {
+        fail('Expected "annotationElement" is PropertyAccessorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_prefixed_unnamedConstructor() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  const A();
+}
+''');
+    _validateAnnotation('as p', '@p.A', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement.displayName, 'p');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<ClassElement>());
+      expect(name2.staticElement.displayName, 'A');
+      expect(name3, isNull);
+      if (annotationElement is ConstructorElement) {
+        expect(annotationElement.enclosingElement, name2.staticElement);
+        expect(annotationElement.displayName, '');
+        expect(annotationElement.parameters, isEmpty);
+      } else {
+        fail('Expected "annotationElement" is ConstructorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_staticConstField() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  static const V = 0;
+}
+''');
+    _validateAnnotation('', '@A.V', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement.displayName, 'A');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name2.staticElement.displayName, 'V');
+      expect(name3, isNull);
+      if (annotationElement is PropertyAccessorElement) {
+        expect(annotationElement, same(name2.staticElement));
+        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.displayName, 'V');
+      } else {
+        fail('Expected "annotationElement" is PropertyAccessorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_class_unnamedConstructor() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+class A {
+  const A();
+}
+''');
+    _validateAnnotation('', '@A', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<ClassElement>());
+      expect(name1.staticElement.displayName, 'A');
+      expect(name2, isNull);
+      expect(name3, isNull);
+      if (annotationElement is ConstructorElement) {
+        expect(annotationElement.enclosingElement, name1.staticElement);
+        expect(annotationElement.displayName, '');
+        expect(annotationElement.parameters, isEmpty);
+      } else {
+        fail('Expected "annotationElement" is ConstructorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_topLevelVariable() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+const V = 0;
+''');
+    _validateAnnotation('', '@V', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name1.staticElement.displayName, 'V');
+      expect(name2, isNull);
+      expect(name3, isNull);
+      if (annotationElement is PropertyAccessorElement) {
+        expect(annotationElement, same(name1.staticElement));
+        expect(annotationElement.enclosingElement,
+            new isInstanceOf<CompilationUnitElement>());
+        expect(annotationElement.displayName, 'V');
+      } else {
+        fail('Expected "annotationElement" is PropertyAccessorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void test_annotation_topLevelVariable_prefixed() {
+    addNamedSource(
+        '/a.dart',
+        r'''
+const V = 0;
+''');
+    _validateAnnotation('as p', '@p.V', (SimpleIdentifier name1,
+        SimpleIdentifier name2,
+        SimpleIdentifier name3,
+        Element annotationElement) {
+      expect(name1, isNotNull);
+      expect(name1.staticElement, new isInstanceOf<PrefixElement>());
+      expect(name1.staticElement.displayName, 'p');
+      expect(name2, isNotNull);
+      expect(name2.staticElement, new isInstanceOf<PropertyAccessorElement>());
+      expect(name2.staticElement.displayName, 'V');
+      expect(name3, isNull);
+      if (annotationElement is PropertyAccessorElement) {
+        expect(annotationElement, same(name2.staticElement));
+        expect(annotationElement.enclosingElement,
+            new isInstanceOf<CompilationUnitElement>());
+        expect(annotationElement.displayName, 'V');
+      } else {
+        fail('Expected "annotationElement" is PropertyAccessorElement, '
+            'but (${annotationElement?.runtimeType}) $annotationElement found.');
+      }
+    });
+  }
+
+  void _validateAnnotation(
+      String annotationPrefix,
+      String annotationText,
+      validator(SimpleIdentifier name1, SimpleIdentifier name2,
+          SimpleIdentifier name3, Element annotationElement)) {
+    CompilationUnit unit = resolveSource('''
+import 'a.dart' $annotationPrefix;
+$annotationText
+class C {}
+''');
+    var clazz = unit.declarations.single as ClassDeclaration;
+    Annotation annotation = clazz.metadata.single;
+    Identifier name = annotation.name;
+    Element annotationElement = annotation.element;
+    if (name is SimpleIdentifier) {
+      validator(name, null, annotation.constructorName, annotationElement);
+    } else if (name is PrefixedIdentifier) {
+      validator(name.prefix, name.identifier, annotation.constructorName,
+          annotationElement);
+    } else {
+      fail('Uknown "name": ${name?.runtimeType} $name');
+    }
+  }
 }
 
 @reflectiveTest
@@ -868,29 +1136,22 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   /**
-   * Create the resolver used by the tests.
-   *
-   * @return the resolver that was created
+   * Create and return the resolver used by the tests.
    */
   ElementResolver _createResolver() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source =
-        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
-    CompilationUnitElementImpl definingCompilationUnit =
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
+    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
+    CompilationUnitElementImpl unit =
         new CompilationUnitElementImpl("test.dart");
-    definingCompilationUnit.librarySource =
-        definingCompilationUnit.source = source;
+    unit.librarySource = unit.source = source;
     _definingLibrary = ElementFactory.library(context, "test");
-    _definingLibrary.definingCompilationUnit = definingCompilationUnit;
+    _definingLibrary.definingCompilationUnit = unit;
     _visitor = new ResolverVisitor(
         _definingLibrary, source, _typeProvider, _listener,
-        nameScope: new LibraryScope(_definingLibrary, _listener));
-    try {
-      return _visitor.elementResolver;
-    } catch (exception) {
-      throw new IllegalArgumentException(
-          "Could not create resolver", exception);
-    }
+        nameScope: new LibraryScope(_definingLibrary));
+    return _visitor.elementResolver;
   }
 
   /**
@@ -944,21 +1205,16 @@ class ElementResolverTest extends EngineTestCase {
    * @return the element to which the expression was resolved
    */
   void _resolveInClass(AstNode node, ClassElement enclosingClass) {
+    Scope outerScope = _visitor.nameScope;
     try {
-      Scope outerScope = _visitor.nameScope;
-      try {
-        _visitor.enclosingClass = enclosingClass;
-        EnclosedScope innerScope = new ClassScope(
-            new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
-        _visitor.nameScope = innerScope;
-        node.accept(_resolver);
-      } finally {
-        _visitor.enclosingClass = null;
-        _visitor.nameScope = outerScope;
-      }
-    } catch (exception, stackTrace) {
-      throw new IllegalArgumentException(
-          "Could not resolve node", new CaughtException(exception, stackTrace));
+      _visitor.enclosingClass = enclosingClass;
+      EnclosedScope innerScope = new ClassScope(
+          new TypeParameterScope(outerScope, enclosingClass), enclosingClass);
+      _visitor.nameScope = innerScope;
+      node.accept(_resolver);
+    } finally {
+      _visitor.enclosingClass = null;
+      _visitor.nameScope = outerScope;
     }
   }
 
@@ -987,22 +1243,18 @@ class ElementResolverTest extends EngineTestCase {
    * @return the element to which the expression was resolved
    */
   void _resolveNode(AstNode node, [List<Element> definedElements]) {
+    Scope outerScope = _visitor.nameScope;
     try {
-      Scope outerScope = _visitor.nameScope;
-      try {
-        EnclosedScope innerScope = new EnclosedScope(outerScope);
-        if (definedElements != null) {
-          for (Element element in definedElements) {
-            innerScope.define(element);
-          }
+      EnclosedScope innerScope = new EnclosedScope(outerScope);
+      if (definedElements != null) {
+        for (Element element in definedElements) {
+          innerScope.define(element);
         }
-        _visitor.nameScope = innerScope;
-        node.accept(_resolver);
-      } finally {
-        _visitor.nameScope = outerScope;
       }
-    } catch (exception) {
-      throw new IllegalArgumentException("Could not resolve node", exception);
+      _visitor.nameScope = innerScope;
+      node.accept(_resolver);
+    } finally {
+      _visitor.nameScope = outerScope;
     }
   }
 
@@ -1016,23 +1268,19 @@ class ElementResolverTest extends EngineTestCase {
    */
   void _resolveStatement(
       Statement statement, LabelElementImpl labelElement, AstNode labelTarget) {
+    LabelScope outerScope = _visitor.labelScope;
     try {
-      LabelScope outerScope = _visitor.labelScope;
-      try {
-        LabelScope innerScope;
-        if (labelElement == null) {
-          innerScope = outerScope;
-        } else {
-          innerScope = new LabelScope(
-              outerScope, labelElement.name, labelTarget, labelElement);
-        }
-        _visitor.labelScope = innerScope;
-        statement.accept(_resolver);
-      } finally {
-        _visitor.labelScope = outerScope;
+      LabelScope innerScope;
+      if (labelElement == null) {
+        innerScope = outerScope;
+      } else {
+        innerScope = new LabelScope(
+            outerScope, labelElement.name, labelTarget, labelElement);
       }
-    } catch (exception) {
-      throw new IllegalArgumentException("Could not resolve node", exception);
+      _visitor.labelScope = innerScope;
+      statement.accept(_resolver);
+    } finally {
+      _visitor.labelScope = outerScope;
     }
   }
 }

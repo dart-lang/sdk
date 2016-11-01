@@ -548,7 +548,7 @@ class DartiumBackend(HtmlDartGenerator):
         # JsObject maybe stored in the Dart class.
         return_wrap_jso = wrap_return_type_blink(return_type, attr.type.id, self._type_registry)
     wrap_unwrap_list.append(return_wrap_jso)       # wrap_jso the returned object
-    wrap_unwrap_list.append(self._dart_use_blink) 
+    wrap_unwrap_list.append(self._dart_use_blink)
 
     # This seems to have been replaced with Custom=Getter (see above), but
     # check to be sure we don't see the old syntax
@@ -638,7 +638,7 @@ class DartiumBackend(HtmlDartGenerator):
     raises = ('RaisesException' in attr.ext_attrs and
               attr.ext_attrs['RaisesException'] != 'Getter')
 
-  def AddIndexer(self, element_type):
+  def AddIndexer(self, element_type, nullable):
     """Adds all the methods required to complete implementation of List."""
     # We would like to simply inherit the implementation of everything except
     # length, [], and maybe []=.  It is possible to extend from a base
@@ -709,7 +709,7 @@ class DartiumBackend(HtmlDartGenerator):
           '  }\n',
           TYPE=dart_element_type)
 
-    self.EmitListMixin(dart_element_type)
+    self.EmitListMixin(dart_element_type, nullable)
 
   def AmendIndexer(self, element_type):
     # If interface is marked as having native indexed

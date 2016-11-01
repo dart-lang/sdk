@@ -4,8 +4,8 @@
 
 library analyzer.test.src.task.test_support;
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/task/model.dart';
 
 /**

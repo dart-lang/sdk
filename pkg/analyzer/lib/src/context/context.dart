@@ -9,7 +9,8 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/plugin/task.dart';
@@ -17,17 +18,12 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/builder.dart' show EmbedderYamlLocator;
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
@@ -76,6 +72,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * The unique identifier of this context.
    */
   final int _id = _NEXT_ID++;
+
+  /**
+   * The flag that is `true` if the context is being analyzed.
+   */
+  bool _isActive = false;
 
   /**
    * A client-provided name used to identify this context, or `null` if the
@@ -284,7 +285,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
         this._options.strongMode != options.strongMode ||
+        this._options.enableAssertInitializer !=
+            options.enableAssertInitializer ||
         this._options.enableAssertMessage != options.enableAssertMessage ||
+        this._options.enableInitializingFormalAccess !=
+            options.enableInitializingFormalAccess ||
+        this._options.enableLazyAssignmentOperators !=
+            options.enableLazyAssignmentOperators ||
         ((options is AnalysisOptionsImpl)
             ? this._options.strongModeHints != options.strongModeHints
             : false) ||
@@ -300,21 +307,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
-        this._options.enableAsync != options.enableAsync ||
         this._options.enableSuperMixins != options.enableSuperMixins;
-    int cacheSize = options.cacheSize;
-    if (this._options.cacheSize != cacheSize) {
-      this._options.cacheSize = cacheSize;
-    }
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
     this._options.enableGenericMethods = options.enableGenericMethods;
+    this._options.enableAssertInitializer = options.enableAssertInitializer;
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
-    this._options.enableAsync = options.enableAsync;
+    this._options.enableInitializingFormalAccess =
+        options.enableInitializingFormalAccess;
+    this._options.enableLazyAssignmentOperators =
+        options.enableLazyAssignmentOperators;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.enableTiming = options.enableTiming;
     this._options.hint = options.hint;
@@ -323,8 +329,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.incrementalValidation = options.incrementalValidation;
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
+    if (this._options.strongMode != options.strongMode) {
+      _typeSystem = null;
+    }
     this._options.strongMode = options.strongMode;
     this._options.trackCacheDependencies = options.trackCacheDependencies;
+    this._options.disableCacheFlushing = options.disableCacheFlushing;
     this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
@@ -394,6 +404,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _implicitAnalysisEventsController.stream;
 
   @override
+  bool get isActive => _isActive;
+
+  @override
+  set isActive(bool active) {
+    if (active != _isActive) {
+      _isActive = active;
+      _privatePartition.isActive = active;
+    }
+  }
+
+  @override
   bool get isDisposed => _disposed;
 
   @override
@@ -454,7 +475,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (identical(_sourceFactory, factory)) {
       return;
     } else if (factory.context != null) {
-      throw new IllegalStateException(
+      throw new StateError(
           "Source factories cannot be shared between contexts");
     }
     if (_sourceFactory != null) {
@@ -523,22 +544,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       throw new AnalysisException("Could not create an element for dart:core");
     }
 
-    LibraryElement asyncElement;
-    if (analysisOptions.enableAsync) {
-      Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-      if (asyncSource == null) {
-        throw new AnalysisException("Could not create a source for dart:async");
-      }
-      asyncElement = computeLibraryElement(asyncSource);
-      if (asyncElement == null) {
-        throw new AnalysisException(
-            "Could not create an element for dart:async");
-      }
-    } else {
-      Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-      asyncElement = createMockAsyncLib(coreElement, asyncSource);
+    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+    if (asyncSource == null) {
+      throw new AnalysisException("Could not create a source for dart:async");
     }
-
+    LibraryElement asyncElement = computeLibraryElement(asyncSource);
+    if (asyncElement == null) {
+      throw new AnalysisException("Could not create an element for dart:async");
+    }
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     return _typeProvider;
   }
@@ -601,9 +614,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  ApplyChangesStatus applyChanges(ChangeSet changeSet) {
+  void applyChanges(ChangeSet changeSet) {
     if (changeSet.isEmpty) {
-      return new ApplyChangesStatus(false);
+      return;
     }
     //
     // First, compute the list of sources that have been removed.
@@ -635,9 +648,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _contentRangeChanged(source, change.contents, change.offset,
           change.oldLength, change.newLength);
     });
-    for (Source source in changeSet.deletedSources) {
-      _sourceDeleted(source);
-    }
     for (Source source in removedSources) {
       _sourceRemoved(source);
     }
@@ -646,11 +656,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           changeSet.addedSources, changedSources, removedSources);
     }
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
-    return new ApplyChangesStatus(changeSet.addedSources.isNotEmpty ||
-        changeSet.changedContents.isNotEmpty ||
-        changeSet.deletedSources.isNotEmpty ||
-        changedSources.isNotEmpty ||
-        removedSources.isNotEmpty);
   }
 
   @override
@@ -759,55 +764,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return cache;
   }
 
-  /**
-   * Create a minimalistic mock dart:async library
-   * to stand in for a real one if one does not exist
-   * facilitating creation a type provider without dart:async.
-   */
-  LibraryElement createMockAsyncLib(
-      LibraryElement coreLibrary, Source asyncSource) {
-    InterfaceType objType = coreLibrary.getType('Object').type;
-
-    ClassElement _classElement(String typeName, [List<String> parameterNames]) {
-      ClassElementImpl element =
-          new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
-      element.supertype = objType;
-      if (parameterNames != null) {
-        int count = parameterNames.length;
-        if (count > 0) {
-          List<TypeParameterElementImpl> typeParameters =
-              new List<TypeParameterElementImpl>(count);
-          List<TypeParameterTypeImpl> typeArguments =
-              new List<TypeParameterTypeImpl>(count);
-          for (int i = 0; i < count; i++) {
-            TypeParameterElementImpl typeParameter =
-                new TypeParameterElementImpl.forNode(
-                    AstFactory.identifier3(parameterNames[i]));
-            typeParameters[i] = typeParameter;
-            typeArguments[i] = new TypeParameterTypeImpl(typeParameter);
-            typeParameter.type = typeArguments[i];
-          }
-          element.typeParameters = typeParameters;
-        }
-      }
-      return element;
-    }
-
-    InterfaceType futureType = _classElement('Future', ['T']).type;
-    InterfaceType streamType = _classElement('Stream', ['T']).type;
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("mock_async.dart");
-    asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
-    LibraryElementImpl mockLib = new LibraryElementImpl.forNode(
-        this, AstFactory.libraryIdentifier2(["dart.async"]));
-    asyncUnit.librarySource = asyncSource;
-    asyncUnit.source = asyncSource;
-    mockLib.definingCompilationUnit = asyncUnit;
-    mockLib.publicNamespace =
-        new NamespaceBuilder().createPublicNamespaceForLibrary(mockLib);
-    return mockLib;
-  }
-
   @override
   void dispose() {
     _disposed = true;
@@ -840,13 +796,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (units != null) {
       return units;
     }
-    // Schedule recomputing RESOLVED_UNIT results.
+    // Schedule computing of RESOLVED_UNIT results.
     for (Source librarySource in containingLibraries) {
       LibrarySpecificUnit target =
           new LibrarySpecificUnit(librarySource, unitSource);
-      if (_cache.getState(target, RESOLVED_UNIT) == CacheState.FLUSHED) {
-        dartWorkManager.addPriorityResult(target, RESOLVED_UNIT);
-      }
+      dartWorkManager.addPriorityResult(target, RESOLVED_UNIT);
     }
     return null;
   }
@@ -1306,7 +1260,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
-      entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
       setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
@@ -1386,7 +1339,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
-    entry.setState(RESOLVED_UNIT13, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
@@ -1569,9 +1521,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       Source librarySource, Source unitSource) {
     LibrarySpecificUnit target =
         new LibrarySpecificUnit(librarySource, unitSource);
-    for (ResultDescriptor result in [
+    for (ResultDescriptor<CompilationUnit> result in [
       RESOLVED_UNIT,
-      RESOLVED_UNIT13,
       RESOLVED_UNIT12,
       RESOLVED_UNIT11,
       RESOLVED_UNIT10,
@@ -1856,6 +1807,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return;
     }
 
+    // We're going to update the cache, so reset the driver.
+    driver.reset();
+
     // We need to invalidate the cache.
     {
       if (analysisOptions.finerGrainedInvalidation &&
@@ -1871,24 +1825,36 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           CacheEntry unitEntry =
               getCacheEntry(new LibrarySpecificUnit(librarySource, source));
           CompilationUnit oldUnit = RESOLVED_UNIT_RESULTS
+              .skipWhile((result) => result != RESOLVED_UNIT2)
               .map(unitEntry.getValue)
               .firstWhere((unit) => unit != null, orElse: () => null);
           // If we have the old unit, we can try to update it.
           if (oldUnit != null) {
-            CompilationUnit newUnit = parseCompilationUnit(source);
-            IncrementalCompilationUnitElementBuilder builder =
-                new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
-            builder.build();
-            CompilationUnitElementDelta unitDelta = builder.unitDelta;
-            if (!unitDelta.hasDirectiveChange) {
-              unitEntry.setValueIncremental(
-                  COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
-              DartDelta dartDelta = new DartDelta(source);
-              unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
-              unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
-              unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
-              entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
-              return;
+            // Safely parse the source.
+            CompilationUnit newUnit;
+            try {
+              newUnit = parseCompilationUnit(source);
+            } catch (_) {
+              // The source might have been removed by this time.
+              // We cannot perform incremental invalidation.
+            }
+            // If the new unit was parsed successfully, continue.
+            if (newUnit != null) {
+              IncrementalCompilationUnitElementBuilder builder =
+                  new IncrementalCompilationUnitElementBuilder(
+                      oldUnit, newUnit);
+              builder.build();
+              CompilationUnitElementDelta unitDelta = builder.unitDelta;
+              if (!unitDelta.hasDirectiveChange) {
+                unitEntry.setValueIncremental(
+                    COMPILATION_UNIT_CONSTANTS, builder.unitConstants, false);
+                DartDelta dartDelta = new DartDelta(source);
+                unitDelta.addedDeclarations.forEach(dartDelta.elementChanged);
+                unitDelta.removedDeclarations.forEach(dartDelta.elementChanged);
+                unitDelta.classDeltas.values.forEach(dartDelta.classChanged);
+                entry.setState(CONTENT, CacheState.INVALID, delta: dartDelta);
+                return;
+              }
             }
           }
         }
@@ -1897,42 +1863,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(MODIFICATION_TIME, CacheState.INVALID);
       entry.setState(SOURCE_KIND, CacheState.INVALID);
     }
-    driver.reset();
     for (WorkManager workManager in workManagers) {
       workManager.applyChange(
           Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
     }
-  }
-
-  /**
-   * Record that the give [source] has been deleted.
-   */
-  void _sourceDeleted(Source source) {
-    // TODO(brianwilkerson) Implement or remove this.
-//    SourceEntry sourceEntry = _cache.get(source);
-//    if (sourceEntry is HtmlEntry) {
-//      HtmlEntry htmlEntry = sourceEntry;
-//      htmlEntry.recordContentError(new CaughtException(
-//          new AnalysisException("This source was marked as being deleted"),
-//          null));
-//    } else if (sourceEntry is DartEntry) {
-//      DartEntry dartEntry = sourceEntry;
-//      HashSet<Source> libraries = new HashSet<Source>();
-//      for (Source librarySource in getLibrariesContaining(source)) {
-//        libraries.add(librarySource);
-//        for (Source dependentLibrary
-//            in getLibrariesDependingOn(librarySource)) {
-//          libraries.add(dependentLibrary);
-//        }
-//      }
-//      for (Source librarySource in libraries) {
-//        _invalidateLibraryResolution(librarySource);
-//      }
-//      dartEntry.recordContentError(new CaughtException(
-//          new AnalysisException("This source was marked as being deleted"),
-//          null));
-//    }
-    _removeFromPriorityOrder(source);
   }
 
   /**
@@ -2011,6 +1945,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // schedule
       dartWorkManager.unitIncrementallyResolved(librarySource, unitSource);
       // OK
+      driver.reset();
       return true;
     });
   }
@@ -2294,7 +2229,7 @@ class SdkAnalysisContext extends AnalysisContextImpl {
     }
     DartSdk sdk = factory.dartSdk;
     if (sdk == null) {
-      throw new IllegalArgumentException(
+      throw new ArgumentError(
           "The source factory for an SDK analysis context must have a DartUriResolver");
     }
     return new AnalysisCache(

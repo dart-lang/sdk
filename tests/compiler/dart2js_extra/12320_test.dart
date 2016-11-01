@@ -18,7 +18,7 @@ void main() {
 }
 
 void run(f) {
-  if (f is !int) {
+  if (f is! int) {
     f(1);
   } else {
     x = f;
@@ -31,7 +31,7 @@ void run(f) {
 
 void callFoo() {
   log += '[Foo]';
-  switch(x) {
+  switch (x) {
     case 0:
       log += '[Foo 0]';
       break;

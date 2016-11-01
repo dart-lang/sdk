@@ -7,15 +7,12 @@ library analyzer.test.instrumentation.instrumentation_test;
 import 'dart:async';
 
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:unittest/unittest.dart';
-
-import '../reflective_tests.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 main() {
-  group('instrumentation', () {
-    runReflectiveTests(InstrumentationServiceTest);
-    runReflectiveTests(MulticastInstrumentationServerTest);
-  });
+  defineReflectiveTests(InstrumentationServiceTest);
+  defineReflectiveTests(MulticastInstrumentationServerTest);
 }
 
 @reflectiveTest
@@ -164,6 +161,9 @@ class MulticastInstrumentationServerTest {
 class TestInstrumentationServer implements InstrumentationServer {
   StringBuffer normalChannel = new StringBuffer();
   StringBuffer priorityChannel = new StringBuffer();
+
+  @override
+  String get sessionId => '';
 
   @override
   void log(String message) {

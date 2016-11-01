@@ -42,6 +42,14 @@ class Hashing {
     return mixHashCodeBits(existing, object.hashCode);
   }
 
+  /// Mix the bits of `.hashCode` all non-null objects.
+  static int objectsHash(Object obj1, [Object obj2, Object obj3]) {
+    int hash = 0;
+    if (obj3 != null) hash = objectHash(obj3, hash);
+    if (obj2 != null) hash = objectHash(obj2, hash);
+    return objectHash(obj1, hash);
+  }
+
   /// Mix the bits of the element hash codes of [list] with [existing].
   static int listHash(List list, [int existing = 0]) {
     int h = existing;

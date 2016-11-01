@@ -731,19 +731,7 @@ class ElementListener extends Listener {
     beginMember(token);
   }
 
-  void endFields(fieldCount, start, token) {
-    memberErrors = memberErrors.tail;
-  }
-
-  void endMethod(getOrSet, start, token) {
-    memberErrors = memberErrors.tail;
-  }
-
-  void beginFactoryMethod(Token token) {
-    memberErrors = memberErrors.prepend(false);
-  }
-
-  void endFactoryMethod(Token beginToken, Token endToken) {
+  void endMember() {
     memberErrors = memberErrors.tail;
   }
 

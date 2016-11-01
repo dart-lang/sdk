@@ -18,13 +18,14 @@ import '../resolution/tree_elements.dart' show TreeElementMapping;
 import '../tree/dartstring.dart' show DartString;
 import '../tree/tree.dart' as ast show Node, LiteralBool, TryStatement;
 import '../types/constants.dart' show computeTypeMask;
-import '../types/types.dart'
-    show ContainerTypeMask, MapTypeMask, TypeMask, TypesInferrer;
+import '../types/masks.dart'
+    show CommonMasks, ContainerTypeMask, MapTypeMask, TypeMask;
+import '../types/types.dart' show TypesInferrer;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart' show Setlet;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'closure_tracer.dart';
 import 'debug.dart' as debug;
 import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
@@ -36,7 +37,8 @@ import 'type_graph_nodes.dart';
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;
-  final ClassWorld classWorld;
+  final ClosedWorld closedWorld;
+  final CommonMasks commonMasks;
 
   /// [ElementTypeInformation]s for elements.
   final Map<Element, TypeInformation> typeInformations =
@@ -70,9 +72,9 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
         allocatedTypes
       ].expand((x) => x);
 
-  TypeInformationSystem(Compiler compiler)
+  TypeInformationSystem(Compiler compiler, this.commonMasks)
       : this.compiler = compiler,
-        this.classWorld = compiler.world {
+        this.closedWorld = compiler.closedWorld {
     nonNullEmptyType = getConcreteTypeFor(const TypeMask.nonNullEmpty());
   }
 
@@ -92,148 +94,142 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation nullTypeCache;
   TypeInformation get nullType {
     if (nullTypeCache != null) return nullTypeCache;
-    return nullTypeCache = getConcreteTypeFor(compiler.typesTask.nullType);
+    return nullTypeCache = getConcreteTypeFor(commonMasks.nullType);
   }
 
   TypeInformation intTypeCache;
   TypeInformation get intType {
     if (intTypeCache != null) return intTypeCache;
-    return intTypeCache = getConcreteTypeFor(compiler.typesTask.intType);
+    return intTypeCache = getConcreteTypeFor(commonMasks.intType);
   }
 
   TypeInformation uint32TypeCache;
   TypeInformation get uint32Type {
     if (uint32TypeCache != null) return uint32TypeCache;
-    return uint32TypeCache = getConcreteTypeFor(compiler.typesTask.uint32Type);
+    return uint32TypeCache = getConcreteTypeFor(commonMasks.uint32Type);
   }
 
   TypeInformation uint31TypeCache;
   TypeInformation get uint31Type {
     if (uint31TypeCache != null) return uint31TypeCache;
-    return uint31TypeCache = getConcreteTypeFor(compiler.typesTask.uint31Type);
+    return uint31TypeCache = getConcreteTypeFor(commonMasks.uint31Type);
   }
 
   TypeInformation positiveIntTypeCache;
   TypeInformation get positiveIntType {
     if (positiveIntTypeCache != null) return positiveIntTypeCache;
     return positiveIntTypeCache =
-        getConcreteTypeFor(compiler.typesTask.positiveIntType);
+        getConcreteTypeFor(commonMasks.positiveIntType);
   }
 
   TypeInformation doubleTypeCache;
   TypeInformation get doubleType {
     if (doubleTypeCache != null) return doubleTypeCache;
-    return doubleTypeCache = getConcreteTypeFor(compiler.typesTask.doubleType);
+    return doubleTypeCache = getConcreteTypeFor(commonMasks.doubleType);
   }
 
   TypeInformation numTypeCache;
   TypeInformation get numType {
     if (numTypeCache != null) return numTypeCache;
-    return numTypeCache = getConcreteTypeFor(compiler.typesTask.numType);
+    return numTypeCache = getConcreteTypeFor(commonMasks.numType);
   }
 
   TypeInformation boolTypeCache;
   TypeInformation get boolType {
     if (boolTypeCache != null) return boolTypeCache;
-    return boolTypeCache = getConcreteTypeFor(compiler.typesTask.boolType);
+    return boolTypeCache = getConcreteTypeFor(commonMasks.boolType);
   }
 
   TypeInformation functionTypeCache;
   TypeInformation get functionType {
     if (functionTypeCache != null) return functionTypeCache;
-    return functionTypeCache =
-        getConcreteTypeFor(compiler.typesTask.functionType);
+    return functionTypeCache = getConcreteTypeFor(commonMasks.functionType);
   }
 
   TypeInformation listTypeCache;
   TypeInformation get listType {
     if (listTypeCache != null) return listTypeCache;
-    return listTypeCache = getConcreteTypeFor(compiler.typesTask.listType);
+    return listTypeCache = getConcreteTypeFor(commonMasks.listType);
   }
 
   TypeInformation constListTypeCache;
   TypeInformation get constListType {
     if (constListTypeCache != null) return constListTypeCache;
-    return constListTypeCache =
-        getConcreteTypeFor(compiler.typesTask.constListType);
+    return constListTypeCache = getConcreteTypeFor(commonMasks.constListType);
   }
 
   TypeInformation fixedListTypeCache;
   TypeInformation get fixedListType {
     if (fixedListTypeCache != null) return fixedListTypeCache;
-    return fixedListTypeCache =
-        getConcreteTypeFor(compiler.typesTask.fixedListType);
+    return fixedListTypeCache = getConcreteTypeFor(commonMasks.fixedListType);
   }
 
   TypeInformation growableListTypeCache;
   TypeInformation get growableListType {
     if (growableListTypeCache != null) return growableListTypeCache;
     return growableListTypeCache =
-        getConcreteTypeFor(compiler.typesTask.growableListType);
+        getConcreteTypeFor(commonMasks.growableListType);
   }
 
   TypeInformation mapTypeCache;
   TypeInformation get mapType {
     if (mapTypeCache != null) return mapTypeCache;
-    return mapTypeCache = getConcreteTypeFor(compiler.typesTask.mapType);
+    return mapTypeCache = getConcreteTypeFor(commonMasks.mapType);
   }
 
   TypeInformation constMapTypeCache;
   TypeInformation get constMapType {
     if (constMapTypeCache != null) return constMapTypeCache;
-    return constMapTypeCache =
-        getConcreteTypeFor(compiler.typesTask.constMapType);
+    return constMapTypeCache = getConcreteTypeFor(commonMasks.constMapType);
   }
 
   TypeInformation stringTypeCache;
   TypeInformation get stringType {
     if (stringTypeCache != null) return stringTypeCache;
-    return stringTypeCache = getConcreteTypeFor(compiler.typesTask.stringType);
+    return stringTypeCache = getConcreteTypeFor(commonMasks.stringType);
   }
 
   TypeInformation typeTypeCache;
   TypeInformation get typeType {
     if (typeTypeCache != null) return typeTypeCache;
-    return typeTypeCache = getConcreteTypeFor(compiler.typesTask.typeType);
+    return typeTypeCache = getConcreteTypeFor(commonMasks.typeType);
   }
 
   TypeInformation dynamicTypeCache;
   TypeInformation get dynamicType {
     if (dynamicTypeCache != null) return dynamicTypeCache;
-    return dynamicTypeCache =
-        getConcreteTypeFor(compiler.typesTask.dynamicType);
+    return dynamicTypeCache = getConcreteTypeFor(commonMasks.dynamicType);
   }
 
   TypeInformation asyncFutureTypeCache;
   TypeInformation get asyncFutureType {
     if (asyncFutureTypeCache != null) return asyncFutureTypeCache;
     return asyncFutureTypeCache =
-        getConcreteTypeFor(compiler.typesTask.asyncFutureType);
+        getConcreteTypeFor(commonMasks.asyncFutureType);
   }
 
   TypeInformation syncStarIterableTypeCache;
   TypeInformation get syncStarIterableType {
     if (syncStarIterableTypeCache != null) return syncStarIterableTypeCache;
     return syncStarIterableTypeCache =
-        getConcreteTypeFor(compiler.typesTask.syncStarIterableType);
+        getConcreteTypeFor(commonMasks.syncStarIterableType);
   }
 
   TypeInformation asyncStarStreamTypeCache;
   TypeInformation get asyncStarStreamType {
     if (asyncStarStreamTypeCache != null) return asyncStarStreamTypeCache;
     return asyncStarStreamTypeCache =
-        getConcreteTypeFor(compiler.typesTask.asyncStarStreamType);
+        getConcreteTypeFor(commonMasks.asyncStarStreamType);
   }
 
   TypeInformation nonNullEmptyType;
 
   TypeInformation stringLiteralType(DartString value) {
-    return new StringLiteralTypeInformation(
-        value, compiler.typesTask.stringType);
+    return new StringLiteralTypeInformation(value, commonMasks.stringType);
   }
 
   TypeInformation boolLiteralType(ast.LiteralBool value) {
-    return new BoolLiteralTypeInformation(value, compiler.typesTask.boolType);
+    return new BoolLiteralTypeInformation(value, commonMasks.boolType);
   }
 
   TypeInformation computeLUB(
@@ -246,7 +242,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return dynamicType;
     }
     return getConcreteTypeFor(
-        firstType.type.union(secondType.type, classWorld));
+        firstType.type.union(secondType.type, closedWorld));
   }
 
   bool selectorNeedsUpdate(TypeInformation info, TypeMask mask) {
@@ -257,7 +253,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       TypeInformation receiver, bool isConditional) {
     if (receiver.type.isExact) return receiver;
     TypeMask otherType =
-        compiler.world.allFunctions.receiverType(selector, mask);
+        compiler.closedWorld.allFunctions.receiverType(selector, mask);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
     if (isConditional) {
@@ -267,10 +263,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     }
     // If this is refining to nullable subtype of `Object` just return
     // the receiver. We know the narrowing is useless.
-    if (otherType.isNullable && otherType.containsAll(classWorld)) {
+    if (otherType.isNullable && otherType.containsAll(closedWorld)) {
       return receiver;
     }
-    assert(TypeMask.assertIsNormalized(otherType, classWorld));
+    assert(TypeMask.assertIsNormalized(otherType, closedWorld));
     TypeInformation newType = new NarrowTypeInformation(receiver, otherType);
     allocatedTypes.add(newType);
     return newType;
@@ -280,7 +276,10 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       {bool isNullable: true}) {
     if (annotation.treatAsDynamic) return type;
     if (annotation.isVoid) return nullType;
-    if (annotation.element == classWorld.objectClass && isNullable) return type;
+    if (annotation.element == closedWorld.coreClasses.objectClass &&
+        isNullable) {
+      return type;
+    }
     TypeMask otherType;
     if (annotation.isTypedef || annotation.isFunctionType) {
       otherType = functionType.type;
@@ -289,15 +288,15 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       return type;
     } else {
       assert(annotation.isInterfaceType);
-      otherType = annotation.element == classWorld.objectClass
+      otherType = annotation.element == closedWorld.coreClasses.objectClass
           ? dynamicType.type.nonNullable()
-          : new TypeMask.nonNullSubtype(annotation.element, classWorld);
+          : new TypeMask.nonNullSubtype(annotation.element, closedWorld);
     }
     if (isNullable) otherType = otherType.nullable();
     if (type.type.isExact) {
       return type;
     } else {
-      assert(TypeMask.assertIsNormalized(otherType, classWorld));
+      assert(TypeMask.assertIsNormalized(otherType, closedWorld));
       TypeInformation newType = new NarrowTypeInformation(type, otherType);
       allocatedTypes.add(newType);
       return newType;
@@ -343,17 +342,17 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
 
   TypeInformation nonNullSubtype(ClassElement type) {
     return getConcreteTypeFor(
-        new TypeMask.nonNullSubtype(type.declaration, classWorld));
+        new TypeMask.nonNullSubtype(type.declaration, closedWorld));
   }
 
   TypeInformation nonNullSubclass(ClassElement type) {
     return getConcreteTypeFor(
-        new TypeMask.nonNullSubclass(type.declaration, classWorld));
+        new TypeMask.nonNullSubclass(type.declaration, closedWorld));
   }
 
   TypeInformation nonNullExact(ClassElement type) {
     return getConcreteTypeFor(
-        new TypeMask.nonNullExact(type.declaration, classWorld));
+        new TypeMask.nonNullExact(type.declaration, closedWorld));
   }
 
   TypeInformation nonNullEmpty() {
@@ -367,13 +366,13 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   TypeInformation allocateList(
       TypeInformation type, ast.Node node, Element enclosing,
       [TypeInformation elementType, int length]) {
-    bool isTypedArray = compiler.typedDataClass != null &&
-        classWorld.isInstantiated(compiler.typedDataClass) &&
-        type.type.satisfies(compiler.typedDataClass, classWorld);
-    bool isConst = (type.type == compiler.typesTask.constListType);
-    bool isFixed = (type.type == compiler.typesTask.fixedListType) ||
-        isConst ||
-        isTypedArray;
+    ClassElement typedDataClass = compiler.commonElements.typedDataClass;
+    bool isTypedArray = typedDataClass != null &&
+        closedWorld.isInstantiated(typedDataClass) &&
+        type.type.satisfies(typedDataClass, closedWorld);
+    bool isConst = (type.type == commonMasks.constListType);
+    bool isFixed =
+        (type.type == commonMasks.fixedListType) || isConst || isTypedArray;
     bool isElementInferred = isConst || isTypedArray;
 
     int inferredLength = isFixed ? length : null;
@@ -401,14 +400,14 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       ConcreteTypeInformation type, ast.Node node, Element element,
       [List<TypeInformation> keyTypes, List<TypeInformation> valueTypes]) {
     assert(keyTypes.length == valueTypes.length);
-    bool isFixed = (type.type == compiler.typesTask.constMapType);
+    bool isFixed = (type.type == commonMasks.constMapType);
 
     TypeMask keyType, valueType;
     if (isFixed) {
       keyType = keyTypes.fold(nonNullEmptyType.type,
-          (type, info) => type.union(info.type, classWorld));
+          (type, info) => type.union(info.type, closedWorld));
       valueType = valueTypes.fold(nonNullEmptyType.type,
-          (type, info) => type.union(info.type, classWorld));
+          (type, info) => type.union(info.type, closedWorld));
     } else {
       keyType = valueType = dynamicType.type;
     }
@@ -501,7 +500,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   }
 
   TypeMask joinTypeMasks(Iterable<TypeMask> masks) {
-    var dynamicType = compiler.typesTask.dynamicType;
+    var dynamicType = commonMasks.dynamicType;
     // Optimization: we are iterating over masks twice, but because `masks` is a
     // mapped iterable, we save the intermediate results to avoid computing them
     // again.
@@ -511,15 +510,15 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
       // work the result will be `dynamic`.
       // TODO(sigmund): change to `mask == dynamicType` so we can continue to
       // track the non-nullable bit.
-      if (mask.containsAll(classWorld)) return dynamicType;
+      if (mask.containsAll(closedWorld)) return dynamicType;
       list.add(mask);
     }
 
     TypeMask newType = null;
     for (TypeMask mask in list) {
-      newType = newType == null ? mask : newType.union(mask, classWorld);
+      newType = newType == null ? mask : newType.union(mask, closedWorld);
       // Likewise - stop early if we already reach dynamic.
-      if (newType.containsAll(classWorld)) return dynamicType;
+      if (newType.containsAll(closedWorld)) return dynamicType;
     }
 
     return newType ?? const TypeMask.nonNullEmpty();
@@ -571,6 +570,7 @@ class TypeGraphInferrerEngine
       <CallSiteTypeInformation>[];
   final WorkQueue workQueue = new WorkQueue();
   final Element mainElement;
+  final CommonMasks commonMasks;
   final Set<Element> analyzedElements = new Set<Element>();
 
   /// The maximum number of times we allow a node in the graph to
@@ -581,8 +581,10 @@ class TypeGraphInferrerEngine
   int overallRefineCount = 0;
   int addedInGraph = 0;
 
-  TypeGraphInferrerEngine(Compiler compiler, this.mainElement)
-      : super(compiler, new TypeInformationSystem(compiler));
+  TypeGraphInferrerEngine(
+      Compiler compiler, CommonMasks commonMasks, this.mainElement)
+      : commonMasks = commonMasks,
+        super(compiler, new TypeInformationSystem(compiler, commonMasks));
 
   JavaScriptBackend get backend => compiler.backend;
   Annotations get annotations => backend.annotations;
@@ -624,7 +626,7 @@ class TypeGraphInferrerEngine
 
     info.bailedOut = false;
     info.elementType.inferred = true;
-    TypeMask fixedListType = compiler.typesTask.fixedListType;
+    TypeMask fixedListType = commonMasks.fixedListType;
     if (info.originalType.forwardTo == fixedListType) {
       info.checksGrowable = tracer.callsGrowableMethod;
     }
@@ -702,7 +704,7 @@ class TypeGraphInferrerEngine
         tracer.run();
         if (!tracer.continueAnalyzing) {
           elements.forEach((FunctionElement e) {
-            compiler.world.registerMightBePassedToApply(e);
+            compiler.inferenceWorld.registerMightBePassedToApply(e);
             if (debug.VERBOSE) print("traced closure $e as ${true} (bail)");
             e.functionSignature.forEachParameter((parameter) {
               types
@@ -722,12 +724,12 @@ class TypeGraphInferrerEngine
             workQueue.add(info);
           });
           if (tracer.tracedType.mightBePassedToFunctionApply) {
-            compiler.world.registerMightBePassedToApply(e);
+            compiler.inferenceWorld.registerMightBePassedToApply(e);
           }
-          ;
           if (debug.VERBOSE) {
             print("traced closure $e as "
-                "${compiler.world.getMightBePassedToApply(e)}");
+                "${compiler.inferenceWorld
+                    .getCurrentlyKnownMightBePassedToApply(e)}");
           }
         });
       }
@@ -865,7 +867,7 @@ class TypeGraphInferrerEngine
                   // the old type around to ensure that we get a complete view
                   // of the type graph and do not drop any flow edges.
                   TypeMask refinedType = computeTypeMask(compiler, value);
-                  assert(TypeMask.assertIsNormalized(refinedType, classWorld));
+                  assert(TypeMask.assertIsNormalized(refinedType, closedWorld));
                   type = new NarrowTypeInformation(type, refinedType);
                   types.allocatedTypes.add(type);
                 }
@@ -913,13 +915,14 @@ class TypeGraphInferrerEngine
     allocatedCalls.forEach((info) {
       if (!info.inLoop) return;
       if (info is StaticCallSiteTypeInformation) {
-        compiler.world.addFunctionCalledInLoop(info.calledElement);
-      } else if (info.mask != null && !info.mask.containsAll(compiler.world)) {
+        compiler.inferenceWorld.addFunctionCalledInLoop(info.calledElement);
+      } else if (info.mask != null &&
+          !info.mask.containsAll(compiler.closedWorld)) {
         // For instance methods, we only register a selector called in a
         // loop if it is a typed selector, to avoid marking too many
         // methods as being called from within a loop. This cuts down
         // on the code bloat.
-        info.targets.forEach(compiler.world.addFunctionCalledInLoop);
+        info.targets.forEach(compiler.inferenceWorld.addFunctionCalledInLoop);
       }
     });
   }
@@ -1186,7 +1189,7 @@ class TypeGraphInferrerEngine
           arguments, sideEffects, inLoop);
     }
 
-    compiler.world.allFunctions.filter(selector, mask).forEach((callee) {
+    compiler.closedWorld.allFunctions.filter(selector, mask).forEach((callee) {
       updateSideEffects(sideEffects, selector, callee);
     });
 
@@ -1356,32 +1359,34 @@ class TypeGraphInferrerEngine
 class TypeGraphInferrer implements TypesInferrer {
   TypeGraphInferrerEngine inferrer;
   final Compiler compiler;
-  TypeGraphInferrer(Compiler this.compiler);
+  final CommonMasks commonMasks;
+  TypeGraphInferrer(this.compiler, this.commonMasks);
 
   String get name => 'Graph inferrer';
+  TypeMask get _dynamicType => commonMasks.dynamicType;
 
   void analyzeMain(Element main) {
-    inferrer = new TypeGraphInferrerEngine(compiler, main);
+    inferrer = new TypeGraphInferrerEngine(compiler, commonMasks, main);
     inferrer.runOverAllElements();
   }
 
   TypeMask getReturnTypeOfElement(Element element) {
-    if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
+    if (compiler.disableTypeInference) return _dynamicType;
     // Currently, closure calls return dynamic.
-    if (element is! FunctionElement) return compiler.typesTask.dynamicType;
+    if (element is! FunctionElement) return _dynamicType;
     return inferrer.types.getInferredTypeOf(element).type;
   }
 
   TypeMask getTypeOfElement(Element element) {
-    if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
+    if (compiler.disableTypeInference) return _dynamicType;
     // The inferrer stores the return type for a function, so we have to
     // be careful to not return it here.
-    if (element is FunctionElement) return compiler.typesTask.functionType;
+    if (element is FunctionElement) return commonMasks.functionType;
     return inferrer.types.getInferredTypeOf(element).type;
   }
 
-  TypeMask getTypeOfNode(Element owner, ast.Node node) {
-    if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
+  TypeMask getTypeForNewList(Element owner, ast.Node node) {
+    if (compiler.disableTypeInference) return _dynamicType;
     return inferrer.types.allocatedLists[node].type;
   }
 
@@ -1392,31 +1397,31 @@ class TypeGraphInferrer implements TypesInferrer {
   }
 
   TypeMask getTypeOfSelector(Selector selector, TypeMask mask) {
-    if (compiler.disableTypeInference) return compiler.typesTask.dynamicType;
+    if (compiler.disableTypeInference) return _dynamicType;
     // Bailout for closure calls. We're not tracking types of
     // closures.
-    if (selector.isClosureCall) return compiler.typesTask.dynamicType;
+    if (selector.isClosureCall) return _dynamicType;
     if (selector.isSetter || selector.isIndexSet) {
-      return compiler.typesTask.dynamicType;
+      return _dynamicType;
     }
     if (inferrer.returnsListElementType(selector, mask)) {
       ContainerTypeMask containerTypeMask = mask;
       TypeMask elementType = containerTypeMask.elementType;
-      return elementType == null ? compiler.typesTask.dynamicType : elementType;
+      return elementType == null ? _dynamicType : elementType;
     }
     if (inferrer.returnsMapValueType(selector, mask)) {
       MapTypeMask mapTypeMask = mask;
       TypeMask valueType = mapTypeMask.valueType;
-      return valueType == null ? compiler.typesTask.dynamicType : valueType;
+      return valueType == null ? _dynamicType : valueType;
     }
 
     TypeMask result = const TypeMask.nonNullEmpty();
     Iterable<Element> elements =
-        compiler.world.allFunctions.filter(selector, mask);
+        compiler.closedWorld.allFunctions.filter(selector, mask);
     for (Element element in elements) {
       TypeMask type =
           inferrer.typeOfElementWithSelector(element, selector).type;
-      result = result.union(type, compiler.world);
+      result = result.union(type, compiler.closedWorld);
     }
     return result;
   }

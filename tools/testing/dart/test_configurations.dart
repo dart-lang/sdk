@@ -42,10 +42,10 @@ final TEST_SUITE_DIRECTORIES = [
   new Path('tests/corelib'),
   new Path('tests/html'),
   new Path('tests/isolate'),
+  new Path('tests/kernel'),
   new Path('tests/language'),
   new Path('tests/lib'),
   new Path('tests/standalone'),
-  new Path('tests/try'),
   new Path('tests/utils'),
   new Path('utils/tests/css'),
   new Path('utils/tests/peg'),
@@ -133,11 +133,12 @@ Future testConfigurations(List<Map> configurations) async {
       // server for cross-domain tests can be found by calling
       // getCrossOriginPortNumber().
       var servers = new TestingServers(
-          new Path(TestUtils.buildDir(conf)),
+          TestUtils.buildDir(conf),
           useContentSecurityPolicy,
           conf['runtime'],
           null,
-          conf['package_root']);
+          conf['package_root'],
+          conf['packages']);
       serverFutures.add(servers.startServers(conf['local_ip'],
           port: conf['test_server_port'],
           crossOriginPort: conf['test_server_cross_origin_port']));

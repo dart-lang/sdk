@@ -5,22 +5,36 @@
 library debugger_page_element;
 
 import 'dart:async';
+import 'dart:svg';
 import 'dart:html';
 import 'dart:math';
-import 'observatory_element.dart';
+import 'package:observatory/event.dart';
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
-import 'package:observatory/service.dart';
+import 'package:observatory/src/elements/function_ref.dart';
+import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
+import 'package:observatory/src/elements/instance_ref.dart';
+import 'package:observatory/src/elements/nav/isolate_menu.dart';
+import 'package:observatory/src/elements/nav/notify.dart';
+import 'package:observatory/src/elements/nav/top_menu.dart';
+import 'package:observatory/src/elements/nav/vm_menu.dart';
+import 'package:observatory/src/elements/source_inset.dart';
+import 'package:observatory/src/elements/source_link.dart';
+import 'package:observatory/service.dart' as S;
 import 'package:logging/logging.dart';
-import 'package:polymer/polymer.dart';
 
 // TODO(turnidge): Move Debugger, DebuggerCommand to debugger library.
 abstract class DebuggerCommand extends Command {
   ObservatoryDebugger debugger;
 
-  DebuggerCommand(this.debugger, name, children)
-      : super(name, children);
+  DebuggerCommand(this.debugger, name, children) : super(name, children);
 
   String get helpShort;
   String get helpLong;
@@ -29,9 +43,10 @@ abstract class DebuggerCommand extends Command {
 // TODO(turnidge): Rewrite HelpCommand so that it is a general utility
 // provided by the cli library.
 class HelpCommand extends DebuggerCommand {
-  HelpCommand(Debugger debugger) : super(debugger, 'help', [
-    new HelpHotkeysCommand(debugger),
-  ]);
+  HelpCommand(Debugger debugger)
+      : super(debugger, 'help', [
+          new HelpHotkeysCommand(debugger),
+        ]);
 
   String _nameAndAlias(Command cmd) {
     if (cmd.alias == null) {
@@ -50,7 +65,7 @@ class HelpCommand extends DebuggerCommand {
       con.print('List of commands:\n');
       for (var command in commands) {
         con.print('${_nameAndAlias(command).padRight(12)} '
-                  '- ${command.helpShort}');
+            '- ${command.helpShort}');
       }
       con.print(
           "\nFor more information on a specific command type 'help <command>'\n"
@@ -86,7 +101,7 @@ class HelpCommand extends DebuggerCommand {
           con.print('Subcommands:\n');
           for (var subCommand in subCommands) {
             con.print('    ${subCommand.fullName.padRight(16)} '
-                      '- ${subCommand.helpShort}');
+                '- ${subCommand.helpShort}');
           }
           con.print('');
         }
@@ -101,7 +116,8 @@ class HelpCommand extends DebuggerCommand {
     return new Future.value(result);
   }
 
-  String helpShort = 'List commands or provide details about a specific command';
+  String helpShort =
+      'List commands or provide details about a specific command';
 
   String helpLong =
       'List commands or provide details about a specific command.\n'
@@ -116,28 +132,27 @@ class HelpHotkeysCommand extends DebuggerCommand {
   Future run(List<String> args) {
     var con = debugger.console;
     con.print("List of hotkeys:\n"
-              "\n"
-              "[TAB]        - complete a command\n"
-              "[Up Arrow]   - history previous\n"
-              "[Down Arrow] - history next\n"
-              "\n"
-              "[Page Up]    - move up one frame\n"
-              "[Page Down]  - move down one frame\n"
-              "\n"
-              "[F7]         - continue execution of the current isolate\n"
-              "[Ctrl ;]     - pause execution of the current isolate\n"
-              "\n"
-              "[F8]         - toggle breakpoint at current location\n"
-              "[F9]         - next\n"
-              "[F10]        - step\n"
-              "\n");
+        "\n"
+        "[TAB]        - complete a command\n"
+        "[Up Arrow]   - history previous\n"
+        "[Down Arrow] - history next\n"
+        "\n"
+        "[Page Up]    - move up one frame\n"
+        "[Page Down]  - move down one frame\n"
+        "\n"
+        "[F7]         - continue execution of the current isolate\n"
+        "[Ctrl ;]     - pause execution of the current isolate\n"
+        "\n"
+        "[F8]         - toggle breakpoint at current location\n"
+        "[F9]         - next\n"
+        "[F10]        - step\n"
+        "\n");
     return new Future.value(null);
   }
 
   String helpShort = 'Provide a list of hotkeys';
 
-  String helpLong =
-      'Provide a list of key hotkeys.\n'
+  String helpLong = 'Provide a list of key hotkeys.\n'
       '\n'
       'Syntax: help hotkeys\n';
 }
@@ -157,20 +172,19 @@ class PrintCommand extends DebuggerCommand {
       return;
     }
     var expression = args.join('');
-    var response = await debugger.isolate.evalFrame(debugger.currentFrame,
-                                                    expression);
-    if (response is DartError) {
+    var response =
+        await debugger.isolate.evalFrame(debugger.currentFrame, expression);
+    if (response is S.DartError) {
       debugger.console.print(response.message);
     } else {
-      debugger.console.print('= ', newline:false);
-      debugger.console.printRef(response);
+      debugger.console.print('= ', newline: false);
+      debugger.console.printRef(debugger.isolate, response, debugger.instances);
     }
   }
 
   String helpShort = 'Evaluate and print an expression in the current frame';
 
-  String helpLong =
-      'Evaluate and print an expression in the current frame.\n'
+  String helpLong = 'Evaluate and print an expression in the current frame.\n'
       '\n'
       'Syntax: print <expression>\n'
       '        p <expression>\n';
@@ -202,8 +216,7 @@ class DownCommand extends DebuggerCommand {
 
   String helpShort = 'Move down one or more frames (hotkey: [Page Down])';
 
-  String helpLong =
-      'Move down one or more frames.\n'
+  String helpLong = 'Move down one or more frames.\n'
       '\n'
       'Hotkey: [Page Down]\n'
       '\n'
@@ -237,8 +250,7 @@ class UpCommand extends DebuggerCommand {
 
   String helpShort = 'Move up one or more frames (hotkey: [Page Up])';
 
-  String helpLong =
-      'Move up one or more frames.\n'
+  String helpLong = 'Move up one or more frames.\n'
       '\n'
       'Hotkey: [Page Up]\n'
       '\n'
@@ -274,8 +286,7 @@ class FrameCommand extends DebuggerCommand {
 
   String helpShort = 'Set the current frame';
 
-  String helpLong =
-      'Set the current frame.\n'
+  String helpLong = 'Set the current frame.\n'
       '\n'
       'Syntax: frame <number>\n'
       '        f <count>\n';
@@ -290,8 +301,7 @@ class PauseCommand extends DebuggerCommand {
 
   String helpShort = 'Pause the isolate (hotkey: [Ctrl ;])';
 
-  String helpLong =
-      'Pause the isolate.\n'
+  String helpLong = 'Pause the isolate.\n'
       '\n'
       'Hotkey: [Ctrl ;]\n'
       '\n'
@@ -309,8 +319,7 @@ class ContinueCommand extends DebuggerCommand {
 
   String helpShort = 'Resume execution of the isolate (hotkey: [F7])';
 
-  String helpLong =
-      'Continue running the isolate.\n'
+  String helpLong = 'Continue running the isolate.\n'
       '\n'
       'Hotkey: [F7]\n'
       '\n'
@@ -347,8 +356,7 @@ class SyncNextCommand extends DebuggerCommand {
     return debugger.syncNext();
   }
 
-  String helpShort =
-      'Run until return/unwind to current activation.';
+  String helpShort = 'Run until return/unwind to current activation.';
 
   String helpLong =
       'Continue running the isolate until control returns to the current '
@@ -364,8 +372,7 @@ class AsyncNextCommand extends DebuggerCommand {
     return debugger.asyncNext();
   }
 
-  String helpShort =
-      'Step over await or yield';
+  String helpShort = 'Step over await or yield';
 
   String helpLong =
       'Continue running the isolate until control returns to the current '
@@ -407,8 +414,7 @@ class ClsCommand extends DebuggerCommand {
 
   String helpShort = 'Clear the console';
 
-  String helpLong =
-      'Clear the console.\n'
+  String helpLong = 'Clear the console.\n'
       '\n'
       'Syntax: cls\n';
 }
@@ -418,8 +424,7 @@ class LogCommand extends DebuggerCommand {
 
   Future run(List<String> args) async {
     if (args.length == 0) {
-      debugger.console.print(
-          'Current log level: '
+      debugger.console.print('Current log level: '
           '${debugger._consolePrinter._minimumLogLevel.name}');
       return new Future.value(null);
     }
@@ -461,8 +466,7 @@ class LogCommand extends DebuggerCommand {
     return new Future.value(result);
   }
 
-  String helpShort =
-      'Control which log messages are displayed';
+  String helpShort = 'Control which log messages are displayed';
 
   String helpLong =
       'Get or set the minimum log level that should be displayed.\n'
@@ -488,12 +492,12 @@ class FinishCommand extends DebuggerCommand {
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseStart) {
-        debugger.console.print(
-            "Type 'continue' [F7] or 'step' [F10] to start the isolate");
+      if (event is M.PauseStartEvent) {
+        debugger.console
+            .print("Type 'continue' [F7] or 'step' [F10] to start the isolate");
         return new Future.value(null);
       }
-      if (event.kind == ServiceEvent.kPauseExit) {
+      if (event is M.PauseExitEvent) {
         debugger.console.print("Type 'continue' [F7] to exit the isolate");
         return new Future.value(null);
       }
@@ -514,19 +518,22 @@ class FinishCommand extends DebuggerCommand {
 }
 
 class SetCommand extends DebuggerCommand {
-  SetCommand(Debugger debugger)
-      : super(debugger, 'set', []);
+  SetCommand(Debugger debugger) : super(debugger, 'set', []);
 
   static var _boeValues = ['All', 'None', 'Unhandled'];
   static var _boolValues = ['false', 'true'];
 
   static var _options = {
-    'break-on-exception': [_boeValues,
-                           _setBreakOnException,
-                           (debugger, _) => debugger.breakOnException],
-    'up-is-down': [_boolValues,
-                   _setUpIsDown,
-                   (debugger, _) => debugger.upIsDown],
+    'break-on-exception': [
+      _boeValues,
+      _setBreakOnException,
+      (debugger, _) => debugger.breakOnException
+    ],
+    'up-is-down': [
+      _boolValues,
+      _setUpIsDown,
+      (debugger, _) => debugger.upIsDown
+    ],
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
@@ -615,11 +622,9 @@ class SetCommand extends DebuggerCommand {
     return new Future.value(result);
   }
 
-  String helpShort =
-      'Set a debugger option';
+  String helpShort = 'Set a debugger option';
 
-  String helpLong =
-      'Set a debugger option.\n'
+  String helpLong = 'Set a debugger option.\n'
       '\n'
       'Known options:\n'
       '  break-on-exception    # Should the debugger break on exceptions?\n'
@@ -646,8 +651,8 @@ class BreakCommand extends DebuggerCommand {
       if (loc.function != null) {
         try {
           await debugger.isolate.addBreakpointAtEntry(loc.function);
-        } on ServerRpcException catch(e) {
-          if (e.code == ServerRpcException.kCannotAddBreakpoint) {
+        } on S.ServerRpcException catch (e) {
+          if (e.code == S.ServerRpcException.kCannotAddBreakpoint) {
             debugger.console.print('Unable to set breakpoint at ${loc}');
           } else {
             rethrow;
@@ -658,14 +663,14 @@ class BreakCommand extends DebuggerCommand {
         var script = loc.script;
         await script.load();
         if (loc.line < 1 || loc.line > script.lines.length) {
-          debugger.console.print(
-              'line number must be in range [1,${script.lines.length}]');
+          debugger.console
+              .print('line number must be in range [1,${script.lines.length}]');
           return;
         }
         try {
           await debugger.isolate.addBreakpoint(script, loc.line, loc.col);
-        } on ServerRpcException catch(e) {
-          if (e.code == ServerRpcException.kCannotAddBreakpoint) {
+        } on S.ServerRpcException catch (e) {
+          if (e.code == S.ServerRpcException.kCannotAddBreakpoint) {
             debugger.console.print('Unable to set breakpoint at ${loc}');
           } else {
             rethrow;
@@ -688,8 +693,7 @@ class BreakCommand extends DebuggerCommand {
   String helpShort = 'Add a breakpoint by source location or function name'
       ' (hotkey: [F8])';
 
-  String helpLong =
-      'Add a breakpoint by source location or function name.\n'
+  String helpLong = 'Add a breakpoint by source location or function name.\n'
       '\n'
       'Hotkey: [F8]\n'
       '\n'
@@ -732,16 +736,15 @@ class ClearCommand extends DebuggerCommand {
       return;
     }
     if (loc.function != null) {
-      debugger.console.print(
-          'Ignoring breakpoint at $loc: '
+      debugger.console.print('Ignoring breakpoint at $loc: '
           'Clearing function breakpoints not yet implemented');
       return;
     }
 
     var script = loc.script;
     if (loc.line < 1 || loc.line > script.lines.length) {
-      debugger.console.print(
-          'line number must be in range [1,${script.lines.length}]');
+      debugger.console
+          .print('line number must be in range [1,${script.lines.length}]');
       return;
     }
     var lineInfo = script.getLine(loc.line);
@@ -754,7 +757,7 @@ class ClearCommand extends DebuggerCommand {
             loc.col == script.tokenToCol(bpt.location.tokenPos)) {
           foundBreakpoint = true;
           var result = await debugger.isolate.removeBreakpoint(bpt);
-          if (result is DartError) {
+          if (result is S.DartError) {
             debugger.console.print(
                 'Error clearing breakpoint ${bpt.number}: ${result.message}');
           }
@@ -776,8 +779,7 @@ class ClearCommand extends DebuggerCommand {
   String helpShort = 'Remove a breakpoint by source location or function name'
       ' (hotkey: [F8])';
 
-  String helpLong =
-      'Remove a breakpoint by source location or function name.\n'
+  String helpLong = 'Remove a breakpoint by source location or function name.\n'
       '\n'
       'Hotkey: [F8]\n'
       '\n'
@@ -839,8 +841,7 @@ class DeleteCommand extends DebuggerCommand {
 
   String helpShort = 'Remove a breakpoint by breakpoint id';
 
-  String helpLong =
-      'Remove a breakpoint by breakpoint id.\n'
+  String helpLong = 'Remove a breakpoint by breakpoint id.\n'
       '\n'
       'Syntax: delete <bp-id>\n'
       '        delete <bp-id> <bp-id> ...\n';
@@ -860,19 +861,16 @@ class InfoBreakpointsCommand extends DebuggerCommand {
       var bpId = bpt.number;
       var locString = await bpt.location.toUserString();
       if (!bpt.resolved) {
-        debugger.console.print(
-            'Future breakpoint ${bpId} at ${locString}');
+        debugger.console.print('Future breakpoint ${bpId} at ${locString}');
       } else {
-        debugger.console.print(
-            'Breakpoint ${bpId} at ${locString}');
+        debugger.console.print('Breakpoint ${bpId} at ${locString}');
       }
     }
   }
 
   String helpShort = 'List all breakpoints';
 
-  String helpLong =
-      'List all breakpoints.\n'
+  String helpLong = 'List all breakpoints.\n'
       '\n'
       'Syntax: info breakpoints\n';
 }
@@ -891,18 +889,18 @@ class InfoFrameCommand extends DebuggerCommand {
 
   String helpShort = 'Show current frame';
 
-  String helpLong =
-      'Show current frame.\n'
+  String helpLong = 'Show current frame.\n'
       '\n'
       'Syntax: info frame\n';
 }
 
 class IsolateCommand extends DebuggerCommand {
-  IsolateCommand(Debugger debugger) : super(debugger, 'isolate', [
-    new IsolateListCommand(debugger),
-    new IsolateNameCommand(debugger),
-    new IsolateReloadCommand(debugger),
-  ]) {
+  IsolateCommand(Debugger debugger)
+      : super(debugger, 'isolate', [
+          new IsolateListCommand(debugger),
+          new IsolateNameCommand(debugger),
+          new IsolateReloadCommand(debugger),
+        ]) {
     alias = 'i';
   }
 
@@ -912,7 +910,7 @@ class IsolateCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     var arg = args[0].trim();
-    var num = int.parse(arg, onError:(_) => null);
+    var num = int.parse(arg, onError: (_) => null);
 
     var candidate;
     for (var isolate in debugger.vm.isolates) {
@@ -921,8 +919,7 @@ class IsolateCommand extends DebuggerCommand {
         break;
       } else if (arg == isolate.name) {
         if (candidate != null) {
-          debugger.console.print(
-              "Isolate identifier '${arg}' is ambiguous: "
+          debugger.console.print("Isolate identifier '${arg}' is ambiguous: "
               'use the isolate number instead');
           return new Future.value(null);
         }
@@ -936,9 +933,7 @@ class IsolateCommand extends DebuggerCommand {
         debugger.console.print(
             "Current isolate is already ${candidate.number} '${candidate.name}'");
       } else {
-        debugger.console.print(
-            "Switching to isolate ${candidate.number} '${candidate.name}'");
-        debugger.isolate = candidate;
+        new AnchorElement(href: Uris.debugger(candidate)).click();
       }
     }
     return new Future.value(null);
@@ -962,16 +957,16 @@ class IsolateCommand extends DebuggerCommand {
     }
     return new Future.value(result);
   }
+
   String helpShort = 'Switch, list, rename, or reload isolates';
 
-  String helpLong =
-      'Switch the current isolate.\n'
+  String helpLong = 'Switch the current isolate.\n'
       '\n'
       'Syntax: isolate <number>\n'
       '        isolate <name>\n';
 }
 
-String _isolateRunState(Isolate isolate) {
+String _isolateRunState(S.Isolate isolate) {
   if (isolate.paused) {
     return 'paused';
   } else if (isolate.running) {
@@ -988,8 +983,7 @@ class IsolateListCommand extends DebuggerCommand {
 
   Future run(List<String> args) async {
     if (debugger.vm == null) {
-      debugger.console.print(
-          "Internal error: vm has not been set");
+      debugger.console.print("Internal error: vm has not been set");
       return;
     }
 
@@ -1007,26 +1001,25 @@ class IsolateListCommand extends DebuggerCommand {
       maxNameLen = max(maxNameLen, isolate.name.length);
     }
     debugger.console.print("${'ID'.padLeft(maxIdLen, ' ')} "
-                           "${'ORIGIN'.padLeft(maxIdLen, ' ')} "
-                           "${'NAME'.padRight(maxNameLen, ' ')} "
-                           "${'STATE'.padRight(maxRunStateLen, ' ')} "
-                           "CURRENT");
+        "${'ORIGIN'.padLeft(maxIdLen, ' ')} "
+        "${'NAME'.padRight(maxNameLen, ' ')} "
+        "${'STATE'.padRight(maxRunStateLen, ' ')} "
+        "CURRENT");
     for (var isolate in debugger.vm.isolates) {
       String current = (isolate == debugger.isolate ? '*' : '');
-      debugger.console.print(
-          "${isolate.number.toString().padLeft(maxIdLen, ' ')} "
-          "${isolate.originNumber.toString().padLeft(maxIdLen, ' ')} "
-          "${isolate.name.padRight(maxNameLen, ' ')} "
-          "${_isolateRunState(isolate).padRight(maxRunStateLen, ' ')} "
-          "${current}");
+      debugger.console
+          .print("${isolate.number.toString().padLeft(maxIdLen, ' ')} "
+              "${isolate.originNumber.toString().padLeft(maxIdLen, ' ')} "
+              "${isolate.name.padRight(maxNameLen, ' ')} "
+              "${_isolateRunState(isolate).padRight(maxRunStateLen, ' ')} "
+              "${current}");
     }
     debugger.console.newline();
   }
 
   String helpShort = 'List all isolates';
 
-  String helpLong =
-      'List all isolates.\n'
+  String helpLong = 'List all isolates.\n'
       '\n'
       'Syntax: isolate list\n';
 }
@@ -1044,8 +1037,7 @@ class IsolateNameCommand extends DebuggerCommand {
 
   String helpShort = 'Rename the current isolate';
 
-  String helpLong =
-      'Rename the current isolate.\n'
+  String helpLong = 'Rename the current isolate.\n'
       '\n'
       'Syntax: isolate name <name>\n';
 }
@@ -1066,16 +1058,17 @@ class IsolateReloadCommand extends DebuggerCommand {
 
   String helpShort = 'Reload the sources for the current isolate.';
 
-  String helpLong =
-      'Reload the sources for the current isolate.\n'
+  String helpLong = 'Reload the sources for the current isolate.\n'
       '\n'
       'Syntax: reload\n';
 }
 
 class InfoCommand extends DebuggerCommand {
-  InfoCommand(Debugger debugger) : super(debugger, 'info', [
-      new InfoBreakpointsCommand(debugger),
-      new InfoFrameCommand(debugger)]);
+  InfoCommand(Debugger debugger)
+      : super(debugger, 'info', [
+          new InfoBreakpointsCommand(debugger),
+          new InfoFrameCommand(debugger)
+        ]);
 
   Future run(List<String> args) {
     debugger.console.print("'info' expects a subcommand (see 'help info')");
@@ -1084,8 +1077,7 @@ class InfoCommand extends DebuggerCommand {
 
   String helpShort = 'Show information on a variety of topics';
 
-  String helpLong =
-      'Show information on a variety of topics.\n'
+  String helpLong = 'Show information on a variety of topics.\n'
       '\n'
       'Syntax: info <subcommand>\n';
 }
@@ -1099,26 +1091,26 @@ class RefreshStackCommand extends DebuggerCommand {
 
   String helpShort = 'Refresh isolate stack';
 
-  String helpLong =
-      'Refresh isolate stack.\n'
+  String helpLong = 'Refresh isolate stack.\n'
       '\n'
       'Syntax: refresh stack\n';
 }
 
 class RefreshCommand extends DebuggerCommand {
-  RefreshCommand(Debugger debugger) : super(debugger, 'refresh', [
-      new RefreshStackCommand(debugger),
-  ]);
+  RefreshCommand(Debugger debugger)
+      : super(debugger, 'refresh', [
+          new RefreshStackCommand(debugger),
+        ]);
 
   Future run(List<String> args) {
-    debugger.console.print("'refresh' expects a subcommand (see 'help refresh')");
+    debugger.console
+        .print("'refresh' expects a subcommand (see 'help refresh')");
     return new Future.value(null);
   }
 
   String helpShort = 'Refresh debugging information of various sorts';
 
-  String helpLong =
-      'Refresh debugging information of various sorts.\n'
+  String helpLong = 'Refresh debugging information of various sorts.\n'
       '\n'
       'Syntax: refresh <subcommand>\n';
 }
@@ -1147,21 +1139,20 @@ class VmListCommand extends DebuggerCommand {
     }
 
     debugger.console.print("${'ADDRESS'.padRight(maxAddrLen, ' ')} "
-                           "${'NAME'.padRight(maxNameLen, ' ')} "
-                           "CURRENT");
+        "${'NAME'.padRight(maxNameLen, ' ')} "
+        "CURRENT");
     for (var vm in vmList) {
       String current = (vm == debugger.vm ? '*' : '');
-      debugger.console.print(
-          "${vm.target.networkAddress.padRight(maxAddrLen, ' ')} "
-          "${vm.name.padRight(maxNameLen, ' ')} "
-          "${current}");
+      debugger.console
+          .print("${vm.target.networkAddress.padRight(maxAddrLen, ' ')} "
+              "${vm.name.padRight(maxNameLen, ' ')} "
+              "${current}");
     }
   }
 
   String helpShort = 'List all connected Dart virtual machines';
 
-  String helpLong =
-      'List all connected Dart virtual machines..\n'
+  String helpLong = 'List all connected Dart virtual machines..\n'
       '\n'
       'Syntax: vm list\n';
 }
@@ -1183,8 +1174,7 @@ class VmNameCommand extends DebuggerCommand {
 
   String helpShort = 'Rename the current Dart virtual machine';
 
-  String helpLong =
-      'Rename the current Dart virtual machine.\n'
+  String helpLong = 'Rename the current Dart virtual machine.\n'
       '\n'
       'Syntax: vm name <name>\n';
 }
@@ -1211,18 +1201,18 @@ class VmRestartCommand extends DebuggerCommand {
 
   String helpShort = 'Restart a Dart virtual machine';
 
-  String helpLong =
-      'Restart a Dart virtual machine.\n'
+  String helpLong = 'Restart a Dart virtual machine.\n'
       '\n'
       'Syntax: vm restart\n';
 }
 
 class VmCommand extends DebuggerCommand {
-  VmCommand(Debugger debugger) : super(debugger, 'vm', [
-      new VmListCommand(debugger),
-      new VmNameCommand(debugger),
-      new VmRestartCommand(debugger),
-  ]);
+  VmCommand(Debugger debugger)
+      : super(debugger, 'vm', [
+          new VmListCommand(debugger),
+          new VmNameCommand(debugger),
+          new VmRestartCommand(debugger),
+        ]);
 
   Future run(List<String> args) async {
     debugger.console.print("'vm' expects a subcommand (see 'help vm')");
@@ -1230,8 +1220,7 @@ class VmCommand extends DebuggerCommand {
 
   String helpShort = 'Manage a Dart virtual machine';
 
-  String helpLong =
-      'Manage a Dart virtual machine.\n'
+  String helpLong = 'Manage a Dart virtual machine.\n'
       '\n'
       'Syntax: vm <subcommand>\n';
 }
@@ -1246,8 +1235,8 @@ class _ConsoleStreamPrinter {
   String _savedLine;
   List<String> _buffer = [];
 
-  void onEvent(String streamName, ServiceEvent event) {
-    if (event.kind == ServiceEvent.kLogging) {
+  void onEvent(String streamName, S.ServiceEvent event) {
+    if (event.kind == S.ServiceEvent.kLogging) {
       // Check if we should print this log message.
       if (event.logRecord['level'].value < _minimumLogLevel.value) {
         return;
@@ -1258,11 +1247,11 @@ class _ConsoleStreamPrinter {
     // any pending output, even if it is not newline-terminated.
     if ((_savedIsolate != null && isolateName != _savedIsolate) ||
         (_savedStream != null && streamName != _savedStream)) {
-       flush();
+      flush();
     }
     String data;
     bool hasNewline;
-    if (event.kind == ServiceEvent.kLogging) {
+    if (event.kind == S.ServiceEvent.kLogging) {
       data = event.logRecord["message"].valueAsString;
       hasNewline = true;
     } else {
@@ -1270,7 +1259,7 @@ class _ConsoleStreamPrinter {
       hasNewline = data.endsWith('\n');
     }
     if (_savedLine != null) {
-       data = _savedLine + data;
+      data = _savedLine + data;
       _savedIsolate = null;
       _savedStream = null;
       _savedLine = null;
@@ -1318,8 +1307,9 @@ class ObservatoryDebugger extends Debugger {
   DebuggerConsoleElement console;
   DebuggerInputElement input;
   DebuggerStackElement stackElement;
-  ServiceMap stack;
-  String breakOnException = "none";  // Last known setting.
+  S.ServiceMap stack;
+  final S.Isolate isolate;
+  String breakOnException = "none"; // Last known setting.
 
   int get currentFrame => _currentFrame;
 
@@ -1332,6 +1322,7 @@ class ObservatoryDebugger extends Debugger {
       stackElement.setCurrentFrame(value);
     }
   }
+
   int _currentFrame = null;
 
   bool get upIsDown => _upIsDown;
@@ -1339,6 +1330,7 @@ class ObservatoryDebugger extends Debugger {
     settings.set('up-is-down', value);
     _upIsDown = value;
   }
+
   bool _upIsDown;
 
   void upFrame(int count) {
@@ -1359,32 +1351,34 @@ class ObservatoryDebugger extends Debugger {
 
   int get stackDepth => stack['frames'].length;
 
-  ObservatoryDebugger() {
+  static final _history = [''];
+
+  ObservatoryDebugger(this.isolate) {
     _loadSettings();
     cmd = new RootCommand([
-        new AsyncNextCommand(this),
-        new BreakCommand(this),
-        new ClearCommand(this),
-        new ClsCommand(this),
-        new ContinueCommand(this),
-        new DeleteCommand(this),
-        new DownCommand(this),
-        new FinishCommand(this),
-        new FrameCommand(this),
-        new HelpCommand(this),
-        new InfoCommand(this),
-        new IsolateCommand(this),
-        new LogCommand(this),
-        new PauseCommand(this),
-        new PrintCommand(this),
-        new RefreshCommand(this),
-        new SetCommand(this),
-        new SmartNextCommand(this),
-        new StepCommand(this),
-        new SyncNextCommand(this),
-        new UpCommand(this),
-        new VmCommand(this),
-    ]);
+      new AsyncNextCommand(this),
+      new BreakCommand(this),
+      new ClearCommand(this),
+      new ClsCommand(this),
+      new ContinueCommand(this),
+      new DeleteCommand(this),
+      new DownCommand(this),
+      new FinishCommand(this),
+      new FrameCommand(this),
+      new HelpCommand(this),
+      new InfoCommand(this),
+      new IsolateCommand(this),
+      new LogCommand(this),
+      new PauseCommand(this),
+      new PrintCommand(this),
+      new RefreshCommand(this),
+      new SetCommand(this),
+      new SmartNextCommand(this),
+      new StepCommand(this),
+      new SyncNextCommand(this),
+      new UpCommand(this),
+      new VmCommand(this),
+    ], _history);
     _consolePrinter = new _ConsoleStreamPrinter(this);
   }
 
@@ -1392,68 +1386,52 @@ class ObservatoryDebugger extends Debugger {
     _upIsDown = settings.get('up-is-down');
   }
 
-  VM get vm => page.app.vm;
-
-  void updateIsolate(Isolate iso) {
-    _isolate = iso;
-    if (_isolate != null) {
-      if ((breakOnException != iso.exceptionsPauseInfo) &&
-          (iso.exceptionsPauseInfo != null)) {
-        breakOnException = iso.exceptionsPauseInfo;
-      }
-
-      _isolate.reload().then((response) {
-        if (response.isSentinel) {
-          // The isolate has gone away.  The IsolateExit event will
-          // clear the isolate for the debugger page.
-          return;
-        }
-        // TODO(turnidge): Currently the debugger relies on all libs
-        // being loaded.  Fix this.
-        var pending = [];
-        for (var lib in response.libraries) {
-          if (!lib.loaded) {
-            pending.add(lib.load());
-          }
-        }
-        Future.wait(pending).then((_) {
-          refreshStack();
-        }).catchError((e) {
-          print("UNEXPECTED ERROR $e");
-          reportStatus();
-        });
-      });
-    } else {
-      reportStatus();
-    }
-  }
-
-  set isolate(Isolate iso) {
-    // Setting the page's isolate will trigger updateIsolate to be called.
-    //
-    // TODO(turnidge): Rework ownership of the ObservatoryDebugger in another
-    // change.
-    page.isolate = iso;
-  }
-  Isolate get isolate => _isolate;
-  Isolate _isolate;
+  S.VM get vm => page.app.vm;
 
   void init() {
-    console.newline();
-    console.printBold("Type 'h' for help");
+    console.printBold('Debugging isolate isolate ${isolate.number} '
+        '\'${isolate.name}\' ');
+    console.printBold('Type \'h\' for help');
     // Wait a bit and if polymer still hasn't set up the isolate,
     // report this to the user.
-    new Timer(const Duration(seconds:1), () {
+    new Timer(const Duration(seconds: 1), () {
       if (isolate == null) {
         reportStatus();
       }
+    });
+
+    if ((breakOnException != isolate.exceptionsPauseInfo) &&
+        (isolate.exceptionsPauseInfo != null)) {
+      breakOnException = isolate.exceptionsPauseInfo;
+    }
+
+    isolate.reload().then((response) {
+      if (response.isSentinel) {
+        // The isolate has gone away.  The IsolateExit event will
+        // clear the isolate for the debugger page.
+        return;
+      }
+      // TODO(turnidge): Currently the debugger relies on all libs
+      // being loaded.  Fix this.
+      var pending = [];
+      for (var lib in response.libraries) {
+        if (!lib.loaded) {
+          pending.add(lib.load());
+        }
+      }
+      Future.wait(pending).then((_) {
+        refreshStack();
+      }).catchError((e) {
+        print("UNEXPECTED ERROR $e");
+        reportStatus();
+      });
     });
   }
 
   Future refreshStack() async {
     try {
-      if (_isolate != null) {
-        await _refreshStack(_isolate.pauseEvent);
+      if (isolate != null) {
+        await _refreshStack(isolate.pauseEvent);
       }
       flushStdio();
       reportStatus();
@@ -1466,21 +1444,19 @@ class ObservatoryDebugger extends Debugger {
     // TODO(turnidge): Stop relying on the isolate to track the last
     // pause event.  Since we listen to events directly in the
     // debugger, this could introduce a race.
-    return (isolate != null &&
-            isolate.pauseEvent != null &&
-            isolate.pauseEvent.kind != ServiceEvent.kResume);
+    return isolate.status == M.IsolateStatus.paused;
   }
 
   void warnOutOfDate() {
     // Wait a bit, then tell the user that the stack may be out of date.
-    new Timer(const Duration(seconds:2), () {
+    new Timer(const Duration(seconds: 2), () {
       if (!isolatePaused()) {
         stackElement.isSampled = true;
       }
     });
   }
 
-  Future<ServiceMap> _refreshStack(ServiceEvent pauseEvent) {
+  Future<S.ServiceMap> _refreshStack(M.DebugEvent pauseEvent) {
     return isolate.getStack().then((result) {
       if (result.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
@@ -1500,106 +1476,104 @@ class ObservatoryDebugger extends Debugger {
 
   void reportStatus() {
     flushStdio();
-    if (_isolate == null) {
+    if (isolate == null) {
       console.print('No current isolate');
-    } else if (_isolate.idle) {
+    } else if (isolate.idle) {
       console.print('Isolate is idle');
-    } else if (_isolate.running) {
+    } else if (isolate.running) {
       console.print("Isolate is running (type 'pause' to interrupt)");
-    } else if (_isolate.pauseEvent != null) {
-      _reportPause(_isolate.pauseEvent);
+    } else if (isolate.pauseEvent != null) {
+      _reportPause(isolate.pauseEvent);
     } else {
       console.print('Isolate is in unknown state');
     }
     warnOutOfDate();
   }
 
-  void _reportIsolateError(Isolate isolate, String eventKind) {
+  void _reportIsolateError(S.Isolate isolate, M.DebugEvent event) {
     if (isolate == null) {
       return;
     }
-    DartError error = isolate.error;
+    S.DartError error = isolate.error;
     if (error == null) {
       return;
     }
     console.newline();
-    if (eventKind == ServiceEvent.kPauseException) {
+    if (event is M.PauseExceptionEvent) {
       console.printBold('Isolate will exit due to an unhandled exception:');
     } else {
       console.printBold('Isolate has exited due to an unhandled exception:');
     }
     console.print(error.message);
     console.newline();
-    if (eventKind == ServiceEvent.kPauseException &&
+    if (event is M.PauseExceptionEvent &&
         (error.exception.isStackOverflowError ||
-         error.exception.isOutOfMemoryError)) {
+            error.exception.isOutOfMemoryError)) {
       console.printBold(
           'When an unhandled stack overflow or OOM exception occurs, the VM '
           'has run out of memory and cannot keep the stack alive while '
           'paused.');
     } else {
       console.printBold("Type 'set break-on-exception Unhandled' to pause the"
-                        " isolate when an unhandled exception occurs.");
+          " isolate when an unhandled exception occurs.");
       console.printBold("You can make this the default by running with "
-                        "--pause-isolates-on-unhandled-exceptions");
+          "--pause-isolates-on-unhandled-exceptions");
     }
   }
 
-  void _reportPause(ServiceEvent event) {
-    if (event.kind == ServiceEvent.kNone) {
+  void _reportPause(M.DebugEvent event) {
+    if (event is M.NoneEvent) {
       console.print("Paused until embedder makes the isolate runnable.");
-    } else if (event.kind == ServiceEvent.kPauseStart) {
-      console.print(
-          "Paused at isolate start "
+    } else if (event is M.PauseStartEvent) {
+      console.print("Paused at isolate start "
           "(type 'continue' [F7] or 'step' [F10] to start the isolate')");
-    } else if (event.kind == ServiceEvent.kPauseExit) {
-      console.print(
-          "Paused at isolate exit "
+    } else if (event is M.PauseExitEvent) {
+      console.print("Paused at isolate exit "
           "(type 'continue' or [F7] to exit the isolate')");
-      _reportIsolateError(isolate, event.kind);
-    } else if (event.kind == ServiceEvent.kPauseException) {
-      console.print(
-          "Paused at an unhandled exception "
+      _reportIsolateError(isolate, event);
+    } else if (event is M.PauseExceptionEvent) {
+      console.print("Paused at an unhandled exception "
           "(type 'continue' or [F7] to exit the isolate')");
-      _reportIsolateError(isolate, event.kind);
+      _reportIsolateError(isolate, event);
     } else if (stack['frames'].length > 0) {
-      Frame frame = stack['frames'][0];
+      S.Frame frame = stack['frames'][0];
       var script = frame.location.script;
       script.load().then((_) {
         var line = script.tokenToLine(frame.location.tokenPos);
         var col = script.tokenToCol(frame.location.tokenPos);
-        if (event.breakpoint != null) {
+        if ((event is M.PauseBreakpointEvent) && (event.breakpoint != null)) {
           var bpId = event.breakpoint.number;
           console.print('Paused at breakpoint ${bpId} at '
-                        '${script.name}:${line}:${col}');
-        } else if (event.exception != null) {
+              '${script.name}:${line}:${col}');
+        } else if ((event is M.PauseExceptionEvent) &&
+            (event.exception != null)) {
           console.print('Paused due to exception at '
-                        '${script.name}:${line}:${col}');
+              '${script.name}:${line}:${col}');
           // This seems to be missing if we are paused-at-exception after
           // paused-at-isolate-exit. Maybe we shutdown part of the debugger too
           // soon?
-          console.printRef(event.exception);
+          console.printRef(isolate, event.exception, instances);
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
       });
     } else {
       console.print("Paused in message loop (type 'continue' or [F7] "
-                    "to resume processing messages)");
+          "to resume processing messages)");
     }
   }
 
-  Future _reportBreakpointEvent(ServiceEvent event) async {
+  Future _reportBreakpointEvent(S.ServiceEvent event) async {
     var bpt = event.breakpoint;
     var verb = null;
     switch (event.kind) {
-      case ServiceEvent.kBreakpointAdded:
+      case S.ServiceEvent.kBreakpointAdded:
         verb = 'added';
         break;
-      case ServiceEvent.kBreakpointResolved:
+      case S.ServiceEvent.kBreakpointResolved:
         verb = 'resolved';
         break;
-      case ServiceEvent.kBreakpointRemoved:
+      case S.ServiceEvent.kBreakpointRemoved:
         verb = 'removed';
         break;
       default:
@@ -1611,68 +1585,58 @@ class ObservatoryDebugger extends Debugger {
     var bpId = bpt.number;
     var locString = await bpt.location.toUserString();
     if (bpt.resolved) {
-      console.print(
-          'Breakpoint ${bpId} ${verb} at ${locString}');
+      console.print('Breakpoint ${bpId} ${verb} at ${locString}');
     } else {
-      console.print(
-          'Future breakpoint ${bpId} ${verb} at ${locString}');
+      console.print('Future breakpoint ${bpId} ${verb} at ${locString}');
     }
   }
 
-  void onEvent(ServiceEvent event) {
-    switch(event.kind) {
-      case ServiceEvent.kVMUpdate:
+  void onEvent(S.ServiceEvent event) {
+    switch (event.kind) {
+      case S.ServiceEvent.kVMUpdate:
         var vm = event.owner;
         console.print("VM ${vm.target.networkAddress} renamed to '${vm.name}'");
         break;
 
-      case ServiceEvent.kIsolateStart:
+      case S.ServiceEvent.kIsolateStart:
         {
           var iso = event.owner;
-          console.print(
-              "Isolate ${iso.number} '${iso.name}' has been created");
-          if (isolate == null) {
-            console.print("Switching to isolate ${iso.number} '${iso.name}'");
-            isolate = iso;
-          }
+          console.print("Isolate ${iso.number} '${iso.name}' has been created");
         }
         break;
 
-      case ServiceEvent.kIsolateExit:
+      case S.ServiceEvent.kIsolateExit:
         {
           var iso = event.owner;
           if (iso == isolate) {
             console.print("The current isolate ${iso.number} '${iso.name}' "
-                          "has exited");
+                "has exited");
             var isolates = vm.isolates;
             if (isolates.length > 0) {
               var newIsolate = isolates.first;
-              console.print("Switching to isolate "
-                            "${newIsolate.number} '${newIsolate.name}'");
-              isolate = newIsolate;
+              new AnchorElement(href: Uris.debugger(newIsolate)).click();
             } else {
-              isolate = null;
+              new AnchorElement(href: Uris.vm()).click();
             }
           } else {
-            console.print(
-                "Isolate ${iso.number} '${iso.name}' has exited");
+            console.print("Isolate ${iso.number} '${iso.name}' has exited");
           }
         }
         break;
 
-      case ServiceEvent.kDebuggerSettingsUpdate:
+      case S.ServiceEvent.kDebuggerSettingsUpdate:
         if (breakOnException != event.exceptions) {
           breakOnException = event.exceptions;
           console.print("Now pausing for exceptions: $breakOnException");
         }
         break;
 
-      case ServiceEvent.kIsolateUpdate:
+      case S.ServiceEvent.kIsolateUpdate:
         var iso = event.owner;
         console.print("Isolate ${iso.number} renamed to '${iso.name}'");
         break;
 
-      case ServiceEvent.kIsolateReload:
+      case S.ServiceEvent.kIsolateReload:
         var reloadError = event.reloadError;
         if (reloadError != null) {
           console.print('Isolate reload failed: ${event.reloadError}');
@@ -1681,45 +1645,46 @@ class ObservatoryDebugger extends Debugger {
         }
         break;
 
-      case ServiceEvent.kPauseStart:
-      case ServiceEvent.kPauseExit:
-      case ServiceEvent.kPauseBreakpoint:
-      case ServiceEvent.kPauseInterrupted:
-      case ServiceEvent.kPauseException:
+      case S.ServiceEvent.kPauseStart:
+      case S.ServiceEvent.kPauseExit:
+      case S.ServiceEvent.kPauseBreakpoint:
+      case S.ServiceEvent.kPauseInterrupted:
+      case S.ServiceEvent.kPauseException:
         if (event.owner == isolate) {
-          _refreshStack(event).then((_) async {
+          var e = createEventFromServiceEvent(event);
+          _refreshStack(e).then((_) async {
             flushStdio();
             if (isolate != null) {
               await isolate.reload();
             }
-            _reportPause(event);
+            _reportPause(e);
           });
         }
         break;
 
-      case ServiceEvent.kResume:
+      case S.ServiceEvent.kResume:
         if (event.owner == isolate) {
           flushStdio();
           console.print('Continuing...');
         }
         break;
 
-      case ServiceEvent.kBreakpointAdded:
-      case ServiceEvent.kBreakpointResolved:
-      case ServiceEvent.kBreakpointRemoved:
+      case S.ServiceEvent.kBreakpointAdded:
+      case S.ServiceEvent.kBreakpointResolved:
+      case S.ServiceEvent.kBreakpointRemoved:
         if (event.owner == isolate) {
           _reportBreakpointEvent(event);
         }
         break;
 
-      case ServiceEvent.kIsolateRunnable:
-      case ServiceEvent.kGraph:
-      case ServiceEvent.kGC:
-      case ServiceEvent.kInspect:
+      case S.ServiceEvent.kIsolateRunnable:
+      case S.ServiceEvent.kGraph:
+      case S.ServiceEvent.kGC:
+      case S.ServiceEvent.kInspect:
         // Ignore.
         break;
 
-      case ServiceEvent.kLogging:
+      case S.ServiceEvent.kLogging:
         _consolePrinter.onEvent(event.logRecord['level'].name, event);
         break;
 
@@ -1735,11 +1700,11 @@ class ObservatoryDebugger extends Debugger {
     _consolePrinter.flush();
   }
 
-  void onStdout(ServiceEvent event) {
+  void onStdout(S.ServiceEvent event) {
     _consolePrinter.onEvent('stdout', event);
   }
 
-  void onStderr(ServiceEvent event) {
+  void onStderr(S.ServiceEvent event) {
     _consolePrinter.onEvent('stderr', event);
   }
 
@@ -1793,9 +1758,9 @@ class ObservatoryDebugger extends Debugger {
     return cmd.runCommand(command).then((_) {
       lastCommand = command;
     }).catchError((e, s) {
-      if (e is NetworkRpcException) {
+      if (e is S.NetworkRpcException) {
         console.printRed('Unable to execute command because the connection '
-                      'to the VM has been closed');
+            'to the VM has been closed');
       } else {
         if (s != null) {
           console.printRed('Internal error: $e\n$s');
@@ -1826,8 +1791,8 @@ class ObservatoryDebugger extends Debugger {
   Future resume() {
     if (isolatePaused()) {
       return isolate.resume().then((_) {
-          warnOutOfDate();
-        });
+        warnOutOfDate();
+      });
     } else {
       console.print('The program must be paused');
       return new Future.value(null);
@@ -1855,7 +1820,6 @@ class ObservatoryDebugger extends Debugger {
     }
     return new Future.value(null);
   }
-
 
   Future smartNext() async {
     if (isolatePaused()) {
@@ -1886,11 +1850,12 @@ class ObservatoryDebugger extends Debugger {
   Future syncNext() async {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseStart) {
-        console.print("Type 'continue' [F7] or 'step' [F10] to start the isolate");
+      if (event is M.PauseStartEvent) {
+        console
+            .print("Type 'continue' [F7] or 'step' [F10] to start the isolate");
         return null;
       }
-      if (event.kind == ServiceEvent.kPauseExit) {
+      if (event is M.PauseExitEvent) {
         console.print("Type 'continue' [F7] to exit the isolate");
         return null;
       }
@@ -1904,7 +1869,7 @@ class ObservatoryDebugger extends Debugger {
   Future step() {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
-      if (event.kind == ServiceEvent.kPauseExit) {
+      if (event is M.PauseExitEvent) {
         console.print("Type 'continue' [F7] to exit the isolate");
         return new Future.value(null);
       }
@@ -1916,20 +1881,40 @@ class ObservatoryDebugger extends Debugger {
   }
 }
 
-@CustomTag('debugger-page')
-class DebuggerPageElement extends ObservatoryElement {
-  @published Isolate isolate;
+class DebuggerPageElement extends HtmlElement implements Renderable {
+  static const tag =
+      const Tag<DebuggerPageElement>('debugger-page', dependencies: const [
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavNotifyElement.tag,
+  ]);
 
-  isolateChanged(oldValue) {
-    debugger.updateIsolate(isolate);
+  S.Isolate _isolate;
+  ObservatoryDebugger _debugger;
+  M.InstanceRepository _instances;
+  M.ScriptRepository _scripts;
+  M.EventRepository _events;
+
+  factory DebuggerPageElement(S.Isolate isolate, M.InstanceRepository instances,
+      M.ScriptRepository scripts, M.EventRepository events) {
+    assert(isolate != null);
+    assert(instances != null);
+    assert(scripts != null);
+    assert(events != null);
+    final e = document.createElement(tag.name);
+    final debugger = new ObservatoryDebugger(isolate);
+    debugger.page = e;
+    e._isolate = isolate;
+    e._debugger = debugger;
+    e._instances = instances;
+    e._scripts = scripts;
+    e._events = events;
+    return e;
   }
-  ObservatoryDebugger debugger = new ObservatoryDebugger();
 
-  DebuggerPageElement.created() : super.created() {
-    debugger.page = this;
-  }
+  DebuggerPageElement.created() : super.created();
 
-  StreamSubscription _resizeSubscription;
   Future<StreamSubscription> _vmSubscriptionFuture;
   Future<StreamSubscription> _isolateSubscriptionFuture;
   Future<StreamSubscription> _debugSubscriptionFuture;
@@ -1937,30 +1922,67 @@ class DebuggerPageElement extends ObservatoryElement {
   Future<StreamSubscription> _stderrSubscriptionFuture;
   Future<StreamSubscription> _logSubscriptionFuture;
 
+  ObservatoryApplication get app => ObservatoryApplication.app;
+
+  Timer _timer;
+
+  static final consoleElement = new DebuggerConsoleElement();
+
   @override
   void attached() {
     super.attached();
-    _onResize(null);
+
+    final stackDiv = new DivElement()..classes = ['stack'];
+    final stackElement = new DebuggerStackElement(
+        _isolate, _debugger, stackDiv, _instances, _scripts, _events);
+    stackDiv.children = [stackElement];
+    final consoleDiv = new DivElement()
+      ..classes = ['console']
+      ..children = [consoleElement];
+    final commandElement = new DebuggerInputElement(_isolate, _debugger);
+    final commandDiv = new DivElement()
+      ..classes = ['commandline']
+      ..children = [commandElement];
+
+    children = [
+      navBar([
+        new NavTopMenuElement(queue: app.queue),
+        new NavVMMenuElement(app.vm, app.events, queue: app.queue),
+        new NavIsolateMenuElement(_isolate, app.events, queue: app.queue),
+        navMenu('debugger'),
+        new NavNotifyElement(app.notifications,
+            notifyOnPause: false, queue: app.queue)
+      ]),
+      new DivElement()
+        ..classes = ['variable']
+        ..children = [
+          stackDiv,
+          new DivElement()
+            ..children = [
+              new HRElement()..classes = ['splitter']
+            ],
+          consoleDiv,
+        ],
+      commandDiv
+    ];
+
+    DebuggerConsoleElement._scrollToBottom(consoleDiv);
 
     // Wire the debugger object to the stack, console, and command line.
-    var stackElement = $['stackElement'];
-    debugger.stackElement = stackElement;
-    stackElement.debugger = debugger;
-    stackElement.scroller = $['stackDiv'];
-    debugger.console = $['console'];
-    debugger.input = $['commandline'];
-    debugger.input.debugger = debugger;
-    debugger.init();
+    _debugger.stackElement = stackElement;
+    _debugger.console = consoleElement;
+    _debugger.input = commandElement;
+    _debugger.input._debugger = _debugger;
+    _debugger.init();
 
-    _resizeSubscription = window.onResize.listen(_onResize);
     _vmSubscriptionFuture =
-        app.vm.listenEventStream(VM.kVMStream, debugger.onEvent);
+        app.vm.listenEventStream(S.VM.kVMStream, _debugger.onEvent);
     _isolateSubscriptionFuture =
-        app.vm.listenEventStream(VM.kIsolateStream, debugger.onEvent);
+        app.vm.listenEventStream(S.VM.kIsolateStream, _debugger.onEvent);
     _debugSubscriptionFuture =
-        app.vm.listenEventStream(VM.kDebugStream, debugger.onEvent);
+        app.vm.listenEventStream(S.VM.kDebugStream, _debugger.onEvent);
     _stdoutSubscriptionFuture =
-        app.vm.listenEventStream(VM.kStdoutStream, debugger.onStdout);
+        app.vm.listenEventStream(S.VM.kStdoutStream, _debugger.onStdout);
     if (_stdoutSubscriptionFuture != null) {
       // TODO(turnidge): How do we want to handle this in general?
       _stdoutSubscriptionFuture.catchError((e, st) {
@@ -1969,7 +1991,7 @@ class DebuggerPageElement extends ObservatoryElement {
       });
     }
     _stderrSubscriptionFuture =
-        app.vm.listenEventStream(VM.kStderrStream, debugger.onStderr);
+        app.vm.listenEventStream(S.VM.kStderrStream, _debugger.onStderr);
     if (_stderrSubscriptionFuture != null) {
       // TODO(turnidge): How do we want to handle this in general?
       _stderrSubscriptionFuture.catchError((e, st) {
@@ -1978,9 +2000,11 @@ class DebuggerPageElement extends ObservatoryElement {
       });
     }
     _logSubscriptionFuture =
-        app.vm.listenEventStream(Isolate.kLoggingStream, debugger.onEvent);
+        app.vm.listenEventStream(S.Isolate.kLoggingStream, _debugger.onEvent);
     // Turn on the periodic poll timer for this page.
-    pollPeriod = const Duration(milliseconds:100);
+    _timer = new Timer.periodic(const Duration(milliseconds: 100), (_) {
+      _debugger.flushStdio();
+    });
 
     onClick.listen((event) {
       // Random clicks should focus on the text box.  If the user selects
@@ -1988,70 +2012,150 @@ class DebuggerPageElement extends ObservatoryElement {
       var selection = window.getSelection();
       if (selection == null ||
           (selection.type != 'Range' && selection.type != 'text')) {
-        debugger.input.focus();
+        _debugger.input.focus();
       }
     });
   }
 
-  void onPoll() {
-    debugger.flushStdio();
-  }
-
-  void _onResize(_) {
-    var navbarDiv = $['navbarDiv'];
-    var stackDiv = $['stackDiv'];
-    var splitterDiv = $['splitterDiv'];
-    var cmdDiv = $['commandDiv'];
-
-    // For now, force navbar height to 40px in the debugger.
-    // TODO (cbernaschina) check if this is needed.
-    const navbarHeight = 40;
-    int splitterHeight = splitterDiv.clientHeight;
-    int cmdHeight = cmdDiv.clientHeight;
-
-    int windowHeight = window.innerHeight;
-    int fixedHeight = navbarHeight + splitterHeight + cmdHeight;
-    int available = windowHeight - fixedHeight;
-    int stackHeight = available ~/ 1.6;
-    navbarDiv.style.setProperty('height', '${navbarHeight}px');
-    stackDiv.style.setProperty('height', '${stackHeight}px');
+  @override
+  void render() {
+    /* nothing to do */
   }
 
   @override
   void detached() {
-    debugger.isolate = null;
-    _resizeSubscription.cancel();
-    _resizeSubscription = null;
-    cancelFutureSubscription(_vmSubscriptionFuture);
+    _timer.cancel();
+    children = const [];
+    S.cancelFutureSubscription(_vmSubscriptionFuture);
     _vmSubscriptionFuture = null;
-    cancelFutureSubscription(_isolateSubscriptionFuture);
+    S.cancelFutureSubscription(_isolateSubscriptionFuture);
     _isolateSubscriptionFuture = null;
-    cancelFutureSubscription(_debugSubscriptionFuture);
+    S.cancelFutureSubscription(_debugSubscriptionFuture);
     _debugSubscriptionFuture = null;
-    cancelFutureSubscription(_stdoutSubscriptionFuture);
+    S.cancelFutureSubscription(_stdoutSubscriptionFuture);
     _stdoutSubscriptionFuture = null;
-    cancelFutureSubscription(_stderrSubscriptionFuture);
+    S.cancelFutureSubscription(_stderrSubscriptionFuture);
     _stderrSubscriptionFuture = null;
-    cancelFutureSubscription(_logSubscriptionFuture);
+    S.cancelFutureSubscription(_logSubscriptionFuture);
     _logSubscriptionFuture = null;
     super.detached();
   }
 }
 
-@CustomTag('debugger-stack')
-class DebuggerStackElement extends ObservatoryElement {
-  @published Isolate isolate;
-  @published Element scroller;
-  @observable bool hasStack = false;
-  @observable bool hasMessages = false;
-  @observable bool isSampled = false;
-  @observable int currentFrame;
-  ObservatoryDebugger debugger;
+class DebuggerStackElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<DebuggerStackElement>('debugger-stack');
 
-  _addFrame(List frameList, Frame frameInfo) {
-    DebuggerFrameElement frameElement = new Element.tag('debugger-frame');
-    frameElement.frame = frameInfo;
-    frameElement.scroller = scroller;
+  S.Isolate _isolate;
+  M.InstanceRepository _instances;
+  M.ScriptRepository _scripts;
+  M.EventRepository _events;
+  Element _scroller;
+  DivElement _isSampled;
+  bool get isSampled => !_isSampled.classes.contains('hidden');
+  set isSampled(bool value) {
+    if (value != isSampled) {
+      _isSampled.classes.toggle('hidden');
+    }
+  }
+
+  DivElement _hasStack;
+  bool get hasStack => _hasStack.classes.contains('hidden');
+  set hasStack(bool value) {
+    if (value != hasStack) {
+      _hasStack.classes.toggle('hidden');
+    }
+  }
+
+  DivElement _hasMessages;
+  bool get hasMessages => _hasMessages.classes.contains('hidden');
+  set hasMessages(bool value) {
+    if (value != hasMessages) {
+      _hasMessages.classes.toggle('hidden');
+    }
+  }
+
+  UListElement _frameList;
+  UListElement _messageList;
+  int currentFrame;
+  ObservatoryDebugger _debugger;
+
+  factory DebuggerStackElement(
+      S.Isolate isolate,
+      ObservatoryDebugger debugger,
+      Element scroller,
+      M.InstanceRepository instances,
+      M.ScriptRepository scripts,
+      M.EventRepository events) {
+    assert(isolate != null);
+    assert(debugger != null);
+    assert(scroller != null);
+    assert(instances != null);
+    assert(scripts != null);
+    assert(events != null);
+    final e = document.createElement(tag.name);
+    e._isolate = isolate;
+    e._debugger = debugger;
+    e._scroller = scroller;
+    e._instances = instances;
+    e._scripts = scripts;
+    e._events = events;
+
+    var btnPause;
+    var btnRefresh;
+    e.children = [
+      e._isSampled = new DivElement()
+        ..classes = ['sampledMessage', 'hidden']
+        ..children = [
+          new SpanElement()
+            ..text = 'The program is not paused. '
+                'The stack trace below may be out of date.',
+          new BRElement(),
+          new BRElement(),
+          btnPause = new ButtonElement()
+            ..text = '[Pause Isolate]'
+            ..onClick.listen((_) async {
+              btnPause.disabled = true;
+              try {
+                await debugger.isolate.pause();
+              } finally {
+                btnPause.disabled = false;
+              }
+            }),
+          btnRefresh = new ButtonElement()
+            ..text = '[Refresh Stack]'
+            ..onClick.listen((_) async {
+              btnRefresh.disabled = true;
+              try {
+                await debugger.refreshStack();
+              } finally {
+                btnRefresh.disabled = false;
+              }
+            }),
+          new BRElement(),
+          new BRElement(),
+          new HRElement()..classes = ['splitter']
+        ],
+      e._hasStack = new DivElement()
+        ..classes = ['noStack', 'hidden']
+        ..text = 'No stack',
+      e._frameList = new UListElement()..classes = ['list-group'],
+      new HRElement(),
+      e._hasMessages = new DivElement()
+        ..classes = ['noMessages', 'hidden']
+        ..text = 'No pending messages',
+      e._messageList = new UListElement()..classes = ['messageList']
+    ];
+    return e;
+  }
+
+  void render() {
+    /* nothing to do */
+  }
+
+  _addFrame(List frameList, S.Frame frameInfo) {
+    final frameElement = new DebuggerFrameElement(
+        _isolate, frameInfo, _scroller, _instances, _scripts, _events,
+        queue: app.queue);
 
     if (frameInfo.index == currentFrame) {
       frameElement.setCurrent(true);
@@ -2066,9 +2170,10 @@ class DebuggerStackElement extends ObservatoryElement {
     frameList.insert(0, li);
   }
 
-  _addMessage(List messageList, ServiceMessage messageInfo) {
-    DebuggerMessageElement messageElement = new Element.tag('debugger-message');
-    messageElement.message = messageInfo;
+  _addMessage(List messageList, S.ServiceMessage messageInfo) {
+    final messageElement = new DebuggerMessageElement(
+        _isolate, messageInfo, _instances, _scripts, _events,
+        queue: app.queue);
 
     var li = new LIElement();
     li.classes.add('list-group-item');
@@ -2077,8 +2182,10 @@ class DebuggerStackElement extends ObservatoryElement {
     messageList.add(li);
   }
 
-  void updateStackFrames(ServiceMap newStack) {
-    List frameElements = $['frameList'].children;
+  ObservatoryApplication get app => ObservatoryApplication.app;
+
+  void updateStackFrames(S.ServiceMap newStack) {
+    List frameElements = _frameList.children;
     List newFrames = newStack['frames'];
 
     // Remove any frames whose functions don't match, starting from
@@ -2112,7 +2219,7 @@ class DebuggerStackElement extends ObservatoryElement {
     if (frameElements.length < newFrames.length) {
       // Add new frames to the top of stack.
       newCount = newFrames.length - frameElements.length;
-      for (int i = newCount-1; i >= 0; i--) {
+      for (int i = newCount - 1; i >= 0; i--) {
         _addFrame(frameElements, newFrames[i]);
       }
     }
@@ -2127,8 +2234,8 @@ class DebuggerStackElement extends ObservatoryElement {
     hasStack = frameElements.isNotEmpty;
   }
 
-  void updateStackMessages(ServiceMap newStack) {
-    List messageElements = $['messageList'].children;
+  void updateStackMessages(S.ServiceMap newStack) {
+    List messageElements = _messageList.children;
     List newMessages = newStack['messages'];
 
     // Remove any extra message elements.
@@ -2152,14 +2259,15 @@ class DebuggerStackElement extends ObservatoryElement {
     if (messageElements.isNotEmpty) {
       // Update old messages.
       for (int i = 0; i < newStartingIndex; i++) {
-        messageElements[i].children[0].updateMessage(newMessages[i]);
+        DebuggerMessageElement e = messageElements[i].children[0];
+        e.updateMessage(newMessages[i]);
       }
     }
 
     hasMessages = messageElements.isNotEmpty;
   }
 
-  void updateStack(ServiceMap newStack, ServiceEvent pauseEvent) {
+  void updateStack(S.ServiceMap newStack, M.DebugEvent pauseEvent) {
     updateStackFrames(newStack);
     updateStackMessages(newStack);
     isSampled = pauseEvent == null;
@@ -2167,9 +2275,9 @@ class DebuggerStackElement extends ObservatoryElement {
 
   void setCurrentFrame(int value) {
     currentFrame = value;
-    List frameElements = $['frameList'].children;
+    List frameElements = _frameList.children;
     for (var frameElement in frameElements) {
-      var dbgFrameElement = frameElement.children[0];
+      DebuggerFrameElement dbgFrameElement = frameElement.children[0];
       if (dbgFrameElement.frame.index == currentFrame) {
         dbgFrameElement.setCurrent(true);
       } else {
@@ -2178,29 +2286,24 @@ class DebuggerStackElement extends ObservatoryElement {
     }
   }
 
-  Future doPauseIsolate() {
-    if (debugger != null) {
-      return debugger.isolate.pause();
-    } else {
-      return new Future.value(null);
-    }
-  }
-
-  Future doRefreshStack() {
-    if (debugger != null) {
-      return debugger.refreshStack();
-    } else {
-      return new Future.value(null);
-    }
-  }
-
   DebuggerStackElement.created() : super.created();
 }
 
-@CustomTag('debugger-frame')
-class DebuggerFrameElement extends ObservatoryElement {
-  @published Frame frame;
-  @published Element scroller;
+class DebuggerFrameElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<DebuggerFrameElement>('debugger-frame');
+
+  RenderingScheduler<DebuggerMessageElement> _r;
+
+  Stream<RenderedEvent<DebuggerMessageElement>> get onRendered => _r.onRendered;
+
+  Element _scroller;
+  DivElement _varsDiv;
+  M.Isolate _isolate;
+  S.Frame _frame;
+  S.Frame get frame => _frame;
+  M.InstanceRepository _instances;
+  M.ScriptRepository _scripts;
+  M.EventRepository _events;
 
   // Is this the current frame?
   bool _current = false;
@@ -2208,99 +2311,261 @@ class DebuggerFrameElement extends ObservatoryElement {
   // Has this frame been pinned open?
   bool _pinned = false;
 
+  bool _expanded = false;
+
   void setCurrent(bool value) {
-    busy = true;
-    frame.function.load().then((func) {
+    _frame.function.load().then((func) {
       _current = value;
-      var frameOuter = $['frameOuter'];
       if (_current) {
-        frameOuter.classes.add('current');
         _expand();
         scrollIntoView();
       } else {
-        frameOuter.classes.remove('current');
         if (_pinned) {
           _expand();
         } else {
           _unexpand();
         }
       }
-      busy = false;
     });
   }
 
-  @observable String scriptHeight;
-  @observable bool expanded = false;
-  @observable bool busy = false;
+  factory DebuggerFrameElement(
+      M.Isolate isolate,
+      S.Frame frame,
+      Element scroller,
+      M.InstanceRepository instances,
+      M.ScriptRepository scripts,
+      M.EventRepository events,
+      {RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(frame != null);
+    assert(scroller != null);
+    assert(instances != null);
+    assert(scripts != null);
+    assert(events != null);
+    final DebuggerFrameElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._frame = frame;
+    e._scroller = scroller;
+    e._instances = instances;
+    e._scripts = scripts;
+    e._events = events;
+    return e;
+  }
 
   DebuggerFrameElement.created() : super.created();
 
+  void render() {
+    if (_pinned) {
+      classes.add('shadow');
+    } else {
+      classes.remove('shadow');
+    }
+    if (_current) {
+      classes.add('current');
+    } else {
+      classes.remove('current');
+    }
+    ButtonElement expandButton;
+    final content = <Element>[
+      expandButton = new ButtonElement()
+        ..children = _createHeader()
+        ..onClick.listen((e) async {
+          if (e.target is AnchorElement) {
+            return;
+          }
+          expandButton.disabled = true;
+          await _toggleExpand();
+          expandButton.disabled = false;
+        })
+    ];
+    if (_expanded) {
+      final homeMethod = _frame.function.homeMethod;
+      String homeMethodName;
+      if ((homeMethod.dartOwner is S.Class) && homeMethod.isStatic) {
+        homeMethodName = '<class>';
+      } else if (homeMethod.dartOwner is S.Library) {
+        homeMethodName = '<library>';
+      }
+      ButtonElement collapseButton;
+      content.addAll([
+        new DivElement()
+          ..classes = ['frameDetails']
+          ..children = [
+            new DivElement()
+              ..classes = ['flex-row-wrap']
+              ..children = [
+                new DivElement()
+                  ..classes = ['flex-item-script']
+                  ..children = _frame.function?.location == null
+                      ? const []
+                      : [
+                          new SourceInsetElement(
+                              _isolate,
+                              _frame.function.location,
+                              _scripts,
+                              _instances,
+                              _events,
+                              currentPos: _frame.location.tokenPos,
+                              variables: _frame.variables,
+                              inDebuggerContext: true,
+                              queue: _r.queue)
+                        ],
+                new DivElement()
+                  ..classes = ['flex-item-vars']
+                  ..children = [
+                    _varsDiv = new DivElement()
+                      ..classes = ['memberList', 'frameVars']
+                      ..children = ([
+                        new DivElement()
+                          ..classes = ['memberItem']
+                          ..children = homeMethodName == null
+                              ? const []
+                              : [
+                                  new DivElement()
+                                    ..classes = ['memberName']
+                                    ..text = homeMethodName,
+                                  new DivElement()
+                                    ..classes = ['memberName']
+                                    ..children = [
+                                      anyRef(_isolate, homeMethod.dartOwner,
+                                          _instances,
+                                          queue: _r.queue)
+                                    ]
+                                ]
+                      ]
+                        ..addAll(_frame.variables
+                            .map((v) => new DivElement()
+                              ..classes = ['memberItem']
+                              ..children = [
+                                new DivElement()
+                                  ..classes = ['memberName']
+                                  ..text = v.name,
+                                new DivElement()
+                                  ..classes = ['memberName']
+                                  ..children = [
+                                    anyRef(_isolate, v['value'], _instances,
+                                        queue: _r.queue)
+                                  ]
+                              ])
+                            .toList()))
+                  ]
+              ],
+            new DivElement()
+              ..classes = ['frameContractor']
+              ..children = [
+                collapseButton = new ButtonElement()
+                  ..onClick.listen((e) async {
+                    collapseButton.disabled = true;
+                    await _toggleExpand();
+                    collapseButton.disabled = false;
+                  })
+                  ..children = [iconExpandLess.clone(true)]
+              ]
+          ]
+      ]);
+    }
+    children = content;
+  }
+
+  List<Element> _createHeader() {
+    final content = [
+      new DivElement()
+        ..classes = ['frameSummaryText']
+        ..children = [
+          new DivElement()
+            ..classes = ['frameId']
+            ..text = 'Frame ${_frame.index}',
+          new SpanElement()
+            ..children = _frame.function == null
+                ? const []
+                : [
+                    new FunctionRefElement(_isolate, _frame.function,
+                        queue: _r.queue)
+                  ],
+          new SpanElement()..text = ' ( ',
+          new SpanElement()
+            ..children = _frame.function?.location == null
+                ? const []
+                : [
+                    new SourceLinkElement(
+                        _isolate, _frame.function.location, _scripts,
+                        queue: _r.queue)
+                  ],
+          new SpanElement()..text = ' )'
+        ]
+    ];
+    if (!_expanded) {
+      content.add(new DivElement()
+        ..classes = ['frameExpander']
+        ..children = [iconExpandMore.clone(true)]);
+    }
+    return [
+      new DivElement()
+        ..classes = ['frameSummary']
+        ..children = content
+    ];
+  }
+
   String makeExpandKey(String key) {
-    return '${frame.function.qualifiedName}/${key}';
+    return '${_frame.function.qualifiedName}/${key}';
   }
 
-  bool matchFrame(Frame newFrame) {
-    return newFrame.function.id == frame.function.id;
+  bool matchFrame(S.Frame newFrame) {
+    return newFrame.function.id == _frame.function.id;
   }
 
-  void updateFrame(Frame newFrame) {
+  void updateFrame(S.Frame newFrame) {
     assert(matchFrame(newFrame));
-    frame = newFrame;
+    _frame = newFrame;
   }
 
-  Script get script => frame.location.script;
+  S.Script get script => _frame.location.script;
 
   int _varsTop(varsDiv) {
-    const minTop = 5;
+    const minTop = 0;
     if (varsDiv == null) {
       return minTop;
     }
-    // TODO (cbernaschina) check if this is needed.
-    const navbarHeight = 40;
-    const bottomPad = 6;
-    var parent = varsDiv.parent.getBoundingClientRect();
-    var varsHeight = varsDiv.clientHeight;
-    var maxTop = parent.height - (varsHeight + bottomPad);
-    var adjustedTop = navbarHeight - parent.top;
+    final paddingTop = document.body.contentEdge.top;
+    final parent = varsDiv.parent.getBoundingClientRect();
+    final varsHeight = varsDiv.clientHeight;
+    final maxTop = parent.height - varsHeight;
+    final adjustedTop = paddingTop - parent.top;
     return (max(minTop, min(maxTop, adjustedTop)));
   }
 
   void _onScroll(event) {
-    if (!expanded) {
+    if (!_expanded || _varsDiv == null) {
       return;
     }
-    var varsDiv = shadowRoot.querySelector('#vars');
-    if (varsDiv == null) {
-      return;
-    }
-    var currentTop = varsDiv.style.top;
-    var newTop = _varsTop(varsDiv);
+    var currentTop = _varsDiv.style.top;
+    var newTop = _varsTop(_varsDiv);
     if (currentTop != newTop) {
-      varsDiv.style.top = '${newTop}px';
+      _varsDiv.style.top = '${newTop}px';
     }
   }
 
   void _expand() {
-    var frameOuter = $['frameOuter'];
-    expanded = true;
-    frameOuter.classes.add('shadow');
+    _expanded = true;
     _subscribeToScroll();
+    _r.dirty();
   }
 
   void _unexpand() {
-    var frameOuter = $['frameOuter'];
-    expanded = false;
+    _expanded = false;
     _unsubscribeToScroll();
-    frameOuter.classes.remove('shadow');
+    _r.dirty();
   }
 
   StreamSubscription _scrollSubscription;
   StreamSubscription _resizeSubscription;
 
   void _subscribeToScroll() {
-    if (scroller != null) {
+    if (_scroller != null) {
       if (_scrollSubscription == null) {
-        _scrollSubscription = scroller.onScroll.listen(_onScroll);
+        _scrollSubscription = _scroller.onScroll.listen(_onScroll);
       }
       if (_resizeSubscription == null) {
         _resizeSubscription = window.onResize.listen(_onScroll);
@@ -2322,56 +2587,42 @@ class DebuggerFrameElement extends ObservatoryElement {
   @override
   void attached() {
     super.attached();
-    int windowHeight = window.innerHeight;
-    scriptHeight = '${windowHeight ~/ 1.6}px';
-    if (expanded) {
+    _r.enable();
+    if (_expanded) {
       _subscribeToScroll();
     }
   }
 
   void detached() {
-    _unsubscribeToScroll();
+    _r.disable(notify: true);
     super.detached();
+    _unsubscribeToScroll();
   }
 
-  void toggleExpand(var a, var b, var c) {
-    if (busy) {
-      return;
+  Future _toggleExpand() async {
+    await _frame.function.load();
+    _pinned = !_pinned;
+    if (_pinned) {
+      _expand();
+    } else {
+      _unexpand();
     }
-    busy = true;
-    frame.function.load().then((func) {
-        _pinned = !_pinned;
-        if (_pinned) {
-          _expand();
-        } else {
-          _unexpand();
-        }
-        busy = false;
-      });
-  }
-
-  @observable
-  get properLocals {
-    var locals = new List();
-    var homeMethod = frame.function.homeMethod;
-    if (homeMethod.dartOwner is Class && homeMethod.isStatic) {
-      locals.add(
-          {'name' : '<class>',
-           'value' : homeMethod.dartOwner});
-    } else if (homeMethod.dartOwner is Library) {
-      locals.add(
-          {'name' : '<library>',
-           'value' : homeMethod.dartOwner});
-    }
-    locals.addAll(frame.variables);
-    return locals;
   }
 }
 
-@CustomTag('debugger-message')
-class DebuggerMessageElement extends ObservatoryElement {
-  @published ServiceMessage message;
-  @observable ServiceObject preview;
+class DebuggerMessageElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<DebuggerMessageElement>('debugger-message');
+
+  RenderingScheduler<DebuggerMessageElement> _r;
+
+  Stream<RenderedEvent<DebuggerMessageElement>> get onRendered => _r.onRendered;
+
+  S.Isolate _isolate;
+  S.ServiceMessage _message;
+  S.ServiceObject _preview;
+  M.InstanceRepository _instances;
+  M.ScriptRepository _scripts;
+  M.EventRepository _events;
 
   // Is this the current message?
   bool _current = false;
@@ -2379,90 +2630,216 @@ class DebuggerMessageElement extends ObservatoryElement {
   // Has this message been pinned open?
   bool _pinned = false;
 
-  void setCurrent(bool value) {
-    _current = value;
-    var messageOuter = $['messageOuter'];
-    if (_current) {
-      messageOuter.classes.add('current');
-      expanded = true;
-      messageOuter.classes.add('shadow');
-      scrollIntoView();
-    } else {
-      messageOuter.classes.remove('current');
-      if (_pinned) {
-        expanded = true;
-        messageOuter.classes.add('shadow');
-      } else {
-        expanded = false;
-        messageOuter.classes.remove('shadow');
-      }
-    }
-  }
+  bool _expanded = false;
 
-  @observable String scriptHeight;
-  @observable bool expanded = false;
-  @observable bool busy = false;
+  factory DebuggerMessageElement(
+      S.Isolate isolate,
+      S.ServiceMessage message,
+      M.InstanceRepository instances,
+      M.ScriptRepository scripts,
+      M.EventRepository events,
+      {RenderingQueue queue}) {
+    assert(isolate != null);
+    assert(message != null);
+    assert(instances != null);
+    assert(instances != null);
+    assert(events != null);
+    final DebuggerMessageElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._isolate = isolate;
+    e._message = message;
+    e._instances = instances;
+    e._scripts = scripts;
+    e._events = events;
+    return e;
+  }
 
   DebuggerMessageElement.created() : super.created();
 
-  void updateMessage(ServiceMessage newMessage) {
-    bool messageChanged =
-        (message.messageObjectId != newMessage.messageObjectId);
-    message = newMessage;
-    if (messageChanged) {
-      // Message object id has changed: clear preview and collapse.
-      preview = null;
-      if (expanded) {
-        toggleExpand(null, null, null);
-      }
+  void render() {
+    if (_pinned) {
+      classes.add('shadow');
+    } else {
+      classes.remove('shadow');
+    }
+    if (_current) {
+      classes.add('current');
+    } else {
+      classes.remove('current');
+    }
+    ButtonElement expandButton;
+    final content = <Element>[
+      expandButton = new ButtonElement()
+        ..children = _createHeader()
+        ..onClick.listen((e) async {
+          if (e.target is AnchorElement) {
+            return;
+          }
+          expandButton.disabled = true;
+          await _toggleExpand();
+          expandButton.disabled = false;
+        })
+    ];
+    if (_expanded) {
+      ButtonElement collapseButton;
+      ButtonElement previewButton;
+      content.addAll([
+        new DivElement()
+          ..classes = ['messageDetails']
+          ..children = [
+            new DivElement()
+              ..classes = ['flex-row-wrap']
+              ..children = [
+                new DivElement()
+                  ..classes = ['flex-item-script']
+                  ..children = _message.handler == null
+                      ? const []
+                      : [
+                          new SourceInsetElement(
+                              _isolate,
+                              _message.handler.location,
+                              _scripts,
+                              _instances,
+                              _events,
+                              inDebuggerContext: true,
+                              queue: _r.queue)
+                        ],
+                new DivElement()
+                  ..classes = ['flex-item-vars']
+                  ..children = [
+                    new DivElement()
+                      ..classes = ['memberItem']
+                      ..children = [
+                        new DivElement()..classes = ['memberName'],
+                        new DivElement()
+                          ..classes = ['memberValue']
+                          ..children = ([
+                            previewButton = new ButtonElement()
+                              ..text = 'preview'
+                              ..onClick.listen((_) {
+                                previewButton.disabled = true;
+                              })
+                          ]
+                            ..addAll(_preview == null
+                                ? const []
+                                : [
+                                    anyRef(_isolate, _preview, _instances,
+                                        queue: _r.queue)
+                                  ]))
+                      ]
+                  ]
+              ],
+            new DivElement()
+              ..classes = ['messageContractor']
+              ..children = [
+                collapseButton = new ButtonElement()
+                  ..onClick.listen((e) async {
+                    collapseButton.disabled = true;
+                    await _toggleExpand();
+                    collapseButton.disabled = false;
+                  })
+                  ..children = [iconExpandLess.clone(true)]
+              ]
+          ]
+      ]);
+    }
+    children = content;
+  }
+
+  void updateMessage(S.ServiceMessage message) {
+    assert(_message != null);
+    _message = message;
+    _r.dirty();
+  }
+
+  List<Element> _createHeader() {
+    final content = [
+      new DivElement()
+        ..classes = ['messageSummaryText']
+        ..children = [
+          new DivElement()
+            ..classes = ['messageId']
+            ..text = 'message ${_message.index}',
+          new SpanElement()
+            ..children = _message.handler == null
+                ? const []
+                : [
+                    new FunctionRefElement(_isolate, _message.handler,
+                        queue: _r.queue)
+                  ],
+          new SpanElement()..text = ' ( ',
+          new SpanElement()
+            ..children = _message.location == null
+                ? const []
+                : [
+                    new SourceLinkElement(_isolate, _message.location, _scripts,
+                        queue: _r.queue)
+                  ],
+          new SpanElement()..text = ' )'
+        ]
+    ];
+    if (!_expanded) {
+      content.add(new DivElement()
+        ..classes = ['messageExpander']
+        ..children = [iconExpandMore.clone(true)]);
+    }
+    return [
+      new DivElement()
+        ..classes = ['messageSummary']
+        ..children = content
+    ];
+  }
+
+  void setCurrent(bool value) {
+    _current = value;
+    if (_current) {
+      _expanded = true;
+      scrollIntoView();
+      _r.dirty();
+    } else {
+      _expanded = _pinned;
     }
   }
 
   @override
   void attached() {
     super.attached();
-    int windowHeight = window.innerHeight;
-    scriptHeight = '${windowHeight ~/ 1.6}px';
+    _r.enable();
   }
 
-  void toggleExpand(var a, var b, var c) {
-    if (busy) {
-      return;
-    }
-    busy = true;
-    var function = message.handler;
-    var loadedFunction;
-    if (function == null) {
-      // Complete immediately.
-      loadedFunction = new Future.value(null);
-    } else {
-      loadedFunction = function.load();
-    }
-    loadedFunction.then((_) {
-      _pinned = !_pinned;
-      var messageOuter = $['messageOuter'];
-      if (_pinned) {
-        expanded = true;
-        messageOuter.classes.add('shadow');
-      } else {
-        expanded = false;
-        messageOuter.classes.remove('shadow');
-      }
-      busy = false;
-    });
+  @override
+  void detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
   }
 
-  Future<ServiceObject> previewMessage(_) {
-    return message.isolate.getObject(message.messageObjectId).then((result) {
-      preview = result;
+  Future _toggleExpand() async {
+    var function = _message.handler;
+    if (function != null) {
+      await function.load();
+    }
+    _pinned = _pinned;
+    _expanded = true;
+    _r.dirty();
+  }
+
+  Future<S.ServiceObject> previewMessage(_) {
+    return _message.isolate.getObject(_message.messageObjectId).then((result) {
+      _preview = result;
       return result;
     });
   }
 }
 
-@CustomTag('debugger-console')
-class DebuggerConsoleElement extends ObservatoryElement {
-  @published Isolate isolate;
+class DebuggerConsoleElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<DebuggerConsoleElement>('debugger-console');
+
+  factory DebuggerConsoleElement() {
+    final DebuggerConsoleElement e = document.createElement(tag.name);
+    e.children = [new BRElement()];
+    return e;
+  }
 
   DebuggerConsoleElement.created() : super.created();
 
@@ -2476,7 +2853,7 @@ class DebuggerConsoleElement extends ObservatoryElement {
     // scrollTop -> how far is an element scrolled (from 0 to scrollHeight).
     final distanceFromBottom =
         container.scrollHeight - container.clientHeight - container.scrollTop;
-    const threshold = 2;  // 2 pixel slop.
+    const threshold = 2; // 2 pixel slop.
     return distanceFromBottom <= threshold;
   }
 
@@ -2490,15 +2867,14 @@ class DebuggerConsoleElement extends ObservatoryElement {
   }
 
   void _append(HtmlElement span) {
-    var consoleTextElement = $['consoleText'];
     bool autoScroll = _isScrolledToBottom(parent);
-    consoleTextElement.children.add(span);
+    children.add(span);
     if (autoScroll) {
       _scrollToBottom(parent);
     }
   }
 
-  void print(String line, { bool newline:true }) {
+  void print(String line, {bool newline: true}) {
     var span = new SpanElement();
     span.classes.add('normal');
     span.appendText(line);
@@ -2508,7 +2884,7 @@ class DebuggerConsoleElement extends ObservatoryElement {
     _append(span);
   }
 
-  void printBold(String line, { bool newline:true }) {
+  void printBold(String line, {bool newline: true}) {
     var span = new SpanElement();
     span.classes.add('bold');
     span.appendText(line);
@@ -2518,7 +2894,7 @@ class DebuggerConsoleElement extends ObservatoryElement {
     _append(span);
   }
 
-  void printRed(String line, { bool newline:true }) {
+  void printRed(String line, {bool newline: true}) {
     var span = new SpanElement();
     span.classes.add('red');
     span.appendText(line);
@@ -2529,24 +2905,23 @@ class DebuggerConsoleElement extends ObservatoryElement {
   }
 
   void printStdio(List<String> lines) {
-    var consoleTextElement = $['consoleText'];
     bool autoScroll = _isScrolledToBottom(parent);
     for (var line in lines) {
       var span = new SpanElement();
       span.classes.add('green');
       span.appendText(line);
       span.appendText('\n');
-      consoleTextElement.children.add(span);
+      children.add(span);
     }
     if (autoScroll) {
       _scrollToBottom(parent);
     }
   }
 
-  void printRef(Instance ref, { bool newline:true }) {
-    var refElement = new Element.tag('instance-ref');
-    refElement.ref = ref;
-    _append(refElement);
+  void printRef(
+      S.Isolate isolate, S.Instance ref, M.InstanceRepository instances,
+      {bool newline: true}) {
+    _append(new InstanceRefElement(isolate, ref, instances, queue: app.queue));
     if (newline) {
       this.newline();
     }
@@ -2557,19 +2932,168 @@ class DebuggerConsoleElement extends ObservatoryElement {
   }
 
   void clear() {
-    var consoleTextElement = $['consoleText'];
-    consoleTextElement.children.clear();
+    children.clear();
   }
+
+  void render() {
+    /* nothing to do */
+  }
+
+  ObservatoryApplication get app => ObservatoryApplication.app;
 }
 
-@CustomTag('debugger-input')
-class DebuggerInputElement extends ObservatoryElement {
-  @published Isolate isolate;
-  @published String text = '';
-  @observable ObservatoryDebugger debugger;
-  @observable bool busy = false;
-  @observable String modalPrompt = null;
+class DebuggerInputElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<DebuggerInputElement>('debugger-input');
+
+  S.Isolate _isolate;
+  ObservatoryDebugger _debugger;
+  bool _busy = false;
+  final _modalPromptDiv = new DivElement()..classes = ['modalPrompt', 'hidden'];
+  final _textBox = new TextInputElement()
+    ..classes = ['textBox']
+    ..autofocus = true;
+  String get modalPrompt => _modalPromptDiv.text;
+  set modalPrompt(String value) {
+    if (_modalPromptDiv.text == '') {
+      _modalPromptDiv.classes.remove('hidden');
+    }
+    _modalPromptDiv.text = value;
+    if (_modalPromptDiv.text == '') {
+      _modalPromptDiv.classes.add('hidden');
+    }
+  }
+
+  String get text => _textBox.value;
+  set text(String value) => _textBox.value = value;
   var modalCallback = null;
+
+  factory DebuggerInputElement(
+      S.Isolate isolate, ObservatoryDebugger debugger) {
+    final DebuggerInputElement e = document.createElement(tag.name);
+    e.children = [e._modalPromptDiv, e._textBox];
+    e._textBox.select();
+    e._textBox.onKeyDown.listen(e._onKeyDown);
+    return e;
+  }
+
+  DebuggerInputElement.created() : super.created();
+
+  void _onKeyDown(KeyboardEvent e) {
+    if (_busy) {
+      e.preventDefault();
+      return;
+    }
+    _busy = true;
+    if (modalCallback != null) {
+      if (e.keyCode == KeyCode.ENTER) {
+        var response = text;
+        modalCallback(response).whenComplete(() {
+          text = '';
+          _busy = false;
+        });
+      } else {
+        _busy = false;
+      }
+      return;
+    }
+    switch (e.keyCode) {
+      case KeyCode.TAB:
+        e.preventDefault();
+        int cursorPos = _textBox.selectionStart;
+        _debugger.complete(text.substring(0, cursorPos)).then((completion) {
+          text = completion + text.substring(cursorPos);
+          // TODO(turnidge): Move the cursor to the end of the
+          // completion, rather than the end of the string.
+        }).whenComplete(() {
+          _busy = false;
+        });
+        break;
+
+      case KeyCode.ENTER:
+        var command = text;
+        _debugger.run(command).whenComplete(() {
+          text = '';
+          _busy = false;
+        });
+        break;
+
+      case KeyCode.UP:
+        e.preventDefault();
+        text = _debugger.historyPrev(text);
+        _busy = false;
+        break;
+
+      case KeyCode.DOWN:
+        e.preventDefault();
+        text = _debugger.historyNext(text);
+        _busy = false;
+        break;
+
+      case KeyCode.PAGE_UP:
+        e.preventDefault();
+        try {
+          _debugger.upFrame(1);
+        } on RangeError catch (_) {
+          // Ignore.
+        }
+        _busy = false;
+        break;
+
+      case KeyCode.PAGE_DOWN:
+        e.preventDefault();
+        try {
+          _debugger.downFrame(1);
+        } on RangeError catch (_) {
+          // Ignore.
+        }
+        _busy = false;
+        break;
+
+      case KeyCode.F7:
+        e.preventDefault();
+        _debugger.resume().whenComplete(() {
+          _busy = false;
+        });
+        break;
+
+      case KeyCode.F8:
+        e.preventDefault();
+        _debugger.toggleBreakpoint().whenComplete(() {
+          _busy = false;
+        });
+        break;
+
+      case KeyCode.F9:
+        e.preventDefault();
+        _debugger.smartNext().whenComplete(() {
+          _busy = false;
+        });
+        break;
+
+      case KeyCode.F10:
+        e.preventDefault();
+        _debugger.step().whenComplete(() {
+          _busy = false;
+        });
+        break;
+
+      case KeyCode.SEMICOLON:
+        if (e.ctrlKey) {
+          e.preventDefault();
+          _debugger.console.printRed('^;');
+          _debugger.pause().whenComplete(() {
+            _busy = false;
+          });
+        } else {
+          _busy = false;
+        }
+        break;
+
+      default:
+        _busy = false;
+        break;
+    }
+  }
 
   void enterMode(String prompt, callback) {
     assert(modalPrompt == null);
@@ -2583,132 +3107,93 @@ class DebuggerInputElement extends ObservatoryElement {
     modalCallback = null;
   }
 
-  @override
-  void ready() {
-    super.ready();
-    var textBox = $['textBox'];
-    textBox.select();
-    textBox.onKeyDown.listen((KeyboardEvent e) {
-        if (busy) {
-          e.preventDefault();
-          return;
-        }
-        busy = true;
-        if (modalCallback != null) {
-          if (e.keyCode == KeyCode.ENTER) {
-            var response = text;
-            modalCallback(response).whenComplete(() {
-              text = '';
-              busy = false;
-            });
-          } else {
-            busy = false;
-          }
-          return;
-        }
-        switch (e.keyCode) {
-          case KeyCode.TAB:
-            e.preventDefault();
-            int cursorPos = textBox.selectionStart;
-            debugger.complete(text.substring(0, cursorPos)).then((completion) {
-              text = completion + text.substring(cursorPos);
-              // TODO(turnidge): Move the cursor to the end of the
-              // completion, rather than the end of the string.
-            }).whenComplete(() {
-              busy = false;
-            });
-            break;
-
-          case KeyCode.ENTER:
-            var command = text;
-            debugger.run(command).whenComplete(() {
-              text = '';
-              busy = false;
-            });
-            break;
-
-          case KeyCode.UP:
-            e.preventDefault();
-            text = debugger.historyPrev(text);
-            busy = false;
-            break;
-
-          case KeyCode.DOWN:
-            e.preventDefault();
-            text = debugger.historyNext(text);
-            busy = false;
-            break;
-
-          case KeyCode.PAGE_UP:
-            e.preventDefault();
-            try {
-              debugger.upFrame(1);
-            } on RangeError catch (_) {
-              // Ignore.
-            }
-            busy = false;
-            break;
-
-          case KeyCode.PAGE_DOWN:
-            e.preventDefault();
-            try {
-              debugger.downFrame(1);
-            } on RangeError catch (_) {
-              // Ignore.
-            }
-            busy = false;
-            break;
-
-          case KeyCode.F7:
-            e.preventDefault();
-            debugger.resume().whenComplete(() {
-              busy = false;
-            });
-            break;
-
-          case KeyCode.F8:
-            e.preventDefault();
-            debugger.toggleBreakpoint().whenComplete(() {
-              busy = false;
-            });
-            break;
-
-          case KeyCode.F9:
-            e.preventDefault();
-            debugger.smartNext().whenComplete(() {
-              busy = false;
-            });
-            break;
-
-          case KeyCode.F10:
-            e.preventDefault();
-            debugger.step().whenComplete(() {
-              busy = false;
-            });
-            break;
-
-          case KeyCode.SEMICOLON:
-            if (e.ctrlKey) {
-              e.preventDefault();
-              debugger.console.printRed('^;');
-              debugger.pause().whenComplete(() {
-                busy = false;
-              });
-            } else {
-              busy = false;
-            }
-            break;
-
-          default:
-            busy = false;
-            break;
-        }
-      });
-  }
-
   void focus() {
-    $['textBox'].focus();
+    _textBox.focus();
   }
 
-  DebuggerInputElement.created() : super.created();
+  void render() {
+    // Nothing to do.
+  }
 }
+
+final SvgSvgElement iconExpandLess = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PolygonElement()
+      ..setAttribute('points', '12,8 6,14 7.4,15.4 12,10.8 16.6,15.4 18,14 ')
+  ];
+
+final SvgSvgElement iconExpandMore = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PolygonElement()
+      ..setAttribute('points', '16.6,8.6 12,13.2 7.4,8.6 6,10 12,16 18,10 ')
+  ];
+
+final SvgSvgElement iconChevronRight = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute('d', 'M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z')
+  ];
+
+final SvgSvgElement iconChevronLeft = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute('d', 'M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z')
+  ];
+
+final SvgSvgElement iconHorizontalThreeDot = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute(
+          'd',
+          'M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
+          '2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
+          '2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
+          '2-2-.9-2-2-2z')
+  ];
+
+final SvgSvgElement iconVerticalThreeDot = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute(
+          'd',
+          'M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 '
+          '2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 '
+          '2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 '
+          '2-.9 2-2-.9-2-2-2z')
+  ];
+
+final SvgSvgElement iconInfo = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute(
+          'd',
+          'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 '
+          '10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z')
+  ];
+
+final SvgSvgElement iconInfoOutline = new SvgSvgElement()
+  ..setAttribute('width', '24')
+  ..setAttribute('height', '24')
+  ..children = [
+    new PathElement()
+      ..setAttribute(
+          'd',
+          'M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 '
+          '10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 '
+          '0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 '
+          '9h2V7h-2v2z')
+  ];

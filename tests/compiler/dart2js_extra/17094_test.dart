@@ -10,7 +10,10 @@ get never => new DateTime.now().millisecondsSinceEpoch == 0;
 
 class A {
   int a = 0;
-  toString() { ++a; return 'A'; }
+  toString() {
+    ++a;
+    return 'A';
+  }
 }
 
 // Many interpolations to make function too big to inline.
@@ -20,9 +23,9 @@ fmt(x) => '$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x$x';
 test(a) {
   if (a == null) return;
   if (never) a.a += 1;
-  var b = a.a;     // field load
-  var c = fmt(a);  // field modified through implicit call to toString()
-  var d = a.a;     // field re-load
+  var b = a.a; // field load
+  var c = fmt(a); // field modified through implicit call to toString()
+  var d = a.a; // field re-load
   Expect.equals('A 0 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA 30', '$a $b $c $d');
 
   // Extra use of [fmt] to prevent inlining on basis of single reference.

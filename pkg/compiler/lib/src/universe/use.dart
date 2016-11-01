@@ -2,9 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// This library defined `uses`. A `use` is a single impact of the world, for
-/// instance an invocation of a top level function or a call to the `foo()`
-/// method on an unknown class.
+/// This library defines individual world impacts.
+///
+/// We call these building blocks `uses`. Each `use` is a single impact of the
+/// world. Some example uses are:
+///
+///  * an invocation of a top level function
+///  * a call to the `foo()` method on an unknown class.
+///  * an instantiation of class T
+///
+/// The different compiler stages combine these uses into `WorldImpact` objects,
+/// which are later used to construct a closed-world understanding of the
+/// program.
 library dart2js.universe.use;
 
 import '../closure.dart' show BoxFieldElement;
@@ -12,10 +21,10 @@ import '../common.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../util/util.dart' show Hashing;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show World;
 import 'call_structure.dart' show CallStructure;
 import 'selector.dart' show Selector;
-import 'universe.dart' show ReceiverConstraint;
+import 'world_builder.dart' show ReceiverConstraint;
 
 enum DynamicUseKind { INVOKE, GET, SET, }
 
@@ -28,8 +37,8 @@ class DynamicUse {
 
   DynamicUse(this.selector, this.mask);
 
-  bool appliesUnnamed(Element element, ClassWorld world) {
-    return selector.appliesUnnamed(element, world) &&
+  bool appliesUnnamed(Element element, World world) {
+    return selector.appliesUnnamed(element) &&
         (mask == null || mask.canHit(element, selector, world));
   }
 
@@ -62,6 +71,9 @@ enum StaticUseKind {
   FIELD_GET,
   FIELD_SET,
   CLOSURE,
+  CONSTRUCTOR_INVOKE,
+  CONST_CONSTRUCTOR_INVOKE,
+  DIRECT_INVOKE,
 }
 
 /// Statically known use of an [Element].
@@ -71,11 +83,14 @@ class StaticUse {
   final Element element;
   final StaticUseKind kind;
   final int hashCode;
+  final DartType type;
 
-  StaticUse.internal(Element element, StaticUseKind kind)
+  StaticUse.internal(Element element, StaticUseKind kind,
+      [DartType type = null])
       : this.element = element,
         this.kind = kind,
-        this.hashCode = Hashing.objectHash(element, Hashing.objectHash(kind)) {
+        this.type = type,
+        this.hashCode = Hashing.objectsHash(element, kind, type) {
     assert(invariant(element, element.isDeclaration,
         message: "Static use element $element must be "
             "the declaration element."));
@@ -193,11 +208,62 @@ class StaticUse {
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
+  /// Direct invocation of a method [element] with the given [callStructure].
+  factory StaticUse.directInvoke(
+      MethodElement element, CallStructure callStructure) {
+    // TODO(johnniwinther): Use the [callStructure].
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct invoke element $element must be an instance member."));
+    assert(invariant(element, element.isFunction,
+        message: "Direct invoke element $element must be a method."));
+    return new StaticUse.internal(element, StaticUseKind.DIRECT_INVOKE);
+  }
+
+  /// Direct read access of a field or getter [element].
+  factory StaticUse.directGet(MemberElement element) {
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct get element $element must be an instance member."));
+    assert(invariant(element, element.isField || element.isGetter,
+        message: "Direct get element $element must be a field or a getter."));
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
+  /// Direct write access of a field [element].
+  factory StaticUse.directSet(FieldElement element) {
+    assert(invariant(element, element.isInstanceMember,
+        message: "Direct set element $element must be an instance member."));
+    assert(invariant(element, element.isField,
+        message: "Direct set element $element must be a field."));
+    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
   /// Constructor invocation of [element] with the given [callStructure].
   factory StaticUse.constructorInvoke(
       ConstructorElement element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  }
+
+  /// Constructor invocation of [element] with the given [callStructure] on
+  /// [type].
+  factory StaticUse.typedConstructorInvoke(
+      ConstructorElement element, CallStructure callStructure, DartType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    // TODO(johnniwinther): Use the [callStructure].
+    return new StaticUse.internal(
+        element, StaticUseKind.CONSTRUCTOR_INVOKE, type);
+  }
+
+  /// Constant constructor invocation of [element] with the given
+  /// [callStructure] on [type].
+  factory StaticUse.constConstructorInvoke(
+      ConstructorElement element, CallStructure callStructure, DartType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    // TODO(johnniwinther): Use the [callStructure].
+    return new StaticUse.internal(
+        element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE, type);
   }
 
   /// Constructor redirection to [element].
@@ -244,10 +310,10 @@ class StaticUse {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StaticUse) return false;
-    return element == other.element && kind == other.kind;
+    return element == other.element && kind == other.kind && type == other.type;
   }
 
-  String toString() => 'StaticUse($element,$kind)';
+  String toString() => 'StaticUse($element,$kind,$type)';
 }
 
 enum TypeUseKind {

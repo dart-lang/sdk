@@ -44,14 +44,12 @@ extern const uint8_t* isolate_snapshot_buffer;
 
 /**
  * Global state used to control and store generation of application snapshots
- * (script/full).
- * A full application snapshot can be generated and run using the following
- * commands
- * - Generating a full application snapshot :
- * dart_bootstrap --full-snapshot-after-run=<filename> --package-root=<dirs>
- *   <script_uri> [<script_options>]
- * - Running the full application snapshot generated above :
- * dart --run-full-snapshot=<filename> <script_uri> [<script_options>]
+ * An application snapshot can be generated and run using the following
+ * command
+ *   dart --snapshot-kind=app-jit --snapshot=<app_snapshot_filename>
+ *       <script_uri> [<script_options>]
+ * To Run the application snapshot generated above, use :
+ *   dart <app_snapshot_filename> [<script_options>]
  */
 static bool run_app_snapshot = false;
 static const char* snapshot_filename = NULL;
@@ -59,8 +57,7 @@ enum SnapshotKind {
   kNone,
   kScript,
   kAppAOT,
-  kAppJITAfterRun,
-  kAppAfterRun,
+  kAppJIT,
 };
 static SnapshotKind gen_snapshot_kind = kNone;
 
@@ -78,6 +75,7 @@ static const char* commandline_packages_file = NULL;
 // Global flag that is used to indicate that we want to compile all the
 // dart functions and not run anything.
 static bool compile_all = false;
+static bool parse_all = false;
 
 
 // Global flag that is used to indicate that we want to use blobs/mmap instead
@@ -96,20 +94,18 @@ static const bool is_noopt = false;
 #endif
 
 
-extern const char* kPrecompiledLibraryName;
+extern const char* kPrecompiledVMIsolateSymbolName;
+extern const char* kPrecompiledIsolateSymbolName;
 extern const char* kPrecompiledInstructionsSymbolName;
 extern const char* kPrecompiledDataSymbolName;
-
-static const char* kVMIsolateSuffix = "snapshot.vmisolate";
-static const char* kIsolateSuffix = "snapshot.isolate";
-static const char* kAssemblySuffix = "snapshot.S";
-static const char* kInstructionsSuffix = "snapshot.instructions";
-static const char* kRODataSuffix = "snapshot.rodata";
 
 
 // Global flag that is used to indicate that we want to trace resolution of
 // URIs and the loading of libraries, parts and scripts.
 static bool trace_loading = false;
+
+
+static Dart_Isolate main_isolate = NULL;
 
 
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
@@ -275,32 +271,32 @@ static bool ProcessEnvironmentOption(const char* arg,
   ASSERT(arg != NULL);
   if (*arg == '\0') {
     // Ignore empty -D option.
-    Log::PrintErr("No arguments given to -D option\n");
+    Log::PrintErr("No arguments given to -D option, ignoring it\n");
     return true;
-  }
-  if (environment == NULL) {
-    environment = new HashMap(&HashMap::SameStringValue, 4);
   }
   // Split the name=value part of the -Dname=value argument.
   const char* equals_pos = strchr(arg, '=');
   if (equals_pos == NULL) {
     // No equal sign (name without value) currently not supported.
-    Log::PrintErr("No value given to -D option\n");
-    return false;
+    Log::PrintErr("No value given in -D%s option, ignoring it\n", arg);
+    return true;
   }
 
   char* name;
   char* value = NULL;
   int name_len = equals_pos - arg;
   if (name_len == 0) {
-    Log::PrintErr("No name given to -D option\n");
-    return false;
+    Log::PrintErr("No name given in -D%s option, ignoring it\n", arg);
+    return true;
   }
   // Split name=value into name and value.
   name = reinterpret_cast<char*>(malloc(name_len + 1));
   strncpy(name, arg, name_len);
   name[name_len] = '\0';
   value = strdup(equals_pos + 1);
+  if (environment == NULL) {
+    environment = new HashMap(&HashMap::SameStringValue, 4);
+  }
   HashMap::Entry* entry = environment->Lookup(
       GetHashmapKeyFromString(name), HashMap::StringHash(name), true);
   ASSERT(entry != NULL);  // Lookup adds an entry if key not found.
@@ -320,6 +316,17 @@ static bool ProcessCompileAllOption(const char* arg,
     return false;
   }
   compile_all = true;
+  return true;
+}
+
+
+static bool ProcessParseAllOption(const char* arg,
+                                  CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg != '\0') {
+    return false;
+  }
+  parse_all = true;
   return true;
 }
 
@@ -353,25 +360,13 @@ static bool ProcessSnapshotKindOption(const char* kind,
   } else if (strcmp(kind, "app-aot") == 0) {
     gen_snapshot_kind = kAppAOT;
     return true;
-  } else if (strcmp(kind, "app-jit-after-run") == 0) {
-    gen_snapshot_kind = kAppJITAfterRun;
-    return true;
-  } else if (strcmp(kind, "app-after-run") == 0) {
-    gen_snapshot_kind = kAppAfterRun;
+  } else if (strcmp(kind, "app-jit") == 0) {
+    gen_snapshot_kind = kAppJIT;
     return true;
   }
   Log::PrintErr("Unrecognized snapshot kind: '%s'\nValid kinds are: "
-                "script, app-aot, app-jit-after-run, app-after-run\n", kind);
+                "script, app-aot, app-jit\n", kind);
   return false;
-}
-
-
-static bool ProcessRunAppSnapshotOption(
-    const char* filename, CommandLineOptions* vm_options) {
-  ASSERT(filename != NULL);
-  snapshot_filename = filename;
-  run_app_snapshot = true;
-  return true;
 }
 
 
@@ -476,6 +471,61 @@ static bool ProcessHotReloadRollbackTestModeOption(
 }
 
 
+extern bool short_socket_read;
+
+extern bool short_socket_write;
+
+static bool ProcessShortSocketReadOption(const char* arg,
+                                         CommandLineOptions* vm_options) {
+  short_socket_read = true;
+  return true;
+}
+
+
+static bool ProcessShortSocketWriteOption(const char* arg,
+                                          CommandLineOptions* vm_options) {
+  short_socket_write = true;
+  return true;
+}
+
+
+#if !defined(TARGET_OS_MACOS)
+extern const char* commandline_root_certs_file;
+extern const char* commandline_root_certs_cache;
+
+static bool ProcessRootCertsFileOption(const char* arg,
+                                       CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '-') {
+    return false;
+  }
+  if (commandline_root_certs_cache != NULL) {
+    Log::PrintErr("Only one of --root-certs-file and --root-certs-cache "
+                  "may be specified");
+    return false;
+  }
+  commandline_root_certs_file = arg;
+  return true;
+}
+
+
+static bool ProcessRootCertsCacheOption(const char* arg,
+                                       CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '-') {
+    return false;
+  }
+  if (commandline_root_certs_file != NULL) {
+    Log::PrintErr("Only one of --root-certs-file and --root-certs-cache "
+                  "may be specified");
+    return false;
+  }
+  commandline_root_certs_cache = arg;
+  return true;
+}
+#endif  // !defined(TARGET_OS_MACOS)
+
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
@@ -492,16 +542,22 @@ static struct {
 
   // VM specific options to the standalone dart program.
   { "--compile_all", ProcessCompileAllOption },
+  { "--parse_all", ProcessParseAllOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
   { "--disable-service-origin-check", ProcessDisableServiceOriginCheckOption },
   { "--observe", ProcessObserveOption },
   { "--snapshot=", ProcessSnapshotFilenameOption },
   { "--snapshot-kind=", ProcessSnapshotKindOption },
-  { "--run-app-snapshot=", ProcessRunAppSnapshotOption },
   { "--use-blobs", ProcessUseBlobsOption },
   { "--trace-loading", ProcessTraceLoadingOption },
   { "--hot-reload-test-mode", ProcessHotReloadTestModeOption },
   { "--hot-reload-rollback-test-mode", ProcessHotReloadRollbackTestModeOption },
+  { "--short_socket_read", ProcessShortSocketReadOption },
+  { "--short_socket_write", ProcessShortSocketWriteOption },
+#if !defined(TARGET_OS_MACOS)
+  { "--root-certs-file=", ProcessRootCertsFileOption },
+  { "--root-certs-cache=", ProcessRootCertsCacheOption },
+#endif  // !defined(TARGET_OS_MACOS)
   { NULL, NULL }
 };
 
@@ -716,6 +772,9 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
   }                                                                            \
 
 
+static void SnapshotOnExitHook(int64_t exit_code);
+
+
 // Returns true on success, false on failure.
 static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
@@ -904,6 +963,13 @@ static void PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options (--help --verbose) for further documentation.\n"
+"--snapshot-kind=<snapsot_kind>\n"
+"--snapshot=<file_name>\n"
+"  These snapshot options are used to generate a snapshot of the loaded\n"
+"  Dart script:\n"
+"    <snapshot-kind> controls the kind of snapshot, it could be\n"
+"                    script(default), app-aot or app-jit\n"
+"    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
 "  Print the VM version.\n");
   } else {
@@ -928,11 +994,15 @@ static void PrintUsage() {
 "      --warn-on-pause-with-no-debugger\n"
 "  This set is subject to change.\n"
 "  Please see these options for further documentation.\n"
+"--snapshot-kind=<snapsot_kind>\n"
+"--snapshot=<file_name>\n"
+"  These snapshot options are used to generate a snapshot of the loaded\n"
+"  Dart script:\n"
+"    <snapshot-kind> controls the kind of snapshot, it could be\n"
+"                    script(default), app-aot or app-jit\n"
+"    <file_name> specifies the file into which the snapshot is written\n"
 "--version\n"
 "  Print the VM version.\n"
-"\n"
-"--snapshot=<file_name>\n"
-"  loads Dart script and generates a snapshot in the specified file\n"
 "\n"
 "--trace-loading\n"
 "  enables tracing of library and script loading\n"
@@ -940,6 +1010,15 @@ static void PrintUsage() {
 "--enable-vm-service[=<port>[/<bind-address>]]\n"
 "  enables the VM service and listens on specified port for connections\n"
 "  (default port number is 8181, default bind address is 127.0.0.1).\n"
+#if !defined(TARGET_OS_MACOS)
+"\n"
+"--root-certs-file=<path>\n"
+"  The path to a file containing the trusted root certificates to use for\n"
+"  secure socket connections.\n"
+"--root-certs-cache=<path>\n"
+"  The path to a cache directory containing the trusted root certificates to\n"
+"  use for secure socket connections.\n"
+#endif  // !defined(TARGET_OS_MACOS)
 "\n"
 "The following options are only used for VM development and may\n"
 "be changed in any future version:\n");
@@ -1084,27 +1163,16 @@ static bool FileModifiedCallback(const char* url, int64_t since) {
 }
 
 
-static void WriteSnapshotFile(const char* snapshot_directory,
-                              const char* filename,
+static void WriteSnapshotFile(const char* filename,
                               bool write_magic_number,
                               const uint8_t* buffer,
                               const intptr_t size) {
   char* concat = NULL;
-  const char* qualified_filename;
-  if ((snapshot_directory != NULL) && (strlen(snapshot_directory) > 0)) {
-    intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, filename);
-    concat = new char[len + 1];
-    snprintf(concat, len + 1, "%s/%s", snapshot_directory, filename);
-    qualified_filename = concat;
-  } else {
-    qualified_filename = filename;
-  }
-
-  File* file = File::Open(qualified_filename, File::kWriteTruncate);
+  File* file = File::Open(filename, File::kWriteTruncate);
   if (file == NULL) {
     ErrorExit(kErrorExitCode,
               "Unable to open file %s for writing snapshot\n",
-              qualified_filename);
+              filename);
   }
 
   if (write_magic_number) {
@@ -1115,7 +1183,7 @@ static void WriteSnapshotFile(const char* snapshot_directory,
   if (!file->WriteFully(buffer, size)) {
     ErrorExit(kErrorExitCode,
               "Unable to write file %s for writing snapshot\n",
-              qualified_filename);
+              filename);
   }
   file->Release();
   if (concat != NULL) {
@@ -1124,93 +1192,205 @@ static void WriteSnapshotFile(const char* snapshot_directory,
 }
 
 
-static void ReadSnapshotFile(const char* snapshot_directory,
-                             const char* filename,
-                             const uint8_t** buffer) {
-  char* concat = NULL;
-  const char* qualified_filename;
-  if ((snapshot_directory != NULL) && (strlen(snapshot_directory) > 0)) {
-    intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, filename);
-    concat = new char[len + 1];
-    snprintf(concat, len + 1, "%s/%s", snapshot_directory, filename);
-    qualified_filename = concat;
-  } else {
-    qualified_filename = filename;
-  }
+static const int64_t kAppSnapshotHeaderSize = 5 * sizeof(int64_t);  // NOLINT
+static const int64_t kAppSnapshotMagicNumber = 0xf6f6dcdc;
+static const int64_t kAppSnapshotPageSize = 4 * KB;
 
-  void* file = DartUtils::OpenFile(qualified_filename, false);
+
+static bool ReadAppSnapshotBlobs(const char* script_name,
+                                 const uint8_t** vmisolate_buffer,
+                                 const uint8_t** isolate_buffer,
+                                 const uint8_t** instructions_buffer,
+                                 const uint8_t** rodata_buffer) {
+  File* file = File::Open(script_name, File::kRead);
   if (file == NULL) {
-    fprintf(stderr,
-            "Error: Unable to open file %s for reading snapshot\n",
-            qualified_filename);
-    fflush(stderr);
+    return false;
+  }
+  if (file->Length() < kAppSnapshotHeaderSize) {
+    file->Release();
+    return false;
+  }
+  int64_t header[5];
+  ASSERT(sizeof(header) == kAppSnapshotHeaderSize);
+  if (!file->ReadFully(&header, kAppSnapshotHeaderSize)) {
+    file->Release();
+    return false;
+  }
+  if (header[0] != kAppSnapshotMagicNumber) {
+    file->Release();
+    return false;
+  }
+
+  int64_t vmisolate_position =
+      Utils::RoundUp(file->Position(), kAppSnapshotPageSize);
+  int64_t isolate_position =
+      Utils::RoundUp(vmisolate_position + header[1], kAppSnapshotPageSize);
+  int64_t rodata_position =
+      Utils::RoundUp(isolate_position + header[2], kAppSnapshotPageSize);
+  int64_t instructions_position =
+      Utils::RoundUp(rodata_position + header[3], kAppSnapshotPageSize);
+
+  void* read_only_buffer =
+    file->Map(File::kReadOnly, vmisolate_position,
+              instructions_position - vmisolate_position);
+  if (read_only_buffer == NULL) {
+    Log::PrintErr("Failed to memory map snapshot\n");
     Platform::Exit(kErrorExitCode);
   }
-  intptr_t len = -1;
-  DartUtils::ReadFile(buffer, &len, file);
-  if ((*buffer == NULL) || (len == -1)) {
-    fprintf(stderr,
-            "Error: Unable to read snapshot file %s\n", qualified_filename);
-    fflush(stderr);
-    Platform::Exit(kErrorExitCode);
+
+  *vmisolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer)
+      + (vmisolate_position - vmisolate_position);
+  *isolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer)
+      + (isolate_position - vmisolate_position);
+  if (header[3] == 0) {
+    *rodata_buffer = NULL;
+  } else {
+    *rodata_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer)
+        + (rodata_position - vmisolate_position);
   }
-  DartUtils::CloseFile(file);
-  if (concat != NULL) {
-    delete[] concat;
+
+  if (header[4] == 0) {
+    *instructions_buffer = NULL;
+  } else {
+    *instructions_buffer = reinterpret_cast<const uint8_t*>(
+        file->Map(File::kReadExecute, instructions_position, header[4]));
+    if (*instructions_buffer == NULL) {
+      Log::PrintErr("Failed to memory map snapshot\n");
+      Platform::Exit(kErrorExitCode);
+    }
   }
+
+  file->Release();
+  return true;
 }
 
 
-static void ReadExecutableSnapshotFile(const char* snapshot_directory,
-                                       const char* filename,
-                                       const uint8_t** buffer) {
-  char* concat = NULL;
-  const char* qualified_filename;
-  if ((snapshot_directory != NULL) && (strlen(snapshot_directory) > 0)) {
-    intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, filename);
-    concat = new char[len + 1];
-    snprintf(concat, len + 1, "%s/%s", snapshot_directory, filename);
-    qualified_filename = concat;
-  } else {
-    qualified_filename = filename;
-  }
-
-  intptr_t len = -1;
-  *buffer = reinterpret_cast<uint8_t*>(
-      DartUtils::MapExecutable(qualified_filename, &len));
-  if ((*buffer == NULL) || (len == -1)) {
-    fprintf(stderr,
-            "Error: Unable to read snapshot file %s\n", qualified_filename);
-    fflush(stderr);
-    Platform::Exit(kErrorExitCode);
-  }
-  if (concat != NULL) {
-    delete[] concat;
-  }
-}
-
-
-static void* LoadLibrarySymbol(const char* snapshot_directory,
-                               const char* libname,
-                               const char* symname) {
-  char* concat = NULL;
-  const char* qualified_libname;
-  if ((snapshot_directory != NULL) && (strlen(snapshot_directory) > 0)) {
-    intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, libname);
-    concat = new char[len + 1];
-    snprintf(concat, len + 1, "%s/%s", snapshot_directory, libname);
-    qualified_libname = concat;
-  } else {
-    qualified_libname = libname;
-  }
-  void* library = Extensions::LoadExtensionLibrary(qualified_libname);
-  if (concat != NULL) {
-    delete concat;
-  }
+static bool ReadAppSnapshotDynamicLibrary(const char* script_name,
+                                          const uint8_t** vmisolate_buffer,
+                                          const uint8_t** isolate_buffer,
+                                          const uint8_t** instructions_buffer,
+                                          const uint8_t** rodata_buffer) {
+  void* library = Extensions::LoadExtensionLibrary(script_name);
   if (library == NULL) {
-    return NULL;
+    return false;
   }
-  return Extensions::ResolveSymbol(library, symname);
+
+  *vmisolate_buffer = reinterpret_cast<const uint8_t*>(
+      Extensions::ResolveSymbol(library, kPrecompiledVMIsolateSymbolName));
+  if (*vmisolate_buffer == NULL) {
+    Log::PrintErr("Failed to resolve symbol '%s'\n",
+                  kPrecompiledVMIsolateSymbolName);
+    Platform::Exit(kErrorExitCode);
+  }
+
+  *isolate_buffer = reinterpret_cast<const uint8_t*>(
+      Extensions::ResolveSymbol(library, kPrecompiledIsolateSymbolName));
+  if (*isolate_buffer == NULL) {
+    Log::PrintErr("Failed to resolve symbol '%s'\n",
+                  kPrecompiledIsolateSymbolName);
+    Platform::Exit(kErrorExitCode);
+  }
+
+  *instructions_buffer = reinterpret_cast<const uint8_t*>(
+      Extensions::ResolveSymbol(library, kPrecompiledInstructionsSymbolName));
+  if (*instructions_buffer == NULL) {
+    Log::PrintErr("Failed to resolve symbol '%s'\n",
+                  kPrecompiledInstructionsSymbolName);
+    Platform::Exit(kErrorExitCode);
+  }
+
+  *rodata_buffer = reinterpret_cast<const uint8_t*>(
+      Extensions::ResolveSymbol(library, kPrecompiledDataSymbolName));
+  if (*rodata_buffer == NULL) {
+    Log::PrintErr("Failed to resolve symbol '%s'\n",
+                  kPrecompiledDataSymbolName);
+    Platform::Exit(kErrorExitCode);
+  }
+
+  return true;
+}
+
+
+static bool ReadAppSnapshot(const char* script_name,
+                            const uint8_t** vmisolate_buffer,
+                            const uint8_t** isolate_buffer,
+                            const uint8_t** instructions_buffer,
+                            const uint8_t** rodata_buffer) {
+  if (File::GetType(script_name, true) != File::kIsFile) {
+    // If 'script_name' refers to a pipe, don't read to check for an app
+    // snapshot since we cannot rewind if it isn't (and couldn't mmap it in
+    // anyway if it was).
+    return false;
+  }
+  if (ReadAppSnapshotBlobs(script_name,
+                           vmisolate_buffer,
+                           isolate_buffer,
+                           instructions_buffer,
+                           rodata_buffer)) {
+    return true;
+  }
+  return ReadAppSnapshotDynamicLibrary(script_name,
+                                       vmisolate_buffer,
+                                       isolate_buffer,
+                                       instructions_buffer,
+                                       rodata_buffer);
+}
+
+
+static bool WriteInt64(File* file, int64_t size) {
+  return file->WriteFully(&size, sizeof(size));
+}
+
+
+static void WriteAppSnapshot(const char* filename,
+                             uint8_t* vmisolate_buffer,
+                             intptr_t vmisolate_size,
+                             uint8_t* isolate_buffer,
+                             intptr_t isolate_size,
+                             uint8_t* instructions_buffer,
+                             intptr_t instructions_size,
+                             uint8_t* rodata_buffer,
+                             intptr_t rodata_size) {
+  File* file = File::Open(filename, File::kWriteTruncate);
+  if (file == NULL) {
+    ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
+  }
+
+  file->WriteFully(&kAppSnapshotMagicNumber, sizeof(kAppSnapshotMagicNumber));
+  WriteInt64(file, vmisolate_size);
+  WriteInt64(file, isolate_size);
+  WriteInt64(file, rodata_size);
+  WriteInt64(file, instructions_size);
+  ASSERT(file->Position() == kAppSnapshotHeaderSize);
+
+  file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
+  if (!file->WriteFully(vmisolate_buffer, vmisolate_size)) {
+    ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
+  }
+
+  file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
+  if (!file->WriteFully(isolate_buffer, isolate_size)) {
+    ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n", filename);
+  }
+
+  if (rodata_size != 0) {
+    file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
+    if (!file->WriteFully(rodata_buffer, rodata_size)) {
+      ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n",
+                filename);
+    }
+  }
+
+  if (instructions_size != 0) {
+    file->SetPosition(Utils::RoundUp(file->Position(), kAppSnapshotPageSize));
+    if (!file->WriteFully(instructions_buffer, instructions_size)) {
+      ErrorExit(kErrorExitCode, "Unable to write snapshot file '%s'\n",
+                filename);
+    }
+  }
+
+  file->Flush();
+  file->Release();
 }
 
 
@@ -1223,7 +1403,7 @@ static void GenerateScriptSnapshot() {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
 
-  WriteSnapshotFile(NULL, snapshot_filename, true, buffer, size);
+  WriteSnapshotFile(snapshot_filename, true, buffer, size);
 }
 
 
@@ -1251,35 +1431,24 @@ static void GeneratePrecompiledSnapshot() {
         &rodata_blob_size);
   } else {
     result = Dart_CreatePrecompiledSnapshotAssembly(
-        &vm_isolate_buffer,
-        &vm_isolate_size,
-        &isolate_buffer,
-        &isolate_size,
         &assembly_buffer,
         &assembly_size);
   }
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
-  WriteSnapshotFile(snapshot_filename, kVMIsolateSuffix,
-                    false,
-                    vm_isolate_buffer,
-                    vm_isolate_size);
-  WriteSnapshotFile(snapshot_filename, kIsolateSuffix,
-                    false,
-                    isolate_buffer,
-                    isolate_size);
   if (use_blobs) {
-    WriteSnapshotFile(snapshot_filename, kInstructionsSuffix,
-                      false,
-                      instructions_blob_buffer,
-                      instructions_blob_size);
-    WriteSnapshotFile(snapshot_filename, kRODataSuffix,
-                      false,
-                      rodata_blob_buffer,
-                      rodata_blob_size);
+    WriteAppSnapshot(snapshot_filename,
+                     vm_isolate_buffer,
+                     vm_isolate_size,
+                     isolate_buffer,
+                     isolate_size,
+                     instructions_blob_buffer,
+                     instructions_blob_size,
+                     rodata_blob_buffer,
+                     rodata_blob_size);
   } else {
-    WriteSnapshotFile(snapshot_filename, kAssemblySuffix,
+    WriteSnapshotFile(snapshot_filename,
                       false,
                       assembly_buffer,
                       assembly_size);
@@ -1287,11 +1456,8 @@ static void GeneratePrecompiledSnapshot() {
 }
 
 
+#if defined(TARGET_ARCH_X64)
 static void GeneratePrecompiledJITSnapshot() {
-  if (!use_blobs) {
-    ErrorExit(kErrorExitCode,
-              "Generating app JIT snapshots as assembly unimplemented\n");
-  }
   uint8_t* vm_isolate_buffer = NULL;
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
@@ -1312,28 +1478,29 @@ static void GeneratePrecompiledJITSnapshot() {
   if (Dart_IsError(result)) {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
-  WriteSnapshotFile(snapshot_filename, kVMIsolateSuffix,
-                    false,
-                    vm_isolate_buffer,
-                    vm_isolate_size);
-  WriteSnapshotFile(snapshot_filename, kIsolateSuffix,
-                    false,
-                    isolate_buffer,
-                    isolate_size);
-  WriteSnapshotFile(snapshot_filename, kInstructionsSuffix,
-                    false,
-                    instructions_blob_buffer,
-                    instructions_blob_size);
-  WriteSnapshotFile(snapshot_filename, kRODataSuffix,
-                    false,
-                    rodata_blob_buffer,
-                    rodata_blob_size);
+  WriteAppSnapshot(snapshot_filename,
+                   vm_isolate_buffer,
+                   vm_isolate_size,
+                   isolate_buffer,
+                   isolate_size,
+                   instructions_blob_buffer,
+                   instructions_blob_size,
+                   rodata_blob_buffer,
+                   rodata_blob_size);
 }
+#endif  // defined(TARGET_ARCH_X64)
 
 
-static void GenerateFullSnapshot() {
-  // Create a full snapshot of the script.
+static void GenerateAppSnapshot() {
   Dart_Handle result;
+#if defined(TARGET_ARCH_X64)
+  result = Dart_PrecompileJIT();
+  if (Dart_IsError(result)) {
+    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
+  }
+  GeneratePrecompiledJITSnapshot();
+#else
+  // Create an application snapshot of the script.
   uint8_t* vm_isolate_buffer = NULL;
   intptr_t vm_isolate_size = 0;
   uint8_t* isolate_buffer = NULL;
@@ -1347,17 +1514,15 @@ static void GenerateFullSnapshot() {
     ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
   }
 
-  WriteSnapshotFile(snapshot_filename,
-                    kVMIsolateSuffix,
-                    false,
-                    vm_isolate_buffer,
-                    vm_isolate_size);
-  WriteSnapshotFile(snapshot_filename,
-                    kIsolateSuffix,
-                    false,
-                    isolate_buffer,
-                    isolate_size);
+  WriteAppSnapshot(snapshot_filename,
+                   vm_isolate_buffer,
+                   vm_isolate_size,
+                   isolate_buffer,
+                   isolate_size,
+                   NULL, 0, NULL, 0);
+#endif  // defined(TARGET_ARCH_X64)
 }
+
 
 
 #define CHECK_RESULT(result)                                                   \
@@ -1371,6 +1536,18 @@ static void GenerateFullSnapshot() {
         kCompilationErrorExitCode : kErrorExitCode;                            \
     ErrorExit(exit_code, "%s\n", Dart_GetError(result));                       \
   }
+
+
+static void SnapshotOnExitHook(int64_t exit_code) {
+  if (Dart_CurrentIsolate() != main_isolate) {
+    Log::PrintErr("A snapshot was requested, but a secondary isolate "
+                  "performed a hard exit (%" Pd64 ").\n", exit_code);
+    Platform::Exit(kErrorExitCode);
+  }
+  if (exit_code == 0) {
+    GenerateAppSnapshot();
+  }
+}
 
 
 bool RunMainIsolate(const char* script_name,
@@ -1405,6 +1582,7 @@ bool RunMainIsolate(const char* script_name,
     EventHandler::Stop();
     Platform::Exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
+  main_isolate = isolate;
   delete [] isolate_name;
 
   Dart_EnterIsolate(isolate);
@@ -1426,9 +1604,8 @@ bool RunMainIsolate(const char* script_name,
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
     if (is_noopt ||
-        (gen_snapshot_kind == kAppAfterRun) ||
         (gen_snapshot_kind == kAppAOT) ||
-        (gen_snapshot_kind == kAppJITAfterRun)) {
+        (gen_snapshot_kind == kAppJIT)) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the app snapshot.
       if (!VmService::LoadForGenPrecompiled()) {
@@ -1445,6 +1622,15 @@ bool RunMainIsolate(const char* script_name,
       CHECK_RESULT(result);
     }
 
+    if (parse_all) {
+      result = Dart_ParseAll();
+      CHECK_RESULT(result);
+      Dart_ExitScope();
+      // Shutdown the isolate.
+      Dart_ShutdownIsolate();
+      return false;
+    }
+
     if (is_noopt || (gen_snapshot_kind == kAppAOT)) {
       Dart_QualifiedFunctionName standalone_entry_points[] = {
         { "dart:_builtin", "::", "_getMainClosure" },
@@ -1453,6 +1639,7 @@ bool RunMainIsolate(const char* script_name,
         { "dart:_builtin", "::", "_resolveInWorkingDirectory" },
         { "dart:_builtin", "::", "_setWorkingDirectory" },
         { "dart:_builtin", "::", "_setPackageRoot" },
+        { "dart:_builtin", "::", "_setPackagesMap" },
         { "dart:_builtin", "::", "_libraryFilePath" },
         { "dart:io", "::", "_makeUint8ListView" },
         { "dart:io", "::", "_makeDatagram" },
@@ -1468,9 +1655,14 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "TlsException", "TlsException." },
         { "dart:io", "X509Certificate", "X509Certificate._" },
         { "dart:io", "_ExternalBuffer", "set:data" },
+        { "dart:io", "_ExternalBuffer", "get:start" },
+        { "dart:io", "_ExternalBuffer", "set:start" },
+        { "dart:io", "_ExternalBuffer", "get:end" },
+        { "dart:io", "_ExternalBuffer", "set:end" },
         { "dart:io", "_Platform", "set:_nativeScript" },
         { "dart:io", "_ProcessStartStatus", "set:_errorCode" },
         { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
+        { "dart:io", "_SecureFilterImpl", "get:buffers" },
         { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
         { "dart:io", "_SecureFilterImpl", "get:SIZE" },
         { "dart:vmservice_io", "::", "main" },
@@ -1515,17 +1707,10 @@ bool RunMainIsolate(const char* script_name,
       // Keep handling messages until the last active receive port is closed.
       result = Dart_RunLoop();
       // Generate an app snapshot after execution if specified.
-      if ((gen_snapshot_kind == kAppAfterRun) ||
-          (gen_snapshot_kind == kAppJITAfterRun)) {
+      if (gen_snapshot_kind == kAppJIT) {
         if (!Dart_IsCompilationError(result) &&
             !Dart_IsVMRestartRequest(result)) {
-          if (gen_snapshot_kind == kAppAfterRun) {
-            GenerateFullSnapshot();
-          } else {
-            Dart_Handle prepare_result = Dart_PrecompileJIT();
-            CHECK_RESULT(prepare_result);
-            GeneratePrecompiledJITSnapshot();
-          }
+          GenerateAppSnapshot();
         }
       }
       CHECK_RESULT(result);
@@ -1685,6 +1870,17 @@ void main(int argc, char** argv) {
     Platform::Exit(kErrorExitCode);
   }
 
+  const uint8_t* instructions_snapshot = NULL;
+  const uint8_t* data_snapshot = NULL;
+
+  if (ReadAppSnapshot(script_name,
+                      &vm_isolate_snapshot_buffer,
+                      &isolate_snapshot_buffer,
+                      &instructions_snapshot,
+                      &data_snapshot)) {
+    run_app_snapshot = true;
+  }
+
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   // Constant true if PRODUCT or DART_PRECOMPILED_RUNTIME.
   if ((gen_snapshot_kind != kNone) || run_app_snapshot) {
@@ -1692,43 +1888,24 @@ void main(int argc, char** argv) {
   }
 #endif
 
+  if (gen_snapshot_kind == kAppJIT) {
+    vm_options.AddArgument("--fields_may_be_reset");
+  }
   if ((gen_snapshot_kind == kAppAOT) || is_noopt) {
     vm_options.AddArgument("--precompilation");
   }
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
+  if (gen_snapshot_kind == kAppJIT) {
+    Process::SetExitHook(SnapshotOnExitHook);
+  }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Start event handler.
   TimerUtils::InitOnce();
   EventHandler::Start();
-
-  const uint8_t* instructions_snapshot = NULL;
-  const uint8_t* data_snapshot = NULL;
-  if (run_app_snapshot) {
-    ReadSnapshotFile(snapshot_filename, kVMIsolateSuffix,
-                     &vm_isolate_snapshot_buffer);
-    ReadSnapshotFile(snapshot_filename, kIsolateSuffix,
-                     &isolate_snapshot_buffer);
-    if (use_blobs) {
-      ReadExecutableSnapshotFile(snapshot_filename,
-                                 kInstructionsSuffix,
-                                 &instructions_snapshot);
-      ReadSnapshotFile(snapshot_filename, kRODataSuffix,
-                       &data_snapshot);
-    } else {
-      instructions_snapshot = reinterpret_cast<const uint8_t*>(
-          LoadLibrarySymbol(snapshot_filename,
-                            kPrecompiledLibraryName,
-                            kPrecompiledInstructionsSymbolName));
-      data_snapshot = reinterpret_cast<const uint8_t*>(
-          LoadLibrarySymbol(snapshot_filename,
-                            kPrecompiledLibraryName,
-                            kPrecompiledDataSymbolName));
-    }
-  }
 
   // Initialize the Dart VM.
   Dart_InitializeParams init_params;

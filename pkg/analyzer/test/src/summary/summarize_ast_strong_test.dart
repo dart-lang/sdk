@@ -4,14 +4,14 @@
 
 library analyzer.test.src.summary.summarize_ast_strong_test;
 
-import 'package:unittest/unittest.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../reflective_tests.dart';
 import 'summarize_ast_test.dart';
 
 main() {
-  groupSep = ' | ';
-  runReflectiveTests(LinkedSummarizeAstStrongTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LinkedSummarizeAstStrongTest);
+  });
 }
 
 /**
@@ -44,18 +44,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   @failingTest
   test_closure_executable_with_unimported_return_type() {
     super.test_closure_executable_with_unimported_return_type();
-  }
-
-  @override
-  @failingTest
-  test_field_propagated_type_final_immediate() {
-    super.test_field_propagated_type_final_immediate();
-  }
-
-  @override
-  @failingTest
-  test_fully_linked_references_follow_other_references() {
-    super.test_fully_linked_references_follow_other_references();
   }
 
   @override
@@ -120,18 +108,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
 
   @override
   @failingTest
-  test_linked_reference_reuse() {
-    super.test_linked_reference_reuse();
-  }
-
-  @override
-  @failingTest
-  test_linked_type_dependency_reuse() {
-    super.test_linked_type_dependency_reuse();
-  }
-
-  @override
-  @failingTest
   test_syntheticFunctionType_genericClosure() {
     super.test_syntheticFunctionType_genericClosure();
   }
@@ -152,41 +128,5 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   @failingTest
   test_syntheticFunctionType_inGenericFunction() {
     super.test_syntheticFunctionType_inGenericFunction();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_noArguments() {
-    super.test_syntheticFunctionType_noArguments();
-  }
-
-  @override
-  @failingTest
-  test_syntheticFunctionType_withArguments() {
-    super.test_syntheticFunctionType_withArguments();
-  }
-
-  @override
-  @failingTest
-  test_unused_type_parameter() {
-    super.test_unused_type_parameter();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagated_type_final_immediate() {
-    super.test_variable_propagated_type_final_immediate();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagated_type_new_reference() {
-    super.test_variable_propagated_type_new_reference();
-  }
-
-  @override
-  @failingTest
-  test_variable_propagated_type_omit_dynamic() {
-    super.test_variable_propagated_type_omit_dynamic();
   }
 }

@@ -9,15 +9,16 @@ import 'dart:collection';
 import 'package:analyzer/dart/ast/ast.dart' show AstNode, SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'analysis_context_factory.dart';
 
@@ -129,7 +130,7 @@ class EngineTestCase {
       AstNode root, String code, String prefix, Predicate<AstNode> predicate) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
-      throw new IllegalArgumentException("Not found '$prefix'.");
+      throw new ArgumentError("Not found '$prefix'.");
     }
     AstNode node = new NodeLocator(offset).searchWithin(root);
     return node.getAncestor(predicate);
@@ -142,7 +143,7 @@ class EngineTestCase {
       AstNode root, String code, String prefix) {
     int offset = code.indexOf(prefix);
     if (offset == -1) {
-      throw new IllegalArgumentException("Not found '$prefix'.");
+      throw new ArgumentError("Not found '$prefix'.");
     }
     return new NodeLocator(offset).searchWithin(root);
   }
@@ -415,17 +416,16 @@ class GatheringErrorListener implements AnalysisErrorListener {
   }
 
   /**
-   * Return `true` if the two errors are equivalent.
-   *
-   * @param firstError the first error being compared
-   * @param secondError the second error being compared
-   * @return `true` if the two errors are equivalent
+   * Return `true` if the [actualError] matches the [expectedError].
    */
-  bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
-      identical(firstError.errorCode, secondError.errorCode) &&
-      firstError.offset == secondError.offset &&
-      firstError.length == secondError.length &&
-      _equalSources(firstError.source, secondError.source);
+  bool _equalErrors(AnalysisError expectedError, AnalysisError actualError) {
+    Source expectedSource = expectedError.source;
+    return identical(expectedError.errorCode, actualError.errorCode) &&
+        expectedError.offset == actualError.offset &&
+        expectedError.length == actualError.length &&
+        (expectedSource == null ||
+            _equalSources(expectedSource, actualError.source));
+  }
 
   /**
    * Return `true` if the two sources are equivalent.
@@ -460,23 +460,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
       Source source = error.source;
       LineInfo lineInfo = _lineInfoMap[source];
       buffer.writeln();
+      String sourceName = source == null ? '' : source.shortName;
       if (lineInfo == null) {
         int offset = error.offset;
-        StringUtils.printf(buffer, "  %s %s (%d..%d)", [
-          source == null ? "" : source.shortName,
-          error.errorCode,
-          offset,
-          offset + error.length
-        ]);
+        buffer.write('  $sourceName ${error.errorCode} '
+            '($offset..${offset + error.length})');
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        StringUtils.printf(buffer, "  %s %s (%d, %d/%d)", [
-          source == null ? "" : source.shortName,
-          error.errorCode,
-          location.lineNumber,
-          location.columnNumber,
-          error.length
-        ]);
+        int lineNumber = location.lineNumber;
+        int columnNumber = location.columnNumber;
+        buffer.write('  $sourceName ${error.errorCode} '
+            '($lineNumber, $columnNumber/${error.length})');
       }
     }
     buffer.writeln();
@@ -487,25 +481,17 @@ class GatheringErrorListener implements AnalysisErrorListener {
       Source source = error.source;
       LineInfo lineInfo = _lineInfoMap[source];
       buffer.writeln();
+      String sourceName = source == null ? '' : source.shortName;
       if (lineInfo == null) {
         int offset = error.offset;
-        StringUtils.printf(buffer, "  %s %s (%d..%d): %s", [
-          source == null ? "" : source.shortName,
-          error.errorCode,
-          offset,
-          offset + error.length,
-          error.message
-        ]);
+        buffer.write('  $sourceName ${error.errorCode} '
+            '($offset..${offset + error.length}): ${error.message}');
       } else {
         LineInfo_Location location = lineInfo.getLocation(error.offset);
-        StringUtils.printf(buffer, "  %s %s (%d, %d/%d): %s", [
-          source == null ? "" : source.shortName,
-          error.errorCode,
-          location.lineNumber,
-          location.columnNumber,
-          error.length,
-          error.message
-        ]);
+        int lineNumber = location.lineNumber;
+        int columnNumber = location.columnNumber;
+        buffer.write('  $sourceName ${error.errorCode} '
+            '($lineNumber, $columnNumber/${error.length}): ${error.message}');
       }
     }
     fail(buffer.toString());
@@ -603,7 +589,7 @@ class TestSource extends Source {
   Uri get uri => new Uri.file(_name);
 
   UriKind get uriKind {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('uriKind');
   }
 
   bool operator ==(Object other) {
@@ -615,11 +601,11 @@ class TestSource extends Source {
 
   bool exists() => exists2;
   void getContentsToReceiver(Source_ContentReceiver receiver) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('getContentsToReceiver');
   }
 
   Source resolve(String uri) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedError('resolve');
   }
 
   void setContents(String value) {

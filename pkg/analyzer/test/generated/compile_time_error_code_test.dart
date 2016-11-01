@@ -4,19 +4,20 @@
 
 library analyzer.test.generated.compile_time_error_code_test;
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart' show expect;
+import 'package:test/test.dart' show expect;
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(CompileTimeErrorCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(CompileTimeErrorCodeTest);
+  });
 }
 
 @reflectiveTest
@@ -44,15 +45,6 @@ f(x) sync* {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT]);
-    verify([source]);
-  }
-
-  void fail_compileTimeConstantRaisesException() {
-    Source source = addSource(r'''
-''');
-    computeLibrarySourceErrors(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.COMPILE_TIME_CONSTANT_RAISES_EXCEPTION]);
     verify([source]);
   }
 
@@ -1800,6 +1792,17 @@ class A {
     verify([source]);
   }
 
+  void test_duplicateDefinition_parameters_inConstructor() {
+    Source source = addSource(r'''
+class A {
+  int a;
+  A(int a, this.a);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    verify([source]);
+  }
+
   void test_duplicateDefinition_parameters_inFunctionTypeAlias() {
     Source source = addSource(r'''
 typedef F(int a, double a);
@@ -1944,6 +1947,30 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT]);
+    verify([source]);
+  }
+
+  void test_duplicatePart_sameSource() {
+    addNamedSource('/part.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part.dart';
+part 'foo/../part.dart';
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_PART]);
+    verify([source]);
+  }
+
+  void test_duplicatePart_sameUri() {
+    addNamedSource('/part.dart', 'part of lib;');
+    Source source = addSource(r'''
+library lib;
+part 'part.dart';
+part 'part.dart';
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.DUPLICATE_PART]);
     verify([source]);
   }
 
@@ -2152,6 +2179,18 @@ class B extends A {
     verify([source]);
   }
 
+  void test_fieldFormalParameter_assignedInInitializer() {
+    Source source = addSource(r'''
+class A {
+  int x;
+  A(this.x) : x = 3 {}
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER]);
+    verify([source]);
+  }
+
   void test_fieldInitializedByMultipleInitializers() {
     Source source = addSource(r'''
 class A {
@@ -2334,8 +2373,11 @@ class A {
   A(this.x, this.x) {}
 }''');
     computeLibrarySourceErrors(source);
-    assertErrors(
-        source, [CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES]);
+    // TODO(brianwilkerson) There should only be one error here.
+    assertErrors(source, [
+      CompileTimeErrorCode.DUPLICATE_DEFINITION,
+      CompileTimeErrorCode.FINAL_INITIALIZED_MULTIPLE_TIMES
+    ]);
     verify([source]);
   }
 
@@ -5673,6 +5715,28 @@ main() {
     assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
   }
 
+  void test_referencedBeforeDeclaration_type_localFunction() {
+    Source source = addSource(r'''
+void testTypeRef() {
+  String s = '';
+  int String(int x) => x + 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+  }
+
+  void test_referencedBeforeDeclaration_type_localVariable() {
+    Source source = addSource(r'''
+void testTypeRef() {
+  String s = '';
+  var String = '';
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION]);
+  }
+
   void test_rethrowOutsideCatch() {
     Source source = addSource(r'''
 f() {
@@ -6095,8 +6159,9 @@ main() {
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
 
     // Check that the file is represented as missing.
-    Source target =
-        analysisContext2.getSourcesWithFullName("/target.dart").first;
+    Source target = analysisContext2
+        .getSourcesWithFullName(resourceProvider.convertPath("/target.dart"))
+        .first;
     expect(analysisContext2.getModificationStamp(target), -1);
 
     // Add an overlay in the same way as AnalysisServer.

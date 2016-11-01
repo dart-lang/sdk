@@ -9381,7 +9381,7 @@ class DataTransferItemList extends DartHtmlDomObject {
     // TODO(alanknight): I think that all the __getter__ generators should just
     // do property access, but that's major surgery. This one is a problem, so
     // just hard-code it for now.
-    return _blink.Blink_JsNative_DomException.getProperty(this, index);
+    return _blink.Blink_JsNative_DomException.getProperty(this, index.toString());
   }
 
 }
@@ -35026,7 +35026,7 @@ class StashedPortCollection extends EventTarget {
  * For more examples of using this API, see
  * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
  * For details on using the Map API, see the
- * [Maps](http://www.dartlang.org/docs/library-tour/#maps-aka-dictionaries-or-hashes)
+ * [Maps](https://www.dartlang.org/guides/libraries/library-tour#maps)
  * section of the library tour.
  */
 @DomName('Storage')
@@ -37662,10 +37662,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -44329,7 +44329,7 @@ class Dimension {
   /**
    * Set this CSS Dimension to the specified number of x-heights.
    *
-   * One ex is equal to the the x-height of a font's baseline to its mean line,
+   * One ex is equal to the x-height of a font's baseline to its mean line,
    * generally the height of the letter "x" in the font, which is usually about
    * half the font-size.
    */

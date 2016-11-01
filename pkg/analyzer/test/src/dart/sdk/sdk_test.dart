@@ -12,26 +12,29 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:unittest/unittest.dart';
+import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../embedder_tests.dart';
 import '../../../generated/test_support.dart';
-import '../../../reflective_tests.dart';
 import '../../../resource_utils.dart';
-import '../../../source/embedder_test.dart';
-import '../../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(EmbedderSdkTest);
-  runReflectiveTests(FolderBasedDartSdkTest);
-  runReflectiveTests(SDKLibrariesReaderTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(EmbedderSdkTest);
+    defineReflectiveTests(FolderBasedDartSdkTest);
+    defineReflectiveTests(SdkExtensionFinderTest);
+    defineReflectiveTests(SdkLibrariesReaderTest);
+    defineReflectiveTests(SdkLibraryImplTest);
+  });
 }
 
 @reflectiveTest
 class EmbedderSdkTest extends EmbedderRelatedTest {
   void test_creation() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
 
@@ -40,7 +43,7 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
 
   void test_fromFileUri() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
 
@@ -52,26 +55,66 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       expect(source.fullName, posixToOSPath(posixPath));
     }
 
-    expectSource('/tmp/slippy.dart', 'dart:fox');
-    expectSource('/tmp/deep/directory/file.dart', 'dart:deep');
-    expectSource('/tmp/deep/directory/part.dart', 'dart:deep/part.dart');
+    expectSource('$foxLib/slippy.dart', 'dart:fox');
+    expectSource('$foxLib/deep/directory/file.dart', 'dart:deep');
+    expectSource('$foxLib/deep/directory/part.dart', 'dart:deep/part.dart');
+  }
+
+  void test_getLinkedBundle_hasBundle() {
+    pathTranslator.newFileWithBytes(
+        '$foxPath/sdk.ds', new PackageBundleAssembler().assemble().toBuffer());
+    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
+    });
+    // No bundle for spec mode.
+    {
+      EmbedderSdk sdk =
+          new EmbedderSdk(resourceProvider, locator.embedderYamls);
+      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = false;
+      sdk.useSummary = true;
+      expect(sdk.getLinkedBundle(), isNull);
+    }
+    // Has bundle for strong mode.
+    {
+      EmbedderSdk sdk =
+          new EmbedderSdk(resourceProvider, locator.embedderYamls);
+      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+      sdk.useSummary = true;
+      expect(sdk.getLinkedBundle(), isNotNull);
+    }
+    // Don't use bundle if not enabled.
+    {
+      EmbedderSdk sdk =
+          new EmbedderSdk(resourceProvider, locator.embedderYamls);
+      sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = true;
+      sdk.useSummary = false;
+      expect(sdk.getLinkedBundle(), isNull);
+    }
+  }
+
+  void test_getLinkedBundle_noBundle() {
+    EmbedderYamlLocator locator = new EmbedderYamlLocator({
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
+    });
+    EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
+    expect(sdk.getLinkedBundle(), isNull);
   }
 
   void test_getSdkLibrary() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
 
     SdkLibrary lib = sdk.getSdkLibrary('dart:fox');
     expect(lib, isNotNull);
-    expect(lib.path, posixToOSPath('/tmp/slippy.dart'));
+    expect(lib.path, posixToOSPath('$foxLib/slippy.dart'));
     expect(lib.shortName, 'dart:fox');
   }
 
   void test_mapDartUri() {
     EmbedderYamlLocator locator = new EmbedderYamlLocator({
-      'fox': [pathTranslator.getResource('/tmp')]
+      'fox': <Folder>[pathTranslator.getResource(foxLib)]
     });
     EmbedderSdk sdk = new EmbedderSdk(resourceProvider, locator.embedderYamls);
 
@@ -82,10 +125,10 @@ class EmbedderSdkTest extends EmbedderRelatedTest {
       expect(source.fullName, posixToOSPath(posixPath));
     }
 
-    expectSource('dart:core', '/tmp/core.dart');
-    expectSource('dart:fox', '/tmp/slippy.dart');
-    expectSource('dart:deep', '/tmp/deep/directory/file.dart');
-    expectSource('dart:deep/part.dart', '/tmp/deep/directory/part.dart');
+    expectSource('dart:core', '$foxLib/core.dart');
+    expectSource('dart:fox', '$foxLib/slippy.dart');
+    expectSource('dart:deep', '$foxLib/deep/directory/file.dart');
+    expectSource('dart:deep/part.dart', '$foxLib/deep/directory/part.dart');
   }
 }
 
@@ -95,6 +138,17 @@ class FolderBasedDartSdkTest {
    * The resource provider used by these tests.
    */
   MemoryResourceProvider resourceProvider;
+
+  void test_addExtensions() {
+    FolderBasedDartSdk sdk = _createDartSdk();
+    String uri = 'dart:my.internal';
+    sdk.addExtensions({uri: '/Users/user/dart/my.dart'});
+    expect(sdk.mapDartUri(uri), isNotNull);
+    // The `shortName` property must include the `dart:` prefix.
+    expect(sdk.sdkLibraries, contains(predicate((SdkLibrary library) {
+      return library.shortName == uri;
+    })));
+  }
 
   void test_analysisOptions_afterContextCreation() {
     FolderBasedDartSdk sdk = _createDartSdk();
@@ -221,7 +275,8 @@ class FolderBasedDartSdkTest {
 
   FolderBasedDartSdk _createDartSdk() {
     resourceProvider = new MemoryResourceProvider();
-    Folder sdkDirectory = resourceProvider.getFolder('/sdk');
+    Folder sdkDirectory =
+        resourceProvider.getFolder(resourceProvider.convertPath('/sdk'));
     _createFile(sdkDirectory,
         ['lib', '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'],
         content: _librariesFileContent());
@@ -282,7 +337,62 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
 }
 
 @reflectiveTest
-class SDKLibrariesReaderTest extends EngineTestCase {
+class SdkExtensionFinderTest {
+  MemoryResourceProvider resourceProvider;
+
+  void setUp() {
+    resourceProvider = new MemoryResourceProvider();
+    resourceProvider.newFolder(resourceProvider.convertPath('/empty'));
+    resourceProvider.newFolder(resourceProvider.convertPath('/tmp'));
+    resourceProvider.newFile(
+        resourceProvider.convertPath('/tmp/_sdkext'),
+        r'''
+{
+  "dart:fox": "slippy.dart",
+  "dart:bear": "grizzly.dart",
+  "dart:relative": "../relative.dart",
+  "dart:deep": "deep/directory/file.dart",
+  "fart:loudly": "nomatter.dart"
+}''');
+  }
+
+  test_create_noSdkExtPackageMap() {
+    var resolver = new SdkExtensionFinder({
+      'fox': <Folder>[
+        resourceProvider.getResource(resourceProvider.convertPath('/empty'))
+      ]
+    });
+    expect(resolver.urlMappings.length, equals(0));
+  }
+
+  test_create_nullPackageMap() {
+    var resolver = new SdkExtensionFinder(null);
+    expect(resolver.urlMappings.length, equals(0));
+  }
+
+  test_create_sdkExtPackageMap() {
+    var resolver = new SdkExtensionFinder({
+      'fox': <Folder>[
+        resourceProvider.getResource(resourceProvider.convertPath('/tmp'))
+      ]
+    });
+    // We have four mappings.
+    Map<String, String> urlMappings = resolver.urlMappings;
+    expect(urlMappings.length, equals(4));
+    // Check that they map to the correct paths.
+    expect(urlMappings['dart:fox'],
+        equals(resourceProvider.convertPath("/tmp/slippy.dart")));
+    expect(urlMappings['dart:bear'],
+        equals(resourceProvider.convertPath("/tmp/grizzly.dart")));
+    expect(urlMappings['dart:relative'],
+        equals(resourceProvider.convertPath("/relative.dart")));
+    expect(urlMappings['dart:deep'],
+        equals(resourceProvider.convertPath("/tmp/deep/directory/file.dart")));
+  }
+}
+
+@reflectiveTest
+class SdkLibrariesReaderTest extends EngineTestCase {
   /**
    * The resource provider used by these tests.
    */
@@ -363,5 +473,149 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(second.isDocumented, false);
     expect(second.isImplementation, true);
     expect(second.isVmLibrary, false);
+  }
+
+  void test_readFrom_patches() {
+    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
+        resourceProvider.getFile('/libs.dart'),
+        r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'foo' : const LibraryInfo(
+    'foo/foo.dart',
+    patches: {
+      DART2JS_PLATFORM | VM_PLATFORM: ['a', 'b'],
+      DART2JS_PLATFORM: ['c', 'd'],
+      VM_PLATFORM: ['e']}),
+};''');
+    expect(libraryMap, isNotNull);
+    expect(libraryMap.size(), 1);
+    SdkLibrary library = libraryMap.getLibrary('dart:foo');
+    expect(library, isNotNull);
+    expect(library.path, 'foo/foo.dart');
+    expect(library.shortName, 'dart:foo');
+    expect(library.getPatches(SdkLibraryImpl.DART2JS_PLATFORM),
+        unorderedEquals(['a', 'b', 'c', 'd']));
+    expect(library.getPatches(SdkLibraryImpl.VM_PLATFORM),
+        unorderedEquals(['a', 'b', 'e']));
+  }
+
+  void test_readFrom_patches_invalid_notList() {
+    expect(() {
+      new SdkLibrariesReader(false).readFromFile(
+          resourceProvider.getFile('/libs.dart'),
+          r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'foo' : const LibraryInfo(
+    'foo/foo.dart',
+    patches: {
+      VM_PLATFORM: 'X'}),
+};''');
+    }, throwsArgumentError);
+  }
+
+  void test_readFrom_patches_invalid_notString_inList() {
+    expect(() {
+      new SdkLibrariesReader(false).readFromFile(
+          resourceProvider.getFile('/libs.dart'),
+          r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'foo' : const LibraryInfo(
+    'foo/foo.dart',
+    patches: {
+      VM_PLATFORM: [42]}),
+};''');
+    }, throwsArgumentError);
+  }
+
+  void test_readFrom_patches_invalid_path_hasDotDot() {
+    _assertPatchPathIsInvalid('foo/../bar.dart');
+    _assertPatchPathIsInvalid('../foo/bar.dart');
+    _assertPatchPathIsInvalid('foo/bar..dart');
+  }
+
+  void test_readFrom_patches_invalid_path_isAbsolute() {
+    _assertPatchPathIsInvalid('/foo.dart');
+    _assertPatchPathIsInvalid('/foo/bar.dart');
+  }
+
+  void test_readFrom_patches_invalid_path_notPosix() {
+    _assertPatchPathIsInvalid(r'foo\bar.dart');
+  }
+
+  void test_readFrom_patches_invalid_platformCombinator() {
+    expect(() {
+      new SdkLibrariesReader(false).readFromFile(
+          resourceProvider.getFile('/libs.dart'),
+          r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'foo' : const LibraryInfo(
+    'foo/foo.dart',
+    patches: {
+      DART2JS_PLATFORM + VM_PLATFORM: ['X']}),
+};''');
+    }, throwsArgumentError);
+  }
+
+  void test_readFrom_patches_invalid_unknownPlatform() {
+    expect(() {
+      new SdkLibrariesReader(false).readFromFile(
+          resourceProvider.getFile('/libs.dart'),
+          r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'foo' : const LibraryInfo(
+    'foo/foo.dart',
+    patches: {
+      MY_UNKNOWN_PLATFORM: ['foo/bar_patch.dart']}),
+};''');
+    }, throwsArgumentError);
+  }
+
+  void test_readFrom_patches_no() {
+    LibraryMap libraryMap = new SdkLibrariesReader(false).readFromFile(
+        resourceProvider.getFile('/libs.dart'),
+        r'''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'my' : const LibraryInfo('my/my.dart')
+};''');
+    expect(libraryMap, isNotNull);
+    expect(libraryMap.size(), 1);
+    SdkLibrary library = libraryMap.getLibrary('dart:my');
+    expect(library, isNotNull);
+    expect(library.path, 'my/my.dart');
+    expect(library.shortName, 'dart:my');
+    expect(library.getPatches(SdkLibraryImpl.VM_PLATFORM), isEmpty);
+    expect(library.getPatches(SdkLibraryImpl.DART2JS_PLATFORM), isEmpty);
+  }
+
+  void _assertPatchPathIsInvalid(String patchPath) {
+    expect(() {
+      new SdkLibrariesReader(false).readFromFile(
+          resourceProvider.getFile('/libs.dart'),
+          '''
+final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
+  'foo' : const LibraryInfo(
+    'foo/foo.dart',
+    patches: {
+      VM_PLATFORM: [r'$patchPath']}),
+};''');
+    }, throwsArgumentError);
+  }
+}
+
+@reflectiveTest
+class SdkLibraryImplTest extends EngineTestCase {
+  void test_patches() {
+    SdkLibraryImpl library = new SdkLibraryImpl('dart:foo');
+    // Set patches.
+    library.setPatchPaths(
+        SdkLibraryImpl.DART2JS_PLATFORM | SdkLibraryImpl.VM_PLATFORM,
+        ['a', 'b']);
+    library.setPatchPaths(SdkLibraryImpl.DART2JS_PLATFORM, ['c', 'd']);
+    library.setPatchPaths(SdkLibraryImpl.VM_PLATFORM, ['e']);
+    // Get patches.
+    expect(library.getPatches(SdkLibraryImpl.DART2JS_PLATFORM),
+        unorderedEquals(['a', 'b', 'c', 'd']));
+    expect(library.getPatches(SdkLibraryImpl.VM_PLATFORM),
+        unorderedEquals(['a', 'b', 'e']));
   }
 }

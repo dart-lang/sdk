@@ -112,7 +112,6 @@ class Parser {
     int count = 0;
     while (!identical(token.kind, EOF_TOKEN)) {
       token = parseTopLevelDeclaration(token);
-      listener.endTopLevelDeclaration(token);
       count++;
     }
     listener.endCompilationUnit(count, token);
@@ -120,6 +119,12 @@ class Parser {
   }
 
   Token parseTopLevelDeclaration(Token token) {
+    token = _parseTopLevelDeclaration(token);
+    listener.endTopLevelDeclaration(token);
+    return token;
+  }
+
+  Token _parseTopLevelDeclaration(Token token) {
     token = parseMetadataStar(token);
     final String value = token.stringValue;
     if ((identical(value, 'abstract') && optional('class', token.next)) ||
@@ -475,8 +480,6 @@ class Parser {
       if (type.isRequired) {
         listener.reportError(
             equal, MessageKind.REQUIRED_PARAMETER_WITH_DEFAULT);
-      } else if (type.isNamed && identical('=', value)) {
-        listener.reportError(equal, MessageKind.NAMED_PARAMETER_WITH_EQUALS);
       } else if (type.isPositional && identical(':', value)) {
         listener.reportError(
             equal, MessageKind.POSITIONAL_PARAMETER_WITH_EQUALS);
@@ -1357,11 +1360,14 @@ class Parser {
 
   Token parseMember(Token token) {
     token = parseMetadataStar(token);
-    if (isFactoryDeclaration(token)) {
-      return parseFactoryMethod(token);
-    }
     Token start = token;
     listener.beginMember(token);
+    if (isFactoryDeclaration(token)) {
+      token = parseFactoryMethod(token);
+      listener.endMember();
+      assert (token != null);
+      return token;
+    }
 
     Link<Token> identifiers = findMemberName(token);
     if (identifiers.isEmpty) {
@@ -1427,15 +1433,18 @@ class Parser {
         if (identical(token.kind, EOF_TOKEN)) {
           // TODO(ahe): This is a hack, see parseTopLevelMember.
           listener.endFields(1, start, token);
+          listener.endMember();
           return token;
         }
       }
     }
 
     var modifiers = identifiers.reverse();
-    return isField
+    token = isField
         ? parseFields(start, modifiers, type, getOrSet, name, false)
         : parseMethod(start, modifiers, type, getOrSet, name);
+    listener.endMember();
+    return token;
   }
 
   Token parseMethod(Token start, Link<Token> modifiers, Token type,

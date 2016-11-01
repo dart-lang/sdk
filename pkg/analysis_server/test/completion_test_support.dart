@@ -8,8 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analyzer/src/generated/java_core.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'domain_completion_test.dart';
 
@@ -151,19 +150,18 @@ class LocationSpec {
           modifiedSource.substring(index + n);
     }
     if (modifiedSource == originalSource) {
-      throw new IllegalStateException("No tests in source: " + originalSource);
+      throw new StateError("No tests in source: " + originalSource);
     }
     for (String result in validationStrings) {
       if (result.length < 3) {
-        throw new IllegalStateException("Invalid location result: " + result);
+        throw new StateError("Invalid location result: " + result);
       }
       String id = result.substring(0, 1);
       String sign = result.substring(1, 2);
       String value = result.substring(2);
       LocationSpec test = tests[id];
       if (test == null) {
-        throw new IllegalStateException(
-            "Invalid location result id: $id for: $result");
+        throw new StateError("Invalid location result id: $id for: $result");
       }
       test.source = modifiedSource;
       if (sign == '+') {
@@ -172,7 +170,7 @@ class LocationSpec {
         test.negativeResults.add(value);
       } else {
         String err = "Invalid location result sign: $sign for: $result";
-        throw new IllegalStateException(err);
+        throw new StateError(err);
       }
     }
     List<String> badPoints = <String>[];
@@ -200,7 +198,7 @@ class LocationSpec {
           err..write(' ')..write(ch);
         }
       }
-      throw new IllegalStateException(err.toString());
+      throw new StateError(err.toString());
     }
     return tests.values.toList();
   }

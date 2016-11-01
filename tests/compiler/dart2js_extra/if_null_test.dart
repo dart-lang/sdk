@@ -4,7 +4,8 @@
 
 import "package:expect/expect.dart";
 
-@NoInline() @AssumeDynamic()
+@NoInline()
+@AssumeDynamic()
 confuse(x) => x;
 
 main(args) {
@@ -26,8 +27,13 @@ main(args) {
   new D();
 }
 
-class A { m() => 'a'; }
-class B { m() => 'b'; }
+class A {
+  m() => 'a';
+}
+
+class B {
+  m() => 'b';
+}
 
 class C {
   var y;

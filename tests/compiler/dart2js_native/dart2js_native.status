@@ -9,6 +9,13 @@
 native_no_such_method_exception4_frog_test: CompileTimeError # Issue 9631
 native_no_such_method_exception5_frog_test: CompileTimeError # Issue 9631
 
+[ $compiler == dart2js && $fast_startup ]
+mirror_intercepted_field_test: Fail # mirrors not supported
+native_mirror_test: Fail # mirrors not supported
+native_no_such_method_exception3_frog_test: Fail # mirrors not supported
+native_no_such_method_exception4_frog_test: Fail # mirrors not supported
+native_no_such_method_exception5_frog_test: Fail # mirrors not supported
+
 [ $compiler == dart2js && $cps_ir == false ]
 bound_closure_super_test: Fail
 fake_thing_test: Fail # Issue 13010

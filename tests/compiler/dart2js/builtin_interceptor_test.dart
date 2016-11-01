@@ -27,14 +27,14 @@ foo() {
 
 main() {
   asyncTest(() => Future.wait([
-    compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("return 3;"));
-    }),
-    compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("return 3;"));
-    }),
-    compile(TEST_THREE, entry: 'foo', check: (String generated) {
-      Expect.isTrue(generated.contains("push(2);"));
-    }),
-  ]));
+        compile(TEST_ONE, entry: 'foo', check: (String generated) {
+          Expect.isTrue(generated.contains("return 3;"));
+        }),
+        compile(TEST_TWO, entry: 'foo', check: (String generated) {
+          Expect.isTrue(generated.contains("return 3;"));
+        }),
+        compile(TEST_THREE, entry: 'foo', check: (String generated) {
+          Expect.isTrue(generated.contains("push(2);"));
+        }),
+      ]));
 }

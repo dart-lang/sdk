@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_INTERMEDIATE_LANGUAGE_H_
-#define VM_INTERMEDIATE_LANGUAGE_H_
+#ifndef RUNTIME_VM_INTERMEDIATE_LANGUAGE_H_
+#define RUNTIME_VM_INTERMEDIATE_LANGUAGE_H_
 
 #include "vm/allocation.h"
 #include "vm/ast.h"
 #include "vm/growable_array.h"
-#include "vm/handles_impl.h"
 #include "vm/locations.h"
 #include "vm/method_recognizer.h"
 #include "vm/object.h"
@@ -341,9 +340,6 @@ class Value : public ZoneAllocated {
 
   bool IsSmiValue() { return Type()->ToCid() == kSmiCid; }
 
-  // Returns true if this value binds to the constant: 0xFFFFFFFF.
-  bool BindsTo32BitMaskConstant() const;
-
   // Return true if the value represents a constant.
   bool BindsToConstant() const;
 
@@ -501,6 +497,7 @@ class EmbeddedArray<T, 0> {
   M(UnboxedConstant)                                                           \
   M(CheckEitherNonSmi)                                                         \
   M(BinaryDoubleOp)                                                            \
+  M(DoubleTestOp)                                                              \
   M(MathUnary)                                                                 \
   M(MathMinMax)                                                                \
   M(Box)                                                                       \
@@ -901,6 +898,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   friend class ComparisonInstr;
   friend class Scheduler;
   friend class BlockEntryInstr;
+  friend class CatchBlockEntryInstr;  // deopt_id_
 
   // Fetch deopt id without checking if this computation can deoptimize.
   intptr_t GetDeoptId() const {
@@ -912,6 +910,9 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
  private:
+  friend class BranchInstr;  // For RawSetInputAt.
+  friend class IfThenElseInstr;  // For RawSetInputAt.
+
   virtual void RawSetInputAt(intptr_t i, Value* value) = 0;
 
   enum {
@@ -1178,8 +1179,7 @@ class BlockEntryInstr : public Instruction {
 
   // Perform a depth first search to prune code not reachable from an OSR
   // entry point.
-  bool PruneUnreachable(FlowGraphBuilder* builder,
-                        GraphEntryInstr* graph_entry,
+  bool PruneUnreachable(GraphEntryInstr* graph_entry,
                         Instruction* parent,
                         intptr_t osr_id,
                         BitVector* block_marks);
@@ -1568,7 +1568,9 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
                        intptr_t catch_try_index,
                        const LocalVariable& exception_var,
                        const LocalVariable& stacktrace_var,
-                       bool needs_stacktrace)
+                       bool needs_stacktrace,
+                       intptr_t deopt_id,
+                       bool should_restore_closure_context = false)
       : BlockEntryInstr(block_id, try_index),
         graph_entry_(graph_entry),
         predecessor_(NULL),
@@ -1576,7 +1578,10 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
         catch_try_index_(catch_try_index),
         exception_var_(exception_var),
         stacktrace_var_(stacktrace_var),
-        needs_stacktrace_(needs_stacktrace) { }
+        needs_stacktrace_(needs_stacktrace),
+        should_restore_closure_context_(should_restore_closure_context) {
+    deopt_id_ = deopt_id;
+  }
 
   DECLARE_INSTRUCTION(CatchBlockEntry)
 
@@ -1615,6 +1620,12 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
     predecessor_ = predecessor;
   }
 
+  bool should_restore_closure_context() const {
+    ASSERT(exception_var_.is_captured() == stacktrace_var_.is_captured());
+    ASSERT(!exception_var_.is_captured() || should_restore_closure_context_);
+    return should_restore_closure_context_;
+  }
+
   GraphEntryInstr* graph_entry_;
   BlockEntryInstr* predecessor_;
   const Array& catch_handler_types_;
@@ -1623,6 +1634,7 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
   const LocalVariable& exception_var_;
   const LocalVariable& stacktrace_var_;
   const bool needs_stacktrace_;
+  const bool should_restore_closure_context_;
 
   DISALLOW_COPY_AND_ASSIGN(CatchBlockEntryInstr);
 };
@@ -2345,10 +2357,10 @@ class IndirectGotoInstr : public TemplateInstruction<1, NoThrow> {
 };
 
 
-class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
+class ComparisonInstr : public Definition {
  public:
-  Value* left() const { return inputs_[0]; }
-  Value* right() const { return inputs_[1]; }
+  Value* left() const { return InputAt(0); }
+  Value* right() const { return InputAt(1); }
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
@@ -2387,17 +2399,11 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
  protected:
   ComparisonInstr(TokenPosition token_pos,
                   Token::Kind kind,
-                  Value* left,
-                  Value* right,
                   intptr_t deopt_id = Thread::kNoDeoptId)
-      : TemplateDefinition(deopt_id),
+      : Definition(deopt_id),
         token_pos_(token_pos),
         kind_(kind),
         operation_cid_(kIllegalCid) {
-    SetInputAt(0, left);
-    if (right != NULL) {
-      SetInputAt(1, right);
-    }
   }
 
  private:
@@ -2406,6 +2412,47 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
   intptr_t operation_cid_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(ComparisonInstr);
+};
+
+
+class PureComparison : public ComparisonInstr {
+ public:
+  virtual bool AllowsCSE() const { return true; }
+  virtual EffectSet Dependencies() const { return EffectSet::None(); }
+
+  virtual EffectSet Effects() const { return EffectSet::None(); }
+
+ protected:
+  PureComparison(TokenPosition token_pos, Token::Kind kind, intptr_t deopt_id)
+      : ComparisonInstr(token_pos, kind, deopt_id) { }
+};
+
+
+template<intptr_t N,
+         typename ThrowsTrait,
+         template<typename Impure, typename Pure> class CSETrait = NoCSE>
+class TemplateComparison : public CSETrait<
+    ComparisonInstr, PureComparison>::Base {
+ public:
+  TemplateComparison(TokenPosition token_pos,
+                     Token::Kind kind,
+                     intptr_t deopt_id = Thread::kNoDeoptId)
+      : CSETrait<ComparisonInstr, PureComparison>::Base(
+            token_pos, kind, deopt_id),
+        inputs_() { }
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  virtual bool MayThrow() const { return ThrowsTrait::kCanThrow; }
+
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
+ private:
+  virtual void RawSetInputAt(intptr_t i, Value* value) {
+    inputs_[i] = value;
+  }
 };
 
 
@@ -2777,17 +2824,27 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
                    ClosureCallNode* node,
                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
-        ast_node_(*node),
+        argument_names_(node->arguments()->names()),
+        token_pos_(node->token_pos()),
+        arguments_(arguments) {
+    SetInputAt(0, function);
+  }
+
+  ClosureCallInstr(Value* function,
+                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                   const Array& argument_names,
+                   TokenPosition token_pos)
+      : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
+        argument_names_(argument_names),
+        token_pos_(token_pos),
         arguments_(arguments) {
     SetInputAt(0, function);
   }
 
   DECLARE_INSTRUCTION(ClosureCall)
 
-  const Array& argument_names() const { return ast_node_.arguments()->names(); }
-  virtual TokenPosition token_pos() const {
-    return ast_node_.token_pos();
-  }
+  const Array& argument_names() const { return argument_names_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
@@ -2804,7 +2861,8 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
   PRINT_OPERANDS_TO_SUPPORT
 
  private:
-  const ClosureCallNode& ast_node_;
+  const Array& argument_names_;
+  TokenPosition token_pos_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
@@ -2827,7 +2885,8 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
         token_kind_(token_kind),
         arguments_(arguments),
         argument_names_(argument_names),
-        checked_argument_count_(checked_argument_count) {
+        checked_argument_count_(checked_argument_count),
+        has_unique_selector_(false) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(!arguments->is_empty());
@@ -2864,6 +2923,11 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   const Array& argument_names() const { return argument_names_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
+  bool has_unique_selector() const { return has_unique_selector_; }
+  void set_has_unique_selector(bool b) {
+    has_unique_selector_ = b;
+  }
+
   virtual bool CanDeoptimize() const { return true; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
@@ -2888,6 +2952,7 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
   const Array& argument_names_;
   const intptr_t checked_argument_count_;
+  bool has_unique_selector_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceCallInstr);
 };
@@ -2910,6 +2975,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
   bool with_checks() const { return with_checks_; }
+  void set_with_checks(bool b) { with_checks_ = b; }
   bool complete() const { return complete_; }
   virtual TokenPosition token_pos() const {
     return instance_call_->token_pos();
@@ -2926,8 +2992,6 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   bool HasSingleRecognizedTarget() const;
 
-  bool HasOnlyDispatcherTargets() const;
-
   virtual intptr_t CallCount() const { return ic_data().AggregateCount(); }
 
   DECLARE_INSTRUCTION(PolymorphicInstanceCall)
@@ -2943,14 +3007,14 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
  private:
   InstanceCallInstr* instance_call_;
   const ICData& ic_data_;
-  const bool with_checks_;
+  bool with_checks_;
   const bool complete_;
 
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);
 };
 
 
-class StrictCompareInstr : public ComparisonInstr {
+class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   StrictCompareInstr(TokenPosition token_pos,
                      Token::Kind kind,
@@ -2992,14 +3056,16 @@ class StrictCompareInstr : public ComparisonInstr {
 
 // Comparison instruction that is equivalent to the (left & right) == 0
 // comparison pattern.
-class TestSmiInstr : public ComparisonInstr {
+class TestSmiInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   TestSmiInstr(TokenPosition token_pos,
                Token::Kind kind,
                Value* left,
                Value* right)
-      : ComparisonInstr(token_pos, kind, left, right) {
+      : TemplateComparison(token_pos, kind) {
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
+    SetInputAt(0, left);
+    SetInputAt(1, right);
   }
 
   DECLARE_INSTRUCTION(TestSmi);
@@ -3027,23 +3093,20 @@ class TestSmiInstr : public ComparisonInstr {
 
 // Checks the input value cid against cids stored in a table and returns either
 // a result or deoptimizes.
-// TODO(srdjan): Modify ComparisonInstr to allow 1 or 2 arguments, since
-// TestCidInstr needs only one argument
-class TestCidsInstr : public ComparisonInstr {
+class TestCidsInstr : public TemplateComparison<1, NoThrow, Pure> {
  public:
   TestCidsInstr(TokenPosition token_pos,
                 Token::Kind kind,
                 Value* value,
                 const ZoneGrowableArray<intptr_t>& cid_results,
                 intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, value, NULL, deopt_id),
+      : TemplateComparison(token_pos, kind, deopt_id),
         cid_results_(cid_results),
         licm_hoisted_(false) {
     ASSERT((kind == Token::kIS) || (kind == Token::kISNOT));
+    SetInputAt(0, value);
     set_operation_cid(kObjectCid);
   }
-
-  virtual intptr_t InputCount() const { return 1; }
 
   const ZoneGrowableArray<intptr_t>& cid_results() const {
     return cid_results_;
@@ -3084,7 +3147,7 @@ class TestCidsInstr : public ComparisonInstr {
 };
 
 
-class EqualityCompareInstr : public ComparisonInstr {
+class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   EqualityCompareInstr(TokenPosition token_pos,
                        Token::Kind kind,
@@ -3092,8 +3155,10 @@ class EqualityCompareInstr : public ComparisonInstr {
                        Value* right,
                        intptr_t cid,
                        intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, left, right, deopt_id) {
+      : TemplateComparison(token_pos, kind, deopt_id) {
     ASSERT(Token::IsEqualityOperator(kind));
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     set_operation_cid(cid);
   }
 
@@ -3125,7 +3190,7 @@ class EqualityCompareInstr : public ComparisonInstr {
 };
 
 
-class RelationalOpInstr : public ComparisonInstr {
+class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   RelationalOpInstr(TokenPosition token_pos,
                     Token::Kind kind,
@@ -3133,8 +3198,10 @@ class RelationalOpInstr : public ComparisonInstr {
                     Value* right,
                     intptr_t cid,
                     intptr_t deopt_id)
-      : ComparisonInstr(token_pos, kind, left, right, deopt_id) {
+      : TemplateComparison(token_pos, kind, deopt_id) {
     ASSERT(Token::IsRelationalOperator(kind));
+    SetInputAt(0, left);
+    SetInputAt(1, right);
     set_operation_cid(cid);
   }
 
@@ -3263,10 +3330,10 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
         arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
-        is_native_list_factory_(false),
         identity_(AliasIdentity::Unknown()) {
     ic_data_ = GetICData(ic_data_array);
     ASSERT(function.IsZoneHandle());
+    ASSERT(!function.IsNull());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
 
@@ -3283,9 +3350,9 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
         arguments_(arguments),
         result_cid_(kDynamicCid),
         is_known_list_constructor_(false),
-        is_native_list_factory_(false),
         identity_(AliasIdentity::Unknown()) {
     ASSERT(function.IsZoneHandle());
+    ASSERT(!function.IsNull());
     ASSERT(argument_names.IsZoneHandle() ||  argument_names.InVMHeap());
   }
 
@@ -3329,13 +3396,8 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
     is_known_list_constructor_ = value;
   }
 
-  bool is_native_list_factory() const { return is_native_list_factory_; }
-  void set_is_native_list_factory(bool value) {
-    is_native_list_factory_ = value;
-  }
-
   bool IsRecognizedFactory() const {
-    return is_known_list_constructor() || is_native_list_factory();
+    return is_known_list_constructor();
   }
 
   virtual AliasIdentity Identity() const { return identity_; }
@@ -3353,7 +3415,6 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
   // 'True' for recognized list constructors.
   bool is_known_list_constructor_;
-  bool is_native_list_factory_;
 
   AliasIdentity identity_;
 
@@ -3493,33 +3554,32 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
 class NativeCallInstr : public TemplateDefinition<0, Throws> {
  public:
   explicit NativeCallInstr(NativeBodyNode* node)
-      : ast_node_(*node),
+      : native_name_(&node->native_c_function_name()),
+        function_(&node->function()),
         native_c_function_(NULL),
-        is_bootstrap_native_(false) { }
+        is_bootstrap_native_(false),
+        link_lazily_(node->link_lazily()),
+        token_pos_(node->token_pos()) { }
+
+  NativeCallInstr(const String* name,
+                  const Function* function,
+                  bool link_lazily,
+                  TokenPosition position)
+      : native_name_(name),
+        function_(function),
+        native_c_function_(NULL),
+        is_bootstrap_native_(false),
+        link_lazily_(link_lazily),
+        token_pos_(position) { }
 
   DECLARE_INSTRUCTION(NativeCall)
 
-  virtual TokenPosition token_pos() const {
-    return ast_node_.token_pos();
-  }
-
-  const Function& function() const { return ast_node_.function(); }
-
-  const String& native_name() const {
-    return ast_node_.native_c_function_name();
-  }
-
-  NativeFunction native_c_function() const {
-    return native_c_function_;
-  }
-
-  bool is_bootstrap_native() const {
-    return is_bootstrap_native_;
-  }
-
-  bool link_lazily() const {
-    return ast_node_.link_lazily();
-  }
+  const String& native_name() const { return *native_name_; }
+  const Function& function() const { return *function_; }
+  NativeFunction native_c_function() const { return native_c_function_; }
+  bool is_bootstrap_native() const { return is_bootstrap_native_; }
+  bool link_lazily() const { return link_lazily_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -3536,9 +3596,12 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
   void set_is_bootstrap_native(bool value) { is_bootstrap_native_ = value; }
 
-  const NativeBodyNode& ast_node_;
+  const String* native_name_;
+  const Function* function_;
   NativeFunction native_c_function_;
   bool is_bootstrap_native_;
+  bool link_lazily_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeCallInstr);
 };
@@ -3817,6 +3880,10 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);
 };
 
+enum AlignmentType {
+  kUnalignedAccess,
+  kAlignedAccess,
+};
 
 class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
  public:
@@ -3824,15 +3891,9 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
                    Value* index,
                    intptr_t index_scale,
                    intptr_t class_id,
+                   AlignmentType alignment,
                    intptr_t deopt_id,
-                   TokenPosition token_pos)
-      : TemplateDefinition(deopt_id),
-        index_scale_(index_scale),
-        class_id_(class_id),
-        token_pos_(token_pos) {
-    SetInputAt(0, array);
-    SetInputAt(1, index);
-  }
+                   TokenPosition token_pos);
 
   TokenPosition token_pos() const { return token_pos_; }
 
@@ -3854,6 +3915,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   Value* index() const { return inputs_[1]; }
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
+  bool aligned() const { return alignment_ == kAlignedAccess; }
 
   virtual bool CanDeoptimize() const {
     return GetDeoptId() != Thread::kNoDeoptId;
@@ -3867,6 +3929,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
  private:
   const intptr_t index_scale_;
   const intptr_t class_id_;
+  const AlignmentType alignment_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
@@ -4030,18 +4093,9 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
                     StoreBarrierType emit_store_barrier,
                     intptr_t index_scale,
                     intptr_t class_id,
+                    AlignmentType alignment,
                     intptr_t deopt_id,
-                    TokenPosition token_pos)
-      : TemplateDefinition(deopt_id),
-        emit_store_barrier_(emit_store_barrier),
-        index_scale_(index_scale),
-        class_id_(class_id),
-        token_pos_(token_pos) {
-    SetInputAt(kArrayPos, array);
-    SetInputAt(kIndexPos, index);
-    SetInputAt(kValuePos, value);
-  }
-
+                    TokenPosition token_pos);
   DECLARE_INSTRUCTION(StoreIndexed)
 
   enum {
@@ -4056,6 +4110,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
 
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
+  bool aligned() const { return alignment_ == kAlignedAccess; }
 
   bool ShouldEmitStoreBarrier() const {
     return value()->NeedsStoreBuffer()
@@ -4082,6 +4137,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
   const StoreBarrierType emit_store_barrier_;
   const intptr_t index_scale_;
   const intptr_t class_id_;
+  const AlignmentType alignment_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
@@ -5103,8 +5159,6 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
   enum MathUnaryKind {
     kIllegal,
-    kSin,
-    kCos,
     kSqrt,
     kDoubleSquare,
   };
@@ -5115,7 +5169,6 @@ class MathUnaryInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   Value* value() const { return inputs_[0]; }
   MathUnaryKind kind() const { return kind_; }
-  const RuntimeEntry& TargetFunction() const;
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -5321,6 +5374,55 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
+};
+
+
+class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
+ public:
+  DoubleTestOpInstr(MethodRecognizer::Kind op_kind,
+                    Value* value,
+                    intptr_t deopt_id,
+                    TokenPosition token_pos)
+      : TemplateComparison(token_pos, Token::kEQ, deopt_id),
+        op_kind_(op_kind) {
+    SetInputAt(0, value);
+  }
+
+  Value* value() const { return InputAt(0); }
+
+  MethodRecognizer::Kind op_kind() const { return op_kind_; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+  DECLARE_INSTRUCTION(DoubleTestOp)
+  virtual CompileType ComputeType() const;
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool AttributesEqual(Instruction* other) const {
+    return op_kind_ == other->AsDoubleTestOp()->op_kind()
+        && ComparisonInstr::AttributesEqual(other);
+  }
+
+  virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right);
+
+  virtual void EmitBranchCode(FlowGraphCompiler* compiler,
+                              BranchInstr* branch);
+
+  virtual Condition EmitComparisonCode(FlowGraphCompiler* compiler,
+                                       BranchLabels labels);
+
+ private:
+  const MethodRecognizer::Kind op_kind_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
 };
 
 
@@ -7697,7 +7799,7 @@ class MergedMathInstr : public PureDefinition {
     return (*inputs_)[i];
   }
 
-  static intptr_t OutputIndexOf(intptr_t kind);
+  static intptr_t OutputIndexOf(MethodRecognizer::Kind kind);
   static intptr_t OutputIndexOf(Token::Kind token);
 
   virtual CompileType ComputeType() const;
@@ -8319,4 +8421,4 @@ class FlowGraphVisitor : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_INTERMEDIATE_LANGUAGE_H_
+#endif  // RUNTIME_VM_INTERMEDIATE_LANGUAGE_H_

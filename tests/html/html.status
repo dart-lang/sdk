@@ -9,6 +9,9 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
 js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
+js_typed_interop_type1_test: Fail, OK # tests dart2js-specific behavior.
+js_typed_interop_type2_test: Fail, OK # tests dart2js-specific behavior.
+js_typed_interop_type3_test: Fail, OK # tests dart2js-specific behavior.
 
 native_gc_test: Skip # Dartium JSInterop failure
 
@@ -33,9 +36,6 @@ js_type_test/dynamic-String-not-dynamic-Foo: Fail  # Issue 26838
 
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
-
-[ $compiler == dart2js && $checked && $browser && $runtime != drt]
-js_typed_interop_test/method: Fail # Issue 24822
 
 [ $compiler == dart2js && $csp && $browser ]
 custom/js_custom_test: Fail # Issue 14643
@@ -74,6 +74,11 @@ native_gc_test: Pass, Slow
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
+
+[ $compiler == dart2js && $runtime == chrome ]
+fileapi_test/entry: Fail # TODO(dart2js-team): Please triage this failure.
+fileapi_test/getDirectory: Fail # TODO(dart2js-team): Please triage this failure.
+fileapi_test/getFile: Fail # TODO(dart2js-team): Please triage this failure.
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 crypto_test/functional: Pass, Slow # TODO(dart2js-team): Please triage this failure.
@@ -151,6 +156,7 @@ transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 js_util_test/callConstructor: RuntimeError # Issue 26978
 element_animate_test: Fail # Element.animate not supported on these browsers.
+gamepad_test: Fail # IE does not support Navigator.getGamepads()
 
 [$runtime == ie10 ]
 # IE10 Feature support statuses-
@@ -270,6 +276,7 @@ canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Fail # Safari doe
 element_test: Pass, Fail # Issue 21434
 mediasource_test: Pass, Fail # MediaSource only available on Safari 8 desktop, we can't express that.
 element_animate_test: Fail # Element.animate not supported on these browsers.
+gamepad_test: Fail # Safari does not support Navigator.getGamepads()
 
 # Safari Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
@@ -319,10 +326,11 @@ xhr_test/xhr: Pass, Fail # Issue 11602
 dart_object_local_storage_test: Skip  # sessionStorage NS_ERROR_DOM_NOT_SUPPORTED_ERR
 webgl_1_test: Pass, Fail   # Issue 8219
 text_event_test: Fail # Issue 17893
+element_animate_test/timing_dict: RuntimeError # Issue 26730
 
 # Firefox Feature support statuses-
 # All changes should be accompanied by platform support annotation changes.
-element_types_test/supported_details: Fail
+element_classes_test: RuntimeError # Issue 27535
 element_types_test/supported_embed: Fail
 element_types_test/supported_keygen: Fail
 element_types_test/supported_object: Fail
@@ -370,6 +378,8 @@ js_typed_interop_callable_object_test: SkipByDesign
 js_typed_interop_test: SkipByDesign
 js_typed_interop_default_arg_test: SkipByDesign
 js_typed_interop_type_test: SkipByDesign
+js_typed_interop_type1_test: SkipByDesign
+js_typed_interop_type3_test: SkipByDesign
 js_typed_interop_window_property_test: SkipByDesign
 js_function_getter_test: SkipByDesign
 js_function_getter_trust_types_test: SkipByDesign
@@ -407,6 +417,12 @@ typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
+
+[ $compiler == dart2js && $fast_startup ]
+custom/constructor_calls_created_synchronously_test: Fail # mirrors not supported
+custom/js_custom_test: Fail # mirrors not supported
+custom/mirrors_test: Fail # mirrors not supported
+mirrors_js_typed_interop_test: Fail # mirrors not supported
 
 [ $compiler == dart2js && $cps_ir && $browser ]
 js_typed_interop_side_cast_exp_test: RuntimeError # Corner case in package:js that we might want to remove (See comment in #24978).

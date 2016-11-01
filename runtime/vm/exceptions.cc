@@ -11,6 +11,7 @@
 #include "vm/debugger.h"
 #include "vm/flags.h"
 #include "vm/log.h"
+#include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -20,6 +21,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_deoptimization);
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 
@@ -127,6 +129,7 @@ static void BuildStackTrace(StacktraceBuilder* builder) {
   while (frame != NULL) {
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
+      ASSERT(code.ContainsInstructionAt(frame->pc()));
       offset = Smi::New(frame->pc() - code.PayloadStart());
       builder->AddFrame(code, offset);
     }
@@ -146,7 +149,7 @@ static bool FindExceptionHandler(Thread* thread,
                                  bool* needs_stacktrace) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != NULL);  // We expect to find a dart invocation frame.
+  if (frame == NULL) return false;  // No Dart frame.
   bool handler_pc_set = false;
   *needs_stacktrace = false;
   bool is_catch_all = false;
@@ -212,6 +215,64 @@ static void JumpToExceptionHandler(Thread* thread,
   NoSafepointScope no_safepoint;
   RawObject* raw_exception = exception_object.raw();
   RawObject* raw_stacktrace = stacktrace_object.raw();
+
+#if !defined(TARGET_ARCH_DBC)
+  MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
+      thread->isolate()->pending_deopts();
+  if (pending_deopts->length() > 0) {
+    // Check if the target frame is scheduled for lazy deopt.
+    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
+      if ((*pending_deopts)[i].fp() == frame_pointer) {
+        // Deopt should now resume in the catch handler instead of after the
+        // call.
+        (*pending_deopts)[i].set_pc(program_counter);
+
+        // Jump to the deopt stub instead of the catch handler.
+        program_counter =
+            StubCode::DeoptimizeLazyFromThrow_entry()->EntryPoint();
+        if (FLAG_trace_deoptimization) {
+          THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",
+                    frame_pointer);
+        }
+        break;
+      }
+    }
+
+    // We may be jumping over frames scheduled for lazy deopt. Remove these
+    // frames from the pending deopt table, but only after unmarking them so
+    // any stack walk that happens before the stack is unwound will still work.
+    {
+      DartFrameIterator frames(thread);
+      StackFrame* frame = frames.NextFrame();
+      while ((frame != NULL) && (frame->fp() < frame_pointer)) {
+        if (frame->IsMarkedForLazyDeopt()) {
+          frame->UnmarkForLazyDeopt();
+        }
+        frame = frames.NextFrame();
+      }
+    }
+
+#if defined(DEBUG)
+    ValidateFrames();
+#endif
+
+    for (intptr_t i = 0; i < pending_deopts->length(); i++) {
+      if ((*pending_deopts)[i].fp() < frame_pointer) {
+        if (FLAG_trace_deoptimization) {
+          THR_Print("Lazy deopt skipped due to throw for "
+                    "fp=%" Pp ", pc=%" Pp "\n",
+                    (*pending_deopts)[i].fp(), (*pending_deopts)[i].pc());
+        }
+        pending_deopts->RemoveAt(i);
+      }
+    }
+
+#if defined(DEBUG)
+    ValidateFrames();
+#endif
+  }
+#endif  // !DBC
+
 
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
@@ -327,6 +388,15 @@ static void ThrowExceptionHelper(Thread* thread,
                                           &handler_sp,
                                           &handler_fp,
                                           &handler_needs_stacktrace);
+    if (handler_pc == 0) {
+      // No Dart frame.
+      ASSERT(incoming_exception.raw() ==
+             isolate->object_store()->out_of_memory());
+      const UnhandledException& error = UnhandledException::Handle(
+          zone, isolate->object_store()->preallocated_unhandled_exception());
+      thread->long_jump_base()->Jump(1, error);
+      UNREACHABLE();
+    }
     if (handler_needs_stacktrace) {
       BuildStackTrace(&frame_builder);
     }
@@ -640,6 +710,13 @@ void Exceptions::ThrowRangeError(const char* argument_name,
 }
 
 
+void Exceptions::ThrowCompileTimeError(const LanguageError& error) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, String::Handle(error.FormatMessage()));
+  Exceptions::ThrowByType(Exceptions::kCompileTimeError, args);
+}
+
+
 RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
   Library& library = Library::Handle();
   const String* class_name = NULL;
@@ -713,6 +790,11 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kCyclicInitializationError:
       library = Library::CoreLibrary();
       class_name = &Symbols::CyclicInitializationError();
+      break;
+    case kCompileTimeError:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::_CompileTimeError();
+      break;
   }
 
   return DartLibraryCalls::InstanceCreate(library,

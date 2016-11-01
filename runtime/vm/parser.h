@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_PARSER_H_
-#define VM_PARSER_H_
+#ifndef RUNTIME_VM_PARSER_H_
+#define RUNTIME_VM_PARSER_H_
 
 #include "include/dart_api.h"
 
@@ -14,6 +14,7 @@
 #include "vm/ast.h"
 #include "vm/class_finalizer.h"
 #include "vm/compiler_stats.h"
+#include "vm/kernel.h"
 #include "vm/hash_table.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
@@ -22,6 +23,13 @@
 namespace dart {
 
 // Forward declarations.
+
+namespace kernel {
+
+class ScopeBuildingResult;
+
+}  // kernel
+
 class ArgumentsDescriptor;
 class Isolate;
 class LocalScope;
@@ -101,10 +109,12 @@ class ParsedFunction : public ZoneAllocated {
         first_stack_local_index_(0),
         num_copied_params_(0),
         num_stack_locals_(0),
-        have_seen_await_expr_(false) {
+        have_seen_await_expr_(false),
+        kernel_scopes_(NULL) {
     ASSERT(function.IsZoneHandle());
     // Every function has a local variable for the current context.
     LocalVariable* temp = new(zone()) LocalVariable(
+        function.token_pos(),
         function.token_pos(),
         Symbols::CurrentContextVar(),
         Object::dynamic_type());
@@ -215,6 +225,8 @@ class ParsedFunction : public ZoneAllocated {
 
   void Bailout(const char* origin, const char* reason) const;
 
+  kernel::ScopeBuildingResult* EnsureKernelScopes();
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -234,6 +246,8 @@ class ParsedFunction : public ZoneAllocated {
   int num_copied_params_;
   int num_stack_locals_;
   bool have_seen_await_expr_;
+
+  kernel::ScopeBuildingResult* kernel_scopes_;
 
   friend class Parser;
   DISALLOW_COPY_AND_ASSIGN(ParsedFunction);
@@ -285,6 +299,7 @@ class Parser : public ValueObject {
 
   struct Block;
   class TryStack;
+  class TokenPosScope;
 
   Parser(const Script& script,
          const Library& library,
@@ -509,9 +524,8 @@ class Parser : public ValueObject {
   void ParseLibraryImportObsoleteSyntax();
   void ParseLibraryIncludeObsoleteSyntax();
 
-  void ResolveTypeFromClass(const Class& cls,
-                            ClassFinalizer::FinalizationKind finalization,
-                            AbstractType* type);
+  void ResolveType(ClassFinalizer::FinalizationKind finalization,
+                   AbstractType* type);
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,
                              bool consume_unresolved_prefix = true);
@@ -521,7 +535,7 @@ class Parser : public ValueObject {
       bool consume_unresolved_prefix,
       LibraryPrefix* prefix);
 
-  void ParseTypeParameters(const Class& cls);
+  void ParseTypeParameters(bool parameterizing_class);
   RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);
   void ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method);
@@ -660,14 +674,16 @@ class Parser : public ValueObject {
   LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
                                               bool test_only);
   void CaptureInstantiator();
+  void CaptureFunctionInstantiator();
   AstNode* LoadReceiver(TokenPosition token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
+  AstNode* LoadTypeParameter(PrimaryNode* primary);
   InstanceGetterNode* CallGetter(TokenPosition token_pos,
                                  AstNode* object,
                                  const String& name);
 
-  AstNode* ParseAssertStatement();
+  AstNode* ParseAssertStatement(bool is_const = false);
   AstNode* ParseJump(String* label_name);
   AstNode* ParseIfStatement(String* label_name);
   AstNode* ParseWhileStatement(String* label_name);
@@ -752,9 +768,14 @@ class Parser : public ValueObject {
   bool IsMixinAppAlias();
   bool TryParseQualIdent();
   bool TryParseTypeParameters();
+  bool TryParseTypeArguments();
+  bool IsTypeParameters();
+  bool IsArgumentPart();
+  bool IsParameterPart();
   bool TryParseOptionalType();
   bool TryParseReturnType();
   bool IsVariableDeclaration();
+  bool IsFunctionReturnType();
   bool IsFunctionDeclaration();
   bool IsFunctionLiteral();
   bool IsForInStatement();
@@ -820,7 +841,8 @@ class Parser : public ValueObject {
   bool IsInstantiatorRequired() const;
   bool ResolveIdentInLocalScope(TokenPosition ident_pos,
                                 const String &ident,
-                                AstNode** node);
+                                AstNode** node,
+                                intptr_t* function_level);
   static const bool kResolveLocally = true;
   static const bool kResolveIncludingImports = false;
 
@@ -973,4 +995,4 @@ class Parser : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_PARSER_H_
+#endif  // RUNTIME_VM_PARSER_H_

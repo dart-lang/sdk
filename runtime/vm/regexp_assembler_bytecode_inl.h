@@ -6,8 +6,8 @@
 
 #include "vm/regexp_bytecodes.h"
 
-#ifndef VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
-#define VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#ifndef RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#define RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
 
 namespace dart {
 
@@ -54,4 +54,4 @@ void BytecodeRegExpMacroAssembler::Emit32(uint32_t word) {
 
 }  // namespace dart
 
-#endif  // VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_
+#endif  // RUNTIME_VM_REGEXP_ASSEMBLER_BYTECODE_INL_H_

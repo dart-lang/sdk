@@ -1244,8 +1244,6 @@ void Assembler::NoMonomorphicCheckedEntry() {
   brk(0);
   brk(0);
   brk(0);
-  brk(0);
-  brk(0);
   ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
 }
 
@@ -1257,10 +1255,8 @@ void Assembler::MonomorphicCheckedEntry() {
 
   Label immediate, have_cid, miss;
   Bind(&miss);
-  ldr(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
-  ldr(IP0, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  ldr(IP0, Address(THR, Thread::monomorphic_miss_entry_offset()));
   br(IP0);
-  brk(0);
 
   Bind(&immediate);
   movz(R4, Immediate(kSmiCid), 0);
@@ -1448,6 +1444,18 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
 }
 
 
+void Assembler::LoadElementAddressForIntIndex(Register address,
+                                              bool is_external,
+                                              intptr_t cid,
+                                              intptr_t index_scale,
+                                              Register array,
+                                              intptr_t index) {
+  const int64_t offset = index * index_scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  AddImmediate(address, array, offset);
+}
+
+
 Address Assembler::ElementAddressForRegIndex(bool is_load,
                                              bool is_external,
                                              intptr_t cid,
@@ -1472,6 +1480,102 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(base, offset, Address::Offset, size);
+}
+
+
+void Assembler::LoadElementAddressForRegIndex(Register address,
+                                              bool is_load,
+                                              bool is_external,
+                                              intptr_t cid,
+                                              intptr_t index_scale,
+                                              Register array,
+                                              Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  const int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  if (shift == 0) {
+    add(address, array, Operand(index));
+  } else if (shift < 0) {
+    ASSERT(shift == -1);
+    add(address, array, Operand(index, ASR, 1));
+  } else {
+    add(address, array, Operand(index, LSL, shift));
+  }
+  if (offset != 0) {
+    AddImmediate(address, address, offset);
+  }
+}
+
+
+void Assembler::LoadUnaligned(Register dst, Register addr, Register tmp,
+                              OperandSize sz) {
+  ASSERT(dst != addr);
+  ldr(dst, Address(addr, 0), kUnsignedByte);
+  if (sz == kHalfword) {
+    ldr(tmp, Address(addr, 1), kByte);
+    orr(dst, dst, Operand(tmp, LSL, 8));
+    return;
+  }
+  ldr(tmp, Address(addr, 1), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 8));
+  if (sz == kUnsignedHalfword) {
+    return;
+  }
+  ldr(tmp, Address(addr, 2), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 16));
+  if (sz == kWord) {
+    ldr(tmp, Address(addr, 3), kByte);
+    orr(dst, dst, Operand(tmp, LSL, 24));
+    return;
+  }
+  ldr(tmp, Address(addr, 3), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 24));
+  if (sz == kUnsignedWord) {
+    return;
+  }
+  ldr(tmp, Address(addr, 4), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 32));
+  ldr(tmp, Address(addr, 5), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 40));
+  ldr(tmp, Address(addr, 6), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 48));
+  ldr(tmp, Address(addr, 7), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 56));
+  if (sz == kDoubleWord) {
+    return;
+  }
+  UNIMPLEMENTED();
+}
+
+
+void Assembler::StoreUnaligned(Register src, Register addr, Register tmp,
+                               OperandSize sz) {
+  str(src, Address(addr, 0), kUnsignedByte);
+  LsrImmediate(tmp, src, 8);
+  str(tmp, Address(addr, 1), kUnsignedByte);
+  if ((sz == kHalfword) || (sz == kUnsignedHalfword)) {
+    return;
+  }
+  LsrImmediate(tmp, src, 16);
+  str(tmp, Address(addr, 2), kUnsignedByte);
+  LsrImmediate(tmp, src, 24);
+  str(tmp, Address(addr, 3), kUnsignedByte);
+  if ((sz == kWord) || (sz == kUnsignedWord)) {
+    return;
+  }
+  LsrImmediate(tmp, src, 24);
+  str(tmp, Address(addr, 4), kUnsignedByte);
+  LsrImmediate(tmp, src, 32);
+  str(tmp, Address(addr, 5), kUnsignedByte);
+  LsrImmediate(tmp, src, 40);
+  str(tmp, Address(addr, 6), kUnsignedByte);
+  LsrImmediate(tmp, src, 48);
+  str(tmp, Address(addr, 7), kUnsignedByte);
+  if (sz == kDoubleWord) {
+    return;
+  }
+  UNIMPLEMENTED();
 }
 
 }  // namespace dart

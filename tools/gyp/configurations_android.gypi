@@ -45,6 +45,7 @@
             ],
             'cflags': [
               '-U__linux__',  # Don't allow toolchain to claim -D__linux__
+              '-U__linux',
               '-ffunction-sections',
               '-funwind-tables',
               '-fstack-protector',

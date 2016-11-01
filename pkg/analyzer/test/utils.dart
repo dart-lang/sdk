@@ -7,15 +7,8 @@ library analyzer.test.utils;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
-
-void initializeTestEnvironment([path.Context context]) {
-  groupSep = ' | ';
-  JavaFile.pathContext = context ?? path.posix;
-}
+import 'package:test/test.dart';
 
 /**
  * The type of an assertion which asserts properties of [T]s.

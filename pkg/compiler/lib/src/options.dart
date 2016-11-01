@@ -197,8 +197,11 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
   /// The location of the serialized data from resolution.
   final Uri resolutionOutput;
 
-  // If `true`, sources are resolved and serialized.
+  /// If `true`, sources are resolved and serialized.
   final bool resolveOnly;
+
+  /// If `true`, sources are only available from serialized data.
+  final bool compileOnly;
 
   /// URI where the compiler should generate the output source map file.
   final Uri sourceMapUri;
@@ -217,6 +220,9 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
 
   /// Whether to generate code compliant with content security policy (CSP).
   final bool useContentSecurityPolicy;
+
+  /// Whether to use kernel internally as part of compilation.
+  final bool useKernel;
 
   /// When obfuscating for minification, whether to use the frequency of a name
   /// as an heuristic to pick shorter names.
@@ -315,6 +321,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         trustTypeAnnotations: _hasOption(options, Flags.trustTypeAnnotations),
         useContentSecurityPolicy:
             _hasOption(options, Flags.useContentSecurityPolicy),
+        useKernel: _hasOption(options, Flags.useKernel),
         useFrequencyNamer:
             !_hasOption(options, Flags.noFrequencyBasedMinification),
         useNewSourceInfo: _hasOption(options, Flags.useNewSourceInfo),
@@ -375,6 +382,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       bool trustPrimitives: false,
       bool trustTypeAnnotations: false,
       bool useContentSecurityPolicy: false,
+      bool useKernel: false,
       bool useFrequencyNamer: true,
       bool useNewSourceInfo: false,
       bool useStartupEmitter: false,
@@ -447,6 +455,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         trustPrimitives: trustPrimitives,
         trustTypeAnnotations: trustTypeAnnotations,
         useContentSecurityPolicy: useContentSecurityPolicy,
+        useKernel: useKernel,
         useFrequencyNamer: useFrequencyNamer,
         useNewSourceInfo: useNewSourceInfo,
         useStartupEmitter: useStartupEmitter,
@@ -489,6 +498,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.resolutionInputs: null,
       this.resolutionOutput: null,
       this.resolveOnly: false,
+      this.compileOnly: false,
       this.sourceMapUri: null,
       this.strips: const [],
       this.testMode: false,
@@ -496,6 +506,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       this.trustPrimitives: false,
       this.trustTypeAnnotations: false,
       this.useContentSecurityPolicy: false,
+      this.useKernel: false,
       this.useFrequencyNamer: false,
       this.useNewSourceInfo: false,
       this.useStartupEmitter: false,
@@ -545,6 +556,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       resolutionInputs,
       resolutionOutput,
       resolveOnly,
+      compileOnly,
       sourceMapUri,
       strips,
       testMode,
@@ -552,6 +564,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
       trustPrimitives,
       trustTypeAnnotations,
       useContentSecurityPolicy,
+      useKernel,
       useFrequencyNamer,
       useNewSourceInfo,
       useStartupEmitter,
@@ -610,6 +623,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         resolutionInputs: resolutionInputs ?? options.resolutionInputs,
         resolutionOutput: resolutionOutput ?? options.resolutionOutput,
         resolveOnly: resolveOnly ?? options.resolveOnly,
+        compileOnly: compileOnly ?? options.compileOnly,
         sourceMapUri: sourceMapUri ?? options.sourceMapUri,
         strips: strips ?? options.strips,
         testMode: testMode ?? options.testMode,
@@ -620,6 +634,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
             trustTypeAnnotations ?? options.trustTypeAnnotations,
         useContentSecurityPolicy:
             useContentSecurityPolicy ?? options.useContentSecurityPolicy,
+        useKernel: useKernel ?? options.useKernel,
         useFrequencyNamer: useFrequencyNamer ?? options.useFrequencyNamer,
         useNewSourceInfo: useNewSourceInfo ?? options.useNewSourceInfo,
         useStartupEmitter: useStartupEmitter ?? options.useStartupEmitter,

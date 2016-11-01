@@ -9,8 +9,8 @@ import 'dart:io';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:args/args.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 main() {
   group('CommandLineOptions', () {
@@ -21,13 +21,13 @@ main() {
         expect(options, isNotNull);
         expect(options.buildMode, isFalse);
         expect(options.buildAnalysisOutput, isNull);
-        expect(options.buildSummaryFallback, isFalse);
         expect(options.buildSummaryInputs, isEmpty);
         expect(options.buildSummaryOnly, isFalse);
         expect(options.buildSummaryOutput, isNull);
         expect(options.buildSummaryOutputSemantic, isNull);
         expect(options.buildSuppressExitCode, isFalse);
         expect(options.dartSdkPath, isNotNull);
+        expect(options.disableCacheFlushing, isFalse);
         expect(options.disableHints, isFalse);
         expect(options.lints, isFalse);
         expect(options.displayVersion, isFalse);
@@ -59,6 +59,12 @@ main() {
             .parse(['--dart-sdk', '.', '-Dfoo=bar', 'foo.dart']);
         expect(options.definedVariables['foo'], equals('bar'));
         expect(options.definedVariables['bar'], isNull);
+      });
+
+      test('disable cache flushing', () {
+        CommandLineOptions options = CommandLineOptions
+            .parse(['--dart-sdk', '.', '--disable-cache-flushing', 'foo.dart']);
+        expect(options.disableCacheFlushing, isTrue);
       });
 
       test('enable strict call checks', () {
@@ -264,17 +270,6 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.sourceFiles, isEmpty);
   }
 
-  test_buildSummaryFallback() {
-    _parse([
-      '--build-mode',
-      '--build-summary-output=//path/to/output.sum',
-      '--build-summary-fallback',
-      'package:p/foo.dart|/path/to/p/lib/foo.dart'
-    ]);
-    expect(options.buildMode, isTrue);
-    expect(options.buildSummaryFallback, isTrue);
-  }
-
   test_buildSummaryInputs_commaSeparated() {
     _parse([
       '--build-mode',
@@ -282,6 +277,16 @@ class CommandLineOptionsTest extends AbstractStatusTest {
       'package:p/foo.dart|/path/to/p/lib/foo.dart'
     ]);
     expect(options.buildMode, isTrue);
+    expect(
+        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
+  }
+
+  test_buildSummaryInputs_commaSeparated_normalMode() {
+    _parse([
+      '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
+      '/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isFalse);
     expect(
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
@@ -294,6 +299,17 @@ class CommandLineOptionsTest extends AbstractStatusTest {
       'package:p/foo.dart|/path/to/p/lib/foo.dart'
     ]);
     expect(options.buildMode, isTrue);
+    expect(
+        options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
+  }
+
+  test_buildSummaryInputs_separateFlags_normalMode() {
+    _parse([
+      '--build-summary-input=/path/to/aaa.sum',
+      '--build-summary-input=/path/to/bbb.sum',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isFalse);
     expect(
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }

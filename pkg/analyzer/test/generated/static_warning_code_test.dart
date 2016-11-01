@@ -4,18 +4,19 @@
 
 library analyzer.test.generated.static_warning_code_test;
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(StaticWarningCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(StaticWarningCodeTest);
+  });
 }
 
 @reflectiveTest
@@ -3527,12 +3528,6 @@ f(var l) {
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifierAwait_function() {
-    Source source = addSource("void a() { await; }");
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT]);
-  }
-
   void test_undefinedIdentifier_importCore_withShow() {
     Source source = addSource(r'''
 import 'dart:core' show List;
@@ -3592,6 +3587,12 @@ class B extends A {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
+  }
+
+  void test_undefinedIdentifierAwait_function() {
+    Source source = addSource("void a() { await; }");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER_AWAIT]);
   }
 
   void test_undefinedNamedParameter() {

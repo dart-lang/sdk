@@ -12,11 +12,9 @@ import "package:compiler/src/tree/tree.dart";
 
 import "package:compiler/src/diagnostics/diagnostic_listener.dart";
 import "package:compiler/src/elements/elements.dart"
-    show CompilationUnitElement,
-         LibraryElement;
+    show CompilationUnitElement, LibraryElement;
 import "package:compiler/src/elements/modelx.dart"
-    show CompilationUnitElementX,
-         LibraryElementX;
+    show CompilationUnitElementX, LibraryElementX;
 import "package:compiler/src/script.dart";
 
 import "options_helper.dart";
@@ -93,8 +91,8 @@ String doUnparse(String source) {
   CompilationUnitElement element = new CompilationUnitElementX(script, lib);
   StringScanner scanner = new StringScanner.fromString(source);
   Token beginToken = scanner.tokenize();
-  NodeListener listener = new NodeListener(
-      const ScannerOptions(), diagnosticListener, element);
+  NodeListener listener =
+      new NodeListener(const ScannerOptions(), diagnosticListener, element);
   Parser parser = new Parser(listener, new MockParserOptions());
   parser.parseUnit(beginToken);
   Node node = listener.popNode();

@@ -38,8 +38,8 @@ class DebuggerLocation {
     if (match != null) {
       return _parseFunction(debugger, match);
     }
-    return new Future.value(new DebuggerLocation.error(
-        "Invalid source location '${locDesc}'"));
+    return new Future.value(
+        new DebuggerLocation.error("Invalid source location '${locDesc}'"));
   }
 
   static Future<Frame> _currentFrame(Debugger debugger) async {
@@ -63,8 +63,8 @@ class DebuggerLocation {
     return new DebuggerLocation.file(script, line, col);
   }
 
-  static Future<DebuggerLocation> _parseScriptLine(Debugger debugger,
-                                                   Match match) async {
+  static Future<DebuggerLocation> _parseScriptLine(
+      Debugger debugger, Match match) async {
     var scriptName = match.group(1);
     if (scriptName != null) {
       scriptName = scriptName.substring(0, scriptName.length - 1);
@@ -75,17 +75,15 @@ class DebuggerLocation {
     if (colStr != null) {
       colStr = colStr.substring(1);
     }
-    var line = int.parse(lineStr, onError:(_) => -1);
-    var col = (colStr != null
-               ? int.parse(colStr, onError:(_) => -1)
-               : null);
+    var line = int.parse(lineStr, onError: (_) => -1);
+    var col = (colStr != null ? int.parse(colStr, onError: (_) => -1) : null);
     if (line == -1) {
-      return new Future.value(new DebuggerLocation.error(
-          "Line '${lineStr}' must be an integer"));
+      return new Future.value(
+          new DebuggerLocation.error("Line '${lineStr}' must be an integer"));
     }
     if (col == -1) {
-      return new Future.value(new DebuggerLocation.error(
-          "Column '${colStr}' must be an integer"));
+      return new Future.value(
+          new DebuggerLocation.error("Column '${colStr}' must be an integer"));
     }
 
     if (scriptName != null) {
@@ -97,8 +95,8 @@ class DebuggerLocation {
         return new DebuggerLocation.file(scripts[0], line, col);
       } else {
         // TODO(turnidge): Allow the user to disambiguate.
-        return
-            new DebuggerLocation.error("Script '${scriptName}' is ambiguous");
+        return new DebuggerLocation.error(
+            "Script '${scriptName}' is ambiguous");
       }
     } else {
       // No script provided.  Default to top of stack for now.
@@ -113,9 +111,8 @@ class DebuggerLocation {
     }
   }
 
-  static Future<List<Script>> _lookupScript(Isolate isolate,
-                                            String name,
-                                            {bool allowPrefix: false}) {
+  static Future<List<Script>> _lookupScript(Isolate isolate, String name,
+      {bool allowPrefix: false}) {
     var pending = [];
     for (var lib in isolate.libraries) {
       if (!lib.loaded) {
@@ -141,9 +138,8 @@ class DebuggerLocation {
     });
   }
 
-  static List<ServiceFunction> _lookupFunction(Isolate isolate,
-                                               String name,
-                                               { bool allowPrefix: false }) {
+  static List<ServiceFunction> _lookupFunction(Isolate isolate, String name,
+      {bool allowPrefix: false}) {
     var matches = [];
     for (var lib in isolate.libraries) {
       assert(lib.loaded);
@@ -162,9 +158,8 @@ class DebuggerLocation {
     return matches;
   }
 
-  static Future<List<Class>> _lookupClass(Isolate isolate,
-                                          String name,
-                                          { bool allowPrefix: false }) async {
+  static Future<List<Class>> _lookupClass(Isolate isolate, String name,
+      {bool allowPrefix: false}) async {
     if (isolate == null) {
       return [];
     }
@@ -207,8 +202,8 @@ class DebuggerLocation {
 
   // TODO(turnidge): This does not handle named functions which are
   // inside of named functions, e.g. foo.bar.baz.
-  static Future<DebuggerLocation> _parseFunction(Debugger debugger,
-                                               Match match) {
+  static Future<DebuggerLocation> _parseFunction(
+      Debugger debugger, Match match) {
     Isolate isolate = debugger.isolate;
     var base = match.group(1);
     var qualifier = match.group(2);
@@ -285,19 +280,19 @@ class DebuggerLocation {
     });
   }
 
-  static Future<List<String>> _completeFunction(Debugger debugger,
-                                                Match match) {
+  static Future<List<String>> _completeFunction(
+      Debugger debugger, Match match) {
     Isolate isolate = debugger.isolate;
     var base = match.group(1);
     var qualifier = match.group(2);
     base = (base == null ? '' : base);
 
     if (qualifier == null) {
-      return _lookupClass(isolate, base, allowPrefix:true).then((classes) {
+      return _lookupClass(isolate, base, allowPrefix: true).then((classes) {
         var completions = [];
 
         // Complete top-level function names.
-        var functions = _lookupFunction(isolate, base, allowPrefix:true);
+        var functions = _lookupFunction(isolate, base, allowPrefix: true);
         var funcNames = functions.map((f) => f.name).toList();
         funcNames.sort();
         completions.addAll(funcNames);
@@ -310,7 +305,7 @@ class DebuggerLocation {
         return completions;
       });
     } else {
-      return _lookupClass(isolate, base, allowPrefix:false).then((classes) {
+      return _lookupClass(isolate, base, allowPrefix: false).then((classes) {
         var completions = [];
         for (var cls in classes) {
           for (var function in cls.functions) {
@@ -379,18 +374,17 @@ class DebuggerLocation {
     if (!scriptNameComplete) {
       // The script name is incomplete.  Complete it.
       var scripts =
-          await _lookupScript(debugger.isolate, scriptName, allowPrefix:true);
+          await _lookupScript(debugger.isolate, scriptName, allowPrefix: true);
       List completions = [];
       for (var script in scripts) {
         completions.add(script.name + ':');
       }
       completions.sort();
       return completions;
-
     } else {
       // The script name is complete.  Look it up.
       var scripts =
-          await _lookupScript(debugger.isolate, scriptName, allowPrefix:false);
+          await _lookupScript(debugger.isolate, scriptName, allowPrefix: false);
       if (scripts.isEmpty) {
         return [];
       }
@@ -400,8 +394,8 @@ class DebuggerLocation {
         // Complete the line.
         var sharedPrefix = '${script.name}:';
         List completions = [];
-        var report = await script.isolate.getSourceReport(
-            [Isolate.kPossibleBreakpointsReport], script);
+        var report = await script.isolate
+            .getSourceReport([Isolate.kPossibleBreakpointsReport], script);
         Set<int> possibleBpts = getPossibleBreakpointLines(report, script);
         for (var line in possibleBpts) {
           var currentLineStr = line.toString();
@@ -411,7 +405,6 @@ class DebuggerLocation {
           }
         }
         return completions;
-
       } else {
         // Complete the column.
         int lineNum = int.parse(lineStr);

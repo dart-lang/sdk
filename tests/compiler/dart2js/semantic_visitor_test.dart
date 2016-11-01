@@ -19,10 +19,8 @@ import 'package:compiler/src/resolution/operators.dart';
 import 'package:compiler/src/resolution/semantic_visitor.dart';
 import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/tree/tree.dart';
-import 'package:compiler/src/universe/call_structure.dart' show
-    CallStructure;
-import 'package:compiler/src/universe/selector.dart' show
-    Selector;
+import 'package:compiler/src/universe/call_structure.dart' show CallStructure;
+import 'package:compiler/src/universe/selector.dart' show Selector;
 import 'memory_compiler.dart';
 
 part 'semantic_visitor_test_send_data.dart';
@@ -55,27 +53,27 @@ class Visit {
   final error;
 
   const Visit(this.method,
-              {this.element,
-               this.rhs,
-               this.arguments,
-               this.receiver,
-               this.name,
-               this.expression,
-               this.left,
-               this.right,
-               this.type,
-               this.operator,
-               this.index,
-               this.getter,
-               this.setter,
-               this.constant,
-               this.selector,
-               this.parameters,
-               this.body,
-               this.target,
-               this.targetType,
-               this.initializers,
-               this.error});
+      {this.element,
+      this.rhs,
+      this.arguments,
+      this.receiver,
+      this.name,
+      this.expression,
+      this.left,
+      this.right,
+      this.type,
+      this.operator,
+      this.index,
+      this.getter,
+      this.setter,
+      this.constant,
+      this.selector,
+      this.parameters,
+      this.body,
+      this.target,
+      this.targetType,
+      this.initializers,
+      this.error});
 
   int get hashCode => toString().hashCode;
 
@@ -160,13 +158,18 @@ class Test {
   final String method;
 
   const Test(this.code, this.expectedVisits)
-      : cls = null, method = 'm', codeByPrefix = null, isDeferred = false;
+      : cls = null,
+        method = 'm',
+        codeByPrefix = null,
+        isDeferred = false;
   const Test.clazz(this.code, this.expectedVisits,
-                   {this.cls: 'C', this.method: 'm'})
-      : codeByPrefix = null, isDeferred = false;
+      {this.cls: 'C', this.method: 'm'})
+      : codeByPrefix = null,
+        isDeferred = false;
   const Test.prefix(this.codeByPrefix, this.code, this.expectedVisits,
-                   {this.isDeferred: false})
-      : cls = null, method = 'm';
+      {this.isDeferred: false})
+      : cls = null,
+        method = 'm';
 
   String toString() {
     StringBuffer sb = new StringBuffer();
@@ -212,56 +215,53 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
 main(List<String> arguments) {
   Set<VisitKind> kinds = new Set<VisitKind>.from(VisitKind.values);
   asyncTest(() => Future.forEach([
-    () {
-      return test(
-          kinds,
-          arguments,
-          SEND_TESTS,
-          (elements) => new SemanticSendTestVisitor(elements));
-    },
-    () {
-      return test(
-          kinds,
-          arguments,
-          DECL_TESTS,
-          (elements) => new SemanticDeclarationTestVisitor(elements));
-    },
-    () {
-      Set<VisitKind> unvisitedKindSet =
-          kinds.toSet()..removeAll(UNTESTABLE_KINDS);
-      List<VisitKind> unvisitedKindList = unvisitedKindSet.toList();
-      unvisitedKindList..sort((a, b) => a.index.compareTo(b.index));
+        () {
+          return test(kinds, arguments, SEND_TESTS,
+              (elements) => new SemanticSendTestVisitor(elements));
+        },
+        () {
+          return test(kinds, arguments, DECL_TESTS,
+              (elements) => new SemanticDeclarationTestVisitor(elements));
+        },
+        () {
+          Set<VisitKind> unvisitedKindSet = kinds.toSet()
+            ..removeAll(UNTESTABLE_KINDS);
+          List<VisitKind> unvisitedKindList = unvisitedKindSet.toList();
+          unvisitedKindList..sort((a, b) => a.index.compareTo(b.index));
 
-      Expect.isTrue(unvisitedKindList.isEmpty,
-          "Untested visit kinds:\n  ${unvisitedKindList.join(',\n  ')},\n");
+          Expect.isTrue(unvisitedKindList.isEmpty,
+              "Untested visit kinds:\n  ${unvisitedKindList.join(',\n  ')},\n");
 
-      Set<VisitKind> testedUntestableKinds =
-          UNTESTABLE_KINDS.toSet()..removeAll(kinds);
-      Expect.isTrue(testedUntestableKinds.isEmpty,
-          "Tested untestable visit kinds (remove from UNTESTABLE_KINDS):\n  "
-          "${testedUntestableKinds.join(',\n  ')},\n");
-    },
-    () {
-      ClassMirror mirror1 = reflectType(SemanticSendTestVisitor);
-      Set<Symbol> symbols1 = mirror1.declarations.keys.toSet();
-      ClassMirror mirror2 = reflectType(SemanticSendVisitor);
-      Set<Symbol> symbols2 =
-          mirror2.declarations.values
-              .where((m) => m is MethodMirror &&
-                            !m.isConstructor &&
-                            m.simpleName != #apply)
-              .map((m) => m.simpleName).toSet();
-      symbols2.removeAll(symbols1);
-      Expect.isTrue(symbols2.isEmpty,
-          "Untested visit methods:\n  ${symbols2.join(',\n  ')},\n");
-    }
-  ], (f) => f()));
+          Set<VisitKind> testedUntestableKinds = UNTESTABLE_KINDS.toSet()
+            ..removeAll(kinds);
+          Expect.isTrue(
+              testedUntestableKinds.isEmpty,
+              "Tested untestable visit kinds (remove from UNTESTABLE_KINDS):\n  "
+              "${testedUntestableKinds.join(',\n  ')},\n");
+        },
+        () {
+          ClassMirror mirror1 = reflectType(SemanticSendTestVisitor);
+          Set<Symbol> symbols1 = mirror1.declarations.keys.toSet();
+          ClassMirror mirror2 = reflectType(SemanticSendVisitor);
+          Set<Symbol> symbols2 = mirror2.declarations.values
+              .where((m) =>
+                  m is MethodMirror &&
+                  !m.isConstructor &&
+                  m.simpleName != #apply)
+              .map((m) => m.simpleName)
+              .toSet();
+          symbols2.removeAll(symbols1);
+          Expect.isTrue(symbols2.isEmpty,
+              "Untested visit methods:\n  ${symbols2.join(',\n  ')},\n");
+        }
+      ], (f) => f()));
 }
 
-Future test(Set<VisitKind> unvisitedKinds,
-            List<String> arguments,
-            Map<String, List<Test>> TESTS,
-            SemanticTestVisitor createVisitor(TreeElements elements)) async {
+Future test(
+    Set<VisitKind> unvisitedKinds,
+    List<String> arguments,
+    Map<String, List<Test>> TESTS,
+    SemanticTestVisitor createVisitor(TreeElements elements)) async {
   Map<String, String> sourceFiles = {};
   Map<String, Test> testMap = {};
   StringBuffer mainSource = new StringBuffer();
@@ -297,8 +297,8 @@ Future test(Set<VisitKind> unvisitedKinds,
       options: [Flags.analyzeAll, Flags.analyzeOnly]);
   Compiler compiler = result.compiler;
   testMap.forEach((String filename, Test test) {
-    LibraryElement library = compiler.libraryLoader.lookupLibrary(
-        Uri.parse('memory:$filename'));
+    LibraryElement library =
+        compiler.libraryLoader.lookupLibrary(Uri.parse('memory:$filename'));
     Element element;
     String cls = test.cls;
     String method = test.method;
@@ -306,27 +306,32 @@ Future test(Set<VisitKind> unvisitedKinds,
       element = library.find(method);
     } else {
       ClassElement classElement = library.find(cls);
-      Expect.isNotNull(classElement,
-                       "Class '$cls' not found in:\n"
-                       "${library.compilationUnit.script.text}");
+      Expect.isNotNull(
+          classElement,
+          "Class '$cls' not found in:\n"
+          "${library.compilationUnit.script.text}");
       element = classElement.localLookup(method);
     }
     var expectedVisits = test.expectedVisits;
     if (expectedVisits == null) {
-      Expect.isTrue(element.isMalformed,
+      Expect.isTrue(
+          element.isMalformed,
           "Element '$method' expected to be have parse errors in:\n"
           "${library.compilationUnit.script.text}");
       return;
     } else if (expectedVisits is! List) {
       expectedVisits = [expectedVisits];
     }
-    Expect.isFalse(element.isMalformed,
+    Expect.isFalse(
+        element.isMalformed,
         "Element '$method' is not expected to be have parse errors in:\n"
         "${library.compilationUnit.script.text}");
 
     void testAstElement(AstElement astElement) {
-      Expect.isNotNull(astElement, "Element '$method' not found in:\n"
-                                   "${library.compilationUnit.script.text}");
+      Expect.isNotNull(
+          astElement,
+          "Element '$method' not found in:\n"
+          "${library.compilationUnit.script.text}");
       ResolvedAst resolvedAst = astElement.resolvedAst;
       SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
       try {
@@ -336,15 +341,18 @@ Future test(Set<VisitKind> unvisitedKinds,
         });
       } catch (e, s) {
         Expect.fail("$e:\n$s\nIn test:\n"
-                    "${library.compilationUnit.script.text}");
+            "${library.compilationUnit.script.text}");
       }
-      Expect.listEquals(expectedVisits, visitor.visits,
+      Expect.listEquals(
+          expectedVisits,
+          visitor.visits,
           "In test:\n"
           "${library.compilationUnit.script.text}\n\n"
           "Expected: $expectedVisits\n"
           "Found: ${visitor.visits}");
       unvisitedKinds.removeAll(visitor.visits.map((visit) => visit.method));
     }
+
     if (element.isAbstractField) {
       AbstractFieldElement abstractFieldElement = element;
       if (abstractFieldElement.getter != null) {
@@ -383,7 +391,6 @@ enum VisitKind {
   VISIT_FINAL_PARAMETER_SET_IF_NULL,
   VISIT_FINAL_PARAMETER_PREFIX,
   VISIT_FINAL_PARAMETER_POSTFIX,
-
   VISIT_LOCAL_VARIABLE_GET,
   VISIT_LOCAL_VARIABLE_SET,
   VISIT_LOCAL_VARIABLE_INVOKE,
@@ -398,7 +405,6 @@ enum VisitKind {
   VISIT_FINAL_LOCAL_VARIABLE_SET_IF_NULL,
   VISIT_FINAL_LOCAL_VARIABLE_PREFIX,
   VISIT_FINAL_LOCAL_VARIABLE_POSTFIX,
-
   VISIT_LOCAL_FUNCTION_GET,
   VISIT_LOCAL_FUNCTION_INVOKE,
   VISIT_LOCAL_FUNCTION_INCOMPATIBLE_INVOKE,
@@ -409,7 +415,6 @@ enum VisitKind {
   VISIT_LOCAL_FUNCTION_SET_IF_NULL,
   VISIT_LOCAL_FUNCTION_PREFIX,
   VISIT_LOCAL_FUNCTION_POSTFIX,
-
   VISIT_STATIC_FIELD_GET,
   VISIT_STATIC_FIELD_SET,
   VISIT_STATIC_FIELD_INVOKE,
@@ -419,31 +424,25 @@ enum VisitKind {
   VISIT_STATIC_FIELD_POSTFIX,
   VISIT_STATIC_FIELD_DECL,
   VISIT_STATIC_CONSTANT_DECL,
-
   VISIT_STATIC_GETTER_GET,
   VISIT_STATIC_GETTER_SET,
   VISIT_STATIC_GETTER_INVOKE,
-
   VISIT_STATIC_SETTER_GET,
   VISIT_STATIC_SETTER_SET,
   VISIT_STATIC_SETTER_INVOKE,
-
   VISIT_STATIC_GETTER_SETTER_COMPOUND,
   VISIT_STATIC_GETTER_SETTER_SET_IF_NULL,
   VISIT_STATIC_METHOD_SETTER_COMPOUND,
   VISIT_STATIC_METHOD_SETTER_SET_IF_NULL,
   VISIT_STATIC_GETTER_SETTER_PREFIX,
   VISIT_STATIC_GETTER_SETTER_POSTFIX,
-
   VISIT_STATIC_GETTER_DECL,
   VISIT_STATIC_SETTER_DECL,
-
   VISIT_FINAL_STATIC_FIELD_SET,
   VISIT_STATIC_FINAL_FIELD_COMPOUND,
   VISIT_STATIC_FINAL_FIELD_SET_IF_NULL,
   VISIT_STATIC_FINAL_FIELD_POSTFIX,
   VISIT_STATIC_FINAL_FIELD_PREFIX,
-
   VISIT_STATIC_FUNCTION_GET,
   VISIT_STATIC_FUNCTION_SET,
   VISIT_STATIC_FUNCTION_INVOKE,
@@ -451,7 +450,6 @@ enum VisitKind {
   VISIT_STATIC_FUNCTION_DECL,
   VISIT_STATIC_METHOD_SETTER_PREFIX,
   VISIT_STATIC_METHOD_SETTER_POSTFIX,
-
   VISIT_UNRESOLVED_STATIC_GETTER_COMPOUND,
   VISIT_UNRESOLVED_STATIC_GETTER_SET_IF_NULL,
   VISIT_UNRESOLVED_STATIC_SETTER_COMPOUND,
@@ -464,7 +462,6 @@ enum VisitKind {
   VISIT_UNRESOLVED_STATIC_GETTER_POSTFIX,
   VISIT_UNRESOLVED_STATIC_SETTER_POSTFIX,
   VISIT_STATIC_METHOD_POSTFIX,
-
   VISIT_TOP_LEVEL_FIELD_GET,
   VISIT_TOP_LEVEL_FIELD_SET,
   VISIT_TOP_LEVEL_FIELD_INVOKE,
@@ -479,7 +476,6 @@ enum VisitKind {
   VISIT_TOP_LEVEL_FINAL_FIELD_SET_IF_NULL,
   VISIT_TOP_LEVEL_FINAL_FIELD_POSTFIX,
   VISIT_TOP_LEVEL_FINAL_FIELD_PREFIX,
-
   VISIT_TOP_LEVEL_GETTER_GET,
   VISIT_TOP_LEVEL_GETTER_SET,
   VISIT_TOP_LEVEL_GETTER_INVOKE,
@@ -492,7 +488,6 @@ enum VisitKind {
   VISIT_TOP_LEVEL_GETTER_SETTER_POSTFIX,
   VISIT_TOP_LEVEL_GETTER_DECL,
   VISIT_TOP_LEVEL_SETTER_DECL,
-
   VISIT_TOP_LEVEL_FUNCTION_GET,
   VISIT_TOP_LEVEL_FUNCTION_SET,
   VISIT_TOP_LEVEL_FUNCTION_INVOKE,
@@ -502,7 +497,6 @@ enum VisitKind {
   VISIT_TOP_LEVEL_METHOD_SETTER_SET_IF_NULL,
   VISIT_TOP_LEVEL_METHOD_SETTER_PREFIX,
   VISIT_TOP_LEVEL_METHOD_SETTER_POSTFIX,
-
   VISIT_UNRESOLVED_TOP_LEVEL_GETTER_COMPOUND,
   VISIT_UNRESOLVED_TOP_LEVEL_GETTER_SET_IF_NULL,
   VISIT_UNRESOLVED_TOP_LEVEL_SETTER_COMPOUND,
@@ -515,7 +509,6 @@ enum VisitKind {
   VISIT_UNRESOLVED_TOP_LEVEL_GETTER_POSTFIX,
   VISIT_UNRESOLVED_TOP_LEVEL_SETTER_POSTFIX,
   VISIT_TOP_LEVEL_METHOD_POSTFIX,
-
   VISIT_DYNAMIC_PROPERTY_GET,
   VISIT_DYNAMIC_PROPERTY_SET,
   VISIT_DYNAMIC_PROPERTY_INVOKE,
@@ -523,10 +516,8 @@ enum VisitKind {
   VISIT_DYNAMIC_PROPERTY_SET_IF_NULL,
   VISIT_DYNAMIC_PROPERTY_PREFIX,
   VISIT_DYNAMIC_PROPERTY_POSTFIX,
-
   VISIT_THIS_GET,
   VISIT_THIS_INVOKE,
-
   VISIT_THIS_PROPERTY_GET,
   VISIT_THIS_PROPERTY_SET,
   VISIT_THIS_PROPERTY_INVOKE,
@@ -534,7 +525,6 @@ enum VisitKind {
   VISIT_THIS_PROPERTY_SET_IF_NULL,
   VISIT_THIS_PROPERTY_PREFIX,
   VISIT_THIS_PROPERTY_POSTFIX,
-
   VISIT_SUPER_FIELD_GET,
   VISIT_SUPER_FIELD_SET,
   VISIT_FINAL_SUPER_FIELD_SET,
@@ -551,7 +541,6 @@ enum VisitKind {
   VISIT_SUPER_FIELD_FIELD_SET_IF_NULL,
   VISIT_SUPER_FIELD_FIELD_PREFIX,
   VISIT_SUPER_FIELD_FIELD_POSTFIX,
-
   VISIT_SUPER_GETTER_GET,
   VISIT_SUPER_GETTER_SET,
   VISIT_SUPER_GETTER_INVOKE,
@@ -570,7 +559,6 @@ enum VisitKind {
   VISIT_SUPER_GETTER_SETTER_POSTFIX,
   VISIT_SUPER_GETTER_FIELD_POSTFIX,
   VISIT_SUPER_FIELD_SETTER_POSTFIX,
-
   VISIT_SUPER_METHOD_GET,
   VISIT_SUPER_METHOD_SET,
   VISIT_SUPER_METHOD_INVOKE,
@@ -583,21 +571,18 @@ enum VisitKind {
   VISIT_SUPER_METHOD_SET_IF_NULL,
   VISIT_SUPER_METHOD_PREFIX,
   VISIT_SUPER_METHOD_POSTFIX,
-
   VISIT_UNRESOLVED_GET,
   VISIT_UNRESOLVED_SET,
   VISIT_UNRESOLVED_INVOKE,
   VISIT_UNRESOLVED_SUPER_GET,
   VISIT_UNRESOLVED_SUPER_INVOKE,
   VISIT_UNRESOLVED_SUPER_SET,
-
   VISIT_BINARY,
   VISIT_INDEX,
   VISIT_EQUALS,
   VISIT_NOT_EQUALS,
   VISIT_INDEX_PREFIX,
   VISIT_INDEX_POSTFIX,
-
   VISIT_SUPER_BINARY,
   VISIT_UNRESOLVED_SUPER_BINARY,
   VISIT_SUPER_INDEX,
@@ -620,19 +605,15 @@ enum VisitKind {
   VISIT_UNRESOLVED_SUPER_INDEX_POSTFIX,
   VISIT_UNRESOLVED_SUPER_GETTER_INDEX_POSTFIX,
   VISIT_UNRESOLVED_SUPER_SETTER_INDEX_POSTFIX,
-
   VISIT_UNRESOLVED_SUPER_COMPOUND,
   VISIT_UNRESOLVED_SUPER_SET_IF_NULL,
   VISIT_UNRESOLVED_SUPER_PREFIX,
   VISIT_UNRESOLVED_SUPER_POSTFIX,
-
   VISIT_UNARY,
   VISIT_SUPER_UNARY,
   VISIT_UNRESOLVED_SUPER_UNARY,
   VISIT_NOT,
-
   VISIT_EXPRESSION_INVOKE,
-
   VISIT_CLASS_TYPE_LITERAL_GET,
   VISIT_CLASS_TYPE_LITERAL_SET,
   VISIT_CLASS_TYPE_LITERAL_INVOKE,
@@ -640,7 +621,6 @@ enum VisitKind {
   VISIT_CLASS_TYPE_LITERAL_SET_IF_NULL,
   VISIT_CLASS_TYPE_LITERAL_PREFIX,
   VISIT_CLASS_TYPE_LITERAL_POSTFIX,
-
   VISIT_TYPEDEF_TYPE_LITERAL_GET,
   VISIT_TYPEDEF_TYPE_LITERAL_SET,
   VISIT_TYPEDEF_TYPE_LITERAL_INVOKE,
@@ -648,7 +628,6 @@ enum VisitKind {
   VISIT_TYPEDEF_TYPE_LITERAL_SET_IF_NULL,
   VISIT_TYPEDEF_TYPE_LITERAL_PREFIX,
   VISIT_TYPEDEF_TYPE_LITERAL_POSTFIX,
-
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_GET,
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_INVOKE,
@@ -656,7 +635,6 @@ enum VisitKind {
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET_IF_NULL,
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_PREFIX,
   VISIT_TYPE_VARIABLE_TYPE_LITERAL_POSTFIX,
-
   VISIT_DYNAMIC_TYPE_LITERAL_GET,
   VISIT_DYNAMIC_TYPE_LITERAL_SET,
   VISIT_DYNAMIC_TYPE_LITERAL_INVOKE,
@@ -664,7 +642,6 @@ enum VisitKind {
   VISIT_DYNAMIC_TYPE_LITERAL_SET_IF_NULL,
   VISIT_DYNAMIC_TYPE_LITERAL_PREFIX,
   VISIT_DYNAMIC_TYPE_LITERAL_POSTFIX,
-
   VISIT_INDEX_SET,
   VISIT_COMPOUND_INDEX_SET,
   VISIT_SUPER_INDEX_SET,
@@ -673,19 +650,16 @@ enum VisitKind {
   VISIT_UNRESOLVED_SUPER_COMPOUND_INDEX_SET,
   VISIT_UNRESOLVED_SUPER_GETTER_COMPOUND_INDEX_SET,
   VISIT_UNRESOLVED_SUPER_SETTER_COMPOUND_INDEX_SET,
-
   VISIT_INDEX_SET_IF_NULL,
   VISIT_SUPER_INDEX_SET_IF_NULL,
   VISIT_UNRESOLVED_SUPER_INDEX_SET_IF_NULL,
   VISIT_UNRESOLVED_SUPER_GETTER_INDEX_SET_IF_NULL,
   VISIT_UNRESOLVED_SUPER_SETTER_INDEX_SET_IF_NULL,
-
   VISIT_LOGICAL_AND,
   VISIT_LOGICAL_OR,
   VISIT_IS,
   VISIT_IS_NOT,
   VISIT_AS,
-
   VISIT_CONST_CONSTRUCTOR_INVOKE,
   VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
   VISIT_INT_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
@@ -696,17 +670,14 @@ enum VisitKind {
   VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
   VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
   ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
-
   VISIT_SUPER_CONSTRUCTOR_INVOKE,
   VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
   VISIT_THIS_CONSTRUCTOR_INVOKE,
   VISIT_FIELD_INITIALIZER,
-
   VISIT_UNRESOLVED_CLASS_CONSTRUCTOR_INVOKE,
   VISIT_UNRESOLVED_CONSTRUCTOR_INVOKE,
   VISIT_ABSTRACT_CLASS_CONSTRUCTOR_INVOKE,
   VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
-
   VISIT_INSTANCE_GETTER_DECL,
   VISIT_INSTANCE_SETTER_DECL,
   VISIT_INSTANCE_METHOD_DECL,
@@ -714,24 +685,20 @@ enum VisitKind {
   VISIT_ABSTRACT_SETTER_DECL,
   VISIT_ABSTRACT_METHOD_DECL,
   VISIT_INSTANCE_FIELD_DECL,
-
   VISIT_GENERATIVE_CONSTRUCTOR_DECL,
   VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_DECL,
   VISIT_FACTORY_CONSTRUCTOR_DECL,
   VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
-
   VISIT_REQUIRED_PARAMETER_DECL,
   VISIT_OPTIONAL_PARAMETER_DECL,
   VISIT_NAMED_PARAMETER_DECL,
   VISIT_REQUIRED_INITIALIZING_FORMAL_DECL,
   VISIT_OPTIONAL_INITIALIZING_FORMAL_DECL,
   VISIT_NAMED_INITIALIZING_FORMAL_DECL,
-
   VISIT_UNRESOLVED_COMPOUND,
   VISIT_UNRESOLVED_SET_IF_NULL,
   VISIT_UNRESOLVED_PREFIX,
   VISIT_UNRESOLVED_POSTFIX,
-
   VISIT_IF_NULL,
   VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
   VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET,
@@ -740,7 +707,6 @@ enum VisitKind {
   VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET_IF_NULL,
   VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
   VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
-
   ERROR_UNDEFINED_UNARY_EXPRESSION,
   ERROR_UNDEFINED_BINARY_EXPRESSION,
   ERROR_INVALID_GET,
@@ -759,9 +725,7 @@ enum VisitKind {
   ERROR_INVALID_COMPOUND_INDEX_SET,
   ERROR_INVALID_INDEX_PREFIX,
   ERROR_INVALID_INDEX_POSTFIX,
-
   VISIT_CONSTANT_GET,
   VISIT_CONSTANT_INVOKE,
-
   PREVISIT_DEFERRED_ACCESS,
 }

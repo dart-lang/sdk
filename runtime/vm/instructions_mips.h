@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Classes that describe assembly patterns as used by inline caches.
 
-#ifndef VM_INSTRUCTIONS_MIPS_H_
-#define VM_INSTRUCTIONS_MIPS_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_MIPS_H_
+#define RUNTIME_VM_INSTRUCTIONS_MIPS_H_
 
-#ifndef VM_INSTRUCTIONS_H_
+#ifndef RUNTIME_VM_INSTRUCTIONS_H_
 #error Do not include instructions_mips.h directly; use instructions.h instead.
 #endif
 
@@ -56,12 +56,6 @@ class CallPattern : public ValueObject {
 
   RawCode* TargetCode() const;
   void SetTargetCode(const Code& target) const;
-
-  static const int kDeoptCallLengthInInstructions = 4;
-  static const int kDeoptCallLengthInBytes =
-      kDeoptCallLengthInInstructions * Instr::kInstrSize;
-
-  static void InsertDeoptCallAt(uword pc, uword target_address);
 
  private:
   const ObjectPool& object_pool_;
@@ -139,4 +133,4 @@ class ReturnPattern : public ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_INSTRUCTIONS_MIPS_H_
+#endif  // RUNTIME_VM_INSTRUCTIONS_MIPS_H_

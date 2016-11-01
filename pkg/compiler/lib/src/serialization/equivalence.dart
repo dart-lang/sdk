@@ -22,6 +22,7 @@ import '../resolution/tree_elements.dart';
 import '../tokens/token.dart';
 import '../tree/nodes.dart';
 import '../universe/selector.dart';
+import '../universe/feature.dart';
 import '../universe/use.dart';
 import '../util/util.dart';
 import 'resolved_ast_serialization.dart';
@@ -515,14 +516,18 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
   bool visitLocalFunctionElement(
       LocalFunctionElement element1, LocalFunctionElement element2) {
     // TODO(johnniwinther): Define an equivalence on locals.
-    return checkMembers(element1.memberContext, element2.memberContext);
+    return strategy.test(
+            element1, element2, 'name', element1.name, element2.name) &&
+        checkMembers(element1.memberContext, element2.memberContext);
   }
 
   @override
   bool visitLocalVariableElement(
       LocalVariableElement element1, LocalVariableElement element2) {
     // TODO(johnniwinther): Define an equivalence on locals.
-    return checkMembers(element1.memberContext, element2.memberContext);
+    return strategy.test(
+            element1, element2, 'name', element1.name, element2.name) &&
+        checkMembers(element1.memberContext, element2.memberContext);
   }
 
   bool visitAbstractFieldElement(

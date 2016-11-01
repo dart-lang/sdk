@@ -23,8 +23,8 @@ main() {
   var mirror = reflect(new C()).type; // Workaround bug 12799.
   Expect.equals(1, mirror.setField(const Symbol('foo'), 1).reflectee);
   Expect.equals(1, mirror.getField(const Symbol('foo')).reflectee);
-  Expect.throws(() => mirror.setField(const Symbol('bar'),  2),
-                (e) => e is NoSuchMethodError);
+  Expect.throws(() => mirror.setField(const Symbol('bar'), 2),
+      (e) => e is NoSuchMethodError);
   Expect.throws(() => mirror.getField(const Symbol('bar')),
-                (e) => e is NoSuchMethodError);
+      (e) => e is NoSuchMethodError);
 }

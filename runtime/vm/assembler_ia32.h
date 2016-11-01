@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ASSEMBLER_IA32_H_
-#define VM_ASSEMBLER_IA32_H_
+#ifndef RUNTIME_VM_ASSEMBLER_IA32_H_
+#define RUNTIME_VM_ASSEMBLER_IA32_H_
 
-#ifndef VM_ASSEMBLER_H_
+#ifndef RUNTIME_VM_ASSEMBLER_H_
 #error Do not include assembler_ia32.h directly; use assembler.h instead.
 #endif
 
@@ -1025,4 +1025,4 @@ inline void Assembler::EmitOperandSizeOverride() {
 
 }  // namespace dart
 
-#endif  // VM_ASSEMBLER_IA32_H_
+#endif  // RUNTIME_VM_ASSEMBLER_IA32_H_

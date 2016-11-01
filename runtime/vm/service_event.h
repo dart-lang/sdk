@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SERVICE_EVENT_H_
-#define VM_SERVICE_EVENT_H_
+#ifndef RUNTIME_VM_SERVICE_EVENT_H_
+#define RUNTIME_VM_SERVICE_EVENT_H_
 
 #include "vm/globals.h"
 #include "vm/heap.h"
@@ -37,7 +37,8 @@ class ServiceEvent {
     kPauseBreakpoint,
     kPauseInterrupted,
     kPauseException,
-    kNone,               // isolate has not been made runnable yet.
+    kPausePostRequest,    // isolate is paused after a service request.
+    kNone,                // isolate has not been made runnable yet.
     kResume,
     kBreakpointAdded,
     kBreakpointResolved,
@@ -92,6 +93,7 @@ class ServiceEvent {
       case kPauseBreakpoint:
       case kPauseInterrupted:
       case kPauseException:
+      case kPausePostRequest:
         return true;
       default:
         return false;
@@ -131,6 +133,7 @@ class ServiceEvent {
     ASSERT(kind() == kPauseBreakpoint ||
            kind() == kPauseInterrupted ||
            kind() == kPauseException ||
+           kind() == kPausePostRequest ||
            kind() == kResume);
     top_frame_ = frame;
   }
@@ -265,4 +268,4 @@ class ServiceEvent {
 
 }  // namespace dart
 
-#endif  // VM_SERVICE_EVENT_H_
+#endif  // RUNTIME_VM_SERVICE_EVENT_H_

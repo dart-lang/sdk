@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart' as fs;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
@@ -19,7 +20,6 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -27,7 +27,7 @@ import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 main() {
   new StressTest().run();
@@ -244,12 +244,13 @@ class StressTest {
     pathContext = resourceProvider.pathContext;
     fs.Folder sdkDirectory =
         FolderBasedDartSdk.defaultSdkDirectory(resourceProvider);
-    sdkManager = new DartSdkManager(sdkDirectory.path, false,
-        (_) => new FolderBasedDartSdk(resourceProvider, sdkDirectory));
+    sdkManager = new DartSdkManager(sdkDirectory.path, false);
     contentCache = new ContentCache();
-    ContextBuilder builder =
-        new ContextBuilder(resourceProvider, sdkManager, contentCache);
-    builder.defaultOptions = new AnalysisOptionsImpl();
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    builderOptions.defaultOptions = new AnalysisOptionsImpl();
+    ContextBuilder builder = new ContextBuilder(
+        resourceProvider, sdkManager, contentCache,
+        options: builderOptions);
     expectedContext = builder.buildContext(folderPath);
     actualContext = builder.buildContext(folderPath);
     expectedContext.analysisOptions =

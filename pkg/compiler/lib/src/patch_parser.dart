@@ -432,7 +432,8 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
     DartType annotationType = constant.getType(compiler.coreTypes);
-    if (annotationType.element != compiler.nativeAnnotationClass) {
+    if (annotationType.element !=
+        compiler.commonElements.nativeAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid @Native(...) annotation.');
     }
@@ -500,7 +501,8 @@ class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
   void validate(Compiler compiler, Element element,
       MetadataAnnotation annotation, ConstantValue constant) {
     DartType annotationType = constant.getType(compiler.coreTypes);
-    if (annotationType.element != compiler.patchAnnotationClass) {
+    if (annotationType.element !=
+        compiler.commonElements.patchAnnotationClass) {
       DiagnosticReporter reporter = compiler.reporter;
       reporter.internalError(annotation, 'Invalid patch annotation.');
     }

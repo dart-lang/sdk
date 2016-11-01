@@ -5,12 +5,12 @@
 library analyzer.file_system.physical_file_system;
 
 import 'dart:async';
-import 'dart:core' hide Resource;
+import 'dart:core';
 import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:isolate/isolate_runner.dart';
 import 'package:path/path.dart';
@@ -43,7 +43,7 @@ List<int> _pathsToTimes(List<String> paths) {
  * A `dart:io` based implementation of [ResourceProvider].
  */
 class PhysicalResourceProvider implements ResourceProvider {
-  static final NORMALIZE_EOL_ALWAYS =
+  static final FileReadMode NORMALIZE_EOL_ALWAYS =
       (String string) => string.replaceAll(new RegExp('\r\n?'), '\n');
 
   static final PhysicalResourceProvider INSTANCE =
@@ -62,7 +62,7 @@ class PhysicalResourceProvider implements ResourceProvider {
   final AbsolutePathContext absolutePathContext =
       new AbsolutePathContext(io.Platform.isWindows);
 
-  PhysicalResourceProvider(String fileReadMode(String s)) {
+  PhysicalResourceProvider(FileReadMode fileReadMode) {
     if (fileReadMode != null) {
       FileBasedSource.fileReadMode = fileReadMode;
     }
@@ -85,9 +85,7 @@ class PhysicalResourceProvider implements ResourceProvider {
 
   @override
   Future<List<int>> getModificationTimes(List<Source> sources) async {
-    List<String> paths = sources
-        .map((source) => source is FileBasedSource ? source.fullName : null)
-        .toList();
+    List<String> paths = sources.map((source) => source.fullName).toList();
     IsolateRunner runner = await pathsToTimesIsolateProvider.get();
     return runner.run(_pathsToTimes, paths);
   }
@@ -131,21 +129,20 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   int get modificationStamp {
     try {
-      io.File file = _entry as io.File;
-      return file.lastModifiedSync().millisecondsSinceEpoch;
+      return _file.lastModifiedSync().millisecondsSinceEpoch;
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
   }
 
+  /**
+   * Return the underlying file being represented by this wrapper.
+   */
+  io.File get _file => _entry as io.File;
+
   @override
   Source createSource([Uri uri]) {
-    io.File file = _entry as io.File;
-    JavaFile javaFile = new JavaFile(file.absolute.path);
-    if (uri == null) {
-      uri = javaFile.toURI();
-    }
-    return new FileBasedSource(javaFile, uri);
+    return new FileSource(this, uri ?? pathContext.toUri(path));
   }
 
   @override
@@ -155,9 +152,9 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
   @override
   List<int> readAsBytesSync() {
+    _throwIfWindowsDeviceDriver();
     try {
-      io.File file = _entry as io.File;
-      return file.readAsBytesSync();
+      return _file.readAsBytesSync();
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
@@ -165,9 +162,9 @@ class _PhysicalFile extends _PhysicalResource implements File {
 
   @override
   String readAsStringSync() {
+    _throwIfWindowsDeviceDriver();
     try {
-      io.File file = _entry as io.File;
-      return FileBasedSource.fileReadMode(file.readAsStringSync());
+      return FileBasedSource.fileReadMode(_file.readAsStringSync());
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
@@ -176,9 +173,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   File renameSync(String newPath) {
     try {
-      io.File file = _entry as io.File;
-      io.File newFile = file.renameSync(newPath);
-      return new _PhysicalFile(newFile);
+      return new _PhysicalFile(_file.renameSync(newPath));
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
+  File resolveSymbolicLinksSync() {
+    try {
+      return new _PhysicalFile(new io.File(_file.resolveSymbolicLinksSync()));
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
@@ -190,8 +194,16 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   void writeAsBytesSync(List<int> bytes) {
     try {
-      io.File file = _entry as io.File;
-      file.writeAsBytesSync(bytes);
+      _file.writeAsBytesSync(bytes);
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
+  void writeAsStringSync(String content) {
+    try {
+      _file.writeAsStringSync(content);
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
@@ -206,6 +218,11 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
 
   @override
   Stream<WatchEvent> get changes => new DirectoryWatcher(_entry.path).events;
+
+  /**
+   * Return the underlying file being represented by this wrapper.
+   */
+  io.Directory get _directory => _entry as io.Directory;
 
   @override
   String canonicalizePath(String relPath) {
@@ -267,6 +284,16 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
   }
 
   @override
+  Folder resolveSymbolicLinksSync() {
+    try {
+      return new _PhysicalFolder(
+          new io.Directory(_directory.resolveSymbolicLinksSync()));
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
   Uri toUri() => new Uri.directory(path);
 }
 
@@ -299,6 +326,11 @@ abstract class _PhysicalResource implements Resource {
   @override
   String get path => _entry.absolute.path;
 
+  /**
+   * Return the path context used by this resource provider.
+   */
+  Context get pathContext => io.Platform.isWindows ? windows : posix;
+
   @override
   String get shortName => absolutePathContext.basename(path);
 
@@ -321,6 +353,33 @@ abstract class _PhysicalResource implements Resource {
 
   @override
   String toString() => path;
+
+  /**
+   * If the operating system is Windows and the resource references one of the
+   * device drivers, throw a [FileSystemException].
+   *
+   * https://support.microsoft.com/en-us/kb/74496
+   */
+  void _throwIfWindowsDeviceDriver() {
+    if (io.Platform.isWindows) {
+      String shortName = this.shortName.toUpperCase();
+      if (shortName == r'CON' ||
+          shortName == r'PRN' ||
+          shortName == r'AUX' ||
+          shortName == r'CLOCK$' ||
+          shortName == r'NUL' ||
+          shortName == r'COM1' ||
+          shortName == r'LPT1' ||
+          shortName == r'LPT2' ||
+          shortName == r'LPT3' ||
+          shortName == r'COM2' ||
+          shortName == r'COM3' ||
+          shortName == r'COM4') {
+        throw new FileSystemException(
+            path, 'Windows device drivers cannot be read.');
+      }
+    }
+  }
 }
 
 /**

@@ -62,6 +62,7 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 DECLARE_FLAG(int, reload_every);
+DECLARE_FLAG(bool, unbox_numeric_fields);
 
 static void PrecompilationModeHandler(bool value) {
   if (value) {
@@ -94,6 +95,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_reorder_basic_blocks = false;
     FLAG_use_field_guards = false;
     FLAG_use_cha_deopt = false;
+    FLAG_unbox_numeric_fields = false;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     // Set flags affecting runtime accordingly for dart_noopt.
@@ -223,7 +225,6 @@ FlowGraphCompiler::FlowGraphCompiler(
                 LookupClass(Symbols::List()))),
         parallel_move_resolver_(this),
         pending_deoptimization_env_(NULL),
-        lazy_deopt_pc_offset_(Code::kInvalidPc),
         deopt_id_to_ic_data_(NULL),
         edge_counters_array_(Array::ZoneHandle()),
         inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
@@ -534,7 +535,10 @@ void FlowGraphCompiler::VisitBlocks() {
 
     entry->set_offset(assembler()->CodeSize());
     BeginCodeSourceRange();
+    ASSERT(pending_deoptimization_env_ == NULL);
+    pending_deoptimization_env_ = entry->env();
     entry->EmitNativeCode(this);
+    pending_deoptimization_env_ = NULL;
     EndCodeSourceRange(entry->token_pos());
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
@@ -666,8 +670,17 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
     if (flow_graph().captured_parameters()->Contains(i)) continue;
     if ((*idefs)[i]->IsConstant()) continue;  // Common constants
     Location src = env->LocationAt(i);
+#if defined(TARGET_ARCH_DBC)
+    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
+    Location dest = Location::RegisterLocation(dest_index);
+    // Update safepoint bitmap to indicate that the target location
+    // now contains a pointer. With DBC parameters are copied into
+    // the locals area.
+    instr->locs()->SetStackBit(dest_index);
+#else
     intptr_t dest_index = i - num_non_copied_params;
     Location dest = Location::StackSlot(dest_index);
+#endif
     move_instr->AddMove(dest, src);
   }
 
@@ -683,8 +696,13 @@ void FlowGraphCompiler::EmitTrySync(Instruction* instr, intptr_t try_index) {
     Location src = env->LocationAt(i);
     ASSERT(!src.IsFpuRegister());
     ASSERT(!src.IsDoubleStackSlot());
+#if defined(TARGET_ARCH_DBC)
+    intptr_t dest_index = kNumberOfCpuRegisters - 1 - i;
+    Location dest = Location::RegisterLocation(dest_index);
+#else
     intptr_t dest_index = i - num_non_copied_params;
     Location dest = Location::StackSlot(dest_index);
+#endif
     move_instr->AddMove(dest, src);
     // Update safepoint bitmap to indicate that the target location
     // now contains a pointer.
@@ -803,8 +821,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 }
 
 
-void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
-                                            TokenPosition token_pos) {
+void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =
@@ -842,12 +859,18 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
     // with the same instruction (and same location summary) sees a bitmap that
     // is larger that StackSize(). It will never be larger than StackSize() +
     // live_registers_size.
-    ASSERT(bitmap->Length() <= (spill_area_size + live_registers_size));
     // The first safepoint will grow the bitmap to be the size of
     // spill_area_size but the second safepoint will truncate the bitmap and
     // append the live registers to it again. The bitmap produced by both calls
     // will be the same.
+#if !defined(TARGET_ARCH_DBC)
+    ASSERT(bitmap->Length() <= (spill_area_size + live_registers_size));
     bitmap->SetLength(spill_area_size);
+#else
+    if (bitmap->Length() <= (spill_area_size + live_registers_size)) {
+      bitmap->SetLength(Utils::Maximum(bitmap->Length(), spill_area_size));
+    }
+#endif
 
     // Mark the bits in the stack map in the same order we push registers in
     // slow path code (see FlowGraphCompiler::SaveLiveRegisters).
@@ -990,12 +1013,15 @@ void FlowGraphCompiler::EmitDeopt(intptr_t deopt_id,
                                   uint32_t flags) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
+  // The pending deoptimization environment may be changed after this deopt is
+  // emitted, so we need to make a copy.
+  Environment* env_copy =
+      pending_deoptimization_env_->DeepCopy(zone());
   CompilerDeoptInfo* info =
       new(zone()) CompilerDeoptInfo(deopt_id,
                                     reason,
                                     flags,
-                                    pending_deoptimization_env_);
-
+                                    env_copy);
   deopt_infos_.Add(info);
   assembler()->Deopt(0, /*is_eager =*/ 1);
   info->set_pc_offset(assembler()->CodeSize());
@@ -1023,7 +1049,6 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
       pc_descriptors_list_->FinalizePcDescriptors(code.PayloadStart()));
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
   code.set_pc_descriptors(descriptors);
-  code.set_lazy_deopt_pc_offset(lazy_deopt_pc_offset_);
 }
 
 
@@ -1130,44 +1155,45 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !isolate()->type_checks()) {
+    const Class& owner = Class::Handle(parsed_function().function().Owner());
+    String& name = String::Handle(parsed_function().function().name());
+
     if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
-      // An implicit getter must have a specific AST structure.
-      const SequenceNode& sequence_node = *parsed_function().node_sequence();
-      ASSERT(sequence_node.length() == 1);
-      ASSERT(sequence_node.NodeAt(0)->IsReturnNode());
-      const ReturnNode& return_node = *sequence_node.NodeAt(0)->AsReturnNode();
-      ASSERT(return_node.value()->IsLoadInstanceFieldNode());
-      const LoadInstanceFieldNode& load_node =
-          *return_node.value()->AsLoadInstanceFieldNode();
+      // TODO(27590) Store Field object inside RawFunction::data_ if possible.
+      name = Field::NameFromGetter(name);
+      const Field& field = Field::Handle(owner.LookupFieldAllowPrivate(name));
+      ASSERT(!field.IsNull());
+
       // Only intrinsify getter if the field cannot contain a mutable double.
       // Reading from a mutable double box requires allocating a fresh double.
-      if (!IsPotentialUnboxedField(load_node.field())) {
-        GenerateInlinedGetter(load_node.field().Offset());
+      if (field.is_instance() &&
+          (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
+        GenerateInlinedGetter(field.Offset());
         return !FLAG_use_field_guards;
       }
       return false;
     }
     if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
-      // An implicit setter must have a specific AST structure.
-      // Sequence node has one store node and one return NULL node.
-      const SequenceNode& sequence_node = *parsed_function().node_sequence();
-      ASSERT(sequence_node.length() == 2);
-      ASSERT(sequence_node.NodeAt(0)->IsStoreInstanceFieldNode());
-      ASSERT(sequence_node.NodeAt(1)->IsReturnNode());
-      const StoreInstanceFieldNode& store_node =
-          *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
-      if (store_node.field().guarded_cid() == kDynamicCid) {
-        GenerateInlinedSetter(store_node.field().Offset());
+      // TODO(27590) Store Field object inside RawFunction::data_ if possible.
+      name = Field::NameFromSetter(name);
+      const Field& field = Field::Handle(owner.LookupFieldAllowPrivate(name));
+      ASSERT(!field.IsNull());
+
+      if (field.is_instance() &&
+          (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+        GenerateInlinedSetter(field.Offset());
         return !FLAG_use_field_guards;
       }
+      return false;
     }
   }
 
   EnterIntrinsicMode();
 
-  Intrinsifier::Intrinsify(parsed_function(), this);
+  bool complete = Intrinsifier::Intrinsify(parsed_function(), this);
 
   ExitIntrinsicMode();
+
   // "Deoptimization" from intrinsic continues here. All deoptimization
   // branches from intrinsic code redirect to here where the slow-path
   // (normal function body) starts.
@@ -1175,7 +1201,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
   // before any deoptimization point.
   ASSERT(!intrinsic_slow_path_label_.IsBound());
   assembler()->Bind(&intrinsic_slow_path_label_);
-  return false;
+  return complete;
 }
 
 
@@ -1906,20 +1932,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
                       deopt_id, token_pos, locs, true);
       assembler()->Bind(&ok);
     } else {
-      // Instead of deoptimizing, do a megamorphic call when no matching
-      // cid found.
-      Label ok;
-      MegamorphicSlowPath* slow_path =
-        new MegamorphicSlowPath(ic_data, argument_count, deopt_id,
-                                token_pos, locs, CurrentTryIndex());
-      AddSlowPathCode(slow_path);
-      EmitTestAndCall(ic_data, argument_count, argument_names,
-                      slow_path->entry_label(),  // No cid match.
-                      &ok,                       // Found cid.
-                      deopt_id, token_pos, locs, false);
-
-      assembler()->Bind(slow_path->exit_label());
-      assembler()->Bind(&ok);
+      EmitSwitchableInstanceCall(ic_data, argument_count,
+                                 deopt_id, token_pos, locs);
     }
   }
 }

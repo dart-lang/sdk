@@ -12,22 +12,23 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
 import '../../abstract_single_unit.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(FixProcessorTest);
-  defineReflectiveTests(LintFixTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(FixProcessorTest);
+    defineReflectiveTests(LintFixTest);
+  });
 }
 
 typedef bool AnalysisErrorFilter(AnalysisError error);
@@ -151,8 +152,10 @@ bool test() {
    * Configures the [SourceFactory] to have the `my_pkg` package in
    * `/packages/my_pkg/lib` folder.
    */
-  void _configureMyPkg(String myLibCode) {
-    provider.newFile('/packages/my_pkg/lib/my_lib.dart', myLibCode);
+  void _configureMyPkg(Map<String, String> pathToCode) {
+    pathToCode.forEach((path, code) {
+      provider.newFile('/packages/my_pkg/lib/$path', code);
+    });
     // configure SourceFactory
     Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
@@ -161,7 +164,11 @@ bool test() {
     context.sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
     // force 'my_pkg' resolution
-    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
+    addSource(
+        '/tmp/other.dart',
+        pathToCode.keys
+            .map((path) => "import 'package:my_pkg/$path';")
+            .join('\n'));
   }
 
   AnalysisError _findErrorToFix() {
@@ -467,14 +474,14 @@ main() {
     // No fix for ";".
     {
       AnalysisError error = errors[0];
-      expect(error.message, "Expected to find ';'");
+      expect(error.message, "Expected to find ';'.");
       List<Fix> fixes = await _computeFixes(error);
       expect(fixes, isEmpty);
     }
     // Has fix for "await".
     {
       AnalysisError error = errors[1];
-      expect(error.message, startsWith("Undefined name 'await';"));
+      expect(error.message, startsWith("Undefined name 'await'."));
       List<Fix> fixes = await _computeFixes(error);
       // has exactly one fix
       expect(fixes, hasLength(1));
@@ -1011,8 +1018,7 @@ main() {
 class A {
   int field;
 
-  A(int i, double d) {
-  }
+  A(int i, double d);
 
   method() {}
 }
@@ -1035,13 +1041,32 @@ main() {
         DartFixKind.CREATE_CONSTRUCTOR,
         '''
 class A {
-  A.named(int i, double d) {
-  }
+  A.named(int i, double d);
 
   method() {}
 }
 main() {
   new A.named(1, 2.0);
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
+  }
+
+  test_createConstructor_named_emptyClassBody() async {
+    resolveTestUnit('''
+class A {}
+main() {
+  new A.named(1);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_CONSTRUCTOR,
+        '''
+class A {
+  A.named(int i);
+}
+main() {
+  new A.named(1);
 }
 ''');
     _assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
@@ -1851,7 +1876,7 @@ part 'my_part.dart';
         Uri.parse('package:my/test.dart'));
     // configure SourceFactory
     UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'my': [provider.getResource('/my/lib')],
+      'my': <Folder>[provider.getResource('/my/lib')],
     });
     context.sourceFactory = new SourceFactory(
         [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
@@ -2569,6 +2594,30 @@ class B extends A {
     }
   }
 
+  test_createMissingOverrides_method_emptyClassBody() async {
+    resolveTestUnit('''
+abstract class A {
+  void foo();
+}
+
+class B extends A {}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_MISSING_OVERRIDES,
+        '''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  @override
+  void foo() {
+    // TODO: implement foo
+  }
+}
+''');
+  }
+
   test_createMissingOverrides_operator() async {
     resolveTestUnit('''
 abstract class A {
@@ -3039,12 +3088,8 @@ Future main() async {
 ''');
   }
 
-  test_importLibraryPackage_withClass() async {
-    _configureMyPkg('''
-library my_lib;
-class Test {}
-''');
-    // try to find a fix
+  test_importLibraryPackage_preferDirectOverExport() async {
+    _configureMyPkg({'b.dart': 'class Test {}', 'a.dart': "export 'b.dart';"});
     resolveTestUnit('''
 main() {
   Test test = null;
@@ -3052,9 +3097,47 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
-import 'package:my_pkg/my_lib.dart';
+import 'package:my_pkg/b.dart';
+
+main() {
+  Test test = null;
+}
+''');
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT2,
+        '''
+import 'package:my_pkg/a.dart';
+
+main() {
+  Test test = null;
+}
+''');
+  }
+
+  test_importLibraryPackage_preferPublicOverPrivate() async {
+    _configureMyPkg(
+        {'src/a.dart': 'class Test {}', 'b.dart': "export 'src/a.dart';"});
+    resolveTestUnit('''
+main() {
+  Test test = null;
+}
+''');
+    performAllAnalysisTasks();
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT2,
+        '''
+import 'package:my_pkg/b.dart';
+
+main() {
+  Test test = null;
+}
+''');
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT3,
+        '''
+import 'package:my_pkg/src/a.dart';
 
 main() {
   Test test = null;
@@ -3078,7 +3161,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3112,7 +3195,7 @@ main () {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'a.dart';
 import 'b.dart' show Two;
@@ -3138,7 +3221,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import '../lib.dart';
 
@@ -3163,7 +3246,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import '../lib/sub/folder/lib.dart';
 
@@ -3188,7 +3271,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3212,7 +3295,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3238,7 +3321,7 @@ class A {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3265,7 +3348,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3289,7 +3372,7 @@ main() {
 ''');
     performAllAnalysisTasks();
     await assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        DartFixKind.IMPORT_LIBRARY_PROJECT1,
         '''
 import 'lib.dart';
 
@@ -3495,7 +3578,7 @@ main() {
 }
 ''');
     performAllAnalysisTasks();
-    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT);
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT1);
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SHOW,
         '''
@@ -3881,7 +3964,7 @@ import '../foo/bar/lib.dart';
   }
 
   test_replaceImportUri_package() async {
-    _configureMyPkg('');
+    _configureMyPkg({'my_lib.dart': ''});
     resolveTestUnit('''
 import 'no/matter/my_lib.dart';
 ''');
@@ -3925,6 +4008,23 @@ class A {
   const A();
 }
 const a = const A();
+''');
+  }
+
+  test_undefinedClass_useSimilar_BAD_prefixed() async {
+    resolveTestUnit('''
+import 'dart:async' as c;
+main() {
+  c.Fture v = null;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CHANGE_TO,
+        '''
+import 'dart:async' as c;
+main() {
+  c.Future v = null;
+}
 ''');
   }
 
@@ -4325,6 +4425,33 @@ main() {
   print(0);
 }
 ''');
+  }
+
+  test_undefinedFunction_useSimilar_prefixed_fromImport() async {
+    resolveTestUnit('''
+import 'dart:core' as c;
+main() {
+  c.prnt(42);
+}
+''');
+    await assertHasFix(
+        DartFixKind.CHANGE_TO,
+        '''
+import 'dart:core' as c;
+main() {
+  c.print(42);
+}
+''');
+  }
+
+  test_undefinedFunction_useSimilar_prefixed_ignoreLocal() async {
+    resolveTestUnit('''
+import 'dart:async' as c;
+main() {
+  c.main();
+}
+''');
+    await assertNoFix(DartFixKind.CHANGE_TO);
   }
 
   test_undefinedFunction_useSimilar_thisLibrary() async {
@@ -5146,10 +5273,10 @@ class LintFixTest extends BaseFixProcessorTest {
     resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
   }
 
-  void findLint(String src, String lintCode) {
+  void findLint(String src, String lintCode, {int length: 1}) {
     int errorOffset = src.indexOf('/*LINT*/');
     resolveTestUnit(src.replaceAll('/*LINT*/', ''));
-    error = new AnalysisError(testUnit.element.source, errorOffset, 1,
+    error = new AnalysisError(testUnit.element.source, errorOffset, length,
         new LintCode(lintCode, '<ignored>'));
   }
 
@@ -5331,6 +5458,23 @@ class Sub extends Test {
   // Non-doc comment.
   @override
   void t() { }
+}
+''');
+  }
+
+  test_lint_removeInterpolationBraces() async {
+    String src = r'''
+main() {
+  var v = 42;
+  print('v: /*LINT*/${ v}');
+}
+''';
+    findLint(src, LintNames.unnecessary_brace_in_string_interp, length: 4);
+    await applyFix(DartFixKind.LINT_REMOVE_INTERPOLATION_BRACES);
+    verifyResult(r'''
+main() {
+  var v = 42;
+  print('v: $v');
 }
 ''');
   }

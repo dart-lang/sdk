@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_COMPILER_STATS_H_
-#define VM_COMPILER_STATS_H_
+#ifndef RUNTIME_VM_COMPILER_STATS_H_
+#define RUNTIME_VM_COMPILER_STATS_H_
 
 #include "vm/allocation.h"
 #include "vm/atomic.h"
@@ -41,6 +41,7 @@ DECLARE_FLAG(bool, compiler_benchmark);
   V(num_tokens_consumed)                                                       \
   V(num_cached_consts)                                                         \
   V(num_const_cache_hits)                                                      \
+  V(num_execute_const)                                                         \
   V(num_classes_parsed)                                                        \
   V(num_class_tokens)                                                          \
   V(num_functions_parsed)                                                      \
@@ -85,6 +86,7 @@ class CompilerStats {
   int64_t num_tokens_consumed;
   int64_t num_cached_consts;
   int64_t num_const_cache_hits;
+  int64_t num_execute_const;
 
   int64_t num_classes_parsed;
   int64_t num_class_tokens;
@@ -140,4 +142,4 @@ class CompilerStats {
 
 }  // namespace dart
 
-#endif  // VM_COMPILER_STATS_H_
+#endif  // RUNTIME_VM_COMPILER_STATS_H_

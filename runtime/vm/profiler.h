@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_PROFILER_H_
-#define VM_PROFILER_H_
+#ifndef RUNTIME_VM_PROFILER_H_
+#define RUNTIME_VM_PROFILER_H_
 
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
@@ -434,8 +434,7 @@ class CodeDescriptor : public ZoneAllocated {
   }
 
   const char* Name() const {
-    const String& name = String::Handle(code_.Name());
-    return name.ToCString();
+    return code_.Name();
   }
 
   bool Contains(uword pc) const {
@@ -685,4 +684,4 @@ class ProcessedSampleBuffer : public ZoneAllocated {
 
 }  // namespace dart
 
-#endif  // VM_PROFILER_H_
+#endif  // RUNTIME_VM_PROFILER_H_

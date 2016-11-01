@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of types;
+part of masks;
 
 /// A [ContainerTypeMask] is a [TypeMask] for a specific allocation
 /// site of a container (currently only List) that will get specialized
@@ -50,13 +50,13 @@ class ContainerTypeMask extends ForwardingTypeMask {
         length == other.length;
   }
 
-  TypeMask intersection(TypeMask other, ClassWorld classWorld) {
-    TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
+  TypeMask intersection(TypeMask other, ClosedWorld closedWorld) {
+    TypeMask forwardIntersection = forwardTo.intersection(other, closedWorld);
     if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable ? nullable() : nonNullable();
   }
 
-  TypeMask union(other, ClassWorld classWorld) {
+  TypeMask union(other, ClosedWorld closedWorld) {
     if (this == other) {
       return this;
     } else if (equalsDisregardNull(other)) {
@@ -67,9 +67,9 @@ class ContainerTypeMask extends ForwardingTypeMask {
         elementType != null &&
         other.elementType != null) {
       TypeMask newElementType =
-          elementType.union(other.elementType, classWorld);
+          elementType.union(other.elementType, closedWorld);
       int newLength = (length == other.length) ? length : null;
-      TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);
+      TypeMask newForwardTo = forwardTo.union(other.forwardTo, closedWorld);
       return new ContainerTypeMask(
           newForwardTo,
           allocationNode == other.allocationNode ? allocationNode : null,
@@ -79,7 +79,7 @@ class ContainerTypeMask extends ForwardingTypeMask {
           newElementType,
           newLength);
     } else {
-      return forwardTo.union(other, classWorld);
+      return forwardTo.union(other, closedWorld);
     }
   }
 

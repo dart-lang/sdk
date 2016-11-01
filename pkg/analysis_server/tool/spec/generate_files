@@ -32,27 +32,31 @@ SCRIPT_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
 ROOT_DIR="$(cd "${SCRIPT_DIR}/../../../.." ; pwd -P)"
 
-BIN_DIR="${ROOT_DIR}/sdk/bin"
-
-if [ -z "$DART_CONFIGURATION" ];
+if [[ $1 == '--arch' && $2 == 'x64' ]];
+then
+  DART_CONFIGURATION="ReleaseX64"
+elif [ -z "$DART_CONFIGURATION" ];
 then
   DART_CONFIGURATION="ReleaseIA32"
 fi
 
 if [[ `uname` == 'Darwin' ]];
 then
-  BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
-else
-  BUILD_DIR="${ROOT_DIR}/out/$DART_CONFIGURATION"
+  if [[ $GYP_GENERATORS == 'ninja' ]];
+  then
+    BUILD_DIR="${ROOT_DIR}/out/$DART_CONFIGURATION"
+  else
+    BUILD_DIR="${ROOT_DIR}/xcodebuild/$DART_CONFIGURATION"
+  fi
 fi
 
-PKG_DIR="${BUILD_DIR}/packages"
+PKG_FILE="${ROOT_DIR}/pkg/analysis_server/.packages"
 
-DART="${BIN_DIR}/dart"
+DART="${BUILD_DIR}/dart-sdk/bin/dart"
 
 declare -a VM_OPTIONS
 VM_OPTIONS+=("--checked")
-VM_OPTIONS+=("--package-root=${PKG_DIR}")
+VM_OPTIONS+=("--packages=${PKG_FILE}")
 
 cd "${SCRIPT_DIR}"
 "${DART}" "${VM_OPTIONS[@]}" "generate_all.dart"

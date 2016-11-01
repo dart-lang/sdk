@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // Class for intrinsifying functions.
 
-#ifndef VM_INTRINSIFIER_H_
-#define VM_INTRINSIFIER_H_
+#ifndef RUNTIME_VM_INTRINSIFIER_H_
+#define RUNTIME_VM_INTRINSIFIER_H_
 
 #include "vm/allocation.h"
 #include "vm/method_recognizer.h"
@@ -21,7 +21,7 @@ class FlowGraph;
 
 class Intrinsifier : public AllStatic {
  public:
-  static void Intrinsify(const ParsedFunction& parsed_function,
+  static bool Intrinsify(const ParsedFunction& parsed_function,
                          FlowGraphCompiler* compiler);
 #if defined(DART_NO_SNAPSHOT)
   static void InitializeState();
@@ -61,4 +61,4 @@ class Intrinsifier : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_INTRINSIFIER_H_
+#endif  // RUNTIME_VM_INTRINSIFIER_H_

@@ -5,13 +5,12 @@
 import "dart:_js_helper";
 import "package:expect/expect.dart";
 
-makeCC() native;
+makeCC() native ;
 
 void setup() native """
 function CC() {}
 makeCC = function() { return new CC; }
 """;
-
 
 @Native("CC")
 class ClickCounter {

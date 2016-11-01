@@ -24,7 +24,8 @@ void find(String text, String substring, bool expected) {
     Expect.isTrue(found, 'Expected "$substring" in:\n$text');
   }
   if (!expected && found) {
-    Expect.isFalse(found,
+    Expect.isFalse(
+        found,
         'Unexpected "$substring" in:\n'
         '${text.substring(text.indexOf(substring))}');
   }
@@ -67,9 +68,15 @@ void main() {
     await test();
     await test(sourceMap: 'file:/out.js.map');
     await test(out: 'file:/out.js');
-    await test(out: 'file:/out.js', sourceMap: 'file:/out.js.map',
-               file: 'out.js', mapping: 'out.js.map');
-    await test(out: 'file:/dir/out.js', sourceMap: 'file:/dir/out.js.map',
-               file: 'out.js', mapping: 'out.js.map');
+    await test(
+        out: 'file:/out.js',
+        sourceMap: 'file:/out.js.map',
+        file: 'out.js',
+        mapping: 'out.js.map');
+    await test(
+        out: 'file:/dir/out.js',
+        sourceMap: 'file:/dir/out.js.map',
+        file: 'out.js',
+        mapping: 'out.js.map');
   });
 }

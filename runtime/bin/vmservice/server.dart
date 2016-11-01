@@ -51,9 +51,18 @@ class WebSocketClient extends Client {
       return;
     }
     try {
-      socket.add(result);
-    } catch (_) {
+      if (result is String || result is Uint8List) {
+        socket.add(result);  // String or binary message.
+      } else {
+        // String message as external Uint8List.
+        assert(result is List);
+        Uint8List cstring = result[0];
+        socket.addUtf8Text(cstring);
+      }
+    } catch (e, st) {
       print("Ignoring error posting over WebSocket.");
+      print(e);
+      print(st);
     }
   }
 
@@ -79,14 +88,23 @@ class HttpRequestClient extends Client {
     close();
   }
 
-  void post(String result) {
+  void post(dynamic result) {
     if (result == null) {
       close();
       return;
     }
-    request.response..headers.contentType = jsonContentType
-                    ..write(result)
-                    ..close();
+    HttpResponse response = request.response;
+    // We closed the connection for bad origins earlier.
+    response.headers.add('Access-Control-Allow-Origin', '*');
+    response.headers.contentType = jsonContentType;
+    if (result is String) {
+      response.write(result);
+    } else {
+      assert(result is List);
+      Uint8List cstring = result[0];  // Already in UTF-8.
+      response.add(cstring);
+    }
+    response.close();
     close();
   }
 
@@ -106,31 +124,46 @@ class Server {
   final String _ip;
   final int _port;
   final bool _originCheckDisabled;
-  final List<String> _allowedOrigins = <String>[];
   HttpServer _server;
   bool get running => _server != null;
-  bool _displayMessages = false;
 
-  Server(this._service, this._ip, this._port, this._originCheckDisabled) {
-    _displayMessages = (_ip != '127.0.0.1' || _port != 8181);
-  }
-
-  void _addOrigin(String host, String port) {
-    if (port == null) {
-      String origin = 'http://$host';
-      _allowedOrigins.add(origin);
+  /// Returns the server address including the auth token.
+  Uri get serverAddress {
+    if (!running) {
+      return null;
+    }
+    var ip = _server.address.address;
+    var port = _server.port;
+    if (useAuthToken) {
+      return Uri.parse('http://$ip:$port/$serviceAuthToken/');
     } else {
-      String origin = 'http://$host:$port';
-      _allowedOrigins.add(origin);
+      return Uri.parse('http://$ip:$port/');
     }
   }
+
+  Server(this._service, this._ip, this._port, this._originCheckDisabled);
 
   bool _isAllowedOrigin(String origin) {
-    for (String allowedOrigin in _allowedOrigins) {
-      if (origin.startsWith(allowedOrigin)) {
-        return true;
-      }
+    Uri uri;
+    try {
+      uri = Uri.parse(origin);
+    } catch (_) {
+      return false;
     }
+
+    // Explicitly add localhost and 127.0.0.1 on any port (necessary for
+    // adb port forwarding).
+    if ((uri.host == 'localhost') ||
+        (uri.host == '127.0.0.1')) {
+      return true;
+    }
+
+    if ((uri.port == _server.port) &&
+        ((uri.host == _server.address.address) ||
+         (uri.host == _server.address.host))) {
+      return true;
+    }
+
     return false;
   }
 
@@ -157,6 +190,28 @@ class Server {
     return false;
   }
 
+  /// Checks the [requestUri] for the service auth token and returns the path.
+  /// If the service auth token check fails, returns null.
+  String _checkAuthTokenAndGetPath(Uri requestUri) {
+    if (!useAuthToken) {
+      return requestUri.path == '/' ? ROOT_REDIRECT_PATH : requestUri.path;
+    }
+    final List<String> requestPathSegments = requestUri.pathSegments;
+    if (requestPathSegments.length < 2) {
+      // Malformed.
+      return null;
+    }
+    // Check that we were given the auth token.
+    final String authToken = requestPathSegments[0];
+    if (authToken != serviceAuthToken) {
+      // Malformed.
+      return null;
+    }
+    // Construct the actual request path by chopping off the auth token.
+    return (requestPathSegments[1] == '') ?
+        ROOT_REDIRECT_PATH : '/${requestPathSegments.sublist(1).join('/')}';
+  }
+
   Future _requestHandler(HttpRequest request) async {
     if (!_originCheck(request)) {
       // This is a cross origin attempt to connect
@@ -168,15 +223,23 @@ class Server {
 
       List fsNameList;
       List fsPathList;
+      List fsPathBase64List;
       Object fsName;
       Object fsPath;
 
       try {
         // Extract the fs name and fs path from the request headers.
         fsNameList = request.headers['dev_fs_name'];
-        fsPathList = request.headers['dev_fs_path'];
         fsName = fsNameList[0];
-        fsPath = fsPathList[0];
+
+        fsPathList = request.headers['dev_fs_path'];
+        fsPathBase64List = request.headers['dev_fs_path_b64'];
+        // If the 'dev_fs_path_b64' header field was sent, use that instead.
+        if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
+          fsPath = UTF8.decode(BASE64.decode(fsPathBase64List[0]));
+        } else {
+          fsPath = fsPathList[0];
+        }
       } catch (e) { /* ignore */ }
 
       String result;
@@ -201,8 +264,12 @@ class Server {
       return;
     }
 
-    final String path =
-          request.uri.path == '/' ? ROOT_REDIRECT_PATH : request.uri.path;
+    final String path = _checkAuthTokenAndGetPath(request.uri);
+    if (path == null) {
+      // Malformed.
+      request.response.close();
+      return;
+    }
 
     if (path == WEBSOCKET_PATH) {
       WebSocketTransformer.upgrade(request).then(
@@ -239,33 +306,19 @@ class Server {
       return new Future.value(this);
     }
 
-    // Clear allowed origins.
-    _allowedOrigins.clear();
-
     var address = new InternetAddress(_ip);
     // Startup HTTP server.
     return HttpServer.bind(address, _port).then((s) {
       _server = s;
       _server.listen(_requestHandler, cancelOnError: true);
-      var ip = _server.address.address.toString();
-      var port = _server.port.toString();
-      // Add the numeric ip and host name to our allowed origins.
-      _addOrigin(ip, port);
-      _addOrigin(_server.address.host.toString(), port);
-      // Explicitly add localhost and 127.0.0.1 on any port (necessary for
-      // adb port forwarding).
-      _addOrigin('127.0.0.1', null);
-      _addOrigin('localhost', null);
-      if (_displayMessages) {
-        print('Observatory listening on http://$ip:$port');
-      }
+      print('Observatory listening on $serverAddress');
       // Server is up and running.
-      _notifyServerState(ip, _server.port);
-      onServerAddressChange('http://$ip:$port');
+      _notifyServerState(serverAddress.toString());
+      onServerAddressChange('$serverAddress');
       return this;
     }).catchError((e, st) {
       print('Could not start Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
     });
@@ -284,24 +337,18 @@ class Server {
       return new Future.value(this);
     }
 
-    // Force displaying of status messages if we are forcibly shutdown.
-    _displayMessages = _displayMessages || forced;
-
     // Shutdown HTTP server and subscription.
-    var ip = _server.address.address.toString();
-    var port = _server.port.toString();
+    String oldServerAddress = serverAddress;
     return cleanup(forced).then((_) {
-      if (_displayMessages) {
-        print('Observatory no longer listening on http://$ip:$port');
-      }
+      print('Observatory no longer listening on $oldServerAddress');
       _server = null;
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
       print('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
     });
@@ -309,5 +356,5 @@ class Server {
 
 }
 
-void _notifyServerState(String ip, int port)
+void _notifyServerState(String uri)
     native "VMServiceIO_NotifyServerState";

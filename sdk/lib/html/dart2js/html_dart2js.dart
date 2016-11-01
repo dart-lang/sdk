@@ -89,7 +89,8 @@ Window get window => JS('Window', 'window');
 /**
  * Root node for all content in a web page.
  */
-HtmlDocument get document => JS('HtmlDocument', 'document');
+HtmlDocument get document =>
+    JS('returns:HtmlDocument;depends:none;effects:none;gvn:true', 'document');
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
@@ -3069,10 +3070,8 @@ class CloseEvent extends Event {
 @Native("Comment")
 class Comment extends CharacterData {
   factory Comment([String data]) {
-    if (data != null) {
-      return JS('Comment', '#.createComment(#)', document, data);
-    }
-    return JS('Comment', '#.createComment("")', document);
+    return JS('returns:Comment;depends:none;effects:none;new:true',
+        '#.createComment(#)', document, data == null ? "" : data);
   }
   // To suppress missing implicit constructor warnings.
   factory Comment._() { throw new UnsupportedError("Not supported"); }
@@ -17673,6 +17672,8 @@ class Gamepad extends Interceptor {
 
   @DomName('Gamepad.buttons')
   @DocsEditable()
+  @Creates('JSExtendableArray|GamepadButton')
+  @Returns('JSExtendableArray')
   final List<GamepadButton> buttons;
 
   @DomName('Gamepad.connected')
@@ -31127,7 +31128,7 @@ class StashedPortCollection extends EventTarget {
  * For more examples of using this API, see
  * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
  * For details on using the Map API, see the
- * [Maps](http://www.dartlang.org/docs/library-tour/#maps-aka-dictionaries-or-hashes)
+ * [Maps](https://www.dartlang.org/guides/libraries/library-tour#maps)
  * section of the library tour.
  */
 @DomName('Storage')
@@ -31997,7 +31998,9 @@ class TemplateElement extends HtmlElement {
 @DomName('Text')
 @Native("Text")
 class Text extends CharacterData {
-  factory Text(String data) => document._createTextNode(data);
+  factory Text(String data) =>
+      JS('returns:Text;depends:none;effects:none;new:true',
+          '#.createTextNode(#)', document, data);
   // To suppress missing implicit constructor warnings.
   factory Text._() { throw new UnsupportedError("Not supported"); }
 
@@ -37900,7 +37903,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.index(index, this);
-    return JS("Gamepad", "#[#]", this, index);
+    return JS("Gamepad|Null", "#[#]", this, index);
   }
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -37915,7 +37918,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
 
   Gamepad get first {
     if (this.length > 0) {
-      return JS('Gamepad', '#[0]', this);
+      return JS('Gamepad|Null', '#[0]', this);
     }
     throw new StateError("No elements");
   }
@@ -37923,7 +37926,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
   Gamepad get last {
     int len = this.length;
     if (len > 0) {
-      return JS('Gamepad', '#[#]', this, len - 1);
+      return JS('Gamepad|Null', '#[#]', this, len - 1);
     }
     throw new StateError("No elements");
   }
@@ -37931,7 +37934,7 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
   Gamepad get single {
     int len = this.length;
     if (len == 1) {
-      return JS('Gamepad', '#[0]', this);
+      return JS('Gamepad|Null', '#[0]', this);
     }
     if (len == 0) throw new StateError("No elements");
     throw new StateError("More than one element");
@@ -39801,7 +39804,7 @@ class Dimension {
   /**
    * Set this CSS Dimension to the specified number of x-heights.
    *
-   * One ex is equal to the the x-height of a font's baseline to its mean line,
+   * One ex is equal to the x-height of a font's baseline to its mean line,
    * generally the height of the letter "x" in the font, which is usually about
    * half the font-size.
    */

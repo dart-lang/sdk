@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_LOCATIONS_H_
-#define VM_LOCATIONS_H_
+#ifndef RUNTIME_VM_LOCATIONS_H_
+#define RUNTIME_VM_LOCATIONS_H_
 
 #include "vm/allocation.h"
 #include "vm/assembler.h"
@@ -398,7 +398,11 @@ class Location : public ValueObject {
   typedef BitField<uword, Policy, 0, 3> PolicyField;
 
   // Layout for stack slots.
+#if defined(ARCH_IS_64_BIT)
+  static const intptr_t kBitsForBaseReg = 6;
+#else
   static const intptr_t kBitsForBaseReg = 5;
+#endif
   static const intptr_t kBitsForStackIndex = kBitsForPayload - kBitsForBaseReg;
   class StackSlotBaseField :
       public BitField<uword, Register, 0, kBitsForBaseReg> {};
@@ -723,4 +727,4 @@ class LocationSummary : public ZoneAllocated {
 
 }  // namespace dart
 
-#endif  // VM_LOCATIONS_H_
+#endif  // RUNTIME_VM_LOCATIONS_H_

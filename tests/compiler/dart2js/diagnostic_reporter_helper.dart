@@ -15,9 +15,7 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   DiagnosticReporter get reporter;
 
   @override
-  DiagnosticMessage createMessage(
-      Spannable spannable,
-      MessageKind messageKind,
+  DiagnosticMessage createMessage(Spannable spannable, MessageKind messageKind,
       [Map arguments = const {}]) {
     return reporter.createMessage(spannable, messageKind, arguments);
   }
@@ -36,31 +34,26 @@ abstract class DiagnosticReporterWrapper extends DiagnosticReporter {
   DiagnosticOptions get options => reporter.options;
 
   @override
-  void reportError(
-      DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage> []]) {
+  void reportError(DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reporter.reportError(message, infos);
   }
 
   @override
-  void reportHint(
-      DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage> []]) {
+  void reportHint(DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reporter.reportHint(message, infos);
   }
 
   @override
-  void reportInfo(
-      Spannable node,
-      MessageKind errorCode,
+  void reportInfo(Spannable node, MessageKind errorCode,
       [Map arguments = const {}]) {
     reporter.reportInfo(node, errorCode, arguments);
   }
 
   @override
-  void reportWarning(
-      DiagnosticMessage message,
-      [List<DiagnosticMessage> infos = const <DiagnosticMessage> []]) {
+  void reportWarning(DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
     reporter.reportWarning(message, infos);
   }
 

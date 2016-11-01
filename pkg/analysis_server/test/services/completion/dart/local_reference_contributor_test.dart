@@ -11,15 +11,15 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(LocalReferenceContributorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(LocalReferenceContributorTest);
+  });
 }
 
 @reflectiveTest
@@ -1921,6 +1921,110 @@ class A {a(blat: ^) { }}''');
     assertNotSuggested('String');
     assertNotSuggested('identical');
     assertNotSuggested('bar');
+  }
+
+  test_doc_classMember() async {
+    String docLines = r'''
+  /// My documentation.
+  /// Short description.
+  ///
+  /// Longer description.
+''';
+    void assertDoc(CompletionSuggestion suggestion) {
+      expect(suggestion.docSummary, 'My documentation.\nShort description.');
+      expect(suggestion.docComplete,
+          'My documentation.\nShort description.\n\nLonger description.');
+    }
+
+    addTestSource('''
+class C {
+$docLines
+  int myField;
+
+$docLines
+  myMethod() {}
+
+$docLines
+  int get myGetter => 0;
+
+  main() {^}
+}''');
+    await computeSuggestions();
+    {
+      CompletionSuggestion suggestion = assertSuggestField('myField', 'int',
+          relevance: DART_RELEVANCE_LOCAL_FIELD);
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestMethod(
+          'myMethod', 'C', null,
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestGetter('myGetter', 'int',
+          relevance: DART_RELEVANCE_LOCAL_ACCESSOR);
+      assertDoc(suggestion);
+    }
+  }
+
+  test_doc_topLevel() async {
+    String docLines = r'''
+/// My documentation.
+/// Short description.
+///
+/// Longer description.
+''';
+    void assertDoc(CompletionSuggestion suggestion) {
+      expect(suggestion.docSummary, 'My documentation.\nShort description.');
+      expect(suggestion.docComplete,
+          'My documentation.\nShort description.\n\nLonger description.');
+    }
+
+    addTestSource('''
+$docLines
+class MyClass {}
+
+$docLines
+class MyClassTypeAlias = Object with MyClass;
+
+$docLines
+enum MyEnum {A, B, C}
+
+$docLines
+void myFunction() {}
+
+$docLines
+int myVariable;
+
+main() {^}
+''');
+    await computeSuggestions();
+    {
+      CompletionSuggestion suggestion = assertSuggestClass('MyClass');
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion =
+          assertSuggestClassTypeAlias('MyClassTypeAlias');
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestEnum('MyEnum');
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestFunction(
+          'myFunction', 'void',
+          relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+      assertDoc(suggestion);
+    }
+    {
+      CompletionSuggestion suggestion = assertSuggestTopLevelVar(
+          'myVariable', 'int',
+          relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+      assertDoc(suggestion);
+    }
   }
 
   test_enum() async {
@@ -4040,6 +4144,21 @@ class X {foo(){A^.bar}}''');
     assertSuggestMethod('g', 'A', 'String',
         relevance: DART_RELEVANCE_LOCAL_METHOD);
     assertSuggestLocalVariable('t', null);
+    assertNotSuggested('String');
+  }
+
+  test_SwitchStatement_case_var() async {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('g(int x) {var t; switch(x) {case 0: var bar; b^}}');
+    await computeSuggestions();
+
+    assertSuggestFunction('g', 'dynamic',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertSuggestLocalVariable('t', 'dynamic',
+        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
+    assertSuggestParameter('x', 'int', relevance: DART_RELEVANCE_PARAMETER);
+    assertSuggestLocalVariable('bar', 'dynamic',
+        relevance: DART_RELEVANCE_LOCAL_VARIABLE);
     assertNotSuggested('String');
   }
 

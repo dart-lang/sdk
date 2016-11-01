@@ -10,15 +10,13 @@ import 'dart:_foreign_helper' show JS;
 // constructor name.
 
 @Native("TAGX")
-class A {
-}
+class A {}
 
 @Native("TAGY")
-class B extends A {
-}
+class B extends A {}
 
-makeA() native;
-makeB() native;
+makeA() native ;
+makeB() native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
@@ -37,7 +35,6 @@ makeA = function(){return new TAGX};
 makeB = function(){return new TAGY};
 """;
 
-
 testDynamicContext() {
   var a = makeA();
   var b = makeB();
@@ -50,7 +47,7 @@ testDynamicContext() {
 }
 
 testStaticContext() {
-  var a = JS('A', '#', makeA());  // Force compiler to know type.
+  var a = JS('A', '#', makeA()); // Force compiler to know type.
   var b = JS('B', '#', makeB());
 
   var aT = a.runtimeType;

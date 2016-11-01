@@ -10,7 +10,9 @@ void main() {
     throw "x != x with x == 3";
   }
   var y = x;
-  if (true) { y = 10; }
+  if (true) {
+    y = 10;
+  }
   if (x == y) throw "3 == 10";
   if (y == true) throw "10 == true";
   if (y == "str") throw "3 == 'str'";

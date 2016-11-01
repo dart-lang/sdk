@@ -7,7 +7,9 @@ library dart._vmservice;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer' show ServiceProtocolInfo;
 import 'dart:isolate';
+import 'dart:math';
 import 'dart:typed_data';
 
 part 'asset.dart';
@@ -19,12 +21,28 @@ part 'running_isolates.dart';
 part 'message.dart';
 part 'message_router.dart';
 
-final RawReceivePort isolateLifecyclePort = new RawReceivePort();
+final RawReceivePort isolateControlPort = new RawReceivePort();
 final RawReceivePort scriptLoadPort = new RawReceivePort();
 
 abstract class IsolateEmbedderData {
   void cleanup();
 }
+
+String _makeAuthToken() {
+  final kTokenByteSize = 8;
+  Uint8List bytes = new Uint8List(kTokenByteSize);
+  Random random = new Random.secure();
+  for (int i = 0; i < kTokenByteSize; i++) {
+    bytes[i] = random.nextInt(256);
+  }
+  return BASE64URL.encode(bytes);
+}
+
+// The randomly generated auth token used to access the VM service.
+final String serviceAuthToken = _makeAuthToken();
+
+// TODO(johnmccutchan): Enable the auth token and drop the origin check.
+final bool useAuthToken = false;
 
 // This is for use by the embedder. It is a map from the isolateId to
 // anything implementing IsolateEmbedderData. When an isolate goes away,
@@ -125,6 +143,12 @@ typedef Future<List<int>> ReadFileCallback(Uri path);
 /// Called to list all files under some path.
 typedef Future<List<Map<String,String>>> ListFilesCallback(Uri path);
 
+/// Called when we need information about the server.
+typedef Future<Uri> ServerInformationCallback();
+
+/// Called when we want to [enable] or disable the web server.
+typedef Future<Uri> WebServerControlCallback(bool enable);
+
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {
   static ServerStartCallback serverStart;
@@ -136,6 +160,8 @@ class VMServiceEmbedderHooks {
   static WriteStreamFileCallback writeStreamFile;
   static ReadFileCallback readFile;
   static ListFilesCallback listFiles;
+  static ServerInformationCallback serverInformation;
+  static WebServerControlCallback webServerControl;
 }
 
 class VMService extends MessageRouter {
@@ -194,6 +220,27 @@ class VMService extends MessageRouter {
     }
   }
 
+  Future<Null> _serverMessageHandler(int code, SendPort sp, bool enable) async {
+    switch (code) {
+      case Constants.WEB_SERVER_CONTROL_MESSAGE_ID:
+        if (VMServiceEmbedderHooks.webServerControl == null) {
+          sp.send(null);
+          return;
+        }
+        Uri uri = await VMServiceEmbedderHooks.webServerControl(enable);
+        sp.send(uri);
+      break;
+      case Constants.SERVER_INFO_MESSAGE_ID:
+        if (VMServiceEmbedderHooks.serverInformation == null) {
+          sp.send(null);
+          return;
+        }
+        Uri uri = await VMServiceEmbedderHooks.serverInformation();
+        sp.send(uri);
+      break;
+    }
+  }
+
   Future _exit() async {
     // Stop the server.
     if (VMServiceEmbedderHooks.serverStop != null) {
@@ -201,7 +248,7 @@ class VMService extends MessageRouter {
     }
 
     // Close receive ports.
-    isolateLifecyclePort.close();
+    isolateControlPort.close();
     scriptLoadPort.close();
 
     // Create a copy of the set as a list because client.disconnect() will
@@ -233,6 +280,13 @@ class VMService extends MessageRouter {
         _exit();
         return;
       }
+      if (message.length == 3) {
+        // This is a message interacting with the web server.
+        assert((message[0] == Constants.WEB_SERVER_CONTROL_MESSAGE_ID) ||
+               (message[0] == Constants.SERVER_INFO_MESSAGE_ID));
+        _serverMessageHandler(message[0], message[1], message[2]);
+        return;
+      }
       if (message.length == 4) {
         // This is a message informing us of the birth or death of an
         // isolate.
@@ -244,7 +298,7 @@ class VMService extends MessageRouter {
   }
 
   VMService._internal()
-      : eventPort = isolateLifecyclePort {
+      : eventPort = isolateControlPort {
     eventPort.handler = messageHandler;
   }
 
@@ -330,6 +384,15 @@ class VMService extends MessageRouter {
     return encodeSuccess(message);
   }
 
+  static responseAsJson(portResponse) {
+    if (portResponse is String) {
+      return JSON.decode(portResponse);
+    } else {
+      var cstring = portResponse[0];
+      return JSON.fuse(UTF8).decode(cstring);
+    }
+  }
+
   // TODO(johnmccutchan): Turn this into a command line tool that uses the
   // service library.
   Future<String> _getCrashDump(Message message) async {
@@ -353,13 +416,13 @@ class VMService extends MessageRouter {
 
     // Request VM.
     var getVM = Uri.parse('getVM');
-    var getVmResponse = JSON.decode(
+    var getVmResponse = responseAsJson(
         await new Message.fromUri(client, getVM).sendToVM());
     responses[getVM.toString()] = getVmResponse['result'];
 
     // Request command line flags.
     var getFlagList = Uri.parse('getFlagList');
-    var getFlagListResponse = JSON.decode(
+    var getFlagListResponse = responseAsJson(
         await new Message.fromUri(client, getFlagList).sendToVM());
     responses[getFlagList.toString()] = getFlagListResponse['result'];
 
@@ -369,13 +432,13 @@ class VMService extends MessageRouter {
         var message = new Message.forIsolate(client, request, isolate);
         // Decode the JSON and and insert it into the map. The map key
         // is the request Uri.
-        var response = JSON.decode(await isolate.route(message));
+        var response = responseAsJson(await isolate.route(message));
         responses[message.toUri().toString()] = response['result'];
       }
       // Dump the object id ring requests.
       var message =
           new Message.forIsolate(client, Uri.parse('_dumpIdZone'), isolate);
-      var response = JSON.decode(await isolate.route(message));
+      var response = responseAsJson(await isolate.route(message));
       // Insert getObject requests into responses map.
       for (var object in response['result']['objects']) {
         final requestUri =
@@ -416,8 +479,8 @@ class VMService extends MessageRouter {
 }
 
 RawReceivePort boot() {
-  // Return the port we expect isolate startup and shutdown messages on.
-  return isolateLifecyclePort;
+  // Return the port we expect isolate control messages on.
+  return isolateControlPort;
 }
 
 void _registerIsolate(int port_id, SendPort sp, String name) {

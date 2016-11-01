@@ -44,6 +44,9 @@ bool BranchSimplifier::Match(JoinEntryInstr* block) {
   BranchInstr* branch = block->last_instruction()->AsBranch();
   ASSERT(branch != NULL);
   ComparisonInstr* comparison = branch->comparison();
+  if (comparison->InputCount() != 2) {
+    return false;
+  }
   Value* left = comparison->left();
   PhiInstr* phi = left->definition()->AsPhi();
   Value* right = comparison->right();

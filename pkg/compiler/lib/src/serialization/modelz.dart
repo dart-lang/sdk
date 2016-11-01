@@ -1242,6 +1242,9 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   @override
   bool get isExternal => _decoder.getBool(Key.IS_EXTERNAL);
 
+  @override
+  bool get isDefaultConstructor => false;
+
   ConstantConstructor get constantConstructor {
     if (isConst && _constantConstructor == null) {
       ObjectDecoder data =
@@ -1318,6 +1321,9 @@ class DefaultConstructorElementZ extends ConstructorElementZ {
 
   @override
   bool get isSynthesized => true;
+
+  @override
+  bool get isDefaultConstructor => true;
 
   @override
   ConstructorElement get definingConstructor {
@@ -1438,6 +1444,9 @@ class ForwardingConstructorElementZ extends ElementZ
 
   @override
   bool get isClassMember => true;
+
+  @override
+  bool get isDefaultConstructor => false;
 
   @override
   ConstantConstructor get constantConstructor => null;

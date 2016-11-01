@@ -8,8 +8,8 @@ import 'dart:_foreign_helper' show JS, JS_CONST;
 
 test1() {
   var re = const JS_CONST(r'/-([\da-z])/ig');
-  var fToUpper = const JS_CONST(
-      r'function(_, letter){return letter.toUpperCase()}');
+  var fToUpper =
+      const JS_CONST(r'function(_, letter){return letter.toUpperCase()}');
   var s1 = '-hello-world';
   var s2 = JS('String', r'#.replace(#, #)', s1, re, fToUpper);
   Expect.equals('HelloWorld', s2);

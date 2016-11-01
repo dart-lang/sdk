@@ -299,8 +299,7 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ Comment("CallStaticFunctionStub return");
@@ -331,8 +330,7 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   // Setup space on stack for return value and preserve arguments descriptor.
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S4, Address(SP, 1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   // Get Code object result and restore arguments descriptor array.
   __ lw(CODE_REG, Address(SP, 0 * kWordSize));
@@ -357,8 +355,7 @@ void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Setup space on stack for return value.
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   // Get Code object result.
   __ lw(CODE_REG, Address(SP, 0 * kWordSize));
@@ -447,6 +444,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
       kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - V0);
+  const intptr_t saved_exception_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - V0);
+  const intptr_t saved_stacktrace_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - V1);
   // Result in V0 is preserved as part of pushing all registers below.
 
   // Push registers in their enumeration order: lowest register number at
@@ -472,15 +473,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
 
   __ mov(A0, SP);  // Pass address of saved registers block.
-  __ LoadImmediate(A1, (kind == kLazyDeopt) ? 1 : 0);
+  bool is_lazy = (kind == kLazyDeoptFromReturn) ||
+                 (kind == kLazyDeoptFromThrow);
+  __ LoadImmediate(A1, is_lazy ? 1 : 0);
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (V0) is stack-size (FP - SP) in bytes, incl. the return address.
 
-  const bool preserve_result = (kind == kLazyDeopt);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into T1 temporarily.
     __ lw(T1, Address(FP, saved_result_slot_from_fp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into T1 temporarily.
+    __ lw(T1, Address(FP, saved_exception_slot_from_fp * kWordSize));
+    __ lw(T2, Address(FP, saved_stacktrace_slot_from_fp * kWordSize));
   }
 
   __ RestoreCodePointer();
@@ -492,14 +498,21 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ EnterStubFrame();
 
   __ mov(A0, FP);  // Get last FP address.
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ Push(T1);  // Preserve result as first local.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ Push(T1);  // Preserve exception as first local.
+    __ Push(T2);  // Preserve stacktrace as second local.
   }
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);  // Pass last FP in A0.
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into T1.
     __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into T1.
+    __ lw(T1, Address(FP, kFirstLocalSlotFromFp * kWordSize));
+    __ lw(T2, Address(FP, (kFirstLocalSlotFromFp - 1) * kWordSize));
   }
   // Code above cannot cause GC.
   __ RestoreCodePointer();
@@ -510,16 +523,22 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
   __ EnterStubFrame();
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ Push(T1);  // Preserve result, it will be GC-d here.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ Push(T1);  // Preserve exception, it will be GC-d here.
+    __ Push(T2);  // Preserve stacktrace, it will be GC-d here.
   }
   __ PushObject(Smi::ZoneHandle());  // Space for the result.
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
   // Result tells stub how many bytes to remove from the expression stack
   // of the bottom-most frame. They were used as materialization arguments.
   __ Pop(T1);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ Pop(V0);  // Restore result.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ Pop(V1);  // Restore stacktrace.
+    __ Pop(V0);  // Restore exception.
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
@@ -528,15 +547,28 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ Ret();
 }
 
-
-void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ AddImmediate(RA, -CallPattern::kDeoptCallLengthInBytes);
+// V0: result, must be preserved
+void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
   // Push zap value instead of CODE_REG for lazy deopt.
   __ LoadImmediate(TMP, 0xf1f1f1f1);
   __ Push(TMP);
-  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
+  // Return address for "call" to deopt stub.
+  __ LoadImmediate(RA, 0xe1e1e1e1);
+  __ lw(CODE_REG, Address(THR, Thread::lazy_deopt_from_return_stub_offset()));
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
+}
+
+
+// V0: exception, must be preserved
+// V1: stacktrace, must be preserved
+void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
+  // Push zap value instead of CODE_REG for lazy deopt.
+  __ LoadImmediate(TMP, 0xf1f1f1f1);
+  __ Push(TMP);
+  // Return address for "call" to deopt stub.
+  __ LoadImmediate(RA, 0xe1e1e1e1);
+  __ lw(CODE_REG, Address(THR, Thread::lazy_deopt_from_throw_stub_offset()));
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
 
@@ -564,8 +596,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   // Push arguments descriptor array.
   // Push original arguments array.
   __ addiu(SP, SP, Immediate(-4 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 3 * kWordSize));
+  __ sw(ZR, Address(SP, 3 * kWordSize));
   __ sw(T6, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
@@ -598,8 +629,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   // Push the receiver.
   // Push IC data object.
   // Push arguments descriptor array.
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 3 * kWordSize));
+  __ sw(ZR, Address(SP, 3 * kWordSize));
   __ sw(T6, Address(SP, 2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
@@ -669,8 +699,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // T2: Allocation size.
 
   Heap::Space space = Heap::kNew;
-  __ LoadIsolate(T3);
-  __ lw(T3, Address(T3, Isolate::heap_offset()));
+  __ lw(T3, Address(THR, Thread::heap_offset()));
   // Potential new object start.
   __ lw(T0, Address(T3, Heap::TopOffset(space)));
 
@@ -757,8 +786,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Setup space on stack for return value.
   // Push array length as Smi and element type.
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(ZR, Address(SP, 2 * kWordSize));
   __ sw(A1, Address(SP, 1 * kWordSize));
   __ sw(A0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
@@ -941,8 +969,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // T2: object size.
     const intptr_t cid = kContextCid;
     Heap::Space space = Heap::kNew;
-    __ LoadIsolate(T5);
-    __ lw(T5, Address(T5, Isolate::heap_offset()));
+    __ lw(T5, Address(THR, Thread::heap_offset()));
     __ lw(V0, Address(T5, Heap::TopOffset(space)));
     __ addu(T3, T2, V0);
 
@@ -1260,8 +1287,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   // Push arguments descriptor array.
   const intptr_t kNumArgs = 3;
   __ addiu(SP, SP, Immediate(-kNumArgs * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 2 * kWordSize));
+  __ sw(ZR, Address(SP, 2 * kWordSize));
   __ sw(T6, Address(SP, 1 * kWordSize));
   __ sw(S4, Address(SP, 0 * kWordSize));
 
@@ -1524,8 +1550,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ addiu(SP, SP, Immediate(-num_slots * kWordSize));
   __ sw(S5, Address(SP, (num_slots - 1) * kWordSize));
   __ sw(S4, Address(SP, (num_slots - 2) * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, (num_slots - 3) * kWordSize));
+  __ sw(ZR, Address(SP, (num_slots - 3) * kWordSize));
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ lw(TMP, Address(T1, -i * kWordSize));
@@ -1777,8 +1802,7 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-2 * kWordSize));
   __ sw(S5, Address(SP, 1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
 
@@ -1795,8 +1819,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ Comment("RuntimeCallBreakpoint stub");
   __ EnterStubFrame();
   __ addiu(SP, SP, Immediate(-1 * kWordSize));
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 0 * kWordSize));
+  __ sw(ZR, Address(SP, 0 * kWordSize));
 
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
 
@@ -1977,7 +2000,9 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ sw(A2, Assembler::VMTagAddress());
   // Clear top exit frame.
   __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
-
+  // Restore pool pointer.
+  __ RestoreCodePointer();
+  __ LoadPoolPointer();
   __ jr(A0);  // Jump to the exception handler code.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.
 }
@@ -1992,17 +2017,17 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
   __ sw(S4, Address(SP, 2 * kWordSize));
   // Setup space on stack for return value.
-  __ LoadObject(TMP, Object::null_object());
-  __ sw(TMP, Address(SP, 1 * kWordSize));
+  __ sw(ZR, Address(SP, 1 * kWordSize));
   __ sw(T0, Address(SP, 0 * kWordSize));
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ Comment("OptimizeFunctionStub return");
-  __ lw(CODE_REG, Address(SP, 1 * kWordSize));  // Get Code object
+  __ lw(T0, Address(SP, 1 * kWordSize));  // Get Function object
   __ lw(S4, Address(SP, 2 * kWordSize));  // Restore argument descriptor.
   __ addiu(SP, SP, Immediate(3 * kWordSize));  // Discard argument.
 
-  __ lw(T0, FieldAddress(CODE_REG, Code::entry_point_offset()));
-  __ LeaveStubFrameAndReturn(T0);
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
+  __ lw(T1, FieldAddress(T0, Function::entry_point_offset()));
+  __ LeaveStubFrameAndReturn(T1);
   __ break_(0);
 }
 
@@ -2149,9 +2174,10 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 // Called from megamorphic calls.
 //  T0: receiver
 //  S5: MegamorphicCache (preserved)
-// Result:
+// Passed to target:
+//  CODE_REG: target Code object
 //  S4: arguments descriptor
-void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   __ LoadTaggedClassIdMayBeSmi(T0, T0);
@@ -2201,10 +2227,10 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 // Called from switchable IC calls.
 //  T0: receiver
 //  S5: ICData (preserved)
-// Result:
+// Passed to target:
 //  CODE_REG: target Code object
 //  S4: arguments descriptor
-void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   Label loop, found, miss;
@@ -2240,7 +2266,7 @@ void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
   __ NoMonomorphicCheckedEntry();
 
   Label loop, found, miss;
@@ -2276,14 +2302,80 @@ void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
 }
 
 
-// Called from the monomorphic checked entry.
+// Called from switchable IC calls.
 //  T0: receiver
-void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+//  S5: SingleTargetCache
+void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
   __ EnterStubFrame();
   __ Push(T0);  // Preserve receiver.
 
-  __ PushObject(Object::null_object());  // Result.
-  __ Push(T0);                           // Arg0: Receiver
+  __ Push(ZR);  // Result slot.
+  __ Push(T0);  // Arg0: Receiver
+  __ Push(S5);  // Arg1: UnlinkedCall
+  __ CallRuntime(kUnlinkedCallRuntimeEntry, 2);
+  __ Drop(2);
+  __ Pop(S5);  // result = IC
+
+  __ Pop(T0);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ lw(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ lw(T1, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ jr(T1);
+}
+
+
+// Called from switchable IC calls.
+//  T0: receiver
+//  S5: SingleTargetCache
+// Passed to target:
+//  CODE_REG: target Code object
+void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
+  __ NoMonomorphicCheckedEntry();
+
+  Label miss;
+
+  __ LoadClassIdMayBeSmi(T1, T0);
+  __ lhu(T2, FieldAddress(S5, SingleTargetCache::lower_limit_offset()));
+  __ lhu(T3, FieldAddress(S5, SingleTargetCache::upper_limit_offset()));
+
+  __ BranchUnsignedLess(T1, T2, &miss);
+  __ BranchUnsignedGreater(T1, T3, &miss);
+
+  __ lw(T1, FieldAddress(S5, SingleTargetCache::entry_point_offset()));
+  __ lw(CODE_REG, FieldAddress(S5, SingleTargetCache::target_offset()));
+  __ jr(T1);
+
+  __ Bind(&miss);
+  __ EnterStubFrame();
+  __ Push(T0);  // Preserve receiver.
+
+  __ Push(ZR);  // Result slot.
+  __ Push(T0);  // Arg0: Receiver
+  __ CallRuntime(kSingleTargetMissRuntimeEntry, 1);
+  __ Drop(1);
+  __ Pop(S5);  // result = IC
+
+  __ Pop(T0);  // Restore receiver.
+  __ LeaveStubFrame();
+
+  __ lw(CODE_REG, Address(THR, Thread::ic_lookup_through_code_stub_offset()));
+  __ lw(T1, FieldAddress(CODE_REG, Code::checked_entry_point_offset()));
+  __ jr(T1);
+}
+
+
+// Called from the monomorphic checked entry.
+//  T0: receiver
+void StubCode::GenerateMonomorphicMissStub(Assembler* assembler) {
+  __ lw(CODE_REG, Address(THR, Thread::monomorphic_miss_stub_offset()));
+  __ EnterStubFrame();
+  __ Push(T0);  // Preserve receiver.
+
+  __ Push(ZR);  // Result slot.
+  __ Push(T0);  // Arg0: Receiver
   __ CallRuntime(kMonomorphicMissRuntimeEntry, 1);
   __ Drop(1);
   __ Pop(S5);  // result = IC

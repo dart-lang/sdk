@@ -26,14 +26,14 @@ class Arguments {
   final String serializedDataFileName;
   final bool verbose;
 
-  const Arguments({
-    this.filename,
-    this.start,
-    this.end,
-    this.loadSerializedData: false,
-    this.saveSerializedData: false,
-    this.serializedDataFileName: DEFAULT_DATA_FILE_NAME,
-    this.verbose: false});
+  const Arguments(
+      {this.filename,
+      this.start,
+      this.end,
+      this.loadSerializedData: false,
+      this.saveSerializedData: false,
+      this.serializedDataFileName: DEFAULT_DATA_FILE_NAME,
+      this.verbose: false});
 
   factory Arguments.from(List<String> arguments) {
     String filename;
@@ -71,9 +71,7 @@ class Arguments {
         saveSerializedData: saveSerializedData);
   }
 
-  Future forEachTest(
-      SerializedData serializedData,
-      List<Test> tests,
+  Future forEachTest(SerializedData serializedData, List<Test> tests,
       TestFunction testFunction) async {
     Uri entryPoint = Uri.parse('memory:main.dart');
     int first = start ?? 0;
@@ -106,13 +104,12 @@ class Arguments {
   }
 }
 
-typedef Future TestFunction(
-    Uri entryPoint,
+typedef Future TestFunction(Uri entryPoint,
     {Map<String, String> sourceFiles,
-     List<Uri> resolutionInputs,
-     int index,
-     Test test,
-     bool verbose});
+    List<Uri> resolutionInputs,
+    int index,
+    Test test,
+    bool verbose});
 
 Future<SerializedData> serializeDartCore(
     {Arguments arguments: const Arguments()}) {
@@ -148,8 +145,9 @@ class SerializationResult {
 
 Future<SerializationResult> serialize(Uri entryPoint,
     {Map<String, String> memorySourceFiles: const <String, String>{},
-     List<Uri> resolutionInputs: const <Uri>[],
-     Uri dataUri}) async {
+    List<Uri> resolutionInputs: const <Uri>[],
+    Uri dataUri,
+    bool deserializeCompilationDataForTesting: false}) async {
   if (dataUri == null) {
     dataUri = Uri.parse('memory:${DEFAULT_DATA_FILE_NAME}');
   }
@@ -159,9 +157,11 @@ Future<SerializationResult> serialize(Uri entryPoint,
       memorySourceFiles: memorySourceFiles,
       resolutionInputs: resolutionInputs,
       outputProvider: outputCollector);
+  compiler.serialization.deserializeCompilationDataForTesting =
+      deserializeCompilationDataForTesting;
   await compiler.run(entryPoint);
-  SerializedData serializedData = new SerializedData(
-      dataUri, outputCollector.getOutput('', 'data'));
+  SerializedData serializedData =
+      new SerializedData(dataUri, outputCollector.getOutput('', 'data'));
   return new SerializationResult(compiler, serializedData);
 }
 
@@ -210,6 +210,7 @@ Future<List<SerializedData>> preserializeData(
       test.preserializedSourceFiles.isEmpty) {
     return <SerializedData>[serializedData];
   }
+
   List<Uri> uriList = <Uri>[];
   for (String key in test.preserializedSourceFiles.keys) {
     uriList.add(Uri.parse('memory:$key'));
@@ -219,21 +220,31 @@ Future<List<SerializedData>> preserializeData(
   if (test.unserializedSourceFiles != null) {
     sourceFiles.addAll(test.unserializedSourceFiles);
   }
-  OutputCollector outputCollector = new OutputCollector();
-  Compiler compiler = compilerFor(
-      memorySourceFiles: sourceFiles,
-      resolutionInputs: serializedData.toUris(),
-      options: [Flags.resolveOnly],
-      outputProvider: outputCollector);
-  compiler.librariesToAnalyzeWhenRun = uriList;
-  await compiler.run(null);
-  List<LibraryElement> libraries = <LibraryElement>[];
-  for (Uri uri in uriList) {
-    libraries.add(compiler.libraryLoader.lookupLibrary(uri));
+  Uri additionalDataUri = Uri.parse('memory:additional.data');
+  SerializedData additionalSerializedData;
+  if (test.sourceFiles.isEmpty) {
+    SerializationResult result = await serialize(uriList.first,
+        memorySourceFiles: sourceFiles,
+        resolutionInputs: serializedData.toUris(),
+        dataUri: additionalDataUri);
+    additionalSerializedData = result.serializedData;
+  } else {
+    OutputCollector outputCollector = new OutputCollector();
+    Compiler compiler = compilerFor(
+        entryPoint: test.sourceFiles.isEmpty ? uriList.first : null,
+        memorySourceFiles: sourceFiles,
+        resolutionInputs: serializedData.toUris(),
+        options: [Flags.resolveOnly],
+        outputProvider: outputCollector);
+    compiler.librariesToAnalyzeWhenRun = uriList;
+    await compiler.run(null);
+    List<LibraryElement> libraries = <LibraryElement>[];
+    for (Uri uri in uriList) {
+      libraries.add(compiler.libraryLoader.lookupLibrary(uri));
+    }
+    additionalSerializedData = new SerializedData(
+        additionalDataUri, outputCollector.getOutput('', 'data'));
   }
-  SerializedData additionalSerializedData = new SerializedData(
-      Uri.parse('memory:additional.data'),
-      outputCollector.getOutput('', 'data'));
   return <SerializedData>[serializedData, additionalSerializedData];
 }
 
@@ -288,7 +299,7 @@ Future measure(String title, String taskTitle, Future task()) async {
   stopwatch.stop();
   int elapsedMilliseconds = stopwatch.elapsedMilliseconds;
   print('$taskTitle: $title: ${elapsedMilliseconds}ms');
-  measurementResults.add(
-      new MeasurementResult(title, taskTitle, elapsedMilliseconds));
+  measurementResults
+      .add(new MeasurementResult(title, taskTitle, elapsedMilliseconds));
   return result;
 }

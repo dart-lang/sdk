@@ -248,11 +248,9 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 // Input parameters:
 //   EDX: arguments descriptor array.
 void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ CallRuntime(kPatchStaticCallRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object result.
   __ popl(EDX);  // Restore arguments descriptor array.
@@ -268,13 +266,11 @@ void StubCode::GenerateCallStaticFunctionStub(Assembler* assembler) {
 // (invalid because its function was optimized or deoptimized).
 // EDX: arguments descriptor array.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
-  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ CallRuntime(kFixCallersTargetRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object.
   __ popl(EDX);  // Restore arguments descriptor array.
@@ -288,10 +284,8 @@ void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
 // Called from object allocate instruction when the allocation stub has been
 // disabled.
 void StubCode::GenerateFixAllocationStubTargetStub(Assembler* assembler) {
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ EnterStubFrame();
-  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ CallRuntime(kFixAllocationStubTargetRuntimeEntry, 0);
   __ popl(EAX);  // Get Code object.
   __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
@@ -365,6 +359,10 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // and kDeoptimizeFillFrameRuntimeEntry are leaf runtime calls.
   const intptr_t saved_result_slot_from_fp =
       kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - EAX);
+  const intptr_t saved_exception_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - EAX);
+  const intptr_t saved_stacktrace_slot_from_fp =
+      kFirstLocalSlotFromFp + 1 - (kNumberOfCpuRegisters - EDX);
   // Result in EAX is preserved as part of pushing all registers below.
 
   // Push registers in their enumeration order: lowest register number at
@@ -389,14 +387,19 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ movl(ECX, ESP);  // Preserve saved registers block.
   __ ReserveAlignedFrameSpace(2 * kWordSize);
   __ movl(Address(ESP, 0 * kWordSize), ECX);  // Start of register block.
-  __ movl(Address(ESP, 1 * kWordSize), Immediate(kind == kLazyDeopt ? 1 : 0));
+  bool is_lazy = (kind == kLazyDeoptFromReturn) ||
+                 (kind == kLazyDeoptFromThrow);
+  __ movl(Address(ESP, 1 * kWordSize), Immediate(is_lazy ? 1 : 0));
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry, 2);
   // Result (EAX) is stack-size (FP - SP) in bytes.
 
-  const bool preserve_result = (kind == kLazyDeopt);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX temporarily.
     __ movl(EBX, Address(EBP, saved_result_slot_from_fp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into EBX temporarily.
+    __ movl(EBX, Address(EBP, saved_exception_slot_from_fp * kWordSize));
+    __ movl(ECX, Address(EBP, saved_stacktrace_slot_from_fp * kWordSize));
   }
 
   __ LeaveFrame();
@@ -407,15 +410,22 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 
   // Leaf runtime function DeoptimizeFillFrame expects a Dart frame.
   __ EnterDartFrame(0);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ pushl(EBX);  // Preserve result as first local.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ pushl(EBX);  // Preserve exception as first local.
+    __ pushl(ECX);  // Preserve stacktrace as first local.
   }
   __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), EBP);  // Pass last FP as parameter on stack.
   __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry, 1);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     // Restore result into EBX.
     __ movl(EBX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
+  } else if (kind == kLazyDeoptFromThrow) {
+    // Restore result into EBX.
+    __ movl(EBX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
+    __ movl(ECX, Address(EBP, (kFirstLocalSlotFromFp - 1) * kWordSize));
   }
   // Code above cannot cause GC.
   __ LeaveFrame();
@@ -424,8 +434,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   __ EnterStubFrame();
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ pushl(EBX);  // Preserve result, it will be GC-d here.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ pushl(EBX);  // Preserve exception, it will be GC-d here.
+    __ pushl(ECX);  // Preserve stacktrace, it will be GC-d here.
   }
   __ pushl(Immediate(Smi::RawValue(0)));  // Space for the result.
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
@@ -433,8 +446,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // of the bottom-most frame. They were used as materialization arguments.
   __ popl(EBX);
   __ SmiUntag(EBX);
-  if (preserve_result) {
+  if (kind == kLazyDeoptFromReturn) {
     __ popl(EAX);  // Restore result.
+  } else if (kind == kLazyDeoptFromThrow) {
+    __ popl(EDX);  // Restore exception.
+    __ popl(EAX);  // Restore stacktrace.
   }
   __ LeaveFrame();
 
@@ -445,15 +461,20 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
 }
 
 
-// TOS: return address + call-instruction-size (5 bytes).
 // EAX: result, must be preserved
-void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
-  // Correct return address to point just after the call that is being
-  // deoptimized.
-  __ popl(EBX);
-  __ subl(EBX, Immediate(CallPattern::pattern_length_in_bytes()));
-  __ pushl(EBX);
-  GenerateDeoptimizationSequence(assembler, kLazyDeopt);
+void StubCode::GenerateDeoptimizeLazyFromReturnStub(Assembler* assembler) {
+  // Return address for "call" to deopt stub.
+  __ pushl(Immediate(0xe1e1e1e1));
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromReturn);
+}
+
+
+// EAX: exception, must be preserved
+// EDX: stacktrace, must be preserved
+void StubCode::GenerateDeoptimizeLazyFromThrowStub(Assembler* assembler) {
+  // Return address for "call" to deopt stub.
+  __ pushl(Immediate(0xe1e1e1e1));
+  GenerateDeoptimizationSequence(assembler, kLazyDeoptFromThrow);
 }
 
 
@@ -476,7 +497,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ movl(EAX, Address(
       EBP, EDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
-  __ pushl(raw_null);  // Setup space on stack for result.
+  __ pushl(Immediate(0));  // Setup space on stack for result.
   __ pushl(EAX);  // Receiver.
   __ pushl(ECX);  // ICData/MegamorphicCache.
   __ pushl(EDX);  // Arguments descriptor array.
@@ -504,9 +525,7 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ pushl(ECX);
   __ pushl(EDX);
 
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Instructions::null()));
-  __ pushl(raw_null);  // Space for the result of the runtime call.
+  __ pushl(Immediate(0));  // Space for the result of the runtime call.
   __ pushl(EAX);  // Pass receiver.
   __ pushl(ECX);  // Pass IC data.
   __ pushl(EDX);  // Pass arguments descriptor.
@@ -539,8 +558,6 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
 // The newly allocated object is returned in EAX.
 void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   Label slow_case;
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
@@ -661,7 +678,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ pushl(EDX);  // Array length as Smi.
   __ pushl(ECX);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
@@ -789,8 +806,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 // EAX: new allocated RawContext object.
 // EBX and EDX are destroyed.
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (FLAG_inline_alloc) {
     Label slow_case;
     // First compute the rounded instance size.
@@ -905,7 +920,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
   __ EnterStubFrame();
-  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ SmiTag(EDX);
   __ pushl(EDX);
   __ CallRuntime(kAllocateContextRuntimeEntry, 1);  // Allocate context.
@@ -1133,9 +1148,7 @@ void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
   __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
   __ movl(EAX, Address(EBP, EDI, TIMES_2, kParamEndSlotFromFp * kWordSize));
 
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ pushl(raw_null);  // Setup space on stack for result from noSuchMethod.
+  __ pushl(Immediate(0));  // Setup space on stack for result from noSuchMethod.
   __ pushl(EAX);  // Receiver.
   __ pushl(EDX);  // Arguments descriptor array.
 
@@ -1368,8 +1381,6 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
 
   __ Comment("IC miss");
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   // Compute address of arguments (first read number of arguments from
   // arguments descriptor array and then compute address on the stack).
   __ movl(EAX, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
@@ -1379,7 +1390,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ EnterStubFrame();
   __ pushl(EDX);  // Preserve arguments descriptor array.
   __ pushl(ECX);  // Preserve IC data object.
-  __ pushl(raw_null);  // Setup space on stack for result (target code object).
+  __ pushl(Immediate(0));  // Result slot.
   // Push call arguments.
   for (intptr_t i = 0; i < num_args; i++) {
     __ movl(EBX, Address(EAX, -kWordSize * i));
@@ -1624,9 +1635,7 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ pushl(ECX);
   // Room for result. Debugger stub returns address of the
   // unpatched runtime stub.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ pushl(raw_null);  // Room for result.
+  __ pushl(Immediate(0));  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popl(EAX);  // Code of original stub.
   __ popl(ECX);  // Restore IC data.
@@ -1641,9 +1650,7 @@ void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Room for result. Debugger stub returns address of the
   // unpatched runtime stub.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ pushl(raw_null);  // Room for result.
+  __ pushl(Immediate(0));  // Room for result.
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popl(EAX);  // Code of the original stub
   __ LeaveFrame();
@@ -1827,18 +1834,17 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 // EBX: function to be reoptimized.
 // EDX: argument descriptor (preserved).
 void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ EnterStubFrame();
   __ pushl(EDX);
-  __ pushl(raw_null);  // Setup space on stack for return value.
+  __ pushl(Immediate(0));  // Setup space on stack for return value.
   __ pushl(EBX);
   __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry, 1);
   __ popl(EAX);  // Discard argument.
-  __ popl(EAX);  // Get Code object
+  __ popl(EAX);  // Get Function object
   __ popl(EDX);  // Restore argument descriptor.
-  __ movl(EAX, FieldAddress(EAX, Code::entry_point_offset()));
   __ LeaveFrame();
+  __ movl(CODE_REG, FieldAddress(EAX, Function::code_offset()));
+  __ movl(EAX, FieldAddress(EAX, Function::entry_point_offset()));
   __ jmp(EAX);
   __ int3();
 }
@@ -1962,10 +1968,10 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 // Called from megamorphic calls.
 //  EBX: receiver
 //  ECX: MegamorphicCache (preserved)
-// Result:
+// Passed to target:
 //  EBX: target entry point
 //  EDX: argument descriptor
-void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
+void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
   // Jump if receiver is a smi.
   Label smi_case;
   // Check if object (in tmp) is a Smi.
@@ -2032,14 +2038,24 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 // Called from switchable IC calls.
 //  EBX: receiver
 //  ECX: ICData (preserved)
-// Result:
+// Passed to target:
 //  EDX: arguments descriptor
-void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
+void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
   __ int3();
 }
 
 
-void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
+  __ int3();
+}
+
+
+void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
+  __ int3();
+}
+
+
+void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ int3();
 }
 

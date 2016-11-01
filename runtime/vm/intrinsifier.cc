@@ -215,16 +215,17 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
 }
 
 
-void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
+// Returns true if fall-through code can be omitted.
+bool Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
                               FlowGraphCompiler* compiler) {
   const Function& function = parsed_function.function();
   if (!CanIntrinsify(function)) {
-    return;
+    return false;
   }
 
   ASSERT(!compiler->flow_graph().IsCompiledForOsr());
   if (GraphIntrinsify(parsed_function, compiler)) {
-    return;
+    return compiler->intrinsic_slow_path_label()->IsUnused();
   }
 
 #define EMIT_CASE(class_name, function_name, enum_name, type, fp)              \
@@ -255,6 +256,7 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
 #endif
 
 #undef EMIT_INTRINSIC
+  return false;
 }
 
 
@@ -265,6 +267,10 @@ static intptr_t CidForRepresentation(Representation rep) {
       return kDoubleCid;
     case kUnboxedFloat32x4:
       return kFloat32x4Cid;
+    case kUnboxedInt32x4:
+      return kInt32x4Cid;
+    case kUnboxedFloat64x2:
+      return kFloat64x2Cid;
     case kUnboxedUint32:
       return kDynamicCid;  // smi or mint.
     default:
@@ -413,6 +419,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
                            new Value(index),
                            Instance::ElementSizeFor(array_cid),  // index scale
                            array_cid,
+                           kAlignedAccess,
                            Thread::kNoDeoptId,
                            builder.TokenPos()));
   // Box and/or convert result if necessary.
@@ -434,6 +441,18 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
     case kTypedDataFloat64ArrayCid:
       result = builder.AddDefinition(
           BoxInstr::Create(kUnboxedDouble, new Value(result)));
+      break;
+    case kTypedDataFloat32x4ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedFloat32x4, new Value(result)));
+      break;
+    case kTypedDataInt32x4ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedInt32x4, new Value(result)));
+      break;
+    case kTypedDataFloat64x2ArrayCid:
+      result = builder.AddDefinition(
+          BoxInstr::Create(kUnboxedFloat64x2, new Value(result)));
       break;
     case kArrayCid:
     case kImmutableArrayCid:
@@ -499,7 +518,29 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                                     /* is_checked = */ false);
       break;
     case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid: {
+    case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat64x2ArrayCid: {
+      intptr_t value_check_cid = kDoubleCid;
+      Representation rep = kUnboxedDouble;
+      switch (array_cid) {
+        case kTypedDataFloat32x4ArrayCid:
+          value_check_cid = kFloat32x4Cid;
+          rep = kUnboxedFloat32x4;
+          break;
+        case kTypedDataInt32x4ArrayCid:
+          value_check_cid = kInt32x4Cid;
+          rep = kUnboxedInt32x4;
+          break;
+        case kTypedDataFloat64x2ArrayCid:
+          value_check_cid = kFloat64x2Cid;
+          rep = kUnboxedFloat64x2;
+          break;
+        default:
+          // Float32/Float64 case already handled.
+          break;
+      }
       const ICData& value_check = ICData::ZoneHandle(ICData::New(
           flow_graph->function(),
           Symbols::Empty(),  // Dummy function name.
@@ -507,13 +548,13 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
           Thread::kNoDeoptId,
           1,
           false));
-      value_check.AddReceiverCheck(kDoubleCid, flow_graph->function());
+      value_check.AddReceiverCheck(value_check_cid, flow_graph->function());
       builder.AddInstruction(
           new CheckClassInstr(new Value(value),
                               Thread::kNoDeoptId,
                               value_check,
                               builder.TokenPos()));
-      value = builder.AddUnboxInstr(kUnboxedDouble,
+      value = builder.AddUnboxInstr(rep,
                                     new Value(value),
                                     /* is_checked = */ true);
       if (array_cid == kTypedDataFloat32ArrayCid) {
@@ -541,6 +582,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                             kNoStoreBarrier,
                             Instance::ElementSizeFor(array_cid),  // index scale
                             array_cid,
+                            kAlignedAccess,
                             Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
@@ -624,6 +666,42 @@ DEFINE_FLOAT_ARRAY_GETTER_SETTER_INTRINSICS(Float32Array)
 #undef DEFINE_FLOAT_ARRAY_SETTER_INTRINSIC
 
 
+#define DEFINE_SIMD_ARRAY_GETTER_INTRINSIC(enum_name)                          \
+bool Intrinsifier::Build_##enum_name##GetIndexed(FlowGraph* flow_graph) {      \
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {                          \
+    return false;                                                              \
+  }                                                                            \
+  return IntrinsifyArrayGetIndexed(                                            \
+      flow_graph,                                                              \
+      MethodRecognizer::MethodKindToReceiverCid(                               \
+          MethodRecognizer::k##enum_name##GetIndexed));                        \
+}
+
+
+#define DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(enum_name)                          \
+bool Intrinsifier::Build_##enum_name##SetIndexed(FlowGraph* flow_graph) {      \
+  if (!FlowGraphCompiler::SupportsUnboxedSimd128()) {                          \
+    return false;                                                              \
+  }                                                                            \
+  return IntrinsifyArraySetIndexed(                                            \
+      flow_graph,                                                              \
+      MethodRecognizer::MethodKindToReceiverCid(                               \
+          MethodRecognizer::k##enum_name##SetIndexed));                        \
+}
+
+#define DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(enum_name)                 \
+DEFINE_SIMD_ARRAY_GETTER_INTRINSIC(enum_name)                                 \
+DEFINE_SIMD_ARRAY_SETTER_INTRINSIC(enum_name)
+
+DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float32x4Array)
+DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Int32x4Array)
+DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS(Float64x2Array)
+
+#undef DEFINE_SIMD_ARRAY_GETTER_SETTER_INTRINSICS
+#undef DEFINE_SIMD_ARRAY_GETTER_INTRINSIC
+#undef DEFINE_SIMD_ARRAY_SETTER_INTRINSIC
+
+
 static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
@@ -657,6 +735,7 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
                            new Value(index),
                            Instance::ElementSizeFor(cid),
                            cid,
+                           kAlignedAccess,
                            Thread::kNoDeoptId,
                            builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(result));
@@ -886,6 +965,7 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
                            new Value(index),
                            Instance::ElementSizeFor(kArrayCid),  // index scale
                            kArrayCid,
+                           kAlignedAccess,
                            Thread::kNoDeoptId,
                            builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(result));
@@ -922,6 +1002,7 @@ bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
                             kEmitStoreBarrier,
                             Instance::ElementSizeFor(kArrayCid),  // index scale
                             kArrayCid,
+                            kAlignedAccess,
                             Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.

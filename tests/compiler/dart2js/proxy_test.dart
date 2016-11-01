@@ -13,11 +13,11 @@ import 'warnings_checker.dart';
 /// can contain a list of line numbers for keys 'missing' and 'unexpected' for
 /// the warnings of each category.
 const Map<String, dynamic> TESTS = const {
-    'language/proxy_test.dart': null,
-    'language/proxy2_test.dart': null,
-    'language/proxy3_test.dart': null,
-    'language/proxy4_test.dart': null,
-    'language/proxy5_test.dart': null,
+  'language/proxy_test.dart': null,
+  'language/proxy2_test.dart': null,
+  'language/proxy3_test.dart': null,
+  'language/proxy4_test.dart': null,
+  'language/proxy5_test.dart': null,
 };
 
 void main(List<String> args) {

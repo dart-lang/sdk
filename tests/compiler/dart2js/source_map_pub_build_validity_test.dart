@@ -20,20 +20,20 @@ void main() {
       copyDirectory(sunflowerDir, tmpDir);
       String ext = Platform.isWindows ? '.bat' : '';
       String command = path.normalize(path.join(
-          path.fromUri(Platform.script),
-          '../../../../sdk/bin/pub${ext}'));
+          path.fromUri(Platform.script), '../../../../sdk/bin/pub${ext}'));
       String file = path.join(tmpDir.path, 'build/web/sunflower.dart.js');
 
       print("Running '$command get' from '${tmpDir}'.");
-      ProcessResult getResult = await Process.run(
-          command, ['get'], workingDirectory: tmpDir.path);
+      ProcessResult getResult =
+          await Process.run(command, ['get'], workingDirectory: tmpDir.path);
       print(getResult.stdout);
       print(getResult.stderr);
       Expect.equals(0, getResult.exitCode, 'Unexpected exitCode from pub get');
 
       print("Running '$command build --mode=debug' from '${tmpDir}'.");
       ProcessResult buildResult = await Process.run(
-          command, ['build','--mode=debug'], workingDirectory: tmpDir.path);
+          command, ['build', '--mode=debug'],
+          workingDirectory: tmpDir.path);
       print(buildResult.stdout);
       print(buildResult.stderr);
       Expect.equals(0, buildResult.exitCode, 'Unexpected exitCode from pub');

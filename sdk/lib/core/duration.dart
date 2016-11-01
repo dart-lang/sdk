@@ -11,6 +11,16 @@ part of dart.core;
  * duration may be "negative" if the difference is from a later time to an
  * earlier.
  *
+ * Durations are context independent. For example, a duration of 2 days is
+ * always 48 hours, even when it is added to a `DateTime` just when the
+ * time zone is about to do a daylight-savings switch. (See [DateTime.add]).
+ *
+ * Despite the same name, a `Duration` object does not implement "Durations"
+ * as specified by ISO 8601. In particular, a duration object does not keep
+ * track of the individually provided members (such as "days" or "hours"), but
+ * only uses these arguments to compute the length of the corresponding time
+ * interval.
+ *
  * To create a new Duration object, use this class's single constructor
  * giving the appropriate arguments:
  *

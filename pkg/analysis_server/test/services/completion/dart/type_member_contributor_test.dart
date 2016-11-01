@@ -9,15 +9,15 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
-import '../../../utils.dart';
 import 'completion_contributor_util.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(TypeMemberContributorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(TypeMemberContributorTest);
+  });
 }
 
 @reflectiveTest
@@ -2992,9 +2992,9 @@ void main() {new C().^}''');
 
   test_MethodInvocation_no_semicolon() async {
     // MethodInvocation  ExpressionStatement  Block
-    addTestSource('''
+    addTestSource(r'''
         main() { }
-        class I {X get f => new A();get _g => new A();}
+        class I {X get f => new A();get _g => new A(); F $p; void $q(){}}
         class A implements I {
           var b; X _c;
           X get d => new A();get _e => new A();
@@ -3007,6 +3007,8 @@ void main() {new C().^}''');
     expect(replacementLength, 0);
     assertSuggestGetter('f', 'X');
     assertSuggestGetter('_g', null);
+    assertSuggestField(r'$p', 'dynamic', relevance: DART_RELEVANCE_LOW);
+    assertSuggestMethod(r'$q', 'I', 'void', relevance: DART_RELEVANCE_LOW);
     assertNotSuggested('b');
     assertNotSuggested('_c');
     assertNotSuggested('d');

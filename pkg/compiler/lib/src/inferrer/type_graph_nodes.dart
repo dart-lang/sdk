@@ -14,8 +14,9 @@ import '../dart_types.dart' show DartType, FunctionType, TypeKind;
 import '../elements/elements.dart';
 import '../tree/dartstring.dart' show DartString;
 import '../tree/tree.dart' as ast show Node, LiteralBool, Send;
-import '../types/types.dart'
+import '../types/masks.dart'
     show
+        CommonMasks,
         ContainerTypeMask,
         DictionaryTypeMask,
         MapTypeMask,
@@ -23,7 +24,7 @@ import '../types/types.dart'
         ValueTypeMask;
 import '../universe/selector.dart' show Selector;
 import '../util/util.dart' show ImmutableEmptySet, Setlet;
-import '../world.dart' show ClassWorld;
+import '../world.dart' show ClosedWorld;
 import 'debug.dart' as debug;
 import 'inferrer_visitor.dart' show ArgumentsTypes;
 import 'type_graph_inferrer.dart'
@@ -491,18 +492,18 @@ class MemberTypeInformation extends ElementTypeInformation
       }
     }
 
-    Compiler compiler = inferrer.compiler;
+    CommonMasks commonMasks = inferrer.commonMasks;
     if (element.isConstructor) {
       ConstructorElement constructor = element;
       if (constructor.isIntFromEnvironmentConstructor) {
         giveUp(inferrer);
-        return compiler.typesTask.intType.nullable();
+        return commonMasks.intType.nullable();
       } else if (constructor.isBoolFromEnvironmentConstructor) {
         giveUp(inferrer);
-        return compiler.typesTask.boolType.nullable();
+        return commonMasks.boolType.nullable();
       } else if (constructor.isStringFromEnvironmentConstructor) {
         giveUp(inferrer);
-        return compiler.typesTask.stringType.nullable();
+        return commonMasks.stringType.nullable();
       }
     }
     return null;
@@ -638,7 +639,8 @@ class ParameterTypeInformation extends ElementTypeInformation {
       giveUp(inferrer);
       return safeType(inferrer);
     }
-    if (inferrer.compiler.world.getMightBePassedToApply(declaration)) {
+    if (inferrer.compiler.inferenceWorld
+        .getCurrentlyKnownMightBePassedToApply(declaration)) {
       giveUp(inferrer);
       return safeType(inferrer);
     }
@@ -815,7 +817,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     assert(receiver != null);
     TypeMask typeMask = computeTypedSelector(inferrer);
-    targets = inferrer.compiler.world.allFunctions.filter(selector, typeMask);
+    targets =
+        inferrer.compiler.closedWorld.allFunctions.filter(selector, typeMask);
     receiver.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
@@ -836,7 +839,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     TypeMask receiverType = receiver.type;
 
     if (mask != receiverType) {
-      return receiverType == inferrer.compiler.typesTask.dynamicType
+      return receiverType == inferrer.commonMasks.dynamicType
           ? null
           : receiverType;
     } else {
@@ -864,26 +867,27 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
    */
   TypeInformation handleIntrisifiedSelector(
       Selector selector, TypeMask mask, TypeGraphInferrerEngine inferrer) {
-    ClassWorld classWorld = inferrer.classWorld;
-    if (!classWorld.backend.intImplementation.isResolved) return null;
+    ClosedWorld closedWorld = inferrer.closedWorld;
+    if (!closedWorld.backendClasses.intImplementation.isResolved) return null;
     if (mask == null) return null;
-    if (!mask.containsOnlyInt(classWorld)) {
+    if (!mask.containsOnlyInt(closedWorld)) {
       return null;
     }
     if (!selector.isCall && !selector.isOperator) return null;
     if (!arguments.named.isEmpty) return null;
     if (arguments.positional.length > 1) return null;
 
-    ClassElement uint31Implementation = classWorld.backend.uint31Implementation;
-    bool isInt(info) => info.type.containsOnlyInt(classWorld);
+    ClassElement uint31Implementation =
+        closedWorld.backendClasses.uint31Implementation;
+    bool isInt(info) => info.type.containsOnlyInt(closedWorld);
     bool isEmpty(info) => info.type.isEmpty;
     bool isUInt31(info) {
-      return info.type.satisfies(uint31Implementation, classWorld);
+      return info.type.satisfies(uint31Implementation, closedWorld);
     }
 
     bool isPositiveInt(info) {
-      return info.type
-          .satisfies(classWorld.backend.positiveIntImplementation, classWorld);
+      return info.type.satisfies(
+          closedWorld.backendClasses.positiveIntImplementation, closedWorld);
     }
 
     TypeInformation tryLater() => inferrer.types.nonNullEmptyType;
@@ -967,16 +971,16 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     Compiler compiler = inferrer.compiler;
     TypeMask maskToUse =
-        compiler.world.extendMaskIfReachesAll(selector, typeMask);
+        compiler.closedWorld.extendMaskIfReachesAll(selector, typeMask);
     bool canReachAll = compiler.enabledInvokeOn && (maskToUse != typeMask);
 
     // If this call could potentially reach all methods that satisfy
     // the untyped selector (through noSuchMethod's `Invocation`
     // and a call to `delegate`), we iterate over all these methods to
     // update their parameter types.
-    targets = compiler.world.allFunctions.filter(selector, maskToUse);
+    targets = compiler.closedWorld.allFunctions.filter(selector, maskToUse);
     Iterable<Element> typedTargets = canReachAll
-        ? compiler.world.allFunctions.filter(selector, typeMask)
+        ? compiler.closedWorld.allFunctions.filter(selector, typeMask)
         : targets;
 
     // Update the call graph if the targets could have changed.
@@ -1072,7 +1076,8 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
     if (!abandonInferencing) {
       inferrer.updateSelectorInTree(caller, call, selector, mask);
       Iterable<Element> oldTargets = targets;
-      targets = inferrer.compiler.world.allFunctions.filter(selector, mask);
+      targets =
+          inferrer.compiler.closedWorld.allFunctions.filter(selector, mask);
       for (Element element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
@@ -1273,10 +1278,10 @@ class NarrowTypeInformation extends TypeInformation {
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
     TypeMask input = assignments.first.type;
     TypeMask intersection =
-        input.intersection(typeAnnotation, inferrer.classWorld);
+        input.intersection(typeAnnotation, inferrer.closedWorld);
     if (debug.ANOMALY_WARN) {
-      if (!input.containsMask(intersection, inferrer.classWorld) ||
-          !typeAnnotation.containsMask(intersection, inferrer.classWorld)) {
+      if (!input.containsMask(intersection, inferrer.closedWorld) ||
+          !typeAnnotation.containsMask(intersection, inferrer.closedWorld)) {
         print("ANOMALY WARNING: narrowed $input to $intersection via "
             "$typeAnnotation");
       }
@@ -1512,7 +1517,7 @@ class MapTypeInformation extends TypeInformation with TracedTypeInformation {
       for (var key in typeInfoMap.keys) {
         TypeInformation value = typeInfoMap[key];
         if (!mask.typeMap.containsKey(key) &&
-            !value.type.containsAll(inferrer.classWorld) &&
+            !value.type.containsAll(inferrer.closedWorld) &&
             !value.type.isNullable) {
           return toTypeMask(inferrer);
         }
@@ -1725,17 +1730,18 @@ TypeMask _narrowType(Compiler compiler, TypeMask type, DartType annotation,
   if (annotation.isObject) return type;
   TypeMask otherType;
   if (annotation.isTypedef || annotation.isFunctionType) {
-    otherType = compiler.typesTask.functionType;
+    otherType = compiler.commonMasks.functionType;
   } else if (annotation.isTypeVariable) {
     // TODO(ngeoffray): Narrow to bound.
     return type;
   } else if (annotation.isVoid) {
-    otherType = compiler.typesTask.nullType;
+    otherType = compiler.commonMasks.nullType;
   } else {
     assert(annotation.isInterfaceType);
-    otherType = new TypeMask.nonNullSubtype(annotation.element, compiler.world);
+    otherType =
+        new TypeMask.nonNullSubtype(annotation.element, compiler.closedWorld);
   }
   if (isNullable) otherType = otherType.nullable();
   if (type == null) return otherType;
-  return type.intersection(otherType, compiler.world);
+  return type.intersection(otherType, compiler.closedWorld);
 }

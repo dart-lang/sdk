@@ -13,15 +13,15 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(SearchEngineImplTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SearchEngineImplTest);
+  });
 }
 
 class ExpectedMatch {
@@ -615,6 +615,23 @@ main(A<int> a) {
       _expectIdQ(mainElement, MatchKind.INVOCATION, 'm(); // ref')
     ];
     await _verifyReferences(method, expected);
+  }
+
+  test_searchReferences_null_noUnitElement() async {
+    _indexTestUnit('''
+class A {
+  m() {}
+}
+main(A a) {
+  a.m();
+}
+''');
+    MethodElement method = findElement('m');
+    List<SearchMatch> matches = await searchEngine.searchReferences(method);
+    expect(matches, hasLength(1));
+    // Set the source contents, so the element is invalidated.
+    context.setContents(testSource, '');
+    expect(matches.single.element, isNull);
   }
 
   test_searchReferences_ParameterElement_ofConstructor() async {

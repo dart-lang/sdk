@@ -23,8 +23,7 @@ testMalformedUri() {
   asyncTest(() async {
     var collector = new DiagnosticCollector();
     await runCompiler(
-        memorySourceFiles: MEMORY_SOURCE_FILES,
-        diagnosticHandler: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
     Expect.equals(1, collector.errors.length);
   });
 }

@@ -34,6 +34,7 @@
 # IntelliJ project files
 *.iml
 .idea
+CMakeLists.txt
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
@@ -50,7 +51,6 @@ client/tests/drt
 # Pub generated "packages" directories and files
 packages
 pubspec.lock
-.packages
 
 # Local pub storage
 .pub

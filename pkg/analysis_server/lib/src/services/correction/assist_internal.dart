@@ -87,7 +87,18 @@ class AssistProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Assist>> compute() async {
-    utils = new CorrectionUtils(unit);
+    // If the source was changed between the constructor and running
+    // this asynchronous method, it is not safe to use the unit.
+    if (analysisContext.getModificationStamp(source) != fileStamp) {
+      return const <Assist>[];
+    }
+
+    try {
+      utils = new CorrectionUtils(unit);
+    } catch (e) {
+      throw new CancelCorrectionException(exception: e);
+    }
+
     node = new NodeLocator(selectionOffset, selectionEnd).searchWithin(unit);
     if (node == null) {
       return assists;
@@ -1178,7 +1189,7 @@ class AssistProcessor {
       return;
     }
     // prepare change
-    String showCombinator = ' show ${StringUtils.join(referencedNames, ', ')}';
+    String showCombinator = ' show ${referencedNames.join(', ')}';
     _addInsertEdit(importDirective.end - 1, showCombinator);
     // add proposal
     _addAssist(DartAssistKind.IMPORT_ADD_SHOW, []);
@@ -1711,7 +1722,7 @@ class AssistProcessor {
         String elseTarget = _getNodeText(elseAssignment.leftHandSide);
         if (thenAssignment.operator.type == TokenType.EQ &&
             elseAssignment.operator.type == TokenType.EQ &&
-            StringUtils.equals(thenTarget, elseTarget)) {
+            thenTarget == elseTarget) {
           String conditionSrc = _getNodeText(ifStatement.condition);
           String theSrc = _getNodeText(thenAssignment.rightHandSide);
           String elseSrc = _getNodeText(elseAssignment.rightHandSide);
@@ -2239,9 +2250,13 @@ class AssistProcessor {
  */
 class DefaultAssistContributor extends DartAssistContributor {
   @override
-  Future<List<Assist>> internalComputeAssists(DartAssistContext context) {
-    AssistProcessor processor = new AssistProcessor(context);
-    return processor.compute();
+  Future<List<Assist>> internalComputeAssists(DartAssistContext context) async {
+    try {
+      AssistProcessor processor = new AssistProcessor(context);
+      return processor.compute();
+    } on CancelCorrectionException {
+      return Assist.EMPTY_LIST;
+    }
   }
 }
 

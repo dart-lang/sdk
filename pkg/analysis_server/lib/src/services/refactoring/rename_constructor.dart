@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -39,7 +40,6 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   @override
   Future<RefactoringStatus> checkFinalConditions() {
     RefactoringStatus result = new RefactoringStatus();
-    _analyzePossibleConflicts(result);
     return new Future.value(result);
   }
 
@@ -47,28 +47,38 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   RefactoringStatus checkNewName() {
     RefactoringStatus result = super.checkNewName();
     result.addStatus(validateConstructorName(newName));
+    if (newName != null) {
+      _analyzePossibleConflicts(result);
+    }
     return result;
   }
 
   @override
   Future fillChange() async {
-    if (!element.isSynthetic) {
-      // prepare references
-      List<SearchMatch> matches = await searchEngine.searchReferences(element);
-      List<SourceReference> references = getSourceReferences(matches);
-      // append declaration
+    // prepare references
+    List<SearchMatch> matches = await searchEngine.searchReferences(element);
+    List<SourceReference> references = getSourceReferences(matches);
+    // append declaration
+    if (element.isSynthetic) {
+      _replaceSynthetic();
+    } else {
       references.add(_createDeclarationReference());
-      // update references
-      String replacement = newName.isEmpty ? '' : '.$newName';
-      for (SourceReference reference in references) {
-        reference.addEdit(change, replacement);
-      }
+    }
+    // update references
+    String replacement = newName.isEmpty ? '' : '.$newName';
+    for (SourceReference reference in references) {
+      reference.addEdit(change, replacement);
     }
   }
 
   void _analyzePossibleConflicts(RefactoringStatus result) {
-    // check if there are members with "newName" in the same ClassElement
     ClassElement parentClass = element.enclosingElement;
+    // Check if the "newName" is the name of the enclosing class.
+    if (parentClass.name == newName) {
+      result.addError('The constructor should not have the same name '
+          'as the name of the enclosing class.');
+    }
+    // check if there are members with "newName" in the same ClassElement
     for (Element newNameMember in getChildren(parentClass, newName)) {
       String message = format(
           "Class '{0}' already declares {1} with name '{2}'.",
@@ -94,5 +104,22 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         sourceRange,
         true,
         true));
+  }
+
+  void _replaceSynthetic() {
+    ClassElement classElement = element.enclosingElement;
+    ClassDeclaration classNode = classElement.computeNode();
+    CorrectionUtils utils = new CorrectionUtils(classNode.parent);
+    ClassMemberLocation location =
+        utils.prepareNewConstructorLocation(classNode);
+    doSourceChange_addElementEdit(
+        change,
+        classElement,
+        new SourceEdit(
+            location.offset,
+            0,
+            location.prefix +
+                '${classElement.name}.$newName();' +
+                location.suffix));
   }
 }

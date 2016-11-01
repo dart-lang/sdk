@@ -726,6 +726,21 @@ void BinaryDoubleOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void DoubleTestOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  switch (op_kind()) {
+    case MethodRecognizer::kDouble_getIsNaN:
+      f->Print("IsNaN ");
+      break;
+    case MethodRecognizer::kDouble_getIsInfinite:
+      f->Print("IsInfinite ");
+      break;
+    default:
+      UNREACHABLE();
+  }
+  value()->PrintTo(f);
+}
+
+
 void BinaryFloat32x4OpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   left()->PrintTo(f);

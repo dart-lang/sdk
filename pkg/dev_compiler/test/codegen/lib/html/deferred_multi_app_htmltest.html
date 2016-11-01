@@ -1,0 +1,23 @@
+<!--
+Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file.
+
+Test that two instances of a script does not interfere when loading the same
+deferred library.
+
+START_HTML_DART_TEST
+{
+  "scripts": ["deferred_multi_app.dart", "deferred_multi_app_lib.dart"],
+  "expectedMessages": ["one", "two"]
+}
+END_HTML_DART_TEST
+-->
+<html>
+  <body>
+    <div id="state">1</div>
+    <script>window.parent.dispatchEvent(new Event('detect_errors'));</script>
+    <script src="deferred_multi_app.dart" type="application/dart"></script>
+    <script src="deferred_multi_app.dart" type="application/dart"></script>
+  </body>
+</html>

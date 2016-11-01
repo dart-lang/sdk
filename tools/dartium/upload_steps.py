@@ -21,8 +21,10 @@ import archive
 
 BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 REVISION = 'BUILDBOT_REVISION'
-BUILDER_PATTERN = (r'^(dartium|multivm)-(mac|lucid64|lucid32|win)'
-   r'-(full|inc|debug|build)(-ninja)?(-(be|dev|stable|integration))?$')
+BUILDER_PATTERN = (r'^(dartium)-(mac|lucid64|lucid32|win)'
+    r'-(full|inc|debug)(-ninja)?(-(be|dev|stable|integration))?$')
+NEW_BUILDER_PATTERN = (
+    r'^dartium-(mac|linux|win)-(ia32|x64)(-inc)?-(be|dev|stable|integration)$')
 
 if platform.system() == 'Windows':
   GSUTIL = 'e:/b/build/scripts/slave/gsutil.bat'
@@ -49,29 +51,28 @@ class BuildInfo(object):
     channel: the channel this build is happening on
     is_full: True if this is a full build.
     is_incremental: True if this is an incremental build.
-    is_build: True if this is a builder for the performance testers.
-    is_win_ninja: True if this is a ninja build on Windows.
 
   """
   def __init__(self, revision, version):
 
     self.revision = revision
     self.version = version
-    # Populate via builder environment variables.
     self.name = os.environ[BUILDER_NAME]
-    # Temporary hack, until we rename the FYI bots.
-    # We should eventually rename all to linux32 and linux64.
-    self.name = self.name.replace('-linux-', '-lucid64-')
-
-    self.is_incremental = '-inc' in self.name
-    self.is_win_ninja = 'win-inc-ninja' in self.name
-    pattern = re.match(BUILDER_PATTERN, self.name)
-    assert pattern
-    self.arch = 'x64' if pattern.group(2) == 'lucid64' else 'ia32'
-    self.mode = 'Debug' if pattern.group(3) == 'debug' else 'Release'
-    self.is_full = pattern.group(3) == 'full'
-    self.is_build = pattern.group(3) == 'build'
-    self.channel = pattern.group(6) if pattern.group(6) else 'be'
+    pattern = re.match(NEW_BUILDER_PATTERN, self.name)
+    if pattern:
+      self.arch = pattern.group(2)
+      self.mode = 'Release'
+      self.is_incremental = (pattern.group(3) == '-inc')
+      self.is_full = not self.is_incremental
+      self.channel = pattern.group(4)
+    else:
+      pattern = re.match(BUILDER_PATTERN, self.name)
+      assert pattern
+      self.arch = 'x64' if pattern.group(2) == 'lucid64' else 'ia32'
+      self.mode = 'Debug' if pattern.group(3) == 'debug' else 'Release'
+      self.is_incremental = '-inc' in self.name
+      self.is_full = pattern.group(3) == 'full'
+      self.channel = pattern.group(6) if pattern.group(6) else 'be'
 
 
 def ArchiveAndUpload(info, archive_latest=False):
@@ -79,7 +80,6 @@ def ArchiveAndUpload(info, archive_latest=False):
   cwd = os.getcwd()
 
   dartium_bucket = info.name
-  dartium_bucket = dartium_bucket.replace('multivm', 'multivm-dartium')
   drt_bucket = dartium_bucket.replace('dartium', 'drt')
   chromedriver_bucket = dartium_bucket.replace('dartium', 'chromedriver')
   dartium_archive = dartium_bucket + '-' + info.version
@@ -90,8 +90,7 @@ def ArchiveAndUpload(info, archive_latest=False):
       info.mode,
       dartium_archive,
       drt_archive,
-      chromedriver_archive,
-      is_win_ninja=info.is_win_ninja)
+      chromedriver_archive)
 
   status = 0
   # Upload bleeding-edge builds to old dartium-archive bucket
@@ -108,7 +107,7 @@ def ArchiveAndUpload(info, archive_latest=False):
 
   # Upload to new dart-archive bucket using GCSNamer, but not incremental
   # or perf builder builds.
-  if not info.is_incremental and not info.is_build:
+  if not info.is_incremental:
     Upload('dartium', os.path.abspath(dartium_zip),
            info, archive_latest=archive_latest)
     Upload('drt', os.path.abspath(drt_zip),

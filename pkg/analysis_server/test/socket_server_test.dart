@@ -16,13 +16,11 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/manager.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mocks.dart';
-import 'utils.dart';
 
 main() {
-  initializeTestEnvironment();
   group('SocketServer', () {
     test('createAnalysisServer_successful',
         SocketServerTest.createAnalysisServer_successful);
@@ -115,12 +113,11 @@ class SocketServerTest {
     ServerPlugin serverPlugin = new ServerPlugin();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([serverPlugin]);
-    SdkCreator sdkCreator = (_) => new FolderBasedDartSdk(resourceProvider,
-        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
     return new SocketServer(
         new AnalysisServerOptions(),
-        new DartSdkManager('', false, sdkCreator),
-        sdkCreator(null),
+        new DartSdkManager('', false),
+        new FolderBasedDartSdk(resourceProvider,
+            FolderBasedDartSdk.defaultSdkDirectory(resourceProvider)),
         InstrumentationService.NULL_SERVICE,
         serverPlugin,
         null,

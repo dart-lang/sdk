@@ -7,9 +7,9 @@
  * independent workers that are similar to threads
  * but don't share memory,
  * communicating only via messages.
- * 
+ *
  * To use this library in your code:
- * 
+ *
  *     import 'dart:isolate';
  */
 library dart.isolate;
@@ -162,19 +162,27 @@ class Isolate {
    * Creates and spawns an isolate that shares the same code as the current
    * isolate.
    *
-   * The argument [entryPoint] specifies the entry point of the spawned
-   * isolate. It must be a top-level function or a static method that
-   * takes one argument - that is, one-parameter functions that can be
-   * compile-time constant function values.
-   * It is not allowed to pass the value of function expressions or an instance
-   * method extracted from an object.
+   * The argument [entryPoint] specifies the initial function to call
+   * in the spawned isolate.
+   * The entry-point function is invoked in the new isolate with [message]
+   * as the only argument.
    *
-   * The entry-point function is invoked with the initial [message].
+   * The function must be a top-level function or a static method
+   * that can be called with a single argument,
+   * that is, a compile-time constant function value
+   * which accepts at least one positional parameter
+   * and has at most one required positional parameter.
+   * The function may accept any number of optional parameters,
+   * as long as it *can* be called with just a single argument.
+   * The function must not be the value of a function expression
+   * or an instance method tear-off.
+   *
    * Usually the initial [message] contains a [SendPort] so
    * that the spawner and spawnee can communicate with each other.
    *
    * If the [paused] parameter is set to `true`,
    * the isolate will start up in a paused state,
+   * just before calling the [entryPoint] function with the [message],
    * as if by an initial call of `isolate.pause(isolate.pauseCapability)`.
    * To resume the isolate, call `isolate.resume(isolate.pauseCapability)`.
    *
@@ -184,19 +192,22 @@ class Isolate {
    * corresponding parameter and was processed before the isolate starts
    * running.
    *
+   * If [errorsAreFatal] is omitted, the platform may choose a default behavior
+   * or inherit the current isolate's behavior.
+   *
    * You can also call the [setErrorsFatal], [addOnExitListener] and
    * [addErrorListener] methods on the returned isolate, but unless the
    * isolate was started as [paused], it may already have terminated
    * before those methods can complete.
    *
-   * Returns a future that will complete with an [Isolate] instance if the
+   * Returns a future which will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
   external static Future<Isolate> spawn(void entryPoint(message), var message,
-                                        { bool paused: false,
-                                          bool errorsAreFatal,
-                                          SendPort onExit,
-                                          SendPort onError });
+                                        {bool paused: false,
+                                         bool errorsAreFatal,
+                                         SendPort onExit,
+                                         SendPort onError});
 
   /**
    * Creates and spawns an isolate that runs the code from the library with
@@ -291,13 +302,16 @@ class Isolate {
   /**
    * Requests the isolate to pause.
    *
-   * The isolate should stop handling events by pausing its event queue.
-   * The request will eventually make the isolate stop doing anything.
-   * It will be handled before any other messages that are later sent to the
-   * isolate from the current isolate, but no other guarantees are provided.
+   * When the isolate receives the pause command, it stops
+   * processing events from the event loop queue.
+   * It may still add new events to the queue in response to, e.g., timers
+   * or receive-port messages. When the isolate is resumed, it handles
+   * the already enqueued events.
    *
-   * The event loop may be paused before previously sent, but not yet exeuted,
-   * messages have been reached.
+   * The pause request is sent through the isolate's command port,
+   * which bypasses the receiving isolate's event loop.
+   * The pause takes effect when it is received, pausing the event loop
+   * as it is at that time.
    *
    * If [resumeCapability] is provided, it is used to identity the pause,
    * and must be used again to end the pause using [resume].
@@ -307,12 +321,12 @@ class Isolate {
    * only one resume with that capability is needed to end the pause.
    *
    * If an isolate is paused using more than one capability,
-   * they must all be individully ended before the isolate resumes.
+   * each pause must be individually ended before the isolate resumes.
    *
-   * Returns the capability that must be used to resume end the pause.
+   * Returns the capability that must be used to end the pause.
    */
   Capability pause([Capability resumeCapability]) {
-    if (resumeCapability == null) resumeCapability = new Capability();
+    resumeCapability ??= new Capability();
     _pause(resumeCapability);
     return resumeCapability;
   }
@@ -327,7 +341,7 @@ class Isolate {
    * that was requested using the [resumeCapability].
    *
    * When all active pause requests have been cancelled, the isolate
-   * will continue handling normal messages.
+   * will continue processing events and handling normal messages.
    *
    * The capability must be one returned by a call to [pause] on this
    * isolate, otherwise the resume call does nothing.
@@ -398,7 +412,7 @@ class Isolate {
    * The [priority] must be one of [IMMEDIATE] or [BEFORE_NEXT_EVENT].
    * The shutdown is performed at different times depending on the priority:
    *
-   * * `IMMEDIATE`: The the isolate shuts down as soon as possible.
+   * * `IMMEDIATE`: The isolate shuts down as soon as possible.
    *     Control messages are handled in order, so all previously sent control
    *     events from this isolate will all have been processed.
    *     The shutdown should happen no later than if sent with
@@ -421,7 +435,7 @@ class Isolate {
    * The [priority] must be one of [IMMEDIATE] or [BEFORE_NEXT_EVENT].
    * The response is sent at different times depending on the ping type:
    *
-   * * `IMMEDIATE`: The the isolate responds as soon as it receives the
+   * * `IMMEDIATE`: The isolate responds as soon as it receives the
    *     control message. This is after any previous control message
    *     from the same isolate has been received, but may be during
    *     execution of another event.

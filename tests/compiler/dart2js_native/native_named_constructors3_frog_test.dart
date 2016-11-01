@@ -8,23 +8,21 @@ import "package:expect/expect.dart";
 // Hidden native class with factory constructors and NO static methods.
 // Regression test.
 
-
 @Native("A")
 class A {
-
   // No static methods in this class.
 
   factory A(int len) => makeA(len);
 
-  factory A.fromString(String s)  => makeA(s.length);
+  factory A.fromString(String s) => makeA(s.length);
 
   // Only functions with zero parameters are allowed with "native r'...'".
   factory A.nativeConstructor() native r'return makeA(102);';
 
-  foo() native;
+  foo() native ;
 }
 
-makeA(v) native;
+makeA(v) native ;
 
 void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.

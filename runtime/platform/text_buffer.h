@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef PLATFORM_TEXT_BUFFER_H_
-#define PLATFORM_TEXT_BUFFER_H_
+#ifndef RUNTIME_PLATFORM_TEXT_BUFFER_H_
+#define RUNTIME_PLATFORM_TEXT_BUFFER_H_
 
 #include "vm/allocation.h"
 #include "vm/globals.h"
@@ -34,7 +34,7 @@ class TextBuffer : ValueObject {
 
   // Steal ownership of the buffer pointer.
   // NOTE: TextBuffer is empty afterwards.
-  const char* Steal();
+  char* Steal();
 
  private:
   void EnsureCapacity(intptr_t len);
@@ -45,4 +45,4 @@ class TextBuffer : ValueObject {
 
 }  // namespace dart
 
-#endif  // PLATFORM_TEXT_BUFFER_H_
+#endif  // RUNTIME_PLATFORM_TEXT_BUFFER_H_

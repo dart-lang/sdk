@@ -379,6 +379,7 @@ class ModelEmitter {
       return js.stringArray(fragments.map((DeferredFragment fragment) =>
           "${fragment.outputFileName}.$deferredExtension"));
     }
+
     js.ArrayInitializer fragmentHashes(List<Fragment> fragments) {
       // TODO(floitsch): the hash must depend on the generated code.
       return js.numArray(
@@ -624,6 +625,9 @@ class ModelEmitter {
     // or RTI. In either case we don't need its fields.
     if (cls.isDirectlyInstantiated && !cls.isNative) {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
+      if (cls.hasRtiField) {
+        fieldNames.add(namer.rtiFieldName);
+      }
     }
     js.Name name = cls.name;
 
@@ -665,6 +669,7 @@ class ModelEmitter {
       }
       return null;
     }
+
     js.Expression fieldName = js.quoteName(field.name);
     js.Expression code = js.js(setterTemplateFor(field.setterFlags), fieldName);
     js.Name setterName = namer.deriveSetterName(field.accessorName);

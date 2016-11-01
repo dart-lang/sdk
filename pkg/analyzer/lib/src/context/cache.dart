@@ -7,9 +7,9 @@ library analyzer.src.context.cache;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/model.dart';
@@ -608,6 +608,9 @@ class CacheEntry {
     if (delta == null) {
       return false;
     }
+    if (!delta.shouldGatherChanges) {
+      return true;
+    }
     for (int i = 0; i < 64; i++) {
       bool hasVisitChanges = false;
       _visitResults(nextVisitId++, result,
@@ -937,7 +940,7 @@ class CacheFlushManager<T> {
       : policy = policy,
         maxActiveSize = policy.maxActiveSize,
         maxIdleSize = policy.maxIdleSize,
-        maxSize = policy.maxIdleSize;
+        maxSize = policy.maxActiveSize;
 
   /**
    * If [currentSize] is already less than [maxSize], returns an empty list.
@@ -1078,6 +1081,20 @@ abstract class CachePartition {
   CachePartition(this.context);
 
   /**
+   * Specify whether a context that uses this partition is being analyzed.
+   */
+  set isActive(bool active) {
+    for (CacheFlushManager manager in _flushManagerMap.values) {
+      if (active) {
+        manager.madeActive();
+      } else {
+        List<TargetedResult> resultsToFlush = manager.madeIdle();
+        _flushResults(resultsToFlush);
+      }
+    }
+  }
+
+  /**
    * Notifies the partition that the client is going to stop using it.
    */
   void dispose() {
@@ -1173,15 +1190,7 @@ abstract class CachePartition {
     CacheFlushManager flushManager = _getFlushManager(result.result);
     List<TargetedResult> resultsToFlush =
         flushManager.resultStored(result, value);
-    for (TargetedResult result in resultsToFlush) {
-      CacheEntry entry = get(result.target);
-      if (entry != null) {
-        ResultData data = entry._resultMap[result.result];
-        if (data != null) {
-          data.flush();
-        }
-      }
-    }
+    _flushResults(resultsToFlush);
   }
 
   /**
@@ -1201,11 +1210,27 @@ abstract class CachePartition {
   }
 
   /**
+   * Flush the given [resultsToFlush].
+   */
+  void _flushResults(List<TargetedResult> resultsToFlush) {
+    for (TargetedResult result in resultsToFlush) {
+      CacheEntry entry = get(result.target);
+      if (entry != null) {
+        ResultData data = entry._resultMap[result.result];
+        if (data != null) {
+          data.flush();
+        }
+      }
+    }
+  }
+
+  /**
    * Return the [CacheFlushManager] for the given [descriptor], not `null`.
    */
   CacheFlushManager _getFlushManager(ResultDescriptor descriptor) {
     ResultCachingPolicy policy = descriptor.cachingPolicy;
-    if (identical(policy, DEFAULT_CACHING_POLICY)) {
+    if (identical(policy, DEFAULT_CACHING_POLICY) ||
+        context.analysisOptions.disableCacheFlushing) {
       return UnlimitedCacheFlushManager.INSTANCE;
     }
     CacheFlushManager manager = _flushManagerMap[policy];
@@ -1217,7 +1242,8 @@ abstract class CachePartition {
   }
 
   bool _isPriorityAnalysisTarget(AnalysisTarget target) {
-    return context.priorityTargets.contains(target);
+    Source source = target.source;
+    return source != null && context.prioritySources.contains(source);
   }
 
   /**
@@ -1246,6 +1272,21 @@ class Delta {
 
   Delta(this.source);
 
+  /**
+   * Return `true` if this delta needs cache walking to gather additional
+   * changes before it can be used to [validate].  In this case [gatherChanges]
+   * is invoked for every targeted result in transitive dependencies, and
+   * [gatherEnd] is invoked after cache walking is done.
+   */
+  bool get shouldGatherChanges => false;
+
+  /**
+   * This method is called during a cache walk, so that the delta can gather
+   * additional changes to which are caused by the changes it already knows
+   * about.  Return `true` if a new change was added, so that one more cache
+   * walk will be performed (to include changes that depend on results which we
+   * decided to be changed later in the previous cache walk).
+   */
   bool gatherChanges(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor, Object value) {
     return false;

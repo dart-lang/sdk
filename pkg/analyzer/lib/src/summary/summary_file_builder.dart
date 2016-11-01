@@ -5,128 +5,54 @@
 library analyzer.src.summary.summary_file_builder;
 
 import 'dart:collection';
-import 'dart:io' as io;
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
-import 'package:analyzer/src/summary/index_unit.dart';
+import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/link.dart';
+import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:path/path.dart';
-
-const int FIELD_SPEC_INDEX = 1;
-const int FIELD_SPEC_SUM = 0;
-const int FIELD_STRONG_INDEX = 3;
-const int FIELD_STRONG_SUM = 2;
-
-class BuilderOutput {
-  final List<int> sum;
-  final List<int> index;
-
-  BuilderOutput(this.sum, this.index);
-
-  void writeMultiple(String outputDirectoryPath, String modeName) {
-    // Write summary.
-    {
-      String outputPath = join(outputDirectoryPath, '$modeName.sum');
-      io.File file = new io.File(outputPath);
-      file.writeAsBytesSync(sum, mode: io.FileMode.WRITE_ONLY);
-    }
-    // Write index.
-    {
-      String outputPath = join(outputDirectoryPath, '$modeName.index');
-      io.File file = new io.File(outputPath);
-      file.writeAsBytesSync(index, mode: io.FileMode.WRITE_ONLY);
-    }
-  }
-}
-
-/**
- * Summary build configuration.
- */
-class SummaryBuildConfig {
-  /**
-   * Whether to use exclude informative data from created summaries.
-   */
-  final bool buildSummaryExcludeInformative;
-
-  /**
-   * Whether to output a summary in "fallback mode".
-   */
-  final bool buildSummaryFallback;
-
-  /**
-   * Whether to create summaries directly from ASTs, i.e. don't create a
-   * full element model.
-   */
-  final bool buildSummaryOnlyAst;
-
-  /**
-   * Path to the dart SDK summary file.
-   */
-  final String dartSdkSummaryPath;
-
-  /**
-   * Whether to use strong static checking.
-   */
-  final bool strongMode;
-
-  /**
-   * List of summary input file paths.
-   */
-  final Iterable<String> summaryInputs;
-
-  /**
-   * Create a build configuration with the given set options.
-   */
-  SummaryBuildConfig(
-      {this.strongMode: false,
-      this.summaryInputs,
-      this.dartSdkSummaryPath,
-      this.buildSummaryExcludeInformative: false,
-      this.buildSummaryFallback: false,
-      this.buildSummaryOnlyAst: false});
-}
 
 class SummaryBuilder {
-  final AnalysisContext context;
   final Iterable<Source> librarySources;
-  final SummaryBuildConfig config;
+  final AnalysisContext context;
+  final bool strong;
 
   /**
-   * Create a summary builder for these [librarySources] and [context] using the
-   * given [config].
+   * Create a summary builder for these [librarySources] and [context].
    */
-  SummaryBuilder(this.librarySources, this.context, this.config);
+  SummaryBuilder(this.librarySources, this.context, this.strong);
 
   /**
-   * Create an SDK summary builder for the dart SDK at the given [sdkPath],
-   * using this [config].
+   * Create an SDK summary builder for the dart SDK at the given [sdkPath].
    */
-  factory SummaryBuilder.forSdk(String sdkPath, SummaryBuildConfig config) {
-    bool strongMode = config.strongMode;
-
+  factory SummaryBuilder.forSdk(String sdkPath, bool strong) {
     //
     // Prepare SDK.
     //
     ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
-        FolderBasedDartSdk.defaultSdkDirectory(resourceProvider), strongMode);
+    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+        resourceProvider, resourceProvider.getFolder(sdkPath), strong);
     sdk.useSummary = false;
-    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strongMode;
+    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strong;
 
     //
     // Prepare 'dart:' URIs to serialize.
     //
     Set<String> uriSet =
         sdk.sdkLibraries.map((SdkLibrary library) => library.shortName).toSet();
-    if (!strongMode) {
+    if (!strong) {
       uriSet.add('dart:html/nativewrappers.dart');
     }
     uriSet.add('dart:html_common/html_common_dart2js.dart');
@@ -136,88 +62,89 @@ class SummaryBuilder {
       librarySources.add(sdk.mapDartUri(uri));
     }
 
-    return new SummaryBuilder(librarySources, sdk.context, config);
+    return new SummaryBuilder(librarySources, sdk.context, strong);
   }
-
-  BuilderOutput build() => new _Builder(context, librarySources).build();
-}
-
-/**
- * Intermediary summary output result.
- */
-class SummaryOutput {
-  final BuilderOutput spec;
-  final BuilderOutput strong;
-  SummaryOutput(this.spec, this.strong);
 
   /**
-   * Write this summary output to the given [outputPath] and return the
-   * created file.
+   * Build the linked bundle and return its bytes.
    */
-  io.File write(String outputPath) {
-    fb.Builder builder = new fb.Builder();
-    fb.Offset specSumOffset = builder.writeListUint8(spec.sum);
-    fb.Offset specIndexOffset = builder.writeListUint8(spec.index);
-    fb.Offset strongSumOffset = builder.writeListUint8(strong.sum);
-    fb.Offset strongIndexOffset = builder.writeListUint8(strong.index);
-    builder.startTable();
-    builder.addOffset(FIELD_SPEC_SUM, specSumOffset);
-    builder.addOffset(FIELD_SPEC_INDEX, specIndexOffset);
-    builder.addOffset(FIELD_STRONG_SUM, strongSumOffset);
-    builder.addOffset(FIELD_STRONG_INDEX, strongIndexOffset);
-    fb.Offset offset = builder.endTable();
-    return new io.File(outputPath)
-      ..writeAsBytesSync(builder.finish(offset), mode: io.FileMode.WRITE_ONLY);
-  }
+  List<int> build() => new _Builder(context, librarySources, strong).build();
 }
 
 class _Builder {
-  final Set<Source> processedSources = new Set<Source>();
-
-  final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
-  final PackageIndexAssembler indexAssembler = new PackageIndexAssembler();
-
   final AnalysisContext context;
   final Iterable<Source> librarySources;
+  final bool strong;
 
-  _Builder(this.context, this.librarySources);
+  final Set<String> libraryUris = new Set<String>();
+  final Map<String, UnlinkedUnit> unlinkedMap = <String, UnlinkedUnit>{};
+
+  final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+
+  _Builder(this.context, this.librarySources, this.strong);
 
   /**
-   * Build summary output.
+   * Build the linked bundle and return its bytes.
    */
-  BuilderOutput build() {
-    //
-    // Serialize each source.
-    //
-    for (Source source in librarySources) {
-      _serializeLibrary(source);
-    }
-    //
-    // Assemble the output.
-    //
-    List<int> sumBytes = bundleAssembler.assemble().toBuffer();
-    List<int> indexBytes = indexAssembler.assemble().toBuffer();
-    return new BuilderOutput(sumBytes, indexBytes);
+  List<int> build() {
+    librarySources.forEach(_addLibrary);
+
+    Map<String, LinkedLibraryBuilder> map = link(libraryUris, (uri) {
+      throw new StateError('Unexpected call to GetDependencyCallback($uri).');
+    }, (uri) {
+      UnlinkedUnit unlinked = unlinkedMap[uri];
+      if (unlinked == null) {
+        throw new StateError('Unable to find unresolved unit $uri.');
+      }
+      return unlinked;
+    }, (String name) {
+      throw new StateError('Unexpected call to GetDeclaredVariable($name).');
+    }, strong);
+    map.forEach(bundleAssembler.addLinkedLibrary);
+
+    return bundleAssembler.assemble().toBuffer();
   }
 
-  /**
-   * Serialize the library with the given [source] and all its direct or
-   * indirect imports and exports.
-   */
-  void _serializeLibrary(Source source) {
-    if (!processedSources.add(source)) {
+  void _addLibrary(Source source) {
+    String uriStr = source.uri.toString();
+    if (!libraryUris.add(uriStr)) {
       return;
     }
-    LibraryElement element = context.computeLibraryElement(source);
-    bundleAssembler.serializeLibraryElement(element);
-    element.importedLibraries.forEach((e) => _serializeLibrary(e.source));
-    element.exportedLibraries.forEach((e) => _serializeLibrary(e.source));
-    // Index every unit of the library.
-    for (CompilationUnitElement unitElement in element.units) {
-      Source unitSource = unitElement.source;
-      CompilationUnit unit =
-          context.resolveCompilationUnit2(unitSource, source);
-      indexAssembler.indexUnit(unit);
+    CompilationUnit unit = _addUnlinked(source);
+    for (Directive directive in unit.directives) {
+      if (directive is NamespaceDirective) {
+        String libUri = directive.uri.stringValue;
+        Source libSource = context.sourceFactory.resolveUri(source, libUri);
+        _addLibrary(libSource);
+      } else if (directive is PartDirective) {
+        String partUri = directive.uri.stringValue;
+        Source partSource = context.sourceFactory.resolveUri(source, partUri);
+        _addUnlinked(partSource);
+      }
     }
+  }
+
+  CompilationUnit _addUnlinked(Source source) {
+    String uriStr = source.uri.toString();
+    CompilationUnit unit = _parse(source);
+    UnlinkedUnitBuilder unlinked = serializeAstUnlinked(unit);
+    unlinkedMap[uriStr] = unlinked;
+    bundleAssembler.addUnlinkedUnit(source, unlinked);
+    return unit;
+  }
+
+  CompilationUnit _parse(Source source) {
+    AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
+    String code = source.contents.data;
+    CharSequenceReader reader = new CharSequenceReader(code);
+    Scanner scanner = new Scanner(source, reader, errorListener);
+    scanner.scanGenericMethodComments = strong;
+    Token token = scanner.tokenize();
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+    Parser parser = new Parser(source, errorListener);
+    parser.parseGenericMethodComments = strong;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = lineInfo;
+    return unit;
   }
 }

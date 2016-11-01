@@ -9,10 +9,10 @@
 // which will start execution in the Simulator or forwards to the real entry
 // on a ARM64 HW platform.
 
-#ifndef VM_SIMULATOR_ARM64_H_
-#define VM_SIMULATOR_ARM64_H_
+#ifndef RUNTIME_VM_SIMULATOR_ARM64_H_
+#define RUNTIME_VM_SIMULATOR_ARM64_H_
 
-#ifndef VM_SIMULATOR_H_
+#ifndef RUNTIME_VM_SIMULATOR_H_
 #error Do not include simulator_arm64.h directly; use simulator.h.
 #endif
 
@@ -80,7 +80,7 @@ class Simulator {
   // Accessor to the instruction counter.
   uint64_t get_icount() const { return icount_; }
 
-  // The isolate's top_exit_frame_info refers to a Dart frame in the simulator
+  // The thread's top_exit_frame_info refers to a Dart frame in the simulator
   // stack. The simulator's top_exit_frame_info refers to a C++ frame in the
   // native stack.
   uword top_exit_frame_info() const { return top_exit_frame_info_; }
@@ -282,4 +282,4 @@ class Simulator {
 
 }  // namespace dart
 
-#endif  // VM_SIMULATOR_ARM64_H_
+#endif  // RUNTIME_VM_SIMULATOR_ARM64_H_

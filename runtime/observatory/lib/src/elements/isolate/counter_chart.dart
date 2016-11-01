@@ -11,7 +11,7 @@ import 'package:observatory/src/elements/helpers/tag.dart';
 
 class IsolateCounterChartElement extends HtmlElement implements Renderable {
   static const tag =
-    const Tag<IsolateCounterChartElement>('isolate-counter-chart');
+      const Tag<IsolateCounterChartElement>('isolate-counter-chart');
 
   RenderingScheduler<IsolateCounterChartElement> _r;
 
@@ -46,30 +46,32 @@ class IsolateCounterChartElement extends HtmlElement implements Renderable {
     _subscription.cancel();
   }
 
-  void render() {
-    var areaHost;
-    var legendHost;
-    children = [
-      areaHost = new DivElement()..classes = ['host'],
-      legendHost = new DivElement()..classes = ['legend']
-    ];
-    final series = new ChartSeries("Work", [1], new PieChartRenderer(
-      sortDataByValue: false
-    ));
-    var rect = areaHost.getBoundingClientRect();
-    var minSize = new Rect.size(rect.width, rect.height);
-    final config = new ChartConfig([series], [0])
-        ..minimumSize = minSize
-        ..legend = new ChartLegend(legendHost, showValues: true);
-    final data = new ChartData([
-        new ChartColumnSpec(label: 'Type', type: ChartColumnSpec.TYPE_STRING),
-        new ChartColumnSpec(label: 'Percent', formatter: (v) => v.toString())
-      ], _counters.keys
-          .map((key) => [key, double.parse(_counters[key].split('%')[0])])
-          .toList());
+  static final _columns = [
+    new ChartColumnSpec(label: 'Type', type: ChartColumnSpec.TYPE_STRING),
+    new ChartColumnSpec(label: 'Percent', formatter: (v) => v.toString())
+  ];
 
-    new LayoutArea(areaHost, data, config, state: new ChartState(),
-        autoUpdate: true)
+  void render() {
+    final _series = [
+      new ChartSeries(
+          "Work", const [1], new PieChartRenderer(sortDataByValue: false))
+    ];
+    final areaHost = new DivElement()..classes = ['host'];
+    final legendHost = new DivElement()..classes = ['legend'];
+    children = [areaHost, legendHost];
+    final rect = areaHost.getBoundingClientRect();
+    final minSize = new Rect.size(rect.width, rect.height);
+    final config = new ChartConfig(_series, const [0])
+      ..minimumSize = minSize
+      ..legend = new ChartLegend(legendHost, showValues: true);
+    final data = new ChartData(
+        _columns,
+        _counters.keys
+            .map((key) => [key, double.parse(_counters[key].split('%')[0])])
+            .toList());
+
+    new LayoutArea(areaHost, data, config,
+        state: new ChartState(), autoUpdate: false)
       ..addChartBehavior(new Hovercard())
       ..addChartBehavior(new AxisLabelTooltip())
       ..draw();

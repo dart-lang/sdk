@@ -6,8 +6,7 @@
 
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/js_backend/js_backend.dart'
-       show JavaScriptBackend;
+import 'package:compiler/src/js_backend/js_backend.dart' show JavaScriptBackend;
 import 'package:expect/expect.dart';
 import 'memory_compiler.dart';
 
@@ -15,7 +14,7 @@ main() {
   DiagnosticCollector collector = new DiagnosticCollector();
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-      memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
+        memorySourceFiles: MEMORY_SOURCE_FILES, diagnosticHandler: collector);
     Compiler compiler = result.compiler;
     Expect.isTrue(collector.errors.isEmpty);
     Expect.isTrue(collector.infos.isEmpty);
@@ -23,10 +22,10 @@ main() {
     Expect.isFalse(compiler.enqueuer.resolution.hasEnqueuedReflectiveElements);
     Expect.isFalse(
         compiler.enqueuer.resolution.hasEnqueuedReflectiveStaticFields);
-    Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveElements);
-    Expect.isFalse(compiler.enqueuer.codegen.hasEnqueuedReflectiveStaticFields);
-    Expect.isFalse(compiler.disableTypeInference);
     JavaScriptBackend backend = compiler.backend;
+    Expect.isFalse(backend.codegenEnqueuer.hasEnqueuedReflectiveElements);
+    Expect.isFalse(backend.codegenEnqueuer.hasEnqueuedReflectiveStaticFields);
+    Expect.isFalse(compiler.disableTypeInference);
     Expect.isFalse(backend.hasRetainedMetadata);
   });
 }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../common/codegen.dart' show CodegenWorkItem;
 import '../compiler.dart' show Compiler;
 import '../constant_system_dart.dart';
 import '../constants/constant_system.dart';
@@ -606,11 +605,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   final ValueRangeInfo info;
   final SsaOptimizerTask optimizer;
 
-  CodegenWorkItem work;
   HGraph graph;
 
-  SsaValueRangeAnalyzer(
-      this.compiler, constantSystem, this.optimizer, this.work)
+  SsaValueRangeAnalyzer(this.compiler, constantSystem, this.optimizer)
       : info = new ValueRangeInfo(constantSystem),
         this.constantSystem = constantSystem;
 

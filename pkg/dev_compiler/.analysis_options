@@ -1,0 +1,10 @@
+analyzer:
+  strong-mode: true
+  exclude:
+    - doc/api/**
+    - gen/**
+    - node_modules/**
+    - tool/input_sdk/**
+    - test/codegen/**
+    - test/samples/**
+    - test/transformer/hello_app/**

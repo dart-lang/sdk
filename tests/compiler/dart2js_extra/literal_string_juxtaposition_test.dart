@@ -22,39 +22,40 @@ main() {
   {
     // Separating whitespace isn't necessary for the tokenizer.
     var s1 = "abcdefgh";
-    var s2 = "abcd""efgh";
-    var s3 = "ab""cd""ef""gh";
-    var s4 = "a""b""c""d""e""f""g""h";
-    var s5 = "a"'b'r"c"r'd'"""e"""'''f'''r"""g"""r'''h''';
+    var s2 = "abcd" "efgh";
+    var s3 = "ab" "cd" "ef" "gh";
+    var s4 = "a" "b" "c" "d" "e" "f" "g" "h";
+    var s5 = "a" 'b' r"c" r'd' """e""" '''f''' r"""g""" r'''h''';
     Expect.isTrue(identical(s1, s2));
     Expect.isTrue(identical(s1, s3));
     Expect.isTrue(identical(s1, s4));
     Expect.isTrue(identical(s1, s5));
     // "a""""""b""" should be tokenized as "a" """""b""", aka. "a" '""b'.
-    Expect.isTrue(identical('a""b', "a""""""b"""));
+    Expect.isTrue(identical('a""b', "a" """""b"""));
     // """a""""""""b""" is 'a' '""b'.
-    Expect.isTrue(identical('a""b', """a""""""""b"""));
+    Expect.isTrue(identical('a""b', """a""" """""b"""));
     // Raw strings.
-    Expect.isTrue(identical('ab', "a"r"b"));
-    Expect.isTrue(identical('ab', r"a""b"));
-    Expect.isTrue(identical('ab', r"a"r"b"));
+    Expect.isTrue(identical('ab', "a" r"b"));
+    Expect.isTrue(identical('ab', r"a" "b"));
+    Expect.isTrue(identical('ab', r"a" r"b"));
   }
 
   // Newlines are just whitespace.
   var ms1 = "abc"
-  "def"
-  "ghi"
-  "jkl";
+      "def"
+      "ghi"
+      "jkl";
   Expect.isTrue(identical("abcdefghijkl", ms1));
 
   // Works with multiline strings too.
   var ms2 = """abc
   def"""
-  """
+      """
   ghi
   jkl
   """;
-  Expect.isTrue(identical("abc\n  def  ghi\n  jkl\n  ", ms2), "Multiline: $ms2");
+  Expect.isTrue(
+      identical("abc\n  def  ghi\n  jkl\n  ", ms2), "Multiline: $ms2");
 
   // Binds stronger than property access (it's considered one literal).
   Expect.equals(5, "ab" "cde".length, "Associativity");
@@ -103,13 +104,13 @@ main() {
 
     Expect.equals("$x-$y-$z", "${'$x' '-' '$y'}" "-" "$z");
 
-    Expect.equals(r"-foo-42-true-",
-                  r"-" "$x" r"""-""" """$y""" r'-' '$z' r'''-''', "j");
-    Expect.equals(r"-$x-42-true-",
-                  r"-" r"$x" r"""-""" """$y""" r'-' '$z' r'''-''', "k");
-    Expect.equals(r"-foo-$y-true-",
-                  r"-" "$x" r"""-""" r"""$y""" r'-' '$z' r'''-''', "l");
-    Expect.equals(r"-foo-42-$z-",
-                  r"-" "$x" r"""-""" """$y""" r'-' r'$z' r'''-''', "m");
+    Expect.equals(
+        r"-foo-42-true-", r"-" "$x" r"""-""" """$y""" r'-' '$z' r'''-''', "j");
+    Expect.equals(
+        r"-$x-42-true-", r"-" r"$x" r"""-""" """$y""" r'-' '$z' r'''-''', "k");
+    Expect.equals(
+        r"-foo-$y-true-", r"-" "$x" r"""-""" r"""$y""" r'-' '$z' r'''-''', "l");
+    Expect.equals(
+        r"-foo-42-$z-", r"-" "$x" r"""-""" """$y""" r'-' r'$z' r'''-''', "m");
   }
 }

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ATOMIC_LINUX_H_
-#define VM_ATOMIC_LINUX_H_
+#ifndef RUNTIME_VM_ATOMIC_LINUX_H_
+#define RUNTIME_VM_ATOMIC_LINUX_H_
 
-#if !defined VM_ATOMIC_H_
+#if !defined RUNTIME_VM_ATOMIC_H_
 #error Do not include atomic_linux.h directly. Use atomic.h instead.
 #endif
 
@@ -17,6 +17,11 @@ namespace dart {
 
 
 inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
+  return __sync_fetch_and_add(p, 1);
+}
+
+
+inline intptr_t AtomicOperations::FetchAndIncrement(intptr_t* p) {
   return __sync_fetch_and_add(p, 1);
 }
 
@@ -37,6 +42,11 @@ inline void AtomicOperations::IncrementInt64By(int64_t* p, int64_t value) {
 
 
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
+  return __sync_fetch_and_sub(p, 1);
+}
+
+
+inline intptr_t AtomicOperations::FetchAndDecrement(intptr_t* p) {
   return __sync_fetch_and_sub(p, 1);
 }
 
@@ -63,4 +73,4 @@ inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
 
 }  // namespace dart
 
-#endif  // VM_ATOMIC_LINUX_H_
+#endif  // RUNTIME_VM_ATOMIC_LINUX_H_

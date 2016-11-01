@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_OBJECT_STORE_H_
-#define VM_OBJECT_STORE_H_
+#ifndef RUNTIME_VM_OBJECT_STORE_H_
+#define RUNTIME_VM_OBJECT_STORE_H_
 
 #include "vm/object.h"
 
@@ -114,6 +114,13 @@ class ObjectStore {
   RawType* string_type() const { return string_type_; }
   void set_string_type(const Type& value) {
     string_type_ = value.raw();
+  }
+
+  RawClass* compiletime_error_class() const {
+    return compiletime_error_class_;
+  }
+  void set_compiletime_error_class(const Class& value) {
+    compiletime_error_class_ = value.raw();
   }
 
   RawClass* future_class() const { return future_class_; }
@@ -532,6 +539,7 @@ class ObjectStore {
   V(RawType*, int32x4_type_)                                                   \
   V(RawType*, float64x2_type_)                                                 \
   V(RawType*, string_type_)                                                    \
+  V(RawClass*, compiletime_error_class_)                                       \
   V(RawClass*, future_class_)                                                  \
   V(RawClass*, completer_class_)                                               \
   V(RawClass*, stream_iterator_class_)                                         \
@@ -631,4 +639,4 @@ OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
 
 }  // namespace dart
 
-#endif  // VM_OBJECT_STORE_H_
+#endif  // RUNTIME_VM_OBJECT_STORE_H_

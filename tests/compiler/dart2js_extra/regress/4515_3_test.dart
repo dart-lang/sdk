@@ -16,7 +16,7 @@ main() {
   var v = null;
   try {
     v = f(a.a);
-  } catch (e) { }
+  } catch (e) {}
 
   Expect.equals(null, v);
 }

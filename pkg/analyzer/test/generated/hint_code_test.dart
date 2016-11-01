@@ -4,20 +4,21 @@
 
 library analyzer.test.generated.hint_code_test;
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(HintCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(HintCodeTest);
+  });
 }
 
 @reflectiveTest
@@ -61,7 +62,72 @@ class JS {
   const JS([String js]) { }
 }
 '''
-    });
+    }, resourceProvider: resourceProvider);
+  }
+
+  void test_abstractSuperMemberReference_getter() {
+    Source source = addSource(r'''
+abstract class A {
+  int get test;
+}
+class B extends A {
+  int get test {
+    super.test;
+    return 0;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_method_invocation() {
+    Source source = addSource(r'''
+abstract class A {
+  void test();
+}
+class B extends A {
+  void test() {
+    super.test();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_method_reference() {
+    Source source = addSource(r'''
+abstract class A {
+  void test();
+}
+class B extends A {
+  void test() {
+    super.test;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    verify([source]);
+  }
+
+  void test_abstractSuperMemberReference_setter() {
+    Source source = addSource(r'''
+abstract class A {
+  void set test(int v);
+}
+class B extends A {
+  void set test(int v){
+    super.test = 0;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.ABSTRACT_SUPER_MEMBER_REFERENCE]);
+    verify([source]);
   }
 
   void test_argumentTypeNotAssignable_functionType() {
@@ -101,6 +167,22 @@ n(int i) {}''');
     Source source = addSource(r'''
 m(x) {
   x?.a()?.b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_false_null() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a.hashCode;
+  x?.a.runtimeType;
+  x?.a.toString();
+  x?.b().hashCode;
+  x?.b().runtimeType;
+  x?.b().toString();
 }
 ''');
     computeLibrarySourceErrors(source);
@@ -1422,8 +1504,7 @@ class B {
 ''');
     List<AnalysisError> errors = analysisContext2.computeErrors(source2);
     expect(errors, hasLength(1));
-    expect(errors[0].message,
-        "The member 'a' can only be used within instance members of subclasses of 'A'");
+    expect(errors[0].errorCode, HintCode.INVALID_USE_OF_PROTECTED_MEMBER);
     verify([source, source2]);
   }
 
@@ -1842,6 +1923,23 @@ class B extends A {
     verify([source]);
   }
 
+  void test_mustCallSuper_fromInterface() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class C implements A {
+  @override
+  void a() {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
   void test_mustCallSuper_indirect() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
@@ -1865,7 +1963,7 @@ class D extends C {
     verify([source]);
   }
 
-  void test_mustCallSuper_OK() {
+  void test_mustCallSuper_overridden() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {

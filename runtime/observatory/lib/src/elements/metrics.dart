@@ -6,217 +6,162 @@ library metrics;
 
 import 'dart:async';
 import 'dart:html';
-import 'observatory_element.dart';
-import 'package:charted/charted.dart';
-import 'package:observatory/app.dart';
-import 'package:observatory/service.dart';
-import 'package:polymer/polymer.dart';
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/metric/details.dart';
+import 'package:observatory/src/elements/metric/graph.dart';
+import 'package:observatory/src/elements/nav/isolate_menu.dart';
+import 'package:observatory/src/elements/nav/notify.dart';
+import 'package:observatory/src/elements/nav/refresh.dart';
+import 'package:observatory/src/elements/nav/top_menu.dart';
+import 'package:observatory/src/elements/nav/vm_menu.dart';
 
-@CustomTag('metrics-page')
-class MetricsPageElement extends ObservatoryElement {
+class MetricsPageElement extends HtmlElement implements Renderable {
+  static const tag =
+      const Tag<MetricsPageElement>('metrics-page', dependencies: const [
+    MetricDetailsElement.tag,
+    MetricGraphElement.tag,
+    NavTopMenuElement.tag,
+    NavVMMenuElement.tag,
+    NavIsolateMenuElement.tag,
+    NavRefreshElement.tag,
+    NavNotifyElement.tag,
+  ]);
+
+  RenderingScheduler<MetricsPageElement> _r;
+
+  Stream<RenderedEvent<MetricsPageElement>> get onRendered => _r.onRendered;
+
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.MetricRepository _metrics;
+  List<M.Metric> _available;
+  M.Metric _selected;
+
+  M.VMRef get vm => _vm;
+  M.IsolateRef get isolate => _isolate;
+  M.NotificationRepository get notifications => _notifications;
+
+  factory MetricsPageElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.MetricRepository metrics,
+      {RenderingQueue queue}) {
+    assert(vm != null);
+    assert(isolate != null);
+    assert(events != null);
+    assert(notifications != null);
+    MetricsPageElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._vm = vm;
+    e._isolate = isolate;
+    e._events = events;
+    e._notifications = notifications;
+    e._metrics = metrics;
+    return e;
+  }
+
   MetricsPageElement.created() : super.created();
 
-  @observable MetricsPage page;
-  @observable Isolate isolate;
-  @observable ServiceMetric selectedMetric;
-
-  void _autoPickSelectedMetric() {
-    if (selectedMetric != null) {
-      return;
-    }
-    // Attempt to pick the last selected metric.
-    if ((isolate != null) && (page != null) &&
-        (page.selectedMetricId != null)) {
-      selectedMetric = isolate.dartMetrics[page.selectedMetricId];
-      if (selectedMetric != null) {
-        return;
-      }
-      selectedMetric = isolate.nativeMetrics[page.selectedMetricId];
-    }
-    if ((selectedMetric == null) && (isolate != null)) {
-      var values = isolate.dartMetrics.values.toList();
-      if ((values != null) && (values.length > 0)) {
-        // Fall back and pick the first isolate metric.
-        selectedMetric = values.first;
-      }
-      if (selectedMetric != null) {
-        return;
-      }
-      values = isolate.nativeMetrics.values.toList();
-      if ((values != null) && (values.length > 0)) {
-        // Fall back and pick the first isolate metric.
-        selectedMetric = values.first;
-      }
-    }
-  }
-
-  void attached() {
-    _autoPickSelectedMetric();
-  }
-
-  void isolateChanged(oldValue) {
-    if (isolate != null) {
-      isolate.refreshMetrics().then((_) {
-        _autoPickSelectedMetric();
-      });
-    }
-  }
-
-  Future refresh() {
-    return isolate.refreshMetrics();
-  }
-
-  void selectMetric(Event e, var detail, Element target) {
-    String id = target.attributes['data-id'];
-    selectedMetric = isolate.dartMetrics[id];
-    if (selectedMetric == null) {
-      // Check VM metrics.
-      selectedMetric = isolate.nativeMetrics[id];
-    }
-    if (selectedMetric != null) {
-      page.selectedMetricId = id;
-    } else {
-      page.selectedMetricId = null;
-    }
-  }
-}
-
-@CustomTag('metric-details')
-class MetricDetailsElement extends ObservatoryElement {
-  MetricDetailsElement.created() : super.created();
-  @published MetricsPage page;
-  @published ServiceMetric metric;
-
-  int _findIndex(SelectElement element, int value) {
-    if (element == null) {
-      return null;
-    }
-    for (var i = 0; i < element.options.length; i++) {
-      var optionElement = element.options[i];
-      int optionValue = int.parse(optionElement.value);
-      if (optionValue == value) {
-        return i;
-      }
-    }
-    return null;
-  }
-
-  void attached() {
+  @override
+  attached() {
     super.attached();
-    _updateSelectedIndexes();
+    _r.enable();
+    _refresh();
   }
 
-  void _updateSelectedIndexes() {
-    if (metric == null) {
-      return;
+  @override
+  detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
+  }
+
+  void render() {
+    children = [
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('metrics'),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((e) {
+            e.element.disabled = true;
+            _refresh();
+          }),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ]),
+      new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = [
+          new HeadingElement.h2()..text = 'Metrics',
+          new HRElement(),
+          new DivElement()
+            ..classes = ['memberList']
+            ..children = [
+              new DivElement()
+                ..classes = ['memberItem']
+                ..children = [
+                  new DivElement()
+                    ..classes = ['memberName']
+                    ..text = 'Metric',
+                  new DivElement()
+                    ..classes = ['memberValue']
+                    ..children = _available == null
+                        ? [new SpanElement()..text = 'Loading..']
+                        : _createMetricSelect()
+                ]
+            ],
+          new HRElement(),
+          new DivElement()
+            ..children = _selected == null
+                ? const []
+                : [
+                    new MetricDetailsElement(_isolate, _selected, _metrics,
+                        queue: _r.queue)
+                  ],
+          new HRElement(),
+          new DivElement()
+            ..classes = ['graph']
+            ..children = _selected == null
+                ? const []
+                : [
+                    new MetricGraphElement(_isolate, _selected, _metrics,
+                        queue: _r.queue)
+                  ]
+        ],
+    ];
+  }
+
+  Future _refresh() async {
+    _available = (await _metrics.list(_isolate)).toList();
+    if (!_available.contains(_selected)) {
+      _selected = _available.first;
     }
-    SelectElement refreshRateElement = shadowRoot.querySelector('#refreshrate');
-    if (refreshRateElement == null) {
-      // Race between shadowRoot setup and events.
-      return;
-    }
-    int period = 0;
-    if (metric.poller != null) {
-      period = metric.poller.pollPeriod.inMilliseconds;
-    }
-    var index = _findIndex(refreshRateElement, period);
-    assert(index != null);
-    refreshRateElement.selectedIndex = index;
-    SelectElement bufferSizeElement = shadowRoot.querySelector('#buffersize');
-    index = _findIndex(bufferSizeElement, metric.sampleBufferSize);
-    assert(index != null);
-    bufferSizeElement.selectedIndex = index;
+    _r.dirty();
   }
 
-  metricChanged(oldValue) {
-    _updateSelectedIndexes();
-  }
-
-  void refreshRateChange(Event e, var detail, Element target) {
-    var value = int.parse((target as SelectElement).value);
-    if (metric == null) {
-      return;
-    }
-    page.setRefreshPeriod(value, metric);
-  }
-
-  void sampleBufferSizeChange(Event e, var detail, Element target) {
-    var value = int.parse((target as SelectElement).value);
-    if (metric == null) {
-      return;
-    }
-    metric.sampleBufferSize = value;
-  }
-}
-
-@CustomTag('metrics-graph')
-class MetricsGraphElement extends ObservatoryElement {
-  MetricsGraphElement.created() : super.created();
-
-  HtmlElement _wrapper;
-  HtmlElement _areaHost;
-  CartesianArea _area;
-  ChartData _data;
-  final _columns = [
-      new ChartColumnSpec(label: 'Time', type: ChartColumnSpec.TYPE_TIMESTAMP),
-      new ChartColumnSpec(label: 'Value', formatter: (v) => v.toString())
-  ];
-  final _rows = [[0, 1000000.0]];
-
-  @published ServiceMetric metric;
-  @observable Isolate isolate;
-
-  void attached() {
-    super.attached();
-    // Redraw once a second.
-    pollPeriod = new Duration(seconds: 1);
-    _reset();
-  }
-
-  void onPoll() {
-    if (metric == null) {
-      return;
-    }
-    _update();
-    _draw();
-  }
-
-  void _reset() {
-    _rows.clear();
-    _wrapper = shadowRoot.querySelector('#metric-chart');
-    assert(_wrapper != null);
-    _areaHost = _wrapper.querySelector('.chart-host');
-    assert(_areaHost != null);
-    _areaHost.children.clear();
-    var series = new ChartSeries("one", [1], new LineChartRenderer());
-    var config = new ChartConfig([series], [0]);
-    config.minimumSize = new Rect(800, 600);
-    _data = new ChartData(_columns, _rows);
-    _area = new CartesianArea(_areaHost,
-                              _data,
-                              config,
-                              state: new ChartState());
-  }
-
-  void _update() {
-    _rows.clear();
-    for (var i = 0; i < metric.samples.length; i++) {
-      var sample = metric.samples[i];
-      _rows.add([sample.time.millisecondsSinceEpoch, sample.value]);
-    }
-  }
-
-  void _draw() {
-    if (_rows.length < 2) {
-      return;
-    }
-    _area.data = new ChartData(_columns, _rows);
-    _area.draw();
-  }
-
-  metricChanged(oldValue) {
-    if (oldValue != metric) {
-      _reset();
-    }
+  List<Element> _createMetricSelect() {
+    var s;
+    return [
+      s = new SelectElement()
+        ..value = _selected.name
+        ..children = _available.map((metric) {
+          return new OptionElement(
+              value: metric.name,
+              selected: _selected == metric)..text = metric.name;
+        }).toList(growable: false)
+        ..onChange.listen((_) {
+          _selected = _available[s.selectedIndex];
+          _r.dirty();
+        })
+    ];
   }
 }

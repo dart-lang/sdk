@@ -5,24 +5,23 @@
 library analyzer.test.generated.package_test;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/package.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:package_config/packages.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
 import '../src/context/mock_sdk.dart';
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(DependencyFinderTest);
-  runReflectiveTests(PackageDescriptionTest);
-  runReflectiveTests(PackageManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(DependencyFinderTest);
+    defineReflectiveTests(PackageDescriptionTest);
+    defineReflectiveTests(PackageManagerTest);
+  });
 }
 
 /**
@@ -32,20 +31,10 @@ const String pubspecName = 'pubspec.yaml';
 
 @reflectiveTest
 class DependencyFinderTest extends ResolverTestCase {
-  /**
-   * The resource provider to be used by tests.
-   */
-  MemoryResourceProvider resourceProvider;
-
-  @override
-  void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-  }
-
   void test_transitiveDependenciesFor_circularDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
+    String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
+    String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
     resourceProvider.newFile(
         '$packageA/$pubspecName',
         '''
@@ -101,10 +90,10 @@ class DependencyFinderTest extends ResolverTestCase {
   }
 
   void test_transitiveDependenciesFor_overlappingDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
-    String packageD = '/pub-cache/d-1.0';
+    String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
+    String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
+    String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
+    String packageD = resourceProvider.convertPath('/pub-cache/d-1.0');
     resourceProvider.newFile(
         '$packageA/$pubspecName',
         '''
@@ -139,9 +128,9 @@ class DependencyFinderTest extends ResolverTestCase {
   }
 
   void test_transitiveDependenciesFor_simpleDependencies() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB = '/pub-cache/b-1.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
+    String packageB = resourceProvider.convertPath('/pub-cache/b-1.0');
+    String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
     resourceProvider.newFile(
         '$packageA/$pubspecName',
         '''
@@ -171,7 +160,7 @@ class PackageDescriptionTest extends ResolverTestCase {
     DartSdk sdk = new MockSdk();
     AnalysisOptionsImpl options1 = new AnalysisOptionsImpl();
     AnalysisOptionsImpl options2 = new AnalysisOptionsImpl();
-    options2.enableAsync = !options1.enableAsync;
+    options2.enableGenericMethods = !options1.enableGenericMethods;
     PackageDescription first = new PackageDescription(packageId, sdk, options1);
     PackageDescription second =
         new PackageDescription(packageId, sdk, options2);
@@ -212,21 +201,11 @@ class PackageDescriptionTest extends ResolverTestCase {
 
 @reflectiveTest
 class PackageManagerTest extends ResolverTestCase {
-  /**
-   * The resource provider to be used by tests.
-   */
-  MemoryResourceProvider resourceProvider;
-
-  @override
-  void setUp() {
-    resourceProvider = new MemoryResourceProvider();
-  }
-
   void test_getContext() {
-    String packageA = '/pub-cache/a-1.0';
-    String packageB1 = '/pub-cache/b-1.0';
-    String packageB2 = '/pub-cache/b-2.0';
-    String packageC = '/pub-cache/c-1.0';
+    String packageA = resourceProvider.convertPath('/pub-cache/a-1.0');
+    String packageB1 = resourceProvider.convertPath('/pub-cache/b-1.0');
+    String packageB2 = resourceProvider.convertPath('/pub-cache/b-2.0');
+    String packageC = resourceProvider.convertPath('/pub-cache/c-1.0');
     resourceProvider.newFile(
         '$packageA/$pubspecName',
         '''

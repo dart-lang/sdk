@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_COMPILER_H_
-#define VM_COMPILER_H_
+#ifndef RUNTIME_VM_COMPILER_H_
+#define RUNTIME_VM_COMPILER_H_
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
@@ -27,6 +27,7 @@ class RawInstance;
 class Script;
 class SequenceNode;
 
+bool UseKernelFrontEndFor(ParsedFunction* parsed_function);
 
 class CompilationPipeline : public ZoneAllocated {
  public:
@@ -100,6 +101,7 @@ class Compiler : public AllStatic {
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileFunction(Thread* thread, const Function& function);
+  static RawError* ParseFunction(Thread* thread, const Function& function);
 
   // Generates unoptimized code if not present, current code is unchanged.
   static RawError* EnsureUnoptimizedCode(Thread* thread,
@@ -143,6 +145,7 @@ class Compiler : public AllStatic {
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileAllFunctions(const Class& cls);
+  static RawError* ParseAllFunctions(const Class& cls);
 
   // Notify the compiler that background (optimized) compilation has failed
   // because the mutator thread changed the state (e.g., deoptimization,
@@ -199,4 +202,4 @@ class BackgroundCompiler : public ThreadPool::Task {
 
 }  // namespace dart
 
-#endif  // VM_COMPILER_H_
+#endif  // RUNTIME_VM_COMPILER_H_

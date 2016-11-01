@@ -5,6 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_OS_LINUX)
 
+#include "platform/memory_sanitizer.h"
 #include "vm/native_symbol.h"
 
 #include <cxxabi.h>  // NOLINT
@@ -32,8 +33,10 @@ char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {
   if (start != NULL) {
     *start = reinterpret_cast<uintptr_t>(info.dli_saddr);
   }
-  int status;
-  char* demangled = abi::__cxa_demangle(info.dli_sname, NULL, NULL, &status);
+  int status = 0;
+  size_t len = 0;
+  char* demangled = abi::__cxa_demangle(info.dli_sname, NULL, &len, &status);
+  MSAN_UNPOISON(demangled, len);
   if (status == 0) {
     return demangled;
   }

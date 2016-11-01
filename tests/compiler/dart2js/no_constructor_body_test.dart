@@ -19,7 +19,7 @@ main() {
 
 main() {
   asyncTest(() => compileAll(TEST).then((generated) {
-    Expect.isTrue(generated.contains(
-        new RegExp('A: {[ \n]*"\\^": "Object;",[ \n]*static:')));
-  }));
+        Expect.isTrue(generated
+            .contains(new RegExp('A: {[ \n]*"\\^": "Object;",[ \n]*static:')));
+      }));
 }

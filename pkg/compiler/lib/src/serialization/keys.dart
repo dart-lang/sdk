@@ -35,6 +35,7 @@ class Key {
   static const Key ELEMENTS = const Key('elements');
   static const Key ENCLOSING = const Key('enclosing');
   static const Key EXECUTABLE_CONTEXT = const Key('executable-context');
+  static const Key EXISTING = const Key('existing');
   static const Key EXPORTS = const Key('exports');
   static const Key EXPORT_SCOPE = const Key('export-scope');
   static const Key EXPRESSION = const Key('expression');
@@ -102,6 +103,7 @@ class Key {
   static const Key NAMED_PARAMETER_TYPES = const Key('named-parameter-types');
   static const Key NATIVE = const Key('native');
   static const Key NESTING_LEVEL = const Key('nestingLevel');
+  static const Key NEW = const Key('new');
   static const Key NEW_STRUCTURE = const Key('newStructure');
   static const Key NODE = const Key('node');
   static const Key OFFSET = const Key('offset');

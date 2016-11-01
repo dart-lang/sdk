@@ -5,47 +5,31 @@
 part of dart2js.semantics_visitor_test;
 
 class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
-
   SemanticDeclarationTestVisitor(TreeElements elements) : super(elements);
 
   @override
   errorUnresolvedSuperConstructorInvoke(
-      Send node,
-      Element element,
-      NodeList arguments,
-      Selector selector,
-      arg) {
+      Send node, Element element, NodeList arguments, Selector selector, arg) {
     // TODO: implement errorUnresolvedSuperConstructorInvoke
   }
 
   @override
   errorUnresolvedThisConstructorInvoke(
-      Send node,
-      Element element,
-      NodeList arguments,
-      Selector selector,
-      arg) {
+      Send node, Element element, NodeList arguments, Selector selector, arg) {
     // TODO: implement errorUnresolvedThisConstructorInvoke
   }
 
   @override
   visitAbstractMethodDeclaration(
-      FunctionExpression node,
-      MethodElement method,
-      NodeList parameters,
-      arg) {
+      FunctionExpression node, MethodElement method, NodeList parameters, arg) {
     visits.add(new Visit(VisitKind.VISIT_ABSTRACT_METHOD_DECL,
         element: method, parameters: parameters));
     applyParameters(parameters, arg);
   }
 
   @override
-  visitClosureDeclaration(
-      FunctionExpression node,
-      LocalFunctionElement function,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitClosureDeclaration(FunctionExpression node,
+      LocalFunctionElement function, NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_CLOSURE_DECL,
         element: function, parameters: parameters, body: body));
     applyParameters(parameters, arg);
@@ -53,12 +37,8 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitFactoryConstructorDeclaration(
-      FunctionExpression node,
-      ConstructorElement constructor,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitFactoryConstructorDeclaration(FunctionExpression node,
+      ConstructorElement constructor, NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_FACTORY_CONSTRUCTOR_DECL,
         element: constructor, parameters: parameters, body: body));
     applyParameters(parameters, arg);
@@ -67,10 +47,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
 
   @override
   visitFieldInitializer(
-      SendSet node,
-      FieldElement field,
-      Node initializer,
-      arg) {
+      SendSet node, FieldElement field, Node initializer, arg) {
     visits.add(new Visit(VisitKind.VISIT_FIELD_INITIALIZER,
         element: field, rhs: initializer));
     apply(initializer, arg);
@@ -92,12 +69,8 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitInstanceMethodDeclaration(
-      FunctionExpression node,
-      MethodElement method,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitInstanceMethodDeclaration(FunctionExpression node, MethodElement method,
+      NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_INSTANCE_METHOD_DECL,
         element: method, parameters: parameters, body: body));
     applyParameters(parameters, arg);
@@ -105,12 +78,8 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitLocalFunctionDeclaration(
-      FunctionExpression node,
-      LocalFunctionElement function,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitLocalFunctionDeclaration(FunctionExpression node,
+      LocalFunctionElement function, NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_DECL,
         element: function, parameters: parameters, body: body));
     applyParameters(parameters, arg);
@@ -125,8 +94,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       InterfaceType redirectionType,
       ConstructorElement redirectionTarget,
       arg) {
-    visits.add(new Visit(
-        VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
+    visits.add(new Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_DECL,
         element: constructor,
         parameters: parameters,
         target: redirectionTarget,
@@ -151,12 +119,8 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitStaticFunctionDeclaration(
-      FunctionExpression node,
-      MethodElement function,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitStaticFunctionDeclaration(FunctionExpression node,
+      MethodElement function, NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_FUNCTION_DECL,
         element: function, parameters: parameters, body: body));
     applyParameters(parameters, arg);
@@ -172,45 +136,37 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_CONSTRUCTOR_INVOKE,
-        element: superConstructor, type: type,
-        arguments: arguments, selector: callStructure));
+        element: superConstructor,
+        type: type,
+        arguments: arguments,
+        selector: callStructure));
     super.visitSuperConstructorInvoke(
         node, superConstructor, type, arguments, callStructure, arg);
   }
 
   @override
-  visitImplicitSuperConstructorInvoke(
-      FunctionExpression node,
-      ConstructorElement superConstructor,
-      InterfaceType type,
-      arg) {
+  visitImplicitSuperConstructorInvoke(FunctionExpression node,
+      ConstructorElement superConstructor, InterfaceType type, arg) {
     visits.add(new Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
         element: superConstructor, type: type));
-    super.visitImplicitSuperConstructorInvoke(
-        node, superConstructor, type, arg);
+    super
+        .visitImplicitSuperConstructorInvoke(node, superConstructor, type, arg);
   }
 
   @override
-  visitThisConstructorInvoke(
-      Send node,
-      ConstructorElement thisConstructor,
-      NodeList arguments,
-      CallStructure callStructure,
-      arg) {
+  visitThisConstructorInvoke(Send node, ConstructorElement thisConstructor,
+      NodeList arguments, CallStructure callStructure, arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_CONSTRUCTOR_INVOKE,
         element: thisConstructor,
-        arguments: arguments, selector: callStructure));
+        arguments: arguments,
+        selector: callStructure));
     super.visitThisConstructorInvoke(
         node, thisConstructor, arguments, callStructure, arg);
   }
 
   @override
-  visitTopLevelFunctionDeclaration(
-      FunctionExpression node,
-      MethodElement function,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitTopLevelFunctionDeclaration(FunctionExpression node,
+      MethodElement function, NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
         element: function, parameters: parameters, body: body));
     applyParameters(parameters, arg);
@@ -219,10 +175,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
 
   @override
   errorUnresolvedFieldInitializer(
-      SendSet node,
-      Element element,
-      Node initializer,
-      arg) {
+      SendSet node, Element element, Node initializer, arg) {
     // TODO: implement errorUnresolvedFieldInitializer
   }
 
@@ -241,34 +194,22 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitParameterDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      ParameterElement parameter,
-      int index,
-      arg) {
+  visitParameterDeclaration(VariableDefinitions node, Node definition,
+      ParameterElement parameter, int index, arg) {
     visits.add(new Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
         element: parameter, index: index));
   }
 
   @override
-  visitInitializingFormalDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      InitializingFormalElement initializingFormal,
-      int index,
-      arg) {
+  visitInitializingFormalDeclaration(VariableDefinitions node, Node definition,
+      InitializingFormalElement initializingFormal, int index, arg) {
     visits.add(new Visit(VisitKind.VISIT_REQUIRED_INITIALIZING_FORMAL_DECL,
         element: initializingFormal, index: index));
   }
 
   @override
-  visitLocalVariableDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      LocalVariableElement variable,
-      Node initializer,
-      arg) {
+  visitLocalVariableDeclaration(VariableDefinitions node, Node definition,
+      LocalVariableElement variable, Node initializer, arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
         element: variable, rhs: initializer));
     if (initializer != null) {
@@ -277,12 +218,8 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitLocalConstantDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      LocalVariableElement variable,
-      ConstantExpression constant,
-      arg) {
+  visitLocalConstantDeclaration(VariableDefinitions node, Node definition,
+      LocalVariableElement variable, ConstantExpression constant, arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
         element: variable, constant: constant.toDartText()));
   }
@@ -300,12 +237,8 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitNamedParameterDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      ParameterElement parameter,
-      ConstantExpression defaultValue,
-      arg) {
+  visitNamedParameterDeclaration(VariableDefinitions node, Node definition,
+      ParameterElement parameter, ConstantExpression defaultValue, arg) {
     visits.add(new Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
         element: parameter,
         constant: defaultValue != null ? defaultValue.toDartText() : null));
@@ -326,12 +259,8 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitInstanceFieldDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      Node initializer,
-      arg) {
+  visitInstanceFieldDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, Node initializer, arg) {
     visits.add(new Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
         element: field, rhs: initializer));
     if (initializer != null) {
@@ -340,23 +269,15 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitStaticConstantDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      ConstantExpression constant,
-      arg) {
+  visitStaticConstantDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, ConstantExpression constant, arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_CONSTANT_DECL,
         element: field, constant: constant.toDartText()));
   }
 
   @override
-  visitStaticFieldDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      Node initializer,
-      arg) {
+  visitStaticFieldDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, Node initializer, arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
         element: field, rhs: initializer));
     if (initializer != null) {
@@ -365,23 +286,15 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  visitTopLevelConstantDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      ConstantExpression constant,
-      arg) {
+  visitTopLevelConstantDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, ConstantExpression constant, arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_CONSTANT_DECL,
         element: field, constant: constant.toDartText()));
   }
 
   @override
-  visitTopLevelFieldDeclaration(
-      VariableDefinitions node,
-      Node definition,
-      FieldElement field,
-      Node initializer,
-      arg) {
+  visitTopLevelFieldDeclaration(VariableDefinitions node, Node definition,
+      FieldElement field, Node initializer, arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
         element: field, rhs: initializer));
     if (initializer != null) {
@@ -391,19 +304,14 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
 
   @override
   visitAbstractGetterDeclaration(
-      FunctionExpression node,
-      MethodElement getter,
-      arg) {
-    visits.add(new Visit(VisitKind.VISIT_ABSTRACT_GETTER_DECL,
-        element: getter));
+      FunctionExpression node, MethodElement getter, arg) {
+    visits
+        .add(new Visit(VisitKind.VISIT_ABSTRACT_GETTER_DECL, element: getter));
   }
 
   @override
   visitAbstractSetterDeclaration(
-      FunctionExpression node,
-      MethodElement setter,
-      NodeList parameters,
-      arg) {
+      FunctionExpression node, MethodElement setter, NodeList parameters, arg) {
     visits.add(new Visit(VisitKind.VISIT_ABSTRACT_SETTER_DECL,
         element: setter, parameters: parameters));
     applyParameters(parameters, arg);
@@ -411,22 +319,15 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
 
   @override
   visitInstanceGetterDeclaration(
-      FunctionExpression node,
-      MethodElement getter,
-      Node body,
-      arg) {
+      FunctionExpression node, MethodElement getter, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_INSTANCE_GETTER_DECL,
         element: getter, body: body));
     apply(body, arg);
   }
 
   @override
-  visitInstanceSetterDeclaration(
-      FunctionExpression node,
-      MethodElement setter,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitInstanceSetterDeclaration(FunctionExpression node, MethodElement setter,
+      NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_INSTANCE_SETTER_DECL,
         element: setter, parameters: parameters, body: body));
     applyParameters(parameters, arg);
@@ -435,22 +336,15 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
 
   @override
   visitTopLevelGetterDeclaration(
-      FunctionExpression node,
-      MethodElement getter,
-      Node body,
-      arg) {
+      FunctionExpression node, MethodElement getter, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_DECL,
         element: getter, body: body));
     apply(body, arg);
   }
 
   @override
-  visitTopLevelSetterDeclaration(
-      FunctionExpression node,
-      MethodElement setter,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitTopLevelSetterDeclaration(FunctionExpression node, MethodElement setter,
+      NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_DECL,
         element: setter, parameters: parameters, body: body));
     applyParameters(parameters, arg);
@@ -459,22 +353,15 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
 
   @override
   visitStaticGetterDeclaration(
-      FunctionExpression node,
-      MethodElement getter,
-      Node body,
-      arg) {
+      FunctionExpression node, MethodElement getter, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_GETTER_DECL,
         element: getter, body: body));
     apply(body, arg);
   }
 
   @override
-  visitStaticSetterDeclaration(
-      FunctionExpression node,
-      MethodElement setter,
-      NodeList parameters,
-      Node body,
-      arg) {
+  visitStaticSetterDeclaration(FunctionExpression node, MethodElement setter,
+      NodeList parameters, Node body, arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_SETTER_DECL,
         element: setter, parameters: parameters, body: body));
     applyParameters(parameters, arg);

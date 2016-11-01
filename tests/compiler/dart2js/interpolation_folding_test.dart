@@ -46,18 +46,18 @@ main() {
   }
 
   asyncTest(() => Future.wait([
-    // Full substitution.
-    check(TEST_1, r'"u120vhellow"'),
+        // Full substitution.
+        check(TEST_1, r'"u120vhellow"'),
 
-    // Adjacent string fragments get merged.
-    check(TEST_2, r'"xxxxxyyyyy"'),
+        // Adjacent string fragments get merged.
+        check(TEST_2, r'"xxxxxyyyyy"'),
 
-    // 1. No merging of fragments that are multi-use.  Prevents exponential code
-    //    and keeps author's manual CSE.
-    // 2. Know string values require no stringification.
-    check(TEST_3, r'return b + "x" + b'),
+        // 1. No merging of fragments that are multi-use.  Prevents exponential code
+        //    and keeps author's manual CSE.
+        // 2. Know string values require no stringification.
+        check(TEST_3, r'return b + "x" + b'),
 
-    // Known int value can be formatted directly.
-    check(TEST_4, r'return "" + b.length'),
-  ]));
+        // Known int value can be formatted directly.
+        check(TEST_4, r'return "" + b.length'),
+      ]));
 }

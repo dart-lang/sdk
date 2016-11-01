@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_NATIVE_ARGUMENTS_H_
-#define VM_NATIVE_ARGUMENTS_H_
+#ifndef RUNTIME_VM_NATIVE_ARGUMENTS_H_
+#define RUNTIME_VM_NATIVE_ARGUMENTS_H_
 
 #include "platform/assert.h"
 #include "platform/memory_sanitizer.h"
 #include "vm/globals.h"
-#include "vm/handles_impl.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 
@@ -45,10 +44,11 @@ class Thread;
 }
 #endif
 
+void VerifyOnTransition();
+
 #define VERIFY_ON_TRANSITION                                                   \
   if (FLAG_verify_on_transition) {                                             \
-    VerifyPointersVisitor::VerifyPointers();                                   \
-    Isolate::Current()->heap()->Verify();                                      \
+    VerifyOnTransition();                                                      \
   }
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
@@ -143,6 +143,8 @@ class NativeArguments {
   }
 
   RawObject* ReturnValue() const {
+    // Tell MemorySanitizer the retval_ was initialized (by generated code).
+    MSAN_UNPOISON(retval_, kWordSize);
     return *retval_;
   }
 
@@ -260,4 +262,4 @@ class NativeArguments {
 
 }  // namespace dart
 
-#endif  // VM_NATIVE_ARGUMENTS_H_
+#endif  // RUNTIME_VM_NATIVE_ARGUMENTS_H_

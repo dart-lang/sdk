@@ -7,18 +7,18 @@ library test.services.correction.source_range;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(SourceRangesTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(SourceRangesTest);
+  });
 }
 
 @reflectiveTest

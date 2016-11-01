@@ -16,15 +16,12 @@ declare_args() {
 # Helper build rules for packaging the Dart observatory resources.
 observatory_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
-                [ rebase_path(
-                    "//dart/runtime/observatory/observatory_sources.gypi") ],
+                [ rebase_path("../observatory/observatory_sources.gypi") ],
                 "scope",
-                [ "//dart/runtime/observatory/observatory_sources.gypi" ])
+                [ "../observatory/observatory_sources.gypi" ])
 
 copy("copy_observatory") {
-  sources = rebase_path(observatory_sources_gypi.sources,
-                        "",
-                        ".")
+  sources = rebase_path(observatory_sources_gypi.sources, "", ".")
   outputs = [
     "$root_gen_dir/observatory_copy/{{source_root_relative_dir}}/{{source_file_part}}",
   ]
@@ -41,23 +38,23 @@ action("write_observatory_pubspec_yaml") {
     rebase_path("pubspec.yaml"),
   ]
 
+  current_dir = rebase_path(".", "//")
   args = [
     "--silent=True",
     "--pub-executable",
     dart_host_pub_exe,
     "--directory",
-    rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
+    rebase_path("$root_gen_dir/observatory_copy/$current_dir/"),
     "--command",
     "rewrite",
-    rebase_path("//dart/runtime/observatory/pubspec.yaml"),
-    rebase_path(
-        "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.yaml"),
+    rebase_path("../observatory/pubspec.yaml"),
+    rebase_path("$root_gen_dir/observatory_copy/$current_dir/pubspec.yaml"),
     "../../third_party/",
-    rebase_path("../../../dart/third_party/"),
+    rebase_path("../../third_party/"),
   ]
 
   outputs = [
-    "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.yaml",
+    "$root_gen_dir/observatory_copy/$current_dir/pubspec.yaml",
   ]
 }
 
@@ -66,11 +63,12 @@ action("copy_observatory_deps") {
     ":write_observatory_pubspec_yaml",
   ]
 
-  script = "//dart/tools/observatory_tool.py"
+  script = "../../tools/observatory_tool.py"
 
+  current_dir = rebase_path(".", "//")
   inputs = [
     script,
-    "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.yaml",
+    "$root_gen_dir/observatory_copy/$current_dir/pubspec.yaml",
   ]
 
   args = [
@@ -78,34 +76,34 @@ action("copy_observatory_deps") {
     "--pub-executable",
     dart_host_pub_exe,
     "--stamp",
-    rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/packages.stamp"),
+    rebase_path("$root_gen_dir/observatory_copy/$current_dir/packages.stamp"),
     "--directory",
-    rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
+    rebase_path("$root_gen_dir/observatory_copy/$current_dir/"),
     "--command",
     "get",
   ]
 
   outputs = [
-    "$root_gen_dir/observatory_copy/dart/runtime/observatory/packages.stamp",
+    "$root_gen_dir/observatory_copy/$current_dir/packages.stamp",
   ]
 }
 
 action("pub_build_observatory") {
-  sources =
-      rebase_path(observatory_sources_gypi.sources,
-                  "",
-                  "$root_gen_dir/observatory_copy/dart/runtime/observatory")
+  current_dir = rebase_path(".", "//")
+  sources = rebase_path(observatory_sources_gypi.sources,
+                        "",
+                        "$root_gen_dir/observatory_copy/$current_dir")
 
   deps = [
     ":copy_observatory",
     ":copy_observatory_deps",
   ]
 
-  script = "//dart/tools/observatory_tool.py"
+  script = "../../tools/observatory_tool.py"
 
   inputs = [
     script,
-    "$root_gen_dir/observatory_copy/dart/runtime/observatory/packages.stamp",
+    "$root_gen_dir/observatory_copy/$current_dir/packages.stamp",
   ]
   inputs += sources
 
@@ -114,14 +112,14 @@ action("pub_build_observatory") {
     "--pub-executable",
     dart_host_pub_exe,
     "--directory",
-    rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
+    rebase_path("$root_gen_dir/observatory_copy/$current_dir/"),
     "--command",
     "build",
     rebase_path("$root_out_dir/observatory/build"),
   ]
 
   outputs = [
-    "$root_out_dir/observatory/build/web/index.html.polymer.bootstrap.dart.js",
+    "$root_out_dir/observatory/build/web/main.dart.js",
   ]
 }
 
@@ -130,11 +128,11 @@ action("deploy_observatory") {
     ":pub_build_observatory",
   ]
 
-  script = "//dart/tools/observatory_tool.py"
+  script = "../../tools/observatory_tool.py"
 
   inputs = [
     script,
-    "$root_out_dir/observatory/build/web/index.html.polymer.bootstrap.dart.js",
+    "$root_out_dir/observatory/build/web/main.dart.js",
   ]
 
   args = [
@@ -148,45 +146,86 @@ action("deploy_observatory") {
   ]
 
   outputs = [
-    "$root_out_dir/observatory/deployed/web/index.html.polymer.bootstrap.dart.js",
+    "$root_out_dir/observatory/deployed/web/main.dart.js",
   ]
 }
 
-action("archive_observatory") {
-  deps = [
-    ":deploy_observatory",
-  ]
+template("observatory_archive") {
+  assert(defined(invoker.inner_namespace),
+         "Need inner_namespace in $target_name")
+  assert(defined(invoker.outer_namespace),
+         "Need outer_namespace in $target_name")
+  enable_compression = false
+  if (defined(invoker.compress) && invoker.compress) {
+    enable_compression = true
+  }
+  action(target_name) {
+    deps = [
+      ":deploy_observatory",
+    ]
 
-  script = "//dart/runtime/tools/create_archive.py"
+    script = "../tools/create_archive.py"
 
-  inputs = [
-    script,
-    "$root_out_dir/observatory/deployed/web/index.html.polymer.bootstrap.dart.js",
-  ]
+    inputs = [
+      script,
+      "$root_out_dir/observatory/deployed/web/main.dart.js",
+    ]
 
-  args = [
-    "--output",
-    rebase_path("$root_gen_dir/observatory/observatory_archive.cc"),
-    "--tar_output",
-    rebase_path("$root_gen_dir/observatory/observatory_archive.tar"),
-    "--outer_namespace", "dart",
-    "--inner_namespace", "observatory",
-    "--name", "observatory_assets_archive",
-    "--client_root", rebase_path("$root_out_dir/observatory/deployed/web/"),
-  ]
+    inner_namespace = invoker.inner_namespace
+    outer_namespace = invoker.outer_namespace
+    output_name = target_name
+    args = [
+      "--output",
+      rebase_path("$root_gen_dir/observatory/${output_name}.cc"),
+      "--tar_output",
+      rebase_path("$root_gen_dir/observatory/${output_name}.tar"),
+      "--outer_namespace",
+      outer_namespace,
+      "--inner_namespace",
+      inner_namespace,
+      "--name",
+      "observatory_assets_archive",
+      "--client_root",
+      rebase_path("$root_out_dir/observatory/deployed/web/"),
+    ]
+    if (enable_compression) {
+      args += [ "--compress" ]
+    }
 
-  outputs = [
-    "$root_gen_dir/observatory/observatory_archive.cc",
-    "$root_gen_dir/observatory/observatory_archive.tar",
-  ]
+    outputs = [
+      "$root_gen_dir/observatory/${output_name}.cc",
+      "$root_gen_dir/observatory/${output_name}.tar",
+    ]
+  }
+}
+
+observatory_archive("embedded_archive_observatory") {
+  outer_namespace = "dart"
+  inner_namespace = "observatory"
 }
 
 source_set("embedded_observatory_archive") {
   deps = [
-    ":archive_observatory",
+    ":embedded_archive_observatory",
   ]
 
   sources = [
-    rebase_path("$root_gen_dir/observatory/observatory_archive.cc"),
+    rebase_path("$root_gen_dir/observatory/embedded_archive_observatory.cc"),
+  ]
+}
+
+observatory_archive("standalone_archive_observatory") {
+  compress = true
+  outer_namespace = "dart"
+  inner_namespace = "bin"
+}
+
+source_set("standalone_observatory_archive") {
+  deps = [
+    ":standalone_archive_observatory",
+  ]
+
+  sources = [
+    rebase_path("$root_gen_dir/observatory/standalone_archive_observatory.cc"),
   ]
 }

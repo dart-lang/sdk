@@ -4,26 +4,43 @@
 
 library dart2js.js_helpers.impact;
 
+import '../common/names.dart';
 import '../compiler.dart' show Compiler;
-import '../core_types.dart' show CoreClasses;
+import '../core_types.dart' show CommonElements;
 import '../dart_types.dart' show InterfaceType;
 import '../elements/elements.dart' show ClassElement, Element;
+import '../universe/selector.dart';
+import '../util/enumset.dart';
 import 'backend_helpers.dart';
 import 'constant_system_javascript.dart';
 import 'js_backend.dart';
 
+/// Backend specific features required by a backend impact.
+enum BackendFeature {
+  needToInitializeIsolateAffinityTag,
+  needToInitializeDispatchProperty,
+}
+
 /// A set of JavaScript backend dependencies.
 class BackendImpact {
   final List<Element> staticUses;
+  final List<Selector> dynamicUses;
   final List<InterfaceType> instantiatedTypes;
   final List<ClassElement> instantiatedClasses;
   final List<BackendImpact> otherImpacts;
+  final EnumSet<BackendFeature> _features;
 
-  BackendImpact(
+  const BackendImpact(
       {this.staticUses: const <Element>[],
+      this.dynamicUses: const <Selector>[],
       this.instantiatedTypes: const <InterfaceType>[],
       this.instantiatedClasses: const <ClassElement>[],
-      this.otherImpacts: const <BackendImpact>[]});
+      this.otherImpacts: const <BackendImpact>[],
+      EnumSet<BackendFeature> features: const EnumSet<BackendFeature>.fixed(0)})
+      : this._features = features;
+
+  Iterable<BackendFeature> get features =>
+      _features.iterable(BackendFeature.values);
 }
 
 /// The JavaScript backend dependencies for various features.
@@ -36,7 +53,7 @@ class BackendImpacts {
 
   BackendHelpers get helpers => backend.helpers;
 
-  CoreClasses get coreClasses => compiler.coreClasses;
+  CommonElements get commonElements => compiler.commonElements;
 
   BackendImpact _getRuntimeTypeArgument;
 
@@ -45,7 +62,6 @@ class BackendImpacts {
       _getRuntimeTypeArgument = new BackendImpact(staticUses: [
         helpers.getRuntimeTypeArgument,
         helpers.getTypeArgumentByIndex,
-        helpers.copyTypeArguments
       ]);
     }
     return _getRuntimeTypeArgument;
@@ -301,20 +317,10 @@ class BackendImpacts {
   BackendImpact get constSymbol {
     if (_constSymbol == null) {
       _constSymbol = new BackendImpact(
-          instantiatedClasses: [coreClasses.symbolClass],
-          staticUses: [compiler.symbolConstructor.declaration]);
+          instantiatedClasses: [commonElements.symbolClass],
+          staticUses: [commonElements.symbolConstructor.declaration]);
     }
     return _constSymbol;
-  }
-
-  BackendImpact _incDecOperation;
-
-  BackendImpact get incDecOperation {
-    if (_incDecOperation == null) {
-      _incDecOperation =
-          _needsInt('Needed for the `+ 1` or `- 1` operation of ++/--.');
-    }
-    return _incDecOperation;
   }
 
   /// Helper for registering that `int` is needed.
@@ -370,6 +376,7 @@ class BackendImpacts {
   BackendImpact get stringInterpolation {
     if (_stringInterpolation == null) {
       _stringInterpolation = new BackendImpact(
+          dynamicUses: [Selectors.toString_],
           staticUses: [helpers.stringInterpolationHelper],
           otherImpacts: [_needsString('Strings are created.')]);
     }
@@ -439,7 +446,7 @@ class BackendImpacts {
   BackendImpact get typeLiteral {
     if (_typeLiteral == null) {
       _typeLiteral = new BackendImpact(
-          instantiatedClasses: [backend.typeImplementation],
+          instantiatedClasses: [backend.backendClasses.typeImplementation],
           staticUses: [helpers.createRuntimeType]);
     }
     return _typeLiteral;
@@ -599,9 +606,30 @@ class BackendImpacts {
 
   BackendImpact get closure {
     if (_closure == null) {
-      _closure =
-          new BackendImpact(instantiatedClasses: [coreClasses.functionClass]);
+      _closure = new BackendImpact(
+          instantiatedClasses: [commonElements.functionClass]);
     }
     return _closure;
+  }
+
+  BackendImpact _interceptorUse;
+
+  BackendImpact get interceptorUse {
+    if (_interceptorUse == null) {
+      _interceptorUse = new BackendImpact(
+          staticUses: [
+            helpers.getNativeInterceptorMethod
+          ],
+          instantiatedClasses: [
+            helpers.jsJavaScriptObjectClass,
+            helpers.jsPlainJavaScriptObjectClass,
+            helpers.jsJavaScriptFunctionClass
+          ],
+          features: new EnumSet<BackendFeature>.fromValues([
+            BackendFeature.needToInitializeDispatchProperty,
+            BackendFeature.needToInitializeIsolateAffinityTag
+          ], fixed: true));
+    }
+    return _interceptorUse;
   }
 }

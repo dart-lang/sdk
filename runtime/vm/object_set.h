@@ -2,115 +2,92 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_OBJECT_SET_H_
-#define VM_OBJECT_SET_H_
+#ifndef RUNTIME_VM_OBJECT_SET_H_
+#define RUNTIME_VM_OBJECT_SET_H_
 
 #include "platform/utils.h"
+#include "vm/bit_vector.h"
 #include "vm/globals.h"
 #include "vm/raw_object.h"
+#include "vm/zone.h"
 
 namespace dart {
 
-class ObjectSet {
+class ObjectSetRegion : public ZoneAllocated {
  public:
-  ObjectSet() {
-    Init(0, 0);
+  ObjectSetRegion(Zone* zone, uword start, uword end)
+      : start_(start),
+        end_(end),
+        bit_vector_(zone, (end - start) >> kWordSizeLog2),
+        next_(NULL) {
   }
 
-  ObjectSet(uword start, uword end) {
-    Init(start, end);
+  bool ContainsAddress(uword address) {
+    return address >= start_ && address < end_;
   }
 
-  ~ObjectSet() {
-    delete[] allocation_;
+  intptr_t IndexForAddress(uword address) {
+    ASSERT(Utils::IsAligned(address, kWordSize));
+    return (address - start_) >> kWordSizeLog2;
   }
 
-  void Init(uword start, uword end) {
-    start_ = start;
-    end_ = end;
-    ASSERT(start_ <= end_);
-    size_ = SizeFor((end_ - start_) >> kWordSizeLog2);
-    allocation_ = new uword[size_];
-    const intptr_t skipped_bitfield_words =
-        (start >> kWordSizeLog2) / kBitsPerWord;
-    data_ = &allocation_[-skipped_bitfield_words];
-    ASSERT(allocation_ == &data_[skipped_bitfield_words]);
-    Clear();
+  void AddObject(uword address) {
+    bit_vector_.Add(IndexForAddress(address));
+  }
+
+  bool ContainsObject(uword address) {
+    return bit_vector_.Contains(IndexForAddress(address));
+  }
+
+  ObjectSetRegion* next() { return next_; }
+  void set_next(ObjectSetRegion* region) { next_ = region; }
+
+ private:
+  uword start_;
+  uword end_;
+  BitVector bit_vector_;
+  ObjectSetRegion* next_;
+};
+
+class ObjectSet : public ZoneAllocated {
+ public:
+  explicit ObjectSet(Zone* zone) : zone_(zone), head_(NULL) { }
+
+  void AddRegion(uword start, uword end) {
+    ObjectSetRegion* region = new(zone_) ObjectSetRegion(zone_, start, end);
+    region->set_next(head_);
+    head_ = region;
   }
 
   bool Contains(RawObject* raw_obj) const {
     uword raw_addr = RawObject::ToAddr(raw_obj);
-    ASSERT(raw_addr >= start_);
-    ASSERT(raw_addr < end_);
-    uword i = raw_addr >> kWordSizeLog2;
-    uword mask = (static_cast<uword>(1) << (i % kBitsPerWord));
-    return (data_[i / kBitsPerWord] & mask) != 0;
+    for (ObjectSetRegion* region = head_;
+         region != NULL;
+         region = region->next()) {
+      if (region->ContainsAddress(raw_addr)) {
+        return region->ContainsObject(raw_addr);
+      }
+    }
+    return false;
   }
 
   void Add(RawObject* raw_obj) {
     uword raw_addr = RawObject::ToAddr(raw_obj);
-    ASSERT(raw_addr >= start_);
-    ASSERT(raw_addr < end_);
-    uword i = raw_addr >> kWordSizeLog2;
-    data_[i / kBitsPerWord] |= (static_cast<uword>(1) << (i % kBitsPerWord));
-    min_ = Utils::Minimum(raw_addr, min_);
-    max_ = Utils::Maximum(raw_addr, max_);
-  }
-
-  void Resize(uword start, uword end) {
-    if (start_ != start || end_ != end) {
-      delete[] allocation_;
-      Init(start, end);
+    for (ObjectSetRegion* region = head_;
+         region != NULL;
+         region = region->next()) {
+      if (region->ContainsAddress(raw_addr)) {
+        return region->AddObject(raw_addr);
+      }
     }
-  }
-
-  void Clear() {
-    memset(allocation_, 0, (size_ * sizeof(allocation_[0])));
-    min_ = end_;
-    max_ = start_;
-  }
-
-  void FastClear() {
-    uword i = min_ >> kWordSizeLog2;
-    memset(&data_[i / kBitsPerWord],
-           0,
-           sizeof(uword) * SizeFor((max_ + 1  - min_) >> kWordSizeLog2));
-    min_ = end_;
-    max_ = start_;
+    FATAL("Address not in any heap region");
   }
 
  private:
-  static intptr_t SizeFor(intptr_t length) {
-    return 1 + ((length - 1) / kBitsPerWord);
-  }
-
-  // Biased data pointer aliased to allocation_.  This value can be
-  // indexed without adjusting for the starting address of the heap.
-  uword* data_;
-
-  // Allocated data pointer.
-  uword* allocation_;
-
-  // Allocation size in uwords.
-  intptr_t size_;
-
-  // Lowest possible heap address, inclusive.
-  uword start_;
-
-  // Highest possible heap address, exclusive.
-  uword end_;
-
-  // The inclusive minimum address set in this ObjectMap.
-  // Used by FastClear
-  uword min_;
-
-  // The inclusive maximum address in this ObjectMap.
-  // Used by FastClear
-  uword max_;
-
-  DISALLOW_COPY_AND_ASSIGN(ObjectSet);
+  Zone* zone_;
+  ObjectSetRegion* head_;
 };
 
 }  // namespace dart
 
-#endif  // VM_OBJECT_SET_H_
+#endif  // RUNTIME_VM_OBJECT_SET_H_

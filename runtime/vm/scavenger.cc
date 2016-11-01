@@ -9,6 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/object.h"
+#include "vm/object_set.h"
 #include "vm/object_id_ring.h"
 #include "vm/safepoint.h"
 #include "vm/stack_frame.h"
@@ -346,7 +347,7 @@ Scavenger::Scavenger(Heap* heap,
       (FLAG_new_gen_growth_factor * FLAG_new_gen_growth_factor);
   to_ = SemiSpace::New(initial_semi_capacity_in_words);
   if (to_ == NULL) {
-    FATAL("Out of memory.\n");
+    OUT_OF_MEMORY();
   }
   // Setup local fields.
   top_ = FirstObjectStart();
@@ -357,9 +358,6 @@ Scavenger::Scavenger(Heap* heap,
 
   UpdateMaxHeapCapacity();
   UpdateMaxHeapUsage();
-  if (heap_ != NULL) {
-    heap_->UpdateGlobalMaxUsed();
-  }
 }
 
 
@@ -395,7 +393,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (to_ == NULL) {
     // TODO(koda): We could try to recover (collect old space, wait for another
     // isolate to finish scavenge, etc.).
-    FATAL("Out of memory.\n");
+    OUT_OF_MEMORY();
   }
   UpdateMaxHeapCapacity();
   top_ = FirstObjectStart();
@@ -742,6 +740,11 @@ void Scavenger::VisitObjects(ObjectVisitor* visitor) const {
     visitor->VisitObject(raw_obj);
     cur += raw_obj->Size();
   }
+}
+
+
+void Scavenger::AddRegionsToObjectSet(ObjectSet* set) const {
+  set->AddRegion(to_->start(), to_->end());
 }
 
 

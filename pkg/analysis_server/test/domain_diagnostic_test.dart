@@ -14,18 +14,15 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
-import 'utils.dart';
 
 main() {
   AnalysisServer server;
   DiagnosticDomainHandler handler;
   MemoryResourceProvider resourceProvider;
-
-  initializeTestEnvironment();
 
   setUp(() {
     //
@@ -47,6 +44,8 @@ main() {
     //
     var serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
+    // Create an SDK in the mock file system.
+    new MockSdk(resourceProvider: resourceProvider);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -54,7 +53,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('', false, (_) => new MockSdk()),
+        new DartSdkManager('/', false),
         InstrumentationService.NULL_SERVICE);
     handler = new DiagnosticDomainHandler(server);
   });

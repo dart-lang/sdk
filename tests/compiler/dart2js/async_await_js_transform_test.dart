@@ -20,40 +20,47 @@ void testTransform(String source, String expected, AsyncRewriterBase rewriter) {
 }
 
 void testAsyncTransform(String source, String expected) {
-  testTransform(source, expected, new AsyncRewriter(
-      null, // The diagnostic helper should not be used in these tests.
-      null,
-      asyncHelper: new VariableUse("thenHelper"),
-      newCompleter: new VariableUse("Completer"),
-      wrapBody: new VariableUse("_wrapJsFunctionForAsync"),
-      safeVariableName: (String name) => "__$name",
-      bodyName: new StringBackedName("body")));
+  testTransform(
+      source,
+      expected,
+      new AsyncRewriter(
+          null, // The diagnostic helper should not be used in these tests.
+          null,
+          asyncHelper: new VariableUse("thenHelper"),
+          newCompleter: new VariableUse("Completer"),
+          wrapBody: new VariableUse("_wrapJsFunctionForAsync"),
+          safeVariableName: (String name) => "__$name",
+          bodyName: new StringBackedName("body")));
 }
 
 void testSyncStarTransform(String source, String expected) {
-  testTransform(source, expected, new SyncStarRewriter(
-      null,
-      null,
-      endOfIteration: new VariableUse("endOfIteration"),
-      newIterable: new VariableUse("newIterable"),
-      yieldStarExpression: new VariableUse("yieldStar"),
-      uncaughtErrorExpression: new VariableUse("uncaughtError"),
-      safeVariableName: (String name) => "__$name",
-      bodyName: new StringBackedName("body")));
+  testTransform(
+      source,
+      expected,
+      new SyncStarRewriter(null, null,
+          endOfIteration: new VariableUse("endOfIteration"),
+          newIterable: new VariableUse("newIterable"),
+          yieldStarExpression: new VariableUse("yieldStar"),
+          uncaughtErrorExpression: new VariableUse("uncaughtError"),
+          safeVariableName: (String name) => "__$name",
+          bodyName: new StringBackedName("body")));
 }
 
 main() {
-  testAsyncTransform(  /// 01: ok
-r"""function() async {
+  testAsyncTransform(
+
+          /// 01: ok
+          r"""function() async {
   var closures = [new A.main_closure()], v0 = await closures, v1 = 0, v2, v3;
   if (v1 < 0 || v1 >= v0.length)
     H.ioore(v0, v1);
   v2 = 4;
   v3 = 2;
   P.print(v0[v1].call$2(v2, v3));
-}"""
-,  /// 01: ok
- r"""function() {
+}""",
+
+          /// 01: ok
+          r"""function() {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, closures, v0, v1, v2, v3;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1) {
@@ -77,22 +84,25 @@ r"""function() async {
           v3 = 2;
           P.print(v0[v1].call$2(v2, v3));
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
-}"""
-  )  /// 01: ok
-  ;
+  return thenHelper(null, body, __completer);
+}""")
 
-  testAsyncTransform("""
+      /// 01: ok
+      ;
+
+  testAsyncTransform(
+      """
 function(a) async {
   print(this.x); // Ensure `this` is translated in the helper function.
   await foo();
-}""", """
+}""",
+      """
 function(a) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __self = this;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -110,16 +120,17 @@ function(a) {
         case 2:
           // returning from await.
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
   function(b) async {
     try {
       __outer: while (true) { // Overlapping label name.
@@ -142,7 +153,8 @@ function(a) {
       return 3; // Return from finally with no pending finally.
     }
     return 4;
-  }""", """
+  }""",
+      """
 function(b) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __next = [], __helper;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -234,16 +246,17 @@ function(b) {
             break;
           case 1:
             // return
-            return thenHelper(__returnValue, 0, __completer, null);
+            return thenHelper(__returnValue, 0, __completer);
           case 2:
             // rethrow
             return thenHelper(__currentError, 1, __completer);
         }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
 function(c) async {
   var a, b, c, d, e, f;
   a = b++; // post- and preincrements.
@@ -252,7 +265,8 @@ function(c) async {
   d = ++(await foo()).a;
   e = foo1()[await foo2()]--;
   f = --foo1()[await foo2()];
-}""", """
+}""",
+      """
 function(c) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -289,16 +303,17 @@ function(c) {
           // returning from await.
           f = --__temp1[__result];
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
   function(d2) async {
     var a, b, c, d, e, f, g, h; // empty initializer
     a = foo1() || await foo2(); // short circuiting operators
@@ -309,7 +324,8 @@ function(c) {
     f = await foo1() && foo2();
     g = await foo1() && await foo2();
     h = foo1() && foo2();
-  }""", """
+  }""",
+      """
 function(d2) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, g, h, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -422,16 +438,17 @@ function(d2) {
           g = __result;
           h = foo1() && foo2();
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
 function(x, y) async {
   while (true) {
     switch(y) { // Switch with no awaits in case key expressions
@@ -446,7 +463,8 @@ function(x, y) async {
         foo(); // No default
     }
   }
-}""", """
+}""",
+      """
 function(x, y) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -516,16 +534,17 @@ function(x, y) {
         case 3:
           // after while
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
   function(f) async {
     do {
       var a = await foo();
@@ -535,7 +554,8 @@ function(x, y) {
         continue;
     } while (await foo());
   }
-  """, """
+  """,
+      """
 function(f) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -577,16 +597,17 @@ function(f) {
         case 4:
           // after do
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
 function(g) async {
   for (var i = 0; i < await foo1(); i += await foo2()) {
     if (foo(i))
@@ -600,7 +621,8 @@ function(g) async {
     print(await(foo(i)));
   } 
 }
-""", """
+""",
+      """
 function(g) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, i, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -667,16 +689,17 @@ function(g) {
           // after for
         case 1:
           // return
-          return thenHelper(__returnValue, 0, __completer, null);
+          return thenHelper(__returnValue, 0, __completer);
         case 2:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
   function(a, h) async {
     var x = {"a": foo1(), "b": await foo2(), "c": foo3()};
     x["a"] = 2; // Different assignments
@@ -685,7 +708,8 @@ function(g) {
     x[(await foo1()).a = await foo2()] = 5;
     (await foo1())[await foo2()] = await foo3(6);
   }
-  """, """
+  """,
+      """
 function(a, h) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, x, __temp1, __temp2;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -742,16 +766,17 @@ function(a, h) {
           // returning from await.
           __temp1[__temp2] = __result;
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
 function(c, i) async {
   try {
     var x = c ? await foo() : foo(); // conditional
@@ -766,7 +791,8 @@ function(c, i) async {
     }
   }
 }
-""", """
+""",
+      """
 function(c, i) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], x, y, __error, __error1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -859,16 +885,17 @@ function(c, i) {
         case 5:
           // after finally
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
   function(x, y, j) async {
     print(await(foo(x))); // calls
     (await print)(foo(x));
@@ -876,7 +903,8 @@ function(c, i) {
     await (print(foo(await x)));
     print(foo(x, await y, z));
   }
-  """, """
+  """,
+      """
 function(x, y, j) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __temp1, __temp2, __temp3;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -925,16 +953,17 @@ function(x, y, j) {
           // returning from await.
           __temp1(__temp2(__temp3, __result, z));
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
 function(x, y, k) async {
   while (await(foo())) {
     lab: { // labelled statement
@@ -959,7 +988,8 @@ function(x, y, k) async {
       foo();
     }
   }
-}""", """
+}""",
+      """
 function(x, y, k) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __temp1;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -1065,16 +1095,17 @@ function(x, y, k) {
           // after while
         case 1:
           // return
-          return thenHelper(__returnValue, 0, __completer, null);
+          return thenHelper(__returnValue, 0, __completer);
         case 2:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
   function(l) async {
     switch(await l) {
       case 1:
@@ -1087,7 +1118,8 @@ function(x, y, k) {
         print(2);
         break;
     }
-  }""", """
+  }""",
+      """
 function(l) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -1114,16 +1146,17 @@ function(l) {
               break;
           }
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testAsyncTransform("""
+  testAsyncTransform(
+      """
   function(m) async {
     var exception = 1;
     try {
@@ -1139,7 +1172,8 @@ function(l) {
       exception += 10;
     }
     print(exception);
-  }""", """
+  }""",
+      """
 function(m) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], exception, __exception;
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
@@ -1193,21 +1227,23 @@ function(m) {
           // after finally
           print(exception);
           // implicit return
-          return thenHelper(null, 0, __completer, null);
+          return thenHelper(null, 0, __completer);
         case 1:
           // rethrow
           return thenHelper(__currentError, 1, __completer);
       }
   });
-  return thenHelper(null, body, __completer, null);
+  return thenHelper(null, body, __completer);
 }""");
 
-  testSyncStarTransform("""
+  testSyncStarTransform(
+      """
 function(a) sync* {
   // Ensure that return of a value is treated as first evaluating the value, and
   // then returning.
   return foo();
-}""", """
+}""",
+      """
 function(__a) {
   return new newIterable(function() {
     var a = __a;

@@ -245,6 +245,11 @@ class Driver implements ServerStarter {
   /**
    * The name of the option used to enable using pub summary manager.
    */
+  static const String ENABLE_NEW_ANALYSIS_DRIVER = 'enable-new-analysis-driver';
+
+  /**
+   * The name of the option used to enable using pub summary manager.
+   */
   static const String ENABLE_PUB_SUMMARY_MANAGER = 'enable-pub-summary-manager';
 
   /**
@@ -383,10 +388,12 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.enableNewAnalysisDriver =
+      results[ENABLE_NEW_ANALYSIS_DRIVER];
     analysisServerOptions.enablePubSummaryManager =
         results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
-        results[FINER_GRAINED_INVALIDATION];
+        true /*results[FINER_GRAINED_INVALIDATION]*/;
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
@@ -422,19 +429,10 @@ class Driver implements ServerStarter {
           .path;
     }
     bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
-    SdkCreator defaultSdkCreator = (AnalysisOptions options) {
-      PhysicalResourceProvider resourceProvider =
-          PhysicalResourceProvider.INSTANCE;
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(resourceProvider,
-          FolderBasedDartSdk.defaultSdkDirectory(resourceProvider));
-      sdk.analysisOptions = options;
-      sdk.useSummary = useSummaries;
-      return sdk;
-    };
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DartSdk defaultSdk = defaultSdkCreator(null);
+    DartSdk defaultSdk = _createDefaultSdk(defaultSdkPath, useSummaries);
     //
     // Initialize the instrumentation service.
     //
@@ -458,7 +456,7 @@ class Driver implements ServerStarter {
     //
     socketServer = new SocketServer(
         analysisServerOptions,
-        new DartSdkManager(defaultSdkPath, useSummaries, defaultSdkCreator),
+        new DartSdkManager(defaultSdkPath, useSummaries),
         defaultSdk,
         service,
         serverPlugin,
@@ -541,6 +539,10 @@ class Driver implements ServerStarter {
         help: "enable validation of incremental resolution results (slow)",
         defaultsTo: false,
         negatable: false);
+    parser.addFlag(ENABLE_NEW_ANALYSIS_DRIVER,
+        help: "enable using new analysis driver",
+        defaultsTo: false,
+        negatable: false);
     parser.addFlag(ENABLE_PUB_SUMMARY_MANAGER,
         help: "enable using summaries for pub cache packages",
         defaultsTo: false,
@@ -584,6 +586,15 @@ class Driver implements ServerStarter {
         defaultsTo: "as-is");
 
     return parser;
+  }
+
+  DartSdk _createDefaultSdk(String defaultSdkPath, bool useSummaries) {
+    PhysicalResourceProvider resourceProvider =
+        PhysicalResourceProvider.INSTANCE;
+    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+        resourceProvider, resourceProvider.getFolder(defaultSdkPath));
+    sdk.useSummary = useSummaries;
+    return sdk;
   }
 
   /**

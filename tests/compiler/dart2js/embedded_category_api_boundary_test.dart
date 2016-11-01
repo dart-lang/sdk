@@ -23,9 +23,7 @@ main() async {
     }
   });
   asyncTest(() async {
-    analyze(uriList, {},
-        checkResults: checkResults,
-        mode: AnalysisMode.MAIN);
+    analyze(uriList, {}, checkResults: checkResults, mode: AnalysisMode.MAIN);
   });
 }
 

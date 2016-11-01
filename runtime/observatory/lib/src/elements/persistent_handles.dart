@@ -6,173 +6,254 @@ library persitent_handles_page;
 
 import 'dart:async';
 import 'dart:html';
-import 'observatory_element.dart';
-import 'package:observatory/app.dart';
-import 'package:observatory/elements.dart';
-import 'package:observatory/service.dart';
-import 'package:polymer/polymer.dart';
+import 'package:observatory/models.dart' as M;
+import 'package:observatory/src/elements/containers/virtual_collection.dart';
+import 'package:observatory/src/elements/helpers/any_ref.dart';
+import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
+import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
+import 'package:observatory/src/elements/helpers/tag.dart';
+import 'package:observatory/src/elements/instance_ref.dart';
+import 'package:observatory/src/elements/nav/isolate_menu.dart';
+import 'package:observatory/src/elements/nav/notify.dart';
+import 'package:observatory/src/elements/nav/refresh.dart';
+import 'package:observatory/src/elements/nav/top_menu.dart';
+import 'package:observatory/src/elements/nav/vm_menu.dart';
+import 'package:observatory/utils.dart';
 
-class WeakPersistentHandlesSortedTable extends SortedTable {
-  factory WeakPersistentHandlesSortedTable() {
-    var columns = [
-      new SortedTableColumn.withFormatter('External Size',
-                                          Utils.formatSize),
-      new SortedTableColumn('Peer'),
-      new SortedTableColumn('Finalizer Callback'),
-      new SortedTableColumn(''),  // Spacer column.
-      new SortedTableColumn('Object'),
-    ];
-    WeakPersistentHandlesSortedTable result =
-        new WeakPersistentHandlesSortedTable._(columns);
-    // Sort by external size.
-    result.sortColumnIndex = 0;
-    return result;
+enum _SortingField { externalSize, peer, finalizerCallback }
+
+enum _SortingDirection { ascending, descending }
+
+class PersistentHandlesPageElement extends HtmlElement implements Renderable {
+  static const tag = const Tag<PersistentHandlesPageElement>(
+      'persistent-handles-page',
+      dependencies: const [
+        InstanceRefElement.tag,
+        NavTopMenuElement.tag,
+        NavVMMenuElement.tag,
+        NavIsolateMenuElement.tag,
+        NavRefreshElement.tag,
+        NavNotifyElement.tag,
+        VirtualCollectionElement.tag
+      ]);
+
+  RenderingScheduler<PersistentHandlesPageElement> _r;
+
+  Stream<RenderedEvent<PersistentHandlesPageElement>> get onRendered =>
+      _r.onRendered;
+
+  M.VM _vm;
+  M.IsolateRef _isolate;
+  M.EventRepository _events;
+  M.NotificationRepository _notifications;
+  M.PersistentHandlesRepository _repository;
+  M.InstanceRepository _instances;
+  M.PersistentHandles _handles;
+  _SortingField _sortingField = _SortingField.externalSize;
+  _SortingDirection _sortingDirection = _SortingDirection.descending;
+
+  M.VMRef get vm => _vm;
+  M.IsolateRef get isolate => _isolate;
+  M.NotificationRepository get notifications => _notifications;
+
+  factory PersistentHandlesPageElement(
+      M.VM vm,
+      M.IsolateRef isolate,
+      M.EventRepository events,
+      M.NotificationRepository notifications,
+      M.PersistentHandlesRepository repository,
+      M.InstanceRepository instances,
+      {RenderingQueue queue}) {
+    assert(vm != null);
+    assert(isolate != null);
+    assert(events != null);
+    assert(notifications != null);
+    assert(repository != null);
+    assert(instances != null);
+    PersistentHandlesPageElement e = document.createElement(tag.name);
+    e._r = new RenderingScheduler(e, queue: queue);
+    e._vm = vm;
+    e._isolate = isolate;
+    e._events = events;
+    e._notifications = notifications;
+    e._repository = repository;
+    e._instances = instances;
+    return e;
   }
 
-  WeakPersistentHandlesSortedTable._(columns) : super(columns);
-
-  @override
-  dynamic getSortKeyFor(int row, int col) {
-    return super.getSortKeyFor(row, col);
-  }
-
-  void update(List<ServiceMap> handles, HtmlElement tableBody) {
-    clearRows();
-    for (ServiceMap handle in handles) {
-      var row = [int.parse(handle['externalSize'], onError: (_) => 0),
-                 handle['peer'],
-                 handle['callbackSymbolName'] +
-                 '( ${handle['callbackAddress']} )',
-                 '', // Spacer column.
-                 handle['object']];
-      addRow(new SortedTableRow(row));
-      print(row);
-    }
-    sort();
-    _updateTableInDom(tableBody);
-  }
-
-  void sortAndDisplay(HtmlElement tableBody) {
-    sort();
-    _updateTableInDom(tableBody);
-  }
-
-
-  void _updateTableInDom(HtmlElement tableBody) {
-    assert(tableBody != null);
-    // Resize DOM table.
-    if (tableBody.children.length > sortedRows.length) {
-      // Shrink the table.
-      var deadRows =
-          tableBody.children.length - sortedRows.length;
-      for (var i = 0; i < deadRows; i++) {
-        tableBody.children.removeLast();
-      }
-    } else if (tableBody.children.length < sortedRows.length) {
-      // Grow table.
-      var newRows = sortedRows.length - tableBody.children.length;
-      for (var i = 0; i < newRows; i++) {
-        _addDomRow(tableBody);
-      }
-    }
-    assert(tableBody.children.length == sortedRows.length);
-    // Fill table.
-    for (var i = 0; i < sortedRows.length; i++) {
-      var rowIndex = sortedRows[i];
-      var tr = tableBody.children[i];
-      _fillDomRow(tr, rowIndex);
-    }
-  }
-
-  void _addDomRow(HtmlElement tableBody) {
-    // Add empty dom row.
-    var tr = new TableRowElement();
-
-    var cell;
-
-    cell = tr.insertCell(-1);
-    cell = tr.insertCell(-1);
-    cell = tr.insertCell(-1);
-
-    // Add spacer.
-    cell = tr.insertCell(-1);
-    cell.classes.add('left-border-spacer');
-
-    // Add class ref.
-    cell = tr.insertCell(-1);
-    AnyServiceRefElement objectRef = new Element.tag('any-service-ref');
-    cell.children.add(objectRef);
-
-    // Add row to table.
-    tableBody.children.add(tr);
-  }
-
-  void _fillDomRow(TableRowElement tr, int rowIndex) {
-    var row = rows[rowIndex];
-
-    for (var i = 0; i < row.values.length - 2; i++) {
-      var cell = tr.children[i];
-      cell.title = row.values[i].toString();
-      cell.text = getFormattedValue(rowIndex, i);
-      cell.style.paddingLeft = '1em';
-      cell.style.paddingRight = '1em';
-    }
-
-    final int objectIndex = row.values.length - 1;
-    AnyServiceRefElement objectRef = tr.children[objectIndex].children[0];
-    objectRef.ref = row.values[objectIndex];
-  }
-}
-
-
-@CustomTag('persistent-handles-page')
-class PersistentHandlesPageElement extends ObservatoryElement {
   PersistentHandlesPageElement.created() : super.created();
 
-  @observable Isolate isolate;
-  @observable var /*ObservableList | ServiceObject*/ persistentHandles;
-  @observable var /*ObservableList | ServiceObject*/ weakPersistentHandles;
-  @observable WeakPersistentHandlesSortedTable weakPersistentHandlesTable;
-  var _weakPersistentHandlesTableBody;
-
-  void isolateChanged(oldValue) {
-    if (isolate != null) {
-      refresh();
-    }
+  @override
+  attached() {
+    super.attached();
+    _r.enable();
+    _refresh();
   }
 
   @override
-  void attached() {
-    super.attached();
-    _weakPersistentHandlesTableBody =
-        shadowRoot.querySelector('#weakPersistentHandlesTableBody');
-    weakPersistentHandlesTable =
-        new WeakPersistentHandlesSortedTable();
+  detached() {
+    super.detached();
+    _r.disable(notify: true);
+    children = [];
   }
 
-  Future refresh() {
-    return isolate.getPersistentHandles().then(_refreshView);
+  void render() {
+    children = [
+      navBar([
+        new NavTopMenuElement(queue: _r.queue),
+        new NavVMMenuElement(_vm, _events, queue: _r.queue),
+        new NavIsolateMenuElement(_isolate, _events, queue: _r.queue),
+        navMenu('persistent handles'),
+        new NavRefreshElement(queue: _r.queue)
+          ..onRefresh.listen((_) => _refresh()),
+        new NavNotifyElement(_notifications, queue: _r.queue)
+      ])
+    ]
+      ..addAll(_createHandlers('Persistent Handles',
+          _handles?.elements?.toList(), _createLine, _updateLine))
+      ..add(new BRElement())
+      ..addAll(_createHandlers(
+          'Weak Persistent Handles',
+          _handles == null
+              ? null
+              : (_handles.weakElements.toList()..sort(_createSorter())),
+          _createWeakLine,
+          _updateWeakLine,
+          createHeader: _createWeakHeader));
   }
 
-  _refreshView(/*ObservableList | ServiceObject*/ object) {
-    persistentHandles = object['persistentHandles'];
-    weakPersistentHandles = object['weakPersistentHandles'];
-    weakPersistentHandlesTable.update(
-        weakPersistentHandles,
-        _weakPersistentHandlesTableBody);
+  List<Element> _createHandlers(String name, List items, create, update,
+      {createHeader}) {
+    return [
+      new DivElement()
+        ..classes = ['content-centered-big']
+        ..children = [
+          new HeadingElement.h1()
+            ..text = items == null ? '$name' : '$name (${items.length})',
+          new HRElement(),
+        ],
+      new DivElement()
+        ..classes = ['persistent-handles']
+        ..children = [
+          items == null
+              ? (new HeadingElement.h2()
+                ..classes = ['content-centered-big']
+                ..text = 'Loading...')
+              : new VirtualCollectionElement(create, update,
+                  items: items, createHeader: createHeader, queue: _r.queue)
+        ]
+    ];
   }
 
-  @observable void changeSort(Event e, var detail, Element target) {
-    if (target is TableCellElement) {
-      if (weakPersistentHandlesTable.sortColumnIndex != target.cellIndex) {
-        weakPersistentHandlesTable.sortColumnIndex = target.cellIndex;
-        weakPersistentHandlesTable.sortDescending = true;
-      } else {
-        weakPersistentHandlesTable.sortDescending =
-            !weakPersistentHandlesTable.sortDescending;
-      }
-      weakPersistentHandlesTable.sortAndDisplay(
-          _weakPersistentHandlesTableBody);
+  _createSorter() {
+    var getter;
+    switch (_sortingField) {
+      case _SortingField.externalSize:
+        getter = _getExternalSize;
+        break;
+      case _SortingField.peer:
+        getter = _getPeer;
+        break;
+      case _SortingField.finalizerCallback:
+        getter = _getFinalizerCallback;
+        break;
+    }
+    switch (_sortingDirection) {
+      case _SortingDirection.ascending:
+        return (a, b) => getter(a).compareTo(getter(b));
+      case _SortingDirection.descending:
+        return (a, b) => getter(b).compareTo(getter(a));
     }
   }
+
+  static Element _createLine() => new DivElement()
+    ..classes = ['collection-item']
+    ..text = 'object';
+
+  static Element _createWeakLine() => new DivElement()
+    ..classes = ['weak-item']
+    ..children = [
+      new SpanElement()
+        ..classes = ['external-size']
+        ..text = '0B',
+      new SpanElement()
+        ..classes = ['peer']
+        ..text = '0x00000',
+      new SpanElement()..classes = ['object'],
+      new SpanElement()
+        ..classes = ['finalizer']
+        ..text = 'dart::Class::Method()'
+    ];
+
+  Element _createWeakHeader() => new DivElement()
+    ..classes = ['weak-item']
+    ..children = [
+      _createHeaderButton(const ['external-size'], 'External Size',
+          _SortingField.externalSize, _SortingDirection.descending),
+      _createHeaderButton(const ['peer'], 'Peer', _SortingField.peer,
+          _SortingDirection.descending),
+      new SpanElement()
+        ..classes = ['object']
+        ..text = 'Object',
+      _createHeaderButton(const ['finalizer'], 'Finalizer Callback',
+          _SortingField.finalizerCallback, _SortingDirection.ascending)
+    ];
+
+  ButtonElement _createHeaderButton(List<String> classes, String text,
+          _SortingField field, _SortingDirection direction) =>
+      new ButtonElement()
+        ..classes = classes
+        ..text = _sortingField != field
+            ? text
+            : _sortingDirection == _SortingDirection.ascending
+                ? '$text▼'
+                : '$text▲'
+        ..onClick.listen((_) => _setSorting(field, direction));
+
+  void _setSorting(_SortingField field, _SortingDirection defaultDirection) {
+    if (_sortingField == field) {
+      switch (_sortingDirection) {
+        case _SortingDirection.descending:
+          _sortingDirection = _SortingDirection.ascending;
+          break;
+        case _SortingDirection.ascending:
+          _sortingDirection = _SortingDirection.descending;
+          break;
+      }
+    } else {
+      _sortingDirection = defaultDirection;
+      _sortingField = field;
+    }
+    _r.dirty();
+  }
+
+  void _updateWeakLine(Element e, M.WeakPersistentHandle item, index) {
+    e.children[0].text = Utils.formatSize(_getExternalSize(item));
+    e.children[1].text = '${_getPeer(item)}';
+    e.children[2] = anyRef(_isolate, item.object, _instances, queue: _r.queue)
+      ..classes = ['object'];
+    e.children[3]
+      ..text = '${_getFinalizerCallback(item)}'
+      ..title = '${_getFinalizerCallback(item)}';
+  }
+
+  void _updateLine(Element e, M.PersistentHandle item, index) {
+    e.children = [
+      anyRef(_isolate, item.object, _instances, queue: _r.queue)
+        ..classes = ['object']
+    ];
+  }
+
+  Future _refresh({bool gc: false, bool reset: false}) async {
+    _handles = null;
+    _r.dirty();
+    _handles = await _repository.get(_isolate);
+    _r.dirty();
+  }
+
+  static int _getExternalSize(M.WeakPersistentHandle h) => h.externalSize;
+  static String _getPeer(M.WeakPersistentHandle h) => h.peer;
+  static String _getFinalizerCallback(M.WeakPersistentHandle h) =>
+      '${h.callbackSymbolName} (${h.callbackAddress})';
 }

@@ -4,27 +4,27 @@
 
 library analyzer.test.src.task.driver_test;
 
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
-import 'package:unittest/unittest.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(AnalysisDriverTest);
-  runReflectiveTests(CycleAwareDependencyWalkerTest);
-  runReflectiveTests(WorkItemTest);
-  runReflectiveTests(WorkOrderTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(AnalysisDriverTest);
+    defineReflectiveTests(CycleAwareDependencyWalkerTest);
+    defineReflectiveTests(WorkItemTest);
+    defineReflectiveTests(WorkOrderTest);
+  });
 }
 
 class AbstractDriverTest {
@@ -187,7 +187,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
 
   test_createWorkOrderForResult_valid() {
     AnalysisTarget target = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', null);
+    ResultDescriptor<String> result =
+        new ResultDescriptor<String>('result', null);
     context
         .getCacheEntry(target)
         .setValue(result, '', TargetedResult.EMPTY_LIST);
@@ -479,7 +480,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
   _createWorkOrderForTarget(
       bool complete, bool priorityTarget, bool priorityResult) {
     AnalysisTarget target = new TestSource();
-    ResultDescriptor result = new ResultDescriptor('result', null);
+    ResultDescriptor<String> result =
+        new ResultDescriptor<String>('result', null);
     TaskDescriptor descriptor = new TaskDescriptor(
         'task',
         (context, target) => new TestAnalysisTask(context, target),

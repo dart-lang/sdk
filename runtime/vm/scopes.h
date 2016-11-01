@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SCOPES_H_
-#define VM_SCOPES_H_
+#ifndef RUNTIME_VM_SCOPES_H_
+#define RUNTIME_VM_SCOPES_H_
 
 #include "platform/assert.h"
 #include "platform/globals.h"
@@ -21,10 +21,12 @@ class LocalScope;
 
 class LocalVariable : public ZoneAllocated {
  public:
-  LocalVariable(TokenPosition token_pos,
+  LocalVariable(TokenPosition declaration_pos,
+                TokenPosition token_pos,
                 const String& name,
                 const AbstractType& type)
-    : token_pos_(token_pos),
+    : declaration_pos_(declaration_pos),
+      token_pos_(token_pos),
       name_(name),
       owner_(NULL),
       type_(type),
@@ -33,6 +35,7 @@ class LocalVariable : public ZoneAllocated {
       is_captured_(false),
       is_invisible_(false),
       is_captured_parameter_(false),
+      is_forced_stack_(false),
       index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
@@ -40,6 +43,7 @@ class LocalVariable : public ZoneAllocated {
   }
 
   TokenPosition token_pos() const { return token_pos_; }
+  TokenPosition declaration_token_pos() const { return declaration_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
@@ -54,6 +58,13 @@ class LocalVariable : public ZoneAllocated {
 
   bool is_captured() const { return is_captured_; }
   void set_is_captured() { is_captured_ = true; }
+
+  // Variables marked as forced to stack are skipped and not captured by
+  // CaptureLocalVariables - which iterates scope chain between two scopes
+  // and indiscriminately marks all variables as captured.
+  // TODO(27590) remove the hardcoded blacklist from CaptureLocalVariables
+  bool is_forced_stack() const { return is_forced_stack_; }
+  void set_is_forced_stack() { is_forced_stack_ = true; }
 
   bool HasIndex() const {
     return index_ != kUninitializedIndex;
@@ -109,6 +120,7 @@ class LocalVariable : public ZoneAllocated {
  private:
   static const int kUninitializedIndex = INT_MIN;
 
+  const TokenPosition declaration_pos_;
   const TokenPosition token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this variable.
@@ -122,6 +134,7 @@ class LocalVariable : public ZoneAllocated {
                       // in the stack frame.
   bool is_invisible_;
   bool is_captured_parameter_;
+  bool is_forced_stack_;
   int index_;  // Allocation index in words relative to frame pointer (if not
                // captured), or relative to the context pointer (if captured).
 
@@ -331,7 +344,7 @@ class LocalScope : public ZoneAllocated {
   RawContextScope* PreserveOuterScope(int current_context_level) const;
 
   // Mark all local variables that are accessible from this scope up to
-  // top_scope (included) as captured.
+  // top_scope (included) as captured unless they are marked as forced to stack.
   void CaptureLocalVariables(LocalScope* top_scope);
 
   // Creates a LocalScope representing the outer scope of a local function to be
@@ -384,4 +397,4 @@ class LocalScope : public ZoneAllocated {
 
 }  // namespace dart
 
-#endif  // VM_SCOPES_H_
+#endif  // RUNTIME_VM_SCOPES_H_

@@ -21,6 +21,7 @@
 #include "vm/thread_interrupter.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
+#include "vm/zone.h"
 
 namespace dart {
 
@@ -90,6 +91,7 @@ Thread::Thread(Isolate* isolate)
       deferred_interrupts_(0),
       stack_overflow_count_(0),
       cha_(NULL),
+      type_range_cache_(NULL),
       deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
@@ -422,6 +424,19 @@ uword Thread::GetAndClearInterrupts() {
 }
 
 
+bool Thread::ZoneIsOwnedByThread(Zone* zone) const {
+  ASSERT(zone != NULL);
+  Zone* current = zone_;
+  while (current != NULL) {
+    if (current == zone) {
+      return true;
+    }
+    current = current->previous();
+  }
+  return false;
+}
+
+
 void Thread::DeferOOBMessageInterrupts() {
   MonitorLocker ml(thread_lock_);
   defer_oob_messages_count_++;
@@ -552,10 +567,13 @@ bool Thread::IsMutatorThread() const {
 
 
 bool Thread::CanCollectGarbage() const {
-  // We have non mutator threads grow the heap instead of triggering
-  // a garbage collection when they are at a safepoint (e.g: background
-  // compiler thread finalizing and installing code at a safepoint).
-  return (IsMutatorThread() || IsAtSafepoint());
+  // We grow the heap instead of triggering a garbage collection when a
+  // thread is at a safepoint in the following situations :
+  //   - background compiler thread finalizing and installing code
+  //   - disassembly of the generated code is done after compilation
+  // So essentially we state that garbage collection is possible only
+  // when we are not at a safepoint.
+  return !IsAtSafepoint();
 }
 
 

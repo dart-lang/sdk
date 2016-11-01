@@ -4,8 +4,8 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
-#ifndef INCLUDE_DART_API_H_
-#define INCLUDE_DART_API_H_
+#ifndef RUNTIME_INCLUDE_DART_API_H_
+#define RUNTIME_INCLUDE_DART_API_H_
 
 /** \mainpage Dart Embedding API Reference
  *
@@ -586,13 +586,6 @@ DART_EXPORT Dart_Handle Dart_SetGcCallbacks(
     Dart_GcPrologueCallback prologue_callback,
     Dart_GcEpilogueCallback epilogue_callback);
 
-typedef void (*Dart_GcPrologueWeakHandleCallback)(void* isolate_callback_data,
-                                                  Dart_WeakPersistentHandle obj,
-                                                  intptr_t num_native_fields,
-                                                  intptr_t* native_fields);
-
-DART_EXPORT Dart_Handle Dart_VisitPrologueWeakHandles(
-    Dart_GcPrologueWeakHandleCallback callback);
 
 /*
  * ==========================
@@ -690,13 +683,6 @@ typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    Dart_IsolateFlags* flags,
                                                    void* callback_data,
                                                    char** error);
-
-/**
- * An isolate interrupt callback function.
- *
- * This callback has been DEPRECATED.
- */
-typedef bool (*Dart_IsolateInterruptCallback)();
 
 /**
  * An isolate unhandled exception callback function.
@@ -1042,7 +1028,7 @@ DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
  *
  * When the isolate is interrupted, the isolate interrupt callback
  * will be invoked with 'isolate' as the current isolate (see
- * Dart_IsolateInterruptCallback).
+ * Dart_SetIsolateEventHandler).
  *
  * \param isolate The isolate to be interrupted.
  */
@@ -1192,9 +1178,10 @@ DART_EXPORT void Dart_SetPausedOnExit(bool paused);
 
 /**
  * Called when the embedder has caught a top level unhandled exception error
- * in the current isolate. Also marks the isolate as paused at exit.
+ * in the current isolate.
  *
- * NOTE: It is illegal to call this twice on the same isolate.
+ * NOTE: It is illegal to call this twice on the same isolate without first
+ * clearing the sticky error to null.
  *
  * \param error The unhandled exception error.
  */
@@ -1205,6 +1192,14 @@ DART_EXPORT void Dart_SetStickyError(Dart_Handle error);
  * Does the current isolate have a sticky error?
  */
 DART_EXPORT bool Dart_HasStickyError();
+
+
+/**
+ * Gets the sticky error for the current isolate.
+ *
+ * \return A handle to the sticky error object or null.
+ */
+DART_EXPORT Dart_Handle Dart_GetStickyError();
 
 
 /**
@@ -1823,7 +1818,8 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
  *
  * \param array External space into which the string data will be
  *   copied into. This must not move.
- * \param length The size in bytes of the provided external space (array).
+ * \param external_allocation_size The size in bytes of the provided external
+ *   space (array). Used to inform the garbage collector.
  * \param peer An external pointer to associate with this string.
  * \param cback A callback to be called when this string is finalized.
  *
@@ -1842,11 +1838,12 @@ DART_EXPORT Dart_Handle Dart_StringStorageSize(Dart_Handle str, intptr_t* size);
  *  result = Dart_MakeExternalString(str, data, size, NULL, NULL);
  *
  */
-DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
-                                                void* array,
-                                                intptr_t length,
-                                                void* peer,
-                                                Dart_PeerFinalizer cback);
+DART_EXPORT Dart_Handle Dart_MakeExternalString(
+    Dart_Handle str,
+    void* array,
+    intptr_t external_allocation_size,
+    void* peer,
+    Dart_PeerFinalizer cback);
 
 /**
  * Retrieves some properties associated with a String.
@@ -2801,13 +2798,25 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
  * Loads the root script for current isolate from a snapshot.
  *
  * \param buffer A buffer which contains a snapshot of the script.
- * \param length Length of the passed in buffer.
+ * \param buffer_len Length of the passed in buffer.
  *
  * \return If no error occurs, the Library object corresponding to the root
  *   script is returned. Otherwise an error handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
                                                     intptr_t buffer_len);
+
+/**
+ * Loads a dart application which was compiled to a Kernel binary.
+ *
+ * \param buffer A buffer which contains a Kernel binary.
+ * \param buffer_len Length of the passed in buffer.
+ *
+ * \return If no error occurs, the Library object corresponding to the root
+ *   script is returned. Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_LoadKernel(const uint8_t* buffer,
+                                        intptr_t buffer_len);
 
 /**
  * Gets the library for the root script for the current isolate.
@@ -3118,10 +3127,6 @@ DART_EXPORT Dart_Handle Dart_Precompile(
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshotAssembly(
-    uint8_t** vm_isolate_snapshot_buffer,
-    intptr_t* vm_isolate_snapshot_size,
-    uint8_t** isolate_snapshot_buffer,
-    intptr_t* isolate_snapshot_size,
     uint8_t** assembly_buffer,
     intptr_t* assembly_size);
 

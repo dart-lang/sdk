@@ -12,15 +12,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '(a,b)',
-              body: '{}'),
+              element: 'function(m)', parameters: '(a,b)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              index: 1),
+              element: 'parameter(m#b)', index: 1),
         ]),
     const Test(
         '''
@@ -28,16 +24,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '(a,[b])',
-              body: '{}'),
+              element: 'function(m)', parameters: '(a,[b])', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              index: 1,
-              constant: 'null'),
+              element: 'parameter(m#b)', index: 1, constant: 'null'),
         ]),
     const Test(
         '''
@@ -45,16 +36,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '(a,[b=null])',
-              body: '{}'),
+              element: 'function(m)', parameters: '(a,[b=null])', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              constant: 'null',
-              index: 1),
+              element: 'parameter(m#b)', constant: 'null', index: 1),
         ]),
     const Test(
         '''
@@ -62,16 +48,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '(a,[b=42])',
-              body: '{}'),
+              element: 'function(m)', parameters: '(a,[b=42])', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_OPTIONAL_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              constant: 42,
-              index: 1),
+              element: 'parameter(m#b)', constant: 42, index: 1),
         ]),
     const Test(
         '''
@@ -79,15 +60,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '(a,{b})',
-              body: '{}'),
+              element: 'function(m)', parameters: '(a,{b})', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              constant: 'null'),
+              element: 'parameter(m#b)', constant: 'null'),
         ]),
     const Test(
         '''
@@ -95,15 +72,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '(a,{b: null})',
-              body: '{}'),
+              element: 'function(m)', parameters: '(a,{b: null})', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              constant: 'null'),
+              element: 'parameter(m#b)', constant: 'null'),
         ]),
     const Test(
         '''
@@ -111,15 +84,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '(a,{b: 42})',
-              body: '{}'),
+              element: 'function(m)', parameters: '(a,{b: 42})', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_NAMED_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              constant: 42),
+              element: 'parameter(m#b)', constant: 42),
         ]),
     const Test(
         '''
@@ -127,8 +96,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_DECL,
-              element: 'getter(m)',
-              body: '=>null;'),
+              element: 'getter(m)', body: '=>null;'),
         ]),
     const Test(
         '''
@@ -136,12 +104,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_DECL,
-              element: 'setter(m)',
-              parameters: '(a)',
-              body: '{}'),
+              element: 'setter(m)', parameters: '(a)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
         ]),
     const Test.clazz(
         '''
@@ -151,15 +116,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_STATIC_FUNCTION_DECL,
-              element: 'function(C#m)',
-              parameters: '(a,b)',
-              body: '{}'),
+              element: 'function(C#m)', parameters: '(a,b)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              index: 1),
+              element: 'parameter(m#b)', index: 1),
         ]),
     const Test.clazz(
         '''
@@ -169,8 +130,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_STATIC_GETTER_DECL,
-              element: 'getter(C#m)',
-              body: '=>null;'),
+              element: 'getter(C#m)', body: '=>null;'),
         ]),
     const Test.clazz(
         '''
@@ -180,12 +140,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_STATIC_SETTER_DECL,
-              element: 'setter(C#m)',
-              parameters: '(a)',
-              body: '{}'),
+              element: 'setter(C#m)', parameters: '(a)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
         ]),
     const Test.clazz(
         '''
@@ -195,15 +152,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_INSTANCE_METHOD_DECL,
-              element: 'function(C#m)',
-              parameters: '(a,b)',
-              body: '{}'),
+              element: 'function(C#m)', parameters: '(a,b)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              index: 1),
+              element: 'parameter(m#b)', index: 1),
         ]),
     const Test.clazz(
         '''
@@ -213,8 +166,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_INSTANCE_GETTER_DECL,
-              element: 'getter(C#m)',
-              body: '=>null;'),
+              element: 'getter(C#m)', body: '=>null;'),
         ]),
     const Test.clazz(
         '''
@@ -224,12 +176,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_INSTANCE_SETTER_DECL,
-              element: 'setter(C#m)',
-              parameters: '(a)',
-              body: '{}'),
+              element: 'setter(C#m)', parameters: '(a)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
         ]),
     const Test.clazz(
         '''
@@ -239,14 +188,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_ABSTRACT_METHOD_DECL,
-              element: 'function(C#m)',
-              parameters: '(a,b)'),
+              element: 'function(C#m)', parameters: '(a,b)'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              index: 1),
+              element: 'parameter(m#b)', index: 1),
         ]),
     const Test.clazz(
         '''
@@ -266,11 +212,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_ABSTRACT_SETTER_DECL,
-              element: 'setter(C#m)',
-              parameters: '(a)'),
+              element: 'setter(C#m)', parameters: '(a)'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
         ]),
     const Test(
         '''
@@ -278,15 +222,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '(a,b)',
-              body: '{}'),
+              element: 'function(m)', parameters: '(a,b)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#a)',
-              index: 0),
+              element: 'parameter(m#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(m#b)',
-              index: 1),
+              element: 'parameter(m#b)', index: 1),
         ]),
     const Test(
         '''
@@ -296,19 +236,13 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-               element: 'function(m)',
-               parameters: '()',
-               body: '{local(a,b){}}'),
+              element: 'function(m)', parameters: '()', body: '{local(a,b){}}'),
           const Visit(VisitKind.VISIT_LOCAL_FUNCTION_DECL,
-               element: 'function(m#local)',
-               parameters: '(a,b)',
-               body: '{}'),
+              element: 'function(m#local)', parameters: '(a,b)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(local#a)',
-              index: 0),
+              element: 'parameter(local#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(local#b)',
-              index: 1),
+              element: 'parameter(local#b)', index: 1),
         ]),
     const Test(
         '''
@@ -316,19 +250,13 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-               element: 'function(m)',
-               parameters: '()',
-               body: '=>(a,b){};'),
+              element: 'function(m)', parameters: '()', body: '=>(a,b){};'),
           const Visit(VisitKind.VISIT_CLOSURE_DECL,
-               element: 'function(m#)',
-               parameters: '(a,b)',
-               body: '{}'),
+              element: 'function(m#)', parameters: '(a,b)', body: '{}'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
         ]),
   ],
   'Constructor declarations': const [
@@ -344,14 +272,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,b)',
               body: ';'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
           const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
-              element: 'generative_constructor(Object#)',
-              type: 'Object'),
+              element: 'generative_constructor(Object#)', type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -367,14 +292,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,this.b)',
               body: ';'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_INITIALIZING_FORMAL_DECL,
-              element: 'initializing_formal(#b)',
-              index: 1),
+              element: 'initializing_formal(#b)', index: 1),
           const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
-              element: 'generative_constructor(Object#)',
-              type: 'Object'),
+              element: 'generative_constructor(Object#)', type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -390,15 +312,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,[this.b=42])',
               body: ';'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_OPTIONAL_INITIALIZING_FORMAL_DECL,
-              element: 'initializing_formal(#b)',
-              constant: 42,
-              index: 1),
+              element: 'initializing_formal(#b)', constant: 42, index: 1),
           const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
-              element: 'generative_constructor(Object#)',
-              type: 'Object'),
+              element: 'generative_constructor(Object#)', type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -414,14 +332,11 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,{this.b: 42})',
               body: ';'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_NAMED_INITIALIZING_FORMAL_DECL,
-              element: 'initializing_formal(#b)',
-              constant: 42),
+              element: 'initializing_formal(#b)', constant: 42),
           const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
-              element: 'generative_constructor(Object#)',
-              type: 'Object'),
+              element: 'generative_constructor(Object#)', type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -436,11 +351,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,b)',
               body: ';'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
           const Visit(VisitKind.VISIT_SUPER_CONSTRUCTOR_INVOKE,
               element: 'generative_constructor(Object#)',
               type: 'Object',
@@ -461,17 +374,13 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,b)',
               body: ';'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
           const Visit(VisitKind.VISIT_FIELD_INITIALIZER,
-              element: 'field(C#field)',
-              rhs: 'a'),
+              element: 'field(C#field)', rhs: 'a'),
           const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
-              element: 'generative_constructor(Object#)',
-              type: 'Object'),
+              element: 'generative_constructor(Object#)', type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -488,20 +397,15 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,b)',
               body: ';'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
           const Visit(VisitKind.VISIT_FIELD_INITIALIZER,
-              element: 'field(C#field1)',
-              rhs: 'a'),
+              element: 'field(C#field1)', rhs: 'a'),
           const Visit(VisitKind.VISIT_FIELD_INITIALIZER,
-              element: 'field(C#field2)',
-              rhs: 'b'),
+              element: 'field(C#field2)', rhs: 'b'),
           const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
-              element: 'generative_constructor(Object#)',
-              type: 'Object'),
+              element: 'generative_constructor(Object#)', type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -517,11 +421,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,b)',
               initializers: ':this._(a,b)'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
           const Visit(VisitKind.VISIT_THIS_CONSTRUCTOR_INVOKE,
               element: 'generative_constructor(C#_)',
               arguments: '(a,b)',
@@ -540,11 +442,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '(a,b)',
               body: '=>null;'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
         ],
         method: ''),
     const Test.clazz(
@@ -561,11 +461,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               target: 'generative_constructor(C#_)',
               type: 'C'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
         ],
         method: ''),
     const Test.clazz(
@@ -584,11 +482,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               target: 'generative_constructor(D#)',
               type: 'D'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
         ],
         method: ''),
     const Test.clazz(
@@ -607,11 +503,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               target: 'generative_constructor(D#)',
               type: 'D<int>'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
         ],
         method: ''),
     const Test.clazz(
@@ -633,11 +527,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               target: 'factory_constructor(D#)',
               type: 'D<int>'),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#a)',
-              index: 0),
+              element: 'parameter(#a)', index: 0),
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
-              element: 'parameter(#b)',
-              index: 1),
+              element: 'parameter(#b)', index: 1),
         ],
         method: ''),
   ],
@@ -661,6 +553,8 @@ const Map<String, List<Test>> DECL_TESTS = const {
         const [
           const Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
               element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
+              element: 'field(C#n)'),
         ]),
     const Test.clazz(
         '''
@@ -670,8 +564,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_INSTANCE_FIELD_DECL,
-              element: 'field(C#m)',
-              rhs: 42),
+              element: 'field(C#m)', rhs: 42),
         ]),
     const Test(
         '''
@@ -681,9 +574,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_DECL,
-              element: 'function(m)',
-              parameters: '()',
-              body: '{var local;}'),
+              element: 'function(m)', parameters: '()', body: '{var local;}'),
           const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
               element: 'variable(m#local)'),
         ]),
@@ -699,8 +590,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '()',
               body: '{var local=42;}'),
           const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
-              element: 'variable(m#local)',
-              rhs: 42),
+              element: 'variable(m#local)', rhs: 42),
         ]),
     const Test(
         '''
@@ -714,8 +604,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '()',
               body: '{const local=42;}'),
           const Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
-              element: 'variable(m#local)',
-              constant: 42),
+              element: 'variable(m#local)', constant: 42),
         ]),
     const Test(
         '''
@@ -745,11 +634,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '()',
               body: '{var local1=42,local2=true;}'),
           const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
-              element: 'variable(m#local1)',
-              rhs: 42),
+              element: 'variable(m#local1)', rhs: 42),
           const Visit(VisitKind.VISIT_LOCAL_VARIABLE_DECL,
-              element: 'variable(m#local2)',
-              rhs: true),
+              element: 'variable(m#local2)', rhs: true),
         ]),
     const Test(
         '''
@@ -763,11 +650,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               parameters: '()',
               body: '{const local1=42,local2=true;}'),
           const Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
-              element: 'variable(m#local1)',
-              constant: 42),
+              element: 'variable(m#local1)', constant: 42),
           const Visit(VisitKind.VISIT_LOCAL_CONSTANT_DECL,
-              element: 'variable(m#local2)',
-              constant: true),
+              element: 'variable(m#local2)', constant: true),
         ]),
     const Test.clazz(
         '''
@@ -776,8 +661,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         }
         ''',
         const [
-          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
-                element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL, element: 'field(C#m)'),
         ]),
     const Test.clazz(
         '''
@@ -786,8 +670,8 @@ const Map<String, List<Test>> DECL_TESTS = const {
         }
         ''',
         const [
-          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
-                element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL, element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL, element: 'field(C#n)'),
         ]),
     const Test.clazz(
         '''
@@ -796,8 +680,10 @@ const Map<String, List<Test>> DECL_TESTS = const {
         }
         ''',
         const [
-          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
-                element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL, element: 'field(C#k)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL, element: 'field(C#l)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL, element: 'field(C#m)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL, element: 'field(C#n)'),
         ]),
     const Test.clazz(
         '''
@@ -807,8 +693,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
-                element: 'field(C#m)',
-                rhs: 42),
+              element: 'field(C#m)', rhs: 42),
         ]),
     const Test.clazz(
         '''
@@ -818,8 +703,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
-                element: 'field(C#m)',
-                rhs: 42),
+              element: 'field(C#m)', rhs: 42),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_DECL,
+              element: 'field(C#n)', rhs: true),
         ]),
     const Test.clazz(
         '''
@@ -829,8 +715,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_STATIC_CONSTANT_DECL,
-                element: 'field(C#m)',
-                constant: 42),
+              element: 'field(C#m)', constant: 42),
         ]),
     const Test(
         '''
@@ -838,7 +723,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
-                element: 'field(m)'),
+              element: 'field(m)'),
         ]),
     const Test(
         '''
@@ -846,7 +731,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
-                element: 'field(m)'),
+              element: 'field(m)'),
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
+              element: 'field(n)'),
         ]),
     const Test(
         '''
@@ -854,8 +741,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_DECL,
-                element: 'field(m)',
-                rhs: 42),
+              element: 'field(m)', rhs: 42),
         ]),
     const Test(
         '''
@@ -863,8 +749,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
         ''',
         const [
           const Visit(VisitKind.VISIT_TOP_LEVEL_CONSTANT_DECL,
-                element: 'field(m)',
-                constant: 42),
+              element: 'field(m)', constant: 42),
         ]),
   ],
 };

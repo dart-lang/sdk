@@ -6,7 +6,7 @@ library analysis_server.src.services.correction.fix_internal;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:core' hide Resource;
+import 'dart:core';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
@@ -28,14 +28,15 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -68,9 +69,13 @@ class DartFixContextImpl extends FixContextImpl implements DartFixContext {
  */
 class DefaultFixContributor extends DartFixContributor {
   @override
-  Future<List<Fix>> internalComputeFixes(DartFixContext context) {
-    FixProcessor processor = new FixProcessor(context);
-    return processor.compute();
+  Future<List<Fix>> internalComputeFixes(DartFixContext context) async {
+    try {
+      FixProcessor processor = new FixProcessor(context);
+      return processor.compute();
+    } on CancelCorrectionException {
+      return Fix.EMPTY_LIST;
+    }
   }
 }
 
@@ -134,7 +139,18 @@ class FixProcessor {
   String get eol => utils.endOfLine;
 
   Future<List<Fix>> compute() async {
-    utils = new CorrectionUtils(unit);
+    // If the source was changed between the constructor and running
+    // this asynchronous method, it is not safe to use the unit.
+    if (context.getModificationStamp(unitSource) != fileStamp) {
+      return const <Fix>[];
+    }
+
+    try {
+      utils = new CorrectionUtils(unit);
+    } catch (e) {
+      throw new CancelCorrectionException(exception: e);
+    }
+
     errorOffset = error.offset;
     errorLength = error.length;
     errorEnd = errorOffset + errorLength;
@@ -355,6 +371,9 @@ class FixProcessor {
       if (errorCode.name == LintNames.annotate_overrides) {
         _addLintFixAddOverrideAnnotation();
       }
+      if (errorCode.name == LintNames.unnecessary_brace_in_string_interp) {
+        _addLintRemoveInterpolationBraces();
+      }
     }
     // done
     return fixes;
@@ -518,9 +537,10 @@ class FixProcessor {
   }
 
   void _addFix_addPartOfDirective() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral && node.parent is PartDirective) {
       PartDirective directive = node.parent;
-      Source partSource = directive.source;
+      Source partSource = directive.uriSource;
       CompilationUnit partUnit;
       partUnit = context.getResolvedCompilationUnit2(partSource, partSource);
       if (partUnit != null) {
@@ -697,14 +717,12 @@ class FixProcessor {
       }
     }
     // prepare location for a new constructor
-    _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(classDeclaration);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewConstructorLocation(classDeclaration);
     // build constructor source
     SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
     {
-      String indent = '  ';
       sb.append(targetLocation.prefix);
-      sb.append(indent);
       sb.append(classDeclaration.name.name);
       sb.append('(');
       sb.append(fieldNames.map((name) => 'this.$name').join(', '));
@@ -743,19 +761,17 @@ class FixProcessor {
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
-    _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetTypeNode);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewConstructorLocation(targetTypeNode);
     String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
-      String indent = '  ';
       sb.append(targetLocation.prefix);
-      sb.append(indent);
       sb.append(targetElement.name);
       _addFix_undefinedMethod_create_parameters(
           sb, instanceCreation.argumentList);
-      sb.append(') {$eol$indent}');
+      sb.append(');');
       sb.append(targetLocation.suffix);
     }
     // insert source
@@ -801,15 +817,13 @@ class FixProcessor {
     if (targetTypeNode is! ClassDeclaration) {
       return;
     }
-    _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetTypeNode);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewConstructorLocation(targetTypeNode);
     String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
-      String indent = '  ';
       sb.append(targetLocation.prefix);
-      sb.append(indent);
       sb.append(targetElement.name);
       sb.append('.');
       // append name
@@ -820,7 +834,7 @@ class FixProcessor {
       }
       _addFix_undefinedMethod_create_parameters(
           sb, instanceCreation.argumentList);
-      sb.append(') {$eol$indent}');
+      sb.append(');');
       sb.append(targetLocation.suffix);
     }
     // insert source
@@ -869,7 +883,7 @@ class FixProcessor {
       }
       // add super constructor name
       sb.append('super');
-      if (!StringUtils.isEmpty(constructorName)) {
+      if (!isEmpty(constructorName)) {
         sb.append('.');
         sb.append(constructorName);
       }
@@ -941,13 +955,11 @@ class FixProcessor {
         argumentsBuffer.append(parameterName);
       }
       // add proposal
-      _ConstructorLocation targetLocation =
-          _prepareNewConstructorLocation(targetClassNode);
+      ClassMemberLocation targetLocation =
+          utils.prepareNewConstructorLocation(targetClassNode);
       SourceBuilder sb = new SourceBuilder(file, targetLocation.offset);
       {
-        String indent = utils.getIndent(1);
         sb.append(targetLocation.prefix);
-        sb.append(indent);
         sb.append(targetClassName);
         if (!constructorName.isEmpty) {
           sb.startPosition('NAME');
@@ -1025,7 +1037,8 @@ class FixProcessor {
     }
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
-    _FieldLocation targetLocation = _prepareNewFieldLocation(targetClassNode);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewFieldLocation(targetClassNode);
     // build method source
     String targetFile = targetClassElement.source.fullName;
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
@@ -1157,7 +1170,8 @@ class FixProcessor {
     }
     ClassDeclaration targetClassNode = targetTypeNode;
     // prepare location
-    _FieldLocation targetLocation = _prepareNewGetterLocation(targetClassNode);
+    ClassMemberLocation targetLocation =
+        utils.prepareNewGetterLocation(targetClassNode);
     // build method source
     String targetFile = targetClassElement.source.fullName;
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
@@ -1192,9 +1206,11 @@ class FixProcessor {
   }
 
   void _addFix_createImportUri() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
+    // TODO(brianwilkerson) Support the case where the node's parent is a Configuration.
     if (node is SimpleStringLiteral && node.parent is ImportDirective) {
       ImportDirective importDirective = node.parent;
-      Source source = importDirective.source;
+      Source source = importDirective.uriSource;
       if (source != null) {
         String file = source.fullName;
         if (isAbsolute(file) && AnalysisEngine.isDartFileName(file)) {
@@ -1284,7 +1300,7 @@ class FixProcessor {
     // EOL management
     bool isFirst = true;
     void addEolIfNotFirst() {
-      if (!isFirst || !targetClass.members.isEmpty) {
+      if (!isFirst || utils.isClassWithEmptyBody(targetClass)) {
         sb.append(eol);
       }
       isFirst = false;
@@ -1412,9 +1428,10 @@ class FixProcessor {
   }
 
   void _addFix_createPartUri() {
+    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral && node.parent is PartDirective) {
       PartDirective partDirective = node.parent;
-      Source source = partDirective.source;
+      Source source = partDirective.uriSource;
       if (source != null) {
         String libName = unitLibraryElement.name;
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
@@ -1486,7 +1503,7 @@ class FixProcessor {
         // don't add this library again
         alreadyImportedWithPrefix.add(libraryElement.source);
         // update library
-        String newShowCode = 'show ${StringUtils.join(showNames, ", ")}';
+        String newShowCode = 'show ${showNames.join(', ')}';
         _addReplaceEdit(
             rf.rangeOffsetEnd(showCombinator), newShowCode, unitLibraryElement);
         _addFix(DartFixKind.IMPORT_LIBRARY_SHOW, [libraryName]);
@@ -1555,8 +1572,22 @@ class FixProcessor {
         if (element.kind != kind) {
           continue;
         }
-        _addFix_importLibrary(
-            DartFixKind.IMPORT_LIBRARY_PROJECT, libraryElement);
+        // Compute the fix kind.
+        FixKind fixKind;
+        if (resourceProvider.pathContext
+            .split(librarySource.fullName)
+            .contains('src')) {
+          // Bad: non-API.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT3;
+        } else if (element.library != libraryElement) {
+          // Ugly: exports.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT2;
+        } else {
+          // Good: direct declaration.
+          fixKind = DartFixKind.IMPORT_LIBRARY_PROJECT1;
+        }
+        // Add the fix.
+        _addFix_importLibrary(fixKind, libraryElement);
       }
     }
   }
@@ -1809,31 +1840,44 @@ class FixProcessor {
   }
 
   void _addFix_undefinedClass_useSimilar() {
+    AstNode node = this.node;
+    // Prepare the optional import prefix name.
+    String prefixName = null;
+    if (node is SimpleIdentifier && node.staticElement is PrefixElement) {
+      AstNode parent = node.parent;
+      if (parent is PrefixedIdentifier &&
+          parent.prefix == node &&
+          parent.parent is TypeName) {
+        prefixName = (node as SimpleIdentifier).name;
+        node = parent.identifier;
+      }
+    }
+    // Process if looks like a type.
     if (_mayBeTypeIdentifier(node)) {
+      // Prepare for selecting the closest element.
       String name = (node as SimpleIdentifier).name;
       _ClosestElementFinder finder = new _ClosestElementFinder(
           name,
           (Element element) => element is ClassElement,
           MAX_LEVENSHTEIN_DISTANCE);
-      // find closest element
-      {
-        // elements of this library
+      // Check elements of this library.
+      if (prefixName == null) {
         for (CompilationUnitElement unit in unitLibraryElement.units) {
           finder._updateList(unit.types);
         }
-        // elements from imports
-        for (ImportElement importElement in unitLibraryElement.imports) {
-          if (importElement.prefix == null) {
-            Map<String, Element> namespace = getImportNamespace(importElement);
-            finder._updateList(namespace.values);
-          }
+      }
+      // Check elements from imports.
+      for (ImportElement importElement in unitLibraryElement.imports) {
+        if (importElement.prefix?.name == prefixName) {
+          Map<String, Element> namespace = getImportNamespace(importElement);
+          finder._updateList(namespace.values);
         }
       }
-      // if we have close enough element, suggest to use it
+      // If we have a close enough element, suggest to use it.
       if (finder._element != null) {
         String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);
-        // add proposal
+        // Add proposal.
         if (closestName != null) {
           _addFix(DartFixKind.CHANGE_TO, [closestName]);
         }
@@ -1943,24 +1987,39 @@ class FixProcessor {
   }
 
   void _addFix_undefinedFunction_useSimilar() {
+    AstNode node = this.node;
     if (node is SimpleIdentifier) {
-      String name = (node as SimpleIdentifier).name;
+      // Prepare the optional import prefix name.
+      String prefixName = null;
+      {
+        AstNode invocation = node.parent;
+        if (invocation is MethodInvocation && invocation.methodName == node) {
+          Expression target = invocation.target;
+          if (target is SimpleIdentifier &&
+              target.staticElement is PrefixElement) {
+            prefixName = target.name;
+          }
+        }
+      }
+      // Prepare for selecting the closest element.
       _ClosestElementFinder finder = new _ClosestElementFinder(
-          name,
+          node.name,
           (Element element) => element is FunctionElement,
           MAX_LEVENSHTEIN_DISTANCE);
-      // this library
-      for (CompilationUnitElement unit in unitLibraryElement.units) {
-        finder._updateList(unit.functions);
+      // Check to this library units.
+      if (prefixName == null) {
+        for (CompilationUnitElement unit in unitLibraryElement.units) {
+          finder._updateList(unit.functions);
+        }
       }
-      // imports
+      // Check unprefixed imports.
       for (ImportElement importElement in unitLibraryElement.imports) {
-        if (importElement.prefix == null) {
+        if (importElement.prefix?.name == prefixName) {
           Map<String, Element> namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
         }
       }
-      // if we have close enough element, suggest to use it
+      // If we have a close enough element, suggest to use it.
       if (finder._element != null) {
         String closestName = finder._element.name;
         _addReplaceEdit(rf.rangeNode(node), closestName);
@@ -2237,6 +2296,18 @@ class FixProcessor {
     String indent = utils.getIndent(1);
     _addReplaceEdit(rf.rangeStartLength(token, 0), '@override$eol$indent');
     _addFix(DartFixKind.LINT_ADD_OVERRIDE, []);
+  }
+
+  void _addLintRemoveInterpolationBraces() {
+    AstNode node = this.node;
+    if (node is InterpolationExpression) {
+      Token right = node.rightBracket;
+      if (node.expression != null && right != null) {
+        _addReplaceEdit(rf.rangeStartStart(node, node.expression), r'$');
+        _addRemoveEdit(rf.rangeToken(right));
+        _addFix(DartFixKind.LINT_REMOVE_INTERPOLATION_BRACES, []);
+      }
+    }
   }
 
   /**
@@ -2739,76 +2810,6 @@ class FixProcessor {
     return node is SimpleIdentifier && node.name == 'await';
   }
 
-  _ConstructorLocation _prepareNewConstructorLocation(
-      ClassDeclaration classDeclaration) {
-    List<ClassMember> members = classDeclaration.members;
-    // find the last field/constructor
-    ClassMember lastFieldOrConstructor = null;
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration || member is ConstructorDeclaration) {
-        lastFieldOrConstructor = member;
-      } else {
-        break;
-      }
-    }
-    // after the last field/constructor
-    if (lastFieldOrConstructor != null) {
-      return new _ConstructorLocation(
-          eol + eol, lastFieldOrConstructor.end, '');
-    }
-    // at the beginning of the class
-    String suffix = members.isEmpty ? '' : eol;
-    return new _ConstructorLocation(
-        eol, classDeclaration.leftBracket.end, suffix);
-  }
-
-  _FieldLocation _prepareNewFieldLocation(ClassDeclaration classDeclaration) {
-    String indent = utils.getIndent(1);
-    // find the last field
-    ClassMember lastFieldOrConstructor = null;
-    List<ClassMember> members = classDeclaration.members;
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration) {
-        lastFieldOrConstructor = member;
-      } else {
-        break;
-      }
-    }
-    // after the last field
-    if (lastFieldOrConstructor != null) {
-      return new _FieldLocation(
-          eol + eol + indent, lastFieldOrConstructor.end, '');
-    }
-    // at the beginning of the class
-    String suffix = members.isEmpty ? '' : eol;
-    return new _FieldLocation(
-        eol + indent, classDeclaration.leftBracket.end, suffix);
-  }
-
-  _FieldLocation _prepareNewGetterLocation(ClassDeclaration classDeclaration) {
-    String indent = utils.getIndent(1);
-    // find an existing target member
-    ClassMember prevMember = null;
-    List<ClassMember> members = classDeclaration.members;
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration ||
-          member is ConstructorDeclaration ||
-          member is MethodDeclaration && member.isGetter) {
-        prevMember = member;
-      } else {
-        break;
-      }
-    }
-    // after the last field/getter
-    if (prevMember != null) {
-      return new _FieldLocation(eol + eol + indent, prevMember.end, '');
-    }
-    // at the beginning of the class
-    String suffix = members.isEmpty ? '' : eol;
-    return new _FieldLocation(
-        eol + indent, classDeclaration.leftBracket.end, suffix);
-  }
-
   /**
    * Removes any [ParenthesizedExpression] enclosing [expr].
    *
@@ -2925,6 +2926,8 @@ class FixProcessor {
  */
 class LintNames {
   static const String annotate_overrides = 'annotate_overrides';
+  static const String unnecessary_brace_in_string_interp =
+      'unnecessary_brace_in_string_interp';
 }
 
 /**
@@ -2954,26 +2957,4 @@ class _ClosestElementFinder {
       _update(element);
     }
   }
-}
-
-/**
- * Describes the location for a newly created [ConstructorDeclaration].
- */
-class _ConstructorLocation {
-  final String prefix;
-  final int offset;
-  final String suffix;
-
-  _ConstructorLocation(this.prefix, this.offset, this.suffix);
-}
-
-/**
- * Describes the location for a newly created [FieldDeclaration].
- */
-class _FieldLocation {
-  final String prefix;
-  final int offset;
-  final String suffix;
-
-  _FieldLocation(this.prefix, this.offset, this.suffix);
 }

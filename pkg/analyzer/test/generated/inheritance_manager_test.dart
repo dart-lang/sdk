@@ -8,27 +8,29 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:unittest/unittest.dart';
+import 'package:analyzer/src/source/source_resource.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
 import 'analysis_context_factory.dart';
 import 'test_support.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(InheritanceManagerTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(InheritanceManagerTest);
+  });
 }
 
 @reflectiveTest
@@ -1306,9 +1308,10 @@ class InheritanceManagerTest {
    * @return the inheritance manager that was created
    */
   InheritanceManager _createInheritanceManager() {
-    AnalysisContext context = AnalysisContextFactory.contextWithCore();
-    FileBasedSource source =
-        new FileBasedSource(FileUtilities2.createFile("/test.dart"));
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore(
+        resourceProvider: resourceProvider);
+    Source source = new FileSource(resourceProvider.getFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
         new CompilationUnitElementImpl("test.dart");
     definingCompilationUnit.librarySource =

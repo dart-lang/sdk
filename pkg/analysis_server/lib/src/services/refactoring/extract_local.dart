@@ -139,6 +139,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     void addPosition(int offset) {
       positions.add(new Position(file, offset));
     }
+
     // add variable declaration
     {
       String declarationCode;
@@ -180,8 +181,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           occurrencesShift = target.offset + code.length - expr.offset;
           doSourceChange_addElementEdit(change, unitElement, edit);
         }
-        doSourceChange_addElementEdit(change, unitElement,
-            new SourceEdit(expr.end, 0, ';' + eol + prefix + '}'));
+        doSourceChange_addElementEdit(
+            change,
+            unitElement,
+            new SourceEdit(
+                expr.end, target.end - expr.end, ';' + eol + prefix + '}'));
       }
     }
     // prepare replacement
@@ -298,11 +302,14 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       coveringExpressionOffsets.add(node.offset);
       coveringExpressionLengths.add(node.length);
     }
-    // we need enclosing block to add variable declaration statement
+    // We need an enclosing function.
+    // If it has a block body, we can add a new variable declaration statement
+    // into this block.  If it has an expression body, we can convert it into
+    // the block body first.
     if (coveringNode == null ||
-        coveringNode.getAncestor((node) => node is Block) == null) {
+        coveringNode.getAncestor((node) => node is FunctionBody) == null) {
       return new RefactoringStatus.fatal(
-          'Expression inside of function must be selected '
+          'An expression inside a function must be selected '
           'to activate this refactoring.');
     }
     // part of string literal

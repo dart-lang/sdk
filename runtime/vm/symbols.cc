@@ -5,7 +5,6 @@
 #include "vm/symbols.h"
 
 #include "vm/handles.h"
-#include "vm/handles_impl.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
 #include "vm/object.h"

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_EXTENSIONS_H_
-#define BIN_EXTENSIONS_H_
+#ifndef RUNTIME_BIN_EXTENSIONS_H_
+#define RUNTIME_BIN_EXTENSIONS_H_
 
 #include "include/dart_api.h"
 #include "platform/globals.h"
@@ -26,6 +26,11 @@ class Extensions {
  private:
   static Dart_Handle GetError();
 
+  static void* MakePathAndResolve(const char* dir, const char* name);
+  static void* ResolveAbsPathExtension(const char* extension_path);
+  static void* ResolveExtension(const char* extensioion_directory,
+                                const char* extension_name);
+
   // The returned string is scope allocated.
   static const char* Concatenate(const char** strings);
 
@@ -36,4 +41,4 @@ class Extensions {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_EXTENSIONS_H_
+#endif  // RUNTIME_BIN_EXTENSIONS_H_

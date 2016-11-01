@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_VMSERVICE_DARTIUM_H_
-#define BIN_VMSERVICE_DARTIUM_H_
+#ifndef RUNTIME_BIN_VMSERVICE_DARTIUM_H_
+#define RUNTIME_BIN_VMSERVICE_DARTIUM_H_
 
 /* In order to avoid conflicts / issues with blink, no headers are included */
 
@@ -18,8 +18,7 @@ class VmServiceServer {
   static void Bootstrap();
   static Dart_Isolate CreateIsolate(const uint8_t* snapshot_buffer);
 
-  static const char* GetServerIP();
-  static intptr_t GetServerPort();
+  static const char* GetServerAddress();
 
   static void DecompressAssets(const uint8_t* input, unsigned int input_len,
                                uint8_t** output, unsigned int* output_length);
@@ -38,4 +37,4 @@ class VmServiceServer {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_VMSERVICE_DARTIUM_H_
+#endif  // RUNTIME_BIN_VMSERVICE_DARTIUM_H_

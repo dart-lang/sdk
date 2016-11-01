@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal';
-
 @patch bool _isDartStreamEnabled() native "Timeline_isDartStreamEnabled";
 
 @patch int _getTraceClock() native "Timeline_getTraceClock";

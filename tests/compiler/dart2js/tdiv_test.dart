@@ -85,10 +85,10 @@ main() {
   }
 
   asyncTest(() => Future.wait([
-    check(TEST1),
-    check(TEST2),
-    check(TEST3),
-    check(TEST4),
-    check(TEST5),
-  ]));
+        check(TEST1),
+        check(TEST2),
+        check(TEST3),
+        check(TEST4),
+        check(TEST5),
+      ]));
 }

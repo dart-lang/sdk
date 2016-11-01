@@ -570,7 +570,6 @@ TEST_CASE(Dart_PropagateError) {
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT(!Dart_ErrorHasException(result));
   EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
@@ -584,7 +583,6 @@ TEST_CASE(Dart_PropagateError) {
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT(!Dart_ErrorHasException(result));
   EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
@@ -598,7 +596,6 @@ TEST_CASE(Dart_PropagateError) {
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT(!Dart_ErrorHasException(result));
   EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
@@ -1217,11 +1214,11 @@ class GCTestHelper : public AllStatic {
     Isolate::Current()->heap()->new_space()->Scavenge(invoke_api_callbacks);
   }
 
-  static void WaitForFinalizationTasks() {
+  static void WaitForGCTasks() {
     Thread* thread = Thread::Current();
-    Heap* heap = thread->isolate()->heap();
-    MonitorLocker ml(heap->finalization_tasks_lock());
-    while (heap->finalization_tasks() > 0) {
+    PageSpace* old_space = thread->isolate()->heap()->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
       ml.WaitWithSafepointCheck(thread);
     }
   }
@@ -1264,11 +1261,11 @@ TEST_CASE(ExternalStringCallback) {
     EXPECT_EQ(40, peer8);
     EXPECT_EQ(41, peer16);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT_EQ(40, peer8);
     EXPECT_EQ(41, peer16);
     Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT_EQ(80, peer8);
     EXPECT_EQ(82, peer16);
   }
@@ -2380,6 +2377,13 @@ static void NopCallback(void* isolate_callback_data,
 }
 
 
+static void UnreachedCallback(void* isolate_callback_data,
+                              Dart_WeakPersistentHandle handle,
+                              void* peer) {
+  UNREACHABLE();
+}
+
+
 static void ExternalTypedDataFinalizer(void* isolate_callback_data,
                                        Dart_WeakPersistentHandle handle,
                                        void* peer) {
@@ -2405,39 +2409,25 @@ TEST_CASE(ExternalTypedDataCallback) {
     TransitionNativeToVM transition(thread);
     EXPECT(peer == 0);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 0);
     Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 42);
   }
 }
 
 
-static Monitor* slow_finalizers_monitor = NULL;
-static intptr_t slow_finalizers_waiting = 0;
-
-
 static void SlowFinalizer(void* isolate_callback_data,
                           Dart_WeakPersistentHandle handle,
                           void* peer) {
-  {
-    MonitorLocker ml(slow_finalizers_monitor);
-    slow_finalizers_waiting++;
-    while (slow_finalizers_waiting < 10) {
-      ml.Wait();
-    }
-    ml.NotifyAll();
-  }
-
+  OS::Sleep(10);
   intptr_t* count = reinterpret_cast<intptr_t*>(peer);
-  AtomicOperations::IncrementBy(count, 1);
+  (*count)++;
 }
 
 
 TEST_CASE(SlowFinalizer) {
-  slow_finalizers_monitor = new Monitor();
-
   intptr_t count = 0;
   for (intptr_t i = 0; i < 10; i++) {
     Dart_EnterScope();
@@ -2455,12 +2445,10 @@ TEST_CASE(SlowFinalizer) {
 
   {
     TransitionNativeToVM transition(thread);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
   }
 
   EXPECT_EQ(20, count);
-
-  delete slow_finalizers_monitor;
 }
 
 
@@ -2515,7 +2503,7 @@ TEST_CASE(Float32x4List) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 42);
   }
 }
@@ -2792,7 +2780,7 @@ TEST_CASE(WeakPersistentHandle) {
     TransitionNativeToVM transition(thread);
     // Garbage collect new space again.
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
   }
 
   {
@@ -2808,7 +2796,7 @@ TEST_CASE(WeakPersistentHandle) {
     TransitionNativeToVM transition(thread);
     // Garbage collect old space again.
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
   }
 
   {
@@ -2825,6 +2813,27 @@ TEST_CASE(WeakPersistentHandle) {
     Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   }
+}
+
+
+TEST_CASE(WeakPersistentHandleErrors) {
+  Dart_EnterScope();
+
+  // NULL callback.
+  Dart_Handle obj1 = NewString("new string");
+  EXPECT_VALID(obj1);
+  Dart_WeakPersistentHandle ref1 = Dart_NewWeakPersistentHandle(
+      obj1, NULL, 0, NULL);
+  EXPECT_EQ(ref1, static_cast<void*>(NULL));
+
+  // Immediate object.
+  Dart_Handle obj2 = Dart_NewInteger(0);
+  EXPECT_VALID(obj2);
+  Dart_WeakPersistentHandle ref2 = Dart_NewWeakPersistentHandle(
+      obj2, NULL, 0, WeakPersistentHandleCallback);
+  EXPECT_EQ(ref2, static_cast<void*>(NULL));
+
+  Dart_ExitScope();
 }
 
 
@@ -2853,7 +2862,7 @@ TEST_CASE(WeakPersistentHandleCallback) {
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 42);
   }
 }
@@ -2880,7 +2889,7 @@ TEST_CASE(WeakPersistentHandleNoCallback) {
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
     EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT(peer == 0);
   }
 }
@@ -2941,7 +2950,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
     // Collect weakly referenced string, and promote strongly referenced string.
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
     GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
     EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
   }
@@ -2952,7 +2961,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
 }
@@ -2998,7 +3007,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
     EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
 }
@@ -3045,17 +3054,18 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   static const intptr_t kWeak1ExternalSize = 1 * KB;
   Dart_WeakPersistentHandle weak2 = NULL;
   static const intptr_t kWeak2ExternalSize = 2 * KB;
+  EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   {
     Dart_EnterScope();
     Dart_Handle dart_true = Dart_True();  // VM heap object.
     EXPECT_VALID(dart_true);
     weak1 = Dart_NewWeakPersistentHandle(
-        dart_true, NULL, kWeak1ExternalSize, NopCallback);
+        dart_true, NULL, kWeak1ExternalSize, UnreachedCallback);
     EXPECT_VALID(AsHandle(weak1));
-    Dart_Handle zero = Dart_NewInteger(0);  // Smi.
+    Dart_Handle zero = Dart_False();  // VM heap object.
     EXPECT_VALID(zero);
     weak2 = Dart_NewWeakPersistentHandle(
-        zero, NULL, kWeak2ExternalSize, NopCallback);
+        zero, NULL, kWeak2ExternalSize, UnreachedCallback);
     EXPECT_VALID(AsHandle(weak2));
     // Both should be charged to old space.
     EXPECT(heap->ExternalInWords(Heap::kOld) ==
@@ -3065,6 +3075,7 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
   Dart_DeleteWeakPersistentHandle(isolate, weak2);
+  EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
@@ -3626,8 +3637,13 @@ TEST_CASE(SetStickyError) {
   EXPECT(Dart_IsError(retobj));
   EXPECT(Dart_IsUnhandledExceptionError(retobj));
   EXPECT(!Dart_HasStickyError());
+  EXPECT(Dart_GetStickyError() == Dart_Null());
   Dart_SetStickyError(retobj);
   EXPECT(Dart_HasStickyError());
+  EXPECT(Dart_GetStickyError() != Dart_Null());
+  Dart_SetStickyError(Dart_Null());
+  EXPECT(!Dart_HasStickyError());
+  EXPECT(Dart_GetStickyError() == Dart_Null());
 }
 
 
@@ -6653,7 +6669,7 @@ TEST_CASE(LoadPatch) {
       "part of library1_name;\n"
       "external int foo();";
   const char* kPatchChars =
-      "patch int foo() => 42;";
+      "@patch int foo() => 42;";
 
   // Load up a library.
   Dart_Handle url = NewString("library1_url");
@@ -6693,13 +6709,13 @@ TEST_CASE(LoadPatchSignatureMismatch) {
   const char* kSourceChars =
       "part of library1_name;\n"
       "external int foo([int x]);\n"
-      "class Foo {\n"
+      "class Foo<T extends Foo> {\n"
       "  external static int addDefault10([int x, int y]);\n"
       "}";
   const char* kPatchChars =
       "const _UNDEFINED = const Object();\n"
-      "patch foo([x=_UNDEFINED]) => identical(x, _UNDEFINED) ? 42 : x;\n"
-      "patch class Foo {\n"
+      "@patch foo([x=_UNDEFINED]) => identical(x, _UNDEFINED) ? 42 : x;\n"
+      "@patch class Foo<T> {\n"
       "  static addDefault10([x=_UNDEFINED, y=_UNDEFINED]) {\n"
       "    if (identical(x, _UNDEFINED)) x = 10;\n"
       "    if (identical(y, _UNDEFINED)) y = 10;\n"
@@ -8824,7 +8840,7 @@ TEST_CASE(MakeExternalString) {
   {
     TransitionNativeToVM transition(thread);
     Isolate::Current()->heap()->CollectAllGarbage();
-    GCTestHelper::WaitForFinalizationTasks();
+    GCTestHelper::WaitForGCTasks();
   }
   EXPECT_EQ(80, peer8);
   EXPECT_EQ(82, peer16);

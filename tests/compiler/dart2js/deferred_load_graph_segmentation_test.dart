@@ -84,7 +84,7 @@ void main() {
 // uses lib4.bar2.  So two output units should be created for lib4, one for each
 // import.
 const Map MEMORY_SOURCE_FILES = const {
-  "main.dart":"""
+  "main.dart": """
 import "dart:async";
 import 'lib1.dart' deferred as lib1;
 import 'lib2.dart' deferred as lib2;
@@ -99,7 +99,7 @@ void main() {
   });
 }
 """,
-  "lib1.dart":"""
+  "lib1.dart": """
 library lib1;
 import "dart:async";
 import "dart:html";
@@ -117,7 +117,7 @@ foo1() {
   return () {return 1 + l3.foo3();} ();
 }
 """,
-  "lib2.dart":"""
+  "lib2.dart": """
 library lib2;
 import "dart:async";
 import "lib3.dart" as l3;
@@ -130,14 +130,14 @@ foo2() {
   return () {return 2+l3.foo3();} ();
 }
 """,
-  "lib3.dart":"""
+  "lib3.dart": """
 library lib3;
 
 foo3() {
   return () {return 3;} ();
 }
 """,
-  "lib4.dart":"""
+  "lib4.dart": """
 library lib4;
 
 bar1() {

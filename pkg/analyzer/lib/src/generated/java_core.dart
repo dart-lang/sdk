@@ -4,8 +4,6 @@
 
 library analyzer.src.generated.java_core;
 
-final Stopwatch nanoTimeStopwatch = new Stopwatch();
-
 /**
  * Inserts the given arguments into [pattern].
  *
@@ -41,20 +39,6 @@ String formatList(String pattern, List<Object> arguments) {
   });
 }
 
-/// Parses given string to [Uri], throws [URISyntaxException] if invalid.
-Uri parseUriWithException(String str) {
-  Uri uri;
-  try {
-    uri = Uri.parse(str);
-  } on FormatException catch (e) {
-    throw new URISyntaxException(e.toString());
-  }
-  if (uri.path.isEmpty) {
-    throw new URISyntaxException('empty path');
-  }
-  return uri;
-}
-
 /**
  * Very limited printf implementation, supports only %s and %d.
  */
@@ -86,8 +70,7 @@ String _printf(String fmt, List args) {
         continue;
       }
       // unknown
-      throw new IllegalArgumentException(
-          '[$fmt][$i] = 0x${c.toRadixString(16)}');
+      throw new ArgumentError('[$fmt][$i] = 0x${c.toRadixString(16)}');
     } else {
       sb.writeCharCode(c);
     }
@@ -130,7 +113,7 @@ class Character {
 
   static String toChars(int codePoint) {
     if (codePoint < 0 || codePoint > MAX_CODE_POINT) {
-      throw new IllegalArgumentException();
+      throw new ArgumentError();
     }
     if (codePoint < MIN_SUPPLEMENTARY_CODE_POINT) {
       return new String.fromCharCode(codePoint);
@@ -142,6 +125,7 @@ class Character {
   }
 }
 
+@deprecated
 abstract class Enum<E extends Enum> implements Comparable<E> {
   /// The name of this enum constant, as declared in the enum declaration.
   final String name;
@@ -154,109 +138,7 @@ abstract class Enum<E extends Enum> implements Comparable<E> {
   String toString() => name;
 }
 
-class IllegalArgumentException extends JavaException {
-  IllegalArgumentException([message = "", cause = null])
-      : super(message, cause);
-}
-
-class IllegalStateException extends JavaException {
-  IllegalStateException([message = ""]) : super(message);
-}
-
-class JavaArrays {
-  static int makeHashCode(List a) {
-    // TODO(rnystrom): This is not used by analyzer, but is called by
-    // analysis_server. Move this code there and remove it from here.
-    if (a == null) {
-      return 0;
-    }
-    int result = 1;
-    for (var element in a) {
-      result = 31 * result + (element == null ? 0 : element.hashCode);
-    }
-    return result;
-  }
-}
-
-class JavaException implements Exception {
-  final String message;
-  final Object cause;
-  JavaException([this.message = "", this.cause = null]);
-  JavaException.withCause(this.cause) : message = null;
-  String toString() => "$runtimeType: $message $cause";
-}
-
-class JavaIOException extends JavaException {
-  JavaIOException([message = "", cause = null]) : super(message, cause);
-}
-
-class JavaPatternMatcher {
-  Iterator<Match> _matches;
-  Match _match;
-  JavaPatternMatcher(RegExp re, String input) {
-    _matches = re.allMatches(input).iterator;
-  }
-  int end() => _match.end;
-  bool find() {
-    if (!_matches.moveNext()) {
-      return false;
-    }
-    _match = _matches.current;
-    return true;
-  }
-
-  String group(int i) => _match[i];
-  bool matches() => find();
-  int start() => _match.start;
-}
-
-class JavaString {
-  static int indexOf(String target, String str, int fromIndex) {
-    if (fromIndex > target.length) return -1;
-    if (fromIndex < 0) fromIndex = 0;
-    return target.indexOf(str, fromIndex);
-  }
-
-  static int lastIndexOf(String target, String str, int fromIndex) {
-    if (fromIndex > target.length) return -1;
-    if (fromIndex < 0) fromIndex = 0;
-    return target.lastIndexOf(str, fromIndex);
-  }
-}
-
-class JavaSystem {
-  static int currentTimeMillis() {
-    return (new DateTime.now()).millisecondsSinceEpoch;
-  }
-
-  static int nanoTime() {
-    if (!nanoTimeStopwatch.isRunning) {
-      nanoTimeStopwatch.start();
-    }
-    return nanoTimeStopwatch.elapsedMicroseconds * 1000;
-  }
-}
-
-class MissingFormatArgumentException implements Exception {
-  final String s;
-
-  MissingFormatArgumentException(this.s);
-
-  String toString() => "MissingFormatArgumentException: $s";
-}
-
-class NoSuchElementException extends JavaException {
-  String toString() => "NoSuchElementException";
-}
-
-class NotImplementedException extends JavaException {
-  NotImplementedException(message) : super(message);
-}
-
-class NumberFormatException extends JavaException {
-  String toString() => "NumberFormatException";
-}
-
+@deprecated
 class PrintStringWriter extends PrintWriter {
   final StringBuffer _sb = new StringBuffer();
 
@@ -282,95 +164,4 @@ abstract class PrintWriter {
     this.print(s);
     this.newLine();
   }
-}
-
-class RuntimeException extends JavaException {
-  RuntimeException({String message: "", Exception cause: null})
-      : super(message, cause);
-}
-
-class StringIndexOutOfBoundsException extends JavaException {
-  StringIndexOutOfBoundsException(int index) : super('$index');
-}
-
-class StringUtils {
-  static String capitalize(String str) {
-    if (isEmpty(str)) {
-      return str;
-    }
-    return str.substring(0, 1).toUpperCase() + str.substring(1);
-  }
-
-  static bool equals(String cs1, String cs2) {
-    if (cs1 == cs2) {
-      return true;
-    }
-    if (cs1 == null || cs2 == null) {
-      return false;
-    }
-    return cs1 == cs2;
-  }
-
-  static bool isEmpty(String str) {
-    return str == null || str.isEmpty;
-  }
-
-  static String join(Iterable iter,
-      [String separator = ' ', int start = 0, int end = -1]) {
-    if (start != 0) {
-      iter = iter.skip(start);
-    }
-    if (end != -1) {
-      iter = iter.take(end - start);
-    }
-    return iter.join(separator);
-  }
-
-  static void printf(StringBuffer buffer, String fmt, List args) {
-    buffer.write(_printf(fmt, args));
-  }
-
-  static String remove(String str, String remove) {
-    if (isEmpty(str) || isEmpty(remove)) {
-      return str;
-    }
-    return str.replaceAll(remove, '');
-  }
-
-  static String removeStart(String str, String remove) {
-    if (isEmpty(str) || isEmpty(remove)) {
-      return str;
-    }
-    if (str.startsWith(remove)) {
-      return str.substring(remove.length);
-    }
-    return str;
-  }
-
-  static String repeat(String s, int n) {
-    StringBuffer sb = new StringBuffer();
-    for (int i = 0; i < n; i++) {
-      sb.write(s);
-    }
-    return sb.toString();
-  }
-
-  static List<String> split(String s, [String pattern = ' ']) {
-    return s.split(pattern);
-  }
-
-  static List<String> splitByWholeSeparatorPreserveAllTokens(
-      String s, String pattern) {
-    return s.split(pattern);
-  }
-}
-
-class UnsupportedOperationException extends JavaException {
-  UnsupportedOperationException([message = ""]) : super(message);
-}
-
-class URISyntaxException implements Exception {
-  final String message;
-  URISyntaxException(this.message);
-  String toString() => "URISyntaxException: $message";
 }

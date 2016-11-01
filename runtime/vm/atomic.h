@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ATOMIC_H_
-#define VM_ATOMIC_H_
+#ifndef RUNTIME_VM_ATOMIC_H_
+#define RUNTIME_VM_ATOMIC_H_
 
 #include "platform/globals.h"
 
@@ -20,6 +20,7 @@ class AtomicOperations : public AllStatic {
   // NOTE: Not to be used for any atomic operations involving memory locations
   // that are accessed by generated code.
   static uintptr_t FetchAndIncrement(uintptr_t* p);
+  static intptr_t FetchAndIncrement(intptr_t* p);
 
   // Atomically increment the value at p by 'value'.
   //
@@ -34,6 +35,7 @@ class AtomicOperations : public AllStatic {
   // NOTE: Not to be used for any atomic operations involving memory locations
   // that are accessed by generated code.
   static uintptr_t FetchAndDecrement(uintptr_t* p);
+  static intptr_t FetchAndDecrement(intptr_t* p);
 
   // Atomically decrement the value at p by 'value'.
   //
@@ -51,14 +53,9 @@ class AtomicOperations : public AllStatic {
 
   // Performs a load of a word from 'ptr', but without any guarantees about
   // memory order (i.e., no load barriers/fences).
-  static uword LoadRelaxed(uword* ptr) {
-    return *static_cast<volatile uword*>(ptr);
-  }
-
-  // Performs a load of a word from 'ptr', but without any guarantees about
-  // memory order (i.e., no load barriers/fences).
-  static intptr_t LoadRelaxedIntPtr(intptr_t* ptr) {
-    return *static_cast<volatile intptr_t*>(ptr);
+  template <typename T>
+  static T LoadRelaxed(T* ptr) {
+    return *static_cast<volatile T*>(ptr);
   }
 };
 
@@ -89,4 +86,4 @@ class AtomicOperations : public AllStatic {
 #error Unknown target os.
 #endif
 
-#endif  // VM_ATOMIC_H_
+#endif  // RUNTIME_VM_ATOMIC_H_

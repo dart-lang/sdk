@@ -469,40 +469,6 @@ UnboxedConstantInstr::UnboxedConstantInstr(const Object& value,
 }
 
 
-bool Value::BindsTo32BitMaskConstant() const {
-  if (!definition()->IsUnboxInt64() || !definition()->IsUnboxUint32()) {
-    return false;
-  }
-  // Two cases to consider: UnboxInt64 and UnboxUint32.
-  if (definition()->IsUnboxInt64()) {
-    UnboxInt64Instr* instr = definition()->AsUnboxInt64();
-    if (!instr->value()->BindsToConstant()) {
-      return false;
-    }
-    const Object& obj = instr->value()->BoundConstant();
-    if (!obj.IsMint()) {
-      return false;
-    }
-    Mint& mint = Mint::Handle();
-    mint ^= obj.raw();
-    return mint.value() == kMaxUint32;
-  } else if (definition()->IsUnboxUint32()) {
-    UnboxUint32Instr* instr = definition()->AsUnboxUint32();
-    if (!instr->value()->BindsToConstant()) {
-      return false;
-    }
-    const Object& obj = instr->value()->BoundConstant();
-    if (!obj.IsMint()) {
-      return false;
-    }
-    Mint& mint = Mint::Handle();
-    mint ^= obj.raw();
-    return mint.value() == kMaxUint32;
-  }
-  return false;
-}
-
-
 // Returns true if the value represents a constant.
 bool Value::BindsToConstant() const {
   return definition()->IsConstant();
@@ -1009,8 +975,7 @@ bool BlockEntryInstr::DiscoverBlock(
 }
 
 
-bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
-                                       GraphEntryInstr* graph_entry,
+bool BlockEntryInstr::PruneUnreachable(GraphEntryInstr* graph_entry,
                                        Instruction* parent,
                                        intptr_t osr_id,
                                        BitVector* block_marks) {
@@ -1046,8 +1011,7 @@ bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
 
   // Recursively search the successors.
   for (intptr_t i = instr->SuccessorCount() - 1; i >= 0; --i) {
-    if (instr->SuccessorAt(i)->PruneUnreachable(builder,
-                                                graph_entry,
+    if (instr->SuccessorAt(i)->PruneUnreachable(graph_entry,
                                                 instr,
                                                 osr_id,
                                                 block_marks)) {
@@ -1528,6 +1492,11 @@ Definition* BinaryDoubleOpInstr::Canonicalize(FlowGraph* flow_graph) {
   }
 
   return this;
+}
+
+
+Definition* DoubleTestOpInstr::Canonicalize(FlowGraph* flow_graph) {
+  return HasUses() ? this : NULL;
 }
 
 
@@ -2060,9 +2029,6 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     if (call->is_known_list_constructor() &&
         IsFixedLengthArrayCid(call->Type()->ToCid())) {
       return call->ArgumentAt(1);
-    }
-    if (call->is_native_list_factory()) {
-      return call->ArgumentAt(0);
     }
   }
 
@@ -2700,9 +2666,6 @@ Instruction* GuardFieldLengthInstr::Canonicalize(FlowGraph* flow_graph) {
       LoadFieldInstr::IsFixedLengthArrayCid(call->Type()->ToCid())) {
     length = call->ArgumentAt(1)->AsConstant();
   }
-  if (call->is_native_list_factory()) {
-    length = call->ArgumentAt(0)->AsConstant();
-  }
   if ((length != NULL) &&
       length->value().IsSmi() &&
       Smi::Cast(length->value()).Value() == expected_length) {
@@ -3057,13 +3020,13 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
                                        Value* left,
                                        Value* right,
                                        bool needs_number_check)
-    : ComparisonInstr(token_pos,
-                      kind,
-                      left,
-                      right,
-                      Thread::Current()->GetNextDeoptId()),
+    : TemplateComparison(token_pos,
+                         kind,
+                         Thread::Current()->GetNextDeoptId()),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
+  SetInputAt(0, left);
+  SetInputAt(1, right);
 }
 
 
@@ -3228,22 +3191,12 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 bool PolymorphicInstanceCallInstr::HasSingleRecognizedTarget() const {
+  if (FLAG_precompiled_mode && with_checks()) return false;
+
   return ic_data().HasOneTarget() &&
       (MethodRecognizer::RecognizeKind(
           Function::Handle(ic_data().GetTargetAt(0))) !=
        MethodRecognizer::kUnknown);
-}
-
-
-bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
-  for (intptr_t i = 0; i < ic_data().NumberOfChecks(); ++i) {
-    const Function& target = Function::Handle(ic_data().GetTargetAt(i));
-    if (!target.IsNoSuchMethodDispatcher() &&
-        !target.IsInvokeFieldDispatcher()) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
@@ -3466,6 +3419,13 @@ void Environment::DeepCopyToOuter(Zone* zone, Instruction* instr) const {
     value->set_use_index(use_index++);
     value->definition()->AddEnvUse(value);
   }
+}
+
+
+ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
+                                                        Value* new_right) {
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -3704,6 +3664,71 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+static AlignmentType StrengthenAlignment(intptr_t cid,
+                                         AlignmentType alignment) {
+  switch (cid) {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kOneByteStringCid:
+    case kExternalOneByteStringCid:
+      // Don't need to worry about alignment for accessing bytes.
+      return kAlignedAccess;
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
+      // TODO(rmacnak): Investigate alignment requirements of floating point
+      // loads.
+      return kAlignedAccess;
+  }
+
+  return alignment;
+}
+
+
+LoadIndexedInstr::LoadIndexedInstr(Value* array,
+                                   Value* index,
+                                   intptr_t index_scale,
+                                   intptr_t class_id,
+                                   AlignmentType alignment,
+                                   intptr_t deopt_id,
+                                   TokenPosition token_pos)
+    : TemplateDefinition(deopt_id),
+      index_scale_(index_scale),
+      class_id_(class_id),
+      alignment_(StrengthenAlignment(class_id, alignment)),
+      token_pos_(token_pos) {
+  SetInputAt(0, array);
+  SetInputAt(1, index);
+}
+
+
+
+StoreIndexedInstr::StoreIndexedInstr(Value* array,
+                                     Value* index,
+                                     Value* value,
+                                     StoreBarrierType emit_store_barrier,
+                                     intptr_t index_scale,
+                                     intptr_t class_id,
+                                     AlignmentType alignment,
+                                     intptr_t deopt_id,
+                                     TokenPosition token_pos)
+    : TemplateDefinition(deopt_id),
+      emit_store_barrier_(emit_store_barrier),
+      index_scale_(index_scale),
+      class_id_(class_id),
+      alignment_(StrengthenAlignment(class_id, alignment)),
+      token_pos_(token_pos) {
+  SetInputAt(kArrayPos, array);
+  SetInputAt(kIndexPos, index);
+  SetInputAt(kValuePos, value);
+}
+
+
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
     intptr_t deopt_id,
@@ -3841,24 +3866,9 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
 }
 
 
-const RuntimeEntry& MathUnaryInstr::TargetFunction() const {
-  switch (kind()) {
-    case MathUnaryInstr::kSin:
-      return kLibcSinRuntimeEntry;
-    case MathUnaryInstr::kCos:
-      return kLibcCosRuntimeEntry;
-    default:
-      UNREACHABLE();
-  }
-  return kLibcSinRuntimeEntry;
-}
-
-
 const char* MathUnaryInstr::KindToCString(MathUnaryKind kind) {
   switch (kind) {
     case kIllegal:       return "illegal";
-    case kSin:           return "sin";
-    case kCos:           return "cos";
     case kSqrt:          return "sqrt";
     case kDoubleSquare:  return "double-square";
   }
@@ -3887,10 +3897,10 @@ MergedMathInstr::MergedMathInstr(ZoneGrowableArray<Value*>* inputs,
 }
 
 
-intptr_t MergedMathInstr::OutputIndexOf(intptr_t kind) {
+intptr_t MergedMathInstr::OutputIndexOf(MethodRecognizer::Kind kind) {
   switch (kind) {
-    case MathUnaryInstr::kSin: return 1;
-    case MathUnaryInstr::kCos: return 0;
+    case MethodRecognizer::kMathSin: return 1;
+    case MethodRecognizer::kMathCos: return 0;
     default: UNIMPLEMENTED(); return -1;
   }
 }

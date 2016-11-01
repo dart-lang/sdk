@@ -4,100 +4,96 @@
 
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, EventRepository;
+import 'package:observatory/models.dart' as M show IsolateRef, EventRepository;
+import 'package:observatory/src/elements/helpers/nav_menu.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
-import 'package:observatory/src/elements/nav/menu.dart';
 import 'package:observatory/src/elements/nav/menu_item.dart';
 
 class NavIsolateMenuElement extends HtmlElement implements Renderable {
   static const tag = const Tag<NavIsolateMenuElement>('nav-isolate-menu',
-                     dependencies: const [NavMenuElement.tag,
-                                          NavMenuItemElement.tag]);
+      dependencies: const [NavMenuItemElement.tag]);
 
   RenderingScheduler _r;
 
   Stream<RenderedEvent<NavIsolateMenuElement>> get onRendered => _r.onRendered;
 
-  bool _last;
   M.IsolateRef _isolate;
   M.EventRepository _events;
   StreamSubscription _updatesSubscription;
+  Iterable<Element> _content = const [];
 
-  bool get last => _last;
   M.IsolateRef get isolate => _isolate;
+  Iterable<Element> get content => _content;
 
-  set last(bool value) => _last = _r.checkAndReact(_last, value);
+  set content(Iterable<Element> value) {
+    _content = value.toList();
+    _r.dirty();
+  }
 
-  factory NavIsolateMenuElement(M.IsolateRef isolate,
-      M.EventRepository events, {bool last: false,
-      RenderingQueue queue}) {
+  factory NavIsolateMenuElement(M.IsolateRef isolate, M.EventRepository events,
+      {RenderingQueue queue}) {
     assert(isolate != null);
     assert(events != null);
-    assert(last != null);
     NavIsolateMenuElement e = document.createElement(tag.name);
     e._r = new RenderingScheduler(e, queue: queue);
     e._isolate = isolate;
-    e._last = last;
     e._events = events;
     return e;
   }
 
-  NavIsolateMenuElement.created() : super.created() {
-    _r = new RenderingScheduler(this);
-    createShadowRoot();
-  }
+  NavIsolateMenuElement.created() : super.created();
 
   @override
   void attached() {
     super.attached();
     _updatesSubscription = _events.onIsolateUpdate
-      .where((e) => e.isolate.id == isolate.id)
-      .listen((e) { _isolate = e.isolate; _r.dirty(); });
+        .where((e) => e.isolate.id == isolate.id)
+        .listen((e) {
+      _isolate = e.isolate;
+      _r.dirty();
+    });
     _r.enable();
   }
 
   @override
   void detached() {
     super.detached();
+    children = [];
     _r.disable(notify: true);
-    shadowRoot.children = [];
     assert(_updatesSubscription != null);
     _updatesSubscription.cancel();
     _updatesSubscription = null;
   }
 
   void render() {
-    shadowRoot.children = [
-      new NavMenuElement(isolate.name, last: last, queue: _r.queue,
-          link: Uris.inspect(isolate))
-        ..children = [
-          new NavMenuItemElement('debugger', queue: _r.queue,
-              link: Uris.debugger(isolate)),
-          new NavMenuItemElement('class hierarchy', queue: _r.queue,
-              link: Uris.classTree(isolate)),
-          new NavMenuItemElement('cpu profile', queue: _r.queue,
-              link: Uris.cpuProfiler(isolate)),
-          new NavMenuItemElement('cpu profile (table)', queue: _r.queue,
-              link: Uris.cpuProfilerTable(isolate)),
-          new NavMenuItemElement('allocation profile', queue: _r.queue,
-              link: Uris.allocationProfiler(isolate)),
-          new NavMenuItemElement('heap map', queue: _r.queue,
-              link: Uris.heapMap(isolate)),
-          new NavMenuItemElement('metrics', queue: _r.queue,
-              link: Uris.metrics(isolate)),
-          new NavMenuItemElement('heap snapshot', queue: _r.queue,
-              link: Uris.heapSnapshot(isolate)),
-          new NavMenuItemElement('persistent handles', queue: _r.queue,
-              link: Uris.persistentHandles(isolate)),
-          new NavMenuItemElement('ports', queue: _r.queue,
-              link: Uris.ports(isolate)),
-          new NavMenuItemElement('logging', queue: _r.queue,
-              link: Uris.logging(isolate)),
-          new ContentElement()
-        ]
+    final content = [
+      new NavMenuItemElement('debugger',
+          queue: _r.queue, link: Uris.debugger(isolate)),
+      new NavMenuItemElement('class hierarchy',
+          queue: _r.queue, link: Uris.classTree(isolate)),
+      new NavMenuItemElement('cpu profile',
+          queue: _r.queue, link: Uris.cpuProfiler(isolate)),
+      new NavMenuItemElement('cpu profile (table)',
+          queue: _r.queue, link: Uris.cpuProfilerTable(isolate)),
+      new NavMenuItemElement('allocation profile',
+          queue: _r.queue, link: Uris.allocationProfiler(isolate)),
+      new NavMenuItemElement('heap snapshot',
+          queue: _r.queue, link: Uris.heapSnapshot(isolate)),
+      new NavMenuItemElement('heap map',
+          queue: _r.queue, link: Uris.heapMap(isolate)),
+      new NavMenuItemElement('metrics',
+          queue: _r.queue, link: Uris.metrics(isolate)),
+      new NavMenuItemElement('persistent handles',
+          queue: _r.queue, link: Uris.persistentHandles(isolate)),
+      new NavMenuItemElement('ports',
+          queue: _r.queue, link: Uris.ports(isolate)),
+      new NavMenuItemElement('logging',
+          queue: _r.queue, link: Uris.logging(isolate)),
+    ]..addAll(_content);
+    children = [
+      navMenu(isolate.name, content: content, link: Uris.inspect(isolate))
     ];
   }
 }

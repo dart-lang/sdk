@@ -5,6 +5,8 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "platform/floating_point_win.h"
+
 #include <limits>  // NOLINT
 
 // Taken from third_party/v8/src/platform-win32.cc

@@ -6,16 +6,16 @@ library analyzer.test.dart.ast.visitor_test;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/parser_test.dart' show ParserTestCase;
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(BreadthFirstVisitorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(BreadthFirstVisitorTest);
+  });
 }
 
 @reflectiveTest

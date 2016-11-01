@@ -29,6 +29,7 @@
 #include "vm/port.h"
 #include "vm/profiler_service.h"
 #include "vm/reusable_handles.h"
+#include "vm/safepoint.h"
 #include "vm/service_event.h"
 #include "vm/service_isolate.h"
 #include "vm/source_report.h"
@@ -221,6 +222,9 @@ RawObject* Service::RequestAssets() {
 
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
+  if (new_ptr == NULL) {
+    OUT_OF_MEMORY();
+  }
   return reinterpret_cast<uint8_t*>(new_ptr);
 }
 
@@ -236,6 +240,14 @@ static void PrintInvalidParamError(JSONStream* js,
                                    const char* param) {
   js->PrintError(kInvalidParams,
                  "%s: invalid '%s' parameter: %s",
+                 js->method(), param, js->LookupParam(param));
+}
+
+
+static void PrintIllegalParamError(JSONStream* js,
+                                   const char* param) {
+  js->PrintError(kInvalidParams,
+                 "%s: illegal '%s' parameter: %s",
                  js->method(), param, js->LookupParam(param));
 }
 
@@ -838,6 +850,7 @@ void Service::InvokeMethod(Isolate* I,
   Thread* T = Thread::Current();
   ASSERT(I == T->isolate());
   ASSERT(I != NULL);
+  ASSERT(T->execution_state() == Thread::kThreadInVM);
   ASSERT(!msg.IsNull());
   ASSERT(msg.Length() == 6);
 
@@ -961,72 +974,93 @@ void Service::HandleObjectRootMessage(const Array& msg_instance) {
 void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
   ASSERT(isolate != NULL);
   InvokeMethod(isolate, msg);
+  MaybePause(isolate);
+}
+
+
+static void Finalizer(void* isolate_callback_data,
+                      Dart_WeakPersistentHandle handle,
+                      void* buffer) {
+  free(buffer);
 }
 
 
 void Service::SendEvent(const char* stream_id,
                         const char* event_type,
-                        const Object& event_message) {
+                        uint8_t* bytes,
+                        intptr_t bytes_length) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(isolate));
-  if (!ServiceIsolate::IsRunning()) {
-    return;
-  }
-  HANDLESCOPE(thread);
 
-  const Array& list = Array::Handle(Array::New(2));
-  ASSERT(!list.IsNull());
-  const String& stream_id_str = String::Handle(String::New(stream_id));
-  list.SetAt(0, stream_id_str);
-  list.SetAt(1, event_message);
-
-  // Push the event to port_.
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(list);
-  intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
     OS::Print("vm-service: Pushing ServiceEvent(isolate='%s', kind='%s',"
               " len=%" Pd ") to stream %s\n",
-              isolate->name(), event_type, len, stream_id);
+              isolate->name(), event_type, bytes_length, stream_id);
   }
-  // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
-  PortMap::PostMessage(
-      new Message(ServiceIsolate::Port(), data, len, Message::kNormalPriority));
+
+  bool result;
+  {
+    TransitionVMToNative transition(thread);
+    Dart_CObject cbytes;
+    cbytes.type = Dart_CObject_kExternalTypedData;
+    cbytes.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+    cbytes.value.as_external_typed_data.length = bytes_length;
+    cbytes.value.as_external_typed_data.data = bytes;
+    cbytes.value.as_external_typed_data.peer = bytes;
+    cbytes.value.as_external_typed_data.callback = Finalizer;
+
+    Dart_CObject cstream_id;
+    cstream_id.type = Dart_CObject_kString;
+    cstream_id.value.as_string = const_cast<char*>(stream_id);
+
+    Dart_CObject* elements[2];
+    elements[0] = &cstream_id;
+    elements[1] = &cbytes;
+    Dart_CObject message;
+    message.type = Dart_CObject_kArray;
+    message.value.as_array.length = 2;
+    message.value.as_array.values = elements;
+    result = Dart_PostCObject(ServiceIsolate::Port(), &message);
+  }
+
+  if (!result) {
+    free(bytes);
+  }
 }
 
 
-// TODO(turnidge): Rewrite this method to use Post_CObject instead.
 void Service::SendEventWithData(const char* stream_id,
                                 const char* event_type,
-                                const String& meta,
+                                const char* metadata,
+                                intptr_t metadata_size,
                                 const uint8_t* data,
-                                intptr_t size) {
-  // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
-  const intptr_t meta_bytes = Utf8::Length(meta);
-  const intptr_t total_bytes = sizeof(uint64_t) + meta_bytes + size;
-  const TypedData& message = TypedData::Handle(
-      TypedData::New(kTypedDataUint8ArrayCid, total_bytes));
+                                intptr_t data_size) {
+  // Bitstream: [metadata size (big-endian 64 bit)] [metadata (UTF-8)] [data]
+  const intptr_t total_bytes = sizeof(uint64_t) + metadata_size + data_size;
+
+  uint8_t* message = static_cast<uint8_t*>(malloc(total_bytes));
+  if (message == NULL) {
+    OUT_OF_MEMORY();
+  }
   intptr_t offset = 0;
-  // TODO(koda): Rename these methods SetHostUint64, etc.
-  message.SetUint64(0, Utils::HostToBigEndian64(meta_bytes));
+
+  // Metadata size.
+  reinterpret_cast<uint64_t*>(message)[0] =
+      Utils::HostToBigEndian64(metadata_size);
   offset += sizeof(uint64_t);
-  {
-    NoSafepointScope no_safepoint;
-    meta.ToUTF8(static_cast<uint8_t*>(message.DataAddr(offset)), meta_bytes);
-    offset += meta_bytes;
-  }
-  // TODO(koda): It would be nice to avoid this copy (requires changes to
-  // MessageWriter code).
-  {
-    NoSafepointScope no_safepoint;
-    memmove(message.DataAddr(offset), data, size);
-    offset += size;
-  }
+
+  // Metadata.
+  memmove(&message[offset], metadata, metadata_size);
+  offset += metadata_size;
+
+  // Data.
+  memmove(&message[offset], data, data_size);
+  offset += data_size;
+
   ASSERT(offset == total_bytes);
-  SendEvent(stream_id, event_type, message);
+  SendEvent(stream_id, event_type, message, total_bytes);
 }
 
 
@@ -1057,6 +1091,11 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
       OS::PrintErr(
           "vm-service: isolate '%s' has no debugger attached and is paused.",
           name);
+      break;
+    case ServiceEvent::kPausePostRequest:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused "
+          "post reload.", name);
       break;
     default:
       UNREACHABLE();
@@ -1195,8 +1234,12 @@ void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
   Dart_ServiceRequestCallback callback = handler->callback();
   ASSERT(callback != NULL);
   const char* response = NULL;
-  bool success = callback(js->method(), js->param_keys(), js->param_values(),
-                          js->num_params(), handler->user_data(), &response);
+  bool success;
+  {
+    TransitionVMToNative transition(Thread::Current());
+    success = callback(js->method(), js->param_keys(), js->param_values(),
+                       js->num_params(), handler->user_data(), &response);
+  }
   ASSERT(response != NULL);
   if (!success) {
     js->SetupError();
@@ -1403,9 +1446,10 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
       }
     }
   }
-  const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
-  SendEventWithData(echo_stream.id(), "_Echo", message, data, sizeof(data));
+  SendEventWithData(echo_stream.id(), "_Echo",
+                    js.buffer()->buf(), js.buffer()->length(),
+                    data, sizeof(data));
 }
 
 
@@ -1937,13 +1981,16 @@ static bool PrintInboundReferences(Thread* thread,
         intptr_t element_index = slot_offset.Value();
         jselement.AddProperty("_parentWordOffset", element_index);
       }
-
-      // We nil out the array after generating the response to prevent
-      // reporting suprious references when repeatedly looking for the
-      // references to an object.
-      path.SetAt(i * 2, Object::null_object());
     }
   }
+
+  // We nil out the array after generating the response to prevent
+  // reporting suprious references when repeatedly looking for the
+  // references to an object.
+  for (intptr_t i = 0; i < path.Length(); i++) {
+    path.SetAt(i, Object::null_object());
+  }
+
   return true;
 }
 
@@ -2055,8 +2102,8 @@ static bool PrintRetainingPath(Thread* thread,
   // We nil out the array after generating the response to prevent
   // reporting spurious references when looking for inbound references
   // after looking for a retaining path.
-  for (intptr_t i = 0; i < limit; ++i) {
-    path.SetAt(i * 2, Object::null_object());
+  for (intptr_t i = 0; i < path.Length(); i++) {
+    path.SetAt(i, Object::null_object());
   }
 
   return true;
@@ -2279,7 +2326,7 @@ static bool EvaluateInFrame(Thread* thread, JSONStream* js) {
   }
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
   intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
-  if (framePos > stack->Length()) {
+  if (framePos >= stack->Length()) {
     PrintInvalidParamError(js, "frameIndex");
     return true;
   }
@@ -2362,23 +2409,24 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
   ObjectGraph graph(thread);
   graph.IterateObjects(&visitor);
   intptr_t count = visitor.count();
-  if (count < limit) {
-    // Truncate the list using utility method for GrowableObjectArray.
-    GrowableObjectArray& wrapper = GrowableObjectArray::Handle(
-        GrowableObjectArray::New(storage));
-    wrapper.SetLength(count);
-    storage = Array::MakeArray(wrapper);
-  }
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "InstanceSet");
   jsobj.AddProperty("totalCount", count);
   {
     JSONArray samples(&jsobj, "samples");
-    for (int i = 0; i < storage.Length(); i++) {
+    for (int i = 0; (i < storage.Length()) && (i < count); i++) {
       const Object& sample = Object::Handle(storage.At(i));
       samples.AddValue(sample);
     }
   }
+
+  // We nil out the array after generating the response to prevent
+  // reporting spurious references when looking for inbound references
+  // after looking at allInstances.
+  for (intptr_t i = 0; i < storage.Length(); i++) {
+    storage.SetAt(i, Object::null_object());
+  }
+
   return true;
 }
 
@@ -2474,6 +2522,7 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
 static const MethodParameter* reload_sources_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
   new BoolParameter("force", false),
+  new BoolParameter("pause", false),
   NULL,
 };
 
@@ -2496,6 +2545,13 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
                    "A library tag handler must be installed.");
     return true;
   }
+  if ((isolate->sticky_error() != Error::null()) ||
+      (Thread::Current()->sticky_error() != Error::null())) {
+    js->PrintError(kIsolateReloadBarred,
+                   "This isolate cannot reload sources anymore because there "
+                   "was an unhandled exception error. Restart the isolate.");
+    return true;
+  }
   if (isolate->IsReloading()) {
     js->PrintError(kIsolateIsReloading,
                    "This isolate is being reloaded.");
@@ -2511,7 +2567,27 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
 
   isolate->ReloadSources(js, force_reload);
 
+  Service::CheckForPause(isolate, js);
+
   return true;
+}
+
+
+void Service::CheckForPause(Isolate* isolate, JSONStream* stream) {
+  // Should we pause?
+  isolate->set_should_pause_post_service_request(
+      BoolParameter::Parse(stream->LookupParam("pause"), false));
+}
+
+
+void Service::MaybePause(Isolate* isolate) {
+  // Don't pause twice.
+  if (!isolate->IsPaused()) {
+    if (isolate->should_pause_post_service_request()) {
+      isolate->set_should_pause_post_service_request(false);
+      isolate->PausePostRequest();
+    }
+  }
 }
 
 
@@ -3335,14 +3411,13 @@ void Service::SendGraphEvent(Thread* thread, bool collect_garbage) {
       }
     }
 
-    const String& message = String::Handle(String::New(js.ToCString()));
-
     uint8_t* chunk_start = buffer + (i * kChunkSize);
     intptr_t chunk_size = (i + 1 == num_chunks)
         ? stream.bytes_written() - (i * kChunkSize)
         : kChunkSize;
 
-    SendEventWithData(graph_stream.id(), "_Graph", message,
+    SendEventWithData(graph_stream.id(), "_Graph",
+                      js.buffer()->buf(), js.buffer()->length(),
                       chunk_start, chunk_size);
   }
 }
@@ -3514,6 +3589,10 @@ class PersistentHandleVisitor : public HandleVisitor {
   }
 
   void Append(FinalizablePersistentHandle* weak_persistent_handle) {
+    if (!weak_persistent_handle->raw()->IsHeapObject()) {
+      return;  // Free handle.
+    }
+
     JSONObject obj(handles_);
     obj.AddProperty("type", "_WeakPersistentHandle");
     const Object& object =
@@ -3754,8 +3833,10 @@ static const MethodParameter* get_version_params[] = {
 static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
-  jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(5));
+  jsobj.AddProperty("major",
+                    static_cast<intptr_t>(SERVICE_PROTOCOL_MAJOR_VERSION));
+  jsobj.AddProperty("minor",
+                    static_cast<intptr_t>(SERVICE_PROTOCOL_MINOR_VERSION));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -3802,6 +3883,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   jsobj.AddProperty("version", Version::String());
   jsobj.AddProperty("_profilerMode", FLAG_profile_vm ? "VM" : "Dart");
   jsobj.AddProperty64("pid", OS::ProcessId());
+  jsobj.AddProperty64("_maxRSS", OS::MaxRSS());
   int64_t start_time_millis = (vm_isolate->start_time() /
                                kMicrosecondsPerMillisecond);
   jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
@@ -3938,6 +4020,13 @@ static bool SetLibraryDebuggable(Thread* thread, JSONStream* js) {
       BoolParameter::Parse(js->LookupParam("isDebuggable"), false);
   if (obj.IsLibrary()) {
     const Library& lib = Library::Cast(obj);
+    if (lib.is_dart_scheme()) {
+      const String& url = String::Handle(lib.url());
+      if (url.StartsWith(Symbols::DartSchemePrivate())) {
+        PrintIllegalParamError(js, "libraryId");
+        return true;
+      }
+    }
     lib.set_debuggable(is_debuggable);
     PrintSuccess(js);
     return true;
@@ -4109,6 +4198,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     remove_breakpoint_params },
   { "_restartVM", RestartVM,
     restart_vm_params },
+  { "reloadSources", ReloadSources,
+    reload_sources_params },
   { "_reloadSources", ReloadSources,
     reload_sources_params },
   { "resume", Resume,

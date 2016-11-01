@@ -17,7 +17,6 @@ void foo(bar) {
 }
 """;
 
-
 const String TEST_TWO = r"""
 void foo() {
   var temp = 0;
@@ -31,16 +30,15 @@ void foo() {
 
 main() {
   asyncTest(() => Future.wait([
-    compile(TEST_ONE, entry: 'foo', check: (String generated) {
-      RegExp regexp = new RegExp("toBeRemoved");
-      Expect.isTrue(!regexp.hasMatch(generated));
-    }),
-
-    compile(TEST_TWO, entry: 'foo', check: (String generated) {
-      RegExp regexp = new RegExp("toBeRemoved");
-      Expect.isTrue(!regexp.hasMatch(generated));
-      regexp = new RegExp("temp");
-      Expect.isTrue(!regexp.hasMatch(generated));
-    }),
-  ]));
+        compile(TEST_ONE, entry: 'foo', check: (String generated) {
+          RegExp regexp = new RegExp("toBeRemoved");
+          Expect.isTrue(!regexp.hasMatch(generated));
+        }),
+        compile(TEST_TWO, entry: 'foo', check: (String generated) {
+          RegExp regexp = new RegExp("toBeRemoved");
+          Expect.isTrue(!regexp.hasMatch(generated));
+          regexp = new RegExp("temp");
+          Expect.isTrue(!regexp.hasMatch(generated));
+        }),
+      ]));
 }

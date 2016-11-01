@@ -1,4 +1,0 @@
-# ignore the checkout of boringssl.
-src/
-*.mk
-*.Makefile

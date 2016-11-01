@@ -22,7 +22,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
@@ -57,15 +57,17 @@ class AbstractAnalysisTest {
       <GeneralAnalysisService>[];
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
-  String projectPath = '/project';
-  String testFolder = '/project/bin';
-  String testFile = '/project/bin/test.dart';
+  String projectPath;
+  String testFolder;
+  String testFile;
   String testCode;
 
   AbstractAnalysisTest();
 
   AnalysisDomainHandler get analysisHandler => server.handlers
       .singleWhere((handler) => handler is AnalysisDomainHandler);
+
+  AnalysisContext get testContext => server.getAnalysisContext(testFile);
 
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
@@ -82,6 +84,7 @@ class AbstractAnalysisTest {
   }
 
   String addFile(String path, String content) {
+    path = resourceProvider.convertPath(path);
     resourceProvider.newFile(path, content);
     return path;
   }
@@ -121,6 +124,10 @@ class AbstractAnalysisTest {
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
     //
+    // Create an SDK in the mock file system.
+    //
+    new MockSdk(resourceProvider: resourceProvider);
+    //
     // Create server
     //
     return new AnalysisServer(
@@ -130,7 +137,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        new DartSdkManager('', false, (_) => new MockSdk()),
+        new DartSdkManager(resourceProvider.convertPath('/'), false),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -141,10 +148,11 @@ class AbstractAnalysisTest {
   /**
    * Creates a project `/project`.
    */
-  void createProject() {
+  void createProject({Map<String, String> packageRoots}) {
     resourceProvider.newFolder(projectPath);
-    Request request =
-        new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
+    Request request = new AnalysisSetAnalysisRootsParams([projectPath], [],
+            packageRoots: packageRoots)
+        .toRequest('0');
     handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
@@ -203,6 +211,9 @@ class AbstractAnalysisTest {
   void setUp() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
+    projectPath = resourceProvider.convertPath('/project');
+    testFolder = resourceProvider.convertPath('/project/bin');
+    testFile = resourceProvider.convertPath('/project/bin/test.dart');
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = createAnalysisServer(index);

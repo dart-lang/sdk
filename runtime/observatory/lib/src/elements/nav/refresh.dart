@@ -13,14 +13,14 @@ class RefreshEvent {
 }
 
 class NavRefreshElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<NavRefreshElement>('nav-refresh-wrapped');
+  static const tag = const Tag<NavRefreshElement>('nav-refresh');
 
   RenderingScheduler _r;
 
   Stream<RenderedEvent<NavRefreshElement>> get onRendered => _r.onRendered;
 
   final StreamController<RefreshEvent> _onRefresh =
-                                new StreamController<RefreshEvent>.broadcast();
+      new StreamController<RefreshEvent>.broadcast();
   Stream<RefreshEvent> get onRefresh => _onRefresh.stream;
 
   bool _disabled;
@@ -28,12 +28,12 @@ class NavRefreshElement extends HtmlElement implements Renderable {
 
   bool get disabled => _disabled;
   String get label => _label;
-  
+
   set disabled(bool value) => _disabled = _r.checkAndReact(_disabled, value);
   set label(String value) => _label = _r.checkAndReact(_label, value);
 
-  factory NavRefreshElement({String label: 'Refresh', bool disabled: false,
-                             RenderingQueue queue}) {
+  factory NavRefreshElement(
+      {String label: 'Refresh', bool disabled: false, RenderingQueue queue}) {
     assert(label != null);
     assert(disabled != null);
     NavRefreshElement e = document.createElement(tag.name);

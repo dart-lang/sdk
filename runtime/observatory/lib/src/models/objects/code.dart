@@ -4,13 +4,7 @@
 
 part of models;
 
-enum CodeKind {
-  dart,
-  native,
-  stub,
-  tag,
-  collected
-}
+enum CodeKind { dart, native, stub, tag, collected }
 
 bool isSyntheticCode(CodeKind kind) {
   switch (kind) {
@@ -36,4 +30,7 @@ abstract class CodeRef extends ObjectRef {
 }
 
 abstract class Code extends Object implements CodeRef {
+  FunctionRef get function;
+  ObjectPoolRef get objectPool;
+  Iterable<FunctionRef> get inlinedFunctions;
 }

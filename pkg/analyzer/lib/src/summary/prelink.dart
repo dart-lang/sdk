@@ -17,9 +17,16 @@ import 'package:analyzer/src/summary/name_filter.dart';
  * declarations) will be retrieved using [getImport].
  */
 LinkedLibraryBuilder prelink(UnlinkedUnit definingUnit, GetPartCallback getPart,
-    GetImportCallback getImport) {
-  return new _Prelinker(definingUnit, getPart, getImport).prelink();
+    GetImportCallback getImport, GetDeclaredVariable getDeclaredVariable) {
+  return new _Prelinker(definingUnit, getPart, getImport, getDeclaredVariable)
+      .prelink();
 }
+
+/**
+ * Return the raw string value of the variable with the given [name],
+ * or `null` of the variable is not defined.
+ */
+typedef String GetDeclaredVariable(String name);
 
 /**
  * Type of the callback used by the prelinker to obtain public namespace
@@ -121,6 +128,7 @@ class _Prelinker {
   final UnlinkedUnit definingUnit;
   final GetPartCallback getPart;
   final GetImportCallback getImport;
+  final GetDeclaredVariable getDeclaredVariable;
 
   /**
    * Cache of values returned by [getImport].
@@ -161,7 +169,8 @@ class _Prelinker {
   final List<Map<String, _Meaning>> dependencyToPublicNamespace =
       <Map<String, _Meaning>>[null];
 
-  _Prelinker(this.definingUnit, this.getPart, this.getImport) {
+  _Prelinker(this.definingUnit, this.getPart, this.getImport,
+      this.getDeclaredVariable) {
     partCache[null] = definingUnit;
     importCache[null] = definingUnit.publicNamespace;
   }
@@ -231,7 +240,9 @@ class _Prelinker {
             getImportCached(relativeUri);
         if (exportedNamespace != null) {
           for (UnlinkedExportPublic export in exportedNamespace.exports) {
-            String exportUri = resolveUri(relativeUri, export.uri);
+            String relativeExportUri =
+                _selectUri(export.uri, export.configurations);
+            String exportUri = resolveUri(relativeUri, relativeExportUri);
             NameFilter newFilter = filter.merge(
                 new NameFilter.forUnlinkedCombinators(export.combinators));
             aggregatePublicNamespace(exportUri)
@@ -247,6 +258,7 @@ class _Prelinker {
         seenUris.remove(relativeUri);
       }
     }
+
     chaseExports(NameFilter.identity, relativeUri, new Set<String>());
     return exportNamespace;
   }
@@ -385,7 +397,9 @@ class _Prelinker {
    * return value is the index of the imported library in [dependencies].
    */
   int handleImport(UnlinkedImport import) {
-    String uri = import.isImplicit ? 'dart:core' : import.uri;
+    String uri = import.isImplicit
+        ? 'dart:core'
+        : _selectUri(import.uri, import.configurations);
     Map<String, _Meaning> targetNamespace = null;
     if (import.prefixReference != 0) {
       // The name introduced by an import declaration can't have a prefix of
@@ -483,9 +497,11 @@ class _Prelinker {
     // Fill in imported and exported names.
     List<int> importDependencies =
         definingUnit.imports.map(handleImport).toList();
-    List<int> exportDependencies = definingUnit.publicNamespace.exports
-        .map((UnlinkedExportPublic exp) => uriToDependency[exp.uri])
-        .toList();
+    List<int> exportDependencies =
+        definingUnit.publicNamespace.exports.map((UnlinkedExportPublic exp) {
+      String uri = _selectUri(exp.uri, exp.configurations);
+      return uriToDependency[uri];
+    }).toList();
 
     // Link each compilation unit.
     List<LinkedUnitBuilder> linkedUnits = units.map(linkUnit).toList();
@@ -510,5 +526,19 @@ class _Prelinker {
       return resolveRelativeUri(Uri.parse(sourceUri), Uri.parse(relativeUri))
           .toString();
     }
+  }
+
+  /**
+   * Return the URI of the first configuration from the given [configurations]
+   * which condition is satisfied, or the [defaultUri].
+   */
+  String _selectUri(
+      String defaultUri, List<UnlinkedConfiguration> configurations) {
+    for (UnlinkedConfiguration configuration in configurations) {
+      if (getDeclaredVariable(configuration.name) == configuration.value) {
+        return configuration.uri;
+      }
+    }
+    return defaultUri;
   }
 }

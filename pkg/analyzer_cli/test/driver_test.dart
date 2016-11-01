@@ -6,18 +6,20 @@ library analyzer_cli.test.driver;
 
 import 'dart:io';
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:yaml/src/yaml_node.dart';
 
 import 'utils.dart';
@@ -49,8 +51,6 @@ main() {
   setUp(() => _setUp());
 
   tearDown(() => _tearDown());
-
-  initializeTestEnvironment();
 
   group('Driver', () {
     group('options', () {
@@ -204,6 +204,7 @@ main() {
           });
         });
       }
+
       createTests('old', AnalysisEngine.ANALYSIS_OPTIONS_FILE);
       createTests('new', AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     });
@@ -297,12 +298,13 @@ linter:
                 ErrorSeverity.WARNING);
             // Should not be made fatal by `--fatal-warnings`.
             expect(outSink.toString(),
-                contains("[warning] The function 'baz' is not defined"));
+                contains("[warning] The function 'baz' isn't defined"));
             expect(
                 outSink.toString(), contains("1 error and 1 warning found."));
           });
         });
       }
+
       createTests('old', AnalysisEngine.ANALYSIS_OPTIONS_FILE);
       createTests('new', AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     });
@@ -351,6 +353,7 @@ linter:
         });
       });
     }
+
     createTests('old', AnalysisEngine.ANALYSIS_OPTIONS_FILE);
     createTests('new', AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
 
@@ -459,6 +462,7 @@ String findSdkDirForSummaries() {
     return new File(path.join(sdkDir, 'lib', '_internal', 'spec.sum'))
         .existsSync();
   }
+
   // Usually the sdk directory is the parent of the parent of the "dart"
   // executable.
   Directory executableParent = new File(Platform.executable).parent;

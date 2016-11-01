@@ -6,8 +6,7 @@ library lazy;
 
 import 'deferred_mirrors2_lib3.dart';
 
-@MirrorsUsed(metaTargets: const [Reflectable],
-    override: 'lazy')
+@MirrorsUsed(metaTargets: const [Reflectable], override: 'lazy')
 import 'dart:mirrors';
 
 class Reflectable {

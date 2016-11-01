@@ -8,12 +8,55 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+
+/**
+ * The scope defined by a block.
+ */
+class BlockScope extends EnclosedScope {
+  /**
+   * Initialize a newly created scope, enclosed within the [enclosingScope],
+   * based on the given [block].
+   */
+  BlockScope(Scope enclosingScope, Block block) : super(enclosingScope) {
+    if (block == null) {
+      throw new ArgumentError("block cannot be null");
+    }
+    _defineElements(block);
+  }
+
+  void _defineElements(Block block) {
+    for (Element element in elementsInBlock(block)) {
+      define(element);
+    }
+  }
+
+  /**
+   * Return the elements that are declared directly in the given [block]. This
+   * does not include elements declared in nested blocks.
+   */
+  static Iterable<Element> elementsInBlock(Block block) sync* {
+    NodeList<Statement> statements = block.statements;
+    int statementCount = statements.length;
+    for (int i = 0; i < statementCount; i++) {
+      Statement statement = statements[i];
+      if (statement is VariableDeclarationStatement) {
+        NodeList<VariableDeclaration> variables = statement.variables.variables;
+        int variableCount = variables.length;
+        for (int j = 0; j < variableCount; j++) {
+          yield variables[j].element;
+        }
+      } else if (statement is FunctionDeclarationStatement) {
+        yield statement.functionDeclaration.element;
+      }
+    }
+  }
+}
 
 /**
  * The scope defined by a class.
@@ -26,7 +69,7 @@ class ClassScope extends EnclosedScope {
   ClassScope(Scope enclosingScope, ClassElement classElement)
       : super(enclosingScope) {
     if (classElement == null) {
-      throw new IllegalArgumentException("class element cannot be null");
+      throw new ArgumentError("class element cannot be null");
     }
     _defineMembers(classElement);
   }
@@ -71,6 +114,30 @@ class ClassScope extends EnclosedScope {
 }
 
 /**
+ * The scope defined for the initializers in a constructor.
+ */
+class ConstructorInitializerScope extends EnclosedScope {
+  /**
+   * Initialize a newly created scope, enclosed within the [enclosingScope].
+   */
+  ConstructorInitializerScope(Scope enclosingScope, ConstructorElement element)
+      : super(enclosingScope) {
+    _initializeFieldFormalParameters(element);
+  }
+
+  /**
+   * Initialize the local scope with all of the field formal parameters.
+   */
+  void _initializeFieldFormalParameters(ConstructorElement element) {
+    for (ParameterElement parameter in element.parameters) {
+      if (parameter is FieldFormalParameterElement) {
+        define(parameter);
+      }
+    }
+  }
+}
+
+/**
  * A scope that is lexically enclosed in another scope.
  */
 class EnclosedScope extends Scope {
@@ -81,34 +148,9 @@ class EnclosedScope extends Scope {
   final Scope enclosingScope;
 
   /**
-   * A table mapping names that will be defined in this scope, but right now are
-   * not initialized. According to the scoping rules these names are hidden,
-   * even if they were defined in an outer scope.
-   */
-  HashMap<String, Element> _hiddenElements = null;
-
-  /**
    * Initialize a newly created scope, enclosed within the [enclosingScope].
    */
   EnclosedScope(this.enclosingScope);
-
-  @override
-  AnalysisErrorListener get errorListener => enclosingScope.errorListener;
-
-  /**
-   * Record that given [element] is declared in this scope, but hasn't been
-   * initialized yet, so it is error to use. If there is already an element with
-   * the given name defined in an outer scope, then it will become unavailable.
-   */
-  void hide(Element element) {
-    if (element != null) {
-      String name = element.name;
-      if (name != null && !name.isEmpty) {
-        _hiddenElements ??= new HashMap<String, Element>();
-        _hiddenElements[name] = element;
-      }
-    }
-  }
 
   @override
   Element internalLookup(
@@ -117,25 +159,12 @@ class EnclosedScope extends Scope {
     if (element != null) {
       return element;
     }
-    // May be there is a hidden Element.
-    if (_hiddenElements != null) {
-      Element hiddenElement = _hiddenElements[name];
-      if (hiddenElement != null) {
-        errorListener.onError(new AnalysisError(
-            getSource(identifier),
-            identifier.offset,
-            identifier.length,
-            CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
-            [name]));
-        return hiddenElement;
-      }
-    }
     // Check enclosing scope.
     return enclosingScope.internalLookup(identifier, name, referencingLibrary);
   }
 
   @override
-  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
       String name, LibraryElement referencingLibrary) {
     return enclosingScope._internalLookupPrefixed(
         identifier, prefix, name, referencingLibrary);
@@ -164,7 +193,7 @@ class FunctionScope extends EnclosedScope {
   FunctionScope(Scope enclosingScope, this._functionElement)
       : super(new EnclosedScope(new EnclosedScope(enclosingScope))) {
     if (_functionElement == null) {
-      throw new IllegalArgumentException("function element cannot be null");
+      throw new ArgumentError("function element cannot be null");
     }
     _defineTypeParameters();
   }
@@ -344,15 +373,16 @@ class LabelScope {
  */
 class LibraryImportScope extends Scope {
   /**
+   * The name of the property containing a list of the elements from the SDK
+   * that conflict with the single name imported from non-SDK libraries. The
+   * value of the property is always of type `List<Element>`.
+   */
+  static const String conflictingSdkElements = 'conflictingSdkElements';
+
+  /**
    * The element representing the library in which this scope is enclosed.
    */
   final LibraryElement _definingLibrary;
-
-  /**
-   * The listener that is to be informed when an error is encountered.
-   */
-  @override
-  final AnalysisErrorListener errorListener;
 
   /**
    * A list of the namespaces representing the names that are available in this scope from imported
@@ -368,10 +398,9 @@ class LibraryImportScope extends Scope {
 
   /**
    * Initialize a newly created scope representing the names imported into the
-   * [_definingLibrary]. The [errorListener] is the listener that is to be
-   * informed when an error is encountered.
+   * [_definingLibrary].
    */
-  LibraryImportScope(this._definingLibrary, this.errorListener) {
+  LibraryImportScope(this._definingLibrary) {
     _createImportedNamespaces();
   }
 
@@ -394,49 +423,16 @@ class LibraryImportScope extends Scope {
   @override
   Element internalLookup(
       Identifier identifier, String name, LibraryElement referencingLibrary) {
-    Element foundElement = localLookup(name, referencingLibrary);
-    if (foundElement != null) {
-      return foundElement;
+    Element element = localLookup(name, referencingLibrary);
+    if (element != null) {
+      return element;
     }
-    for (int i = 0; i < _importedNamespaces.length; i++) {
-      Namespace nameSpace = _importedNamespaces[i];
-      Element element = nameSpace.get(name);
-      if (element != null) {
-        if (foundElement == null) {
-          foundElement = element;
-        } else if (!identical(foundElement, element)) {
-          foundElement = MultiplyDefinedElementImpl.fromElements(
-              _definingLibrary.context, foundElement, element);
-        }
-      }
+    element = _lookupInImportedNamespaces(
+        identifier, (Namespace namespace) => namespace.get(name));
+    if (element != null) {
+      defineNameWithoutChecking(name, element);
     }
-    Element element = foundElement;
-    if (element is MultiplyDefinedElementImpl) {
-      foundElement = _removeSdkElements(identifier, name, element);
-    }
-    if (foundElement is MultiplyDefinedElementImpl) {
-      String foundEltName = foundElement.displayName;
-      List<Element> conflictingMembers = foundElement.conflictingElements;
-      int count = conflictingMembers.length;
-      List<String> libraryNames = new List<String>(count);
-      for (int i = 0; i < count; i++) {
-        libraryNames[i] = _getLibraryName(conflictingMembers[i]);
-      }
-      libraryNames.sort();
-      errorListener.onError(new AnalysisError(
-          getSource(identifier),
-          identifier.offset,
-          identifier.length,
-          StaticWarningCode.AMBIGUOUS_IMPORT, [
-        foundEltName,
-        StringUtilities.printListOfQuotedNames(libraryNames)
-      ]));
-      return foundElement;
-    }
-    if (foundElement != null) {
-      defineNameWithoutChecking(name, foundElement);
-    }
-    return foundElement;
+    return element;
   }
 
   @override
@@ -514,98 +510,19 @@ class LibraryImportScope extends Scope {
     unprefixedNames[name] = element;
   }
 
-  /**
-   * Return the name of the library that defines given [element].
-   */
-  String _getLibraryName(Element element) {
-    if (element == null) {
-      return StringUtilities.EMPTY;
-    }
-    LibraryElement library = element.library;
-    if (library == null) {
-      return StringUtilities.EMPTY;
-    }
-    List<ImportElement> imports = _definingLibrary.imports;
-    int count = imports.length;
-    for (int i = 0; i < count; i++) {
-      if (identical(imports[i].importedLibrary, library)) {
-        return library.definingCompilationUnit.displayName;
-      }
-    }
-    List<String> indirectSources = new List<String>();
-    for (int i = 0; i < count; i++) {
-      LibraryElement importedLibrary = imports[i].importedLibrary;
-      if (importedLibrary != null) {
-        for (LibraryElement exportedLibrary
-            in importedLibrary.exportedLibraries) {
-          if (identical(exportedLibrary, library)) {
-            indirectSources
-                .add(importedLibrary.definingCompilationUnit.displayName);
-          }
-        }
-      }
-    }
-    int indirectCount = indirectSources.length;
-    StringBuffer buffer = new StringBuffer();
-    buffer.write(library.definingCompilationUnit.displayName);
-    if (indirectCount > 0) {
-      buffer.write(" (via ");
-      if (indirectCount > 1) {
-        indirectSources.sort();
-        buffer.write(StringUtilities.printListOfQuotedNames(indirectSources));
-      } else {
-        buffer.write(indirectSources[0]);
-      }
-      buffer.write(")");
-    }
-    return buffer.toString();
-  }
-
   @override
-  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
       String name, LibraryElement referencingLibrary) {
-    Element foundElement = _localPrefixedLookup(prefix, name);
-    if (foundElement != null) {
-      return foundElement;
+    Element element = _localPrefixedLookup(prefix, name);
+    if (element != null) {
+      return element;
     }
-    for (int i = 0; i < _importedNamespaces.length; i++) {
-      Element element = _importedNamespaces[i].getPrefixed(prefix, name);
-      if (element != null) {
-        if (foundElement == null) {
-          foundElement = element;
-        } else if (!identical(foundElement, element)) {
-          foundElement = MultiplyDefinedElementImpl.fromElements(
-              _definingLibrary.context, foundElement, element);
-        }
-      }
+    element = _lookupInImportedNamespaces(identifier.identifier,
+        (Namespace namespace) => namespace.getPrefixed(prefix, name));
+    if (element != null) {
+      _definePrefixedNameWithoutChecking(prefix, name, element);
     }
-    Element element = foundElement;
-    if (element is MultiplyDefinedElementImpl) {
-      foundElement = _removeSdkElements(identifier, name, element);
-    }
-    if (foundElement is MultiplyDefinedElementImpl) {
-      String foundEltName = foundElement.displayName;
-      List<Element> conflictingMembers = foundElement.conflictingElements;
-      int count = conflictingMembers.length;
-      List<String> libraryNames = new List<String>(count);
-      for (int i = 0; i < count; i++) {
-        libraryNames[i] = _getLibraryName(conflictingMembers[i]);
-      }
-      libraryNames.sort();
-      errorListener.onError(new AnalysisError(
-          getSource(identifier),
-          identifier.offset,
-          identifier.length,
-          StaticWarningCode.AMBIGUOUS_IMPORT, [
-        foundEltName,
-        StringUtilities.printListOfQuotedNames(libraryNames)
-      ]));
-      return foundElement;
-    }
-    if (foundElement != null) {
-      _definePrefixedNameWithoutChecking(prefix, name, foundElement);
-    }
-    return foundElement;
+    return element;
   }
 
   /**
@@ -622,47 +539,40 @@ class LibraryImportScope extends Scope {
     return null;
   }
 
-  /**
-   * Given a collection of elements (captured by the [foundElement]) that the
-   * [identifier] (with the given [name]) resolved to, remove from the list all
-   * of the names defined in the SDK and return the element(s) that remain.
-   */
-  Element _removeSdkElements(Identifier identifier, String name,
-      MultiplyDefinedElementImpl foundElement) {
-    List<Element> conflictingElements = foundElement.conflictingElements;
-    List<Element> nonSdkElements = new List<Element>();
-    Element sdkElement = null;
-    for (Element member in conflictingElements) {
-      if (member.library.isInSdk) {
-        sdkElement = member;
-      } else {
-        nonSdkElements.add(member);
+  Element _lookupInImportedNamespaces(
+      Identifier identifier, Element lookup(Namespace namespace)) {
+    Set<Element> sdkElements = new HashSet<Element>();
+    Set<Element> nonSdkElements = new HashSet<Element>();
+    for (int i = 0; i < _importedNamespaces.length; i++) {
+      Element element = lookup(_importedNamespaces[i]);
+      if (element != null) {
+        if (element.library.isInSdk) {
+          sdkElements.add(element);
+        } else {
+          nonSdkElements.add(element);
+        }
       }
     }
-    if (sdkElement != null && nonSdkElements.length > 0) {
-      String sdkLibName = _getLibraryName(sdkElement);
-      String otherLibName = _getLibraryName(nonSdkElements[0]);
-      errorListener.onError(new AnalysisError(
-          getSource(identifier),
-          identifier.offset,
-          identifier.length,
-          StaticWarningCode.CONFLICTING_DART_IMPORT,
-          [name, sdkLibName, otherLibName]));
+    int nonSdkCount = nonSdkElements.length;
+    int sdkCount = sdkElements.length;
+    if (nonSdkCount == 0) {
+      if (sdkCount == 0) {
+        return null;
+      } else if (sdkCount == 1) {
+        return sdkElements.first;
+      }
     }
-    if (nonSdkElements.length == conflictingElements.length) {
-      // None of the members were removed
-      return foundElement;
-    } else if (nonSdkElements.length == 1) {
-      // All but one member was removed
-      return nonSdkElements[0];
-    } else if (nonSdkElements.length == 0) {
-      // All members were removed
-      AnalysisEngine.instance.logger
-          .logInformation("Multiply defined SDK element: $foundElement");
-      return foundElement;
+    if (nonSdkCount == 1) {
+      if (sdkCount > 0) {
+        identifier.setProperty(
+            conflictingSdkElements, sdkElements.toList(growable: false));
+      }
+      return nonSdkElements.first;
     }
     return new MultiplyDefinedElementImpl(
-        _definingLibrary.context, nonSdkElements);
+        _definingLibrary.context,
+        sdkElements.toList(growable: false),
+        nonSdkElements.toList(growable: false));
   }
 }
 
@@ -672,12 +582,10 @@ class LibraryImportScope extends Scope {
 class LibraryScope extends EnclosedScope {
   /**
    * Initialize a newly created scope representing the names defined in the
-   * [definingLibrary]. The [errorListener] is the listener that is to be
-   * informed when an error is encountered
+   * [definingLibrary].
    */
-  LibraryScope(
-      LibraryElement definingLibrary, AnalysisErrorListener errorListener)
-      : super(new LibraryImportScope(definingLibrary, errorListener)) {
+  LibraryScope(LibraryElement definingLibrary)
+      : super(new LibraryImportScope(definingLibrary)) {
     _defineTopLevelNames(definingLibrary);
   }
 
@@ -1093,27 +1001,15 @@ abstract class Scope {
   Scope get enclosingScope => null;
 
   /**
-   * Return the listener that is to be informed when an error is encountered.
-   */
-  AnalysisErrorListener get errorListener;
-
-  /**
    * Add the given [element] to this scope. If there is already an element with
-   * the given name defined in this scope, then an error will be generated and
-   * the original element will continue to be mapped to the name. If there is an
-   * element with the given name in an enclosing scope, then a warning will be
-   * generated but the given element will hide the inherited element.
+   * the given name defined in this scope, then the original element will
+   * continue to be mapped to the name.
    */
   void define(Element element) {
     String name = _getName(element);
     if (name != null && !name.isEmpty) {
-      if (_definedNames != null && _definedNames.containsKey(name)) {
-        errorListener
-            .onError(getErrorForDuplicate(_definedNames[name], element));
-      } else {
-        _definedNames ??= new HashMap<String, Element>();
-        _definedNames[name] = element;
-      }
+      _definedNames ??= new HashMap<String, Element>();
+      _definedNames.putIfAbsent(name, () => element);
     }
   }
 
@@ -1242,7 +1138,7 @@ abstract class Scope {
    * that contains the reference to the name, used to implement library-level
    * privacy.
    */
-  Element _internalLookupPrefixed(Identifier identifier, String prefix,
+  Element _internalLookupPrefixed(PrefixedIdentifier identifier, String prefix,
       String name, LibraryElement referencingLibrary);
 
   /**
@@ -1263,7 +1159,7 @@ class TypeParameterScope extends EnclosedScope {
   TypeParameterScope(Scope enclosingScope, ClassElement classElement)
       : super(enclosingScope) {
     if (classElement == null) {
-      throw new IllegalArgumentException("class element cannot be null");
+      throw new ArgumentError("class element cannot be null");
     }
     _defineTypeParameters(classElement);
   }

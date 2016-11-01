@@ -121,11 +121,11 @@ main() {
   var case3 = new RegExp(r"case 3:");
 
   asyncTest(() => Future.wait([
-    compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def),
-    compileAndDoNotMatch(TOTAL, 'main', defOrCase3),
-    compileAndDoNotMatch(OPTIMIZED, 'main', def),
-    compileAndMatch(LABEL, 'main', case3),
-    compileAndMatch(DEFLABEL, 'main', def),
-    compileAndMatch(EMPTYDEFLABEL, 'main', def),
-  ]));
+        compileAndDoNotMatch(SIMPLY_EMPTY, 'main', def),
+        compileAndDoNotMatch(TOTAL, 'main', defOrCase3),
+        compileAndDoNotMatch(OPTIMIZED, 'main', def),
+        compileAndMatch(LABEL, 'main', case3),
+        compileAndMatch(DEFLABEL, 'main', def),
+        compileAndMatch(EMPTYDEFLABEL, 'main', def),
+      ]));
 }

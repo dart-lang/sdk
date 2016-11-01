@@ -4,6 +4,8 @@
 
 {
   'sources': [
+    # collection_patch.dart needs to be the first dart file because it contains
+    # imports.
     'collection_patch.dart',
     'compact_hash.dart',
     'linked_hash_map.cc',

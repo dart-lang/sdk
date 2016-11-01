@@ -248,7 +248,9 @@ class ParameterStubGenerator {
           new Selector.call(member.memberName, selector.callStructure);
       renamedCallSelectors.add(renamedSelector);
 
-      if (!renamedSelector.appliesUnnamed(member, compiler.world)) continue;
+      if (!renamedSelector.appliesUnnamed(member)) {
+        continue;
+      }
 
       if (untypedSelectors.add(renamedSelector)) {
         ParameterStubMethod stub =
@@ -264,8 +266,9 @@ class ParameterStubGenerator {
     // call-selectors (and they are in the renamedCallSelectors set.
     for (Selector selector in selectors.keys) {
       if (renamedCallSelectors.contains(selector)) continue;
-      if (!selector.appliesUnnamed(member, compiler.world)) continue;
-      if (!selectors[selector].applies(member, selector, compiler.world)) {
+      if (!selector.appliesUnnamed(member)) continue;
+      if (!selectors[selector]
+          .applies(member, selector, compiler.closedWorld)) {
         continue;
       }
 

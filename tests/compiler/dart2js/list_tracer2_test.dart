@@ -7,8 +7,7 @@
 
 import 'package:expect/expect.dart';
 import "package:async_helper/async_helper.dart";
-import 'package:compiler/src/types/types.dart'
-    show ContainerTypeMask, TypeMask;
+import 'package:compiler/src/types/types.dart' show ContainerTypeMask, TypeMask;
 
 import 'compiler_helper.dart';
 import 'type_mask_test_helper.dart';
@@ -25,14 +24,14 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.typesTask.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkType(String name, type) {
-      var element = findElement(compiler, name);
-      ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
-      Expect.equals(type, simplify(mask.elementType, compiler), name);
-    }
+        checkType(String name, type) {
+          var element = findElement(compiler, name);
+          ContainerTypeMask mask = typesInferrer.getTypeOfElement(element);
+          Expect.equals(type, simplify(mask.elementType, compiler), name);
+        }
 
-    checkType('myList', compiler.typesTask.uint31Type);
-  }));
+        checkType('myList', compiler.commonMasks.uint31Type);
+      }));
 }

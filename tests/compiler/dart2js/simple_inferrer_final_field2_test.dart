@@ -28,15 +28,18 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-    var typesInferrer = compiler.typesTask.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrer;
 
-    checkFieldTypeInClass(String className, String fieldName, type) {
-      var cls = findElement(compiler, className);
-      var element = cls.lookupLocalMember(fieldName);
-      Expect.isTrue(typesInferrer.getTypeOfElement(element).containsOnly(type));
-    }
+        checkFieldTypeInClass(String className, String fieldName, type) {
+          var cls = findElement(compiler, className);
+          var element = cls.lookupLocalMember(fieldName);
+          Expect.isTrue(
+              typesInferrer.getTypeOfElement(element).containsOnly(type));
+        }
 
-    checkFieldTypeInClass('A', 'intField', compiler.backend.uint31Implementation);
-    checkFieldTypeInClass('A', 'stringField', compiler.backend.stringImplementation);
-  }));
+        checkFieldTypeInClass('A', 'intField',
+            compiler.backend.backendClasses.uint31Implementation);
+        checkFieldTypeInClass('A', 'stringField',
+            compiler.backend.backendClasses.stringImplementation);
+      }));
 }

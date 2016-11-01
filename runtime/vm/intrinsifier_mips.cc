@@ -1530,6 +1530,27 @@ void Intrinsifier::Double_getIsNaN(Assembler* assembler) {
 }
 
 
+void Intrinsifier::Double_getIsInfinite(Assembler* assembler) {
+  Label not_inf;
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ lw(T1, FieldAddress(T0, Double::value_offset()));
+  __ lw(T2, FieldAddress(T0, Double::value_offset() + kWordSize));
+  // If the low word isn't zero, then it isn't infinity.
+  __ bne(T1, ZR, &not_inf);
+  // Mask off the sign bit.
+  __ AndImmediate(T2, T2, 0x7FFFFFFF);
+  // Compare with +infinity.
+  __ BranchNotEqual(T2, Immediate(0x7FF00000), &not_inf);
+
+  __ LoadObject(V0, Bool::True());
+  __ Ret();
+
+  __ Bind(&not_inf);
+  __ LoadObject(V0, Bool::False());
+  __ Ret();
+}
+
+
 void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
   Label is_false, is_true, is_zero;
   __ lw(T0, Address(SP, 0 * kWordSize));

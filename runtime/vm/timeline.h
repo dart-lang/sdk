@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_TIMELINE_H_
-#define VM_TIMELINE_H_
+#ifndef RUNTIME_VM_TIMELINE_H_
+#define RUNTIME_VM_TIMELINE_H_
 
 #include "include/dart_tools_api.h"
 
@@ -342,6 +342,9 @@ class TimelineEvent {
     state_ = OwnsLabelBit::update(owns_label, state_);
   }
 
+  // Returns the number of bytes written into |buffer|.
+  intptr_t PrintSystrace(char* buffer, intptr_t buffer_size);
+
  private:
   void FreeArguments();
 
@@ -413,6 +416,7 @@ class TimelineEvent {
   friend class TimelineEventEndlessRecorder;
   friend class TimelineEventRingRecorder;
   friend class TimelineEventStartupRecorder;
+  friend class TimelineEventSystraceRecorder;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
@@ -622,6 +626,7 @@ class TimelineEventBlock {
   friend class TimelineEventEndlessRecorder;
   friend class TimelineEventRingRecorder;
   friend class TimelineEventStartupRecorder;
+  friend class TimelineEventSystraceRecorder;
   friend class TimelineTestHelper;
   friend class JSONStream;
 
@@ -786,6 +791,28 @@ class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
 };
 
 
+// A recorder that writes events to Android Systrace. Events are also stored in
+// a buffer of fixed capacity. When the buffer is full, new events overwrite
+// old events.
+class TimelineEventSystraceRecorder
+    : public TimelineEventFixedBufferRecorder {
+ public:
+  explicit TimelineEventSystraceRecorder(intptr_t capacity = kDefaultCapacity);
+
+  ~TimelineEventSystraceRecorder();
+
+  const char* name() const {
+    return "Systrace";
+  }
+
+ protected:
+  TimelineEventBlock* GetNewBlockLocked();
+  void CompleteEvent(TimelineEvent* event);
+
+  int systrace_fd_;
+};
+
+
 // A recorder that stores events in a buffer of fixed capacity. When the buffer
 // is full, new events are dropped.
 class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
@@ -887,4 +914,4 @@ class TimelineEventBlockIterator {
 
 }  // namespace dart
 
-#endif  // VM_TIMELINE_H_
+#endif  // RUNTIME_VM_TIMELINE_H_

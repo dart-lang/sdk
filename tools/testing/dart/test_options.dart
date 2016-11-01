@@ -26,6 +26,7 @@ const List<String> defaultTestSelectors = const [
   'pkg',
   'analyze_library',
   'service',
+  'kernel',
   'observatory_ui'
 ];
 
@@ -73,10 +74,17 @@ class TestOptionsParser {
    dart2analyzer: Perform static analysis on Dart code by running the analyzer
           (only valid with the following runtimes: none)
 
-   dart2app: Compile the Dart code into an app snapshot before running the test
-          (only valid with the following runtimes: dart_app)''',
+   dart2app:
+   dart2appjit: Compile the Dart code into an app snapshot before running test
+          (only valid with dart_app runtime)
+
+   dartk: Compile the Dart source into Kernel before running test.
+
+   dartkp: Compiler the Dart source into Kernel and then Kernel into AOT
+   snapshot before running the test.''',
           ['-c', '--compiler'],
-          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app', 'dart2appjit'],
+          ['none', 'precompiler', 'dart2js', 'dart2analyzer', 'dart2app',
+           'dart2appjit', 'dartk', 'dartkp'],
           'none'),
       // TODO(antonm): fix the option drt.
       new _TestOptionSpecification(
@@ -188,6 +196,10 @@ class TestOptionsParser {
           type: 'bool'),
       new _TestOptionSpecification(
           'noopt', 'Run an in-place precompilation', ['--noopt'], [], false,
+          type: 'bool'),
+      new _TestOptionSpecification(
+          'fast_startup', 'Pass the --fast-startup flag to dart2js',
+          ['--fast-startup'], [], false,
           type: 'bool'),
       new _TestOptionSpecification(
           'hot_reload', 'Run hot reload stress tests', ['--hot-reload'], [],
@@ -666,12 +678,16 @@ Note: currently only implemented for dart2js.''',
         validRuntimes = const ['none'];
         break;
       case 'dart2app':
-        validRuntimes = const ['dart_app'];
-        break;
       case 'dart2appjit':
         validRuntimes = const ['dart_app'];
         break;
       case 'precompiler':
+        validRuntimes = const ['dart_precompiled'];
+        break;
+      case 'dartk':
+        validRuntimes = const ['vm'];
+        break;
+      case 'dartkp':
         validRuntimes = const ['dart_precompiled'];
         break;
       case 'none':
@@ -802,6 +818,40 @@ Note: currently only implemented for dart2js.''',
         selectorMap[suite] = new RegExp(pattern);
       }
       configuration['selectors'] = selectorMap;
+    }
+
+    // Put observatory_ui in a configuration with its own packages override.
+    // Only one value in the configuration map is mutable:
+    selectors = configuration['selectors'];
+    if (selectors.containsKey('observatory_ui')) {
+      if (selectors.length == 1) {
+        configuration['packages'] = TestUtils.dartDirUri
+          .resolve('runtime/observatory/.packages').toFilePath();
+      } else {
+        // Make a new configuration whose selectors map only contains
+        // observatory_ui, and remove the key from the original selectors.
+        // The only mutable value in the map is the selectors, so a
+        // shallow copy is safe.
+        var observatoryConfiguration = new Map.from(configuration);
+        observatoryConfiguration['selectors'] =
+          {'observatory_ui': selectors['observatory_ui']};
+        selectors.remove('observatory_ui');
+
+        // Set the packages flag.
+        observatoryConfiguration['packages'] = TestUtils.dartDirUri
+          .resolve('runtime/observatory/.packages').toFilePath();
+
+        // Return the expansions of both configurations. Neither will reach
+        // this line in the recursive call to _expandConfigurations.
+        return _expandConfigurations(configuration)
+          ..addAll(_expandConfigurations(observatoryConfiguration));
+      }
+    }
+    // Set the default package spec explicitly.
+    if (configuration['package_root'] == null &&
+        configuration['packages'] == null) {
+      configuration['packages'] =
+        TestUtils.dartDirUri.resolve('.packages').toFilePath();
     }
 
     // Expand the architectures.

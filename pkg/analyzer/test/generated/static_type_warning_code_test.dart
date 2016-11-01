@@ -4,32 +4,25 @@
 
 library analyzer.test.generated.static_type_warning_code_test;
 
+import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart' show formatList;
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../reflective_tests.dart';
-import '../utils.dart';
 import 'resolver_test_case.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(StaticTypeWarningCodeTest);
-  runReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(StaticTypeWarningCodeTest);
+    defineReflectiveTests(StrongModeStaticTypeWarningCodeTest);
+  });
 }
 
 @reflectiveTest
 class StaticTypeWarningCodeTest extends ResolverTestCase {
-  void fail_inaccessibleSetter() {
-    // TODO(rnystrom): This doesn't look right.
-    assertErrorsInCode(
-        r'''
-''',
-        [StaticTypeWarningCode.INACCESSIBLE_SETTER]);
-  }
-
   void fail_method_lookup_mixin_of_extends() {
     // See dartbug.com/25605
     resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
@@ -101,6 +94,17 @@ main() {
 }
 ''',
         [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  void fail_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() {
+    assertErrorsInCode(
+        r'''
+class A {}
+class B {}
+typedef F<T extends A>();
+F<B> fff;
+''',
+        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
 
   void fail_undefinedEnumConstant() {
@@ -954,8 +958,8 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
-  // https://github.com/dart-lang/sdk/issues/24713
   void test_nonBoolCondition_for() {
+    // https://github.com/dart-lang/sdk/issues/24713
     assertErrorsInCode(
         r'''
 f() {
@@ -1377,17 +1381,6 @@ class B extends A {}
 class C extends B {}
 class G<E extends B> {}
 f() { return new G<A>(); }
-''',
-        [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
-  }
-
-  void fail_typeArgumentNotMatchingBounds_ofFunctionTypeAlias() {
-    assertErrorsInCode(
-        r'''
-class A {}
-class B {}
-typedef F<T extends A>();
-F<B> fff;
 ''',
         [StaticTypeWarningCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS]);
   }
@@ -2200,6 +2193,24 @@ class B extends A {
     return a;
   }
 }''',
+        [
+          StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
+        ]);
+  }
+
+  void test_unqualifiedReferenceToNonLocalStaticMember_getter_invokeTarget() {
+    assertErrorsInCode(
+        r'''
+class A {
+  static int foo;
+}
+
+class B extends A {
+  static bar() {
+    foo.abs();
+  }
+}
+''',
         [
           StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER
         ]);

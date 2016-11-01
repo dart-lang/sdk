@@ -18,8 +18,7 @@ void main() {
 
 void deferredTest1() {
   asyncTest(() async {
-    CompilationResult result =
-        await runCompiler(memorySourceFiles: TEST1);
+    CompilationResult result = await runCompiler(memorySourceFiles: TEST1);
     Compiler compiler = result.compiler;
 
     lookupLibrary(name) {
@@ -63,7 +62,7 @@ void deferredTest2() {
 // lib1 imports lib2 deferred. But mainlib never uses DeferredLibrary.
 // Test that this case works.
 const Map TEST1 = const {
-  "main.dart":"""
+  "main.dart": """
 library mainlib;
 
 import 'lib1.dart' as lib1;
@@ -72,7 +71,7 @@ void main() {
   lib1.foo1();
 }
 """,
-  "lib1.dart":"""
+  "lib1.dart": """
 library lib1;
 
 import 'lib2.dart' deferred as lib2;
@@ -83,7 +82,7 @@ void foo1() {
   lib1.loadLibrary().then((_) => lib2.foo2());
 }
 """,
-  "lib2.dart":"""
+  "lib2.dart": """
 library lib2;
 
 void foo2() {}
@@ -93,7 +92,7 @@ void foo2() {}
 // main indirectly uses class A from shared. A should still be included in the
 // main fragment.
 const Map TEST2 = const {
-  "main.dart":"""
+  "main.dart": """
 import 'def.dart' deferred as def;
 import 'shared.dart';
 
@@ -106,12 +105,12 @@ main() {
   });
 }
 """,
-  "def.dart":"""
+  "def.dart": """
 import 'shared.dart';
 
 toto() { print(new A()); }
 """,
-  "shared.dart":"""
+  "shared.dart": """
 class A {}
 class B extends A {}
 foo(B b) => null;

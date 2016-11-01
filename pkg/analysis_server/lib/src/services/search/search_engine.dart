@@ -10,8 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the enum [MatchKind] represent the kind of reference that was
@@ -155,16 +155,20 @@ class SearchMatch {
       this.sourceRange, this.isResolved, this.isQualified);
 
   /**
-   * Return the [Element] containing the match.
+   * Return the [Element] containing the match. Can return `null` if the unit
+   * does not exist, or its element was invalidated, or the element cannot be
+   * found, etc.
    */
   Element get element {
     if (_element == null) {
       CompilationUnitElement unitElement =
           context.getCompilationUnitElement(unitSource, librarySource);
-      _ContainingElementFinder finder =
-          new _ContainingElementFinder(sourceRange.offset);
-      unitElement.accept(finder);
-      _element = finder.containingElement;
+      if (unitElement != null) {
+        _ContainingElementFinder finder =
+            new _ContainingElementFinder(sourceRange.offset);
+        unitElement.accept(finder);
+        _element = finder.containingElement;
+      }
     }
     return _element;
   }
@@ -175,8 +179,10 @@ class SearchMatch {
   String get file => unitSource.fullName;
 
   @override
-  int get hashCode =>
-      JavaArrays.makeHashCode([libraryUri, unitUri, kind, sourceRange]);
+  int get hashCode {
+    return JenkinsSmiHash.hash4(libraryUri.hashCode, unitUri.hashCode,
+        kind.hashCode, sourceRange.hashCode);
+  }
 
   /**
    * Return the [LibraryElement] for the [libraryUri] in the [context].
@@ -235,6 +241,16 @@ class SearchMatch {
     buffer.write(isQualified);
     buffer.write(")");
     return buffer.toString();
+  }
+
+  /**
+   * Return elements of [matches] which has not-null elements.
+   *
+   * When [SearchMatch.element] is not `null` we cache its value, so it cannot
+   * become `null` later.
+   */
+  static List<SearchMatch> withNotNullElement(List<SearchMatch> matches) {
+    return matches.where((match) => match.element != null).toList();
   }
 }
 

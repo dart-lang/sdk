@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library class_ref_element;
-
 import 'dart:html';
 import 'dart:async';
-import 'package:observatory/models.dart' as M
-  show IsolateRef, ClassRef;
+import 'package:observatory/models.dart' as M;
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/uris.dart';
 
 class ClassRefElement extends HtmlElement implements Renderable {
-  static const tag = const Tag<ClassRefElement>('class-ref-wrapped');
+  static const tag = const Tag<ClassRefElement>('class-ref');
 
   RenderingScheduler<ClassRefElement> _r;
 

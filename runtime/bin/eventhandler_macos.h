@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_EVENTHANDLER_MACOS_H_
-#define BIN_EVENTHANDLER_MACOS_H_
+#ifndef RUNTIME_BIN_EVENTHANDLER_MACOS_H_
+#define RUNTIME_BIN_EVENTHANDLER_MACOS_H_
 
-#if !defined(BIN_EVENTHANDLER_H_)
+#if !defined(RUNTIME_BIN_EVENTHANDLER_H_)
 #error Do not include eventhandler_macos.h directly; use eventhandler.h instead.
 #endif
 
@@ -115,4 +115,4 @@ class EventHandlerImplementation {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_EVENTHANDLER_MACOS_H_
+#endif  // RUNTIME_BIN_EVENTHANDLER_MACOS_H_

@@ -29,6 +29,7 @@ static const int kWriteHandle = 1;
 
 int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = new Mutex();
+Process::ExitHook Process::exit_hook_ = NULL;
 
 // ProcessInfo is used to map a process id to the process handle,
 // wait handle for registered exit code event and the pipe used to

@@ -9,15 +9,15 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(GetTypeHierarchyTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(GetTypeHierarchyTest);
+  });
 }
 
 @reflectiveTest
@@ -33,7 +33,9 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
   void setUp() {
     super.setUp();
     createProject();
-    server.handlers = [new SearchDomainHandler(server),];
+    server.handlers = [
+      new SearchDomainHandler(server),
+    ];
   }
 
   test_bad_function() async {
@@ -168,7 +170,7 @@ class CCC extends BBB implements AAA {}
 
   test_class_extends_fileAndPackageUris() async {
     // prepare packages
-    String pkgFile = '/packages/pkgA/libA.dart';
+    String pkgFile = '/packages/pkgA/lib/libA.dart';
     resourceProvider.newFile(
         pkgFile,
         '''
@@ -176,14 +178,16 @@ library lib_a;
 class A {}
 class B extends A {}
 ''');
-    packageMapProvider.packageMap['pkgA'] = [
-      resourceProvider.getResource('/packages/pkgA')
-    ];
+    resourceProvider.newFile(
+        '/packages/pkgA/.packages', 'pkgA:file:///packages/pkgA/lib');
     // reference the package from a project
+    resourceProvider.newFile(
+        '$projectPath/.packages', 'pkgA:file:///packages/pkgA/lib');
     addTestFile('''
 import 'package:pkgA/libA.dart';
 class C extends A {}
 ''');
+    await waitForTasksFinished();
     // configure roots
     Request request =
         new AnalysisSetAnalysisRootsParams([projectPath, '/packages/pkgA'], [])

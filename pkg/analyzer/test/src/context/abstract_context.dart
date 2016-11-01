@@ -18,7 +18,7 @@ import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mock_sdk.dart';
 
@@ -126,7 +126,8 @@ class AbstractContextTest {
   DartSdk createDartSdk() => new MockSdk(resourceProvider: resourceProvider);
 
   Source newSource(String path, [String content = '']) {
-    File file = resourceProvider.newFile(path, content);
+    File file =
+        resourceProvider.newFile(resourceProvider.convertPath(path), content);
     return file.createSource();
   }
 

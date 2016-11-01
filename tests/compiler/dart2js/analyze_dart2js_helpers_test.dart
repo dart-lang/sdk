@@ -7,28 +7,21 @@ library dart2js.analyze_helpers.test;
 import 'dart:io';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:compiler/compiler_new.dart' show
-    Diagnostic;
-import 'package:compiler/src/apiimpl.dart' show
-    CompilerImpl;
+import 'package:compiler/compiler_new.dart' show Diagnostic;
+import 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 import 'package:compiler/src/commandline_options.dart';
-import 'package:compiler/src/constants/expressions.dart' show
-    ConstructedConstantExpression;
-import 'package:compiler/src/dart_types.dart' show
-    InterfaceType;
-import 'package:compiler/src/diagnostics/source_span.dart' show
-    SourceSpan;
+import 'package:compiler/src/constants/expressions.dart'
+    show ConstructedConstantExpression;
+import 'package:compiler/src/dart_types.dart' show InterfaceType;
+import 'package:compiler/src/diagnostics/source_span.dart' show SourceSpan;
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/filenames.dart' show
-    nativeToUriPath;
+import 'package:compiler/src/filenames.dart' show nativeToUriPath;
 import 'package:compiler/src/resolution/semantic_visitor.dart';
-import 'package:compiler/src/resolution/tree_elements.dart' show
-    TreeElements;
-import 'package:compiler/src/source_file_provider.dart' show
-    FormattingDiagnosticHandler;
+import 'package:compiler/src/resolution/tree_elements.dart' show TreeElements;
+import 'package:compiler/src/source_file_provider.dart'
+    show FormattingDiagnosticHandler;
 import 'package:compiler/src/tree/tree.dart';
-import 'package:compiler/src/universe/call_structure.dart' show
-    CallStructure;
+import 'package:compiler/src/universe/call_structure.dart' show CallStructure;
 import 'package:expect/expect.dart';
 
 import 'memory_compiler.dart';
@@ -39,13 +32,14 @@ main(List<String> arguments) {
   List<String> options = <String>[
     Flags.analyzeOnly,
     Flags.analyzeMain,
-    '--categories=Client,Server'];
+    '--categories=Client,Server'
+  ];
   if (verbose) {
     options.add(Flags.verbose);
   }
   asyncTest(() async {
-    CompilerImpl compiler = compilerFor(
-        options: options, showDiagnostics: verbose);
+    CompilerImpl compiler =
+        compilerFor(options: options, showDiagnostics: verbose);
     FormattingDiagnosticHandler diagnostics =
         new FormattingDiagnosticHandler(compiler.provider);
     Directory dir =
@@ -122,66 +116,44 @@ class HelperAnalyzer extends TraversalVisitor {
       Uri uri = analyzedElement.implementation.sourcePosition.uri;
       SourceSpan span = new SourceSpan.fromNode(uri, node);
       diagnostics.report(null, span.uri, span.begin, span.end,
-          "Helper used in production code.",
-          Diagnostic.ERROR);
+          "Helper used in production code.", Diagnostic.ERROR);
       errors.add(span);
     }
   }
 
   @override
-  void visitTopLevelFieldInvoke(
-      Send node,
-      FieldElement field,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
+  void visitTopLevelFieldInvoke(Send node, FieldElement field,
+      NodeList arguments, CallStructure callStructure, _) {
     checkAccess(node, field);
     apply(arguments);
   }
 
   @override
-  void visitTopLevelGetterInvoke(
-      Send node,
-      GetterElement getter,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
+  void visitTopLevelGetterInvoke(Send node, GetterElement getter,
+      NodeList arguments, CallStructure callStructure, _) {
     checkAccess(node, getter);
     apply(arguments);
   }
 
   @override
-  void visitTopLevelFunctionInvoke(
-      Send node,
-      MethodElement method,
-      NodeList arguments,
-      CallStructure callStructure,
-      _) {
+  void visitTopLevelFunctionInvoke(Send node, MethodElement method,
+      NodeList arguments, CallStructure callStructure, _) {
     checkAccess(node, method);
     apply(arguments);
   }
 
   @override
-  void visitTopLevelFieldGet(
-      Send node,
-      FieldElement field,
-      _) {
+  void visitTopLevelFieldGet(Send node, FieldElement field, _) {
     checkAccess(node, field);
   }
 
   @override
-  void visitTopLevelGetterGet(
-      Send node,
-      GetterElement getter,
-      _) {
+  void visitTopLevelGetterGet(Send node, GetterElement getter, _) {
     checkAccess(node, getter);
   }
 
   @override
-  void visitTopLevelFunctionGet(
-      Send node,
-      MethodElement method,
-      _) {
+  void visitTopLevelFunctionGet(Send node, MethodElement method, _) {
     checkAccess(node, method);
   }
 
@@ -237,9 +209,7 @@ class HelperAnalyzer extends TraversalVisitor {
 
   @override
   void visitConstConstructorInvoke(
-      NewExpression node,
-      ConstructedConstantExpression constant,
-      _) {
+      NewExpression node, ConstructedConstantExpression constant, _) {
     checkAccess(node, constant.target);
   }
 }

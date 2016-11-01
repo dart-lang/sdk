@@ -10,15 +10,15 @@ import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/src/linter.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
-import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
-  defineReflectiveTests(NotificationErrorsTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(NotificationErrorsTest);
+  });
 }
 
 @reflectiveTest
@@ -35,7 +35,9 @@ class NotificationErrorsTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new AnalysisDomainHandler(server),];
+    server.handlers = [
+      new AnalysisDomainHandler(server),
+    ];
   }
 
   test_importError() async {
@@ -52,7 +54,7 @@ import 'does_not_exist.dart';
     AnalysisError error = errors[0];
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
-    expect(error.message, startsWith('Target of URI does not exist'));
+    expect(error.message, startsWith("Target of URI doesn't exist"));
   }
 
   test_lintError() async {

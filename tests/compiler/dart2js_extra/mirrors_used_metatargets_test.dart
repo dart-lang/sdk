@@ -6,6 +6,7 @@
 import 'dart:mirrors';
 
 const x = const X();
+
 class X {
   const X();
 }

@@ -9,11 +9,11 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'compiler_helper.dart';
 
-
 main() {
   test("unreachable code doesn't crash the compiler", () async {
     // This test is a regression for Issue #24974
-    String generated = await compile("""
+    String generated = await compile(
+        """
         import 'package:js/js.dart';
 
         @JS() @anonymous
@@ -21,7 +21,8 @@ main() {
           external factory UniqueLongNameForTesting_A();
         }
         main() {}
-    """, returnAll: true);
+    """,
+        returnAll: true);
 
     // the code should not be included in the output either.
     expect(generated, isNot(contains("UniqueLongNameForTesting_A")));
@@ -83,8 +84,7 @@ main() {
 
     test('tree-shake when using flag', () async {
       String generated = await compile(program,
-          trustJSInteropTypeAnnotations: true,
-          returnAll: true);
+          trustJSInteropTypeAnnotations: true, returnAll: true);
       expect(generated.contains("UniqueLongNameForTesting_A"), isTrue);
       expect(generated.contains("UniqueLongNameForTesting_D"), isTrue);
 
@@ -126,8 +126,7 @@ main() {
     test('allocation effect of dynamic excludes native types [flag]', () async {
       // Trusting types doesn't make a difference.
       String generated = await compile(program,
-          trustJSInteropTypeAnnotations: true,
-          returnAll: true);
+          trustJSInteropTypeAnnotations: true, returnAll: true);
       expect(generated.contains("UniqueLongNameForTesting_A"), isTrue);
       expect(generated.contains("UniqueLongNameForTesting_B"), isTrue);
       expect(generated.contains("HTMLAudioElement"), isFalse);

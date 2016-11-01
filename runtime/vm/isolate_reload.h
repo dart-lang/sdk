@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_ISOLATE_RELOAD_H_
-#define VM_ISOLATE_RELOAD_H_
+#ifndef RUNTIME_VM_ISOLATE_RELOAD_H_
+#define RUNTIME_VM_ISOLATE_RELOAD_H_
 
 #include "include/dart_tools_api.h"
 
@@ -117,9 +117,7 @@ class ReasonForCancelling : public ZoneAllocated {
 // Abstract class for also capturing the from_ and to_ class.
 class ClassReasonForCancelling : public ReasonForCancelling {
  public:
-  ClassReasonForCancelling(Zone* zone, const Class& from, const Class& to)
-      : ReasonForCancelling(zone), from_(from), to_(to) { }
-
+  ClassReasonForCancelling(Zone* zone, const Class& from, const Class& to);
   void AppendTo(JSONArray* array);
 
  protected:
@@ -350,4 +348,4 @@ class IsolateReloadContext {
 
 }  // namespace dart
 
-#endif   // VM_ISOLATE_RELOAD_H_
+#endif   // RUNTIME_VM_ISOLATE_RELOAD_H_

@@ -459,7 +459,7 @@ TEST_CASE(Profiler_CodeTicks) {
       "  }\n"
       "}\n"
       "main() {\n"
-      "  B.boo();\n"
+      "  return B.boo();\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
@@ -558,7 +558,7 @@ TEST_CASE(Profiler_FunctionTicks) {
       "  }\n"
       "}\n"
       "main() {\n"
-      "  B.boo();\n"
+      "  return B.boo();\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);

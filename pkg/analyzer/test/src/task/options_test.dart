@@ -10,23 +10,25 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/options.dart'
+    show CONFIGURED_ERROR_PROCESSORS;
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
-import '../../reflective_tests.dart';
-import '../../utils.dart';
 import '../context/abstract_context.dart';
 
 main() {
-  initializeTestEnvironment();
-  runReflectiveTests(ContextConfigurationTest);
-  runReflectiveTests(GenerateNewOptionsErrorsTaskTest);
-  runReflectiveTests(GenerateOldOptionsErrorsTaskTest);
-  runReflectiveTests(OptionsFileValidatorTest);
+  defineReflectiveSuite(() {
+    defineReflectiveTests(ContextConfigurationTest);
+    defineReflectiveTests(GenerateNewOptionsErrorsTaskTest);
+    defineReflectiveTests(GenerateOldOptionsErrorsTaskTest);
+    defineReflectiveTests(OptionsFileValidatorTest);
+  });
 }
 
 isInstanceOf isGenerateOptionsErrorsTask =
@@ -50,23 +52,6 @@ analyzer:
   strong-mode:true # misformatted
 ''');
     expect(analysisOptions.strongMode, false);
-  }
-
-  test_configure_enableAsync() {
-    configureContext('''
-analyzer:
-  language:
-''');
-    expect(analysisOptions.enableAsync, true);
-  }
-
-  test_configure_enableAsync_false() {
-    configureContext('''
-analyzer:
-  language:
-    enableAsync: false
-''');
-    expect(analysisOptions.enableAsync, false);
   }
 
   test_configure_enableGenericMethods() {
@@ -269,10 +254,6 @@ analyzer:
     expect(errors, hasLength(1));
     expect(errors[0].errorCode,
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES);
-    expect(
-        errors[0].message,
-        "The option 'not_supported' is not supported by analyzer, supported "
-        "values are 'errors', 'exclude', 'language', 'plugins' and 'strong-mode'");
   }
 }
 

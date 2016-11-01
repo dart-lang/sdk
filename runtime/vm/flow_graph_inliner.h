@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_FLOW_GRAPH_INLINER_H_
-#define VM_FLOW_GRAPH_INLINER_H_
+#ifndef RUNTIME_VM_FLOW_GRAPH_INLINER_H_
+#define RUNTIME_VM_FLOW_GRAPH_INLINER_H_
 
 #include "vm/allocation.h"
 #include "vm/growable_array.h"
@@ -17,6 +17,7 @@ class ForwardInstructionIterator;
 class Function;
 class InstanceCallInstr;
 class Instruction;
+class StaticCallInstr;
 class TargetEntryInstr;
 
 class FlowGraphInliner : ValueObject {
@@ -49,10 +50,15 @@ class FlowGraphInliner : ValueObject {
       ForwardInstructionIterator* iterator,
       InstanceCallInstr* call);
 
+  static bool TryReplaceStaticCallWithInline(
+      FlowGraph* flow_graph,
+      ForwardInstructionIterator* iterator,
+      StaticCallInstr* call);
+
   static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                         intptr_t receiver_cid,
                                         const Function& target,
-                                        Instruction* call,
+                                        Definition* call,
                                         Definition* receiver,
                                         TokenPosition token_pos,
                                         const ICData& ic_data,
@@ -77,4 +83,4 @@ class FlowGraphInliner : ValueObject {
 
 }  // namespace dart
 
-#endif  // VM_FLOW_GRAPH_INLINER_H_
+#endif  // RUNTIME_VM_FLOW_GRAPH_INLINER_H_

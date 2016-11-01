@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef VM_SYMBOLS_H_
-#define VM_SYMBOLS_H_
+#ifndef RUNTIME_VM_SYMBOLS_H_
+#define RUNTIME_VM_SYMBOLS_H_
 
 #include "vm/growable_array.h"
 #include "vm/object.h"
@@ -62,6 +62,7 @@ class ObjectPointerVisitor;
   V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
+  V(FunctionInstantiatorVar, ":function_instantiator_var")                     \
   V(AssertionError, "_AssertionError")                                         \
   V(CastError, "_CastError")                                                   \
   V(TypeError, "_TypeError")                                                   \
@@ -69,9 +70,11 @@ class ObjectPointerVisitor;
   V(AbstractClassInstantiationError, "AbstractClassInstantiationError")        \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
+  V(_CompileTimeError, "_CompileTimeError")                                    \
   V(ThrowNew, "_throwNew")                                                     \
   V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(CheckAssertion, "_checkAssertion")                                         \
+  V(CheckConstAssertion, "_checkConstAssertion")                               \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \
@@ -171,6 +174,8 @@ class ObjectPointerVisitor;
   V(DeoptInfo, "DeoptInfo")                                                    \
   V(Context, "Context")                                                        \
   V(ContextScope, "ContextScope")                                              \
+  V(SingleTargetCache, "SingleTargetCache")                                    \
+  V(UnlinkedCall, "UnlinkedCall")                                              \
   V(ICData, "ICData")                                                          \
   V(MegamorphicCache, "MegamorphicCache")                                      \
   V(SubtypeTestCache, "SubtypeTestCache")                                      \
@@ -396,6 +401,8 @@ class ObjectPointerVisitor;
   V(DartLibrary, "dart.library.")                                              \
   V(DartLibraryMirrors, "dart.library.mirrors")                                \
   V(_name, "_name")                                                            \
+  V(_classRangeCheck, "_classRangeCheck")                                      \
+  V(_classRangeCheckNegative, "_classRangeCheckNegative")                      \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
@@ -688,4 +695,4 @@ class Symbols : public AllStatic {
 
 }  // namespace dart
 
-#endif  // VM_SYMBOLS_H_
+#endif  // RUNTIME_VM_SYMBOLS_H_

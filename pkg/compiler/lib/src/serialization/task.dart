@@ -8,7 +8,6 @@ import 'dart:async' show EventSink, Future;
 
 import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
-import '../common/work.dart' show ItemCompilationContext;
 import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../enqueue.dart' show ResolutionEnqueuer;
@@ -41,6 +40,10 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   // retained, for instance impacts, resolution data etc.
   bool supportSerialization = false;
 
+  /// Set this flag to also deserialize [ResolvedAst]s and [ResolutionImpact]s
+  /// in `resolveOnly` mode. Use this for testing only.
+  bool deserializeCompilationDataForTesting = false;
+
   /// If `true`, deserialized data is supported.
   bool get supportsDeserialization => deserializer != null;
 
@@ -67,12 +70,11 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   }
 
   /// Creates the [ResolutionWorkItem] for the deserialized [element].
-  ResolutionWorkItem createResolutionWorkItem(
-      Element element, ItemCompilationContext context) {
+  ResolutionWorkItem createResolutionWorkItem(Element element) {
     assert(deserializer != null);
     assert(isDeserialized(element));
     return new DeserializedResolutionWorkItem(
-        element, context, deserializer.computeWorldImpact(element));
+        element, deserializer.computeWorldImpact(element));
   }
 
   bool hasResolvedAst(ExecutableElement element) {
@@ -117,9 +119,11 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
   void deserializeFromText(Uri sourceUri, String serializedData) {
     measure(() {
       if (deserializer == null) {
-        deserializer = new DeserializerSystemImpl(compiler);
+        deserializer = new ResolutionDeserializerSystem(compiler,
+            deserializeCompilationDataForTesting:
+                deserializeCompilationDataForTesting);
       }
-      DeserializerSystemImpl deserializerImpl = deserializer;
+      ResolutionDeserializerSystem deserializerImpl = deserializer;
       DeserializationContext context = deserializerImpl.deserializationContext;
       Deserializer dataDeserializer = new Deserializer.fromText(
           context, sourceUri, serializedData, const JsonSerializationDecoder());
@@ -133,12 +137,10 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
 /// This will not resolve the element but only compute the [WorldImpact].
 class DeserializedResolutionWorkItem implements ResolutionWorkItem {
   final Element element;
-  final ItemCompilationContext compilationContext;
   final WorldImpact worldImpact;
   bool _isAnalyzed = false;
 
-  DeserializedResolutionWorkItem(
-      this.element, this.compilationContext, this.worldImpact);
+  DeserializedResolutionWorkItem(this.element, this.worldImpact);
 
   @override
   bool get isAnalyzed => _isAnalyzed;
