@@ -4,20 +4,15 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
-import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -25,11 +20,8 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
-import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart';
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -102,6 +94,11 @@ class AnalysisDriver {
   final AnalysisOptions _analysisOptions;
 
   /**
+   * The current file system state.
+   */
+  FileSystemState _fsState;
+
+  /**
    * The combined unlinked and linked package for the SDK, extracted from
    * the given [_sourceFactory].
    */
@@ -135,28 +132,6 @@ class AnalysisDriver {
   final _filesToAnalyze = new LinkedHashSet<String>();
 
   /**
-   * Cache of URI resolution. The outer map key is the absolute URI of the
-   * containing file. The inner map key is the URI text of a directive
-   * contained in that file. The inner map value is the [Source] object which
-   * that URI text resolves to.
-   */
-  final _uriResolutionCache = <Uri, Map<String, Source>>{};
-
-  /**
-   * The current file state.
-   *
-   * It maps file paths to the MD5 hash of the file content.
-   */
-  final _fileContentHashMap = <String, String>{};
-
-  /**
-   * The API signatures corresponding to [_fileContentHashMap].
-   *
-   * It maps file paths to the unlinked API signatures.
-   */
-  final _fileApiSignatureMap = <String, String>{};
-
-  /**
    * Mapping from library URIs to the dependency signature of the library.
    */
   final _dependencySignatureMap = <Uri, String>{};
@@ -186,6 +161,8 @@ class AnalysisDriver {
       this._contentCache, SourceFactory sourceFactory, this._analysisOptions)
       : _sourceFactory = sourceFactory.clone() {
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
+    _fsState = new FileSystemState(_logger, _byteStore, _contentCache,
+        _resourceProvider, _sourceFactory, _analysisOptions);
   }
 
   /**
@@ -251,7 +228,7 @@ class AnalysisDriver {
         // Verify all changed files one at a time.
         if (_changedFiles.isNotEmpty) {
           String path = _removeFirst(_changedFiles);
-          _verifyApiSignatureOfChangedFile(path);
+          _verifyApiSignature(path);
           // Repeat the processing loop.
           _hasWork.notify();
           continue;
@@ -438,15 +415,13 @@ class AnalysisDriver {
    * compute only if [withUnit] is `true`.
    */
   AnalysisResult _computeAnalysisResult(String path, {bool withUnit: false}) {
-    Source source = _sourceForPath(path);
-
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      _File file = new _File.forLinking(this, source);
+      FileState file = _fsState.getFile(path);
       // Prepare the key for the cached result.
       String key = _getResolvedUnitKey(file);
       if (key == null) {
-        _logger.run('Compute the dependency hash for $source', () {
+        _logger.run('Compute the dependency hash for $path', () {
           _createLibraryContext(file);
           key = _getResolvedUnitKey(file);
         });
@@ -459,9 +434,9 @@ class AnalysisDriver {
     }
 
     // We need the fully resolved unit, or the result is not cached.
-    return _logger.run('Compute analysis result for $source', () {
+    return _logger.run('Compute analysis result for $path', () {
       // Still no result, compute and store it.
-      _File file = new _File.forResolution(this, source);
+      FileState file = _verifyApiSignature(path);
       _LibraryContext libraryContext = _createLibraryContext(file);
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
@@ -523,13 +498,13 @@ class AnalysisDriver {
    * TODO(scheglov) We often don't need [SummaryDataStore], only dependency
    * signature.
    */
-  _LibraryContext _createLibraryContext(_File libraryFile) {
+  _LibraryContext _createLibraryContext(FileState libraryFile) {
     return _logger.run('Create library context', () {
       Map<String, _LibraryNode> nodes = <String, _LibraryNode>{};
       SummaryDataStore store = new SummaryDataStore(const <String>[]);
       store.addBundle(null, _sdkBundle);
 
-      _LibraryNode createLibraryNodes(_File libraryFile) {
+      _LibraryNode createLibraryNodes(FileState libraryFile) {
         Uri libraryUri = libraryFile.uri;
 
         // URIs with the 'dart:' scheme are served from the SDK bundle.
@@ -544,33 +519,25 @@ class AnalysisDriver {
           nodes[libraryUriStr] = node;
 
           // Append the defining unit.
-          _ReferencedUris referenced;
           {
-            PackageBundle bundle = libraryFile.unlinked;
-            UnlinkedUnit unlinked = bundle.unlinkedUnits.single;
-            referenced = new _ReferencedUris(unlinked);
-            node.unlinkedBundles.add(bundle);
+            UnlinkedUnit unlinked = libraryFile.unlinked;
             _addToStoreUnlinked(store, libraryUriStr, unlinked);
+            node.unlinkedUnits.add(unlinked);
+            node.unlinkedApiSignatures.add(libraryFile.apiSignature);
           }
 
           // Append parts.
-          for (String uri in referenced.parted) {
-            _File file = libraryFile.resolveUri(uri);
-            PackageBundle bundle = file.unlinked;
-            UnlinkedUnit unlinked = bundle.unlinkedUnits.single;
-            node.unlinkedBundles.add(bundle);
-            _addToStoreUnlinked(store, file.uri.toString(), unlinked);
+          for (FileState part in libraryFile.partedFiles) {
+            String partUriStr = part.uri.toString();
+            UnlinkedUnit unlinked = part.unlinked;
+            _addToStoreUnlinked(store, partUriStr, unlinked);
+            node.unlinkedUnits.add(unlinked);
+            node.unlinkedApiSignatures.add(part.apiSignature);
           }
 
           // Create nodes for referenced libraries.
-          for (String uri in referenced.imported) {
-            _File file = libraryFile.resolveUri(uri);
-            createLibraryNodes(file);
-          }
-          for (String uri in referenced.exported) {
-            _File file = libraryFile.resolveUri(uri);
-            createLibraryNodes(file);
-          }
+          libraryFile.importedFiles.forEach(createLibraryNodes);
+          libraryFile.exportedFiles.forEach(createLibraryNodes);
         }
 
         // Done with this node.
@@ -638,7 +605,7 @@ class AnalysisDriver {
    * If we know the result [key] for the [file], try to load the analysis
    * result from the cache. Return `null` if not found.
    */
-  AnalysisResult _getCachedAnalysisResult(_File file, String key) {
+  AnalysisResult _getCachedAnalysisResult(FileState file, String key) {
     List<int> bytes = _byteStore.get(key);
     if (bytes != null) {
       var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
@@ -661,7 +628,7 @@ class AnalysisDriver {
    * Return the key to store fully resolved results for the [file] into the
    * cache. Return `null` if the dependency signature is not known yet.
    */
-  String _getResolvedUnitKey(_File file) {
+  String _getResolvedUnitKey(FileState file) {
     String dependencyHash = _dependencySignatureMap[file.uri];
     if (dependencyHash != null) {
       ApiSignature signature = new ApiSignature();
@@ -670,15 +637,6 @@ class AnalysisDriver {
       return '${signature.toHex()}.resolved';
     }
     return null;
-  }
-
-  /**
-   * Return the [Source] for the given [path] in [_sourceFactory].
-   */
-  Source _sourceForPath(String path) {
-    Source fileSource = _resourceProvider.getFile(path).createSource();
-    Uri uri = _sourceFactory.restoreUri(fileSource);
-    return _resourceProvider.getFile(path).createSource(uri);
   }
 
   /**
@@ -708,23 +666,16 @@ class AnalysisDriver {
    *
    * TODO(scheglov) I see that adding a local var changes (full) API signature.
    */
-  void _verifyApiSignatureOfChangedFile(String path) {
-    _logger.run('Verify API signature of $path', () {
-      String oldSignature = _fileApiSignatureMap[path];
-      // Compute the new API signature.
-      // _File.forResolution() also updates the content hash in the cache.
-      Source source = _sourceForPath(path);
-      _File newFile = new _File.forResolution(this, source);
-      String newSignature = newFile.unlinked.apiSignature;
-      // If the old API signature is not null, then the file was used to
-      // compute at least one dependency signature. If the new API signature
-      // is different, then potentially all dependency signatures and
-      // resolution results are invalid.
-      if (oldSignature != null && oldSignature != newSignature) {
-        _logger.writeln('API signatures mismatch found for $newFile');
+  FileState _verifyApiSignature(String path) {
+    return _logger.run('Verify API signature of $path', () {
+      FileState file = _fsState.getFile(path);
+      bool apiChanged = file.refresh();
+      if (apiChanged) {
+        _logger.writeln('API signatures mismatch found for $path');
         _dependencySignatureMap.clear();
         _filesToAnalyze.addAll(_explicitFiles);
       }
+      return file;
     });
   }
 
@@ -894,194 +845,10 @@ class PerformanceLogSection {
 }
 
 /**
- * Information about a file being analyzed, explicitly or implicitly.
- *
- * It provides a stable, consistent view on its [content], [contentHash],
- * [unlinked] and [unit].
- *
- * A new file can be created either for resolution or for linking.
- *
- * When file is created for linking, it assumes that the file has not been
- * changed since the last time its content was read and hashed. So, this
- * content hash is also used to look for an existing unlinked bundle in the
- * [AnalysisDriver._byteStore]. If any of the caches is empty, the file is
- * created without caching, as for resolution.
- *
- * When file is created for resolution, we always read the content, compute its
- * hash and update [AnalysisDriver._fileContentHashMap], parse the content,
- * compute the unlinked bundle and update [AnalysisDriver._fileApiSignatureMap].
- * It is important to keep these two maps in sync.
- */
-class _File {
-  /**
-   * The driver instance that is used to access [SourceFactory] and caches.
-   */
-  final AnalysisDriver driver;
-
-  /**
-   * The [Source] this [_File] instance represents.
-   */
-  final Source source;
-
-  /**
-   * The [source] content, or `null` if this file is for linking.
-   */
-  final String content;
-
-  /**
-   * The [source] content hash, not `null` even if [content] is `null`.
-   */
-  final String contentHash;
-
-  /**
-   * The unlinked bundle, not `null`.
-   */
-  final PackageBundle unlinked;
-
-  /**
-   * The unresolved unit, not `null` if this file is for resolution.
-   */
-  final CompilationUnit unit;
-
-  /**
-   * Return the file with consistent [content] and [contentHash].
-   */
-  factory _File.forContent(AnalysisDriver driver, Source source) {
-    String path = source.fullName;
-    // Read the content.
-    String content;
-    try {
-      content = driver._contentCache.getContents(source);
-      content ??= source.contents.data;
-    } catch (_) {
-      content = '';
-      // TODO(scheglov) We fail to report URI_DOES_NOT_EXIST.
-      // On one hand we need to provide an unlinked bundle to prevent
-      // analysis context from reading the file (we want it to work
-      // hermetically and handle one one file at a time). OTOH,
-      // ResynthesizerResultProvider happily reports that any source in the
-      // SummaryDataStore has MODIFICATION_TIME `0`. We need to return `-1`
-      // for missing files. Maybe add this feature to SummaryDataStore?
-    }
-    // Compute the content hash.
-    List<int> textBytes = UTF8.encode(content);
-    List<int> hashBytes = md5.convert(textBytes).bytes;
-    String contentHash = hex.encode(hashBytes);
-    driver._fileContentHashMap[path] = contentHash;
-    // Return information about the file content.
-    return new _File._(driver, source, content, contentHash, null, null);
-  }
-
-  factory _File.forLinking(AnalysisDriver driver, Source source) {
-    String path = source.fullName;
-    String contentHash = driver._fileContentHashMap[path];
-    // If we don't have the file content hash, compute it.
-    if (contentHash == null) {
-      _File file = new _File.forContent(driver, source);
-      contentHash = file.contentHash;
-    }
-    // If we have the cached unlinked bundle, use it.
-    {
-      String key = '$contentHash.unlinked';
-      List<int> bytes = driver._byteStore.get(key);
-      if (bytes != null) {
-        PackageBundle unlinked = new PackageBundle.fromBuffer(bytes);
-        _updateApiSignature(driver, path, unlinked.apiSignature);
-        return new _File._(driver, source, null, contentHash, unlinked, null);
-      }
-    }
-    // Otherwise, read the source, parse and build a new unlinked bundle.
-    return new _File.forResolution(driver, source);
-  }
-
-  factory _File.forResolution(AnalysisDriver driver, Source source) {
-    _File file = new _File.forContent(driver, source);
-    String path = file.path;
-    String content = file.content;
-    String contentHash = file.contentHash;
-    // Parse the unit.
-    CompilationUnit unit = _parse(driver, source, content);
-    // Prepare the unlinked bundle.
-    PackageBundle unlinked;
-    {
-      String key = '$contentHash.unlinked';
-      List<int> bytes = driver._byteStore.get(key);
-      if (bytes == null) {
-        driver._logger.run('Create unlinked for $path', () {
-          UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-          PackageBundleAssembler assembler = new PackageBundleAssembler();
-          assembler.addUnlinkedUnitWithHash(
-              source.uri.toString(), unlinkedUnit, contentHash);
-          bytes = assembler.assemble().toBuffer();
-          driver._byteStore.put(key, bytes);
-        });
-      }
-      unlinked = new PackageBundle.fromBuffer(bytes);
-      _updateApiSignature(driver, path, unlinked.apiSignature);
-    }
-    // Return the full file.
-    return new _File._(driver, source, content, contentHash, unlinked, unit);
-  }
-
-  _File._(this.driver, this.source, this.content, this.contentHash,
-      this.unlinked, this.unit);
-
-  String get path => source.fullName;
-
-  Uri get uri => source.uri;
-
-  /**
-   * Return the [_File] for the [uri] referenced in this file.
-   *
-   * This [_File] can be used only for linking.
-   */
-  _File resolveUri(String uri) {
-    // TODO(scheglov) Consider removing this caching after implementing other
-    // optimizations, e.g. changeFile() optimization.
-    Source uriSource = driver._uriResolutionCache
-        .putIfAbsent(this.uri, () => <String, Source>{})
-        .putIfAbsent(uri, () => driver._sourceFactory.resolveUri(source, uri));
-    return new _File.forLinking(driver, uriSource);
-  }
-
-  @override
-  String toString() => path;
-
-  /**
-   * Return the parsed unresolved [CompilationUnit] for the given [content].
-   */
-  static CompilationUnit _parse(
-      AnalysisDriver driver, Source source, String content) {
-    AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
-
-    CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = driver._analysisOptions.strongMode;
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-    Parser parser = new Parser(source, errorListener);
-    parser.parseGenericMethodComments = driver._analysisOptions.strongMode;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
-    return unit;
-  }
-
-  static void _updateApiSignature(
-      AnalysisDriver driver, String path, String newSignature) {
-    String oldSignature = driver._fileApiSignatureMap[path];
-    if (oldSignature != null && oldSignature != newSignature) {
-      driver._dependencySignatureMap.clear();
-    }
-    driver._fileApiSignatureMap[path] = newSignature;
-  }
-}
-
-/**
  * TODO(scheglov) document
  */
 class _LibraryContext {
-  final _File file;
+  final FileState file;
   final _LibraryNode node;
   final SummaryDataStore store;
   _LibraryContext(this.file, this.node, this.store);
@@ -1091,7 +858,8 @@ class _LibraryNode {
   final AnalysisDriver driver;
   final Map<String, _LibraryNode> nodes;
   final Uri uri;
-  final List<PackageBundle> unlinkedBundles = <PackageBundle>[];
+  final List<String> unlinkedApiSignatures = <String>[];
+  final List<UnlinkedUnit> unlinkedUnits = <UnlinkedUnit>[];
 
   Set<_LibraryNode> transitiveDependencies;
   List<_LibraryNode> _dependencies;
@@ -1124,16 +892,14 @@ class _LibraryNode {
         }
       }
 
-      for (PackageBundle unlinkedBundle in unlinkedBundles) {
-        for (UnlinkedUnit unit in unlinkedBundle.unlinkedUnits) {
-          for (UnlinkedImport import in unit.imports) {
-            if (!import.isImplicit) {
-              appendDependency(import.uri);
-            }
+      for (UnlinkedUnit unit in unlinkedUnits) {
+        for (UnlinkedImport import in unit.imports) {
+          if (!import.isImplicit) {
+            appendDependency(import.uri);
           }
-          for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
-            appendDependency(export.uri);
-          }
+        }
+        for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
+          appendDependency(export.uri);
         }
       }
 
@@ -1151,9 +917,8 @@ class _LibraryNode {
       List<String> signatures = <String>[];
       signatures.add(driver._sdkBundle.apiSignature);
       transitiveDependencies
-          .map((node) => node.unlinkedBundles)
+          .map((node) => node.unlinkedApiSignatures)
           .expand((bundles) => bundles)
-          .map((bundle) => bundle.apiSignature)
           .forEach(signatures.add);
       signatures.sort();
 
@@ -1217,30 +982,4 @@ class _Monitor {
       _completer.complete(null);
     }
   }
-}
-
-/**
- * TODO(scheglov) document
- */
-class _ReferencedUris {
-  bool isLibrary = true;
-  final List<String> imported = <String>[];
-  final List<String> exported = <String>[];
-  final List<String> parted = <String>[];
-
-  factory _ReferencedUris(UnlinkedUnit unit) {
-    _ReferencedUris referenced = new _ReferencedUris._();
-    referenced.parted.addAll(unit.publicNamespace.parts);
-    for (UnlinkedImport import in unit.imports) {
-      if (!import.isImplicit) {
-        referenced.imported.add(import.uri);
-      }
-    }
-    for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
-      referenced.exported.add(export.uri);
-    }
-    return referenced;
-  }
-
-  _ReferencedUris._();
 }
