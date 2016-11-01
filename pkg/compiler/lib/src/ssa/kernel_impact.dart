@@ -299,6 +299,34 @@ class KernelImpactBuilder extends ir.Visitor {
       impactBuilder.registerStaticUse(new StaticUse.staticInvoke(
           target, astAdapter.getCallStructure(node.arguments)));
     }
+    switch (astAdapter.getForeignKind(node)) {
+      case ForeignKind.JS:
+        impactBuilder
+            .registerNativeData(astAdapter.getNativeBehaviorForJsCall(node));
+        break;
+      case ForeignKind.JS_BUILTIN:
+        impactBuilder.registerNativeData(
+            astAdapter.getNativeBehaviorForJsBuiltinCall(node));
+        break;
+      case ForeignKind.JS_EMBEDDED_GLOBAL:
+        impactBuilder.registerNativeData(
+            astAdapter.getNativeBehaviorForJsEmbeddedGlobalCall(node));
+        break;
+      case ForeignKind.JS_INTERCEPTOR_CONSTANT:
+        if (node.arguments.positional.length != 1 ||
+            node.arguments.named.isNotEmpty) {
+          astAdapter.reporter.reportErrorMessage(CURRENT_ELEMENT_SPANNABLE,
+              MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT);
+        }
+        ir.Node argument = node.arguments.positional.first;
+        if (argument is ir.TypeLiteral && argument.type is ir.InterfaceType) {
+          impactBuilder.registerTypeUse(
+              new TypeUse.instantiation(astAdapter.getDartType(argument.type)));
+        }
+        break;
+      case ForeignKind.NONE:
+        break;
+    }
   }
 
   @override

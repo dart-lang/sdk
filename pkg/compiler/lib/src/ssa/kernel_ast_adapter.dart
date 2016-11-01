@@ -10,9 +10,11 @@ import '../compiler.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
 import '../kernel/kernel.dart';
 import '../kernel/kernel_debug.dart';
+import '../native/native.dart' show NativeBehavior;
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
@@ -282,6 +284,135 @@ class KernelAstAdapter {
   List<DartType> getDartTypes(List<ir.DartType> types) {
     return types.map(getDartType).toList();
   }
+
+  @override
+  ForeignKind getForeignKind(ir.StaticInvocation node) {
+    if (isForeignLibrary(node.target.enclosingLibrary)) {
+      switch (node.target.name.name) {
+        case BackendHelpers.JS:
+          return ForeignKind.JS;
+        case BackendHelpers.JS_BUILTIN:
+          return ForeignKind.JS_BUILTIN;
+        case BackendHelpers.JS_EMBEDDED_GLOBAL:
+          return ForeignKind.JS_EMBEDDED_GLOBAL;
+        case BackendHelpers.JS_INTERCEPTOR_CONSTANT:
+          return ForeignKind.JS_INTERCEPTOR_CONSTANT;
+      }
+    }
+    return ForeignKind.NONE;
+  }
+
+  bool isForeignLibrary(ir.Library node) {
+    return node.importUri == BackendHelpers.DART_FOREIGN_HELPER;
+  }
+
+  DartType _typeLookup(String typeName) {
+    DartType findIn(Uri uri) {
+      LibraryElement library = _compiler.libraryLoader.lookupLibrary(uri);
+      if (library != null) {
+        Element element = library.find(typeName);
+        if (element != null && element.isClass) {
+          ClassElement cls = element;
+          return cls.rawType;
+        }
+      }
+      return null;
+    }
+
+    DartType type = findIn(Uris.dart_core);
+    type ??= findIn(BackendHelpers.DART_JS_HELPER);
+    type ??= findIn(BackendHelpers.DART_INTERCEPTORS);
+    type ??= findIn(BackendHelpers.DART_ISOLATE_HELPER);
+    type ??= findIn(Uris.dart_collection);
+    type ??= findIn(Uris.dart_html);
+    return type;
+  }
+
+  String _getStringArgument(ir.StaticInvocation node, int index) {
+    return node.arguments.positional[index].accept(new Stringifier());
+  }
+
+  NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 2 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS);
+      return new NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST);
+      return new NativeBehavior();
+    }
+
+    String codeString = _getStringArgument(node, 1);
+    if (codeString == null) {
+      reporter.reportErrorMessage(
+          CURRENT_ELEMENT_SPANNABLE, MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND);
+      return new NativeBehavior();
+    }
+
+    return NativeBehavior.ofJsCall(specString, codeString, _typeLookup,
+        CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
+  }
+
+  NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 1) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS builtin expression has no type.");
+      return new NativeBehavior();
+    }
+    if (node.arguments.positional.length < 2) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS builtin is missing name.");
+      return new NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+      return new NativeBehavior();
+    }
+    return NativeBehavior.ofJsBuiltinCall(specString, _typeLookup,
+        CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
+  }
+
+  NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
+      ir.StaticInvocation node) {
+    if (node.arguments.positional.length < 1) {
+      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+          "JS embedded global expression has no type.");
+      return new NativeBehavior();
+    }
+    if (node.arguments.positional.length < 2) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "JS embedded global is missing name.");
+      return new NativeBehavior();
+    }
+    if (node.arguments.positional.length > 2 ||
+        node.arguments.named.isNotEmpty) {
+      reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
+          "JS embedded global has more than 2 arguments.");
+      return new NativeBehavior();
+    }
+    String specString = _getStringArgument(node, 0);
+    if (specString == null) {
+      reporter.internalError(
+          CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
+      return new NativeBehavior();
+    }
+    return NativeBehavior.ofJsEmbeddedGlobalCall(specString, _typeLookup,
+        CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
+  }
+}
+
+enum ForeignKind {
+  JS,
+  JS_BUILTIN,
+  JS_EMBEDDED_GLOBAL,
+  JS_INTERCEPTOR_CONSTANT,
+  NONE,
 }
 
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
@@ -346,5 +477,23 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   @override
   DartType visitInvalidType(ir.InvalidType node) {
     throw new UnimplementedError("Invalid types not currently supported");
+  }
+}
+
+/// Visitor that converts string literals and concatenations of string literals
+/// into the string value.
+class Stringifier extends ir.ExpressionVisitor<String> {
+  @override
+  String visitStringLiteral(ir.StringLiteral node) => node.value;
+
+  @override
+  String visitStringConcatenation(ir.StringConcatenation node) {
+    StringBuffer sb = new StringBuffer();
+    for (ir.Expression expression in node.expressions) {
+      String value = expression.accept(this);
+      if (value == null) return null;
+      sb.write(value);
+    }
+    return sb.toString();
   }
 }
