@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
-import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 
@@ -47,7 +46,7 @@ class FileState {
   String _content;
   String _contentHash;
   UnlinkedUnit _unlinked;
-  String _apiSignature;
+  List<int> _apiSignature;
 
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
@@ -58,7 +57,7 @@ class FileState {
   /**
    * The unlinked API signature of the file.
    */
-  String get apiSignature => _apiSignature;
+  List<int> get apiSignature => _apiSignature;
 
   /**
    * The content of the file.
@@ -130,19 +129,16 @@ class FileState {
             _parse(source, _content, _fsState._analysisOptions);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-          PackageBundleAssembler assembler = new PackageBundleAssembler();
-          assembler.addUnlinkedUnitWithHash(
-              uri.toString(), unlinkedUnit, contentHash);
-          bytes = assembler.assemble().toBuffer();
+          bytes = unlinkedUnit.toBuffer();
           _fsState._byteStore.put(key, bytes);
         });
       }
     }
     // Read the unlinked bundle.
-    PackageBundle bundle = new PackageBundle.fromBuffer(bytes);
-    _unlinked = bundle.unlinkedUnits.single;
-    String newApiSignature = bundle.apiSignature;
-    bool apiSignatureChanged = newApiSignature != _apiSignature;
+    _unlinked = new UnlinkedUnit.fromBuffer(bytes);
+    List<int> newApiSignature = _unlinked.apiSignature;
+    bool apiSignatureChanged = _apiSignature != null &&
+        !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
     // Build the graph.
     _importedFiles = <FileState>[];
@@ -173,6 +169,26 @@ class FileState {
   FileState _fileForRelativeUri(String relativeUri) {
     Source uriSource = _fsState._sourceFactory.resolveUri(source, relativeUri);
     return _fsState.getFile(uriSource.fullName);
+  }
+
+  /**
+   * Return `true` if the given byte lists are equal.
+   */
+  static bool _equalByteLists(List<int> a, List<int> b) {
+    if (a == null) {
+      return b == null;
+    } else if (b == null) {
+      return false;
+    }
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

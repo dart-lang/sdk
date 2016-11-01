@@ -523,7 +523,6 @@ class AnalysisDriver {
             UnlinkedUnit unlinked = libraryFile.unlinked;
             _addToStoreUnlinked(store, libraryUriStr, unlinked);
             node.unlinkedUnits.add(unlinked);
-            node.unlinkedApiSignatures.add(libraryFile.apiSignature);
           }
 
           // Append parts.
@@ -532,7 +531,6 @@ class AnalysisDriver {
             UnlinkedUnit unlinked = part.unlinked;
             _addToStoreUnlinked(store, partUriStr, unlinked);
             node.unlinkedUnits.add(unlinked);
-            node.unlinkedApiSignatures.add(part.apiSignature);
           }
 
           // Create nodes for referenced libraries.
@@ -858,7 +856,6 @@ class _LibraryNode {
   final AnalysisDriver driver;
   final Map<String, _LibraryNode> nodes;
   final Uri uri;
-  final List<String> unlinkedApiSignatures = <String>[];
   final List<UnlinkedUnit> unlinkedUnits = <UnlinkedUnit>[];
 
   Set<_LibraryNode> transitiveDependencies;
@@ -911,21 +908,19 @@ class _LibraryNode {
   String get dependencySignature {
     return _dependencySignature ??=
         driver._dependencySignatureMap.putIfAbsent(uri, () {
-      computeTransitiveDependencies();
+      ApiSignature signature = new ApiSignature();
+      signature.addString(driver._sdkBundle.apiSignature);
 
       // Add all unlinked API signatures.
-      List<String> signatures = <String>[];
-      signatures.add(driver._sdkBundle.apiSignature);
+      computeTransitiveDependencies();
       transitiveDependencies
-          .map((node) => node.unlinkedApiSignatures)
-          .expand((bundles) => bundles)
-          .forEach(signatures.add);
-      signatures.sort();
+          .map((node) => node.unlinkedUnits)
+          .expand((units) => units)
+          .map((unit) => unit.apiSignature)
+          .forEach(signature.addBytes);
 
       // Combine into a single hash.
-      ApiSignature signature = new ApiSignature();
       signature.addString(uri.toString());
-      signatures.forEach(signature.addString);
       return signature.toHex();
     });
   }
