@@ -9,6 +9,7 @@ import 'dart:async';
 import '../common.dart';
 import '../common/resolution.dart';
 import '../compiler.dart';
+import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../scanner/scanner.dart';
 import '../script.dart';
@@ -156,20 +157,36 @@ class CompilationDeserializerSystem extends ResolutionDeserializerSystem {
   ResolutionImpact getResolutionImpact(Element element) {
     if (element.isConstructor &&
         element.enclosingClass.isUnnamedMixinApplication) {
-      ClassElement superclass = element.enclosingClass.superclass;
+      ConstructorElement constructor = element;
+      ClassElement superclass = constructor.enclosingClass.superclass;
       ConstructorElement superclassConstructor =
-          superclass.lookupConstructor(element.name);
+          superclass.lookupConstructor(constructor.name);
       assert(invariant(element, superclassConstructor != null,
-          message: "Superclass constructor '${element.name}' called from "
+          message: "Superclass constructor '${constructor.name}' called from "
               "${element} not found in ${superclass}."));
       // TODO(johnniwinther): Compute callStructure. Currently not used.
       CallStructure callStructure;
-      return _resolutionImpactDeserializer.registerResolutionImpact(element,
+      return _resolutionImpactDeserializer.registerResolutionImpact(constructor,
           () {
+        List<TypeUse> typeUses = <TypeUse>[];
+        void addCheckedModeCheck(DartType type) {
+          if (!type.isDynamic) {
+            typeUses.add(new TypeUse.checkedModeCheck(type));
+          }
+        }
+
+        FunctionType type = constructor.type;
+        // TODO(johnniwinther): Remove this substitution when synthesized
+        // constructors handle type variables correctly.
+        type = type.substByContext(constructor.enclosingClass
+            .asInstanceOf(constructor.enclosingClass));
+        type.parameterTypes.forEach(addCheckedModeCheck);
+        type.optionalParameterTypes.forEach(addCheckedModeCheck);
+        type.namedParameterTypes.forEach(addCheckedModeCheck);
         return new DeserializedResolutionImpact(staticUses: <StaticUse>[
           new StaticUse.superConstructorInvoke(
               superclassConstructor, callStructure)
-        ]);
+        ], typeUses: typeUses);
       });
     }
     return _resolutionImpactDeserializer.getResolutionImpact(element);

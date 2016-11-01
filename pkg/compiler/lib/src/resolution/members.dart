@@ -456,14 +456,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             resolver.constantCompiler.compileConstant(parameter);
       });
     });
-    if (!functionSignature.returnType.isDynamic) {
-      registry.registerTypeUse(
-          new TypeUse.checkedModeCheck(functionSignature.returnType));
-    }
+    registry.registerCheckedModeCheck(functionSignature.returnType);
     functionSignature.forEachParameter((ParameterElement element) {
-      if (!element.type.isDynamic) {
-        registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
-      }
+      registry.registerCheckedModeCheck(element.type);
     });
   }
 
@@ -2355,6 +2350,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (result.kind == ResultKind.PREFIX) {
       return handlePrefixSend(node, name, result);
     } else if (node.isConditional) {
+      registry.registerConstantLiteral(new NullConstantExpression());
+      registry.registerDynamicUse(new DynamicUse(Selectors.equals, null));
       return handleDynamicAccessSemantics(
           node, name, new DynamicAccess.ifNotNullProperty(name));
     } else {
@@ -2388,6 +2385,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (result.kind == ResultKind.PREFIX) {
       return handlePrefixSendSet(node, name, result);
     } else if (node.isConditional) {
+      registry.registerConstantLiteral(new NullConstantExpression());
+      registry.registerDynamicUse(new DynamicUse(Selectors.equals, null));
       return handleDynamicUpdateSemantics(
           node, name, null, new DynamicAccess.ifNotNullProperty(name));
     } else {
@@ -4080,8 +4079,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     DartType type = typeResolver.resolveTypeAnnotation(this, node,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
-    if (registerCheckedModeCheck && !type.isDynamic) {
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
+    if (registerCheckedModeCheck) {
+      registry.registerCheckedModeCheck(type);
     }
     return type;
   }
@@ -4607,10 +4606,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       if (cases.isNotEmpty && switchCase.statements.isNotEmpty) {
         Node last = switchCase.statements.last;
-        if (last.asBreakStatement() == null &&
+        if (last.asReturn() == null &&
+            last.asBreakStatement() == null &&
             last.asContinueStatement() == null &&
-            last.asThrow() == null &&
-            last.asReturn() == null) {
+            (last.asExpressionStatement() == null ||
+                last.asExpressionStatement().expression.asThrow() == null)) {
           registry.registerFeature(Feature.FALL_THROUGH_ERROR);
         }
       }
