@@ -73,10 +73,13 @@ The following tools are a available today:
     was split into deferred parts as expected. This tool takes a specification
     of the expected layout of code into deferred parts, and checks that the
     output from `dart2js` meets the specification.
-    
+
   * [`deferred_library_size`][deferred_size]: a tool that gives a breakdown of
     the sizes of the deferred parts of the program. This can show how much of
     your total code size can be loaded deferred.
+
+  * [`deferred_library_layout`][deferred_layout]: a tool that reports which
+    code is included on each output unit.
 
   * [`function_size_analysis`][function_analysis]: a tool that shows how much
     code was attributed to each function. This tool also uses dependency
@@ -270,6 +273,48 @@ Deferred code size                       8888888
 Percent of code deferred                  41.86%
 ```
 
+### Deferred library layout tool
+
+This tool reports which code is included in each output unit.  It can be run as
+follows:
+
+```bash
+pub global activate dart2js_info # only needed once
+dart2js_info_deferred_library_layout out.js.info.json
+```
+
+The tool will output a table listing all of the deferred output units or chunks,
+for each unit it will list the set of libraries that contribute code to this
+unit. If a library contributes to more than one output unit, the tool lists
+which elements are in one or another output unit. For example, the output might
+look like this:
+
+```
+Output unit main:
+  loaded by default
+  contains:
+     - hello_world.dart
+     - dart:core
+     ...
+
+Output unit 2:
+  loaded by importing: [b]
+  contains:
+     - c.dart:
+       - function d
+     - b.dart
+
+Output unit 1:
+  loaded by importing: [a]
+  contains:
+     - c.dart:
+       - function c
+     - a.dart
+```
+
+In this example, all the code of `b.dart` after tree-shaking was included in the
+output unit 2, but `c.dart` was split between output unit 1 and output unit 2.
+
 ### Function size analysis tool
 
 This command-line tool presents how much each function contributes to the total
@@ -352,6 +397,7 @@ bugs at the [issue tracker][tracker].
 [lib_split]: https://github.com/dart-lang/dart2js_info/blob/master/bin/library_size_split.dart
 [deferred_lib]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_check.dart
 [deferred_size]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_size.dart
+[deferred_layout]: https://github.com/dart-lang/dart2js_info/blob/master/bin/deferred_library_layout.dart
 [coverage]: https://github.com/dart-lang/dart2js_info/blob/master/bin/coverage_log_server.dart
 [live]: https://github.com/dart-lang/dart2js_info/blob/master/bin/live_code_size_analysis.dart
 [function_analysis]: https://github.com/dart-lang/dart2js_info/blob/master/bin/function_size_analysis.dart
