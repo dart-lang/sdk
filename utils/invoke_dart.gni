@@ -4,6 +4,12 @@
 
 _dart_root = rebase_path("..")
 
+if (defined(is_win) && is_win) {
+  dart_executable_suffix = ".exe"
+} else {
+  dart_executable_suffix = ""
+}
+
 template("invoke_dart") {
   assert(defined(invoker.outputs), "invoke_dart must specify outputs")
   extra_deps = []
@@ -29,11 +35,7 @@ template("invoke_dart") {
     dart_out_dir =
         get_label_info("$relative_dart_root/runtime/bin:dart($host_toolchain)",
                        "root_out_dir")
-    if (is_win) {
-      dart = rebase_path("$dart_out_dir/dart.exe")
-    } else {
-      dart = rebase_path("$dart_out_dir/dart")
-    }
+    dart = rebase_path("$dart_out_dir/dart$dart_executable_suffix")
 
     inputs = [ dart ] + extra_inputs
 

@@ -72,14 +72,10 @@ def to_gn_args(args, mode, arch, target_os):
   gn_args['target_cpu'] = target_cpu_for_arch(arch, target_os)
   gn_args['host_cpu'] = host_cpu_for_arch(arch)
 
-  # TODO(zra): This is for the observatory, which currently builds using the
-  # checked-in sdk. If/when the observatory no longer builds with the
-  # checked-in sdk, this can be removed.
-  pub = 'pub'
-  if host_os == 'win':
-    pub = pub + ".bat"
-  gn_args['dart_host_pub_exe'] = os.path.join(
-      DART_ROOT, 'tools', 'sdks', host_os, 'dart-sdk', 'bin', pub)
+  # See: runtime/observatory/BUILD.gn.
+  # This allows the standalone build of the observatory to fall back on
+  # dart_bootstrap if the prebuilt SDK doesn't work.
+  gn_args['dart_host_pub_exe'] = ""
 
   # For Fuchsia support, the default is to not compile in the root
   # certificates.

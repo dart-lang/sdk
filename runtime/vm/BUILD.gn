@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../utils/invoke_dart.gni")
+
 config("libdart_vm_config") {
   if (defined(is_fuchsia) && is_fuchsia) {
     libs = [ "magenta" ]
@@ -438,7 +440,8 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
     # Build the patched sdk out of the concatenated patches and the special
     # libraries.
     action(target_name) {
-      deps = concatenation_target_names
+      deps = [ "../bin:dart_bootstrap($host_toolchain)" ] +
+             concatenation_target_names
 
       patches_dir = "$target_gen_dir/patches"
       patched_sdk_dir = "$root_out_dir/patched_sdk"
@@ -478,7 +481,14 @@ if (!defined(is_fuchsia) || !is_fuchsia) {
         "${patched_sdk_dir}/lib/core/core.dart",
       ]
 
+      dart_out_dir = get_label_info("../bin:dart_bootstrap($host_toolchain)",
+                                    "root_out_dir")
+      dart_bootstrap =
+          rebase_path("$dart_out_dir/dart_bootstrap$dart_executable_suffix")
+
       args = [
+        "--dart-executable",
+        dart_bootstrap,
         "vm",
         rebase_path("../../sdk"),
         rebase_path(patches_dir, root_build_dir),
