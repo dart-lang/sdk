@@ -237,8 +237,12 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         ContextScope::Handle(Z, function.context_scope()));
   }
   current_function_scope_ = scope_ = new (Z) LocalScope(enclosing_scope, 0, 0);
+
+  LocalVariable* context_var = parsed_function->current_context_var();
+  context_var->set_is_forced_stack();
+  scope_->AddVariable(context_var);
   scope_->AddVariable(parsed_function->EnsureExpressionTemp());
-  scope_->AddVariable(parsed_function->current_context_var());
+
   parsed_function->SetNodeSequence(
       new SequenceNode(TokenPosition::kNoSource, scope_));
 
@@ -261,6 +265,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       intptr_t pos = 0;
       if (function.IsClosureFunction()) {
         LocalVariable* variable = MakeVariable(Symbols::ClosureParameter());
+        variable->set_is_forced_stack();
         scope_->InsertParameterAt(pos++, variable);
       } else if (!function.is_static()) {
         // We use [is_static] instead of [IsStaticFunction] because the latter
@@ -517,6 +522,7 @@ void ScopeBuilder::VisitForInStatement(ForInStatement* node) {
 void ScopeBuilder::AddSwitchVariable() {
   if ((depth_.function_ == 0) && (result_->switch_variable == NULL)) {
     LocalVariable* variable = MakeVariable(Symbols::SwitchExpr());
+    variable->set_is_forced_stack();
     current_function_scope_->AddVariable(variable);
     result_->switch_variable = variable;
   }
@@ -5519,6 +5525,9 @@ void FlowGraphBuilder::VisitYieldStatement(YieldStatement* node) {
     ASSERT(exception_var->name().raw() == Symbols::ExceptionParameter().raw());
     ASSERT(stack_trace_var->name().raw() ==
            Symbols::StackTraceParameter().raw());
+
+    exception_var->set_is_forced_stack();
+    stack_trace_var->set_is_forced_stack();
 
     TargetEntryInstr* no_error;
     TargetEntryInstr* error;
