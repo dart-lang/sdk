@@ -379,7 +379,7 @@ class HintCode extends ErrorCode {
   static const HintCode UNDEFINED_METHOD = const HintCode(
       'UNDEFINED_METHOD',
       "The method '{0}' isn't defined for the class '{1}'.",
-      "Try correcting the name to the name of an existing method, or"
+      "Try correcting the name to the name of an existing method, or "
       "defining a method named '{0}'.");
 
   /**
