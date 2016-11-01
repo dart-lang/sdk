@@ -62,8 +62,8 @@ abstract class Codec<S, T> {
    */
   // TODO(floitsch): use better example with line-splitter once that one is
   // in this library.
-  Codec<S, dynamic> fuse(Codec<T, dynamic> other) {
-    return new _FusedCodec<S, T, dynamic>(this, other);
+  Codec<S, dynamic/*=TT*/ > fuse/*<TT>*/(Codec<T, dynamic/*=TT*/ > other) {
+    return new _FusedCodec<S, T, dynamic/*=TT*/ >(this, other);
   }
 
   /**
