@@ -2315,6 +2315,13 @@ table UnlinkedTypeParam {
  */
 table UnlinkedUnit {
   /**
+   * MD5 hash of the non-informative fields of the [UnlinkedUnit] (not
+   * including this one) as 16 unsigned 8-bit integer values.  This can be used
+   * to identify when the API of a unit may have changed.
+   */
+  apiSignature:[uint] (id: 19);
+
+  /**
    * Classes declared in the compilation unit.
    */
   classes:[UnlinkedClass] (id: 2);

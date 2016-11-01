@@ -114,11 +114,17 @@ class ApiSignature {
   }
 
   /**
+   * Return the bytes of the MD5 hash of the data collected so far.
+   */
+  List<int> toByteList() {
+    return md5.convert(new Uint8List.view(_data.buffer, 0, _offset)).bytes;
+  }
+
+  /**
    * Return a hex-encoded MD5 signature of the data collected so far.
    */
   String toHex() {
-    return hex.encode(
-        md5.convert(new Uint8List.view(_data.buffer, 0, _offset)).bytes);
+    return hex.encode(toByteList());
   }
 
   /**

@@ -2647,6 +2647,14 @@ abstract class UnlinkedUnit extends base.SummaryClass {
       generated.readUnlinkedUnit(buffer);
 
   /**
+   * MD5 hash of the non-informative fields of the [UnlinkedUnit] (not
+   * including this one) as 16 unsigned 8-bit integer values.  This can be used
+   * to identify when the API of a unit may have changed.
+   */
+  @Id(19)
+  List<int> get apiSignature;
+
+  /**
    * Classes declared in the compilation unit.
    */
   @Id(2)
