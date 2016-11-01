@@ -21,17 +21,17 @@ abstract class Accessor {
     return _finish(_makeSimpleWrite(value, voidContext));
   }
 
-  Expression buildNullAwareAssignment(Expression value,
+  Expression buildNullAwareAssignment(Expression value, DartType type,
       {bool voidContext: false}) {
     if (voidContext) {
       return _finish(new ConditionalExpression(buildIsNull(_makeRead()),
-          _makeWrite(value, voidContext), new NullLiteral()));
+          _makeWrite(value, voidContext), new NullLiteral(), type));
     }
     var tmp = new VariableDeclaration.forValue(_makeRead());
     return _finish(makeLet(
         tmp,
         new ConditionalExpression(buildIsNull(new VariableGet(tmp)),
-            _makeWrite(value, voidContext), new VariableGet(tmp))));
+            _makeWrite(value, voidContext), new VariableGet(tmp), type)));
   }
 
   Expression buildCompoundAssignment(Name binaryOperator, Expression value,
@@ -150,9 +150,10 @@ class NullAwarePropertyAccessor extends Accessor {
   VariableDeclaration receiver;
   Name name;
   Member getter, setter;
+  DartType type;
 
   NullAwarePropertyAccessor(
-      Expression receiver, this.name, this.getter, this.setter)
+      Expression receiver, this.name, this.getter, this.setter, this.type)
       : this.receiver = makeOrReuseVariable(receiver);
 
   receiverAccess() => new VariableGet(receiver);
@@ -166,7 +167,7 @@ class NullAwarePropertyAccessor extends Accessor {
   _finish(Expression body) => makeLet(
       receiver,
       new ConditionalExpression(
-          buildIsNull(receiverAccess()), new NullLiteral(), body));
+          buildIsNull(receiverAccess()), new NullLiteral(), body, type));
 }
 
 class SuperPropertyAccessor extends Accessor {

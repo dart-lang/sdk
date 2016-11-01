@@ -319,17 +319,9 @@ class TypeCheckingVisitor
   @override
   DartType visitConditionalExpression(ConditionalExpression node) {
     checkAssignableExpression(node.condition, environment.boolType);
-    if (node.staticType == null) {
-      var thenType = visitExpression(node.then);
-      var otherwiseType = visitExpression(node.otherwise);
-      if (thenType is BottomType) return otherwiseType;
-      if (otherwiseType is BottomType) return thenType;
-      return const DynamicType();
-    } else {
-      checkAssignableExpression(node.then, node.staticType);
-      checkAssignableExpression(node.otherwise, node.staticType);
-      return node.staticType;
-    }
+    checkAssignableExpression(node.then, node.staticType);
+    checkAssignableExpression(node.otherwise, node.staticType);
+    return node.staticType;
   }
 
   @override

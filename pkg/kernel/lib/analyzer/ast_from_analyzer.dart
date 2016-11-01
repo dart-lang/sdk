@@ -330,7 +330,7 @@ class TypeScope extends ReferenceScope {
         return classNode.asRawSupertype;
       } else {
         return new ast.Supertype(classNode,
-          type.typeArguments.map(buildType).toList(growable: false));
+            type.typeArguments.map(buildType).toList(growable: false));
       }
     }
     return getRootClassReference().asRawSupertype;
@@ -403,8 +403,7 @@ class TypeScope extends ReferenceScope {
 
   ast.TypeParameter buildTypeParameter(TypeParameter node) {
     return makeTypeParameter(node.element,
-        bound:
-            buildOptionalTypeAnnotation(node.bound) ??
+        bound: buildOptionalTypeAnnotation(node.bound) ??
             defaultTypeParameterBound);
   }
 
@@ -682,7 +681,8 @@ class ExpressionScope extends TypeScope {
         parameters[firstNamedParameter].parameterKind != ParameterKind.NAMED) {
       ++firstNamedParameter;
     }
-    namedLoop: for (int i = 0; i < arguments.named.length; ++i) {
+    namedLoop:
+    for (int i = 0; i < arguments.named.length; ++i) {
       String name = arguments.named[i].name;
       for (int j = firstNamedParameter; j < parameters.length; ++j) {
         if (parameters[j].parameterKind == ParameterKind.NAMED &&
@@ -1324,7 +1324,8 @@ class ExpressionBuilder
     if (operator == '=') {
       return leftHand.buildAssignment(rightHand, voidContext: voidContext);
     } else if (operator == '??=') {
-      return leftHand.buildNullAwareAssignment(rightHand,
+      return leftHand.buildNullAwareAssignment(
+          rightHand, scope.buildType(node.staticType),
           voidContext: voidContext);
     } else {
       // Cut off the trailing '='.
@@ -1690,6 +1691,7 @@ class ExpressionBuilder
           numberOfTypeArguments, const ast.DynamicType(),
           growable: true);
     }
+
     var arguments = buildArguments(node.argumentList,
         explicitTypeArguments: node.constructorName.type.typeArguments,
         inferTypeArguments: inferTypeArguments);
@@ -1700,6 +1702,7 @@ class ExpressionBuilder
               new ast.NullLiteral(), '${node.constructorName}', arguments,
               candidateTarget: element);
     }
+
     if (element == null) {
       return noSuchMethodError();
     }
@@ -1851,7 +1854,8 @@ class ExpressionBuilder
                   new ast.VariableGet(receiver),
                   scope.buildName(node.methodName),
                   buildArgumentsForInvocation(node),
-                  element)));
+                  element),
+              scope.buildType(node.staticType)));
     } else {
       return buildDecomposableMethodInvocation(
           build(node.target),
@@ -1946,7 +1950,8 @@ class ExpressionBuilder
       return scope.staticAccess(node.propertyName.name, element, auxiliary);
     } else if (node.operator.value() == '?.') {
       return new NullAwarePropertyAccessor(
-          build(target), scope.buildName(node.propertyName), getter, setter);
+          build(target), scope.buildName(node.propertyName), getter, setter,
+          scope.buildType(node.staticType));
     } else {
       return PropertyAccessor.make(
           build(target), scope.buildName(node.propertyName), getter, setter);
@@ -2631,9 +2636,8 @@ class MemberBodyBuilder extends GeneralizingAstVisitor<Null> {
       // TODO(asgerf): Sometimes a TypeError should be thrown.
       function.body = new ast.ExpressionStatement(
           scope.buildThrowNoSuchMethodError(
-              new ast.NullLiteral(),
-              name,
-              new ast.Arguments.empty()))..parent = function;
+              new ast.NullLiteral(), name, new ast.Arguments.empty()))
+        ..parent = function;
     }
   }
 

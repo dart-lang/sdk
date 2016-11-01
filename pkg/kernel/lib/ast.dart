@@ -1978,28 +1978,17 @@ class ConditionalExpression extends Expression {
   Expression then;
   Expression otherwise;
 
-  /// The static type of the expression, or `null` if the type should be derived
-  /// from [then] and [otherwise] using a very simple upper bound computation.
-  ///
-  /// If one of the arms is a null literal, the static type of the other
-  /// arm will be used.
+  /// The static type of the expression. Should not be `null`.
   DartType staticType;
 
   ConditionalExpression(this.condition, this.then, this.otherwise,
-      [this.staticType]) {
+      this.staticType) {
     condition?.parent = this;
     then?.parent = this;
     otherwise?.parent = this;
   }
 
-  DartType getStaticType(TypeEnvironment types) {
-    if (staticType != null) return staticType;
-    var left = then.getStaticType(types);
-    var right = otherwise.getStaticType(types);
-    if (left is BottomType) return right;
-    if (right is BottomType) return left;
-    return const DynamicType();
-  }
+  DartType getStaticType(TypeEnvironment types) => staticType;
 
   accept(ExpressionVisitor v) => v.visitConditionalExpression(this);
 
