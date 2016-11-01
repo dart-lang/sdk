@@ -739,7 +739,6 @@ class Isolate : public BaseIsolate {
   ObjectStore* object_store_;
   ClassTable class_table_;
   bool single_step_;
-  bool skip_step_;  // skip the next single step.
 
   ThreadRegistry* thread_registry_;
   SafepointHandler* safepoint_handler_;
@@ -752,7 +751,6 @@ class Isolate : public BaseIsolate {
   uint64_t pause_capability_;
   uint64_t terminate_capability_;
   bool errors_fatal_;
-  uword top_exit_frame_info_;
   void* init_callback_data_;
   Dart_EnvironmentCallback environment_callback_;
   Dart_LibraryTagHandler library_tag_handler_;
@@ -786,10 +784,6 @@ class Isolate : public BaseIsolate {
     bool error_on_bad_type_;
     bool error_on_bad_override_;
   )
-
-  // Status support.
-  char* stacktrace_;
-  intptr_t stack_frame_index_;
 
   // Timestamps of last operation via service.
   int64_t last_allocationprofile_accumulator_reset_timestamp_;
