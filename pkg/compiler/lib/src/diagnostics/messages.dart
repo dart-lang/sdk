@@ -463,9 +463,6 @@ enum MessageKind {
   VOID_EXPRESSION,
   VOID_NOT_ALLOWED,
   VOID_VARIABLE,
-  WRONG_ARGUMENT_FOR_JS,
-  WRONG_ARGUMENT_FOR_JS_FIRST,
-  WRONG_ARGUMENT_FOR_JS_SECOND,
   WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT,
   WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
   YIELDING_MODIFIER_ON_ARROW_BODY,
@@ -2697,18 +2694,6 @@ main() {}
           howToFix:
               "Use an immediately called JavaScript function to capture the"
               " the placeholder values as JavaScript function parameters."),
-
-      MessageKind.WRONG_ARGUMENT_FOR_JS: const MessageTemplate(
-          MessageKind.WRONG_ARGUMENT_FOR_JS,
-          "JS expression must take two or more arguments."),
-
-      MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST: const MessageTemplate(
-          MessageKind.WRONG_ARGUMENT_FOR_JS_FIRST,
-          "JS expression must take two or more arguments."),
-
-      MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND: const MessageTemplate(
-          MessageKind.WRONG_ARGUMENT_FOR_JS_SECOND,
-          "JS second argument must be a string literal."),
 
       MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT:
           const MessageTemplate(

@@ -854,7 +854,7 @@ class JavaScriptBackend extends Backend {
           .handleMethodAnnotations(element);
       if (isNative(element)) {
         native.NativeBehavior behavior =
-            native.NativeBehavior.ofMethodElement(element, compiler);
+            native.NativeBehavior.ofMethod(element, compiler);
         nativeData.setNativeMethodBehavior(element, behavior);
         registry.registerNativeData(behavior);
       }
@@ -863,9 +863,9 @@ class JavaScriptBackend extends Backend {
           .handleFieldAnnotations(element);
       if (isNative(element)) {
         native.NativeBehavior fieldLoadBehavior =
-            native.NativeBehavior.ofFieldElementLoad(element, compiler);
-        native.NativeBehavior fieldStoreBehavior = native.NativeBehavior
-            .ofFieldElementStore(element, compiler.resolution);
+            native.NativeBehavior.ofFieldLoad(element, compiler);
+        native.NativeBehavior fieldStoreBehavior =
+            native.NativeBehavior.ofFieldStore(element, compiler);
         nativeData.setNativeFieldLoadBehavior(element, fieldLoadBehavior);
         nativeData.setNativeFieldStoreBehavior(element, fieldStoreBehavior);
 
@@ -1434,13 +1434,13 @@ class JavaScriptBackend extends Backend {
       CallStructure callStructure, ForeignResolver resolver) {
     native.NativeResolutionEnqueuer nativeEnqueuer =
         compiler.enqueuer.resolution.nativeEnqueuer;
-    if (element.name == BackendHelpers.JS) {
+    if (element.name == 'JS') {
       return nativeEnqueuer.resolveJsCall(node, resolver);
-    } else if (element.name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
+    } else if (element.name == 'JS_EMBEDDED_GLOBAL') {
       return nativeEnqueuer.resolveJsEmbeddedGlobalCall(node, resolver);
-    } else if (element.name == BackendHelpers.JS_BUILTIN) {
+    } else if (element.name == 'JS_BUILTIN') {
       return nativeEnqueuer.resolveJsBuiltinCall(node, resolver);
-    } else if (element.name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
+    } else if (element.name == 'JS_INTERCEPTOR_CONSTANT') {
       // The type constant that is an argument to JS_INTERCEPTOR_CONSTANT names
       // a class that will be instantiated outside the program by attaching a
       // native class dispatch record referencing the interceptor.

@@ -152,10 +152,6 @@ class Uris {
   /// The URI for 'dart:async'.
   static final Uri dart_async = new Uri(scheme: 'dart', path: 'async');
 
-  /// The URI for 'dart:collection'.
-  static final Uri dart_collection =
-      new Uri(scheme: 'dart', path: 'collection');
-
   /// The URI for 'dart:core'.
   static final Uri dart_core = new Uri(scheme: 'dart', path: 'core');
 

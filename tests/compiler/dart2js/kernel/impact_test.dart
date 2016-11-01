@@ -39,8 +39,6 @@ main() {
   testStringInterpolationConst();
   testStringJuxtaposition();
   testSymbol();
-  testTypeLiteral();
-  testBoolFromEnvironment();
   testEmptyListLiteral();
   testEmptyListLiteralDynamic();
   testEmptyListLiteralTyped();
@@ -58,26 +56,23 @@ main() {
   testPostDec(null);
   testPreInc(null);
   testPreDec(null);
-  testIs();
-  testIsGeneric();
-  testIsGenericRaw();
-  testIsGenericDynamic();
-  testIsNot();
-  testIsNotGeneric();
-  testIsNotGenericRaw();
-  testIsNotGenericDynamic();
-  testIsTypedef();
-  testIsTypedefGeneric();
-  testIsTypedefGenericRaw();
-  testIsTypedefGenericDynamic();
-  testIsTypedefDeep();
-  testAs();
-  testAsGeneric();
-  testAsGenericRaw();
-  testAsGenericDynamic();
+  testIs(null);
+  testIsGeneric(null);
+  testIsGenericRaw(null);
+  testIsGenericDynamic(null);
+  testIsNot(null);
+  testIsNotGeneric(null);
+  testIsNotGenericRaw(null);
+  testIsNotGenericDynamic(null);
+  testIsTypedef(null);
+  testIsTypedefGeneric(null);
+  testIsTypedefGenericRaw(null);
+  testIsTypedefGenericDynamic(null);
+  testAs(null);
+  testAsGeneric(null);
+  testAsGenericRaw(null);
+  testAsGenericDynamic(null);
   testThrow();
-  testIfNotNull(null);
-  testIfNotNullSet(null);
   testIfNull(null);
   testSetIfNull(null);
   testSyncStar();
@@ -112,7 +107,6 @@ main() {
   testTopLevelFieldGeneric2();
   testTopLevelFieldGeneric3();
   testTopLevelFieldWrite();
-  testStaticFunctionGet();
   testDynamicInvoke(null);
   testDynamicGet(null);
   testDynamicSet(null);
@@ -149,22 +143,6 @@ main() {
   testFactoryConstructor();
   testDefaultValuesPositional();
   testDefaultValuesNamed();
-  testFieldInitializer1();
-  testFieldInitializer2();
-  testInstanceFieldWithInitializer();
-  testInstanceFieldTyped();
-  testThisInitializer();
-  testSuperInitializer();
-  testGenericClass();
-  testSuperCall();
-  testSuperGet();
-  testSuperFieldSet();
-  testSuperSetterSet();
-  testSuperClosurization();
-  testForwardingConstructor();
-  testForwardingConstructorTyped();
-  testForwardingConstructorGeneric();
-  testEnum();
 }
 
 testEmpty() {}
@@ -180,8 +158,6 @@ testStringInterpolationConst() {
 }
 testStringJuxtaposition() => 'a' 'b';
 testSymbol() => #main;
-testTypeLiteral() => Object;
-testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 testEmptyListLiteral() => [];
 testEmptyListLiteralDynamic() => <dynamic>[];
 testEmptyListLiteralTyped() => <String>[];
@@ -200,26 +176,23 @@ testPostDec(o) => o--;
 testPreInc(o) => ++o;
 testPreDec(o) => --o;
 
-testIs() => null is Class;
-testIsGeneric() => null is GenericClass<int, String>;
-testIsGenericRaw() => null is GenericClass;
-testIsGenericDynamic() => null is GenericClass<dynamic, dynamic>;
-testIsNot() => null is! Class;
-testIsNotGeneric() => null is! GenericClass<int, String>;
-testIsNotGenericRaw() => null is! GenericClass;
-testIsNotGenericDynamic() => null is! GenericClass<dynamic, dynamic>;
-testIsTypedef() => null is Typedef;
-testIsTypedefGeneric() => null is GenericTypedef<int, String>;
-testIsTypedefGenericRaw() => null is GenericTypedef;
-testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
-testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
-testAs() => null as Class;
-testAsGeneric() => null as GenericClass<int, String>;
-testAsGenericRaw() => null as GenericClass;
-testAsGenericDynamic() => null as GenericClass<dynamic, dynamic>;
+testIs(o) => o is Class;
+testIsGeneric(o) => o is GenericClass<int, String>;
+testIsGenericRaw(o) => o is GenericClass;
+testIsGenericDynamic(o) => o is GenericClass<dynamic, dynamic>;
+testIsNot(o) => o is! Class;
+testIsNotGeneric(o) => o is! GenericClass<int, String>;
+testIsNotGenericRaw(o) => o is! GenericClass;
+testIsNotGenericDynamic(o) => o is! GenericClass<dynamic, dynamic>;
+testIsTypedef(o) => o is Typedef;
+testIsTypedefGeneric(o) => o is GenericTypedef<int, String>;
+testIsTypedefGenericRaw(o) => o is GenericTypedef;
+testIsTypedefGenericDynamic(o) => o is GenericTypedef<dynamic, dynamic>;
+testAs(o) => o as Class;
+testAsGeneric(o) => o as GenericClass<int, String>;
+testAsGenericRaw(o) => o as GenericClass;
+testAsGenericDynamic(o) => o as GenericClass<dynamic, dynamic>;
 testThrow() => throw '';
-testIfNotNull(o) => o?.foo;
-testIfNotNullSet(o) => o?.foo = 42;
 testIfNull(o) => o ?? 42;
 testSetIfNull(o) => o ??= 42;
 
@@ -271,8 +244,6 @@ testSwitchWithoutFallthrough(o) {
     o = 3;
     return;
   case 3:
-    throw '';
-  case 4:
   default:
   }
 }
@@ -356,11 +327,6 @@ testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
 GenericClass<int, String> topLevelFieldGeneric3;
 testTopLevelFieldGeneric3() => topLevelFieldGeneric3;
 testTopLevelFieldWrite() => topLevelField = 3;
-class StaticFunctionGetClass {
-  static foo() {}
-}
-testStaticFunctionGet() => StaticFunctionGetClass.foo;
-
 testDynamicInvoke(o) {
   o.f1(0);
   o.f2(1);
@@ -467,110 +433,6 @@ class ClassFactoryConstructor {
 testFactoryConstructor() => new ClassFactoryConstructor();
 testDefaultValuesPositional([bool value = false]) {}
 testDefaultValuesNamed({bool value: false}) {}
-
-class ClassFieldInitializer1 {
-  var field;
-  ClassFieldInitializer1(this.field);
-}
-testFieldInitializer1() => new ClassFieldInitializer1(42);
-class ClassFieldInitializer2 {
-  var field;
-  ClassFieldInitializer2(value) : field = value;
-}
-testFieldInitializer2() => new ClassFieldInitializer2(42);
-class ClassInstanceFieldWithInitializer {
-  var field = false;
-}
-testInstanceFieldWithInitializer() => new ClassInstanceFieldWithInitializer();
-class ClassInstanceFieldTyped {
-  int field;
-}
-testInstanceFieldTyped() => new ClassInstanceFieldTyped();
-class ClassGeneric<T> {
-  ClassGeneric(T arg);
-}
-class ClassThisInitializer {
-  ClassThisInitializer() : this.internal();
-  ClassThisInitializer.internal();
-}
-testThisInitializer() => new ClassThisInitializer();
-class ClassSuperInitializer extends ClassThisInitializer {
-  ClassSuperInitializer() : super.internal();
-}
-testSuperInitializer() => new ClassSuperInitializer();
-testGenericClass() => new ClassGeneric<int>(0);
-class Super1 {
-  foo() {}
-}
-class Sub1 extends Super1 {
-  Sub1() {
-    super.foo();
-  }
-}
-testSuperCall() => new Sub1();
-class Super2 {
-  var foo;
-}
-class Sub2 extends Super2 {
-  Sub2() {
-    super.foo;
-  }
-}
-testSuperGet() => new Sub2();
-class Super3 {
-  var foo;
-}
-class Sub3 extends Super3 {
-  Sub3() {
-    super.foo = 42;
-  }
-}
-testSuperFieldSet() => new Sub3();
-class Super4 {
-  set foo(_) {}
-}
-class Sub4 extends Super4 {
-  Sub4() {
-    super.foo = 42;
-  }
-}
-testSuperSetterSet() => new Sub4();
-class Super5 {
-  foo() {}
-}
-class Sub5 extends Super5 {
-  Sub5() {
-    super.foo;
-  }
-}
-testSuperClosurization() => new Sub5();
-
-class EmptyMixin {}
-class ForwardingConstructorSuperClass {
-  ForwardingConstructorSuperClass(arg);
-}
-class ForwardingConstructorClass =
-    ForwardingConstructorSuperClass with EmptyMixin;
-testForwardingConstructor() => new ForwardingConstructorClass(null);
-
-class ForwardingConstructorTypedSuperClass {
-  ForwardingConstructorTypedSuperClass(int arg);
-}
-class ForwardingConstructorTypedClass =
-    ForwardingConstructorTypedSuperClass with EmptyMixin;
-testForwardingConstructorTyped() => new ForwardingConstructorTypedClass(null);
-
-class ForwardingConstructorGenericSuperClass<T> {
-  ForwardingConstructorGenericSuperClass(T arg);
-}
-class ForwardingConstructorGenericClass<S> =
-    ForwardingConstructorGenericSuperClass<S> with EmptyMixin;
-testForwardingConstructorGeneric() {
-  new ForwardingConstructorGenericClass<int>(null);
-}
-
-enum Enum { A }
-testEnum() => Enum.A;
 ''',
   'helper.dart': '''
 class Class {
@@ -602,9 +464,7 @@ main(List<String> args) {
         ]);
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    compiler.libraryLoader.libraries.forEach((LibraryElement library) {
-      checkLibrary(compiler, library);
-    });
+    checkLibrary(compiler, compiler.mainApp);
   });
 }
 
@@ -624,18 +484,6 @@ void checkLibrary(Compiler compiler, LibraryElement library) {
 }
 
 void checkElement(Compiler compiler, AstElement element) {
-  if (compiler.backend.isNative(element)) {
-    // Skip native functions for now; kernel does not provide their
-    // signature which we need to derive their native behavior.
-    return;
-  }
-  if (element.isConstructor) {
-    ConstructorElement constructor = element;
-    if (constructor.isRedirectingFactory) {
-      // Skip redirecting constructors for now; they might not be supported.
-      return;
-    }
-  }
   ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
   astImpact = laxImpact(compiler, element, astImpact);
   ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
@@ -658,7 +506,7 @@ ResolutionImpact laxImpact(
         DartType effectiveTargetType =
             constructor.computeEffectiveTargetType(staticUse.type);
         builder.registerStaticUse(new StaticUse.constConstructorInvoke(
-            effectiveTarget.declaration, null, effectiveTargetType));
+            effectiveTarget, null, effectiveTargetType));
         break;
       default:
         builder.registerStaticUse(staticUse);
@@ -667,8 +515,10 @@ ResolutionImpact laxImpact(
   }
   impact.dynamicUses.forEach(builder.registerDynamicUse);
   for (TypeUse typeUse in impact.typeUses) {
-    builder.registerTypeUse(new TypeUse.internal(
-        const Unaliaser().visit(typeUse.type), typeUse.kind));
+    if (typeUse.type.isTypedef) {
+      typeUse = new TypeUse.internal(typeUse.type.unaliased, typeUse.kind);
+    }
+    builder.registerTypeUse(typeUse);
   }
   impact.constantLiterals.forEach(builder.registerConstantLiteral);
   impact.constSymbolNames.forEach(builder.registerConstSymbolName);
@@ -700,38 +550,4 @@ ResolutionImpact laxImpact(
   }
   impact.nativeData.forEach(builder.registerNativeData);
   return builder;
-}
-
-/// Visitor the performers unaliasing of all typedefs nested within a
-/// [DartType].
-class Unaliaser extends BaseDartTypeVisitor<dynamic, DartType> {
-  const Unaliaser();
-
-  @override
-  DartType visit(DartType type, [_]) => type.accept(this, null);
-
-  @override
-  DartType visitType(DartType type, _) => type;
-
-  List<DartType> visitList(List<DartType> types) => types.map(visit).toList();
-
-  @override
-  DartType visitInterfaceType(InterfaceType type, _) {
-    return type.createInstantiation(visitList(type.typeArguments));
-  }
-
-  @override
-  DartType visitTypedefType(TypedefType type, _) {
-    return visit(type.unaliased);
-  }
-
-  @override
-  DartType visitFunctionType(FunctionType type, _) {
-    return new FunctionType.synthesized(
-        visit(type.returnType),
-        visitList(type.parameterTypes),
-        visitList(type.optionalParameterTypes),
-        type.namedParameters,
-        visitList(type.namedParameterTypes));
-  }
 }

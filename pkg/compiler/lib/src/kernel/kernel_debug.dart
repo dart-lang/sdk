@@ -45,7 +45,7 @@ class DebugPrinter extends Visitor with Indentation, Tagging<Node> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     openNode(node, '${node.runtimeType}', {
-      'name': '${node.name ?? '--unnamed--'}',
+      'name': '${node.name}',
       'isFinal': '${node.isFinal}',
       'isConst': '${node.isConst}'
     });

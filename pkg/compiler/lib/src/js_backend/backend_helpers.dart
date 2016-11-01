@@ -44,11 +44,6 @@ class BackendHelpers {
   static const String INVOKE_ON = '_getCachedInvocation';
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
 
-  static const String JS = 'JS';
-  static const String JS_BUILTIN = 'JS_BUILTIN';
-  static const String JS_EMBEDDED_GLOBAL = 'JS_EMBEDDED_GLOBAL';
-  static const String JS_INTERCEPTOR_CONSTANT = 'JS_INTERCEPTOR_CONSTANT';
-
   final Compiler compiler;
 
   Element cachedCheckConcurrentModificationError;

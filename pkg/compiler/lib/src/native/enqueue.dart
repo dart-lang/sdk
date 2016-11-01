@@ -584,7 +584,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *
    */
   NativeBehavior resolveJsCall(Send node, ForeignResolver resolver) {
-    return NativeBehavior.ofJsCallSend(
+    return NativeBehavior.ofJsCall(
         node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
   }
 
@@ -599,8 +599,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    */
   NativeBehavior resolveJsEmbeddedGlobalCall(
       Send node, ForeignResolver resolver) {
-    return NativeBehavior.ofJsEmbeddedGlobalCallSend(
-        node, reporter, compiler.coreTypes, resolver);
+    return NativeBehavior.ofJsEmbeddedGlobalCall(
+        node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
   }
 
   /**
@@ -613,8 +613,8 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    *
    */
   NativeBehavior resolveJsBuiltinCall(Send node, ForeignResolver resolver) {
-    return NativeBehavior.ofJsBuiltinCallSend(
-        node, reporter, compiler.coreTypes, resolver);
+    return NativeBehavior.ofJsBuiltinCall(
+        node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
   }
 }
 

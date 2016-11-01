@@ -331,13 +331,6 @@ class ResolutionRegistry extends Registry {
     impactBuilder.registerTypeUse(typeUse);
   }
 
-  /// Register checked mode check of [type] if it isn't `dynamic`.
-  void registerCheckedModeCheck(DartType type) {
-    if (!type.isDynamic) {
-      impactBuilder.registerTypeUse(new TypeUse.checkedModeCheck(type));
-    }
-  }
-
   void registerSuperUse(SourceSpan span) {
     mapping.addSuperUse(span);
   }

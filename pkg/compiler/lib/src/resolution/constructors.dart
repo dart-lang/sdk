@@ -345,7 +345,6 @@ class InitializerResolver {
         Node parameterNode = variableDefinitions.definitions.nodes.head;
         InitializingFormalElementX initializingFormal = element;
         FieldElement field = initializingFormal.fieldElement;
-        registry.registerStaticUse(new StaticUse.fieldInit(field));
         checkForDuplicateInitializers(field, element.initializer);
         if (enableInitializingFormalAccess) {
           visitor.defineLocalVariable(parameterNode, initializingFormal);
