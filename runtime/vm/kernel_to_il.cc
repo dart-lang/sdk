@@ -2368,6 +2368,21 @@ Fragment FlowGraphBuilder::StoreInstanceField(const dart::Field& field) {
 }
 
 
+Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
+  Fragment instructions;
+  if (FLAG_use_field_guards) {
+    LocalVariable* store_expression = MakeTemporary();
+    instructions += LoadLocal(store_expression);
+    instructions += GuardFieldClass(field, Thread::Current()->GetNextDeoptId());
+    instructions += LoadLocal(store_expression);
+    instructions +=
+        GuardFieldLength(field, Thread::Current()->GetNextDeoptId());
+  }
+  instructions += StoreInstanceField(field);
+  return instructions;
+}
+
+
 Fragment FlowGraphBuilder::StoreInstanceField(intptr_t offset) {
   Value* value = Pop();
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
@@ -3099,13 +3114,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
   graph_entry_ = new (Z)
       GraphEntryInstr(*parsed_function_, normal_entry, Compiler::kNoOSRDeoptId);
 
-  // TODO(27590): Add support for FLAG_use_field_guards.
   Fragment body(normal_entry);
   if (is_setter) {
     if (is_method) {
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(setter_value);
-      body += StoreInstanceField(field);
+      body += StoreInstanceFieldGuarded(field);
     } else {
       body += LoadLocal(setter_value);
       body += StoreStaticField(field);
@@ -3190,6 +3204,18 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   fragment += StoreInstanceField(Context::variable_offset(0));
 
   return fragment;
+}
+
+
+Fragment FlowGraphBuilder::GuardFieldLength(const dart::Field& field,
+                                            intptr_t deopt_id) {
+  return Fragment(new (Z) GuardFieldLengthInstr(Pop(), field, deopt_id));
+}
+
+
+Fragment FlowGraphBuilder::GuardFieldClass(const dart::Field& field,
+                                           intptr_t deopt_id) {
+  return Fragment(new (Z) GuardFieldClassInstr(Pop(), field, deopt_id));
 }
 
 
@@ -3515,10 +3541,9 @@ Fragment FlowGraphBuilder::TranslateInitializers(
           dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(kernel_field));
 
       EnterScope(kernel_field);
-      // TODO(27590): Support FLAG_use_field_guards.
       instructions += LoadLocal(scopes_->this_variable);
       instructions += TranslateExpression(init);
-      instructions += StoreInstanceField(field);
+      instructions += StoreInstanceFieldGuarded(field);
       ExitScope(kernel_field);
     }
   }
@@ -3536,10 +3561,9 @@ Fragment FlowGraphBuilder::TranslateInitializers(
       dart::Field& field =
           dart::Field::ZoneHandle(Z, H.LookupFieldByKernelField(init->field()));
 
-      // TODO(27590): Support FLAG_use_field_guards.
       instructions += LoadLocal(scopes_->this_variable);
       instructions += TranslateExpression(init->value());
-      instructions += StoreInstanceField(field);
+      instructions += StoreInstanceFieldGuarded(field);
     } else if (initializer->IsSuperInitializer()) {
       SuperInitializer* init = SuperInitializer::Cast(initializer);
 

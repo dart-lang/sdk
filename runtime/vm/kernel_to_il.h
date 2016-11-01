@@ -708,6 +708,7 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment StaticCall(const Function& target, intptr_t argument_count,
                       const Array& argument_names);
   Fragment StoreIndexed(intptr_t class_id);
+  Fragment StoreInstanceFieldGuarded(const dart::Field& field);
   Fragment StoreInstanceField(const dart::Field& field);
   Fragment StoreInstanceField(intptr_t offset);
   Fragment StoreLocal(LocalVariable* variable);
@@ -716,6 +717,8 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment ThrowTypeError();
   Fragment ThrowNoSuchMethodError();
   Fragment BuildImplicitClosureCreation(const Function& target);
+  Fragment GuardFieldLength(const dart::Field& field, intptr_t deopt_id);
+  Fragment GuardFieldClass(const dart::Field& field, intptr_t deopt_id);
 
   dart::RawFunction* LookupMethodByMember(Member* target,
                                           const dart::String& method_name);
