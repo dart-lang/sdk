@@ -7,7 +7,6 @@
 
 #include "vm/virtual_memory.h"
 
-#include <magenta/process.h>
 #include <magenta/syscalls.h>
 #include <unistd.h>  // NOLINT
 
