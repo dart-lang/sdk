@@ -2886,11 +2886,6 @@ LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
   switch (op_kind()) {
-    case Token::kEQ:
-    case Token::kLT:
-    case Token::kLTE:
-    case Token::kGT:
-    case Token::kGTE:
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
@@ -2960,27 +2955,139 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(left == result);
       __ xorq(result, right);
       break;
-    case Token::kEQ:
-    case Token::kLT:
-    case Token::kLTE:
-    case Token::kGT:
-    case Token::kGTE: {
-      Label true_label, false_label, done;
-      BranchLabels labels = { &true_label, &false_label, &false_label };
-      Condition true_condition =
-          EmitInt64ComparisonOp(compiler, *locs(), op_kind());
-      EmitBranchOnCondition(compiler, true_condition, labels);
-      __ Bind(&false_label);
-      __ LoadObject(result, Bool::False());
-      __ jmp(&done);
-      __ Bind(&true_label);
-      __ LoadObject(result, Bool::True());
-      __ Bind(&done);
-      break;
-    }
     default:
       UNIMPLEMENTED();
   }
+  __ Bind(slow_path->exit_label());
+}
+
+
+class CheckedSmiComparisonSlowPath : public SlowPathCode {
+ public:
+  CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
+                               intptr_t try_index,
+                               BranchLabels labels,
+                               bool merged = false)
+      : instruction_(instruction),
+        try_index_(try_index),
+        labels_(labels),
+        merged_(merged) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path smi comparison");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    Register result = merged_ ? locs->temp(0).reg() : locs->out(0).reg();
+    locs->live_registers()->Remove(Location::RegisterLocation(result));
+
+    compiler->SaveLiveRegisters(locs);
+    __ pushq(locs->in(0).reg());
+    __ pushq(locs->in(1).reg());
+    compiler->EmitMegamorphicInstanceCall(
+        *instruction_->call()->ic_data(),
+        instruction_->call()->ArgumentCount(),
+        instruction_->call()->deopt_id(),
+        instruction_->call()->token_pos(),
+        locs,
+        try_index_,
+        /* slow_path_argument_count = */ 2);
+    __ MoveRegister(result, RAX);
+    compiler->RestoreLiveRegisters(locs);
+    if (merged_) {
+      __ CompareObject(result, Bool::True());
+      __ j(EQUAL, instruction_->is_negated()
+                  ? labels_.false_label : labels_.true_label);
+      __ jmp(instruction_->is_negated()
+             ? labels_.true_label : labels_.false_label);
+    } else {
+      __ jmp(exit_label());
+    }
+  }
+
+ private:
+  CheckedSmiComparisonInstr* instruction_;
+  intptr_t try_index_;
+  BranchLabels labels_;
+  bool merged_;
+};
+
+
+LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
+    Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+Condition CheckedSmiComparisonInstr::EmitComparisonCode(
+    FlowGraphCompiler* compiler, BranchLabels labels) {
+  return EmitInt64ComparisonOp(compiler, *locs(), kind());
+}
+
+
+#define EMIT_SMI_CHECK \
+  intptr_t left_cid = left()->Type()->ToCid();                                 \
+  intptr_t right_cid = right()->Type()->ToCid();                               \
+  Register left = locs()->in(0).reg();                                         \
+  Register right = locs()->in(1).reg();                                        \
+  if (this->left()->definition() == this->right()->definition()) {             \
+    __ testq(left, Immediate(kSmiTagMask));                                    \
+  } else if (left_cid == kSmiCid) {                                            \
+    __ testq(right, Immediate(kSmiTagMask));                                   \
+  } else if (right_cid == kSmiCid) {                                           \
+    __ testq(left, Immediate(kSmiTagMask));                                    \
+  } else {                                                                     \
+    __ movq(TMP, left);                                                        \
+    __ orq(TMP, right);                                                        \
+    __ testq(TMP, Immediate(kSmiTagMask));                                     \
+  }                                                                            \
+  __ j(NOT_ZERO, slow_path->entry_label())
+
+
+void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                               BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  CheckedSmiComparisonSlowPath* slow_path =
+      new CheckedSmiComparisonSlowPath(this,
+                                       compiler->CurrentTryIndex(),
+                                       labels,
+                                       /* merged = */ true);
+  compiler->AddSlowPathCode(slow_path);
+  EMIT_SMI_CHECK;
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+  __ Bind(slow_path->exit_label());
+}
+
+
+void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label true_label, false_label, done;
+  BranchLabels labels = { &true_label, &false_label, &false_label };
+  CheckedSmiComparisonSlowPath* slow_path =
+      new CheckedSmiComparisonSlowPath(this,
+                                       compiler->CurrentTryIndex(),
+                                       labels,
+                                       /* merged = */ false);
+  compiler->AddSlowPathCode(slow_path);
+  EMIT_SMI_CHECK;
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+  Register result = locs()->out(0).reg();
+  __ Bind(&false_label);
+  __ LoadObject(result, Bool::False());
+  __ jmp(&done);
+  __ Bind(&true_label);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
   __ Bind(slow_path->exit_label());
 }
 

@@ -2802,6 +2802,35 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
+    Zone* zone, bool opt) const {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+Condition CheckedSmiComparisonInstr::EmitComparisonCode(
+    FlowGraphCompiler* compiler, BranchLabels labels) {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+  return ZERO;
+}
+
+
+void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                               BranchInstr* instr) {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+}
+
+
+void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+}
+
+
 static bool IsSmiValue(const Object& constant, intptr_t value) {
   return constant.IsSmi() && (Smi::Cast(constant).Value() == value);
 }

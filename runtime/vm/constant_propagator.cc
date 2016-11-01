@@ -941,6 +941,12 @@ void ConstantPropagator::VisitCheckedSmiOp(CheckedSmiOpInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitCheckedSmiComparison(
+    CheckedSmiComparisonInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }

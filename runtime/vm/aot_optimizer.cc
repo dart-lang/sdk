@@ -1920,7 +1920,21 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kLT:
     case Token::kLTE:
     case Token::kGT:
-    case Token::kGTE:
+    case Token::kGTE: {
+      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
+          HasLikelySmiOperand(instr)) {
+        Definition* left = instr->ArgumentAt(0);
+        Definition* right = instr->ArgumentAt(1);
+        CheckedSmiComparisonInstr* smi_op =
+            new(Z) CheckedSmiComparisonInstr(instr->token_kind(),
+                                             new(Z) Value(left),
+                                             new(Z) Value(right),
+                                             instr);
+        ReplaceCall(instr, smi_op);
+        return;
+      }
+      break;
+    }
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:
