@@ -971,12 +971,34 @@ class Assembler : public ValueObject {
                                     intptr_t index,
                                     Register temp);
 
+  void LoadElementAddressForIntIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     intptr_t index);
+
   Address ElementAddressForRegIndex(bool is_load,
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+
+  void LoadElementAddressForRegIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     Register index);
+
+  void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
+  void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
+  void StoreHalfWordUnaligned(Register src, Register addr, Register tmp);
+  void LoadWordUnaligned(Register dst, Register addr, Register tmp);
+  void StoreWordUnaligned(Register src, Register addr, Register tmp);
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.

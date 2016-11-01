@@ -3880,6 +3880,10 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);
 };
 
+enum AlignmentType {
+  kUnalignedAccess,
+  kAlignedAccess,
+};
 
 class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
  public:
@@ -3887,15 +3891,9 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
                    Value* index,
                    intptr_t index_scale,
                    intptr_t class_id,
+                   AlignmentType alignment,
                    intptr_t deopt_id,
-                   TokenPosition token_pos)
-      : TemplateDefinition(deopt_id),
-        index_scale_(index_scale),
-        class_id_(class_id),
-        token_pos_(token_pos) {
-    SetInputAt(0, array);
-    SetInputAt(1, index);
-  }
+                   TokenPosition token_pos);
 
   TokenPosition token_pos() const { return token_pos_; }
 
@@ -3917,6 +3915,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
   Value* index() const { return inputs_[1]; }
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
+  bool aligned() const { return alignment_ == kAlignedAccess; }
 
   virtual bool CanDeoptimize() const {
     return GetDeoptId() != Thread::kNoDeoptId;
@@ -3930,6 +3929,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
  private:
   const intptr_t index_scale_;
   const intptr_t class_id_;
+  const AlignmentType alignment_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
@@ -4093,18 +4093,9 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
                     StoreBarrierType emit_store_barrier,
                     intptr_t index_scale,
                     intptr_t class_id,
+                    AlignmentType alignment,
                     intptr_t deopt_id,
-                    TokenPosition token_pos)
-      : TemplateDefinition(deopt_id),
-        emit_store_barrier_(emit_store_barrier),
-        index_scale_(index_scale),
-        class_id_(class_id),
-        token_pos_(token_pos) {
-    SetInputAt(kArrayPos, array);
-    SetInputAt(kIndexPos, index);
-    SetInputAt(kValuePos, value);
-  }
-
+                    TokenPosition token_pos);
   DECLARE_INSTRUCTION(StoreIndexed)
 
   enum {
@@ -4119,6 +4110,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
 
   intptr_t index_scale() const { return index_scale_; }
   intptr_t class_id() const { return class_id_; }
+  bool aligned() const { return alignment_ == kAlignedAccess; }
 
   bool ShouldEmitStoreBarrier() const {
     return value()->NeedsStoreBuffer()
@@ -4145,6 +4137,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
   const StoreBarrierType emit_store_barrier_;
   const intptr_t index_scale_;
   const intptr_t class_id_;
+  const AlignmentType alignment_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);

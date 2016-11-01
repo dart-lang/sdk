@@ -2842,6 +2842,7 @@ void Assembler::LoadMultipleDFromOffset(DRegister first,
   vldmd(IA, IP, first, count);
 }
 
+
 void Assembler::StoreMultipleDToOffset(DRegister first,
                                        intptr_t count,
                                        Register base,
@@ -3481,6 +3482,22 @@ Address Assembler::ElementAddressForIntIndex(bool is_load,
 }
 
 
+void Assembler::LoadElementAddressForIntIndex(Register address,
+                                              bool is_load,
+                                              bool is_external,
+                                              intptr_t cid,
+                                              intptr_t index_scale,
+                                              Register array,
+                                              intptr_t index) {
+  const int64_t offset_base =
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  const int64_t offset = offset_base +
+      static_cast<int64_t>(index) * index_scale;
+  ASSERT(Utils::IsInt(32, offset));
+  AddImmediate(address, array, offset);
+}
+
+
 Address Assembler::ElementAddressForRegIndex(bool is_load,
                                              bool is_external,
                                              intptr_t cid,
@@ -3522,6 +3539,81 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
     offset = offset & offset_mask;
   }
   return Address(base, offset);
+}
+
+
+void Assembler::LoadElementAddressForRegIndex(Register address,
+                                              bool is_load,
+                                              bool is_external,
+                                              intptr_t cid,
+                                              intptr_t index_scale,
+                                              Register array,
+                                              Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  if (shift < 0) {
+    ASSERT(shift == -1);
+    add(address, array, Operand(index, ASR, 1));
+  } else {
+    add(address, array, Operand(index, LSL, shift));
+  }
+  if (offset != 0) {
+    AddImmediate(address, offset);
+  }
+}
+
+
+void Assembler::LoadHalfWordUnaligned(Register dst,
+                                      Register addr,
+                                      Register tmp) {
+  ASSERT(dst != addr);
+  ldrb(dst, Address(addr, 0));
+  ldrsb(tmp, Address(addr, 1));
+  orr(dst, dst, Operand(tmp, LSL, 8));
+}
+
+
+void Assembler::LoadHalfWordUnsignedUnaligned(Register dst,
+                                              Register addr,
+                                              Register tmp) {
+  ASSERT(dst != addr);
+  ldrb(dst, Address(addr, 0));
+  ldrb(tmp, Address(addr, 1));
+  orr(dst, dst, Operand(tmp, LSL, 8));
+}
+
+
+void Assembler::StoreHalfWordUnaligned(Register src,
+                                       Register addr,
+                                       Register tmp) {
+  strb(src, Address(addr, 0));
+  Lsr(tmp, src, Operand(8));
+  strb(tmp, Address(addr, 1));
+}
+
+
+void Assembler::LoadWordUnaligned(Register dst, Register addr, Register tmp) {
+  ASSERT(dst != addr);
+  ldrb(dst, Address(addr, 0));
+  ldrb(tmp, Address(addr, 1));
+  orr(dst, dst, Operand(tmp, LSL, 8));
+  ldrb(tmp, Address(addr, 2));
+  orr(dst, dst, Operand(tmp, LSL, 16));
+  ldrb(tmp, Address(addr, 3));
+  orr(dst, dst, Operand(tmp, LSL, 24));
+}
+
+
+void Assembler::StoreWordUnaligned(Register src, Register addr, Register tmp) {
+  strb(src, Address(addr, 0));
+  Lsr(tmp, src, Operand(8));
+  strb(tmp, Address(addr, 1));
+  Lsr(tmp, src, Operand(16));
+  strb(tmp, Address(addr, 2));
+  Lsr(tmp, src, Operand(24));
+  strb(tmp, Address(addr, 3));
 }
 
 

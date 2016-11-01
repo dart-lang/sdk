@@ -2181,6 +2181,7 @@ static bool InlineGetIndexed(FlowGraph* flow_graph,
                                   new(Z) Value(index),
                                   index_scale,
                                   array_cid,
+                                  kAlignedAccess,
                                   deopt_id,
                                   call->token_pos());
   cursor = flow_graph->AppendTo(
@@ -2365,6 +2366,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                                    needs_store_barrier,
                                    index_scale,
                                    array_cid,
+                                   kAlignedAccess,
                                    call->deopt_id(),
                                    call->token_pos());
   flow_graph->AppendTo(cursor,
@@ -2595,6 +2597,7 @@ static bool InlineByteArrayBaseLoad(FlowGraph* flow_graph,
                                   new(Z) Value(index),
                                   1,
                                   view_cid,
+                                  kUnalignedAccess,
                                   deopt_id,
                                   call->token_pos());
   cursor = flow_graph->AppendTo(
@@ -2766,6 +2769,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                    needs_store_barrier,
                                    1,  // Index scale
                                    view_cid,
+                                   kUnalignedAccess,
                                    call->deopt_id(),
                                    call->token_pos());
 
@@ -2834,6 +2838,7 @@ static Definition* PrepareInlineStringIndexOp(
       new(Z) Value(index),
       Instance::ElementSizeFor(cid),
       cid,
+      kAlignedAccess,
       Thread::kNoDeoptId,
       call->token_pos());
 
@@ -3826,6 +3831,7 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
           kNoStoreBarrier,
           1,  // Index scale
           kOneByteStringCid,
+          kAlignedAccess,
           call->deopt_id(),
           call->token_pos());
       flow_graph->AppendTo(*entry,

@@ -2352,7 +2352,7 @@ Fragment FlowGraphBuilder::StoreIndexed(intptr_t class_id) {
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
       index, value, kEmitStoreBarrier, Instance::ElementSizeFor(class_id),
-      class_id, Thread::kNoDeoptId, TokenPosition::kNoSource);
+      class_id, kAlignedAccess, Thread::kNoDeoptId, TokenPosition::kNoSource);
   Push(store);
   return Fragment(store);
 }

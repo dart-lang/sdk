@@ -2394,7 +2394,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
       const intptr_t index_scale = Instance::ElementSizeFor(class_id);
       StoreIndexedInstr* store = new(Z) StoreIndexedInstr(
           array, index, for_value.value(), emit_store_barrier,
-          index_scale, class_id, deopt_id, node->token_pos());
+          index_scale, class_id, kAlignedAccess, deopt_id, node->token_pos());
       Do(store);
     }
     ReturnDefinition(ExitTempLocalScope(array_val));

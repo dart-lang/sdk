@@ -174,10 +174,11 @@
     reinterpret_cast<name>(entry)(double_arg)
 #define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
     reinterpret_cast<name>(entry)(pointer_arg)
+#define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
+    reinterpret_cast<name>(entry)(pointer_arg)
 #else
 // Not running on ARM or MIPS hardware, call simulator to execute code.
 #if defined(ARCH_IS_64_BIT)
-// TODO(zra): Supply more macros for 64-bit as tests are added for ARM64.
 #define EXECUTE_TEST_CODE_INT64(name, entry)                                   \
   static_cast<int64_t>(Simulator::Current()->Call(                             \
       bit_cast<int64_t, uword>(entry), 0, 0, 0, 0))
@@ -186,6 +187,11 @@
       bit_cast<int64_t, uword>(entry), 0, 0, 0, 0, true))
 #define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
   static_cast<intptr_t>(Simulator::Current()->Call(                            \
+      bit_cast<int64_t, uword>(entry),                                         \
+      bit_cast<int64_t, intptr_t>(pointer_arg),                                \
+      0, 0, 0))
+#define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
+  static_cast<int32_t>(Simulator::Current()->Call(                             \
       bit_cast<int64_t, uword>(entry),                                         \
       bit_cast<int64_t, intptr_t>(pointer_arg),                                \
       0, 0, 0))
@@ -198,6 +204,11 @@
       bit_cast<int32_t, uword>(entry), 0, 0, 0, 0, true))
 #define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
   static_cast<intptr_t>(Simulator::Current()->Call(                            \
+      bit_cast<int32_t, uword>(entry),                                         \
+      bit_cast<int32_t, intptr_t>(pointer_arg),                                \
+      0, 0, 0))
+#define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
+  static_cast<int32_t>(Simulator::Current()->Call(                             \
       bit_cast<int32_t, uword>(entry),                                         \
       bit_cast<int32_t, intptr_t>(pointer_arg),                                \
       0, 0, 0))

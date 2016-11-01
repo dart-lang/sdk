@@ -3664,6 +3664,71 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 
+static AlignmentType StrengthenAlignment(intptr_t cid,
+                                         AlignmentType alignment) {
+  switch (cid) {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kOneByteStringCid:
+    case kExternalOneByteStringCid:
+      // Don't need to worry about alignment for accessing bytes.
+      return kAlignedAccess;
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
+      // TODO(rmacnak): Investigate alignment requirements of floating point
+      // loads.
+      return kAlignedAccess;
+  }
+
+  return alignment;
+}
+
+
+LoadIndexedInstr::LoadIndexedInstr(Value* array,
+                                   Value* index,
+                                   intptr_t index_scale,
+                                   intptr_t class_id,
+                                   AlignmentType alignment,
+                                   intptr_t deopt_id,
+                                   TokenPosition token_pos)
+    : TemplateDefinition(deopt_id),
+      index_scale_(index_scale),
+      class_id_(class_id),
+      alignment_(StrengthenAlignment(class_id, alignment)),
+      token_pos_(token_pos) {
+  SetInputAt(0, array);
+  SetInputAt(1, index);
+}
+
+
+
+StoreIndexedInstr::StoreIndexedInstr(Value* array,
+                                     Value* index,
+                                     Value* value,
+                                     StoreBarrierType emit_store_barrier,
+                                     intptr_t index_scale,
+                                     intptr_t class_id,
+                                     AlignmentType alignment,
+                                     intptr_t deopt_id,
+                                     TokenPosition token_pos)
+    : TemplateDefinition(deopt_id),
+      emit_store_barrier_(emit_store_barrier),
+      index_scale_(index_scale),
+      class_id_(class_id),
+      alignment_(StrengthenAlignment(class_id, alignment)),
+      token_pos_(token_pos) {
+  SetInputAt(kArrayPos, array);
+  SetInputAt(kIndexPos, index);
+  SetInputAt(kValuePos, value);
+}
+
+
 InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
     intptr_t deopt_id,

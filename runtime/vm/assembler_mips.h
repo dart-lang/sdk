@@ -1599,12 +1599,31 @@ class Assembler : public ValueObject {
                                     intptr_t index_scale,
                                     Register array,
                                     intptr_t index) const;
+  void LoadElementAddressForIntIndex(Register address,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     intptr_t index);
   Address ElementAddressForRegIndex(bool is_load,
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+  void LoadElementAddressForRegIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     Register index);
+
+  void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
+  void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
+  void StoreHalfWordUnaligned(Register src, Register addr, Register tmp);
+  void LoadWordUnaligned(Register dst, Register addr, Register tmp);
+  void StoreWordUnaligned(Register src, Register addr, Register tmp);
 
   static Address VMTagAddress() {
     return Address(THR, Thread::vm_tag_offset());
