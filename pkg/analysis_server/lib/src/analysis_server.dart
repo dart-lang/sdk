@@ -38,6 +38,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -263,6 +264,11 @@ class AnalysisServer {
   // Add 1 sec to prevent delay from impacting short running tests
   int _nextPerformOperationDelayTime =
       new DateTime.now().millisecondsSinceEpoch + 1000;
+
+  /**
+   * The content overlay for all analysis drivers.
+   */
+  final nd.FileContentOverlay fileContentOverlay = new nd.FileContentOverlay();
 
   /**
    * The current state of overlays from the client.  This is used as the
@@ -1338,9 +1344,8 @@ class AnalysisServer {
   void updateContent(String id, Map<String, dynamic> changes) {
     if (options.enableNewAnalysisDriver) {
       changes.forEach((file, change) {
-        Source source = resourceProvider.getFile(file).createSource();
         // Prepare the new contents.
-        String oldContents = overlayState.getContents(source);
+        String oldContents = fileContentOverlay[file];
         String newContents;
         if (change is AddContentOverlay) {
           newContents = change.content;
@@ -1366,7 +1371,7 @@ class AnalysisServer {
           throw new AnalysisException('Illegal change type');
         }
 
-        overlayState.setContents(source, newContents);
+        fileContentOverlay[file] = newContents;
 
         driverMap.values.forEach((driver) {
           driver.changeFile(file);
@@ -1702,7 +1707,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         new nd.PerformanceLog(io.stdout),
         resourceProvider,
         analysisServer.byteStore,
-        analysisServer.overlayState,
+        analysisServer.fileContentOverlay,
         sourceFactory,
         analysisOptions);
     analysisDriver.name = folder.shortName;

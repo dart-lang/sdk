@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -50,7 +51,7 @@ class DriverTest {
 
   final MemoryResourceProvider provider = new MemoryResourceProvider();
   final ByteStore byteStore = new _TestByteStore();
-  final ContentCache contentCache = new ContentCache();
+  final FileContentOverlay contentOverlay = new FileContentOverlay();
   final StringBuffer logBuffer = new StringBuffer();
 
   AnalysisDriver driver;
@@ -69,7 +70,7 @@ class DriverTest {
         new PerformanceLog(logBuffer),
         provider,
         byteStore,
-        contentCache,
+        contentOverlay,
         new SourceFactory([
           new DartUriResolver(sdk),
           new PackageMapUriResolver(provider, <String, List<Folder>>{

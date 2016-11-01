@@ -22,6 +22,34 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 
 /**
+ * [FileContentOverlay] is used to temporary override content of files.
+ */
+class FileContentOverlay {
+  final _map = <String, String>{};
+
+  /**
+   * Return the content of the file with the given [path], or `null` the
+   * overlay does not override the content of the file.
+   *
+   * The [path] must be absolute and normalized.
+   */
+  String operator [](String path) => _map[path];
+
+  /**
+   * Return the new [content] of the file with the given [path].
+   *
+   * The [path] must be absolute and normalized.
+   */
+  void operator []=(String path, String content) {
+    if (content == null) {
+      _map.remove(path);
+    } else {
+      _map[path] = content;
+    }
+  }
+}
+
+/**
  * Information about a file being analyzed, explicitly or implicitly.
  *
  * It provides a consistent view on its properties.
@@ -103,8 +131,8 @@ class FileState {
   bool refresh() {
     // Read the content.
     try {
-      _content = _fsState._contentCache.getContents(source);
-      _content ??= source.contents.data;
+      _content = _fsState._contentOverlay[path];
+      _content ??= _fsState._resourceProvider.getFile(path).readAsStringSync();
     } catch (_) {
       _content = '';
       // TODO(scheglov) We fail to report URI_DOES_NOT_EXIST.
@@ -163,6 +191,9 @@ class FileState {
     return apiSignatureChanged;
   }
 
+  @override
+  String toString() => path;
+
   /**
    * Return the [FileState] for the given [relativeUri].
    */
@@ -219,13 +250,13 @@ class FileSystemState {
   final PerformanceLog _logger;
   final ResourceProvider _resourceProvider;
   final ByteStore _byteStore;
-  final ContentCache _contentCache;
+  final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
 
   final Map<String, FileState> _pathToFile = <String, FileState>{};
 
-  FileSystemState(this._logger, this._byteStore, this._contentCache,
+  FileSystemState(this._logger, this._byteStore, this._contentOverlay,
       this._resourceProvider, this._sourceFactory, this._analysisOptions);
 
   /**

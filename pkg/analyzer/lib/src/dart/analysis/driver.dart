@@ -80,7 +80,7 @@ class AnalysisDriver {
    * This [ContentCache] is consulted for a file content before reading
    * the content from the file.
    */
-  final ContentCache _contentCache;
+  final FileContentOverlay _contentOverlay;
 
   /**
    * The [SourceFactory] is used to resolve URIs to paths and restore URIs
@@ -158,10 +158,10 @@ class AnalysisDriver {
    * reference to a [AnalysisContext] in which it could have been used.
    */
   AnalysisDriver(this._logger, this._resourceProvider, this._byteStore,
-      this._contentCache, SourceFactory sourceFactory, this._analysisOptions)
+      this._contentOverlay, SourceFactory sourceFactory, this._analysisOptions)
       : _sourceFactory = sourceFactory.clone() {
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
-    _fsState = new FileSystemState(_logger, _byteStore, _contentCache,
+    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
         _resourceProvider, _sourceFactory, _analysisOptions);
   }
 
