@@ -260,7 +260,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         }));
         String valueString = literalString(value.value);
         writeln(
-            'static const ${value.value} = const $className._($valueString);');
+            'static const $className ${value.value} = const $className._($valueString);');
         writeln();
       }
 
