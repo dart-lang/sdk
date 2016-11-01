@@ -6,8 +6,6 @@ abstract class _IntegerImplementation {
   // The Dart class _Bigint extending _IntegerImplementation requires a
   // default constructor.
 
-  Type get runtimeType => int;
-
   num operator +(num other) {
     var result = other._addFromInteger(this);
     if (result != null) return result;

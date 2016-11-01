@@ -1689,20 +1689,167 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+enum RangeCheckCondition {
+  kIfNotInRange, kIfInRange
+};
+
+
+static void RangeCheck(Assembler* assembler,
+                       Register val,
+                       Register tmp,
+                       intptr_t low,
+                       intptr_t high,
+                       RangeCheckCondition cc,
+                       Label* target) {
+  __ AddImmediate(tmp, val, -low);
+  if (cc == kIfInRange) {
+    __ BranchUnsignedLessEqual(tmp, Immediate(high - low), target);
+  } else {
+    ASSERT(cc == kIfNotInRange);
+    __ BranchUnsignedGreater(tmp, Immediate(high - low), target);
+  }
+}
+
+
+static void JumpIfInteger(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kSmiCid, kBigintCid, kIfInRange, target);
+}
+
+
+static void JumpIfNotInteger(Assembler* assembler,
+                             Register cid,
+                             Register tmp,
+                             Label* target) {
+  RangeCheck(assembler, cid, tmp, kSmiCid, kBigintCid, kIfNotInRange, target);
+}
+
+
+static void JumpIfString(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler,
+             cid,
+             tmp,
+             kOneByteStringCid,
+             kExternalTwoByteStringCid,
+             kIfInRange,
+             target);
+}
+
+
+static void JumpIfNotString(Assembler* assembler,
+                            Register cid,
+                            Register tmp,
+                            Label* target) {
+  RangeCheck(assembler,
+             cid,
+             tmp,
+             kOneByteStringCid,
+             kExternalTwoByteStringCid,
+             kIfNotInRange,
+             target);
+}
+
+
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, use_canonical_type, not_integer, not_double;
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(T1, T0);
-  __ BranchEqual(T1, Immediate(kClosureCid), &fall_through);
-  __ LoadClassById(T2, T1);
-  // T2: class of instance (T0).
 
+  // Closures are handled in the runtime.
+  __ BranchEqual(T1, Immediate(kClosureCid), &fall_through);
+
+  __ BranchUnsignedGreaterEqual(
+      T1, Immediate(kNumPredefinedCids), &use_canonical_type);
+
+  __ BranchNotEqual(T1, Immediate(kDoubleCid), &not_double);
+  // Object is a double.
+  __ LoadIsolate(T1);
+  __ LoadFromOffset(T1, T1, Isolate::object_store_offset());
+  __ LoadFromOffset(V0, T1, ObjectStore::double_type_offset());
+  __ Ret();
+
+  __ Bind(&not_double);
+  JumpIfNotInteger(assembler, T1, T2, &not_integer);
+  // Object is an integer.
+  __ LoadIsolate(T1);
+  __ LoadFromOffset(T1, T1, Isolate::object_store_offset());
+  __ LoadFromOffset(V0, T1, ObjectStore::int_type_offset());
+  __ Ret();
+
+  __ Bind(&not_integer);
+  JumpIfNotString(assembler, T1, T2, &use_canonical_type);
+  // Object is a string.
+  __ LoadIsolate(T1);
+  __ LoadFromOffset(T1, T1, Isolate::object_store_offset());
+  __ LoadFromOffset(V0, T1, ObjectStore::string_type_offset());
+  __ Ret();
+
+  __ Bind(&use_canonical_type);
+  __ LoadClassById(T2, T1);
   __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
   __ BranchNotEqual(T1, Immediate(0), &fall_through);
 
   __ lw(V0, FieldAddress(T2, Class::canonical_type_offset()));
   __ BranchEqual(V0, Object::null_object(), &fall_through);
+  __ Ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
+  Label fall_through, different_cids, equal, not_equal, not_integer;
+
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ LoadClassIdMayBeSmi(T1, T0);
+
+  // Closures are handled in the runtime.
+  __ BranchEqual(T1, Immediate(kClosureCid), &fall_through);
+
+  __ lw(T0, Address(SP, 1 * kWordSize));
+  __ LoadClassIdMayBeSmi(T2, T0);
+
+  // Check whether class ids match. If class ids don't match objects can still
+  // have the same runtime type (e.g. multiple string implementation classes
+  // map to a single String type).
+  __ BranchNotEqual(T1, T2, &different_cids);
+
+  // Objects have the same class and neither is a closure.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(T2, T1);
+  __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
+  __ BranchNotEqual(T1, Immediate(0), &fall_through);
+
+  __ Bind(&equal);
+  __ LoadObject(V0, Bool::True());
+  __ Ret();
+
+  // Class ids are different. Check if we are comparing runtime types of
+  // two strings (with different representations) or two integers.
+  __ Bind(&different_cids);
+  __ BranchUnsignedGreaterEqual(
+      T1, Immediate(kNumPredefinedCids), &not_equal);
+
+  // Check if both are integers.
+  JumpIfNotInteger(assembler, T1, T0, &not_integer);
+  JumpIfInteger(assembler, T2, T0, &equal);
+  __ b(&not_equal);
+
+  __ Bind(&not_integer);
+  // Check if both are strings.
+  JumpIfNotString(assembler, T1, T0, &not_equal);
+  JumpIfString(assembler, T2, T0, &equal);
+
+  // Neither strings nor integers and have different class ids.
+  __ Bind(&not_equal);
+  __ LoadObject(V0, Bool::False());
   __ Ret();
 
   __ Bind(&fall_through);

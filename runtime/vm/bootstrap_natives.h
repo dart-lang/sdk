@@ -20,6 +20,7 @@ namespace dart {
   V(Object_toString, 1)                                                        \
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
+  V(Object_haveSameRuntimeType, 2)                                             \
   V(Object_instanceOf, 4)                                                      \
   V(Object_simpleInstanceOf, 2)                                                \
   V(Object_instanceOfNum, 2)                                                   \

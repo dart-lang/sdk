@@ -279,6 +279,18 @@ class SimulatorHelpers {
     if (cid == kClosureCid) {
       return false;
     }
+    if (cid < kNumPredefinedCids) {
+      if (cid == kDoubleCid) {
+        *result = thread->isolate()->object_store()->double_type();
+        return true;
+      } else if (RawObject::IsStringClassId(cid)) {
+        *result = thread->isolate()->object_store()->string_type();
+        return true;
+      } else if (RawObject::IsIntegerClassId(cid)) {
+        *result = thread->isolate()->object_store()->int_type();
+        return true;
+      }
+    }
     RawClass* cls = thread->isolate()->class_table()->At(cid);
     if (cls->ptr()->num_type_arguments_ != 0) {
       return false;
