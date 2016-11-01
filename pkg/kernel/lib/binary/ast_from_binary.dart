@@ -660,10 +660,6 @@ class BinaryBuilder {
         var body = readExpression();
         variableStack.length = stackHeight;
         return new Let(variable, body);
-      case Tag.BlockExpression:
-        var body = readBlock();
-        var expression = readExpression();
-        return new BlockExpression(body, expression);
       default:
         throw fail('Invalid expression tag: $tag');
     }

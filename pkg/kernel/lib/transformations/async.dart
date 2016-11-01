@@ -53,8 +53,7 @@ class ExpressionLifter extends Transformer {
   /// Children that are conditionally evaluated, such as some parts of logical
   /// and conditional expressions, must be delimited so that they do not emit
   /// unguarded statements into [statements].  This is implemented by setting
-  /// [statements] to a fresh empty list before transforming those children and
-  /// wrapping any emitted statements in a [BlockExpression].
+  /// [statements] to a fresh empty list before transforming those children.
   List<Statement> statements = <Statement>[];
 
 
@@ -86,16 +85,19 @@ class ExpressionLifter extends Transformer {
   Block blockOf(List<Statement> stmts) => new Block(stmts.reversed.toList());
 
   /// Rewrite a toplevel expression (toplevel wrt. a statement).
-  Expression rewrite(Expression expression) {
+  ///
+  /// Rewriting an expression produces a sequence of statements and an
+  /// expression.  The sequence of statements are added to the given list.  Pass
+  /// an empty list if the rewritten expression should be delimited from the
+  /// surrounding context.
+  Expression rewrite(Expression expression, List<Statement> outer) {
     assert(statements.isEmpty);
     assert(nameIndex == 0);
     seenAwait = false;
-    var result = expression.accept(this);
+    Expression result = expression.accept(this);
+    outer.addAll(statements.reversed);
+    statements.clear();
     nameIndex = 0;
-    if (statements.isNotEmpty) {
-      result = new BlockExpression(blockOf(statements), result);
-      statements = <Statement>[];
-    }
     return result;
   }
 
@@ -409,20 +411,20 @@ class ExpressionLifter extends Transformer {
     final R = continuationRewriter;
     var shouldName = seenAwait;
     var result = new VariableGet(asyncResult);
+    // The statements are in reverse order, so name the result first if
+    // necessary and then add the two other statements in reverse.
     if (shouldName) result = name(result);
+    statements.add(R.createContinuationPoint());
+    Arguments arguments = new Arguments(<Expression>[
+        expr.operand,
+        new VariableGet(R.thenContinuationVariable),
+        new VariableGet(R.catchErrorContinuationVariable)]);
+    statements.add(new ExpressionStatement(
+        new StaticInvocation(R.helper.awaitHelper, arguments)));
+
     seenAwait = false;
     var index = nameIndex;
-    var operand = expr.operand.accept(this);
-
-    // The statements are in reverse order, so name the result first if
-    // necessary and then add these two in reverse.
-    statements.add(R.createContinuationPoint());
-    statements.add(new ExpressionStatement(
-        new StaticInvocation(R.helper.awaitHelper,
-            new Arguments(<Expression>[
-                operand,
-                new VariableGet(R.thenContinuationVariable),
-                new VariableGet(R.catchErrorContinuationVariable)]))));
+    arguments.positional[0] = expr.operand.accept(this)..parent = arguments;
 
     if (shouldName) nameIndex = index + 1;
     seenAwait = true;
@@ -435,31 +437,12 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitLet(Let expr) {
-    expr.body = expr.body.accept(this)..parent = expr;
-    VariableDeclaration variable = expr.variable;
-    variable.initializer =
-        variable.initializer.accept(this)..parent = variable;
-    return expr;
-  }
-
-  TreeNode visitBlockExpression(BlockExpression expr) {
-    var length = statements.length;
-    expr.value.accept(this)..parent = expr;
-    if (statements.length == length) {
-      // The statements in the body do not need be translated right-to-left
-      // because all subexpressions will be treated as delimited and so
-      // prevented from emitting statements into the list of statements.
-      expr.body = expr.body.accept(continuationRewriter)..parent = expr;
-      return expr;
-    } else {
-      // Statements were emitted from the translation of the value.  The
-      // statements in the body must be executed before them.  Copy the body's
-      // statements to the accumulated statement list in reverse order.
-      for (var statement in expr.body.statements.reversed) {
-        statements.add(statement.accept(continuationRewriter));
-      }
-      return expr.value;
-    }
+    return transform(expr, () {
+      expr.body = expr.body.accept(this)..parent = expr;
+      VariableDeclaration variable = expr.variable;
+      variable.initializer =
+          variable.initializer.accept(this)..parent = variable;
+    });
   }
 
   visitFunctionNode(FunctionNode node) {

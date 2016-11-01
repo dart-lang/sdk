@@ -1498,11 +1498,6 @@ class ExpressionBuilder extends ExpressionVisitor<int> {
     return build(node.body);
   }
 
-  int visitBlockExpression(BlockExpression node) {
-    statementBuilder.build(node.body);
-    return build(node.value);
-  }
-
   int buildInnerFunction(FunctionNode node, {VariableDeclaration self}) {
     int variable = builder.newFunction(node);
     if (self != null) {

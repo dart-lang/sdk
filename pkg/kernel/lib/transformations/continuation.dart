@@ -19,8 +19,9 @@ Program transformProgram(Program program) {
 
 class RecursiveContinuationRewriter extends Transformer {
   final HelperNodes helper;
-  final VariableDeclaration asyncJumpVariable =
-      new VariableDeclaration(":await_jump_var", initializer: new IntLiteral(0));
+  final VariableDeclaration asyncJumpVariable = new VariableDeclaration(
+      ":await_jump_var",
+      initializer: new IntLiteral(0));
   final VariableDeclaration asyncContextVariable =
       new VariableDeclaration(":await_ctx_var");
 
@@ -33,15 +34,15 @@ class RecursiveContinuationRewriter extends Transformer {
   visitFunctionNode(FunctionNode node) {
     switch (node.asyncMarker) {
       case AsyncMarker.Sync:
-        return super.visitFunctionNode(node);
+      case AsyncMarker.SyncYielding:
+        node.transformChildren(new RecursiveContinuationRewriter(helper));
+        return node;
       case AsyncMarker.SyncStar:
         return new SyncStarFunctionRewriter(helper, node).rewrite();
       case AsyncMarker.Async:
         return new AsyncFunctionRewriter(helper, node).rewrite();
       case AsyncMarker.AsyncStar:
         return new AsyncStarFunctionRewriter(helper, node).rewrite();
-      case AsyncMarker.SyncYielding:
-        return super.visitFunctionNode(node);
     }
   }
 }
@@ -49,17 +50,16 @@ class RecursiveContinuationRewriter extends Transformer {
 abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   final FunctionNode enclosingFunction;
 
-  int currentTryDepth;  // Nesting depth for try-blocks.
-  int currentCatchDepth = 0;  // Nesting depth for catch-blocks.
-  int capturedTryDepth = 0;  // Deepest yield point within a try-block.
-  int capturedCatchDepth = 0;  // Deepest yield point within a catch-block.
+  int currentTryDepth; // Nesting depth for try-blocks.
+  int currentCatchDepth = 0; // Nesting depth for catch-blocks.
+  int capturedTryDepth = 0; // Deepest yield point within a try-block.
+  int capturedCatchDepth = 0; // Deepest yield point within a catch-block.
 
-  ContinuationRewriterBase(HelperNodes helper,
-                           this.enclosingFunction,
-                           {this.currentTryDepth: 0})
+  ContinuationRewriterBase(HelperNodes helper, this.enclosingFunction,
+      {this.currentTryDepth: 0})
       : super(helper);
 
-  Statement createContinuationPoint([value]) {
+  Statement createContinuationPoint([Expression value]) {
     if (value == null) value = new NullLiteral();
     capturedTryDepth = math.max(capturedTryDepth, currentTryDepth);
     capturedCatchDepth = math.max(capturedCatchDepth, currentCatchDepth);
@@ -95,14 +95,14 @@ abstract class ContinuationRewriterBase extends RecursiveContinuationRewriter {
   }
 
   Iterable<VariableDeclaration> createCapturedTryVariables() =>
-      new Iterable.generate(capturedTryDepth, (depth) =>
-        new VariableDeclaration(":saved_try_context_var${depth}"));
+      new Iterable.generate(capturedTryDepth,
+          (depth) => new VariableDeclaration(":saved_try_context_var${depth}"));
 
   Iterable<VariableDeclaration> createCapturedCatchVariables() =>
       new Iterable.generate(capturedCatchDepth).expand((depth) => [
-        new VariableDeclaration(":exception${depth}"),
-        new VariableDeclaration(":stack_trace${depth}"),
-      ]);
+            new VariableDeclaration(":exception${depth}"),
+            new VariableDeclaration(":stack_trace${depth}"),
+          ]);
 
   List<VariableDeclaration> variableDeclarations() =>
       [asyncJumpVariable, asyncContextVariable]
@@ -122,8 +122,7 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     //     modified <node.body>;
     // }
     final nestedClosureVariable = new VariableDeclaration(":sync_op");
-    final function = new FunctionNode(
-        buildClosureBody(),
+    final function = new FunctionNode(buildClosureBody(),
         positionalParameters: [iteratorVariable],
         requiredParameterCount: 1,
         asyncMarker: AsyncMarker.SyncYielding);
@@ -132,8 +131,8 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
 
     // return new _SyncIterable(:sync_body);
     final arguments = new Arguments([new VariableGet(nestedClosureVariable)]);
-    final returnStatement = new ReturnStatement(new ConstructorInvocation(
-        helper.syncIterableConstructor, arguments));
+    final returnStatement = new ReturnStatement(
+        new ConstructorInvocation(helper.syncIterableConstructor, arguments));
 
     enclosingFunction.body = new Block([]
       ..addAll(variableDeclarations())
@@ -157,16 +156,16 @@ class SyncStarFunctionRewriter extends ContinuationRewriterBase {
     var statements = [];
     if (node.isYieldStar) {
       var markYieldEach = new ExpressionStatement(new PropertySet(
-        new VariableGet(iteratorVariable),
-        new Name("isYieldEach", helper.coreLibrary),
-        new BoolLiteral(true)));
+          new VariableGet(iteratorVariable),
+          new Name("isYieldEach", helper.coreLibrary),
+          new BoolLiteral(true)));
       statements.add(markYieldEach);
     }
 
     var setCurrentIteratorValue = new ExpressionStatement(new PropertySet(
-      new VariableGet(iteratorVariable),
-      new Name("_current", helper.coreLibrary),
-      transformedExpression));
+        new VariableGet(iteratorVariable),
+        new Name("_current", helper.coreLibrary),
+        transformedExpression));
 
     statements.add(setCurrentIteratorValue);
     statements.add(createContinuationPoint(new BoolLiteral(true)));
@@ -185,11 +184,10 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   ExpressionLifter expressionRewriter;
 
   AsyncRewriterBase(helper, enclosingFunction)
-     // Body is wrapped in the try-catch so initial currentTryDepth is 1.
-     : super(helper, enclosingFunction, currentTryDepth: 1) {
-  }
+      // Body is wrapped in the try-catch so initial currentTryDepth is 1.
+      : super(helper, enclosingFunction, currentTryDepth: 1) {}
 
-  setupAsyncContinuations(List<Statement> statements) {
+  void setupAsyncContinuations(List<Statement> statements) {
     expressionRewriter = new ExpressionLifter(this);
 
     // var :async_op_then;
@@ -201,13 +199,12 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     // :async_op([:result, :exception, :stack_trace]) {
     //     modified <node.body>;
     // }
-    final parameters = [
-        expressionRewriter.asyncResult,
-        new VariableDeclaration(':exception'),
-        new VariableDeclaration(':stack_trace'),
+    final parameters = <VariableDeclaration>[
+      expressionRewriter.asyncResult,
+      new VariableDeclaration(':exception'),
+      new VariableDeclaration(':stack_trace'),
     ];
-    final function = new FunctionNode(
-        buildWrappedBody(),
+    final function = new FunctionNode(buildWrappedBody(),
         positionalParameters: parameters,
         requiredParameterCount: 0,
         asyncMarker: AsyncMarker.SyncYielding);
@@ -225,27 +222,26 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     statements.add(closureFunction);
 
     // :async_op_then = _asyncThenWrapperHelper(asyncBody);
-    final boundThenClosure = new StaticInvocation(
-        helper.asyncThenWrapper,
-        new Arguments([new VariableGet(nestedClosureVariable)]));
-    final thenClosureVariableAssign = new ExpressionStatement(new VariableSet(
-        thenContinuationVariable, boundThenClosure));
+    final boundThenClosure = new StaticInvocation(helper.asyncThenWrapper,
+        new Arguments(<Expression>[new VariableGet(nestedClosureVariable)]));
+    final thenClosureVariableAssign = new ExpressionStatement(
+        new VariableSet(thenContinuationVariable, boundThenClosure));
     statements.add(thenClosureVariableAssign);
 
     // :async_op_error = _asyncErrorWrapperHelper(asyncBody);
     final boundCatchErrorClosure = new StaticInvocation(
         helper.asyncErrorWrapper,
-        new Arguments([new VariableGet(nestedClosureVariable)]));
-    final catchErrorClosureVariableAssign =
-        new ExpressionStatement(new VariableSet(
-          catchErrorContinuationVariable , boundCatchErrorClosure));
+        new Arguments(<Expression>[new VariableGet(nestedClosureVariable)]));
+    final catchErrorClosureVariableAssign = new ExpressionStatement(
+        new VariableSet(
+            catchErrorContinuationVariable, boundCatchErrorClosure));
     statements.add(catchErrorClosureVariableAssign);
   }
 
   Statement buildWrappedBody() {
     // No explicit return at the end of the body => we will add one!
     var body = addReturnStatementIfNecessary(enclosingFunction.body);
-    var userBody = buildClosureBody(body);
+    var userBody = visitDelimited(body);
 
     var exceptionVariable = new VariableDeclaration(":exception");
     var stackTraceVariable = new VariableDeclaration(":stack_trace");
@@ -254,13 +250,13 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
         buildCatchBody(exceptionVariable, stackTraceVariable);
 
     var catchBody = new Block(<Statement>[completeErrorStatement]);
-    var catches = [new Catch(exceptionVariable,
-                             catchBody,
-                             stackTrace: stackTraceVariable)];
+    var catches = <Catch>[
+      new Catch(exceptionVariable, catchBody, stackTrace: stackTraceVariable)
+    ];
     return new TryCatch(userBody, catches);
   }
 
-  addReturnStatementIfNecessary(Statement body) {
+  Statement addReturnStatementIfNecessary(Statement body) {
     if (body is Block) {
       Block block = body;
       if (block.statements.isEmpty ||
@@ -271,18 +267,259 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       }
     } else if (body is! ReturnStatement) {
       var returnStatement = new ReturnStatement();
-      body = new Block([body, returnStatement]);
+      body = new Block(<Statement>[body, returnStatement]);
     }
     return body;
   }
 
-  Statement buildClosureBody(Statement node);
+  Statement buildCatchBody(
+      Statement exceptionVariable, Statement stackTraceVariable);
 
-  Statement buildCatchBody(Statement exceptionVariable,
-                           Statement stackTraceVariable);
+  List<Statement> statements = <Statement>[];
 
-  visitForInStatement(ForInStatement node) {
-    if (node.isAsync) {
+  TreeNode visitInvalidStatement(InvalidStatement stmt) {
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitExpressionStatement(ExpressionStatement stmt) {
+    stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
+      ..parent = stmt;
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitBlock(Block stmt) {
+    var saved = statements;
+    statements = <Statement>[];
+    for (var statement in stmt.statements) {
+      statement.accept(this);
+    }
+    saved.add(new Block(statements));
+    statements = saved;
+    return null;
+  }
+
+  TreeNode visitEmptyStatement(EmptyStatement stmt) {
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitAssertStatement(AssertStatement stmt) {
+    // TODO!
+    return null;
+  }
+
+  Statement visitDelimited(Statement stmt) {
+    var saved = statements;
+    statements = <Statement>[];
+    stmt.accept(this);
+    Statement result =
+        statements.length == 1 ? statements.first : new Block(statements);
+    statements = saved;
+    return result;
+  }
+
+  Statement visitLabeledStatement(LabeledStatement stmt) {
+    stmt.body = visitDelimited(stmt.body)..parent = stmt;
+    statements.add(stmt);
+    return null;
+  }
+
+  Statement visitBreakStatement(BreakStatement stmt) {
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitWhileStatement(WhileStatement stmt) {
+    Statement body = visitDelimited(stmt.body);
+    List<Statement> effects = <Statement>[];
+    Expression cond = expressionRewriter.rewrite(stmt.condition, effects);
+    if (effects.isEmpty) {
+      stmt.condition = cond..parent = stmt;
+      stmt.body = body..parent = stmt;
+      statements.add(stmt);
+    } else {
+      // The condition rewrote to a non-empty sequence of statements S* and
+      // value V.  Rewrite the loop to:
+      //
+      // L: while (true) {
+      //   S*
+      //   if (V) {
+      //     [body]
+      //   else {
+      //     break L;
+      //   }
+      // }
+      LabeledStatement labeled = new LabeledStatement(stmt);
+      stmt.condition = new BoolLiteral(true)..parent = stmt;
+      effects.add(new IfStatement(cond, body, new BreakStatement(labeled)));
+      stmt.body = new Block(effects)..parent = stmt;
+      statements.add(labeled);
+    }
+    return null;
+  }
+
+  TreeNode visitDoStatement(DoStatement stmt) {
+    Statement body = visitDelimited(stmt.body);
+    List<Statement> effects = <Statement>[];
+    stmt.condition = expressionRewriter.rewrite(stmt.condition, effects)
+      ..parent = stmt;
+    if (effects.isNotEmpty) {
+      // The condition rewrote to a non-empty sequence of statements S* and
+      // value V.  Add the statements to the end of the loop body.
+      Block block = body is Block ? body : body = new Block(<Statement>[body]);
+      for (var effect in effects) {
+        block.statements.add(effect);
+        effect.parent = body;
+      }
+    }
+    stmt.body = body..parent = stmt;
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitForStatement(ForStatement stmt) {
+    // Because of for-loop scoping and variable capture, it is tricky to deal
+    // with await in the loop's variable initializers or update expressions.
+    bool isSimple = true;
+    int length = stmt.variables.length;
+    List<List<Statement>> initEffects = new List<List<Statement>>(length);
+    for (int i = 0; i < length; ++i) {
+      VariableDeclaration decl = stmt.variables[i];
+      initEffects[i] = <Statement>[];
+      if (decl.initializer != null) {
+        decl.initializer = expressionRewriter.rewrite(
+            decl.initializer, initEffects[i])..parent = decl;
+      }
+      isSimple = isSimple && initEffects[i].isEmpty;
+    }
+
+    length = stmt.updates.length;
+    List<List<Statement>> updateEffects = new List<List<Statement>>(length);
+    for (int i = 0; i < length; ++i) {
+      updateEffects[i] = <Statement>[];
+      stmt.updates[i] = expressionRewriter.rewrite(
+          stmt.updates[i], updateEffects[i])..parent = stmt;
+      isSimple = isSimple && updateEffects[i].isEmpty;
+    }
+
+    Statement body = visitDelimited(stmt.body);
+    Expression cond = stmt.condition;
+    List<Statement> condEffects;
+    if (cond != null) {
+      condEffects = <Statement>[];
+      cond = expressionRewriter.rewrite(stmt.condition, condEffects);
+    }
+
+    if (isSimple) {
+      // If the condition contains await, we use a translation like the one for
+      // while loops, but leaving the variable declarations and the update
+      // expressions in place.
+      if (condEffects == null || condEffects.isEmpty) {
+        if (cond != null) stmt.condition = cond..parent = stmt;
+        stmt.body = body..parent = stmt;
+        statements.add(stmt);
+      } else {
+        LabeledStatement labeled = new LabeledStatement(stmt);
+        // No condition in a for loop is the same as true.
+        stmt.condition = null;
+        condEffects
+            .add(new IfStatement(cond, body, new BreakStatement(labeled)));
+        stmt.body = new Block(condEffects)..parent = stmt;
+        statements.add(labeled);
+      }
+      return null;
+    }
+
+    // If the rewrite of the initializer or update expressions produces a
+    // non-empty sequence of statements then the loop is desugared.  If the loop
+    // has the form:
+    //
+    // label: for (Type x = init; cond; update) body
+    //
+    // it is translated as if it were:
+    //
+    // {
+    //   bool first = true;
+    //   Type temp;
+    //   label: while (true) {
+    //     Type x;
+    //     if (first) {
+    //       first = false;
+    //       x = init;
+    //     } else {
+    //       x = temp;
+    //       update;
+    //     }
+    //     if (cond) {
+    //       body;
+    //       temp = x;
+    //     } else {
+    //       break;
+    //     }
+    //   }
+    // }
+
+    // Place the loop variable declarations at the beginning of the body
+    // statements and move their initializers to a guarded list of statements.
+    // Add assignments to the loop variables from the previous iteration's temp
+    // variables before the updates.
+    //
+    // temps.first is the flag 'first'.
+    // TODO(kmillikin) bool type for first.
+    List<VariableDeclaration> temps = <VariableDeclaration>[
+      new VariableDeclaration.forValue(new BoolLiteral(true), isFinal: false)
+    ];
+    List<Statement> loopBody = <Statement>[];
+    List<Statement> initializers = <Statement>[
+      new ExpressionStatement(
+          new VariableSet(temps.first, new BoolLiteral(false)))
+    ];
+    List<Statement> updates = <Statement>[];
+    List<Statement> newBody = <Statement>[body];
+    for (int i = 0; i < stmt.variables.length; ++i) {
+      VariableDeclaration decl = stmt.variables[i];
+      temps.add(new VariableDeclaration(null, type: decl.type));
+      loopBody.add(decl);
+      if (decl.initializer != null) {
+        initializers.addAll(initEffects[i]);
+        initializers.add(
+            new ExpressionStatement(new VariableSet(decl, decl.initializer)));
+        decl.initializer = null;
+      }
+      updates.add(new ExpressionStatement(
+          new VariableSet(decl, new VariableGet(temps.last))));
+      newBody.add(new ExpressionStatement(
+          new VariableSet(temps.last, new VariableGet(decl))));
+    }
+    // Add the updates to their guarded list of statements.
+    for (int i = 0; i < stmt.updates.length; ++i) {
+      updates.addAll(updateEffects[i]);
+      updates.add(new ExpressionStatement(stmt.updates[i]));
+    }
+    // Initializers or updates could be empty.
+    loopBody.add(new IfStatement(new VariableGet(temps.first),
+        new Block(initializers), new Block(updates)));
+
+    LabeledStatement labeled = new LabeledStatement(null);
+    if (cond != null) {
+      loopBody.addAll(condEffects);
+    } else {
+      cond = new BoolLiteral(true);
+    }
+    loopBody.add(
+        new IfStatement(cond, new Block(newBody), new BreakStatement(labeled)));
+    labeled.body =
+        new WhileStatement(new BoolLiteral(true), new Block(loopBody));
+    statements.add(new Block(<Statement>[]
+      ..addAll(temps)
+      ..add(labeled)));
+    return null;
+  }
+
+  TreeNode visitForInStatement(ForInStatement stmt) {
+    if (stmt.isAsync) {
       // Transform
       //
       //   await for (var variable in <stream-expression>) { ... }
@@ -300,50 +537,128 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
       //       :for-iterator.cancel();
       //     }
       //   }
-      var iteratorVariable = new VariableDeclaration(
-          ':for-iterator',
+      var iteratorVariable = new VariableDeclaration(':for-iterator',
           initializer: new ConstructorInvocation(
-            helper.streamIteratorConstructor,
-            new Arguments([expressionRewriter.rewrite(node.iterable)])));
+              helper.streamIteratorConstructor,
+              new Arguments(<Expression>[stmt.iterable])));
 
       // await iterator.moveNext()
       var condition = new AwaitExpression(new MethodInvocation(
-            new VariableGet(iteratorVariable),
-            new Name('moveNext'),
-            new Arguments([])));
+          new VariableGet(iteratorVariable),
+          new Name('moveNext'),
+          new Arguments(<Expression>[])));
 
       // var <variable> = iterator.current;
-      var valueVariable = node.variable;
+      var valueVariable = stmt.variable;
       valueVariable.initializer = new PropertyGet(
-          new VariableGet(iteratorVariable),
-          new Name('current'));
+          new VariableGet(iteratorVariable), new Name('current'));
       valueVariable.initializer.parent = valueVariable;
 
-      var whileBody = new Block([valueVariable, node.body]);
+      var whileBody = new Block(<Statement>[valueVariable, stmt.body]);
       var tryBody = new WhileStatement(condition, whileBody);
 
       // iterator.cancel();
-      var tryFinalizer = new ExpressionStatement(
-          new MethodInvocation(
-            new VariableGet(iteratorVariable),
-            new Name('cancel'),
-            new Arguments([])));
+      var tryFinalizer = new ExpressionStatement(new MethodInvocation(
+          new VariableGet(iteratorVariable),
+          new Name('cancel'),
+          new Arguments(<Expression>[])));
 
       var tryFinally = new TryFinally(tryBody, tryFinalizer);
 
-      var block = new Block([
-          iteratorVariable,
-          tryFinally,
-      ]);
-      return block.accept(this);
+      var block = new Block(<Statement>[iteratorVariable, tryFinally]);
+      block.accept(this);
     } else {
-      return super.visitForInStatement(node);
+      stmt.iterable = expressionRewriter.rewrite(stmt.iterable, statements)
+        ..parent = stmt;
+      stmt.body = visitDelimited(stmt.body)..parent = stmt;
+      statements.add(stmt);
     }
+    return null;
   }
 
-  defaultExpression(TreeNode node) {
-    return expressionRewriter.rewrite(node);
+  TreeNode visitSwitchStatement(SwitchStatement stmt) {
+    stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
+      ..parent = stmt;
+    for (var switchCase in stmt.cases) {
+      // Expressions in switch cases cannot contain await so they do not need to
+      // be translated.
+      switchCase.body = visitDelimited(switchCase.body)..parent = switchCase;
+    }
+    statements.add(stmt);
+    return null;
   }
+
+  TreeNode visitContinueSwitchStatement(ContinueSwitchStatement stmt) {
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitIfStatement(IfStatement stmt) {
+    stmt.condition = expressionRewriter.rewrite(stmt.condition, statements)
+      ..parent = stmt;
+    stmt.then = visitDelimited(stmt.then)..parent = stmt;
+    if (stmt.otherwise != null) {
+      stmt.otherwise = visitDelimited(stmt.otherwise)..parent = stmt;
+    }
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitReturnStatement(ReturnStatement stmt) {
+    if (stmt.expression != null) {
+      stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
+        ..parent = stmt;
+    }
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitTryCatch(TryCatch stmt) {
+    ++currentTryDepth;
+    stmt.body = visitDelimited(stmt.body)..parent = stmt;
+    --currentTryDepth;
+
+    ++currentCatchDepth;
+    for (var clause in stmt.catches) {
+      clause.body = visitDelimited(clause.body)..parent = clause;
+    }
+    --currentCatchDepth;
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitTryFinally(TryFinally stmt) {
+    ++currentTryDepth;
+    stmt.body = visitDelimited(stmt.body)..parent = stmt;
+    --currentTryDepth;
+    stmt.finalizer = visitDelimited(stmt.finalizer)..parent = stmt;
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitYieldStatement(YieldStatement stmt) {
+    stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
+      ..parent = stmt;
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitVariableDeclaration(VariableDeclaration stmt) {
+    if (stmt.initializer != null) {
+      stmt.initializer = expressionRewriter.rewrite(
+          stmt.initializer, statements)..parent = stmt;
+    }
+    statements.add(stmt);
+    return null;
+  }
+
+  TreeNode visitFunctionDeclaration(FunctionDeclaration stmt) {
+    stmt.function = stmt.function.accept(this)..parent = stmt;
+    statements.add(stmt);
+    return null;
+  }
+
+  defaultExpression(TreeNode node) => throw 'unreachable';
 }
 
 class AsyncStarFunctionRewriter extends AsyncRewriterBase {
@@ -362,7 +677,8 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     super.setupAsyncContinuations(statements);
 
     // :controller = new _AsyncController(:async_op);
-    var arguments = new Arguments([new VariableGet(nestedClosureVariable)]);
+    var arguments =
+        new Arguments(<Expression>[new VariableGet(nestedClosureVariable)]);
     var buildController = new ConstructorInvocation(
         helper.streamControllerConstructor, arguments);
     var setController = new ExpressionStatement(
@@ -381,50 +697,39 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     return enclosingFunction;
   }
 
-  Statement buildClosureBody(Statement node) {
-    // The body will insert calls to
-    //    :controller.add()
-    //    :controller.addStream()
-    //    :controller.addError()
-    //    :controller.close()
-    return node.accept(this);
-  }
-
   Statement buildCatchBody(exceptionVariable, stackTraceVariable) {
-    return new ExpressionStatement(
-        new MethodInvocation(
-          new VariableGet(controllerVariable),
-          new Name("completeError", helper.asyncLibrary),
-          new Arguments([new VariableGet(exceptionVariable),
-                         new VariableGet(stackTraceVariable)])));
+    return new ExpressionStatement(new MethodInvocation(
+        new VariableGet(controllerVariable),
+        new Name("completeError", helper.asyncLibrary),
+        new Arguments(<Expression>[
+          new VariableGet(exceptionVariable),
+          new VariableGet(stackTraceVariable)
+        ])));
   }
 
-  visitYieldStatement(YieldStatement node) {
-    var transformedExpression = node.expression.accept(this);
+  TreeNode visitYieldStatement(YieldStatement stmt) {
+    Expression expr = expressionRewriter.rewrite(stmt.expression, statements);
 
     var addExpression = new MethodInvocation(
-          new VariableGet(controllerVariable),
-          new Name(node.isYieldStar ? 'addStream' : 'add', helper.asyncLibrary),
-          new Arguments([transformedExpression]));
+        new VariableGet(controllerVariable),
+        new Name(stmt.isYieldStar ? 'addStream' : 'add', helper.asyncLibrary),
+        new Arguments(<Expression>[expr]));
 
-    var addAndReturnOrYield = new IfStatement(
-        addExpression,
-        new ReturnStatement(new NullLiteral()),
-        createContinuationPoint());
-    return new Block([addAndReturnOrYield]);
+    statements.add(new IfStatement(addExpression,
+        new ReturnStatement(new NullLiteral()), createContinuationPoint()));
+    return null;
   }
 
-  visitReturnStatement(ReturnStatement node) {
+  TreeNode visitReturnStatement(ReturnStatement node) {
     // async* functions cannot have normal [ReturnStatement]s in them.
     assert(node.expression == null || node.expression is NullLiteral);
 
-    var close = new ExpressionStatement(
-        new MethodInvocation(
-          new VariableGet(controllerVariable),
-          new Name("close", helper.asyncLibrary),
-          new Arguments([])));
-    var returnStatement = new ReturnStatement();
-    return new Block([close, returnStatement]);
+    statements.add(new ExpressionStatement(new MethodInvocation(
+        new VariableGet(controllerVariable),
+        new Name("close", helper.asyncLibrary),
+        new Arguments(<Expression>[]))));
+    statements.add(new ReturnStatement());
+    return null;
   }
 }
 
@@ -438,20 +743,18 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     var statements = <Statement>[];
 
     // var :completer = new Completer.sync();
-    completerVariable = new VariableDeclaration(
-        ":completer",
-        initializer: new StaticInvocation(helper.completerConstructor,
-                                          new Arguments([])),
+    completerVariable = new VariableDeclaration(":completer",
+        initializer: new StaticInvocation(
+            helper.completerConstructor, new Arguments([])),
         isFinal: true);
     statements.add(completerVariable);
 
     super.setupAsyncContinuations(statements);
 
     // new Future.microtask(:async_op);
-    var newMicrotaskStatement = new ExpressionStatement(
-        new StaticInvocation(
-            helper.futureMicrotaskConstructor,
-            new Arguments([new VariableGet(nestedClosureVariable)])));
+    var newMicrotaskStatement = new ExpressionStatement(new StaticInvocation(
+        helper.futureMicrotaskConstructor,
+        new Arguments([new VariableGet(nestedClosureVariable)])));
     statements.add(newMicrotaskStatement);
 
     // return :completer.future;
@@ -466,45 +769,30 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
     return enclosingFunction;
   }
 
-  Statement buildClosureBody(Statement node) {
-    // TODO(kustermann): Can we assume the frontend will insert proper
-    // [ReturnStatement]s?
-
-    // Translating the body will insert calls to
-    //     :completer.completeError()
-    //     :completer.complete()
-    return node.accept(this);
-  }
-
   Statement buildCatchBody(exceptionVariable, stackTraceVariable) {
-    return new ExpressionStatement(
-        new MethodInvocation(
-          new VariableGet(completerVariable),
-          new Name("completeError", helper.asyncLibrary),
-          new Arguments([new VariableGet(exceptionVariable),
-                         new VariableGet(stackTraceVariable)])));
+    return new ExpressionStatement(new MethodInvocation(
+        new VariableGet(completerVariable),
+        new Name("completeError", helper.asyncLibrary),
+        new Arguments([
+          new VariableGet(exceptionVariable),
+          new VariableGet(stackTraceVariable)
+        ])));
   }
 
   visitReturnStatement(ReturnStatement node) {
-    var transformedExpression;
+    var expr;
     if (node.expression == null) {
-      transformedExpression = new NullLiteral();
+      expr = new NullLiteral();
     } else {
-      transformedExpression = expressionRewriter.rewrite(node.expression);
+      expr = expressionRewriter.rewrite(node.expression, statements);
     }
 
-    // Note: transformed expression can't be used directly as part of the
-    // method invocation because it might contain yield points and
-    // expression stack might not be empty.
-    var resultVar = new VariableDeclaration(':async_temp',
-                                            initializer: transformedExpression);
-    var completeCompleter = new ExpressionStatement(
-        new MethodInvocation(
-          new VariableGet(completerVariable),
-          new Name("complete", helper.asyncLibrary),
-          new Arguments([new VariableGet(resultVar)])));
-    var returnStatement = new ReturnStatement(new NullLiteral());
-    return new Block([resultVar, completeCompleter, returnStatement]);
+    statements.add(new ExpressionStatement(new MethodInvocation(
+        new VariableGet(completerVariable),
+        new Name("complete", helper.asyncLibrary),
+        new Arguments([expr]))));
+    statements.add(new ReturnStatement(new NullLiteral()));
+    return null;
   }
 }
 
@@ -532,8 +820,7 @@ class HelperNodes {
       this.streamControllerConstructor,
       this.asyncThenWrapper,
       this.asyncErrorWrapper,
-      this.awaitHelper
-  );
+      this.awaitHelper);
 
   factory HelperNodes.fromProgram(Program program) {
     Library findLibrary(String name) {
@@ -578,8 +865,8 @@ class HelperNodes {
     var futureClass = findClass(asyncLibrary, 'Future');
     var streamIteratorClass = findClass(asyncLibrary, '_StreamIterator');
     var syncIterableClass = findClass(coreLibrary, '_SyncIterable');
-    var streamControllerClass = findClass(
-        asyncLibrary, '_AsyncStarStreamController');
+    var streamControllerClass =
+        findClass(asyncLibrary, '_AsyncStarStreamController');
 
     return new HelperNodes(
         asyncLibrary,
@@ -587,11 +874,11 @@ class HelperNodes {
         findProcedure(coreLibrary, 'print'),
         findFactoryConstructor(completerClass, 'sync'),
         findConstructor(syncIterableClass, ''),
-        findConstructor(streamIteratorClass , ''),
+        findConstructor(streamIteratorClass, ''),
         findFactoryConstructor(futureClass, 'microtask'),
         findConstructor(streamControllerClass, ''),
         findProcedure(asyncLibrary, '_asyncThenWrapperHelper'),
         findProcedure(asyncLibrary, '_asyncErrorWrapperHelper'),
         findProcedure(asyncLibrary, '_awaitHelper'));
-    }
+  }
 }

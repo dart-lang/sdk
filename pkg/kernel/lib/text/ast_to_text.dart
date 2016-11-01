@@ -969,32 +969,6 @@ class Printer extends Visitor<Null> {
     writeExpression(node.body);
   }
 
-  visitBlockExpression(BlockExpression node) {
-    int savedColumn = column;
-
-    var savedState = state;
-    int savedIndentation = indentation;
-    String spaces = ' ' * savedColumn;
-
-    writeWord('|{');
-    endLine();
-    state = SPACE;
-    indentation = (savedColumn + 4) ~/ 2;
-    for (var statement in node.body.statements) {
-      statement.accept(this);
-    }
-    write('$spaces   => ');
-    writeExpression(node.value);
-    endLine();
-    write('$spaces');
-
-    indentation = savedIndentation;
-    state = savedState;
-    column = savedColumn;
-
-    write('}|');
-  }
-
   defaultExpression(Expression node) {
     writeWord('${node.runtimeType}');
   }
@@ -1531,7 +1505,6 @@ class Precedence extends ExpressionVisitor<int> {
   int visitStaticGet(StaticGet node) => PRIMARY;
   int visitStaticSet(StaticSet node) => EXPRESSION;
   int visitLet(Let node) => EXPRESSION;
-  int visitBlockExpression(BlockExpression node) => EXPRESSION;
 }
 
 String procedureKindToString(ProcedureKind kind) {

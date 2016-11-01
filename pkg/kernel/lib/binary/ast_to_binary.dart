@@ -680,12 +680,6 @@ class BinaryPrinter extends Visitor {
     writeNode(node.body);
   }
 
-  visitBlockExpression(BlockExpression node) {
-    writeByte(Tag.BlockExpression);
-    writeNodeList(node.body.statements);
-    writeNode(node.value);
-  }
-
   writeStatementOrEmpty(Statement node) {
     if (node == null) {
       writeByte(Tag.EmptyStatement);

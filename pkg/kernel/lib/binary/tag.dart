@@ -59,7 +59,6 @@ class Tag {
   static const int AwaitExpression = 51;
   static const int FunctionExpression = 52;
   static const int Let = 53;
-  static const int BlockExpression = 54;
   static const int PositiveIntLiteral = 55;
   static const int NegativeIntLiteral = 56;
   static const int BigIntLiteral = 57;
