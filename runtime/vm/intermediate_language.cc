@@ -1757,6 +1757,10 @@ Definition* CheckedSmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
       default:
         break;
     }
+    if (replacement != NULL) {
+      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+      return replacement;
+    }
   }
   return this;
 }
