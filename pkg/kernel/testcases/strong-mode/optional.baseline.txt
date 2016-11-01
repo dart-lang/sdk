@@ -1,3 +1,8 @@
+// #lib1::InvalidListener is not a subtype of #lib1::Listener (optional.dart:42:20)
+// Too few positional arguments (optional.dart:44:21)
+// Too many positional arguments (optional.dart:45:21)
+// Too few positional arguments (optional.dart:46:24)
+// Too many positional arguments (optional.dart:47:24)
 library;
 import self as self;
 import "dart:core" as core;

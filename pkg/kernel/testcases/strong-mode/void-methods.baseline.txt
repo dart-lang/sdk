@@ -1,3 +1,4 @@
+// dynamic is not a subtype of dart.core::int (void-methods.dart:4:27)
 library;
 import self as self;
 import "dart:core" as core;

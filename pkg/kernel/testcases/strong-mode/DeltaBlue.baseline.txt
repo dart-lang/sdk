@@ -1,3 +1,7 @@
+// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:126:17)
+// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:133:15)
+// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:138:36)
+// dynamic is not a subtype of dart.core::int (DeltaBlue.dart:139:15)
 library;
 import self as self;
 import "dart:core" as core;

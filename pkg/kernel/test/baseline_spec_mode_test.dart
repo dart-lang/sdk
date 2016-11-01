@@ -17,8 +17,9 @@ class SpecModeTest extends TestTarget {
   bool get strongMode => false;
 
   @override
-  void transformProgram(Program program) {
+  List<String> transformProgram(Program program) {
     new MixinFullResolution().transform(program);
+    return const <String>[];
   }
 }
 

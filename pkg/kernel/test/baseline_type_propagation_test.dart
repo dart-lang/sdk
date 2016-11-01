@@ -24,7 +24,7 @@ class TypePropagationTest extends TestTarget {
   bool get strongMode => false;
 
   @override
-  void transformProgram(Program program) {
+  List<String> transformProgram(Program program) {
     new MixinFullResolution().transform(program);
     var visualizer = new Visualizer(program);
     var builder = new Builder(program, visualizer: visualizer);
@@ -32,6 +32,7 @@ class TypePropagationTest extends TestTarget {
     solver.solve();
     visualizer.solver = solver;
     annotator = new TextAnnotator(visualizer);
+    return const <String>[];
   }
 }
 

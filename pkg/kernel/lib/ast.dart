@@ -2250,7 +2250,7 @@ class ListLiteral extends Expression {
   }
 
   DartType getStaticType(TypeEnvironment types) {
-    return types.listType(typeArgument);
+    return types.literalListType(typeArgument);
   }
 
   accept(ExpressionVisitor v) => v.visitListLiteral(this);
@@ -2282,7 +2282,7 @@ class MapLiteral extends Expression {
   }
 
   DartType getStaticType(TypeEnvironment types) {
-    return types.mapType(keyType, valueType);
+    return types.literalMapType(keyType, valueType);
   }
 
   accept(ExpressionVisitor v) => v.visitMapLiteral(this);

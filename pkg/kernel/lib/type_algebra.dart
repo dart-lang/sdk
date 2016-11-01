@@ -119,6 +119,10 @@ class FreshTypeParameters {
 // ------------------------------------------------------------------------
 
 abstract class Substitution {
+  const Substitution();
+
+  static const Substitution empty = _NullSubstitution.instance;
+
   /// Substitutes each parameter to the type it maps to in [map].
   static Substitution fromMap(Map<TypeParameter, DartType> map) {
     if (map.isEmpty) return _NullSubstitution.instance;
@@ -169,26 +173,49 @@ abstract class Substitution {
         new Map<TypeParameter, DartType>.fromIterables(parameters, types));
   }
 
+  /// Substitutes the type parameters on the class with bottom or dynamic,
+  /// depending on the covariance of its use.
+  static Substitution bottomForClass(Class class_) {
+    if (class_.typeParameters.isEmpty) return _NullSubstitution.instance;
+    return new _ClassBottomSubstitution(class_);
+  }
+
+  /// Substitutes both variables from [first] and [second], favoring those from
+  /// [first] if they overlap.
+  ///
+  /// Neither substitution is applied to the results of the other, so this does
+  /// *not* correspond to a sequence of two subsitutions. For example, combining
+  /// `{T -> List<G>}` with `{G -> String}` does not correspond to
+  /// `{T -> List<String>}` because the result from substituting `T` is not
+  /// searched for occurences of `G`.
+  static Substitution combine(Substitution first, Substitution second) {
+    if (first == _NullSubstitution.instance) return second;
+    if (second == _NullSubstitution.instance) return first;
+    return new _CombinedSubstitution(first, second);
+  }
+
   DartType getSubstitute(TypeParameter parameter, bool upperBound);
 
-  DartType substituteType(DartType node) {
-    return new _TopSubstitutor(this).visit(node);
+  DartType substituteType(DartType node, {bool contravariant: false}) {
+    return new _TopSubstitutor(this, contravariant).visit(node);
   }
 
   Supertype substituteSupertype(Supertype node) {
-    return new _TopSubstitutor(this).visitSupertype(node);
+    return new _TopSubstitutor(this, false).visitSupertype(node);
   }
 }
 
 class _NullSubstitution extends Substitution {
-  static final _NullSubstitution instance = new _NullSubstitution();
+  static const _NullSubstitution instance = const _NullSubstitution();
+
+  const _NullSubstitution();
 
   DartType getSubstitute(TypeParameter parameter, bool upperBound) {
     return new TypeParameterType(parameter);
   }
 
   @override
-  DartType substituteType(DartType node) => node;
+  DartType substituteType(DartType node, {bool contravariant: false}) => node;
 
   @override
   Supertype substituteSupertype(Supertype node) => node;
@@ -208,7 +235,11 @@ class _MapSubstitution extends Substitution {
 class _TopSubstitutor extends _TypeSubstitutor {
   final Substitution substitution;
 
-  _TopSubstitutor(this.substitution) : super(null);
+  _TopSubstitutor(this.substitution, bool contravariant) : super(null) {
+    if (contravariant) {
+      invertVariance();
+    }
+  }
 
   DartType lookup(TypeParameter parameter, bool upperBound) {
     return substitution.getSubstitute(parameter, upperBound);
@@ -216,6 +247,30 @@ class _TopSubstitutor extends _TypeSubstitutor {
 
   TypeParameter freshTypeParameter(TypeParameter node) {
     throw 'Create a fresh environment first';
+  }
+}
+
+class _ClassBottomSubstitution extends Substitution {
+  final Class class_;
+
+  _ClassBottomSubstitution(this.class_);
+
+  DartType getSubstitute(TypeParameter parameter, bool upperBound) {
+    if (parameter.parent == class_) {
+      return upperBound ? const BottomType() : const DynamicType();
+    }
+    return null;
+  }
+}
+
+class _CombinedSubstitution extends Substitution {
+  final Substitution first, second;
+
+  _CombinedSubstitution(this.first, this.second);
+
+  DartType getSubstitute(TypeParameter parameter, bool upperBound) {
+    return first.getSubstitute(parameter, upperBound) ??
+        second.getSubstitute(parameter, upperBound);
   }
 }
 

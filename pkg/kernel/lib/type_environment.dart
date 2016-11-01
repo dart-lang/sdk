@@ -13,7 +13,10 @@ typedef void ErrorHandler(TreeNode node, String message);
 class TypeEnvironment extends SubtypeTester {
   final CoreTypes coreTypes;
   final ClassHierarchy hierarchy;
-  DartType thisType;
+  InterfaceType thisType;
+
+  DartType returnType;
+  DartType yieldType;
 
   /// An error handler for use in debugging, or `null` if type errors should not
   /// be tolerated.  See [typeError].
@@ -35,11 +38,11 @@ class TypeEnvironment extends SubtypeTester {
   Class get intClass => coreTypes.intClass;
   Class get numClass => coreTypes.numClass;
 
-  InterfaceType listType(DartType elementType) {
+  InterfaceType literalListType(DartType elementType) {
     return new InterfaceType(coreTypes.listClass, <DartType>[elementType]);
   }
 
-  InterfaceType mapType(DartType key, DartType value) {
+  InterfaceType literalMapType(DartType key, DartType value) {
     return new InterfaceType(coreTypes.mapClass, <DartType>[key, value]);
   }
 
@@ -128,7 +131,7 @@ abstract class SubtypeTester {
       return true;
     }
     if (subtype is InterfaceType && supertype is InterfaceType) {
-      InterfaceType upcastType =
+      var upcastType =
           hierarchy.getTypeAsInstanceOf(subtype, supertype.classNode);
       if (upcastType == null) return false;
       for (int i = 0; i < upcastType.typeArguments.length; ++i) {

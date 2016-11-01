@@ -20,6 +20,8 @@ final String inputDirectory = 'testcases/input';
 abstract class TestTarget extends Target {
   /// Annotations to apply on the textual output.
   Annotator get annotator => null;
+
+  List<String> transformProgram(Program program);
 }
 
 void runBaselineTests(String folderName, TestTarget target) {
@@ -45,10 +47,13 @@ void runBaselineTests(String folderName, TestTarget target) {
                 declaredVariables: target.extraDeclaredVariables));
         var program = loader.loadProgram(dartPath, target: target);
         runSanityChecks(program);
-        target.transformProgram(program);
+        var errors = target.transformProgram(program);
         runSanityChecks(program);
 
         var buffer = new StringBuffer();
+        for (var error in errors) {
+          buffer.writeln('// $error');
+        }
         new Printer(buffer, annotator: target.annotator)
             .writeLibraryFile(program.mainMethod.enclosingLibrary);
         String current = '$buffer';
