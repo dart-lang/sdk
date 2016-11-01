@@ -75,12 +75,12 @@ int64_t OS::GetCurrentTimeMillis() {
 
 
 int64_t OS::GetCurrentTimeMicros() {
-  return mx_current_time() / 1000;
+  return mx_time_get(MX_CLOCK_MONOTONIC) / 1000;
 }
 
 
 int64_t OS::GetCurrentMonotonicTicks() {
-  return mx_current_time();
+  return mx_time_get(MX_CLOCK_MONOTONIC);
 }
 
 
