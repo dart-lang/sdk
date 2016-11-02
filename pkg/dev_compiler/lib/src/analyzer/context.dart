@@ -55,13 +55,25 @@ class AnalyzerOptions {
       this.packagePaths: const []})
       : dartSdkPath = dartSdkPath ?? getSdkDir().path;
 
-  AnalyzerOptions.fromArguments(ArgResults args)
-      : summaryPaths = args['summary'] as List<String>,
-        dartSdkPath = args['dart-sdk'] ?? getSdkDir().path,
-        dartSdkSummaryPath = args['dart-sdk-summary'],
-        customUrlMappings = _parseUrlMappings(args['url-mapping']),
-        packageRoot = args['package-root'],
-        packagePaths = (args['package-paths'] as String)?.split(',') ?? [];
+  factory AnalyzerOptions.fromArguments(ArgResults args) {
+    var sdkPath = args['dart-sdk'] ?? getSdkDir().path;
+    var sdkSummaryPath = args['dart-sdk-summary'];
+
+    if (sdkSummaryPath == null) {
+      sdkSummaryPath = path.join(sdkPath, 'lib', '_internal', 'ddc_sdk.sum');
+    } else if (sdkSummaryPath == 'build') {
+      // For building the SDK, we explicitly set the path to none.
+      sdkSummaryPath = null;
+    }
+
+    return new AnalyzerOptions(
+        summaryPaths: args['summary'] as List<String>,
+        dartSdkPath: sdkPath,
+        dartSdkSummaryPath: sdkSummaryPath,
+        customUrlMappings: _parseUrlMappings(args['url-mapping']),
+        packageRoot: args['package-root'],
+        packagePaths: (args['package-paths'] as String)?.split(',') ?? []);
+  }
 
   /// Whether to resolve 'package:' uris using the multi-package resolver.
   bool get useMultiPackage => packagePaths.isNotEmpty;
@@ -70,9 +82,10 @@ class AnalyzerOptions {
     parser
       ..addOption('summary',
           abbr: 's', help: 'summary file(s) to include', allowMultiple: true)
-      ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
+      ..addOption('dart-sdk',
+          help: 'Dart SDK Path', defaultsTo: null, hide: true)
       ..addOption('dart-sdk-summary',
-          help: 'Dart SDK Summary Path', defaultsTo: null)
+          help: 'Dart SDK Summary Path', defaultsTo: null, hide: true)
       ..addOption('package-root',
           abbr: 'p', help: 'Package root to resolve "package:" imports')
       ..addOption('url-mapping',

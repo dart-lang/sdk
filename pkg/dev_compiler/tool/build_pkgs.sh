@@ -5,7 +5,7 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 mkdir -p gen/codegen_output/pkg/
 
-SDK=--dart-sdk-summary=lib/js/amd/dart_sdk.sum
+SDK=--dart-sdk-summary=lib/sdk/ddc_sdk.sum
 
 # Build leaf packages.  These have no other package dependencies.
 

@@ -154,11 +154,17 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
 
   // Write JS file, as well as source map and summary (if requested).
   for (var i = 0; i < outPaths.length; i++) {
-    var outPath = outPaths[i];
-    module.writeCodeSync(moduleFormats[i], singleOutFile, outPath);
-    if (module.summaryBytes != null) {
-      var summaryPath =
-          path.withoutExtension(outPath) + '.${compilerOpts.summaryExtension}';
+    module.writeCodeSync(moduleFormats[i], outPaths[i],
+        singleOutFile: singleOutFile);
+  }
+  if (module.summaryBytes != null) {
+    var summaryPaths = compilerOpts.summaryOutPath != null
+        ? [compilerOpts.summaryOutPath]
+        : outPaths.map((p) =>
+            '${path.withoutExtension(p)}.${compilerOpts.summaryExtension}');
+
+    // place next to every compiled module
+    for (var summaryPath in summaryPaths) {
       // Only overwrite if summary changed.  This plays better with timestamp
       // based build systems.
       var file = new File(summaryPath);

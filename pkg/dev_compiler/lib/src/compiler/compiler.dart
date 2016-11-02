@@ -261,6 +261,10 @@ class CompilerOptions {
   /// source maps.
   final Map<String, String> bazelMapping;
 
+  /// If specified, the path to write the summary file.
+  /// Used when building the SDK.
+  final String summaryOutPath;
+
   const CompilerOptions(
       {this.sourceMap: true,
       this.sourceMapComment: true,
@@ -277,7 +281,8 @@ class CompilerOptions {
       this.nameTypeTests: true,
       this.hoistTypeTests: true,
       this.useAngular2Whitelist: false,
-      this.bazelMapping: const {}});
+      this.bazelMapping: const {},
+      this.summaryOutPath});
 
   CompilerOptions.fromArguments(ArgResults args)
       : sourceMap = args['source-map'],
@@ -295,7 +300,8 @@ class CompilerOptions {
         nameTypeTests = args['name-type-tests'],
         hoistTypeTests = args['hoist-type-tests'],
         useAngular2Whitelist = args['unsafe-angular2-whitelist'],
-        bazelMapping = _parseBazelMappings(args['bazel-mapping']);
+        bazelMapping = _parseBazelMappings(args['bazel-mapping']),
+        summaryOutPath = args['summary-out'];
 
   static void addArguments(ArgParser parser) {
     parser
@@ -349,7 +355,9 @@ class CompilerOptions {
               'to/library.dart as the path for library.dart in source maps.',
           allowMultiple: true,
           splitCommas: false,
-          hide: true);
+          hide: true)
+      ..addOption('summary-out',
+          help: 'location to write the summary file', hide: true);
   }
 
   static Map<String, String> _parseBazelMappings(Iterable argument) {
@@ -427,8 +435,8 @@ class JSModuleFile {
   //
   // TODO(jmesserly): this should match our old logic, but I'm not sure we are
   // correctly handling the pointer from the .js file to the .map file.
-  JSModuleCode getCode(
-      ModuleFormat format, bool singleOutFile, String jsUrl, String mapUrl) {
+  JSModuleCode getCode(ModuleFormat format, String jsUrl, String mapUrl,
+      {bool singleOutFile: false}) {
     var opts = new JS.JavaScriptPrintingOptions(
         emitTypes: options.closure,
         allowKeywordsInProperties: true,
@@ -443,7 +451,8 @@ class JSModuleFile {
       printer = new JS.SimpleJavaScriptPrintingContext();
     }
 
-    var tree = transformModuleFormat(format, singleOutFile, moduleTree);
+    var tree =
+        transformModuleFormat(format, moduleTree, singleOutFile: singleOutFile);
     tree.accept(
         new JS.Printer(opts, printer, localNamer: new JS.TemporaryNamer(tree)));
 
@@ -477,9 +486,10 @@ class JSModuleFile {
   ///
   /// If [mapPath] is not supplied but [options.sourceMap] is set, mapPath
   /// will default to [jsPath].map.
-  void writeCodeSync(ModuleFormat format, bool singleOutFile, String jsPath) {
+  void writeCodeSync(ModuleFormat format, String jsPath,
+      {bool singleOutFile: false}) {
     String mapPath = jsPath + '.map';
-    var code = getCode(format, singleOutFile, jsPath, mapPath);
+    var code = getCode(format, jsPath, mapPath, singleOutFile: singleOutFile);
     var c = code.code;
     if (singleOutFile) {
       // In singleOutFile mode we wrap each module in an eval statement to

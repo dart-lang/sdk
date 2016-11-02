@@ -171,8 +171,10 @@ def CopyAnalysisSummaries(snapshots, lib):
            join(lib, '_internal', 'strong.sum'))
 
 def CopyDevCompilerSdk(home, lib):
+  copyfile(join(home, 'pkg', 'dev_compiler', 'lib', 'sdk', 'ddc_sdk.sum'),
+           join(lib, '_internal', 'ddc_sdk.sum'))
   copytree(join(home, 'pkg', 'dev_compiler', 'lib', 'js'),
-           join(lib, '_internal', 'dev_compiler'))
+           join(lib, 'dev_compiler'))
 
 def Main():
   # Pull in all of the gypi files which will be munged into the sdk.

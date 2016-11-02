@@ -68,7 +68,7 @@ main(List<String> arguments) {
 
   var sdkDir = path.join(repoDirectory, 'gen', 'patched_sdk');
   var sdkSummaryFile =
-      path.join(testDirectory, '..', 'lib', 'js', 'amd', 'dart_sdk.sum');
+      path.join(testDirectory, '..', 'lib', 'sdk', 'ddc_sdk.sum');
 
   var summaryPaths = new Directory(path.join(codegenOutputDir, 'pkg'))
       .listSync()
@@ -174,7 +174,7 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
   new File(outPath + '.txt').writeAsStringSync(errors);
 
-  result.writeCodeSync(format, false, outPath + '.js');
+  result.writeCodeSync(format, outPath + '.js');
 
   if (result.summaryBytes != null) {
     new File(outPath + '.sum').writeAsBytesSync(result.summaryBytes);
@@ -188,7 +188,7 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
 
     var expectFile = new File(expectPath + '.js');
     if (result.isValid) {
-      result.writeCodeSync(format, false, expectFile.path);
+      result.writeCodeSync(format, expectFile.path);
     } else {
       expectFile.writeAsStringSync("//FAILED TO COMPILE");
     }

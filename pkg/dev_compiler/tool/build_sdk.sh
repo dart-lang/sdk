@@ -11,6 +11,8 @@ echo "*** Compiling SDK to JavaScript"
 # TODO(jmesserly): break out dart:html & friends.
 dart -c tool/build_sdk.dart \
     --dart-sdk gen/patched_sdk \
+    --dart-sdk-summary=build \
+    --summary-out lib/sdk/ddc_sdk.sum \
     --modules=amd \
     -o lib/js/amd/dart_sdk.js \
     --modules=es6 \
