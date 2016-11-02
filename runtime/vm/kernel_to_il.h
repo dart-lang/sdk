@@ -16,6 +16,46 @@
 namespace dart {
 namespace kernel {
 
+// TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
+// should use [TokenPosition]s.
+class KernelConstMapKeyEqualsTraits {
+ public:
+  static const char* Name() { return "KernelConstMapKeyEqualsTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    const Smi& key1 = Smi::Cast(a);
+    const Smi& key2 = Smi::Cast(b);
+    return (key1.Value() == key2.Value());
+  }
+  static bool IsMatch(const TreeNode* key1, const Object& b) {
+    return KeyAsSmi(key1) == Smi::Cast(b).raw();
+  }
+  static uword Hash(const Object& obj) {
+    const Smi& key = Smi::Cast(obj);
+    return HashValue(key.Value());
+  }
+  static uword Hash(const TreeNode* key) {
+    return HashValue(Smi::Value(KeyAsSmi(key)));
+  }
+  static RawObject* NewKey(const TreeNode* key) {
+    return KeyAsSmi(key);
+  }
+
+ private:
+  static uword HashValue(intptr_t pos) {
+    return pos % (Smi::kMaxValue - 13);
+  }
+
+  static RawSmi* KeyAsSmi(const TreeNode* key) {
+    // We exploit that all [TreeNode] objects will be aligned and therefore are
+    // already [Smi]s!
+    return reinterpret_cast<RawSmi*>(const_cast<TreeNode*>(key));
+  }
+};
+typedef UnorderedHashMap<KernelConstMapKeyEqualsTraits> KernelConstantsMap;
+
+
 template <typename K, typename V>
 class Map : public DirectChainedHashMap<RawPointerKeyValueTrait<K, V> > {
  public:
@@ -316,13 +356,7 @@ class DartTypeTranslator : public DartTypeVisitor {
 class ConstantEvaluator : public ExpressionVisitor {
  public:
   ConstantEvaluator(FlowGraphBuilder* builder, Zone* zone, TranslationHelper* h,
-                    DartTypeTranslator* type_translator)
-      : builder_(builder),
-        isolate_(Isolate::Current()),
-        zone_(zone),
-        translation_helper_(*h),
-        type_translator_(*type_translator),
-        result_(dart::Instance::Handle(zone)) {}
+                    DartTypeTranslator* type_translator);
   virtual ~ConstantEvaluator() {}
 
   Instance& EvaluateExpression(Expression* node);
@@ -378,12 +412,19 @@ class ConstantEvaluator : public ExpressionVisitor {
                                           const Function& constructor,
                                           const Object& argument);
 
+  // TODO(27590): Instead of using [dart::kernel::TreeNode]s as keys we
+  // should use [TokenPosition]s as well as the existing functionality in
+  // `Parser::CacheConstantValue`.
+  bool GetCachedConstant(TreeNode* node, Instance* value);
+  void CacheConstantValue(TreeNode* node, const Instance& value);
+
   FlowGraphBuilder* builder_;
   Isolate* isolate_;
   Zone* zone_;
   TranslationHelper& translation_helper_;
   DartTypeTranslator& type_translator_;
 
+  Script& script_;
   Instance& result_;
 };
 

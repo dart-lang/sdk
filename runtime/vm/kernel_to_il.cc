@@ -981,8 +981,8 @@ const dart::String& TranslationHelper::DartSetterName(Name* kernel_name) {
   if (content->buffer()[content->size() - 1] == '=') {
     skip = 1;
   }
-  dart::String& name = dart::String::ZoneHandle(
-      Z, dart::String::FromUTF8(content->buffer(), content->size() - skip));
+  dart::String& name = dart::String::ZoneHandle(Z, dart::String::FromUTF8(
+        content->buffer(), content->size() - skip, allocation_space_));
   ManglePrivateName(kernel_name->library(), &name, false);
   name = dart::Field::SetterSymbol(name);
   return name;
@@ -1191,7 +1191,8 @@ dart::String& TranslationHelper::ManglePrivateName(Library* kernel_library,
 const Array& TranslationHelper::ArgumentNames(List<NamedExpression>* named) {
   if (named->length() == 0) return Array::ZoneHandle(Z);
 
-  const Array& names = Array::ZoneHandle(Z, Array::New(named->length()));
+  const Array& names = Array::ZoneHandle(Z,
+      Array::New(named->length(), allocation_space_));
   for (intptr_t i = 0; i < named->length(); ++i) {
     names.SetAt(i, DartSymbol((*named)[i]->name()));
   }
@@ -1199,8 +1200,25 @@ const Array& TranslationHelper::ArgumentNames(List<NamedExpression>* named) {
 }
 
 
+ConstantEvaluator::ConstantEvaluator(FlowGraphBuilder* builder,
+                                     Zone* zone,
+                                     TranslationHelper* h,
+                                     DartTypeTranslator* type_translator)
+    : builder_(builder),
+      isolate_(Isolate::Current()),
+      zone_(zone),
+      translation_helper_(*h),
+      type_translator_(*type_translator),
+      script_(dart::Script::Handle(
+            zone, builder_->parsed_function_->function().script())),
+      result_(dart::Instance::Handle(zone)) {}
+
+
 Instance& ConstantEvaluator::EvaluateExpression(Expression* expression) {
-  expression->AcceptExpressionVisitor(this);
+  if (!GetCachedConstant(expression, &result_)) {
+    expression->AcceptExpressionVisitor(this);
+    CacheConstantValue(expression, result_);
+  }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
@@ -1223,7 +1241,10 @@ Object& ConstantEvaluator::EvaluateExpressionSafe(Expression* expression) {
 
 Instance& ConstantEvaluator::EvaluateConstructorInvocation(
     ConstructorInvocation* node) {
-  VisitConstructorInvocation(node);
+  if (!GetCachedConstant(node, &result_)) {
+    VisitConstructorInvocation(node);
+    CacheConstantValue(node, result_);
+  }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
@@ -1231,7 +1252,10 @@ Instance& ConstantEvaluator::EvaluateConstructorInvocation(
 
 
 Instance& ConstantEvaluator::EvaluateListLiteral(ListLiteral* node) {
-  VisitListLiteral(node);
+  if (!GetCachedConstant(node, &result_)) {
+    VisitListLiteral(node);
+    CacheConstantValue(node, result_);
+  }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
@@ -1239,7 +1263,10 @@ Instance& ConstantEvaluator::EvaluateListLiteral(ListLiteral* node) {
 
 
 Instance& ConstantEvaluator::EvaluateMapLiteral(MapLiteral* node) {
-  VisitMapLiteral(node);
+  if (!GetCachedConstant(node, &result_)) {
+    VisitMapLiteral(node);
+    CacheConstantValue(node, result_);
+  }
   // We return a new `ZoneHandle` here on purpose: The intermediate language
   // instructions do not make a copy of the handle, so we do it.
   return dart::Instance::ZoneHandle(Z, result_.raw());
@@ -1324,6 +1351,56 @@ RawObject* ConstantEvaluator::EvaluateConstConstructorCall(
     instance ^= result.raw();
   }
   return H.Canonicalize(instance);
+}
+
+
+bool ConstantEvaluator::GetCachedConstant(TreeNode* node, Instance* value) {
+  const Function& function = builder_->parsed_function_->function();
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+    // Don't cache constants in initializer expressions. They get
+    // evaluated only once.
+    return false;
+  }
+
+  bool is_present = false;
+  ASSERT(!script_.InVMHeap());
+  if (script_.compile_time_constants() == Array::null()) {
+    return false;
+  }
+  KernelConstantsMap constants(script_.compile_time_constants());
+  *value ^= constants.GetOrNull(node, &is_present);
+  // Mutator compiler thread may add constants while background compiler
+  // is running, and thus change the value of 'compile_time_constants';
+  // do not assert that 'compile_time_constants' has not changed.
+  constants.Release();
+  if (FLAG_compiler_stats && is_present) {
+    H.thread()->compiler_stats()->num_const_cache_hits++;
+  }
+  return is_present;
+}
+
+
+void ConstantEvaluator::CacheConstantValue(TreeNode* node,
+                                           const Instance& value) {
+  ASSERT(Thread::Current()->IsMutatorThread());
+
+  const Function& function = builder_->parsed_function_->function();
+  if (function.kind() == RawFunction::kImplicitStaticFinalGetter) {
+    // Don't cache constants in initializer expressions. They get
+    // evaluated only once.
+    return;
+  }
+  const intptr_t kInitialConstMapSize = 16;
+  ASSERT(!script_.InVMHeap());
+  if (script_.compile_time_constants() == Array::null()) {
+    const Array& array =
+        Array::Handle(HashTables::New<KernelConstantsMap>(kInitialConstMapSize,
+                                                          Heap::kNew));
+    script_.set_compile_time_constants(array);
+  }
+  KernelConstantsMap constants(script_.compile_time_constants());
+  constants.InsertNewOrGetValue(node, value);
+  script_.set_compile_time_constants(constants.Release());
 }
 
 
