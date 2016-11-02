@@ -6887,9 +6887,10 @@ class ResolverVisitor extends ScopedVisitor {
       potentialType ??= DynamicTypeImpl.instance;
 
       // Check if we can promote to potentialType from type.
-      if (typeSystem.canPromoteToType(potentialType, type)) {
+      DartType promoteType = typeSystem.tryPromoteToType(potentialType, type);
+      if (promoteType != null) {
         // Do promote type of variable.
-        _promoteManager.setType(element, potentialType);
+        _promoteManager.setType(element, promoteType);
       }
     }
   }
