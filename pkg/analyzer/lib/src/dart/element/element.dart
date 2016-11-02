@@ -191,45 +191,61 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpConcreteMethod(
-          methodName, library, true, new HashSet<ClassElement>());
+      _first(_implementationsOfMethod(methodName).where(
+          (MethodElement method) =>
+              !method.isAbstract && method.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement lookUpGetter(
           String getterName, LibraryElement library) =>
-      _internalLookUpGetter(getterName, library, true);
+      _first(_implementationsOfGetter(getterName).where(
+          (PropertyAccessorElement getter) => getter.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteGetter(
           String getterName, LibraryElement library) =>
-      _internalLookUpConcreteGetter(getterName, library, false);
+      _first(_implementationsOfGetter(getterName).where(
+          (PropertyAccessorElement getter) =>
+              !getter.isAbstract &&
+              getter.isAccessibleIn(library) &&
+              getter.enclosingElement != this));
 
   @override
   MethodElement lookUpInheritedConcreteMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpConcreteMethod(
-          methodName, library, false, new HashSet<ClassElement>());
+      _first(_implementationsOfMethod(methodName).where(
+          (MethodElement method) =>
+              !method.isAbstract &&
+              method.isAccessibleIn(library) &&
+              method.enclosingElement != this));
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteSetter(
           String setterName, LibraryElement library) =>
-      _internalLookUpConcreteSetter(setterName, library, false);
+      _first(_implementationsOfSetter(setterName).where(
+          (PropertyAccessorElement setter) =>
+              !setter.isAbstract &&
+              setter.isAccessibleIn(library) &&
+              setter.enclosingElement != this));
 
   @override
   MethodElement lookUpInheritedMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpMethod(
-          methodName, library, false, new HashSet<ClassElement>());
+      _first(_implementationsOfMethod(methodName).where(
+          (MethodElement method) =>
+              method.isAccessibleIn(library) &&
+              method.enclosingElement != this));
 
   @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) =>
-      _internalLookUpMethod(
-          methodName, library, true, new HashSet<ClassElement>());
+      _first(_implementationsOfMethod(methodName)
+          .where((MethodElement method) => method.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement lookUpSetter(
           String setterName, LibraryElement library) =>
-      _internalLookUpSetter(setterName, library, true);
+      _first(_implementationsOfSetter(setterName).where(
+          (PropertyAccessorElement setter) => setter.isAccessibleIn(library)));
 
   @override
   void visitChildren(ElementVisitor visitor) {
@@ -238,151 +254,110 @@ abstract class AbstractClassElementImpl extends ElementImpl
     safelyVisitChildren(fields, visitor);
   }
 
-  PropertyAccessorElement _internalLookUpConcreteGetter(
-      String getterName, LibraryElement library, bool includeThisClass) {
-    PropertyAccessorElement getter =
-        _internalLookUpGetter(getterName, library, includeThisClass);
-    while (getter != null && getter.isAbstract) {
-      Element definingClass = getter.enclosingElement;
-      if (definingClass is! ClassElement) {
-        return null;
-      }
-      getter = getImpl(definingClass)
-          ._internalLookUpGetter(getterName, library, false);
+  /**
+   * Return the first element from the given [iterable], or `null` if the
+   * iterable is empty.
+   */
+  Object/*=E*/ _first/*<E>*/(Iterable/*<E>*/ iterable) {
+    if (iterable.isEmpty) {
+      return null;
     }
-    return getter;
+    return iterable.first;
   }
 
-  MethodElement _internalLookUpConcreteMethod(
-      String methodName,
-      LibraryElement library,
-      bool includeThisClass,
-      HashSet<ClassElement> visitedClasses) {
-    MethodElement method = _internalLookUpMethod(
-        methodName, library, includeThisClass, visitedClasses);
-    while (method != null && method.isAbstract) {
-      ClassElement definingClass = method.enclosingElement;
-      if (definingClass == null) {
-        return null;
-      }
-      method = getImpl(definingClass)
-          ._internalLookUpMethod(methodName, library, false, visitedClasses);
-    }
-    return method;
-  }
-
-  PropertyAccessorElement _internalLookUpConcreteSetter(
-      String setterName, LibraryElement library, bool includeThisClass) {
-    PropertyAccessorElement setter =
-        _internalLookUpSetter(setterName, library, includeThisClass);
-    while (setter != null && setter.isAbstract) {
-      Element definingClass = setter.enclosingElement;
-      if (definingClass is ClassElementImpl) {
-        setter =
-            definingClass._internalLookUpSetter(setterName, library, false);
-      } else {
-        return null;
-      }
-    }
-    return setter;
-  }
-
-  PropertyAccessorElement _internalLookUpGetter(
-      String getterName, LibraryElement library, bool includeThisClass) {
+  /**
+   * Return an iterable containing all of the implementations of a getter with
+   * the given [getterName] that are defined in this class any any superclass of
+   * this class (but not in interfaces).
+   *
+   * The getters that are returned are not filtered in any way. In particular,
+   * they can include getters that are not visible in some context. Clients must
+   * perform any necessary filtering.
+   *
+   * The getters are returned based on the depth of their defining class; if
+   * this class contains a definition of the getter it will occur first, if
+   * Object contains a definition of the getter it will occur last.
+   */
+  Iterable<PropertyAccessorElement> _implementationsOfGetter(
+      String getterName) sync* {
+    ClassElement classElement = this;
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    ClassElement currentElement = this;
-    if (includeThisClass) {
-      PropertyAccessorElement element = currentElement.getGetter(getterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
+    while (classElement != null && visitedClasses.add(classElement)) {
+      PropertyAccessorElement getter = classElement.getGetter(getterName);
+      if (getter != null) {
+        yield getter;
       }
-    }
-    while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins.reversed) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          PropertyAccessorElement element = mixinElement.getGetter(getterName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        getter = mixin.element?.getGetter(getterName);
+        if (getter != null) {
+          yield getter;
         }
       }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-      PropertyAccessorElement element = currentElement.getGetter(getterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
+      classElement = classElement.supertype?.element;
     }
-    return null;
   }
 
-  MethodElement _internalLookUpMethod(String methodName, LibraryElement library,
-      bool includeThisClass, HashSet<ClassElement> visitedClasses) {
-    ClassElement currentElement = this;
-    if (includeThisClass) {
-      MethodElement element = currentElement.getMethod(methodName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-    }
-    while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins.reversed) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          MethodElement element = mixinElement.getMethod(methodName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
-        }
-      }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-      MethodElement element = currentElement.getMethod(methodName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  PropertyAccessorElement _internalLookUpSetter(
-      String setterName, LibraryElement library, bool includeThisClass) {
+  /**
+   * Return an iterable containing all of the implementations of a method with
+   * the given [methodName] that are defined in this class any any superclass of
+   * this class (but not in interfaces).
+   *
+   * The methods that are returned are not filtered in any way. In particular,
+   * they can include methods that are not visible in some context. Clients must
+   * perform any necessary filtering.
+   *
+   * The methods are returned based on the depth of their defining class; if
+   * this class contains a definition of the method it will occur first, if
+   * Object contains a definition of the method it will occur last.
+   */
+  Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
+    ClassElement classElement = this;
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    ClassElement currentElement = this;
-    if (includeThisClass) {
-      PropertyAccessorElement element = currentElement.getSetter(setterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
+    while (classElement != null && visitedClasses.add(classElement)) {
+      MethodElement method = classElement.getMethod(methodName);
+      if (method != null) {
+        yield method;
       }
-    }
-    while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins.reversed) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          PropertyAccessorElement element = mixinElement.getSetter(setterName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        method = mixin.element?.getMethod(methodName);
+        if (method != null) {
+          yield method;
         }
       }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-      PropertyAccessorElement element = currentElement.getSetter(setterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
+      classElement = classElement.supertype?.element;
     }
-    return null;
+  }
+
+  /**
+   * Return an iterable containing all of the implementations of a setter with
+   * the given [setterName] that are defined in this class any any superclass of
+   * this class (but not in interfaces).
+   *
+   * The setters that are returned are not filtered in any way. In particular,
+   * they can include setters that are not visible in some context. Clients must
+   * perform any necessary filtering.
+   *
+   * The setters are returned based on the depth of their defining class; if
+   * this class contains a definition of the setter it will occur first, if
+   * Object contains a definition of the setter it will occur last.
+   */
+  Iterable<PropertyAccessorElement> _implementationsOfSetter(
+      String setterName) sync* {
+    ClassElement classElement = this;
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    while (classElement != null && visitedClasses.add(classElement)) {
+      PropertyAccessorElement setter = classElement.getSetter(setterName);
+      if (setter != null) {
+        yield setter;
+      }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        setter = mixin.element?.getSetter(setterName);
+        if (setter != null) {
+          yield setter;
+        }
+      }
+      classElement = classElement.supertype?.element;
+    }
   }
 
   /**
