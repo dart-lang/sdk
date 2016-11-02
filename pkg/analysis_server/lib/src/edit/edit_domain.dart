@@ -72,7 +72,11 @@ class EditDomainHandler implements RequestHandler {
     String unformattedSource;
     try {
       Source source = server.resourceProvider.getFile(file).createSource();
-      unformattedSource = server.overlayState.getContents(source);
+      if (server.options.enableNewAnalysisDriver) {
+        unformattedSource = server.fileContentOverlay[file];
+      } else {
+        unformattedSource = server.overlayState.getContents(source);
+      }
       unformattedSource ??= source.contents.data;
     } catch (e) {
       return new Response.formatInvalidFile(request);
