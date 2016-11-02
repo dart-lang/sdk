@@ -2353,23 +2353,27 @@ Fragment FlowGraphBuilder::StaticCall(const Function& target,
 Fragment FlowGraphBuilder::StoreIndexed(intptr_t class_id) {
   Value* value = Pop();
   Value* index = Pop();
-  // TODO(27590): Omit store barrier when possible (e.g., storing
-  // some constants).
+  const StoreBarrierType emit_store_barrier =
+      value->BindsToConstant()
+          ? kNoStoreBarrier
+          : kEmitStoreBarrier;
   StoreIndexedInstr* store = new (Z) StoreIndexedInstr(
       Pop(),  // Array.
-      index, value, kEmitStoreBarrier, Instance::ElementSizeFor(class_id),
+      index, value, emit_store_barrier, Instance::ElementSizeFor(class_id),
       class_id, kAlignedAccess, Thread::kNoDeoptId, TokenPosition::kNoSource);
   Push(store);
   return Fragment(store);
 }
 
 
-Fragment FlowGraphBuilder::StoreInstanceField(const dart::Field& field) {
+Fragment FlowGraphBuilder::StoreInstanceField(
+    const dart::Field& field, StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
-  // TODO(27590): Omit store barrier when possible (e.g., storing
-  // some constants).
+  if (value->BindsToConstant()) {
+    emit_store_barrier = kNoStoreBarrier;
+  }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      field, Pop(), value, kEmitStoreBarrier, TokenPosition::kNoSource);
+      field, Pop(), value, emit_store_barrier, TokenPosition::kNoSource);
   return Fragment(store);
 }
 
@@ -2389,10 +2393,14 @@ Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
 }
 
 
-Fragment FlowGraphBuilder::StoreInstanceField(intptr_t offset) {
+Fragment FlowGraphBuilder::StoreInstanceField(
+    intptr_t offset, StoreBarrierType emit_store_barrier) {
   Value* value = Pop();
+  if (value->BindsToConstant()) {
+    emit_store_barrier = kNoStoreBarrier;
+  }
   StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      offset, Pop(), value, kEmitStoreBarrier, TokenPosition::kNoSource);
+      offset, Pop(), value, emit_store_barrier, TokenPosition::kNoSource);
   return Fragment(store);
 }
 
@@ -3062,8 +3070,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      // TODO(27590): This store does not need a store barrier.
-      body += StoreInstanceField(LinkedHashMap::hash_mask_offset());
+      body += StoreInstanceField(LinkedHashMap::hash_mask_offset(),
+                                 kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getUsedData:
@@ -3075,8 +3083,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      // TODO(27590): This store does not need a store barrier.
-      body += StoreInstanceField(LinkedHashMap::used_data_offset());
+      body += StoreInstanceField(LinkedHashMap::used_data_offset(),
+                                 kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kLinkedHashMap_getDeletedKeys:
@@ -3088,8 +3096,8 @@ Fragment FlowGraphBuilder::NativeFunctionBody(FunctionNode* kernel_function,
       body += LoadLocal(scopes_->this_variable);
       body += LoadLocal(
           LookupVariable(kernel_function->positional_parameters()[0]));
-      // TODO(27590): This store does not need a store barrier.
-      body += StoreInstanceField(LinkedHashMap::deleted_keys_offset());
+      body += StoreInstanceField(LinkedHashMap::deleted_keys_offset(),
+                                 kNoStoreBarrier);
       body += NullConstant();
       break;
     case MethodRecognizer::kBigint_getNeg:

@@ -709,8 +709,12 @@ class FlowGraphBuilder : public TreeVisitor {
                       const Array& argument_names);
   Fragment StoreIndexed(intptr_t class_id);
   Fragment StoreInstanceFieldGuarded(const dart::Field& field);
-  Fragment StoreInstanceField(const dart::Field& field);
-  Fragment StoreInstanceField(intptr_t offset);
+  Fragment StoreInstanceField(
+      const dart::Field& field,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
+  Fragment StoreInstanceField(
+      intptr_t offset,
+      StoreBarrierType emit_store_barrier = kEmitStoreBarrier);
   Fragment StoreLocal(LocalVariable* variable);
   Fragment StoreStaticField(const dart::Field& field);
   Fragment StringInterpolate();
