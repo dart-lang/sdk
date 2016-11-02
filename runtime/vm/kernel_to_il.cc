@@ -1521,7 +1521,6 @@ void ConstantEvaluator::VisitMethodInvocation(MethodInvocation* node) {
   ASSERT(!klass.IsNull());
 
   // Search the superclass chain for the selector.
-  // TODO(27590): Can we assume this will never be a no-such-method error?
   dart::Function& function = dart::Function::Handle(Z);
   const dart::String& method_name = H.DartMethodName(node->name());
   while (!klass.IsNull()) {
@@ -1529,6 +1528,9 @@ void ConstantEvaluator::VisitMethodInvocation(MethodInvocation* node) {
     if (!function.IsNull()) break;
     klass = klass.SuperClass();
   }
+
+  // The frontend should guarantee that [MethodInvocation]s inside constant
+  // expressions are always valid.
   ASSERT(!function.IsNull());
 
   // Run the method and canonicalize the result.
@@ -3738,9 +3740,9 @@ ArgumentArray FlowGraphBuilder::GetArguments(int count) {
 
 
 void FlowGraphBuilder::VisitInvalidExpression(InvalidExpression* node) {
-  // TODO(27590): Once we have better error information we might need to
-  // make some invalid expressions not NSM errors but type/compile-time/...
-  // errors.
+  // The frontend will take care of emitting normal errors (like
+  // [NoSuchMethodError]s) and only emit [InvalidExpression]s in very special
+  // situations (e.g. an invalid annotation).
   fragment_ = ThrowNoSuchMethodError();
 }
 
@@ -4027,15 +4029,8 @@ void FlowGraphBuilder::VisitVariableGet(VariableGet* node) {
 
 void FlowGraphBuilder::VisitVariableSet(VariableSet* node) {
   Fragment instructions = TranslateExpression(node->expression());
-  // The IR should not include assignments to final or const variables.
-  // This is https://github.com/dart-lang/rasta/issues/83.
-  //
-  // TODO(27590): simply ASSERT that the variable is not const or final
-  // when that issue is fixed.
-  fragment_ = instructions +
-              ((node->variable()->IsFinal() || node->variable()->IsConst())
-                   ? Drop() + ThrowNoSuchMethodError()
-                   : StoreLocal(LookupVariable(node->variable())));
+  instructions += StoreLocal(LookupVariable(node->variable()));
+  fragment_ = instructions;
 }
 
 
@@ -4056,7 +4051,6 @@ void FlowGraphBuilder::VisitStaticGet(StaticGet* node) {
         Fragment instructions = Constant(field);
         fragment_ = instructions + LoadStaticField();
       } else {
-        // TODO(27590): figure out how to trigger this case and add tests.
         fragment_ = StaticCall(getter, 0);
       }
     }
@@ -4196,30 +4190,14 @@ void FlowGraphBuilder::VisitStaticInvocation(StaticInvocation* node) {
     // every factory constructor.
     ++argument_count;
   }
+
   List<NamedExpression>& named = node->arguments()->named();
   const Array& argument_names = H.ArgumentNames(&named);
 
+  // The frontend ensures we the [StaticInvocation] has matching arguments.
+  ASSERT(target.AreValidArguments(argument_count, argument_names, NULL));
+
   Fragment instructions;
-  if (!target.AreValidArguments(argument_count, argument_names, NULL)) {
-    // An argument mismatch for a static invocation really should not occur
-    // in the IR.  This is issue https://github.com/dart-lang/rasta/issues/76.
-    //
-    // TODO(27590): Change this to an ASSERT when that issue is fixed.
-    List<Expression>& positional = node->arguments()->positional();
-    for (intptr_t i = 0; i < positional.length(); ++i) {
-      instructions += TranslateExpression(positional[i]);
-      instructions += Drop();
-    }
-
-    for (intptr_t i = 0; i < named.length(); ++i) {
-      instructions += TranslateExpression(named[i]->expression());
-      instructions += Drop();
-    }
-
-    fragment_ = instructions + ThrowNoSuchMethodError();
-    return;
-  }
-
   LocalVariable* instance_variable = NULL;
 
   // If we cross the Kernel -> VM core library boundary, a [StaticInvocation]

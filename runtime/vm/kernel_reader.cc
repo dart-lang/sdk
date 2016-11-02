@@ -253,8 +253,8 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
     // Step b) Fill in the bounds of all [TypeParameter]s.
     for (intptr_t i = 0; i < num_type_parameters; i++) {
       TypeParameter* kernel_parameter = kernel_klass->type_parameters()[i];
-      // There is no dynamic bound, only Object.
-      // TODO(27590): Should we fix this in the kernel IR generator?
+      // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+      // by the frontend.
       if (kernel_parameter->bound()->IsDynamicType()) {
         parameter ^= type_parameters.TypeAt(i);
         parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
