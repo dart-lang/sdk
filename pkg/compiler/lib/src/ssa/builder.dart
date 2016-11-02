@@ -747,9 +747,20 @@ class SsaBuilder extends ast.Visitor
     visit(initializer);
     HInstruction value = pop();
     value = potentiallyCheckOrTrustType(value, variable.type);
-    ast.SendSet sendSet = node.definitions.nodes.head;
-    closeAndGotoExit(new HReturn(value,
-        sourceInformationBuilder.buildReturn(sendSet.assignmentOperator)));
+    // In the case of multiple declarations (and some definitions) on the same
+    // line, the source pointer needs to point to the right initialized
+    // variable. So find the specific initialized variable we are referring to.
+    ast.Node sourceInfoNode = initializer;
+    for (var definition in node.definitions) {
+      if (definition is ast.SendSet &&
+          definition.selector.asIdentifier().source == variable.name) {
+        sourceInfoNode = definition.assignmentOperator;
+        break;
+      }
+    }
+
+    closeAndGotoExit(new HReturn(value, sourceInformationBuilder.buildReturn(
+            sourceInfoNode)));
     return closeFunction();
   }
 
