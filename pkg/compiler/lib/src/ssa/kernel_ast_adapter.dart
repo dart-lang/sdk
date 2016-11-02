@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart' as ir;
 
+import '../constants/expressions.dart';
 import '../common.dart';
 import '../common/names.dart';
 import '../compiler.dart';
@@ -285,6 +286,45 @@ class KernelAstAdapter {
     return types.map(getDartType).toList();
   }
 
+  /// Computes the function type corresponding the signature of [node].
+  FunctionType getFunctionType(ir.FunctionNode node) {
+    DartType returnType = getDartType(node.returnType);
+    List<DartType> parameterTypes = <DartType>[];
+    List<DartType> optionalParameterTypes = <DartType>[];
+    for (ir.VariableDeclaration variable in node.positionalParameters) {
+      if (parameterTypes.length == node.requiredParameterCount) {
+        optionalParameterTypes.add(getDartType(variable.type));
+      } else {
+        parameterTypes.add(getDartType(variable.type));
+      }
+    }
+    List<String> namedParameters = <String>[];
+    List<DartType> namedParameterTypes = <DartType>[];
+    List<ir.VariableDeclaration> sortedNamedParameters =
+        node.namedParameters.toList()..sort((a, b) => a.name.compareTo(b.name));
+    for (ir.VariableDeclaration variable in sortedNamedParameters) {
+      namedParameters.add(variable.name);
+      namedParameterTypes.add(getDartType(variable.type));
+    }
+    return new FunctionType.synthesized(returnType, parameterTypes,
+        optionalParameterTypes, namedParameters, namedParameterTypes);
+  }
+
+  /// Converts [annotations] into a list of [ConstantExpression]s.
+  List<ConstantExpression> getMetadata(List<ir.Expression> annotations) {
+    List<ConstantExpression> metadata = <ConstantExpression>[];
+    annotations.forEach((ir.Expression node) {
+      ConstantExpression constant = node.accept(new Constantifier(this));
+      if (constant == null) {
+        throw new UnsupportedError(
+            'No constant for ${DebugPrinter.prettyPrint(node)}');
+      }
+      metadata.add(constant);
+    });
+    return metadata;
+  }
+
+  /// Compute the kind of foreign helper function called by [node], if any.
   @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (isForeignLibrary(node.target.enclosingLibrary)) {
@@ -302,10 +342,15 @@ class KernelAstAdapter {
     return ForeignKind.NONE;
   }
 
+  /// Return `true` if [node] is the `dart:_foreign_helper` library.
   bool isForeignLibrary(ir.Library node) {
     return node.importUri == BackendHelpers.DART_FOREIGN_HELPER;
   }
 
+  /// Looks up [typeName] for use in the spec-string of a `JS` called.
+  // TODO(johnniwinther): Use this in [NativeBehavior] instead of calling the
+  // `ForeignResolver`.
+  // TODO(johnniwinther): Cache the result to avoid redundant lookups?
   DartType _typeLookup(String typeName) {
     DartType findIn(Uri uri) {
       LibraryElement library = _compiler.libraryLoader.lookupLibrary(uri);
@@ -332,6 +377,8 @@ class KernelAstAdapter {
     return node.arguments.positional[index].accept(new Stringifier());
   }
 
+  /// Computes the [NativeBehavior] for a call to the [JS] function.
+  // TODO(johnniwinther): Cache this for later use.
   NativeBehavior getNativeBehaviorForJsCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 2 ||
         node.arguments.named.isNotEmpty) {
@@ -357,6 +404,8 @@ class KernelAstAdapter {
         CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
   }
 
+  /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN] function.
+  // TODO(johnniwinther): Cache this for later use.
   NativeBehavior getNativeBehaviorForJsBuiltinCall(ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
       reporter.internalError(
@@ -378,6 +427,9 @@ class KernelAstAdapter {
         CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
   }
 
+  /// Computes the [NativeBehavior] for a call to the [JS_EMBEDDED_GLOBAL]
+  /// function.
+  // TODO(johnniwinther): Cache this for later use.
   NativeBehavior getNativeBehaviorForJsEmbeddedGlobalCall(
       ir.StaticInvocation node) {
     if (node.arguments.positional.length < 1) {
@@ -405,8 +457,51 @@ class KernelAstAdapter {
     return NativeBehavior.ofJsEmbeddedGlobalCall(specString, _typeLookup,
         CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
   }
+
+  /// Returns `true` is [node] has a `@Native(...)` annotation.
+  // TODO(johnniwinther): Cache this for later use.
+  bool isNative(ir.Class node) {
+    for (ir.Expression annotation in node.annotations) {
+      if (annotation is ir.ConstructorInvocation) {
+        ConstructorElement target = getElement(annotation.target).declaration;
+        if (target.enclosingClass ==
+            _compiler.commonElements.nativeAnnotationClass) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /// Computes the native behavior for reading the native [field].
+  // TODO(johnniwinther): Cache this for later use.
+  NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
+    DartType type = getDartType(field.type);
+    List<ConstantExpression> metadata = getMetadata(field.annotations);
+    return NativeBehavior.ofFieldLoad(
+        CURRENT_ELEMENT_SPANNABLE, type, metadata, _typeLookup, _compiler,
+        isJsInterop: false);
+  }
+
+  /// Computes the native behavior for writing to the native [field].
+  // TODO(johnniwinther): Cache this for later use.
+  NativeBehavior getNativeBehaviorForFieldStore(ir.Field field) {
+    DartType type = getDartType(field.type);
+    return NativeBehavior.ofFieldStore(type, _compiler.resolution);
+  }
+
+  /// Computes the native behavior for calling [procedure].
+  // TODO(johnniwinther): Cache this for later use.
+  NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
+    DartType type = getFunctionType(procedure.function);
+    List<ConstantExpression> metadata = getMetadata(procedure.annotations);
+    return NativeBehavior.ofMethod(
+        CURRENT_ELEMENT_SPANNABLE, type, metadata, _typeLookup, _compiler,
+        isJsInterop: false);
+  }
 }
 
+/// Kinds of foreign functions.
 enum ForeignKind {
   JS,
   JS_BUILTIN,
@@ -415,6 +510,7 @@ enum ForeignKind {
   NONE,
 }
 
+/// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
   final KernelAstAdapter astAdapter;
 
@@ -495,5 +591,48 @@ class Stringifier extends ir.ExpressionVisitor<String> {
       sb.write(value);
     }
     return sb.toString();
+  }
+}
+
+/// Visitor that converts a kernel constant expression into a
+/// [ConstantExpression].
+class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
+  final KernelAstAdapter astAdapter;
+
+  Constantifier(this.astAdapter);
+
+  @override
+  ConstantExpression visitConstructorInvocation(ir.ConstructorInvocation node) {
+    ConstructorElement constructor =
+        astAdapter.getElement(node.target).declaration;
+    List<DartType> typeArguments = <DartType>[];
+    for (ir.DartType type in node.arguments.types) {
+      typeArguments.add(astAdapter.getDartType(type));
+    }
+    List<ConstantExpression> arguments = <ConstantExpression>[];
+    List<String> argumentNames = <String>[];
+    for (ir.Expression argument in node.arguments.positional) {
+      ConstantExpression constant = argument.accept(this);
+      if (constant == null) return null;
+      arguments.add(constant);
+    }
+    for (ir.NamedExpression argument in node.arguments.named) {
+      argumentNames.add(argument.name);
+      ConstantExpression constant = argument.value.accept(this);
+      if (constant == null) return null;
+      arguments.add(constant);
+    }
+    return new ConstructedConstantExpression(
+        constructor.enclosingClass.thisType.createInstantiation(typeArguments),
+        constructor,
+        new CallStructure(
+            node.arguments.positional.length + argumentNames.length,
+            argumentNames),
+        arguments);
+  }
+
+  @override
+  ConstantExpression visitStringLiteral(ir.StringLiteral node) {
+    return new StringConstantExpression(node.value);
   }
 }

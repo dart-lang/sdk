@@ -12,6 +12,7 @@ import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../core_types.dart' show CoreClasses, CoreTypes;
 import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
+import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart' as op;
@@ -1839,7 +1840,9 @@ class SimpleTypeInferrerVisitor<T>
     TypeMask mask = elements.getTypeMask(node);
     String name = element.name;
     handleStaticSend(node, selector, mask, element, arguments);
-    if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL' || name == 'JS_BUILTIN') {
+    if (name == BackendHelpers.JS ||
+        name == BackendHelpers.JS_EMBEDDED_GLOBAL ||
+        name == BackendHelpers.JS_BUILTIN) {
       native.NativeBehavior nativeBehavior = elements.getNativeData(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);

@@ -113,6 +113,12 @@ class KernelImpactBuilder extends ir.Visitor {
     } else {
       impactBuilder.registerFeature(Feature.FIELD_WITHOUT_INITIALIZER);
     }
+    if (field.isInstanceMember && astAdapter.isNative(field.enclosingClass)) {
+      impactBuilder
+          .registerNativeData(astAdapter.getNativeBehaviorForFieldLoad(field));
+      impactBuilder
+          .registerNativeData(astAdapter.getNativeBehaviorForFieldStore(field));
+    }
     return impactBuilder;
   }
 
@@ -141,6 +147,11 @@ class KernelImpactBuilder extends ir.Visitor {
       case ir.AsyncMarker.SyncYielding:
         compiler.reporter.internalError(resolvedAst.element,
             "Unexpected async marker: ${procedure.function.asyncMarker}");
+    }
+    if (procedure.isExternal &&
+        !astAdapter.isForeignLibrary(procedure.enclosingLibrary)) {
+      impactBuilder
+          .registerNativeData(astAdapter.getNativeBehaviorForMethod(procedure));
     }
     return impactBuilder;
   }

@@ -624,11 +624,6 @@ void checkLibrary(Compiler compiler, LibraryElement library) {
 }
 
 void checkElement(Compiler compiler, AstElement element) {
-  if (compiler.backend.isNative(element)) {
-    // Skip native functions for now; kernel does not provide their
-    // signature which we need to derive their native behavior.
-    return;
-  }
   if (element.isConstructor) {
     ConstructorElement constructor = element;
     if (constructor.isRedirectingFactory) {

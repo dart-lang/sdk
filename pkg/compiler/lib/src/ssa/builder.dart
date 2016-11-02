@@ -3064,7 +3064,7 @@ class SsaBuilder extends ast.Visitor
 
   void handleForeignSend(ast.Send node, FunctionElement element) {
     String name = element.name;
-    if (name == 'JS') {
+    if (name == BackendHelpers.JS) {
       handleForeignJs(node);
     } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
       handleForeignJsCurrentIsolateContext(node);
@@ -3080,15 +3080,15 @@ class SsaBuilder extends ast.Visitor
       handleForeignJsGetStaticState(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
-    } else if (name == 'JS_EMBEDDED_GLOBAL') {
+    } else if (name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
       handleForeignJsEmbeddedGlobal(node);
-    } else if (name == 'JS_BUILTIN') {
+    } else if (name == BackendHelpers.JS_BUILTIN) {
       handleForeignJsBuiltin(node);
     } else if (name == 'JS_GET_FLAG') {
       handleForeignJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(compiler));
-    } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
+    } else if (name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
       handleJsInterceptorConstant(node);
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
