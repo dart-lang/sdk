@@ -2257,9 +2257,10 @@ TEST_CASE(Debug_GetSupertype) {
   {
     Dart_Handle set_type = Dart_GetType(core_lib, set_name, 0, NULL);
     Dart_Handle super_type = Dart_GetSupertype(set_type);
+    Dart_Handle super2_type = Dart_GetSupertype(super_type);
     Dart_Handle iterable_type = Dart_GetType(core_lib, iterable_name, 0, NULL);
     const Type& expected_type = Api::UnwrapTypeHandle(zone, iterable_type);
-    const Type& actual_type = Api::UnwrapTypeHandle(zone, super_type);
+    const Type& actual_type = Api::UnwrapTypeHandle(zone, super2_type);
     EXPECT(expected_type.raw() == actual_type.raw());
   }
   {

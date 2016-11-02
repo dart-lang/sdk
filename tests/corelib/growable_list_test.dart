@@ -34,7 +34,7 @@ class TestIterable extends TestIterableBase {
   int get length => throw "SHOULD NOT BE CALLED";
 }
 
-// Implement Set for private EfficientLength interface.
+// Implement Set for private EfficientLengthIterable interface.
 class EfficientTestIterable extends TestIterableBase
                             implements Set<int> {
   EfficientTestIterable(length, count, [callbackIndex = -1, callback])
@@ -104,7 +104,7 @@ void testConstructor() {
 }
 
 void testConcurrentModification() {
-  // Without EfficientLength interface
+  // Without EfficientLengthIterable interface
   {
     // Change length of list after 200 additions.
     var l = [];
@@ -127,7 +127,7 @@ void testConcurrentModification() {
     }, (e) => e is ConcurrentModificationError, "cm2");
   }
 
-  // With EfficientLength interface (uses length).
+  // With EfficientLengthIterable interface (uses length).
   {
     // Change length of list after 20 additions.
     var l = [];
