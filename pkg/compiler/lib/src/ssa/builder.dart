@@ -6197,7 +6197,6 @@ class SsaBuilder extends ast.Visitor
 
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
-    Element getFallThroughErrorElement = helpers.fallThroughError;
     HasNextIterator<ast.Node> caseIterator =
         new HasNextIterator<ast.Node>(switchCases.iterator);
     while (caseIterator.hasNext) {
@@ -6220,8 +6219,8 @@ class SsaBuilder extends ast.Visitor
       localsHandler = new LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
       if (!isAborted()) {
-        if (caseIterator.hasNext) {
-          pushInvokeStatic(switchCase, getFallThroughErrorElement, []);
+        if (caseIterator.hasNext && isReachable) {
+          pushInvokeStatic(switchCase, helpers.fallThroughError, []);
           HInstruction error = pop();
           closeAndGotoExit(new HThrow(error, error.sourceInformation));
         } else if (!isDefaultCase(switchCase)) {

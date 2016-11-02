@@ -12,6 +12,7 @@ import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart';
 import '../kernel/kernel.dart';
+import '../kernel/kernel_debug.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
@@ -61,6 +62,7 @@ class KernelAstAdapter {
   TreeElements get elements => _resolvedAst.elements;
   GlobalTypeInferenceResults get _inferenceResults =>
       _compiler.globalInference.results;
+  DiagnosticReporter get reporter => _compiler.reporter;
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     ast.Node astNode = getNode(node);
@@ -73,7 +75,8 @@ class KernelAstAdapter {
 
   Element getElement(ir.Node node) {
     Element result = _nodeToElement[node];
-    assert(result != null);
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, result != null,
+        message: "No element found for $node."));
     return result;
   }
 
@@ -295,7 +298,19 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitTypeParameterType(ir.TypeParameterType node) {
-    return new TypeVariableType(astAdapter.getElement(node.parameter));
+    if (node.parameter.parent is ir.Class) {
+      ir.Class cls = node.parameter.parent;
+      int index = cls.typeParameters.indexOf(node.parameter);
+      ClassElement classElement = astAdapter.getElement(cls);
+      return classElement.typeVariables[index];
+    } else if (node.parameter.parent is ir.FunctionNode) {
+      ir.FunctionNode func = node.parameter.parent;
+      int index = func.typeParameters.indexOf(node.parameter);
+      ConstructorElement constructorElement = astAdapter.getElement(func);
+      ClassElement classElement = constructorElement.enclosingClass;
+      return classElement.typeVariables[index];
+    }
+    throw new UnsupportedError('Unsupported type parameter type node $node.');
   }
 
   @override
