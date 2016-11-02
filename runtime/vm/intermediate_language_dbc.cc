@@ -92,6 +92,7 @@ DECLARE_FLAG(int, optimization_counter_threshold);
   M(Float64x2ZeroArg)                                                          \
   M(Float64x2OneArg)                                                           \
   M(CheckedSmiOp)                                                              \
+  M(CheckedSmiComparison)                                                      \
 
 // Location summaries actually are not used by the unoptimizing DBC compiler
 // because we don't allocate any registers.
@@ -177,6 +178,10 @@ FOR_EACH_UNIMPLEMENTED_INSTRUCTION(DEFINE_UNIMPLEMENTED)
 FOR_EACH_UNREACHABLE_INSTRUCTION(DEFINE_UNREACHABLE)
 
 #undef DEFINE_UNREACHABLE
+
+
+// Only used in AOT compilation.
+DEFINE_UNIMPLEMENTED_EMIT_BRANCH_CODE(CheckedSmiComparison)
 
 
 EMIT_NATIVE_CODE(InstanceOf, 2, Location::SameAsFirstInput(),
