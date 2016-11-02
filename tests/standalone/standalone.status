@@ -243,7 +243,7 @@ io/compile_all_test: Skip # Incompatible flag --compile_all
 [ $runtime == dart_app ]
 io/stdout_bad_argument_test: Skip # Test exits and so can't generate snapshot.
 
-[ $runtime == dart_precompiled || $runtime == dart_app ]
+[ $runtime == dart_precompiled ]
 full_coverage_test: Skip # Platform.executable
 http_launch_test: Skip # Platform.executable
 io/addlatexhash_test: Skip # Platform.executable

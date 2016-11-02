@@ -3187,19 +3187,9 @@ DART_EXPORT Dart_Handle Dart_CreateAppJITSnapshot(
 
 /**
  *  Returns whether the VM only supports running from precompiled snapshots and
- *  not from any other kind of snapshot or no snapshot (that is, the VM was
+ *  not from any other kind of snapshot or from source (that is, the VM was
  *  compiled with DART_PRECOMPILED_RUNTIME).
  */
 DART_EXPORT bool Dart_IsPrecompiledRuntime();
-
-
-/**
- *  Returns whether the VM was initialized with a precompiled snapshot. Only
- *  valid after Dart_Initialize.
- *  DEPRECATED. This is currently used to disable Platform.executable and
- *  Platform.resolvedExecutable under precompilation to prevent process
- *  spawning tests from becoming fork-bombs.
- */
-DART_EXPORT bool Dart_IsRunningPrecompiledCode();
 
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

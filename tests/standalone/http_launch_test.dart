@@ -5,6 +5,10 @@
 // VMOptions=--short_socket_read
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
+// OtherResources=http_launch_data/http_isolate_main.dart
+// OtherResources=http_launch_data/http_launch_main.dart
+// OtherResources=http_launch_data/http_spawn_main.dart
+// OtherResources=http_launch_data/packages/simple/simple.dart
 //
 // Test:
 //   *) Launching a script fetched over HTTP.

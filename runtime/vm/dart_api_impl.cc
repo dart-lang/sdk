@@ -6633,11 +6633,6 @@ DART_EXPORT Dart_Handle Dart_CreateAppJITSnapshot(
 }
 
 
-DART_EXPORT bool Dart_IsRunningPrecompiledCode() {
-  return Snapshot::IncludesCode(Dart::snapshot_kind());
-}
-
-
 DART_EXPORT bool Dart_IsPrecompiledRuntime() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   return true;
