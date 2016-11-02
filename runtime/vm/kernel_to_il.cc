@@ -941,45 +941,9 @@ dart::String& TranslationHelper::DartSymbol(String* content) const {
 
 const dart::String& TranslationHelper::DartClassName(
     kernel::Class* kernel_klass) {
-  if (kernel_klass->name() != NULL) {
-    ASSERT(kernel_klass->IsNormalClass());
-    dart::String& name = DartString(kernel_klass->name());
-    return ManglePrivateName(kernel_klass->parent(), &name);
-  } else {
-    // Mixin class names are not mangled.
-    ASSERT(kernel_klass->IsMixinClass());
-
-    // We construct the string from right to left:
-    //     "Base&Mixin1&Mixin2&...&MixinN"
-    dart::String& partial = dart::String::Handle(Z, dart::String::New(""));
-    dart::String& amp = dart::String::Handle(Z, dart::String::New("&"));
-    dart::String& tmp = dart::String::Handle(Z);
-    while (kernel_klass->name() == NULL) {
-      ASSERT(kernel_klass->IsMixinClass());
-
-      MixinClass* kernel_mixin_class = MixinClass::Cast(kernel_klass);
-      InterfaceType* base_type = kernel_mixin_class->first();
-      InterfaceType* mixin_type = kernel_mixin_class->second();
-
-      String* mixin_name = NormalClass::Cast(mixin_type->klass())->name();
-
-      tmp = dart::String::FromUTF8(mixin_name->buffer(), mixin_name->size());
-
-      partial = dart::String::Concat(amp, partial);
-      partial = dart::String::Concat(tmp, partial);
-
-      kernel_klass = base_type->klass();
-    }
-
-    tmp = dart::String::FromUTF8(kernel_klass->name()->buffer(),
-                                 kernel_klass->name()->size());
-
-    partial = dart::String::Concat(amp, partial);
-    partial = dart::String::Concat(tmp, partial);
-
-    partial = dart::Symbols::New(thread_, partial);
-    return partial;
-  }
+  ASSERT(kernel_klass->IsNormalClass());
+  dart::String& name = DartString(kernel_klass->name());
+  return ManglePrivateName(kernel_klass->parent(), &name);
 }
 
 
@@ -1057,15 +1021,12 @@ const dart::String& TranslationHelper::DartMethodName(Name* kernel_name) {
 const dart::String& TranslationHelper::DartFactoryName(Class* klass,
                                                        Name* method_name) {
   // [DartMethodName] will mangle the name.
-  dart::String& name =
-      dart::String::Handle(Z, DartMethodName(method_name).raw());
-
-  // We build a String which looks like <classname>.<constructor-name>.
-  // [DartClassName] will mangle the name.
-  dart::String& temp = dart::String::Handle(Z, DartClassName(klass).raw());
-  temp = dart::String::Concat(temp, Symbols::Dot());
-  temp = dart::String::Concat(temp, name);
-  return dart::String::ZoneHandle(Z, dart::Symbols::New(thread_, temp));
+  GrowableHandlePtrArray<const dart::String> pieces(Z, 3);
+  pieces.Add(DartClassName(klass));
+  pieces.Add(Symbols::Dot());
+  pieces.Add(DartMethodName(method_name));
+  return dart::String::ZoneHandle(
+      Z, dart::Symbols::FromConcatAll(thread_, pieces));
 }
 
 

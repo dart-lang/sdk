@@ -150,7 +150,11 @@ class ActiveFunctionScope {
 class TranslationHelper {
  public:
   TranslationHelper(dart::Thread* thread, dart::Zone* zone, Isolate* isolate)
-      : thread_(thread), zone_(zone), isolate_(isolate) {}
+      : thread_(thread),
+        zone_(zone),
+        isolate_(isolate),
+        allocation_space_(
+            thread_->IsMutatorThread() ? Heap::kNew : Heap::kOld) {}
   virtual ~TranslationHelper() {}
 
   Thread* thread() { return thread_; }
@@ -159,6 +163,8 @@ class TranslationHelper {
 
   Isolate* isolate() { return isolate_; }
 
+  Heap::Space allocation_space() { return allocation_space_; }
+
   // Set whether unfinalized classes should be finalized.  The base class
   // implementation used at flow graph construction time looks up classes in the
   // VM's heap, all of which should already be finalized.
@@ -166,9 +172,16 @@ class TranslationHelper {
 
   RawInstance* Canonicalize(const Instance& instance);
 
-  const dart::String& DartString(const char* content,
-                                 Heap::Space space = Heap::kNew);
-  dart::String& DartString(String* content, Heap::Space space = Heap::kNew);
+  const dart::String& DartString(const char* content) {
+    return DartString(content, allocation_space_);
+  }
+  const dart::String& DartString(const char* content, Heap::Space space);
+
+  dart::String& DartString(String* content) {
+    return DartString(content, allocation_space_);
+  }
+  dart::String& DartString(String* content, Heap::Space space);
+
   const dart::String& DartSymbol(const char* content) const;
   dart::String& DartSymbol(String* content) const;
 
@@ -212,6 +225,7 @@ class TranslationHelper {
   dart::Thread* thread_;
   dart::Zone* zone_;
   dart::Isolate* isolate_;
+  Heap::Space allocation_space_;
 };
 
 // Regarding malformed types:
