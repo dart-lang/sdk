@@ -15,9 +15,12 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
+import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 
@@ -67,9 +70,11 @@ class FileState {
   final String path;
 
   /**
-   * The [Source] for the file in the current [SourceFactory].
+   * The absolute URI of the file.
    */
-  final Source source;
+  final Uri uri;
+
+  Source _source;
 
   String _content;
   String _contentHash;
@@ -81,7 +86,9 @@ class FileState {
   List<FileState> _partedFiles;
   List<FileState> _dependencies;
 
-  FileState(this._fsState, this.path, this.source);
+  FileState(this._fsState, this.path, this.uri) {
+    _source = new FileSource(_fsState._resourceProvider.getFile(path), uri);
+  }
 
   /**
    * The unlinked API signature of the file.
@@ -119,14 +126,14 @@ class FileState {
   List<FileState> get partedFiles => _partedFiles;
 
   /**
+   * The [Source] of the file in the [SourceFactory].
+   */
+  Source get source => _source;
+
+  /**
    * The [UnlinkedUnit] of the file.
    */
   UnlinkedUnit get unlinked => _unlinked;
-
-  /**
-   * The absolute URI of the file in the [SourceFactory].
-   */
-  Uri get uri => source.uri;
 
   /**
    * Read the file content and ensure that all of the file properties are
@@ -150,7 +157,7 @@ class FileState {
       // for missing files. Maybe add this feature to SummaryDataStore?
     }
     // Compute the content hash.
-    List<int> textBytes = UTF8.encode(content);
+    List<int> textBytes = UTF8.encode(_content);
     List<int> hashBytes = md5.convert(textBytes).bytes;
     _contentHash = hex.encode(hashBytes);
     // Prepare bytes of the unlinked bundle - existing or new.
@@ -160,7 +167,7 @@ class FileState {
       bytes = _fsState._byteStore.get(key);
       if (bytes == null) {
         CompilationUnit unit =
-            _parse(source, _content, _fsState._analysisOptions);
+            _parse(_source, _content, _fsState._analysisOptions);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
           bytes = unlinkedUnit.toBuffer();
@@ -217,8 +224,11 @@ class FileState {
    * Return the [FileState] for the given [relativeUri].
    */
   FileState _fileForRelativeUri(String relativeUri) {
-    Source uriSource = _fsState._sourceFactory.resolveUri(source, relativeUri);
-    return _fsState.getFile(uriSource.fullName);
+    Uri absoluteUri = resolveRelativeUri(uri, FastUri.parse(relativeUri));
+    String absolutePath = _fsState._sourceFactory
+        .resolveUri(null, absoluteUri.toString())
+        .fullName;
+    return _fsState.getFile(absolutePath, absoluteUri);
   }
 
   /**
@@ -286,11 +296,11 @@ class FileSystemState {
    * Return the [FileState] for the give [path]. The returned file has the
    * last known state since if was last refreshed.
    */
-  FileState getFile(String path) {
+  FileState getFile(String path, [Uri uri]) {
     FileState file = _pathToFile[path];
     if (file == null) {
-      Source source = _sourceForPath(path);
-      file = new FileState(this, path, source);
+      uri ??= _uriForPath(path);
+      file = new FileState(this, path, uri);
       _pathToFile[path] = file;
       file.refresh();
     }
@@ -298,11 +308,10 @@ class FileSystemState {
   }
 
   /**
-   * Return the [Source] for the given [path] in [_sourceFactory].
+   * Return the default [Uri] for the given path in [_sourceFactory].
    */
-  Source _sourceForPath(String path) {
+  Uri _uriForPath(String path) {
     Source fileSource = _resourceProvider.getFile(path).createSource();
-    Uri uri = _sourceFactory.restoreUri(fileSource);
-    return _resourceProvider.getFile(path).createSource(uri);
+    return _sourceFactory.restoreUri(fileSource);
   }
 }
