@@ -2,6 +2,10 @@
 
 ### Language
 
+* Don't warn about switch case fallthrough if the case ends in a `rethrow`
+  statement.
+* Also don't warn if the entire switch case is wrapped in braces - as long as
+  the block ends with a `break`, `continue`, `rethrow`, `return` or `throw`.
 * Allow `=` as well as `:` as separator for named parameter default values.
 
 ### Core library changes
