@@ -14,14 +14,12 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 
 /**
  * This class computes [AnalysisResult]s for Dart files.
@@ -515,14 +513,13 @@ class AnalysisDriver {
         String libraryUriStr = libraryUri.toString();
         _LibraryNode node = nodes[libraryUriStr];
         if (node == null) {
-          node = new _LibraryNode(this, nodes, libraryUri);
+          node = new _LibraryNode(this, libraryFile, libraryUri);
           nodes[libraryUriStr] = node;
 
           // Append the defining unit.
           {
             UnlinkedUnit unlinked = libraryFile.unlinked;
             _addToStoreUnlinked(store, libraryUriStr, unlinked);
-            node.unlinkedUnits.add(unlinked);
           }
 
           // Append parts.
@@ -530,7 +527,6 @@ class AnalysisDriver {
             String partUriStr = part.uri.toString();
             UnlinkedUnit unlinked = part.unlinked;
             _addToStoreUnlinked(store, partUriStr, unlinked);
-            node.unlinkedUnits.add(unlinked);
           }
 
           // Create nodes for referenced libraries.
@@ -854,56 +850,13 @@ class _LibraryContext {
 
 class _LibraryNode {
   final AnalysisDriver driver;
-  final Map<String, _LibraryNode> nodes;
+  final FileState file;
   final Uri uri;
-  final List<UnlinkedUnit> unlinkedUnits = <UnlinkedUnit>[];
 
-  Set<_LibraryNode> transitiveDependencies;
-  List<_LibraryNode> _dependencies;
+  Set<FileState> transitiveDependencies;
   String _dependencySignature;
 
-  _LibraryNode(this.driver, this.nodes, this.uri);
-
-  /**
-   * Retrieve the dependencies of this node.
-   */
-  List<_LibraryNode> get dependencies {
-    if (_dependencies == null) {
-      Set<_LibraryNode> dependencies = new Set<_LibraryNode>();
-
-      void appendDependency(String uriStr) {
-        Uri uri = FastUri.parse(uriStr);
-        if (uri.scheme == 'dart') {
-          // Dependency on the SDK is implicit and always added.
-          // The SDK linked bundle is precomputed before linking packages.
-        } else {
-          if (!uri.isAbsolute) {
-            uri = resolveRelativeUri(this.uri, uri);
-            uriStr = uri.toString();
-          }
-          _LibraryNode node = nodes[uriStr];
-          if (node == null) {
-            throw new StateError('No node for: $uriStr');
-          }
-          dependencies.add(node);
-        }
-      }
-
-      for (UnlinkedUnit unit in unlinkedUnits) {
-        for (UnlinkedImport import in unit.imports) {
-          if (!import.isImplicit) {
-            appendDependency(import.uri);
-          }
-        }
-        for (UnlinkedExportPublic export in unit.publicNamespace.exports) {
-          appendDependency(export.uri);
-        }
-      }
-
-      _dependencies = dependencies.toList();
-    }
-    return _dependencies;
-  }
+  _LibraryNode(this.driver, this.file, this.uri);
 
   String get dependencySignature {
     return _dependencySignature ??=
@@ -914,9 +867,7 @@ class _LibraryNode {
       // Add all unlinked API signatures.
       computeTransitiveDependencies();
       transitiveDependencies
-          .map((node) => node.unlinkedUnits)
-          .expand((units) => units)
-          .map((unit) => unit.apiSignature)
+          .map((file) => file.apiSignature)
           .forEach(signature.addBytes);
 
       // Combine into a single hash.
@@ -934,15 +885,15 @@ class _LibraryNode {
 
   void computeTransitiveDependencies() {
     if (transitiveDependencies == null) {
-      transitiveDependencies = new Set<_LibraryNode>();
+      transitiveDependencies = new Set<FileState>();
 
-      void appendDependencies(_LibraryNode node) {
-        if (transitiveDependencies.add(node)) {
-          node.dependencies.forEach(appendDependencies);
+      void appendDependencies(FileState file) {
+        if (transitiveDependencies.add(file)) {
+          file.dependencies.forEach(appendDependencies);
         }
       }
 
-      appendDependencies(this);
+      appendDependencies(file);
     }
   }
 

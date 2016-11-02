@@ -79,6 +79,7 @@ class FileState {
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
+  List<FileState> _dependencies;
 
   FileState(this._fsState, this.path, this.source);
 
@@ -96,6 +97,11 @@ class FileState {
    * The MD5 hash of the [content].
    */
   String get contentHash => _contentHash;
+
+  /**
+   * Return the list of all direct dependencies.
+   */
+  List<FileState> get dependencies => _dependencies;
 
   /**
    * The list of files this file exports.
@@ -174,19 +180,32 @@ class FileState {
     _partedFiles = <FileState>[];
     for (UnlinkedImport import in _unlinked.imports) {
       if (!import.isImplicit) {
-        FileState file = _fileForRelativeUri(import.uri);
-        _importedFiles.add(file);
+        String uri = import.uri;
+        if (!_isDartUri(uri)) {
+          FileState file = _fileForRelativeUri(uri);
+          _importedFiles.add(file);
+        }
       }
     }
     for (UnlinkedExportPublic export in _unlinked.publicNamespace.exports) {
-      String uriStr = export.uri;
-      FileState file = _fileForRelativeUri(uriStr);
-      _exportedFiles.add(file);
+      String uri = export.uri;
+      if (!_isDartUri(uri)) {
+        FileState file = _fileForRelativeUri(uri);
+        _exportedFiles.add(file);
+      }
     }
-    for (String uriStr in _unlinked.publicNamespace.parts) {
-      FileState file = _fileForRelativeUri(uriStr);
-      _partedFiles.add(file);
+    for (String uri in _unlinked.publicNamespace.parts) {
+      if (!_isDartUri(uri)) {
+        FileState file = _fileForRelativeUri(uri);
+        _partedFiles.add(file);
+      }
     }
+    // Compute direct dependencies.
+    _dependencies = (new Set<FileState>()
+          ..addAll(_importedFiles)
+          ..addAll(_exportedFiles)
+          ..addAll(_partedFiles))
+        .toList();
     // Return whether the API signature changed.
     return apiSignatureChanged;
   }
@@ -220,6 +239,10 @@ class FileState {
       }
     }
     return true;
+  }
+
+  static bool _isDartUri(String uri) {
+    return uri.startsWith('dart:');
   }
 
   /**
