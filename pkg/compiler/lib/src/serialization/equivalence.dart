@@ -990,7 +990,9 @@ bool testResolutionImpactEquivalence(
       strategy.testSets(impact1, impact2, 'staticUses', impact1.staticUses,
           impact2.staticUses, areStaticUsesEquivalent) &&
       strategy.testSets(impact1, impact2, 'typeUses', impact1.typeUses,
-          impact2.typeUses, areTypeUsesEquivalent);
+          impact2.typeUses, areTypeUsesEquivalent) &&
+      strategy.testSets(impact1, impact2, 'nativeData', impact1.nativeData,
+          impact2.nativeData, testNativeBehavior);
 }
 
 /// Tests the equivalence of [resolvedAst1] and [resolvedAst2] using [strategy].
