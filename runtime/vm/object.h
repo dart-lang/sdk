@@ -7930,6 +7930,7 @@ class TypedData : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uword ComputeCanonicalTableHash() const;
 
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
     NoSafepointScope no_safepoint;                                             \
@@ -7939,6 +7940,20 @@ class TypedData : public Instance {
     NoSafepointScope no_safepoint;                                             \
     *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
   }
+#else  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+#define TYPED_GETTER_SETTER(name, type)                                        \
+  type Get##name(intptr_t byte_offset) const {                                 \
+    NoSafepointScope no_safepoint;                                             \
+    type result;                                                               \
+    memmove(&result, DataAddr(byte_offset), sizeof(type));                     \
+    return result;                                                             \
+  }                                                                            \
+  void Set##name(intptr_t byte_offset, type value) const {                     \
+    NoSafepointScope no_safepoint;                                             \
+    memmove(DataAddr(byte_offset), &value, sizeof(type));                      \
+  }
+#endif  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+
   TYPED_GETTER_SETTER(Int8, int8_t)
   TYPED_GETTER_SETTER(Uint8, uint8_t)
   TYPED_GETTER_SETTER(Int16, int16_t)

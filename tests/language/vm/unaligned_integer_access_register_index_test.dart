@@ -54,22 +54,6 @@ unalignedInt64() {
   }
 }
 
-unalignedFloat32() {
-  var bytes = new ByteData(64);
-  for (var i = 0; i < 4; i++) {
-    bytes.setFloat32(i, 16.25);
-    Expect.equals(16.25, bytes.getFloat32(i));
-  }
-}
-
-unalignedFloat64() {
-  var bytes = new ByteData(64);
-  for (var i = 0; i < 8; i++) {
-    bytes.setFloat64(i, 16.25);
-    Expect.equals(16.25, bytes.getFloat64(i));
-  }
-}
-
 main() {
   for (var i = 0; i < 20; i++) {
     unalignedUint16();
@@ -78,7 +62,5 @@ main() {
     unalignedInt32();
     unalignedUint64();
     unalignedInt64();
-    unalignedFloat32();
-    unalignedFloat64();
   }
 }
