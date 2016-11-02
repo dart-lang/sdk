@@ -273,6 +273,20 @@ var A2 = B1;
     }
   }
 
+  test_getResult_inferTypes_finalField() async {
+    _addTestFile(
+        r'''
+class C {
+  final f = 42;
+}
+''',
+        priority: true);
+    await _waitForIdle();
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(_getClassFieldType(result.unit, 'C', 'f'), 'int');
+  }
+
   test_getResult_selfConsistent() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -500,6 +514,39 @@ var A = B;
     if (priority) {
       driver.priorityFiles = [testFile];
     }
+  }
+
+  ClassDeclaration _getClass(CompilationUnit unit, String name) {
+    for (CompilationUnitMember declaration in unit.declarations) {
+      if (declaration is ClassDeclaration) {
+        if (declaration.name.name == name) {
+          return declaration;
+        }
+      }
+    }
+    fail('Cannot find the class $name in\n$unit');
+    return null;
+  }
+
+  VariableDeclaration _getClassField(
+      CompilationUnit unit, String className, String fieldName) {
+    ClassDeclaration classDeclaration = _getClass(unit, className);
+    for (ClassMember declaration in classDeclaration.members) {
+      if (declaration is FieldDeclaration) {
+        for (var field in declaration.fields.variables) {
+          if (field.name.name == fieldName) {
+            return field;
+          }
+        }
+      }
+    }
+    fail('Cannot find the field $fieldName in the class $className in\n$unit');
+    return null;
+  }
+
+  String _getClassFieldType(
+      CompilationUnit unit, String className, String fieldName) {
+    return _getClassField(unit, className, fieldName).element.type.toString();
   }
 
   VariableDeclaration _getTopLevelVar(CompilationUnit unit, String name) {
