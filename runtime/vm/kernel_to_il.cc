@@ -71,8 +71,10 @@ void ScopeBuilder::AddParameters(FunctionNode* function, intptr_t pos) {
 
 void ScopeBuilder::AddParameter(VariableDeclaration* declaration,
                                 intptr_t pos) {
-  // TODO(27590): Handle final.
   LocalVariable* variable = MakeVariable(H.DartSymbol(declaration->name()));
+  if (declaration->IsFinal()) {
+    variable->set_is_final();
+  }
   scope_->InsertParameterAt(pos, variable);
   result_->locals.Insert(declaration, variable);
 
@@ -205,11 +207,16 @@ const dart::String& ScopeBuilder::GenerateName(const char* prefix,
 
 
 void ScopeBuilder::AddVariable(VariableDeclaration* declaration) {
-  // TODO(27590): Handle final and const, including function declarations.
+  // In case `declaration->IsConst()` the flow graph building will take care of
+  // evaluating the constant and setting it via
+  // `declaration->SetConstantValue()`.
   const dart::String& name = declaration->name()->is_empty()
                                  ? GenerateName(":var", name_index_++)
                                  : H.DartSymbol(declaration->name());
   LocalVariable* variable = MakeVariable(name);
+  if (declaration->IsFinal()) {
+    variable->set_is_final();
+  }
   scope_->AddVariable(variable);
   result_->locals.Insert(declaration, variable);
 }
