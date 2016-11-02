@@ -85,7 +85,8 @@ class ImmutableMap<K, V> implements Map<K, V> {
   }
 }
 
-class _ImmutableMapKeyIterable<E> extends EfficientLengthIterable<E> {
+class _ImmutableMapKeyIterable<E> extends IterableBase<E>
+                                  implements EfficientLength {
   final ImmutableMap _map;
   _ImmutableMapKeyIterable(this._map);
 
@@ -96,7 +97,8 @@ class _ImmutableMapKeyIterable<E> extends EfficientLengthIterable<E> {
   int get length => _map.length;
 }
 
-class _ImmutableMapValueIterable<E> extends EfficientLengthIterable<E> {
+class _ImmutableMapValueIterable<E> extends IterableBase<E>
+                                    implements EfficientLength {
   final ImmutableMap _map;
   _ImmutableMapValueIterable(this._map);
 

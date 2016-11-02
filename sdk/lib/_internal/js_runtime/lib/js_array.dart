@@ -146,7 +146,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   void insertAll(int index, Iterable<E> iterable) {
     checkGrowable('insertAll');
     RangeError.checkValueInInterval(index, 0, this.length, "index");
-    if (iterable is! EfficientLengthIterable) {
+    if (iterable is! EfficientLength) {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;
@@ -463,7 +463,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   void replaceRange(int start, int end, Iterable<E> replacement) {
     checkGrowable('replace range');
     RangeError.checkValidRange(start, end, this.length);
-    if (replacement is! EfficientLengthIterable) {
+    if (replacement is! EfficientLength) {
       replacement = replacement.toList();
     }
     int removeLength = end - start;

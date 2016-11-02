@@ -91,7 +91,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   Set<E> toSet() => new Set<E>.from(this);
 
   int get length {
-    assert(this is! EfficientLengthIterable);
+    assert(this is! EfficientLength);
     int count = 0;
     Iterator it = iterator;
     while (it.moveNext()) {
