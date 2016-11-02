@@ -79,8 +79,8 @@ void addModuleFormatOptions(ArgParser argParser, {bool allowMultiple: false}) {
 /// structure as possible with the original. The transformation is a shallow one
 /// that affects the top-level module items, especially [ImportDeclaration]s and
 /// [ExportDeclaration]s.
-Program transformModuleFormat(
-    ModuleFormat format, Program module, {bool singleOutFile: false}) {
+Program transformModuleFormat(ModuleFormat format, Program module,
+    {bool singleOutFile: false}) {
   switch (format) {
     case ModuleFormat.legacy:
       // Legacy format always generates output compatible with single file mode.
@@ -142,7 +142,6 @@ abstract class _ModuleBuilder {
 /// Generates modules for with our legacy `dart_library.js` loading mechanism.
 // TODO(jmesserly): remove this and replace with something that interoperates.
 class LegacyModuleBuilder extends _ModuleBuilder {
-
   Program build(Program module) {
     // Collect imports/exports/statements.
     visitProgram(module);
