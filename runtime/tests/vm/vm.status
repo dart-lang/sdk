@@ -160,6 +160,9 @@ cc/GuardFieldSimpleTest: Skip
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
 
+[ ($arch == simdbc || $arch == simdbc64) && $checked ]
+dart/optimized_stacktrace_test: RuntimeError # Issue 27732
+
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
