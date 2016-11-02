@@ -1,11 +1,3 @@
-// dynamic is not a subtype of dart.core::bool (null_aware.dart:11:2)
-// dynamic is not a subtype of dart.core::bool (null_aware.dart:13:6)
-// dynamic is not a subtype of dart.core::bool (null_aware.dart:14:6)
-// dynamic is not a subtype of dart.core::bool (null_aware.dart:15:2)
-// dynamic is not a subtype of dart.core::bool (null_aware.dart:15:2)
-// dynamic is not a subtype of dart.core::bool (null_aware.dart:16:2)
-// dynamic is not a subtype of dart.core::bool (null_aware.dart:18:27)
-// dynamic is not a subtype of dart.core::bool (null_aware.dart:19:27)
 library;
 import self as self;
 import "dart:core" as core;

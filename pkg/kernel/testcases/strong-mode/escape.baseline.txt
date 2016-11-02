@@ -1,5 +1,3 @@
-// dynamic is not a subtype of dart.core::bool (escape.dart:25:2)
-// dynamic is not a subtype of dart.core::bool (escape.dart:26:2)
 library;
 import self as self;
 import "dart:core" as core;

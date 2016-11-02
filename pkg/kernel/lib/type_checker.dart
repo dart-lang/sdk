@@ -461,9 +461,14 @@ class TypeCheckingVisitor
     var target = node.interfaceTarget;
     if (target == null) {
       var receiver = visitExpression(node.receiver);
-      return (node.name.name == 'call' && receiver is FunctionType)
-          ? handleFunctionCall(node, receiver, node.arguments)
-          : handleDynamicCall(receiver, node.arguments);
+      if (node.name.name == '==') {
+        visitExpression(node.arguments.positional.single);
+        return environment.boolType;
+      }
+      if (node.name.name == 'call' && receiver is FunctionType) {
+        return handleFunctionCall(node, receiver, node.arguments);
+      }
+      return handleDynamicCall(receiver, node.arguments);
     } else if (environment.isOverloadedArithmeticOperator(target)) {
       assert(node.arguments.positional.length == 1);
       var receiver = visitExpression(node.receiver);
