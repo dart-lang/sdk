@@ -1142,10 +1142,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     DartType type =
         resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
 
-    // GENERIC_METHODS: Method type variables are not reified so we must warn
-    // about the error which will occur at runtime.
+    // GENERIC_METHODS: Method type variables are not reified, so we must inform
+    // the developer about the potentially bug-inducing semantics.
     if (type is MethodTypeVariableType) {
-      reporter.reportWarningMessage(
+      reporter.reportHintMessage(
           node, MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC);
     }
 
