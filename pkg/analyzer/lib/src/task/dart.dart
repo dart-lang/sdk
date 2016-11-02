@@ -2211,8 +2211,10 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
     // re-run if anything reachable from this target has been invalidated,
     // and the invalidation code (invalidateLibraryCycles) will ensure that
     // element model results will be re-used here only if they are still valid.
-    if (context.analysisOptions.strongMode) {
-      LibraryElement library = getRequiredInput(LIBRARY_ELEMENT_INPUT);
+    LibraryElement library = getRequiredInput(LIBRARY_ELEMENT_INPUT);
+    if (context.analysisOptions.strongMode &&
+        !LibraryElementImpl.hasResolutionCapability(
+            library, LibraryResolutionCapability.resolvedTypeNames)) {
       List<LibraryElement> component = library.libraryCycle;
       Set<LibraryElement> filter = component.toSet();
       Set<CompilationUnitElement> deps = new Set<CompilationUnitElement>();
