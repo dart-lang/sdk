@@ -27,9 +27,6 @@ namespace bin {
 // using functions listed in io_natives.cc.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
   V(Builtin_PrintString, 1)                                                    \
-  V(Builtin_LoadSource, 4)                                                     \
-  V(Builtin_AsyncLoadError, 3)                                                 \
-  V(Builtin_DoneLoading, 0)                                                    \
   V(Builtin_GetCurrentDirectory, 0)                                            \
 
 
