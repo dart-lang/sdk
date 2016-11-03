@@ -26,6 +26,7 @@ dev_compiler/gen/*: SkipByDesign
 mutation_observer: Skip # Issue 21149
 unittest/*: Skip # Issue 21949
 lookup_map/*: SkipByDesign
+front_end/*: SkipByDesign
 
 [ $runtime == vm && $mode == debug ]
 analysis_server/test/completion_test: Pass, Slow
