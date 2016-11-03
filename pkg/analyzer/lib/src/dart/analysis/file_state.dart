@@ -78,6 +78,7 @@ class FileState {
 
   String _content;
   String _contentHash;
+  LineInfo _lineInfo;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
 
@@ -104,6 +105,11 @@ class FileState {
    * The MD5 hash of the [content].
    */
   String get contentHash => _contentHash;
+
+  /**
+   * Return information about line in the file.
+   */
+  LineInfo get lineInfo => _lineInfo;
 
   /**
    * Return the list of all direct dependencies.
@@ -177,6 +183,7 @@ class FileState {
     }
     // Read the unlinked bundle.
     _unlinked = new UnlinkedUnit.fromBuffer(bytes);
+    _lineInfo = new LineInfo(_unlinked.lineStarts);
     List<int> newApiSignature = _unlinked.apiSignature;
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);

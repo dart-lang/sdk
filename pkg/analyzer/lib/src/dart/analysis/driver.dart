@@ -468,6 +468,7 @@ class AnalysisDriver {
             file.uri,
             withUnit ? file.content : null,
             file.contentHash,
+            file.lineInfo,
             resolvedUnit,
             errors);
       } finally {
@@ -612,8 +613,8 @@ class AnalysisDriver {
               error.message,
               error.correction))
           .toList();
-      return new AnalysisResult(
-          file.path, file.uri, null, file.contentHash, null, errors);
+      return new AnalysisResult(file.path, file.uri, null, file.contentHash,
+          file.lineInfo, null, errors);
     }
     return null;
   }
@@ -729,6 +730,11 @@ class AnalysisResult {
   final String contentHash;
 
   /**
+   * Information about lines in the [content].
+   */
+  final LineInfo lineInfo;
+
+  /**
    * The fully resolved compilation unit for the [content].
    */
   final CompilationUnit unit;
@@ -738,8 +744,8 @@ class AnalysisResult {
    */
   final List<AnalysisError> errors;
 
-  AnalysisResult(this.path, this.uri, this.content, this.contentHash, this.unit,
-      this.errors);
+  AnalysisResult(this.path, this.uri, this.content, this.contentHash,
+      this.lineInfo, this.unit, this.errors);
 }
 
 /**
