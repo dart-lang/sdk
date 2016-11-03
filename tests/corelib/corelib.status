@@ -209,6 +209,3 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 big_integer_arith_vm_test/gcd: Pass, RuntimeError # Issue #27474
 big_integer_arith_vm_test/modPow: Pass, RuntimeError # Issue #27474
-
-[ ($arch == simdbc || $arch == simdbc64) && $mode == debug ]
-list_unmodifiable_test: Crash # Issue 27731

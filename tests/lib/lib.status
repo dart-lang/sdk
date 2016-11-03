@@ -394,10 +394,6 @@ mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
-[($arch == simdbc || $arch == simdbc64) && $mode == debug ]
-mirrors/mirrors_reader_test: Crash # Issue 27731
-mirrors/hierarchy_invariants_test: Crash # Issue 27731
-
 [ $hot_reload || $hot_reload_rollback ]
 async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: Pass, Fail # Closure identity

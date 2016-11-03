@@ -339,7 +339,9 @@ EMIT_NATIVE_CODE(LoadClassId, 1, Location::RequiresRegister()) {
 
 EMIT_NATIVE_CODE(Constant, 0, Location::RequiresRegister()) {
   if (compiler->is_optimizing()) {
-    __ LoadConstant(locs()->out(0).reg(), value());
+    if (locs()->out(0).IsRegister()) {
+      __ LoadConstant(locs()->out(0).reg(), value());
+    }
   } else {
     __ PushConstant(value());
   }
