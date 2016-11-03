@@ -522,7 +522,7 @@ class PositionTraceListener extends TraceListener
   void onStep(js.Node node, Offset offset, StepKind kind) {
     SourceInformation sourceInformation = computeSourceInformation(node);
     if (sourceInformation == null) return;
-    int codeLocation = offset.subexpressionOffset;
+    int codeLocation = offset.value;
     if (codeLocation == null) return;
 
     void registerPosition(SourcePositionKind sourcePositionKind) {
@@ -675,6 +675,8 @@ class Offset {
 
   Offset(
       this.statementOffset, this.leftToRightOffset, this.subexpressionOffset);
+
+  int get value => subexpressionOffset;
 
   String toString() {
     return 'Offset[statementOffset=$statementOffset,'
