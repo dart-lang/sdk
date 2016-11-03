@@ -31,16 +31,18 @@ abstract class FileSystem {
 
   /// Returns a [FileSystemEntity] corresponding to the given [uri].
   ///
-  /// Uses of `..` and `.` in the URI are normalized before returning.  Relative
-  /// paths are also converted to absolute paths.
+  /// Uses of `..` and `.` in the URI are normalized before returning.
   ///
-  /// If [uri] is not a `file:` URI, an [Error] will be thrown.
+  /// If [uri] is not an absolute `file:` URI, an [Error] will be thrown.
   ///
   /// Does not check whether a file or folder exists at the given location.
   FileSystemEntity entityForUri(Uri uri);
 }
 
 /// Abstract representation of a file system entity that may or may not exist.
+///
+/// Instances of this class have suitable implementations of equality tests and
+/// hashCode.
 ///
 /// Not intended to be implemented or extended by clients.
 abstract class FileSystemEntity {
@@ -67,7 +69,7 @@ abstract class FileSystemEntity {
   /// The file is assumed to be UTF-8 encoded.
   ///
   /// If an error occurs while attempting to read the file (e.g. because no such
-  /// file exists, or the entity is a directory), the future is completed with
-  /// an [Exception].
+  /// file exists, the entity is a directory, or the file is not valid UTF-8),
+  /// the future is completed with an [Exception].
   Future<String> readAsString();
 }
