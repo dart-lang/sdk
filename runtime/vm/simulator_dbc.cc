@@ -2802,12 +2802,12 @@ RawObject* Simulator::Call(const Code& code,
       RawObject* type_args = SP[0];
       const intptr_t type_args_offset = Bytecode::DecodeD(*pc);
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
-      *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
       for (intptr_t current_offset = sizeof(RawInstance);
            current_offset < instance_size;
            current_offset += kWordSize) {
         *reinterpret_cast<RawObject**>(start + current_offset) = null_value;
       }
+      *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
       FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
       SP -= 1;  // Consume the type arguments on the stack.
       pc += 4;
