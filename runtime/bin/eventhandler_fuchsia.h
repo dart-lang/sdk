@@ -63,7 +63,6 @@ class MagentaWaitManyInfo {
   intptr_t capacity() const { return capacity_; }
   intptr_t size() const { return size_; }
   DescriptorInfo** descriptor_infos() const { return descriptor_infos_; }
-  mx_handle_t* handles() const { return handles_; }
   mx_wait_item_t* items() const { return items_; }
 
   void AddHandle(mx_handle_t handle, mx_signals_t signals, DescriptorInfo* di);
@@ -77,7 +76,6 @@ class MagentaWaitManyInfo {
   intptr_t capacity_;
   intptr_t size_;
   DescriptorInfo** descriptor_infos_;
-  mx_handle_t* handles_;
   mx_wait_item_t* items_;
 
   DISALLOW_COPY_AND_ASSIGN(MagentaWaitManyInfo);

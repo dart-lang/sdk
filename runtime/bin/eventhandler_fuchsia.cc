@@ -199,7 +199,7 @@ void EventHandlerImplementation::HandleEvents() {
     if (wait_item.pending & wait_item.waitfor) {
       // Only the control handle has no descriptor info.
       ASSERT(info_.descriptor_infos()[i] != NULL);
-      ASSERT(info_.handles()[i] != interrupt_handles_[0]);
+      ASSERT(wait_item.handle != interrupt_handles_[0]);
       // TODO(zra): Handle events on other handles. At the moment we are
       // only interrupted when there is a message on interrupt_handles_[0].
       UNIMPLEMENTED();
