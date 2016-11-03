@@ -21,11 +21,10 @@ static const unsigned __int64 kQuietNaNMask =
 
 #ifndef va_copy
 #define va_copy(dst, src) (memmove(&(dst), &(src), sizeof(dst)))
-#endif  /* va_copy */
+#endif /* va_copy */
 
 
-#define NAN \
-    *reinterpret_cast<const double*>(&kQuietNaNMask)
+#define NAN *reinterpret_cast<const double*>(&kQuietNaNMask)
 
 namespace std {
 
