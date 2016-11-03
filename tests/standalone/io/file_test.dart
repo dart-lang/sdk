@@ -4,6 +4,8 @@
 //
 // Dart test program for testing file I/O.
 
+// OtherResources=empty_file
+// OtherResources=file_test.txt
 // OtherResources=fixed_length_file
 // OtherResources=read_as_text.dat
 // OtherResources=readline_test1.dat
@@ -63,7 +65,7 @@ class FileTest {
   // Test for file read functionality.
   static void testReadStream() {
     // Read a file and check part of it's contents.
-    String filename = getFilename("bin/file_test.cc");
+    String filename = getFilename("file_test.txt");
     File file = new File(filename);
     Expect.isTrue('$file'.contains(file.path));
     var subscription;
@@ -230,7 +232,7 @@ class FileTest {
   static void testRead() {
     asyncStart();
     // Read a file and check part of it's contents.
-    String filename = getFilename("bin/file_test.cc");
+    String filename = getFilename("file_test.txt");
     File file = new File(filename);
     file.open(mode: READ).then((RandomAccessFile file) {
       List<int> buffer = new List<int>(10);
@@ -256,7 +258,7 @@ class FileTest {
 
   static void testReadSync() {
     // Read a file and check part of it's contents.
-    String filename = getFilename("bin/file_test.cc");
+    String filename = getFilename("file_test.txt");
     RandomAccessFile raf = (new File(filename)).openSync();
     List<int> buffer = new List<int>(42);
     int bytes_read = 0;
@@ -1071,7 +1073,7 @@ class FileTest {
 
   static void testReadAsBytesEmptyFile() {
     asyncTestStarted();
-    var name = getFilename("tests/vm/data/empty_file");
+    var name = getFilename("empty_file");
     var f = new File(name);
     f.readAsBytes().then((bytes) {
       Expect.equals(0, bytes.length);
@@ -1087,7 +1089,7 @@ class FileTest {
   }
 
   static void testReadAsBytesSyncEmptyFile() {
-    var name = getFilename("tests/vm/data/empty_file");
+    var name = getFilename("empty_file");
     var bytes = new File(name).readAsBytesSync();
     Expect.equals(bytes.length, 0);
   }
@@ -1122,7 +1124,7 @@ class FileTest {
 
   static void testReadAsTextEmptyFile() {
     asyncTestStarted();
-    var name = getFilename("tests/vm/data/empty_file");
+    var name = getFilename("empty_file");
     var f = new File(name);
     f.readAsString(encoding: UTF8).then((text) {
       Expect.equals(0, text.length);
@@ -1159,7 +1161,7 @@ class FileTest {
   }
 
   static void testReadAsTextSyncEmptyFile() {
-    var name = getFilename("tests/vm/data/empty_file");
+    var name = getFilename("empty_file");
     var text = new File(name).readAsStringSync();
     Expect.equals(0, text.length);
   }
@@ -1402,15 +1404,8 @@ class FileTest {
     }
   }
 
-  // Helper method to be able to run the test from the runtime
-  // directory, or the top directory.
   static String getFilename(String path) {
-    var testPath = Platform.script.resolve(path);
-    if (new File.fromUri(testPath).existsSync()) {
-      return testPath.toFilePath();
-    }
-    return Uri.parse(Platform.resolvedExecutable)
-              .resolve('../../runtime/$path').toFilePath();
+    return Platform.script.resolve(path).toFilePath();
   }
 
   // Main test entrypoint.
