@@ -25,8 +25,9 @@ void VirtualMemory::InitOnce() {
 
 
 VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
-  mx_handle_t vmo = mx_vmo_create(size);
-  if (vmo <= 0) {
+  mx_handle_t vmo = MX_HANDLE_INVALID;
+  mx_status_t status = mx_vmo_create(size, 0u, &vmo);
+  if (status != NO_ERROR) {
     return NULL;
   }
 
@@ -37,7 +38,7 @@ VirtualMemory* VirtualMemory::ReserveInternal(intptr_t size) {
                    MX_VM_FLAG_PERM_WRITE |
                    MX_VM_FLAG_PERM_EXECUTE;
   uintptr_t addr;
-  mx_status_t status = mx_process_map_vm(
+  status = mx_process_map_vm(
       mx_process_self(), vmo, 0, size, &addr, prot);
   if (status != NO_ERROR) {
     mx_handle_close(vmo);
