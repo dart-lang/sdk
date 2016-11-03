@@ -28,7 +28,7 @@ int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
 bool Platform::Initialize() {
-  // Nothing to do on Windows.
+  SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);
   return true;
 }
 
