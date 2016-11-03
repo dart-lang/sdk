@@ -1374,9 +1374,8 @@ abstract class HInstruction implements Spannable {
     assert(type.treatAsRaw || type.isFunctionType);
     if (type.isDynamic) return this;
     if (type.isObject) return this;
-    // The type element is either a class or the void element.
     JavaScriptBackend backend = compiler.backend;
-    if (type.isVoid || type.isFunctionType) {
+    if (type.isVoid || type.isFunctionType || type.isMalformed) {
       return new HTypeConversion(type, kind, backend.dynamicType, this);
     }
     assert(type.isInterfaceType);
