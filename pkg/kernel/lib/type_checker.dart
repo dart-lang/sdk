@@ -158,12 +158,14 @@ class TypeCheckingVisitor
   }
 
   visitProcedure(Procedure node) {
-    environment.returnType = node.function.returnType;
+    environment.returnType = _getInternalReturnType(node.function);
     environment.yieldType = _getYieldType(node.function);
     handleFunctionNode(node.function);
   }
 
   void handleFunctionNode(FunctionNode node) {
+    var oldAsyncMarker = environment.currentAsyncMarker;
+    environment.currentAsyncMarker = node.asyncMarker;
     node.positionalParameters
         .skip(node.requiredParameterCount)
         .forEach(handleOptionalParameter);
@@ -171,12 +173,13 @@ class TypeCheckingVisitor
     if (node.body != null) {
       visitStatement(node.body);
     }
+    environment.currentAsyncMarker = oldAsyncMarker;
   }
 
   void handleNestedFunctionNode(FunctionNode node) {
     var oldReturn = environment.returnType;
     var oldYield = environment.yieldType;
-    environment.returnType = node.returnType;
+    environment.returnType = _getInternalReturnType(node);
     environment.yieldType = _getYieldType(node);
     handleFunctionNode(node);
     environment.returnType = oldReturn;
@@ -273,6 +276,29 @@ class TypeCheckingVisitor
       }
     }
     return substitution.substituteType(function.returnType);
+  }
+
+  DartType _getInternalReturnType(FunctionNode function) {
+    switch (function.asyncMarker) {
+      case AsyncMarker.Sync:
+        return function.returnType;
+
+      case AsyncMarker.Async:
+        Class container = coreTypes.futureClass;
+        DartType returnType = function.returnType;
+        if (returnType is InterfaceType && returnType.classNode == container) {
+          return returnType.typeArguments.single;
+        }
+        return const DynamicType();
+
+      case AsyncMarker.SyncStar:
+      case AsyncMarker.AsyncStar:
+      case AsyncMarker.SyncYielding:
+        return null;
+
+      default:
+        throw 'Unexpected async marker: ${function.asyncMarker}';
+    }
   }
 
   DartType _getYieldType(FunctionNode function) {
@@ -736,7 +762,11 @@ class TypeCheckingVisitor
       if (environment.returnType == null) {
         fail(node, 'Return of a value from void method');
       } else {
-        checkAssignableExpression(node.expression, environment.returnType);
+        var type = visitExpression(node.expression);
+        if (environment.currentAsyncMarker == AsyncMarker.Async) {
+          type = environment.unfutureType(type);
+        }
+        checkAssignable(node.expression, type, environment.returnType);
       }
     }
   }
@@ -779,7 +809,23 @@ class TypeCheckingVisitor
 
   @override
   visitYieldStatement(YieldStatement node) {
-    checkAssignableExpression(node.expression, environment.yieldType);
+    if (node.isYieldStar) {
+      Class container = environment.currentAsyncMarker == AsyncMarker.AsyncStar
+          ? coreTypes.streamClass
+          : coreTypes.iterableClass;
+      var type = visitExpression(node.expression);
+      var asContainer = type is InterfaceType
+          ? hierarchy.getTypeAsInstanceOf(type, container)
+          : null;
+      if (asContainer != null) {
+        checkAssignable(node.expression, asContainer.typeArguments[0],
+            environment.yieldType);
+      } else {
+        fail(node.expression, '$type is not an instance of $container');
+      }
+    } else {
+      checkAssignableExpression(node.expression, environment.yieldType);
+    }
   }
 
   @override

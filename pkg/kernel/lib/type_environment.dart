@@ -17,6 +17,7 @@ class TypeEnvironment extends SubtypeTester {
 
   DartType returnType;
   DartType yieldType;
+  AsyncMarker currentAsyncMarker = AsyncMarker.Sync;
 
   /// An error handler for use in debugging, or `null` if type errors should not
   /// be tolerated.  See [typeError].
