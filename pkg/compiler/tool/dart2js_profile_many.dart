@@ -6,7 +6,7 @@ library dart2js.profile_many;
 
 import 'dart:async';
 
-import 'dart2js.dart' as cmdline;
+import 'package:compiler/src/dart2js.dart' as cmdline
 
 const String USAGE = """
 Usage: dart2js_profile_many.dart [OPTIONS] [FILES]

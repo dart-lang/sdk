@@ -4,7 +4,8 @@
 
 library dart2js.stress;
 
-import "dart2js.dart" as dart2js;
+import 'package:compiler/src/dart2js.dart' as dart2js;
+import 'dart:io' show Platform;
 
 const ITERATIONS_FLAG_PREFIX = "--iterations=";
 void main(List<String> args) {
@@ -20,7 +21,9 @@ void main(List<String> args) {
         "Use '$ITERATIONS_FLAG_PREFIX<count>' to set a repetition count"
         " (as first flag).");
   }
-  args = ["--suppress-warnings", "--suppress-hints"]..addAll(args);
+  args = ["--suppress-warnings", "--suppress-hints", "--library-root="
+      "${Platform.script.resolve('../../../sdk').toFilePath()}"]
+           ..addAll(args);
   void iterate() {
     count++;
     sw.reset();
