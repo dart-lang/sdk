@@ -4269,6 +4269,9 @@ class Parser {
         _inInitializer = wasInInitializer;
       }
     } else if (type == TokenType.LT || _injectGenericCommentTypeList()) {
+      if (isFunctionExpression(currentToken)) {
+        return parseFunctionExpression();
+      }
       return parseListOrMapLiteral(null);
     } else if (type == TokenType.OPEN_CURLY_BRACKET) {
       return parseMapLiteral(null, null);

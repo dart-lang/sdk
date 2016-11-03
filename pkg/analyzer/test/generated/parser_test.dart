@@ -11364,6 +11364,17 @@ void''');
     expect(functionExpression.body, isNotNull);
   }
 
+  void test_parsePrimaryExpression_genericFunctionExpression() {
+    enableGenericMethods = true;
+    createParser('<X, Y>(Map<X, Y> m, X x) => m[x]');
+    Expression expression = parser.parsePrimaryExpression();
+    expectNotNullIfNoErrors(expression);
+    listener.assertNoErrors();
+    expect(expression, new isInstanceOf<FunctionExpression>());
+    FunctionExpression function = expression;
+    expect(function.typeParameters, isNotNull);
+  }
+
   void test_parsePrimaryExpression_hex() {
     String hexLiteral = "3F";
     createParser('0x$hexLiteral');
