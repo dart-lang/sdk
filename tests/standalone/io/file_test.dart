@@ -1406,9 +1406,11 @@ class FileTest {
   // directory, or the top directory.
   static String getFilename(String path) {
     var testPath = Platform.script.resolve(path);
-    return new File.fromUri(testPath).existsSync()
-        ? testPath.toFilePath()
-        : Uri.parse(Platform.executable).resolve('../../runtime/$path').toFilePath();
+    if (new File.fromUri(testPath).existsSync()) {
+      return testPath.toFilePath();
+    }
+    return Uri.parse(Platform.resolvedExecutable)
+              .resolve('../../runtime/$path').toFilePath();
   }
 
   // Main test entrypoint.
