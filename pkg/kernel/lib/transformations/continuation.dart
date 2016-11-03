@@ -181,6 +181,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   final VariableDeclaration catchErrorContinuationVariable =
       new VariableDeclaration(":async_op_error");
 
+  LabeledStatement labeledBody;
+
   ExpressionLifter expressionRewriter;
 
   AsyncRewriterBase(helper, enclosingFunction)
@@ -239,41 +241,27 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
   }
 
   Statement buildWrappedBody() {
-    // No explicit return at the end of the body => we will add one!
-    var body = addReturnStatementIfNecessary(enclosingFunction.body);
-    var userBody = visitDelimited(body);
+    labeledBody = new LabeledStatement(null);
+    labeledBody.body = visitDelimited(enclosingFunction.body)
+      ..parent = labeledBody;
 
     var exceptionVariable = new VariableDeclaration(":exception");
     var stackTraceVariable = new VariableDeclaration(":stack_trace");
 
-    var completeErrorStatement =
-        buildCatchBody(exceptionVariable, stackTraceVariable);
-
-    var catchBody = new Block(<Statement>[completeErrorStatement]);
-    var catches = <Catch>[
-      new Catch(exceptionVariable, catchBody, stackTrace: stackTraceVariable)
-    ];
-    return new TryCatch(userBody, catches);
-  }
-
-  Statement addReturnStatementIfNecessary(Statement body) {
-    if (body is Block) {
-      Block block = body;
-      if (block.statements.isEmpty ||
-          block.statements.last is! ReturnStatement) {
-        var returnStatement = new ReturnStatement();
-        block.statements.add(returnStatement);
-        returnStatement.parent = block;
-      }
-    } else if (body is! ReturnStatement) {
-      var returnStatement = new ReturnStatement();
-      body = new Block(<Statement>[body, returnStatement]);
-    }
-    return body;
+    return new TryCatch(buildReturn(labeledBody), <Catch>[
+      new Catch(
+          exceptionVariable,
+          new Block(<Statement>[
+            buildCatchBody(exceptionVariable, stackTraceVariable)
+          ]),
+          stackTrace: stackTraceVariable)
+    ]);
   }
 
   Statement buildCatchBody(
       Statement exceptionVariable, Statement stackTraceVariable);
+
+  Statement buildReturn(Statement body);
 
   List<Statement> statements = <Statement>[];
 
@@ -604,15 +592,6 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     return null;
   }
 
-  TreeNode visitReturnStatement(ReturnStatement stmt) {
-    if (stmt.expression != null) {
-      stmt.expression = expressionRewriter.rewrite(stmt.expression, statements)
-        ..parent = stmt;
-    }
-    statements.add(stmt);
-    return null;
-  }
-
   TreeNode visitTryCatch(TryCatch stmt) {
     ++currentTryDepth;
     stmt.body = visitDelimited(stmt.body)..parent = stmt;
@@ -674,7 +653,7 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
     controllerVariable = new VariableDeclaration(":controller");
     statements.add(controllerVariable);
 
-    super.setupAsyncContinuations(statements);
+    setupAsyncContinuations(statements);
 
     // :controller = new _AsyncController(:async_op);
     var arguments =
@@ -707,6 +686,19 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
         ])));
   }
 
+  Statement buildReturn(Statement body) {
+    // Async* functions cannot return a value.  The returns from the function
+    // have been translated into breaks from the labeled body.
+    return new Block(<Statement>[
+      body,
+      new ExpressionStatement(new MethodInvocation(
+          new VariableGet(controllerVariable),
+          new Name("close", helper.asyncLibrary),
+          new Arguments(<Expression>[]))),
+      new ReturnStatement()
+    ]);
+  }
+
   TreeNode visitYieldStatement(YieldStatement stmt) {
     Expression expr = expressionRewriter.rewrite(stmt.expression, statements);
 
@@ -721,20 +713,17 @@ class AsyncStarFunctionRewriter extends AsyncRewriterBase {
   }
 
   TreeNode visitReturnStatement(ReturnStatement node) {
-    // async* functions cannot have normal [ReturnStatement]s in them.
+    // Async* functions cannot return a value.
     assert(node.expression == null || node.expression is NullLiteral);
-
-    statements.add(new ExpressionStatement(new MethodInvocation(
-        new VariableGet(controllerVariable),
-        new Name("close", helper.asyncLibrary),
-        new Arguments(<Expression>[]))));
-    statements.add(new ReturnStatement());
+    statements
+        .add(new BreakStatement(labeledBody)..fileOffset = node.fileOffset);
     return null;
   }
 }
 
 class AsyncFunctionRewriter extends AsyncRewriterBase {
   VariableDeclaration completerVariable;
+  VariableDeclaration returnVariable;
 
   AsyncFunctionRewriter(helper, enclosingFunction)
       : super(helper, enclosingFunction);
@@ -749,7 +738,10 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         isFinal: true);
     statements.add(completerVariable);
 
-    super.setupAsyncContinuations(statements);
+    returnVariable = new VariableDeclaration(":return_value");
+    statements.add(returnVariable);
+
+    setupAsyncContinuations(statements);
 
     // new Future.microtask(:async_op);
     var newMicrotaskStatement = new ExpressionStatement(new StaticInvocation(
@@ -779,19 +771,27 @@ class AsyncFunctionRewriter extends AsyncRewriterBase {
         ])));
   }
 
-  visitReturnStatement(ReturnStatement node) {
-    var expr;
-    if (node.expression == null) {
-      expr = new NullLiteral();
-    } else {
-      expr = expressionRewriter.rewrite(node.expression, statements);
-    }
+  Statement buildReturn(Statement body) {
+    // Returns from the body have all been translated into assignments to the
+    // return value variable followed by a break from the labeled body.
+    return new Block(<Statement>[
+      body,
+      new ExpressionStatement(new MethodInvocation(
+          new VariableGet(completerVariable),
+          new Name("complete", helper.asyncLibrary),
+          new Arguments([new VariableGet(returnVariable)]))),
+      new ReturnStatement()
+    ]);
+  }
 
-    statements.add(new ExpressionStatement(new MethodInvocation(
-        new VariableGet(completerVariable),
-        new Name("complete", helper.asyncLibrary),
-        new Arguments([expr]))));
-    statements.add(new ReturnStatement(new NullLiteral()));
+  visitReturnStatement(ReturnStatement node) {
+    var expr = node.expression == null
+        ? new NullLiteral()
+        : expressionRewriter.rewrite(node.expression, statements);
+    statements
+        .add(new ExpressionStatement(new VariableSet(returnVariable, expr)));
+    statements
+        .add(new BreakStatement(labeledBody)..fileOffset = node.fileOffset);
     return null;
   }
 }
