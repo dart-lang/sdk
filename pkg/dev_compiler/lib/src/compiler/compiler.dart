@@ -495,7 +495,11 @@ class JSModuleFile {
       // In singleOutFile mode we wrap each module in an eval statement to
       // leverage sourceURL to improve the debugging experience when source maps
       // are not enabled.
-      c += '\n//# sourceURL=${name}.js\n';
+      //
+      // Note: We replace all `/` with `.` so that we don't break relative urls
+      // to sources in the original sourcemap. The name of this file is bogus
+      // anyways, so it has very little effect on things.
+      c += '\n//# sourceURL=${name.replaceAll("/", ".")}.js\n';
       c = 'eval(${JSON.encode(c)});\n';
     }
     new File(jsPath).writeAsStringSync(c);
