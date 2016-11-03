@@ -334,7 +334,7 @@ class JavaScriptBackend extends Backend {
   static const String TRACE_METHOD = const String.fromEnvironment('traceCalls');
   static const bool TRACE_CALLS =
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
-  Element traceHelper;
+  MethodElement traceHelper;
 
   TypeMask get stringType => compiler.commonMasks.stringType;
   TypeMask get doubleType => compiler.commonMasks.doubleType;

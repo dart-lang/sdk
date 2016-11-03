@@ -17,6 +17,7 @@ import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../tree/tree.dart';
@@ -667,7 +668,7 @@ class Namer {
   }
 
   /// Annotated name for [method] encoding arity and named parameters.
-  jsAst.Name instanceMethodName(FunctionElement method) {
+  jsAst.Name instanceMethodName(MethodElement method) {
     if (method.isGenerativeConstructorBody) {
       return constructorBodyName(method);
     }
@@ -1250,7 +1251,7 @@ class Namer {
     return disambiguated;
   }
 
-  String suffixForGetInterceptor(Iterable<ClassElement> classes) {
+  String suffixForGetInterceptor(Iterable<ClassEntity> classes) {
     String abbreviate(ClassElement cls) {
       if (cls == coreClasses.objectClass) return "o";
       if (cls == helpers.jsStringClass) return "s";
@@ -1279,7 +1280,7 @@ class Namer {
   }
 
   /// Property name used for `getInterceptor` or one of its specializations.
-  jsAst.Name nameForGetInterceptor(Iterable<ClassElement> classes) {
+  jsAst.Name nameForGetInterceptor(Iterable<ClassEntity> classes) {
     FunctionElement getInterceptor = helpers.getInterceptorMethod;
     if (classes.contains(helpers.jsInterceptorClass)) {
       // If the base Interceptor class is in the set of intercepted classes, we

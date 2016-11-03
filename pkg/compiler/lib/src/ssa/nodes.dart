@@ -8,7 +8,9 @@ import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../elements/elements.dart';
+import '../elements/elements.dart'
+    show Entity, JumpTarget, LabelDefinition, Local;
+import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -154,7 +156,8 @@ abstract class HInstructionVisitor extends HGraphVisitor {
 }
 
 class HGraph {
-  Element element; // Used for debug printing.
+  // TODO(johnniwinther): Maybe this should be [MemberLike].
+  Entity element; // Used for debug printing.
   HBasicBlock entry;
   HBasicBlock exit;
   HThis thisInstruction;
@@ -224,9 +227,9 @@ class HGraph {
     return result;
   }
 
-  HConstant addDeferredConstant(ConstantValue constant, PrefixElement prefix,
+  HConstant addDeferredConstant(ConstantValue constant, Entity prefix,
       SourceInformation sourceInformation, Compiler compiler) {
-    // TODO(sigurdm,johnniwinter): These deferred constants should be created
+    // TODO(sigurdm,johnniwinther): These deferred constants should be created
     // by the constant evaluator.
     ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
     compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
@@ -928,20 +931,20 @@ abstract class HInstruction implements Spannable {
 
   /// Returns `true` if [typeMask] contains [cls].
   static bool containsType(
-      TypeMask typeMask, ClassElement cls, ClosedWorld closedWorld) {
+      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
     return closedWorld.isInstantiated(cls) &&
         typeMask.contains(cls, closedWorld);
   }
 
   /// Returns `true` if [typeMask] contains only [cls].
   static bool containsOnlyType(
-      TypeMask typeMask, ClassElement cls, ClosedWorld closedWorld) {
+      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
     return closedWorld.isInstantiated(cls) && typeMask.containsOnly(cls);
   }
 
   /// Returns `true` if [typeMask] is an instance of [cls].
   static bool isInstanceOf(
-      TypeMask typeMask, ClassElement cls, ClosedWorld closedWorld) {
+      TypeMask typeMask, ClassEntity cls, ClosedWorld closedWorld) {
     return closedWorld.isImplemented(cls) &&
         typeMask.satisfies(cls, closedWorld);
   }
@@ -1367,23 +1370,24 @@ abstract class HInstruction implements Spannable {
     // Only the builder knows how to create [HTypeConversion]
     // instructions with generics. It has the generic type context
     // available.
-    assert(type.kind != TypeKind.TYPE_VARIABLE);
+    assert(!type.isTypeVariable);
     assert(type.treatAsRaw || type.isFunctionType);
     if (type.isDynamic) return this;
     if (type.isObject) return this;
     // The type element is either a class or the void element.
-    Element element = type.element;
     JavaScriptBackend backend = compiler.backend;
-    if (type.kind != TypeKind.INTERFACE) {
+    if (type.isVoid || type.isFunctionType) {
       return new HTypeConversion(type, kind, backend.dynamicType, this);
-    } else if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
+    }
+    assert(type.isInterfaceType);
+    if (kind == HTypeConversion.BOOLEAN_CONVERSION_CHECK) {
       // Boolean conversion checks work on non-nullable booleans.
       return new HTypeConversion(type, kind, backend.boolType, this);
     } else if (kind == HTypeConversion.CHECKED_MODE_CHECK && !type.treatAsRaw) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
-      TypeMask subtype =
-          new TypeMask.subtype(element.declaration, compiler.closedWorld);
+      Entity cls = type.element;
+      TypeMask subtype = new TypeMask.subtype(cls, compiler.closedWorld);
       return new HTypeConversion(type, kind, subtype, this);
     }
   }
@@ -1507,7 +1511,7 @@ abstract class HControlFlow extends HInstruction {
 
 // Allocates and initializes an instance.
 class HCreate extends HInstruction {
-  final ClassElement element;
+  final ClassEntity element;
 
   /// Does this instruction have reified type information as the last input?
   final bool hasRtiInput;
@@ -1562,7 +1566,7 @@ abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
   Selector selector;
   TypeMask mask;
-  Element element;
+  MemberEntity element;
 
   HInvokeDynamic(Selector selector, this.mask, this.element,
       List<HInstruction> inputs, TypeMask type,
@@ -1615,14 +1619,14 @@ class HInvokeDynamicMethod extends HInvokeDynamic {
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
-  HInvokeDynamicField(Selector selector, TypeMask mask, Element element,
+  HInvokeDynamicField(Selector selector, TypeMask mask, MemberEntity element,
       List<HInstruction> inputs, TypeMask type)
       : super(selector, mask, element, inputs, type);
   toString() => 'invoke dynamic field: selector=$selector, mask=$mask';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(Selector selector, TypeMask mask, Element element,
+  HInvokeDynamicGetter(Selector selector, TypeMask mask, MemberEntity element,
       List<HInstruction> inputs, TypeMask type)
       : super(selector, mask, element, inputs, type);
   toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
@@ -1635,7 +1639,7 @@ class HInvokeDynamicGetter extends HInvokeDynamicField {
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(Selector selector, TypeMask mask, Element element,
+  HInvokeDynamicSetter(Selector selector, TypeMask mask, MemberEntity element,
       List<HInstruction> inputs, TypeMask type)
       : super(selector, mask, element, inputs, type);
   toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
@@ -1643,7 +1647,7 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
-  final Element element;
+  final MemberEntity element;
 
   final bool targetCanThrow;
 
@@ -1667,11 +1671,11 @@ class HInvokeStatic extends HInvoke {
 
 class HInvokeSuper extends HInvokeStatic {
   /** The class where the call to super is being done. */
-  final ClassElement caller;
+  final ClassEntity caller;
   final bool isSetter;
   final Selector selector;
 
-  HInvokeSuper(Element element, this.caller, this.selector, inputs, type,
+  HInvokeSuper(MemberEntity element, this.caller, this.selector, inputs, type,
       SourceInformation sourceInformation,
       {this.isSetter})
       : super(element, inputs, type) {
@@ -1711,11 +1715,12 @@ class HInvokeConstructorBody extends HInvokeStatic {
 }
 
 abstract class HFieldAccess extends HInstruction {
-  final Element element;
+  // TODO(johnniwinther): This should be a [FieldLike] but JSIndexable.length is
+  // encoded using a [HFieldGet].
+  final MemberEntity element;
 
-  HFieldAccess(Element element, List<HInstruction> inputs, TypeMask type)
-      : this.element = element,
-        super(inputs, type);
+  HFieldAccess(this.element, List<HInstruction> inputs, TypeMask type)
+      : super(inputs, type);
 
   HInstruction get receiver => inputs[0];
 }
@@ -1723,7 +1728,7 @@ abstract class HFieldAccess extends HInstruction {
 class HFieldGet extends HFieldAccess {
   final bool isAssignable;
 
-  HFieldGet(Element element, HInstruction receiver, TypeMask type,
+  HFieldGet(MemberEntity element, HInstruction receiver, TypeMask type,
       {bool isAssignable})
       : this.isAssignable =
             (isAssignable != null) ? isAssignable : element.isAssignable,
@@ -1764,7 +1769,7 @@ class HFieldGet extends HFieldAccess {
 }
 
 class HFieldSet extends HFieldAccess {
-  HFieldSet(Element element, HInstruction receiver, HInstruction value)
+  HFieldSet(MemberEntity element, HInstruction receiver, HInstruction value)
       : super(element, <HInstruction>[receiver, value],
             const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();
@@ -1792,11 +1797,11 @@ class HReadModifyWrite extends HLateInstruction {
   static const ASSIGN_OP = 0;
   static const PRE_OP = 1;
   static const POST_OP = 2;
-  final Element element;
+  final FieldEntity element;
   final String jsOp;
   final int opKind;
 
-  HReadModifyWrite._(Element this.element, this.jsOp, this.opKind,
+  HReadModifyWrite._(this.element, this.jsOp, this.opKind,
       List<HInstruction> inputs, TypeMask type)
       : super(inputs, type) {
     sideEffects.clearAllSideEffects();
@@ -1805,17 +1810,17 @@ class HReadModifyWrite extends HLateInstruction {
     sideEffects.setDependsOnInstancePropertyStore();
   }
 
-  HReadModifyWrite.assignOp(Element element, String jsOp, HInstruction receiver,
-      HInstruction operand, TypeMask type)
+  HReadModifyWrite.assignOp(FieldEntity element, String jsOp,
+      HInstruction receiver, HInstruction operand, TypeMask type)
       : this._(
             element, jsOp, ASSIGN_OP, <HInstruction>[receiver, operand], type);
 
   HReadModifyWrite.preOp(
-      Element element, String jsOp, HInstruction receiver, TypeMask type)
+      FieldEntity element, String jsOp, HInstruction receiver, TypeMask type)
       : this._(element, jsOp, PRE_OP, <HInstruction>[receiver], type);
 
   HReadModifyWrite.postOp(
-      Element element, String jsOp, HInstruction receiver, TypeMask type)
+      FieldEntity element, String jsOp, HInstruction receiver, TypeMask type)
       : this._(element, jsOp, POST_OP, <HInstruction>[receiver], type);
 
   HInstruction get receiver => inputs[0];
@@ -2504,10 +2509,9 @@ class HThrow extends HControlFlow {
 }
 
 class HStatic extends HInstruction {
-  final Element element;
+  final MemberEntity element;
   HStatic(this.element, type) : super(<HInstruction>[], type) {
     assert(element != null);
-    assert(invariant(this, element.isDeclaration));
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     if (element.isAssignable) {
@@ -2528,7 +2532,7 @@ class HStatic extends HInstruction {
 class HInterceptor extends HInstruction {
   // This field should originally be null to allow GVN'ing all
   // [HInterceptor] on the same input.
-  Set<ClassElement> interceptedClasses;
+  Set<ClassEntity> interceptedClasses;
 
   // inputs[0] is initially the only input, the receiver.
 
@@ -2579,7 +2583,7 @@ class HInterceptor extends HInstruction {
  * constant as the first input.
  */
 class HOneShotInterceptor extends HInvokeDynamic {
-  Set<ClassElement> interceptedClasses;
+  Set<ClassEntity> interceptedClasses;
   HOneShotInterceptor(Selector selector, TypeMask mask,
       List<HInstruction> inputs, TypeMask type, this.interceptedClasses)
       : super(selector, mask, null, inputs, type, true) {
@@ -2594,7 +2598,7 @@ class HOneShotInterceptor extends HInvokeDynamic {
 
 /** An [HLazyStatic] is a static that is initialized lazily at first read. */
 class HLazyStatic extends HInstruction {
-  final Element element;
+  final FieldEntity element;
   HLazyStatic(this.element, type) : super(<HInstruction>[], type) {
     // TODO(4931): The first access has side-effects, but we afterwards we
     // should be able to GVN.
@@ -2612,7 +2616,7 @@ class HLazyStatic extends HInstruction {
 }
 
 class HStaticStore extends HInstruction {
-  Element element;
+  MemberEntity element;
   HStaticStore(this.element, HInstruction value)
       : super(<HInstruction>[value], const TypeMask.nonNullEmpty()) {
     sideEffects.clearAllSideEffects();

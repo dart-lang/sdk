@@ -271,7 +271,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       Iterable<Element> targets = compiler.closedWorld.allFunctions
           .filter(instruction.selector, instruction.mask);
       if (targets.length == 1) {
-        Element target = targets.first;
+        MemberElement target = targets.first;
         ClassElement cls = target.enclosingClass;
         TypeMask type =
             new TypeMask.nonNullSubclass(cls.declaration, closedWorld);

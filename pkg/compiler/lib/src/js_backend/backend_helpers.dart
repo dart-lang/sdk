@@ -16,8 +16,10 @@ import '../elements/elements.dart'
         ConstructorElement,
         Element,
         EnumClassElement,
+        FieldElement,
         FunctionElement,
         LibraryElement,
+        MemberElement,
         MethodElement,
         PublicName;
 import '../library_loader.dart' show LoadedLibraries;
@@ -105,11 +107,11 @@ class BackendHelpers {
   ClassElement jsUInt32Class;
   ClassElement jsUInt31Class;
 
-  Element jsIndexableLength;
+  MemberElement jsIndexableLength;
   Element jsArrayTypedConstructor;
-  Element jsArrayRemoveLast;
-  Element jsArrayAdd;
-  Element jsStringSplit;
+  MethodElement jsArrayRemoveLast;
+  MethodElement jsArrayAdd;
+  MethodElement jsStringSplit;
   Element jsStringToString;
   Element jsStringOperatorAdd;
   Element objectEquals;
@@ -371,10 +373,14 @@ class BackendHelpers {
     }
 
     jsIndexableClass.ensureResolved(resolution);
-    jsIndexableLength = compiler.lookupElementIn(jsIndexableClass, 'length');
-    if (jsIndexableLength != null && jsIndexableLength.isAbstractField) {
-      AbstractFieldElement element = jsIndexableLength;
+    Element jsIndexableLengthElement =
+        compiler.lookupElementIn(jsIndexableClass, 'length');
+    if (jsIndexableLengthElement != null &&
+        jsIndexableLengthElement.isAbstractField) {
+      AbstractFieldElement element = jsIndexableLengthElement;
       jsIndexableLength = element.getter;
+    } else {
+      jsIndexableLength = jsIndexableLengthElement;
     }
 
     jsArrayClass.ensureResolved(resolution);
@@ -402,7 +408,7 @@ class BackendHelpers {
     return findHelper('mainHasTooManyParameters');
   }
 
-  Element get loadLibraryWrapper {
+  MethodElement get loadLibraryWrapper {
     return findHelper("_loadLibraryWrapper");
   }
 

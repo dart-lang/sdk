@@ -76,12 +76,19 @@ class KernelAstAdapter {
     return constantValue;
   }
 
+  // TODO(johnniwinther): Use the more precise functions below.
   Element getElement(ir.Node node) {
     Element result = _nodeToElement[node];
     assert(invariant(CURRENT_ELEMENT_SPANNABLE, result != null,
         message: "No element found for $node."));
     return result;
   }
+
+  MemberElement getMember(ir.Node node) => getElement(node).declaration;
+
+  MethodElement getMethod(ir.Node node) => getElement(node).declaration;
+
+  ClassElement getClass(ir.Node node) => getElement(node).declaration;
 
   ast.Node getNode(ir.Node node) {
     ast.Node result = _nodeToAst[node];
@@ -252,7 +259,7 @@ class KernelAstAdapter {
   ir.Procedure get mapLiteralConstructorEmpty =>
       kernel.functions[_backend.helpers.mapLiteralConstructorEmpty];
 
-  Element get jsIndexableLength => _backend.helpers.jsIndexableLength;
+  MemberElement get jsIndexableLength => _backend.helpers.jsIndexableLength;
 
   ir.Procedure get checkConcurrentModificationError =>
       kernel.functions[_backend.helpers.checkConcurrentModificationError];
