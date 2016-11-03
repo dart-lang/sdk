@@ -28399,14 +28399,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }),
       getters: () => ({
         iterator: dart.definiteFunctionType(core.Iterator$(E), []),
-        length: dart.definiteFunctionType(core.int, []),
         first: dart.definiteFunctionType(E, []),
         last: dart.definiteFunctionType(E, []),
         single: dart.definiteFunctionType(E, [])
       }),
       methods: () => ({
         [_compare]: dart.definiteFunctionType(core.int, [E, E]),
-        contains: dart.definiteFunctionType(core.bool, [core.Object]),
         add: dart.definiteFunctionType(core.bool, [E]),
         remove: dart.definiteFunctionType(core.bool, [core.Object]),
         addAll: dart.definiteFunctionType(dart.void, [IterableOfE()]),

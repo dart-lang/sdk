@@ -56,6 +56,7 @@ require.config({
     path: 'gen/codegen_output/pkg/path',
     stack_trace: 'gen/codegen_output/pkg/stack_trace',
     unittest: 'gen/codegen_output/pkg/unittest',
+    is: 'node_modules/is_js/is',
   },
 
   // Require all test files before starting tests.
