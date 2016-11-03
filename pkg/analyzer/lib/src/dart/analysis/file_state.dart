@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -17,6 +18,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
@@ -162,25 +164,38 @@ class FileState {
       // SummaryDataStore has MODIFICATION_TIME `0`. We need to return `-1`
       // for missing files. Maybe add this feature to SummaryDataStore?
     }
+
     // Compute the content hash.
-    List<int> textBytes = UTF8.encode(_content);
-    List<int> hashBytes = md5.convert(textBytes).bytes;
-    _contentHash = hex.encode(hashBytes);
+    List<int> contentBytes = UTF8.encode(_content);
+    {
+      List<int> hashBytes = md5.convert(contentBytes).bytes;
+      _contentHash = hex.encode(hashBytes);
+    }
+
+    // Prepare the unlinked bundle key.
+    String unlinkedKey;
+    {
+      ApiSignature signature = new ApiSignature();
+      signature.addUint32List(_fsState._salt);
+      signature.addBytes(contentBytes);
+      unlinkedKey = '${signature.toHex()}.unlinked';
+    }
+
     // Prepare bytes of the unlinked bundle - existing or new.
     List<int> bytes;
     {
-      String key = '$contentHash.unlinked';
-      bytes = _fsState._byteStore.get(key);
+      bytes = _fsState._byteStore.get(unlinkedKey);
       if (bytes == null) {
         CompilationUnit unit =
             _parse(_source, _content, _fsState._analysisOptions);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
           bytes = unlinkedUnit.toBuffer();
-          _fsState._byteStore.put(key, bytes);
+          _fsState._byteStore.put(unlinkedKey, bytes);
         });
       }
     }
+
     // Read the unlinked bundle.
     _unlinked = new UnlinkedUnit.fromBuffer(bytes);
     _lineInfo = new LineInfo(_unlinked.lineStarts);
@@ -188,6 +203,7 @@ class FileState {
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
+
     // Build the graph.
     _importedFiles = <FileState>[];
     _exportedFiles = <FileState>[];
@@ -214,12 +230,14 @@ class FileState {
         _partedFiles.add(file);
       }
     }
+
     // Compute direct dependencies.
     _dependencies = (new Set<FileState>()
           ..addAll(_importedFiles)
           ..addAll(_exportedFiles)
           ..addAll(_partedFiles))
         .toList();
+
     // Return whether the API signature changed.
     return apiSignatureChanged;
   }
@@ -293,11 +311,18 @@ class FileSystemState {
   final FileContentOverlay _contentOverlay;
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
+  final Uint32List _salt;
 
   final Map<String, FileState> _pathToFile = <String, FileState>{};
 
-  FileSystemState(this._logger, this._byteStore, this._contentOverlay,
-      this._resourceProvider, this._sourceFactory, this._analysisOptions);
+  FileSystemState(
+      this._logger,
+      this._byteStore,
+      this._contentOverlay,
+      this._resourceProvider,
+      this._sourceFactory,
+      this._analysisOptions,
+      this._salt);
 
   /**
    * Return the [FileState] for the give [path]. The returned file has the

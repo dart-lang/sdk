@@ -106,6 +106,13 @@ class ApiSignature {
   }
 
   /**
+   * Collect the given [Uint32List].
+   */
+  void addUint32List(Uint32List data) {
+    addBytes(data.buffer.asUint8List());
+  }
+
+  /**
    * For testing only: retrieve the internal representation of the data that
    * has been collected.
    */

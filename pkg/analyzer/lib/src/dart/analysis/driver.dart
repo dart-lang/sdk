@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
@@ -57,8 +58,15 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
  *
  *
  * TODO(scheglov) Clean up the list of implicitly analyzed files.
+ *
+ * TODO(scheglov) Handle not existing 'dart:x' URIs (while user is typing).
  */
 class AnalysisDriver {
+  /**
+   * The version of data format, should be incremented on every format change.
+   */
+  static const int DATA_VERSION = 1;
+
   String name;
   final PerformanceLog _logger;
 
@@ -90,6 +98,11 @@ class AnalysisDriver {
    * The analysis options to analyze with.
    */
   final AnalysisOptions _analysisOptions;
+
+  /**
+   * The salt to mix into all hashes used as keys for serialized data.
+   */
+  final Uint32List _salt = new Uint32List(2);
 
   /**
    * The current file system state.
@@ -158,9 +171,10 @@ class AnalysisDriver {
   AnalysisDriver(this._logger, this._resourceProvider, this._byteStore,
       this._contentOverlay, SourceFactory sourceFactory, this._analysisOptions)
       : _sourceFactory = sourceFactory.clone() {
+    _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
-        _resourceProvider, _sourceFactory, _analysisOptions);
+        _resourceProvider, _sourceFactory, _analysisOptions, _salt);
   }
 
   /**
@@ -597,6 +611,16 @@ class AnalysisDriver {
   }
 
   /**
+   * Fill [_salt] with data.
+   */
+  void _fillSalt() {
+    int analysisOptionsSalt = 0;
+    analysisOptionsSalt |= _analysisOptions.strongMode ? (1 << 0) : 0;
+    _salt[0] = DATA_VERSION;
+    _salt[1] = analysisOptionsSalt;
+  }
+
+  /**
    * If we know the result [key] for the [file], try to load the analysis
    * result from the cache. Return `null` if not found.
    */
@@ -627,6 +651,7 @@ class AnalysisDriver {
     String dependencyHash = _dependencySignatureMap[file.uri];
     if (dependencyHash != null) {
       ApiSignature signature = new ApiSignature();
+      signature.addUint32List(_salt);
       signature.addString(dependencyHash);
       signature.addString(file.contentHash);
       return '${signature.toHex()}.resolved';
@@ -868,6 +893,7 @@ class _LibraryNode {
     return _dependencySignature ??=
         driver._dependencySignatureMap.putIfAbsent(uri, () {
       ApiSignature signature = new ApiSignature();
+      signature.addUint32List(driver._salt);
       signature.addString(driver._sdkBundle.apiSignature);
 
       // Add all unlinked API signatures.
