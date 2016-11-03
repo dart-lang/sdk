@@ -115,7 +115,7 @@ class Zone;
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
   V(uword, megamorphic_call_checked_entry_,                                    \
-    StubCode::MegamorphicCall_entry()->CheckedEntryPoint(), 0)                 \
+    StubCode::MegamorphicCall_entry()->EntryPoint(), 0)                        \
   V(uword, monomorphic_miss_entry_,                                            \
     StubCode::MonomorphicMiss_entry()->EntryPoint(), 0)                        \
 

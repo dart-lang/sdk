@@ -65,7 +65,7 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   const Function& function =
       Function::Handle(Function::New(Symbols::MegamorphicMiss(),
                                      RawFunction::kRegularFunction,
-                                     false,  // Not static.
+                                     true,  // Static, but called as a method.
                                      false,  // Not const.
                                      false,  // Not abstract.
                                      false,  // Not external.
@@ -75,7 +75,7 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   function.set_result_type(Type::Handle(Type::DynamicType()));
   function.set_is_debuggable(false);
   function.set_is_visible(false);
-  function.AttachCode(code);
+  function.AttachCode(code);  // Has a single entry point, as a static function.
   // For inclusion in Snapshot::kAppWithJIT.
   function.set_unoptimized_code(code);
 

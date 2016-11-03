@@ -4139,16 +4139,18 @@ class ObjectPool : public Object {
 
 class Instructions : public Object {
  public:
-  intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
+  // Excludes HeaderSize().
+  intptr_t size() const { return abs(raw_ptr()->size_); }
+  bool HasSingleEntryPoint() const { return raw_ptr()->size_ >= 0; }
 
   uword PayloadStart() const {
     return PayloadStart(raw());
   }
-  uword UncheckedEntryPoint() const {
-    return UncheckedEntryPoint(raw());
-  }
   uword CheckedEntryPoint() const {
     return CheckedEntryPoint(raw());
+  }
+  uword UncheckedEntryPoint() const {
+    return UncheckedEntryPoint(raw());
   }
   static uword PayloadStart(RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
@@ -4176,11 +4178,19 @@ class Instructions : public Object {
 #error Missing entry offsets for current architecture
 #endif
 
-  static uword UncheckedEntryPoint(RawInstructions* instr) {
-    return PayloadStart(instr) + kUncheckedEntryOffset;
-  }
   static uword CheckedEntryPoint(RawInstructions* instr) {
-    return PayloadStart(instr) + kCheckedEntryOffset;
+    uword entry = PayloadStart(instr);
+    if (instr->ptr()->size_ < 0) {
+      entry += kCheckedEntryOffset;
+    }
+    return entry;
+  }
+  static uword UncheckedEntryPoint(RawInstructions* instr) {
+    uword entry = PayloadStart(instr);
+    if (instr->ptr()->size_ < 0) {
+      entry += kUncheckedEntryOffset;
+    }
+    return entry;
   }
 
   static const intptr_t kMaxElements = (kMaxInt32 -
@@ -4207,9 +4217,9 @@ class Instructions : public Object {
     return Utils::RoundUp(sizeof(RawInstructions), alignment);
   }
 
-  static RawInstructions* FromUncheckedEntryPoint(uword entry_point) {
+  static RawInstructions* FromPayloadStart(uword payload_start) {
     return reinterpret_cast<RawInstructions*>(
-        entry_point - HeaderSize() - kUncheckedEntryOffset + kHeapObjectTag);
+        payload_start - HeaderSize() + kHeapObjectTag);
   }
 
   bool Equals(const Instructions& other) const {
@@ -4229,7 +4239,7 @@ class Instructions : public Object {
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawInstructions* New(intptr_t size);
+  static RawInstructions* New(intptr_t size, bool has_single_entry_point);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
@@ -4689,13 +4699,16 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword PayloadStart() const {
-    return Instructions::PayloadStart(instructions());
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.PayloadStart();
   }
   uword UncheckedEntryPoint() const {
-    return Instructions::UncheckedEntryPoint(instructions());
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.UncheckedEntryPoint();
   }
   uword CheckedEntryPoint() const {
-    return Instructions::CheckedEntryPoint(instructions());
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.CheckedEntryPoint();
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());

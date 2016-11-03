@@ -3240,16 +3240,10 @@ void Assembler::LeaveStubFrame() {
 }
 
 
-void Assembler::NoMonomorphicCheckedEntry() {
-  buffer_.Reset();
-  bkpt(0);
-  bkpt(0);
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
-}
-
-
 // R0 receiver, R9 guarded cid as Smi
 void Assembler::MonomorphicCheckedEntry() {
+  ASSERT(has_single_entry_point_);
+  has_single_entry_point_ = false;
 #if defined(TESTING) || defined(DEBUG)
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);

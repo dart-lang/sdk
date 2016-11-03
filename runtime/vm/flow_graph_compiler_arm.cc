@@ -1025,6 +1025,13 @@ void FlowGraphCompiler::EmitFrameEntry() {
 //   R4: arguments descriptor array.
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
+  const Function& function = parsed_function().function();
+
+#ifdef DART_PRECOMPILER
+  if (function.IsDynamicFunction()) {
+    __ MonomorphicCheckedEntry();
+  }
+#endif  // DART_PRECOMPILER
 
   if (TryIntrinsify()) {
     // Skip regular code generation.
@@ -1033,8 +1040,6 @@ void FlowGraphCompiler::CompileGraph() {
 
   EmitFrameEntry();
   ASSERT(assembler()->constant_pool_allowed());
-
-  const Function& function = parsed_function().function();
 
   const int num_fixed_params = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().num_copied_params();

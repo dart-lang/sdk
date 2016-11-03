@@ -2031,8 +2031,6 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 //  CODE_REG: target Code
 //  R4: arguments descriptor
 void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
-  __ NoMonomorphicCheckedEntry();
-
   __ LoadTaggedClassIdMayBeSmi(R0, R0);
   // R0: receiver cid as Smi.
   __ ldr(R2, FieldAddress(R9, MegamorphicCache::buckets_offset()));
@@ -2088,8 +2086,6 @@ void StubCode::GenerateMegamorphicCallStub(Assembler* assembler) {
 //  CODE_REG: target Code object
 //  R4: arguments descriptor
 void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
-  __ NoMonomorphicCheckedEntry();
-
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
@@ -2125,8 +2121,6 @@ void StubCode::GenerateICCallThroughFunctionStub(Assembler* assembler) {
 
 
 void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
-  __ NoMonomorphicCheckedEntry();
-
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
@@ -2165,8 +2159,6 @@ void StubCode::GenerateICCallThroughCodeStub(Assembler* assembler) {
 //  R0: receiver
 //  R9: UnlinkedCall
 void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
-  __ NoMonomorphicCheckedEntry();
-
   __ EnterStubFrame();
   __ Push(R0);  // Preserve receiver.
 
@@ -2193,10 +2185,7 @@ void StubCode::GenerateUnlinkedCallStub(Assembler* assembler) {
 // Passed to target:
 //  CODE_REG: target Code object
 void StubCode::GenerateSingleTargetCallStub(Assembler* assembler) {
-  __ NoMonomorphicCheckedEntry();
-
   Label miss;
-
   __ LoadClassIdMayBeSmi(R1, R0);
   __ ldrh(R2, FieldAddress(R9, SingleTargetCache::lower_limit_offset()));
   __ ldrh(R3, FieldAddress(R9, SingleTargetCache::upper_limit_offset()));

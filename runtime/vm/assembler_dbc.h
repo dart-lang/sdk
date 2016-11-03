@@ -86,6 +86,7 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return 0; }
+  bool has_single_entry_point() const { return true; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.

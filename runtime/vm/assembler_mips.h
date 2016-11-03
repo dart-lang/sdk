@@ -239,12 +239,12 @@ class Assembler : public ValueObject {
   explicit Assembler(bool use_far_branches = false)
       : buffer_(),
         prologue_offset_(-1),
+        has_single_entry_point_(true),
         use_far_branches_(use_far_branches),
         delay_slot_available_(false),
         in_delay_slot_(false),
         comments_(),
         constant_pool_allowed_(true) {
-    MonomorphicCheckedEntry();
   }
   ~Assembler() { }
 
@@ -256,6 +256,7 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.
@@ -296,7 +297,6 @@ class Assembler : public ValueObject {
   // the branch delay slot.
   void LeaveStubFrameAndReturn(Register ra = RA);
 
-  void NoMonomorphicCheckedEntry();
   void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
@@ -1646,7 +1646,7 @@ class Assembler : public ValueObject {
   ObjectPoolWrapper object_pool_wrapper_;
 
   intptr_t prologue_offset_;
-
+  bool has_single_entry_point_;
   bool use_far_branches_;
   bool delay_slot_available_;
   bool in_delay_slot_;

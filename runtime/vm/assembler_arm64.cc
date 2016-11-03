@@ -24,10 +24,10 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 Assembler::Assembler(bool use_far_branches)
     : buffer_(),
       prologue_offset_(-1),
+      has_single_entry_point_(true),
       use_far_branches_(use_far_branches),
       comments_(),
       constant_pool_allowed_(false) {
-  MonomorphicCheckedEntry();
 }
 
 
@@ -1238,18 +1238,10 @@ void Assembler::LeaveStubFrame() {
 }
 
 
-void Assembler::NoMonomorphicCheckedEntry() {
-  buffer_.Reset();
-  brk(0);
-  brk(0);
-  brk(0);
-  brk(0);
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
-}
-
-
 // R0 receiver, R5 guarded cid as Smi
 void Assembler::MonomorphicCheckedEntry() {
+  ASSERT(has_single_entry_point_);
+  has_single_entry_point_ = false;
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 

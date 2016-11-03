@@ -24,11 +24,11 @@ DECLARE_FLAG(bool, inline_alloc);
 Assembler::Assembler(bool use_far_branches)
     : buffer_(),
       prologue_offset_(-1),
+      has_single_entry_point_(true),
       comments_(),
       constant_pool_allowed_(false) {
   // Far branching mode is only needed and implemented for MIPS and ARM.
   ASSERT(!use_far_branches);
-  MonomorphicCheckedEntry();
 }
 
 
@@ -3322,17 +3322,10 @@ void Assembler::LeaveStubFrame() {
 }
 
 
-void Assembler::NoMonomorphicCheckedEntry() {
-  buffer_.Reset();
-  for (intptr_t i = 0; i < Instructions::kCheckedEntryOffset; i++) {
-    int3();
-  }
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
-}
-
-
 // RDI receiver, RBX guarded cid as Smi
 void Assembler::MonomorphicCheckedEntry() {
+  ASSERT(has_single_entry_point_);
+  has_single_entry_point_ = false;
   Label immediate, have_cid, miss;
   Bind(&miss);
   jmp(Address(THR, Thread::monomorphic_miss_entry_offset()));

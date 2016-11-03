@@ -3113,8 +3113,6 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestNop, assembler) {
-  __ RawEntry();
-
   __ nop(1);
   __ nop(2);
   __ nop(3);
@@ -3136,8 +3134,6 @@ ASSEMBLER_TEST_RUN(TestNop, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign0, assembler) {
-  __ RawEntry();
-
   __ Align(4, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
   __ ret();
@@ -3152,8 +3148,6 @@ ASSEMBLER_TEST_RUN(TestAlign0, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign1, assembler) {
-  __ RawEntry();
-
   __ nop(1);
   __ Align(4, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
@@ -3169,8 +3163,6 @@ ASSEMBLER_TEST_RUN(TestAlign1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestAlign1Offset1, assembler) {
-  __ RawEntry();
-
   __ nop(1);
   __ Align(4, 1);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.
@@ -3186,8 +3178,6 @@ ASSEMBLER_TEST_RUN(TestAlign1Offset1, test) {
 
 
 ASSEMBLER_TEST_GENERATE(TestAlignLarge, assembler) {
-  __ RawEntry();
-
   __ nop(1);
   __ Align(16, 0);
   __ movq(RAX, Immediate(assembler->CodeSize()));  // Return code size.

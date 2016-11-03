@@ -467,6 +467,7 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.  On ARM64 there are no pointers in code.
@@ -1363,7 +1364,6 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void NoMonomorphicCheckedEntry();
   void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
@@ -1428,11 +1428,9 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-
   ObjectPoolWrapper object_pool_wrapper_;
-
   int32_t prologue_offset_;
-
+  bool has_single_entry_point_;
   bool use_far_branches_;
 
   class CodeComment : public ZoneAllocated {

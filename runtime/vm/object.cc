@@ -11579,7 +11579,8 @@ Class& cls = Class::Handle();
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
 
 
-RawInstructions* Instructions::New(intptr_t size) {
+RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
+  ASSERT(size >= 0);
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
     // This should be caught before we reach here.
@@ -11593,7 +11594,7 @@ RawInstructions* Instructions::New(intptr_t size) {
                                       Heap::kCode);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_size(size);
+    result.set_size(has_single_entry_point ? size : -size);
   }
   return result.raw();
 }
@@ -14264,8 +14265,9 @@ RawCode* Code::FinalizeCode(const char* name,
 #ifdef TARGET_ARCH_IA32
   assembler->set_code_object(code);
 #endif
-  Instructions& instrs =
-      Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
+  Instructions& instrs = Instructions::ZoneHandle(
+      Instructions::New(assembler->CodeSize(),
+                        assembler->has_single_entry_point()));
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
   INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
@@ -14572,7 +14574,12 @@ RawStackmap* Code::GetStackmap(
       return map->raw();  // We found a stack map for this frame.
     }
   }
-  ASSERT(!is_optimized() || (pc_offset == Instructions::kUncheckedEntryOffset));
+  // If we are missing a stack map, this must either be unoptimized code, or
+  // the entry to an osr function. (In which case all stack slots are
+  // considered to have tagged pointers.)
+  // Running with --verify-on-transition should hit this.
+  ASSERT(!is_optimized() ||
+         (pc_offset == UncheckedEntryPoint() - PayloadStart()));
   return Stackmap::null();
 }
 
