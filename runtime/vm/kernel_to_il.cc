@@ -3813,15 +3813,22 @@ void DartTypeTranslator::VisitInvalidType(InvalidType* node) {
 
 
 void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
-  // TODO(27590): Fix function types which are composed of malformed types.
-  // We might need to convert them to dynamic types instead of making the
-  // function type malformed.
+  // The spec describes in section "19.1 Static Types":
+  //
+  //     Any use of a malformed type gives rise to a static warning. A
+  //     malformed type is then interpreted as dynamic by the static type
+  //     checker and the runtime unless explicitly specified otherwise.
+  //
+  // So we convert malformed return/parameter types to `dynamic`.
+
   const Function& signature_function = Function::ZoneHandle(
       Z, Function::NewSignatureFunction(*active_class_->klass,
                                         TokenPosition::kNoSource));
 
   node->return_type()->AcceptDartTypeVisitor(this);
-  if (result_.IsMalformed()) return;
+  if (result_.IsMalformed()) {
+    result_ = AbstractType::dynamic_type().raw();
+  }
   signature_function.set_result_type(result_);
 
   const intptr_t positional_count = node->positional_parameters().length();
@@ -3847,14 +3854,18 @@ void DartTypeTranslator::VisitFunctionType(FunctionType* node) {
   pos++;
   for (intptr_t i = 0; i < positional_count; i++, pos++) {
     node->positional_parameters()[i]->AcceptDartTypeVisitor(this);
-    if (result_.IsMalformed()) return;
+    if (result_.IsMalformed()) {
+      result_ = AbstractType::dynamic_type().raw();
+    }
     parameter_types.SetAt(pos, result_);
     parameter_names.SetAt(pos, H.DartSymbol("noname"));
   }
   for (intptr_t i = 0; i < named_count; i++, pos++) {
     Tuple<String, DartType>* tuple = node->named_parameters()[i];
     tuple->second()->AcceptDartTypeVisitor(this);
-    if (result_.IsMalformed()) return;
+    if (result_.IsMalformed()) {
+      result_ = AbstractType::dynamic_type().raw();
+    }
     parameter_types.SetAt(pos, result_);
     parameter_names.SetAt(pos, H.DartSymbol(tuple->first()));
   }
