@@ -7,12 +7,14 @@ library edit.domain;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
+import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
@@ -132,22 +134,35 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Future getAssists(Request request) async {
-    if (server.options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      return;
-    }
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
-    ContextSourcePair pair = server.getContextSourcePair(params.file);
-    engine.AnalysisContext context = pair.context;
-    Source source = pair.source;
-    List<SourceChange> changes = <SourceChange>[];
-    if (context != null && source != null) {
-      List<Assist> assists = await computeAssists(
-          server.serverPlugin, context, source, params.offset, params.length);
-      assists.forEach((Assist assist) {
-        changes.add(assist.change);
-      });
+    List<Assist> assists;
+    if (server.options.enableNewAnalysisDriver) {
+      AnalysisResult result = await server.getAnalysisResult(params.file);
+      CompilationUnit unit = result.unit;
+      DartAssistContext dartAssistContext = new _DartAssistContextForValues(
+          unit.element.source,
+          params.offset,
+          params.length,
+          unit.element.context,
+          unit);
+      try {
+        AssistProcessor processor = new AssistProcessor(dartAssistContext);
+        assists = await processor.compute();
+      } catch (_) {}
+    } else {
+      ContextSourcePair pair = server.getContextSourcePair(params.file);
+      engine.AnalysisContext context = pair.context;
+      Source source = pair.source;
+      if (context != null && source != null) {
+        assists = await computeAssists(
+            server.serverPlugin, context, source, params.offset, params.length);
+      }
     }
+    // Send the assist changes.
+    List<SourceChange> changes = <SourceChange>[];
+    assists?.forEach((Assist assist) {
+      changes.add(assist.change);
+    });
     Response response =
         new EditGetAssistsResult(changes).toResponse(request.id);
     server.sendResponse(response);
@@ -388,6 +403,30 @@ class EditDomainHandler implements RequestHandler {
     }
     return numScanParseErrors;
   }
+}
+
+/**
+ * Implementation of [DartAssistContext] that is based on the values passed
+ * in the constructor, as opposite to be partially based on [AssistContext].
+ */
+class _DartAssistContextForValues implements DartAssistContext {
+  @override
+  final Source source;
+
+  @override
+  final int selectionOffset;
+
+  @override
+  final int selectionLength;
+
+  @override
+  final engine.AnalysisContext analysisContext;
+
+  @override
+  final CompilationUnit unit;
+
+  _DartAssistContextForValues(this.source, this.selectionOffset,
+      this.selectionLength, this.analysisContext, this.unit);
 }
 
 /**
