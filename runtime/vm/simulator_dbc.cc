@@ -1983,7 +1983,7 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(Shl, A_B_C);
     const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
-    if (rhs >= 0) {
+    if (static_cast<uintptr_t>(rhs) < kBitsPerWord) {
       const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
       const intptr_t res = lhs << rhs;
       if (lhs == (res >> rhs)) {
