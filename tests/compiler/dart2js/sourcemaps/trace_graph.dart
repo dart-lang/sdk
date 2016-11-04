@@ -20,7 +20,7 @@ class TraceGraph {
 
   void addStep(TraceStep step) {
     steps.add(step);
-    int offset = step.offset.subexpressionOffset;
+    int offset = step.offset.value;
     TraceStep existingStep = offsetMap[offset];
     if (existingStep != null) {
       // TODO(johnniwinther): Fix problems with reuse of JS nodes from

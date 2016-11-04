@@ -126,6 +126,16 @@ class Process {
     global_exit_code_ = exit_code;
   }
 
+  typedef void (*ExitHook)(int64_t exit_code);
+  static void SetExitHook(ExitHook hook) {
+    exit_hook_ = hook;
+  }
+  static void RunExitHook(int64_t exit_code) {
+    if (exit_hook_ != NULL) {
+      exit_hook_(exit_code);
+    }
+  }
+
   static intptr_t CurrentProcessId();
 
   static intptr_t SetSignalHandler(intptr_t signal);
@@ -139,6 +149,7 @@ class Process {
  private:
   static int global_exit_code_;
   static Mutex* global_exit_code_mutex_;
+  static ExitHook exit_hook_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);

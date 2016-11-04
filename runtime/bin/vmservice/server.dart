@@ -126,11 +126,22 @@ class Server {
   final bool _originCheckDisabled;
   HttpServer _server;
   bool get running => _server != null;
-  bool _displayMessages = false;
 
-  Server(this._service, this._ip, this._port, this._originCheckDisabled) {
-    _displayMessages = (_ip != '127.0.0.1' || _port != 8181);
+  /// Returns the server address including the auth token.
+  Uri get serverAddress {
+    if (!running) {
+      return null;
+    }
+    var ip = _server.address.address;
+    var port = _server.port;
+    if (useAuthToken) {
+      return Uri.parse('http://$ip:$port/$serviceAuthToken/');
+    } else {
+      return Uri.parse('http://$ip:$port/');
+    }
   }
+
+  Server(this._service, this._ip, this._port, this._originCheckDisabled);
 
   bool _isAllowedOrigin(String origin) {
     Uri uri;
@@ -177,6 +188,28 @@ class Server {
       }
     }
     return false;
+  }
+
+  /// Checks the [requestUri] for the service auth token and returns the path.
+  /// If the service auth token check fails, returns null.
+  String _checkAuthTokenAndGetPath(Uri requestUri) {
+    if (!useAuthToken) {
+      return requestUri.path == '/' ? ROOT_REDIRECT_PATH : requestUri.path;
+    }
+    final List<String> requestPathSegments = requestUri.pathSegments;
+    if (requestPathSegments.length < 2) {
+      // Malformed.
+      return null;
+    }
+    // Check that we were given the auth token.
+    final String authToken = requestPathSegments[0];
+    if (authToken != serviceAuthToken) {
+      // Malformed.
+      return null;
+    }
+    // Construct the actual request path by chopping off the auth token.
+    return (requestPathSegments[1] == '') ?
+        ROOT_REDIRECT_PATH : '/${requestPathSegments.sublist(1).join('/')}';
   }
 
   Future _requestHandler(HttpRequest request) async {
@@ -231,8 +264,12 @@ class Server {
       return;
     }
 
-    final String path =
-          request.uri.path == '/' ? ROOT_REDIRECT_PATH : request.uri.path;
+    final String path = _checkAuthTokenAndGetPath(request.uri);
+    if (path == null) {
+      // Malformed.
+      request.response.close();
+      return;
+    }
 
     if (path == WEBSOCKET_PATH) {
       WebSocketTransformer.upgrade(request).then(
@@ -274,18 +311,14 @@ class Server {
     return HttpServer.bind(address, _port).then((s) {
       _server = s;
       _server.listen(_requestHandler, cancelOnError: true);
-      var ip = _server.address.address;
-      var port = _server.port;
-      if (_displayMessages) {
-        print('Observatory listening on http://$ip:$port');
-      }
+      print('Observatory listening on $serverAddress');
       // Server is up and running.
-      _notifyServerState(ip, _server.port);
-      onServerAddressChange('http://$ip:$port');
+      _notifyServerState(serverAddress.toString());
+      onServerAddressChange('$serverAddress');
       return this;
     }).catchError((e, st) {
       print('Could not start Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
     });
@@ -304,24 +337,18 @@ class Server {
       return new Future.value(this);
     }
 
-    // Force displaying of status messages if we are forcibly shutdown.
-    _displayMessages = _displayMessages || forced;
-
     // Shutdown HTTP server and subscription.
-    var ip = _server.address.address.toString();
-    var port = _server.port.toString();
+    String oldServerAddress = serverAddress;
     return cleanup(forced).then((_) {
-      if (_displayMessages) {
-        print('Observatory no longer listening on http://$ip:$port');
-      }
+      print('Observatory no longer listening on $oldServerAddress');
       _server = null;
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
     }).catchError((e, st) {
       _server = null;
       print('Could not shutdown Observatory HTTP server:\n$e\n$st\n');
-      _notifyServerState("", 0);
+      _notifyServerState("");
       onServerAddressChange(null);
       return this;
     });
@@ -329,5 +356,5 @@ class Server {
 
 }
 
-void _notifyServerState(String ip, int port)
+void _notifyServerState(String uri)
     native "VMServiceIO_NotifyServerState";

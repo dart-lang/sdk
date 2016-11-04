@@ -34,6 +34,7 @@ namespace bin {
 
 int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = new Mutex();
+Process::ExitHook Process::exit_hook_ = NULL;
 
 // ProcessInfo is used to map a process id to the file descriptor for
 // the pipe used to communicate the exit code of the process to Dart.

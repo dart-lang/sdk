@@ -24,6 +24,7 @@ import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/context/context.dart' as context;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -88,6 +89,11 @@ class ContextInfo {
    * is no longer relevant.
    */
   Set<String> _dependencies = new Set<String>();
+
+  /**
+   * The analysis driver that was created for the [folder].
+   */
+  AnalysisDriver analysisDriver;
 
   /**
    * The analysis context that was created for the [folder].
@@ -246,6 +252,11 @@ abstract class ContextManager {
   void set callbacks(ContextManagerCallbacks value);
 
   /**
+   * A table mapping [Folder]s to the [AnalysisDriver]s associated with them.
+   */
+  Map<Folder, AnalysisDriver> get driverMap;
+
+  /**
    * Return the list of excluded paths (folders and files) most recently passed
    * to [setRoots].
    */
@@ -320,6 +331,12 @@ abstract class ContextManager {
  * modified.
  */
 abstract class ContextManagerCallbacks {
+  /**
+   * Create and return a new analysis driver rooted at the given [folder], with
+   * the given analysis [options].
+   */
+  AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options);
+
   /**
    * Create and return a new analysis context rooted at the given [folder], with
    * the given analysis [options].
@@ -479,6 +496,8 @@ class ContextManagerImpl implements ContextManager {
    */
   final InstrumentationService _instrumentationService;
 
+  final bool enableNewAnalysisDriver;
+
   @override
   ContextManagerCallbacks callbacks;
 
@@ -488,11 +507,14 @@ class ContextManagerImpl implements ContextManager {
    */
   final ContextInfo rootInfo = new ContextInfo._root();
 
+  @override
+  final Map<Folder, AnalysisDriver> driverMap =
+      new HashMap<Folder, AnalysisDriver>();
+
   /**
    * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
    */
-  @override
-  final Map<Folder, AnalysisContext> folderMap =
+  final Map<Folder, AnalysisContext> _folderMap =
       new HashMap<Folder, AnalysisContext>();
 
   /**
@@ -509,13 +531,22 @@ class ContextManagerImpl implements ContextManager {
       this._packageMapProvider,
       this.analyzedFilesGlobs,
       this._instrumentationService,
-      this.defaultContextOptions) {
+      this.defaultContextOptions,
+      this.enableNewAnalysisDriver) {
     absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
 
   @override
   Iterable<AnalysisContext> get analysisContexts => folderMap.values;
+
+  Map<Folder, AnalysisContext> get folderMap {
+    if (enableNewAnalysisDriver) {
+      throw new StateError('Should not be used with the new analysis driver');
+    } else {
+      return _folderMap;
+    }
+  }
 
   @override
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
@@ -1033,9 +1064,13 @@ class ContextManagerImpl implements ContextManager {
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);
-    info.context = callbacks.addContext(folder, options);
-    folderMap[folder] = info.context;
-    info.context.name = folder.path;
+    if (enableNewAnalysisDriver) {
+      info.analysisDriver = callbacks.addAnalysisDriver(folder, options);
+    } else {
+      info.context = callbacks.addContext(folder, options);
+      _folderMap[folder] = info.context;
+      info.context.name = folder.path;
+    }
 
     // Look for pubspec-specified analysis configuration.
     File pubspec;
@@ -1052,13 +1087,21 @@ class ContextManagerImpl implements ContextManager {
     }
     if (pubspec != null) {
       File pubSource = resourceProvider.getFile(pubspec.path);
-      setConfiguration(
-          info.context,
-          new AnalysisConfiguration.fromPubspec(
-              pubSource, resourceProvider, disposition.packages));
+      if (enableNewAnalysisDriver) {
+        // TODO(scheglov) implement for the new analysis driver
+      } else {
+        setConfiguration(
+            info.context,
+            new AnalysisConfiguration.fromPubspec(
+                pubSource, resourceProvider, disposition.packages));
+      }
     }
 
-    processOptionsForContext(info, optionMap);
+    if (enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+    } else {
+      processOptionsForContext(info, optionMap);
+    }
 
     return info;
   }
@@ -1336,11 +1379,15 @@ class ContextManagerImpl implements ContextManager {
         if (resource is File) {
           File file = resource;
           if (_shouldFileBeAnalyzed(file)) {
-            ChangeSet changeSet = new ChangeSet();
-            Source source = createSourceInContext(info.context, file);
-            changeSet.addedSource(source);
-            callbacks.applyChangesToContext(info.folder, changeSet);
-            info.sources[path] = source;
+            if (enableNewAnalysisDriver) {
+              info.analysisDriver.addFile(path);
+            } else {
+              ChangeSet changeSet = new ChangeSet();
+              Source source = createSourceInContext(info.context, file);
+              changeSet.addedSource(source);
+              callbacks.applyChangesToContext(info.folder, changeSet);
+              info.sources[path] = source;
+            }
           }
         }
         break;
@@ -1377,24 +1424,32 @@ class ContextManagerImpl implements ContextManager {
           }
         }
 
-        List<Source> sources = info.context.getSourcesWithFullName(path);
-        if (!sources.isEmpty) {
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach((Source source) {
-            changeSet.removedSource(source);
-          });
-          callbacks.applyChangesToContext(info.folder, changeSet);
-          info.sources.remove(path);
+        if (enableNewAnalysisDriver) {
+          info.analysisDriver.removeFile(path);
+        } else {
+          List<Source> sources = info.context.getSourcesWithFullName(path);
+          if (!sources.isEmpty) {
+            ChangeSet changeSet = new ChangeSet();
+            sources.forEach((Source source) {
+              changeSet.removedSource(source);
+            });
+            callbacks.applyChangesToContext(info.folder, changeSet);
+            info.sources.remove(path);
+          }
         }
         break;
       case ChangeType.MODIFY:
-        List<Source> sources = info.context.getSourcesWithFullName(path);
-        if (!sources.isEmpty) {
-          ChangeSet changeSet = new ChangeSet();
-          sources.forEach((Source source) {
-            changeSet.changedSource(source);
-          });
-          callbacks.applyChangesToContext(info.folder, changeSet);
+        if (enableNewAnalysisDriver) {
+          info.analysisDriver.changeFile(path);
+        } else {
+          List<Source> sources = info.context.getSourcesWithFullName(path);
+          if (!sources.isEmpty) {
+            ChangeSet changeSet = new ChangeSet();
+            sources.forEach((Source source) {
+              changeSet.changedSource(source);
+            });
+            callbacks.applyChangesToContext(info.folder, changeSet);
+          }
         }
         break;
     }

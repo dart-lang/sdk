@@ -11,6 +11,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -85,6 +86,11 @@ class SingleContextManager implements ContextManager {
   ContextManagerCallbacks callbacks;
 
   /**
+   * The analysis driver which analyses everything.
+   */
+  AnalysisDriver analysisDriver;
+
+  /**
    * The context in which everything is being analyzed.
    */
   AnalysisContext context;
@@ -115,6 +121,9 @@ class SingleContextManager implements ContextManager {
   @override
   Iterable<AnalysisContext> get analysisContexts =>
       context == null ? <AnalysisContext>[] : <AnalysisContext>[context];
+
+  @override
+  Map<Folder, AnalysisDriver> get driverMap => {contextFolder: analysisDriver};
 
   @override
   Map<Folder, AnalysisContext> get folderMap => {contextFolder: context};

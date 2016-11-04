@@ -419,7 +419,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   void visitInvokeSuper(HInvokeSuper instruction) {
-    Element superMethod = instruction.element;
+    MemberElement superMethod = instruction.element;
     Selector selector = instruction.selector;
     // If aliased super members cannot be used, we will generate code like
     //

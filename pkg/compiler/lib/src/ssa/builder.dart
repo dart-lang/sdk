@@ -20,6 +20,7 @@ import '../dart_types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
@@ -612,7 +613,7 @@ class SsaBuilder extends ast.Visitor
     return graph.addConstant(constantValue, compiler);
   }
 
-  Element get currentNonClosureClass {
+  ClassElement get currentNonClosureClass {
     ClassElement cls = sourceElement.enclosingClass;
     if (cls != null && cls.isClosure) {
       var closureClass = cls;
@@ -719,7 +720,7 @@ class SsaBuilder extends ast.Visitor
         isStatement: true));
   }
 
-  HGraph buildCheckedSetter(VariableElement field) {
+  HGraph buildCheckedSetter(FieldElement field) {
     ResolvedAst resolvedAst = field.resolvedAst;
     openFunction(field, resolvedAst.node);
     HInstruction thisInstruction = localsHandler.readThis();
@@ -747,9 +748,20 @@ class SsaBuilder extends ast.Visitor
     visit(initializer);
     HInstruction value = pop();
     value = potentiallyCheckOrTrustType(value, variable.type);
-    ast.SendSet sendSet = node.definitions.nodes.head;
-    closeAndGotoExit(new HReturn(value,
-        sourceInformationBuilder.buildReturn(sendSet.assignmentOperator)));
+    // In the case of multiple declarations (and some definitions) on the same
+    // line, the source pointer needs to point to the right initialized
+    // variable. So find the specific initialized variable we are referring to.
+    ast.Node sourceInfoNode = initializer;
+    for (var definition in node.definitions) {
+      if (definition is ast.SendSet &&
+          definition.selector.asIdentifier().source == variable.name) {
+        sourceInfoNode = definition.assignmentOperator;
+        break;
+      }
+    }
+
+    closeAndGotoExit(new HReturn(
+        value, sourceInformationBuilder.buildReturn(sourceInfoNode)));
     return closeFunction();
   }
 
@@ -1230,10 +1242,10 @@ class SsaBuilder extends ast.Visitor
 
     // Call the JavaScript constructor with the fields as argument.
     List<HInstruction> constructorArguments = <HInstruction>[];
-    List<Element> fields = <Element>[];
+    List<FieldEntity> fields = <FieldEntity>[];
 
     classElement.forEachInstanceField(
-        (ClassElement enclosingClass, VariableElement member) {
+        (ClassElement enclosingClass, FieldElement member) {
       HInstruction value = fieldValues[member];
       if (value == null) {
         // Uninitialized native fields are pre-initialized by the native
@@ -1588,7 +1600,7 @@ class SsaBuilder extends ast.Visitor
         analyzeTypeArgument(localsHandler.substInContext(supertype));
     HInstruction messageInstruction =
         graph.addConstantString(new ast.DartString.literal(message), compiler);
-    Element element = helpers.assertIsSubtype;
+    MethodElement element = helpers.assertIsSubtype;
     var inputs = <HInstruction>[
       subtypeInstruction,
       supertypeInstruction,
@@ -2223,8 +2235,8 @@ class SsaBuilder extends ast.Visitor
       } else {
         // TODO(5346): Try to avoid the need for calling [declaration] before
         // creating an [HStatic].
-        HInstruction instruction = new HStatic(field.declaration,
-            TypeMaskFactory.inferredTypeForElement(field, compiler))
+        HInstruction instruction = new HStatic(
+            field, TypeMaskFactory.inferredTypeForElement(field, compiler))
           ..sourceInformation = sourceInformation;
         push(instruction);
       }
@@ -2255,13 +2267,14 @@ class SsaBuilder extends ast.Visitor
         inferenceResults.typeOfSend(node, elements), receiver);
   }
 
-  /// Generate a closurization of the static or top level [function].
-  void generateStaticFunctionGet(ast.Send node, MethodElement function) {
+  /// Generate a closurization of the static or top level [method].
+  void generateStaticFunctionGet(ast.Send node, MethodElement method) {
+    assert(method.isDeclaration);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildGet(node);
-    push(new HStatic(function.declaration, backend.nonNullType)
+    push(new HStatic(method, backend.nonNullType)
       ..sourceInformation = sourceInformation);
   }
 
@@ -2404,9 +2417,9 @@ class SsaBuilder extends ast.Visitor
         pushInvokeStatic(location, element, <HInstruction>[value]);
         pop();
       } else {
-        VariableElement field = element;
+        FieldElement field = element;
         value = potentiallyCheckOrTrustType(value, field.type);
-        addWithPosition(new HStaticStore(element, value), location);
+        addWithPosition(new HStaticStore(field, value), location);
       }
       stack.add(value);
     } else if (Elements.isError(element)) {
@@ -3064,7 +3077,7 @@ class SsaBuilder extends ast.Visitor
 
   void handleForeignSend(ast.Send node, FunctionElement element) {
     String name = element.name;
-    if (name == 'JS') {
+    if (name == BackendHelpers.JS) {
       handleForeignJs(node);
     } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
       handleForeignJsCurrentIsolateContext(node);
@@ -3080,15 +3093,15 @@ class SsaBuilder extends ast.Visitor
       handleForeignJsGetStaticState(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
-    } else if (name == 'JS_EMBEDDED_GLOBAL') {
+    } else if (name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
       handleForeignJsEmbeddedGlobal(node);
-    } else if (name == 'JS_BUILTIN') {
+    } else if (name == BackendHelpers.JS_BUILTIN) {
       handleForeignJsBuiltin(node);
     } else if (name == 'JS_GET_FLAG') {
       handleForeignJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(compiler));
-    } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
+    } else if (name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
       handleJsInterceptorConstant(node);
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
@@ -3101,7 +3114,7 @@ class SsaBuilder extends ast.Visitor
       SourceInformation sourceInformation) {
     // Until now we only handle these as getters.
     invariant(node, deferredLoader.isDeferredLoaderGetter);
-    Element loadFunction = helpers.loadLibraryWrapper;
+    FunctionEntity loadFunction = helpers.loadLibraryWrapper;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
     String loadId =
         compiler.deferredLoadTask.getImportDeferName(node, prefixElement);
@@ -3170,16 +3183,16 @@ class SsaBuilder extends ast.Visitor
   }
 
   /// Generate a call to a super method or constructor.
-  void generateSuperInvoke(ast.Send node, FunctionElement function,
+  void generateSuperInvoke(ast.Send node, MethodElement method,
       SourceInformation sourceInformation) {
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
     Selector selector = elements.getSelector(node);
-    assert(invariant(node, selector.applies(function.implementation),
-        message: "$selector does not apply to ${function.implementation}"));
+    assert(invariant(node, selector.applies(method.implementation),
+        message: "$selector does not apply to ${method.implementation}"));
     List<HInstruction> inputs = makeStaticArgumentList(
-        selector.callStructure, node.arguments, function.implementation);
-    push(buildInvokeSuper(selector, function, inputs, sourceInformation));
+        selector.callStructure, node.arguments, method.implementation);
+    push(buildInvokeSuper(selector, method, inputs, sourceInformation));
   }
 
   /// Access the value from the super [element].
@@ -3684,7 +3697,7 @@ class SsaBuilder extends ast.Visitor
           sourceInformationBuilder.buildNew(send);
       potentiallyAddTypeArguments(inputs, cls, expectedType);
       addInlinedInstantiation(expectedType);
-      pushInvokeStatic(node, constructor, inputs,
+      pushInvokeStatic(node, constructor.declaration, inputs,
           typeMask: elementType,
           instanceType: expectedType,
           sourceInformation: sourceInformation);
@@ -4334,10 +4347,11 @@ class SsaBuilder extends ast.Visitor
   }
 
   void pushInvokeStatic(
-      ast.Node location, Element element, List<HInstruction> arguments,
+      ast.Node location, MethodElement element, List<HInstruction> arguments,
       {TypeMask typeMask,
       InterfaceType instanceType,
       SourceInformation sourceInformation}) {
+    assert(element.isDeclaration);
     // TODO(johnniwinther): Use [sourceInformation] instead of [location].
     if (tryInlineMethod(element, null, null, arguments, location,
         instanceType: instanceType)) {
@@ -4356,7 +4370,7 @@ class SsaBuilder extends ast.Visitor
           invokeJsInteropFunction(element, arguments, sourceInformation);
     } else {
       // creating an [HInvokeStatic].
-      instruction = new HInvokeStatic(element.declaration, arguments, typeMask,
+      instruction = new HInvokeStatic(element, arguments, typeMask,
           targetCanThrow: targetCanThrow)
         ..sourceInformation = sourceInformation;
       if (currentInlinedInstantiations.isNotEmpty) {
@@ -4374,7 +4388,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   HInstruction buildInvokeSuper(
-      Selector selector, Element element, List<HInstruction> arguments,
+      Selector selector, MemberElement element, List<HInstruction> arguments,
       [SourceInformation sourceInformation]) {
     HInstruction receiver = localsHandler.readThis();
     // TODO(5346): Try to avoid the need for calling [declaration] before
@@ -5330,7 +5344,7 @@ class SsaBuilder extends ast.Visitor
         inputs.add(analyzeTypeArgument(argument));
       });
     }
-    pushInvokeStatic(node, targetConstructor, inputs);
+    pushInvokeStatic(node, targetConstructor.declaration, inputs);
     HInstruction value = pop();
     emitReturn(value, node);
   }
@@ -5719,7 +5733,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength() {
-      Element lengthElement = helpers.jsIndexableLength;
+      MemberElement lengthElement = helpers.jsIndexableLength;
       HFieldGet result = new HFieldGet(
           lengthElement, array, backend.positiveIntType,
           isAssignable: !isFixed);
@@ -6197,7 +6211,6 @@ class SsaBuilder extends ast.Visitor
 
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
-    Element getFallThroughErrorElement = helpers.fallThroughError;
     HasNextIterator<ast.Node> caseIterator =
         new HasNextIterator<ast.Node>(switchCases.iterator);
     while (caseIterator.hasNext) {
@@ -6220,8 +6233,8 @@ class SsaBuilder extends ast.Visitor
       localsHandler = new LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
       if (!isAborted()) {
-        if (caseIterator.hasNext) {
-          pushInvokeStatic(switchCase, getFallThroughErrorElement, []);
+        if (caseIterator.hasNext && isReachable) {
+          pushInvokeStatic(switchCase, helpers.fallThroughError, []);
           HInstruction error = pop();
           closeAndGotoExit(new HThrow(error, error.sourceInformation));
         } else if (!isDefaultCase(switchCase)) {

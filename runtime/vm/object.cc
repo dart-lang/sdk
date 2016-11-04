@@ -72,11 +72,11 @@ DECLARE_FLAG(bool, trace_reload);
 DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, support_externalizable_strings);
 
-
 static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
 static const char* const kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
+
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.
 RawArray* ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
@@ -11579,7 +11579,8 @@ Class& cls = Class::Handle();
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
 
 
-RawInstructions* Instructions::New(intptr_t size) {
+RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
+  ASSERT(size >= 0);
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
     // This should be caught before we reach here.
@@ -11593,7 +11594,7 @@ RawInstructions* Instructions::New(intptr_t size) {
                                       Heap::kCode);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_size(size);
+    result.set_size(has_single_entry_point ? size : -size);
   }
   return result.raw();
 }
@@ -14264,8 +14265,9 @@ RawCode* Code::FinalizeCode(const char* name,
 #ifdef TARGET_ARCH_IA32
   assembler->set_code_object(code);
 #endif
-  Instructions& instrs =
-      Instructions::ZoneHandle(Instructions::New(assembler->CodeSize()));
+  Instructions& instrs = Instructions::ZoneHandle(
+      Instructions::New(assembler->CodeSize(),
+                        assembler->has_single_entry_point()));
   INC_STAT(Thread::Current(), total_instr_size, assembler->CodeSize());
   INC_STAT(Thread::Current(), total_code_size, assembler->CodeSize());
 
@@ -14572,7 +14574,12 @@ RawStackmap* Code::GetStackmap(
       return map->raw();  // We found a stack map for this frame.
     }
   }
-  ASSERT(!is_optimized() || (pc_offset == Instructions::kUncheckedEntryOffset));
+  // If we are missing a stack map, this must either be unoptimized code, or
+  // the entry to an osr function. (In which case all stack slots are
+  // considered to have tagged pointers.)
+  // Running with --verify-on-transition should hit this.
+  ASSERT(!is_optimized() ||
+         (pc_offset == UncheckedEntryPoint() - PayloadStart()));
   return Stackmap::null();
 }
 
@@ -19740,7 +19747,7 @@ int Bigint::CompareWith(const Integer& other) const {
 }
 
 
-const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
+const char* Bigint::ToDecCString(Zone* zone) const {
   // log10(2) ~= 0.30102999566398114.
   const intptr_t kLog2Dividend = 30103;
   const intptr_t kLog2Divisor = 100000;
@@ -19755,7 +19762,7 @@ const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
   const int64_t dec_len = (bit_len * kLog2Dividend / kLog2Divisor) + 1;
   // Add one byte for the minus sign and for the trailing \0 character.
   const int64_t len = (Neg() ? 1 : 0) + dec_len + 1;
-  char* chars = reinterpret_cast<char*>(allocator(len));
+  char* chars = zone->Alloc<char>(len);
   intptr_t pos = 0;
   const intptr_t kDivisor = 100000000;
   const intptr_t kDigits = 8;
@@ -19763,10 +19770,9 @@ const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
   ASSERT(kDivisor < kDigitBase);
   ASSERT(Smi::IsValid(kDivisor));
   // Allocate a copy of the digits.
-  const TypedData& rest_digits = TypedData::Handle(
-      TypedData::New(kTypedDataUint32ArrayCid, used));
+  uint32_t* rest_digits = zone->Alloc<uint32_t>(used);
   for (intptr_t i = 0; i < used; i++) {
-    rest_digits.SetUint32(i << 2, DigitAt(i));
+    rest_digits[i] = DigitAt(i);
   }
   if (used == 0) {
     chars[pos++] = '0';
@@ -19775,14 +19781,14 @@ const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
     uint32_t remainder = 0;
     for (intptr_t i = used - 1; i >= 0; i--) {
       uint64_t dividend = (static_cast<uint64_t>(remainder) << kBitsPerDigit) +
-          rest_digits.GetUint32(i << 2);
+          rest_digits[i];
       uint32_t quotient = static_cast<uint32_t>(dividend / kDivisor);
       remainder = static_cast<uint32_t>(
           dividend - static_cast<uint64_t>(quotient) * kDivisor);
-      rest_digits.SetUint32(i << 2, quotient);
+      rest_digits[i] = quotient;
     }
     // Clamp rest_digits.
-    while ((used > 0) && (rest_digits.GetUint32((used - 1) << 2) == 0)) {
+    while ((used > 0) && (rest_digits[used - 1] == 0)) {
       used--;
     }
     for (intptr_t i = 0; i < kDigits; i++) {
@@ -19813,12 +19819,12 @@ const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
 }
 
 
-const char* Bigint::ToHexCString(uword (*allocator)(intptr_t size)) const {
+const char* Bigint::ToHexCString(Zone* zone) const {
   const intptr_t used = Used();
   if (used == 0) {
     const char* zero = "0x0";
     const size_t len = strlen(zero) + 1;
-    char* chars = reinterpret_cast<char*>(allocator(len));
+    char* chars = zone->Alloc<char>(len);
     strncpy(chars, zero, len);
     return chars;
   }
@@ -19839,7 +19845,7 @@ const char* Bigint::ToHexCString(uword (*allocator)(intptr_t size)) const {
   }
   // Add bytes for '0x', for the minus sign, and for the trailing \0 character.
   const int32_t len = (Neg() ? 1 : 0) + 2 + hex_len + 1;
-  char* chars = reinterpret_cast<char*>(allocator(len));
+  char* chars = zone->Alloc<char>(len);
   intptr_t pos = len;
   chars[--pos] = '\0';
   for (intptr_t i = 0; i < (used - 1); i++) {
@@ -19864,14 +19870,8 @@ const char* Bigint::ToHexCString(uword (*allocator)(intptr_t size)) const {
 }
 
 
-static uword BigintAllocator(intptr_t size) {
-  Zone* zone = Thread::Current()->zone();
-  return zone->AllocUnsafe(size);
-}
-
-
 const char* Bigint::ToCString() const {
-  return ToDecCString(&BigintAllocator);
+  return ToDecCString(Thread::Current()->zone());
 }
 
 

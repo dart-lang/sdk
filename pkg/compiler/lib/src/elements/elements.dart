@@ -20,6 +20,7 @@ import '../tokens/token.dart'
 import '../tree/tree.dart';
 import '../util/characters.dart' show $_;
 import '../util/util.dart';
+import 'entities.dart';
 import 'visitor.dart' show ElementVisitor;
 
 part 'names.dart';
@@ -1047,7 +1048,8 @@ abstract class ExecutableElement extends Element
 ///
 /// A [MemberElement] is the outermost executable element for any executable
 /// context.
-abstract class MemberElement extends Element implements ExecutableElement {
+abstract class MemberElement extends Element
+    implements ExecutableElement, MemberEntity {
   /// The local functions defined within this member.
   List<FunctionElement> get nestedClosures;
 
@@ -1087,6 +1089,8 @@ abstract class VariableElement extends ExecutableElement {
 /// factories and constructors it is not itself a [Local] but instead
 /// a non-element [Local] is created through a specialized class.
 // TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
+// TODO(johnniwinther): Move this to 'entities.dart' when it does not refer
+// to [ExecutableElement].
 abstract class Local extends Entity {
   /// The context in which this local is defined.
   ExecutableElement get executableContext;
@@ -1100,7 +1104,8 @@ abstract class LocalVariableElement extends VariableElement
     implements LocalElement {}
 
 /// A top-level, static or instance field.
-abstract class FieldElement extends VariableElement implements MemberElement {}
+abstract class FieldElement extends VariableElement
+    implements MemberElement, FieldEntity {}
 
 /// A parameter-like element of a function signature.
 ///
@@ -1291,15 +1296,15 @@ class AsyncMarker {
 }
 
 /// A top level, static or instance function.
-abstract class MethodElement extends FunctionElement implements MemberElement {}
+abstract class MethodElement extends FunctionElement
+    implements MemberElement, FunctionEntity {}
 
 /// A local function or closure (anonymous local function).
 abstract class LocalFunctionElement extends FunctionElement
     implements LocalElement {}
 
 /// A constructor.
-abstract class ConstructorElement extends FunctionElement
-    implements MemberElement {
+abstract class ConstructorElement extends MethodElement {
   /// Returns `true` if [effectiveTarget] has been computed for this
   /// constructor.
   bool get hasEffectiveTarget;
@@ -1470,7 +1475,7 @@ abstract class TypeDeclarationElement extends GenericElement {
 }
 
 abstract class ClassElement extends TypeDeclarationElement
-    implements ScopeContainerElement {
+    implements ScopeContainerElement, ClassEntity {
   /// The length of the longest inheritance path from [:Object:].
   int get hierarchyDepth;
 

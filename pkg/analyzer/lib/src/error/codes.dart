@@ -529,7 +529,7 @@ class CompileTimeErrorCode extends ErrorCode {
           "Constant values from a deferred library can't be used to "
           "initialized a const variable.",
           "Try initializing the variable without referencing members of the "
-          "deferred library, or"
+          "deferred library, or "
           "changing the import to not be deferred.");
 
   /**
@@ -2779,7 +2779,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'NON_TYPE_AS_TYPE_ARGUMENT',
           "The name '{0}' isn't a type so it can't be used as a type argument.",
-          "Try correcting the name to an existing type, or"
+          "Try correcting the name to an existing type, or "
           "defining a type named '{0}'.");
 
   /**
@@ -2859,7 +2859,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_ENUM_CONSTANT',
           "There is no constant named '{0}' in '{1}'.",
-          "Try correcting the name to the name of an existing constant, or"
+          "Try correcting the name to the name of an existing constant, or "
           "defining a constant named '{0}'.");
 
   /**
@@ -2879,7 +2879,7 @@ class StaticTypeWarningCode extends ErrorCode {
           'UNDEFINED_FUNCTION',
           "The function '{0}' isn't defined.",
           "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing function, or"
+          "correcting the name to the name of an existing function, or "
           "defining a funtion named '{0}'.");
 
   /**
@@ -2895,7 +2895,7 @@ class StaticTypeWarningCode extends ErrorCode {
           'UNDEFINED_GETTER',
           "The getter '{0}' isn't defined for the class '{1}'.",
           "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing getter, or"
+          "correcting the name to the name of an existing getter, or "
           "defining a getter or field named '{0}'.");
 
   /**
@@ -2911,7 +2911,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_METHOD',
           "The method '{0}' isn't defined for the class '{1}'.",
-          "Try correcting the name to the name of an existing method, or"
+          "Try correcting the name to the name of an existing method, or "
           "defining a method named '{0}'.");
 
   /**
@@ -2970,7 +2970,7 @@ class StaticTypeWarningCode extends ErrorCode {
           'UNDEFINED_SETTER',
           "The setter '{0}' isn't defined for the class '{1}'.",
           "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing setter, or"
+          "correcting the name to the name of an existing setter, or "
           "defining a setter or field named '{0}'.");
 
   /**
@@ -2985,7 +2985,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_SUPER_GETTER',
           "The getter '{0}' isn't defined in a superclass of '{1}'.",
-          "Try correcting the name to the name of an existing getter, or"
+          "Try correcting the name to the name of an existing getter, or "
           "defining a getter or field named '{0}' in a superclass.");
 
   /**
@@ -3003,7 +3003,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_SUPER_METHOD',
           "The method '{0}' isn't defined in a superclass of '{1}'.",
-          "Try correcting the name to the name of an existing method, or"
+          "Try correcting the name to the name of an existing method, or "
           "defining a method named '{0}' in a superclass.");
 
   /**
@@ -3045,7 +3045,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_SUPER_SETTER',
           "The setter '{0}' isn't defined in a superclass of '{1}'.",
-          "Try correcting the name to the name of an existing setter, or"
+          "Try correcting the name to the name of an existing setter, or "
           "defining a setter or field named '{0}' in a superclass.");
 
   /**

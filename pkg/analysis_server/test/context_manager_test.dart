@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -1801,7 +1802,8 @@ abstract class ContextManagerTest {
         packageMapProvider,
         analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,
-        new AnalysisOptionsImpl());
+        new AnalysisOptionsImpl(),
+        false);
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
@@ -2653,6 +2655,12 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    * Iterable of the paths to contexts that currently exist.
    */
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
+
+  @override
+  AnalysisDriver addAnalysisDriver(Folder folder, AnalysisOptions options) {
+    // TODO: implement addAnalysisDriver
+    throw new UnimplementedError();
+  }
 
   @override
   AnalysisContext addContext(Folder folder, AnalysisOptions options) {

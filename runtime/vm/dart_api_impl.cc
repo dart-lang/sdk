@@ -2302,11 +2302,6 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
 }
 
 
-static uword BigintAllocate(intptr_t size) {
-  return Api::TopScope(Thread::Current())->zone()->AllocUnsafe(size);
-}
-
-
 DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
                                                  const char** value) {
   API_TIMELINE_DURATION;
@@ -2315,12 +2310,13 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
   if (int_obj.IsNull()) {
     RETURN_TYPE_ERROR(Z, integer, Integer);
   }
+  Zone* scope_zone = Api::TopScope(Thread::Current())->zone();
   if (int_obj.IsSmi() || int_obj.IsMint()) {
     const Bigint& bigint = Bigint::Handle(Z,
         Bigint::NewFromInt64(int_obj.AsInt64Value()));
-    *value = bigint.ToHexCString(BigintAllocate);
+    *value = bigint.ToHexCString(scope_zone);
   } else {
-    *value = Bigint::Cast(int_obj).ToHexCString(BigintAllocate);
+    *value = Bigint::Cast(int_obj).ToHexCString(scope_zone);
   }
   return Api::Success();
 }
@@ -6634,11 +6630,6 @@ DART_EXPORT Dart_Handle Dart_CreateAppJITSnapshot(
 
   return Api::Success();
 #endif
-}
-
-
-DART_EXPORT bool Dart_IsRunningPrecompiledCode() {
-  return Snapshot::IncludesCode(Dart::snapshot_kind());
 }
 
 

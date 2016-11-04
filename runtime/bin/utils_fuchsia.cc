@@ -88,7 +88,7 @@ int64_t TimerUtils::GetCurrentMonotonicMillis() {
 
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
-  int64_t ticks = mx_current_time();
+  int64_t ticks = mx_time_get(MX_CLOCK_MONOTONIC);
   return ticks / kNanosecondsPerMicrosecond;
 }
 

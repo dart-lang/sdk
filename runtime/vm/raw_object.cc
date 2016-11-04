@@ -68,7 +68,7 @@ intptr_t RawObject::SizeFromClass() const {
     case kInstructionsCid: {
       const RawInstructions* raw_instructions =
           reinterpret_cast<const RawInstructions*>(this);
-      intptr_t instructions_size = raw_instructions->ptr()->size_;
+      intptr_t instructions_size = abs(raw_instructions->ptr()->size_);
       instance_size = Instructions::InstanceSize(instructions_size);
       break;
     }
@@ -574,14 +574,14 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(
 intptr_t RawInstructions::VisitInstructionsPointers(
     RawInstructions* raw_obj, ObjectPointerVisitor* visitor) {
   RawInstructions* obj = raw_obj->ptr();
-  return Instructions::InstanceSize(obj->size_);
+  return Instructions::InstanceSize(abs(obj->size_));
 }
 
 
 bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {
   uword start_pc =
       reinterpret_cast<uword>(raw_instr->ptr()) + Instructions::HeaderSize();
-  uword end_pc = start_pc + raw_instr->ptr()->size_;
+  uword end_pc = start_pc + abs(raw_instr->ptr()->size_);
   ASSERT(end_pc > start_pc);
   return (pc >= start_pc) && (pc < end_pc);
 }

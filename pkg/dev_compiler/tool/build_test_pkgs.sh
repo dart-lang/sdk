@@ -5,7 +5,7 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 mkdir -p gen/codegen_output/pkg/
 
-SDK=--dart-sdk-summary=lib/js/amd/dart_sdk.sum
+SDK=--dart-sdk-summary=lib/sdk/ddc_sdk.sum
 
 ./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/expect.js \
     package:expect/expect.dart \
@@ -14,6 +14,9 @@ SDK=--dart-sdk-summary=lib/js/amd/dart_sdk.sum
 ./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/async_helper.js \
     --url-mapping=package:async_helper/async_helper.dart,test/codegen/async_helper.dart \
     package:async_helper/async_helper.dart
+
+./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/collection.js \
+    package:collection/collection.dart
 
 ./bin/dartdevc.dart $SDK -o gen/codegen_output/pkg/js.js \
     package:js/js.dart

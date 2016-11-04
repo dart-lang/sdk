@@ -95,6 +95,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 36);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
+  CHECK_OFFSET(Isolate::object_store_offset(), 28);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
 #if defined(TARGET_ARCH_MIPS)
@@ -104,6 +105,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Thread::stack_limit_offset(), 4);
   CHECK_OFFSET(Thread::object_null_offset(), 36);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 14);
+  CHECK_OFFSET(Isolate::object_store_offset(), 28);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 120));
 #endif
 #if defined(TARGET_ARCH_ARM64)
@@ -113,6 +115,7 @@ static void CheckOffsets() {
   CHECK_OFFSET(Thread::stack_limit_offset(), 8);
   CHECK_OFFSET(Thread::object_null_offset(), 72);
   CHECK_OFFSET(SingleTargetCache::upper_limit_offset(), 28);
+  CHECK_OFFSET(Isolate::object_store_offset(), 56);
   NOT_IN_PRODUCT(CHECK_OFFSET(sizeof(ClassHeapStats), 208));
 #endif
 #undef CHECK_OFFSET

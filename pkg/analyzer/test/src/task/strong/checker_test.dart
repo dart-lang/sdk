@@ -2751,7 +2751,7 @@ void main() {
 typedef T Returns<T>();
 
 // regression test for https://github.com/dart-lang/sdk/issues/26094
-class A <S extends  Returns<S>, T extends Returns<T>> {
+class A <S extends Returns<S>, T extends Returns<T>> {
   int test(bool b) {
     S s;
     T t;
@@ -3721,7 +3721,9 @@ g() {
   }
 
   void test_typePromotionFromTypeParameter() {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26965
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/26965
+    // https://github.com/dart-lang/sdk/issues/27040
     checkFile(r'''
 void f/*<T>*/(/*=T*/ object) {
   if (object is String) print(object.substring(1));
@@ -3734,13 +3736,46 @@ class Clonable<T> {}
 class SubClonable<T> extends Clonable<T> {
   T m(T t) => t;
 }
+void takesSubClonable/*<A>*/(SubClonable/*<A>*/ t) {}
+
 void h/*<T extends Clonable<T>>*/(/*=T*/ object) {
   if (/*info:NON_GROUND_TYPE_CHECK_INFO*/object is SubClonable/*<T>*/) {
-    // Note we need to cast back to T, because promotion lost that type info.
-    print(object.m(object as dynamic/*=T*/));
+    print(object.m(object));
+
+    SubClonable/*<T>*/ s = object;
+    takesSubClonable/*<T>*/(object);
+    h(object);
   }
 }
 ''');
+  }
+
+  void test_typePromotionFromTypeParameterAndInference() {
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/27040
+    checkFile(r'''
+void f/*<T extends num>*/(T x, T y) {
+  var z = x;
+  var f = () => x;
+  f = () => y;
+  if (x is int) {
+    /*info:DYNAMIC_INVOKE*/z./*error:UNDEFINED_GETTER*/isEven;
+    var q = x;
+    q = /*warning:DOWN_CAST_COMPOSITE*/z;
+    /*info:DYNAMIC_INVOKE*/f()./*error:UNDEFINED_GETTER*/isEven;
+
+    // This does not capture the type `T extends int`. Instead the return type
+    // is `T extends num`. What happens is we substitute {T/T} on the function
+    // type, and the way it is implemented, this leads back to `T extends num`.
+    // See https://github.com/dart-lang/sdk/issues/27725
+    var g = () => x;
+    g = f;
+    /*info:DYNAMIC_INVOKE*/g()./*error:UNDEFINED_GETTER*/isEven;
+    q = /*warning:DOWN_CAST_COMPOSITE*/g();
+    int r = x;
+  }
+}
+    ''');
   }
 
   void test_typeSubtyping_assigningClass() {

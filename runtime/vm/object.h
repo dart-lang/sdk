@@ -4139,16 +4139,18 @@ class ObjectPool : public Object {
 
 class Instructions : public Object {
  public:
-  intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
+  // Excludes HeaderSize().
+  intptr_t size() const { return abs(raw_ptr()->size_); }
+  bool HasSingleEntryPoint() const { return raw_ptr()->size_ >= 0; }
 
   uword PayloadStart() const {
     return PayloadStart(raw());
   }
-  uword UncheckedEntryPoint() const {
-    return UncheckedEntryPoint(raw());
-  }
   uword CheckedEntryPoint() const {
     return CheckedEntryPoint(raw());
+  }
+  uword UncheckedEntryPoint() const {
+    return UncheckedEntryPoint(raw());
   }
   static uword PayloadStart(RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
@@ -4176,11 +4178,19 @@ class Instructions : public Object {
 #error Missing entry offsets for current architecture
 #endif
 
-  static uword UncheckedEntryPoint(RawInstructions* instr) {
-    return PayloadStart(instr) + kUncheckedEntryOffset;
-  }
   static uword CheckedEntryPoint(RawInstructions* instr) {
-    return PayloadStart(instr) + kCheckedEntryOffset;
+    uword entry = PayloadStart(instr);
+    if (instr->ptr()->size_ < 0) {
+      entry += kCheckedEntryOffset;
+    }
+    return entry;
+  }
+  static uword UncheckedEntryPoint(RawInstructions* instr) {
+    uword entry = PayloadStart(instr);
+    if (instr->ptr()->size_ < 0) {
+      entry += kUncheckedEntryOffset;
+    }
+    return entry;
   }
 
   static const intptr_t kMaxElements = (kMaxInt32 -
@@ -4207,9 +4217,9 @@ class Instructions : public Object {
     return Utils::RoundUp(sizeof(RawInstructions), alignment);
   }
 
-  static RawInstructions* FromUncheckedEntryPoint(uword entry_point) {
+  static RawInstructions* FromPayloadStart(uword payload_start) {
     return reinterpret_cast<RawInstructions*>(
-        entry_point - HeaderSize() - kUncheckedEntryOffset + kHeapObjectTag);
+        payload_start - HeaderSize() + kHeapObjectTag);
   }
 
   bool Equals(const Instructions& other) const {
@@ -4229,7 +4239,7 @@ class Instructions : public Object {
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawInstructions* New(intptr_t size);
+  static RawInstructions* New(intptr_t size, bool has_single_entry_point);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
@@ -4689,13 +4699,16 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword PayloadStart() const {
-    return Instructions::PayloadStart(instructions());
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.PayloadStart();
   }
   uword UncheckedEntryPoint() const {
-    return Instructions::UncheckedEntryPoint(instructions());
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.UncheckedEntryPoint();
   }
   uword CheckedEntryPoint() const {
-    return Instructions::CheckedEntryPoint(instructions());
+    const Instructions& instr = Instructions::Handle(instructions());
+    return instr.CheckedEntryPoint();
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -6637,8 +6650,8 @@ class Bigint : public Integer {
   intptr_t Used() const;
   uint32_t DigitAt(intptr_t index) const;
 
-  const char* ToDecCString(uword (*allocator)(intptr_t size)) const;
-  const char* ToHexCString(uword (*allocator)(intptr_t size)) const;
+  const char* ToDecCString(Zone* zone) const;
+  const char* ToHexCString(Zone* zone) const;
 
   static const intptr_t kBitsPerDigit = 32;  // Same as _Bigint._DIGIT_BITS
   static const intptr_t kBytesPerDigit = 4;
@@ -7930,6 +7943,7 @@ class TypedData : public Instance {
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uword ComputeCanonicalTableHash() const;
 
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
     NoSafepointScope no_safepoint;                                             \
@@ -7939,6 +7953,20 @@ class TypedData : public Instance {
     NoSafepointScope no_safepoint;                                             \
     *reinterpret_cast<type*>(DataAddr(byte_offset)) = value;                   \
   }
+#else  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+#define TYPED_GETTER_SETTER(name, type)                                        \
+  type Get##name(intptr_t byte_offset) const {                                 \
+    NoSafepointScope no_safepoint;                                             \
+    type result;                                                               \
+    memmove(&result, DataAddr(byte_offset), sizeof(type));                     \
+    return result;                                                             \
+  }                                                                            \
+  void Set##name(intptr_t byte_offset, type value) const {                     \
+    NoSafepointScope no_safepoint;                                             \
+    memmove(DataAddr(byte_offset), &value, sizeof(type));                      \
+  }
+#endif  // defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+
   TYPED_GETTER_SETTER(Int8, int8_t)
   TYPED_GETTER_SETTER(Uint8, uint8_t)
   TYPED_GETTER_SETTER(Int16, int16_t)

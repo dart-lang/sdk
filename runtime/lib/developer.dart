@@ -149,3 +149,12 @@ _postResponse(SendPort replyPort,
   }
   replyPort.send(sb.toString());
 }
+
+@patch int _getServiceMajorVersion() native "Developer_getServiceMajorVersion";
+
+@patch int _getServiceMinorVersion() native "Developer_getServiceMinorVersion";
+
+@patch void _getServerInfo(SendPort sp) native "Developer_getServerInfo";
+
+@patch void _webServerControl(SendPort sp, bool enable)
+    native "Developer_webServerControl";

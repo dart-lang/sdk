@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
@@ -298,6 +299,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   bool isCoreLibrary = false;
 
   /**
+   * True is a [PartOfDirective] was found, so the unit is a part.
+   */
+  bool isPartOf = false;
+
+  /**
    * If the library has a library directive, the library name derived from it.
    * Otherwise `null`.
    */
@@ -518,6 +524,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     compilationUnit.declarations.accept(this);
     UnlinkedUnitBuilder b = new UnlinkedUnitBuilder();
     b.lineStarts = compilationUnit.lineInfo?.lineStarts;
+    b.isPartOf = isPartOf;
     b.libraryName = libraryName;
     b.libraryNameOffset = libraryNameOffset;
     b.libraryNameLength = libraryNameLength;
@@ -534,6 +541,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.typedefs = typedefs;
     b.variables = variables;
     b.publicNamespace = computePublicNamespace(compilationUnit);
+    _computeApiSignature(b);
     return b;
   }
 
@@ -1345,6 +1353,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitPartOfDirective(PartOfDirective node) {
     isCoreLibrary = node.libraryName.name == 'dart.core';
+    isPartOf = true;
   }
 
   @override
@@ -1385,6 +1394,15 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   static bool isDynamic(TypeName typeName) {
     Identifier name = typeName.name;
     return name is SimpleIdentifier && name.name == 'dynamic';
+  }
+
+  /**
+   * Compute the API signature of the unit and record it.
+   */
+  static void _computeApiSignature(UnlinkedUnitBuilder b) {
+    ApiSignature apiSignature = new ApiSignature();
+    b.collectApiSignature(apiSignature);
+    b.apiSignature = apiSignature.toByteList();
   }
 }
 

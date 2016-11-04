@@ -27,10 +27,12 @@ import '../elements/elements.dart'
         ImportElement,
         LibraryElement,
         LocalFunctionElement,
+        MetadataAnnotation,
         MixinApplicationElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousFieldElementX;
 import '../tree/tree.dart' show FunctionExpression, Node;
+import 'constant_visitor.dart';
 import 'kernel_visitor.dart' show IrFunction, KernelVisitor;
 
 typedef void WorkAction();
@@ -217,6 +219,12 @@ class Kernel {
           classNode.implementedTypes.add(interface);
         }
       });
+      addWork(cls.declaration, () {
+        for (MetadataAnnotation metadata in cls.declaration.metadata) {
+          classNode.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
+        }
+      });
       return classNode;
     });
   }
@@ -391,6 +399,12 @@ class Kernel {
           return true;
         });
       });
+      addWork(function.declaration, () {
+        for (MetadataAnnotation metadata in function.declaration.metadata) {
+          member.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
+        }
+      });
       return member;
     });
   }
@@ -450,6 +464,12 @@ class Kernel {
               new KernelVisitor(field, field.treeElements, this);
           fieldNode.initializer = visitor.buildInitializer()
             ..parent = fieldNode;
+        }
+      });
+      addWork(field.declaration, () {
+        for (MetadataAnnotation metadata in field.declaration.metadata) {
+          fieldNode.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
         }
       });
       return fieldNode;

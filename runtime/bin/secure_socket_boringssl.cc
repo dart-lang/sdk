@@ -439,7 +439,6 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, CertificateCallback);
   SSL_CTX_set_min_version(ctx, TLS1_VERSION);
   SSL_CTX_set_cipher_list(ctx, "HIGH:MEDIUM");
-  SSL_CTX_set_cipher_list_tls11(ctx, "HIGH:MEDIUM");
   SSLContext* context = new SSLContext(ctx);
   Dart_Handle err = SetSecurityContext(args, context);
   if (Dart_IsError(err)) {

@@ -228,7 +228,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
       Map<String, String> environmentOverrides) {
     var extraArguments = [
       '--sdk',
-      '$buildDir/obj/gen/patched_sdk',
+      '$buildDir/patched_sdk',
       '--link',
       '--target=vm',
       '--out',

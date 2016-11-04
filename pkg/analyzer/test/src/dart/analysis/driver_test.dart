@@ -14,6 +14,7 @@ import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -50,7 +51,7 @@ class DriverTest {
 
   final MemoryResourceProvider provider = new MemoryResourceProvider();
   final ByteStore byteStore = new _TestByteStore();
-  final ContentCache contentCache = new ContentCache();
+  final FileContentOverlay contentOverlay = new FileContentOverlay();
   final StringBuffer logBuffer = new StringBuffer();
 
   AnalysisDriver driver;
@@ -69,7 +70,7 @@ class DriverTest {
         new PerformanceLog(logBuffer),
         provider,
         byteStore,
-        contentCache,
+        contentOverlay,
         new SourceFactory([
           new DartUriResolver(sdk),
           new PackageMapUriResolver(provider, <String, List<Folder>>{
@@ -272,6 +273,20 @@ var A2 = B1;
     }
   }
 
+  test_getResult_inferTypes_finalField() async {
+    _addTestFile(
+        r'''
+class C {
+  final f = 42;
+}
+''',
+        priority: true);
+    await _waitForIdle();
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(_getClassFieldType(result.unit, 'C', 'f'), 'int');
+  }
+
   test_getResult_selfConsistent() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -348,6 +363,19 @@ var A2 = B1;
     expect(result2, same(result1));
     expect(result1.path, testFile);
     expect(result1.unit, isNotNull);
+  }
+
+  test_isAddedFile() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    driver.addFile(a);
+    expect(driver.isAddedFile(a), isTrue);
+    expect(driver.isAddedFile(b), isFalse);
+
+    driver.removeFile(a);
+    expect(driver.isAddedFile(a), isFalse);
+    expect(driver.isAddedFile(b), isFalse);
   }
 
   test_removeFile_changeFile_implicitlyAnalyzed() async {
@@ -486,6 +514,39 @@ var A = B;
     if (priority) {
       driver.priorityFiles = [testFile];
     }
+  }
+
+  ClassDeclaration _getClass(CompilationUnit unit, String name) {
+    for (CompilationUnitMember declaration in unit.declarations) {
+      if (declaration is ClassDeclaration) {
+        if (declaration.name.name == name) {
+          return declaration;
+        }
+      }
+    }
+    fail('Cannot find the class $name in\n$unit');
+    return null;
+  }
+
+  VariableDeclaration _getClassField(
+      CompilationUnit unit, String className, String fieldName) {
+    ClassDeclaration classDeclaration = _getClass(unit, className);
+    for (ClassMember declaration in classDeclaration.members) {
+      if (declaration is FieldDeclaration) {
+        for (var field in declaration.fields.variables) {
+          if (field.name.name == fieldName) {
+            return field;
+          }
+        }
+      }
+    }
+    fail('Cannot find the field $fieldName in the class $className in\n$unit');
+    return null;
+  }
+
+  String _getClassFieldType(
+      CompilationUnit unit, String className, String fieldName) {
+    return _getClassField(unit, className, fieldName).element.type.toString();
   }
 
   VariableDeclaration _getTopLevelVar(CompilationUnit unit, String name) {

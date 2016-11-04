@@ -855,7 +855,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                    &inline_id_to_token_pos,
                                    &caller_inline_id,
                                    use_speculative_inlining,
-                                   NULL);
+                                   /*inlining_black_list=*/ NULL,
+                                   /*precompiler=*/ NULL);
           inliner.Inline();
           // Use lists are maintained and validated by the inliner.
           DEBUG_ASSERT(flow_graph->VerifyUseLists());
@@ -1459,7 +1460,8 @@ RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
 #ifdef DART_PRECOMPILER
   if (FLAG_precompiled_mode) {
-    return Precompiler::CompileFunction(thread, thread->zone(), function);
+    return Precompiler::CompileFunction(
+        /* precompiler = */ NULL, thread, thread->zone(), function);
   }
 #endif
   Isolate* isolate = thread->isolate();

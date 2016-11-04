@@ -2315,6 +2315,13 @@ table UnlinkedTypeParam {
  */
 table UnlinkedUnit {
   /**
+   * MD5 hash of the non-informative fields of the [UnlinkedUnit] (not
+   * including this one) as 16 unsigned 8-bit integer values.  This can be used
+   * to identify when the API of a unit may have changed.
+   */
+  apiSignature:[uint] (id: 19);
+
+  /**
    * Classes declared in the compilation unit.
    */
   classes:[UnlinkedClass] (id: 2);
@@ -2353,6 +2360,11 @@ table UnlinkedUnit {
    * Import declarations in the compilation unit.
    */
   imports:[UnlinkedImport] (id: 5);
+
+  /**
+   * Indicates whether the unit contains a "part of" declaration.
+   */
+  isPartOf:bool (id: 18);
 
   /**
    * Annotations for the library declaration, or the empty list if there is no

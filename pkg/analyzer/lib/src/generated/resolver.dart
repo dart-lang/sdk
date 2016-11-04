@@ -6887,9 +6887,10 @@ class ResolverVisitor extends ScopedVisitor {
       potentialType ??= DynamicTypeImpl.instance;
 
       // Check if we can promote to potentialType from type.
-      if (typeSystem.canPromoteToType(potentialType, type)) {
+      DartType promoteType = typeSystem.tryPromoteToType(potentialType, type);
+      if (promoteType != null) {
         // Do promote type of variable.
-        _promoteManager.setType(element, potentialType);
+        _promoteManager.setType(element, promoteType);
       }
     }
   }
@@ -9943,8 +9944,18 @@ class TypeResolverVisitor extends ScopedVisitor {
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
     super.visitVariableDeclaration(node);
+    var variableList = node.parent as VariableDeclarationList;
+    // When the library is resynthesized, the types of field elements are
+    // already set - statically or inferred. We don't want to overwrite them.
+    // See also dartbug.com/27482 for separating static and inferred types.
+    if (variableList.parent is FieldDeclaration &&
+        LibraryElementImpl.hasResolutionCapability(
+            definingLibrary, LibraryResolutionCapability.resolvedTypeNames)) {
+      return null;
+    }
+    // Resolve the type.
     DartType declaredType;
-    TypeName typeName = (node.parent as VariableDeclarationList).type;
+    TypeName typeName = variableList.type;
     if (typeName == null) {
       declaredType = _dynamicType;
     } else {

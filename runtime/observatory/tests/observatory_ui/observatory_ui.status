@@ -8,6 +8,7 @@
 [ $runtime == dartium ]
 isolate/*: Skip
 allocation_profile: Skip
+vm_connect/element_test: Skip # See issue 27714
 
 [ $runtime == ff || $runtime == safari ]
 allocation_profile: Skip

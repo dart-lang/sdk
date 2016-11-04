@@ -72,10 +72,12 @@ static void GetUniqueDynamicTarget(Isolate* isolate,
 }
 
 
-AotOptimizer::AotOptimizer(FlowGraph* flow_graph,
+AotOptimizer::AotOptimizer(Precompiler* precompiler,
+                           FlowGraph* flow_graph,
                            bool use_speculative_inlining,
                            GrowableArray<intptr_t>* inlining_black_list)
     : FlowGraphVisitor(flow_graph->reverse_postorder()),
+      precompiler_(precompiler),
       flow_graph_(flow_graph),
       use_speculative_inlining_(use_speculative_inlining),
       inlining_black_list_(inlining_black_list),
@@ -121,6 +123,47 @@ void AotOptimizer::PopulateWithICData() {
     }
     current_iterator_ = NULL;
   }
+}
+
+
+bool AotOptimizer::RecognizeRuntimeTypeGetter(InstanceCallInstr* call) {
+  if ((precompiler_ == NULL) || !precompiler_->get_runtime_type_is_unique()) {
+    return false;
+  }
+
+  if (call->function_name().raw() != Symbols::GetRuntimeType().raw()) {
+    return false;
+  }
+
+  // There is only a single function Object.get:runtimeType that can be invoked
+  // by this call. Convert dynamic invocation to a static one.
+  const Class& cls = Class::Handle(Z, I->object_store()->object_class());
+  const Array& args_desc_array = Array::Handle(Z,
+      ArgumentsDescriptor::New(call->ArgumentCount(),
+                               call->argument_names()));
+  ArgumentsDescriptor args_desc(args_desc_array);
+  const Function& function = Function::Handle(Z,
+      Resolver::ResolveDynamicForReceiverClass(
+          cls,
+          call->function_name(),
+          args_desc));
+  ASSERT(!function.IsNull());
+
+  ZoneGrowableArray<PushArgumentInstr*>* args =
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(
+          call->ArgumentCount());
+  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    args->Add(call->PushArgumentAt(i));
+  }
+  StaticCallInstr* static_call = new (Z) StaticCallInstr(
+      call->token_pos(),
+      Function::ZoneHandle(Z, function.raw()),
+      call->argument_names(),
+      args,
+      call->deopt_id());
+  static_call->set_result_cid(kTypeCid);
+  call->ReplaceWith(static_call, current_iterator());
+  return true;
 }
 
 
@@ -629,6 +672,58 @@ bool AotOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
 
 static bool SmiFitsInDouble() { return kSmiBits < 53; }
 
+
+static bool IsGetRuntimeType(Definition* defn) {
+  StaticCallInstr* call = defn->AsStaticCall();
+  return (call != NULL) &&
+      (call->function().recognized_kind() ==
+          MethodRecognizer::kObjectRuntimeType);
+}
+
+
+// Recognize a.runtimeType == b.runtimeType and fold it into
+// Object._haveSameRuntimeType(a, b).
+// Note: this optimization is not speculative.
+bool AotOptimizer::TryReplaceWithHaveSameRuntimeType(InstanceCallInstr* call) {
+  const ICData& ic_data = *call->ic_data();
+  ASSERT(ic_data.NumArgsTested() == 2);
+
+  ASSERT(call->ArgumentCount() == 2);
+  Definition* left = call->ArgumentAt(0);
+  Definition* right = call->ArgumentAt(1);
+
+  if (IsGetRuntimeType(left) && left->input_use_list()->IsSingleUse() &&
+      IsGetRuntimeType(right) && right->input_use_list()->IsSingleUse()) {
+    const Class& cls = Class::Handle(Z, I->object_store()->object_class());
+    const Function& have_same_runtime_type = Function::ZoneHandle(Z,
+        cls.LookupStaticFunctionAllowPrivate(Symbols::HaveSameRuntimeType()));
+    ASSERT(!have_same_runtime_type.IsNull());
+
+    ZoneGrowableArray<PushArgumentInstr*>* args =
+        new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
+    PushArgumentInstr* arg = new (Z) PushArgumentInstr(
+        new (Z) Value(left->ArgumentAt(0)));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    arg = new (Z) PushArgumentInstr(
+         new (Z) Value(right->ArgumentAt(0)));
+    InsertBefore(call, arg, NULL, FlowGraph::kEffect);
+    args->Add(arg);
+    StaticCallInstr* static_call = new (Z) StaticCallInstr(
+        call->token_pos(),
+        have_same_runtime_type,
+        Object::null_array(),  // argument_names
+        args,
+        call->deopt_id());
+    static_call->set_result_cid(kBoolCid);
+    ReplaceCall(call, static_call);
+    return true;
+  }
+
+  return false;
+}
+
+
 bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
                                             Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
@@ -640,11 +735,7 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
 
   intptr_t cid = kIllegalCid;
   if (HasOnlyTwoOf(ic_data, kOneByteStringCid)) {
-    if (TryStringLengthOneEquality(call, op_kind)) {
-      return true;
-    } else {
-      return false;
-    }
+    return TryStringLengthOneEquality(call, op_kind);
   } else if (HasOnlyTwoOf(ic_data, kSmiCid)) {
     InsertBefore(call,
                  new(Z) CheckSmiInstr(new(Z) Value(left),
@@ -710,6 +801,8 @@ bool AotOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
       cid = kSmiCid;
     } else {
       // Shortcut for equality with null.
+      // TODO(vegorov): this optimization is not speculative and should
+      // be hoisted out of this function.
       ConstantInstr* right_const = right->AsConstant();
       ConstantInstr* left_const = left->AsConstant();
       if ((right_const != NULL && right_const->value().IsNull()) ||
@@ -1757,6 +1850,14 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     return;
   }
 
+  if (RecognizeRuntimeTypeGetter(instr)) {
+    return;
+  }
+
+  if ((op_kind == Token::kEQ) && TryReplaceWithHaveSameRuntimeType(instr)) {
+    return;
+  }
+
   const ICData& unary_checks =
       ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
   if (IsAllowedForInlining(instr->deopt_id()) &&
@@ -1819,7 +1920,21 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kLT:
     case Token::kLTE:
     case Token::kGT:
-    case Token::kGTE:
+    case Token::kGTE: {
+      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
+          HasLikelySmiOperand(instr)) {
+        Definition* left = instr->ArgumentAt(0);
+        Definition* right = instr->ArgumentAt(1);
+        CheckedSmiComparisonInstr* smi_op =
+            new(Z) CheckedSmiComparisonInstr(instr->token_kind(),
+                                             new(Z) Value(left),
+                                             new(Z) Value(right),
+                                             instr);
+        ReplaceCall(instr, smi_op);
+        return;
+      }
+      break;
+    }
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:

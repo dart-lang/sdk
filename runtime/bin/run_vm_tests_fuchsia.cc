@@ -264,15 +264,16 @@ static int run_test(mx_handle_t binary_vmo, const char* test_name,
   drain_fd(stdout_pipe, test_stdout);
   drain_fd(stderr_pipe, test_stderr);
 
-  mx_signals_state_t state;
   mx_status_t r = mx_handle_wait_one(
-      p, MX_SIGNAL_SIGNALED, MX_TIME_INFINITE, &state);
+      p, MX_SIGNAL_SIGNALED, MX_TIME_INFINITE, NULL);
   RETURN_IF_ERROR(r);
 
   mx_info_process_t proc_info;
-  mx_ssize_t info_size = mx_object_get_info(
-      p, MX_INFO_PROCESS, sizeof(proc_info.rec), &proc_info, sizeof(proc_info));
-  RETURN_IF_ERROR(info_size);
+  mx_size_t info_size;
+  mx_status_t status =
+      mx_object_get_info(p, MX_INFO_PROCESS, sizeof(proc_info.rec),
+                         &proc_info, sizeof(proc_info), &info_size);
+  RETURN_IF_ERROR(status);
 
   r = mx_handle_close(p);
   RETURN_IF_ERROR(r);
@@ -325,7 +326,8 @@ static void* test_runner_thread(void* arg) {
     const char* test = args->test_list[index];
     char* test_stdout = NULL;
     char* test_stderr = NULL;
-    mx_handle_t vmo_dup = mx_handle_duplicate(binary_vmo, MX_RIGHT_SAME_RIGHTS);
+    mx_handle_t vmo_dup = MX_HANDLE_INVALID;
+    mx_handle_duplicate(binary_vmo, MX_RIGHT_SAME_RIGHTS, &vmo_dup);
     int test_status = run_test(vmo_dup, test, &test_stdout, &test_stderr);
     handle_result(test_status, test_stdout, test_stderr, test);
     free(test_stdout);
@@ -393,8 +395,10 @@ int main(int argc, char** argv) {
   // Run with --list to grab the list of tests.
   char* list_stdout = NULL;
   char* list_stderr = NULL;
-  mx_handle_t list_vmo = mx_handle_duplicate(binary_vmo, MX_RIGHT_SAME_RIGHTS);
-  RETURN_IF_ERROR(list_vmo);
+  mx_handle_t list_vmo = MX_HANDLE_INVALID;
+  mx_status_t status =
+      mx_handle_duplicate(binary_vmo, MX_RIGHT_SAME_RIGHTS, &list_vmo);
+  RETURN_IF_ERROR(status);
   int list_result = run_test(list_vmo, "--list", &list_stdout, &list_stderr);
   if (list_result != 0) {
     fprintf(stderr, "Failed to list tests: %s\n%s\n", list_stdout, list_stderr);
@@ -431,7 +435,7 @@ int main(int argc, char** argv) {
   }
   free(test_list);
   pthread_mutex_destroy(&args_mutex);
-  mx_status_t status = mx_handle_close(binary_vmo);
+  status = mx_handle_close(binary_vmo);
   RETURN_IF_ERROR(status);
 
   // Complain if we didn't try to run all of the tests.

@@ -225,6 +225,9 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
 
 void KernelReader::ReadPreliminaryClass(dart::Class* klass,
                                         Class* kernel_klass) {
+  ASSERT(kernel_klass->IsNormalClass());
+  NormalClass* kernel_normal_class = NormalClass::Cast(kernel_klass);
+
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, klass);
 
   // First setup the type parameters, so if any of the following code uses it
@@ -250,8 +253,8 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
     // Step b) Fill in the bounds of all [TypeParameter]s.
     for (intptr_t i = 0; i < num_type_parameters; i++) {
       TypeParameter* kernel_parameter = kernel_klass->type_parameters()[i];
-      // There is no dynamic bound, only Object.
-      // TODO(27590): Should we fix this in the kernel IR generator?
+      // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+      // by the frontend.
       if (kernel_parameter->bound()->IsDynamicType()) {
         parameter ^= type_parameters.TypeAt(i);
         parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
@@ -268,33 +271,12 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
     }
   }
 
-  if (kernel_klass->IsNormalClass()) {
-    NormalClass* kernel_normal_class = NormalClass::Cast(kernel_klass);
-
-    // Set super type.  Some classes (e.g., Object) do not have one.
-    if (kernel_normal_class->super_class() != NULL) {
-      AbstractType& super_type = T.TranslateTypeWithoutFinalization(
-          kernel_normal_class->super_class());
-      if (super_type.IsMalformed()) H.ReportError("Malformed super type");
-      klass->set_super_type(super_type);
-    }
-  } else {
-    MixinClass* kernel_mixin = MixinClass::Cast(kernel_klass);
-
-    // Set super type.
-    AbstractType& super_type =
-        T.TranslateTypeWithoutFinalization(kernel_mixin->first());
-    if (super_type.IsMalformed()) H.ReportError("Malformed super type.");
+  // Set super type.  Some classes (e.g., Object) do not have one.
+  if (kernel_normal_class->super_class() != NULL) {
+    AbstractType& super_type = T.TranslateTypeWithoutFinalization(
+        kernel_normal_class->super_class());
+    if (super_type.IsMalformed()) H.ReportError("Malformed super type");
     klass->set_super_type(super_type);
-
-    // Tell the rest of the system there is nothing to resolve.
-    super_type.SetIsResolved();
-
-    // Set mixin type.
-    AbstractType& mixin_type =
-        T.TranslateTypeWithoutFinalization(kernel_mixin->second());
-    if (mixin_type.IsMalformed()) H.ReportError("Malformed mixin type.");
-    klass->set_mixin(Type::Cast(mixin_type));
   }
 
   // Build implemented interface types

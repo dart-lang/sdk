@@ -102,6 +102,15 @@ class CompletionDomainHandler implements RequestHandler {
 
   @override
   Response handleRequest(Request request) {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      String completionId = (_nextCompletionId++).toString();
+      new Future(() {
+        sendCompletionNotification(completionId, 0, 0, []);
+      });
+      return new CompletionGetSuggestionsResult(completionId)
+          .toResponse(request.id);
+    }
     if (server.searchEngine == null) {
       return new Response.noIndexGenerated(request);
     }

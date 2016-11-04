@@ -8,6 +8,7 @@
     # The above file needs to be first if additional parts are added to the lib.
     'extension.dart',
     'profiler.dart',
+    'service.dart',
     'timeline.dart',
   ],
 }

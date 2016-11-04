@@ -40,7 +40,7 @@ class HtmlWorkManager implements WorkManager {
    * Initialize a newly created manager.
    */
   HtmlWorkManager(this.context) {
-    analysisCache.onResultInvalidated.listen(onResultInvalidated);
+    context.onResultInvalidated.listen(onResultInvalidated);
   }
 
   /**

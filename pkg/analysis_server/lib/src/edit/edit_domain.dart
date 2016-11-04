@@ -69,22 +69,18 @@ class EditDomainHandler implements RequestHandler {
     EditFormatParams params = new EditFormatParams.fromRequest(request);
     String file = params.file;
 
-    ContextSourcePair contextSource = server.getContextSourcePair(file);
-
-    engine.AnalysisContext context = contextSource.context;
-    if (context == null) {
-      return new Response.formatInvalidFile(request);
-    }
-
-    Source source = contextSource.source;
-    engine.TimestampedData<String> contents;
+    String unformattedSource;
     try {
-      contents = context.getContents(source);
+      Source source = server.resourceProvider.getFile(file).createSource();
+      if (server.options.enableNewAnalysisDriver) {
+        unformattedSource = server.fileContentOverlay[file];
+      } else {
+        unformattedSource = server.overlayState.getContents(source);
+      }
+      unformattedSource ??= source.contents.data;
     } catch (e) {
       return new Response.formatInvalidFile(request);
     }
-
-    String unformattedSource = contents.data;
 
     int start = params.selectionOffset;
     int length = params.selectionLength;
@@ -135,6 +131,10 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Future getAssists(Request request) async {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      return;
+    }
     EditGetAssistsParams params = new EditGetAssistsParams.fromRequest(request);
     ContextSourcePair pair = server.getContextSourcePair(params.file);
     engine.AnalysisContext context = pair.context;
@@ -152,7 +152,11 @@ class EditDomainHandler implements RequestHandler {
     server.sendResponse(response);
   }
 
-  getFixes(Request request) async {
+  Future getFixes(Request request) async {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      return;
+    }
     var params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
@@ -184,7 +188,7 @@ class EditDomainHandler implements RequestHandler {
       }
     }
     // respond
-    return server.sendResponse(
+    server.sendResponse(
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
 

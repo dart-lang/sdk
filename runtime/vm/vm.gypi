@@ -1290,7 +1290,7 @@
           ],
           'outputs': [
             # Instead of listing all outputs we list a single well-known one.
-            '<(gen_source_dir)/patched_sdk/lib/core/core.dart',
+            '<(PRODUCT_DIR)/patched_sdk/lib/core/core.dart',
           ],
           'action': [
             'python',
@@ -1300,7 +1300,7 @@
             'vm',
             '../sdk',
             '<(gen_source_dir)/patches',
-            '<(gen_source_dir)/patched_sdk',
+            '<(PRODUCT_DIR)/patched_sdk',
           ],
         },
       ],

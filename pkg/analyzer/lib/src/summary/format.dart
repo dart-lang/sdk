@@ -8661,6 +8661,7 @@ abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
 }
 
 class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.UnlinkedUnit {
+  List<int> _apiSignature;
   List<UnlinkedClassBuilder> _classes;
   CodeRangeBuilder _codeRange;
   List<UnlinkedEnumBuilder> _enums;
@@ -8668,6 +8669,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   List<UnlinkedExportNonPublicBuilder> _exports;
   String _fallbackModePath;
   List<UnlinkedImportBuilder> _imports;
+  bool _isPartOf;
   List<UnlinkedConstBuilder> _libraryAnnotations;
   UnlinkedDocumentationCommentBuilder _libraryDocumentationComment;
   String _libraryName;
@@ -8679,6 +8681,19 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   List<UnlinkedReferenceBuilder> _references;
   List<UnlinkedTypedefBuilder> _typedefs;
   List<UnlinkedVariableBuilder> _variables;
+
+  @override
+  List<int> get apiSignature => _apiSignature ??= <int>[];
+
+  /**
+   * MD5 hash of the non-informative fields of the [UnlinkedUnit] (not
+   * including this one) as 16 unsigned 8-bit integer values.  This can be used
+   * to identify when the API of a unit may have changed.
+   */
+  void set apiSignature(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._apiSignature = value;
+  }
 
   @override
   List<UnlinkedClassBuilder> get classes => _classes ??= <UnlinkedClassBuilder>[];
@@ -8753,6 +8768,16 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
    */
   void set imports(List<UnlinkedImportBuilder> value) {
     this._imports = value;
+  }
+
+  @override
+  bool get isPartOf => _isPartOf ??= false;
+
+  /**
+   * Indicates whether the unit contains a "part of" declaration.
+   */
+  void set isPartOf(bool value) {
+    this._isPartOf = value;
   }
 
   @override
@@ -8876,14 +8901,16 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     this._variables = value;
   }
 
-  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
-    : _classes = classes,
+  UnlinkedUnitBuilder({List<int> apiSignature, List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, bool isPartOf, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+    : _apiSignature = apiSignature,
+      _classes = classes,
       _codeRange = codeRange,
       _enums = enums,
       _executables = executables,
       _exports = exports,
       _fallbackModePath = fallbackModePath,
       _imports = imports,
+      _isPartOf = isPartOf,
       _libraryAnnotations = libraryAnnotations,
       _libraryDocumentationComment = libraryDocumentationComment,
       _libraryName = libraryName,
@@ -9006,6 +9033,15 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       }
     }
     signature.addString(this._fallbackModePath ?? '');
+    signature.addBool(this._isPartOf == true);
+    if (this._apiSignature == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._apiSignature.length);
+      for (var x in this._apiSignature) {
+        signature.addInt(x);
+      }
+    }
   }
 
   List<int> toBuffer() {
@@ -9014,6 +9050,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_apiSignature;
     fb.Offset offset_classes;
     fb.Offset offset_codeRange;
     fb.Offset offset_enums;
@@ -9030,6 +9067,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     fb.Offset offset_references;
     fb.Offset offset_typedefs;
     fb.Offset offset_variables;
+    if (!(_apiSignature == null || _apiSignature.isEmpty)) {
+      offset_apiSignature = fbBuilder.writeListUint32(_apiSignature);
+    }
     if (!(_classes == null || _classes.isEmpty)) {
       offset_classes = fbBuilder.writeList(_classes.map((b) => b.finish(fbBuilder)).toList());
     }
@@ -9079,6 +9119,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       offset_variables = fbBuilder.writeList(_variables.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
+    if (offset_apiSignature != null) {
+      fbBuilder.addOffset(19, offset_apiSignature);
+    }
     if (offset_classes != null) {
       fbBuilder.addOffset(2, offset_classes);
     }
@@ -9099,6 +9142,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     }
     if (offset_imports != null) {
       fbBuilder.addOffset(5, offset_imports);
+    }
+    if (_isPartOf == true) {
+      fbBuilder.addBool(18, true);
     }
     if (offset_libraryAnnotations != null) {
       fbBuilder.addOffset(14, offset_libraryAnnotations);
@@ -9155,6 +9201,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
   _UnlinkedUnitImpl(this._bc, this._bcOffset);
 
+  List<int> _apiSignature;
   List<idl.UnlinkedClass> _classes;
   idl.CodeRange _codeRange;
   List<idl.UnlinkedEnum> _enums;
@@ -9162,6 +9209,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedExportNonPublic> _exports;
   String _fallbackModePath;
   List<idl.UnlinkedImport> _imports;
+  bool _isPartOf;
   List<idl.UnlinkedConst> _libraryAnnotations;
   idl.UnlinkedDocumentationComment _libraryDocumentationComment;
   String _libraryName;
@@ -9173,6 +9221,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedReference> _references;
   List<idl.UnlinkedTypedef> _typedefs;
   List<idl.UnlinkedVariable> _variables;
+
+  @override
+  List<int> get apiSignature {
+    _apiSignature ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 19, const <int>[]);
+    return _apiSignature;
+  }
 
   @override
   List<idl.UnlinkedClass> get classes {
@@ -9214,6 +9268,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedImport> get imports {
     _imports ??= const fb.ListReader<idl.UnlinkedImport>(const _UnlinkedImportReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedImport>[]);
     return _imports;
+  }
+
+  @override
+  bool get isPartOf {
+    _isPartOf ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 18, false);
+    return _isPartOf;
   }
 
   @override
@@ -9287,6 +9347,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (apiSignature.isNotEmpty) _result["apiSignature"] = apiSignature;
     if (classes.isNotEmpty) _result["classes"] = classes.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (enums.isNotEmpty) _result["enums"] = enums.map((_value) => _value.toJson()).toList();
@@ -9294,6 +9355,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
     if (fallbackModePath != '') _result["fallbackModePath"] = fallbackModePath;
     if (imports.isNotEmpty) _result["imports"] = imports.map((_value) => _value.toJson()).toList();
+    if (isPartOf != false) _result["isPartOf"] = isPartOf;
     if (libraryAnnotations.isNotEmpty) _result["libraryAnnotations"] = libraryAnnotations.map((_value) => _value.toJson()).toList();
     if (libraryDocumentationComment != null) _result["libraryDocumentationComment"] = libraryDocumentationComment.toJson();
     if (libraryName != '') _result["libraryName"] = libraryName;
@@ -9310,6 +9372,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
 
   @override
   Map<String, Object> toMap() => {
+    "apiSignature": apiSignature,
     "classes": classes,
     "codeRange": codeRange,
     "enums": enums,
@@ -9317,6 +9380,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     "exports": exports,
     "fallbackModePath": fallbackModePath,
     "imports": imports,
+    "isPartOf": isPartOf,
     "libraryAnnotations": libraryAnnotations,
     "libraryDocumentationComment": libraryDocumentationComment,
     "libraryName": libraryName,

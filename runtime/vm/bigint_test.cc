@@ -9,12 +9,6 @@
 
 namespace dart {
 
-static uword ZoneAllocator(intptr_t size) {
-  Zone* zone = Thread::Current()->zone();
-  return zone->AllocUnsafe(size);
-}
-
-
 TEST_CASE(BigintSmi) {
   {
     const Smi& smi = Smi::Handle(Smi::New(5));
@@ -235,6 +229,7 @@ TEST_CASE(BigintDouble) {
 
 
 TEST_CASE(BigintHexStrings) {
+  Zone* zone = Thread::Current()->zone();
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0x0"));
     EXPECT(bigint.FitsIntoSmi());
@@ -255,41 +250,41 @@ TEST_CASE(BigintHexStrings) {
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0x123"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0x123", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0xaBcEf"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0xABCEF", str);
   }
 
   {
     const char* in = "0x123456789";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(in, str);
   }
 
   {
     const char* in = "0xFFFFFFF";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(in, str);
   }
 
   {
     const char* in = "0x10000000";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(in, str);
   }
 
   {
     const char* in = "0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(in, str);
   }
 
@@ -301,27 +296,27 @@ TEST_CASE(BigintHexStrings) {
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("-0x123"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0x123", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("-0xaBcEf"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0xABCEF", str);
   }
 
   {
     const char* in = "-0x123456789";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(in, str);
   }
 
   {
     const char* in = "-0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(in, str);
   }
 
@@ -334,14 +329,14 @@ TEST_CASE(BigintHexStrings) {
   {
     const Bigint& bigint = Bigint::Handle(
         Bigint::NewFromCString("0x000000123"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0x123", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(
         Bigint::NewFromCString("0x0000aBcEf"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0xABCEF", str);
   }
 
@@ -349,7 +344,7 @@ TEST_CASE(BigintHexStrings) {
     const char* in = "0x00000000000000000000000000000000000000000000123456789";
     const char* out =                                            "0x123456789";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
   }
 
@@ -357,7 +352,7 @@ TEST_CASE(BigintHexStrings) {
     const char* in = "0x00000123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const char* out =     "0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
   }
 
@@ -371,14 +366,14 @@ TEST_CASE(BigintHexStrings) {
   {
     const Bigint& bigint = Bigint::Handle(
         Bigint::NewFromCString("-0x00000123"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0x123", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(
         Bigint::NewFromCString("-0x000aBcEf"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0xABCEF", str);
   }
 
@@ -386,7 +381,7 @@ TEST_CASE(BigintHexStrings) {
     const char* in = "-0x00000000000000000000000000000000000000000000123456789";
     const char* out =                                            "-0x123456789";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
   }
 
@@ -394,7 +389,7 @@ TEST_CASE(BigintHexStrings) {
     const char* in = "-0x0000123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const char* out =    "-0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
   }
   {
@@ -402,63 +397,64 @@ TEST_CASE(BigintHexStrings) {
     const char* out = "0xAB54A98CEB1F0AD2";
     const Bigint& bigint = Bigint::Handle(
         Bigint::NewFromCString(test));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
   }
   {
     const char* test = "-12345678901234567890";
     const char* out = "-0xAB54A98CEB1F0AD2";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(test));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
   }
 }
 
 
 TEST_CASE(BigintDecStrings) {
+  Zone* zone = Thread::Current()->zone();
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0x0"));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("0", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0x123"));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("291", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0xaBcEf"));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("703727", str);
   }
 
   {
     const char* in = "0x123456789";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("4886718345", str);
   }
 
   {
     const char* in = "0xFFFFFFF";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("268435455", str);
   }
 
   {
     const char* in = "0x10000000";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("268435456", str);
   }
 
   {
     const char* in = "0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("7141946863373290020600059860922167424469804758405880798960",
         str);
   }
@@ -471,27 +467,27 @@ TEST_CASE(BigintDecStrings) {
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("-0x123"));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("-291", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("-0xaBcEf"));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("-703727", str);
   }
 
   {
     const char* in = "-0x123456789";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("-4886718345", str);
   }
 
   {
     const char* in = "-0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("-7141946863373290020600059860922167424469804758405880798960",
         str);
   }
@@ -505,14 +501,14 @@ TEST_CASE(BigintDecStrings) {
   {
     const Bigint& bigint = Bigint::Handle(
         Bigint::NewFromCString("0x000000123"));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("291", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(
         Bigint::NewFromCString("100000000000000000000000000000000"));
-    const char* str = bigint.ToDecCString(&ZoneAllocator);
+    const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("100000000000000000000000000000000", str);
   }
 }
@@ -590,6 +586,7 @@ TEST_CASE(BigintCompare) {
 
 
 TEST_CASE(BigintDecimalStrings) {
+  Zone* zone = Thread::Current()->zone();
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("0"));
     EXPECT(bigint.FitsIntoSmi());
@@ -604,20 +601,20 @@ TEST_CASE(BigintDecimalStrings) {
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("703710"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0xABCDE", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("11259375"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0xABCDEF", str);
   }
 
   {
     const Bigint& bigint =
         Bigint::Handle(Bigint::NewFromCString("1311768467463790320"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0x123456789ABCDEF0", str);
   }
 
@@ -635,20 +632,20 @@ TEST_CASE(BigintDecimalStrings) {
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("-703710"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0xABCDE", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString("-11259375"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0xABCDEF", str);
   }
 
   {
     const Bigint& bigint = Bigint::Handle(
         Bigint::NewFromCString("-1311768467463790320"));
-    const char* str = bigint.ToHexCString(&ZoneAllocator);
+    const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0x123456789ABCDEF0", str);
   }
 }

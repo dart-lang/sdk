@@ -18,8 +18,7 @@ class VmServiceServer {
   static void Bootstrap();
   static Dart_Isolate CreateIsolate(const uint8_t* snapshot_buffer);
 
-  static const char* GetServerIP();
-  static intptr_t GetServerPort();
+  static const char* GetServerAddress();
 
   static void DecompressAssets(const uint8_t* input, unsigned int input_len,
                                uint8_t** output, unsigned int* output_length);

@@ -77,13 +77,8 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
 }
 
 
-const char* VmServiceServer::GetServerIP() {
-  return VmService::GetServerIP();
-}
-
-
-intptr_t VmServiceServer::GetServerPort() {
-  return VmService::GetServerPort();
+const char* VmServiceServer::GetServerAddress() {
+  return VmService::GetServerAddress();
 }
 
 

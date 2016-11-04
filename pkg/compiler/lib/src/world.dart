@@ -17,7 +17,7 @@ import 'elements/elements.dart'
         FunctionElement,
         MixinApplicationElement,
         TypedefElement,
-        VariableElement;
+        FieldElement;
 import 'js_backend/backend.dart' show JavaScriptBackend;
 import 'ordered_typeset.dart';
 import 'types/masks.dart' show CommonMasks, FlatTypeMask, TypeMask;
@@ -264,7 +264,7 @@ abstract class ClosedWorld implements World {
   /// Returns the single field that matches a call to [selector] on a
   /// receiver of type [mask]. If multiple targets exist or the single target
   /// is not a field, `null` is returned.
-  VariableElement locateSingleField(Selector selector, TypeMask mask);
+  FieldElement locateSingleField(Selector selector, TypeMask mask);
 
   /// Returns the side effects of executing [element].
   SideEffects getSideEffectsOfElement(Element element);
@@ -1066,7 +1066,7 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     }
   }
 
-  VariableElement locateSingleField(Selector selector, TypeMask mask) {
+  FieldElement locateSingleField(Selector selector, TypeMask mask) {
     Element result = locateSingleElement(selector, mask);
     return (result != null && result.isField) ? result : null;
   }

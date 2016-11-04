@@ -3083,6 +3083,52 @@ TEST_CASE(IsolateReload_ExportedLibModified) {
   EXPECT_STREQ("bossy pants", SimpleInvokeStr(lib, "main"));
 }
 
+
+TEST_CASE(IsolateReload_SimpleConstFieldUpdate) {
+    const char* kScript =
+      "const value = 'a';\n"
+      "main() {\n"
+      "  return 'value=${value}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("value=a", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "const value = 'b';\n"
+      "main() {\n"
+      "  return 'value=${value}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("value=b", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_ConstFieldUpdate) {
+    const char* kScript =
+      "const value = const Duration(seconds: 1);\n"
+      "main() {\n"
+      "  return 'value=${value}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("value=0:00:01.000000", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "const value = const Duration(seconds: 2);\n"
+      "main() {\n"
+      "  return 'value=${value}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("value=0:00:02.000000", SimpleInvokeStr(lib, "main"));
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

@@ -128,7 +128,9 @@ void Class::CopyStaticFieldValues(const Class& old_cls) const {
         old_field = Field::RawCast(old_field_list.At(j));
         old_name = old_field.name();
         if (name.Equals(old_name)) {
-          if (update_values) {
+          // We only copy values if requested and if the field is not a const
+          // field. We let const fields be updated with a reload.
+          if (update_values && !field.is_const()) {
             value = old_field.StaticValue();
             field.SetStaticValue(value);
           }

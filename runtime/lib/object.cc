@@ -116,9 +116,51 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
 
 DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  // Special handling for following types outside this native.
-  ASSERT(!instance.IsString() && !instance.IsInteger() && !instance.IsDouble());
+  if (instance.IsString()) {
+    return Type::StringType();
+  } else if (instance.IsInteger()) {
+    return Type::IntType();
+  } else if (instance.IsDouble()) {
+    return Type::Double();
+  }
   return instance.GetType();
+}
+
+
+DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
+  const Instance& left = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Instance& right = Instance::CheckedHandle(arguments->NativeArgAt(1));
+
+  const intptr_t left_cid = left.GetClassId();
+  const intptr_t right_cid = right.GetClassId();
+
+  if (left_cid != right_cid) {
+    if (RawObject::IsIntegerClassId(left_cid)) {
+      return Bool::Get(RawObject::IsIntegerClassId(right_cid)).raw();
+    } else if (RawObject::IsStringClassId(right_cid)) {
+      return Bool::Get(RawObject::IsStringClassId(right_cid)).raw();
+    } else {
+      return Bool::False().raw();
+    }
+  }
+
+  const Class& cls = Class::Handle(left.clazz());
+  if (cls.IsClosureClass()) {
+    // TODO(vegorov): provide faster implementation for closure classes.
+    const AbstractType& left_type = AbstractType::Handle(left.GetType());
+    const AbstractType& right_type = AbstractType::Handle(right.GetType());
+    return Bool::Get(left_type.raw() == right_type.raw()).raw();
+  }
+
+  if (!cls.IsGeneric()) {
+    return Bool::True().raw();
+  }
+
+  const TypeArguments& left_type_arguments =
+      TypeArguments::Handle(left.GetTypeArguments());
+  const TypeArguments& right_type_arguments =
+      TypeArguments::Handle(right.GetTypeArguments());
+  return Bool::Get(left_type_arguments.Equals(right_type_arguments)).raw();
 }
 
 

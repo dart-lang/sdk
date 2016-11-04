@@ -167,6 +167,7 @@ namespace dart {
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, Dynamic, 0x6036d7fa)          \
   V(Object, ==, ObjectEquals, Bool, 0x11662ed8)                                \
   V(Object, get:runtimeType, ObjectRuntimeType, Type, 0x00e7c26b)              \
+  V(Object, _haveSameRuntimeType, ObjectHaveSameRuntimeType, Bool, 0x72aad7e2) \
   V(_StringBase, get:hashCode, String_getHashCode, Smi, 0x78c2eb88)            \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, Bool, 0x74c21fca)             \
   V(_StringBase, _substringMatches, StringBaseSubstringMatches, Bool,          \
@@ -489,6 +490,7 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x4765edda)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x7cca4533)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x7631bdbc)              \
+  V(Object, get:runtimeType, ObjectRuntimeType, 0x00e7c26b)                    \
 
 // Forward declarations.
 class Function;

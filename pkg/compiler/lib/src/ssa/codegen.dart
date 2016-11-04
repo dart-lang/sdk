@@ -11,6 +11,7 @@ import '../constants/values.dart';
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -1582,7 +1583,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression object = pop();
     String methodName;
     List<js.Expression> arguments = visitArguments(node.inputs);
-    Element target = node.element;
+    MemberElement target = node.element;
 
     // TODO(herhut): The namer should return the appropriate backendname here.
     if (target != null && !node.isInterceptedCall) {
@@ -1680,7 +1681,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // If we don't know what we're calling or if we are calling a getter,
     // we need to register that fact that we may be calling a closure
     // with the same arguments.
-    Element target = node.element;
+    MemberElement target = node.element;
     if (target == null || target.isGetter) {
       // TODO(kasperl): If we have a typed selector for the call, we
       // may know something about the types of closures that need
@@ -1762,7 +1763,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    Element element = node.element;
+    MemberElement element = node.element;
     List<DartType> instantiatedTypes = node.instantiatedTypes;
 
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
@@ -1809,7 +1810,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeSuper(HInvokeSuper node) {
-    Element superElement = node.element;
+    MemberElement superElement = node.element;
     ClassElement superClass = superElement.enclosingClass;
     if (superElement.isField) {
       js.Name fieldName = backend.namer.instanceFieldPropertyName(superElement);
@@ -1867,7 +1868,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
-    Element element = node.element;
+    MemberElement element = node.element;
     if (node.isNullCheck) {
       // We access a JavaScript member we know all objects besides
       // null and undefined have: V8 does not like accessing a member
@@ -1889,7 +1890,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    Element element = node.element;
+    MemberElement element = node.element;
     registry.registerStaticUse(new StaticUse.fieldSet(element));
     js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
@@ -1900,7 +1901,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitReadModifyWrite(HReadModifyWrite node) {
-    Element element = node.element;
+    FieldElement element = node.element;
     registry.registerStaticUse(new StaticUse.fieldGet(element));
     registry.registerStaticUse(new StaticUse.fieldSet(element));
     js.Name name = backend.namer.instanceFieldPropertyName(element);
@@ -2279,7 +2280,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitStatic(HStatic node) {
-    Element element = node.element;
+    MemberEntity element = node.element;
     assert(element.isFunction || element.isField);
     if (element.isFunction) {
       push(backend.emitter
@@ -2295,7 +2296,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitLazyStatic(HLazyStatic node) {
-    Element element = node.element;
+    FieldEntity element = node.element;
     registry.registerStaticUse(new StaticUse.staticInit(element));
     js.Expression lazyGetter =
         backend.emitter.isolateLazyInitializerAccess(element);

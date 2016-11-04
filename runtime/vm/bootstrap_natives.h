@@ -20,6 +20,7 @@ namespace dart {
   V(Object_toString, 1)                                                        \
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
+  V(Object_haveSameRuntimeType, 2)                                             \
   V(Object_instanceOf, 4)                                                      \
   V(Object_simpleInstanceOf, 2)                                                \
   V(Object_instanceOfNum, 2)                                                   \
@@ -70,11 +71,15 @@ namespace dart {
   V(Bigint_getDigits, 1)                                                       \
   V(Bigint_allocate, 4)                                                        \
   V(Developer_debugger, 2)                                                     \
+  V(Developer_getServerInfo, 1)                                                \
+  V(Developer_getServiceMajorVersion, 0)                                       \
+  V(Developer_getServiceMinorVersion, 0)                                       \
   V(Developer_inspect, 1)                                                      \
   V(Developer_lookupExtension, 1)                                              \
   V(Developer_registerExtension, 2)                                            \
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 2)                                                    \
+  V(Developer_webServerControl, 2)                                             \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \

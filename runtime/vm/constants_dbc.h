@@ -729,8 +729,8 @@ namespace dart {
   V(DCeil,                         A_D, reg, reg, ___) \
   V(DoubleToFloat,                 A_D, reg, reg, ___) \
   V(FloatToDouble,                 A_D, reg, reg, ___) \
-  V(DoubleIsNaN,                   A_D, reg, reg, ___) \
-  V(DoubleIsInfinite,              A_D, reg, reg, ___) \
+  V(DoubleIsNaN,                     A, reg, ___, ___) \
+  V(DoubleIsInfinite,                A, reg, ___, ___) \
   V(StoreStaticTOS,                  D, lit, ___, ___) \
   V(PushStatic,                      D, lit, ___, ___) \
   V(InitStaticTOS,                   0, ___, ___, ___) \

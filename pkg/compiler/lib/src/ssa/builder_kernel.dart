@@ -574,8 +574,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       _pushStaticInvocation(staticTarget, const <HInstruction>[],
           astAdapter.returnTypeOf(staticTarget));
     } else {
-      Element element = astAdapter.getElement(staticTarget).declaration;
-      push(new HStatic(element, astAdapter.inferredTypeOf(staticTarget)));
+      push(new HStatic(astAdapter.getMember(staticTarget),
+          astAdapter.inferredTypeOf(staticTarget)));
     }
   }
 
@@ -592,7 +592,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       pop();
     } else {
       // TODO(het): check or trust type
-      add(new HStaticStore(astAdapter.getElement(staticTarget), value));
+      add(new HStaticStore(astAdapter.getMember(staticTarget), value));
     }
     stack.add(value);
   }
@@ -681,7 +681,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void _pushStaticInvocation(
       ir.Node target, List<HInstruction> arguments, TypeMask typeMask) {
     HInstruction instruction = new HInvokeStatic(
-        astAdapter.getElement(target).declaration, arguments, typeMask,
+        astAdapter.getMember(target), arguments, typeMask,
         targetCanThrow: astAdapter.getCanThrow(target));
     instruction.sideEffects = astAdapter.getSideEffects(target);
 
@@ -757,8 +757,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     inputs.addAll(arguments);
 
     HInstruction instruction = new HInvokeSuper(
-        astAdapter.getElement(invocation.interfaceTarget),
-        astAdapter.getElement(surroundingClass),
+        astAdapter.getMethod(invocation.interfaceTarget),
+        astAdapter.getClass(surroundingClass),
         selector,
         inputs,
         astAdapter.returnTypeOf(invocation.interfaceTarget),

@@ -11,6 +11,18 @@ import utils
 
 usage = """patch_sdk.py [options]"""
 
+def DisplayBootstrapWarning():
+  print """\
+
+
+WARNING: Your system cannot run the checked-in Dart SDK. Using the
+bootstrap Dart executable will make debug builds slow.
+Please see the Wiki for instructions on replacing the checked-in Dart SDK.
+
+https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
+
+"""
+
 def BuildArguments():
   result = argparse.ArgumentParser(usage=usage)
   result.add_argument("--dart-executable", help="dart executable", default=None)
@@ -20,12 +32,17 @@ def main():
   # Parse the options.
   parser = BuildArguments()
   (options, args) = parser.parse_known_args()
-  if options.dart_executable is not None:
+  if utils.CheckedInSdkCheckExecutable():
+    options.dart_executable = utils.CheckedInSdkExecutable()
+  elif options.dart_executable is not None:
+    DisplayBootstrapWarning()
     options.dart_executable = os.path.abspath(options.dart_executable)
   else:
-    options.dart_executable = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
+    print >> sys.stderr, 'ERROR: cannot locate dart executable'
+    return -1
   dart_file = os.path.join(os.path.dirname(__file__), 'patch_sdk.dart')
-  subprocess.check_call([options.dart_executable, dart_file] + args);
+  subprocess.check_call([options.dart_executable, dart_file] + args)
+  return 0
 
 if __name__ == '__main__':
-  main()
+  sys.exit(main())

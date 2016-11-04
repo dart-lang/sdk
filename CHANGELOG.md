@@ -1,11 +1,19 @@
 ## 1.21.0
+
+### Language
+
+* Don't warn about switch case fallthrough if the case ends in a `rethrow`
+  statement.
+* Also don't warn if the entire switch case is wrapped in braces - as long as
+  the block ends with a `break`, `continue`, `rethrow`, `return` or `throw`.
+* Allow `=` as well as `:` as separator for named parameter default values.
+
 ### Core library changes
 
 * `dart:core`: `Set.difference` now takes a `Set<Object>` as argument.
 
-### Language
-
-* Allow `=` as well as `:` as separator for named parameter default values.
+* `dart:developer`:
+  * The service protocol http server can now be controlled from Dart code.
 
 ## 1.20.1 - 2016-10-13
 

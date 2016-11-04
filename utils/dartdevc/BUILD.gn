@@ -9,6 +9,8 @@ application_snapshot("dartdevc") {
   training_args = [
     "--dart-sdk",
     rebase_path("../../sdk"),
+    "--dart-sdk-summary",
+    rebase_path("../../pkg/dev_compiler/lib/sdk/ddc_sdk.sum"),
     "--help",
   ]
   inputs = exec_script("../../tools/list_dart_files.py",

@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../utils/invoke_dart.gni")
+
 config("libdart_vm_config") {
   if (defined(is_fuchsia) && is_fuchsia) {
     libs = [ "magenta" ]
@@ -414,127 +416,137 @@ template("concatenate_patch") {
   }
 }
 
-template("generate_patched_sdk") {
-  assert(defined(invoker.libraries), "Need libraries in $target_name")
+if (!defined(is_fuchsia) || !is_fuchsia) {
+  template("generate_patched_sdk") {
+    assert(defined(invoker.libraries), "Need libraries in $target_name")
 
-  concatenation_target_names = []
-  concatenation_files = []
+    concatenation_target_names = []
+    concatenation_files = []
 
-  # Concatenate vm library patches.
-  foreach(library, invoker.libraries) {
-    name = library[1]
+    # Concatenate vm library patches.
+    foreach(library, invoker.libraries) {
+      name = library[1]
 
-    target_output = "$target_gen_dir/patches/${name}_patch.dart"
-    concatenate_patch("concatenate_${name}_patch") {
-      libname = name
-      dir = library[0]
-      output = target_output
+      target_output = "$target_gen_dir/patches/${name}_patch.dart"
+      concatenate_patch("concatenate_${name}_patch") {
+        libname = name
+        dir = library[0]
+        output = target_output
+      }
+      concatenation_target_names += [ ":concatenate_${name}_patch" ]
+      concatenation_files += [ target_output ]
     }
-    concatenation_target_names += [ ":concatenate_${name}_patch" ]
-    concatenation_files += [ target_output ]
+
+    # Build the patched sdk out of the concatenated patches and the special
+    # libraries.
+    action(target_name) {
+      deps = [ "../bin:dart_bootstrap($host_toolchain)" ] +
+             concatenation_target_names
+
+      patches_dir = "$target_gen_dir/patches"
+      patched_sdk_dir = "$root_out_dir/patched_sdk"
+
+      script = "../../tools/patch_sdk.py"
+
+      # We list all files which make up the sdk (modulo patches) and get them back
+      # as a GN list object.
+      shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
+                                       [ "../../sdk/lib" ],
+                                       "list lines")
+
+      # We list the `patch_sdk.dart` tool here because the [script] (which is
+      # implicitly an input) will call it.
+      inputs = [
+        "../../tools/patch_sdk.dart",
+      ]
+
+      # Files below are not patches, they will not be in [concatenation_files] but
+      # the `patch_sdk.dart` script will copy them into the patched sdk.
+      inputs += [
+        "../lib/typed_data.dart",
+        "../bin/builtin.dart",
+        "../bin/vmservice/vmservice_io.dart",
+        "../bin/vmservice/loader.dart",
+        "../bin/vmservice/server.dart",
+      ]
+
+      # Add all the normal sdk sources.
+      inputs += shared_sdk_sources
+
+      # Add all the concatenated patch files.
+      inputs += concatenation_files
+
+      outputs = [
+        # Instead of listing all outputs we list a single well-known one.
+        "${patched_sdk_dir}/lib/core/core.dart",
+      ]
+
+      dart_out_dir = get_label_info("../bin:dart_bootstrap($host_toolchain)",
+                                    "root_out_dir")
+      dart_bootstrap =
+          rebase_path("$dart_out_dir/dart_bootstrap$dart_executable_suffix")
+
+      args = [
+        "--dart-executable",
+        dart_bootstrap,
+        "vm",
+        rebase_path("../../sdk"),
+        rebase_path(patches_dir, root_build_dir),
+        rebase_path(patched_sdk_dir, root_build_dir),
+      ]
+    }
   }
 
-  # Build the patched sdk out of the concatenated patches and the special
-  # libraries.
-  action(target_name) {
-    deps = concatenation_target_names
-
-    patches_dir = "$target_gen_dir/patches"
-    patched_sdk_dir = "$target_gen_dir/patched_sdk"
-
-    script = "../../tools/patch_sdk.py"
-
-    # We list all files which make up the sdk (modulo patches) and get them back
-    # as a GN list object.
-    shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
-                                     [ "../../sdk/lib" ],
-                                     "list lines")
-
-    # We list the `patch_sdk.dart` tool here because the [script] (which is
-    # implicitly an input) will call it.
-    inputs = [
-      "../../tools/patch_sdk.dart",
-    ]
-
-    # Files below are not patches, they will not be in [concatenation_files] but
-    # the `patch_sdk.dart` script will copy them into the patched sdk.
-    inputs += [
-      "../lib/typed_data.dart",
-      "../bin/builtin.dart",
-      "../bin/vmservice/vmservice_io.dart",
-      "../bin/vmservice/loader.dart",
-      "../bin/vmservice/server.dart",
-    ]
-
-    # Add all the normal sdk sources.
-    inputs += shared_sdk_sources
-
-    # Add all the concatenated patch files.
-    inputs += concatenation_files
-
-    outputs = [
-      # Instead of listing all outputs we list a single well-known one.
-      "${patched_sdk_dir}/lib/core/core.dart",
-    ]
-
-    args = [
-      "vm",
-      rebase_path("../../sdk"),
-      rebase_path(patches_dir, root_build_dir),
-      rebase_path(patched_sdk_dir, root_build_dir),
+  generate_patched_sdk("patched_sdk") {
+    libraries = [
+      [
+        "lib",
+        "async",
+      ],
+      [
+        "lib",
+        "collection",
+      ],
+      [
+        "lib",
+        "convert",
+      ],
+      [
+        "lib",
+        "core",
+      ],
+      [
+        "lib",
+        "developer",
+      ],
+      [
+        "lib",
+        "internal",
+      ],
+      [
+        "lib",
+        "isolate",
+      ],
+      [
+        "lib",
+        "math",
+      ],
+      [
+        "lib",
+        "mirrors",
+      ],
+      [
+        "lib",
+        "profiler",
+      ],
+      [
+        "lib",
+        "vmservice",
+      ],
+      [
+        "bin",
+        "io",
+      ],
     ]
   }
-}
-
-generate_patched_sdk("patched_sdk") {
-  libraries = [
-    [
-      "lib",
-      "async",
-    ],
-    [
-      "lib",
-      "collection",
-    ],
-    [
-      "lib",
-      "convert",
-    ],
-    [
-      "lib",
-      "core",
-    ],
-    [
-      "lib",
-      "developer",
-    ],
-    [
-      "lib",
-      "internal",
-    ],
-    [
-      "lib",
-      "isolate",
-    ],
-    [
-      "lib",
-      "math",
-    ],
-    [
-      "lib",
-      "mirrors",
-    ],
-    [
-      "lib",
-      "profiler",
-    ],
-    [
-      "lib",
-      "vmservice",
-    ],
-    [
-      "bin",
-      "io",
-    ],
-  ]
 }

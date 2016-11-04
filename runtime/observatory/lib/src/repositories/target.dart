@@ -29,15 +29,15 @@ class TargetRepository implements M.TargetRepository {
   TargetRepository._(this._onChange, this.onChange) {
     _restore();
     // Add the default address if it doesn't already exist.
-    if (_find(_networkAddressOfDefaultTarget()) == null) {
+    if (find(_networkAddressOfDefaultTarget()) == null) {
       add(_networkAddressOfDefaultTarget());
     }
     // Set the current target to the default target.
-    current = _find(_networkAddressOfDefaultTarget());
+    current = find(_networkAddressOfDefaultTarget());
   }
 
   void add(String address) {
-    if (_find(address) != null) {
+    if (find(address) != null) {
       return;
     }
     _list.insert(0, new SC.WebSocketVMTarget(address));
@@ -91,7 +91,7 @@ class TargetRepository implements M.TargetRepository {
   }
 
   /// Find by networkAddress.
-  SC.WebSocketVMTarget _find(String networkAddress) {
+  SC.WebSocketVMTarget find(String networkAddress) {
     for (SC.WebSocketVMTarget item in _list) {
       if (item.networkAddress == networkAddress) {
         return item;
@@ -101,14 +101,7 @@ class TargetRepository implements M.TargetRepository {
   }
 
   static String _networkAddressOfDefaultTarget() {
-    if (Utils.runningInJavaScript()) {
-      // We are running as JavaScript, use the same host that Observatory has
-      // been loaded from.
-      return 'ws://${window.location.host}/ws';
-    } else {
-      // Otherwise, assume we are running from Dart Editor and want to connect
-      // to the default host.
-      return 'ws://localhost:8181/ws';
-    }
+    Uri serverAddress = Uri.parse(window.location.toString());
+    return 'ws://${serverAddress.authority}${serverAddress.path}ws';
   }
 }

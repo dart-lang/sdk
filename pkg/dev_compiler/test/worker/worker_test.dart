@@ -17,10 +17,13 @@ main() {
     final argsFile = new File('test/worker/hello_world.args').absolute;
     final inputDartFile = new File('test/worker/hello_world.dart').absolute;
     final outputJsFile = new File('test/worker/hello_world.js').absolute;
+    final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
     final executableArgs = ['bin/dartdevc.dart'];
     final compilerArgs = [
       '--no-source-map',
       '--no-summarize',
+      '--dart-sdk-summary',
+      dartSdkSummary.path,
       '-o',
       outputJsFile.path,
       inputDartFile.path,
@@ -116,10 +119,13 @@ main() {
     });
 
     test('can compile in basic mode', () {
+      final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
         '--summary-extension=api.ds',
         '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
         '-o',
         greetingJS.path,
         greetingDart.path,
@@ -134,6 +140,8 @@ main() {
         'bin/dartdevc.dart',
         '--no-source-map',
         '--no-summarize',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
         '--summary-extension=api.ds',
         '-s',
         greetingSummary.path,
@@ -149,6 +157,7 @@ main() {
   });
 
   group('Error handling', () {
+    final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
     final badFileDart = new File('test/worker/bad.dart').absolute;
     final badFileJs = new File('test/worker/bad.js').absolute;
 
@@ -158,7 +167,7 @@ main() {
     });
 
     test('incorrect usage', () {
-      var result = Process.runSync('dart', ['bin/dartdevc.dart', 'oops',]);
+      var result = Process.runSync('dart', ['bin/dartdevc.dart', '--dart-sdk-summary', dartSdkSummary.path, 'oops',]);
       expect(result.exitCode, 64);
       expect(
           result.stdout, contains('Please include the output file location.'));
@@ -170,6 +179,8 @@ main() {
       var result = Process.runSync('dart', [
         'bin/dartdevc.dart',
         '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
         '-o',
         badFileJs.path,
         badFileDart.path,
@@ -180,6 +191,7 @@ main() {
   });
 
   group('Parts', () {
+    final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
     final partFile = new File('test/worker/greeting.dart').absolute;
     final libraryFile = new File('test/worker/hello.dart').absolute;
 
@@ -204,6 +216,8 @@ main() {
         'bin/dartdevc.dart',
         '--no-summarize',
         '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
         '-o',
         outJS.path,
         partFile.path,
@@ -220,6 +234,8 @@ main() {
         'bin/dartdevc.dart',
         '--no-summarize',
         '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
         '-o',
         outJS.path,
         libraryFile.path,
@@ -235,6 +251,8 @@ main() {
         'bin/dartdevc.dart',
         '--no-summarize',
         '--no-source-map',
+        '--dart-sdk-summary',
+        dartSdkSummary.path,
         '-o',
         outJS.path,
         partFile.path,

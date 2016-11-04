@@ -8195,11 +8195,11 @@ class AnalysisErrorFixes implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorSeverity implements Enum {
-  static const INFO = const AnalysisErrorSeverity._("INFO");
+  static const AnalysisErrorSeverity INFO = const AnalysisErrorSeverity._("INFO");
 
-  static const WARNING = const AnalysisErrorSeverity._("WARNING");
+  static const AnalysisErrorSeverity WARNING = const AnalysisErrorSeverity._("WARNING");
 
-  static const ERROR = const AnalysisErrorSeverity._("ERROR");
+  static const AnalysisErrorSeverity ERROR = const AnalysisErrorSeverity._("ERROR");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -8256,21 +8256,21 @@ class AnalysisErrorSeverity implements Enum {
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorType implements Enum {
-  static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
+  static const AnalysisErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
 
-  static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
+  static const AnalysisErrorType COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
 
-  static const HINT = const AnalysisErrorType._("HINT");
+  static const AnalysisErrorType HINT = const AnalysisErrorType._("HINT");
 
-  static const LINT = const AnalysisErrorType._("LINT");
+  static const AnalysisErrorType LINT = const AnalysisErrorType._("LINT");
 
-  static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
+  static const AnalysisErrorType STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
 
-  static const STATIC_WARNING = const AnalysisErrorType._("STATIC_WARNING");
+  static const AnalysisErrorType STATIC_WARNING = const AnalysisErrorType._("STATIC_WARNING");
 
-  static const SYNTACTIC_ERROR = const AnalysisErrorType._("SYNTACTIC_ERROR");
+  static const AnalysisErrorType SYNTACTIC_ERROR = const AnalysisErrorType._("SYNTACTIC_ERROR");
 
-  static const TODO = const AnalysisErrorType._("TODO");
+  static const AnalysisErrorType TODO = const AnalysisErrorType._("TODO");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -8610,25 +8610,25 @@ class AnalysisOptions implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisService implements Enum {
-  static const FOLDING = const AnalysisService._("FOLDING");
+  static const AnalysisService FOLDING = const AnalysisService._("FOLDING");
 
-  static const HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
+  static const AnalysisService HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
 
-  static const IMPLEMENTED = const AnalysisService._("IMPLEMENTED");
+  static const AnalysisService IMPLEMENTED = const AnalysisService._("IMPLEMENTED");
 
   /**
    * This service is not currently implemented and will become a
    * GeneralAnalysisService in a future release.
    */
-  static const INVALIDATE = const AnalysisService._("INVALIDATE");
+  static const AnalysisService INVALIDATE = const AnalysisService._("INVALIDATE");
 
-  static const NAVIGATION = const AnalysisService._("NAVIGATION");
+  static const AnalysisService NAVIGATION = const AnalysisService._("NAVIGATION");
 
-  static const OCCURRENCES = const AnalysisService._("OCCURRENCES");
+  static const AnalysisService OCCURRENCES = const AnalysisService._("OCCURRENCES");
 
-  static const OUTLINE = const AnalysisService._("OUTLINE");
+  static const AnalysisService OUTLINE = const AnalysisService._("OUTLINE");
 
-  static const OVERRIDES = const AnalysisService._("OVERRIDES");
+  static const AnalysisService OVERRIDES = const AnalysisService._("OVERRIDES");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -9445,9 +9445,9 @@ class CompletionSuggestionKind implements Enum {
    * the invocation and the parameterNames, parameterTypes, and
    * requiredParameterCount attributes are defined.
    */
-  static const ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
+  static const CompletionSuggestionKind ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
 
-  static const IMPORT = const CompletionSuggestionKind._("IMPORT");
+  static const CompletionSuggestionKind IMPORT = const CompletionSuggestionKind._("IMPORT");
 
   /**
    * The element identifier should be inserted at the completion location. For
@@ -9455,7 +9455,7 @@ class CompletionSuggestionKind implements Enum {
    * suggestions of this kind, the element attribute is defined and the
    * completion field is the element's identifier.
    */
-  static const IDENTIFIER = const CompletionSuggestionKind._("IDENTIFIER");
+  static const CompletionSuggestionKind IDENTIFIER = const CompletionSuggestionKind._("IDENTIFIER");
 
   /**
    * The element is being invoked at the completion location. For example,
@@ -9463,24 +9463,24 @@ class CompletionSuggestionKind implements Enum {
    * element attribute is defined and the completion field is the element's
    * identifier.
    */
-  static const INVOCATION = const CompletionSuggestionKind._("INVOCATION");
+  static const CompletionSuggestionKind INVOCATION = const CompletionSuggestionKind._("INVOCATION");
 
   /**
    * A keyword is being suggested. For suggestions of this kind, the completion
    * is the keyword.
    */
-  static const KEYWORD = const CompletionSuggestionKind._("KEYWORD");
+  static const CompletionSuggestionKind KEYWORD = const CompletionSuggestionKind._("KEYWORD");
 
   /**
    * A named argument for the current callsite is being suggested. For
    * suggestions of this kind, the completion is the named argument identifier
    * including a trailing ':' and space.
    */
-  static const NAMED_ARGUMENT = const CompletionSuggestionKind._("NAMED_ARGUMENT");
+  static const CompletionSuggestionKind NAMED_ARGUMENT = const CompletionSuggestionKind._("NAMED_ARGUMENT");
 
-  static const OPTIONAL_ARGUMENT = const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
+  static const CompletionSuggestionKind OPTIONAL_ARGUMENT = const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
-  static const PARAMETER = const CompletionSuggestionKind._("PARAMETER");
+  static const CompletionSuggestionKind PARAMETER = const CompletionSuggestionKind._("PARAMETER");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10015,57 +10015,57 @@ class Element implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class ElementKind implements Enum {
-  static const CLASS = const ElementKind._("CLASS");
+  static const ElementKind CLASS = const ElementKind._("CLASS");
 
-  static const CLASS_TYPE_ALIAS = const ElementKind._("CLASS_TYPE_ALIAS");
+  static const ElementKind CLASS_TYPE_ALIAS = const ElementKind._("CLASS_TYPE_ALIAS");
 
-  static const COMPILATION_UNIT = const ElementKind._("COMPILATION_UNIT");
+  static const ElementKind COMPILATION_UNIT = const ElementKind._("COMPILATION_UNIT");
 
-  static const CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
+  static const ElementKind CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
 
-  static const ENUM = const ElementKind._("ENUM");
+  static const ElementKind ENUM = const ElementKind._("ENUM");
 
-  static const ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
+  static const ElementKind ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
 
-  static const FIELD = const ElementKind._("FIELD");
+  static const ElementKind FIELD = const ElementKind._("FIELD");
 
-  static const FILE = const ElementKind._("FILE");
+  static const ElementKind FILE = const ElementKind._("FILE");
 
-  static const FUNCTION = const ElementKind._("FUNCTION");
+  static const ElementKind FUNCTION = const ElementKind._("FUNCTION");
 
-  static const FUNCTION_TYPE_ALIAS = const ElementKind._("FUNCTION_TYPE_ALIAS");
+  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind._("FUNCTION_TYPE_ALIAS");
 
-  static const GETTER = const ElementKind._("GETTER");
+  static const ElementKind GETTER = const ElementKind._("GETTER");
 
-  static const LABEL = const ElementKind._("LABEL");
+  static const ElementKind LABEL = const ElementKind._("LABEL");
 
-  static const LIBRARY = const ElementKind._("LIBRARY");
+  static const ElementKind LIBRARY = const ElementKind._("LIBRARY");
 
-  static const LOCAL_VARIABLE = const ElementKind._("LOCAL_VARIABLE");
+  static const ElementKind LOCAL_VARIABLE = const ElementKind._("LOCAL_VARIABLE");
 
-  static const METHOD = const ElementKind._("METHOD");
+  static const ElementKind METHOD = const ElementKind._("METHOD");
 
-  static const PARAMETER = const ElementKind._("PARAMETER");
+  static const ElementKind PARAMETER = const ElementKind._("PARAMETER");
 
-  static const PREFIX = const ElementKind._("PREFIX");
+  static const ElementKind PREFIX = const ElementKind._("PREFIX");
 
-  static const SETTER = const ElementKind._("SETTER");
+  static const ElementKind SETTER = const ElementKind._("SETTER");
 
-  static const TOP_LEVEL_VARIABLE = const ElementKind._("TOP_LEVEL_VARIABLE");
+  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind._("TOP_LEVEL_VARIABLE");
 
-  static const TYPE_PARAMETER = const ElementKind._("TYPE_PARAMETER");
-
-  /**
-   * Deprecated: support for tests was removed.
-   */
-  static const UNIT_TEST_GROUP = const ElementKind._("UNIT_TEST_GROUP");
+  static const ElementKind TYPE_PARAMETER = const ElementKind._("TYPE_PARAMETER");
 
   /**
    * Deprecated: support for tests was removed.
    */
-  static const UNIT_TEST_TEST = const ElementKind._("UNIT_TEST_TEST");
+  static const ElementKind UNIT_TEST_GROUP = const ElementKind._("UNIT_TEST_GROUP");
 
-  static const UNKNOWN = const ElementKind._("UNKNOWN");
+  /**
+   * Deprecated: support for tests was removed.
+   */
+  static const ElementKind UNIT_TEST_TEST = const ElementKind._("UNIT_TEST_TEST");
+
+  static const ElementKind UNKNOWN = const ElementKind._("UNKNOWN");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10255,13 +10255,13 @@ class ExecutableFile implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class ExecutableKind implements Enum {
-  static const CLIENT = const ExecutableKind._("CLIENT");
+  static const ExecutableKind CLIENT = const ExecutableKind._("CLIENT");
 
-  static const EITHER = const ExecutableKind._("EITHER");
+  static const ExecutableKind EITHER = const ExecutableKind._("EITHER");
 
-  static const NOT_EXECUTABLE = const ExecutableKind._("NOT_EXECUTABLE");
+  static const ExecutableKind NOT_EXECUTABLE = const ExecutableKind._("NOT_EXECUTABLE");
 
-  static const SERVER = const ExecutableKind._("SERVER");
+  static const ExecutableKind SERVER = const ExecutableKind._("SERVER");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10313,7 +10313,7 @@ class ExecutableKind implements Enum {
  * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionService implements Enum {
-  static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
+  static const ExecutionService LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10360,9 +10360,9 @@ class ExecutionService implements Enum {
  * Clients may not extend, implement or mix-in this class.
  */
 class FileKind implements Enum {
-  static const LIBRARY = const FileKind._("LIBRARY");
+  static const FileKind LIBRARY = const FileKind._("LIBRARY");
 
-  static const PART = const FileKind._("PART");
+  static const FileKind PART = const FileKind._("PART");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10414,15 +10414,15 @@ class FileKind implements Enum {
  * Clients may not extend, implement or mix-in this class.
  */
 class FoldingKind implements Enum {
-  static const COMMENT = const FoldingKind._("COMMENT");
+  static const FoldingKind COMMENT = const FoldingKind._("COMMENT");
 
-  static const CLASS_MEMBER = const FoldingKind._("CLASS_MEMBER");
+  static const FoldingKind CLASS_MEMBER = const FoldingKind._("CLASS_MEMBER");
 
-  static const DIRECTIVES = const FoldingKind._("DIRECTIVES");
+  static const FoldingKind DIRECTIVES = const FoldingKind._("DIRECTIVES");
 
-  static const DOCUMENTATION_COMMENT = const FoldingKind._("DOCUMENTATION_COMMENT");
+  static const FoldingKind DOCUMENTATION_COMMENT = const FoldingKind._("DOCUMENTATION_COMMENT");
 
-  static const TOP_LEVEL_DECLARATION = const FoldingKind._("TOP_LEVEL_DECLARATION");
+  static const FoldingKind TOP_LEVEL_DECLARATION = const FoldingKind._("TOP_LEVEL_DECLARATION");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10599,7 +10599,7 @@ class FoldingRegion implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class GeneralAnalysisService implements Enum {
-  static const ANALYZED_FILES = const GeneralAnalysisService._("ANALYZED_FILES");
+  static const GeneralAnalysisService ANALYZED_FILES = const GeneralAnalysisService._("ANALYZED_FILES");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10840,298 +10840,298 @@ class HighlightRegion implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class HighlightRegionType implements Enum {
-  static const ANNOTATION = const HighlightRegionType._("ANNOTATION");
+  static const HighlightRegionType ANNOTATION = const HighlightRegionType._("ANNOTATION");
 
-  static const BUILT_IN = const HighlightRegionType._("BUILT_IN");
+  static const HighlightRegionType BUILT_IN = const HighlightRegionType._("BUILT_IN");
 
-  static const CLASS = const HighlightRegionType._("CLASS");
+  static const HighlightRegionType CLASS = const HighlightRegionType._("CLASS");
 
-  static const COMMENT_BLOCK = const HighlightRegionType._("COMMENT_BLOCK");
+  static const HighlightRegionType COMMENT_BLOCK = const HighlightRegionType._("COMMENT_BLOCK");
 
-  static const COMMENT_DOCUMENTATION = const HighlightRegionType._("COMMENT_DOCUMENTATION");
+  static const HighlightRegionType COMMENT_DOCUMENTATION = const HighlightRegionType._("COMMENT_DOCUMENTATION");
 
-  static const COMMENT_END_OF_LINE = const HighlightRegionType._("COMMENT_END_OF_LINE");
+  static const HighlightRegionType COMMENT_END_OF_LINE = const HighlightRegionType._("COMMENT_END_OF_LINE");
 
-  static const CONSTRUCTOR = const HighlightRegionType._("CONSTRUCTOR");
+  static const HighlightRegionType CONSTRUCTOR = const HighlightRegionType._("CONSTRUCTOR");
 
-  static const DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
-
-  /**
-   * Only for version 1 of highlight.
-   */
-  static const DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const DYNAMIC_LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const DYNAMIC_LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const DYNAMIC_PARAMETER_DECLARATION = const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const DYNAMIC_PARAMETER_REFERENCE = const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
-
-  static const ENUM = const HighlightRegionType._("ENUM");
-
-  static const ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
+  static const HighlightRegionType DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const FIELD = const HighlightRegionType._("FIELD");
+  static const HighlightRegionType DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION = const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE = const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
+
+  static const HighlightRegionType ENUM = const HighlightRegionType._("ENUM");
+
+  static const HighlightRegionType ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const FIELD_STATIC = const HighlightRegionType._("FIELD_STATIC");
+  static const HighlightRegionType FIELD = const HighlightRegionType._("FIELD");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const FUNCTION = const HighlightRegionType._("FUNCTION");
+  static const HighlightRegionType FIELD_STATIC = const HighlightRegionType._("FIELD_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const FUNCTION_DECLARATION = const HighlightRegionType._("FUNCTION_DECLARATION");
-
-  static const FUNCTION_TYPE_ALIAS = const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
+  static const HighlightRegionType FUNCTION = const HighlightRegionType._("FUNCTION");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const GETTER_DECLARATION = const HighlightRegionType._("GETTER_DECLARATION");
+  static const HighlightRegionType FUNCTION_DECLARATION = const HighlightRegionType._("FUNCTION_DECLARATION");
 
-  static const IDENTIFIER_DEFAULT = const HighlightRegionType._("IDENTIFIER_DEFAULT");
-
-  static const IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_FIELD_DECLARATION = const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_FIELD_REFERENCE = const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_GETTER_DECLARATION = const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_GETTER_REFERENCE = const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_METHOD_DECLARATION = const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_METHOD_REFERENCE = const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_SETTER_DECLARATION = const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_SETTER_REFERENCE = const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INVALID_STRING_ESCAPE = const HighlightRegionType._("INVALID_STRING_ESCAPE");
-
-  static const KEYWORD = const HighlightRegionType._("KEYWORD");
-
-  static const LABEL = const HighlightRegionType._("LABEL");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const LIBRARY_NAME = const HighlightRegionType._("LIBRARY_NAME");
-
-  static const LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
-
-  static const LITERAL_DOUBLE = const HighlightRegionType._("LITERAL_DOUBLE");
-
-  static const LITERAL_INTEGER = const HighlightRegionType._("LITERAL_INTEGER");
-
-  static const LITERAL_LIST = const HighlightRegionType._("LITERAL_LIST");
-
-  static const LITERAL_MAP = const HighlightRegionType._("LITERAL_MAP");
-
-  static const LITERAL_STRING = const HighlightRegionType._("LITERAL_STRING");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const LOCAL_FUNCTION_DECLARATION = const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const LOCAL_FUNCTION_REFERENCE = const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
+  static const HighlightRegionType FUNCTION_TYPE_ALIAS = const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const LOCAL_VARIABLE = const HighlightRegionType._("LOCAL_VARIABLE");
+  static const HighlightRegionType GETTER_DECLARATION = const HighlightRegionType._("GETTER_DECLARATION");
 
-  static const LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
+  static const HighlightRegionType IDENTIFIER_DEFAULT = const HighlightRegionType._("IDENTIFIER_DEFAULT");
+
+  static const HighlightRegionType IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
+  static const HighlightRegionType INSTANCE_FIELD_DECLARATION = const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_FIELD_REFERENCE = const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_GETTER_DECLARATION = const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_GETTER_REFERENCE = const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_METHOD_DECLARATION = const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_METHOD_REFERENCE = const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_SETTER_DECLARATION = const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_SETTER_REFERENCE = const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INVALID_STRING_ESCAPE = const HighlightRegionType._("INVALID_STRING_ESCAPE");
+
+  static const HighlightRegionType KEYWORD = const HighlightRegionType._("KEYWORD");
+
+  static const HighlightRegionType LABEL = const HighlightRegionType._("LABEL");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType LIBRARY_NAME = const HighlightRegionType._("LIBRARY_NAME");
+
+  static const HighlightRegionType LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
+
+  static const HighlightRegionType LITERAL_DOUBLE = const HighlightRegionType._("LITERAL_DOUBLE");
+
+  static const HighlightRegionType LITERAL_INTEGER = const HighlightRegionType._("LITERAL_INTEGER");
+
+  static const HighlightRegionType LITERAL_LIST = const HighlightRegionType._("LITERAL_LIST");
+
+  static const HighlightRegionType LITERAL_MAP = const HighlightRegionType._("LITERAL_MAP");
+
+  static const HighlightRegionType LITERAL_STRING = const HighlightRegionType._("LITERAL_STRING");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType LOCAL_FUNCTION_DECLARATION = const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType LOCAL_FUNCTION_REFERENCE = const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const METHOD = const HighlightRegionType._("METHOD");
+  static const HighlightRegionType LOCAL_VARIABLE = const HighlightRegionType._("LOCAL_VARIABLE");
+
+  static const HighlightRegionType LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const METHOD_DECLARATION = const HighlightRegionType._("METHOD_DECLARATION");
+  static const HighlightRegionType METHOD = const HighlightRegionType._("METHOD");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const METHOD_DECLARATION_STATIC = const HighlightRegionType._("METHOD_DECLARATION_STATIC");
+  static const HighlightRegionType METHOD_DECLARATION = const HighlightRegionType._("METHOD_DECLARATION");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const METHOD_STATIC = const HighlightRegionType._("METHOD_STATIC");
+  static const HighlightRegionType METHOD_DECLARATION_STATIC = const HighlightRegionType._("METHOD_DECLARATION_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const PARAMETER = const HighlightRegionType._("PARAMETER");
+  static const HighlightRegionType METHOD_STATIC = const HighlightRegionType._("METHOD_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const SETTER_DECLARATION = const HighlightRegionType._("SETTER_DECLARATION");
+  static const HighlightRegionType PARAMETER = const HighlightRegionType._("PARAMETER");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const TOP_LEVEL_VARIABLE = const HighlightRegionType._("TOP_LEVEL_VARIABLE");
+  static const HighlightRegionType SETTER_DECLARATION = const HighlightRegionType._("SETTER_DECLARATION");
+
+  /**
+   * Only for version 1 of highlight.
+   */
+  static const HighlightRegionType TOP_LEVEL_VARIABLE = const HighlightRegionType._("TOP_LEVEL_VARIABLE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const PARAMETER_DECLARATION = const HighlightRegionType._("PARAMETER_DECLARATION");
+  static const HighlightRegionType PARAMETER_DECLARATION = const HighlightRegionType._("PARAMETER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const PARAMETER_REFERENCE = const HighlightRegionType._("PARAMETER_REFERENCE");
+  static const HighlightRegionType PARAMETER_REFERENCE = const HighlightRegionType._("PARAMETER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_FIELD_DECLARATION = const HighlightRegionType._("STATIC_FIELD_DECLARATION");
+  static const HighlightRegionType STATIC_FIELD_DECLARATION = const HighlightRegionType._("STATIC_FIELD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_GETTER_DECLARATION = const HighlightRegionType._("STATIC_GETTER_DECLARATION");
+  static const HighlightRegionType STATIC_GETTER_DECLARATION = const HighlightRegionType._("STATIC_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_GETTER_REFERENCE = const HighlightRegionType._("STATIC_GETTER_REFERENCE");
+  static const HighlightRegionType STATIC_GETTER_REFERENCE = const HighlightRegionType._("STATIC_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_METHOD_DECLARATION = const HighlightRegionType._("STATIC_METHOD_DECLARATION");
+  static const HighlightRegionType STATIC_METHOD_DECLARATION = const HighlightRegionType._("STATIC_METHOD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_METHOD_REFERENCE = const HighlightRegionType._("STATIC_METHOD_REFERENCE");
+  static const HighlightRegionType STATIC_METHOD_REFERENCE = const HighlightRegionType._("STATIC_METHOD_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_SETTER_DECLARATION = const HighlightRegionType._("STATIC_SETTER_DECLARATION");
+  static const HighlightRegionType STATIC_SETTER_DECLARATION = const HighlightRegionType._("STATIC_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_SETTER_REFERENCE = const HighlightRegionType._("STATIC_SETTER_REFERENCE");
+  static const HighlightRegionType STATIC_SETTER_REFERENCE = const HighlightRegionType._("STATIC_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_FUNCTION_DECLARATION = const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION = const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_FUNCTION_REFERENCE = const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE = const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_GETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_GETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_SETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_SETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_VARIABLE_DECLARATION = const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION = const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
 
-  static const TYPE_NAME_DYNAMIC = const HighlightRegionType._("TYPE_NAME_DYNAMIC");
+  static const HighlightRegionType TYPE_NAME_DYNAMIC = const HighlightRegionType._("TYPE_NAME_DYNAMIC");
 
-  static const TYPE_PARAMETER = const HighlightRegionType._("TYPE_PARAMETER");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const UNRESOLVED_INSTANCE_MEMBER_REFERENCE = const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+  static const HighlightRegionType TYPE_PARAMETER = const HighlightRegionType._("TYPE_PARAMETER");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const VALID_STRING_ESCAPE = const HighlightRegionType._("VALID_STRING_ESCAPE");
+  static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE = const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType VALID_STRING_ESCAPE = const HighlightRegionType._("VALID_STRING_ESCAPE");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -12145,13 +12145,13 @@ class LinkedEditSuggestion implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class LinkedEditSuggestionKind implements Enum {
-  static const METHOD = const LinkedEditSuggestionKind._("METHOD");
+  static const LinkedEditSuggestionKind METHOD = const LinkedEditSuggestionKind._("METHOD");
 
-  static const PARAMETER = const LinkedEditSuggestionKind._("PARAMETER");
+  static const LinkedEditSuggestionKind PARAMETER = const LinkedEditSuggestionKind._("PARAMETER");
 
-  static const TYPE = const LinkedEditSuggestionKind._("TYPE");
+  static const LinkedEditSuggestionKind TYPE = const LinkedEditSuggestionKind._("TYPE");
 
-  static const VARIABLE = const LinkedEditSuggestionKind._("VARIABLE");
+  static const LinkedEditSuggestionKind VARIABLE = const LinkedEditSuggestionKind._("VARIABLE");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -13425,23 +13425,23 @@ class PubStatus implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringKind implements Enum {
-  static const CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
+  static const RefactoringKind CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
 
-  static const CONVERT_METHOD_TO_GETTER = const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
+  static const RefactoringKind CONVERT_METHOD_TO_GETTER = const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
 
-  static const EXTRACT_LOCAL_VARIABLE = const RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
+  static const RefactoringKind EXTRACT_LOCAL_VARIABLE = const RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
 
-  static const EXTRACT_METHOD = const RefactoringKind._("EXTRACT_METHOD");
+  static const RefactoringKind EXTRACT_METHOD = const RefactoringKind._("EXTRACT_METHOD");
 
-  static const INLINE_LOCAL_VARIABLE = const RefactoringKind._("INLINE_LOCAL_VARIABLE");
+  static const RefactoringKind INLINE_LOCAL_VARIABLE = const RefactoringKind._("INLINE_LOCAL_VARIABLE");
 
-  static const INLINE_METHOD = const RefactoringKind._("INLINE_METHOD");
+  static const RefactoringKind INLINE_METHOD = const RefactoringKind._("INLINE_METHOD");
 
-  static const MOVE_FILE = const RefactoringKind._("MOVE_FILE");
+  static const RefactoringKind MOVE_FILE = const RefactoringKind._("MOVE_FILE");
 
-  static const RENAME = const RefactoringKind._("RENAME");
+  static const RefactoringKind RENAME = const RefactoringKind._("RENAME");
 
-  static const SORT_MEMBERS = const RefactoringKind._("SORT_MEMBERS");
+  static const RefactoringKind SORT_MEMBERS = const RefactoringKind._("SORT_MEMBERS");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -13762,11 +13762,11 @@ class RefactoringOptions implements HasToJson {
  * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringMethodParameterKind implements Enum {
-  static const REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
+  static const RefactoringMethodParameterKind REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
 
-  static const POSITIONAL = const RefactoringMethodParameterKind._("POSITIONAL");
+  static const RefactoringMethodParameterKind POSITIONAL = const RefactoringMethodParameterKind._("POSITIONAL");
 
-  static const NAMED = const RefactoringMethodParameterKind._("NAMED");
+  static const RefactoringMethodParameterKind NAMED = const RefactoringMethodParameterKind._("NAMED");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -13948,7 +13948,7 @@ class RefactoringProblemSeverity implements Enum {
   /**
    * A minor code problem. No example, because it is not used yet.
    */
-  static const INFO = const RefactoringProblemSeverity._("INFO");
+  static const RefactoringProblemSeverity INFO = const RefactoringProblemSeverity._("INFO");
 
   /**
    * A minor code problem. For example names of local variables should be camel
@@ -13956,7 +13956,7 @@ class RefactoringProblemSeverity implements Enum {
    * with an upper case is OK from the language point of view, but it is nice
    * to warn the user.
    */
-  static const WARNING = const RefactoringProblemSeverity._("WARNING");
+  static const RefactoringProblemSeverity WARNING = const RefactoringProblemSeverity._("WARNING");
 
   /**
    * The refactoring technically can be performed, but there is a logical
@@ -13969,14 +13969,14 @@ class RefactoringProblemSeverity implements Enum {
    * the name conflict might be expected, and the user wants to fix it
    * afterwards.
    */
-  static const ERROR = const RefactoringProblemSeverity._("ERROR");
+  static const RefactoringProblemSeverity ERROR = const RefactoringProblemSeverity._("ERROR");
 
   /**
    * A fatal error, which prevents performing the refactoring. For example the
    * name of a local variable being extracted is not a valid identifier, or
    * selection is not a valid expression.
    */
-  static const FATAL = const RefactoringProblemSeverity._("FATAL");
+  static const RefactoringProblemSeverity FATAL = const RefactoringProblemSeverity._("FATAL");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -14237,93 +14237,93 @@ class RequestErrorCode implements Enum {
    * satisfied because the content of the file changed before the requested
    * results could be computed.
    */
-  static const CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
+  static const RequestErrorCode CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
 
   /**
    * A request specified a FilePath which does not match a file in an analysis
    * root, or the requested operation is not available for the file.
    */
-  static const FILE_NOT_ANALYZED = const RequestErrorCode._("FILE_NOT_ANALYZED");
+  static const RequestErrorCode FILE_NOT_ANALYZED = const RequestErrorCode._("FILE_NOT_ANALYZED");
 
   /**
    * An "edit.format" request specified a FilePath which does not match a Dart
    * file in an analysis root.
    */
-  static const FORMAT_INVALID_FILE = const RequestErrorCode._("FORMAT_INVALID_FILE");
+  static const RequestErrorCode FORMAT_INVALID_FILE = const RequestErrorCode._("FORMAT_INVALID_FILE");
 
   /**
    * An "edit.format" request specified a file that contains syntax errors.
    */
-  static const FORMAT_WITH_ERRORS = const RequestErrorCode._("FORMAT_WITH_ERRORS");
+  static const RequestErrorCode FORMAT_WITH_ERRORS = const RequestErrorCode._("FORMAT_WITH_ERRORS");
 
   /**
    * An "analysis.getErrors" request specified a FilePath which does not match
    * a file currently subject to analysis.
    */
-  static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
+  static const RequestErrorCode GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
 
   /**
    * An "analysis.getNavigation" request specified a FilePath which does not
    * match a file currently subject to analysis.
    */
-  static const GET_NAVIGATION_INVALID_FILE = const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
+  static const RequestErrorCode GET_NAVIGATION_INVALID_FILE = const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
 
   /**
    * An "analysis.getReachableSources" request specified a FilePath which does
    * not match a file currently subject to analysis.
    */
-  static const GET_REACHABLE_SOURCES_INVALID_FILE = const RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
+  static const RequestErrorCode GET_REACHABLE_SOURCES_INVALID_FILE = const RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
 
   /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is
    * required to be an analysis root, but isn't.
    */
-  static const INVALID_ANALYSIS_ROOT = const RequestErrorCode._("INVALID_ANALYSIS_ROOT");
+  static const RequestErrorCode INVALID_ANALYSIS_ROOT = const RequestErrorCode._("INVALID_ANALYSIS_ROOT");
 
   /**
    * The context root used to create an execution context does not exist.
    */
-  static const INVALID_EXECUTION_CONTEXT = const RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
+  static const RequestErrorCode INVALID_EXECUTION_CONTEXT = const RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
 
   /**
    * The format of the given file path is invalid, e.g. is not absolute and
    * normalized.
    */
-  static const INVALID_FILE_PATH_FORMAT = const RequestErrorCode._("INVALID_FILE_PATH_FORMAT");
+  static const RequestErrorCode INVALID_FILE_PATH_FORMAT = const RequestErrorCode._("INVALID_FILE_PATH_FORMAT");
 
   /**
    * An "analysis.updateContent" request contained a ChangeContentOverlay
    * object which can't be applied, due to an edit having an offset or length
    * that is out of range.
    */
-  static const INVALID_OVERLAY_CHANGE = const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
+  static const RequestErrorCode INVALID_OVERLAY_CHANGE = const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
   /**
    * One of the method parameters was invalid.
    */
-  static const INVALID_PARAMETER = const RequestErrorCode._("INVALID_PARAMETER");
+  static const RequestErrorCode INVALID_PARAMETER = const RequestErrorCode._("INVALID_PARAMETER");
 
   /**
    * A malformed request was received.
    */
-  static const INVALID_REQUEST = const RequestErrorCode._("INVALID_REQUEST");
+  static const RequestErrorCode INVALID_REQUEST = const RequestErrorCode._("INVALID_REQUEST");
 
   /**
    * The "--no-index" flag was passed when the analysis server created, but
    * this API call requires an index to have been generated.
    */
-  static const NO_INDEX_GENERATED = const RequestErrorCode._("NO_INDEX_GENERATED");
+  static const RequestErrorCode NO_INDEX_GENERATED = const RequestErrorCode._("NO_INDEX_GENERATED");
 
   /**
    * An "edit.organizeDirectives" request specified a Dart file that cannot be
    * analyzed. The reason is described in the message.
    */
-  static const ORGANIZE_DIRECTIVES_ERROR = const RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
+  static const RequestErrorCode ORGANIZE_DIRECTIVES_ERROR = const RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
 
   /**
    * Another refactoring request was received during processing of this one.
    */
-  static const REFACTORING_REQUEST_CANCELLED = const RequestErrorCode._("REFACTORING_REQUEST_CANCELLED");
+  static const RequestErrorCode REFACTORING_REQUEST_CANCELLED = const RequestErrorCode._("REFACTORING_REQUEST_CANCELLED");
 
   /**
    * The analysis server has already been started (and hence won't accept new
@@ -14333,25 +14333,25 @@ class RequestErrorCode implements Enum {
    * server can only speak to one client at a time so this error will never
    * occur.
    */
-  static const SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
+  static const RequestErrorCode SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
 
   /**
    * An internal error occurred in the analysis server. Also see the
    * server.error notification.
    */
-  static const SERVER_ERROR = const RequestErrorCode._("SERVER_ERROR");
+  static const RequestErrorCode SERVER_ERROR = const RequestErrorCode._("SERVER_ERROR");
 
   /**
    * An "edit.sortMembers" request specified a FilePath which does not match a
    * Dart file in an analysis root.
    */
-  static const SORT_MEMBERS_INVALID_FILE = const RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
+  static const RequestErrorCode SORT_MEMBERS_INVALID_FILE = const RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
 
   /**
    * An "edit.sortMembers" request specified a Dart file that has scan or parse
    * errors.
    */
-  static const SORT_MEMBERS_PARSE_ERRORS = const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
+  static const RequestErrorCode SORT_MEMBERS_PARSE_ERRORS = const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
   /**
    * An "analysis.setPriorityFiles" request includes one or more files that are
@@ -14360,19 +14360,19 @@ class RequestErrorCode implements Enum {
    * This is a legacy error; it will be removed before the API reaches version
    * 1.0.
    */
-  static const UNANALYZED_PRIORITY_FILES = const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
+  static const RequestErrorCode UNANALYZED_PRIORITY_FILES = const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
 
   /**
    * A request was received which the analysis server does not recognize, or
    * cannot handle in its current configuration.
    */
-  static const UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
+  static const RequestErrorCode UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
 
   /**
    * The analysis server was requested to perform an action on a source that
    * does not exist.
    */
-  static const UNKNOWN_SOURCE = const RequestErrorCode._("UNKNOWN_SOURCE");
+  static const RequestErrorCode UNKNOWN_SOURCE = const RequestErrorCode._("UNKNOWN_SOURCE");
 
   /**
    * The analysis server was requested to perform an action which is not
@@ -14381,7 +14381,7 @@ class RequestErrorCode implements Enum {
    * This is a legacy error; it will be removed before the API reaches version
    * 1.0.
    */
-  static const UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
+  static const RequestErrorCode UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -14641,38 +14641,38 @@ class SearchResultKind implements Enum {
   /**
    * The declaration of an element.
    */
-  static const DECLARATION = const SearchResultKind._("DECLARATION");
+  static const SearchResultKind DECLARATION = const SearchResultKind._("DECLARATION");
 
   /**
    * The invocation of a function or method.
    */
-  static const INVOCATION = const SearchResultKind._("INVOCATION");
+  static const SearchResultKind INVOCATION = const SearchResultKind._("INVOCATION");
 
   /**
    * A reference to a field, parameter or variable where it is being read.
    */
-  static const READ = const SearchResultKind._("READ");
+  static const SearchResultKind READ = const SearchResultKind._("READ");
 
   /**
    * A reference to a field, parameter or variable where it is being read and
    * written.
    */
-  static const READ_WRITE = const SearchResultKind._("READ_WRITE");
+  static const SearchResultKind READ_WRITE = const SearchResultKind._("READ_WRITE");
 
   /**
    * A reference to an element.
    */
-  static const REFERENCE = const SearchResultKind._("REFERENCE");
+  static const SearchResultKind REFERENCE = const SearchResultKind._("REFERENCE");
 
   /**
    * Some other kind of search result.
    */
-  static const UNKNOWN = const SearchResultKind._("UNKNOWN");
+  static const SearchResultKind UNKNOWN = const SearchResultKind._("UNKNOWN");
 
   /**
    * A reference to a field, parameter or variable where it is being written.
    */
-  static const WRITE = const SearchResultKind._("WRITE");
+  static const SearchResultKind WRITE = const SearchResultKind._("WRITE");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -14730,7 +14730,7 @@ class SearchResultKind implements Enum {
  * Clients may not extend, implement or mix-in this class.
  */
 class ServerService implements Enum {
-  static const STATUS = const ServerService._("STATUS");
+  static const ServerService STATUS = const ServerService._("STATUS");
 
   /**
    * A list containing all of the enum values that are defined.

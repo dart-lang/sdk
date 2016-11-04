@@ -419,6 +419,7 @@ static bool IntrinsifyArrayGetIndexed(FlowGraph* flow_graph,
                            new Value(index),
                            Instance::ElementSizeFor(array_cid),  // index scale
                            array_cid,
+                           kAlignedAccess,
                            Thread::kNoDeoptId,
                            builder.TokenPos()));
   // Box and/or convert result if necessary.
@@ -581,6 +582,7 @@ static bool IntrinsifyArraySetIndexed(FlowGraph* flow_graph,
                             kNoStoreBarrier,
                             Instance::ElementSizeFor(array_cid),  // index scale
                             array_cid,
+                            kAlignedAccess,
                             Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.
@@ -733,6 +735,7 @@ static bool BuildCodeUnitAt(FlowGraph* flow_graph, intptr_t cid) {
                            new Value(index),
                            Instance::ElementSizeFor(cid),
                            cid,
+                           kAlignedAccess,
                            Thread::kNoDeoptId,
                            builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(result));
@@ -962,6 +965,7 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
                            new Value(index),
                            Instance::ElementSizeFor(kArrayCid),  // index scale
                            kArrayCid,
+                           kAlignedAccess,
                            Thread::kNoDeoptId,
                            builder.TokenPos()));
   builder.AddIntrinsicReturn(new Value(result));
@@ -998,6 +1002,7 @@ bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
                             kEmitStoreBarrier,
                             Instance::ElementSizeFor(kArrayCid),  // index scale
                             kArrayCid,
+                            kAlignedAccess,
                             Thread::kNoDeoptId,
                             builder.TokenPos()));
   // Return null.

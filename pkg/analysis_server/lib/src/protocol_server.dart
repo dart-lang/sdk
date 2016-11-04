@@ -13,12 +13,12 @@ import 'package:analyzer/dart/ast/ast.dart' as engine;
 import 'package:analyzer/dart/ast/visitor.dart' as engine;
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/dart/element/type.dart' as engine;
+import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' as engine;
-import 'package:analyzer/src/generated/engine.dart' as engine;
-import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
+import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:analyzer/src/generated/utilities_dart.dart' as engine;
 
@@ -140,7 +140,8 @@ Location newLocation_fromElement(engine.Element element) {
   }
   int offset = element.nameOffset;
   int length = element.nameLength;
-  if (element is engine.CompilationUnitElement) {
+  if (element is engine.CompilationUnitElement ||
+      (element is engine.LibraryElement && offset < 0)) {
     offset = 0;
     length = 0;
   }

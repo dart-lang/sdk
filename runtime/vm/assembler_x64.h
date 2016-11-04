@@ -882,6 +882,7 @@ class Assembler : public ValueObject {
 
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.
@@ -949,8 +950,6 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void RawEntry() { buffer_.Reset(); }
-  void NoMonomorphicCheckedEntry();
   void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
@@ -1025,6 +1024,7 @@ class Assembler : public ValueObject {
   ObjectPoolWrapper object_pool_wrapper_;
 
   intptr_t prologue_offset_;
+  bool has_single_entry_point_;
 
   class CodeComment : public ZoneAllocated {
    public:

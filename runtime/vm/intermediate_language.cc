@@ -975,8 +975,7 @@ bool BlockEntryInstr::DiscoverBlock(
 }
 
 
-bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
-                                       GraphEntryInstr* graph_entry,
+bool BlockEntryInstr::PruneUnreachable(GraphEntryInstr* graph_entry,
                                        Instruction* parent,
                                        intptr_t osr_id,
                                        BitVector* block_marks) {
@@ -1012,8 +1011,7 @@ bool BlockEntryInstr::PruneUnreachable(FlowGraphBuilder* builder,
 
   // Recursively search the successors.
   for (intptr_t i = instr->SuccessorCount() - 1; i >= 0; --i) {
-    if (instr->SuccessorAt(i)->PruneUnreachable(builder,
-                                                graph_entry,
+    if (instr->SuccessorAt(i)->PruneUnreachable(graph_entry,
                                                 instr,
                                                 osr_id,
                                                 block_marks)) {
@@ -1759,14 +1757,34 @@ Definition* CheckedSmiOpInstr::Canonicalize(FlowGraph* flow_graph) {
       default:
         break;
     }
-    if (Token::IsRelationalOperator(op_kind())) {
-      replacement = new RelationalOpInstr(token_pos(), op_kind(),
+    if (replacement != NULL) {
+      flow_graph->InsertBefore(this, replacement, env(), FlowGraph::kValue);
+      return replacement;
+    }
+  }
+  return this;
+}
+
+
+ComparisonInstr* CheckedSmiComparisonInstr::CopyWithNewOperands(
+    Value* left, Value* right) {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+Definition* CheckedSmiComparisonInstr::Canonicalize(FlowGraph* flow_graph) {
+  if ((left()->Type()->ToCid() == kSmiCid) &&
+      (right()->Type()->ToCid() == kSmiCid)) {
+    Definition* replacement = NULL;
+    if (Token::IsRelationalOperator(kind())) {
+      replacement = new RelationalOpInstr(token_pos(), kind(),
                                           new Value(left()->definition()),
                                           new Value(right()->definition()),
                                           kSmiCid,
                                           Thread::kNoDeoptId);
-    } else if (Token::IsEqualityOperator(op_kind())) {
-      replacement = new EqualityCompareInstr(token_pos(), op_kind(),
+    } else if (Token::IsEqualityOperator(kind())) {
+      replacement = new EqualityCompareInstr(token_pos(), kind(),
                                              new Value(left()->definition()),
                                              new Value(right()->definition()),
                                              kSmiCid,
@@ -2358,9 +2376,9 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* BooleanNegateInstr::Canonicalize(FlowGraph* flow_graph) {
   Definition* defn = value()->definition();
-  if (defn->IsComparison() && defn->HasOnlyUse(value())) {
-    // Comparisons always have a bool result.
-    ASSERT(value()->definition()->Type()->ToCid() == kBoolCid);
+  if (defn->IsComparison() &&
+      defn->HasOnlyUse(value()) &&
+      defn->Type()->ToCid() == kBoolCid) {
     defn->AsComparison()->NegateComparison();
     return defn;
   }
@@ -2389,7 +2407,8 @@ static bool MaybeNumber(CompileType* type) {
 // Returns a replacement for a strict comparison and signals if the result has
 // to be negated.
 static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
-                                             bool* negated) {
+                                             bool* negated,
+                                             bool is_branch) {
   // Use propagated cid and type information to eliminate number checks.
   // If one of the inputs is not a boxable number (Mint, Double, Bigint), or
   // is not a subtype of num, no need for number checks.
@@ -2402,7 +2421,6 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
       compare->set_needs_number_check(false);
     }
   }
-
   *negated = false;
   PassiveObject& constant = PassiveObject::Handle();
   Value* other = NULL;
@@ -2416,25 +2434,26 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
     return compare;
   }
 
+  const bool can_merge = is_branch || (other->Type()->ToCid() == kBoolCid);
   Definition* other_defn = other->definition();
   Token::Kind kind = compare->kind();
   // Handle e === true.
   if ((kind == Token::kEQ_STRICT) &&
       (constant.raw() == Bool::True().raw()) &&
-      (other->Type()->ToCid() == kBoolCid)) {
+      can_merge) {
     return other_defn;
   }
   // Handle e !== false.
   if ((kind == Token::kNE_STRICT) &&
       (constant.raw() == Bool::False().raw()) &&
-      (other->Type()->ToCid() == kBoolCid)) {
+      can_merge) {
     return other_defn;
   }
   // Handle e !== true.
   if ((kind == Token::kNE_STRICT) &&
       (constant.raw() == Bool::True().raw()) &&
       other_defn->IsComparison() &&
-      (other->Type()->ToCid() == kBoolCid) &&
+      can_merge &&
       other_defn->HasOnlyUse(other)) {
     *negated = true;
     return other_defn;
@@ -2443,7 +2462,7 @@ static Definition* CanonicalizeStrictCompare(StrictCompareInstr* compare,
   if ((kind == Token::kEQ_STRICT) &&
       (constant.raw() == Bool::False().raw()) &&
       other_defn->IsComparison() &&
-      (other->Type()->ToCid() == kBoolCid) &&
+      can_merge &&
       other_defn->HasOnlyUse(other)) {
     *negated = true;
     return other_defn;
@@ -2503,7 +2522,8 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
   if (comparison()->IsStrictCompare()) {
     bool negated = false;
     Definition* replacement =
-        CanonicalizeStrictCompare(comparison()->AsStrictCompare(), &negated);
+        CanonicalizeStrictCompare(comparison()->AsStrictCompare(),
+                                  &negated, /* is_branch = */ true);
     if (replacement == comparison()) {
       return this;
     }
@@ -2575,7 +2595,8 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses()) return NULL;
   bool negated = false;
-  Definition* replacement = CanonicalizeStrictCompare(this, &negated);
+  Definition* replacement = CanonicalizeStrictCompare(this, &negated,
+                                                      /* is_branch = */ false);
   if (negated && replacement->IsComparison()) {
     ASSERT(replacement != this);
     replacement->AsComparison()->NegateComparison();
@@ -3022,13 +3043,13 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
                                        Value* left,
                                        Value* right,
                                        bool needs_number_check)
-    : ComparisonInstr(token_pos,
-                      kind,
-                      left,
-                      right,
-                      Thread::Current()->GetNextDeoptId()),
+    : TemplateComparison(token_pos,
+                         kind,
+                         Thread::Current()->GetNextDeoptId()),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
+  SetInputAt(0, left);
+  SetInputAt(1, right);
 }
 
 
@@ -3231,6 +3252,67 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
 
+RawType* PolymorphicInstanceCallInstr::ComputeRuntimeType(
+    const ICData& ic_data) {
+  bool is_string = true;
+  bool is_integer = true;
+  bool is_double = true;
+
+  const intptr_t num_checks = ic_data.NumberOfChecks();
+  for (intptr_t i = 0; i < num_checks; i++) {
+    const intptr_t cid = ic_data.GetReceiverClassIdAt(i);
+    is_string = is_string && RawObject::IsStringClassId(cid);
+    is_integer = is_integer && RawObject::IsIntegerClassId(cid);
+    is_double = is_double && (cid == kDoubleCid);
+  }
+
+  if (is_string) {
+    return Type::StringType();
+  } else if (is_integer) {
+    return Type::IntType();
+  } else if (is_double) {
+    return Type::Double();
+  }
+
+  return Type::null();
+}
+
+
+Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasSingleRecognizedTarget() || with_checks()) {
+    return this;
+  }
+
+  const Function& target = Function::Handle(ic_data().GetTargetAt(0));
+  if (target.recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
+    const AbstractType& type =
+        AbstractType::Handle(ComputeRuntimeType(ic_data()));
+    if (!type.IsNull()) {
+      return flow_graph->GetConstant(type);
+    }
+  }
+
+  return this;
+}
+
+
+Definition* StaticCallInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!FLAG_precompiled_mode) {
+    return this;
+  }
+
+  if (function().recognized_kind() == MethodRecognizer::kObjectRuntimeType) {
+    if (input_use_list() == NULL) {
+      // This function has only environment uses. In precompiled mode it is
+      // fine to remove it - because we will never deoptimize.
+      return flow_graph->constant_dead();
+    }
+  }
+
+  return this;
+}
+
+
 LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {
   return MakeCallSummary(zone);
@@ -3421,6 +3503,13 @@ void Environment::DeepCopyToOuter(Zone* zone, Instruction* instr) const {
     value->set_use_index(use_index++);
     value->definition()->AddEnvUse(value);
   }
+}
+
+
+ComparisonInstr* DoubleTestOpInstr::CopyWithNewOperands(Value* new_left,
+                                                        Value* new_right) {
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -3656,6 +3745,71 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
   const String& concatenated = String::ZoneHandle(zone,
       Symbols::FromConcatAll(thread, pieces));
   return flow_graph->GetConstant(concatenated);
+}
+
+
+static AlignmentType StrengthenAlignment(intptr_t cid,
+                                         AlignmentType alignment) {
+  switch (cid) {
+    case kTypedDataInt8ArrayCid:
+    case kTypedDataUint8ArrayCid:
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+    case kOneByteStringCid:
+    case kExternalOneByteStringCid:
+      // Don't need to worry about alignment for accessing bytes.
+      return kAlignedAccess;
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid:
+    case kTypedDataFloat64x2ArrayCid:
+    case kTypedDataInt32x4ArrayCid:
+    case kTypedDataFloat32x4ArrayCid:
+      // TODO(rmacnak): Investigate alignment requirements of floating point
+      // loads.
+      return kAlignedAccess;
+  }
+
+  return alignment;
+}
+
+
+LoadIndexedInstr::LoadIndexedInstr(Value* array,
+                                   Value* index,
+                                   intptr_t index_scale,
+                                   intptr_t class_id,
+                                   AlignmentType alignment,
+                                   intptr_t deopt_id,
+                                   TokenPosition token_pos)
+    : TemplateDefinition(deopt_id),
+      index_scale_(index_scale),
+      class_id_(class_id),
+      alignment_(StrengthenAlignment(class_id, alignment)),
+      token_pos_(token_pos) {
+  SetInputAt(0, array);
+  SetInputAt(1, index);
+}
+
+
+
+StoreIndexedInstr::StoreIndexedInstr(Value* array,
+                                     Value* index,
+                                     Value* value,
+                                     StoreBarrierType emit_store_barrier,
+                                     intptr_t index_scale,
+                                     intptr_t class_id,
+                                     AlignmentType alignment,
+                                     intptr_t deopt_id,
+                                     TokenPosition token_pos)
+    : TemplateDefinition(deopt_id),
+      emit_store_barrier_(emit_store_barrier),
+      index_scale_(index_scale),
+      class_id_(class_id),
+      alignment_(StrengthenAlignment(class_id, alignment)),
+      token_pos_(token_pos) {
+  SetInputAt(kArrayPos, array);
+  SetInputAt(kIndexPos, index);
+  SetInputAt(kValuePos, value);
 }
 
 

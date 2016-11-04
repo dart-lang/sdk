@@ -1914,7 +1914,8 @@ dart_library.library('dart_sdk', null, /* Imports */[
     if (result != null) return dart.wrapType(result);
     let extension = dart.getExtensionType(obj);
     if (extension != null) {
-      return obj[dartx.runtimeType];
+      result = obj[dartx.runtimeType];
+      return result != null ? result : dart.wrapType(extension);
     }
     if (typeof obj == "function") {
       return dart.wrapType(dart.getReifiedType(obj));
@@ -13200,6 +13201,10 @@ dart_library.library('dart_sdk', null, /* Imports */[
     return _js_mirrors._dart.wrapType(obj);
   };
   dart.fn(_js_mirrors._wrap, dynamicTodynamic$());
+  _js_mirrors._runtimeType = function(obj) {
+    return _js_mirrors._wrap(_js_mirrors._dart.getReifiedType(obj));
+  };
+  dart.fn(_js_mirrors._runtimeType, dynamicTodynamic$());
   _js_mirrors._unimplemented = function(t, i) {
     dart.throw(new core.UnimplementedError(dart.str`${t}.${_js_mirrors.getName(i.memberName)} unimplemented`));
   };
@@ -13312,7 +13317,7 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     get type() {
       if (this.reflectee == null) return mirrors.reflectClass(dart.wrapType(core.Null));
-      return mirrors.ClassMirror._check(_js_mirrors.reflectType(core.Type._check(dart.runtimeType(this.reflectee))));
+      return mirrors.ClassMirror._check(_js_mirrors.reflectType(core.Type._check(_js_mirrors._runtimeType(this.reflectee))));
     }
     _(reflectee) {
       this.reflectee = reflectee;
@@ -28394,14 +28399,12 @@ dart_library.library('dart_sdk', null, /* Imports */[
       }),
       getters: () => ({
         iterator: dart.definiteFunctionType(core.Iterator$(E), []),
-        length: dart.definiteFunctionType(core.int, []),
         first: dart.definiteFunctionType(E, []),
         last: dart.definiteFunctionType(E, []),
         single: dart.definiteFunctionType(E, [])
       }),
       methods: () => ({
         [_compare]: dart.definiteFunctionType(core.int, [E, E]),
-        contains: dart.definiteFunctionType(core.bool, [core.Object]),
         add: dart.definiteFunctionType(core.bool, [E]),
         remove: dart.definiteFunctionType(core.bool, [core.Object]),
         addAll: dart.definiteFunctionType(dart.void, [IterableOfE()]),

@@ -84,6 +84,14 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
       THR_Print("Removing v%" Pd ".\n", current_defn->ssa_temp_index());
     }
   }
+  if (current->ArgumentCount() != 0) {
+    // This is a call instruction. Must remove original push arguments.
+    for (intptr_t i = 0; i < current->ArgumentCount(); ++i) {
+      PushArgumentInstr* push = current->PushArgumentAt(i);
+      push->ReplaceUsesWith(push->value()->definition());
+      push->RemoveFromGraph();
+    }
+  }
   iterator->RemoveCurrentFromGraph();
 }
 
@@ -2014,7 +2022,10 @@ void FlowGraph::EliminateEnvironments() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!current->CanDeoptimize()) {
+      if (!current->CanDeoptimize() &&
+          (!current->MayThrow() || !current->GetBlock()->InsideTryBlock())) {
+        // Instructions that can throw need an environment for optimized
+        // try-catch.
         // TODO(srdjan): --source-lines needs deopt environments to get at
         // the code for this instruction, however, leaving the environment
         // changes code.

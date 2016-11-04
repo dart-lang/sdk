@@ -2394,7 +2394,7 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
       const intptr_t index_scale = Instance::ElementSizeFor(class_id);
       StoreIndexedInstr* store = new(Z) StoreIndexedInstr(
           array, index, for_value.value(), emit_store_barrier,
-          index_scale, class_id, deopt_id, node->token_pos());
+          index_scale, class_id, kAlignedAccess, deopt_id, node->token_pos());
       Do(store);
     }
     ReturnDefinition(ExitTempLocalScope(array_val));
@@ -4637,7 +4637,7 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
 void FlowGraphBuilder::PruneUnreachable() {
   ASSERT(osr_id_ != Compiler::kNoOSRDeoptId);
   BitVector* block_marks = new(Z) BitVector(Z, last_used_block_id_ + 1);
-  bool found = graph_entry_->PruneUnreachable(this, graph_entry_, NULL, osr_id_,
+  bool found = graph_entry_->PruneUnreachable(graph_entry_, NULL, osr_id_,
                                               block_marks);
   ASSERT(found);
 }

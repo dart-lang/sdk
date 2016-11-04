@@ -19,6 +19,7 @@ module.exports = function(config) {
       {pattern: 'gen/codegen_output/corelib/**/*.js', included: false},
       {pattern: 'gen/codegen_output/lib/**/*.js', included: false},
       {pattern: 'test/browser/*.js', included: false},
+      {pattern: 'node_modules/is_js/*.js', included: false},      
       'test-main.js',
     ],
 

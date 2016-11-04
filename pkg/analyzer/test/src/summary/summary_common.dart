@@ -829,6 +829,26 @@ abstract class SummaryTest {
     return findVariable(variableName, failIfAbsent: true);
   }
 
+  test_apiSignature() {
+    List<int> signature1;
+    List<int> signature2;
+    List<int> signature3;
+    {
+      serializeLibraryText('class A {}');
+      signature1 = unlinkedUnits[0].apiSignature;
+    }
+    {
+      serializeLibraryText('class A { }');
+      signature2 = unlinkedUnits[0].apiSignature;
+    }
+    {
+      serializeLibraryText('class B {}');
+      signature3 = unlinkedUnits[0].apiSignature;
+    }
+    expect(signature2, signature1);
+    expect(signature3, isNot(signature1));
+  }
+
   test_bottom_reference_shared() {
     if (skipFullyLinkedData) {
       return;
@@ -9272,6 +9292,13 @@ f(x) => 42;
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
     expect(unlinkedUnits[1].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[1].publicNamespace.names[0].name, 'C');
+  }
+
+  test_part_isPartOf() {
+    addNamedSource('/a.dart', 'part of foo; class C {}');
+    serializeLibraryText('library foo; part "a.dart";');
+    expect(unlinkedUnits[0].isPartOf, isFalse);
+    expect(unlinkedUnits[1].isPartOf, isTrue);
   }
 
   test_reference_zero() {

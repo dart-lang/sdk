@@ -467,6 +467,7 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.  On ARM64 there are no pointers in code.
@@ -1363,7 +1364,6 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void NoMonomorphicCheckedEntry();
   void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
@@ -1401,20 +1401,36 @@ class Assembler : public ValueObject {
                                     intptr_t index_scale,
                                     Register array,
                                     intptr_t index) const;
+  void LoadElementAddressForIntIndex(Register address,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     intptr_t index);
   Address ElementAddressForRegIndex(bool is_load,
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+  void LoadElementAddressForRegIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     Register index);
+
+  void LoadUnaligned(Register dst, Register addr, Register tmp,
+                     OperandSize sz);
+  void StoreUnaligned(Register src, Register addr, Register tmp,
+                      OperandSize sz);
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-
   ObjectPoolWrapper object_pool_wrapper_;
-
   int32_t prologue_offset_;
-
+  bool has_single_entry_point_;
   bool use_far_branches_;
 
   class CodeComment : public ZoneAllocated {

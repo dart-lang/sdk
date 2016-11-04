@@ -366,10 +366,10 @@ class Assembler : public ValueObject {
   explicit Assembler(bool use_far_branches = false)
       : buffer_(),
         prologue_offset_(-1),
+        has_single_entry_point_(true),
         use_far_branches_(use_far_branches),
         comments_(),
         constant_pool_allowed_(false) {
-    MonomorphicCheckedEntry();
   }
 
   ~Assembler() { }
@@ -382,6 +382,7 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.  On ARM there are no pointers in code.
@@ -946,7 +947,6 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void NoMonomorphicCheckedEntry();
   void MonomorphicCheckedEntry();
 
   // The register into which the allocation stats table is loaded with
@@ -971,12 +971,34 @@ class Assembler : public ValueObject {
                                     intptr_t index,
                                     Register temp);
 
+  void LoadElementAddressForIntIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     intptr_t index);
+
   Address ElementAddressForRegIndex(bool is_load,
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+
+  void LoadElementAddressForRegIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     Register index);
+
+  void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
+  void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
+  void StoreHalfWordUnaligned(Register src, Register addr, Register tmp);
+  void LoadWordUnaligned(Register dst, Register addr, Register tmp);
+  void StoreWordUnaligned(Register src, Register addr, Register tmp);
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
@@ -1019,9 +1041,8 @@ class Assembler : public ValueObject {
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
   ObjectPoolWrapper object_pool_wrapper_;
-
   int32_t prologue_offset_;
-
+  bool has_single_entry_point_;
   bool use_far_branches_;
 
   // If you are thinking of using one or both of these instructions directly,

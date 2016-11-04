@@ -279,6 +279,18 @@ class SimulatorHelpers {
     if (cid == kClosureCid) {
       return false;
     }
+    if (cid < kNumPredefinedCids) {
+      if (cid == kDoubleCid) {
+        *result = thread->isolate()->object_store()->double_type();
+        return true;
+      } else if (RawObject::IsStringClassId(cid)) {
+        *result = thread->isolate()->object_store()->string_type();
+        return true;
+      } else if (RawObject::IsIntegerClassId(cid)) {
+        *result = thread->isolate()->object_store()->int_type();
+        return true;
+      }
+    }
     RawClass* cls = thread->isolate()->class_table()->At(cid);
     if (cls->ptr()->num_type_arguments_ != 0) {
       return false;
@@ -2229,16 +2241,20 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(DoubleIsNaN, A_D);
-    const double v = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = isnan(v) ? true_value : false_value;
+    BYTECODE(DoubleIsNaN, A);
+    const double v = bit_cast<double, RawObject*>(FP[rA]);
+    if (!isnan(v)) {
+      pc++;
+    }
     DISPATCH();
   }
 
   {
-    BYTECODE(DoubleIsInfinite, A_D);
-    const double v = bit_cast<double, RawObject*>(FP[rD]);
-    FP[rA] = isinf(v) ? true_value : false_value;
+    BYTECODE(DoubleIsInfinite, A);
+    const double v = bit_cast<double, RawObject*>(FP[rA]);
+    if (!isinf(v)) {
+      pc++;
+    }
     DISPATCH();
   }
 
@@ -2786,12 +2802,12 @@ RawObject* Simulator::Call(const Code& code,
       RawObject* type_args = SP[0];
       const intptr_t type_args_offset = Bytecode::DecodeD(*pc);
       *reinterpret_cast<uword*>(start + Instance::tags_offset()) = tags;
-      *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
       for (intptr_t current_offset = sizeof(RawInstance);
            current_offset < instance_size;
            current_offset += kWordSize) {
         *reinterpret_cast<RawObject**>(start + current_offset) = null_value;
       }
+      *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
       FP[rA] = reinterpret_cast<RawObject*>(start + kHeapObjectTag);
       SP -= 1;  // Consume the type arguments on the stack.
       pc += 4;

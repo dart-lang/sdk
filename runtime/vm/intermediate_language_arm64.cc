@@ -123,6 +123,8 @@ static Condition NegateCondition(Condition condition) {
     case LS: return HI;
     case HI: return LS;
     case CS: return CC;
+    case VS: return VC;
+    case VC: return VS;
     default:
       UNREACHABLE();
       return EQ;
@@ -1043,7 +1045,7 @@ static bool CanBeImmediateIndex(Value* value, intptr_t cid, bool is_external) {
 LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = aligned() ? 0 : 1;
   LocationSummary* locs = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
@@ -1060,6 +1062,9 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   } else {
     locs->set_out(0, Location::RequiresRegister());
   }
+  if (!aligned()) {
+    locs->set_temp(0, Location::RequiresRegister());
+  }
   return locs;
 }
 
@@ -1068,15 +1073,31 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
+  const Register address = aligned() ? kNoRegister : locs()->temp(0).reg();
 
-  Address element_address = index.IsRegister()
-      ? __ ElementAddressForRegIndex(true,  // Load.
-                                     IsExternal(), class_id(), index_scale(),
-                                     array, index.reg())
-      : __ ElementAddressForIntIndex(
-            IsExternal(), class_id(), index_scale(),
-            array, Smi::Cast(index.constant()).Value());
-  // Warning: element_address may use register TMP as base.
+  Address element_address(TMP);  // Bad address.
+  if (aligned()) {
+    element_address = index.IsRegister()
+        ? __ ElementAddressForRegIndex(true,  // Load.
+                                       IsExternal(), class_id(), index_scale(),
+                                       array, index.reg())
+        : __ ElementAddressForIntIndex(
+              IsExternal(), class_id(), index_scale(),
+              array, Smi::Cast(index.constant()).Value());
+    // Warning: element_address may use register TMP as base.
+  } else {
+    if (index.IsRegister()) {
+      __ LoadElementAddressForRegIndex(address,
+                                       true,  // Load.
+                                       IsExternal(), class_id(), index_scale(),
+                                       array, index.reg());
+    } else {
+      __ LoadElementAddressForIntIndex(address,
+                                       IsExternal(), class_id(), index_scale(),
+                                       array,
+                                       Smi::Cast(index.constant()).Value());
+    }
+  }
 
   if ((representation() == kUnboxedDouble)    ||
       (representation() == kUnboxedFloat32x4) ||
@@ -1084,6 +1105,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       (representation() == kUnboxedFloat64x2)) {
     const VRegister result = locs()->out(0).fpu_reg();
     switch (class_id()) {
+      ASSERT(aligned());
       case kTypedDataFloat32ArrayCid:
         // Load single precision float.
         __ fldrs(result, element_address);
@@ -1109,11 +1131,19 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     switch (class_id()) {
       case kTypedDataInt32ArrayCid:
         ASSERT(representation() == kUnboxedInt32);
-        __ ldr(result, element_address, kWord);
+        if (aligned()) {
+          __ ldr(result, element_address, kWord);
+        } else {
+          __ LoadUnaligned(result, address, TMP, kWord);
+        }
         break;
       case kTypedDataUint32ArrayCid:
         ASSERT(representation() == kUnboxedUint32);
-        __ ldr(result, element_address, kUnsignedWord);
+        if (aligned()) {
+          __ ldr(result, element_address, kUnsignedWord);
+        } else {
+          __ LoadUnaligned(result, address, TMP, kUnsignedWord);
+        }
         break;
       default:
         UNREACHABLE();
@@ -1140,17 +1170,26 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SmiTag(result);
       break;
     case kTypedDataInt16ArrayCid:
-      __ ldr(result, element_address, kHalfword);
+      if (aligned()) {
+        __ ldr(result, element_address, kHalfword);
+      } else {
+        __ LoadUnaligned(result, address, TMP, kHalfword);
+      }
       __ SmiTag(result);
       break;
     case kTypedDataUint16ArrayCid:
     case kTwoByteStringCid:
     case kExternalTwoByteStringCid:
-      __ ldr(result, element_address, kUnsignedHalfword);
+      if (aligned()) {
+        __ ldr(result, element_address, kUnsignedHalfword);
+      } else {
+        __ LoadUnaligned(result, address, TMP, kUnsignedHalfword);
+      }
       __ SmiTag(result);
       break;
     default:
       ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid));
+      ASSERT(aligned());
       __ ldr(result, element_address);
       break;
   }
@@ -1247,7 +1286,7 @@ Representation StoreIndexedInstr::RequiredInputRepresentation(
 LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 3;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = aligned() ? 0 : 2;
   LocationSummary* locs = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
@@ -1287,6 +1326,10 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
       UNREACHABLE();
       return NULL;
   }
+  if (!aligned()) {
+    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_temp(1, Location::RequiresRegister());
+  }
   return locs;
 }
 
@@ -1295,17 +1338,35 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The array register points to the backing store for external arrays.
   const Register array = locs()->in(0).reg();
   const Location index = locs()->in(1);
+  const Register address = aligned() ? kNoRegister : locs()->temp(0).reg();
+  const Register scratch = aligned() ? kNoRegister : locs()->temp(1).reg();
 
-  Address element_address = index.IsRegister()
+  Address element_address(TMP);  // Bad address.
+  if (aligned()) {
+    element_address = index.IsRegister()
       ? __ ElementAddressForRegIndex(false,  // Store.
                                      IsExternal(), class_id(), index_scale(),
                                      array, index.reg())
       : __ ElementAddressForIntIndex(
             IsExternal(), class_id(), index_scale(),
             array, Smi::Cast(index.constant()).Value());
+  } else {
+    if (index.IsRegister()) {
+      __ LoadElementAddressForRegIndex(address,
+                                       false,  // Store.
+                                       IsExternal(), class_id(), index_scale(),
+                                       array, index.reg());
+    } else {
+      __ LoadElementAddressForIntIndex(address,
+                                       IsExternal(), class_id(), index_scale(),
+                                       array,
+                                       Smi::Cast(index.constant()).Value());
+    }
+  }
 
   switch (class_id()) {
     case kArrayCid:
+      ASSERT(aligned());
       if (ShouldEmitStoreBarrier()) {
         const Register value = locs()->in(2).reg();
         __ StoreIntoObject(array, element_address, value);
@@ -1321,6 +1382,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
     case kOneByteStringCid: {
+      ASSERT(aligned());
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         __ LoadImmediate(TMP, static_cast<int8_t>(constant.Value()));
@@ -1334,6 +1396,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid: {
+      ASSERT(aligned());
       if (locs()->in(2).IsConstant()) {
         const Smi& constant = Smi::Cast(locs()->in(2).constant());
         intptr_t value = constant.Value();
@@ -1360,21 +1423,31 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataUint16ArrayCid: {
       const Register value = locs()->in(2).reg();
       __ SmiUntag(TMP, value);
-      __ str(TMP, element_address, kUnsignedHalfword);
+      if (aligned()) {
+        __ str(TMP, element_address, kUnsignedHalfword);
+      } else {
+        __ StoreUnaligned(TMP, address, scratch, kUnsignedHalfword);
+      }
       break;
     }
     case kTypedDataInt32ArrayCid:
     case kTypedDataUint32ArrayCid: {
       const Register value = locs()->in(2).reg();
-      __ str(value, element_address, kUnsignedWord);
+      if (aligned()) {
+        __ str(value, element_address, kUnsignedWord);
+      } else {
+        __ StoreUnaligned(value, address, scratch, kUnsignedWord);
+      }
       break;
     }
     case kTypedDataFloat32ArrayCid: {
+      ASSERT(aligned());
       const VRegister value_reg = locs()->in(2).fpu_reg();
       __ fstrs(value_reg, element_address);
       break;
     }
     case kTypedDataFloat64ArrayCid: {
+      ASSERT(aligned());
       const VRegister value_reg = locs()->in(2).fpu_reg();
       __ fstrd(value_reg, element_address);
       break;
@@ -1382,6 +1455,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case kTypedDataFloat64x2ArrayCid:
     case kTypedDataInt32x4ArrayCid:
     case kTypedDataFloat32x4ArrayCid: {
+      ASSERT(aligned());
       const VRegister value_reg = locs()->in(2).fpu_reg();
       __ fstrq(value_reg, element_address);
       break;
@@ -2880,27 +2954,140 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_XOR:
       __ eor(result, left, Operand(right));
       break;
-    case Token::kEQ:
-    case Token::kLT:
-    case Token::kLTE:
-    case Token::kGT:
-    case Token::kGTE: {
-      Label true_label, false_label, done;
-      BranchLabels labels = { &true_label, &false_label, &false_label };
-      Condition true_condition =
-          EmitSmiComparisonOp(compiler, locs(), op_kind());
-      EmitBranchOnCondition(compiler, true_condition, labels);
-      __ Bind(&false_label);
-      __ LoadObject(result, Bool::False());
-      __ b(&done);
-      __ Bind(&true_label);
-      __ LoadObject(result, Bool::True());
-      __ Bind(&done);
-      break;
-    }
     default:
       UNIMPLEMENTED();
   }
+  __ Bind(slow_path->exit_label());
+}
+
+
+class CheckedSmiComparisonSlowPath : public SlowPathCode {
+ public:
+  CheckedSmiComparisonSlowPath(CheckedSmiComparisonInstr* instruction,
+                               intptr_t try_index,
+                               BranchLabels labels,
+                               bool merged)
+      : instruction_(instruction),
+        try_index_(try_index),
+        labels_(labels),
+        merged_(merged) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path smi operation");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    Register result = merged_ ? locs->temp(0).reg() : locs->out(0).reg();
+    locs->live_registers()->Remove(Location::RegisterLocation(result));
+
+    compiler->SaveLiveRegisters(locs);
+    __ Push(locs->in(0).reg());
+    __ Push(locs->in(1).reg());
+    compiler->EmitMegamorphicInstanceCall(
+        *instruction_->call()->ic_data(),
+        instruction_->call()->ArgumentCount(),
+        instruction_->call()->deopt_id(),
+        instruction_->call()->token_pos(),
+        locs,
+        try_index_,
+        /* slow_path_argument_count = */ 2);
+    __ mov(result, R0);
+    compiler->RestoreLiveRegisters(locs);
+    if (merged_) {
+      __ CompareObject(result, Bool::True());
+      __ b(instruction_->is_negated()
+           ? labels_.false_label : labels_.true_label, EQ);
+      __ b(instruction_->is_negated()
+           ? labels_.true_label : labels_.false_label);
+    } else {
+      __ b(exit_label());
+    }
+  }
+
+ private:
+  CheckedSmiComparisonInstr* instruction_;
+  intptr_t try_index_;
+  BranchLabels labels_;
+  bool merged_;
+};
+
+
+LocationSummary* CheckedSmiComparisonInstr::MakeLocationSummary(
+    Zone* zone, bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+Condition CheckedSmiComparisonInstr::EmitComparisonCode(
+    FlowGraphCompiler* compiler, BranchLabels labels) {
+  return EmitSmiComparisonOp(compiler, locs(), kind());
+}
+
+
+#define EMIT_SMI_CHECK                                                         \
+  Register left = locs()->in(0).reg();                                         \
+  Register right = locs()->in(1).reg();                                        \
+  Register temp = locs()->temp(0).reg();                                       \
+  intptr_t left_cid = this->left()->Type()->ToCid();                           \
+  intptr_t right_cid = this->right()->Type()->ToCid();                         \
+  if (this->left()->definition() == this->right()->definition()) {             \
+    __ tsti(left, Immediate(kSmiTagMask));                                     \
+  } else if (left_cid == kSmiCid) {                                            \
+    __ tsti(right, Immediate(kSmiTagMask));                                    \
+  } else if (right_cid == kSmiCid) {                                           \
+    __ tsti(left, Immediate(kSmiTagMask));                                     \
+  } else {                                                                     \
+    __ orr(temp, left, Operand(right));                                        \
+    __ tsti(temp, Immediate(kSmiTagMask));                                     \
+  }                                                                            \
+  __ b(slow_path->entry_label(), NE)
+
+
+void CheckedSmiComparisonInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                               BranchInstr* branch) {
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  CheckedSmiComparisonSlowPath* slow_path =
+      new CheckedSmiComparisonSlowPath(this,
+                                       compiler->CurrentTryIndex(),
+                                       labels,
+                                       /* merged = */ true);
+  compiler->AddSlowPathCode(slow_path);
+  EMIT_SMI_CHECK;
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+  __ Bind(slow_path->exit_label());
+}
+
+
+void CheckedSmiComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Label true_label, false_label, done;
+  BranchLabels labels = { &true_label, &false_label, &false_label };
+  CheckedSmiComparisonSlowPath* slow_path =
+      new CheckedSmiComparisonSlowPath(this,
+                                       compiler->CurrentTryIndex(),
+                                       labels,
+                                       /* merged = */ false);
+  compiler->AddSlowPathCode(slow_path);
+  EMIT_SMI_CHECK;
+  Condition true_condition =
+      EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+  Register result = locs()->out(0).reg();
+  __ Bind(&false_label);
+  __ LoadObject(result, Bool::False());
+  __ b(&done);
+  __ Bind(&true_label);
+  __ LoadObject(result, Bool::True());
+  __ Bind(&done);
   __ Bind(slow_path->exit_label());
 }
 
@@ -3485,34 +3672,63 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* DoubleTestOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps =
+      op_kind() == MethodRecognizer::kDouble_getIsInfinite ? 1 : 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
+  if (op_kind() == MethodRecognizer::kDouble_getIsInfinite) {
+    summary->set_temp(0, Location::RequiresRegister());
+  }
   summary->set_out(0, Location::RequiresRegister());
   return summary;
 }
 
 
-void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+Condition DoubleTestOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
+                                                BranchLabels labels) {
   ASSERT(compiler->is_optimizing());
   const VRegister value = locs()->in(0).fpu_reg();
-  const Register result = locs()->out(0).reg();
+  const bool is_negated = kind() != Token::kEQ;
   if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
     __ fcmpd(value, value);
-    __ LoadObject(result, Bool::False());
-    __ LoadObject(TMP, Bool::True());
-    __ csel(result, TMP, result, VS);
+    return is_negated ? VC : VS;
   } else {
     ASSERT(op_kind() == MethodRecognizer::kDouble_getIsInfinite);
-    __ vmovrd(result, value, 0);
+    const Register temp = locs()->temp(0).reg();
+    __ vmovrd(temp, value, 0);
     // Mask off the sign.
-    __ AndImmediate(result, result, 0x7FFFFFFFFFFFFFFFLL);
+    __ AndImmediate(temp, temp, 0x7FFFFFFFFFFFFFFFLL);
     // Compare with +infinity.
-    __ CompareImmediate(result, 0x7FF0000000000000LL);
+    __ CompareImmediate(temp, 0x7FF0000000000000LL);
+    return is_negated ? NE : EQ;
+  }
+}
+
+
+void DoubleTestOpInstr::EmitBranchCode(FlowGraphCompiler* compiler,
+                                       BranchInstr* branch) {
+  ASSERT(compiler->is_optimizing());
+  BranchLabels labels = compiler->CreateBranchLabels(branch);
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  EmitBranchOnCondition(compiler, true_condition, labels);
+}
+
+
+void DoubleTestOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(compiler->is_optimizing());
+  Label is_true, is_false;
+  BranchLabels labels = { &is_true, &is_false, &is_false };
+  Condition true_condition = EmitComparisonCode(compiler, labels);
+  const Register result = locs()->out(0).reg();
+  if (op_kind() == MethodRecognizer::kDouble_getIsNaN) {
     __ LoadObject(result, Bool::False());
     __ LoadObject(TMP, Bool::True());
-    __ csel(result, TMP, result, EQ);
+    __ csel(result, TMP, result, true_condition);
+  } else {
+    __ LoadObject(result, Bool::False());
+    __ LoadObject(TMP, Bool::True());
+    __ csel(result, TMP, result, true_condition);
   }
 }
 
