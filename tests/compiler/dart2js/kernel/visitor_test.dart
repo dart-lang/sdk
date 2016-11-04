@@ -13,6 +13,7 @@ import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:kernel/ast.dart';
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:path/path.dart' as pathlib;
 import 'package:test/test.dart';
 
@@ -20,7 +21,10 @@ import '../memory_compiler.dart';
 
 const String TESTCASE_DIR = 'third_party/pkg/kernel/testcases/';
 
-const List<String> SKIP_TESTS = const <String>[];
+const List<String> SKIP_TESTS = const <String>[
+  // Encoding of redirecting factories have changed.
+  'redirecting_factory',
+];
 
 main(List<String> arguments) {
   Compiler compiler = compilerFor(

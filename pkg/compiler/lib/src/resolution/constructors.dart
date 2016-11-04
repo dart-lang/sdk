@@ -411,7 +411,7 @@ class InitializerResolver {
             reporter.reportErrorMessage(
                 call, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER);
           } else {
-            constructor.isRedirectingGenerative = true;
+            constructor.isRedirectingGenerativeInternal = true;
           }
           // Check that there are no field initializing parameters.
           FunctionSignature signature = constructor.functionSignature;
