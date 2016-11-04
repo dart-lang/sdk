@@ -29,8 +29,6 @@ LibTest/collection/MapBase/MapBase_class_A01_t01: Fail # co19 issue 72
 LibTest/collection/MapMixin/MapMixin_class_A01_t01: Fail # co19 issue 72
 
 [ $compiler != dart2analyzer ]
-LibTest/isolate/ReceivePort/take_A01_t02: Fail # co19 issue 81
-LibTest/async/Stream/take_A01_t02 # co19 issue 81
 # Tests that fail on every runtime, but not on the analyzer.
 Language/Classes/same_name_type_variable_t04: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
 Language/Classes/same_name_type_variable_t07: Pass, MissingCompileTimeError, Fail # Issue 14513,25525
