@@ -207,4 +207,3 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
-collection_length_test: Skip # Issue #27746

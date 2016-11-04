@@ -34,7 +34,6 @@ class Deserializer;
   V(CallNativeCFunction)                                                       \
   V(FixCallersTarget)                                                          \
   V(CallStaticFunction)                                                        \
-  V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
   V(UnlinkedCall)                                                              \
@@ -72,6 +71,7 @@ class Deserializer;
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(LazyCompile)                                                               \
+  V(OptimizeFunction)                                                          \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \

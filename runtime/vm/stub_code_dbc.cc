@@ -32,6 +32,13 @@ void StubCode::GenerateLazyCompileStub(Assembler* assembler) {
 }
 
 
+// Not executed, but used as a stack marker when calling
+// DRT_OptimizeInvokedFunction.
+void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
+  __ Trap();
+}
+
+
 // TODO(vegorov) Don't generate this stub.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ Trap();
