@@ -20,7 +20,16 @@ class CloneVisitor extends TreeVisitor {
   final Map<TypeParameter, DartType> typeSubstitution;
 
   CloneVisitor({Map<TypeParameter, DartType> typeSubstitution})
-      : this.typeSubstitution = typeSubstitution ?? <TypeParameter, DartType>{};
+      : this.typeSubstitution = ensureMutable(typeSubstitution);
+
+  static Map<TypeParameter, DartType> ensureMutable(
+      Map<TypeParameter, DartType> map) {
+    // We need to mutate this map, so make sure we don't use a constant map.
+    if (map == null || map.isEmpty) {
+      return <TypeParameter, DartType>{};
+    }
+    return map;
+  }
 
   TreeNode visitLibrary(Library node) {
     throw 'Cloning of libraries is not implemented';
