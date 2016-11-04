@@ -76,7 +76,10 @@ class FileState {
    */
   final Uri uri;
 
-  Source _source;
+  /**
+   * The [Source] of the file with the [uri].
+   */
+  Source source;
 
   String _content;
   String _contentHash;
@@ -89,9 +92,7 @@ class FileState {
   List<FileState> _partedFiles;
   List<FileState> _dependencies;
 
-  FileState(this._fsState, this.path, this.uri) {
-    _source = new FileSource(_fsState._resourceProvider.getFile(path), uri);
-  }
+  FileState._(this._fsState, this.path, this.uri, this.source);
 
   /**
    * The unlinked API signature of the file.
@@ -109,11 +110,6 @@ class FileState {
   String get contentHash => _contentHash;
 
   /**
-   * Return information about line in the file.
-   */
-  LineInfo get lineInfo => _lineInfo;
-
-  /**
    * Return the list of all direct dependencies.
    */
   List<FileState> get dependencies => _dependencies;
@@ -129,14 +125,14 @@ class FileState {
   List<FileState> get importedFiles => _importedFiles;
 
   /**
+   * Return information about line in the file.
+   */
+  LineInfo get lineInfo => _lineInfo;
+
+  /**
    * The list of files this library file references as parts.
    */
   List<FileState> get partedFiles => _partedFiles;
-
-  /**
-   * The [Source] of the file in the [SourceFactory].
-   */
-  Source get source => _source;
 
   /**
    * The [UnlinkedUnit] of the file.
@@ -187,7 +183,7 @@ class FileState {
       bytes = _fsState._byteStore.get(unlinkedKey);
       if (bytes == null) {
         CompilationUnit unit =
-            _parse(_source, _content, _fsState._analysisOptions);
+            _parse(source, _content, _fsState._analysisOptions);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
           bytes = unlinkedUnit.toBuffer();
@@ -213,7 +209,9 @@ class FileState {
         String uri = import.uri;
         if (!_isDartUri(uri)) {
           FileState file = _fileForRelativeUri(uri);
-          _importedFiles.add(file);
+          if (file != null) {
+            _importedFiles.add(file);
+          }
         }
       }
     }
@@ -221,13 +219,17 @@ class FileState {
       String uri = export.uri;
       if (!_isDartUri(uri)) {
         FileState file = _fileForRelativeUri(uri);
-        _exportedFiles.add(file);
+        if (file != null) {
+          _exportedFiles.add(file);
+        }
       }
     }
     for (String uri in _unlinked.publicNamespace.parts) {
       if (!_isDartUri(uri)) {
         FileState file = _fileForRelativeUri(uri);
-        _partedFiles.add(file);
+        if (file != null) {
+          _partedFiles.add(file);
+        }
       }
     }
 
@@ -250,10 +252,7 @@ class FileState {
    */
   FileState _fileForRelativeUri(String relativeUri) {
     Uri absoluteUri = resolveRelativeUri(uri, FastUri.parse(relativeUri));
-    String absolutePath = _fsState._sourceFactory
-        .resolveUri(null, absoluteUri.toString())
-        .fullName;
-    return _fsState.getFile(absolutePath, absoluteUri);
+    return _fsState.getFileForUri(absoluteUri);
   }
 
   /**
@@ -313,7 +312,20 @@ class FileSystemState {
   final AnalysisOptions _analysisOptions;
   final Uint32List _salt;
 
-  final Map<String, FileState> _pathToFile = <String, FileState>{};
+  /**
+   * Mapping from a URI to the corresponding [FileState].
+   */
+  final Map<Uri, FileState> _uriToFile = {};
+
+  /**
+   * Mapping from a path to the corresponding [FileState]s, canonical or not.
+   */
+  final Map<String, List<FileState>> _pathToFiles = {};
+
+  /**
+   * Mapping from a path to the corresponding canonical [FileState].
+   */
+  final Map<String, FileState> _pathToCanonicalFile = {};
 
   FileSystemState(
       this._logger,
@@ -325,25 +337,73 @@ class FileSystemState {
       this._salt);
 
   /**
-   * Return the [FileState] for the give [path]. The returned file has the
-   * last known state since if was last refreshed.
+   * Return the canonical [FileState] for the given absolute [path]. The
+   * returned file has the last known state since if was last refreshed.
+   *
+   * Here "canonical" means that if the [path] is in a package `lib` then the
+   * returned file will have the `package:` style URI.
    */
-  FileState getFile(String path, [Uri uri]) {
-    FileState file = _pathToFile[path];
+  FileState getFileForPath(String path) {
+    FileState file = _pathToCanonicalFile[path];
     if (file == null) {
-      uri ??= _uriForPath(path);
-      file = new FileState(this, path, uri);
-      _pathToFile[path] = file;
+      File resource = _resourceProvider.getFile(path);
+      Source fileSource = resource.createSource();
+      Uri uri = _sourceFactory.restoreUri(fileSource);
+      // Try to get the existing instance.
+      file = _uriToFile[uri];
+      // If we have a file, call it the canonical one and return it.
+      if (file != null) {
+        _pathToCanonicalFile[path] = file;
+        return file;
+      }
+      // Create a new file.
+      FileSource uriSource = new FileSource(resource, uri);
+      file = new FileState._(this, path, uri, uriSource);
+      _uriToFile[uri] = file;
+      _pathToFiles.putIfAbsent(path, () => <FileState>[]).add(file);
+      _pathToCanonicalFile[path] = file;
       file.refresh();
     }
     return file;
   }
 
   /**
-   * Return the default [Uri] for the given path in [_sourceFactory].
+   * Return the [FileState] for the given absolute [uri]. May return `null` if
+   * the [uri] is invalid, e.g. a `package:` URI without a package name. The
+   * returned file has the last known state since if was last refreshed.
    */
-  Uri _uriForPath(String path) {
-    Source fileSource = _resourceProvider.getFile(path).createSource();
-    return _sourceFactory.restoreUri(fileSource);
+  FileState getFileForUri(Uri uri) {
+    FileState file = _uriToFile[uri];
+    if (file == null) {
+      Source uriSource = _sourceFactory.resolveUri(null, uri.toString());
+      // If the URI is invalid, for example package:/test/d.dart (note the
+      // leading '/'), then `null` is returned. We should ignore this URI.
+      if (uriSource == null) {
+        return null;
+      }
+      String path = uriSource.fullName;
+      File resource = _resourceProvider.getFile(path);
+      FileSource source = new FileSource(resource, uri);
+      file = new FileState._(this, path, uri, source);
+      _uriToFile[uri] = file;
+      _pathToFiles.putIfAbsent(path, () => <FileState>[]).add(file);
+      file.refresh();
+    }
+    return file;
+  }
+
+  /**
+   * Return the list of all [FileState]s corresponding to the given [path]. The
+   * list has at least one item, and the first item is the canonical file.
+   */
+  List<FileState> getFilesForPath(String path) {
+    FileState canonicalFile = getFileForPath(path);
+    List<FileState> allFiles = _pathToFiles[path].toList();
+    if (allFiles.length == 1) {
+      return allFiles;
+    }
+    return allFiles
+      ..remove(canonicalFile)
+      ..insert(0, canonicalFile);
   }
 }

@@ -415,8 +415,9 @@ class AnalysisDriver {
    * We need to clean this up.
    */
   void _addToStoreUnlinked(
-      SummaryDataStore store, String uri, UnlinkedUnit unlinked) {
-    store.unlinkedMap[uri] = unlinked;
+      SummaryDataStore store, Uri uri, UnlinkedUnit unlinked) {
+    String uriStr = uri.toString();
+    store.unlinkedMap[uriStr] = unlinked;
   }
 
   /**
@@ -429,7 +430,7 @@ class AnalysisDriver {
   AnalysisResult _computeAnalysisResult(String path, {bool withUnit: false}) {
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
-      FileState file = _fsState.getFile(path);
+      FileState file = _fsState.getFileForPath(path);
       // Prepare the key for the cached result.
       String key = _getResolvedUnitKey(file);
       if (key == null) {
@@ -534,14 +535,13 @@ class AnalysisDriver {
           // Append the defining unit.
           {
             UnlinkedUnit unlinked = libraryFile.unlinked;
-            _addToStoreUnlinked(store, libraryUriStr, unlinked);
+            _addToStoreUnlinked(store, libraryFile.uri, unlinked);
           }
 
           // Append parts.
           for (FileState part in libraryFile.partedFiles) {
-            String partUriStr = part.uri.toString();
             UnlinkedUnit unlinked = part.unlinked;
-            _addToStoreUnlinked(store, partUriStr, unlinked);
+            _addToStoreUnlinked(store, part.uri, unlinked);
           }
 
           // Create nodes for referenced libraries.
@@ -565,7 +565,7 @@ class AnalysisDriver {
           if (bytes != null) {
             PackageBundle linked = new PackageBundle.fromBuffer(bytes);
             _addToStoreLinked(
-                store, node.uri.toString(), linked.linkedLibraries.single);
+                store, node.file.uri.toString(), linked.linkedLibraries.single);
           } else {
             libraryUrisToLink.add(node.uri.toString());
           }
@@ -578,15 +578,9 @@ class AnalysisDriver {
       _logger.run('Link bundles', () {
         linkedLibraries = link(libraryUrisToLink, (String uri) {
           LinkedLibrary linkedLibrary = store.linkedMap[uri];
-          if (linkedLibrary == null) {
-            throw new StateError('No linked library for: $uri');
-          }
           return linkedLibrary;
         }, (String uri) {
           UnlinkedUnit unlinkedUnit = store.unlinkedMap[uri];
-          if (unlinkedUnit == null) {
-            throw new StateError('No unlinked unit for: $uri');
-          }
           return unlinkedUnit;
         }, (_) => null, _analysisOptions.strongMode);
         _logger.writeln('Linked ${linkedLibraries.length} bundles.');
@@ -688,14 +682,20 @@ class AnalysisDriver {
    */
   FileState _verifyApiSignature(String path) {
     return _logger.run('Verify API signature of $path', () {
-      FileState file = _fsState.getFile(path);
-      bool apiChanged = file.refresh();
-      if (apiChanged) {
+      bool anyApiChanged = false;
+      List<FileState> files = _fsState.getFilesForPath(path);
+      for (FileState file in files) {
+        bool apiChanged = file.refresh();
+        if (apiChanged) {
+          anyApiChanged = true;
+        }
+      }
+      if (anyApiChanged) {
         _logger.writeln('API signatures mismatch found for $path');
         _dependencySignatureMap.clear();
         _filesToAnalyze.addAll(_explicitFiles);
       }
-      return file;
+      return files[0];
     });
   }
 
