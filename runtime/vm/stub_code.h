@@ -34,6 +34,7 @@ class Deserializer;
   V(CallNativeCFunction)                                                       \
   V(FixCallersTarget)                                                          \
   V(CallStaticFunction)                                                        \
+  V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
   V(UnlinkedCall)                                                              \
