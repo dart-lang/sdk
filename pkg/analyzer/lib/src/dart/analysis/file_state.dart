@@ -119,6 +119,9 @@ class FileState {
    */
   List<FileState> get exportedFiles => _exportedFiles;
 
+  @override
+  int get hashCode => uri.hashCode;
+
   /**
    * The list of files this file imports.
    */
@@ -138,6 +141,11 @@ class FileState {
    * The [UnlinkedUnit] of the file.
    */
   UnlinkedUnit get unlinked => _unlinked;
+
+  @override
+  bool operator ==(Object other) {
+    return other is FileState && other.uri == uri;
+  }
 
   /**
    * Return a new parsed unresolved [CompilationUnit].
