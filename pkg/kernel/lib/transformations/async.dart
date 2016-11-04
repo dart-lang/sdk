@@ -437,12 +437,48 @@ class ExpressionLifter extends Transformer {
   }
 
   TreeNode visitLet(Let expr) {
-    return transform(expr, () {
-      expr.body = expr.body.accept(this)..parent = expr;
-      VariableDeclaration variable = expr.variable;
+    var shouldName = seenAwait;
+
+    seenAwait = false;
+    var body = expr.body.accept(this);
+
+    VariableDeclaration variable = expr.variable;
+    if (seenAwait) {
+      // The body in `let var x = initializer in body` contained an await.  We
+      // will produce the sequence of statements:
+      //
+      // <initializer's statements>
+      // var x = <initializer's value>
+      // <body's statements>
+      //
+      // and return the body's value.
+      //
+      // So x is in scope for all the body's statements and the body's value.
+      // This has the unpleasant consequence that all let-bound variables with
+      // await in the let's body will end up hoisted out the the expression and
+      // allocated to the context in the VM, even if they have no uses
+      // (`let _ = e0 in e1` can be used for sequencing of `e0` and `e1`).
+      statements.add(variable);
+      var index = nameIndex;
+      seenAwait = false;
       variable.initializer =
           variable.initializer.accept(this)..parent = variable;
-    });
+      // Temporaries used in the initializer or the body are not live but the
+      // temporary used for the body is.
+      nameIndex = index + 1;
+      seenAwait = true;
+      return body;
+    } else {
+      // The body in `let x = initializer in body` did not contain an await.  We
+      // can leave a let expression.
+      seenAwait = shouldName;
+      return transform(expr, () {
+        // The body has already been translated.
+        expr.body = body..parent = expr;
+        variable.initializer =
+            variable.initializer.accept(this)..parent = variable;
+      });
+    }
   }
 
   visitFunctionNode(FunctionNode node) {
