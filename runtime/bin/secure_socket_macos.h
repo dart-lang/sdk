@@ -35,16 +35,15 @@ namespace bin {
 // thread. Setters return false if the field was already set.
 class SSLCertContext : public ReferenceCounted<SSLCertContext> {
  public:
-  SSLCertContext() :
-      ReferenceCounted(),
-      mutex_(new Mutex()),
-      private_key_(NULL),
-      keychain_(NULL),
-      cert_chain_(NULL),
-      trusted_certs_(NULL),
-      cert_authorities_(NULL),
-      trust_builtin_(false) {
-  }
+  SSLCertContext()
+      : ReferenceCounted(),
+        mutex_(new Mutex()),
+        private_key_(NULL),
+        keychain_(NULL),
+        cert_chain_(NULL),
+        trusted_certs_(NULL),
+        cert_authorities_(NULL),
+        trust_builtin_(false) {}
 
   ~SSLCertContext() {
     {
@@ -191,8 +190,7 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
         connected_(false),
         bad_cert_(false),
         is_server_(false),
-        hostname_(NULL) {
-  }
+        hostname_(NULL) {}
 
   ~SSLFilter();
 

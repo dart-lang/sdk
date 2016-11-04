@@ -55,7 +55,7 @@ const char* Platform::LibraryExtension() {
 }
 
 
-bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
+bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
 #if defined(DART_IO_DISABLED) || defined(PLATFORM_DISABLE_SOCKET)
   return false;
 #else

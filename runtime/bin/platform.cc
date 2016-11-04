@@ -94,8 +94,7 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   intptr_t count = 0;
   char** env = Platform::Environment(&count);
   if (env == NULL) {
-    OSError error(-1,
-                  "Failed to retrieve environment variables.",
+    OSError error(-1, "Failed to retrieve environment variables.",
                   OSError::kUnknown);
     Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
   } else {

@@ -26,24 +26,20 @@ namespace bin {
     response = type::method##Request(data);                                    \
     break;
 
-void IOServiceCallback(Dart_Port dest_port_id,
-                       Dart_CObject* message) {
+void IOServiceCallback(Dart_Port dest_port_id, Dart_CObject* message) {
   Dart_Port reply_port_id = ILLEGAL_PORT;
   CObject* response = CObject::IllegalArgumentError();
   CObjectArray request(message);
-  if ((message->type == Dart_CObject_kArray) &&
-      (request.Length() == 4) &&
-      request[0]->IsInt32() &&
-      request[1]->IsSendPort() &&
-      request[2]->IsInt32() &&
-      request[3]->IsArray()) {
+  if ((message->type == Dart_CObject_kArray) && (request.Length() == 4) &&
+      request[0]->IsInt32() && request[1]->IsSendPort() &&
+      request[2]->IsInt32() && request[3]->IsArray()) {
     CObjectInt32 message_id(request[0]);
     CObjectSendPort reply_port(request[1]);
     CObjectInt32 request_id(request[2]);
     CObjectArray data(request[3]);
     reply_port_id = reply_port.Value();
     switch (request_id.Value()) {
-  IO_SERVICE_REQUEST_LIST(CASE_REQUEST);
+      IO_SERVICE_REQUEST_LIST(CASE_REQUEST);
       default:
         UNREACHABLE();
     }

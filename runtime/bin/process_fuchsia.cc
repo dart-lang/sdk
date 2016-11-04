@@ -20,8 +20,7 @@ int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = new Mutex();
 Process::ExitHook Process::exit_hook_ = NULL;
 
-void Process::TerminateExitCodeHandler() {
-}
+void Process::TerminateExitCodeHandler() {}
 
 intptr_t Process::CurrentProcessId() {
   UNIMPLEMENTED();

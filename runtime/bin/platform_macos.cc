@@ -9,13 +9,13 @@
 
 #if !TARGET_OS_IOS
 #include <crt_externs.h>  // NOLINT
-#endif  // !TARGET_OS_IOS
+#endif                    // !TARGET_OS_IOS
 #include <mach-o/dyld.h>
-#include <signal.h>  // NOLINT
-#include <string.h>  // NOLINT
+#include <signal.h>      // NOLINT
+#include <string.h>      // NOLINT
 #include <sys/sysctl.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <sys/types.h>   // NOLINT
+#include <unistd.h>      // NOLINT
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
@@ -74,7 +74,7 @@ const char* Platform::LibraryExtension() {
 }
 
 
-bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
+bool Platform::LocalHostname(char* buffer, intptr_t buffer_length) {
   return gethostname(buffer, buffer_length) == 0;
 }
 

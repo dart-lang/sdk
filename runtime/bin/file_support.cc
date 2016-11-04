@@ -50,7 +50,7 @@ bool File::ReadFully(void* buffer, int64_t num_bytes) {
     if (bytes_read <= 0) {
       return false;
     }
-    remaining -= bytes_read;  // Reduce the number of remaining bytes.
+    remaining -= bytes_read;       // Reduce the number of remaining bytes.
     current_buffer += bytes_read;  // Move the buffer forward.
   }
   return true;
@@ -65,7 +65,7 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
     if (bytes_written < 0) {
       return false;
     }
-    remaining -= bytes_written;  // Reduce the number of remaining bytes.
+    remaining -= bytes_written;       // Reduce the number of remaining bytes.
     current_buffer += bytes_written;  // Move the buffer forward.
   }
   if (capture_stdout || capture_stderr) {
@@ -85,10 +85,8 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
 
 
 File::FileOpenMode File::DartModeToFileMode(DartFileOpenMode mode) {
-  ASSERT((mode == File::kDartRead) ||
-         (mode == File::kDartWrite) ||
-         (mode == File::kDartAppend) ||
-         (mode == File::kDartWriteOnly) ||
+  ASSERT((mode == File::kDartRead) || (mode == File::kDartWrite) ||
+         (mode == File::kDartAppend) || (mode == File::kDartWriteOnly) ||
          (mode == File::kDartWriteOnlyAppend));
   if (mode == File::kDartWrite) {
     return File::kWriteTruncate;

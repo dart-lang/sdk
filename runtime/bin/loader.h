@@ -33,9 +33,7 @@ class Loader {
                                        Dart_Handle library,
                                        Dart_Handle url);
 
-  Dart_Handle error() const {
-    return error_;
-  }
+  Dart_Handle error() const { return error_; }
 
   static void InitOnce();
 
@@ -86,8 +84,7 @@ class Loader {
             const char* root_script_uri);
 
   // Send a request for a dart-ext: import to the service isolate.
-  void SendImportExtensionRequest(Dart_Handle url,
-                                  Dart_Handle library_url);
+  void SendImportExtensionRequest(Dart_Handle url, Dart_Handle library_url);
 
   // Send a request from the tag handler to the service isolate.
   void SendRequest(Dart_LibraryTag tag,

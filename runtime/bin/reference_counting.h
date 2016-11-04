@@ -11,7 +11,8 @@ namespace dart {
 namespace bin {
 
 // Forward declaration.
-template <class Target> class RefCntReleaseScope;
+template <class Target>
+class RefCntReleaseScope;
 
 // Inherit from this class where instances of the derived class should be
 // reference counted. Reference counts on instances are incremented and
@@ -32,13 +33,9 @@ template <class Target> class RefCntReleaseScope;
 template <class Derived>
 class ReferenceCounted {
  public:
-  ReferenceCounted() :
-    ref_count_(1) {
-  }
+  ReferenceCounted() : ref_count_(1) {}
 
-  ~ReferenceCounted() {
-    ASSERT(ref_count_ == 0);
-  }
+  ~ReferenceCounted() { ASSERT(ref_count_ == 0); }
 
   void Retain() {
     uintptr_t old = AtomicOperations::FetchAndIncrement(&ref_count_);
@@ -78,9 +75,7 @@ class RefCntReleaseScope {
     ASSERT(target_ != NULL);
     ASSERT(target_->ref_count() > 0);
   }
-  ~RefCntReleaseScope() {
-    target_->Release();
-  }
+  ~RefCntReleaseScope() { target_->Release(); }
 
  private:
   ReferenceCounted<Target>* target_;
@@ -142,9 +137,7 @@ class RetainedPointer {
     }
   }
 
-  Target* get() const {
-    return static_cast<Target*>(target_);
-  }
+  Target* get() const { return static_cast<Target*>(target_); }
 
  private:
   ReferenceCounted<Target>* target_;

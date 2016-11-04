@@ -7,14 +7,14 @@
 
 #include "bin/file.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <libgen.h>  // NOLINT
-#include <sys/mman.h>  // NOLINT
+#include <errno.h>         // NOLINT
+#include <fcntl.h>         // NOLINT
+#include <libgen.h>        // NOLINT
+#include <sys/mman.h>      // NOLINT
 #include <sys/sendfile.h>  // NOLINT
-#include <sys/stat.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <sys/stat.h>      // NOLINT
+#include <sys/types.h>     // NOLINT
+#include <unistd.h>        // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
@@ -26,8 +26,8 @@ namespace bin {
 
 class FileHandle {
  public:
-  explicit FileHandle(int fd) : fd_(fd) { }
-  ~FileHandle() { }
+  explicit FileHandle(int fd) : fd_(fd) {}
+  ~FileHandle() {}
   int fd() const { return fd_; }
   void set_fd(int fd) { fd_ = fd; }
 
@@ -39,8 +39,8 @@ class FileHandle {
 
 
 File::~File() {
-  if (!IsClosed() &&
-      handle_->fd() != STDOUT_FILENO && handle_->fd() != STDERR_FILENO) {
+  if (!IsClosed() && handle_->fd() != STDOUT_FILENO &&
+      handle_->fd() != STDERR_FILENO) {
     Close();
   }
   delete handle_;
@@ -90,8 +90,7 @@ void* File::Map(MapType type, int64_t position, int64_t length) {
     default:
       return NULL;
   }
-  void* addr = mmap(NULL, length, prot, MAP_PRIVATE,
-                    handle_->fd(), position);
+  void* addr = mmap(NULL, length, prot, MAP_PRIVATE, handle_->fd(), position);
   if (addr == MAP_FAILED) {
     return NULL;
   }
@@ -236,8 +235,8 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  int fd = TEMP_FAILURE_RETRY(
-      open64(name, O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
+  int fd =
+      TEMP_FAILURE_RETRY(open64(name, O_RDONLY | O_CREAT | O_CLOEXEC, 0666));
   if (fd < 0) {
     return false;
   }
@@ -320,8 +319,8 @@ bool File::Copy(const char* old_path, const char* new_path) {
     intptr_t result = 1;
     while (result > 0) {
       // Loop to ensure we copy everything, and not only up to 2GB.
-      result = NO_RETRY_EXPECTED(
-          sendfile64(new_fd, old_fd, &offset, kMaxUint32));
+      result =
+          NO_RETRY_EXPECTED(sendfile64(new_fd, old_fd, &offset, kMaxUint32));
     }
     // From sendfile man pages:
     //   Applications may wish to fall back to read(2)/write(2) in the case
@@ -329,8 +328,8 @@ bool File::Copy(const char* old_path, const char* new_path) {
     if ((result < 0) && ((errno == EINVAL) || (errno == ENOSYS))) {
       const intptr_t kBufferSize = 8 * KB;
       uint8_t buffer[kBufferSize];
-      while ((result = TEMP_FAILURE_RETRY(
-          read(old_fd, buffer, kBufferSize))) > 0) {
+      while ((result = TEMP_FAILURE_RETRY(read(old_fd, buffer, kBufferSize))) >
+             0) {
         int wrote = TEMP_FAILURE_RETRY(write(new_fd, buffer, result));
         if (wrote != result) {
           result = -1;
@@ -367,7 +366,7 @@ int64_t File::LengthFromPath(const char* name) {
 
 static int64_t TimespecToMilliseconds(const struct timespec& t) {
   return static_cast<int64_t>(t.tv_sec) * 1000L +
-      static_cast<int64_t>(t.tv_nsec) / 1000000L;
+         static_cast<int64_t>(t.tv_nsec) / 1000000L;
 }
 
 
@@ -417,8 +416,8 @@ const char* File::LinkTarget(const char* pathname) {
   // 0. Also the link might have changed before the readlink call.
   const int kBufferSize = PATH_MAX + 1;
   char target[kBufferSize];
-  size_t target_size = TEMP_FAILURE_RETRY(
-      readlink(pathname, target, kBufferSize));
+  size_t target_size =
+      TEMP_FAILURE_RETRY(readlink(pathname, target, kBufferSize));
   if (target_size <= 0) {
     return NULL;
   }
@@ -518,9 +517,9 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
     return File::kError;
   }
   return ((file_1_info.st_ino == file_2_info.st_ino) &&
-          (file_1_info.st_dev == file_2_info.st_dev)) ?
-      File::kIdentical :
-      File::kDifferent;
+          (file_1_info.st_dev == file_2_info.st_dev))
+             ? File::kIdentical
+             : File::kDifferent;
 }
 
 }  // namespace bin

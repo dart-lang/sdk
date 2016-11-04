@@ -24,4 +24,3 @@ class Crypto {
 }  // namespace dart
 
 #endif  // RUNTIME_BIN_CRYPTO_H_
-

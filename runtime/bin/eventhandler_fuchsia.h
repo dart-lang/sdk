@@ -6,7 +6,7 @@
 #define RUNTIME_BIN_EVENTHANDLER_FUCHSIA_H_
 
 #if !defined(RUNTIME_BIN_EVENTHANDLER_H_)
-#error Do not include eventhandler_fuchsia.h directly; use eventhandler.h instead.
+#error Do not include eventhandler_fuchsia.h directly; use eventhandler.h.
 #endif
 
 #include <errno.h>
@@ -19,9 +19,9 @@ namespace bin {
 
 class DescriptorInfo : public DescriptorInfoBase {
  public:
-  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) { }
+  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) {}
 
-  virtual ~DescriptorInfo() { }
+  virtual ~DescriptorInfo() {}
 
   virtual void Close() {
     VOID_TEMP_FAILURE_RETRY(close(fd_));
@@ -32,8 +32,7 @@ class DescriptorInfo : public DescriptorInfoBase {
   DISALLOW_COPY_AND_ASSIGN(DescriptorInfo);
 };
 
-class DescriptorInfoSingle
-    : public DescriptorInfoSingleMixin<DescriptorInfo> {
+class DescriptorInfoSingle : public DescriptorInfoSingleMixin<DescriptorInfo> {
  public:
   explicit DescriptorInfoSingle(intptr_t fd)
       : DescriptorInfoSingleMixin(fd, false) {}

@@ -41,15 +41,10 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       bool recursive) {
   USE(id);
   Utf8ToWideScope name(path);
-  HANDLE dir = CreateFileW(name.wide(),
-                           FILE_LIST_DIRECTORY,
-                           FILE_SHARE_READ |
-                               FILE_SHARE_WRITE |
-                               FILE_SHARE_DELETE,
-                           NULL,
-                           OPEN_EXISTING,
-                           FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
-                           NULL);
+  HANDLE dir = CreateFileW(
+      name.wide(), FILE_LIST_DIRECTORY,
+      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL,
+      OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED, NULL);
 
   if (dir == INVALID_HANDLE_VALUE) {
     return -1;
@@ -57,8 +52,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
 
   int list_events = 0;
   if ((events & (kCreate | kMove | kDelete)) != 0) {
-    list_events |= FILE_NOTIFY_CHANGE_FILE_NAME |
-                   FILE_NOTIFY_CHANGE_DIR_NAME;
+    list_events |= FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME;
   }
   if ((events & kModifyContent) != 0) {
     list_events |= FILE_NOTIFY_CHANGE_LAST_WRITE;
@@ -124,7 +118,8 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     // Move events come in pairs. Just 'enable' by default.
     Dart_ListSetAt(event, 1, Dart_NewInteger(1));
     Dart_ListSetAt(event, 2, Dart_NewStringFromUTF16(
-        reinterpret_cast<uint16_t*>(e->FileName), e->FileNameLength / 2));
+                                 reinterpret_cast<uint16_t*>(e->FileName),
+                                 e->FileNameLength / 2));
     Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
     Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);

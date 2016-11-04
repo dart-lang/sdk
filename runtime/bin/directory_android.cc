@@ -7,12 +7,12 @@
 
 #include "bin/directory.h"
 
-#include <dirent.h>  // NOLINT
-#include <errno.h>  // NOLINT
-#include <string.h>  // NOLINT
+#include <dirent.h>     // NOLINT
+#include <errno.h>      // NOLINT
+#include <string.h>     // NOLINT
 #include <sys/param.h>  // NOLINT
-#include <sys/stat.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <sys/stat.h>   // NOLINT
+#include <unistd.h>     // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/file.h"
@@ -56,13 +56,9 @@ const char* PathBuffer::AsScopedString() const {
 
 bool PathBuffer::Add(const char* name) {
   char* data = AsString();
-  int written = snprintf(data + length_,
-                         PATH_MAX - length_,
-                         "%s",
-                         name);
+  int written = snprintf(data + length_, PATH_MAX - length_, "%s", name);
   data[PATH_MAX] = '\0';
-  if ((written <= PATH_MAX - length_) &&
-      (written >= 0) &&
+  if ((written <= PATH_MAX - length_) && (written >= 0) &&
       (static_cast<size_t>(written) == strnlen(name, PATH_MAX + 1))) {
     length_ += written;
     return true;
@@ -119,8 +115,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
   int status = 0;
   dirent entry;
   dirent* result;
-  status = NO_RETRY_EXPECTED(readdir_r(
-      reinterpret_cast<DIR*>(lister_), &entry, &result));
+  status = NO_RETRY_EXPECTED(
+      readdir_r(reinterpret_cast<DIR*>(lister_), &entry, &result));
   if ((status == 0) && (result != NULL)) {
     if (!listing->path_buffer().Add(entry.d_name)) {
       done_ = true;
@@ -139,8 +135,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         if (!listing->follow_links()) {
           return kListLink;
         }
-        // Else fall through to next case.
-        // Fall through.
+      // Else fall through to next case.
+      // Fall through.
       case DT_UNKNOWN: {
         // On some file systems the entry type is not determined by
         // readdir_r. For those and for links we use stat to determine
@@ -155,9 +151,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
         }
         if (listing->follow_links() && S_ISLNK(entry_info.st_mode)) {
           // Check to see if we are in a loop created by a symbolic link.
-          LinkList current_link = { entry_info.st_dev,
-                                    entry_info.st_ino,
-                                    link_ };
+          LinkList current_link = {entry_info.st_dev, entry_info.st_ino, link_};
           LinkList* previous = link_;
           while (previous != NULL) {
             if ((previous->dev == current_link.dev) &&
@@ -234,14 +228,12 @@ void DirectoryListingEntry::ResetLink() {
 static bool DeleteRecursively(PathBuffer* path);
 
 
-static bool DeleteFile(char* file_name,
-                       PathBuffer* path) {
+static bool DeleteFile(char* file_name, PathBuffer* path) {
   return path->Add(file_name) && (unlink(path->AsString()) == 0);
 }
 
 
-static bool DeleteDir(char* dir_name,
-                      PathBuffer* path) {
+static bool DeleteDir(char* dir_name, PathBuffer* path) {
   if ((strcmp(dir_name, ".") == 0) || (strcmp(dir_name, "..") == 0)) {
     return true;
   }
@@ -281,7 +273,7 @@ static bool DeleteRecursively(PathBuffer* path) {
     if (result == NULL) {
       // End of directory.
       return NO_RETRY_EXPECTED(closedir(dir_pointer)) == 0 &&
-          NO_RETRY_EXPECTED(remove(path->AsString())) == 0;
+             NO_RETRY_EXPECTED(remove(path->AsString())) == 0;
     }
     bool ok = false;
     switch (entry.d_type) {
@@ -344,19 +336,14 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
       return DOES_NOT_EXIST;
     }
   } else {
-    if ((errno == EACCES) ||
-        (errno == EBADF) ||
-        (errno == EFAULT) ||
-        (errno == ENOMEM) ||
-        (errno == EOVERFLOW)) {
+    if ((errno == EACCES) || (errno == EBADF) || (errno == EFAULT) ||
+        (errno == ENOMEM) || (errno == EOVERFLOW)) {
       // Search permissions denied for one of the directories in the
       // path or a low level error occured. We do not know if the
       // directory exists.
       return UNKNOWN;
     }
-    ASSERT((errno == ELOOP) ||
-           (errno == ENAMETOOLONG) ||
-           (errno == ENOENT) ||
+    ASSERT((errno == ELOOP) || (errno == ENAMETOOLONG) || (errno == ENOENT) ||
            (errno == ENOTDIR));
     return DOES_NOT_EXIST;
   }
@@ -406,13 +393,13 @@ const char* Directory::SystemTemp() {
   if (Directory::system_temp_path_override_ != NULL) {
     return DartUtils::ScopedCopyCString(Directory::system_temp_path_override_);
   }
-  // Android does not have a /tmp directory. A partial substitute,
-  // suitable for bring-up work and tests, is to create a tmp
-  // directory in /data/local/tmp.
-  //
-  // TODO(4413): In the long run, when running in an application we should
-  // probably use the appropriate directory from the Android API,
-  // probably what File.createTempFile uses.
+// Android does not have a /tmp directory. A partial substitute,
+// suitable for bring-up work and tests, is to create a tmp
+// directory in /data/local/tmp.
+//
+// TODO(4413): In the long run, when running in an application we should
+// probably use the appropriate directory from the Android API,
+// probably what File.createTempFile uses.
 #define ANDROID_TEMP_DIR "/data/local/tmp"
   struct stat st;
   if (stat(ANDROID_TEMP_DIR, &st) != 0) {

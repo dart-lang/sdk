@@ -10,14 +10,14 @@
 #include "bin/eventhandler.h"
 #include "bin/eventhandler_android.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <pthread.h>  // NOLINT
-#include <stdio.h>  // NOLINT
-#include <string.h>  // NOLINT
+#include <errno.h>      // NOLINT
+#include <fcntl.h>      // NOLINT
+#include <pthread.h>    // NOLINT
+#include <stdio.h>      // NOLINT
+#include <string.h>     // NOLINT
 #include <sys/epoll.h>  // NOLINT
-#include <sys/stat.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <sys/stat.h>   // NOLINT
+#include <unistd.h>     // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -53,12 +53,8 @@ intptr_t DescriptorInfo::GetPollEvents() {
 
 // Unregister the file descriptor for a DescriptorInfo structure with
 // epoll.
-static void RemoveFromEpollInstance(intptr_t epoll_fd_,
-                                    DescriptorInfo* di) {
-  VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
-                                   EPOLL_CTL_DEL,
-                                   di->fd(),
-                                   NULL));
+static void RemoveFromEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
+  VOID_NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, di->fd(), NULL));
 }
 
 
@@ -69,10 +65,8 @@ static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
     event.events |= EPOLLET;
   }
   event.data.ptr = di;
-  int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
-                                           EPOLL_CTL_ADD,
-                                           di->fd(),
-                                           &event));
+  int status =
+      NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, di->fd(), &event));
   if (status == -1) {
     // TODO(dart:io): Verify that the dart end is handling this correctly.
 
@@ -108,10 +102,8 @@ EventHandlerImplementation::EventHandlerImplementation()
   struct epoll_event event;
   event.events = EPOLLIN;
   event.data.ptr = NULL;
-  int status = NO_RETRY_EXPECTED(epoll_ctl(epoll_fd_,
-                                           EPOLL_CTL_ADD,
-                                           interrupt_fds_[0],
-                                           &event));
+  int status = NO_RETRY_EXPECTED(
+      epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, interrupt_fds_[0], &event));
   if (status == -1) {
     FATAL("Failed adding interrupt fd to epoll instance");
   }
@@ -134,7 +126,7 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 
 
 void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
-                                                     DescriptorInfo *di) {
+                                                     DescriptorInfo* di) {
   intptr_t new_mask = di->Mask();
   if ((old_mask != 0) && (new_mask == 0)) {
     RemoveFromEpollInstance(epoll_fd_, di);
@@ -149,13 +141,13 @@ void EventHandlerImplementation::UpdateEpollInstance(intptr_t old_mask,
 
 
 DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
-    intptr_t fd, bool is_listening) {
+    intptr_t fd,
+    bool is_listening) {
   ASSERT(fd >= 0);
-  HashMap::Entry* entry = socket_map_.Lookup(
-      GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
+  HashMap::Entry* entry = socket_map_.Lookup(GetHashmapKeyFromFd(fd),
+                                             GetHashmapHashFromFd(fd), true);
   ASSERT(entry != NULL);
-  DescriptorInfo* di =
-      reinterpret_cast<DescriptorInfo*>(entry->value);
+  DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
   if (di == NULL) {
     // If there is no data in the hash map for this file descriptor a
     // new DescriptorInfo for the file descriptor is inserted.
@@ -206,8 +198,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else {
       ASSERT((msg[i].data & COMMAND_MASK) != 0);
 
-      DescriptorInfo* di = GetDescriptorInfo(
-          msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
+      DescriptorInfo* di =
+          GetDescriptorInfo(msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         ASSERT(!di->IsListeningSocket());
         // Close the socket for reading.
@@ -230,7 +222,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
           // We only close the socket file descriptor from the operating
           // system if there are no other dart socket objects which
           // are listening on the same (address, port) combination.
-          ListeningSocketRegistry *registry =
+          ListeningSocketRegistry* registry =
               ListeningSocketRegistry::Instance();
 
           MutexLocker locker(registry->mutex());
@@ -244,8 +236,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
           }
         } else {
           ASSERT(new_mask == 0);
-          socket_map_.Remove(
-              GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+          socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
           di->Close();
           delete di;
         }
@@ -293,8 +284,8 @@ static void PrintEventMask(intptr_t fd, intptr_t events) {
   if ((events & EPOLLRDHUP) != 0) {
     Log::Print("EPOLLRDHUP ");
   }
-  int all_events = EPOLLIN | EPOLLPRI | EPOLLOUT |
-      EPOLLERR | EPOLLHUP | EPOLLRDHUP;
+  int all_events =
+      EPOLLIN | EPOLLPRI | EPOLLOUT | EPOLLERR | EPOLLHUP | EPOLLRDHUP;
   if ((events & ~all_events) != 0) {
     Log::Print("(and %08x) ", events & ~all_events);
   }
@@ -359,8 +350,8 @@ int64_t EventHandlerImplementation::GetTimeout() {
   if (!timeout_queue_.HasTimeout()) {
     return kInfinityTimeout;
   }
-  int64_t millis = timeout_queue_.CurrentTimeout() -
-      TimerUtils::GetCurrentMonotonicMillis();
+  int64_t millis =
+      timeout_queue_.CurrentTimeout() - TimerUtils::GetCurrentMonotonicMillis();
   return (millis < 0) ? 0 : millis;
 }
 
@@ -368,7 +359,7 @@ int64_t EventHandlerImplementation::GetTimeout() {
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_queue_.HasTimeout()) {
     int64_t millis = timeout_queue_.CurrentTimeout() -
-        TimerUtils::GetCurrentMonotonicMillis();
+                     TimerUtils::GetCurrentMonotonicMillis();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_queue_.CurrentPort());
       timeout_queue_.RemoveCurrent();

@@ -59,7 +59,7 @@ void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
 
 
 static EventHandler* event_handler = NULL;
-static Monitor *shutdown_monitor = NULL;
+static Monitor* shutdown_monitor = NULL;
 
 
 void EventHandler::Start() {

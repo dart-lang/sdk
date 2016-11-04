@@ -10,7 +10,7 @@
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 
-#include <errno.h>  // NOLINT
+#include <errno.h>     // NOLINT
 #include <sys/stat.h>  // NOLINT
 
 #include "bin/dartutils.h"
@@ -57,13 +57,10 @@ bool PathBuffer::Add(const char* name) {
 
 bool PathBuffer::AddW(const wchar_t* name) {
   wchar_t* data = AsStringW();
-  int written = _snwprintf(data + length_,
-                           MAX_LONG_PATH - length_,
-                           L"%s",
-                           name);
+  int written =
+      _snwprintf(data + length_, MAX_LONG_PATH - length_, L"%s", name);
   data[MAX_LONG_PATH] = L'\0';
-  if ((written <= MAX_LONG_PATH - length_) &&
-      (written >= 0) &&
+  if ((written <= MAX_LONG_PATH - length_) && (written >= 0) &&
       (static_cast<size_t>(written) == wcsnlen(name, MAX_LONG_PATH + 1))) {
     length_ += written;
     return true;
@@ -84,13 +81,8 @@ void PathBuffer::Reset(intptr_t new_length) {
 // points to an invalid target.
 static bool IsBrokenLink(const wchar_t* link_name) {
   HANDLE handle = CreateFileW(
-      link_name,
-      0,
-      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-      NULL,
-      OPEN_EXISTING,
-      FILE_FLAG_BACKUP_SEMANTICS,
-      NULL);
+      link_name, 0, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+      NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
   if (handle == INVALID_HANDLE_VALUE) {
     return true;
   } else {
@@ -124,14 +116,10 @@ static ListType HandleFindFile(DirectoryListing* listing,
     if (!listing->follow_links()) {
       return kListLink;
     }
-    HANDLE handle = CreateFileW(
-        listing->path_buffer().AsStringW(),
-        0,
-        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
-        NULL,
-        OPEN_EXISTING,
-        FILE_FLAG_BACKUP_SEMANTICS,
-        NULL);
+    HANDLE handle =
+        CreateFileW(listing->path_buffer().AsStringW(), 0,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                    NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
     if (handle == INVALID_HANDLE_VALUE) {
       // Report as (broken) link.
       return kListLink;
@@ -199,8 +187,8 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
 
     path_length_ = listing->path_buffer().length() - 1;
 
-    HANDLE find_handle = FindFirstFileW(listing->path_buffer().AsStringW(),
-                                        &find_file_data);
+    HANDLE find_handle =
+        FindFirstFileW(listing->path_buffer().AsStringW(), &find_file_data);
 
     if (find_handle == INVALID_HANDLE_VALUE) {
       done_ = true;
@@ -285,8 +273,7 @@ static bool DeleteFile(wchar_t* file_name, PathBuffer* path) {
 
 
 static bool DeleteDir(wchar_t* dir_name, PathBuffer* path) {
-  if ((wcscmp(dir_name, L".") == 0) ||
-      (wcscmp(dir_name, L"..") == 0)) {
+  if ((wcscmp(dir_name, L".") == 0) || (wcscmp(dir_name, L"..") == 0)) {
     return true;
   }
   return path->AddW(dir_name) && DeleteRecursively(path);
@@ -389,8 +376,8 @@ char* Directory::CurrentNoScope() {
   }
   wchar_t* current = new wchar_t[length + 1];
   GetCurrentDirectoryW(length + 1, current);
-  int utf8_len = WideCharToMultiByte(
-      CP_UTF8, 0, current, -1, NULL, 0, NULL, NULL);
+  int utf8_len =
+      WideCharToMultiByte(CP_UTF8, 0, current, -1, NULL, 0, NULL, NULL);
   char* result = reinterpret_cast<char*>(malloc(utf8_len));
   WideCharToMultiByte(CP_UTF8, 0, current, -1, result, utf8_len, NULL, NULL);
   delete[] current;
@@ -422,8 +409,7 @@ bool Directory::Create(const char* dir_name) {
   Utf8ToWideScope system_name(dir_name);
   int create_status = CreateDirectoryW(system_name.wide(), NULL);
   // If the directory already existed, treat it as a success.
-  if ((create_status == 0) &&
-      (GetLastError() == ERROR_ALREADY_EXISTS) &&
+  if ((create_status == 0) && (GetLastError() == ERROR_ALREADY_EXISTS) &&
       (ExistsHelper(system_name.wide()) == EXISTS)) {
     return true;
   }

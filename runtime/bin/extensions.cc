@@ -28,14 +28,14 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
   // First try to find the library with a suffix specifying the architecture.
   {
     const char* path_components[] = {
-      dir,
-      Platform::LibraryPrefix(),
-      name,
-      "-",
-      Platform::HostArchitecture(),  // arm
-      ".",
-      Platform::LibraryExtension(),  // so
-      NULL,
+        dir,
+        Platform::LibraryPrefix(),
+        name,
+        "-",
+        Platform::HostArchitecture(),  // arm
+        ".",
+        Platform::LibraryExtension(),  // so
+        NULL,
     };
     const char* library_file = Concatenate(path_components);
     void* library_handle = LoadExtensionLibrary(library_file);
@@ -47,12 +47,12 @@ void* Extensions::MakePathAndResolve(const char* dir, const char* name) {
   // Fall back on a library name without the suffix.
   {
     const char* path_components[] = {
-      dir,
-      Platform::LibraryPrefix(),
-      name,
-      ".",
-      Platform::LibraryExtension(),  // so
-      NULL,
+        dir,
+        Platform::LibraryPrefix(),
+        name,
+        ".",
+        Platform::LibraryExtension(),  // so
+        NULL,
     };
     const char* library_file = Concatenate(path_components);
     return LoadExtensionLibrary(library_file);
@@ -85,8 +85,8 @@ void* Extensions::ResolveExtension(const char* extension_directory,
 
   // If the path following dart-ext is just a file name, first look next to
   // the importing Dart library.
-  void* library_handle = MakePathAndResolve(extension_directory,
-                                            extension_name);
+  void* library_handle =
+      MakePathAndResolve(extension_directory, extension_name);
   if (library_handle != NULL) {
     return library_handle;
   }
@@ -110,7 +110,7 @@ Dart_Handle Extensions::LoadExtension(const char* extension_directory,
     extension = strrchr(extension_name, PathSeparator()) + 1;
   }
 
-  const char* strings[] = { extension, "_Init", NULL };
+  const char* strings[] = {extension, "_Init", NULL};
   const char* init_function_name = Concatenate(strings);
   void* init_function = ResolveSymbol(library_handle, init_function_name);
   Dart_Handle result = GetError();
