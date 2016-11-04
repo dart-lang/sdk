@@ -3581,7 +3581,12 @@ abstract class ExecutableElementImpl extends ElementImpl
   List<TypeParameterElement> _typeParameters;
 
   /**
-   * The return type defined by this executable element.
+   * The declared return type of this executable element.
+   */
+  DartType _declaredReturnType;
+
+  /**
+   * The inferred return type of this executable element.
    */
   DartType _returnType;
 
@@ -3634,6 +3639,11 @@ abstract class ExecutableElementImpl extends ElementImpl
       return serializedExecutable.codeRange?.offset;
     }
     return super.codeOffset;
+  }
+
+  void set declaredReturnType(DartType returnType) {
+    _assertNotResynthesized(serializedExecutable);
+    _declaredReturnType = returnType;
   }
 
   @override
@@ -3847,17 +3857,18 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
-    if (serializedExecutable != null && _returnType == null) {
+    if (serializedExecutable != null &&
+        _declaredReturnType == null &&
+        _returnType == null) {
       bool isSetter =
           serializedExecutable.kind == UnlinkedExecutableKind.setter;
       _returnType = enclosingUnit.resynthesizerContext.resolveLinkedType(
-              serializedExecutable.inferredReturnTypeSlot,
-              typeParameterContext) ??
-          enclosingUnit.resynthesizerContext.resolveTypeRef(
-              serializedExecutable.returnType, typeParameterContext,
-              defaultVoid: isSetter && context.analysisOptions.strongMode);
+          serializedExecutable.inferredReturnTypeSlot, typeParameterContext);
+      _declaredReturnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          serializedExecutable.returnType, typeParameterContext,
+          defaultVoid: isSetter && context.analysisOptions.strongMode);
     }
-    return _returnType;
+    return _returnType ?? _declaredReturnType;
   }
 
   void set returnType(DartType returnType) {
@@ -6770,11 +6781,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   DartType get type {
-    if (_unlinkedVariable != null && _type == null) {
+    if (_unlinkedVariable != null && _declaredType == null && _type == null) {
       _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
-              _unlinkedVariable.inferredTypeSlot, typeParameterContext) ??
-          enclosingUnit.resynthesizerContext
-              .resolveTypeRef(_unlinkedVariable.type, typeParameterContext);
+          _unlinkedVariable.inferredTypeSlot, typeParameterContext);
+      _declaredType = enclosingUnit.resynthesizerContext
+          .resolveTypeRef(_unlinkedVariable.type, typeParameterContext);
     }
     return super.type;
   }
@@ -7214,7 +7225,7 @@ class ParameterElementImpl extends VariableElementImpl
    * been build yet, build them and remember in the corresponding fields.
    */
   void _resynthesizeTypeAndParameters() {
-    if (_unlinkedParam != null && _type == null) {
+    if (_unlinkedParam != null && _declaredType == null && _type == null) {
       if (_unlinkedParam.isFunctionTyped) {
         CompilationUnitElementImpl enclosingUnit = this.enclosingUnit;
         FunctionElementImpl parameterTypeElement =
@@ -7241,9 +7252,9 @@ class ParameterElementImpl extends VariableElementImpl
         _type = parameterType;
       } else {
         _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
-                _unlinkedParam.inferredTypeSlot, typeParameterContext) ??
-            enclosingUnit.resynthesizerContext
-                .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
+            _unlinkedParam.inferredTypeSlot, typeParameterContext);
+        _declaredType = enclosingUnit.resynthesizerContext
+            .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
       }
     }
   }
@@ -8302,6 +8313,11 @@ abstract class VariableElementImpl extends ElementImpl
   /**
    * The declared type of this variable.
    */
+  DartType _declaredType;
+
+  /**
+   * The inferred type of this variable.
+   */
   DartType _type;
 
   /**
@@ -8347,6 +8363,10 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject get constantValue => evaluationResult?.value;
+
+  void set declaredType(DartType type) {
+    _declaredType = type;
+  }
 
   @override
   String get displayName => name;
@@ -8421,7 +8441,7 @@ abstract class VariableElementImpl extends ElementImpl
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   @override
-  DartType get type => _type;
+  DartType get type => _type ?? _declaredType;
 
   void set type(DartType type) {
     _type = type;
