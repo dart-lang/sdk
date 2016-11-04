@@ -45,9 +45,6 @@ class Mix<M extends core::Object> extends self::Base<self::Mix::M> implements se
   constructor •() → void
     : super self::Base::•()
     ;
-  constructor •() → void
-    : super self::Base::•()
-    ;
 }
 static method main() → dynamic {
   core::print(new self::Bar::•<core::String, core::double>(4).x);

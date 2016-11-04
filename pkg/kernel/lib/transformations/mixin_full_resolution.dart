@@ -95,13 +95,17 @@ class MixinFullResolution {
     }
     // For each generative constructor in the superclass we make a
     // corresponding forwarding constructor in the subclass.
-    var superclassSubstitution = getSubstitutionMap(class_.supertype);
-    var superclassCloner =
-        new CloneVisitor(typeSubstitution: superclassSubstitution);
-    for (var superclassConstructor in class_.superclass.constructors) {
-      var forwardingConstructor =
-          buildForwardingConstructor(superclassCloner, superclassConstructor);
-      class_.constructors.add(forwardingConstructor..parent = class_);
+    // Named mixin applications already have constructors, so only build the
+    // constructors for anonymous mixin applications.
+    if (class_.constructors.isEmpty) {
+      var superclassSubstitution = getSubstitutionMap(class_.supertype);
+      var superclassCloner =
+          new CloneVisitor(typeSubstitution: superclassSubstitution);
+      for (var superclassConstructor in class_.superclass.constructors) {
+        var forwardingConstructor =
+            buildForwardingConstructor(superclassCloner, superclassConstructor);
+        class_.constructors.add(forwardingConstructor..parent = class_);
+      }
     }
 
     // This class implements the mixin type.
