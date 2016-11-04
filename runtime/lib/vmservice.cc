@@ -68,12 +68,11 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
     args.SetAt(0, port_int);
     args.SetAt(1, send_port);
     args.SetAt(2, name);
-    const Object& r = Object::Handle(
-        DartEntry::InvokeFunction(register_function_, args));
+    const Object& r =
+        Object::Handle(DartEntry::InvokeFunction(register_function_, args));
     if (FLAG_trace_service) {
       OS::Print("vm-service: Isolate %s %" Pd64 " registered.\n",
-                name.ToCString(),
-                port_id);
+                name.ToCString(), port_id);
     }
     ASSERT(!r.IsError());
   }
@@ -92,8 +91,8 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
 
   // Set the type of the OOB message.
-  message.SetAt(0, Smi::Handle(thread->zone(),
-                               Smi::New(Message::kServiceOOBMsg)));
+  message.SetAt(0,
+                Smi::Handle(thread->zone(), Smi::New(Message::kServiceOOBMsg)));
 
   // Serialize message.
   uint8_t* data = NULL;
@@ -102,8 +101,7 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
 
   // TODO(turnidge): Throw an exception when the return value is false?
   bool result = PortMap::PostMessage(
-      new Message(sp.Id(), data, writer.BytesWritten(),
-                  Message::kOOBPriority));
+      new Message(sp.Id(), data, writer.BytesWritten(), Message::kOOBPriority));
   return Bool::Get(result).raw();
 }
 
@@ -223,21 +221,13 @@ class TarArchive {
     }
   }
 
-  char* NextFilename() {
-    return filenames_.RemoveLast();
-  }
+  char* NextFilename() { return filenames_.RemoveLast(); }
 
-  uint8_t* NextContent() {
-    return contents_.RemoveLast();
-  }
+  uint8_t* NextContent() { return contents_.RemoveLast(); }
 
-  intptr_t NextContentLength() {
-    return content_lengths_.RemoveLast();
-  }
+  intptr_t NextContentLength() { return content_lengths_.RemoveLast(); }
 
-  bool HasMore() const {
-    return filenames_.length() > 0;
-  }
+  bool HasMore() const { return filenames_.length() > 0; }
 
   intptr_t Length() const { return filenames_.length(); }
 
@@ -266,9 +256,7 @@ class TarArchive {
     kTarXglType = 'g',
   };
 
-  bool HasNext() const {
-    return !EndOfArchive();
-  }
+  bool HasNext() const { return !EndOfArchive(); }
 
   bool Next(char** filename, uint8_t** data, intptr_t* data_length) {
     intptr_t startOfBlock = rs_.Position();
@@ -404,8 +392,8 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
   Dart_TypedData_Type typ;
   void* bytes;
   intptr_t length;
-  Dart_Handle err = Dart_TypedDataAcquireData(
-      data_handle, &typ, &bytes, &length);
+  Dart_Handle err =
+      Dart_TypedDataAcquireData(data_handle, &typ, &bytes, &length);
   ASSERT(!Dart_IsError(err));
 
   TarArchive archive(reinterpret_cast<uint8_t*>(bytes), length);
@@ -426,17 +414,15 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
     intptr_t contents_length = archive.NextContentLength();
 
     Dart_Handle dart_filename = Dart_NewExternalLatin1String(
-        reinterpret_cast<uint8_t*>(filename),
-        strlen(filename),
-        filename,
+        reinterpret_cast<uint8_t*>(filename), strlen(filename), filename,
         FilenameFinalizer);
     ASSERT(!Dart_IsError(dart_filename));
 
     Dart_Handle dart_contents = Dart_NewExternalTypedData(
         Dart_TypedData_kUint8, contents, contents_length);
     ASSERT(!Dart_IsError(dart_contents));
-    Dart_NewWeakPersistentHandle(
-        dart_contents, contents, contents_length, ContentsFinalizer);
+    Dart_NewWeakPersistentHandle(dart_contents, contents, contents_length,
+                                 ContentsFinalizer);
 
     Dart_ListSetAt(result_list, idx, dart_filename);
     Dart_ListSetAt(result_list, (idx + 1), dart_contents);
@@ -447,7 +433,6 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
   return Object::null();
 #endif
 }
-
 
 
 DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
@@ -469,8 +454,8 @@ DEFINE_NATIVE_ENTRY(VMService_spawnUriNotify, 2) {
       // There is no isolate at the control port anymore.  Must have
       // died already.
       ServiceEvent spawn_event(NULL, ServiceEvent::kIsolateSpawn);
-      const String& error = String::Handle(String::New(
-          "spawned isolate exited before notification completed"));
+      const String& error = String::Handle(
+          String::New("spawned isolate exited before notification completed"));
       spawn_event.set_spawn_token(&token);
       spawn_event.set_spawn_error(&error);
       Service::HandleEvent(&spawn_event);

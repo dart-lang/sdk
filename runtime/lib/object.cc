@@ -73,8 +73,8 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, member_name, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, invocation_type, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, func_args, arguments->NativeArgAt(4));
-  GET_NON_NULL_NATIVE_ARGUMENT(
-      Instance, func_named_args, arguments->NativeArgAt(5));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, func_named_args,
+                               arguments->NativeArgAt(5));
   const Array& dart_arguments = Array::Handle(Array::New(6));
   dart_arguments.SetAt(0, instance);
   dart_arguments.SetAt(1, member_name);
@@ -176,9 +176,8 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
   Error& bound_error = Error::Handle(zone, Error::null());
-  const bool is_instance_of = instance.IsInstanceOf(type,
-                                                    instantiator_type_arguments,
-                                                    &bound_error);
+  const bool is_instance_of =
+      instance.IsInstanceOf(type, instantiator_type_arguments, &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Native Object.instanceOf: result %s\n", result_str);
@@ -198,11 +197,11 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     const TokenPosition location = caller_frame->GetTokenPos();
-    String& bound_error_message = String::Handle(
-        zone, String::New(bound_error.ToErrorCString()));
-    Exceptions::CreateAndThrowTypeError(
-        location, AbstractType::Handle(zone), AbstractType::Handle(zone),
-        Symbols::Empty(), bound_error_message);
+    String& bound_error_message =
+        String::Handle(zone, String::New(bound_error.ToErrorCString()));
+    Exceptions::CreateAndThrowTypeError(location, AbstractType::Handle(zone),
+                                        AbstractType::Handle(zone),
+                                        Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
   return Bool::Get(negate.value() ? !is_instance_of : is_instance_of).raw();
@@ -221,20 +220,19 @@ DEFINE_NATIVE_ENTRY(Object_simpleInstanceOf, 2) {
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
   Error& bound_error = Error::Handle(zone, Error::null());
-  const bool is_instance_of = instance.IsInstanceOf(type,
-                                                    instantiator_type_arguments,
-                                                    &bound_error);
+  const bool is_instance_of =
+      instance.IsInstanceOf(type, instantiator_type_arguments, &bound_error);
   if (!is_instance_of && !bound_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
     const TokenPosition location = caller_frame->GetTokenPos();
-    String& bound_error_message = String::Handle(
-        zone, String::New(bound_error.ToErrorCString()));
-    Exceptions::CreateAndThrowTypeError(
-        location, AbstractType::Handle(zone), AbstractType::Handle(zone),
-        Symbols::Empty(), bound_error_message);
+    String& bound_error_message =
+        String::Handle(zone, String::New(bound_error.ToErrorCString()));
+    Exceptions::CreateAndThrowTypeError(location, AbstractType::Handle(zone),
+                                        AbstractType::Handle(zone),
+                                        Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
   return Bool::Get(is_instance_of).raw();
@@ -314,9 +312,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
   if (instance.IsNull()) {
     return instance.raw();
   }
-  const bool is_instance_of = instance.IsInstanceOf(type,
-                                                    instantiator_type_arguments,
-                                                    &bound_error);
+  const bool is_instance_of =
+      instance.IsInstanceOf(type, instantiator_type_arguments, &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Object.as: result %s\n", result_str);
@@ -339,21 +336,21 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
         AbstractType::Handle(zone, instance.GetType());
     if (!type.IsInstantiated()) {
       // Instantiate type before reporting the error.
-      type = type.InstantiateFrom(instantiator_type_arguments, NULL,
-                                  NULL, NULL, Heap::kNew);
+      type = type.InstantiateFrom(instantiator_type_arguments, NULL, NULL, NULL,
+                                  Heap::kNew);
       // Note that the instantiated type may be malformed.
     }
     if (bound_error.IsNull()) {
-      Exceptions::CreateAndThrowTypeError(
-          location, instance_type, type,
-          Symbols::InTypeCast(), Object::null_string());
+      Exceptions::CreateAndThrowTypeError(location, instance_type, type,
+                                          Symbols::InTypeCast(),
+                                          Object::null_string());
     } else {
       ASSERT(isolate->type_checks());
       const String& bound_error_message =
           String::Handle(zone, String::New(bound_error.ToErrorCString()));
       Exceptions::CreateAndThrowTypeError(
-          location, instance_type, AbstractType::Handle(zone),
-          Symbols::Empty(), bound_error_message);
+          location, instance_type, AbstractType::Handle(zone), Symbols::Empty(),
+          bound_error_message);
     }
     UNREACHABLE();
   }

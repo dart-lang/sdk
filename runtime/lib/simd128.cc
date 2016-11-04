@@ -13,8 +13,8 @@ namespace dart {
 
 static void ThrowMaskRangeException(int64_t m) {
   if ((m < 0) || (m > 255)) {
-    Exceptions::ThrowRangeError(
-        "mask", Integer::Handle(Integer::New(m)), 0, 255);
+    Exceptions::ThrowRangeError("mask", Integer::Handle(Integer::New(m)), 0,
+                                255);
   }
 }
 
@@ -95,8 +95,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_sub, 2) {
 
 DEFINE_NATIVE_ENTRY(Float32x4_mul, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other,
-                               arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
   float _x = self.x() * other.x();
   float _y = self.y() * other.y();
   float _z = self.z() * other.z();
@@ -277,7 +276,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
   int64_t m = mask.AsInt64Value();
   ThrowMaskRangeException(m);
-  float data[4] = { self.x(), self.y(), self.z(), self.w() };
+  float data[4] = {self.x(), self.y(), self.z(), self.w()};
   float _x = data[m & 0x3];
   float _y = data[(m >> 2) & 0x3];
   float _z = data[(m >> 4) & 0x3];
@@ -292,8 +291,8 @@ DEFINE_NATIVE_ENTRY(Float32x4_shuffleMix, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
   int64_t m = mask.AsInt64Value();
   ThrowMaskRangeException(m);
-  float data[4] = { self.x(), self.y(), self.z(), self.w() };
-  float other_data[4] = { other.x(), other.y(), other.z(), other.w() };
+  float data[4] = {self.x(), self.y(), self.z(), self.w()};
+  float other_data[4] = {other.x(), other.y(), other.z(), other.w()};
   float _x = data[m & 0x3];
   float _y = data[(m >> 2) & 0x3];
   float _z = other_data[(m >> 4) & 0x3];
@@ -348,8 +347,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_setW, 2) {
 
 DEFINE_NATIVE_ENTRY(Float32x4_min, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other,
-                               arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
   float _x = self.x() < other.x() ? self.x() : other.x();
   float _y = self.y() < other.y() ? self.y() : other.y();
   float _z = self.z() < other.z() ? self.z() : other.z();
@@ -360,8 +358,7 @@ DEFINE_NATIVE_ENTRY(Float32x4_min, 2) {
 
 DEFINE_NATIVE_ENTRY(Float32x4_max, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other,
-                               arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
   float _x = self.x() > other.x() ? self.x() : other.x();
   float _y = self.y() > other.y() ? self.y() : other.y();
   float _z = self.z() > other.z() ? self.z() : other.z();
@@ -522,7 +519,7 @@ DEFINE_NATIVE_ENTRY(Int32x4_shuffle, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
   int64_t m = mask.AsInt64Value();
   ThrowMaskRangeException(m);
-  int32_t data[4] = { self.x(), self.y(), self.z(), self.w() };
+  int32_t data[4] = {self.x(), self.y(), self.z(), self.w()};
   int32_t _x = data[m & 0x3];
   int32_t _y = data[(m >> 2) & 0x3];
   int32_t _z = data[(m >> 4) & 0x3];
@@ -537,8 +534,8 @@ DEFINE_NATIVE_ENTRY(Int32x4_shuffleMix, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
   int64_t m = mask.AsInt64Value();
   ThrowMaskRangeException(m);
-  int32_t data[4] = { self.x(), self.y(), self.z(), self.w() };
-  int32_t zw_data[4] = { zw.x(), zw.y(), zw.z(), zw.w() };
+  int32_t data[4] = {self.x(), self.y(), self.z(), self.w()};
+  int32_t zw_data[4] = {zw.x(), zw.y(), zw.z(), zw.w()};
   int32_t _x = data[m & 0x3];
   int32_t _y = data[(m >> 2) & 0x3];
   int32_t _z = zw_data[(m >> 4) & 0x3];
@@ -672,12 +669,8 @@ DEFINE_NATIVE_ENTRY(Int32x4_setFlagW, 2) {
 union float32_int32 {
   float f;
   int32_t u;
-  float32_int32(float v) {
-    f = v;
-  }
-  float32_int32(int32_t v) {
-    u = v;
-  }
+  float32_int32(float v) { f = v; }
+  float32_int32(int32_t v) { u = v; }
 };
 
 
@@ -854,8 +847,7 @@ DEFINE_NATIVE_ENTRY(Float64x2_setY, 2) {
 
 DEFINE_NATIVE_ENTRY(Float64x2_min, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other,
-                               arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
   double _x = self.x() < other.x() ? self.x() : other.x();
   double _y = self.y() < other.y() ? self.y() : other.y();
   return Float64x2::New(_x, _y);
@@ -864,8 +856,7 @@ DEFINE_NATIVE_ENTRY(Float64x2_min, 2) {
 
 DEFINE_NATIVE_ENTRY(Float64x2_max, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other,
-                               arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
   double _x = self.x() > other.x() ? self.x() : other.x();
   double _y = self.y() > other.y() ? self.y() : other.y();
   return Float64x2::New(_x, _y);
