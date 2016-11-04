@@ -153,7 +153,7 @@ static mx_status_t lp_setup(launchpad_t** lp_out, mx_handle_t binary_vmo,
   }
   launchpad_t* lp;
   mx_status_t status;
-  status = launchpad_create(argv[0], &lp);
+  status = launchpad_create(0, argv[0], &lp);
   RETURN_IF_ERROR(status);
   status = launchpad_arguments(lp, argc, argv);
   RETURN_IF_ERROR(status);
