@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:analyzer/src/generated/engine.dart' as engine;
@@ -211,7 +212,8 @@ class EditDomainHandler implements RequestHandler {
       } else if (requestName == EDIT_ORGANIZE_DIRECTIVES) {
         return organizeDirectives(request);
       } else if (requestName == EDIT_SORT_MEMBERS) {
-        return sortMembers(request);
+        sortMembers(request);
+        return Response.DELAYED_RESPONSE;
       }
     } on RequestFailure catch (exception) {
       return exception.response;
@@ -251,40 +253,60 @@ class EditDomainHandler implements RequestHandler {
     return new EditOrganizeDirectivesResult(fileEdit).toResponse(request.id);
   }
 
-  Response sortMembers(Request request) {
+  Future<Null> sortMembers(Request request) async {
     var params = new EditSortMembersParams.fromRequest(request);
     // prepare file
     String file = params.file;
     if (!engine.AnalysisEngine.isDartFileName(file)) {
-      return new Response.sortMembersInvalidFile(request);
+      server.sendResponse(new Response.sortMembersInvalidFile(request));
     }
-    // prepare location
-    ContextSourcePair contextSource = server.getContextSourcePair(file);
-    engine.AnalysisContext context = contextSource.context;
-    Source source = contextSource.source;
-    if (context == null || source == null) {
-      return new Response.sortMembersInvalidFile(request);
-    }
-    // prepare parsed unit
+    // Prepare the file information.
+    int fileStamp;
+    String code;
     CompilationUnit unit;
-    try {
-      unit = context.parseCompilationUnit(source);
-    } catch (e) {
-      return new Response.sortMembersInvalidFile(request);
+    List<engine.AnalysisError> errors;
+    if (server.options.enableNewAnalysisDriver) {
+      AnalysisDriver driver = server.getAnalysisDriver(file);
+      ParseResult result = await driver.parseFile(file);
+      fileStamp = -1;
+      code = result.content;
+      unit = result.unit;
+      errors = result.errors;
+    } else {
+      // prepare location
+      ContextSourcePair contextSource = server.getContextSourcePair(file);
+      engine.AnalysisContext context = contextSource.context;
+      Source source = contextSource.source;
+      if (context == null || source == null) {
+        server.sendResponse(new Response.sortMembersInvalidFile(request));
+        return;
+      }
+      // prepare code
+      fileStamp = context.getModificationStamp(source);
+      code = context.getContents(source).data;
+      // prepare parsed unit
+      try {
+        unit = context.parseCompilationUnit(source);
+      } catch (e) {
+        server.sendResponse(new Response.sortMembersInvalidFile(request));
+        return;
+      }
+      // Get the errors.
+      errors = context.getErrors(source).errors;
     }
-    // check if there are scan/parse errors in the file
-    engine.AnalysisErrorInfo errors = context.getErrors(source);
-    int numScanParseErrors = _getNumberOfScanParseErrors(errors.errors);
+    // Check if there are scan/parse errors in the file.
+    int numScanParseErrors = _getNumberOfScanParseErrors(errors);
     if (numScanParseErrors != 0) {
-      return new Response.sortMembersParseErrors(request, numScanParseErrors);
+      server.sendResponse(
+          new Response.sortMembersParseErrors(request, numScanParseErrors));
+      return;
     }
-    // do sort
-    int fileStamp = context.getModificationStamp(source);
-    String code = context.getContents(source).data;
+    // Do sort.
     MemberSorter sorter = new MemberSorter(code, unit);
     List<SourceEdit> edits = sorter.sort();
     SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp, edits: edits);
-    return new EditSortMembersResult(fileEdit).toResponse(request.id);
+    server.sendResponse(
+        new EditSortMembersResult(fileEdit).toResponse(request.id));
   }
 
   Response _getAvailableRefactorings(Request request) {

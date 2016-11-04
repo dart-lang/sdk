@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -381,6 +382,26 @@ class AnalysisDriver {
    */
   bool isAddedFile(String path) {
     return _explicitFiles.contains(path);
+  }
+
+  /**
+   * Return the [Future] that completes with a [ParseResult] for the file
+   * with the given [path].
+   *
+   * The [path] must be absolute and normalized.
+   *
+   * The [path] can be any file - explicitly or implicitly analyzed, or neither.
+   *
+   * The parsing is performed in the method itself, and the result is not
+   * produced through the [results] stream (just because it is not a fully
+   * resolved unit).
+   */
+  Future<ParseResult> parseFile(String path) async {
+    FileState file = _fsState.getFileForPath(path);
+    RecordingErrorListener listener = new RecordingErrorListener();
+    CompilationUnit unit = file.parse(listener);
+    return new ParseResult(file.path, file.uri, file.content, file.contentHash,
+        unit.lineInfo, unit, listener.errors);
   }
 
   /**
@@ -793,6 +814,53 @@ class AnalysisStatus {
    * Return `true` is the driver is idle.
    */
   bool get isIdle => !_analyzing;
+}
+
+/**
+ * The result of parsing of a single file.
+ *
+ * These results are self-consistent, i.e. [content], [contentHash], the
+ * resolved [unit] correspond to each other. But none of the results is
+ * guaranteed to be consistent with the state of the files.
+ */
+class ParseResult {
+  /**
+   * The path of the parsed file, absolute and normalized.
+   */
+  final String path;
+
+  /**
+   * The URI of the file that corresponded to the [path].
+   */
+  final Uri uri;
+
+  /**
+   * The content of the file that was scanned and parsed.
+   */
+  final String content;
+
+  /**
+   * The MD5 hash of the [content].
+   */
+  final String contentHash;
+
+  /**
+   * Information about lines in the [content].
+   */
+  final LineInfo lineInfo;
+
+  /**
+   * The parsed, unresolved compilation unit for the [content].
+   */
+  final CompilationUnit unit;
+
+  /**
+   * The scanning and parsing errors.
+   */
+  final List<AnalysisError> errors;
+
+  ParseResult(this.path, this.uri, this.content, this.contentHash,
+      this.lineInfo, this.unit, this.errors);
 }
 
 /**

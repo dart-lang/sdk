@@ -561,6 +561,19 @@ class AnalysisServer {
     return null;
   }
 
+  /**
+   * Return the analysis driver to which the file with the given [path] is
+   * added if exists, otherwise the first driver, otherwise `null`.
+   */
+  nd.AnalysisDriver getAnalysisDriver(String path) {
+    Iterable<nd.AnalysisDriver> drivers = driverMap.values;
+    if (drivers.isNotEmpty) {
+      return drivers.firstWhere((driver) => driver.isAddedFile(path),
+          orElse: () => drivers.first);
+    }
+    return null;
+  }
+
   CompilationUnitElement getCompilationUnitElement(String file) {
     ContextSourcePair pair = getContextSourcePair(file);
     if (pair == null) {

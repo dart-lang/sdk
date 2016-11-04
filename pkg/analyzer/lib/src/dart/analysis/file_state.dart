@@ -140,6 +140,25 @@ class FileState {
   UnlinkedUnit get unlinked => _unlinked;
 
   /**
+   * Return a new parsed unresolved [CompilationUnit].
+   */
+  CompilationUnit parse(AnalysisErrorListener errorListener) {
+    AnalysisOptions analysisOptions = _fsState._analysisOptions;
+
+    CharSequenceReader reader = new CharSequenceReader(content);
+    Scanner scanner = new Scanner(source, reader, errorListener);
+    scanner.scanGenericMethodComments = analysisOptions.strongMode;
+    Token token = scanner.tokenize();
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+
+    Parser parser = new Parser(source, errorListener);
+    parser.parseGenericMethodComments = analysisOptions.strongMode;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    unit.lineInfo = lineInfo;
+    return unit;
+  }
+
+  /**
    * Read the file content and ensure that all of the file properties are
    * consistent with the read content, including API signature.
    *
@@ -182,8 +201,7 @@ class FileState {
     {
       bytes = _fsState._byteStore.get(unlinkedKey);
       if (bytes == null) {
-        CompilationUnit unit =
-            _parse(source, _content, _fsState._analysisOptions);
+        CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
           bytes = unlinkedUnit.toBuffer();
@@ -277,26 +295,6 @@ class FileState {
 
   static bool _isDartUri(String uri) {
     return uri.startsWith('dart:');
-  }
-
-  /**
-   * Return the parsed unresolved [CompilationUnit] for the given [content].
-   */
-  static CompilationUnit _parse(
-      Source source, String content, AnalysisOptions analysisOptions) {
-    AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
-
-    CharSequenceReader reader = new CharSequenceReader(content);
-    Scanner scanner = new Scanner(source, reader, errorListener);
-    scanner.scanGenericMethodComments = analysisOptions.strongMode;
-    Token token = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-
-    Parser parser = new Parser(source, errorListener);
-    parser.parseGenericMethodComments = analysisOptions.strongMode;
-    CompilationUnit unit = parser.parseCompilationUnit(token);
-    unit.lineInfo = lineInfo;
-    return unit;
   }
 }
 
