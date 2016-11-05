@@ -988,7 +988,7 @@ Stream<int> bar4() async* { yield /*error:YIELD_OF_INVALID_TYPE*/new Stream<int>
 
 baz1() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream baz2() async* { yield* /*info:DYNAMIC_CAST*/x; }
-Stream<int> baz3() async* { yield* /*warning:DOWN_CAST_COMPOSITE*/x; }
+Stream<int> baz3() async* { yield* /*info:DYNAMIC_CAST*/x; }
 Stream<int> baz4() async* { yield* new Stream<int>(); }
 Stream<int> baz5() async* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new Stream(); }
 ''');
@@ -1005,7 +1005,7 @@ Iterable<int> bar4() sync* { yield /*error:YIELD_OF_INVALID_TYPE*/bar3(); }
 
 baz1() sync* { yield* /*info:DYNAMIC_CAST*/x; }
 Iterable baz2() sync* { yield* /*info:DYNAMIC_CAST*/x; }
-Iterable<int> baz3() sync* { yield* /*warning:DOWN_CAST_COMPOSITE*/x; }
+Iterable<int> baz3() sync* { yield* /*info:DYNAMIC_CAST*/x; }
 Iterable<int> baz4() sync* { yield* bar3(); }
 Iterable<int> baz5() sync* { yield* /*info:INFERRED_TYPE_ALLOCATION*/new List(); }
 ''');

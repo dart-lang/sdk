@@ -1107,7 +1107,7 @@ class CodeChecker extends RecursiveAstVisitor {
         downCastComposite =
             typeArgs.isEmpty || typeArgs.any((t) => t.isDynamic);
       } else {
-        downCastComposite = true;
+        downCastComposite = !from.isDynamic;
       }
     }
 

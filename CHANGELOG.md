@@ -21,6 +21,19 @@ Patch release, resolves one issue:
 
 * Dartium: Fixes a bug that caused crashes.  No issue filed
 
+### Strong Mode
+
+* It is no longer a warning when casting from dynamic to a composite type
+    (SDK issue [27766](https://github.com/dart-lang/sdk/issues/27766)).
+
+    ```dart
+    main() {
+      dynamic obj = <int>[1, 2, 3];
+      // This is now allowed without a warning.
+      List<int> list = obj;
+    }
+    ```
+
 ## 1.20.0 - 2016-10-11
 
 ### Dart VM
