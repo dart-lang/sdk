@@ -23,7 +23,7 @@
 // tests, and then runs them.
 
 // TODO(zra): Make this a command line argument
-const char* kRunVmTestsPath = "/boot/bin/dart_vm_tests";
+const char* kRunVmTestsPath = "/system/bin/dart_vm_tests";
 
 // clang-format off
 // Tests that are invalid, wedge, or cause panics.
