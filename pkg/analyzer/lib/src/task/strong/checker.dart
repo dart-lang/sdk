@@ -1051,10 +1051,25 @@ class CodeChecker extends RecursiveAstVisitor {
     assert(rules.isSubtypeOf(to, from));
 
     // Inference "casts":
-    if (expr is Literal || expr is FunctionExpression) {
+    if (expr is Literal) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      _recordMessage(expr, StrongModeCode.STATIC_TYPE_ERROR, [expr, from, to]);
+      if (expr is ListLiteral) {
+        _recordMessage(
+            expr, StrongModeCode.INVALID_CAST_LITERAL_LIST, [from, to]);
+      } else if (expr is MapLiteral) {
+        _recordMessage(
+            expr, StrongModeCode.INVALID_CAST_LITERAL_MAP, [from, to]);
+      } else {
+        _recordMessage(
+            expr, StrongModeCode.INVALID_CAST_LITERAL, [expr, from, to]);
+      }
+      return;
+    }
+
+    if (expr is FunctionExpression) {
+      _recordMessage(
+          expr, StrongModeCode.INVALID_CAST_FUNCTION_EXPR, [from, to]);
       return;
     }
 
@@ -1063,15 +1078,19 @@ class CodeChecker extends RecursiveAstVisitor {
       if (e == null || !e.isFactory) {
         // fromT should be an exact type - this will almost certainly fail at
         // runtime.
-
-        _recordMessage(
-            expr, StrongModeCode.STATIC_TYPE_ERROR, [expr, from, to]);
+        _recordMessage(expr, StrongModeCode.INVALID_CAST_NEW_EXPR, [from, to]);
         return;
       }
     }
 
     if (isKnownFunction(expr)) {
-      _recordMessage(expr, StrongModeCode.STATIC_TYPE_ERROR, [expr, from, to]);
+      Element e = _getKnownElement(expr);
+      _recordMessage(
+          expr,
+          e is MethodElement
+              ? StrongModeCode.INVALID_CAST_METHOD
+              : StrongModeCode.INVALID_CAST_FUNCTION,
+          [e.name, from, to]);
       return;
     }
 

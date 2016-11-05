@@ -1232,8 +1232,8 @@ void main() {
     A<int, String> a1 = /*info:INFERRED_TYPE_ALLOCATION*/new A.named(3, "hello");
     A<int, String> a2 = new A<int, String>(3, "hello");
     A<int, String> a3 = new A<int, String>.named(3, "hello");
-    A<int, String> a4 = /*error:STATIC_TYPE_ERROR*/new A<int, dynamic>(3, "hello");
-    A<int, String> a5 = /*error:STATIC_TYPE_ERROR*/new A<dynamic, dynamic>.named(3, "hello");
+    A<int, String> a4 = /*error:INVALID_CAST_NEW_EXPR*/new A<int, dynamic>(3, "hello");
+    A<int, String> a5 = /*error:INVALID_CAST_NEW_EXPR*/new A<dynamic, dynamic>.named(3, "hello");
   }
   {
     A<int, String> a0 = /*info:INFERRED_TYPE_ALLOCATION*/new /*error:COULD_NOT_INFER,error:COULD_NOT_INFER*/A(
@@ -1328,10 +1328,10 @@ void main() {
     List<dynamic> l3 = /*info:INFERRED_TYPE_LITERAL*/["hello", 3];
   }
   {
-    List<int> l0 = /*error:STATIC_TYPE_ERROR*/<num>[];
-    List<int> l1 = /*error:STATIC_TYPE_ERROR*/<num>[3];
-    List<int> l2 = /*error:STATIC_TYPE_ERROR*/<num>[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
-    List<int> l3 = /*error:STATIC_TYPE_ERROR*/<num>[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
+    List<int> l0 = /*error:INVALID_CAST_LITERAL_LIST*/<num>[];
+    List<int> l1 = /*error:INVALID_CAST_LITERAL_LIST*/<num>[3];
+    List<int> l2 = /*error:INVALID_CAST_LITERAL_LIST*/<num>[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello"];
+    List<int> l3 = /*error:INVALID_CAST_LITERAL_LIST*/<num>[/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/"hello", 3];
   }
   {
     Iterable<int> i0 = /*info:INFERRED_TYPE_LITERAL*/[];
@@ -1465,9 +1465,9 @@ void main() {
     };
   }
   {
-    Map<int, String> l0 = /*error:STATIC_TYPE_ERROR*/<num, dynamic>{};
-    Map<int, String> l1 = /*error:STATIC_TYPE_ERROR*/<num, dynamic>{3: "hello"};
-    Map<int, String> l3 = /*error:STATIC_TYPE_ERROR*/<num, dynamic>{3: 3};
+    Map<int, String> l0 = /*error:INVALID_CAST_LITERAL_MAP*/<num, dynamic>{};
+    Map<int, String> l1 = /*error:INVALID_CAST_LITERAL_MAP*/<num, dynamic>{3: "hello"};
+    Map<int, String> l3 = /*error:INVALID_CAST_LITERAL_MAP*/<num, dynamic>{3: 3};
   }
   {
     const Map<int, String> l0 = /*info:INFERRED_TYPE_LITERAL*/const {};
