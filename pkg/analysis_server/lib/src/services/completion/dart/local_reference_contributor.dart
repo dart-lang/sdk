@@ -209,23 +209,22 @@ class _LocalVisitor extends LocalDeclarationVisitor {
 
     // If user typed identifier starting with '_'
     // then do not suppress the relevance of private members
-    var contents = request.context.getContents(request.source);
-    if (contents != null) {
-      String data = contents.data;
-      int offset = request.offset;
-      if (data != null && 0 < offset && offset <= data.length) {
-        bool isIdentifierChar(int index) {
-          int code = data.codeUnitAt(index);
-          return isLetterOrDigit(code) || code == CHAR_UNDERSCORE;
-        }
+    var data = request.result != null
+        ? request.result.content
+        : request.context.getContents(request.source)?.data;
+    int offset = request.offset;
+    if (data != null && 0 < offset && offset <= data.length) {
+      bool isIdentifierChar(int index) {
+        int code = data.codeUnitAt(index);
+        return isLetterOrDigit(code) || code == CHAR_UNDERSCORE;
+      }
 
-        if (isIdentifierChar(offset - 1)) {
-          while (offset > 0 && isIdentifierChar(offset - 1)) {
-            --offset;
-          }
-          if (data.codeUnitAt(offset) == CHAR_UNDERSCORE) {
-            privateMemberRelevance = null;
-          }
+      if (isIdentifierChar(offset - 1)) {
+        while (offset > 0 && isIdentifierChar(offset - 1)) {
+          --offset;
+        }
+        if (data.codeUnitAt(offset) == CHAR_UNDERSCORE) {
+          privateMemberRelevance = null;
         }
       }
     }

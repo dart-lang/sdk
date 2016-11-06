@@ -454,6 +454,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   Future computeSuggestions([int times = 200]) async {
     context.analysisPriorityOrder = [testSource];
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
+        null,
         context,
         provider,
         searchEngine,

@@ -56,6 +56,7 @@ part '$testFile';
 
     // Build the request
     CompletionRequestImpl baseRequest = new CompletionRequestImpl(
+        null,
         context,
         provider,
         searchEngine,

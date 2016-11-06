@@ -585,7 +585,9 @@ class AnalysisServer {
   }
 
   /**
-   * Return the analysis result for the file with the given [path].
+   * Return the analysis result for the file with the given [path]. The file is
+   * analyzed in one of the analysis drivers to which the file was added,
+   * otherwise in the first driver, otherwise `null` is returned.
    */
   Future<nd.AnalysisResult> getAnalysisResult(String path) async {
     nd.AnalysisResult result = priorityFileResults[path];
@@ -593,7 +595,7 @@ class AnalysisServer {
       return result;
     }
     nd.AnalysisDriver driver = getAnalysisDriver(path);
-    return driver.getResult(path);
+    return driver?.getResult(path);
   }
 
   CompilationUnitElement getCompilationUnitElement(String file) {
