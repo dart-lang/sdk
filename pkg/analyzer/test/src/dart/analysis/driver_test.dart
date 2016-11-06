@@ -320,8 +320,8 @@ var VC = new A<double>();
 
     {
       AnalysisResult result = await driver.getResult(c);
-      expect(_getImportSource(result.unit, 0).uri.toString(),
-          'file:///test/lib/a.dart');
+      expect(_getImportSource(result.unit, 0).uri,
+          provider.pathContext.toUri(_p('/test/lib/a.dart')));
       expect(_getTopLevelVarType(result.unit, 'VC'), 'A<double>');
     }
   }
