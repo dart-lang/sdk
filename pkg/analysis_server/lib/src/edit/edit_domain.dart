@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -16,6 +17,7 @@ import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/correction/organize_directives.dart';
 import 'package:analysis_server/src/services/correction/sort_members.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -24,6 +26,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
@@ -169,41 +172,63 @@ class EditDomainHandler implements RequestHandler {
   }
 
   Future getFixes(Request request) async {
-    if (server.options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      return;
-    }
     var params = new EditGetFixesParams.fromRequest(request);
     String file = params.file;
     int offset = params.offset;
-    // add fixes
+
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-    for (CompilationUnit unit in units) {
-      engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
-      if (errorInfo != null) {
-        LineInfo lineInfo = errorInfo.lineInfo;
-        int requestLine = lineInfo.getLocation(offset).lineNumber;
-        for (engine.AnalysisError error in errorInfo.errors) {
-          int errorLine = lineInfo.getLocation(error.offset).lineNumber;
-          if (errorLine == requestLine) {
-            List<Fix> fixes = await computeFixes(server.serverPlugin,
-                server.resourceProvider, unit.element.context, error);
-            if (fixes.isNotEmpty) {
-              AnalysisError serverError =
-                  newAnalysisError_fromEngine(lineInfo, error);
-              AnalysisErrorFixes errorFixes =
-                  new AnalysisErrorFixes(serverError);
-              errorFixesList.add(errorFixes);
-              fixes.forEach((fix) {
-                errorFixes.fixes.add(fix.change);
-              });
+    if (server.options.enableNewAnalysisDriver) {
+      AnalysisResult result = await server.getAnalysisResult(file);
+      CompilationUnit unit = result.unit;
+      LineInfo lineInfo = result.lineInfo;
+      int requestLine = lineInfo.getLocation(offset).lineNumber;
+      for (engine.AnalysisError error in result.errors) {
+        int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+        if (errorLine == requestLine) {
+          var context = new _DartFixContextImpl(
+              server.resourceProvider, unit.element.context, unit, error);
+          List<Fix> fixes =
+              await new DefaultFixContributor().internalComputeFixes(context);
+          if (fixes.isNotEmpty) {
+            AnalysisError serverError =
+                newAnalysisError_fromEngine(lineInfo, error);
+            AnalysisErrorFixes errorFixes = new AnalysisErrorFixes(serverError);
+            errorFixesList.add(errorFixes);
+            fixes.forEach((fix) {
+              errorFixes.fixes.add(fix.change);
+            });
+          }
+        }
+      }
+    } else {
+      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+      for (CompilationUnit unit in units) {
+        engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
+        if (errorInfo != null) {
+          LineInfo lineInfo = errorInfo.lineInfo;
+          int requestLine = lineInfo.getLocation(offset).lineNumber;
+          for (engine.AnalysisError error in errorInfo.errors) {
+            int errorLine = lineInfo.getLocation(error.offset).lineNumber;
+            if (errorLine == requestLine) {
+              List<Fix> fixes = await computeFixes(server.serverPlugin,
+                  server.resourceProvider, unit.element.context, error);
+              if (fixes.isNotEmpty) {
+                AnalysisError serverError =
+                    newAnalysisError_fromEngine(lineInfo, error);
+                AnalysisErrorFixes errorFixes =
+                    new AnalysisErrorFixes(serverError);
+                errorFixesList.add(errorFixes);
+                fixes.forEach((fix) {
+                  errorFixes.fixes.add(fix.change);
+                });
+              }
             }
           }
         }
       }
     }
-    // respond
+
+    // Send the response.
     server.sendResponse(
         new EditGetFixesResult(errorFixesList).toResponse(request.id));
   }
@@ -427,6 +452,26 @@ class _DartAssistContextForValues implements DartAssistContext {
 
   _DartAssistContextForValues(this.source, this.selectionOffset,
       this.selectionLength, this.analysisContext, this.unit);
+}
+
+/**
+ * And implementation of [DartFixContext].
+ */
+class _DartFixContextImpl implements DartFixContext {
+  @override
+  final ResourceProvider resourceProvider;
+
+  @override
+  final engine.AnalysisContext analysisContext;
+
+  @override
+  final CompilationUnit unit;
+
+  @override
+  final engine.AnalysisError error;
+
+  _DartFixContextImpl(
+      this.resourceProvider, this.analysisContext, this.unit, this.error);
 }
 
 /**
