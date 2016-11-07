@@ -832,6 +832,8 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       result = Dart_CompileAll();
       CHECK_RESULT(result);
     }
+    result = Dart_SetEnvironmentCallback(EnvironmentCallback);
+    CHECK_RESULT(result);
     Dart_ExitScope();
     Dart_ExitIsolate();
     return isolate;
