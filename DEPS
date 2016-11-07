@@ -560,7 +560,7 @@ hooks = [
     'name': 'sysroot_i386',
     'pattern': '.',
     'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
-               '--running-as-hook', --arch', 'i386'],
+               '--running-as-hook', '--arch', 'i386'],
   },
   {
     # Pull Debian wheezy sysroot for amd64 Linux
