@@ -70,7 +70,7 @@ vars.update({
   "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
 
-  "co19_rev": "@72d1334e42877e95b0ac348ac251dd6871a3878d",
+  "co19_rev": "@2e98931a4d40781110220d4b2d131efa6fc4669d",
 })
 
 deps.update({
