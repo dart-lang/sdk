@@ -2799,6 +2799,7 @@ class Parser {
       if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
+        kind = ParameterKind.POSITIONAL;
       }
       return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -2812,6 +2813,7 @@ class Parser {
       } else if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
+        kind = ParameterKind.NAMED;
       }
       return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
