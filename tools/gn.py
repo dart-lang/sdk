@@ -113,11 +113,15 @@ def to_gn_args(args, mode, arch, target_os):
 
   gn_args['is_asan'] = args.asan and gn_args['is_clang']
 
-  if args.target_sysroot:
-    gn_args['target_sysroot'] = args.target_sysroot
+  # Setup the user-defined sysroot.
+  if gn_args['target_os'] == 'linux' and args.wheezy:
+    gn_args['dart_use_wheezy_sysroot'] = True
+  else:
+    if args.target_sysroot:
+      gn_args['target_sysroot'] = args.target_sysroot
 
-  if args.toolchain_prefix:
-    gn_args['toolchain_prefix'] = args.toolchain_prefix
+    if args.toolchain_prefix:
+      gn_args['toolchain_prefix'] = args.toolchain_prefix
 
   goma_dir = os.environ.get('GOMA_DIR')
   goma_home_dir = os.path.join(os.getenv('HOME', ''), 'goma')
@@ -197,10 +201,14 @@ def ide_switch(host_os):
 
 # Environment variables for default settings.
 DART_USE_ASAN = "DART_USE_ASAN"
-
+DART_USE_WHEEZY = "DART_USE_WHEEZY"
 
 def use_asan():
   return DART_USE_ASAN in os.environ
+
+
+def use_wheezy():
+  return DART_USE_WHEEZY in os.environ
 
 
 def parse_args(args):
@@ -233,6 +241,14 @@ def parse_args(args):
   parser.add_argument('--no-asan',
       help='Disable ASAN',
       dest='asan',
+      action='store_false')
+  parser.add_argument('--wheezy',
+      help='Use the Debian wheezy sysroot on Linux',
+      default=use_wheezy(),
+      action='store_true')
+  parser.add_argument('--no-wheezy',
+      help='Disable the Debian wheezy sysroot on Linux',
+      dest='wheezy',
       action='store_false')
   parser.add_argument('--goma',
       help='Use goma',

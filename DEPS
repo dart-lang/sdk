@@ -556,6 +556,20 @@ hooks = [
     ],
   },
   {
+    # Pull Debian wheezy sysroot for i386 Linux
+    'name': 'sysroot_i386',
+    'pattern': '.',
+    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+               '--running-as-hook', --arch', 'i386'],
+  },
+  {
+    # Pull Debian wheezy sysroot for amd64 Linux
+    'name': 'sysroot_amd64',
+    'pattern': '.',
+    'action': ['python', 'sdk/build/linux/sysroot_scripts/install-sysroot.py',
+               '--running-as-hook', '--arch', 'amd64'],
+  },
+  {
     # Pull clang if needed or requested via GYP_DEFINES.
     'name': 'gn_clang',
     'pattern': '.',
