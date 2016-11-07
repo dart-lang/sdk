@@ -38,7 +38,7 @@ This Ecma standard specifies the syntax and semantics of the Dart programming la
 A conforming  implementation of the Dart programming language must provide and support all the  APIs (libraries, types, functions, getters, setters, whether top-level, static, instance or local) mandated in this specification.
 
 \LMHash{}
-A conforming implementation is permitted to provide additional APIs, but not additional syntax, except for experimental features in support of null-aware cascades and tear-offs that are likely to be introduced in the next revision of this specification.
+A conforming implementation is permitted to provide additional APIs, but not additional syntax, except for experimental features in support of null-aware cascades that are likely to be introduced in the next revision of this specification.
 
 \section{Normative References}
 \LMLabel{ecmaNormativeReferences}
@@ -2376,7 +2376,6 @@ An {\em expression} is a fragment of Dart code that can be evaluated at run time
       literal;
       identifier;
       newExpression;
-      \NEW{} type `\#' (`{\escapegrammar .}' identifier)?;
       constObjectExpression;
       `(' expression `)'
     .
@@ -4030,17 +4029,13 @@ A property extraction can be either:
 
 Property extraction can be either {\em conditional} or {\em unconditional}.
 
-\rationale {
-Tear-offs using the \cd{ x\#id}  syntax cannot be conditional at this time; this is inconsistent, and is likely to be addressed in the near future, perhaps via  notation such as  \cd{ x?\#id} . As indicated in section \ref{ecmaConformance}, experimentation in this area is allowed.
-}
-
 Evaluation of a {\em conditional property extraction expression} $e$ of the form $e_1?.id$  is equivalent to the evaluation of the expression  $((x) => x == \NULL ? \NULL : x.id)(e_1)$.
 unless $e_1$ is  a type literal, in which case it is equivalent to $e_1.m$.
 
 The static type of $e$ is the same as the static type of $e_1.id$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.id$ are also generated in the case of $e_1?.id$.
 
 \LMHash{}
-Unconditional property extraction takes several syntactic forms: $e.m$ (\ref{getterAccessAndMethodExtraction}), $\SUPER.m$ (\ref{superGetterAccessAndMethodClosurization}), $e\#m$ (\ref{generalClosurization}), $\NEW{}$ $T\#m$ (\ref{namedConstructorExtraction}), $\NEW{}$ $T\#$ (\ref{anonymousConstructorExtraction}) and $\SUPER\#m$ (\ref{generalSuperPropertyExtraction}), where $e$ is an expression, $m$ is an identifier optionally followed by an equal sign and $T$ is a type.
+Unconditional property extraction has one of two syntactic forms: $e.m$ (\ref{getterAccessAndMethodExtraction}) or $\SUPER.m$ (\ref{superGetterAccessAndMethodClosurization}), where $e$ is an expression and $m$ is an identifier.
 
 \subsubsection{Getter Access and Method Extraction}
 \LMLabel{getterAccessAndMethodExtraction}
@@ -4143,145 +4138,17 @@ The static type of $i$ is:
 \end{itemize}
 
 
-\subsubsection{General Closurization}
-\LMLabel{generalClosurization}
-
-\LMHash{}
-Evaluation of a property extraction $i$ of the form $e\#m$ proceeds as follows:
-
-\LMHash{}
-First, the expression $e$ is evaluated to an object $o$.  Then:
-
-\LMHash{}
- if $m$ is a setter name, let $f$ be the result of looking up setter $m$ in $o$ with respect to the current library $L$.   If $o$ is an instance of \cd{Type} but $e$ is not a constant type literal, then if $f$ is a method that forwards to a static setter, setter lookup fails. If setter lookup succeeds then $i$ evaluates to the closurization of setter $f$ on object $o$ (\ref{ordinaryMemberClosurization}).
- If setter lookup failed, a \cd{NoSuchMethodError} is thrown.
-
-  \rationale {
-It would be more in keeping with the rules of Dart to invoke \cd{noSuchMethod} in this and similar cases below. However,  current implementations of \cd{noSuchMethod} cannot distinguish between an invocation of a closurization and an actual call.  It is likely that future versions of Dart will provide a mechanism to detect whether \cd{noSuchMethod} is invoked in response to a closurization, say by means of a getter like \cd{isTearOff}. By being conservative at this stage and insisting on failure, we can ensure that no functioning code will break when/if this functionality is introduced.
- }
-
-
- \LMHash{}
-If $m$ is not a setter name, let $f$ be the result of looking up method $m$ in $o$ with respect to the current library $L$.   If $o$ is an instance of \cd{Type} but $e$ is not a constant type literal, then if $f$ is a method that forwards to a static method, method lookup fails. If method lookup succeeds then $i$ evaluates to the closurization of method $f$ on object $o$ (\ref{ordinaryMemberClosurization}).
-
-\LMHash{}
-If method lookup failed, let $f$ be the result of looking up getter $m$ in $o$ with respect to the current library $L$.   If $o$ is an instance of \cd{Type} but $e$ is not a constant type literal, then if $f$ is a method that forwards to a static getter, getter lookup fails. If getter lookup succeeds then $i$ evaluates to the closurization of getter $f$ on object $o$ (\ref{ordinaryMemberClosurization}).
- If getter lookup failed, a \cd{NoSuchMethodError} is thrown.
-
-
-
-
-%\LMHash{}
-%Otherwise,  a new instance $im$  of the predefined class  \code{Invocation}  is created, such that :
-%\begin{itemize}
-%\item  If $m$ is a setter name, \code{im.isSetter} evaluates to \code{\TRUE{}}; otherwise \code{im.isMethod} evaluates to \code{\TRUE{}}
-%\item  \code{im.memberName} evaluates to the symbol \code{m}.
-%\item \code{im.positionalArguments} evaluates to the value of \code{\CONST{} []}.
-%\item \code{im.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
-%\end{itemize}
-%Then the method \code{noSuchMethod()} is looked up in $o$ and invoked  with argument $im$, and the result of this invocation is the result of evaluating $i$. However, if the implementation found cannot be invoked with a single positional argument, the implementation  of \code{noSuchMethod()} in class \code{Object} is invoked on $o$ with argument $im'$, where $im'$ is an instance of \code{Invocation} such that :
-%\begin{itemize}
-%\item  \code{im'.isMethod} evaluates to \code{\TRUE{}}.
-%\item  \code{im'.memberName} evaluates to \code{\#noSuchMethod}.
-%\item \code{im'.positionalArguments} evaluates to an immutable list whose sole element is  $im$.
-%\item \code{im'.namedArguments} evaluates to the value of \code{\CONST{} \{\}}.
-%\end{itemize}
-%and the result of this latter invocation is the result of evaluating $i$.
-
-\LMHash{}
-It is a compile-time error if $e$ is a prefix object, $p$, (\ref{imports}) and $m$ refers to a type accessible via $p$ or to a member of class \cd{Object}.
-
-\commentary{
-This restriction is in line with other limitations on the use of prefixes as objects. The only permitted uses of $p\#m$ are closurizing top level methods and getters imported via the prefix $p$. Top level methods are directly available by their qualified names: $p.m$. However, getters and setters are not, and allowing their closurization is the whole point of the $e\#m$ syntax.
-}
-
-\LMHash{}
-Let $T$ be the static type of $e$. It is a static type warning if $T$ does not have an accessible instance method or getter named $m$ unless either:
-\begin{itemize}
-\item $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \cd{dart:core}. Or
-\item $T$ is \cd{Type}, $e$ is a constant type literal and the class corresponding to $e$ declares an accessible static method or getter named $m$.
-\item $T$ is \code{Function} and $m$ is \CALL.
-\end{itemize}
-
-The static type of $i$ is:
-\begin{itemize}
-\item The static type of function $T.m$, if $T$ has an accessible instance member named $m$.
-\item The static type of function $T.m$, if $T$ is \cd{Type}, $e$ is a constant type literal and the class corresponding to $e$ declares an accessible static member or constructor named $m$.
-\item \code{Function} if $T$ is \code{Function} and $m$ is \CALL.
-\item The type  \DYNAMIC{} otherwise.
-\end{itemize}
-
-\subsubsection{Named Constructor Extraction}
-\LMLabel{namedConstructorExtraction}
-
-\LMHash{}
-Evaluation of a property extraction $i$ of the form \NEW{} $T\#m$ proceeds as follows:
-
-\LMHash{}
-If $T$ is a malformed type (\ref{staticTypes}), a dynamic error occurs. If $T$ is a deferred type with prefix $p$, then if $p$ has not been successfully loaded, a dynamic error occurs. If $T$ does not denote a class, a dynamic error occurs. In checked mode, if $T$ or any of its superclasses is malbounded a dynamic error occurs. Otherwise, if the type $T$ does not declare an accessible named constructor $f$ with name $m$, a \cd{NoSuchMethodError} is thrown. Otherwise, $i$ evaluates to the closurization of constructor $f$ of type $T$ (\ref{namedConstructorClosurization}).
-
-\commentary{Note that if $T$ is malformed or malbounded, a static warning occurs, as always.}
-
-\LMHash{}
-The static type of $i$ is the type of the constructor function, if $T$ denotes a class in the surrounding scope with an accessible constructor $f$ named $m$. Otherwise the static type of $i$ is \DYNAMIC{}.
-
-It is a compile-time error if $T$ is an enumerated type (\ref{enums}).
-
-\subsubsection{Anonymous Constructor Extraction}
-\LMLabel{anonymousConstructorExtraction}
-
-\LMHash{}
-Evaluation of a property extraction $i$ of the form \NEW{} $T\#$ proceeds as follows:
-
-\LMHash{}
-If $T$ is a malformed type (\ref{staticTypes}), a dynamic error occurs. If $T$ is a deferred type with prefix $p$, then if $p$ has not been successfully loaded, a dynamic error occurs. If $T$ does not denote a class, a dynamic error occurs. In checked mode, if $T$ or any of its superclasses is malbounded a dynamic error occurs. Otherwise, if the type $T$ does not declare an accessible anonymous constructor, a \cd{NoSuchMethodError} is thrown. Otherwise, $i$ evaluates to the closurization of the anonymous constructor of type $T$ (\ref{anonymousConstructorClosurization}).
-
-\commentary{Again, note that if $T$ is malformed or malbounded, existing rules ensure that a static warning occurs. This also means that $x\#$ where $x$ is not a type will always give a static warning.}
-
-\LMHash{}
-The static type of $i$ is the type of the constructor function $T()$, if $T$ denotes a class in the surrounding scope with an anonymous constructor $T()$. Otherwise the static type of $i$ is \DYNAMIC{}.
-
-It is a compile-time error if $T$ is an enumerated type (\ref{enums}).
-
-
-\subsubsection{General Super Property Extraction}
-\LMLabel{generalSuperPropertyExtraction}
-
-
-\LMHash{}
-Evaluation of a property extraction $i$ of the form \SUPER$\#m$ proceeds as follows:
-
- \LMHash{}
-Let $g$ be the method currently executing, and let $C$ be the class in which $g$ was looked up.  Let $S_{dynamic}$ be the superclass of $C$.
-
- \LMHash{}
-If $m$ is a setter name, let $f$ be the result of looking up setter $m$ in $S_{dynamic}$ with respect to the current library $L$. If setter lookup succeeds then $i$ evaluates to the closurization of setter $f$  with respect to superclass $S_{dynamic}$  (\ref{superClosurization}).  If setter lookup failed, a \cd{NoSuchMethodError} is thrown.
-
-If $m$ is not a setter name, let $f$ be the result of looking up method $m$ in $S_{dynamic}$ with respect to the current library $L$. If method lookup succeeds then $i$ evaluates to the closurization of method $m$ with respect to superclass $S_{dynamic}$ (\ref{superClosurization}).
-
-\LMHash{}
- Otherwise, let $f$ be the result of looking up getter $m$ in $S_{dynamic}$ with respect to the current library $L$.  If getter lookup succeeds then $i$ evaluates to the closurization of getter $f$ with respect to superclass $S_{dynamic}$ (\ref{superClosurization}).   If getter lookup failed, a \cd{NoSuchMethodError} is thrown.
-
-\LMHash{}
-Let $S_{static}$ be the superclass of the immediately enclosing class.It is a static type warning if $S_{static}$ does not have an accessible instance member named $m$.
-
-\LMHash{}
-The static type of $i$ is the static type of the function $S_{static}.m$,  if $S_{static}$ has an accessible instance member named $m$. Otherwise the static type of $i$ is \DYNAMIC{}.
-
-
-
 \subsubsection{Ordinary Member Closurization}
 \LMLabel{ordinaryMemberClosurization}
-
 
 \LMHash{}
 Let $o$ be an object, and let $u$ be a fresh final variable bound to $o$.
 The {\em closurization of method $f$ on object $o$} is defined to be equivalent to:
 \begin{itemize}
-\item $(a) \{\RETURN{}$ $u$ $op$ $a;$\} if $f$ is named $op$ and $op$ is one of  \code{$<$, $>$, $<$=, $>$=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$} (this precludes closurization of unary -).
-\item $() \{\RETURN{}$ \~{} $u;$\} if $f$ is named \~{}.
-\item $(a) \{\RETURN{}$ $u[a];$\} if $f$ is named $[]$.
-\item $(a, b) \{\RETURN{}$ $u[a] = b;$\} if $f$ is named $[]=$.
+%\item $(a) \{\RETURN{}$ $u$ $op$ $a;$\} if $f$ is named $op$ and $op$ is one of  \code{$<$, $>$, $<$=, $>$=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$} (this precludes closurization of unary -).
+%\item $() \{\RETURN{}$ \~{} $u;$\} if $f$ is named \~{}.
+%\item $(a) \{\RETURN{}$ $u[a];$\} if $f$ is named $[]$.
+%\item $(a, b) \{\RETURN{}$ $u[a] = b;$\} if $f$ is named $[]=$.
 \item
 \begin{dartCode}
 $(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
@@ -4295,19 +4162,12 @@ $(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
   \RETURN{} $u.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
 \}
 \end{dartCode}
-
 if $f$ is named $m$ and has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\end{itemize}
+%\end{itemize}
 
 \LMHash{}
-Except that iff  \code{identical($o_1, o_2$)}  then  \cd{$o_1\#m$ == $o_2\#m$},  \cd{$o_1.m$ == $o_2.m$}, \cd{$o_1\#m$ == $o_2.m$} and  \cd{$o_1.m$ == $o_2\#m$}.
+Except that iff  \code{identical($o_1, o_2$)}  then \cd{$o_1.m$ == $o_2.m$}.
 %\item The static type of the property extraction is the static type of function $T.m$, where $T$ is the static type of $e$, if $T.m$ is defined. Otherwise the static type of $e.m$ is \DYNAMIC{}.
-
-\LMHash{}
-The {\em closurization of getter $f$ on object $o$} is defined to be equivalent to \cd{()\{\RETURN{} u.m;\}} if $f$ is named $m$, except that iff  \code{identical($o_1, o_2$)} then  \cd{$o_1\#m$ == $o_2\#m$}.
-
-\LMHash{}
-The {\em closurization of setter $f$ on object $o$} is defined to be equivalent to \cd{(a)\{\RETURN{} u.m = a;\}} if $f$ is named $m=$, except that iff  \code{identical($o_1, o_2$)} then \cd{$o_1\#m=$ == $o_2\#m=$}.
 
 \commentary{
 There is no guarantee that \cd{identical($o_1.m, o_2.m$)}. Dart implementations are not required to canonicalize these or any other closures.
@@ -4318,73 +4178,6 @@ There is no guarantee that \cd{identical($o_1.m, o_2.m$)}. Dart implementations 
 The special treatment of equality in this case facilitates the use of extracted property functions in APIs where callbacks such as event listeners must often be registered and later unregistered. A common example is the DOM API in web browsers.
 }
 
-\commentary {
-Observations:
-
-One cannot closurize a constructor, getter or a setter via the dot based syntax. One must use the \# based form. One can tell whether one implemented a property via a method or via a field/getter, which means that one has to plan ahead as to what construct to use, and that choice is reflected in the interface of the class.
-}
-
-
-
-\subsubsection{Named Constructor Closurization}
-\LMLabel{namedConstructorClosurization}
-
-\LMHash{}
-The {\em closurization of constructor $f$ of type $T$} is defined to be equivalent to:
-\begin{itemize}
-\item
-\begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
-  \RETURN{} \NEW{} $T.m(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
-\}
-\end{dartCode}
-
-if $f$ is a named constructor with name $m$ that has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\item
-\begin{dartCode}
-$(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
-  \RETURN{} \NEW{} $T.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
-\}
-\end{dartCode}
-
-if $f$ is a named constructor with name $m$ that has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\end{itemize}
-
-\LMHash{}
-Except that iff  \code{identical($T_1, T_2$)}  then  \cd{\NEW{} $T_1\#m$ == \NEW{} $T_2\#m$}.
-
-\commentary{
-The above implies that for non-parameterized types, one can rely on the equality of closures resulting from closurization on the ``same'' type. For parameterized types, one cannot, since there is no requirement to canonicalize them.
-}
-
-\subsubsection{Anonymous Constructor Closurization}
-\LMLabel{anonymousConstructorClosurization}
-
-\LMHash{}
-The {\em closurization of anonymous constructor $f$ of type $T$} is defined to be equivalent to:
-\begin{itemize}
-\item
-\begin{dartCode}
-$(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
-  \RETURN{} \NEW{} $T(r_1, \ldots, r_n, p_1: p_1, \ldots, p_k: p_k);$
-\}
-\end{dartCode}
-
-if $f$ is an anonymous constructor that has required parameters $r_1, \ldots, r_n$, and named parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\item
-\begin{dartCode}
-$(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
-  \RETURN{} \NEW{} $T(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
-\}
-\end{dartCode}
-
-if $f$ is an anonymous constructor that has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
-\end{itemize}
-
-\LMHash{}
-Except that iff  \code{identical($T_1, T_2$)}  then  \cd{\NEW{} $T_1\#$ == \NEW{} $T_2\#$}.
-
-
 \subsubsection{Super Closurization}
 \LMLabel{superClosurization}
 
@@ -4393,10 +4186,10 @@ The {\em closurization of method $f$ with respect to superclass $S$} is defined 
 
 \LMHash{}
 \begin{itemize}
-\item $(a) \{\RETURN{}$ \SUPER{} $op$ $a;$\} if $f$ is named $op$ and $op$ is one of  \code{$<$, $>$, $<$=, $>$=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$}.
-\item $() \{\RETURN{}$ \~{}\SUPER;\} if $f$ is named \~{}.
-\item $(a) \{\RETURN{}$ $\SUPER[a];$\} if $f$ is named $[]$.
-\item $(a, b) \{\RETURN{}$ $\SUPER[a] = b;$\} if $f$ is named $[]=$.
+%\item $(a) \{\RETURN{}$ \SUPER{} $op$ $a;$\} if $f$ is named $op$ and $op$ is one of  \code{$<$, $>$, $<$=, $>$=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$}.
+%\item $() \{\RETURN{}$ \~{}\SUPER;\} if $f$ is named \~{}.
+%\item $(a) \{\RETURN{}$ $\SUPER[a];$\} if $f$ is named $[]$.
+%\item $(a, b) \{\RETURN{}$ $\SUPER[a] = b;$\} if $f$ is named $[]=$.
 \item
 \begin{dartCode}
 $(r_1, \ldots, r_n, \{p_1 = d_1, \ldots , p_k = d_k\})$ \{
@@ -4410,20 +4203,11 @@ $(r_1, \ldots, r_n, [p_1 = d_1, \ldots , p_k = d_k])$\{
   \RETURN{} \SUPER$.m(r_1, \ldots, r_n, p_1, \ldots, p_k)$;
 \}
 \end{dartCode}
-
 if $f$ is named $m$ and has required parameters $r_1, \ldots, r_n$, and optional positional parameters $p_1, \ldots, p_k$ with defaults $d_1, \ldots, d_k$.
 \end{itemize}
 
 \LMHash{}
-Except that iff two closurizations were created by code declared in the same class with identical bindings of \THIS{} then  \cd{\SUPER$_1\#m$ == \SUPER$_2\#m$},  \cd{\SUPER$_1.m$ == \SUPER$_2.m$}, \cd{\SUPER$_1\#m$ == \SUPER$_2.m$} and  \cd{\SUPER$_1.m$ == \SUPER$_2\#m$}.
-
-
-\LMHash{}
-The {\em closurization of getter $f$  with respect to superclass $S$} is defined to be equivalent to \cd{()\{\RETURN{} \SUPER.m;\}} if $f$ is named $m$, except that iff two closurizations were created by code declared in the same class with identical bindings of \THIS{} then  \cd{\SUPER$_1\#m$ == \SUPER$_2\#m$}.
-
-\LMHash{}
-The {\em closurization of setter $f$  with respect to superclass $S$} is defined to be equivalent to \cd{(a)\{\RETURN{} \SUPER.m = a;\}} if $f$ is named $m=$, except that iff two closurizations were created by code declared in the same class with identical bindings of \THIS{} then \cd{\SUPER$_1\#m=$ == \SUPER$_2\#m=$}.
-
+Except that iff two closurizations were created by code declared in the same class with identical bindings of \THIS{} then \cd{\SUPER$_1.m$ == \SUPER$_2.m$}.
 
 
 \subsection{ Assignment}
@@ -5055,7 +4839,7 @@ Postfix expressions invoke the postfix operators on objects.
 
  \begin{grammar}
 {\bf postfixExpression:}assignableExpression postfixOperator;
-      primary (selector* $|$ ( `\#' ( (identifier `='?) $|$ operator)))
+      primary selector*
     .
 
 {\bf postfixOperator:}
@@ -5311,7 +5095,7 @@ Let $d$ be the innermost declaration in the enclosing lexical scope whose name i
 %If no such member exists, let $d$ be the declaration of the static member name $id$ declared in a superclass of the current class, if it exists.
 
 \begin{itemize}
-\item if $d$ is a prefix $p$, a compile-time error occurs unless the token immediately following $d$ is \code{'.'} or \code{'\#'}.
+\item if $d$ is a prefix $p$, a compile-time error occurs unless the token immediately following $d$ is \code{'.'}.
 \item If $d$ is a class or type alias $T$, the value of $e$ is an instance of  class \code{Type} (or a subclass thereof) reifying $T$.
 \item If $d$ is a type parameter $T$, then the value of $e$ is the value of the actual type argument corresponding to $T$ that was  passed to the generative constructor that created the current binding of \THIS{}. If, however, $e$ occurs inside a static member, a compile-time error occurs.
 
