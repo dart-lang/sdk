@@ -195,6 +195,14 @@ def ide_switch(host_os):
     return '--ide=json'
 
 
+# Environment variables for default settings.
+DART_USE_ASAN = "DART_USE_ASAN"
+
+
+def use_asan():
+  return DART_USE_ASAN in os.environ
+
+
 def parse_args(args):
   args = args[1:]
   parser = argparse.ArgumentParser(description='A script to run `gn gen`.')
@@ -220,8 +228,12 @@ def parse_args(args):
       default='x64')
   parser.add_argument('--asan',
       help='Build with ASAN',
-      default=False,
+      default=use_asan(),
       action='store_true')
+  parser.add_argument('--no-asan',
+      help='Disable ASAN',
+      dest='asan',
+      action='store_false')
   parser.add_argument('--goma',
       help='Use goma',
       default=True,
