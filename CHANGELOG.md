@@ -15,6 +15,13 @@
 * `dart:developer`:
   * The service protocol http server can now be controlled from Dart code.
 
+### Tool changes
+
+* Dart Dev Compiler
+
+  * Support calls to `loadLibrary()` on deferred libraries. Deferred libraries
+    are still loaded eagerly. (#27343)
+
 ## 1.20.1 - 2016-10-13
 
 Patch release, resolves one issue:

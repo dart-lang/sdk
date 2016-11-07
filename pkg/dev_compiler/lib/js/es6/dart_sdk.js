@@ -1936,6 +1936,9 @@ dart._canonicalMember = function(obj, name) {
   }
   return name;
 };
+dart.loadLibrary = function() {
+  return async.Future.value();
+};
 dart.defineProperty = function(obj, name, desc) {
   return Object.defineProperty(obj, name, desc);
 };

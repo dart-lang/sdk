@@ -1939,6 +1939,9 @@ dart_library.library('dart_sdk', null, /* Imports */[
     }
     return name;
   };
+  dart.loadLibrary = function() {
+    return async.Future.value();
+  };
   dart.defineProperty = function(obj, name, desc) {
     return Object.defineProperty(obj, name, desc);
   };
