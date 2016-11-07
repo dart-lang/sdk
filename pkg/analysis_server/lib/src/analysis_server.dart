@@ -16,8 +16,6 @@ import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domains/analysis/navigation.dart';
-import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
@@ -1764,21 +1762,23 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       if (analysisServer.priorityFiles.contains(result.path)) {
         analysisServer.priorityFileResults[result.path] = result;
       }
-      new_sendErrorNotification(analysisServer, result);
+      _runDelayed(() {
+        new_sendErrorNotification(analysisServer, result);
+      });
       CompilationUnit unit = result.unit;
       if (unit != null) {
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.HIGHLIGHTS, result.path)) {
-          sendAnalysisNotificationHighlights(analysisServer, result.path, unit);
+          _runDelayed(() {
+            sendAnalysisNotificationHighlights(
+                analysisServer, result.path, unit);
+          });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.NAVIGATION, result.path)) {
-          NavigationCollectorImpl collector = new NavigationCollectorImpl();
-          computeSimpleDartNavigation(collector, unit);
-          collector.createRegions();
-          var params = new AnalysisNavigationParams(result.path,
-              collector.regions, collector.targets, collector.files);
-          analysisServer.sendNotification(params.toNotification());
+          _runDelayed(() {
+            new_sendDartNotificationNavigation(analysisServer, result);
+          });
         }
       }
       // TODO(scheglov) Implement more notifications.
@@ -1895,6 +1895,25 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+  }
+
+  /**
+   * Run [f] in a new [Future].
+   *
+   * This method is used to delay sending notifications. If there is a more
+   * important consumer of an analysis results, specifically a code completion
+   * computer, we want it to run before spending time of sending notifications.
+   *
+   * TODO(scheglov) Consider replacing this with full priority based scheduler.
+   *
+   * TODO(scheglov) Alternatively, if code completion work in a way that does
+   * not produce (at first) fully resolved unit, but only part of it - a single
+   * method, or a top-level declaration, we would not have this problem - the
+   * completion computer would be the only consumer of the partial analysis
+   * result.
+   */
+  void _runDelayed(f()) {
+    new Future(f);
   }
 }
 
