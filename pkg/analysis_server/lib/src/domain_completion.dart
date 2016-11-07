@@ -152,7 +152,7 @@ class CompletionDomainHandler implements RequestHandler {
             request,
             'params.offset',
             'Expected offset between 0 and source length inclusive,'
-                ' but found ${params.offset}'));
+            ' but found ${params.offset}'));
         return;
       }
 
