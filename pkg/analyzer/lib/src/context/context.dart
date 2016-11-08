@@ -307,7 +307,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
-        this._options.enableSuperMixins != options.enableSuperMixins;
+        this._options.enableSuperMixins != options.enableSuperMixins ||
+        this._options.patchPlatform != options.patchPlatform;
     this._options.analyzeFunctionBodiesPredicate =
         options.analyzeFunctionBodiesPredicate;
     this._options.generateImplicitErrors = options.generateImplicitErrors;
@@ -336,6 +337,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.trackCacheDependencies = options.trackCacheDependencies;
     this._options.disableCacheFlushing = options.disableCacheFlushing;
     this._options.finerGrainedInvalidation = options.finerGrainedInvalidation;
+    this._options.patchPlatform = options.patchPlatform;
     if (options is AnalysisOptionsImpl) {
       this._options.strongModeHints = options.strongModeHints;
       this._options.implicitCasts = options.implicitCasts;

@@ -1191,6 +1191,12 @@ abstract class AnalysisOptions {
   bool get lint;
 
   /**
+   * Return the "platform" bit mask which should be used to apply patch files,
+   * or `0` if no patch files should be applied.
+   */
+  int get patchPlatform;
+
+  /**
    * Return `true` if analysis is to parse comments.
    */
   bool get preserveComments;
@@ -1308,6 +1314,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool lint = false;
 
   @override
+  int patchPlatform = 0;
+
+  @override
   bool preserveComments = true;
 
   @override
@@ -1395,6 +1404,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
     finerGrainedInvalidation = options.finerGrainedInvalidation;
+    patchPlatform = options.patchPlatform;
   }
 
   bool get analyzeFunctionBodies {
