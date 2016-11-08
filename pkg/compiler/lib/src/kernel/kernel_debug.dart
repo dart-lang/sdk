@@ -43,6 +43,11 @@ class DebugPrinter extends Visitor with Indentation, Tagging<Node> {
   }
 
   @override
+  void visitStaticGet(StaticGet node) {
+    openAndCloseNode(node, '${node.runtimeType}', {'target': '${node.target}'});
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     openNode(node, '${node.runtimeType}', {
       'name': '${node.name ?? '--unnamed--'}',

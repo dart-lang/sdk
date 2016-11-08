@@ -85,6 +85,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// in static contexts, factory methods, and field initializers).
   bool inInstanceContext;
   bool inCheckContext;
+  bool inCatchParameters = false;
   bool inCatchBlock;
   ConstantState constantState;
 
@@ -4703,6 +4704,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               nodeList, MessageKind.OPTIONAL_PARAMETER_IN_CATCH);
         } else {
           VariableDefinitions declaration = link.head;
+
           for (Node modifier in declaration.modifiers.nodes) {
             reporter.reportErrorMessage(
                 modifier, MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH);
@@ -4717,15 +4719,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
 
     Scope blockScope = new BlockScope(scope);
-    TypeResult exceptionTypeResult = visitIn(node.type, blockScope);
+    inCatchParameters = true;
     visitIn(node.formals, blockScope);
+    inCatchParameters = false;
     var oldInCatchBlock = inCatchBlock;
     inCatchBlock = true;
     visitIn(node.block, blockScope);
     inCatchBlock = oldInCatchBlock;
 
-    if (exceptionTypeResult != null) {
-      DartType exceptionType = exceptionTypeResult.type;
+    if (node.type != null) {
+      DartType exceptionType =
+          resolveTypeAnnotation(node.type, registerCheckedModeCheck: false);
       if (exceptionDefinition != null) {
         Node exceptionVariable = exceptionDefinition.definitions.nodes.head;
         VariableElementX exceptionElement =

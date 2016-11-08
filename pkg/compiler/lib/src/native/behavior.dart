@@ -31,6 +31,8 @@ class SpecialType {
 
   int get hashCode => name.hashCode;
 
+  String toString() => name;
+
   static SpecialType fromName(String name) {
     if (name == '=Object') {
       return JsObject;

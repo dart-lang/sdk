@@ -532,7 +532,6 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitCatch(ir.Catch node) {
     impactBuilder.registerFeature(Feature.CATCH_STATEMENT);
-    visitNode(node.exception);
     if (node.stackTrace != null) {
       impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
     }

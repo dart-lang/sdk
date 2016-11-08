@@ -27,6 +27,7 @@ import '../serialization/test_helper.dart';
 const Map<String, String> SOURCE = const <String, String>{
   'main.dart': r'''
 import 'helper.dart';
+import 'dart:html';
 
 main() {
   testEmpty();
@@ -614,27 +615,56 @@ main(List<String> args) {
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
     compiler.libraryLoader.libraries.forEach((LibraryElement library) {
-      checkLibrary(compiler, library);
+      checkLibrary(compiler, library, fullTest: args.contains('--full'));
     });
   });
 }
 
-void checkLibrary(Compiler compiler, LibraryElement library) {
+void checkLibrary(Compiler compiler, LibraryElement library,
+    {bool fullTest: false}) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
       ClassElement cls = element;
       cls.forEachLocalMember((AstElement member) {
-        checkElement(compiler, member);
+        checkElement(compiler, member, fullTest: fullTest);
       });
     } else if (element.isTypedef) {
       // Skip typedefs.
     } else {
-      checkElement(compiler, element);
+      checkElement(compiler, element, fullTest: fullTest);
     }
   });
 }
 
-void checkElement(Compiler compiler, AstElement element) {
+void checkElement(Compiler compiler, AstElement element,
+    {bool fullTest: false}) {
+  if (!fullTest) {
+    if (element.library.isPlatformLibrary) {
+      // Test only selected elements in web-related platform libraries since
+      // this unittest otherwise takes too long to run.
+      switch (element.library.canonicalUri.path) {
+        case 'html':
+          if ('$element' ==
+              'function(_ValidatingTreeSanitizer#_sanitizeUntrustedElement)') {
+            break;
+          }
+          return;
+        case 'web_gl':
+          if ('$element' ==
+              'function(RenderingContext#getFramebufferAttachmentParameter)') {
+            return;
+          }
+          break;
+        case 'indexed_db':
+          if ('$element' == 'field(ObjectStore#keyPath)') {
+            break;
+          }
+          return;
+        case 'web_audio':
+          return;
+      }
+    }
+  }
   if (element.isConstructor) {
     ConstructorElement constructor = element;
     if (constructor.isRedirectingFactory) {
@@ -673,8 +703,8 @@ ResolutionImpact laxImpact(
   }
   impact.dynamicUses.forEach(builder.registerDynamicUse);
   for (TypeUse typeUse in impact.typeUses) {
-    builder.registerTypeUse(new TypeUse.internal(
-        const Unaliaser().visit(typeUse.type), typeUse.kind));
+    builder.registerTypeUse(
+        new TypeUse.internal(unalias(typeUse.type), typeUse.kind));
   }
   impact.constantLiterals.forEach(builder.registerConstantLiteral);
   impact.constSymbolNames.forEach(builder.registerConstSymbolName);
@@ -772,4 +802,9 @@ class Unaliaser extends BaseDartTypeVisitor<dynamic, DartType> {
         type.namedParameters,
         visitList(type.namedParameterTypes));
   }
+}
+
+/// Perform unaliasing of all typedefs nested within a [DartType].
+DartType unalias(DartType type) {
+  return const Unaliaser().visit(type);
 }

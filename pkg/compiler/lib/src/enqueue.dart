@@ -157,7 +157,6 @@ class ResolutionEnqueuer extends Enqueuer {
     impactVisitor = new _EnqueuerImpactVisitor(this);
   }
 
-  // TODO(johnniwinther): Move this to [ResolutionEnqueuer].
   Resolution get resolution => compiler.resolution;
 
   ResolutionWorldBuilder get universe => _universe;
