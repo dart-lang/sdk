@@ -296,6 +296,9 @@ class DartTypeTranslator : public DartTypeVisitor {
   // Can return a malformed type.
   AbstractType& TranslateTypeWithoutFinalization(DartType* node);
 
+  // Is guaranteed to be not malformed.
+  const AbstractType& TranslateVariableType(VariableDeclaration* variable);
+
 
   virtual void VisitDefaultDartType(DartType* node) { UNREACHABLE(); }
 
@@ -494,6 +497,7 @@ class ScopeBuilder : public RecursiveVisitor {
         node_(node),
         zone_(Thread::Current()->zone()),
         translation_helper_(Thread::Current(), zone_, Isolate::Current()),
+        type_translator_(&translation_helper_, &active_class_),
         current_function_scope_(NULL),
         scope_(NULL),
         depth_(0),
@@ -534,8 +538,9 @@ class ScopeBuilder : public RecursiveVisitor {
   void EnterScope(TreeNode* node);
   void ExitScope();
 
-  LocalVariable* MakeVariable(const dart::String& name);
-  LocalVariable* MakeVariable(const dart::String& name, const Type& type);
+  const Type& TranslateVariableType(VariableDeclaration* variable);
+  LocalVariable* MakeVariable(const dart::String& name,
+                              const AbstractType& type);
 
   void AddParameters(FunctionNode* function, intptr_t pos = 0);
   void AddParameter(VariableDeclaration* declaration, intptr_t pos);
@@ -581,9 +586,11 @@ class ScopeBuilder : public RecursiveVisitor {
   ParsedFunction* parsed_function_;
   TreeNode* node_;
 
+  ActiveClass active_class_;
+
   Zone* zone_;
   TranslationHelper translation_helper_;
-
+  DartTypeTranslator type_translator_;
 
   FunctionNode* current_function_node_;
   LocalScope* current_function_scope_;
