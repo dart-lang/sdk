@@ -502,13 +502,19 @@ class JSModuleFile {
       c += '\n//# sourceURL=${name.replaceAll("/", ".")}.js\n';
       c = 'eval(${JSON.encode(c)});\n';
     }
-    new File(jsPath).writeAsStringSync(c);
+
+    var file = new File(jsPath);
+    if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+    file.writeAsStringSync(c);
+
     // TODO(jacobr): it is a bit strange we are writing the source map to a file
     // even when options.inlineSourceMap is true. To be consistent perhaps we
     // should also write a copy of the source file without a sourcemap even when
     // inlineSourceMap is true.
     if (code.sourceMap != null) {
-      new File(mapPath).writeAsStringSync(JSON.encode(code.sourceMap));
+      file = new File(mapPath);
+      if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
+      file.writeAsStringSync(JSON.encode(code.sourceMap));
     }
   }
 }
