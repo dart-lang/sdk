@@ -2800,7 +2800,7 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(CreateArrayOpt, A_B_C);
     const intptr_t length = Smi::Value(RAW_CAST(Smi, FP[rB]));
-    if (LIKELY(length <= Array::kMaxElements)) {
+    if (LIKELY(static_cast<uintptr_t>(length) <= Array::kMaxElements)) {
       const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
       const intptr_t instance_size =
           (fixed_size + length * kWordSize) & ~(kObjectAlignment - 1);

@@ -692,11 +692,11 @@ EMIT_NATIVE_CODE(CreateArray,
     __ Push(type_arguments);
     __ Push(length);
     __ CreateArrayTOS();
-    compiler->RecordSafepoint(locs());
+    compiler->RecordAfterCall(this);
     __ PopLocal(out);
   } else {
     __ CreateArrayTOS();
-    compiler->RecordSafepoint(locs());
+    compiler->RecordAfterCall(this);
   }
 }
 
