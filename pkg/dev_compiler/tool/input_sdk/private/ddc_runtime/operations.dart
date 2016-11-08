@@ -706,8 +706,7 @@ final constantLists = JS('', 'new Map()');
 ///
 /// Canonicalize a constant list
 ///
-@JSExportName('constList')
-constList_(elements, elementType) => JS(
+constList(elements, elementType) => JS(
     '',
     '''(() => {
   function lookupNonTerminal(map, key) {
