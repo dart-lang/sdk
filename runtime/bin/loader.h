@@ -22,6 +22,8 @@ class Loader {
 
   static void InitForSnapshot(const char* snapshot_uri);
 
+  static Dart_Handle ReloadNativeExtensions();
+
   // Loads contents of the specified url.
   static Dart_Handle LoadUrlContents(Dart_Handle url,
                                      uint8_t** payload,

@@ -815,6 +815,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
   }
+  if (run_app_snapshot) {
+    Dart_Handle result = Loader::ReloadNativeExtensions();
+    CHECK_RESULT(result);
+  }
 
   // Set up the library tag handler for this isolate.
   Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);

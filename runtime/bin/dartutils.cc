@@ -233,6 +233,16 @@ const char* DartUtils::RemoveScheme(const char* url) {
 }
 
 
+char* DartUtils::DirName(const char* url) {
+  const char* slash = strrchr(url, File::PathSeparator()[0]);
+  if (slash == NULL) {
+    return strdup(url);
+  } else {
+    return strndup(url, slash - url + 1);
+  }
+}
+
+
 void* DartUtils::OpenFile(const char* name, bool write) {
   File* file = File::Open(name, write ? File::kWriteTruncate : File::kRead);
   return reinterpret_cast<void*>(file);

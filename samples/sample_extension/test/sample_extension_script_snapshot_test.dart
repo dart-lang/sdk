@@ -7,5 +7,5 @@
 import 'sample_extension_test_helper.dart';
 
 void main() {
-  testNativeExtensions(null /* no snapshot */);
+  testNativeExtensions("script");
 }

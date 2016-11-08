@@ -11,6 +11,7 @@
 #include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/utils.h"
+#include "include/dart_tools_api.h"
 
 namespace dart {
 namespace bin {
@@ -353,6 +354,7 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
   loader->monitor_->Exit();
 
   Dart_Handle dart_result = Dart_Null();
+  bool reload_extensions = false;
 
   switch (tag) {
     case Dart_kImportTag:
@@ -367,6 +369,7 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     case Dart_kScriptTag:
       if (payload_type == DartUtils::kSnapshotMagicNumber) {
         dart_result = Dart_LoadScriptFromSnapshot(payload, payload_length);
+        reload_extensions = true;
       } else if (payload_type == DartUtils::kKernelMagicNumber) {
         dart_result = Dart_LoadKernel(payload, payload_length);
       } else {
@@ -383,6 +386,15 @@ bool Loader::ProcessResultLocked(Loader* loader, Loader::IOResult* result) {
     // Remember the error if we encountered one.
     loader->error_ = dart_result;
     return false;
+  }
+
+  if (reload_extensions) {
+    dart_result = ReloadNativeExtensions();
+    if (Dart_IsError(dart_result)) {
+      // Remember the error if we encountered one.
+      loader->error_ = dart_result;
+      return false;
+    }
   }
 
   return true;
@@ -434,6 +446,51 @@ void Loader::InitForSnapshot(const char* snapshot_uri) {
                DartUtils::original_working_directory, snapshot_uri);
   // Destroy the loader. The destructor does a bunch of leg work.
   delete loader;
+}
+
+
+#define RETURN_ERROR(result) \
+  if (Dart_IsError(result)) return result;
+
+Dart_Handle Loader::ReloadNativeExtensions() {
+  Dart_Handle scheme =
+      Dart_NewStringFromCString(DartUtils::kDartExtensionScheme);
+  Dart_Handle extension_imports = Dart_GetImportsOfScheme(scheme);
+  RETURN_ERROR(extension_imports);
+
+  intptr_t length = -1;
+  Dart_Handle result = Dart_ListLength(extension_imports, &length);
+  RETURN_ERROR(result);
+  Dart_Handle* import_handles = reinterpret_cast<Dart_Handle*>(
+      Dart_ScopeAllocate(sizeof(Dart_Handle) * length));
+  result = Dart_ListGetRange(extension_imports, 0, length, import_handles);
+  RETURN_ERROR(result);
+  for (intptr_t i = 0; i < length; i += 2) {
+    Dart_Handle importer = import_handles[i];
+    Dart_Handle importee = import_handles[i + 1];
+
+    const char* extension_uri = NULL;
+    result = Dart_StringToCString(Dart_LibraryUrl(importee), &extension_uri);
+    RETURN_ERROR(result);
+    const char* extension_path = DartUtils::RemoveScheme(extension_uri);
+
+    const char* lib_uri = NULL;
+    result = Dart_StringToCString(Dart_LibraryUrl(importer), &lib_uri);
+    RETURN_ERROR(result);
+
+    char* lib_path = NULL;
+    if (strncmp(lib_uri, "file://", 7) == 0) {
+      lib_path = DartUtils::DirName(DartUtils::RemoveScheme(lib_uri));
+    } else {
+      lib_path = strdup(lib_uri);
+    }
+
+    result = Extensions::LoadExtension(lib_path, extension_path, importer);
+    free(lib_path);
+    RETURN_ERROR(result);
+  }
+
+  return Dart_True();
 }
 
 
