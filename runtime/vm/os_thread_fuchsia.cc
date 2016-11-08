@@ -33,8 +33,6 @@ namespace dart {
 #ifdef DEBUG
 #define RETURN_ON_PTHREAD_FAILURE(result)                                      \
   if (result != 0) {                                                           \
-    const int kBufferSize = 1024;                                              \
-    char error_buf[kBufferSize];                                               \
     fprintf(stderr, "%s:%d: pthread error: %d\n", __FILE__, __LINE__, result); \
     return result;                                                             \
   }
