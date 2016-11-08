@@ -418,9 +418,13 @@ EMIT_NATIVE_CODE(LoadStaticField, 1, Location::RequiresRegister()) {
 }
 
 
-EMIT_NATIVE_CODE(InitStaticField, 0) {
-  ASSERT(!compiler->is_optimizing());
-  __ InitStaticTOS();
+EMIT_NATIVE_CODE(InitStaticField, 1) {
+  if (compiler->is_optimizing()) {
+    __ Push(locs()->in(0).reg());
+    __ InitStaticTOS();
+  } else {
+    __ InitStaticTOS();
+  }
 }
 
 
