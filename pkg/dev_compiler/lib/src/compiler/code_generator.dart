@@ -2481,7 +2481,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       JS.Block block = body;
       if (block.statements.length == 1) {
         JS.Statement s = block.statements[0];
-        if (s is JS.Return) body = s.value;
+        if (s is JS.Return && s.value != null) body = s.value;
       }
     }
 
