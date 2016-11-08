@@ -5718,6 +5718,42 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme) {
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+  const String& scheme_vm = Api::UnwrapStringHandle(Z, scheme);
+  if (scheme_vm.IsNull()) {
+    RETURN_TYPE_ERROR(Z, scheme, String);
+  }
+
+  const GrowableObjectArray& libraries =
+      GrowableObjectArray::Handle(Z, I->object_store()->libraries());
+  const GrowableObjectArray& result =
+      GrowableObjectArray::Handle(Z, GrowableObjectArray::New());
+  Library& importer = Library::Handle(Z);
+  Array& imports = Array::Handle(Z);
+  Namespace& ns = Namespace::Handle(Z);
+  Library& importee = Library::Handle(Z);
+  String& importee_uri = String::Handle(Z);
+  for (intptr_t i = 0; i < libraries.Length(); i++) {
+    importer ^= libraries.At(i);
+    imports = importer.imports();
+    for (intptr_t j = 0; j < imports.Length(); j++) {
+      ns ^= imports.At(j);
+      if (ns.IsNull()) continue;
+      importee = ns.library();
+      importee_uri = importee.url();
+      if (importee_uri.StartsWith(scheme_vm)) {
+        result.Add(importer);
+        result.Add(importee);
+      }
+    }
+  }
+
+  return Api::NewHandle(T, Array::MakeArray(result));
+}
+
+
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
                                         Dart_Handle resolved_url,

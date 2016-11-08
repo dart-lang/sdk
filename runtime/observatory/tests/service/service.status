@@ -59,8 +59,6 @@ evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
 get_allocation_samples_test: RuntimeError # Profiling unimplemented.
 get_cpu_profile_timeline_rpc_test: RuntimeError # Profiling unimplemented.
 implicit_getter_setter_test: RuntimeError # Field guards unimplemented.
-debugger_location_second_test: Skip # Issue #27746
-debugger_location_test: Skip # Issue #27746
 
 [ $hot_reload || $hot_reload_rollback ]
 # Skip all service tests because random reloads interfere.

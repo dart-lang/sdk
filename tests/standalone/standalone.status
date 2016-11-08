@@ -329,7 +329,6 @@ no_lazy_dispatchers_test: SkipByDesign
 [ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
 # Issue 26376
 io/file_system_watcher_test: RuntimeError
-io/uri_platform_test: RuntimeError
 io/resolve_symbolic_links_test: RuntimeError
 io/file_stat_test: RuntimeError
 # Issue #27638

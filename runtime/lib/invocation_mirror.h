@@ -20,7 +20,7 @@ class InvocationMirror : public AllStatic {
     kMethod = 0,
     kGetter = 1,
     kSetter = 2,
-    kField  = 3,
+    kField = 3,
     kLocalVar = 4,
     kTypeShift = 0,
     kTypeBits = 3,
@@ -32,7 +32,7 @@ class InvocationMirror : public AllStatic {
     // NoSuchMethodError for compile-time resolution failures.
     kDynamic = 0,
     kSuper = 1,
-    kStatic  = 2,
+    kStatic = 2,
     kConstructor = 3,
     kTopLevel = 4,
     kCallShift = kTypeBits,

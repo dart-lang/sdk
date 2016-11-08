@@ -72,6 +72,7 @@ class Deserializer;
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(LazyCompile)                                                               \
+  V(OptimizeFunction)                                                          \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \

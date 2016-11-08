@@ -59,14 +59,11 @@ namespace bin {
   V(Directory, ListStop, 37)                                                   \
   V(Directory, Rename, 38)
 
-#define DECLARE_REQUEST(type, method, id)                                      \
-  k##type##method##Request = id,
+#define DECLARE_REQUEST(type, method, id) k##type##method##Request = id,
 
 class IOService {
  public:
-  enum {
-IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST)
-  };
+  enum { IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST) };
 
   static Dart_Port GetServicePort();
 

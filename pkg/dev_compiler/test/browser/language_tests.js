@@ -124,22 +124,15 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'cyclic_type_test_03_multi': skip_fail,
       'cyclic_type_test_04_multi': skip_fail,
       'cyclic_type_variable_test_none_multi': skip_fail,
+
+      // Deferred libraries are not actually deferred. These tests all test
+      // that synchronous access to the library fails.
       'deferred_call_empty_before_load_test': skip_fail,
-      'deferred_closurize_load_library_test': skip_fail,
-      'deferred_constant_list_test': skip_fail,
-      'deferred_function_type_test': skip_fail,
-      'deferred_inlined_test': skip_fail,
-      'deferred_load_inval_code_test': skip_fail,
-      'deferred_mixin_test': skip_fail,
-      'deferred_no_such_method_test': skip_fail, // deferred libs not implemented
       'deferred_not_loaded_check_test': skip_fail,
-      'deferred_only_constant_test': skip_fail,
-      'deferred_optimized_test': skip_fail,
       'deferred_redirecting_factory_test': skip_fail,
-      'deferred_regression_22995_test': skip_fail,
-      'deferred_shadow_load_library_test': skip_fail,
-      'deferred_shared_and_unshared_classes_test': skip_fail,
       'deferred_static_seperate_test': skip_fail,
+
+      'deferred_regression_22995_test': skip_fail, // Strong mode "is" rejects some type tests.
       'double_int_to_string_test': skip_fail,
       'double_to_string_test': skip_fail,
       'dynamic_test': skip_fail,

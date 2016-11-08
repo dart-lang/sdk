@@ -63,8 +63,10 @@ intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::RecvFrom(
-    intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr) {
+intptr_t Socket::RecvFrom(intptr_t fd,
+                          void* buffer,
+                          intptr_t num_bytes,
+                          RawAddr* addr) {
   UNIMPLEMENTED();
   return -1;
 }
@@ -76,8 +78,10 @@ intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::SendTo(
-    intptr_t fd, const void* buffer, intptr_t num_bytes, const RawAddr& addr) {
+intptr_t Socket::SendTo(intptr_t fd,
+                        const void* buffer,
+                        intptr_t num_bytes,
+                        const RawAddr& addr) {
   UNIMPLEMENTED();
   return -1;
 }
@@ -232,15 +236,19 @@ bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
 }
 
 
-bool Socket::JoinMulticast(
-    intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
+bool Socket::JoinMulticast(intptr_t fd,
+                           const RawAddr& addr,
+                           const RawAddr&,
+                           int interfaceIndex) {
   UNIMPLEMENTED();
   return false;
 }
 
 
-bool Socket::LeaveMulticast(
-    intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
+bool Socket::LeaveMulticast(intptr_t fd,
+                            const RawAddr& addr,
+                            const RawAddr&,
+                            int interfaceIndex) {
   UNIMPLEMENTED();
   return false;
 }

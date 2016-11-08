@@ -107,11 +107,11 @@ class KernelImpactBuilder extends ir.Visitor {
     checkType(field.type);
     if (field.initializer != null) {
       visitNode(field.initializer);
-      if (!field.isInstanceMember && !field.isConst) {
+      if (!field.isInstanceMember &&
+          !field.isConst &&
+          field.initializer is! ir.NullLiteral) {
         impactBuilder.registerFeature(Feature.LAZY_FIELD);
       }
-    } else {
-      impactBuilder.registerFeature(Feature.FIELD_WITHOUT_INITIALIZER);
     }
     if (field.isInstanceMember && astAdapter.isNative(field.enclosingClass)) {
       impactBuilder
@@ -532,7 +532,6 @@ class KernelImpactBuilder extends ir.Visitor {
   @override
   void visitCatch(ir.Catch node) {
     impactBuilder.registerFeature(Feature.CATCH_STATEMENT);
-    visitNode(node.exception);
     if (node.stackTrace != null) {
       impactBuilder.registerFeature(Feature.STACK_TRACE_IN_CATCH);
     }

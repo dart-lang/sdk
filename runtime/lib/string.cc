@@ -91,8 +91,8 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 3) {
 
 
 DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
@@ -102,10 +102,10 @@ DEFINE_NATIVE_ENTRY(StringBase_substringUnchecked, 3) {
 }
 
 
-
 // Return the bitwise-or of all characters in the slice from start to end.
 static uint16_t CharacterLimit(const String& string,
-                               intptr_t start, intptr_t end) {
+                               intptr_t start,
+                               intptr_t end) {
   ASSERT(string.IsTwoByteString() || string.IsExternalTwoByteString());
   // Maybe do loop unrolling, and handle two uint16_t in a single uint32_t
   // operation.
@@ -164,10 +164,9 @@ static bool CheckSlicesOneByte(const String& base,
 
 
 DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
-  const String& base = String::CheckedHandle(zone,
-                                             arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray,
-                               matches_growable, arguments->NativeArgAt(1));
+  const String& base = String::CheckedHandle(zone, arguments->NativeArgAt(0));
+  GET_NON_NULL_NATIVE_ARGUMENT(GrowableObjectArray, matches_growable,
+                               arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, length_obj, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, is_onebyte_obj, arguments->NativeArgAt(3));
 
@@ -219,12 +218,9 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
         }
       }
       if (slice_length > 0) {
-        if (0 <= slice_start &&
-            slice_start + slice_length <= base_length &&
+        if (0 <= slice_start && slice_start + slice_length <= base_length &&
             write_index + slice_length <= length) {
-          String::Copy(result, write_index,
-                       base, slice_start,
-                       slice_length);
+          String::Copy(result, write_index, base, slice_start, slice_length);
           write_index += slice_length;
           continue;
         }
@@ -253,8 +249,8 @@ DEFINE_NATIVE_ENTRY(StringBase_joinReplaceAllResult, 4) {
 }
 
 DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
@@ -267,31 +263,26 @@ DEFINE_NATIVE_ENTRY(OneByteString_substringUnchecked, 3) {
 
 // This is high-performance code.
 DEFINE_NATIVE_ENTRY(OneByteString_splitWithCharCode, 2) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(receiver.IsOneByteString());
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, smi_split_code, arguments->NativeArgAt(1));
   const intptr_t len = receiver.Length();
   const intptr_t split_code = smi_split_code.Value();
   const GrowableObjectArray& result = GrowableObjectArray::Handle(
-      zone,
-      GrowableObjectArray::New(16, Heap::kNew));
+      zone, GrowableObjectArray::New(16, Heap::kNew));
   String& str = String::Handle(zone);
   intptr_t start = 0;
   intptr_t i = 0;
   for (; i < len; i++) {
     if (split_code == OneByteString::CharAt(receiver, i)) {
-      str = OneByteString::SubStringUnchecked(receiver,
-                                              start,
-                                              (i - start),
+      str = OneByteString::SubStringUnchecked(receiver, start, (i - start),
                                               Heap::kNew);
       result.Add(str);
       start = i + 1;
     }
   }
-  str = OneByteString::SubStringUnchecked(receiver,
-                                          start,
-                                          (i - start),
+  str = OneByteString::SubStringUnchecked(receiver, start, (i - start),
                                           Heap::kNew);
   result.Add(str);
   return result.raw();
@@ -305,8 +296,7 @@ DEFINE_NATIVE_ENTRY(OneByteString_allocate, 1) {
 
 
 DEFINE_NATIVE_ENTRY(OneByteString_allocateFromOneByteList, 3) {
-  Instance& list = Instance::CheckedHandle(zone,
-                                           arguments->NativeArgAt(0));
+  Instance& list = Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
@@ -409,8 +399,7 @@ DEFINE_NATIVE_ENTRY(ExternalOneByteString_getCid, 0) {
 
 
 DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
-  Instance& list = Instance::CheckedHandle(zone,
-                                           arguments->NativeArgAt(0));
+  Instance& list = Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_obj, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, end_obj, arguments->NativeArgAt(2));
 
@@ -451,8 +440,8 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
     if (end > Smi::Value(TypedDataView::Length(list))) {
       Exceptions::ThrowArgumentError(end_obj);
     }
-    const Instance& data_obj = Instance::Handle(zone,
-                                                TypedDataView::Data(list));
+    const Instance& data_obj =
+        Instance::Handle(zone, TypedDataView::Data(list));
     intptr_t data_offset = Smi::Value(TypedDataView::OffsetInBytes(list));
     if (data_obj.IsTypedData()) {
       const TypedData& array = TypedData::Cast(data_obj);
@@ -468,8 +457,8 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
     if (end > array.Length()) {
       Exceptions::ThrowArgumentError(end_obj);
     }
-    const String& string = String::Handle(zone,
-                                          TwoByteString::New(length, space));
+    const String& string =
+        String::Handle(zone, TwoByteString::New(length, space));
     for (int i = 0; i < length; i++) {
       intptr_t value =
           Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
@@ -481,8 +470,8 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
     if (end > array.Length()) {
       Exceptions::ThrowArgumentError(end_obj);
     }
-    const String& string = String::Handle(zone,
-                                          TwoByteString::New(length, space));
+    const String& string =
+        String::Handle(zone, TwoByteString::New(length, space));
     for (int i = 0; i < length; i++) {
       intptr_t value =
           Smi::Value(reinterpret_cast<RawSmi*>(array.At(start + i)));
@@ -496,8 +485,8 @@ DEFINE_NATIVE_ENTRY(TwoByteString_allocateFromTwoByteList, 3) {
 
 
 DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   intptr_t hash_val = receiver.Hash();
   ASSERT(hash_val > 0);
   ASSERT(Smi::IsValid(hash_val));
@@ -506,8 +495,8 @@ DEFINE_NATIVE_ENTRY(String_getHashCode, 1) {
 
 
 DEFINE_NATIVE_ENTRY(String_getLength, 1) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Smi::New(receiver.Length());
 }
 
@@ -527,8 +516,8 @@ static uint16_t StringValueAt(const String& str, const Integer& index) {
 
 
 DEFINE_NATIVE_ENTRY(String_charAt, 2) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint16_t value = StringValueAt(receiver, index);
   return Symbols::FromCharCode(thread, static_cast<int32_t>(value));
@@ -537,8 +526,8 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
 
 // Returns the 16-bit UTF-16 code unit at the given index.
 DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, index, arguments->NativeArgAt(1));
   uint16_t value = StringValueAt(receiver, index);
   return Smi::New(static_cast<intptr_t>(value));
@@ -546,24 +535,24 @@ DEFINE_NATIVE_ENTRY(String_codeUnitAt, 2) {
 
 
 DEFINE_NATIVE_ENTRY(String_concat, 2) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, b, arguments->NativeArgAt(1));
   return String::Concat(receiver, b);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_toLowerCase, 1) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToLowerCase(receiver);
 }
 
 
 DEFINE_NATIVE_ENTRY(String_toUpperCase, 1) {
-  const String& receiver = String::CheckedHandle(zone,
-                                                 arguments->NativeArgAt(0));
+  const String& receiver =
+      String::CheckedHandle(zone, arguments->NativeArgAt(0));
   ASSERT(!receiver.IsNull());
   return String::ToUpperCase(receiver);
 }
@@ -586,7 +575,7 @@ DEFINE_NATIVE_ENTRY(String_concatRange, 3) {
   } else if (argument.IsGrowableObjectArray()) {
     const GrowableObjectArray& g_array = GrowableObjectArray::Cast(argument);
     strings = g_array.data();
-    length =  g_array.Length();
+    length = g_array.Length();
   } else {
     Exceptions::ThrowArgumentError(argument);
   }
@@ -614,9 +603,10 @@ DEFINE_NATIVE_ENTRY(StringBuffer_createStringFromUint16Array, 3) {
   if (length_value < 0 || length_value > array_length) {
     Exceptions::ThrowRangeError("length", length, 0, array_length);
   }
-  const String& result = isLatin1.value()
-      ? String::Handle(OneByteString::New(length_value, Heap::kNew))
-      : String::Handle(TwoByteString::New(length_value, Heap::kNew));
+  const String& result =
+      isLatin1.value()
+          ? String::Handle(OneByteString::New(length_value, Heap::kNew))
+          : String::Handle(TwoByteString::New(length_value, Heap::kNew));
   NoSafepointScope no_safepoint;
 
   uint16_t* data_position = reinterpret_cast<uint16_t*>(codeUnits.DataAddr(0));

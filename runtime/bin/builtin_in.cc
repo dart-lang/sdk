@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// clang-format off
+
 #include "{{INCLUDE}}" // NOLINT
 
 // This file is used to generate the mapping of standalone dart libraries

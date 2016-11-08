@@ -15,7 +15,7 @@ import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart';
 import '../kernel/kernel.dart';
 import '../kernel/kernel_debug.dart';
-import '../native/native.dart' show NativeBehavior;
+import '../native/native.dart' show NativeBehavior, TypeLookup;
 import '../resolution/tree_elements.dart';
 import '../tree/tree.dart' as ast;
 import '../types/masks.dart';
@@ -358,26 +358,32 @@ class KernelAstAdapter {
   // TODO(johnniwinther): Use this in [NativeBehavior] instead of calling the
   // `ForeignResolver`.
   // TODO(johnniwinther): Cache the result to avoid redundant lookups?
-  DartType _typeLookup(String typeName) {
-    DartType findIn(Uri uri) {
-      LibraryElement library = _compiler.libraryLoader.lookupLibrary(uri);
-      if (library != null) {
-        Element element = library.find(typeName);
-        if (element != null && element.isClass) {
-          ClassElement cls = element;
-          return cls.rawType;
+  TypeLookup _typeLookup({bool resolveAsRaw: true}) {
+    return (String typeName) {
+      DartType findIn(Uri uri) {
+        LibraryElement library = _compiler.libraryLoader.lookupLibrary(uri);
+        if (library != null) {
+          Element element = library.find(typeName);
+          if (element != null && element.isClass) {
+            ClassElement cls = element;
+            // TODO(johnniwinther): Align semantics.
+            return resolveAsRaw ? cls.rawType : cls.thisType;
+          }
         }
+        return null;
       }
-      return null;
-    }
 
-    DartType type = findIn(Uris.dart_core);
-    type ??= findIn(BackendHelpers.DART_JS_HELPER);
-    type ??= findIn(BackendHelpers.DART_INTERCEPTORS);
-    type ??= findIn(BackendHelpers.DART_ISOLATE_HELPER);
-    type ??= findIn(Uris.dart_collection);
-    type ??= findIn(Uris.dart_html);
-    return type;
+      DartType type = findIn(Uris.dart_core);
+      type ??= findIn(BackendHelpers.DART_JS_HELPER);
+      type ??= findIn(BackendHelpers.DART_INTERCEPTORS);
+      type ??= findIn(BackendHelpers.DART_ISOLATE_HELPER);
+      type ??= findIn(Uris.dart_collection);
+      type ??= findIn(Uris.dart_html);
+      type ??= findIn(Uris.dart_svg);
+      type ??= findIn(Uris.dart_web_audio);
+      type ??= findIn(Uris.dart_web_gl);
+      return type;
+    };
   }
 
   String _getStringArgument(ir.StaticInvocation node, int index) {
@@ -407,8 +413,13 @@ class KernelAstAdapter {
       return new NativeBehavior();
     }
 
-    return NativeBehavior.ofJsCall(specString, codeString, _typeLookup,
-        CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
+    return NativeBehavior.ofJsCall(
+        specString,
+        codeString,
+        _typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        _compiler.coreTypes);
   }
 
   /// Computes the [NativeBehavior] for a call to the [JS_BUILTIN] function.
@@ -430,8 +441,12 @@ class KernelAstAdapter {
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
       return new NativeBehavior();
     }
-    return NativeBehavior.ofJsBuiltinCall(specString, _typeLookup,
-        CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
+    return NativeBehavior.ofJsBuiltinCall(
+        specString,
+        _typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        _compiler.coreTypes);
   }
 
   /// Computes the [NativeBehavior] for a call to the [JS_EMBEDDED_GLOBAL]
@@ -461,8 +476,12 @@ class KernelAstAdapter {
           CURRENT_ELEMENT_SPANNABLE, "Unexpected first argument.");
       return new NativeBehavior();
     }
-    return NativeBehavior.ofJsEmbeddedGlobalCall(specString, _typeLookup,
-        CURRENT_ELEMENT_SPANNABLE, reporter, _compiler.coreTypes);
+    return NativeBehavior.ofJsEmbeddedGlobalCall(
+        specString,
+        _typeLookup(resolveAsRaw: true),
+        CURRENT_ELEMENT_SPANNABLE,
+        reporter,
+        _compiler.coreTypes);
   }
 
   /// Returns `true` is [node] has a `@Native(...)` annotation.
@@ -485,8 +504,8 @@ class KernelAstAdapter {
   NativeBehavior getNativeBehaviorForFieldLoad(ir.Field field) {
     DartType type = getDartType(field.type);
     List<ConstantExpression> metadata = getMetadata(field.annotations);
-    return NativeBehavior.ofFieldLoad(
-        CURRENT_ELEMENT_SPANNABLE, type, metadata, _typeLookup, _compiler,
+    return NativeBehavior.ofFieldLoad(CURRENT_ELEMENT_SPANNABLE, type, metadata,
+        _typeLookup(resolveAsRaw: false), _compiler,
         isJsInterop: false);
   }
 
@@ -502,8 +521,8 @@ class KernelAstAdapter {
   NativeBehavior getNativeBehaviorForMethod(ir.Procedure procedure) {
     DartType type = getFunctionType(procedure.function);
     List<ConstantExpression> metadata = getMetadata(procedure.annotations);
-    return NativeBehavior.ofMethod(
-        CURRENT_ELEMENT_SPANNABLE, type, metadata, _typeLookup, _compiler,
+    return NativeBehavior.ofMethod(CURRENT_ELEMENT_SPANNABLE, type, metadata,
+        _typeLookup(resolveAsRaw: false), _compiler,
         isJsInterop: false);
   }
 }
@@ -636,6 +655,17 @@ class Constantifier extends ir.ExpressionVisitor<ConstantExpression> {
             node.arguments.positional.length + argumentNames.length,
             argumentNames),
         arguments);
+  }
+
+  @override
+  ConstantExpression visitStaticGet(ir.StaticGet node) {
+    Element element = astAdapter.getMember(node.target);
+    if (element.isField) {
+      return new VariableConstantExpression(element);
+    }
+    astAdapter.reporter.internalError(
+        CURRENT_ELEMENT_SPANNABLE, "Unexpected constant target: $element.");
+    return null;
   }
 
   @override

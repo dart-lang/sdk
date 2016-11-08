@@ -903,23 +903,23 @@ abstract class Stream<T> {
       => listen(null, cancelOnError: true).asFuture/*<E>*/(futureValue);
 
   /**
-   * Provides at most the first [n] values of this stream.
+   * Provides at most the first [count] data events of this stream.
    *
-   * Forwards the first [n] data events of this stream, and all error
-   * events, to the returned stream, and ends with a done event.
+   * Forwards all events of this stream to the returned stream
+   * until [count] data events have been forwarded or this stream ends,
+   * then ends the returned stream with a done event.
    *
-   * If this stream produces fewer than [count] values before it's done,
+   * If this stream produces fewer than [count] data events before it's done,
    * so will the returned stream.
    *
-   * Stops listening to the stream after the first [n] elements have been
-   * received.
+   * Starts listening to this stream when the returned stream is listened to
+   * and stops listening when the first [count] data events have been received.
    *
-   * Internally the method cancels its subscription after these elements. This
-   * means that single-subscription (non-broadcast) streams are closed and
-   * cannot be reused after a call to this method.
+   * This means that if this is a single-subscription (non-broadcast) streams
+   * it cannot be reused after the returned stream has been listened to.
    *
-   * The returned stream is a broadcast stream if this stream is.
-   * For a broadcast stream, the events are only counted from the time
+   * If this is a broadcast stream, the returned stream is a broadcast stream.
+   * In that case, the events are only counted from the time
    * the returned stream is listened to.
    */
   Stream<T> take(int count) {
@@ -930,7 +930,7 @@ abstract class Stream<T> {
    * Forwards data events while [test] is successful.
    *
    * The returned stream provides the same events as this stream as long
-   * as [test] returns [:true:] for the event data. The stream is done
+   * as [test] returns `true` for the event data. The stream is done
    * when either this stream is done, or when this stream first provides
    * a value that [test] doesn't accept.
    *

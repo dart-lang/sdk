@@ -59,15 +59,9 @@ DEFINE_NATIVE_ENTRY(Developer_log, 8) {
   GET_NATIVE_ARGUMENT(Instance, dart_zone, arguments->NativeArgAt(5));
   GET_NATIVE_ARGUMENT(Instance, error, arguments->NativeArgAt(6));
   GET_NATIVE_ARGUMENT(Instance, stack_trace, arguments->NativeArgAt(7));
-  Service::SendLogEvent(isolate,
-                        sequence.AsInt64Value(),
-                        timestamp.AsInt64Value(),
-                        level.Value(),
-                        name,
-                        message,
-                        dart_zone,
-                        error,
-                        stack_trace);
+  Service::SendLogEvent(isolate, sequence.AsInt64Value(),
+                        timestamp.AsInt64Value(), level.Value(), name, message,
+                        dart_zone, error, stack_trace);
   return Object::null();
 #endif  // PRODUCT
 }
@@ -141,8 +135,8 @@ DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0) {
 
 static void SendNull(const SendPort& port) {
   const Dart_Port destination_port_id = port.Id();
-  PortMap::PostMessage(new Message(
-        destination_port_id, Object::null(), Message::kNormalPriority));
+  PortMap::PostMessage(new Message(destination_port_id, Object::null(),
+                                   Message::kNormalPriority));
 }
 
 

@@ -3274,6 +3274,11 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   visitMethodInvocation(MethodInvocation node) {
+    if (_isDeferredLoadLibrary(node.target, node.methodName)) {
+      // We are calling loadLibrary() on a deferred library prefix.
+      return _callHelper('loadLibrary()');
+    }
+
     if (node.operator?.lexeme == '?.') {
       return _emitNullSafe(node);
     }
@@ -4541,6 +4546,11 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   @override
   visitPrefixedIdentifier(PrefixedIdentifier node) {
+    if (_isDeferredLoadLibrary(node.prefix, node.identifier)) {
+      // We are tearing off "loadLibrary" on a library prefix.
+      return _callHelper('loadLibrary');
+    }
+
     if (isLibraryPrefix(node.prefix)) {
       return _visit(node.identifier);
     } else {
@@ -5578,3 +5588,23 @@ LibraryElement _getLibrary(AnalysisContext c, String uri) =>
 
 bool _isDartRuntime(LibraryElement l) =>
     l.isInSdk && l.source.uri.toString() == 'dart:_runtime';
+
+/// Returns `true` if [target] is a prefix for a deferred library and [name]
+/// is "loadLibrary".
+///
+/// If so, the expression should be compiled to call the runtime's
+/// "loadLibrary" helper function.
+bool _isDeferredLoadLibrary(Expression target, SimpleIdentifier name) {
+  if (name.name != "loadLibrary") return false;
+
+  if (target is! SimpleIdentifier) return false;
+  var targetIdentifier = target as SimpleIdentifier;
+
+  if (targetIdentifier.staticElement is! PrefixElement) return false;
+  var prefix = targetIdentifier.staticElement as PrefixElement;
+
+  // The library the prefix is referring to must come from a deferred import.
+  var containingLibrary = (target.root as CompilationUnit).element.library;
+  var imports = containingLibrary.getImportsWithPrefix(prefix);
+  return imports.length == 1 && imports[0].isDeferred;
+}

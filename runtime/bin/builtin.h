@@ -17,8 +17,7 @@ namespace dart {
 namespace bin {
 
 #define FUNCTION_NAME(name) Builtin_##name
-#define REGISTER_FUNCTION(name, count)                                         \
-  { ""#name, FUNCTION_NAME(name), count },
+#define REGISTER_FUNCTION(name, count) {"" #name, FUNCTION_NAME(name), count},
 #define DECLARE_FUNCTION(name, count)                                          \
   extern void FUNCTION_NAME(name)(Dart_NativeArguments args);
 

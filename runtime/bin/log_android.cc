@@ -8,7 +8,7 @@
 #include "bin/log.h"
 
 #include <android/log.h>  // NOLINT
-#include <stdio.h>  // NOLINT
+#include <stdio.h>        // NOLINT
 
 namespace dart {
 namespace bin {

@@ -50,7 +50,7 @@ Language/Libraries_and_Scripts/Parts/syntax_t06: Fail
 LibTest/core/List/List_class_A01_t02: Pass, Slow
 Language/Libraries_and_Scripts/Imports/deferred_import_t02: Crash # Issue 27201
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64) ]
+[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ($arch != x64 && $arch != simarm64 && $arch != arm64 && $arch != simdbc64 && $arch != simdbc) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == mips || $arch == arm64) ]
@@ -225,4 +225,4 @@ LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
 LibTest/core/Uri/Uri_A06_t03: Pass, Timeout
 LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 LibTest/isolate/Isolate/spawn_A01_t04: Pass, Timeout
-
+LibTest/isolate/ReceivePort/take_A01_t02: Crash, Fail # Issue 27773

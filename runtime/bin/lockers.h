@@ -11,16 +11,14 @@
 namespace dart {
 namespace bin {
 
-class MutexLocker  {
+class MutexLocker {
  public:
   explicit MutexLocker(Mutex* mutex) : mutex_(mutex) {
     ASSERT(mutex != NULL);
     mutex_->Lock();
   }
 
-  virtual ~MutexLocker() {
-    mutex_->Unlock();
-  }
+  virtual ~MutexLocker() { mutex_->Unlock(); }
 
  private:
   Mutex* const mutex_;
@@ -36,21 +34,15 @@ class MonitorLocker {
     monitor_->Enter();
   }
 
-  virtual ~MonitorLocker() {
-    monitor_->Exit();
-  }
+  virtual ~MonitorLocker() { monitor_->Exit(); }
 
   Monitor::WaitResult Wait(int64_t millis = Monitor::kNoTimeout) {
     return monitor_->Wait(millis);
   }
 
-  void Notify() {
-    monitor_->Notify();
-  }
+  void Notify() { monitor_->Notify(); }
 
-  void NotifyAll() {
-    monitor_->NotifyAll();
-  }
+  void NotifyAll() { monitor_->NotifyAll(); }
 
  private:
   Monitor* const monitor_;

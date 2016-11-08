@@ -194,6 +194,10 @@ class Kernel {
         if (cls.supertype != null) {
           classNode.supertype = interfaceTypeToIr(cls.supertype);
         }
+        if (cls.isMixinApplication) {
+          MixinApplicationElement mixinApplication = cls;
+          classNode.mixedInType = interfaceTypeToIr(mixinApplication.mixinType);
+        }
         classNode.parent = libraryToIr(cls.library);
         if (cls.isUnnamedMixinApplication) {
           classNode.enclosingLibrary.addClass(classNode);
@@ -218,6 +222,9 @@ class Kernel {
             in typesToIr(cls.interfaces.reverse().toList())) {
           classNode.implementedTypes.add(interface);
         }
+        addWork(cls, () {
+          addDefaultInstanceFieldInitializers(classNode);
+        });
       });
       addWork(cls.declaration, () {
         for (MetadataAnnotation metadata in cls.declaration.metadata) {
@@ -227,6 +234,37 @@ class Kernel {
       });
       return classNode;
     });
+  }
+
+  /// Adds initializers to instance fields that are have no initializer and are
+  /// not initialized by all constructors in the class.
+  ///
+  /// This is more or less copied directly from `ast_from_analyzer.dart` in
+  /// dartk.
+  void addDefaultInstanceFieldInitializers(ir.Class node) {
+    List<ir.Field> uninitializedFields = new List<ir.Field>();
+    for (ir.Field field in node.fields) {
+      if (field.initializer != null || field.isStatic) continue;
+      uninitializedFields.add(field);
+    }
+    if (uninitializedFields.isEmpty) return;
+    constructorLoop:
+    for (ir.Constructor constructor in node.constructors) {
+      Set<ir.Field> remainingFields = uninitializedFields.toSet();
+      for (ir.Initializer initializer in constructor.initializers) {
+        if (initializer is ir.FieldInitializer) {
+          remainingFields.remove(initializer.field);
+        } else if (initializer is ir.RedirectingInitializer) {
+          // The target constructor will be checked in another iteration.
+          continue constructorLoop;
+        }
+      }
+      for (ir.Field field in remainingFields) {
+        if (field.initializer == null) {
+          field.initializer = new ir.NullLiteral()..parent = field;
+        }
+      }
+    }
   }
 
   bool hasHierarchyProblem(ClassElement cls) => cls.hasIncompleteHierarchy;
@@ -459,11 +497,15 @@ class Kernel {
           isConst: field.isConst);
       addWork(field, () {
         setParent(fieldNode, field);
-        if (!field.isMalformed && field.initializer != null) {
-          KernelVisitor visitor =
-              new KernelVisitor(field, field.treeElements, this);
-          fieldNode.initializer = visitor.buildInitializer()
-            ..parent = fieldNode;
+        if (!field.isMalformed) {
+          if (field.initializer != null) {
+            KernelVisitor visitor =
+                new KernelVisitor(field, field.treeElements, this);
+            fieldNode.initializer = visitor.buildInitializer()
+              ..parent = fieldNode;
+          } else if (!field.isInstanceMember) {
+            fieldNode.initializer = new ir.NullLiteral()..parent = fieldNode;
+          }
         }
       });
       addWork(field.declaration, () {

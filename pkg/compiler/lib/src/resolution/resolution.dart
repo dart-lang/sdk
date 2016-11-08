@@ -425,7 +425,8 @@ class ResolverTask extends CompilerTask {
           }
         });
         if (initializer != null) {
-          if (!element.modifiers.isConst) {
+          if (!element.modifiers.isConst &&
+              initializer.asLiteralNull() == null) {
             // TODO(johnniwinther): Determine the const-ness eagerly to avoid
             // unnecessary registrations.
             registry.registerFeature(Feature.LAZY_FIELD);

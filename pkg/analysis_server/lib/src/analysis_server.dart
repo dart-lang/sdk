@@ -16,8 +16,6 @@ import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/new_notifications.dart';
 import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domains/analysis/navigation.dart';
-import 'package:analysis_server/src/domains/analysis/navigation_dart.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
@@ -322,6 +320,16 @@ class AnalysisServer {
   ByteStore byteStore;
 
   /**
+   * The set of the files that are currently priority.
+   */
+  final Set<String> priorityFiles = new Set<String>();
+
+  /**
+   * The cached results units for [priorityFiles].
+   */
+  final Map<String, nd.AnalysisResult> priorityFileResults = {};
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -559,6 +567,33 @@ class AnalysisServer {
       }
     }
     return null;
+  }
+
+  /**
+   * Return the analysis driver to which the file with the given [path] is
+   * added if exists, otherwise the first driver, otherwise `null`.
+   */
+  nd.AnalysisDriver getAnalysisDriver(String path) {
+    Iterable<nd.AnalysisDriver> drivers = driverMap.values;
+    if (drivers.isNotEmpty) {
+      return drivers.firstWhere((driver) => driver.isAddedFile(path),
+          orElse: () => drivers.first);
+    }
+    return null;
+  }
+
+  /**
+   * Return the analysis result for the file with the given [path]. The file is
+   * analyzed in one of the analysis drivers to which the file was added,
+   * otherwise in the first driver, otherwise `null` is returned.
+   */
+  Future<nd.AnalysisResult> getAnalysisResult(String path) async {
+    nd.AnalysisResult result = priorityFileResults[path];
+    if (result != null) {
+      return result;
+    }
+    nd.AnalysisDriver driver = getAnalysisDriver(path);
+    return driver?.getResult(path);
   }
 
   CompilationUnitElement getCompilationUnitElement(String file) {
@@ -1218,6 +1253,13 @@ class AnalysisServer {
    */
   void setPriorityFiles(String requestId, List<String> files) {
     if (options.enableNewAnalysisDriver) {
+      // Flush results for files that are not priority anymore.
+      priorityFiles
+          .difference(files.toSet())
+          .forEach(priorityFileResults.remove);
+      priorityFiles.clear();
+      priorityFiles.addAll(files);
+      // Set priority files in drivers.
       driverMap.values.forEach((driver) {
         driver.priorityFiles = files;
       });
@@ -1344,6 +1386,8 @@ class AnalysisServer {
   void updateContent(String id, Map<String, dynamic> changes) {
     if (options.enableNewAnalysisDriver) {
       changes.forEach((file, change) {
+        priorityFileResults.remove(file);
+
         // Prepare the new contents.
         String oldContents = fileContentOverlay[file];
         String newContents;
@@ -1715,21 +1759,26 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       // TODO(scheglov) send server status
     });
     analysisDriver.results.listen((result) {
-      new_sendErrorNotification(analysisServer, result);
+      if (analysisServer.priorityFiles.contains(result.path)) {
+        analysisServer.priorityFileResults[result.path] = result;
+      }
+      _runDelayed(() {
+        new_sendErrorNotification(analysisServer, result);
+      });
       CompilationUnit unit = result.unit;
       if (unit != null) {
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.HIGHLIGHTS, result.path)) {
-          sendAnalysisNotificationHighlights(analysisServer, result.path, unit);
+          _runDelayed(() {
+            sendAnalysisNotificationHighlights(
+                analysisServer, result.path, unit);
+          });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.NAVIGATION, result.path)) {
-          NavigationCollectorImpl collector = new NavigationCollectorImpl();
-          computeSimpleDartNavigation(collector, unit);
-          collector.createRegions();
-          var params = new AnalysisNavigationParams(result.path,
-              collector.regions, collector.targets, collector.files);
-          analysisServer.sendNotification(params.toNotification());
+          _runDelayed(() {
+            new_sendDartNotificationNavigation(analysisServer, result);
+          });
         }
       }
       // TODO(scheglov) Implement more notifications.
@@ -1846,6 +1895,25 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
+  }
+
+  /**
+   * Run [f] in a new [Future].
+   *
+   * This method is used to delay sending notifications. If there is a more
+   * important consumer of an analysis results, specifically a code completion
+   * computer, we want it to run before spending time of sending notifications.
+   *
+   * TODO(scheglov) Consider replacing this with full priority based scheduler.
+   *
+   * TODO(scheglov) Alternatively, if code completion work in a way that does
+   * not produce (at first) fully resolved unit, but only part of it - a single
+   * method, or a top-level declaration, we would not have this problem - the
+   * completion computer would be the only consumer of the partial analysis
+   * result.
+   */
+  void _runDelayed(f()) {
+    new Future(f);
   }
 }
 

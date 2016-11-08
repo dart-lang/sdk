@@ -2166,6 +2166,8 @@ class Foo {
     expectNotNullIfNoErrors(list);
     listener
         .assertErrorsWithCodes([ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP]);
+    expect(list.parameters[0].kind, ParameterKind.REQUIRED);
+    expect(list.parameters[1].kind, ParameterKind.NAMED);
   }
 
   void test_nonConstructorFactory_field() {
@@ -2292,6 +2294,8 @@ class Foo {
     expectNotNullIfNoErrors(list);
     listener.assertErrorsWithCodes(
         [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP]);
+    expect(list.parameters[0].kind, ParameterKind.REQUIRED);
+    expect(list.parameters[1].kind, ParameterKind.POSITIONAL);
   }
 
   void test_redirectingConstructorWithBody_named() {

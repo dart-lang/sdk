@@ -312,6 +312,9 @@ class ErroneousConstructorElementX extends ErroneousElementX
   bool get isRedirectingGenerative => false;
 
   @override
+  bool isRedirectingGenerativeInternal;
+
+  @override
   void set isRedirectingGenerative(_) {
     throw new UnsupportedError("isRedirectingGenerative");
   }
@@ -2222,7 +2225,7 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
 abstract class ConstructorElementX extends FunctionElementX
     with ConstantConstructorMixin, ConstructorElementCommon
     implements ConstructorElement {
-  bool isRedirectingGenerative = false;
+  bool isRedirectingGenerativeInternal = false;
 
   ConstructorElementX(
       String name, ElementKind kind, Modifiers modifiers, Element enclosing)
@@ -2232,6 +2235,11 @@ abstract class ConstructorElementX extends FunctionElementX
   PrefixElement _redirectionDeferredPrefix;
 
   ConstructorElementX get patch => super.patch;
+
+  bool get isRedirectingGenerative {
+    if (isPatched) return patch.isRedirectingGenerative;
+    return isRedirectingGenerativeInternal;
+  }
 
   bool get isRedirectingFactory => immediateRedirectionTarget != null;
 

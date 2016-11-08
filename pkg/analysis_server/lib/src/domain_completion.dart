@@ -12,7 +12,9 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/generated/engine.dart' hide AnalysisResult;
+import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -102,23 +104,14 @@ class CompletionDomainHandler implements RequestHandler {
 
   @override
   Response handleRequest(Request request) {
-    if (server.options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      String completionId = (_nextCompletionId++).toString();
-      new Future(() {
-        sendCompletionNotification(completionId, 0, 0, []);
-      });
-      return new CompletionGetSuggestionsResult(completionId)
-          .toResponse(request.id);
-    }
     if (server.searchEngine == null) {
       return new Response.noIndexGenerated(request);
     }
-    return runZoned(() {
+    runZoned(() {
       try {
         String requestName = request.method;
         if (requestName == COMPLETION_GET_SUGGESTIONS) {
-          return processRequest(request);
+          processRequest(request);
         }
       } on RequestFailure catch (exception) {
         return exception.response;
@@ -130,35 +123,67 @@ class CompletionDomainHandler implements RequestHandler {
           exception,
           stackTrace);
     });
+    return Response.DELAYED_RESPONSE;
   }
 
   /**
    * Process a `completion.getSuggestions` request.
    */
-  Response processRequest(Request request) {
+  Future<Null> processRequest(Request request) async {
     performance = new CompletionPerformance();
 
     // extract and validate params
     CompletionGetSuggestionsParams params =
         new CompletionGetSuggestionsParams.fromRequest(request);
-    ContextSourcePair contextSource = server.getContextSourcePair(params.file);
-    AnalysisContext context = contextSource.context;
-    Source source = contextSource.source;
-    if (context == null || !context.exists(source)) {
-      return new Response.unknownSource(request);
-    }
-    TimestampedData<String> contents = context.getContents(source);
-    if (params.offset < 0 || params.offset > contents.data.length) {
-      return new Response.invalidParameter(
-          request,
-          'params.offset',
-          'Expected offset between 0 and source length inclusive,'
-          ' but found ${params.offset}');
+
+    AnalysisResult result;
+    AnalysisContext context;
+    Source source;
+    if (server.options.enableNewAnalysisDriver) {
+      result = await server.getAnalysisResult(params.file);
+
+      if (result == null) {
+        server.sendResponse(new Response.unknownSource(request));
+        return;
+      }
+
+      if (params.offset < 0 || params.offset > result.content.length) {
+        server.sendResponse(new Response.invalidParameter(
+            request,
+            'params.offset',
+            'Expected offset between 0 and source length inclusive,'
+            ' but found ${params.offset}'));
+        return;
+      }
+
+      source = new FileSource(
+          server.resourceProvider.getFile(result.path), result.uri);
+    } else {
+      ContextSourcePair contextSource =
+          server.getContextSourcePair(params.file);
+
+      context = contextSource.context;
+      source = contextSource.source;
+      if (context == null || !context.exists(source)) {
+        server.sendResponse(new Response.unknownSource(request));
+        return;
+      }
+
+      TimestampedData<String> contents = context.getContents(source);
+      if (params.offset < 0 || params.offset > contents.data.length) {
+        server.sendResponse(new Response.invalidParameter(
+            request,
+            'params.offset',
+            'Expected offset between 0 and source length inclusive,'
+            ' but found ${params.offset}'));
+        return;
+      }
     }
 
     recordRequest(performance, context, source, params.offset);
 
     CompletionRequestImpl completionRequest = new CompletionRequestImpl(
+        result,
         context,
         server.resourceProvider,
         server.searchEngine,
@@ -169,6 +194,10 @@ class CompletionDomainHandler implements RequestHandler {
 
     _abortCurrentRequest();
     _currentRequest = completionRequest;
+
+    // initial response without results
+    server.sendResponse(new CompletionGetSuggestionsResult(completionId)
+        .toResponse(request.id));
 
     // Compute suggestions in the background
     computeSuggestions(completionRequest).then((CompletionResult result) {
@@ -188,10 +217,6 @@ class CompletionDomainHandler implements RequestHandler {
         _currentRequest = null;
       }
     });
-
-    // initial response without results
-    return new CompletionGetSuggestionsResult(completionId)
-        .toResponse(request.id);
   }
 
   /**

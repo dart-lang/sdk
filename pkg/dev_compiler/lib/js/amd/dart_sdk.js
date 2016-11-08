@@ -1938,6 +1938,9 @@ define([], function() {
     }
     return name;
   };
+  dart.loadLibrary = function() {
+    return async.Future.value();
+  };
   dart.defineProperty = function(obj, name, desc) {
     return Object.defineProperty(obj, name, desc);
   };
@@ -28817,9 +28820,7 @@ define([], function() {
   let const$28;
   let const$29;
   convert.Codec$ = dart.generic((S, T) => {
-    let _FusedCodecOfS$T$dynamic = () => (_FusedCodecOfS$T$dynamic = dart.constFn(convert._FusedCodec$(S, T, dart.dynamic)))();
     let _InvertedCodecOfT$S = () => (_InvertedCodecOfT$S = dart.constFn(convert._InvertedCodec$(T, S)))();
-    let CodecOfT$dynamic = () => (CodecOfT$dynamic = dart.constFn(convert.Codec$(T, dart.dynamic)))();
     class Codec extends core.Object {
       new() {
       }
@@ -28831,9 +28832,11 @@ define([], function() {
         T._check(encoded);
         return this.decoder.convert(encoded);
       }
-      fuse(other) {
-        CodecOfT$dynamic()._check(other);
-        return new (_FusedCodecOfS$T$dynamic())(this, other);
+      fuse(R) {
+        return other => {
+          convert.Codec$(T, R)._check(other);
+          return new (convert._FusedCodec$(S, T, R))(this, other);
+        };
       }
       get inverted() {
         return new (_InvertedCodecOfT$S())(this);
@@ -28846,7 +28849,7 @@ define([], function() {
       methods: () => ({
         encode: dart.definiteFunctionType(T, [S]),
         decode: dart.definiteFunctionType(S, [T]),
-        fuse: dart.definiteFunctionType(convert.Codec$(S, dart.dynamic), [CodecOfT$dynamic()])
+        fuse: dart.definiteFunctionType(R => [convert.Codec$(S, R), [convert.Codec$(T, R)]])
       })
     });
     return Codec;
@@ -35940,7 +35943,7 @@ define([], function() {
       if (dart.test(base64)) {
         buffer.write(';base64,');
         indices[dartx.add](dart.notNull(buffer.length) - 1);
-        buffer.write(encoding.fuse(convert.BASE64).encode(content));
+        buffer.write(encoding.fuse(core.String)(convert.BASE64).encode(content));
       } else {
         buffer.write(',');
         core.UriData._uriEncodeBytes(core.UriData._uricTable, encoding.encode(content), buffer);

@@ -7,10 +7,10 @@
 
 #include "bin/fdutils.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
+#include <errno.h>      // NOLINT
+#include <fcntl.h>      // NOLINT
 #include <sys/ioctl.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>     // NOLINT
 
 #include "platform/signal_blocker.h"
 

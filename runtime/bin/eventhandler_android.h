@@ -23,9 +23,9 @@ namespace bin {
 
 class DescriptorInfo : public DescriptorInfoBase {
  public:
-  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) { }
+  explicit DescriptorInfo(intptr_t fd) : DescriptorInfoBase(fd) {}
 
-  virtual ~DescriptorInfo() { }
+  virtual ~DescriptorInfo() {}
 
   intptr_t GetPollEvents();
 
@@ -39,8 +39,7 @@ class DescriptorInfo : public DescriptorInfoBase {
 };
 
 
-class DescriptorInfoSingle
-    : public DescriptorInfoSingleMixin<DescriptorInfo> {
+class DescriptorInfoSingle : public DescriptorInfoSingleMixin<DescriptorInfo> {
  public:
   explicit DescriptorInfoSingle(intptr_t fd)
       : DescriptorInfoSingleMixin(fd, false) {}
@@ -68,7 +67,7 @@ class EventHandlerImplementation {
   EventHandlerImplementation();
   ~EventHandlerImplementation();
 
-  void UpdateEpollInstance(intptr_t old_mask, DescriptorInfo *di);
+  void UpdateEpollInstance(intptr_t old_mask, DescriptorInfo* di);
 
   // Gets the socket data structure for a given file
   // descriptor. Creates a new one if one is not found.

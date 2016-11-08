@@ -29,15 +29,14 @@ namespace dart {
 namespace bin {
 
 MagentaWaitManyInfo::MagentaWaitManyInfo()
-    : capacity_(kInitialCapacity),
-      size_(0) {
+    : capacity_(kInitialCapacity), size_(0) {
   descriptor_infos_ = static_cast<DescriptorInfo**>(
       malloc(kInitialCapacity * sizeof(*descriptor_infos_)));
   if (descriptor_infos_ == NULL) {
     FATAL("Failed to allocate descriptor_infos array");
   }
-  items_ = static_cast<mx_wait_item_t*>(
-      malloc(kInitialCapacity * sizeof(*items_)));
+  items_ =
+      static_cast<mx_wait_item_t*>(malloc(kInitialCapacity * sizeof(*items_)));
   if (items_ == NULL) {
     FATAL("Failed to allocate items array");
   }
@@ -110,21 +109,20 @@ void MagentaWaitManyInfo::GrowArraysIfNeeded(intptr_t desired_size) {
     FATAL("Failed to grow items array");
   }
   capacity_ = new_capacity;
-  LOG_INFO("GrowArraysIfNeeded(%ld), capacity = %ld\n",
-           desired_size, capacity_);
+  LOG_INFO("GrowArraysIfNeeded(%ld), capacity = %ld\n", desired_size,
+           capacity_);
 }
 
 
 EventHandlerImplementation::EventHandlerImplementation() {
-  mx_status_t status = mx_channel_create(0, &interrupt_handles_[0],
-                                         &interrupt_handles_[1]);
+  mx_status_t status =
+      mx_channel_create(0, &interrupt_handles_[0], &interrupt_handles_[1]);
   if (status != NO_ERROR) {
     FATAL1("mx_channel_create failed: %s\n", mx_status_get_string(status));
   }
   shutdown_ = false;
   info_.AddHandle(interrupt_handles_[0],
-                  MX_SIGNAL_READABLE | MX_SIGNAL_PEER_CLOSED,
-                  NULL);
+                  MX_SIGNAL_READABLE | MX_SIGNAL_PEER_CLOSED, NULL);
   LOG_INFO("EventHandlerImplementation initialized\n");
 }
 
@@ -151,7 +149,7 @@ void EventHandlerImplementation::WakeupHandler(intptr_t id,
   msg.data = data;
 
   mx_status_t status =
-    mx_channel_write(interrupt_handles_[1], 0, &msg, sizeof(msg), NULL, 0);
+      mx_channel_write(interrupt_handles_[1], 0, &msg, sizeof(msg), NULL, 0);
   if (status != NO_ERROR) {
     FATAL1("mx_channel_write failed: %s\n", mx_status_get_string(status));
   }
@@ -165,8 +163,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
   uint32_t bytes = kInterruptMessageSize;
   mx_status_t status;
   while (true) {
-    status = mx_channel_read(
-        interrupt_handles_[0], 0, &msg, bytes, &bytes, NULL, 0, NULL);
+    status = mx_channel_read(interrupt_handles_[0], 0, &msg, bytes, &bytes,
+                             NULL, 0, NULL);
     if (status != NO_ERROR) {
       break;
     }
@@ -222,8 +220,8 @@ int64_t EventHandlerImplementation::GetTimeout() const {
   if (!timeout_queue_.HasTimeout()) {
     return kInfinityTimeout;
   }
-  int64_t millis = timeout_queue_.CurrentTimeout() -
-      TimerUtils::GetCurrentMonotonicMillis();
+  int64_t millis =
+      timeout_queue_.CurrentTimeout() - TimerUtils::GetCurrentMonotonicMillis();
   return (millis < 0) ? 0 : millis;
 }
 
@@ -231,7 +229,7 @@ int64_t EventHandlerImplementation::GetTimeout() const {
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_queue_.HasTimeout()) {
     int64_t millis = timeout_queue_.CurrentTimeout() -
-        TimerUtils::GetCurrentMonotonicMillis();
+                     TimerUtils::GetCurrentMonotonicMillis();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_queue_.CurrentPort());
       timeout_queue_.RemoveCurrent();
@@ -251,12 +249,10 @@ void EventHandlerImplementation::Poll(uword args) {
     mx_time_t timeout =
         millis * kMicrosecondsPerMillisecond * kNanosecondsPerMicrosecond;
     const MagentaWaitManyInfo& info = handler_impl->info();
-    LOG_INFO("mx_handle_wait_many(%p, %ld, %lld)\n",
-        info.items(), info.size(), timeout);
-    mx_status_t status = mx_handle_wait_many(
-        info.items(),
-        info.size(),
-        timeout);
+    LOG_INFO("mx_handle_wait_many(%p, %ld, %lld)\n", info.items(), info.size(),
+             timeout);
+    mx_status_t status =
+        mx_handle_wait_many(info.items(), info.size(), timeout);
     if ((status != NO_ERROR) && (status != ERR_TIMED_OUT)) {
       FATAL1("mx_handle_wait_many failed: %s\n", mx_status_get_string(status));
     } else {

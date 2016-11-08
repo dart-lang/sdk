@@ -91,13 +91,13 @@ bool _changed(List<int> list1, List<int> list2) {
 }
 
 void _compile(ArgResults argResults, void printFn(Object obj)) {
-  var compiler =
-      new ModuleCompiler(new AnalyzerOptions.fromArguments(argResults));
-  var compilerOpts = new CompilerOptions.fromArguments(argResults);
   if (argResults['help']) {
     printFn(_usageMessage);
     return;
   }
+  var compiler =
+      new ModuleCompiler(new AnalyzerOptions.fromArguments(argResults));
+  var compilerOpts = new CompilerOptions.fromArguments(argResults);
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
   bool singleOutFile = argResults['single-out-file'];

@@ -38,6 +38,7 @@ DEFINE_FLAG(uint64_t, stop_sim_at, ULLONG_MAX,
             "Instruction address or instruction count to stop simulator at.");
 
 #define LIKELY(cond) __builtin_expect((cond), 1)
+#define UNLIKELY(cond) __builtin_expect((cond), 0)
 
 // SimulatorSetjmpBuffer are linked together, and the last created one
 // is referenced by the Simulator. When an exception is thrown, the exception
@@ -1435,9 +1436,17 @@ RawObject* Simulator::Call(const Code& code,
       counter += increment;
       f->ptr()->usage_counter_ = counter;
     }
-    if (counter >= threshold) {
+    if (UNLIKELY(counter >= threshold)) {
       FP[0] = f;
       FP[1] = 0;
+
+      // Make the DRT_OptimizeInvokedFunction see a stub as its caller for
+      // consistency with the other architectures, and to avoid needing to
+      // generate a stackmap for the HotCheck pc.
+      const StubEntry* stub = StubCode::OptimizeFunction_entry();
+      FP[kPcMarkerSlotFromFp] = stub->code();
+      pc = reinterpret_cast<uint32_t*>(stub->EntryPoint());
+
       Exit(thread, FP, FP + 2, pc);
       NativeArguments args(thread, 1, FP, FP + 1);
       INVOKE_RUNTIME(DRT_OptimizeInvokedFunction, args);
@@ -1983,7 +1992,7 @@ RawObject* Simulator::Call(const Code& code,
   {
     BYTECODE(Shl, A_B_C);
     const intptr_t rhs = reinterpret_cast<intptr_t>(FP[rC]) >> kSmiTagSize;
-    if (rhs >= 0) {
+    if (static_cast<uintptr_t>(rhs) < kBitsPerWord) {
       const intptr_t lhs = reinterpret_cast<intptr_t>(FP[rB]);
       const intptr_t res = lhs << rhs;
       if (lhs == (res >> rhs)) {

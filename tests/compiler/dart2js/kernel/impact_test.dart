@@ -4,16 +4,17 @@
 
 library dart2js.kernel.impact_test;
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/resolution/registry.dart';
+import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -26,6 +27,7 @@ import '../serialization/test_helper.dart';
 const Map<String, String> SOURCE = const <String, String>{
   'main.dart': r'''
 import 'helper.dart';
+import 'dart:html';
 
 main() {
   testEmpty();
@@ -151,6 +153,7 @@ main() {
   testDefaultValuesNamed();
   testFieldInitializer1();
   testFieldInitializer2();
+  testFieldInitializer3();
   testInstanceFieldWithInitializer();
   testInstanceFieldTyped();
   testThisInitializer();
@@ -478,6 +481,15 @@ class ClassFieldInitializer2 {
   ClassFieldInitializer2(value) : field = value;
 }
 testFieldInitializer2() => new ClassFieldInitializer2(42);
+class ClassFieldInitializer3 {
+  var field;
+  ClassFieldInitializer3.a();
+  ClassFieldInitializer3.b(value) : field = value;
+}
+testFieldInitializer3() {
+  new ClassFieldInitializer3.a();
+  new ClassFieldInitializer3.b(42);
+}
 class ClassInstanceFieldWithInitializer {
   var field = false;
 }
@@ -603,27 +615,56 @@ main(List<String> args) {
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
     compiler.libraryLoader.libraries.forEach((LibraryElement library) {
-      checkLibrary(compiler, library);
+      checkLibrary(compiler, library, fullTest: args.contains('--full'));
     });
   });
 }
 
-void checkLibrary(Compiler compiler, LibraryElement library) {
+void checkLibrary(Compiler compiler, LibraryElement library,
+    {bool fullTest: false}) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
       ClassElement cls = element;
       cls.forEachLocalMember((AstElement member) {
-        checkElement(compiler, member);
+        checkElement(compiler, member, fullTest: fullTest);
       });
     } else if (element.isTypedef) {
       // Skip typedefs.
     } else {
-      checkElement(compiler, element);
+      checkElement(compiler, element, fullTest: fullTest);
     }
   });
 }
 
-void checkElement(Compiler compiler, AstElement element) {
+void checkElement(Compiler compiler, AstElement element,
+    {bool fullTest: false}) {
+  if (!fullTest) {
+    if (element.library.isPlatformLibrary) {
+      // Test only selected elements in web-related platform libraries since
+      // this unittest otherwise takes too long to run.
+      switch (element.library.canonicalUri.path) {
+        case 'html':
+          if ('$element' ==
+              'function(_ValidatingTreeSanitizer#_sanitizeUntrustedElement)') {
+            break;
+          }
+          return;
+        case 'web_gl':
+          if ('$element' ==
+              'function(RenderingContext#getFramebufferAttachmentParameter)') {
+            return;
+          }
+          break;
+        case 'indexed_db':
+          if ('$element' == 'field(ObjectStore#keyPath)') {
+            break;
+          }
+          return;
+        case 'web_audio':
+          return;
+      }
+    }
+  }
   if (element.isConstructor) {
     ConstructorElement constructor = element;
     if (constructor.isRedirectingFactory) {
@@ -662,8 +703,8 @@ ResolutionImpact laxImpact(
   }
   impact.dynamicUses.forEach(builder.registerDynamicUse);
   for (TypeUse typeUse in impact.typeUses) {
-    builder.registerTypeUse(new TypeUse.internal(
-        const Unaliaser().visit(typeUse.type), typeUse.kind));
+    builder.registerTypeUse(
+        new TypeUse.internal(unalias(typeUse.type), typeUse.kind));
   }
   impact.constantLiterals.forEach(builder.registerConstantLiteral);
   impact.constSymbolNames.forEach(builder.registerConstSymbolName);
@@ -671,6 +712,38 @@ ResolutionImpact laxImpact(
   impact.mapLiterals.forEach(builder.registerMapLiteral);
   for (Feature feature in impact.features) {
     switch (feature) {
+      case Feature.FIELD_WITHOUT_INITIALIZER:
+        if (element.isInstanceMember) {
+          bool missing = false;
+          OUTER:
+          for (ConstructorElement constructor
+              in element.enclosingClass.constructors) {
+            if (constructor.isGenerativeConstructor &&
+                !constructor.isRedirectingGenerative) {
+              for (ParameterElement parameter in constructor.parameters) {
+                if (parameter is InitializingFormalElement &&
+                    parameter.fieldElement == element) {
+                  continue OUTER;
+                }
+              }
+              if (constructor.resolvedAst.kind == ResolvedAstKind.PARSED) {
+                var function = constructor.resolvedAst.node;
+                if (function.initializers != null) {
+                  TreeElements elements = constructor.resolvedAst.elements;
+                  for (var initializer in function.initializers) {
+                    if (elements[initializer] == element) {
+                      continue OUTER;
+                    }
+                  }
+                }
+              }
+              missing = true;
+            }
+          }
+          if (!missing) continue;
+        }
+        builder.registerConstantLiteral(new NullConstantExpression());
+        break;
       case Feature.STRING_INTERPOLATION:
       case Feature.STRING_JUXTAPOSITION:
         // These are both converted into a string concatenation in kernel so
@@ -729,4 +802,9 @@ class Unaliaser extends BaseDartTypeVisitor<dynamic, DartType> {
         type.namedParameters,
         visitList(type.namedParameterTypes));
   }
+}
+
+/// Perform unaliasing of all typedefs nested within a [DartType].
+DartType unalias(DartType type) {
+  return const Unaliaser().visit(type);
 }

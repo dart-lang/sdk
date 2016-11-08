@@ -28,19 +28,15 @@ static File* GetFile(Dart_NativeArguments args) {
   File* file;
   Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
   ASSERT(Dart_IsInstance(dart_this));
-  ThrowIfError(Dart_GetNativeInstanceField(
-      dart_this,
-      kFileNativeFieldIndex,
-      reinterpret_cast<intptr_t*>(&file)));
+  ThrowIfError(Dart_GetNativeInstanceField(dart_this, kFileNativeFieldIndex,
+                                           reinterpret_cast<intptr_t*>(&file)));
   return file;
 }
 
 
 static void SetFile(Dart_Handle dart_this, intptr_t file_pointer) {
   Dart_Handle result = Dart_SetNativeInstanceField(
-      dart_this,
-      kFileNativeFieldIndex,
-      file_pointer);
+      dart_this, kFileNativeFieldIndex, file_pointer);
   if (Dart_IsError(result)) {
     Log::PrintErr("SetNativeInstanceField in SetFile() failed\n");
     Dart_PropagateError(result);
@@ -183,10 +179,8 @@ void FUNCTION_NAME(File_Read)(Dart_NativeArguments args) {
           Dart_PropagateError(io_lib);
         }
         Dart_Handle array_view =
-            Dart_Invoke(io_lib,
-                        DartUtils::NewString("_makeUint8ListView"),
-                        kNumArgs,
-                        dart_args);
+            Dart_Invoke(io_lib, DartUtils::NewString("_makeUint8ListView"),
+                        kNumArgs, dart_args);
         Dart_SetReturnValue(args, array_view);
       } else {
         Dart_SetReturnValue(args, external_array);
@@ -208,10 +202,8 @@ void FUNCTION_NAME(File_ReadInto)(Dart_NativeArguments args) {
   // integers and have the property that end <=
   // list.length. Therefore, it is safe to extract their value as
   // intptr_t.
-  intptr_t start =
-      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
-  intptr_t end =
-      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+  intptr_t start = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  intptr_t end = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
   intptr_t length = end - start;
   intptr_t array_len = 0;
   Dart_Handle result = Dart_ListLength(buffer_obj, &array_len);
@@ -244,10 +236,8 @@ void FUNCTION_NAME(File_WriteFrom)(Dart_NativeArguments args) {
   // integers and have the property that (offset + length) <=
   // list.length. Therefore, it is safe to extract their value as
   // intptr_t.
-  intptr_t start =
-      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
-  intptr_t end =
-      DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
+  intptr_t start = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 2));
+  intptr_t end = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 3));
 
   // The buffer object passed in has to be an Int8List or Uint8List object.
   // Acquire a direct pointer to the data area of the buffer object.
@@ -341,8 +331,7 @@ void FUNCTION_NAME(File_Length)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
-  const char* path =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  const char* path = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   int64_t return_value = File::LengthFromPath(path);
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value));
@@ -353,8 +342,7 @@ void FUNCTION_NAME(File_LengthFromPath)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_LastModified)(Dart_NativeArguments args) {
-  const char* name =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  const char* name = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   int64_t return_value = File::LastModified(name);
   if (return_value >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(return_value * kMSPerSecond));
@@ -384,8 +372,8 @@ void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
   if (DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 1), &lock) &&
       DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 2), &start) &&
       DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 3), &end)) {
-    if ((lock >= File::kLockMin) && (lock <= File::kLockMax) &&
-        (start >= 0) && (end == -1 || end > start)) {
+    if ((lock >= File::kLockMin) && (lock <= File::kLockMax) && (start >= 0) &&
+        (end == -1 || end > start)) {
       if (file->Lock(static_cast<File::LockType>(lock), start, end)) {
         Dart_SetReturnValue(args, Dart_True());
       } else {
@@ -400,8 +388,7 @@ void FUNCTION_NAME(File_Lock)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_Create)(Dart_NativeArguments args) {
-  const char* str =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::Create(str);
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
@@ -421,9 +408,9 @@ void FUNCTION_NAME(File_CreateLink)(Dart_NativeArguments args) {
     if (!File::CreateLink(name, target)) {
       Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
-  } else  {
-    Dart_Handle err = DartUtils::NewDartArgumentError(
-        "Non-string argument to Link.create");
+  } else {
+    Dart_Handle err =
+        DartUtils::NewDartArgumentError("Non-string argument to Link.create");
     Dart_SetReturnValue(args, err);
   }
 }
@@ -440,16 +427,15 @@ void FUNCTION_NAME(File_LinkTarget)(Dart_NativeArguments args) {
       Dart_SetReturnValue(args, DartUtils::NewString(target));
     }
   } else {
-    Dart_Handle err = DartUtils::NewDartArgumentError(
-        "Non-string argument to Link.target");
+    Dart_Handle err =
+        DartUtils::NewDartArgumentError("Non-string argument to Link.target");
     Dart_SetReturnValue(args, err);
   }
 }
 
 
 void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
-  const char* str =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::Delete(str);
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
@@ -460,8 +446,7 @@ void FUNCTION_NAME(File_Delete)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_DeleteLink)(Dart_NativeArguments args) {
-  const char* str =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   bool result = File::DeleteLink(str);
   if (result) {
     Dart_SetReturnValue(args, Dart_NewBoolean(result));
@@ -514,8 +499,7 @@ void FUNCTION_NAME(File_Copy)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
-  const char* str =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
+  const char* str = DartUtils::GetStringValue(Dart_GetNativeArgument(args, 0));
   const char* path = File::GetCanonicalPath(str);
   if (path != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(path));
@@ -527,8 +511,7 @@ void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
   int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  ASSERT((fd == STDIN_FILENO) ||
-         (fd == STDOUT_FILENO) ||
+  ASSERT((fd == STDIN_FILENO) || (fd == STDOUT_FILENO) ||
          (fd == STDERR_FILENO));
   File* file = File::OpenStdio(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
@@ -537,8 +520,7 @@ void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
   int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  ASSERT((fd == STDIN_FILENO) ||
-         (fd == STDOUT_FILENO) ||
+  ASSERT((fd == STDIN_FILENO) || (fd == STDOUT_FILENO) ||
          (fd == STDERR_FILENO));
   File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(type));
@@ -554,7 +536,7 @@ void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {
         DartUtils::GetBooleanValue(Dart_GetNativeArgument(args, 1));
     File::Type type = File::GetType(str, follow_links);
     Dart_SetReturnValue(args, Dart_NewInteger(static_cast<int>(type)));
-  } else  {
+  } else {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to FileSystemEntity.type");
     Dart_SetReturnValue(args, err);
@@ -572,18 +554,17 @@ void FUNCTION_NAME(File_Stat)(Dart_NativeArguments args) {
     if (stat_data[File::kType] == File::kDoesNotExist) {
       Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     } else {
-      Dart_Handle returned_data = Dart_NewTypedData(Dart_TypedData_kInt64,
-                                                    File::kStatSize);
+      Dart_Handle returned_data =
+          Dart_NewTypedData(Dart_TypedData_kInt64, File::kStatSize);
       if (Dart_IsError(returned_data)) {
         Dart_PropagateError(returned_data);
       }
       Dart_TypedData_Type data_type_unused;
       void* data_location;
       intptr_t data_length_unused;
-      Dart_Handle status = Dart_TypedDataAcquireData(returned_data,
-                                                     &data_type_unused,
-                                                     &data_location,
-                                                     &data_length_unused);
+      Dart_Handle status =
+          Dart_TypedDataAcquireData(returned_data, &data_type_unused,
+                                    &data_location, &data_length_unused);
       if (Dart_IsError(status)) {
         Dart_PropagateError(status);
       }
@@ -615,7 +596,7 @@ void FUNCTION_NAME(File_AreIdentical)(Dart_NativeArguments args) {
     } else {
       Dart_SetReturnValue(args, Dart_NewBoolean(result == File::kIdentical));
     }
-  } else  {
+  } else {
     Dart_Handle err = DartUtils::NewDartArgumentError(
         "Non-string argument to FileSystemEntity.identical");
     Dart_SetReturnValue(args, err);
@@ -669,8 +650,7 @@ CObject* File::CreateRequest(const CObjectArray& request) {
 
 CObject* File::OpenRequest(const CObjectArray& request) {
   File* file = NULL;
-  if ((request.Length() == 2) &&
-      request[0]->IsString() &&
+  if ((request.Length() == 2) && request[0]->IsString() &&
       request[1]->IsInt32()) {
     CObjectString filename(request[0]);
     CObjectInt32 mode(request[1]);
@@ -704,8 +684,7 @@ CObject* File::DeleteRequest(const CObjectArray& request) {
 
 
 CObject* File::RenameRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsString() &&
+  if ((request.Length() == 2) && request[0]->IsString() &&
       request[1]->IsString()) {
     CObjectString old_path(request[0]);
     CObjectString new_path(request[1]);
@@ -720,8 +699,7 @@ CObject* File::RenameRequest(const CObjectArray& request) {
 
 
 CObject* File::CopyRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsString() &&
+  if ((request.Length() == 2) && request[0]->IsString() &&
       request[1]->IsString()) {
     CObjectString old_path(request[0]);
     CObjectString new_path(request[1]);
@@ -1046,8 +1024,7 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
     RefCntReleaseScope<File> rs(file);
     if ((request.Length() == 4) &&
         (request[1]->IsTypedData() || request[1]->IsArray()) &&
-        request[2]->IsInt32OrInt64() &&
-        request[3]->IsInt32OrInt64()) {
+        request[2]->IsInt32OrInt64() && request[3]->IsInt32OrInt64()) {
       if (!file->IsClosed()) {
         int64_t start = CObjectInt32OrInt64ToInt64(request[2]);
         int64_t end = CObjectInt32OrInt64ToInt64(request[3]);
@@ -1091,8 +1068,7 @@ CObject* File::WriteFromRequest(const CObjectArray& request) {
 
 
 CObject* File::CreateLinkRequest(const CObjectArray& request) {
-  if ((request.Length() != 2) ||
-      !request[0]->IsString() ||
+  if ((request.Length() != 2) || !request[0]->IsString() ||
       !request[1]->IsString()) {
     return CObject::IllegalArgumentError();
   }
@@ -1121,8 +1097,7 @@ CObject* File::DeleteLinkRequest(const CObjectArray& request) {
 
 
 CObject* File::RenameLinkRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsString() &&
+  if ((request.Length() == 2) && request[0]->IsString() &&
       request[1]->IsString()) {
     CObjectString old_path(request[0]);
     CObjectString new_path(request[1]);
@@ -1152,8 +1127,7 @@ CObject* File::LinkTargetRequest(const CObjectArray& request) {
 
 
 CObject* File::TypeRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsString() &&
+  if ((request.Length() == 2) && request[0]->IsString() &&
       request[1]->IsBool()) {
     CObjectString path(request[0]);
     CObjectBool follow_links(request[1]);
@@ -1165,13 +1139,12 @@ CObject* File::TypeRequest(const CObjectArray& request) {
 
 
 CObject* File::IdenticalRequest(const CObjectArray& request) {
-  if ((request.Length() == 2) &&
-      request[0]->IsString() &&
+  if ((request.Length() == 2) && request[0]->IsString() &&
       request[1]->IsString()) {
     CObjectString path1(request[0]);
     CObjectString path2(request[1]);
-    File::Identical result = File::AreIdentical(path1.CString(),
-                                                path2.CString());
+    File::Identical result =
+        File::AreIdentical(path1.CString(), path2.CString());
     if (result == File::kError) {
       return CObject::NewOSError();
     } else if (result == File::kIdentical) {
@@ -1192,8 +1165,7 @@ CObject* File::StatRequest(const CObjectArray& request) {
     if (data[File::kType] == File::kDoesNotExist) {
       return CObject::NewOSError();
     }
-    CObjectArray* result =
-        new CObjectArray(CObject::NewArray(File::kStatSize));
+    CObjectArray* result = new CObjectArray(CObject::NewArray(File::kStatSize));
     for (int i = 0; i < File::kStatSize; ++i) {
       result->SetAt(i, new CObjectInt64(CObject::NewInt64(data[i])));
     }
@@ -1210,10 +1182,8 @@ CObject* File::LockRequest(const CObjectArray& request) {
   if ((request.Length() >= 1) && request[0]->IsIntptr()) {
     File* file = CObjectToFilePointer(request[0]);
     RefCntReleaseScope<File> rs(file);
-    if ((request.Length() == 4) &&
-        request[1]->IsInt32OrInt64() &&
-        request[2]->IsInt32OrInt64() &&
-        request[3]->IsInt32OrInt64()) {
+    if ((request.Length() == 4) && request[1]->IsInt32OrInt64() &&
+        request[2]->IsInt32OrInt64() && request[3]->IsInt32OrInt64()) {
       if (!file->IsClosed()) {
         int64_t lock = CObjectInt32OrInt64ToInt64(request[1]);
         int64_t start = CObjectInt32OrInt64ToInt64(request[2]);

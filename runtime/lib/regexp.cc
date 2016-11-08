@@ -20,10 +20,10 @@ DECLARE_FLAG(bool, trace_irregexp);
 DEFINE_NATIVE_ENTRY(RegExp_factory, 4) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, pattern, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(
-      Instance, handle_multi_line, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(
-      Instance, handle_case_sensitive, arguments->NativeArgAt(3));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, handle_multi_line,
+                               arguments->NativeArgAt(2));
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, handle_case_sensitive,
+                               arguments->NativeArgAt(3));
   bool ignore_case = handle_case_sensitive.raw() != Bool::True().raw();
   bool multi_line = handle_multi_line.raw() == Bool::True().raw();
 
@@ -36,10 +36,7 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 4) {
   }
 
   // Create a RegExp object containing only the initial parameters.
-  return RegExpEngine::CreateRegExp(thread,
-                                    pattern,
-                                    multi_line,
-                                    ignore_case);
+  return RegExpEngine::CreateRegExp(thread, pattern, multi_line, ignore_case);
 }
 
 

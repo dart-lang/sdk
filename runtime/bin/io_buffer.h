@@ -15,7 +15,7 @@ class IOBuffer {
  public:
   // Allocate an IO buffer dart object (of type Uint8List) backed by
   // an external byte array.
-  static Dart_Handle Allocate(intptr_t size, uint8_t **buffer);
+  static Dart_Handle Allocate(intptr_t size, uint8_t** buffer);
 
   // Allocate IO buffer storage.
   static uint8_t* Allocate(intptr_t size);

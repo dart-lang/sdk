@@ -156,7 +156,7 @@ class LibraryViewElement extends HtmlElement implements Renderable {
       new DivElement()
         ..classes = ['content-centered-big']
         ..children = [
-          new HeadingElement.h2()..text = 'ICData',
+          new HeadingElement.h2()..text = 'Library',
           new HRElement(),
           new ObjectCommonElement(_isolate, _library, _retainedSizes,
               _reachableSizes, _references, _retainingPaths, _instances,

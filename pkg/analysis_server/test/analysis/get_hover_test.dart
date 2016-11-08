@@ -29,7 +29,7 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
     await waitForTasksFinished();
     Request request =
         new AnalysisGetHoverParams(testFile, offset).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    Response response = await waitResponse(request);
     var result = new AnalysisGetHoverResult.fromResponse(response);
     List<HoverInformation> hovers = result.hovers;
     return hovers.isNotEmpty ? hovers.first : null;

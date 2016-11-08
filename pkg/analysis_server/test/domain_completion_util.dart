@@ -14,13 +14,13 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:test/test.dart';
 
 import 'analysis_abstract.dart';
-import 'mocks.dart';
 
 class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   String completionId;
   int completionOffset;
   int replacementOffset;
   int replacementLength;
+  Map<String, Completer<Null>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
   bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
@@ -82,34 +82,33 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     return createMemoryIndex();
   }
 
-  Future getSuggestions() {
-    return waitForTasksFinished().then((_) {
-      Request request =
-          new CompletionGetSuggestionsParams(testFile, completionOffset)
-              .toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      completionId = response.id;
-      assertValidId(completionId);
-      return pumpEventQueue().then((_) {
-        expect(suggestionsDone, isTrue);
-      });
-    });
+  Future getSuggestions() async {
+    await waitForTasksFinished();
+
+    Request request =
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('0');
+    Response response = await waitResponse(request);
+    var result = new CompletionGetSuggestionsResult.fromResponse(response);
+    completionId = result.id;
+    assertValidId(completionId);
+    await _getResultsCompleter(completionId).future;
+    expect(suggestionsDone, isTrue);
   }
 
-  void processNotification(Notification notification) {
+  processNotification(Notification notification) async {
     if (notification.event == COMPLETION_RESULTS) {
       var params = new CompletionResultsParams.fromNotification(notification);
       String id = params.id;
       assertValidId(id);
-      if (id == completionId) {
-        expect(suggestionsDone, isFalse);
-        replacementOffset = params.replacementOffset;
-        replacementLength = params.replacementLength;
-        suggestionsDone = params.isLast;
-        expect(suggestionsDone, isNotNull);
-        suggestions = params.results;
-      }
+      replacementOffset = params.replacementOffset;
+      replacementLength = params.replacementLength;
+      suggestionsDone = params.isLast;
+      expect(suggestionsDone, isNotNull);
+      suggestions = params.results;
+      expect(allSuggestions.containsKey(id), isFalse);
       allSuggestions[id] = params.results;
+      _getResultsCompleter(id).complete(null);
     } else if (notification.event == SERVER_ERROR) {
       fail('server error: ${notification.toJson()}');
     }
@@ -120,5 +119,10 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     handler = new CompletionDomainHandler(server);
+  }
+
+  Completer<Null> _getResultsCompleter(String id) {
+    return receivedSuggestionsCompleters.putIfAbsent(
+        id, () => new Completer<Null>());
   }
 }

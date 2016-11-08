@@ -15,8 +15,7 @@ namespace dart {
 namespace bin {
 
 // Lists the native function implementing basic logging facility.
-#define BUILTIN_NATIVE_LIST(V)                                                 \
-  V(Builtin_PrintString, 1)
+#define BUILTIN_NATIVE_LIST(V) V(Builtin_PrintString, 1)
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
 
@@ -24,9 +23,7 @@ static struct NativeEntries {
   const char* name_;
   Dart_NativeFunction function_;
   int argument_count_;
-} BuiltinEntries[] = {
-  BUILTIN_NATIVE_LIST(REGISTER_FUNCTION)
-};
+} BuiltinEntries[] = {BUILTIN_NATIVE_LIST(REGISTER_FUNCTION)};
 
 
 Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,

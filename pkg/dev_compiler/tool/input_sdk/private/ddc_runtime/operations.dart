@@ -847,3 +847,9 @@ _canonicalMember(obj, name) {
   }
   return name;
 }
+
+/// Emulates the implicit "loadLibrary" function provided by a deferred library.
+///
+/// Libraries are not actually deferred in DDC, so this just returns a future
+/// that completes immediately.
+Future loadLibrary() => new Future.value();

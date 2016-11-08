@@ -72,10 +72,12 @@ class ApiSignature {
    * `addBytes([1]); addBytes([2]);`.
    */
   void addBytes(List<int> bytes) {
-    _makeRoom(bytes.length);
-    new Uint8List.view(_data.buffer)
-        .setRange(_offset, _offset + bytes.length, bytes);
-    _offset += bytes.length;
+    int length = bytes.length;
+    _makeRoom(length);
+    for (int i = 0; i < length; i++) {
+      _data.setUint8(_offset + i, bytes[i]);
+    }
+    _offset += length;
   }
 
   /**

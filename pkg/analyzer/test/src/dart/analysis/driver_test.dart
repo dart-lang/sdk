@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -75,7 +76,8 @@ class DriverTest {
           new DartUriResolver(sdk),
           new PackageMapUriResolver(provider, <String, List<Folder>>{
             'test': [provider.getFolder(testProject)]
-          })
+          }),
+          new ResourceUriResolver(provider)
         ], null, provider),
         new AnalysisOptionsImpl()..strongMode = true);
     driver.status.lastWhere((status) {
@@ -285,6 +287,94 @@ class C {
 
     AnalysisResult result = await driver.getResult(testFile);
     expect(_getClassFieldType(result.unit, 'C', 'f'), 'int');
+  }
+
+  test_getResult_sameFile_twoUris() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/test/c.dart');
+    provider.newFile(a, 'class A<T> {}');
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+var VB = new A<int>();
+''');
+    provider.newFile(
+        c,
+        r'''
+import '../lib/a.dart';
+var VC = new A<double>();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    await _waitForIdle();
+
+    {
+      AnalysisResult result = await driver.getResult(b);
+      expect(_getImportSource(result.unit, 0).uri.toString(),
+          'package:test/a.dart');
+      expect(_getTopLevelVarType(result.unit, 'VB'), 'A<int>');
+    }
+
+    {
+      AnalysisResult result = await driver.getResult(c);
+      expect(_getImportSource(result.unit, 0).uri,
+          provider.pathContext.toUri(_p('/test/lib/a.dart')));
+      expect(_getTopLevelVarType(result.unit, 'VC'), 'A<double>');
+    }
+  }
+
+  test_getResult_mix_fileAndPackageUris() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    var c = _p('/test/lib/c.dart');
+    var d = _p('/test/test/d.dart');
+    provider.newFile(
+        a,
+        r'''
+import 'package:test/c.dart';
+int x = y;
+''');
+    provider.newFile(
+        b,
+        r'''
+import '../lib/c.dart';
+int x = y;
+''');
+    provider.newFile(
+        c,
+        r'''
+import '../test/d.dart';
+var y = z;
+''');
+    provider.newFile(
+        d,
+        r'''
+String z = "string";
+''');
+
+    // Analysis of my_pkg/bin/a.dart produces no error because
+    // file:///my_pkg/bin/a.dart imports package:my_pkg/c.dart, and
+    // package:my_pkg/c.dart's import is erroneous, causing y's reference to z
+    // to be unresolved (and therefore have type dynamic).
+    {
+      AnalysisResult result = await driver.getResult(a);
+      expect(result.errors, isEmpty);
+    }
+
+    // Analysis of my_pkg/bin/b.dart produces the error "A value of type
+    // 'String' can't be assigned to a variable of type 'int'", because
+    // file:///my_pkg/bin/b.dart imports file:///my_pkg/lib/c.dart, which
+    // successfully imports file:///my_pkg/test/d.dart, causing y to have an
+    // inferred type of String.
+    {
+      AnalysisResult result = await driver.getResult(b);
+      List<AnalysisError> errors = result.errors;
+      expect(errors, hasLength(1));
+      expect(errors[0].errorCode, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    }
   }
 
   test_getResult_selfConsistent() async {
@@ -547,6 +637,15 @@ var A = B;
   String _getClassFieldType(
       CompilationUnit unit, String className, String fieldName) {
     return _getClassField(unit, className, fieldName).element.type.toString();
+  }
+
+  ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {
+    var import = unit.directives[directiveIndex] as ImportDirective;
+    return import.element as ImportElement;
+  }
+
+  Source _getImportSource(CompilationUnit unit, int directiveIndex) {
+    return _getImportElement(unit, directiveIndex).importedLibrary.source;
   }
 
   VariableDeclaration _getTopLevelVar(CompilationUnit unit, String name) {

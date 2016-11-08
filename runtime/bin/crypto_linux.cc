@@ -17,8 +17,8 @@ namespace bin {
 
 bool Crypto::GetRandomBytes(intptr_t count, uint8_t* buffer) {
   ThreadSignalBlocker signal_blocker(SIGPROF);
-  intptr_t fd = TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(
-      open("/dev/urandom", O_RDONLY));
+  intptr_t fd =
+      TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(open("/dev/urandom", O_RDONLY));
   if (fd < 0) {
     return false;
   }

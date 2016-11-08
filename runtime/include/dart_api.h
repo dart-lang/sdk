@@ -2940,6 +2940,19 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
                                                   Dart_Handle import,
                                                   Dart_Handle prefix);
 
+
+/**
+ * Returns a flattened list of pairs. The first element in each pair is the
+ * importing library and and the second element is the imported library for each
+ * import in the isolate of a library whose URI's scheme is [scheme].
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to a list of flattened pairs of importer-importee.
+ */
+DART_EXPORT Dart_Handle Dart_GetImportsOfScheme(Dart_Handle scheme);
+
+
 /**
  * Called by the embedder to provide the source for a "part of"
  * directive.  This function should be called in response to a

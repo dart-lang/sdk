@@ -30,6 +30,33 @@ namespace kernel {
 #define I Isolate::Current()
 
 
+static void DiscoverEnclosingElements(Zone* zone,
+                                      const Function& function,
+                                      Function* outermost_function,
+                                      TreeNode** outermost_node,
+                                      Class** klass) {
+  // Find out if there is an enclosing kernel class (which will be used to
+  // resolve type parameters).
+  *outermost_function = function.raw();
+  while (outermost_function->parent_function() != Object::null()) {
+    *outermost_function = outermost_function->parent_function();
+  }
+  *outermost_node =
+      static_cast<TreeNode*>(outermost_function->kernel_function());
+  if (*outermost_node != NULL) {
+    TreeNode* parent = NULL;
+    if ((*outermost_node)->IsProcedure()) {
+      parent = Procedure::Cast(*outermost_node)->parent();
+    } else if ((*outermost_node)->IsConstructor()) {
+      parent = Constructor::Cast(*outermost_node)->parent();
+    } else if ((*outermost_node)->IsField()) {
+      parent = Field::Cast(*outermost_node)->parent();
+    }
+    if (parent != NULL && parent->IsClass()) *klass = Class::Cast(parent);
+  }
+}
+
+
 void ScopeBuilder::EnterScope(TreeNode* node) {
   scope_ = new (Z) LocalScope(scope_, depth_.function_, depth_.loop_);
   result_->scopes.Insert(node, scope_);
@@ -39,17 +66,8 @@ void ScopeBuilder::EnterScope(TreeNode* node) {
 void ScopeBuilder::ExitScope() { scope_ = scope_->parent(); }
 
 
-LocalVariable* ScopeBuilder::MakeVariable(const dart::String& name) {
-  return new (Z)
-      LocalVariable(TokenPosition::kNoSource,
-                    TokenPosition::kNoSource,
-                    name,
-                    Object::dynamic_type());
-}
-
-
 LocalVariable* ScopeBuilder::MakeVariable(const dart::String& name,
-                                          const Type& type) {
+                                          const AbstractType& type) {
   return new (Z) LocalVariable(TokenPosition::kNoSource,
                                TokenPosition::kNoSource,
                                name,
@@ -71,7 +89,9 @@ void ScopeBuilder::AddParameters(FunctionNode* function, intptr_t pos) {
 
 void ScopeBuilder::AddParameter(VariableDeclaration* declaration,
                                 intptr_t pos) {
-  LocalVariable* variable = MakeVariable(H.DartSymbol(declaration->name()));
+  LocalVariable* variable =
+      MakeVariable(H.DartSymbol(declaration->name()),
+                   T.TranslateVariableType(declaration));
   if (declaration->IsFinal()) {
     variable->set_is_final();
   }
@@ -117,7 +137,8 @@ void ScopeBuilder::AddExceptionVariable(
   // If variable was not lifted by the transformer introduce a new
   // one into the current function scope.
   if (v == NULL) {
-    v = MakeVariable(GenerateName(prefix, nesting_depth - 1));
+    v = MakeVariable(GenerateName(prefix, nesting_depth - 1),
+                     AbstractType::dynamic_type());
 
     // If transformer did not lift the variable then there is no need
     // to lift it into the context when we encouter a YieldStatement.
@@ -149,7 +170,8 @@ void ScopeBuilder::AddIteratorVariable() {
 
   ASSERT(result_->iterator_variables.length() == depth_.for_in_ - 1);
   LocalVariable* iterator =
-      MakeVariable(GenerateName(":iterator", depth_.for_in_ - 1));
+      MakeVariable(GenerateName(":iterator", depth_.for_in_ - 1),
+                   AbstractType::dynamic_type());
   current_function_scope_->AddVariable(iterator);
   result_->iterator_variables.Add(iterator);
 }
@@ -213,7 +235,8 @@ void ScopeBuilder::AddVariable(VariableDeclaration* declaration) {
   const dart::String& name = declaration->name()->is_empty()
                                  ? GenerateName(":var", name_index_++)
                                  : H.DartSymbol(declaration->name());
-  LocalVariable* variable = MakeVariable(name);
+  LocalVariable* variable =
+      MakeVariable(name, T.TranslateVariableType(declaration));
   if (declaration->IsFinal()) {
     variable->set_is_final();
   }
@@ -237,6 +260,25 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
   ParsedFunction* parsed_function = parsed_function_;
   const dart::Function& function = parsed_function->function();
+
+  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+  // e.g. for type translation.
+  const dart::Class& klass =
+      dart::Class::Handle(zone_, parsed_function_->function().Owner());
+  Function& outermost_function = Function::Handle(Z);
+  TreeNode* outermost_node = NULL;
+  Class* kernel_klass = NULL;
+  DiscoverEnclosingElements(
+      Z, function, &outermost_function, &outermost_node, &kernel_klass);
+  // Use [klass]/[kernel_klass] as active class.  Type parameters will get
+  // resolved via [kernel_klass] unless we are nested inside a static factory
+  // in which case we will use [member].
+  ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
+  Member* member = ((outermost_node != NULL) && outermost_node->IsMember())
+                       ? Member::Cast(outermost_node)
+                       : NULL;
+  ActiveMemberScope active_member(&active_class_, member);
+
 
   LocalScope* enclosing_scope = NULL;
   if (function.IsLocalFunction()) {
@@ -271,7 +313,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
       intptr_t pos = 0;
       if (function.IsClosureFunction()) {
-        LocalVariable* variable = MakeVariable(Symbols::ClosureParameter());
+        LocalVariable* variable =
+            MakeVariable(Symbols::ClosureParameter(),
+                         AbstractType::dynamic_type());
         variable->set_is_forced_stack();
         scope_->InsertParameterAt(pos++, variable);
       } else if (!function.is_static()) {
@@ -299,7 +343,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         }
       } else if (function.IsFactory()) {
         LocalVariable* variable = MakeVariable(
-            Symbols::TypeArgumentsParameter(), AbstractType::dynamic_type());
+            Symbols::TypeArgumentsParameter(),
+            AbstractType::dynamic_type());
         scope_->InsertParameterAt(pos++, variable);
         result_->type_arguments_variable = variable;
       }
@@ -332,7 +377,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         result_->this_variable = variable;
       }
       if (is_setter) {
-        result_->setter_value = MakeVariable(Symbols::Value());
+        result_->setter_value = MakeVariable(
+            Symbols::Value(), AbstractType::dynamic_type());
         scope_->InsertParameterAt(pos++, result_->setter_value);
       }
       break;
@@ -353,7 +399,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case RawFunction::kInvokeFieldDispatcher:
       for (intptr_t i = 0; i < function.NumParameters(); ++i) {
         LocalVariable* variable = MakeVariable(
-            dart::String::ZoneHandle(Z, function.ParameterNameAt(i)));
+            dart::String::ZoneHandle(Z, function.ParameterNameAt(i)),
+            AbstractType::dynamic_type());
         scope_->InsertParameterAt(i, variable);
       }
       break;
@@ -528,7 +575,9 @@ void ScopeBuilder::VisitForInStatement(ForInStatement* node) {
 
 void ScopeBuilder::AddSwitchVariable() {
   if ((depth_.function_ == 0) && (result_->switch_variable == NULL)) {
-    LocalVariable* variable = MakeVariable(Symbols::SwitchExpr());
+    LocalVariable* variable = MakeVariable(
+        Symbols::SwitchExpr(),
+        AbstractType::dynamic_type());
     variable->set_is_forced_stack();
     current_function_scope_->AddVariable(variable);
     result_->switch_variable = variable;
@@ -546,7 +595,9 @@ void ScopeBuilder::VisitReturnStatement(ReturnStatement* node) {
   if ((depth_.function_ == 0) && (depth_.finally_ > 0) &&
       (result_->finally_return_variable == NULL)) {
     const dart::String& name = H.DartSymbol(":try_finally_return_value");
-    LocalVariable* variable = MakeVariable(name);
+    LocalVariable* variable = MakeVariable(
+        name,
+        AbstractType::dynamic_type());
     current_function_scope_->AddVariable(variable);
     result_->finally_return_variable = variable;
   }
@@ -2731,34 +2782,18 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   dart::Class& klass =
       dart::Class::Handle(zone_, parsed_function_->function().Owner());
 
-  // Find out if there is an enclosing kernel class (which will be used to
-  // resolve type parameters).
+  Function& outermost_function = Function::Handle(Z);
+  TreeNode* outermost_node = NULL;
   Class* kernel_klass = NULL;
-  dart::Function& topmost = dart::Function::Handle(Z, function.raw());
-  while (topmost.parent_function() != Object::null()) {
-    topmost = topmost.parent_function();
-  }
-  TreeNode* topmost_node = static_cast<TreeNode*>(topmost.kernel_function());
-  if (topmost_node != NULL) {
-    // Going up the closure->parent chain needs to result in a Procedure or
-    // Constructor.
-    TreeNode* parent = NULL;
-    if (topmost_node->IsProcedure()) {
-      parent = Procedure::Cast(topmost_node)->parent();
-    } else if (topmost_node->IsConstructor()) {
-      parent = Constructor::Cast(topmost_node)->parent();
-    } else if (topmost_node->IsField()) {
-      parent = Field::Cast(topmost_node)->parent();
-    }
-    if (parent != NULL && parent->IsClass()) kernel_klass = Class::Cast(parent);
-  }
+  DiscoverEnclosingElements(
+      Z, function, &outermost_function, &outermost_node, &kernel_klass);
 
   // Mark that we are using [klass]/[kernell_klass] as active class.  Resolving
   // of type parameters will get resolved via [kernell_klass] unless we are
   // nested inside a static factory in which case we will use [member].
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
-  Member* member = topmost_node != NULL && topmost_node->IsMember()
-                       ? Member::Cast(topmost_node)
+  Member* member = ((outermost_node != NULL) && outermost_node->IsMember())
+                       ? Member::Cast(outermost_node)
                        : NULL;
   ActiveMemberScope active_member(&active_class_, member);
 
@@ -2846,12 +2881,12 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFunction(FunctionNode* function,
       LocalVariable* variable = scope->VariableAt(i);
       if (variable->is_captured()) {
         // There is no LocalVariable describing the on-stack parameter so
-        // create one directly.
+        // create one directly and use the same type.
         LocalVariable* parameter =
             new (Z) LocalVariable(TokenPosition::kNoSource,
                                   TokenPosition::kNoSource,
                                   Symbols::TempParam(),
-                                  Object::dynamic_type());
+                                  variable->type());
         parameter->set_index(parameter_index);
         // Mark the stack variable so it will be ignored by the code for
         // try/catch.
@@ -3801,6 +3836,24 @@ AbstractType& DartTypeTranslator::TranslateTypeWithoutFinalization(
   finalize_ = saved_finalize;
   H.SetFinalize(saved_finalize);
   return result;
+}
+
+
+const AbstractType& DartTypeTranslator::TranslateVariableType(
+    VariableDeclaration* variable) {
+  AbstractType& abstract_type = TranslateType(variable->type());
+
+  // We return a new `ZoneHandle` here on purpose: The intermediate language
+  // instructions do not make a copy of the handle, so we do it.
+  AbstractType& type = Type::ZoneHandle(Z);
+
+  if (abstract_type.IsMalformed()) {
+    type = AbstractType::dynamic_type().raw();
+  } else {
+    type = result_.raw();
+  }
+
+  return type;
 }
 
 
