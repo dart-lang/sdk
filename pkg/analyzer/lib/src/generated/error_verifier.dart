@@ -1754,7 +1754,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         int count = params1.length;
         if (params2.length != count) {
           _errorReporter.reportErrorForNode(
-              StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
+              HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
               errorNameTarget, [
             count,
             params2.length,
@@ -1788,7 +1788,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           pFresh.bound = bound2;
           if (!_typeSystem.isSubtypeOf(bound2, bound1)) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
+                HintCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
                 errorNameTarget, [
               p1.displayName,
               p1.bound,

@@ -2431,7 +2431,7 @@ main() {
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(
-        source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+        source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD]);
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
       if (error.errorCode ==
           StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS) {
