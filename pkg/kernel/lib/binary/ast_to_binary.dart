@@ -92,7 +92,12 @@ class BinaryPrinter extends Visitor {
   }
 
   void writeUriReference(String string) {
-    writeUInt30(_sourceUriIndexer[string]);
+    int index = _sourceUriIndexer[string];
+    if (index == null) {
+      // Assume file was loaded without linking. Bail out to empty string.
+      index = _sourceUriIndexer[""];
+    }
+    writeUInt30(index);
   }
 
   void writeList(List items, writeItem(x)) {
