@@ -10,6 +10,7 @@ dart_package("analyzer") {
   source_dir = "lib"
 
   deps = [
+    "//dart/pkg/front_end",
     "//third_party/dart-pkg/pub/args",
     "//third_party/dart-pkg/pub/charcode",
     "//third_party/dart-pkg/pub/crypto",
