@@ -1286,7 +1286,7 @@ class InheritanceManagerTest {
   }
 
   void _assertErrors(ClassElement classElt,
-      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     HashSet<AnalysisError> actualErrors =
         _inheritanceManager.getErrors(classElt);

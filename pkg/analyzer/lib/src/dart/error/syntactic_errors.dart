@@ -9,6 +9,8 @@ library analyzer.src.dart.error.syntactic_errors;
 
 import 'package:analyzer/error/error.dart';
 
+export 'package:front_end/src/scanner/errors.dart' show ScannerErrorCode;
+
 /**
  * The error codes used for errors detected by the parser. The convention for
  * this class is for the name of the error code to indicate the problem that
@@ -931,60 +933,6 @@ class ParserErrorCode extends ErrorCode {
    * given [correction] template.
    */
   const ParserErrorCode(String name, String message, [String correction])
-      : super(name, message, correction);
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
-
-  @override
-  ErrorType get type => ErrorType.SYNTACTIC_ERROR;
-}
-
-/**
- * The error codes used for errors detected by the scanner.
- */
-class ScannerErrorCode extends ErrorCode {
-  /**
-   * Parameters:
-   * 0: the illegal character
-   */
-  static const ScannerErrorCode ILLEGAL_CHARACTER =
-      const ScannerErrorCode('ILLEGAL_CHARACTER', "Illegal character '{0}'.");
-
-  static const ScannerErrorCode MISSING_DIGIT =
-      const ScannerErrorCode('MISSING_DIGIT', "Decimal digit expected.");
-
-  static const ScannerErrorCode MISSING_HEX_DIGIT = const ScannerErrorCode(
-      'MISSING_HEX_DIGIT', "Hexidecimal digit expected.");
-
-  static const ScannerErrorCode MISSING_QUOTE =
-      const ScannerErrorCode('MISSING_QUOTE', "Expected quote (' or \").");
-
-  /**
-   * Parameters:
-   * 0: the path of the file that cannot be read
-   */
-  static const ScannerErrorCode UNABLE_GET_CONTENT = const ScannerErrorCode(
-      'UNABLE_GET_CONTENT', "Unable to get content of '{0}'.");
-
-  static const ScannerErrorCode UNTERMINATED_MULTI_LINE_COMMENT =
-      const ScannerErrorCode(
-          'UNTERMINATED_MULTI_LINE_COMMENT',
-          "Unterminated multi-line comment.",
-          "Try terminating the comment with '*/', or "
-          "removing any unbalanced occurances of '/*' (because comments nest in Dart).");
-
-  static const ScannerErrorCode UNTERMINATED_STRING_LITERAL =
-      const ScannerErrorCode(
-          'UNTERMINATED_STRING_LITERAL', "Unterminated string literal.");
-
-  /**
-   * Initialize a newly created error code to have the given [name]. The message
-   * associated with the error will be created from the given [message]
-   * template. The correction associated with the error will be created from the
-   * given [correction] template.
-   */
-  const ScannerErrorCode(String name, String message, [String correction])
       : super(name, message, correction);
 
   @override

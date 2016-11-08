@@ -648,7 +648,7 @@ class AnalysisDriver {
               file.source,
               error.offset,
               error.length,
-              ErrorCode.byUniqueName(error.uniqueName),
+              errorCodeByUniqueName(error.uniqueName),
               error.message,
               error.correction))
           .toList();

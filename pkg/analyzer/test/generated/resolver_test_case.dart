@@ -369,7 +369,7 @@ class ResolverTestCase extends EngineTestCase {
    *           expected
    */
   void assertErrors(Source source,
-      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
       expect(error.source, source);

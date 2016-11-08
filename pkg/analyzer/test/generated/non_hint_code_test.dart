@@ -392,7 +392,7 @@ f() {}''',
 library root;
 import 'lib1.dart' deferred as lib1;
 main() { lib1.f(); }'''
-    ], ErrorCode.EMPTY_LIST);
+    ], const <ErrorCode>[]);
   }
 
   void test_issue20904BuggyTypePromotionAtIfJoin_1() {
