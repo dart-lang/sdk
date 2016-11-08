@@ -28,30 +28,17 @@ class ObjectSet;
 // A page containing old generation objects.
 class HeapPage {
  public:
-  enum PageType {
-    kData = 0,
-    kExecutable,
-    kReadOnlyData,
-    kNumPageTypes
-  };
+  enum PageType { kData = 0, kExecutable, kReadOnlyData, kNumPageTypes };
 
   HeapPage* next() const { return next_; }
   void set_next(HeapPage* next) { next_ = next; }
 
-  bool Contains(uword addr) {
-    return memory_->Contains(addr);
-  }
+  bool Contains(uword addr) { return memory_->Contains(addr); }
 
-  uword object_start() const {
-    return memory_->start() + ObjectStartOffset();
-  }
-  uword object_end() const {
-    return object_end_;
-  }
+  uword object_start() const { return memory_->start() + ObjectStartOffset(); }
+  uword object_end() const { return object_end_; }
 
-  PageType type() const {
-    return type_;
-  }
+  PageType type() const { return type_; }
 
   bool embedder_allocated() const { return memory_->embedder_allocated(); }
 
@@ -137,26 +124,19 @@ class PageSpaceController {
   // Should be called after each collection to update the controller state.
   void EvaluateGarbageCollection(SpaceUsage before,
                                  SpaceUsage after,
-                                 int64_t start, int64_t end);
+                                 int64_t start,
+                                 int64_t end);
 
   int64_t last_code_collection_in_us() { return last_code_collection_in_us_; }
   void set_last_code_collection_in_us(int64_t t) {
     last_code_collection_in_us_ = t;
   }
 
-  void set_last_usage(SpaceUsage current) {
-    last_usage_ = current;
-  }
+  void set_last_usage(SpaceUsage current) { last_usage_ = current; }
 
-  void Enable() {
-    is_enabled_ = true;
-  }
-  void Disable() {
-    is_enabled_ = false;
-  }
-  bool is_enabled() {
-    return is_enabled_;
-  }
+  void Enable() { is_enabled_ = true; }
+  void Disable() { is_enabled_ = false; }
+  bool is_enabled() { return is_enabled_; }
 
  private:
   Heap* heap_;
@@ -199,10 +179,7 @@ class PageSpace {
   // TODO(iposva): Determine heap sizes and tune the page size accordingly.
   static const intptr_t kPageSizeInWords = 256 * KBInWords;
 
-  enum GrowthPolicy {
-    kControlGrowth,
-    kForceGrowth
-  };
+  enum GrowthPolicy { kControlGrowth, kForceGrowth };
 
   PageSpace(Heap* heap,
             intptr_t max_capacity_in_words,
@@ -215,8 +192,8 @@ class PageSpace {
     bool is_protected =
         (type == HeapPage::kExecutable) && FLAG_write_protect_code;
     bool is_locked = false;
-    return TryAllocateInternal(
-        size, type, growth_policy, is_protected, is_locked);
+    return TryAllocateInternal(size, type, growth_policy, is_protected,
+                               is_locked);
   }
 
   bool NeedsGarbageCollection() const {
@@ -230,8 +207,8 @@ class PageSpace {
     return usage_.capacity_in_words;
   }
   void IncreaseCapacityInWords(intptr_t increase_in_words) {
-     MutexLocker ml(pages_lock_);
-     IncreaseCapacityInWordsLocked(increase_in_words);
+    MutexLocker ml(pages_lock_);
+    IncreaseCapacityInWordsLocked(increase_in_words);
   }
   void IncreaseCapacityInWordsLocked(intptr_t increase_in_words) {
     DEBUG_ASSERT(pages_lock_->IsOwnedByCurrentThread());
@@ -242,9 +219,7 @@ class PageSpace {
   void UpdateMaxCapacityLocked();
   void UpdateMaxUsed();
 
-  int64_t ExternalInWords() const {
-    return usage_.external_in_words;
-  }
+  int64_t ExternalInWords() const { return usage_.external_in_words; }
   SpaceUsage GetCurrentUsage() const {
     MutexLocker ml(pages_lock_);
     return usage_;
@@ -252,9 +227,7 @@ class PageSpace {
 
   bool Contains(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
-  bool IsValidAddress(uword addr) const {
-    return Contains(addr);
-  }
+  bool IsValidAddress(uword addr) const { return Contains(addr); }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectsNoEmbedderPages(ObjectVisitor* visitor) const;
@@ -285,13 +258,11 @@ class PageSpace {
     }
   }
 
-  bool GrowthControlState() {
-    return page_space_controller_.is_enabled();
-  }
+  bool GrowthControlState() { return page_space_controller_.is_enabled(); }
 
   bool NeedsExternalGC() const {
     return (max_external_in_words_ != 0) &&
-        (ExternalInWords() > max_external_in_words_);
+           (ExternalInWords() > max_external_in_words_);
   }
 
   // Note: Code pages are made executable/non-executable when 'read_only' is
@@ -299,21 +270,13 @@ class PageSpace {
   void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only);
 
-  void AddGCTime(int64_t micros) {
-    gc_time_micros_ += micros;
-  }
+  void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
 
-  int64_t gc_time_micros() const {
-    return gc_time_micros_;
-  }
+  int64_t gc_time_micros() const { return gc_time_micros_; }
 
-  void IncrementCollections() {
-    collections_++;
-  }
+  void IncrementCollections() { collections_++; }
 
-  intptr_t collections() const {
-    return collections_;
-  }
+  intptr_t collections() const { return collections_; }
 
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* object) const;
@@ -330,9 +293,7 @@ class PageSpace {
   uword TryAllocateDataLocked(intptr_t size, GrowthPolicy growth_policy) {
     bool is_protected = false;
     bool is_locked = true;
-    return TryAllocateInternal(size,
-                               HeapPage::kData,
-                               growth_policy,
+    return TryAllocateInternal(size, HeapPage::kData, growth_policy,
                                is_protected, is_locked);
   }
 

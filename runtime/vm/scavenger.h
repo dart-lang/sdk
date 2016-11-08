@@ -71,13 +71,13 @@ class ScavengeStats {
                 SpaceUsage before,
                 SpaceUsage after,
                 intptr_t promo_candidates_in_words,
-                intptr_t promoted_in_words) :
-      start_micros_(start_micros),
-      end_micros_(end_micros),
-      before_(before),
-      after_(after),
-      promo_candidates_in_words_(promo_candidates_in_words),
-      promoted_in_words_(promoted_in_words) {}
+                intptr_t promoted_in_words)
+      : start_micros_(start_micros),
+        end_micros_(end_micros),
+        before_(before),
+        after_(after),
+        promo_candidates_in_words_(promo_candidates_in_words),
+        promoted_in_words_(promoted_in_words) {}
 
   // Of all data before scavenge, what fraction was found to be garbage?
   double GarbageFraction() const {
@@ -88,14 +88,13 @@ class ScavengeStats {
   // Fraction of promotion candidates that survived and was thereby promoted.
   // Returns zero if there were no promotion candidates.
   double PromoCandidatesSuccessFraction() const {
-    return promo_candidates_in_words_ > 0 ?
-        promoted_in_words_ / static_cast<double>(promo_candidates_in_words_) :
-        0.0;
+    return promo_candidates_in_words_ > 0
+               ? promoted_in_words_ /
+                     static_cast<double>(promo_candidates_in_words_)
+               : 0.0;
   }
 
-  int64_t DurationMicros() const {
-    return end_micros_ - start_micros_;
-  }
+  int64_t DurationMicros() const { return end_micros_ - start_micros_; }
 
  private:
   int64_t start_micros_;
@@ -118,9 +117,7 @@ class Scavenger {
   // During scavenging both the to and from spaces contain "legal" objects.
   // During a scavenge this function only returns true for addresses that will
   // be part of the surviving objects.
-  bool Contains(uword addr) const {
-    return to_->Contains(addr);
-  }
+  bool Contains(uword addr) const { return to_->Contains(addr); }
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
@@ -165,12 +162,8 @@ class Scavenger {
   int64_t UsedInWords() const {
     return (top_ - FirstObjectStart()) >> kWordSizeLog2;
   }
-  int64_t CapacityInWords() const {
-    return to_->size_in_words();
-  }
-  int64_t ExternalInWords() const {
-    return external_size_ >> kWordSizeLog2;
-  }
+  int64_t CapacityInWords() const { return to_->size_in_words(); }
+  int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
   SpaceUsage GetCurrentUsage() const {
     SpaceUsage usage;
     usage.used_in_words = UsedInWords();
@@ -186,21 +179,13 @@ class Scavenger {
 
   void WriteProtect(bool read_only);
 
-  void AddGCTime(int64_t micros) {
-    gc_time_micros_ += micros;
-  }
+  void AddGCTime(int64_t micros) { gc_time_micros_ += micros; }
 
-  int64_t gc_time_micros() const {
-    return gc_time_micros_;
-  }
+  int64_t gc_time_micros() const { return gc_time_micros_; }
 
-  void IncrementCollections() {
-    collections_++;
-  }
+  void IncrementCollections() { collections_++; }
 
-  intptr_t collections() const {
-    return collections_;
-  }
+  intptr_t collections() const { return collections_; }
 
 #ifndef PRODUCT
   void PrintToJSONObject(JSONObject* object) const;

@@ -9,116 +9,116 @@
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
-#define KERNEL_NODES_DO(M) \
-  M(Name)                  \
-  M(InferredValue)         \
-  M(DartType)              \
-  M(InvalidType)           \
-  M(DynamicType)           \
-  M(VoidType)              \
-  M(InterfaceType)         \
-  M(FunctionType)          \
+#define KERNEL_NODES_DO(M)                                                     \
+  M(Name)                                                                      \
+  M(InferredValue)                                                             \
+  M(DartType)                                                                  \
+  M(InvalidType)                                                               \
+  M(DynamicType)                                                               \
+  M(VoidType)                                                                  \
+  M(InterfaceType)                                                             \
+  M(FunctionType)                                                              \
   M(TypeParameterType)
 
-#define KERNEL_TREE_NODES_DO(M) \
-  M(Library)                    \
-  M(Class)                      \
-  M(NormalClass)                \
-  M(MixinClass)                 \
-  M(Member)                     \
-  M(Field)                      \
-  M(Constructor)                \
-  M(Procedure)                  \
-  M(Initializer)                \
-  M(InvalidInitializer)         \
-  M(FieldInitializer)           \
-  M(SuperInitializer)           \
-  M(RedirectingInitializer)     \
-  M(LocalInitializer)           \
-  M(FunctionNode)               \
-  M(Expression)                 \
-  M(InvalidExpression)          \
-  M(VariableGet)                \
-  M(VariableSet)                \
-  M(PropertyGet)                \
-  M(PropertySet)                \
-  M(DirectPropertyGet)          \
-  M(DirectPropertySet)          \
-  M(StaticGet)                  \
-  M(StaticSet)                  \
-  M(Arguments)                  \
-  M(NamedExpression)            \
-  M(MethodInvocation)           \
-  M(DirectMethodInvocation)     \
-  M(StaticInvocation)           \
-  M(ConstructorInvocation)      \
-  M(Not)                        \
-  M(LogicalExpression)          \
-  M(ConditionalExpression)      \
-  M(StringConcatenation)        \
-  M(IsExpression)               \
-  M(AsExpression)               \
-  M(BasicLiteral)               \
-  M(StringLiteral)              \
-  M(BigintLiteral)              \
-  M(IntLiteral)                 \
-  M(DoubleLiteral)              \
-  M(BoolLiteral)                \
-  M(NullLiteral)                \
-  M(SymbolLiteral)              \
-  M(TypeLiteral)                \
-  M(ThisExpression)             \
-  M(Rethrow)                    \
-  M(Throw)                      \
-  M(ListLiteral)                \
-  M(MapLiteral)                 \
-  M(MapEntry)                   \
-  M(AwaitExpression)            \
-  M(FunctionExpression)         \
-  M(Let)                        \
-  M(BlockExpression)            \
-  M(Statement)                  \
-  M(InvalidStatement)           \
-  M(ExpressionStatement)        \
-  M(Block)                      \
-  M(EmptyStatement)             \
-  M(AssertStatement)            \
-  M(LabeledStatement)           \
-  M(BreakStatement)             \
-  M(WhileStatement)             \
-  M(DoStatement)                \
-  M(ForStatement)               \
-  M(ForInStatement)             \
-  M(SwitchStatement)            \
-  M(SwitchCase)                 \
-  M(ContinueSwitchStatement)    \
-  M(IfStatement)                \
-  M(ReturnStatement)            \
-  M(TryCatch)                   \
-  M(Catch)                      \
-  M(TryFinally)                 \
-  M(YieldStatement)             \
-  M(VariableDeclaration)        \
-  M(FunctionDeclaration)        \
-  M(TypeParameter)              \
+#define KERNEL_TREE_NODES_DO(M)                                                \
+  M(Library)                                                                   \
+  M(Class)                                                                     \
+  M(NormalClass)                                                               \
+  M(MixinClass)                                                                \
+  M(Member)                                                                    \
+  M(Field)                                                                     \
+  M(Constructor)                                                               \
+  M(Procedure)                                                                 \
+  M(Initializer)                                                               \
+  M(InvalidInitializer)                                                        \
+  M(FieldInitializer)                                                          \
+  M(SuperInitializer)                                                          \
+  M(RedirectingInitializer)                                                    \
+  M(LocalInitializer)                                                          \
+  M(FunctionNode)                                                              \
+  M(Expression)                                                                \
+  M(InvalidExpression)                                                         \
+  M(VariableGet)                                                               \
+  M(VariableSet)                                                               \
+  M(PropertyGet)                                                               \
+  M(PropertySet)                                                               \
+  M(DirectPropertyGet)                                                         \
+  M(DirectPropertySet)                                                         \
+  M(StaticGet)                                                                 \
+  M(StaticSet)                                                                 \
+  M(Arguments)                                                                 \
+  M(NamedExpression)                                                           \
+  M(MethodInvocation)                                                          \
+  M(DirectMethodInvocation)                                                    \
+  M(StaticInvocation)                                                          \
+  M(ConstructorInvocation)                                                     \
+  M(Not)                                                                       \
+  M(LogicalExpression)                                                         \
+  M(ConditionalExpression)                                                     \
+  M(StringConcatenation)                                                       \
+  M(IsExpression)                                                              \
+  M(AsExpression)                                                              \
+  M(BasicLiteral)                                                              \
+  M(StringLiteral)                                                             \
+  M(BigintLiteral)                                                             \
+  M(IntLiteral)                                                                \
+  M(DoubleLiteral)                                                             \
+  M(BoolLiteral)                                                               \
+  M(NullLiteral)                                                               \
+  M(SymbolLiteral)                                                             \
+  M(TypeLiteral)                                                               \
+  M(ThisExpression)                                                            \
+  M(Rethrow)                                                                   \
+  M(Throw)                                                                     \
+  M(ListLiteral)                                                               \
+  M(MapLiteral)                                                                \
+  M(MapEntry)                                                                  \
+  M(AwaitExpression)                                                           \
+  M(FunctionExpression)                                                        \
+  M(Let)                                                                       \
+  M(BlockExpression)                                                           \
+  M(Statement)                                                                 \
+  M(InvalidStatement)                                                          \
+  M(ExpressionStatement)                                                       \
+  M(Block)                                                                     \
+  M(EmptyStatement)                                                            \
+  M(AssertStatement)                                                           \
+  M(LabeledStatement)                                                          \
+  M(BreakStatement)                                                            \
+  M(WhileStatement)                                                            \
+  M(DoStatement)                                                               \
+  M(ForStatement)                                                              \
+  M(ForInStatement)                                                            \
+  M(SwitchStatement)                                                           \
+  M(SwitchCase)                                                                \
+  M(ContinueSwitchStatement)                                                   \
+  M(IfStatement)                                                               \
+  M(ReturnStatement)                                                           \
+  M(TryCatch)                                                                  \
+  M(Catch)                                                                     \
+  M(TryFinally)                                                                \
+  M(YieldStatement)                                                            \
+  M(VariableDeclaration)                                                       \
+  M(FunctionDeclaration)                                                       \
+  M(TypeParameter)                                                             \
   M(Program)
 
-#define KERNEL_ALL_NODES_DO(M) \
-  M(Node)                      \
-  KERNEL_NODES_DO(M)           \
-  M(TreeNode)                  \
+#define KERNEL_ALL_NODES_DO(M)                                                 \
+  M(Node)                                                                      \
+  KERNEL_NODES_DO(M)                                                           \
+  M(TreeNode)                                                                  \
   KERNEL_TREE_NODES_DO(M)
 
-#define KERNEL_VISITORS_DO(M) \
-  M(ExpressionVisitor)        \
-  M(StatementVisitor)         \
-  M(MemberVisitor)            \
-  M(ClassVisitor)             \
-  M(InitializerVisitor)       \
-  M(DartTypeVisitor)          \
-  M(ClassReferenceVisitor)    \
-  M(MemberReferenceVisitor)   \
-  M(TreeVisitor)              \
+#define KERNEL_VISITORS_DO(M)                                                  \
+  M(ExpressionVisitor)                                                         \
+  M(StatementVisitor)                                                          \
+  M(MemberVisitor)                                                             \
+  M(ClassVisitor)                                                              \
+  M(InitializerVisitor)                                                        \
+  M(DartTypeVisitor)                                                           \
+  M(ClassReferenceVisitor)                                                     \
+  M(MemberReferenceVisitor)                                                    \
+  M(TreeVisitor)                                                               \
   M(Visitor)
 
 namespace dart {
@@ -336,22 +336,22 @@ KERNEL_VISITORS_DO(DO)
 #undef DO
 
 
-#define DEFINE_CASTING_OPERATIONS(klass)       \
-  virtual bool Is##klass() { return true; }    \
-                                               \
-  static klass* Cast(Node* node) {             \
-    ASSERT(node == NULL || node->Is##klass()); \
-    return static_cast<klass*>(node);          \
-  }                                            \
-                                               \
+#define DEFINE_CASTING_OPERATIONS(klass)                                       \
+  virtual bool Is##klass() { return true; }                                    \
+                                                                               \
+  static klass* Cast(Node* node) {                                             \
+    ASSERT(node == NULL || node->Is##klass());                                 \
+    return static_cast<klass*>(node);                                          \
+  }                                                                            \
+                                                                               \
   virtual Node::NodeType Type() { return Node::kType##klass; }
 
-#define DEFINE_IS_OPERATION(klass) \
+#define DEFINE_IS_OPERATION(klass)                                             \
   virtual bool Is##klass() { return false; }
 
-#define DEFINE_ALL_IS_OPERATIONS()     \
-  KERNEL_NODES_DO(DEFINE_IS_OPERATION) \
-  DEFINE_IS_OPERATION(TreeNode)        \
+#define DEFINE_ALL_IS_OPERATIONS()                                             \
+  KERNEL_NODES_DO(DEFINE_IS_OPERATION)                                         \
+  DEFINE_IS_OPERATION(TreeNode)                                                \
   KERNEL_TREE_NODES_DO(DEFINE_IS_OPERATION)
 
 
@@ -374,7 +374,7 @@ class Node {
   virtual void VisitChildren(Visitor* visitor) = 0;
 
  protected:
-  Node() { }
+  Node() {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Node);
@@ -591,7 +591,7 @@ class Member : public TreeNode {
   List<Expression>& annotations() { return annotations_; }
 
  protected:
-  Member() { }
+  Member() {}
 
   template <typename T>
   friend class List;
@@ -751,7 +751,7 @@ class Initializer : public TreeNode {
   virtual void AcceptInitializerVisitor(InitializerVisitor* visitor) = 0;
 
  protected:
-  Initializer() { }
+  Initializer() {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Initializer);
@@ -770,7 +770,7 @@ class InvalidInitializer : public Initializer {
   virtual void VisitChildren(Visitor* visitor);
 
  private:
-  InvalidInitializer() { }
+  InvalidInitializer() {}
 
   DISALLOW_COPY_AND_ASSIGN(InvalidInitializer);
 };
@@ -934,7 +934,7 @@ class Expression : public TreeNode {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor) = 0;
 
  protected:
-  Expression() { }
+  Expression() {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Expression);
@@ -954,7 +954,7 @@ class InvalidExpression : public Expression {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
  private:
-  InvalidExpression() { }
+  InvalidExpression() {}
 
   DISALLOW_COPY_AND_ASSIGN(InvalidExpression);
 };
@@ -1280,7 +1280,8 @@ class StaticInvocation : public Expression {
   static StaticInvocation* ReadFrom(Reader* reader, bool is_const);
   virtual void WriteTo(Writer* writer);
 
-  explicit StaticInvocation(Procedure* procedure, Arguments* args,
+  explicit StaticInvocation(Procedure* procedure,
+                            Arguments* args,
                             bool is_const)
       : procedure_(procedure), arguments_(args), is_const_(is_const) {}
   ~StaticInvocation();
@@ -1614,7 +1615,7 @@ class NullLiteral : public BasicLiteral {
   virtual void AcceptExpressionVisitor(ExpressionVisitor* visitor);
 
  private:
-  NullLiteral() { }
+  NullLiteral() {}
 
   DISALLOW_COPY_AND_ASSIGN(NullLiteral);
 };
@@ -1679,7 +1680,7 @@ class ThisExpression : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
  private:
-  ThisExpression() { }
+  ThisExpression() {}
 
   DISALLOW_COPY_AND_ASSIGN(ThisExpression);
 };
@@ -1698,7 +1699,7 @@ class Rethrow : public Expression {
   virtual void VisitChildren(Visitor* visitor);
 
  private:
-  Rethrow() { }
+  Rethrow() {}
 
   DISALLOW_COPY_AND_ASSIGN(Rethrow);
 };
@@ -1920,7 +1921,7 @@ class Statement : public TreeNode {
   virtual void AcceptStatementVisitor(StatementVisitor* visitor) = 0;
 
  protected:
-  Statement() { }
+  Statement() {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Statement);
@@ -1940,7 +1941,7 @@ class InvalidStatement : public Statement {
   virtual void VisitChildren(Visitor* visitor);
 
  private:
-  InvalidStatement() { }
+  InvalidStatement() {}
 
   DISALLOW_COPY_AND_ASSIGN(InvalidStatement);
 };
@@ -2007,7 +2008,7 @@ class EmptyStatement : public Statement {
   virtual void VisitChildren(Visitor* visitor);
 
  private:
-  EmptyStatement() { }
+  EmptyStatement() {}
 
   DISALLOW_COPY_AND_ASSIGN(EmptyStatement);
 };
@@ -2569,7 +2570,7 @@ class InferredValue : public Node {
   uint8_t value_bits() { return value_bits_; }
 
  private:
-  InferredValue() { }
+  InferredValue() {}
 
   Ref<Class> klass_;
   BaseClassKind kind_;
@@ -2592,7 +2593,7 @@ class DartType : public Node {
   virtual void AcceptDartTypeVisitor(DartTypeVisitor* visitor) = 0;
 
  protected:
-  DartType() { }
+  DartType() {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DartType);
@@ -2612,7 +2613,7 @@ class InvalidType : public DartType {
   virtual void VisitChildren(Visitor* visitor);
 
  private:
-  InvalidType() { }
+  InvalidType() {}
 
   DISALLOW_COPY_AND_ASSIGN(InvalidType);
 };
@@ -2631,7 +2632,7 @@ class DynamicType : public DartType {
   virtual void VisitChildren(Visitor* visitor);
 
  private:
-  DynamicType() { }
+  DynamicType() {}
 
   DISALLOW_COPY_AND_ASSIGN(DynamicType);
 };
@@ -2650,7 +2651,7 @@ class VoidType : public DartType {
   virtual void VisitChildren(Visitor* visitor);
 
  private:
-  VoidType() { }
+  VoidType() {}
 
   DISALLOW_COPY_AND_ASSIGN(VoidType);
 };
@@ -2799,11 +2800,13 @@ class Program : public TreeNode {
 class Reference : public AllStatic {
  public:
   static Member* ReadMemberFrom(Reader* reader, bool allow_null = false);
-  static void WriteMemberTo(Writer* writer, Member* member,
+  static void WriteMemberTo(Writer* writer,
+                            Member* member,
                             bool allow_null = false);
 
   static Class* ReadClassFrom(Reader* reader, bool allow_null = false);
-  static void WriteClassTo(Writer* writer, Class* klass,
+  static void WriteClassTo(Writer* writer,
+                           Class* klass,
                            bool allow_null = false);
 
   static String* ReadStringFrom(Reader* reader);

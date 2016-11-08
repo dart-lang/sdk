@@ -19,9 +19,7 @@ UNIT_TEST_CASE(ThreadPool_Create) {
 
 class TestTask : public ThreadPool::Task {
  public:
-  TestTask(Monitor* sync, bool* done)
-      : sync_(sync), done_(done) {
-  }
+  TestTask(Monitor* sync, bool* done) : sync_(sync), done_(done) {}
 
   // Before running the task, *done_ should be true. This lets the caller
   // ASSERT things knowing that the thread is still around. To unblock the
@@ -94,8 +92,7 @@ class SleepTask : public ThreadPool::Task {
       : sync_(sync),
         started_count_(started_count),
         slept_count_(slept_count),
-        millis_(millis) {
-  }
+        millis_(millis) {}
 
   virtual void Run() {
     {
@@ -200,8 +197,7 @@ UNIT_TEST_CASE(ThreadPool_WorkerTimeout) {
 class SpawnTask : public ThreadPool::Task {
  public:
   SpawnTask(ThreadPool* pool, Monitor* sync, int todo, int total, int* done)
-      : pool_(pool), sync_(sync), todo_(todo), total_(total), done_(done) {
-  }
+      : pool_(pool), sync_(sync), todo_(todo), total_(total), done_(done) {}
 
   virtual void Run() {
     todo_--;  // Subtract one for current task.
@@ -209,8 +205,8 @@ class SpawnTask : public ThreadPool::Task {
 
     // Spawn 0-2 children.
     if (todo_ > 0) {
-      pool_->Run(new SpawnTask(
-          pool_, sync_, todo_ - child_todo, total_, done_));
+      pool_->Run(
+          new SpawnTask(pool_, sync_, todo_ - child_todo, total_, done_));
     }
     if (todo_ > 1) {
       pool_->Run(new SpawnTask(pool_, sync_, child_todo, total_, done_));

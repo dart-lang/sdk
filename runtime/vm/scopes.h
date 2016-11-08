@@ -25,18 +25,18 @@ class LocalVariable : public ZoneAllocated {
                 TokenPosition token_pos,
                 const String& name,
                 const AbstractType& type)
-    : declaration_pos_(declaration_pos),
-      token_pos_(token_pos),
-      name_(name),
-      owner_(NULL),
-      type_(type),
-      const_value_(NULL),
-      is_final_(false),
-      is_captured_(false),
-      is_invisible_(false),
-      is_captured_parameter_(false),
-      is_forced_stack_(false),
-      index_(LocalVariable::kUninitializedIndex) {
+      : declaration_pos_(declaration_pos),
+        token_pos_(token_pos),
+        name_(name),
+        owner_(NULL),
+        type_(type),
+        const_value_(NULL),
+        is_final_(false),
+        is_captured_(false),
+        is_invisible_(false),
+        is_captured_parameter_(false),
+        is_forced_stack_(false),
+        index_(LocalVariable::kUninitializedIndex) {
     ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
@@ -66,9 +66,7 @@ class LocalVariable : public ZoneAllocated {
   bool is_forced_stack() const { return is_forced_stack_; }
   void set_is_forced_stack() { is_forced_stack_ = true; }
 
-  bool HasIndex() const {
-    return index_ != kUninitializedIndex;
-  }
+  bool HasIndex() const { return index_ != kUninitializedIndex; }
   int index() const {
     ASSERT(HasIndex());
     return index_;
@@ -80,24 +78,16 @@ class LocalVariable : public ZoneAllocated {
     index_ = index;
   }
 
-  void set_invisible(bool value) {
-    is_invisible_ = value;
-  }
+  void set_invisible(bool value) { is_invisible_ = value; }
   bool is_invisible() const { return is_invisible_; }
 
   bool is_captured_parameter() const { return is_captured_parameter_; }
-  void set_is_captured_parameter(bool value) {
-    is_captured_parameter_ = value;
-  }
+  void set_is_captured_parameter(bool value) { is_captured_parameter_ = value; }
 
   // By convention, internal variables start with a colon.
-  bool IsInternal() const {
-    return name_.CharAt(0) == ':';
-  }
+  bool IsInternal() const { return name_.CharAt(0) == ':'; }
 
-  bool IsConst() const {
-    return const_value_ != NULL;
-  }
+  bool IsConst() const { return const_value_ != NULL; }
 
   void SetConstValue(const Instance& value) {
     ASSERT(value.IsZoneHandle() || value.IsReadOnlyHandle());
@@ -127,9 +117,9 @@ class LocalVariable : public ZoneAllocated {
 
   const AbstractType& type_;  // Declaration type of local variable.
 
-  const Instance* const_value_;   // NULL or compile-time const value.
+  const Instance* const_value_;  // NULL or compile-time const value.
 
-  bool is_final_;  // If true, this variable is readonly.
+  bool is_final_;     // If true, this variable is readonly.
   bool is_captured_;  // If true, this variable lives in the context, otherwise
                       // in the stack frame.
   bool is_invisible_;
@@ -146,13 +136,13 @@ class LocalVariable : public ZoneAllocated {
 class NameReference : public ZoneAllocated {
  public:
   NameReference(TokenPosition token_pos, const String& name)
-    : token_pos_(token_pos),
-      name_(name) {
+      : token_pos_(token_pos), name_(name) {
     ASSERT(name.IsSymbol());
   }
   const String& name() const { return name_; }
   TokenPosition token_pos() const { return token_pos_; }
   void set_token_pos(TokenPosition value) { token_pos_ = value; }
+
  private:
   TokenPosition token_pos_;
   const String& name_;
@@ -174,10 +164,7 @@ class SourceLabel : public ZoneAllocated {
   };
 
   SourceLabel(TokenPosition token_pos, const String& name, Kind kind)
-    : token_pos_(token_pos),
-      name_(name),
-      owner_(NULL),
-      kind_(kind) {
+      : token_pos_(token_pos), name_(name), owner_(NULL), kind_(kind) {
     ASSERT(name.IsSymbol());
   }
 
@@ -185,18 +172,14 @@ class SourceLabel : public ZoneAllocated {
     if (name != NULL) {
       return new SourceLabel(token_pos, *name, kind);
     } else {
-      return new SourceLabel(token_pos,
-                             Symbols::DefaultLabel(),
-                             kind);
+      return new SourceLabel(token_pos, Symbols::DefaultLabel(), kind);
     }
   }
 
   TokenPosition token_pos() const { return token_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
-  void set_owner(LocalScope* owner) {
-    owner_ = owner;
-  }
+  void set_owner(LocalScope* owner) { owner_ = owner; }
 
   Kind kind() const { return kind_; }
 
@@ -379,10 +362,10 @@ class LocalScope : public ZoneAllocated {
   LocalScope* parent_;
   LocalScope* child_;
   LocalScope* sibling_;
-  int function_level_;  // Reflects the nesting level of local functions.
-  int loop_level_;      // Reflects the loop nesting level.
-  int context_level_;   // Reflects the level of the runtime context.
-  int num_context_variables_;   // Only set if this scope is a context owner.
+  int function_level_;         // Reflects the nesting level of local functions.
+  int loop_level_;             // Reflects the loop nesting level.
+  int context_level_;          // Reflects the level of the runtime context.
+  int num_context_variables_;  // Only set if this scope is a context owner.
   TokenPosition begin_token_pos_;  // Token index of beginning of scope.
   TokenPosition end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;

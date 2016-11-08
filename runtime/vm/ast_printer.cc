@@ -15,11 +15,10 @@
 namespace dart {
 
 AstPrinter::AstPrinter(bool log)
-    : indent_(0),
-      logger_(log ? Log::Current() : Log::NoOpLog()) { }
+    : indent_(0), logger_(log ? Log::Current() : Log::NoOpLog()) {}
 
 
-AstPrinter::~AstPrinter() { }
+AstPrinter::~AstPrinter() {}
 
 
 void AstPrinter::VisitGenericAstNode(AstNode* node) {
@@ -34,14 +33,11 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node) {
   LocalScope* scope = node->scope();
   logger_->Print("(%s (scope \"%p\"", node->Name(), scope);
   if (scope != NULL) {
-    logger_->Print(" (%s-%s) loop %d",
-              scope->begin_token_pos().ToCString(),
-              scope->end_token_pos().ToCString(),
-              scope->loop_level());
+    logger_->Print(" (%s-%s) loop %d", scope->begin_token_pos().ToCString(),
+                   scope->end_token_pos().ToCString(), scope->loop_level());
     if (scope->HasContextLevel()) {
-      logger_->Print(" context %d captures %d",
-                scope->context_level(),
-                scope->num_context_variables());
+      logger_->Print(" context %d captures %d", scope->context_level(),
+                     scope->num_context_variables());
     } else {
       ASSERT(scope->num_context_variables() == 0);
     }
@@ -93,15 +89,12 @@ void AstPrinter::VisitReturnNode(ReturnNode* node) {
 
 void AstPrinter::VisitGenericLocalNode(AstNode* node,
                                        const LocalVariable& var) {
-  logger_->Print("(%s %s%s \"%s\"",
-            node->Name(),
-            var.is_final() ? "final " : "",
-            String::Handle(var.type().Name()).ToCString(),
-            var.name().ToCString());
+  logger_->Print(
+      "(%s %s%s \"%s\"", node->Name(), var.is_final() ? "final " : "",
+      String::Handle(var.type().Name()).ToCString(), var.name().ToCString());
   if (var.HasIndex()) {
     if (var.is_captured()) {
-      logger_->Print(" (context %d %d)",
-                     var.owner()->context_level(),
+      logger_->Print(" (context %d %d)", var.owner()->context_level(),
                      var.index());
     } else {
       logger_->Print(" (stack %d)", var.index());
@@ -124,12 +117,10 @@ void AstPrinter::VisitStoreLocalNode(StoreLocalNode* node) {
 
 
 void AstPrinter::VisitGenericFieldNode(AstNode* node, const Field& field) {
-  logger_->Print("(%s %s%s \"%s\" ",
-            node->Name(),
-            field.is_final() ? "final " : "",
-            String::Handle(AbstractType::Handle(field.type()).Name()).
-                ToCString(),
-            String::Handle(field.name()).ToCString());
+  logger_->Print(
+      "(%s %s%s \"%s\" ", node->Name(), field.is_final() ? "final " : "",
+      String::Handle(AbstractType::Handle(field.type()).Name()).ToCString(),
+      String::Handle(field.name()).ToCString());
   node->VisitChildren(this);
   logger_->Print(")");
 }
@@ -178,19 +169,16 @@ void AstPrinter::VisitLiteralNode(LiteralNode* node) {
 
 void AstPrinter::VisitTypeNode(TypeNode* node) {
   const AbstractType& type = node->type();
-  logger_->Print("(%s \"%s\")",
-            node->Name(),
-            String::Handle(type.Name()).ToCString());
+  logger_->Print("(%s \"%s\")", node->Name(),
+                 String::Handle(type.Name()).ToCString());
 }
 
 
 void AstPrinter::VisitAssignableNode(AssignableNode* node) {
   const AbstractType& type = node->type();
   const String& dst_name = node->dst_name();
-  logger_->Print("(%s (type \"%s\") (of \"%s\") ",
-            node->Name(),
-            String::Handle(type.Name()).ToCString(),
-            dst_name.ToCString());
+  logger_->Print("(%s (type \"%s\") (of \"%s\") ", node->Name(),
+                 String::Handle(type.Name()).ToCString(), dst_name.ToCString());
   node->VisitChildren(this);
   logger_->Print(")");
 }
@@ -204,17 +192,14 @@ void AstPrinter::VisitAwaitNode(AwaitNode* node) {
 
 
 void AstPrinter::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
-  logger_->Print("(%s (async_scope \"%p\" await_scope \"%p\"))",
-            node->Name(),
-            node->async_scope(),
-            node->await_scope());
+  logger_->Print("(%s (async_scope \"%p\" await_scope \"%p\"))", node->Name(),
+                 node->async_scope(), node->await_scope());
 }
 
 
 void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
-  logger_->Print("(*****%s***** \"%s\")",
-            node->Name(),
-            node->primary().ToCString());
+  logger_->Print("(*****%s***** \"%s\")", node->Name(),
+                 node->primary().ToCString());
 }
 
 
@@ -296,18 +281,14 @@ void AstPrinter::VisitDoWhileNode(DoWhileNode* node) {
 
 
 void AstPrinter::VisitJumpNode(JumpNode* node) {
-  logger_->Print("(%s %s %s (scope \"%p\"))",
-            node->Name(),
-            node->TokenName(),
-            node->label()->name().ToCString(),
-            node->label()->owner());
+  logger_->Print("(%s %s %s (scope \"%p\"))", node->Name(), node->TokenName(),
+                 node->label()->name().ToCString(), node->label()->owner());
 }
 
 
 void AstPrinter::VisitInstanceCallNode(InstanceCallNode* node) {
-  logger_->Print("(%s \"%s\" ",
-            node->Name(),
-            node->function_name().ToCString());
+  logger_->Print("(%s \"%s\" ", node->Name(),
+                 node->function_name().ToCString());
   node->VisitChildren(this);
   logger_->Print(")");
 }
@@ -356,27 +337,22 @@ void AstPrinter::VisitInstanceSetterNode(InstanceSetterNode* node) {
 
 
 void AstPrinter::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
-  logger_->Print("(%s \"%s\")",
-            node->Name(),
-            String::Handle(node->field().name()).ToCString());
+  logger_->Print("(%s \"%s\")", node->Name(),
+                 String::Handle(node->field().name()).ToCString());
 }
 
 
 void AstPrinter::VisitStaticGetterNode(StaticGetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
-  logger_->Print("(%s \"%s.%s\")",
-            node->Name(),
-            class_name.ToCString(),
-            node->field_name().ToCString());
+  logger_->Print("(%s \"%s.%s\")", node->Name(), class_name.ToCString(),
+                 node->field_name().ToCString());
 }
 
 
 void AstPrinter::VisitStaticSetterNode(StaticSetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
-  logger_->Print("(%s \"%s.%s\" ",
-            node->Name(),
-            class_name.ToCString(),
-            node->field_name().ToCString());
+  logger_->Print("(%s \"%s.%s\" ", node->Name(), class_name.ToCString(),
+                 node->field_name().ToCString());
   node->VisitChildren(this);
   logger_->Print(")");
 }
@@ -397,10 +373,10 @@ void AstPrinter::VisitStoreIndexedNode(StoreIndexedNode* node) {
 
 
 void AstPrinter::VisitNativeBodyNode(NativeBodyNode* node) {
-  logger_->Print("(%s \"%s\" (%" Pd " args))",
-            node->Name(),
-            node->native_c_function_name().ToCString(),
-            NativeArguments::ParameterCountForResolution(node->function()));
+  logger_->Print(
+      "(%s \"%s\" (%" Pd " args))", node->Name(),
+      node->native_c_function_name().ToCString(),
+      NativeArguments::ParameterCountForResolution(node->function()));
 }
 
 
@@ -458,10 +434,9 @@ void AstPrinter::PrintLocalScopeVariable(const LocalScope* scope,
   ASSERT(scope != NULL);
   ASSERT(var != NULL);
   IndentN(indent);
-  logger_->Print("(%s%s '%s'",
-            var->is_final() ? "final " : "",
-            String::Handle(var->type().Name()).ToCString(),
-            var->name().ToCString());
+  logger_->Print("(%s%s '%s'", var->is_final() ? "final " : "",
+                 String::Handle(var->type().Name()).ToCString(),
+                 var->name().ToCString());
   if (var->owner() != scope) {
     logger_->Print(" alias");
   }
@@ -473,9 +448,8 @@ void AstPrinter::PrintLocalScopeVariable(const LocalScope* scope,
   } else if (var->owner()->function_level() != 0) {
     logger_->Print(" lev %d", var->owner()->function_level());
   }
-  logger_->Print(" valid %s-%s)\n",
-            var->token_pos().ToCString(),
-            scope->end_token_pos().ToCString());
+  logger_->Print(" valid %s-%s)\n", var->token_pos().ToCString(),
+                 scope->end_token_pos().ToCString());
 }
 
 
@@ -492,9 +466,8 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
     IndentN(indent);
     logger_->Print("{scope %p ", child);
     if (child->HasContextLevel()) {
-      logger_->Print("ctx %d numctxvar %d ",
-                child->context_level(),
-                child->num_context_variables());
+      logger_->Print("ctx %d numctxvar %d ", child->context_level(),
+                     child->num_context_variables());
     }
     logger_->Print("llev %d\n", child->loop_level());
     PrintLocalScope(child, 0, indent + kScopeIndent);
@@ -515,9 +488,8 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
   const char* function_name = function.ToFullyQualifiedCString();
   logger_->Print("Scope for function '%s'\n{scope %p ", function_name, scope);
   if (scope->HasContextLevel()) {
-    logger_->Print("ctx %d numctxvar %d ",
-              scope->context_level(),
-              scope->num_context_variables());
+    logger_->Print("ctx %d numctxvar %d ", scope->context_level(),
+                   scope->num_context_variables());
   }
   logger_->Print("llev %d\n", scope->loop_level());
   const int num_fixed_params = function.num_fixed_parameters();
@@ -530,10 +502,9 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
     LocalVariable* param = scope->VariableAt(pos);
     ASSERT(param->owner() == scope);  // No aliases should precede parameters.
     IndentN(indent);
-    logger_->Print("(param %s%s '%s'",
-              param->is_final() ? "final " : "",
-              String::Handle(param->type().Name()).ToCString(),
-              param->name().ToCString());
+    logger_->Print("(param %s%s '%s'", param->is_final() ? "final " : "",
+                   String::Handle(param->type().Name()).ToCString(),
+                   param->name().ToCString());
     // Print the default value if the parameter is optional.
     if (pos >= num_fixed_params && pos < num_params) {
       const Instance& default_parameter_value =
@@ -546,9 +517,8 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
         logger_->Print(" ctx %d", param->owner()->context_level());
       }
     }
-    logger_->Print(" valid %s-%s)\n",
-              param->token_pos().ToCString(),
-              scope->end_token_pos().ToCString());
+    logger_->Print(" valid %s-%s)\n", param->token_pos().ToCString(),
+                   scope->end_token_pos().ToCString());
     pos++;
   }
   // Visit remaining non-parameter variables and children scopes.

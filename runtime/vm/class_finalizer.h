@@ -19,22 +19,21 @@ class ClassFinalizer : public AllStatic {
 
   // Modes for type resolution and finalization. The ordering is relevant.
   enum FinalizationKind {
-    kIgnore,                   // Type is ignored and replaced by dynamic.
-    kDoNotResolve,             // Type resolution is postponed.
-    kResolveTypeParameters,    // Resolve type parameters only.
-    kFinalize,                 // Type resolution and finalization are required.
-    kCanonicalize,             // Same as kFinalize, but with canonicalization.
-    kCanonicalizeWellFormed    // Error-free resolution, finalization, and
-                               // canonicalization are required.
+    kIgnore,                 // Type is ignored and replaced by dynamic.
+    kDoNotResolve,           // Type resolution is postponed.
+    kResolveTypeParameters,  // Resolve type parameters only.
+    kFinalize,               // Type resolution and finalization are required.
+    kCanonicalize,           // Same as kFinalize, but with canonicalization.
+    kCanonicalizeWellFormed  // Error-free resolution, finalization, and
+                             // canonicalization are required.
   };
 
   // Finalize given type while parsing class cls.
   // Also canonicalize type if applicable.
-  static RawAbstractType* FinalizeType(
-      const Class& cls,
-      const AbstractType& type,
-      FinalizationKind finalization,
-      PendingTypes* pending_types = NULL);
+  static RawAbstractType* FinalizeType(const Class& cls,
+                                       const AbstractType& type,
+                                       FinalizationKind finalization,
+                                       PendingTypes* pending_types = NULL);
 
   // Allocate, finalize, and return a new malformed type as if it was declared
   // in class cls at the given token position.
@@ -43,8 +42,8 @@ class ClassFinalizer : public AllStatic {
   static RawType* NewFinalizedMalformedType(const Error& prev_error,
                                             const Script& script,
                                             TokenPosition type_pos,
-                                            const char* format, ...)
-       PRINTF_ATTRIBUTE(4, 5);
+                                            const char* format,
+                                            ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Mark the given type as malformed.
   // If not null, prepend prev_error to the error message built from the format
@@ -52,8 +51,8 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeMalformedType(const Error& prev_error,
                                     const Script& script,
                                     const Type& type,
-                                    const char* format, ...)
-       PRINTF_ATTRIBUTE(4, 5);
+                                    const char* format,
+                                    ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Mark the given type as malbounded.
   // If not null, prepend prev_error to the error message built from the format
@@ -61,8 +60,8 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeMalboundedType(const Error& prev_error,
                                      const Script& script,
                                      const AbstractType& type,
-                                     const char* format, ...)
-       PRINTF_ATTRIBUTE(4, 5);
+                                     const char* format,
+                                     ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Return false if we still have classes pending to be finalized.
   static bool AllClassesFinalized();
@@ -156,8 +155,8 @@ class ClassFinalizer : public AllStatic {
   static void FinalizeSignature(const Class& cls, const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);
   static void PrintClassInformation(const Class& cls);
-  static void CollectInterfaces(
-      const Class& cls, GrowableArray<const Class*>* collected);
+  static void CollectInterfaces(const Class& cls,
+                                GrowableArray<const Class*>* collected);
 
   static void MarkTypeMalformed(const Error& prev_error,
                                 const Script& script,
@@ -167,11 +166,13 @@ class ClassFinalizer : public AllStatic {
   static void ReportError(const Error& error);
   static void ReportError(const Class& cls,
                           TokenPosition token_pos,
-                          const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
+                          const char* format,
+                          ...) PRINTF_ATTRIBUTE(3, 4);
   static void ReportErrors(const Error& prev_error,
                            const Class& cls,
                            TokenPosition token_pos,
-                           const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
+                           const char* format,
+                           ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Verify implicit offsets recorded in the VM for direct access to fields of
   // Dart instances (e.g: _TypedListView, _ByteDataView).

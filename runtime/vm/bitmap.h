@@ -24,8 +24,7 @@ class BitmapBuilder : public ZoneAllocated {
   BitmapBuilder()
       : length_(0),
         data_size_in_bytes_(kInitialSizeInBytes),
-        data_(Thread::Current()->zone()->Alloc<uint8_t>(
-            kInitialSizeInBytes)) {
+        data_(Thread::Current()->zone()->Alloc<uint8_t>(kInitialSizeInBytes)) {
     memset(data_, 0, kInitialSizeInBytes);
   }
 
@@ -55,8 +54,10 @@ class BitmapBuilder : public ZoneAllocated {
 
   bool InRange(intptr_t offset) const {
     if (offset < 0) {
-      FATAL1("Fatal error in BitmapBuilder::InRange :"
-             " invalid bit_offset, %" Pd "\n", offset);
+      FATAL1(
+          "Fatal error in BitmapBuilder::InRange :"
+          " invalid bit_offset, %" Pd "\n",
+          offset);
     }
     return (offset < length_);
   }

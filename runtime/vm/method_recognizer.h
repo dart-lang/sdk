@@ -9,6 +9,7 @@
 
 namespace dart {
 
+// clang-format off
 // (class-name, function-name, recognized enum, result type, fingerprint).
 // When adding a new function add a 0 as fingerprint, build and run to get the
 // correct fingerprint from the mismatch error.
@@ -490,7 +491,9 @@ namespace dart {
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x4765edda)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x7cca4533)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x7631bdbc)              \
-  V(Object, get:runtimeType, ObjectRuntimeType, 0x00e7c26b)                    \
+  V(Object, get:runtimeType, ObjectRuntimeType, 0x00e7c26b)
+
+// clang-format on
 
 // Forward declarations.
 class Function;
@@ -502,11 +505,11 @@ class MethodRecognizer : public AllStatic {
  public:
   enum Kind {
     kUnknown,
-#define DEFINE_ENUM_LIST(class_name, function_name, enum_name, type, fp) \
-    k##enum_name,
+#define DEFINE_ENUM_LIST(class_name, function_name, enum_name, type, fp)       \
+  k##enum_name,
     RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 #undef DEFINE_ENUM_LIST
-    kNumRecognizedMethods
+        kNumRecognizedMethods
   };
 
   static Kind RecognizeKind(const Function& function);
@@ -522,14 +525,15 @@ class MethodRecognizer : public AllStatic {
 
 
 #if defined(DART_NO_SNAPSHOT)
-#define CHECK_FINGERPRINT2(f, p0, p1, fp) \
+#define CHECK_FINGERPRINT2(f, p0, p1, fp)                                      \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
 
-#define CHECK_FINGERPRINT3(f, p0, p1, p2, fp) \
+#define CHECK_FINGERPRINT3(f, p0, p1, p2, fp)                                  \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
 #endif  // defined(DART_NO_SNAPSHOT).
 
 
+// clang-format off
 // List of recognized list factories:
 // (factory-name-symbol, result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
@@ -547,8 +551,9 @@ class MethodRecognizer : public AllStatic {
   V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 0x2c093004)                 \
   V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 0x501be4f1)               \
   V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 0x738e124b)               \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 0x7a7dd718)           \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 0x7a7dd718)
 
+// clang-format on
 
 // Class that recognizes factories and returns corresponding result cid.
 class FactoryRecognizer : public AllStatic {

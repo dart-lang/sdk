@@ -42,24 +42,12 @@ class HostCPUFeatures : public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() {
-    HostCPUFeatures::InitOnce();
-  }
-  static void Cleanup() {
-    HostCPUFeatures::Cleanup();
-  }
-  static const char* hardware() {
-    return HostCPUFeatures::hardware();
-  }
-  static bool sse2_supported() {
-    return HostCPUFeatures::sse2_supported();
-  }
-  static bool sse4_1_supported() {
-    return HostCPUFeatures::sse4_1_supported();
-  }
-  static bool double_truncate_round_supported() {
-    return false;
-  }
+  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Cleanup() { HostCPUFeatures::Cleanup(); }
+  static const char* hardware() { return HostCPUFeatures::hardware(); }
+  static bool sse2_supported() { return HostCPUFeatures::sse2_supported(); }
+  static bool sse4_1_supported() { return HostCPUFeatures::sse4_1_supported(); }
+  static bool double_truncate_round_supported() { return false; }
 };
 
 }  // namespace dart

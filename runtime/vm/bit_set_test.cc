@@ -8,7 +8,7 @@
 
 namespace dart {
 
-template<intptr_t Size>
+template <intptr_t Size>
 void TestBitSet() {
   BitSet<Size> set;
   EXPECT_EQ(-1, set.Last());

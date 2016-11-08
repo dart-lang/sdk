@@ -16,8 +16,8 @@ enum Register {
   RBP = 5,
   RSI = 6,
   RDI = 7,
-  R8  = 8,
-  R9  = 9,
+  R8 = 8,
+  R9 = 9,
   R10 = 10,
   R11 = 11,
   R12 = 12,
@@ -72,11 +72,11 @@ const FpuRegister kNoFpuRegister = kNoXmmRegister;
 
 
 enum RexBits {
-  REX_NONE   = 0,
-  REX_B      = 1 << 0,
-  REX_X      = 1 << 1,
-  REX_R      = 1 << 2,
-  REX_W      = 1 << 3,
+  REX_NONE = 0,
+  REX_B = 1 << 0,
+  REX_X = 1 << 1,
+  REX_R = 1 << 2,
+  REX_W = 1 << 3,
   REX_PREFIX = 1 << 6
 };
 
@@ -87,9 +87,9 @@ const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register CTX = R12;  // Location of current context at method entry.
 // Caches object pool pointer in generated code.
 const Register PP = R15;
-const Register SPREG = RSP;  // Stack pointer register.
-const Register FPREG = RBP;  // Frame pointer register.
-const Register ICREG = RBX;  // IC data register.
+const Register SPREG = RSP;          // Stack pointer register.
+const Register FPREG = RBP;          // Frame pointer register.
+const Register ICREG = RBX;          // IC data register.
 const Register ARGS_DESC_REG = R10;  // Arguments descriptor register.
 const Register CODE_REG = R12;
 const Register THR = R14;  // Caches current thread in generated code.
@@ -108,11 +108,7 @@ typedef uint32_t RegList;
 const RegList kAllCpuRegistersList = 0xFFFF;
 
 const RegList kReservedCpuRegisters =
-    (1 << SPREG) |
-    (1 << FPREG) |
-    (1 << TMP)   |
-    (1 << PP)    |
-    (1 << THR);
+    (1 << SPREG) | (1 << FPREG) | (1 << TMP) | (1 << PP) | (1 << THR);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -129,29 +125,29 @@ enum ScaleFactor {
 
 
 enum Condition {
-  OVERFLOW      =  0,
-  NO_OVERFLOW   =  1,
-  BELOW         =  2,
-  ABOVE_EQUAL   =  3,
-  EQUAL         =  4,
-  NOT_EQUAL     =  5,
-  BELOW_EQUAL   =  6,
-  ABOVE         =  7,
-  SIGN          =  8,
-  NOT_SIGN      =  9,
-  PARITY_EVEN   = 10,
-  PARITY_ODD    = 11,
-  LESS          = 12,
+  OVERFLOW = 0,
+  NO_OVERFLOW = 1,
+  BELOW = 2,
+  ABOVE_EQUAL = 3,
+  EQUAL = 4,
+  NOT_EQUAL = 5,
+  BELOW_EQUAL = 6,
+  ABOVE = 7,
+  SIGN = 8,
+  NOT_SIGN = 9,
+  PARITY_EVEN = 10,
+  PARITY_ODD = 11,
+  LESS = 12,
   GREATER_EQUAL = 13,
-  LESS_EQUAL    = 14,
-  GREATER       = 15,
+  LESS_EQUAL = 14,
+  GREATER = 15,
 
-  ZERO          = EQUAL,
-  NOT_ZERO      = NOT_EQUAL,
-  NEGATIVE      = SIGN,
-  POSITIVE      = NOT_SIGN,
-  CARRY         = BELOW,
-  NOT_CARRY     = ABOVE_EQUAL
+  ZERO = EQUAL,
+  NOT_ZERO = NOT_EQUAL,
+  NEGATIVE = SIGN,
+  POSITIVE = NOT_SIGN,
+  CARRY = BELOW,
+  NOT_CARRY = ABOVE_EQUAL
 };
 
 #define R(reg) (1 << (reg))
@@ -193,14 +189,14 @@ class CallingConventions {
   static const Register kArg6Reg = R9;
   static const intptr_t kShadowSpaceBytes = 0;
 
-  static const intptr_t kVolatileCpuRegisters =
-      R(RAX) | R(RCX) | R(RDX) | R(RSI) | R(RDI) |
-      R(R8) | R(R9) | R(R10) | R(R11);
+  static const intptr_t kVolatileCpuRegisters = R(RAX) | R(RCX) | R(RDX) |
+                                                R(RSI) | R(RDI) | R(R8) |
+                                                R(R9) | R(R10) | R(R11);
 
   static const intptr_t kVolatileXmmRegisters =
-      R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3) | R(XMM4) |
-      R(XMM5) | R(XMM6) | R(XMM7) | R(XMM8) | R(XMM9) |
-      R(XMM10) | R(XMM11) | R(XMM12) | R(XMM13) | R(XMM14) | R(XMM15);
+      R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3) | R(XMM4) | R(XMM5) | R(XMM6) |
+      R(XMM7) | R(XMM8) | R(XMM9) | R(XMM10) | R(XMM11) | R(XMM12) | R(XMM13) |
+      R(XMM14) | R(XMM15);
 
   static const intptr_t kCalleeSaveCpuRegisters =
       R(RBX) | R(R12) | R(R13) | R(R14) | R(R15);

@@ -15,8 +15,8 @@ namespace dart {
 
 UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
 
   Mutex* mutex = new Mutex();
   mutex->Lock();
@@ -37,8 +37,8 @@ UNIT_TEST_CASE(Mutex) {
 
 UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   OSThread* thread = OSThread::Current();
   // Thread interrupter interferes with this test, disable interrupts.
   thread->DisableThreadInterrupts();
@@ -63,7 +63,7 @@ UNIT_TEST_CASE(Monitor) {
     // Check whether this attempt falls within the exptected time limits.
     int64_t wakeup_time = stop - start;
     OS::Print("wakeup_time: %" Pd64 "\n", wakeup_time);
-    const int kAcceptableTimeJitter = 20;  // Measured in milliseconds.
+    const int kAcceptableTimeJitter = 20;    // Measured in milliseconds.
     const int kAcceptableWakeupDelay = 150;  // Measured in milliseconds.
     if (((wait_time - kAcceptableTimeJitter) <= wakeup_time) &&
         (wakeup_time <= (wait_time + kAcceptableWakeupDelay))) {
@@ -85,7 +85,7 @@ UNIT_TEST_CASE(Monitor) {
 class ObjectCounter : public ObjectPointerVisitor {
  public:
   explicit ObjectCounter(Isolate* isolate, const Object* obj)
-      : ObjectPointerVisitor(isolate), obj_(obj), count_(0) { }
+      : ObjectPointerVisitor(isolate), obj_(obj), count_(0) {}
 
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
@@ -119,7 +119,7 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       HANDLESCOPE(thread);
       Zone* zone = thread->zone();
       EXPECT_EQ(zone, stack_zone.GetZone());
-      ZoneGrowableArray<bool>* a0 = new(zone) ZoneGrowableArray<bool>(zone, 1);
+      ZoneGrowableArray<bool>* a0 = new (zone) ZoneGrowableArray<bool>(zone, 1);
       GrowableArray<bool> a1(zone, 1);
       for (intptr_t i = 0; i < 100000; ++i) {
         a0->Add(true);
@@ -135,9 +135,8 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       {
         ObjectCounter counter(isolate_, &smi);
         // Ensure that our particular zone is visited.
-        isolate_->IterateObjectPointers(
-            &counter,
-            StackFrameIterator::kValidateFrames);
+        isolate_->IterateObjectPointers(&counter,
+                                        StackFrameIterator::kValidateFrames);
         EXPECT_EQ(1, counter.count());
       }
       char* unique_chars = zone->PrintToString("unique_str_%" Pd, id_);
@@ -152,9 +151,8 @@ class TaskWithZoneAllocation : public ThreadPool::Task {
       {
         ObjectCounter str_counter(isolate_, &unique_str);
         // Ensure that our particular zone is visited.
-        isolate_->IterateObjectPointers(
-            &str_counter,
-            StackFrameIterator::kValidateFrames);
+        isolate_->IterateObjectPointers(&str_counter,
+                                        StackFrameIterator::kValidateFrames);
         // We should visit the string object exactly once.
         EXPECT_EQ(1, str_counter.count());
       }
@@ -213,14 +211,14 @@ TEST_CASE(ThreadRegistry) {
   char* orig_str = orig_zone->PrintToString("foo");
   Dart_ExitIsolate();
   // Create and enter a new isolate.
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   Zone* zone0 = Thread::Current()->zone();
   EXPECT(zone0 != orig_zone);
   Dart_ShutdownIsolate();
   // Create and enter yet another isolate.
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   {
     // Create a stack resource this time, and exercise it.
     StackZone stack_zone(Thread::Current());
@@ -251,12 +249,12 @@ class SafepointTestTask : public ThreadPool::Task {
                     intptr_t* expected_count,
                     intptr_t* total_done,
                     intptr_t* exited)
-    : isolate_(isolate),
-      monitor_(monitor),
-      expected_count_(expected_count),
-      total_done_(total_done),
-      exited_(exited),
-      local_done_(false) {}
+      : isolate_(isolate),
+        monitor_(monitor),
+        expected_count_(expected_count),
+        total_done_(total_done),
+        exited_(exited),
+        local_done_(false) {}
 
   virtual void Run() {
     Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);
@@ -265,7 +263,7 @@ class SafepointTestTask : public ThreadPool::Task {
       ++*expected_count_;
     }
     Thread* thread = Thread::Current();
-    for (int i = reinterpret_cast<intptr_t>(thread); ; ++i) {
+    for (int i = reinterpret_cast<intptr_t>(thread);; ++i) {
       StackZone stack_zone(thread);
       Zone* zone = thread->zone();
       HANDLESCOPE(thread);
@@ -278,9 +276,8 @@ class SafepointTestTask : public ThreadPool::Task {
         // But occasionally, organize a rendezvous.
         SafepointOperationScope safepoint_scope(thread);
         ObjectCounter counter(isolate_, &smi);
-        isolate_->IterateObjectPointers(
-            &counter,
-            StackFrameIterator::kValidateFrames);
+        isolate_->IterateObjectPointers(&counter,
+                                        StackFrameIterator::kValidateFrames);
         {
           MonitorLocker ml(monitor_);
           EXPECT_EQ(*expected_count_, counter.count());
@@ -345,10 +342,10 @@ TEST_CASE(SafepointTestDart) {
     Dart::thread_pool()->Run(new SafepointTestTask(
         isolate, &monitor, &expected_count, &total_done, &exited));
   }
-  // Run Dart code on the main thread long enough to allow all helpers
-  // to get their verification done and exit. Use a specific UserTag
-  // to enable the helpers to verify that the main thread is
-  // successfully interrupted in the pure Dart loop.
+// Run Dart code on the main thread long enough to allow all helpers
+// to get their verification done and exit. Use a specific UserTag
+// to enable the helpers to verify that the main thread is
+// successfully interrupted in the pure Dart loop.
 #if defined(USING_SIMULATOR)
   const intptr_t kLoopCount = 12345678;
 #else
@@ -356,14 +353,16 @@ TEST_CASE(SafepointTestDart) {
 #endif  // USING_SIMULATOR
   char buffer[1024];
   OS::SNPrint(buffer, sizeof(buffer),
-      "import 'dart:developer';\n"
-      "int dummy = 0;\n"
-      "main() {\n"
-      "  new UserTag('foo').makeCurrent();\n"
-      "  for (dummy = 0; dummy < %" Pd "; ++dummy) {\n"
-      "    dummy += (dummy & 1);\n"
-      "  }\n"
-      "}\n", kLoopCount);
+              "import 'dart:developer';\n"
+              "int dummy = 0;\n"
+              "main() {\n"
+              "  new UserTag('foo').makeCurrent();\n"
+              "  for (dummy = 0; dummy < %" Pd
+              "; ++dummy) {\n"
+              "    dummy += (dummy & 1);\n"
+              "  }\n"
+              "}\n",
+              kLoopCount);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -491,8 +490,7 @@ TEST_CASE(ThreadIterator_AddFindRemove) {
     MonitorLocker ml(params.monitor);
     EXPECT(params.spawned_thread_id == OSThread::kInvalidThreadId);
     // Spawn thread and wait to receive the thread id.
-    OSThread::Start("ThreadIteratorTest",
-                    ThreadIteratorTestMain,
+    OSThread::Start("ThreadIteratorTest", ThreadIteratorTestMain,
                     reinterpret_cast<uword>(&params));
     while (params.spawned_thread_id == OSThread::kInvalidThreadId) {
       ml.Wait();
@@ -586,13 +584,8 @@ VM_TEST_CASE(RecursiveSafepointTest2) {
 
 class AllocAndGCTask : public ThreadPool::Task {
  public:
-  AllocAndGCTask(Isolate* isolate,
-                 Monitor* done_monitor,
-                 bool* done)
-    : isolate_(isolate),
-      done_monitor_(done_monitor),
-      done_(done) {
-  }
+  AllocAndGCTask(Isolate* isolate, Monitor* done_monitor, bool* done)
+      : isolate_(isolate), done_monitor_(done_monitor), done_(done) {}
 
   virtual void Run() {
     Thread::EnterIsolateAsHelper(isolate_, Thread::kUnknownTask);

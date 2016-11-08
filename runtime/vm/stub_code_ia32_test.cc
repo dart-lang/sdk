@@ -20,25 +20,23 @@
 namespace dart {
 
 static Function* CreateFunction(const char* name) {
-  const String& class_name = String::Handle(Symbols::New(Thread::Current(),
-                                                         "ownerClass"));
+  const String& class_name =
+      String::Handle(Symbols::New(Thread::Current(), "ownerClass"));
   const Script& script = Script::Handle();
   const Library& lib = Library::Handle(Library::New(class_name));
   const Class& owner_class = Class::Handle(
       Class::New(lib, class_name, script, TokenPosition::kNoSource));
-  const String& function_name = String::ZoneHandle(
-      Symbols::New(Thread::Current(), name));
-  Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, false, owner_class,
-                    TokenPosition::kMinSource));
+  const String& function_name =
+      String::ZoneHandle(Symbols::New(Thread::Current(), name));
+  Function& function = Function::ZoneHandle(Function::New(
+      function_name, RawFunction::kRegularFunction, true, false, false, false,
+      false, owner_class, TokenPosition::kMinSource));
   return &function;
 }
 
 
 // Test calls to stub code which calls into the runtime.
-static void GenerateCallToCallRuntimeStub(Assembler* assembler,
-                                          int length) {
+static void GenerateCallToCallRuntimeStub(Assembler* assembler, int length) {
   const int argc = 2;
   const Smi& smi_length = Smi::ZoneHandle(Smi::New(length));
   __ enter(Immediate(0));

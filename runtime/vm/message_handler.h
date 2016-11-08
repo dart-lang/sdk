@@ -77,47 +77,38 @@ class MessageHandler {
   // A message handler tracks how many live ports it has.
   bool HasLivePorts() const { return live_ports_ > 0; }
 
-  intptr_t live_ports() const {
-    return live_ports_;
-  }
+  intptr_t live_ports() const { return live_ports_; }
 
   void DebugDump();
 
   bool paused() const { return paused_ > 0; }
 
   void increment_paused() { paused_++; }
-  void decrement_paused() { ASSERT(paused_ > 0); paused_--; }
+  void decrement_paused() {
+    ASSERT(paused_ > 0);
+    paused_--;
+  }
 
   bool ShouldPauseOnStart(MessageStatus status) const;
-  bool should_pause_on_start() const {
-    return should_pause_on_start_;
-  }
+  bool should_pause_on_start() const { return should_pause_on_start_; }
 
   void set_should_pause_on_start(bool should_pause_on_start) {
     should_pause_on_start_ = should_pause_on_start;
   }
 
-  bool is_paused_on_start() const {
-    return is_paused_on_start_;
-  }
+  bool is_paused_on_start() const { return is_paused_on_start_; }
 
   bool ShouldPauseOnExit(MessageStatus status) const;
-  bool should_pause_on_exit() const {
-    return should_pause_on_exit_;
-  }
+  bool should_pause_on_exit() const { return should_pause_on_exit_; }
 
   void set_should_pause_on_exit(bool should_pause_on_exit) {
     should_pause_on_exit_ = should_pause_on_exit;
   }
 
-  bool is_paused_on_exit() const {
-    return is_paused_on_exit_;
-  }
+  bool is_paused_on_exit() const { return is_paused_on_exit_; }
 
   // Timestamp of the paused on start or paused on exit.
-  int64_t paused_timestamp() const {
-    return paused_timestamp_;
-  }
+  int64_t paused_timestamp() const { return paused_timestamp_; }
 
   void PausedOnStart(bool paused);
   void PausedOnExit(bool paused);
@@ -240,7 +231,7 @@ class MessageHandler {
   // thread.
   bool oob_message_handling_allowed_;
   intptr_t live_ports_;  // The number of open ports, including control ports.
-  intptr_t paused_;  // The number of pause messages received.
+  intptr_t paused_;      // The number of pause messages received.
   bool should_pause_on_start_;
   bool should_pause_on_exit_;
   bool is_paused_on_start_;

@@ -314,7 +314,7 @@ void Monitor::Exit() {
 void MonitorWaitData::ThreadExit() {
   if (MonitorWaitData::monitor_wait_data_key_ != kUnsetThreadLocalKey) {
     uword raw_wait_data =
-      OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+        OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
     // Clear in case this is called a second time.
     OSThread::SetThreadLocal(MonitorWaitData::monitor_wait_data_key_, 0);
     if (raw_wait_data != 0) {
@@ -425,7 +425,7 @@ MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Get the MonitorWaitData object containing the event for this
   // thread from thread local storage. Create it if it does not exist.
   uword raw_wait_data =
-    OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
+      OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
   MonitorWaitData* wait_data = NULL;
   if (raw_wait_data == 0) {
     HANDLE event = CreateEvent(NULL, FALSE, FALSE, NULL);

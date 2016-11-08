@@ -87,9 +87,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddFixedServiceId("classes/%" Pd "", id());
   const String& scrubbed_name = String::Handle(ScrubbedName());
   const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj,
-                    scrubbed_name.ToCString(),
-                    vm_name.ToCString());
+  AddNameProperties(&jsobj, scrubbed_name.ToCString(), vm_name.ToCString());
   if (ref) {
     return;
   }
@@ -260,16 +258,16 @@ static void AddFunctionServiceId(const JSONObject& jsobj,
   }
   if (id != -1) {
     ASSERT(selector != NULL);
-    jsobj.AddFixedServiceId("classes/%" Pd "/%s/%" Pd "",
-                            cls.id(), selector, id);
+    jsobj.AddFixedServiceId("classes/%" Pd "/%s/%" Pd "", cls.id(), selector,
+                            id);
     return;
   }
   // Regular functions known to their owner use their name (percent-encoded).
   String& name = String::Handle(f.name());
   if (cls.LookupFunction(name) == f.raw()) {
     const char* encoded_name = String::EncodeIRI(name);
-    jsobj.AddFixedServiceId("classes/%" Pd "/functions/%s",
-                            cls.id(), encoded_name);
+    jsobj.AddFixedServiceId("classes/%" Pd "/functions/%s", cls.id(),
+                            encoded_name);
     return;
   }
   // Oddball functions (not known to their owner) fall back to use the object
@@ -356,8 +354,8 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   String& field_name = String::Handle(name());
   const char* encoded_field_name = String::EncodeIRI(field_name);
   AddCommonObjectProperties(&jsobj, "Field", ref);
-  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s",
-                          cls.id(), encoded_field_name);
+  jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s", cls.id(),
+                          encoded_field_name);
 
   const String& user_name = String::Handle(UserVisibleName());
   const String& vm_name = String::Handle(name());
@@ -442,8 +440,7 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddServiceId(*this);
   } else {
     jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s/%" Px64 "",
-                            lib.index(), encoded_uri,
-                            load_timestamp());
+                            lib.index(), encoded_uri, load_timestamp());
   }
   jsobj.AddPropertyStr("uri", uri);
   jsobj.AddProperty("_kind", GetKindAsCString());
@@ -656,23 +653,23 @@ void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
       JSONObject jsentry(stream);
       jsentry.AddProperty("offset", OffsetFromIndex(i));
       switch (InfoAt(i)) {
-      case ObjectPool::kTaggedObject:
-        obj = ObjectAt(i);
-        jsentry.AddProperty("kind", "Object");
-        jsentry.AddProperty("value", obj);
-        break;
-      case ObjectPool::kImmediate:
-        imm = RawValueAt(i);
-        jsentry.AddProperty("kind", "Immediate");
-        jsentry.AddProperty64("value", imm);
-        break;
-      case ObjectPool::kNativeEntry:
-        imm = RawValueAt(i);
-        jsentry.AddProperty("kind", "NativeEntry");
-        jsentry.AddProperty64("value", imm);
-        break;
-      default:
-        UNREACHABLE();
+        case ObjectPool::kTaggedObject:
+          obj = ObjectAt(i);
+          jsentry.AddProperty("kind", "Object");
+          jsentry.AddProperty("value", obj);
+          break;
+        case ObjectPool::kImmediate:
+          imm = RawValueAt(i);
+          jsentry.AddProperty("kind", "Immediate");
+          jsentry.AddProperty64("value", imm);
+          break;
+        case ObjectPool::kNativeEntry:
+          imm = RawValueAt(i);
+          jsentry.AddProperty("kind", "NativeEntry");
+          jsentry.AddProperty64("value", imm);
+          break;
+        default:
+          UNREACHABLE();
       }
     }
   }
@@ -717,8 +714,7 @@ void Stackmap::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
-                                        bool ref) const {
+void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
   // TODO(johnmccutchan): Generate a stable id. LocalVarDescriptors hang off
@@ -745,8 +741,7 @@ void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
 }
 
 
-void ExceptionHandlers::PrintJSONImpl(JSONStream* stream,
-                                      bool ref) const {
+void ExceptionHandlers::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Object::PrintJSONImpl(stream, ref);
 }
 
@@ -807,8 +802,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Code", ref);
-  jsobj.AddFixedServiceId("code/%" Px64"-%" Px "",
-                          compile_timestamp(),
+  jsobj.AddFixedServiceId("code/%" Px64 "-%" Px "", compile_timestamp(),
                           PayloadStart());
   const char* qualified_name = QualifiedName();
   const char* vm_name = Name();
@@ -981,8 +975,7 @@ void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void UnhandledException::PrintJSONImpl(JSONStream* stream,
-                                       bool ref) const {
+void UnhandledException::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Error", ref);
   jsobj.AddProperty("kind", "UnhandledException");
@@ -1010,8 +1003,7 @@ void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
-                                       bool ref) const {
+void Instance::PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const {
   AddCommonObjectProperties(jsobj, "Instance", ref);
   if (ref) {
     return;
@@ -1311,8 +1303,7 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
-                                        bool ref) const {
+void GrowableObjectArray::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "List");
@@ -1433,16 +1424,14 @@ void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("bytes", "");
   } else {
     NoSafepointScope no_safepoint;
-    jsobj.AddPropertyBase64("bytes",
-                            reinterpret_cast<const uint8_t*>(
-                                DataAddr(offset * ElementSizeInBytes())),
+    jsobj.AddPropertyBase64("bytes", reinterpret_cast<const uint8_t*>(DataAddr(
+                                         offset * ElementSizeInBytes())),
                             count * ElementSizeInBytes());
   }
 }
 
 
-void ExternalTypedData::PrintJSONImpl(JSONStream* stream,
-                                      bool ref) const {
+void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   const Class& cls = Class::Handle(clazz());
@@ -1466,9 +1455,8 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream,
     jsobj.AddProperty("bytes", "");
   } else {
     NoSafepointScope no_safepoint;
-    jsobj.AddPropertyBase64("bytes",
-                            reinterpret_cast<const uint8_t*>(
-                                DataAddr(offset * ElementSizeInBytes())),
+    jsobj.AddPropertyBase64("bytes", reinterpret_cast<const uint8_t*>(DataAddr(
+                                         offset * ElementSizeInBytes())),
                             count * ElementSizeInBytes());
   }
 }

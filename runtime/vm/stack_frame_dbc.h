@@ -43,7 +43,7 @@ static const int kFirstObjectSlotFromFp = -4;  // Used by GC to traverse stack.
 static const int kSavedCallerFpSlotFromFp = -1;
 static const int kSavedCallerPpSlotFromFp = kSavedCallerFpSlotFromFp;
 static const int kSavedCallerPcSlotFromFp = -2;
-static const int kCallerSpSlotFromFp = -kDartFrameFixedSize-1;
+static const int kCallerSpSlotFromFp = -kDartFrameFixedSize - 1;
 static const int kPcMarkerSlotFromFp = -3;
 static const int kFunctionSlotFromFp = -4;
 

@@ -153,8 +153,7 @@ TEST_CASE(BigintDouble) {
   EXPECT_EQ(4.1909428413307135e+24, bigint.AsDoubleValue());
 
   // Reduced precision.
-  bigint = Bigint::NewFromCString(
-      "9876543210987654321098765432109876543210");
+  bigint = Bigint::NewFromCString("9876543210987654321098765432109876543210");
   EXPECT_EQ(9.8765432109876546e+39, bigint.AsDoubleValue());
 
   bigint = Bigint::NewFromCString(
@@ -169,7 +168,7 @@ TEST_CASE(BigintDouble) {
       "12345678901234567890123456789012345678901234567890"
       "12345678901234567890123456789012345678901234567890");
   double zero = 0.0;
-  EXPECT_EQ(1.0/zero, bigint.AsDoubleValue());
+  EXPECT_EQ(1.0 / zero, bigint.AsDoubleValue());
 
   bigint = Bigint::NewFromCString(
       "17976931348623157081452742373170435679807056752584"
@@ -189,7 +188,7 @@ TEST_CASE(BigintDouble) {
       "29520850057688381506823424628814739131105408272371"
       "63350510684586298239947245938479716304835356329624"
       "224137216");
-  EXPECT_EQ(1.0/zero, bigint.AsDoubleValue());
+  EXPECT_EQ(1.0 / zero, bigint.AsDoubleValue());
 
   bigint = Bigint::NewFromCString(
       "17976931348623158079372897140530341507993413271003"
@@ -199,7 +198,7 @@ TEST_CASE(BigintDouble) {
       "57302700698555713669596228429148198608349364752927"
       "19074168444365510704342711559699508093042880177904"
       "174497792");
-  EXPECT_EQ(1.0/zero, bigint.AsDoubleValue());
+  EXPECT_EQ(1.0 / zero, bigint.AsDoubleValue());
 
   bigint = Bigint::NewFromCString(
       "17976931348623158079372897140530341507993413271003"
@@ -218,12 +217,12 @@ TEST_CASE(BigintDouble) {
   EXPECT_EQ(1.0000000000000001e+23, bigint.AsDoubleValue());
 
   // Same but shifted 64 bits to the left.
-  bigint = Bigint::NewFromCString(
-      "1844674407370955161600000000000000000000000");
+  bigint =
+      Bigint::NewFromCString("1844674407370955161600000000000000000000000");
   EXPECT_EQ(1.844674407370955e+42, bigint.AsDoubleValue());
 
-  bigint = Bigint::NewFromCString(
-      "1844674407370955161600000000000000000000001");
+  bigint =
+      Bigint::NewFromCString("1844674407370955161600000000000000000000001");
   EXPECT_EQ(1.8446744073709553e+42, bigint.AsDoubleValue());
 }
 
@@ -327,22 +326,22 @@ TEST_CASE(BigintHexStrings) {
   }
 
   {
-    const Bigint& bigint = Bigint::Handle(
-        Bigint::NewFromCString("0x000000123"));
+    const Bigint& bigint =
+        Bigint::Handle(Bigint::NewFromCString("0x000000123"));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0x123", str);
   }
 
   {
-    const Bigint& bigint = Bigint::Handle(
-        Bigint::NewFromCString("0x0000aBcEf"));
+    const Bigint& bigint =
+        Bigint::Handle(Bigint::NewFromCString("0x0000aBcEf"));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("0xABCEF", str);
   }
 
   {
     const char* in = "0x00000000000000000000000000000000000000000000123456789";
-    const char* out =                                            "0x123456789";
+    const char* out = "0x123456789";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
@@ -350,36 +349,36 @@ TEST_CASE(BigintHexStrings) {
 
   {
     const char* in = "0x00000123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
-    const char* out =     "0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
+    const char* out = "0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
   }
 
   {
-    const Bigint& bigint = Bigint::Handle(
-        Bigint::NewFromCString("-0x00000123"));
+    const Bigint& bigint =
+        Bigint::Handle(Bigint::NewFromCString("-0x00000123"));
     EXPECT(bigint.FitsIntoSmi());
     EXPECT_EQ(-0x123, bigint.AsInt64Value());
   }
 
   {
-    const Bigint& bigint = Bigint::Handle(
-        Bigint::NewFromCString("-0x00000123"));
+    const Bigint& bigint =
+        Bigint::Handle(Bigint::NewFromCString("-0x00000123"));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0x123", str);
   }
 
   {
-    const Bigint& bigint = Bigint::Handle(
-        Bigint::NewFromCString("-0x000aBcEf"));
+    const Bigint& bigint =
+        Bigint::Handle(Bigint::NewFromCString("-0x000aBcEf"));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0xABCEF", str);
   }
 
   {
     const char* in = "-0x00000000000000000000000000000000000000000000123456789";
-    const char* out =                                            "-0x123456789";
+    const char* out = "-0x123456789";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
@@ -387,7 +386,7 @@ TEST_CASE(BigintHexStrings) {
 
   {
     const char* in = "-0x0000123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
-    const char* out =    "-0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
+    const char* out = "-0x123456789ABCDEF01234567890ABCDEF0123456789ABCDEF0";
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
@@ -395,8 +394,7 @@ TEST_CASE(BigintHexStrings) {
   {
     const char* test = "12345678901234567890";
     const char* out = "0xAB54A98CEB1F0AD2";
-    const Bigint& bigint = Bigint::Handle(
-        Bigint::NewFromCString(test));
+    const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(test));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ(out, str);
   }
@@ -456,7 +454,7 @@ TEST_CASE(BigintDecStrings) {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
     const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("7141946863373290020600059860922167424469804758405880798960",
-        str);
+                 str);
   }
 
   {
@@ -489,7 +487,7 @@ TEST_CASE(BigintDecStrings) {
     const Bigint& bigint = Bigint::Handle(Bigint::NewFromCString(in));
     const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("-7141946863373290020600059860922167424469804758405880798960",
-        str);
+                 str);
   }
 
   {
@@ -499,8 +497,8 @@ TEST_CASE(BigintDecStrings) {
   }
 
   {
-    const Bigint& bigint = Bigint::Handle(
-        Bigint::NewFromCString("0x000000123"));
+    const Bigint& bigint =
+        Bigint::Handle(Bigint::NewFromCString("0x000000123"));
     const char* str = bigint.ToDecCString(zone);
     EXPECT_STREQ("291", str);
   }
@@ -643,8 +641,8 @@ TEST_CASE(BigintDecimalStrings) {
   }
 
   {
-    const Bigint& bigint = Bigint::Handle(
-        Bigint::NewFromCString("-1311768467463790320"));
+    const Bigint& bigint =
+        Bigint::Handle(Bigint::NewFromCString("-1311768467463790320"));
     const char* str = bigint.ToHexCString(zone);
     EXPECT_STREQ("-0x123456789ABCDEF0", str);
   }

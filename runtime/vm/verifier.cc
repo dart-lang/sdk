@@ -26,18 +26,18 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
       }
     } else {
       switch (mark_expectation_) {
-       case kForbidMarked:
-        if (raw_obj->IsMarked()) {
-          FATAL1("Marked object encountered %#" Px "\n", raw_addr);
-        }
-        break;
-       case kAllowMarked:
-        break;
-       case kRequireMarked:
-        if (!raw_obj->IsMarked()) {
-          FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
-        }
-        break;
+        case kForbidMarked:
+          if (raw_obj->IsMarked()) {
+            FATAL1("Marked object encountered %#" Px "\n", raw_addr);
+          }
+          break;
+        case kAllowMarked:
+          break;
+        case kRequireMarked:
+          if (!raw_obj->IsMarked()) {
+            FATAL1("Unmarked object encountered %#" Px "\n", raw_addr);
+          }
+          break;
       }
     }
   }
@@ -72,13 +72,11 @@ void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   StackZone stack_zone(thread);
-  ObjectSet* allocated_set =
-      isolate->heap()->CreateAllocatedObjectSet(stack_zone.GetZone(),
-                                                mark_expectation);
+  ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet(
+      stack_zone.GetZone(), mark_expectation);
   VerifyPointersVisitor visitor(isolate, allocated_set);
   // Visit all strongly reachable objects.
-  isolate->IterateObjectPointers(&visitor,
-                                 StackFrameIterator::kValidateFrames);
+  isolate->IterateObjectPointers(&visitor, StackFrameIterator::kValidateFrames);
   VerifyWeakPointersVisitor weak_visitor(&visitor);
   // Visit weak handles and prologue weak handles.
   isolate->VisitWeakPersistentHandles(&weak_visitor);
@@ -87,9 +85,7 @@ void VerifyPointersVisitor::VerifyPointers(MarkExpectation mark_expectation) {
 
 #if defined(DEBUG)
 VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
-    : thread_(thread),
-      instanceHandle_(Instance::Handle(thread->zone())) {
-}
+    : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
 
 
 void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {

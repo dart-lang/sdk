@@ -49,9 +49,7 @@ class ConstantPropagator : public FlowGraphVisitor {
   // first one.
   void Join(Object* left, const Object& right);
 
-  bool IsUnknown(const Object& value) {
-    return value.raw() == unknown_.raw();
-  }
+  bool IsUnknown(const Object& value) { return value.raw() == unknown_.raw(); }
   bool IsNonConstant(const Object& value) {
     return value.raw() == non_constant_.raw();
   }

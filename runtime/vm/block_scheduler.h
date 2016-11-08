@@ -13,7 +13,7 @@ class FlowGraph;
 
 class BlockScheduler : public ValueObject {
  public:
-  explicit BlockScheduler(FlowGraph* flow_graph) : flow_graph_(flow_graph) { }
+  explicit BlockScheduler(FlowGraph* flow_graph) : flow_graph_(flow_graph) {}
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 

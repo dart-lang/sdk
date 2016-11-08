@@ -31,8 +31,8 @@ TEST_CASE(SourceReport_Coverage_NoCalls) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
@@ -68,8 +68,8 @@ TEST_CASE(SourceReport_Coverage_SimpleCall) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
@@ -113,8 +113,8 @@ TEST_CASE(SourceReport_Coverage_ForceCompile) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
@@ -157,8 +157,8 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_NoForceCompile) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
@@ -200,8 +200,8 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompile) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
@@ -244,8 +244,8 @@ TEST_CASE(SourceReport_Coverage_UnusedClass_ForceCompileError) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kCoverage, SourceReport::kForceCompile);
   JSONStream js;
@@ -297,8 +297,8 @@ TEST_CASE(SourceReport_Coverage_NestedFunctions) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kCoverage);
   JSONStream js;
@@ -353,8 +353,8 @@ TEST_CASE(SourceReport_Coverage_RestrictedRange) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
   const Function& helper = Function::Handle(
       lib.LookupLocalFunction(String::Handle(String::New("helper0"))));
 
@@ -480,8 +480,8 @@ TEST_CASE(SourceReport_CallSites_SimpleCall) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kCallSites);
   JSONStream js;
@@ -537,8 +537,8 @@ TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
   const Function& helper = Function::Handle(
       lib.LookupLocalFunction(String::Handle(String::New("helper"))));
 
@@ -601,10 +601,10 @@ TEST_CASE(SourceReport_MultipleReports) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
-  SourceReport report(SourceReport::kCallSites|SourceReport::kCoverage);
+  SourceReport report(SourceReport::kCallSites | SourceReport::kCoverage);
   JSONStream js;
   report.PrintJSON(&js, script);
   ElideJSONSubstring("classes", js.ToCString(), buffer);
@@ -654,8 +654,8 @@ TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
   Library& lib = Library::Handle();
   lib ^= ExecuteScript(kScript);
   ASSERT(!lib.IsNull());
-  const Script& script = Script::Handle(lib.LookupScript(
-      String::Handle(String::New("test-lib"))));
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
   SourceReport report(SourceReport::kPossibleBreakpoints);
   JSONStream js;

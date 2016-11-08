@@ -17,23 +17,41 @@
 
 namespace dart {
 
-DEFINE_FLAG(int, heap_growth_rate, 0,
+DEFINE_FLAG(int,
+            heap_growth_rate,
+            0,
             "The max number of pages the heap can grow at a time");
-DEFINE_FLAG(int, old_gen_growth_space_ratio, 20,
+DEFINE_FLAG(int,
+            old_gen_growth_space_ratio,
+            20,
             "The desired maximum percentage of free space after old gen GC");
-DEFINE_FLAG(int, old_gen_growth_time_ratio, 3,
+DEFINE_FLAG(int,
+            old_gen_growth_time_ratio,
+            3,
             "The desired maximum percentage of time spent in old gen GC");
-DEFINE_FLAG(int, old_gen_growth_rate, 280,
+DEFINE_FLAG(int,
+            old_gen_growth_rate,
+            280,
             "The max number of pages the old generation can grow at a time");
-DEFINE_FLAG(bool, print_free_list_before_gc, false,
+DEFINE_FLAG(bool,
+            print_free_list_before_gc,
+            false,
             "Print free list statistics before a GC");
-DEFINE_FLAG(bool, print_free_list_after_gc, false,
+DEFINE_FLAG(bool,
+            print_free_list_after_gc,
+            false,
             "Print free list statistics after a GC");
-DEFINE_FLAG(int, code_collection_interval_in_us, 30000000,
+DEFINE_FLAG(int,
+            code_collection_interval_in_us,
+            30000000,
             "Time between attempts to collect unused code.");
-DEFINE_FLAG(bool, log_code_drop, false,
+DEFINE_FLAG(bool,
+            log_code_drop,
+            false,
             "Emit a log message when pointers to unused code are dropped.");
-DEFINE_FLAG(bool, always_drop_code, false,
+DEFINE_FLAG(bool,
+            always_drop_code,
+            false,
             "Always try to drop code if the function's usage counter is >= 0");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
@@ -405,22 +423,22 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
     // A successful allocation should increase usage_.
     ASSERT(usage_before.used_in_words < usage_.used_in_words);
   }
-  // Note we cannot assert that a failed allocation should not change
-  // used_in_words as another thread could have changed used_in_words.
+// Note we cannot assert that a failed allocation should not change
+// used_in_words as another thread could have changed used_in_words.
 #endif
   ASSERT((result & kObjectAlignmentMask) == kOldObjectAlignmentOffset);
   return result;
 }
 
 
-  void PageSpace::AcquireDataLock() {
-    freelist_[HeapPage::kData].mutex()->Lock();
-  }
+void PageSpace::AcquireDataLock() {
+  freelist_[HeapPage::kData].mutex()->Lock();
+}
 
 
-  void PageSpace::ReleaseDataLock() {
-    freelist_[HeapPage::kData].mutex()->Unlock();
-  }
+void PageSpace::ReleaseDataLock() {
+  freelist_[HeapPage::kData].mutex()->Unlock();
+}
 
 
 void PageSpace::AllocateExternal(intptr_t size) {
@@ -456,6 +474,7 @@ class ExclusivePageIterator : ValueObject {
     ASSERT(!Done());
     page_ = space_->NextPageAnySize(page_);
   }
+
  private:
   const PageSpace* space_;
   MutexLocker ml_;
@@ -479,6 +498,7 @@ class ExclusiveCodePageIterator : ValueObject {
     ASSERT(!Done());
     page_ = page_->next();
   }
+
  private:
   const PageSpace* space_;
   MutexLocker ml_;
@@ -501,6 +521,7 @@ class ExclusiveLargePageIterator : ValueObject {
     ASSERT(!Done());
     page_ = page_->next();
   }
+
  private:
   const PageSpace* space_;
   MutexLocker ml_;
@@ -549,8 +570,7 @@ void PageSpace::UpdateMaxUsed() {
   ASSERT(heap_ != NULL);
   ASSERT(heap_->isolate() != NULL);
   Isolate* isolate = heap_->isolate();
-  isolate->GetHeapOldUsedMaxMetric()->SetValue(
-      UsedInWords() * kWordSize);
+  isolate->GetHeapOldUsedMaxMetric()->SetValue(UsedInWords() * kWordSize);
 }
 
 
@@ -699,25 +719,25 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
 
 class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
-  explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) { }
+  explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) {}
   virtual void VisitObject(RawObject* obj) {
     array_->AddValue(obj->Size() / kObjectAlignment);
     array_->AddValue(obj->GetClassId());
   }
+
  private:
   JSONArray* array_;
 };
 
 
-void PageSpace::PrintHeapMapToJSONStream(
-    Isolate* isolate, JSONStream* stream) const {
+void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
+                                         JSONStream* stream) const {
   if (!FLAG_support_service) {
     return;
   }
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
-  heap_map.AddProperty("freeClassId",
-                       static_cast<intptr_t>(kFreeListElement));
+  heap_map.AddProperty("freeClassId", static_cast<intptr_t>(kFreeListElement));
   heap_map.AddProperty("unitSizeBytes",
                        static_cast<intptr_t>(kObjectAlignment));
   heap_map.AddProperty("pageSizeBytes", kPageSizeInWords * kWordSize);
@@ -735,16 +755,16 @@ void PageSpace::PrintHeapMapToJSONStream(
     JSONArray all_pages(&heap_map, "pages");
     for (HeapPage* page = pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
-      page_container.AddPropertyF("objectStart",
-                                  "0x%" Px "", page->object_start());
+      page_container.AddPropertyF("objectStart", "0x%" Px "",
+                                  page->object_start());
       JSONArray page_map(&page_container, "objects");
       HeapMapAsJSONVisitor printer(&page_map);
       page->VisitObjects(&printer);
     }
     for (HeapPage* page = exec_pages_; page != NULL; page = page->next()) {
       JSONObject page_container(&all_pages);
-      page_container.AddPropertyF("objectStart",
-                                  "0x%" Px "", page->object_start());
+      page_container.AddPropertyF("objectStart", "0x%" Px "",
+                                  page->object_start());
       JSONArray page_map(&page_container, "objects");
       HeapMapAsJSONVisitor printer(&page_map);
       page->VisitObjects(&printer);
@@ -841,8 +861,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     SpaceUsage usage_before = GetCurrentUsage();
 
     // Mark all reachable old-gen objects.
-    bool collect_code = FLAG_collect_code &&
-                        ShouldCollectCode() &&
+    bool collect_code = FLAG_collect_code && ShouldCollectCode() &&
                         !isolate->HasAttemptedReload();
     GCMarker marker(heap_);
     marker.MarkObjects(isolate, this, invoke_api_callbacks, collect_code);
@@ -911,8 +930,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
         page = pages_;
         while (page != NULL) {
           HeapPage* next_page = page->next();
-          bool page_in_use = sweeper.SweepPage(
-              page, &freelist_[page->type()], true);
+          bool page_in_use =
+              sweeper.SweepPage(page, &freelist_[page->type()], true);
           if (page_in_use) {
             prev_page = page;
           } else {
@@ -928,8 +947,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
         }
       } else {
         // Start the concurrent sweeper task now.
-        GCSweeper::SweepConcurrent(
-            isolate, pages_, pages_tail_, &freelist_[HeapPage::kData]);
+        GCSweeper::SweepConcurrent(isolate, pages_, pages_tail_,
+                                   &freelist_[HeapPage::kData]);
       }
     }
 
@@ -939,9 +958,8 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
     int64_t end = OS::GetCurrentTimeMicros();
 
     // Record signals for growth control. Include size of external allocations.
-    page_space_controller_.EvaluateGarbageCollection(usage_before,
-                                                     GetCurrentUsage(),
-                                                     start, end);
+    page_space_controller_.EvaluateGarbageCollection(
+        usage_before, GetCurrentUsage(), start, end);
 
     heap_->RecordTime(kMarkObjects, mid1 - start);
     heap_->RecordTime(kResetFreeLists, mid2 - mid1);
@@ -979,21 +997,18 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   if (remaining < size) {
     // Checking this first would be logical, but needlessly slow.
     if (size >= kAllocatablePageSize) {
-      return is_locked ?
-          TryAllocateDataLocked(size, growth_policy) :
-          TryAllocate(size, HeapPage::kData, growth_policy);
+      return is_locked ? TryAllocateDataLocked(size, growth_policy)
+                       : TryAllocate(size, HeapPage::kData, growth_policy);
     }
-    FreeListElement* block = is_locked ?
-        freelist_[HeapPage::kData].TryAllocateLargeLocked(size) :
-        freelist_[HeapPage::kData].TryAllocateLarge(size);
+    FreeListElement* block =
+        is_locked ? freelist_[HeapPage::kData].TryAllocateLargeLocked(size)
+                  : freelist_[HeapPage::kData].TryAllocateLarge(size);
     if (block == NULL) {
       // Allocating from a new page (if growth policy allows) will have the
       // side-effect of populating the freelist with a large block. The next
       // bump allocation request will have a chance to consume that block.
       // TODO(koda): Could take freelist lock just once instead of twice.
-      return TryAllocateInFreshPage(size,
-                                    HeapPage::kData,
-                                    growth_policy,
+      return TryAllocateInFreshPage(size, HeapPage::kData, growth_policy,
                                     is_locked);
     }
     intptr_t block_size = block->Size();
@@ -1013,7 +1028,7 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   bump_top_ += size;
   AtomicOperations::IncrementBy(&(usage_.used_in_words),
                                 (size >> kWordSizeLog2));
-  // Note: Remaining block is unwalkable until MakeIterable is called.
+// Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG
   if (bump_top_ < bump_end_) {
     // Fail fast if we try to walk the remaining block.
@@ -1071,7 +1086,7 @@ void PageSpace::SetupExternalPage(void* pointer,
   page->object_end_ = memory->end();
 
   MutexLocker ml(pages_lock_);
-  HeapPage** first, **tail;
+  HeapPage **first, **tail;
   if (is_executable) {
     ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
     page->type_ = HeapPage::kExecutable;
@@ -1102,8 +1117,7 @@ PageSpaceController::PageSpaceController(Heap* heap,
       desired_utilization_((100.0 - heap_growth_ratio) / 100.0),
       heap_growth_max_(heap_growth_max),
       garbage_collection_time_ratio_(garbage_collection_time_ratio),
-      last_code_collection_in_us_(OS::GetCurrentTimeMicros()) {
-}
+      last_code_collection_in_us_(OS::GetCurrentTimeMicros()) {}
 
 
 PageSpaceController::~PageSpaceController() {}
@@ -1139,18 +1153,17 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
   bool needs_gc = capacity_increase_in_pages * multiplier > grow_heap_;
   if (FLAG_log_growth) {
     OS::PrintErr("%s: %" Pd " * %f %s %" Pd "\n",
-                 needs_gc ? "NEEDS GC" : "grow",
-                 capacity_increase_in_pages,
-                 multiplier,
-                 needs_gc ? ">" : "<=",
-                 grow_heap_);
+                 needs_gc ? "NEEDS GC" : "grow", capacity_increase_in_pages,
+                 multiplier, needs_gc ? ">" : "<=", grow_heap_);
   }
   return needs_gc;
 }
 
 
-void PageSpaceController::EvaluateGarbageCollection(
-    SpaceUsage before, SpaceUsage after, int64_t start, int64_t end) {
+void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
+                                                    SpaceUsage after,
+                                                    int64_t start,
+                                                    int64_t end) {
   ASSERT(end >= start);
   history_.AddGarbageCollectionTime(start, end);
   const int gc_time_fraction = history_.GarbageCollectionTimeFraction();
@@ -1174,15 +1187,16 @@ void PageSpaceController::EvaluateGarbageCollection(
       t += (gc_time_fraction - garbage_collection_time_ratio_) / 100.0;
     }
 
-    const intptr_t grow_ratio = (
-        static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
-        after.capacity_in_words) / PageSpace::kPageSizeInWords;
+    const intptr_t grow_ratio =
+        (static_cast<intptr_t>(after.capacity_in_words / desired_utilization_) -
+         after.capacity_in_words) /
+        PageSpace::kPageSizeInWords;
     if (garbage_ratio == 0) {
       // No garbage in the previous cycle so it would be hard to compute a
       // grow_heap_ size based on estimated garbage so we use growth ratio
       // heuristics instead.
-      grow_heap_ = Utils::Maximum(static_cast<intptr_t>(heap_growth_max_),
-                                  grow_ratio);
+      grow_heap_ =
+          Utils::Maximum(static_cast<intptr_t>(heap_growth_max_), grow_ratio);
     } else {
       // Find minimum 'grow_heap_' such that after increasing capacity by
       // 'grow_heap_' pages and filling them, we expect a GC to be worthwhile.
@@ -1192,7 +1206,7 @@ void PageSpaceController::EvaluateGarbageCollection(
       while (min < max) {
         local_grow_heap = (max + min) / 2;
         const intptr_t limit = after.capacity_in_words +
-            (grow_heap_ * PageSpace::kPageSizeInWords);
+                               (grow_heap_ * PageSpace::kPageSizeInWords);
         const intptr_t allocated_before_next_gc = limit - after.used_in_words;
         const double estimated_garbage = k * allocated_before_next_gc;
         if (t <= estimated_garbage / limit) {
@@ -1225,8 +1239,8 @@ void PageSpaceController::EvaluateGarbageCollection(
 }
 
 
-void PageSpaceGarbageCollectionHistory::
-    AddGarbageCollectionTime(int64_t start, int64_t end) {
+void PageSpaceGarbageCollectionHistory::AddGarbageCollectionTime(int64_t start,
+                                                                 int64_t end) {
   Entry entry;
   entry.start = start;
   entry.end = end;
@@ -1247,8 +1261,8 @@ int PageSpaceGarbageCollectionHistory::GarbageCollectionTimeFraction() {
     return 0;
   } else {
     ASSERT(total_time >= gc_time);
-    int result = static_cast<int>((static_cast<double>(gc_time) /
-                                   static_cast<double>(total_time)) * 100);
+    int result = static_cast<int>(
+        (static_cast<double>(gc_time) / static_cast<double>(total_time)) * 100);
     return result;
   }
 }

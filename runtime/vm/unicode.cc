@@ -10,6 +10,7 @@
 
 namespace dart {
 
+// clang-format off
 const int8_t Utf8::kTrailBytes[256] = {
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -28,29 +29,17 @@ const int8_t Utf8::kTrailBytes[256] = {
   3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
   4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0
 };
+// clang-format on
 
-
-const uint32_t Utf8::kMagicBits[7] = {
-  0,  // Padding.
-  0x00000000,
-  0x00003080,
-  0x000E2080,
-  0x03C82080,
-  0xFA082080,
-  0x82082080
-};
+const uint32_t Utf8::kMagicBits[7] = {0,  // Padding.
+                                      0x00000000, 0x00003080, 0x000E2080,
+                                      0x03C82080, 0xFA082080, 0x82082080};
 
 
 // Minimum values of code points used to check shortest form.
-const uint32_t Utf8::kOverlongMinimum[7] = {
-  0,  // Padding.
-  0x0,
-  0x80,
-  0x800,
-  0x10000,
-  0xFFFFFFFF,
-  0xFFFFFFFF
-};
+const uint32_t Utf8::kOverlongMinimum[7] = {0,  // Padding.
+                                            0x0,     0x80,       0x800,
+                                            0x10000, 0xFFFFFFFF, 0xFFFFFFFF};
 
 
 // Returns the most restricted coding form in which the sequence of utf8
@@ -65,7 +54,7 @@ intptr_t Utf8::CodeUnitCount(const uint8_t* utf8_array,
     uint8_t code_unit = utf8_array[i];
     if (!IsTrailByte(code_unit)) {
       ++len;
-      if (!IsLatin1SequenceStart(code_unit)) {  // > U+00FF
+      if (!IsLatin1SequenceStart(code_unit)) {          // > U+00FF
         if (IsSupplementarySequenceStart(code_unit)) {  // >= U+10000
           char_type = kSupplementary;
           ++len;
@@ -99,10 +88,8 @@ bool Utf8::IsValid(const uint8_t* utf8_array, intptr_t array_len) {
         }
       }
       ch -= kMagicBits[num_trail_bytes];
-      if (!((is_malformed == false) &&
-            (j == num_trail_bytes) &&
-            !Utf::IsOutOfRange(ch) &&
-            !IsNonShortestForm(ch, j))) {
+      if (!((is_malformed == false) && (j == num_trail_bytes) &&
+            !Utf::IsOutOfRange(ch) && !IsNonShortestForm(ch, j))) {
         return false;
       }
     }
@@ -197,10 +184,8 @@ intptr_t Utf8::Decode(const uint8_t* utf8_array,
       }
     }
     ch -= kMagicBits[num_trail_bytes];
-    if (!((is_malformed == false) &&
-          (i == num_trail_bytes) &&
-          !Utf::IsOutOfRange(ch) &&
-          !IsNonShortestForm(ch, i))) {
+    if (!((is_malformed == false) && (i == num_trail_bytes) &&
+          !Utf::IsOutOfRange(ch) && !IsNonShortestForm(ch, i))) {
       *dst = -1;
       return 0;
     }

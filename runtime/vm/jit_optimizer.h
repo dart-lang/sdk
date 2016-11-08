@@ -11,14 +11,15 @@
 namespace dart {
 
 class CSEInstructionMap;
-template <typename T> class GrowableArray;
+template <typename T>
+class GrowableArray;
 class ParsedFunction;
 
 class JitOptimizer : public FlowGraphVisitor {
  public:
   explicit JitOptimizer(FlowGraph* flow_graph)
       : FlowGraphVisitor(flow_graph->reverse_postorder()),
-        flow_graph_(flow_graph) { }
+        flow_graph_(flow_graph) {}
 
   virtual ~JitOptimizer() {}
 
@@ -101,12 +102,9 @@ class JitOptimizer : public FlowGraphVisitor {
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;
 
-  bool InlineFloat32x4BinaryOp(InstanceCallInstr* call,
-                               Token::Kind op_kind);
-  bool InlineInt32x4BinaryOp(InstanceCallInstr* call,
-                              Token::Kind op_kind);
-  bool InlineFloat64x2BinaryOp(InstanceCallInstr* call,
-                               Token::Kind op_kind);
+  bool InlineFloat32x4BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
+  bool InlineInt32x4BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
+  bool InlineFloat64x2BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,

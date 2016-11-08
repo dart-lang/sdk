@@ -23,14 +23,13 @@ TEST_CASE(DartEntry) {
       "}\n";
   String& url = String::Handle(String::New("dart-test:DartEntry"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
-  Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+  Class& cls =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   String& name = String::Handle(String::New("foo"));
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
@@ -51,14 +50,13 @@ TEST_CASE(InvokeStatic_CompileError) {
       "}\n";
   String& url = String::Handle(String::New("dart-test:DartEntry"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
-  Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+  Class& cls =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   String& name = String::Handle(String::New("foo"));
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
@@ -77,14 +75,13 @@ TEST_CASE(InvokeDynamic_CompileError) {
       "}\n";
   String& url = String::Handle(String::New("dart-test:DartEntry"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
-  Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+  Class& cls =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
 
   // Invoke the constructor.
@@ -93,7 +90,7 @@ TEST_CASE(InvokeDynamic_CompileError) {
   constructor_arguments.SetAt(0, instance);
   String& constructor_name = String::Handle(Symbols::New(thread, "A."));
   Function& constructor =
-    Function::Handle(cls.LookupConstructor(constructor_name));
+      Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());
   DartEntry::InvokeFunction(constructor, constructor_arguments);
 
@@ -103,8 +100,8 @@ TEST_CASE(InvokeDynamic_CompileError) {
   EXPECT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(1));
   args.SetAt(0, instance);
-  const Object& retval = Object::Handle(DartEntry::InvokeFunction(function,
-                                                                  args));
+  const Object& retval =
+      Object::Handle(DartEntry::InvokeFunction(function, args));
   EXPECT(retval.IsError());
   EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }

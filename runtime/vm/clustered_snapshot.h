@@ -46,7 +46,7 @@ class ObjectStore;
 
 class SerializationCluster : public ZoneAllocated {
  public:
-  virtual ~SerializationCluster() { }
+  virtual ~SerializationCluster() {}
 
   // Add [object] to the cluster and push its outgoing references.
   virtual void Trace(Serializer* serializer, RawObject* object) = 0;
@@ -63,8 +63,8 @@ class SerializationCluster : public ZoneAllocated {
 
 class DeserializationCluster : public ZoneAllocated {
  public:
-  DeserializationCluster() : start_index_(-1), stop_index_(-1) { }
-  virtual ~DeserializationCluster() { }
+  DeserializationCluster() : start_index_(-1), stop_index_(-1) {}
+  virtual ~DeserializationCluster() {}
 
   // Allocate memory for all objects in the cluster and write their addresses
   // into the ref array. Do not touch this memory.
@@ -75,7 +75,7 @@ class DeserializationCluster : public ZoneAllocated {
 
   // Complete any action that requires the full graph to be deserialized, such
   // as rehashing.
-  virtual void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) { }
+  virtual void PostLoad(const Array& refs, Snapshot::Kind kind, Zone* zone) {}
 
  protected:
   // The range of the ref array that belongs to this cluster.
@@ -86,7 +86,7 @@ class DeserializationCluster : public ZoneAllocated {
 
 class SmiObjectIdPair {
  public:
-  SmiObjectIdPair() : smi_(NULL), id_(0) { }
+  SmiObjectIdPair() : smi_(NULL), id_(0) {}
   RawSmi* smi_;
   intptr_t id_;
 
@@ -186,9 +186,7 @@ class Serializer : public StackResource {
     }
   }
 
-  void AddUntracedRef() {
-    num_written_objects_++;
-  }
+  void AddUntracedRef() { num_written_objects_++; }
 
   void Trace(RawObject* object);
 
@@ -314,25 +312,17 @@ class Deserializer : public StackResource {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
 
-  void ReadBytes(uint8_t* addr, intptr_t len) {
-    stream_.ReadBytes(addr, len);
-  }
+  void ReadBytes(uint8_t* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
 
   const uint8_t* CurrentBufferAddress() const {
     return stream_.AddressOfCurrentPosition();
   }
 
-  void Advance(intptr_t value) {
-    stream_.Advance(value);
-  }
+  void Advance(intptr_t value) { stream_.Advance(value); }
 
-  intptr_t PendingBytes() const {
-    return stream_.PendingBytes();
-  }
+  intptr_t PendingBytes() const { return stream_.PendingBytes(); }
 
-  void AddBaseObject(RawObject* base_object) {
-    AssignRef(base_object);
-  }
+  void AddBaseObject(RawObject* base_object) { AssignRef(base_object); }
 
   void AssignRef(RawObject* object) {
     ASSERT(next_ref_index_ <= num_objects_);
@@ -407,9 +397,7 @@ class FullSnapshotWriter {
     return vm_isolate_snapshot_buffer_;
   }
 
-  uint8_t** isolate_snapshot_buffer() const {
-    return isolate_snapshot_buffer_;
-  }
+  uint8_t** isolate_snapshot_buffer() const { return isolate_snapshot_buffer_; }
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
@@ -419,12 +407,8 @@ class FullSnapshotWriter {
   // Writes a full snapshot of the Isolate.
   void WriteFullSnapshot();
 
-  intptr_t VmIsolateSnapshotSize() const {
-    return vm_isolate_snapshot_size_;
-  }
-  intptr_t IsolateSnapshotSize() const {
-    return isolate_snapshot_size_;
-  }
+  intptr_t VmIsolateSnapshotSize() const { return vm_isolate_snapshot_size_; }
+  intptr_t IsolateSnapshotSize() const { return isolate_snapshot_size_; }
 
  private:
   // Writes a snapshot of the VM Isolate.
@@ -457,17 +441,17 @@ class VmIsolateSnapshotReader {
                           intptr_t size,
                           const uint8_t* instructions_buffer,
                           const uint8_t* data_buffer,
-                          Thread* thread) :
-      kind_(kind),
-      thread_(thread),
-      buffer_(buffer),
-      size_(size),
-      instructions_buffer_(instructions_buffer),
-      data_buffer_(data_buffer) {
+                          Thread* thread)
+      : kind_(kind),
+        thread_(thread),
+        buffer_(buffer),
+        size_(size),
+        instructions_buffer_(instructions_buffer),
+        data_buffer_(data_buffer) {
     thread->isolate()->set_compilation_allowed(kind != Snapshot::kAppNoJIT);
   }
 
-  ~VmIsolateSnapshotReader() { }
+  ~VmIsolateSnapshotReader() {}
 
   RawApiError* ReadVmIsolateSnapshot();
 
@@ -490,13 +474,13 @@ class IsolateSnapshotReader {
                         intptr_t size,
                         const uint8_t* instructions_buffer,
                         const uint8_t* data_buffer,
-                        Thread* thread) :
-      kind_(kind),
-      thread_(thread),
-      buffer_(buffer),
-      size_(size),
-      instructions_buffer_(instructions_buffer),
-      data_buffer_(data_buffer) {
+                        Thread* thread)
+      : kind_(kind),
+        thread_(thread),
+        buffer_(buffer),
+        size_(size),
+        instructions_buffer_(instructions_buffer),
+        data_buffer_(data_buffer) {
     thread->isolate()->set_compilation_allowed(kind != Snapshot::kAppNoJIT);
   }
 

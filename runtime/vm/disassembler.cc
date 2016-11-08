@@ -81,7 +81,7 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
   va_start(args, format);
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
-  char* p = reinterpret_cast<char*>(malloc(len+1));
+  char* p = reinterpret_cast<char*>(malloc(len + 1));
   va_start(args, format);
   intptr_t len2 = OS::VSNPrint(p, len, format, args);
   va_end(args);
@@ -146,31 +146,25 @@ void Disassembler::Disassemble(uword start,
     }
     int instruction_length;
     Object* object;
-    DecodeInstruction(hex_buffer,
-                      sizeof(hex_buffer),
-                      human_buffer,
-                      sizeof(human_buffer),
-                      &instruction_length, code, &object, pc);
-    formatter->ConsumeInstruction(code,
-                                  hex_buffer,
-                                  sizeof(hex_buffer),
-                                  human_buffer,
-                                  sizeof(human_buffer),
-                                  object,
+    DecodeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
+                      sizeof(human_buffer), &instruction_length, code, &object,
+                      pc);
+    formatter->ConsumeInstruction(code, hex_buffer, sizeof(hex_buffer),
+                                  human_buffer, sizeof(human_buffer), object,
                                   pc);
     pc += instruction_length;
   }
 }
 
 
-void Disassembler::DisassembleCodeHelper(
-    const char* function_fullname, const Code& code, bool optimized) {
+void Disassembler::DisassembleCodeHelper(const char* function_fullname,
+                                         const Code& code,
+                                         bool optimized) {
   LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle();
   if (FLAG_print_variable_descriptors) {
     var_descriptors = code.GetLocalVarDescriptors();
   }
-  THR_Print("Code for %sfunction '%s' {\n",
-            optimized ? "optimized " : "",
+  THR_Print("Code for %sfunction '%s' {\n", optimized ? "optimized " : "",
             function_fullname);
   code.Disassemble();
   THR_Print("}\n");
@@ -182,8 +176,8 @@ void Disassembler::DisassembleCodeHelper(
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
     const uword addr = code.GetPointerOffsetAt(i) + code.PayloadStart();
     obj = *reinterpret_cast<RawObject**>(addr);
-    THR_Print(" %d : %#" Px " '%s'\n",
-              code.GetPointerOffsetAt(i), addr, obj.ToCString());
+    THR_Print(" %d : %#" Px " '%s'\n", code.GetPointerOffsetAt(i), addr,
+              obj.ToCString());
   }
   THR_Print("}\n");
 #else
@@ -212,12 +206,10 @@ void Disassembler::DisassembleCodeHelper(
       const intptr_t reason =
           DeoptTable::ReasonField::decode(reason_and_flags.Value());
       ASSERT((0 <= reason) && (reason < ICData::kDeoptNumReasons));
-      THR_Print("%4" Pd ": 0x%" Px "  %s  (%s)\n",
-                i,
-                start + offset.Value(),
-                DeoptInfo::ToCString(deopt_table, info),
-                DeoptReasonToCString(
-                    static_cast<ICData::DeoptReasonId>(reason)));
+      THR_Print(
+          "%4" Pd ": 0x%" Px "  %s  (%s)\n", i, start + offset.Value(),
+          DeoptInfo::ToCString(deopt_table, info),
+          DeoptReasonToCString(static_cast<ICData::DeoptReasonId>(reason)));
     }
     THR_Print("}\n");
   }
@@ -234,8 +226,7 @@ void Disassembler::DisassembleCodeHelper(
   THR_Print("}\n");
 
   if (FLAG_print_variable_descriptors) {
-    THR_Print("Variable Descriptors for function '%s' {\n",
-              function_fullname);
+    THR_Print("Variable Descriptors for function '%s' {\n", function_fullname);
     intptr_t var_desc_length =
         var_descriptors.IsNull() ? 0 : var_descriptors.Length();
     String& var_name = String::Handle();
@@ -249,17 +240,17 @@ void Disassembler::DisassembleCodeHelper(
       } else {
         if (kind == RawLocalVarDescriptors::kContextLevel) {
           THR_Print("  context level %d scope %d", var_info.index(),
-              var_info.scope_id);
+                    var_info.scope_id);
         } else if (kind == RawLocalVarDescriptors::kStackVar) {
-          THR_Print("  stack var '%s' offset %d",
-            var_name.ToCString(), var_info.index());
+          THR_Print("  stack var '%s' offset %d", var_name.ToCString(),
+                    var_info.index());
         } else {
           ASSERT(kind == RawLocalVarDescriptors::kContextVar);
           THR_Print("  context var '%s' level %d offset %d",
-              var_name.ToCString(), var_info.scope_id, var_info.index());
+                    var_name.ToCString(), var_info.scope_id, var_info.index());
         }
         THR_Print(" (valid %s-%s)\n", var_info.begin_pos.ToCString(),
-                                      var_info.end_pos.ToCString());
+                  var_info.end_pos.ToCString());
       }
     }
     THR_Print("}\n");
@@ -267,7 +258,7 @@ void Disassembler::DisassembleCodeHelper(
 
   THR_Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
-        ExceptionHandlers::Handle(code.exception_handlers());
+      ExceptionHandlers::Handle(code.exception_handlers());
   THR_Print("%s}\n", handlers.ToCString());
 
   {
@@ -277,7 +268,7 @@ void Disassembler::DisassembleCodeHelper(
     Function& function = Function::Handle();
     Code& code = Code::Handle();
     for (intptr_t i = 0; i < table.Length();
-        i += Code::kSCallTableEntryLength) {
+         i += Code::kSCallTableEntryLength) {
       offset ^= table.At(i + Code::kSCallTableOffsetEntry);
       function ^= table.At(i + Code::kSCallTableFunctionEntry);
       code ^= table.At(i + Code::kSCallTableCodeEntry);
@@ -285,21 +276,15 @@ void Disassembler::DisassembleCodeHelper(
         Class& cls = Class::Handle();
         cls ^= code.owner();
         if (cls.IsNull()) {
-          THR_Print("  0x%" Px ": %s, %p\n",
-              start + offset.Value(),
-              code.Name(),
-              code.raw());
+          THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
+                    code.Name(), code.raw());
         } else {
           THR_Print("  0x%" Px ": allocation stub for %s, %p\n",
-              start + offset.Value(),
-              cls.ToCString(),
-              code.raw());
+                    start + offset.Value(), cls.ToCString(), code.raw());
         }
       } else {
-        THR_Print("  0x%" Px ": %s, %p\n",
-            start + offset.Value(),
-            function.ToFullyQualifiedCString(),
-            code.raw());
+        THR_Print("  0x%" Px ": %s, %p\n", start + offset.Value(),
+                  function.ToFullyQualifiedCString(), code.raw());
       }
     }
     THR_Print("}\n");
@@ -317,8 +302,8 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
 }
 
 
-void Disassembler::DisassembleCodeUnoptimized(
-    const Function& function, bool optimized) {
+void Disassembler::DisassembleCodeUnoptimized(const Function& function,
+                                              bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
   const Code& code = Code::Handle(function.unoptimized_code());
   DisassembleCodeHelper(function_fullname, code, optimized);

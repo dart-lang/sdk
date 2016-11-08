@@ -67,7 +67,7 @@ class Deserializer;
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
   V(CallClosureNoSuchMethod)                                                   \
-  V(FrameAwaitingMaterialization)                                              \
+  V(FrameAwaitingMaterialization)
 
 #else
 #define VM_STUB_CODE_LIST(V)                                                   \
@@ -77,7 +77,7 @@ class Deserializer;
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
   V(DeoptimizeLazyFromThrow)                                                   \
-  V(FrameAwaitingMaterialization)                                              \
+  V(FrameAwaitingMaterialization)
 
 #endif  // !defined(TARGET_ARCH_DBC)
 
@@ -144,14 +144,10 @@ class StubCode : public AllStatic {
   // Returns NULL if no stub found.
   static const char* NameOfStub(uword entry_point);
 
-  // Define the shared stub code accessors.
+// Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const StubEntry* name##_entry() {                                     \
-    return name##_entry_;                                                      \
-  }                                                                            \
-  static intptr_t name##Size() {                                               \
-    return name##_entry()->Size();                                             \
-  }
+  static const StubEntry* name##_entry() { return name##_entry_; }             \
+  static intptr_t name##Size() { return name##_entry()->Size(); }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 
@@ -171,8 +167,7 @@ class StubCode : public AllStatic {
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
 #undef STUB_CODE_GENERATE
 
-#define STUB_CODE_ENTRY(name)                                                  \
-  static StubEntry* name##_entry_;
+#define STUB_CODE_ENTRY(name) static StubEntry* name##_entry_;
   VM_STUB_CODE_LIST(STUB_CODE_ENTRY);
 #undef STUB_CODE_ENTRY
 
@@ -196,11 +191,7 @@ class StubCode : public AllStatic {
 };
 
 
-enum DeoptStubKind {
-  kLazyDeoptFromReturn,
-  kLazyDeoptFromThrow,
-  kEagerDeopt
-};
+enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
 
 }  // namespace dart
 

@@ -15,9 +15,9 @@ namespace dart {
 
 TEST_CASE(OldGC) {
   const char* kScriptChars =
-  "main() {\n"
-  "  return [1, 2, 3];\n"
-  "}\n";
+      "main() {\n"
+      "  return [1, 2, 3];\n"
+      "}\n";
   FLAG_verbose_gc = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -35,9 +35,9 @@ TEST_CASE(OldGC) {
 TEST_CASE(OldGC_Unsync) {
   FLAG_marker_tasks = 0;
   const char* kScriptChars =
-  "main() {\n"
-  "  return [1, 2, 3];\n"
-  "}\n";
+      "main() {\n"
+      "  return [1, 2, 3];\n"
+      "}\n";
   FLAG_verbose_gc = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -54,9 +54,9 @@ TEST_CASE(OldGC_Unsync) {
 
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =
-  "main() {\n"
-  "  return new List(8 * 1024 * 1024);\n"
-  "}\n";
+      "main() {\n"
+      "  return new List(8 * 1024 * 1024);\n"
+      "}\n";
   FLAG_verbose_gc = true;
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_EnterScope();
@@ -101,15 +101,15 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 
 TEST_CASE(ClassHeapStats) {
   const char* kScriptChars =
-  "class A {\n"
-  "  var a;\n"
-  "  var b;\n"
-  "}\n"
-  ""
-  "main() {\n"
-  "  var x = new A();\n"
-  "  return new A();\n"
-  "}\n";
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "}\n"
+      ""
+      "main() {\n"
+      "  var x = new A();\n"
+      "  return new A();\n"
+      "}\n";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
@@ -126,8 +126,7 @@ TEST_CASE(ClassHeapStats) {
   ASSERT(!cls.IsNull());
   intptr_t cid = cls.id();
   ClassHeapStats* class_stats =
-      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table,
-                                                   cid);
+      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
   // Verify preconditions:
   EXPECT_EQ(0, class_stats->pre_gc.old_count);
   EXPECT_EQ(0, class_stats->post_gc.old_count);
@@ -196,20 +195,19 @@ TEST_CASE(ClassHeapStats) {
 
 TEST_CASE(ArrayHeapStats) {
   const char* kScriptChars =
-  "List f(int len) {\n"
-  "  return new List(len);\n"
-  "}\n"
-  ""
-  "main() {\n"
-  "  return f(1234);\n"
-  "}\n";
+      "List f(int len) {\n"
+      "  return new List(len);\n"
+      "}\n"
+      ""
+      "main() {\n"
+      "  return f(1234);\n"
+      "}\n";
   Dart_Handle h_lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Isolate* isolate = Isolate::Current();
   ClassTable* class_table = isolate->class_table();
   intptr_t cid = kArrayCid;
   ClassHeapStats* class_stats =
-      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table,
-                                                   cid);
+      ClassHeapStatsTestHelper::GetHeapStatsForCid(class_table, cid);
   Dart_EnterScope();
   // Invoke 'main' twice, since initial compilation might trigger extra array
   // allocations.
@@ -242,11 +240,10 @@ class FindOnly : public FindObjectVisitor {
     EXPECT_GT(Thread::Current()->no_safepoint_scope_depth(), 0);
 #endif
   }
-  virtual ~FindOnly() { }
+  virtual ~FindOnly() {}
 
-  virtual bool FindObject(RawObject* obj) const {
-    return obj == target_;
-  }
+  virtual bool FindObject(RawObject* obj) const { return obj == target_; }
+
  private:
   RawObject* target_;
 };
@@ -254,8 +251,8 @@ class FindOnly : public FindObjectVisitor {
 
 class FindNothing : public FindObjectVisitor {
  public:
-  FindNothing() { }
-  virtual ~FindNothing() { }
+  FindNothing() {}
+  virtual ~FindNothing() {}
   virtual bool FindObject(RawObject* obj) const { return false; }
 };
 

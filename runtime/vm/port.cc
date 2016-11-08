@@ -112,11 +112,12 @@ void PortMap::SetPortState(Dart_Port port, PortState state) {
     map_[index].handler->increment_live_ports();
   }
   if (FLAG_trace_isolates) {
-    OS::Print("[^] Port (%s) -> (%s): \n"
-              "\thandler:    %s\n"
-              "\tport:       %" Pd64 "\n",
-              PortStateString(old_state), PortStateString(state),
-              map_[index].handler->name(), port);
+    OS::Print(
+        "[^] Port (%s) -> (%s): \n"
+        "\thandler:    %s\n"
+        "\tport:       %" Pd64 "\n",
+        PortStateString(old_state), PortStateString(state),
+        map_[index].handler->name(), port);
   }
 }
 
@@ -174,10 +175,11 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   MaintainInvariants();
 
   if (FLAG_trace_isolates) {
-    OS::Print("[+] Opening port: \n"
-              "\thandler:    %s\n"
-              "\tport:       %" Pd64 "\n",
-              handler->name(), entry.port);
+    OS::Print(
+        "[+] Opening port: \n"
+        "\thandler:    %s\n"
+        "\tport:       %" Pd64 "\n",
+        handler->name(), entry.port);
   }
 
   return entry.port;

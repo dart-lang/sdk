@@ -17,9 +17,7 @@
 namespace dart {
 
 #define INIT_LIBRARY(index, name, source, patch)                               \
-  { index,                                                                     \
-    "dart:"#name, source,                                                      \
-    "dart:"#name"-patch", patch }                                              \
+  { index, "dart:" #name, source, "dart:" #name "-patch", patch }
 
 typedef struct {
   ObjectStore::BootstrapLibraryId index_;
@@ -39,56 +37,55 @@ enum {
 
 
 static bootstrap_lib_props bootstrap_libraries[] = {
-  INIT_LIBRARY(ObjectStore::kCore,
-               core,
-               Bootstrap::core_source_paths_,
-               Bootstrap::core_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kAsync,
-               async,
-               Bootstrap::async_source_paths_,
-               Bootstrap::async_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kConvert,
-               convert,
-               Bootstrap::convert_source_paths_,
-               Bootstrap::convert_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kCollection,
-               collection,
-               Bootstrap::collection_source_paths_,
-               Bootstrap::collection_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kDeveloper,
-               developer,
-               Bootstrap::developer_source_paths_,
-               Bootstrap::developer_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kInternal,
-               _internal,
-               Bootstrap::_internal_source_paths_,
-               Bootstrap::_internal_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kIsolate,
-               isolate,
-               Bootstrap::isolate_source_paths_,
-               Bootstrap::isolate_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kMath,
-               math,
-               Bootstrap::math_source_paths_,
-               Bootstrap::math_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kMirrors,
-               mirrors,
-               Bootstrap::mirrors_source_paths_,
-               Bootstrap::mirrors_patch_paths_),
-  INIT_LIBRARY(ObjectStore::kProfiler,
-               profiler,
-               Bootstrap::profiler_source_paths_,
-               NULL),
-  INIT_LIBRARY(ObjectStore::kTypedData,
-               typed_data,
-               Bootstrap::typed_data_source_paths_,
-               NULL),
-  INIT_LIBRARY(ObjectStore::kVMService,
-               _vmservice,
-               Bootstrap::_vmservice_source_paths_,
-               Bootstrap::_vmservice_patch_paths_),
-  { ObjectStore::kNone, NULL, NULL, NULL, NULL }
-};
+    INIT_LIBRARY(ObjectStore::kCore,
+                 core,
+                 Bootstrap::core_source_paths_,
+                 Bootstrap::core_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kAsync,
+                 async,
+                 Bootstrap::async_source_paths_,
+                 Bootstrap::async_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kConvert,
+                 convert,
+                 Bootstrap::convert_source_paths_,
+                 Bootstrap::convert_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kCollection,
+                 collection,
+                 Bootstrap::collection_source_paths_,
+                 Bootstrap::collection_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kDeveloper,
+                 developer,
+                 Bootstrap::developer_source_paths_,
+                 Bootstrap::developer_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kInternal,
+                 _internal,
+                 Bootstrap::_internal_source_paths_,
+                 Bootstrap::_internal_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kIsolate,
+                 isolate,
+                 Bootstrap::isolate_source_paths_,
+                 Bootstrap::isolate_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kMath,
+                 math,
+                 Bootstrap::math_source_paths_,
+                 Bootstrap::math_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kMirrors,
+                 mirrors,
+                 Bootstrap::mirrors_source_paths_,
+                 Bootstrap::mirrors_patch_paths_),
+    INIT_LIBRARY(ObjectStore::kProfiler,
+                 profiler,
+                 Bootstrap::profiler_source_paths_,
+                 NULL),
+    INIT_LIBRARY(ObjectStore::kTypedData,
+                 typed_data,
+                 Bootstrap::typed_data_source_paths_,
+                 NULL),
+    INIT_LIBRARY(ObjectStore::kVMService,
+                 _vmservice,
+                 Bootstrap::_vmservice_source_paths_,
+                 Bootstrap::_vmservice_patch_paths_),
+    {ObjectStore::kNone, NULL, NULL, NULL, NULL}};
 
 
 static RawString* GetLibrarySource(const Library& lib,
@@ -98,8 +95,7 @@ static RawString* GetLibrarySource(const Library& lib,
   // in the 'bootstrap_libraries' table above.
   intptr_t index;
   const String& lib_uri = String::Handle(lib.url());
-  for (index = 0;
-       bootstrap_libraries[index].index_ != ObjectStore::kNone;
+  for (index = 0; bootstrap_libraries[index].index_ != ObjectStore::kNone;
        ++index) {
     if (lib_uri.Equals(bootstrap_libraries[index].uri_)) {
       break;
@@ -110,9 +106,8 @@ static RawString* GetLibrarySource(const Library& lib,
   }
 
   // Try to read the source using the path specified for the uri.
-  const char** source_paths = patch ?
-      bootstrap_libraries[index].patch_paths_ :
-      bootstrap_libraries[index].source_paths_;
+  const char** source_paths = patch ? bootstrap_libraries[index].patch_paths_
+                                    : bootstrap_libraries[index].source_paths_;
   if (source_paths == NULL) {
     return String::null();  // No path mapping information exists for library.
   }
@@ -181,8 +176,8 @@ static Dart_Handle LoadPartSource(Thread* thread,
                                   const Library& lib,
                                   const String& uri) {
   Zone* zone = thread->zone();
-  const String& part_source = String::Handle(
-      zone, GetLibrarySource(lib, uri, false));
+  const String& part_source =
+      String::Handle(zone, GetLibrarySource(lib, uri, false));
   const String& lib_uri = String::Handle(zone, lib.url());
   if (part_source.IsNull()) {
     return Api::NewError("Unable to read part file '%s' of library '%s'",
@@ -292,8 +287,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
   HANDLESCOPE(thread);
 
   // Create library objects for all the bootstrap libraries.
-  for (intptr_t i = 0;
-       bootstrap_libraries[i].index_ != ObjectStore::kNone;
+  for (intptr_t i = 0; bootstrap_libraries[i].index_ != ObjectStore::kNone;
        ++i) {
 #ifdef PRODUCT
     if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
@@ -312,8 +306,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
   }
 
   // Load, compile and patch bootstrap libraries.
-  for (intptr_t i = 0;
-       bootstrap_libraries[i].index_ != ObjectStore::kNone;
+  for (intptr_t i = 0; bootstrap_libraries[i].index_ != ObjectStore::kNone;
        ++i) {
 #ifdef PRODUCT
     if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
@@ -325,9 +318,8 @@ RawError* Bootstrap::LoadandCompileScripts() {
     ASSERT(!lib.IsNull());
     source = GetLibrarySource(lib, uri, false);
     if (source.IsNull()) {
-      const String& message = String::Handle(
-          String::NewFormatted("Unable to find dart source for %s",
-                               uri.ToCString()));
+      const String& message = String::Handle(String::NewFormatted(
+          "Unable to find dart source for %s", uri.ToCString()));
       error ^= ApiError::New(message);
       break;
     }
@@ -339,9 +331,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     // If a patch exists, load and patch the script.
     if (bootstrap_libraries[i].patch_paths_ != NULL) {
       patch_uri = Symbols::New(thread, bootstrap_libraries[i].patch_uri_);
-      error = LoadPatchFiles(zone,
-                             lib,
-                             patch_uri,
+      error = LoadPatchFiles(zone, lib, patch_uri,
                              bootstrap_libraries[i].patch_paths_);
       if (!error.IsNull()) {
         break;
@@ -355,8 +345,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     // Eagerly compile the _Closure class as it is the class of all closure
     // instances. This allows us to just finalize function types
     // without going through the hoops of trying to compile their scope class.
-    Class& cls =
-        Class::Handle(zone, isolate->object_store()->closure_class());
+    Class& cls = Class::Handle(zone, isolate->object_store()->closure_class());
     Compiler::CompileClass(cls);
     // Eagerly compile Bool class, bool constants are used from within compiler.
     cls = isolate->object_store()->bool_class();

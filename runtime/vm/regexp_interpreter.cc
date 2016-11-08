@@ -19,7 +19,7 @@ DEFINE_FLAG(bool, trace_regexp_bytecodes, false, "trace_regexp_bytecodes");
 
 typedef unibrow::Mapping<unibrow::Ecma262Canonicalize> Canonicalize;
 
-template<typename Char>
+template <typename Char>
 static bool BackRefMatchesNoCase(Canonicalize* interp_canonicalize,
                                  intptr_t from,
                                  intptr_t current,
@@ -36,8 +36,8 @@ bool BackRefMatchesNoCase<uint16_t>(Canonicalize* interp_canonicalize,
     int32_t old_char = subject.CharAt(from++);
     int32_t new_char = subject.CharAt(current++);
     if (old_char == new_char) continue;
-    int32_t old_string[1] = { old_char };
-    int32_t new_string[1] = { new_char };
+    int32_t old_string[1] = {old_char};
+    int32_t new_string[1] = {new_char};
     interp_canonicalize->get(old_char, '\0', old_string);
     interp_canonicalize->get(new_char, '\0', new_string);
     if (old_string[0] != new_string[0]) {
@@ -82,16 +82,11 @@ static void TraceInterpreter(const uint8_t* code_base,
   if (FLAG_trace_regexp_bytecodes) {
     bool printable = (current_char < 127 && current_char >= 32);
     const char* format =
-        printable ?
-        "pc = %02x, sp = %d, curpos = %d, curchar = %08x (%c), bc = %s" :
-        "pc = %02x, sp = %d, curpos = %d, curchar = %08x .%c., bc = %s";
-    OS::Print(format,
-              pc - code_base,
-              stack_depth,
-              current_position,
-              current_char,
-              printable ? current_char : '.',
-              bytecode_name);
+        printable
+            ? "pc = %02x, sp = %d, curpos = %d, curchar = %08x (%c), bc = %s"
+            : "pc = %02x, sp = %d, curpos = %d, curchar = %08x .%c., bc = %s";
+    OS::Print(format, pc - code_base, stack_depth, current_position,
+              current_char, printable ? current_char : '.', bytecode_name);
     for (int i = 0; i < bytecode_length; i++) {
       OS::Print(", %02x", pc[i]);
     }
@@ -109,30 +104,25 @@ static void TraceInterpreter(const uint8_t* code_base,
 }
 
 
-#define BYTECODE(name)                                                      \
-  case BC_##name:                                                           \
-    TraceInterpreter(code_base,                                             \
-                     pc,                                                    \
-                     static_cast<int>(backtrack_sp - backtrack_stack_base), \
-                     current,                                               \
-                     current_char,                                          \
-                     BC_##name##_LENGTH,                                    \
-                     #name);
+#define BYTECODE(name)                                                         \
+  case BC_##name:                                                              \
+    TraceInterpreter(code_base, pc,                                            \
+                     static_cast<int>(backtrack_sp - backtrack_stack_base),    \
+                     current, current_char, BC_##name##_LENGTH, #name);
 #else
-#define BYTECODE(name)                                                      \
-  case BC_##name:
+#define BYTECODE(name) case BC_##name:
 #endif
 
 
 static int32_t Load32Aligned(const uint8_t* pc) {
   ASSERT((reinterpret_cast<intptr_t>(pc) & 3) == 0);
-  return *reinterpret_cast<const int32_t *>(pc);
+  return *reinterpret_cast<const int32_t*>(pc);
 }
 
 
 static int32_t Load16Aligned(const uint8_t* pc) {
   ASSERT((reinterpret_cast<intptr_t>(pc) & 1) == 0);
-  return *reinterpret_cast<const uint16_t *>(pc);
+  return *reinterpret_cast<const uint16_t*>(pc);
 }
 
 
@@ -190,97 +180,98 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
     int32_t insn = Load32Aligned(pc);
     switch (insn & BYTECODE_MASK) {
       BYTECODE(BREAK)
-        UNREACHABLE();
-        return IrregexpInterpreter::RE_FAILURE;
+      UNREACHABLE();
+      return IrregexpInterpreter::RE_FAILURE;
       BYTECODE(PUSH_CP)
-        if (--backtrack_stack_space < 0) {
-          return IrregexpInterpreter::RE_EXCEPTION;
-        }
-        *backtrack_sp++ = current;
-        pc += BC_PUSH_CP_LENGTH;
-        break;
+      if (--backtrack_stack_space < 0) {
+        return IrregexpInterpreter::RE_EXCEPTION;
+      }
+      *backtrack_sp++ = current;
+      pc += BC_PUSH_CP_LENGTH;
+      break;
       BYTECODE(PUSH_BT)
-        if (--backtrack_stack_space < 0) {
-          return IrregexpInterpreter::RE_EXCEPTION;
-        }
-        *backtrack_sp++ = Load32Aligned(pc + 4);
-        pc += BC_PUSH_BT_LENGTH;
-        break;
+      if (--backtrack_stack_space < 0) {
+        return IrregexpInterpreter::RE_EXCEPTION;
+      }
+      *backtrack_sp++ = Load32Aligned(pc + 4);
+      pc += BC_PUSH_BT_LENGTH;
+      break;
       BYTECODE(PUSH_REGISTER)
-        if (--backtrack_stack_space < 0) {
-          return IrregexpInterpreter::RE_EXCEPTION;
-        }
-        *backtrack_sp++ = registers[insn >> BYTECODE_SHIFT];
-        pc += BC_PUSH_REGISTER_LENGTH;
-        break;
+      if (--backtrack_stack_space < 0) {
+        return IrregexpInterpreter::RE_EXCEPTION;
+      }
+      *backtrack_sp++ = registers[insn >> BYTECODE_SHIFT];
+      pc += BC_PUSH_REGISTER_LENGTH;
+      break;
       BYTECODE(SET_REGISTER)
-        registers[insn >> BYTECODE_SHIFT] = Load32Aligned(pc + 4);
-        pc += BC_SET_REGISTER_LENGTH;
-        break;
+      registers[insn >> BYTECODE_SHIFT] = Load32Aligned(pc + 4);
+      pc += BC_SET_REGISTER_LENGTH;
+      break;
       BYTECODE(ADVANCE_REGISTER)
-        registers[insn >> BYTECODE_SHIFT] += Load32Aligned(pc + 4);
-        pc += BC_ADVANCE_REGISTER_LENGTH;
-        break;
+      registers[insn >> BYTECODE_SHIFT] += Load32Aligned(pc + 4);
+      pc += BC_ADVANCE_REGISTER_LENGTH;
+      break;
       BYTECODE(SET_REGISTER_TO_CP)
-        registers[insn >> BYTECODE_SHIFT] = current + Load32Aligned(pc + 4);
-        pc += BC_SET_REGISTER_TO_CP_LENGTH;
-        break;
+      registers[insn >> BYTECODE_SHIFT] = current + Load32Aligned(pc + 4);
+      pc += BC_SET_REGISTER_TO_CP_LENGTH;
+      break;
       BYTECODE(SET_CP_TO_REGISTER)
-        current = registers[insn >> BYTECODE_SHIFT];
-        pc += BC_SET_CP_TO_REGISTER_LENGTH;
-        break;
+      current = registers[insn >> BYTECODE_SHIFT];
+      pc += BC_SET_CP_TO_REGISTER_LENGTH;
+      break;
       BYTECODE(SET_REGISTER_TO_SP)
-        registers[insn >> BYTECODE_SHIFT] =
-            static_cast<int>(backtrack_sp - backtrack_stack_base);
-        pc += BC_SET_REGISTER_TO_SP_LENGTH;
-        break;
+      registers[insn >> BYTECODE_SHIFT] =
+          static_cast<int>(backtrack_sp - backtrack_stack_base);
+      pc += BC_SET_REGISTER_TO_SP_LENGTH;
+      break;
       BYTECODE(SET_SP_TO_REGISTER)
-        backtrack_sp = backtrack_stack_base + registers[insn >> BYTECODE_SHIFT];
-        backtrack_stack_space = backtrack_stack.max_size() -
-            static_cast<int>(backtrack_sp - backtrack_stack_base);
-        pc += BC_SET_SP_TO_REGISTER_LENGTH;
-        break;
+      backtrack_sp = backtrack_stack_base + registers[insn >> BYTECODE_SHIFT];
+      backtrack_stack_space =
+          backtrack_stack.max_size() -
+          static_cast<int>(backtrack_sp - backtrack_stack_base);
+      pc += BC_SET_SP_TO_REGISTER_LENGTH;
+      break;
       BYTECODE(POP_CP)
-        backtrack_stack_space++;
-        --backtrack_sp;
-        current = *backtrack_sp;
-        pc += BC_POP_CP_LENGTH;
-        break;
+      backtrack_stack_space++;
+      --backtrack_sp;
+      current = *backtrack_sp;
+      pc += BC_POP_CP_LENGTH;
+      break;
       BYTECODE(POP_BT)
-        backtrack_stack_space++;
-        --backtrack_sp;
-        pc = code_base + *backtrack_sp;
-        break;
+      backtrack_stack_space++;
+      --backtrack_sp;
+      pc = code_base + *backtrack_sp;
+      break;
       BYTECODE(POP_REGISTER)
-        backtrack_stack_space++;
-        --backtrack_sp;
-        registers[insn >> BYTECODE_SHIFT] = *backtrack_sp;
-        pc += BC_POP_REGISTER_LENGTH;
-        break;
+      backtrack_stack_space++;
+      --backtrack_sp;
+      registers[insn >> BYTECODE_SHIFT] = *backtrack_sp;
+      pc += BC_POP_REGISTER_LENGTH;
+      break;
       BYTECODE(FAIL)
-        return IrregexpInterpreter::RE_FAILURE;
+      return IrregexpInterpreter::RE_FAILURE;
       BYTECODE(SUCCEED)
-        return IrregexpInterpreter::RE_SUCCESS;
+      return IrregexpInterpreter::RE_SUCCESS;
       BYTECODE(ADVANCE_CP)
-        current += insn >> BYTECODE_SHIFT;
-        pc += BC_ADVANCE_CP_LENGTH;
-        break;
+      current += insn >> BYTECODE_SHIFT;
+      pc += BC_ADVANCE_CP_LENGTH;
+      break;
       BYTECODE(GOTO)
-        pc = code_base + Load32Aligned(pc + 4);
-        break;
+      pc = code_base + Load32Aligned(pc + 4);
+      break;
       BYTECODE(ADVANCE_CP_AND_GOTO)
-        current += insn >> BYTECODE_SHIFT;
-        pc = code_base + Load32Aligned(pc + 4);
-        break;
+      current += insn >> BYTECODE_SHIFT;
+      pc = code_base + Load32Aligned(pc + 4);
+      break;
       BYTECODE(CHECK_GREEDY)
-        if (current == backtrack_sp[-1]) {
-          backtrack_sp--;
-          backtrack_stack_space++;
-          pc = code_base + Load32Aligned(pc + 4);
-        } else {
-          pc += BC_CHECK_GREEDY_LENGTH;
-        }
-        break;
+      if (current == backtrack_sp[-1]) {
+        backtrack_sp--;
+        backtrack_stack_space++;
+        pc = code_base + Load32Aligned(pc + 4);
+      } else {
+        pc += BC_CHECK_GREEDY_LENGTH;
+      }
+      break;
       BYTECODE(LOAD_CURRENT_CHAR) {
         int pos = current + (insn >> BYTECODE_SHIFT);
         if (pos >= subject_length) {
@@ -303,8 +294,8 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
           pc = code_base + Load32Aligned(pc + 4);
         } else {
           Char next = subject.CharAt(pos + 1);
-          current_char = subject.CharAt(pos) |
-                         (next << (kBitsPerByte * sizeof(Char)));
+          current_char =
+              subject.CharAt(pos) | (next << (kBitsPerByte * sizeof(Char)));
           pc += BC_LOAD_2_CURRENT_CHARS_LENGTH;
         }
         break;
@@ -312,8 +303,8 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
       BYTECODE(LOAD_2_CURRENT_CHARS_UNCHECKED) {
         int pos = current + (insn >> BYTECODE_SHIFT);
         Char next = subject.CharAt(pos + 1);
-        current_char = subject.CharAt(pos) |
-                       (next << (kBitsPerByte * sizeof(Char)));
+        current_char =
+            subject.CharAt(pos) | (next << (kBitsPerByte * sizeof(Char)));
         pc += BC_LOAD_2_CURRENT_CHARS_UNCHECKED_LENGTH;
         break;
       }
@@ -326,9 +317,7 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
           Char next1 = subject.CharAt(pos + 1);
           Char next2 = subject.CharAt(pos + 2);
           Char next3 = subject.CharAt(pos + 3);
-          current_char = (subject.CharAt(pos) |
-                          (next1 << 8) |
-                          (next2 << 16) |
+          current_char = (subject.CharAt(pos) | (next1 << 8) | (next2 << 16) |
                           (next3 << 24));
           pc += BC_LOAD_4_CURRENT_CHARS_LENGTH;
         }
@@ -340,9 +329,7 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
         Char next1 = subject.CharAt(pos + 1);
         Char next2 = subject.CharAt(pos + 2);
         Char next3 = subject.CharAt(pos + 3);
-        current_char = (subject.CharAt(pos) |
-                        (next1 << 8) |
-                        (next2 << 16) |
+        current_char = (subject.CharAt(pos) | (next1 << 8) | (next2 << 16) |
                         (next3 << 24));
         pc += BC_LOAD_4_CURRENT_CHARS_UNCHECKED_LENGTH;
         break;
@@ -480,34 +467,34 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
         break;
       }
       BYTECODE(CHECK_REGISTER_LT)
-        if (registers[insn >> BYTECODE_SHIFT] < Load32Aligned(pc + 4)) {
-          pc = code_base + Load32Aligned(pc + 8);
-        } else {
-          pc += BC_CHECK_REGISTER_LT_LENGTH;
-        }
-        break;
+      if (registers[insn >> BYTECODE_SHIFT] < Load32Aligned(pc + 4)) {
+        pc = code_base + Load32Aligned(pc + 8);
+      } else {
+        pc += BC_CHECK_REGISTER_LT_LENGTH;
+      }
+      break;
       BYTECODE(CHECK_REGISTER_GE)
-        if (registers[insn >> BYTECODE_SHIFT] >= Load32Aligned(pc + 4)) {
-          pc = code_base + Load32Aligned(pc + 8);
-        } else {
-          pc += BC_CHECK_REGISTER_GE_LENGTH;
-        }
-        break;
+      if (registers[insn >> BYTECODE_SHIFT] >= Load32Aligned(pc + 4)) {
+        pc = code_base + Load32Aligned(pc + 8);
+      } else {
+        pc += BC_CHECK_REGISTER_GE_LENGTH;
+      }
+      break;
       BYTECODE(CHECK_REGISTER_EQ_POS)
-        if (registers[insn >> BYTECODE_SHIFT] == current) {
-          pc = code_base + Load32Aligned(pc + 4);
-        } else {
-          pc += BC_CHECK_REGISTER_EQ_POS_LENGTH;
-        }
-        break;
+      if (registers[insn >> BYTECODE_SHIFT] == current) {
+        pc = code_base + Load32Aligned(pc + 4);
+      } else {
+        pc += BC_CHECK_REGISTER_EQ_POS_LENGTH;
+      }
+      break;
       BYTECODE(CHECK_NOT_REGS_EQUAL)
-        if (registers[insn >> BYTECODE_SHIFT] ==
-            registers[Load32Aligned(pc + 4)]) {
-          pc += BC_CHECK_NOT_REGS_EQUAL_LENGTH;
-        } else {
-          pc = code_base + Load32Aligned(pc + 8);
-        }
-        break;
+      if (registers[insn >> BYTECODE_SHIFT] ==
+          registers[Load32Aligned(pc + 4)]) {
+        pc += BC_CHECK_NOT_REGS_EQUAL_LENGTH;
+      } else {
+        pc = code_base + Load32Aligned(pc + 8);
+      }
+      break;
       BYTECODE(CHECK_NOT_BACK_REF) {
         int from = registers[insn >> BYTECODE_SHIFT];
         int len = registers[(insn >> BYTECODE_SHIFT) + 1] - from;
@@ -543,8 +530,8 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
           pc = code_base + Load32Aligned(pc + 4);
           break;
         } else {
-          if (BackRefMatchesNoCase<Char>(&canonicalize,
-                                         from, current, len, subject)) {
+          if (BackRefMatchesNoCase<Char>(&canonicalize, from, current, len,
+                                         subject)) {
             current += len;
             pc += BC_CHECK_NOT_BACK_REF_NO_CASE_LENGTH;
           } else {
@@ -554,19 +541,19 @@ static IrregexpInterpreter::IrregexpResult RawMatch(const uint8_t* code_base,
         break;
       }
       BYTECODE(CHECK_AT_START)
-        if (current == 0) {
-          pc = code_base + Load32Aligned(pc + 4);
-        } else {
-          pc += BC_CHECK_AT_START_LENGTH;
-        }
-        break;
+      if (current == 0) {
+        pc = code_base + Load32Aligned(pc + 4);
+      } else {
+        pc += BC_CHECK_AT_START_LENGTH;
+      }
+      break;
       BYTECODE(CHECK_NOT_AT_START)
-        if (current == 0) {
-          pc += BC_CHECK_NOT_AT_START_LENGTH;
-        } else {
-          pc = code_base + Load32Aligned(pc + 4);
-        }
-        break;
+      if (current == 0) {
+        pc += BC_CHECK_NOT_AT_START_LENGTH;
+      } else {
+        pc = code_base + Load32Aligned(pc + 4);
+      }
+      break;
       BYTECODE(SET_CURRENT_POSITION_FROM_END) {
         int by = static_cast<uint32_t>(insn) >> BYTECODE_SHIFT;
         if (subject_length - current > by) {
@@ -599,19 +586,11 @@ IrregexpInterpreter::IrregexpResult IrregexpInterpreter::Match(
   }
 
   if (subject.IsOneByteString() || subject.IsExternalOneByteString()) {
-    return RawMatch<uint8_t>(code_base,
-                             subject,
-                             registers,
-                             start_position,
-                             previous_char,
-                             zone);
+    return RawMatch<uint8_t>(code_base, subject, registers, start_position,
+                             previous_char, zone);
   } else if (subject.IsTwoByteString() || subject.IsExternalTwoByteString()) {
-    return RawMatch<uint16_t>(code_base,
-                              subject,
-                              registers,
-                              start_position,
-                              previous_char,
-                              zone);
+    return RawMatch<uint16_t>(code_base, subject, registers, start_position,
+                              previous_char, zone);
   } else {
     UNREACHABLE();
     return IrregexpInterpreter::RE_FAILURE;

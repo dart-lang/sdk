@@ -7,8 +7,8 @@
 
 #include "vm/cpuinfo.h"
 
-#include <errno.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
+#include <errno.h>       // NOLINT
+#include <sys/types.h>   // NOLINT
 #include <sys/sysctl.h>  // NOLINT
 
 #include "platform/assert.h"

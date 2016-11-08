@@ -13,9 +13,7 @@ namespace dart {
 
 NativeMessageHandler::NativeMessageHandler(const char* name,
                                            Dart_NativeMessageHandler func)
-    : name_(strdup(name)),
-      func_(func) {
-}
+    : name_(strdup(name)), func_(func) {}
 
 
 NativeMessageHandler::~NativeMessageHandler() {

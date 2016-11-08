@@ -23,7 +23,9 @@ Node::~Node() {}
 TreeNode::~TreeNode() {}
 
 
-void TreeNode::AcceptVisitor(Visitor* visitor) { AcceptTreeVisitor(visitor); }
+void TreeNode::AcceptVisitor(Visitor* visitor) {
+  AcceptTreeVisitor(visitor);
+}
 
 
 Library::~Library() {}
@@ -1072,7 +1074,9 @@ void FunctionDeclaration::VisitChildren(Visitor* visitor) {
 Name::~Name() {}
 
 
-void Name::AcceptVisitor(Visitor* visitor) { visitor->VisitName(this); }
+void Name::AcceptVisitor(Visitor* visitor) {
+  visitor->VisitName(this);
+}
 
 
 void Name::VisitChildren(Visitor* visitor) {}

@@ -39,16 +39,11 @@ class TestMessageHandler : public MessageHandler {
         message_count_(0),
         start_called_(false),
         end_called_(false),
-        results_(NULL) {
-  }
+        results_(NULL) {}
 
-  ~TestMessageHandler() {
-    delete[] port_buffer_;
-  }
+  ~TestMessageHandler() { delete[] port_buffer_; }
 
-  void MessageNotify(Message::Priority priority) {
-    notify_count_++;
-  }
+  void MessageNotify(Message::Priority priority) { notify_count_++; }
 
   MessageStatus HandleMessage(Message* message) {
     // For testing purposes, keep a list of the ports
@@ -248,9 +243,9 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage) {
 UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
   TestMessageHandler handler;
   MessageHandler::MessageStatus results[] = {
-    MessageHandler::kError,     // oob_message1
-    MessageHandler::kOK,        // oob_message2
-    MessageHandler::kOK,        // unused
+      MessageHandler::kError,  // oob_message1
+      MessageHandler::kOK,     // oob_message2
+      MessageHandler::kOK,     // unused
   };
   handler.set_results(results);
   MessageHandlerTestPeer handler_peer(&handler);
@@ -278,10 +273,10 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage_ProcessOOBAfterError) {
 UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
   TestMessageHandler handler;
   MessageHandler::MessageStatus results[] = {
-    MessageHandler::kOK,        // oob_message1
-    MessageHandler::kShutdown,  // oob_message2
-    MessageHandler::kOK,        // unused
-    MessageHandler::kOK,        // unused
+      MessageHandler::kOK,        // oob_message1
+      MessageHandler::kShutdown,  // oob_message2
+      MessageHandler::kOK,        // unused
+      MessageHandler::kOK,        // unused
   };
   handler.set_results(results);
   MessageHandlerTestPeer handler_peer(&handler);
@@ -368,9 +363,7 @@ UNIT_TEST_CASE(MessageHandler_Run) {
   EXPECT(!handler.HasLivePorts());
   handler_peer.increment_live_ports();
 
-  handler.Run(&pool,
-              TestStartFunction,
-              TestEndFunction,
+  handler.Run(&pool, TestStartFunction, TestEndFunction,
               reinterpret_cast<uword>(&handler));
   Dart_Port port = PortMap::CreatePort(&handler);
   Message* message = new Message(port, NULL, 0, Message::kNormalPriority);

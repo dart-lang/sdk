@@ -10,7 +10,7 @@
 
 namespace dart {
 
-class HostCPUFeatures: public AllStatic {
+class HostCPUFeatures : public AllStatic {
  public:
   static void InitOnce();
   static void Cleanup();
@@ -29,20 +29,12 @@ class HostCPUFeatures: public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() {
-    HostCPUFeatures::InitOnce();
-  }
-  static void Cleanup() {
-    HostCPUFeatures::Cleanup();
-  }
+  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Cleanup() { HostCPUFeatures::Cleanup(); }
 
-  static const char* hardware() {
-    return CPU::Id();
-  }
+  static const char* hardware() { return CPU::Id(); }
 
-  static bool double_truncate_round_supported() {
-    return true;
-  }
+  static bool double_truncate_round_supported() { return true; }
 };
 
 }  // namespace dart

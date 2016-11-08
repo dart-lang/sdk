@@ -320,8 +320,7 @@ class TransitionNativeToVM : public TransitionSafepointState {
 class TransitionToGenerated : public TransitionSafepointState {
  public:
   explicit TransitionToGenerated(Thread* T)
-      : TransitionSafepointState(T),
-        execution_state_(T->execution_state()) {
+      : TransitionSafepointState(T), execution_state_(T->execution_state()) {
     ASSERT(T == Thread::Current());
     ASSERT((execution_state_ == Thread::kThreadInVM) ||
            (execution_state_ == Thread::kThreadInNative));
@@ -357,8 +356,8 @@ class TransitionToGenerated : public TransitionSafepointState {
 // transition set up.
 class TransitionToVM : public TransitionSafepointState {
  public:
-  explicit TransitionToVM(Thread* T) : TransitionSafepointState(T),
-                                       execution_state_(T->execution_state()) {
+  explicit TransitionToVM(Thread* T)
+      : TransitionSafepointState(T), execution_state_(T->execution_state()) {
     ASSERT(T == Thread::Current());
     ASSERT((execution_state_ == Thread::kThreadInVM) ||
            (execution_state_ == Thread::kThreadInNative));

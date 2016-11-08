@@ -634,8 +634,7 @@ TEST_CASE(IsolateReload_MixinChanged) {
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("saved:field=mixin1,func=mixin1",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("saved:field=mixin1,func=mixin1", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
       "class Mixin2 {\n"
@@ -656,9 +655,10 @@ TEST_CASE(IsolateReload_MixinChanged) {
 
   // The saved instance of B retains its old field value from mixin1,
   // but it gets the new implementation of func from mixin2.
-  EXPECT_STREQ("saved:field=mixin1,func=mixin2 "
-               "newer:field=mixin2,func=mixin2",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "saved:field=mixin1,func=mixin2 "
+      "newer:field=mixin2,func=mixin2",
+      SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -683,10 +683,11 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("(a is A(true)/ B(false)/ C(false),"
-               " b is A(true)/ B(true)/ C(false),"
-               " c is A(true)/ B(true)/ C(true))",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "(a is A(true)/ B(false)/ C(false),"
+      " b is A(true)/ B(true)/ C(false),"
+      " c is A(true)/ B(true)/ C(true))",
+      SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
       "class C {\n"
@@ -709,11 +710,12 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("(a is A(true)/ C(true)/ X(true),"
-               " b is A(true)/ C(true)/ X(true),"  // still extends A...
-               " c is A(false)/ C(true)/ X(false),"
-               " x is A(false)/ C(true)/ X(true))",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "(a is A(true)/ C(true)/ X(true),"
+      " b is A(true)/ C(true)/ X(true),"  // still extends A...
+      " c is A(false)/ C(true)/ X(false),"
+      " x is A(false)/ C(true)/ X(true))",
+      SimpleInvokeStr(lib, "main"));
 
   // Revive the class B and make sure all allocated instances take
   // their place in the inheritance hierarchy.
@@ -741,11 +743,12 @@ TEST_CASE(IsolateReload_ComplexInheritanceChange) {
 
   lib = TestCase::ReloadTestScript(kReloadScript2);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("(a is A(true)/ B(false)/ C(false)/ X(true),"
-               " b is A(false)/ B(true)/ C(false)/ X(true),"
-               " c is A(true)/ B(false)/ C(true)/ X(true),"
-               " x is A(false)/ B(false)/ C(false)/ X(true))",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "(a is A(true)/ B(false)/ C(false)/ X(true),"
+      " b is A(false)/ B(true)/ C(false)/ X(true),"
+      " c is A(true)/ B(false)/ C(true)/ X(true),"
+      " x is A(false)/ B(false)/ C(false)/ X(true))",
+      SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -784,8 +787,7 @@ TEST_CASE(IsolateReload_LiveStack) {
 
 
 TEST_CASE(IsolateReload_LibraryLookup) {
-  const char* kImportScript =
-      "importedFunc() => 'a';\n";
+  const char* kImportScript = "importedFunc() => 'a';\n";
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
@@ -827,8 +829,7 @@ TEST_CASE(IsolateReload_LibraryLookup) {
 
 
 TEST_CASE(IsolateReload_LibraryHide) {
-  const char* kImportScript =
-      "importedFunc() => 'a';\n";
+  const char* kImportScript = "importedFunc() => 'a';\n";
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   // Import 'test:lib1' with importedFunc hidden. Will result in an
@@ -908,8 +909,7 @@ TEST_CASE(IsolateReload_LibraryShow) {
 // Verifies that we clear the ICs for the functions live on the stack in a way
 // that is compatible with the fast path smi stubs.
 TEST_CASE(IsolateReload_SmiFastPathStubs) {
-  const char* kImportScript =
-      "importedIntFunc() => 4;\n";
+  const char* kImportScript = "importedIntFunc() => 4;\n";
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
@@ -1595,8 +1595,10 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("4 NoSuchMethodError: No static getter 'y' declared "
-               "in class 'C'.", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "4 NoSuchMethodError: No static getter 'y' declared "
+      "in class 'C'.",
+      SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1605,8 +1607,7 @@ TEST_CASE(IsolateReload_DanglingGetter_Class) {
 
 static void IsolateReload_DanlingGetter_LibraryReload(
     Dart_NativeArguments native_args) {
-  const char* kImportScript2 =
-    "var x;\n";
+  const char* kImportScript2 = "var x;\n";
   TestCase::AddTestLib("test:other", kImportScript2);
 
   DART_CHECK_VALID(TestCase::TriggerReload());
@@ -1769,8 +1770,10 @@ TEST_CASE(IsolateReload_DanglingSetter_Class) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("5 NoSuchMethodError: No static setter 'y=' declared in "
-               "class 'C'.", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "5 NoSuchMethodError: No static setter 'y=' declared in "
+      "class 'C'.",
+      SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1779,8 +1782,7 @@ TEST_CASE(IsolateReload_DanglingSetter_Class) {
 
 static void IsolateReload_DanlingSetter_LibraryReload(
     Dart_NativeArguments native_args) {
-  const char* kImportScript2 =
-    "var x;\n";
+  const char* kImportScript2 = "var x;\n";
   TestCase::AddTestLib("test:other", kImportScript2);
 
   DART_CHECK_VALID(TestCase::TriggerReload());
@@ -1883,8 +1885,10 @@ TEST_CASE(IsolateReload_TearOff_AddArguments) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("1 NoSuchMethodError: Class 'C' has no instance method "
-               "'foo' with matching arguments.", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "1 NoSuchMethodError: Class 'C' has no instance method "
+      "'foo' with matching arguments.",
+      SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -1937,8 +1941,10 @@ TEST_CASE(IsolateReload_TearOff_AddArguments2) {
 
   TestCase::SetReloadTestScript(kReloadScript);
 
-  EXPECT_STREQ("1 NoSuchMethodError: Closure call with mismatched arguments: "
-               "function 'C.foo'", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ(
+      "1 NoSuchMethodError: Closure call with mismatched arguments: "
+      "function 'C.foo'",
+      SimpleInvokeStr(lib, "main"));
 
   lib = TestCase::GetReloadErrorOrRootLibrary();
   EXPECT_VALID(lib);
@@ -2174,8 +2180,7 @@ TEST_CASE(IsolateReload_EnumDelete) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("Fruit.Cantalope true 2",
-               SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("Fruit.Cantalope true 2", SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -2881,8 +2886,7 @@ static bool NothingModifiedCallback(const char* url, int64_t since) {
 
 
 TEST_CASE(IsolateReload_NoLibsModified) {
-  const char* kImportScript =
-      "importedFunc() => 'fancy';";
+  const char* kImportScript = "importedFunc() => 'fancy';";
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
@@ -2895,8 +2899,7 @@ TEST_CASE(IsolateReload_NoLibsModified) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
-  const char* kReloadImportScript =
-      "importedFunc() => 'bossy';";
+  const char* kReloadImportScript = "importedFunc() => 'bossy';";
   TestCase::AddTestLib("test:lib1", kReloadImportScript);
 
   const char* kReloadScript =
@@ -2924,8 +2927,7 @@ static bool MainModifiedCallback(const char* url, int64_t since) {
 
 
 TEST_CASE(IsolateReload_MainLibModified) {
-  const char* kImportScript =
-      "importedFunc() => 'fancy';";
+  const char* kImportScript = "importedFunc() => 'fancy';";
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
@@ -2938,8 +2940,7 @@ TEST_CASE(IsolateReload_MainLibModified) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
-  const char* kReloadImportScript =
-      "importedFunc() => 'bossy';";
+  const char* kReloadImportScript = "importedFunc() => 'bossy';";
   TestCase::AddTestLib("test:lib1", kReloadImportScript);
 
   const char* kReloadScript =
@@ -2967,8 +2968,7 @@ static bool ImportModifiedCallback(const char* url, int64_t since) {
 
 
 TEST_CASE(IsolateReload_ImportedLibModified) {
-  const char* kImportScript =
-      "importedFunc() => 'fancy';";
+  const char* kImportScript = "importedFunc() => 'fancy';";
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
@@ -2981,8 +2981,7 @@ TEST_CASE(IsolateReload_ImportedLibModified) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
-  const char* kReloadImportScript =
-      "importedFunc() => 'bossy';";
+  const char* kReloadImportScript = "importedFunc() => 'bossy';";
   TestCase::AddTestLib("test:lib1", kReloadImportScript);
 
   const char* kReloadScript =
@@ -3002,8 +3001,7 @@ TEST_CASE(IsolateReload_ImportedLibModified) {
 
 
 TEST_CASE(IsolateReload_PrefixImportedLibModified) {
-  const char* kImportScript =
-      "importedFunc() => 'fancy';";
+  const char* kImportScript = "importedFunc() => 'fancy';";
   TestCase::AddTestLib("test:lib1", kImportScript);
 
   const char* kScript =
@@ -3016,8 +3014,7 @@ TEST_CASE(IsolateReload_PrefixImportedLibModified) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
-  const char* kReloadImportScript =
-      "importedFunc() => 'bossy';";
+  const char* kReloadImportScript = "importedFunc() => 'bossy';";
   TestCase::AddTestLib("test:lib1", kReloadImportScript);
 
   const char* kReloadScript =
@@ -3046,12 +3043,10 @@ static bool ExportModifiedCallback(const char* url, int64_t since) {
 
 
 TEST_CASE(IsolateReload_ExportedLibModified) {
-  const char* kImportScript =
-      "export 'test:exportlib';";
+  const char* kImportScript = "export 'test:exportlib';";
   TestCase::AddTestLib("test:importlib", kImportScript);
 
-  const char* kExportScript =
-      "exportedFunc() => 'fancy';";
+  const char* kExportScript = "exportedFunc() => 'fancy';";
   TestCase::AddTestLib("test:exportlib", kExportScript);
 
   const char* kScript =
@@ -3064,8 +3059,7 @@ TEST_CASE(IsolateReload_ExportedLibModified) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("fancy feast", SimpleInvokeStr(lib, "main"));
 
-  const char* kReloadExportScript =
-      "exportedFunc() => 'bossy';";
+  const char* kReloadExportScript = "exportedFunc() => 'bossy';";
   TestCase::AddTestLib("test:exportlib", kReloadExportScript);
 
   const char* kReloadScript =
@@ -3085,7 +3079,7 @@ TEST_CASE(IsolateReload_ExportedLibModified) {
 
 
 TEST_CASE(IsolateReload_SimpleConstFieldUpdate) {
-    const char* kScript =
+  const char* kScript =
       "const value = 'a';\n"
       "main() {\n"
       "  return 'value=${value}';\n"
@@ -3108,7 +3102,7 @@ TEST_CASE(IsolateReload_SimpleConstFieldUpdate) {
 
 
 TEST_CASE(IsolateReload_ConstFieldUpdate) {
-    const char* kScript =
+  const char* kScript =
       "const value = const Duration(seconds: 1);\n"
       "main() {\n"
       "  return 'value=${value}';\n"

@@ -88,9 +88,8 @@ static void StackAllocatedLongJumpHelper(int* ptr, LongJumpScope* jump) {
   TestValueObject stacked(ptr);
   EXPECT_EQ(2, *ptr);
   *ptr = 3;
-  const Error& error =
-      Error::Handle(LanguageError::New(
-          String::Handle(String::New("StackAllocatedLongJump"))));
+  const Error& error = Error::Handle(LanguageError::New(
+      String::Handle(String::New("StackAllocatedLongJump"))));
   jump->Jump(1, error);
   UNREACHABLE();
 }
@@ -135,9 +134,8 @@ static void StackedStackResourceLongJumpHelper(int* ptr, LongJumpScope* jump) {
   TestStackedStackResource stacked(ptr);
   EXPECT_EQ(4, *ptr);
   *ptr = 5;
-  const Error& error =
-      Error::Handle(LanguageError::New(
-          String::Handle(String::New("StackedStackResourceLongJump"))));
+  const Error& error = Error::Handle(LanguageError::New(
+      String::Handle(String::New("StackedStackResourceLongJump"))));
   jump->Jump(1, error);
   UNREACHABLE();
 }

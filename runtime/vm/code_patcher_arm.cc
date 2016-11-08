@@ -54,8 +54,9 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
-    uword return_address, const Code& code, ICData* ic_data_result) {
+RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
+                                                     const Code& code,
+                                                     ICData* ic_data_result) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern static_call(return_address, code);
   ICData& ic_data = ICData::Handle();
@@ -106,8 +107,8 @@ void CodePatcher::PatchNativeCallAt(uword return_address,
 
 
 RawCode* CodePatcher::GetNativeCallAt(uword return_address,
-                                     const Code& code,
-                                     NativeFunction* target) {
+                                      const Code& code,
+                                      NativeFunction* target) {
   ASSERT(code.ContainsInstructionAt(return_address));
   NativeCallPattern call(return_address, code);
   *target = call.native_function();

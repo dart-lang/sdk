@@ -47,8 +47,8 @@ CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
 
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {
-  const String& variable_name = String::ZoneHandle(
-      Symbols::New(Thread::Current(), name));
+  const String& variable_name =
+      String::ZoneHandle(Symbols::New(Thread::Current(), name));
   const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
   return new LocalVariable(kPos, kPos, variable_name, variable_type);
 }
@@ -73,8 +73,8 @@ CODEGEN_TEST2_GENERATE(StaticCallReturnParameterCodegen, function, test) {
   SequenceNode* node_seq = test->node_sequence();
   ArgumentListNode* arguments = new ArgumentListNode(kPos);
   arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))));
-  node_seq->Add(new ReturnNode(kPos,
-                               new StaticCallNode(kPos, function, arguments)));
+  node_seq->Add(
+      new ReturnNode(kPos, new StaticCallNode(kPos, function, arguments)));
 }
 CODEGEN_TEST2_RUN(StaticCallReturnParameterCodegen,
                   ReturnParameterCodegen,
@@ -96,10 +96,9 @@ CODEGEN_TEST_GENERATE(SmiParamSumCodegen, test) {
   const Function& function = test->function();
   function.set_num_fixed_parameters(num_params);
   ASSERT(!function.HasOptionalParameters());
-  BinaryOpNode* add = new BinaryOpNode(kPos,
-                                       Token::kADD,
-                                       new LoadLocalNode(kPos, param1),
-                                       new LoadLocalNode(kPos, param2));
+  BinaryOpNode* add =
+      new BinaryOpNode(kPos, Token::kADD, new LoadLocalNode(kPos, param1),
+                       new LoadLocalNode(kPos, param2));
   node_seq->Add(new StoreLocalNode(kPos, sum, add));
   node_seq->Add(new ReturnNode(kPos, new LoadLocalNode(kPos, sum)));
 }
@@ -111,12 +110,10 @@ CODEGEN_TEST2_GENERATE(StaticCallSmiParamSumCodegen, function, test) {
   ArgumentListNode* arguments = new ArgumentListNode(kPos);
   arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(3))));
   arguments->Add(new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(2))));
-  node_seq->Add(new ReturnNode(kPos,
-                               new StaticCallNode(kPos, function, arguments)));
+  node_seq->Add(
+      new ReturnNode(kPos, new StaticCallNode(kPos, function, arguments)));
 }
-CODEGEN_TEST2_RUN(StaticCallSmiParamSumCodegen,
-                  SmiParamSumCodegen,
-                  Smi::New(5))
+CODEGEN_TEST2_RUN(StaticCallSmiParamSumCodegen, SmiParamSumCodegen, Smi::New(5))
 
 
 CODEGEN_TEST_GENERATE(SmiAddCodegen, test) {
@@ -221,16 +218,16 @@ static Library& MakeTestLibrary(const char* url) {
   lib.Register(thread);
   Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
   ASSERT(!core_lib.IsNull());
-  const Namespace& core_ns = Namespace::Handle(zone,
-      Namespace::New(core_lib, Array::Handle(zone), Array::Handle(zone)));
+  const Namespace& core_ns = Namespace::Handle(
+      zone, Namespace::New(core_lib, Array::Handle(zone), Array::Handle(zone)));
   lib.AddImport(core_ns);
   return lib;
 }
 
 
 static RawClass* LookupClass(const Library& lib, const char* name) {
-  const String& cls_name = String::ZoneHandle(Symbols::New(Thread::Current(),
-                                                           name));
+  const String& cls_name =
+      String::ZoneHandle(Symbols::New(Thread::Current(), name));
   return lib.LookupClass(cls_name);
 }
 
@@ -244,9 +241,8 @@ CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
 
   String& url = String::Handle(String::New("dart-test:CompileScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
@@ -291,9 +287,8 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
 
   String& url = String::Handle(String::New("dart-test:CompileScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
@@ -306,16 +301,14 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   EXPECT(!constructor.IsNull());
 
   // The unit test creates an instance of class A and calls function 'bar'.
-  String& function_bar_name = String::ZoneHandle(Symbols::New(Thread::Current(),
-                                                              "bar"));
+  String& function_bar_name =
+      String::ZoneHandle(Symbols::New(Thread::Current(), "bar"));
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
   InstanceCallNode* call_bar = new InstanceCallNode(
-      kPos,
-      new ConstructorCallNode(
-          kPos, no_type_arguments, constructor, no_arguments),
-      function_bar_name,
-      no_arguments);
+      kPos, new ConstructorCallNode(kPos, no_type_arguments, constructor,
+                                    no_arguments),
+      function_bar_name, no_arguments);
 
   test->node_sequence()->Add(new ReturnNode(kPos, call_bar));
 }
@@ -332,9 +325,8 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
 
   String& url = String::Handle(String::New("dart-test:CompileScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
@@ -348,8 +340,9 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
 
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
-  test->node_sequence()->Add(new ReturnNode(kPos, new ConstructorCallNode(
-      kPos, no_type_arguments, constructor, no_arguments)));
+  test->node_sequence()->Add(
+      new ReturnNode(kPos, new ConstructorCallNode(kPos, no_type_arguments,
+                                                   constructor, no_arguments)));
 }
 
 
@@ -357,7 +350,7 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   const Object& result = Object::Handle(
       DartEntry::InvokeFunction(function, Object::empty_array()));
   EXPECT(!result.IsError());
-  const GrowableObjectArray& libs =  GrowableObjectArray::Handle(
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
       Isolate::Current()->object_store()->libraries());
   ASSERT(!libs.IsNull());
   // App lib is the last one that was loaded.
@@ -365,9 +358,8 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   Library& app_lib = Library::Handle();
   app_lib ^= libs.At(num_libs - 1);
   ASSERT(!app_lib.IsNull());
-  const Class& cls = Class::Handle(
-      app_lib.LookupClass(String::Handle(Symbols::New(Thread::Current(),
-                                                      "A"))));
+  const Class& cls = Class::Handle(app_lib.LookupClass(
+      String::Handle(Symbols::New(Thread::Current(), "A"))));
   EXPECT_EQ(cls.raw(), result.clazz());
 }
 

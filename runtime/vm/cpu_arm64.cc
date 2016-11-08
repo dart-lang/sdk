@@ -12,8 +12,8 @@
 #include "vm/simulator.h"
 
 #if !defined(USING_SIMULATOR)
-#include <sys/syscall.h>  /* NOLINT */
-#include <unistd.h>  /* NOLINT */
+#include <sys/syscall.h> /* NOLINT */
+#include <unistd.h>      /* NOLINT */
 #endif
 
 namespace dart {
@@ -30,18 +30,17 @@ void CPU::FlushICache(uword start, uword size) {
     return;
   }
 
-  // ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
-  // blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
-  #if defined(TARGET_OS_ANDROID) || \
-      defined(TARGET_OS_FUCHSIA) || \
-      defined(TARGET_OS_LINUX)
-    extern void __clear_cache(char*, char*);
-    char* beg = reinterpret_cast<char*>(start);
-    char* end = reinterpret_cast<char*>(start + size);
-    ::__clear_cache(beg, end);
-  #else
-    #error FlushICache only tested/supported on Android, Fuchsia, and Linux
-  #endif
+// ARM recommends using the gcc intrinsic __clear_cache on Linux and Android.
+// blogs.arm.com/software-enablement/141-caches-and-self-modifying-code/
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_FUCHSIA) ||                \
+    defined(TARGET_OS_LINUX)
+  extern void __clear_cache(char*, char*);
+  char* beg = reinterpret_cast<char*>(start);
+  char* end = reinterpret_cast<char*>(start + size);
+  ::__clear_cache(beg, end);
+#else
+#error FlushICache only tested/supported on Android, Fuchsia, and Linux
+#endif
 
 #endif
 }
@@ -50,9 +49,9 @@ void CPU::FlushICache(uword start, uword size) {
 const char* CPU::Id() {
   return
 #if defined(USING_SIMULATOR)
-  "sim"
+      "sim"
 #endif  // !defined(HOST_ARCH_ARM64)
-  "arm64";
+      "arm64";
 }
 
 

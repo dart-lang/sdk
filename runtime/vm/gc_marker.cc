@@ -25,9 +25,7 @@ class SkippedCodeFunctions : public ZoneAllocated {
  public:
   SkippedCodeFunctions() {}
 
-  void Add(RawFunction* func) {
-    skipped_code_functions_.Add(func);
-  }
+  void Add(RawFunction* func) { skipped_code_functions_.Add(func); }
 
   void DetachCode() {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -42,9 +40,8 @@ class SkippedCodeFunctions : public ZoneAllocated {
         // If the code wasn't strongly visited through other references
         // after skipping the function's code pointer, then we disconnect the
         // code from the function.
-        func->StorePointer(
-            &(func->ptr()->code_),
-            StubCode::LazyCompile_entry()->code());
+        func->StorePointer(&(func->ptr()->code_),
+                           StubCode::LazyCompile_entry()->code());
         uword entry_point = StubCode::LazyCompile_entry()->EntryPoint();
         func->ptr()->entry_point_ = entry_point;
         if (FLAG_log_code_drop) {
@@ -141,14 +138,14 @@ class MarkerWorkList : public ValueObject {
 };
 
 
-template<bool sync>
+template <bool sync>
 class MarkingVisitorBase : public ObjectPointerVisitor {
  public:
   MarkingVisitorBase(Isolate* isolate,
-                 Heap* heap,
-                 PageSpace* page_space,
-                 MarkingStack* marking_stack,
-                 SkippedCodeFunctions* skipped_code_functions)
+                     Heap* heap,
+                     PageSpace* page_space,
+                     MarkingStack* marking_stack,
+                     SkippedCodeFunctions* skipped_code_functions)
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
         heap_(heap),
@@ -177,9 +174,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return class_stats_count_[class_id];
   }
 
-  intptr_t live_size(intptr_t class_id) {
-    return class_stats_size_[class_id];
-  }
+  intptr_t live_size(intptr_t class_id) { return class_stats_size_[class_id]; }
 
   bool ProcessPendingWeakProperties() {
     bool marked = false;
@@ -250,9 +245,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
-  bool visit_function_code() const {
-    return skipped_code_functions_ == NULL;
-  }
+  bool visit_function_code() const { return skipped_code_functions_ == NULL; }
 
   virtual void add_skipped_code_function(RawFunction* func) {
     ASSERT(!visit_function_code());
@@ -272,8 +265,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   intptr_t ProcessWeakProperty(RawWeakProperty* raw_weak) {
     // The fate of the weak property is determined by its key.
     RawObject* raw_key = raw_weak->ptr()->key_;
-    if (raw_key->IsHeapObject() &&
-        raw_key->IsOldObject() &&
+    if (raw_key->IsHeapObject() && raw_key->IsOldObject() &&
         !raw_key->IsMarked()) {
       // Key was white. Enqueue the weak property.
       EnqueueWeakProperty(raw_weak);
@@ -313,9 +305,9 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
  private:
   void PushMarked(RawObject* raw_obj) {
     ASSERT(raw_obj->IsHeapObject());
-    ASSERT((FLAG_verify_before_gc || FLAG_verify_before_gc) ?
-           page_space_->Contains(RawObject::ToAddr(raw_obj)) :
-           true);
+    ASSERT((FLAG_verify_before_gc || FLAG_verify_before_gc)
+               ? page_space_->Contains(RawObject::ToAddr(raw_obj))
+               : true);
 
     // Push the marked object on the marking stack.
     ASSERT(raw_obj->IsMarked());
@@ -438,8 +430,8 @@ static bool IsUnreachable(const RawObject* raw_obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  MarkingWeakVisitor(Thread* thread, FinalizationQueue* queue) :
-      HandleVisitor(thread), queue_(queue) { }
+  MarkingWeakVisitor(Thread* thread, FinalizationQueue* queue)
+      : HandleVisitor(thread), queue_(queue) {}
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
@@ -476,7 +468,8 @@ void GCMarker::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
 
 void GCMarker::IterateRoots(Isolate* isolate,
                             ObjectPointerVisitor* visitor,
-                            intptr_t slice_index, intptr_t num_slices) {
+                            intptr_t slice_index,
+                            intptr_t num_slices) {
   ASSERT(0 <= slice_index && slice_index < num_slices);
   if ((slice_index == 0) || (num_slices <= 1)) {
     isolate->VisitObjectPointers(visitor,
@@ -499,11 +492,9 @@ void GCMarker::IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor) {
 
 
 void GCMarker::ProcessWeakTables(PageSpace* page_space) {
-  for (int sel = 0;
-       sel < Heap::kNumWeakSelectors;
-       sel++) {
-    WeakTable* table = heap_->GetWeakTable(
-        Heap::kOld, static_cast<Heap::WeakSelector>(sel));
+  for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
+    WeakTable* table =
+        heap_->GetWeakTable(Heap::kOld, static_cast<Heap::WeakSelector>(sel));
     intptr_t size = table->size();
     for (intptr_t i = 0; i < size; i++) {
       if (table->IsValidEntryAt(i)) {
@@ -520,8 +511,8 @@ void GCMarker::ProcessWeakTables(PageSpace* page_space) {
 
 class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
  public:
-  explicit ObjectIdRingClearPointerVisitor(Isolate* isolate) :
-      ObjectPointerVisitor(isolate) {}
+  explicit ObjectIdRingClearPointerVisitor(Isolate* isolate)
+      : ObjectPointerVisitor(isolate) {}
 
 
   void VisitPointers(RawObject** first, RawObject** last) {
@@ -571,8 +562,7 @@ class MarkTask : public ThreadPool::Task {
         collect_code_(collect_code),
         task_index_(task_index),
         num_tasks_(num_tasks),
-        num_busy_(num_busy) {
-  }
+        num_busy_(num_busy) {}
 
   virtual void Run() {
     bool result =
@@ -584,7 +574,7 @@ class MarkTask : public ThreadPool::Task {
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
       SkippedCodeFunctions* skipped_code_functions =
-          collect_code_ ? new(zone) SkippedCodeFunctions() : NULL;
+          collect_code_ ? new (zone) SkippedCodeFunctions() : NULL;
       SyncMarkingVisitor visitor(isolate_, heap_, page_space_, marking_stack_,
                                  skipped_code_functions);
       // Phase 1: Iterate over roots and drain marking stack in tasks.
@@ -648,8 +638,8 @@ class MarkTask : public ThreadPool::Task {
 
       // Phase 3: Finalize results from all markers (detach code, etc.).
       if (FLAG_log_marker_tasks) {
-        THR_Print("Task %" Pd " marked %" Pd " bytes.\n",
-                  task_index_, visitor.marked_bytes());
+        THR_Print("Task %" Pd " marked %" Pd " bytes.\n", task_index_,
+                  visitor.marked_bytes());
       }
       marker_->FinalizeResultsFrom(&visitor);
     }
@@ -675,7 +665,7 @@ class MarkTask : public ThreadPool::Task {
 };
 
 
-template<class MarkingVisitorType>
+template <class MarkingVisitorType>
 void GCMarker::FinalizeResultsFrom(MarkingVisitorType* visitor) {
   {
     MutexLocker ml(&stats_mutex_);
@@ -714,7 +704,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
     if (num_tasks == 0) {
       // Mark everything on main thread.
       SkippedCodeFunctions* skipped_code_functions =
-          collect_code ? new(zone) SkippedCodeFunctions() : NULL;
+          collect_code ? new (zone) SkippedCodeFunctions() : NULL;
       UnsyncMarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
                                 skipped_code_functions);
       IterateRoots(isolate, &mark, 0, 1);
@@ -738,8 +728,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
       // All marking done; detach code, etc.
       FinalizeResultsFrom(&mark);
     } else {
-      ThreadBarrier barrier(num_tasks + 1,
-                            heap_->barrier(),
+      ThreadBarrier barrier(num_tasks + 1, heap_->barrier(),
                             heap_->barrier_done());
       // Used to coordinate draining among tasks; all start out as 'busy'.
       uintptr_t num_busy = num_tasks;
@@ -747,8 +736,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
       for (intptr_t i = 0; i < num_tasks; ++i) {
         MarkTask* mark_task =
             new MarkTask(this, isolate, heap_, page_space, &marking_stack,
-                         &barrier, collect_code,
-                         i, num_tasks, &num_busy);
+                         &barrier, collect_code, i, num_tasks, &num_busy);
         ThreadPool* pool = Dart::thread_pool();
         pool->Run(mark_task);
       }

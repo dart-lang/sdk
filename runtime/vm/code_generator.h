@@ -11,7 +11,8 @@
 namespace dart {
 
 class Array;
-template <typename T> class GrowableArray;
+template <typename T>
+class GrowableArray;
 class ICData;
 class Instance;
 

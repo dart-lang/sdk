@@ -16,12 +16,13 @@ class ClassStats;
 class JSONArray;
 class JSONObject;
 class JSONStream;
-template<typename T> class MallocGrowableArray;
+template <typename T>
+class MallocGrowableArray;
 class ObjectPointerVisitor;
 class RawClass;
 
 #ifndef PRODUCT
-template<typename T>
+template <typename T>
 class AllocStats {
  public:
   T new_count;
@@ -104,12 +105,8 @@ class ClassHeapStats {
     return OFFSET_OF(ClassHeapStats, recent) +
            OFFSET_OF(AllocStats<intptr_t>, old_size);
   }
-  static intptr_t state_offset() {
-    return OFFSET_OF(ClassHeapStats, state_);
-  }
-  static intptr_t TraceAllocationMask() {
-    return (1 << kTraceAllocationBit);
-  }
+  static intptr_t state_offset() { return OFFSET_OF(ClassHeapStats, state_); }
+  static intptr_t TraceAllocationMask() { return (1 << kTraceAllocationBit); }
 
   void Initialize();
   void ResetAtNewGC();
@@ -122,9 +119,7 @@ class ClassHeapStats {
 #endif
   void Verify();
 
-  bool trace_allocation() const {
-    return TraceAllocationBit::decode(state_);
-  }
+  bool trace_allocation() const { return TraceAllocationBit::decode(state_); }
 
   void set_trace_allocation(bool trace_allocation) {
     state_ = TraceAllocationBit::update(trace_allocation, state_);
@@ -135,8 +130,8 @@ class ClassHeapStats {
     kTraceAllocationBit = 0,
   };
 
-  class TraceAllocationBit :
-      public BitField<intptr_t, bool, kTraceAllocationBit, 1> {};
+  class TraceAllocationBit
+      : public BitField<intptr_t, bool, kTraceAllocationBit, 1> {};
 
   // Recent old at start of last new GC (used to compute promoted_*).
   intptr_t old_pre_new_gc_count_;
@@ -160,9 +155,7 @@ class ClassTable {
     return table_[index];
   }
 
-  void SetAt(intptr_t index, RawClass* raw_cls) {
-    table_[index] = raw_cls;
-  }
+  void SetAt(intptr_t index, RawClass* raw_cls) { table_[index] = raw_cls; }
 
   bool IsValidIndex(intptr_t index) const {
     return (index > 0) && (index < top_);
@@ -202,9 +195,7 @@ class ClassTable {
   void Print();
 
   // Used by the generated code.
-  static intptr_t table_offset() {
-    return OFFSET_OF(ClassTable, table_);
-  }
+  static intptr_t table_offset() { return OFFSET_OF(ClassTable, table_); }
 
   // Used by the generated code.
   static intptr_t ClassOffsetFor(intptr_t cid);

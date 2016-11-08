@@ -16,7 +16,7 @@ namespace dart {
 
 // Helper macros for declaring and defining native entries.
 #define REGISTER_NATIVE_ENTRY(name, count)                                     \
-  { ""#name, BootstrapNatives::DN_##name, count },
+  {"" #name, BootstrapNatives::DN_##name, count},
 
 
 // List all native functions implemented in the vm or core bootstrap dart
@@ -26,10 +26,9 @@ static struct NativeEntries {
   const char* name_;
   Dart_NativeFunction function_;
   int argument_count_;
-} BootStrapEntries[] = {
-  BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
+} BootStrapEntries[] = {BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
 #ifndef PRODUCT
-  MIRRORS_BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
+                            MIRRORS_BOOTSTRAP_NATIVE_LIST(REGISTER_NATIVE_ENTRY)
 #endif  // !PRODUCT
 };
 
@@ -76,8 +75,7 @@ void Bootstrap::SetupNativeResolver() {
       reinterpret_cast<Dart_NativeEntryResolver>(BootstrapNatives::Lookup);
 
   Dart_NativeEntrySymbol symbol_resolver =
-      reinterpret_cast<Dart_NativeEntrySymbol>(
-          BootstrapNatives::Symbol);
+      reinterpret_cast<Dart_NativeEntrySymbol>(BootstrapNatives::Symbol);
 
   library = Library::AsyncLibrary();
   ASSERT(!library.IsNull());
@@ -119,11 +117,12 @@ void Bootstrap::SetupNativeResolver() {
   library.set_native_entry_resolver(resolver);
   library.set_native_entry_symbol_resolver(symbol_resolver);
 
-NOT_IN_PRODUCT(
+#if !defined(PRODUCT)
   library = Library::MirrorsLibrary();
   ASSERT(!library.IsNull());
   library.set_native_entry_resolver(resolver);
-  library.set_native_entry_symbol_resolver(symbol_resolver));
+  library.set_native_entry_symbol_resolver(symbol_resolver);
+#endif  // !defined(PRODUCT)
 
   library = Library::ProfilerLibrary();
   ASSERT(!library.IsNull());

@@ -47,9 +47,7 @@ class ObjectStore {
   }
 
   RawType* object_type() const { return object_type_; }
-  void set_object_type(const Type& value) {
-    object_type_ = value.raw();
-  }
+  void set_object_type(const Type& value) { object_type_ = value.raw(); }
 
   RawClass* null_class() const {
     ASSERT(null_class_ != Object::null());
@@ -58,29 +56,19 @@ class ObjectStore {
   void set_null_class(const Class& value) { null_class_ = value.raw(); }
 
   RawType* null_type() const { return null_type_; }
-  void set_null_type(const Type& value) {
-    null_type_ = value.raw();
-  }
+  void set_null_type(const Type& value) { null_type_ = value.raw(); }
 
   RawType* function_type() const { return function_type_; }
-  void set_function_type(const Type& value) {
-    function_type_ = value.raw();
-  }
+  void set_function_type(const Type& value) { function_type_ = value.raw(); }
 
   RawClass* closure_class() const { return closure_class_; }
-  void set_closure_class(const Class& value) {
-    closure_class_ = value.raw();
-  }
+  void set_closure_class(const Class& value) { closure_class_ = value.raw(); }
 
   RawType* number_type() const { return number_type_; }
-  void set_number_type(const Type& value) {
-    number_type_ = value.raw();
-  }
+  void set_number_type(const Type& value) { number_type_ = value.raw(); }
 
   RawType* int_type() const { return int_type_; }
-  void set_int_type(const Type& value) {
-    int_type_ = value.raw();
-  }
+  void set_int_type(const Type& value) { int_type_ = value.raw(); }
   static intptr_t int_type_offset() {
     return OFFSET_OF(ObjectStore, int_type_);
   }
@@ -117,24 +105,18 @@ class ObjectStore {
   void set_bigint_class(const Class& value) { bigint_class_ = value.raw(); }
 
   RawType* string_type() const { return string_type_; }
-  void set_string_type(const Type& value) {
-    string_type_ = value.raw();
-  }
+  void set_string_type(const Type& value) { string_type_ = value.raw(); }
   static intptr_t string_type_offset() {
     return OFFSET_OF(ObjectStore, string_type_);
   }
 
-  RawClass* compiletime_error_class() const {
-    return compiletime_error_class_;
-  }
+  RawClass* compiletime_error_class() const { return compiletime_error_class_; }
   void set_compiletime_error_class(const Class& value) {
     compiletime_error_class_ = value.raw();
   }
 
   RawClass* future_class() const { return future_class_; }
-  void set_future_class(const Class& value) {
-    future_class_ = value.raw();
-  }
+  void set_future_class(const Class& value) { future_class_ = value.raw(); }
 
   RawClass* completer_class() const { return completer_class_; }
   void set_completer_class(const Class& value) {
@@ -147,9 +129,7 @@ class ObjectStore {
   }
 
   RawClass* symbol_class() { return symbol_class_; }
-  void set_symbol_class(const Class& value) {
-    symbol_class_ = value.raw();
-  }
+  void set_symbol_class(const Class& value) { symbol_class_ = value.raw(); }
 
   RawClass* one_byte_string_class() const { return one_byte_string_class_; }
   void set_one_byte_string_class(const Class& value) {
@@ -205,16 +185,12 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, growable_object_array_class_);
   }
 
-  RawClass* linked_hash_map_class() const {
-    return linked_hash_map_class_;
-  }
+  RawClass* linked_hash_map_class() const { return linked_hash_map_class_; }
   void set_linked_hash_map_class(const Class& value) {
     linked_hash_map_class_ = value.raw();
   }
 
-  RawClass* float32x4_class() const {
-    return float32x4_class_;
-  }
+  RawClass* float32x4_class() const { return float32x4_class_; }
   void set_float32x4_class(const Class& value) {
     float32x4_class_ = value.raw();
   }
@@ -222,19 +198,13 @@ class ObjectStore {
   RawType* float32x4_type() const { return float32x4_type_; }
   void set_float32x4_type(const Type& value) { float32x4_type_ = value.raw(); }
 
-  RawClass* int32x4_class() const {
-    return int32x4_class_;
-  }
-  void set_int32x4_class(const Class& value) {
-    int32x4_class_ = value.raw();
-  }
+  RawClass* int32x4_class() const { return int32x4_class_; }
+  void set_int32x4_class(const Class& value) { int32x4_class_ = value.raw(); }
 
   RawType* int32x4_type() const { return int32x4_type_; }
   void set_int32x4_type(const Type& value) { int32x4_type_ = value.raw(); }
 
-  RawClass* float64x2_class() const {
-    return float64x2_class_;
-  }
+  RawClass* float64x2_class() const { return float64x2_class_; }
   void set_float64x2_class(const Class& value) {
     float64x2_class_ = value.raw();
   }
@@ -242,19 +212,13 @@ class ObjectStore {
   RawType* float64x2_type() const { return float64x2_type_; }
   void set_float64x2_type(const Type& value) { float64x2_type_ = value.raw(); }
 
-  RawClass* error_class() const {
-    return error_class_;
-  }
-  void set_error_class(const Class& value) {
-    error_class_ = value.raw();
-  }
+  RawClass* error_class() const { return error_class_; }
+  void set_error_class(const Class& value) { error_class_ = value.raw(); }
   static intptr_t error_class_offset() {
     return OFFSET_OF(ObjectStore, error_class_);
   }
 
-  RawClass* weak_property_class() const {
-    return weak_property_class_;
-  }
+  RawClass* weak_property_class() const { return weak_property_class_; }
   void set_weak_property_class(const Class& value) {
     weak_property_class_ = value.raw();
   }
@@ -262,9 +226,7 @@ class ObjectStore {
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
-  RawArray* canonical_types() const {
-    return canonical_types_;
-  }
+  RawArray* canonical_types() const { return canonical_types_; }
   void set_canonical_types(const Array& value) {
     canonical_types_ = value.raw();
   }
@@ -345,9 +307,7 @@ class ObjectStore {
   }
 
   RawLibrary* root_library() const { return root_library_; }
-  void set_root_library(const Library& value) {
-    root_library_ = value.raw();
-  }
+  void set_root_library(const Library& value) { root_library_ = value.raw(); }
 
   RawGrowableObjectArray* libraries() const { return libraries_; }
   void set_libraries(const GrowableObjectArray& value) {
@@ -355,9 +315,7 @@ class ObjectStore {
   }
 
   RawArray* libraries_map() const { return libraries_map_; }
-  void set_libraries_map(const Array& value) {
-    libraries_map_ = value.raw();
-  }
+  void set_libraries_map(const Array& value) { libraries_map_ = value.raw(); }
 
   RawGrowableObjectArray* closure_functions() const {
     return closure_functions_;
@@ -384,18 +342,12 @@ class ObjectStore {
     return resume_capabilities_;
   }
 
-  RawGrowableObjectArray* exit_listeners() const {
-    return exit_listeners_;
-  }
+  RawGrowableObjectArray* exit_listeners() const { return exit_listeners_; }
 
-  RawGrowableObjectArray* error_listeners() const {
-    return error_listeners_;
-  }
+  RawGrowableObjectArray* error_listeners() const { return error_listeners_; }
 
   RawContext* empty_context() const { return empty_context_; }
-  void set_empty_context(const Context& value) {
-    empty_context_ = value.raw();
-  }
+  void set_empty_context(const Context& value) { empty_context_ = value.raw(); }
 
   RawInstance* stack_overflow() const { return stack_overflow_; }
   void set_stack_overflow(const Instance& value) {
@@ -421,16 +373,12 @@ class ObjectStore {
     preallocated_stack_trace_ = value.raw();
   }
 
-  RawFunction* lookup_port_handler() const {
-    return lookup_port_handler_;
-  }
+  RawFunction* lookup_port_handler() const { return lookup_port_handler_; }
   void set_lookup_port_handler(const Function& function) {
     lookup_port_handler_ = function.raw();
   }
 
-  RawTypedData* empty_uint32_array() const {
-    return empty_uint32_array_;
-  }
+  RawTypedData* empty_uint32_array() const { return empty_uint32_array_; }
   void set_empty_uint32_array(const TypedData& array) {
     // Only set once.
     ASSERT(empty_uint32_array_ == TypedData::null());
@@ -455,23 +403,17 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, library_load_error_table_);
   }
 
-  RawArray* unique_dynamic_targets() const {
-    return unique_dynamic_targets_;
-  }
+  RawArray* unique_dynamic_targets() const { return unique_dynamic_targets_; }
   void set_unique_dynamic_targets(const Array& value) {
     unique_dynamic_targets_ = value.raw();
   }
 
-  RawGrowableObjectArray* token_objects() const {
-    return token_objects_;
-  }
+  RawGrowableObjectArray* token_objects() const { return token_objects_; }
   void set_token_objects(const GrowableObjectArray& value) {
     token_objects_ = value.raw();
   }
 
-  RawArray* token_objects_map() const {
-    return token_objects_map_;
-  }
+  RawArray* token_objects_map() const { return token_objects_map_; }
   void set_token_objects_map(const Array& value) {
     token_objects_map_ = value.raw();
   }
@@ -482,9 +424,7 @@ class ObjectStore {
   void set_megamorphic_cache_table(const GrowableObjectArray& value) {
     megamorphic_cache_table_ = value.raw();
   }
-  RawCode* megamorphic_miss_code() const {
-    return megamorphic_miss_code_;
-  }
+  RawCode* megamorphic_miss_code() const { return megamorphic_miss_code_; }
   RawFunction* megamorphic_miss_function() const {
     return megamorphic_miss_function_;
   }
@@ -615,9 +555,8 @@ class ObjectStore {
   // Please remember the last entry must be referred in the 'to' function below.
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&object_class_); }
-#define DECLARE_OBJECT_STORE_FIELD(type, name)                                 \
-  type name;
-OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
+#define DECLARE_OBJECT_STORE_FIELD(type, name) type name;
+  OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD)
 #undef DECLARE_OBJECT_STORE_FIELD
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&megamorphic_miss_function_);

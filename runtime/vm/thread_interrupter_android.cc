@@ -6,7 +6,7 @@
 #if defined(TARGET_OS_ANDROID)
 
 #include <sys/syscall.h>  // NOLINT
-#include <errno.h>  // NOLINT
+#include <errno.h>        // NOLINT
 
 #include "vm/flags.h"
 #include "vm/os.h"
@@ -23,7 +23,8 @@ DECLARE_FLAG(bool, trace_thread_interrupter);
 
 class ThreadInterrupterAndroid : public AllStatic {
  public:
-  static void ThreadInterruptSignalHandler(int signal, siginfo_t* info,
+  static void ThreadInterruptSignalHandler(int signal,
+                                           siginfo_t* info,
                                            void* context_) {
     if (signal != SIGPROF) {
       return;

@@ -28,9 +28,7 @@ namespace dart {
 class Object;
 class Code;
 
-bool DecodeLoadObjectFromPoolOrThread(uword pc,
-                                      const Code& code,
-                                      Object* obj);
+bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj);
 
 }  // namespace dart
 

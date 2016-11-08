@@ -35,8 +35,8 @@ class DirectCallRelocation : public AssemblerFixup {
 
 int32_t Assembler::jit_cookie() {
   if (jit_cookie_ == 0) {
-    jit_cookie_ = static_cast<int32_t>(
-        Isolate::Current()->random()->NextUInt32());
+    jit_cookie_ =
+        static_cast<int32_t>(Isolate::Current()->random()->NextUInt32());
   }
   return jit_cookie_;
 }
@@ -666,10 +666,8 @@ void Assembler::notps(XmmRegister dst) {
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } float_not_constant =
-      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
-  xorps(dst,
-    Address::Absolute(reinterpret_cast<uword>(&float_not_constant)));
+  } float_not_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};
+  xorps(dst, Address::Absolute(reinterpret_cast<uword>(&float_not_constant)));
 }
 
 
@@ -679,8 +677,7 @@ void Assembler::negateps(XmmRegister dst) {
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } float_negate_constant =
-      { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+  } float_negate_constant = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
   xorps(dst,
         Address::Absolute(reinterpret_cast<uword>(&float_negate_constant)));
 }
@@ -692,8 +689,7 @@ void Assembler::absps(XmmRegister dst) {
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } float_absolute_constant =
-      { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
+  } float_absolute_constant = {0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF};
   andps(dst,
         Address::Absolute(reinterpret_cast<uword>(&float_absolute_constant)));
 }
@@ -705,8 +701,7 @@ void Assembler::zerowps(XmmRegister dst) {
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } float_zerow_constant =
-      { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 };
+  } float_zerow_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
   andps(dst, Address::Absolute(reinterpret_cast<uword>(&float_zerow_constant)));
 }
 
@@ -872,8 +867,7 @@ void Assembler::negatepd(XmmRegister dst) {
   static const struct ALIGN16 {
     uint64_t a;
     uint64_t b;
-  } double_negate_constant =
-      { 0x8000000000000000LL, 0x8000000000000000LL };
+  } double_negate_constant = {0x8000000000000000LL, 0x8000000000000000LL};
   xorpd(dst,
         Address::Absolute(reinterpret_cast<uword>(&double_negate_constant)));
 }
@@ -910,8 +904,7 @@ void Assembler::abspd(XmmRegister dst) {
   static const struct ALIGN16 {
     uint64_t a;
     uint64_t b;
-  } double_absolute_constant =
-      { 0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL };
+  } double_absolute_constant = {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
   andpd(dst,
         Address::Absolute(reinterpret_cast<uword>(&double_absolute_constant)));
 }
@@ -2252,9 +2245,8 @@ void Assembler::StoreIntoObjectFilter(Register object,
   // Mask out higher, uninteresting bits which were polluted by dest.
   andl(value, Immediate(kObjectAlignment - 1));
   // Compare with the expected bit pattern.
-  cmpl(value, Immediate(
-      (kNewObjectAlignmentOffset >> 1) + kHeapObjectTag +
-      kOldObjectAlignmentOffset + kHeapObjectTag));
+  cmpl(value, Immediate((kNewObjectAlignmentOffset >> 1) + kHeapObjectTag +
+                        kOldObjectAlignmentOffset + kHeapObjectTag));
   j(NOT_ZERO, no_update, Assembler::kNearJump);
 }
 
@@ -2373,8 +2365,7 @@ void Assembler::FloatNegate(XmmRegister f) {
     uint32_t b;
     uint32_t c;
     uint32_t d;
-  } float_negate_constant =
-      { 0x80000000, 0x00000000, 0x80000000, 0x00000000 };
+  } float_negate_constant = {0x80000000, 0x00000000, 0x80000000, 0x00000000};
   xorps(f, Address::Absolute(reinterpret_cast<uword>(&float_negate_constant)));
 }
 
@@ -2383,8 +2374,7 @@ void Assembler::DoubleNegate(XmmRegister d) {
   static const struct ALIGN16 {
     uint64_t a;
     uint64_t b;
-  } double_negate_constant =
-      {0x8000000000000000LL, 0x8000000000000000LL};
+  } double_negate_constant = {0x8000000000000000LL, 0x8000000000000000LL};
   xorpd(d, Address::Absolute(reinterpret_cast<uword>(&double_negate_constant)));
 }
 
@@ -2393,8 +2383,7 @@ void Assembler::DoubleAbs(XmmRegister reg) {
   static const struct ALIGN16 {
     uint64_t a;
     uint64_t b;
-  } double_abs_constant =
-      {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
+  } double_abs_constant = {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
   andpd(reg, Address::Absolute(reinterpret_cast<uword>(&double_abs_constant)));
 }
 
@@ -2438,14 +2427,12 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 
 static const intptr_t kNumberOfVolatileCpuRegisters = 3;
 static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
-    EAX, ECX, EDX
-};
+    EAX, ECX, EDX};
 
 
 // XMM0 is used only as a scratch register in the optimized code. No need to
 // save it.
-static const intptr_t kNumberOfVolatileXmmRegisters =
-    kNumberOfXmmRegisters - 1;
+static const intptr_t kNumberOfVolatileXmmRegisters = kNumberOfXmmRegisters - 1;
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
@@ -2546,7 +2533,7 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
   if (bytes_needed) {
     nop(bytes_needed);
   }
-  ASSERT(((offset + buffer_.GetPosition()) & (alignment-1)) == 0);
+  ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
 }
 
 
@@ -2642,7 +2629,7 @@ void Assembler::TryAllocate(const Class& cls,
     // (i.e. the allocation stub) which will allocate the object and trace the
     // allocation call site.
     NOT_IN_PRODUCT(
-      MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump));
+        MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump));
     const intptr_t instance_size = cls.instance_size();
     Heap::Space space = Heap::kNew;
     movl(temp_reg, Address(THR, Thread::heap_offset()));
@@ -2760,7 +2747,7 @@ void Assembler::Stop(const char* message) {
     pushl(EAX);  // Preserve EAX.
     movl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
     Call(*StubCode::PrintStopMessage_entry());  // Passing message in EAX.
-    popl(EAX);  // Restore EAX.
+    popl(EAX);                                  // Restore EAX.
   } else {
     // Emit the message address as immediate operand in the test instruction.
     testl(EAX, Immediate(reinterpret_cast<int32_t>(message)));
@@ -2837,9 +2824,7 @@ void Assembler::EmitNearLabelLink(Label* label) {
 }
 
 
-void Assembler::EmitGenericShift(int rm,
-                                 Register reg,
-                                 const Immediate& imm) {
+void Assembler::EmitGenericShift(int rm, Register reg, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(imm.is_int8());
   if (imm.value() == 1) {
@@ -2866,8 +2851,8 @@ void Assembler::EmitGenericShift(int rm,
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassIdTagPos / kBitsPerByte;
+  const intptr_t class_id_offset =
+      Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
   movzxw(result, FieldAddress(object, class_id_offset));
 }
 
@@ -2904,8 +2889,8 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   ASSERT(kSmiTagShift == 1);
   ASSERT(RawObject::kClassIdTagPos == 16);
   ASSERT(RawObject::kClassIdTagSize == 16);
-  const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassIdTagPos / kBitsPerByte;
+  const intptr_t class_id_offset =
+      Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
 
   // Untag optimistically. Tag bit is shifted into the CARRY.
   SmiUntag(object);
@@ -2950,7 +2935,7 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
     return Address(array, index * index_scale);
   } else {
     const int64_t disp = static_cast<int64_t>(index) * index_scale +
-        Instance::DataOffsetFor(cid);
+                         Instance::DataOffsetFor(cid);
     ASSERT(Utils::IsInt(32, disp));
     return FieldAddress(array, static_cast<int32_t>(disp));
   }
@@ -2963,11 +2948,16 @@ static ScaleFactor ToScaleFactor(intptr_t index_scale) {
   // expected to be untagged before accessing.
   ASSERT(kSmiTagShift == 1);
   switch (index_scale) {
-    case 1: return TIMES_1;
-    case 2: return TIMES_1;
-    case 4: return TIMES_2;
-    case 8: return TIMES_4;
-    case 16: return TIMES_8;
+    case 1:
+      return TIMES_1;
+    case 2:
+      return TIMES_1;
+    case 4:
+      return TIMES_2;
+    case 8:
+      return TIMES_4;
+    case 16:
+      return TIMES_8;
     default:
       UNREACHABLE();
       return TIMES_1;
@@ -2976,24 +2966,21 @@ static ScaleFactor ToScaleFactor(intptr_t index_scale) {
 
 
 Address Assembler::ElementAddressForRegIndex(bool is_external,
-                                            intptr_t cid,
-                                            intptr_t index_scale,
-                                            Register array,
-                                            Register index) {
+                                             intptr_t cid,
+                                             intptr_t index_scale,
+                                             Register array,
+                                             Register index) {
   if (is_external) {
     return Address(array, index, ToScaleFactor(index_scale), 0);
   } else {
-    return FieldAddress(array,
-                        index,
-                        ToScaleFactor(index_scale),
+    return FieldAddress(array, index, ToScaleFactor(index_scale),
                         Instance::DataOffsetFor(cid));
   }
 }
 
 
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-  "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"
-};
+    "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"};
 
 
 const char* Assembler::RegisterName(Register reg) {
@@ -3003,8 +2990,7 @@ const char* Assembler::RegisterName(Register reg) {
 
 
 static const char* xmm_reg_names[kNumberOfXmmRegisters] = {
-  "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"
-};
+    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"};
 
 
 const char* Assembler::FpuRegisterName(FpuRegister reg) {

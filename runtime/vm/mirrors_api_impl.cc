@@ -32,7 +32,7 @@ DART_EXPORT Dart_Handle Dart_TypeName(Dart_Handle object) {
     const Class& cls = Class::Handle(Type::Cast(obj).type_class());
     return Api::NewHandle(T, cls.UserVisibleName());
   } else {
-    RETURN_TYPE_ERROR(Z, object, Class/Type);
+    RETURN_TYPE_ERROR(Z, object, Class / Type);
   }
 }
 
@@ -41,8 +41,9 @@ DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
   DARTSCOPE(Thread::Current());
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object));
   if (obj.IsType() || obj.IsClass()) {
-    const Class& cls = (obj.IsType()) ?
-        Class::Handle(Z, Type::Cast(obj).type_class()) : Class::Cast(obj);
+    const Class& cls = (obj.IsType())
+                           ? Class::Handle(Z, Type::Cast(obj).type_class())
+                           : Class::Cast(obj);
     const char* str = cls.ToCString();
     if (str == NULL) {
       RETURN_NULL_ERROR(str);
@@ -50,7 +51,7 @@ DART_EXPORT Dart_Handle Dart_QualifiedTypeName(Dart_Handle object) {
     CHECK_CALLBACK_STATE(T);
     return Api::NewHandle(T, String::New(str));
   } else {
-    RETURN_TYPE_ERROR(Z, object, Class/Type);
+    RETURN_TYPE_ERROR(Z, object, Class / Type);
   }
 }
 
@@ -121,8 +122,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
     }
   } else {
     return Api::NewError(
-        "%s expects argument 'target' to be a class or library.",
-        CURRENT_FUNC);
+        "%s expects argument 'target' to be a class or library.", CURRENT_FUNC);
   }
   return Api::NewHandle(T, Array::MakeArray(names));
 }
@@ -191,8 +191,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
     }
   } else {
     return Api::NewError(
-        "%s expects argument 'target' to be a class or library.",
-        CURRENT_FUNC);
+        "%s expects argument 'target' to be a class or library.", CURRENT_FUNC);
   }
 
 #if defined(DEBUG)
@@ -232,8 +231,8 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
   const Class& owner = Class::Handle(Z, func.Owner());
   ASSERT(!owner.IsNull());
   if (owner.IsTopLevel()) {
-    // Top-level functions are implemented as members of a hidden class. We hide
-    // that class here and instead answer the library.
+// Top-level functions are implemented as members of a hidden class. We hide
+// that class here and instead answer the library.
 #if defined(DEBUG)
     const Library& lib = Library::Handle(Z, owner.library());
     if (lib.IsNull()) {

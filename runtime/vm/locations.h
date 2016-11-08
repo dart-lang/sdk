@@ -87,9 +87,9 @@ class Location : public ValueObject {
 
     // Spill slots allocated by the register allocator.  Payload contains
     // a spill index.
-    kStackSlot = 4,  // Word size slot.
+    kStackSlot = 4,        // Word size slot.
     kDoubleStackSlot = 7,  // 64bit stack slot.
-    kQuadStackSlot = 11,  // 128bit stack slot.
+    kQuadStackSlot = 11,   // 128bit stack slot.
 
     // Register location represents a fixed register.  Payload contains
     // register code.
@@ -132,16 +132,14 @@ class Location : public ValueObject {
     ASSERT(IsInvalid());
   }
 
-  Location(const Location& other) : ValueObject(), value_(other.value_) { }
+  Location(const Location& other) : ValueObject(), value_(other.value_) {}
 
   Location& operator=(const Location& other) {
     value_ = other.value_;
     return *this;
   }
 
-  bool IsInvalid() const {
-    return value_ == kInvalidLocation;
-  }
+  bool IsInvalid() const { return value_ == kInvalidLocation; }
 
   // Constants.
   bool IsConstant() const {
@@ -179,22 +177,16 @@ class Location : public ValueObject {
     kSameAsFirstInput,
   };
 
-  bool IsUnallocated() const {
-    return kind() == kUnallocated;
-  }
+  bool IsUnallocated() const { return kind() == kUnallocated; }
 
-  bool IsRegisterBeneficial() {
-    return !Equals(Any());
-  }
+  bool IsRegisterBeneficial() { return !Equals(Any()); }
 
   static Location UnallocatedLocation(Policy policy) {
     return Location(kUnallocated, PolicyField::encode(policy));
   }
 
   // Any free register is suitable to replace this unallocated location.
-  static Location Any() {
-    return UnallocatedLocation(kAny);
-  }
+  static Location Any() { return UnallocatedLocation(kAny); }
 
   static Location PrefersRegister() {
     return UnallocatedLocation(kPrefersRegister);
@@ -219,9 +211,7 @@ class Location : public ValueObject {
   }
 
   // Empty location. Used if there the location should be ignored.
-  static Location NoLocation() {
-    return Location();
-  }
+  static Location NoLocation() { return Location(); }
 
   Policy policy() const {
     ASSERT(IsUnallocated());
@@ -233,9 +223,7 @@ class Location : public ValueObject {
     return Location(kRegister, reg);
   }
 
-  bool IsRegister() const {
-    return kind() == kRegister;
-  }
+  bool IsRegister() const { return kind() == kRegister; }
 
   Register reg() const {
     ASSERT(IsRegister());
@@ -247,9 +235,7 @@ class Location : public ValueObject {
     return Location(kFpuRegister, reg);
   }
 
-  bool IsFpuRegister() const {
-    return kind() == kFpuRegister;
-  }
+  bool IsFpuRegister() const { return kind() == kFpuRegister; }
 
   FpuRegister fpu_reg() const {
     ASSERT(IsFpuRegister());
@@ -260,8 +246,7 @@ class Location : public ValueObject {
     return (kind == kRegister) || (kind == kFpuRegister);
   }
 
-  static Location MachineRegisterLocation(Kind kind,
-                                          intptr_t reg) {
+  static Location MachineRegisterLocation(Kind kind, intptr_t reg) {
     if (kind == kRegister) {
       return RegisterLocation(static_cast<Register>(reg));
     } else {
@@ -270,9 +255,7 @@ class Location : public ValueObject {
     }
   }
 
-  bool IsMachineRegister() const {
-    return IsMachineRegisterKind(kind());
-  }
+  bool IsMachineRegister() const { return IsMachineRegisterKind(kind()); }
 
   intptr_t register_code() const {
     ASSERT(IsMachineRegister());
@@ -286,45 +269,38 @@ class Location : public ValueObject {
   }
 
   // Spill slots.
-  static Location StackSlot(intptr_t stack_index,
-                            Register base = FPREG) {
-    uword payload = StackSlotBaseField::encode(base)
-        | StackIndexField::encode(EncodeStackIndex(stack_index));
+  static Location StackSlot(intptr_t stack_index, Register base = FPREG) {
+    uword payload = StackSlotBaseField::encode(base) |
+                    StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
   }
 
-  bool IsStackSlot() const {
-    return kind() == kStackSlot;
-  }
+  bool IsStackSlot() const { return kind() == kStackSlot; }
 
   static Location DoubleStackSlot(intptr_t stack_index) {
-    uword payload = StackSlotBaseField::encode(FPREG)
-        | StackIndexField::encode(EncodeStackIndex(stack_index));
+    uword payload = StackSlotBaseField::encode(FPREG) |
+                    StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kDoubleStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
   }
 
-  bool IsDoubleStackSlot() const {
-    return kind() == kDoubleStackSlot;
-  }
+  bool IsDoubleStackSlot() const { return kind() == kDoubleStackSlot; }
 
   static Location QuadStackSlot(intptr_t stack_index) {
-    uword payload = StackSlotBaseField::encode(FPREG)
-        | StackIndexField::encode(EncodeStackIndex(stack_index));
+    uword payload = StackSlotBaseField::encode(FPREG) |
+                    StackIndexField::encode(EncodeStackIndex(stack_index));
     Location loc(kQuadStackSlot, payload);
     // Ensure that sign is preserved.
     ASSERT(loc.stack_index() == stack_index);
     return loc;
   }
 
-  bool IsQuadStackSlot() const {
-    return kind() == kQuadStackSlot;
-  }
+  bool IsQuadStackSlot() const { return kind() == kQuadStackSlot; }
 
   Register base_reg() const {
     ASSERT(HasStackIndex());
@@ -341,7 +317,7 @@ class Location : public ValueObject {
     return IsStackSlot() || IsDoubleStackSlot() || IsQuadStackSlot();
   }
 
-  // DBC does not have an notion of 'address' in its instruction set.
+// DBC does not have an notion of 'address' in its instruction set.
 #if !defined(TARGET_ARCH_DBC)
   // Return a memory operand for stack slot locations.
   Address ToStackSlotAddress() const;
@@ -364,15 +340,11 @@ class Location : public ValueObject {
   const char* ToCString() const;
 
   // Compare two locations.
-  bool Equals(Location other) const {
-    return value_ == other.value_;
-  }
+  bool Equals(Location other) const { return value_ == other.value_; }
 
   // If current location is constant might return something that
   // is not equal to any Kind.
-  Kind kind() const {
-    return KindField::decode(value_);
-  }
+  Kind kind() const { return KindField::decode(value_); }
 
   Location Copy() const;
 
@@ -381,37 +353,36 @@ class Location : public ValueObject {
                             intptr_t* fpu_reg_slots) const;
 
  private:
-  explicit Location(uword value) : value_(value) { }
+  explicit Location(uword value) : value_(value) {}
 
   Location(Kind kind, uword payload)
-      : value_(KindField::encode(kind) | PayloadField::encode(payload)) { }
+      : value_(KindField::encode(kind) | PayloadField::encode(payload)) {}
 
-  uword payload() const {
-    return PayloadField::decode(value_);
-  }
+  uword payload() const { return PayloadField::decode(value_); }
 
   class KindField : public BitField<uword, Kind, 0, kBitsForKind> {};
-  class PayloadField :
-      public BitField<uword, uword, kBitsForKind, kBitsForPayload> {};
+  class PayloadField
+      : public BitField<uword, uword, kBitsForKind, kBitsForPayload> {};
 
   // Layout for kUnallocated locations payload.
   typedef BitField<uword, Policy, 0, 3> PolicyField;
 
-  // Layout for stack slots.
+// Layout for stack slots.
 #if defined(ARCH_IS_64_BIT)
   static const intptr_t kBitsForBaseReg = 6;
 #else
   static const intptr_t kBitsForBaseReg = 5;
 #endif
   static const intptr_t kBitsForStackIndex = kBitsForPayload - kBitsForBaseReg;
-  class StackSlotBaseField :
-      public BitField<uword, Register, 0, kBitsForBaseReg> {};
-  class StackIndexField :
-      public BitField<uword, intptr_t, kBitsForBaseReg, kBitsForStackIndex> {};
+  class StackSlotBaseField
+      : public BitField<uword, Register, 0, kBitsForBaseReg> {};
+  class StackIndexField
+      : public BitField<uword, intptr_t, kBitsForBaseReg, kBitsForStackIndex> {
+  };
   COMPILE_ASSERT(1 << kBitsForBaseReg >= kNumberOfCpuRegisters);
 
-  static const intptr_t kStackIndexBias =
-      static_cast<intptr_t>(1) << (kBitsForStackIndex - 1);
+  static const intptr_t kStackIndexBias = static_cast<intptr_t>(1)
+                                          << (kBitsForStackIndex - 1);
 
   // Location either contains kind and payload fields or a tagged handle for
   // a constant locations. Values of enumeration Kind are selected in such a
@@ -454,12 +425,12 @@ class PairLocation : public ZoneAllocated {
 };
 
 
-template<typename T>
+template <typename T>
 class SmallSet {
  public:
-  SmallSet() : data_(0) { }
+  SmallSet() : data_(0) {}
 
-  explicit SmallSet(intptr_t data) : data_(data) { }
+  explicit SmallSet(intptr_t data) : data_(data) {}
 
   bool Contains(T value) const { return (data_ & ToMask(value)) != 0; }
 
@@ -484,9 +455,7 @@ class SmallSet {
 class RegisterSet : public ValueObject {
  public:
   RegisterSet()
-      : cpu_registers_(),
-        untagged_cpu_registers_(),
-        fpu_registers_() {
+      : cpu_registers_(), untagged_cpu_registers_(), fpu_registers_() {
     ASSERT(kNumberOfCpuRegisters <= (kWordSize * kBitsPerByte));
     ASSERT(kNumberOfFpuRegisters <= (kWordSize * kBitsPerByte));
   }
@@ -528,7 +497,7 @@ class RegisterSet : public ValueObject {
       Register r = static_cast<Register>(i);
       if (ContainsRegister(r)) {
         THR_Print("%s %s\n", Assembler::RegisterName(r),
-                           IsTagged(r) ? "tagged" : "untagged");
+                  IsTagged(r) ? "tagged" : "untagged");
       }
     }
 
@@ -584,20 +553,14 @@ class RegisterSet : public ValueObject {
 // Specification of locations for inputs and output.
 class LocationSummary : public ZoneAllocated {
  public:
-  enum ContainsCall {
-    kNoCall,
-    kCall,
-    kCallOnSlowPath
-  };
+  enum ContainsCall { kNoCall, kCall, kCallOnSlowPath };
 
   LocationSummary(Zone* zone,
                   intptr_t input_count,
                   intptr_t temp_count,
                   LocationSummary::ContainsCall contains_call);
 
-  intptr_t input_count() const {
-    return num_inputs_;
-  }
+  intptr_t input_count() const { return num_inputs_; }
 
   Location in(intptr_t index) const {
     ASSERT(index >= 0);
@@ -618,9 +581,7 @@ class LocationSummary : public ZoneAllocated {
     input_locations_[index] = loc;
   }
 
-  intptr_t temp_count() const {
-    return num_temps_;
-  }
+  intptr_t temp_count() const { return num_temps_; }
 
   Location temp(intptr_t index) const {
     ASSERT(index >= 0);
@@ -641,9 +602,7 @@ class LocationSummary : public ZoneAllocated {
     temp_locations_[index] = loc;
   }
 
-  intptr_t output_count() const {
-    return 1;
-  }
+  intptr_t output_count() const { return 1; }
 
   Location out(intptr_t index) const {
     ASSERT(index == 0);
@@ -657,12 +616,11 @@ class LocationSummary : public ZoneAllocated {
 
   void set_out(intptr_t index, Location loc) {
     ASSERT(index == 0);
-    // DBC calls are different from call on other architectures so this
-    // assert doesn't make sense.
+// DBC calls are different from call on other architectures so this
+// assert doesn't make sense.
 #if !defined(TARGET_ARCH_DBC)
-    ASSERT(!always_calls() ||
-           (loc.IsMachineRegister() || loc.IsInvalid() ||
-            loc.IsPairLocation()));
+    ASSERT(!always_calls() || (loc.IsMachineRegister() || loc.IsInvalid() ||
+                               loc.IsPairLocation()));
 #endif
     output_location_ = loc;
   }
@@ -673,21 +631,13 @@ class LocationSummary : public ZoneAllocated {
     }
     return stack_bitmap_;
   }
-  void SetStackBit(intptr_t index) {
-    stack_bitmap()->Set(index, true);
-  }
+  void SetStackBit(intptr_t index) { stack_bitmap()->Set(index, true); }
 
-  bool always_calls() const {
-    return contains_call_ == kCall;
-  }
+  bool always_calls() const { return contains_call_ == kCall; }
 
-  bool can_call() {
-    return contains_call_ != kNoCall;
-  }
+  bool can_call() { return contains_call_ != kNoCall; }
 
-  bool HasCallOnSlowPath() {
-    return can_call() && !always_calls();
-  }
+  bool HasCallOnSlowPath() { return can_call() && !always_calls(); }
 
   void PrintTo(BufferFormatter* f) const;
 
@@ -696,9 +646,7 @@ class LocationSummary : public ZoneAllocated {
                                Location out,
                                ContainsCall contains_call);
 
-  RegisterSet* live_registers() {
-    return &live_registers_;
-  }
+  RegisterSet* live_registers() { return &live_registers_; }
 
 #if defined(DEBUG)
   // Debug only verification that ensures that writable registers are correctly

@@ -14,7 +14,7 @@
 #if !defined(USING_SIMULATOR)
 #include <asm/cachectl.h> /* NOLINT */
 #include <sys/syscall.h>  /* NOLINT */
-#include <unistd.h>  /* NOLINT */
+#include <unistd.h>       /* NOLINT */
 #endif
 
 namespace dart {
@@ -25,9 +25,9 @@ void CPU::FlushICache(uword start, uword size) {
   // See http://www.linux-mips.org/wiki/Cacheflush_Syscall.
   res = syscall(__NR_cacheflush, start, size, ICACHE);
   ASSERT(res == 0);
-#else  // defined(HOST_ARCH_MIPS)
-  // When running in simulated mode we do not need to flush the ICache because
-  // we are not running on the actual hardware.
+#else   // defined(HOST_ARCH_MIPS)
+// When running in simulated mode we do not need to flush the ICache because
+// we are not running on the actual hardware.
 #endif  // defined(HOST_ARCH_MIPS)
 }
 
@@ -35,9 +35,9 @@ void CPU::FlushICache(uword start, uword size) {
 const char* CPU::Id() {
   return
 #if defined(USING_SIMULATOR)
-  "sim"
+      "sim"
 #endif  // !defined(HOST_ARCH_MIPS)
-  "mips";
+      "mips";
 }
 
 
@@ -55,8 +55,8 @@ void HostCPUFeatures::InitOnce() {
   // Has a floating point unit.
   ASSERT(CpuInfo::FieldContains(kCpuInfoModel, "FPU"));
 
-  // We want to know the ISA version, but on MIPS, CpuInfo can't tell us, so
-  // we use the same ISA version that Dart's C++ compiler targeted.
+// We want to know the ISA version, but on MIPS, CpuInfo can't tell us, so
+// we use the same ISA version that Dart's C++ compiler targeted.
 #if defined(_MIPS_ARCH_MIPS32R2)
   mips_version_ = MIPS32r2;
 #elif defined(_MIPS_ARCH_MIPS32)

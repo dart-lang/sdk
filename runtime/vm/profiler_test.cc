@@ -24,14 +24,11 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope : public ValueObject {
  public:
-  DisableNativeProfileScope()
-      : FLAG_profile_vm_(FLAG_profile_vm) {
+  DisableNativeProfileScope() : FLAG_profile_vm_(FLAG_profile_vm) {
     FLAG_profile_vm = false;
   }
 
-  ~DisableNativeProfileScope() {
-    FLAG_profile_vm = FLAG_profile_vm_;
-  }
+  ~DisableNativeProfileScope() { FLAG_profile_vm = FLAG_profile_vm_; }
 
  private:
   const bool FLAG_profile_vm_;
@@ -62,9 +59,7 @@ class MaxProfileDepthScope : public ValueObject {
     Profiler::SetSampleDepth(new_max_depth);
   }
 
-  ~MaxProfileDepthScope() {
-    Profiler::SetSampleDepth(FLAG_max_profile_depth_);
-  }
+  ~MaxProfileDepthScope() { Profiler::SetSampleDepth(FLAG_max_profile_depth_); }
 
  private:
   const intptr_t FLAG_max_profile_depth_;
@@ -161,9 +156,8 @@ TEST_CASE(Profiler_AllocationSampleTest) {
 
 
 static RawClass* GetClass(const Library& lib, const char* name) {
-  const Class& cls = Class::Handle(
-      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(Thread::Current(),
-                                                              name))));
+  const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(
+      String::Handle(Symbols::New(Thread::Current(), name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
@@ -188,22 +182,17 @@ class AllocationFilter : public SampleFilter {
                      time_origin_micros,
                      time_extent_micros),
         cid_(cid),
-        enable_vm_ticks_(false) {
-  }
+        enable_vm_ticks_(false) {}
 
   bool FilterSample(Sample* sample) {
-    if (!enable_vm_ticks_ &&
-        (sample->vm_tag() == VMTag::kVMTagId)) {
+    if (!enable_vm_ticks_ && (sample->vm_tag() == VMTag::kVMTagId)) {
       // We don't want to see embedder ticks in the test.
       return false;
     }
-    return sample->is_allocation_sample() &&
-           (sample->allocation_cid() == cid_);
+    return sample->is_allocation_sample() && (sample->allocation_cid() == cid_);
   }
 
-  void set_enable_vm_ticks(bool enable) {
-    enable_vm_ticks_ = enable;
-  }
+  void set_enable_vm_ticks(bool enable) { enable_vm_ticks_ = enable; }
 
  private:
   intptr_t cid_;
@@ -250,9 +239,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     // Filter for the class in the time range.
-    AllocationFilter filter(isolate,
-                            class_a.id(),
-                            before_allocations_micros,
+    AllocationFilter filter(isolate, class_a.id(), before_allocations_micros,
                             allocation_extent_micros);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should have 1 allocation sample.
@@ -311,9 +298,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    AllocationFilter filter(isolate,
-                            class_a.id(),
-                            Dart_TimelineGetMicros(),
+    AllocationFilter filter(isolate, class_a.id(), Dart_TimelineGetMicros(),
                             16000);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should have no allocation samples because none occured within
@@ -657,7 +642,9 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
       Class::Handle(isolate->object_store()->double_class());
   EXPECT(!double_class.IsNull());
 
-  Dart_Handle args[2] = { Dart_NewDouble(1.0), Dart_NewDouble(2.0), };
+  Dart_Handle args[2] = {
+      Dart_NewDouble(1.0), Dart_NewDouble(2.0),
+  };
 
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
   EXPECT_VALID(result);
@@ -836,8 +823,7 @@ TEST_CASE(Profiler_ContextAllocation) {
   root_library ^= Api::UnwrapHandle(lib);
   Isolate* isolate = thread->isolate();
 
-  const Class& context_class =
-      Class::Handle(Object::context_class());
+  const Class& context_class = Class::Handle(Object::context_class());
   EXPECT(!context_class.IsNull());
 
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
@@ -1059,7 +1045,9 @@ TEST_CASE(Profiler_StringAllocation) {
       Class::Handle(isolate->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
-  Dart_Handle args[2] = { NewString("a"), NewString("b"), };
+  Dart_Handle args[2] = {
+      NewString("a"), NewString("b"),
+  };
 
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
   EXPECT_VALID(result);
@@ -1142,7 +1130,9 @@ TEST_CASE(Profiler_StringInterpolation) {
       Class::Handle(isolate->object_store()->one_byte_string_class());
   EXPECT(!one_byte_string_class.IsNull());
 
-  Dart_Handle args[2] = { NewString("a"), NewString("b"), };
+  Dart_Handle args[2] = {
+      NewString("a"), NewString("b"),
+  };
 
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
   EXPECT_VALID(result);
@@ -1397,9 +1387,7 @@ TEST_CASE(Profiler_FunctionInline) {
     HANDLESCOPE(thread);
     Profile profile(isolate);
     AllocationFilter filter(isolate, class_a.id());
-    profile.Build(thread,
-                  &filter,
-                  Profile::kNoTags,
+    profile.Build(thread, &filter, Profile::kNoTags,
                   ProfilerService::kCodeTransitionTagsBit);
     // We should have 50,000 allocation samples.
     EXPECT_EQ(50000, profile.sample_count());
@@ -2358,14 +2346,12 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
 }
 
 
-static void InsertFakeSample(SampleBuffer* sample_buffer,
-                             uword* pc_offsets) {
+static void InsertFakeSample(SampleBuffer* sample_buffer, uword* pc_offsets) {
   ASSERT(sample_buffer != NULL);
   Isolate* isolate = Isolate::Current();
   Sample* sample = sample_buffer->ReserveSample();
   ASSERT(sample != NULL);
-  sample->Init(isolate,
-               OS::GetCurrentMonotonicMicros(),
+  sample->Init(isolate, OS::GetCurrentMonotonicMicros(),
                OSThread::Current()->trace_id());
   sample->set_thread_task(Thread::kMutatorTask);
 
@@ -2473,10 +2459,8 @@ TEST_CASE(Profiler_GetSourceReport) {
   CodeSourceMap::Dump(main_code_source_map, main_code, main);
 
   // Look up some source token position's pc.
-  uword squarePositionPc =
-      FindPCForTokenPosition(do_work_code,
-                             do_work_code_source_map,
-                             squarePosition);
+  uword squarePositionPc = FindPCForTokenPosition(
+      do_work_code, do_work_code_source_map, squarePosition);
   EXPECT(squarePositionPc != 0);
 
   uword callPositionPc =
@@ -2484,16 +2468,12 @@ TEST_CASE(Profiler_GetSourceReport) {
   EXPECT(callPositionPc != 0);
 
   // Look up some classifying token position's pc.
-  uword controlFlowPc =
-      FindPCForTokenPosition(do_work_code,
-                             do_work_code_source_map,
-                             TokenPosition::kControlFlow);
+  uword controlFlowPc = FindPCForTokenPosition(
+      do_work_code, do_work_code_source_map, TokenPosition::kControlFlow);
   EXPECT(controlFlowPc != 0);
 
-  uword tempMovePc =
-      FindPCForTokenPosition(main_code,
-                             main_code_source_map,
-                             TokenPosition::kTempMove);
+  uword tempMovePc = FindPCForTokenPosition(main_code, main_code_source_map,
+                                            TokenPosition::kTempMove);
   EXPECT(tempMovePc != 0);
 
   // Insert fake samples.
@@ -2501,34 +2481,28 @@ TEST_CASE(Profiler_GetSourceReport) {
   // Sample 1:
   // squarePositionPc exclusive.
   // callPositionPc inclusive.
-  uword sample1[] = {
-    squarePositionPc,  // doWork.
-    callPositionPc,    // main.
-    0
-  };
+  uword sample1[] = {squarePositionPc,  // doWork.
+                     callPositionPc,    // main.
+                     0};
 
   // Sample 2:
   // squarePositionPc exclusive.
   uword sample2[] = {
-    squarePositionPc,  // doWork.
-    0,
+      squarePositionPc,  // doWork.
+      0,
   };
 
   // Sample 3:
   // controlFlowPc exclusive.
   // callPositionPc inclusive.
-  uword sample3[] = {
-    controlFlowPc,   // doWork.
-    callPositionPc,  // main.
-    0
-  };
+  uword sample3[] = {controlFlowPc,   // doWork.
+                     callPositionPc,  // main.
+                     0};
 
   // Sample 4:
   // tempMovePc exclusive.
-  uword sample4[] = {
-    tempMovePc,  // main.
-    0
-  };
+  uword sample4[] = {tempMovePc,  // main.
+                     0};
 
   InsertFakeSample(sample_buffer, &sample1[0]);
   InsertFakeSample(sample_buffer, &sample2[0]);
@@ -2538,9 +2512,7 @@ TEST_CASE(Profiler_GetSourceReport) {
   // Generate source report for main.
   SourceReport sourceReport(SourceReport::kProfile);
   JSONStream js;
-  sourceReport.PrintJSON(&js,
-                         script,
-                         do_work.token_pos(),
+  sourceReport.PrintJSON(&js, script, do_work.token_pos(),
                          main.end_token_pos());
 
   // Verify positions in do_work.

@@ -25,7 +25,7 @@ class JSONStream;
   V(MaxMetric, HeapNewCapacityMax, "heap.new.capacity.max", kByte)             \
   V(MetricHeapNewExternal, HeapNewExternal, "heap.new.external", kByte)        \
   V(MetricHeapUsed, HeapGlobalUsed, "heap.global.used", kByte)                 \
-  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)               \
+  V(MaxMetric, HeapGlobalUsedMax, "heap.global.used.max", kByte)
 
 #define VM_METRIC_LIST(V)                                                      \
   V(MetricIsolateCount, IsolateCount, "vm.isolate.count", kCounter)
@@ -50,9 +50,7 @@ class Metric {
             Unit unit);
 
   // Initialize and register a metric for the VM.
-  void Init(const char* name,
-            const char* description,
-            Unit unit);
+  void Init(const char* name, const char* description, Unit unit);
 
   virtual ~Metric();
 
@@ -72,9 +70,7 @@ class Metric {
   void increment() { value_++; }
 
   Metric* next() const { return next_; }
-  void set_next(Metric* next) {
-    next_ = next;
-  }
+  void set_next(Metric* next) { next_ = next; }
 
   const char* name() const { return name_; }
   const char* description() const { return description_; }

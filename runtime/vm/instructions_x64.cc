@@ -14,9 +14,7 @@
 
 namespace dart {
 
-bool DecodeLoadObjectFromPoolOrThread(uword pc,
-                                      const Code& code,
-                                      Object* obj) {
+bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
   ASSERT(code.ContainsInstructionAt(pc));
 
   uint8_t* bytes = reinterpret_cast<uint8_t*>(pc);

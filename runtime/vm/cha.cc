@@ -18,10 +18,8 @@ void CHA::AddToGuardedClasses(const Class& cls, intptr_t subclass_count) {
       return;
     }
   }
-  GuardedClassInfo info = {
-    &Class::ZoneHandle(thread_->zone(), cls.raw()),
-    subclass_count
-  };
+  GuardedClassInfo info = {&Class::ZoneHandle(thread_->zone(), cls.raw()),
+                           subclass_count};
   guarded_classes_.Add(info);
   return;
 }
@@ -62,7 +60,7 @@ bool CHA::HasSubclasses(intptr_t cid) const {
 
 
 bool CHA::ConcreteSubclasses(const Class& cls,
-                             GrowableArray<intptr_t> *class_ids) {
+                             GrowableArray<intptr_t>* class_ids) {
   if (cls.InVMHeap()) return false;
   if (cls.IsObjectClass()) return false;
 
@@ -161,7 +159,7 @@ bool CHA::HasOverride(const Class& cls,
     }
 
     if (direct_subclass.LookupDynamicFunction(function_name) !=
-            Function::null()) {
+        Function::null()) {
       return true;
     }
 

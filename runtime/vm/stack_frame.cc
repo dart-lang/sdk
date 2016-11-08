@@ -46,19 +46,17 @@ const char* StackFrame::ToCString() const {
     if (owner.IsFunction()) {
       const Function& function = Function::Cast(owner);
       return zone->PrintToString(
-          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]",
-          GetName(), sp(), fp(), pc(),
-          function.ToFullyQualifiedCString());
+          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]", GetName(),
+          sp(), fp(), pc(), function.ToFullyQualifiedCString());
     } else {
       return zone->PrintToString(
-          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]",
-          GetName(), sp(), fp(), pc(),
-          owner.ToCString());
+          "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ") %s ]", GetName(),
+          sp(), fp(), pc(), owner.ToCString());
     }
   } else {
-    return zone->PrintToString(
-        "[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px ")]",
-        GetName(), sp(), fp(), pc());
+    return zone->PrintToString("[%-8s : sp(%#" Px ") fp(%#" Px ") pc(%#" Px
+                               ")]",
+                               GetName(), sp(), fp(), pc());
   }
 }
 
@@ -222,9 +220,9 @@ RawFunction* StackFrame::LookupDartFunction() const {
 
 
 RawCode* StackFrame::LookupDartCode() const {
-  // We add a no gc scope to ensure that the code below does not trigger
-  // a GC as we are handling raw object references here. It is possible
-  // that the code is called while a GC is in progress, that is ok.
+// We add a no gc scope to ensure that the code below does not trigger
+// a GC as we are handling raw object references here. It is possible
+// that the code is called while a GC is in progress, that is ok.
 #if !defined(TARGET_OS_WINDOWS)
   // On Windows, the profiler calls this from a separate thread where
   // Thread::Current() is NULL, so we cannot create a NoSafepointScope.
@@ -353,7 +351,8 @@ StackFrameIterator::StackFrameIterator(bool validate, Thread* thread)
 }
 
 
-StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
+StackFrameIterator::StackFrameIterator(uword last_fp,
+                                       bool validate,
                                        Thread* thread)
     : validate_(validate),
       entry_(thread),
@@ -370,8 +369,11 @@ StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
 
 
 #if !defined(TARGET_ARCH_DBC)
-StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
-                                       bool validate, Thread* thread)
+StackFrameIterator::StackFrameIterator(uword fp,
+                                       uword sp,
+                                       uword pc,
+                                       bool validate,
+                                       Thread* thread)
     : validate_(validate),
       entry_(thread),
       exit_(thread),
@@ -410,7 +412,8 @@ StackFrame* StackFrameIterator::NextFrame() {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();
     } else if (*(reinterpret_cast<uword*>(
-        frames_.fp_ + (kSavedCallerFpSlotFromFp * kWordSize))) == 0) {
+                   frames_.fp_ + (kSavedCallerFpSlotFromFp * kWordSize))) ==
+               0) {
       // Iteration starts from an entry frame given by its fp, sp, and pc.
       current_frame_ = NextEntryFrame();
     } else {
@@ -486,15 +489,15 @@ EntryFrame* StackFrameIterator::NextEntryFrame() {
 
 
 InlinedFunctionsIterator::InlinedFunctionsIterator(const Code& code, uword pc)
-  : index_(0),
-    num_materializations_(0),
-    dest_frame_size_(0),
-    code_(Code::Handle(code.raw())),
-    deopt_info_(TypedData::Handle()),
-    function_(Function::Handle()),
-    pc_(pc),
-    deopt_instructions_(),
-    object_table_(ObjectPool::Handle()) {
+    : index_(0),
+      num_materializations_(0),
+      dest_frame_size_(0),
+      code_(Code::Handle(code.raw())),
+      deopt_info_(TypedData::Handle()),
+      function_(Function::Handle()),
+      pc_(pc),
+      deopt_instructions_(),
+      object_table_(ObjectPool::Handle()) {
   ASSERT(code_.is_optimized());
   ASSERT(pc_ != 0);
   ASSERT(code.ContainsInstructionAt(pc));
@@ -546,9 +549,7 @@ void InlinedFunctionsIterator::Advance() {
 // current frame were to be deoptimized.
 intptr_t InlinedFunctionsIterator::GetDeoptFpOffset() const {
   ASSERT(deopt_instructions_.length() != 0);
-  for (intptr_t index = index_;
-       index < deopt_instructions_.length();
-       index++) {
+  for (intptr_t index = index_; index < deopt_instructions_.length(); index++) {
     DeoptInstr* deopt_instr = deopt_instructions_[index];
     if (deopt_instr->kind() == DeoptInstr::kCallerFp) {
 #if defined(TARGET_ARCH_DBC)

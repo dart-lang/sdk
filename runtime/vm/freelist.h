@@ -22,16 +22,10 @@ namespace dart {
 // A FreeListElement never has its header mark bit set.
 class FreeListElement {
  public:
-  FreeListElement* next() const {
-    return next_;
-  }
-  uword next_address() const {
-    return reinterpret_cast<uword>(&next_);
-  }
+  FreeListElement* next() const { return next_; }
+  uword next_address() const { return reinterpret_cast<uword>(&next_); }
 
-  void set_next(FreeListElement* next) {
-    next_ = next;
-  }
+  void set_next(FreeListElement* next) { next_ = next; }
 
   intptr_t Size() {
     intptr_t size = RawObject::SizeTag::decode(tags_);
@@ -48,7 +42,7 @@ class FreeListElement {
   // Used to allocate class for free list elements in Object::InitOnce.
   class FakeInstance {
    public:
-    FakeInstance() { }
+    FakeInstance() {}
     static cpp_vtable vtable() { return 0; }
     static intptr_t InstanceSize() { return 0; }
     static intptr_t NextFieldOffset() { return -kWordSize; }

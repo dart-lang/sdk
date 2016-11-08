@@ -25,7 +25,7 @@ enum ARMVersion {
   ARMvUnknown,
 };
 
-class HostCPUFeatures: public AllStatic {
+class HostCPUFeatures : public AllStatic {
  public:
   static void InitOnce();
   static void Cleanup();
@@ -92,36 +92,20 @@ class HostCPUFeatures: public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() {
-    HostCPUFeatures::InitOnce();
-  }
-  static void Cleanup() {
-    HostCPUFeatures::Cleanup();
-  }
-  static bool double_truncate_round_supported() {
-    return false;
-  }
+  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Cleanup() { HostCPUFeatures::Cleanup(); }
+  static bool double_truncate_round_supported() { return false; }
   static bool integer_division_supported() {
     return HostCPUFeatures::integer_division_supported();
   }
-  static bool vfp_supported() {
-    return HostCPUFeatures::vfp_supported();
-  }
+  static bool vfp_supported() { return HostCPUFeatures::vfp_supported(); }
   static bool can_divide() {
     return integer_division_supported() || vfp_supported();
   }
-  static bool neon_supported() {
-    return HostCPUFeatures::neon_supported();
-  }
-  static bool hardfp_supported() {
-    return HostCPUFeatures::hardfp_supported();
-  }
-  static const char* hardware() {
-    return HostCPUFeatures::hardware();
-  }
-  static ARMVersion arm_version() {
-    return HostCPUFeatures::arm_version();
-  }
+  static bool neon_supported() { return HostCPUFeatures::neon_supported(); }
+  static bool hardfp_supported() { return HostCPUFeatures::hardfp_supported(); }
+  static const char* hardware() { return HostCPUFeatures::hardware(); }
+  static ARMVersion arm_version() { return HostCPUFeatures::arm_version(); }
   static intptr_t store_pc_read_offset() {
     return HostCPUFeatures::store_pc_read_offset();
   }

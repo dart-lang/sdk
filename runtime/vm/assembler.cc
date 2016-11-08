@@ -13,13 +13,19 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, check_code_pointer, false,
+DEFINE_FLAG(bool,
+            check_code_pointer,
+            false,
             "Verify instructions offset in code object."
             "NOTE: This breaks the profiler.");
-DEFINE_FLAG(bool, code_comments, false,
+DEFINE_FLAG(bool,
+            code_comments,
+            false,
             "Include comments into code and disassembly");
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
-DEFINE_FLAG(bool, use_far_branches, false,
+DEFINE_FLAG(bool,
+            use_far_branches,
+            false,
             "Enable far branches for ARM and MIPS");
 #endif
 
@@ -82,8 +88,7 @@ AssemblerBuffer::AssemblerBuffer()
 }
 
 
-AssemblerBuffer::~AssemblerBuffer() {
-}
+AssemblerBuffer::~AssemblerBuffer() {}
 
 
 void AssemblerBuffer::ProcessFixups(const MemoryRegion& region) {
@@ -120,8 +125,7 @@ void AssemblerBuffer::ExtendCapacity() {
   // Allocate the new data area and copy contents of the old one to it.
   uword new_contents = NewContents(new_capacity);
   memmove(reinterpret_cast<void*>(new_contents),
-          reinterpret_cast<void*>(contents_),
-          old_size);
+          reinterpret_cast<void*>(contents_), old_size);
 
   // Compute the relocation delta and switch to the new contents area.
   intptr_t delta = new_contents - contents_;
@@ -141,8 +145,7 @@ class PatchCodeWithHandle : public AssemblerFixup {
  public:
   PatchCodeWithHandle(ZoneGrowableArray<intptr_t>* pointer_offsets,
                       const Object& object)
-      : pointer_offsets_(pointer_offsets), object_(object) {
-  }
+      : pointer_offsets_(pointer_offsets), object_(object) {}
 
   void Process(const MemoryRegion& region, intptr_t position) {
     // Patch the handle into the code. Once the instructions are installed into
@@ -218,9 +221,9 @@ void Assembler::Comment(const char* format, ...) {
     OS::VSNPrint(buffer, sizeof(buffer), format, args);
     va_end(args);
 
-    comments_.Add(new CodeComment(buffer_.GetPosition(),
-                                  String::ZoneHandle(String::New(buffer,
-                                                                 Heap::kOld))));
+    comments_.Add(
+        new CodeComment(buffer_.GetPosition(),
+                        String::ZoneHandle(String::New(buffer, Heap::kOld))));
   }
 }
 
@@ -304,9 +307,9 @@ intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
 
 intptr_t ObjectPoolWrapper::FindNativeEntry(const ExternalLabel* label,
                                             Patchability patchable) {
-  return FindObject(ObjectPoolWrapperEntry(label->address(),
-                                           ObjectPool::kNativeEntry),
-                    patchable);
+  return FindObject(
+      ObjectPoolWrapperEntry(label->address(), ObjectPool::kNativeEntry),
+      patchable);
 }
 
 

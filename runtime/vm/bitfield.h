@@ -11,7 +11,7 @@ static const uword kUwordOne = 1U;
 
 // BitField is a template for encoding and decoding a value of type T
 // inside a storage of type S.
-template<typename S, typename T, int position, int size>
+template <typename S, typename T, int position, int size>
 class BitField {
  public:
   static const intptr_t kNextBit = position + size;
@@ -22,26 +22,18 @@ class BitField {
   }
 
   // Returns a S mask of the bit field.
-  static S mask() {
-    return (kUwordOne << size) - 1;
-  }
+  static S mask() { return (kUwordOne << size) - 1; }
 
   // Returns a S mask of the bit field which can be applied directly to
   // to the raw unshifted bits.
-  static S mask_in_place() {
-    return ((kUwordOne << size) - 1) << position;
-  }
+  static S mask_in_place() { return ((kUwordOne << size) - 1) << position; }
 
   // Returns the shift count needed to right-shift the bit field to
   // the least-significant bits.
-  static int shift() {
-    return position;
-  }
+  static int shift() { return position; }
 
   // Returns the size of the bit field.
-  static int bitsize() {
-    return size;
-  }
+  static int bitsize() { return size; }
 
   // Returns an S with the bit field value encoded.
   static S encode(T value) {
@@ -60,8 +52,7 @@ class BitField {
   // will be changed.
   static S update(T value, S original) {
     ASSERT(is_valid(value));
-    return (static_cast<S>(value) << position) |
-        (~mask_in_place() & original);
+    return (static_cast<S>(value) << position) | (~mask_in_place() & original);
   }
 };
 

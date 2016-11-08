@@ -14,8 +14,8 @@ UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   {
@@ -46,8 +46,8 @@ UNIT_TEST_CASE(AllocateZone) {
 
     // Test corner cases of kSegmentSize.
     uint8_t* buffer = NULL;
-    buffer = reinterpret_cast<uint8_t*>(
-        zone->AllocUnsafe(kSegmentSize - kWordSize));
+    buffer =
+        reinterpret_cast<uint8_t*>(zone->AllocUnsafe(kSegmentSize - kWordSize));
     EXPECT(buffer != NULL);
     buffer[(kSegmentSize - kWordSize) - 1] = 0;
     allocated_size += (kSegmentSize - kWordSize);
@@ -60,8 +60,8 @@ UNIT_TEST_CASE(AllocateZone) {
     allocated_size += (kSegmentSize - (2 * kWordSize));
     EXPECT_LE(allocated_size, zone->SizeInBytes());
 
-    buffer = reinterpret_cast<uint8_t*>(
-        zone->AllocUnsafe(kSegmentSize + kWordSize));
+    buffer =
+        reinterpret_cast<uint8_t*>(zone->AllocUnsafe(kSegmentSize + kWordSize));
     EXPECT(buffer != NULL);
     buffer[(kSegmentSize + kWordSize) - 1] = 0;
     allocated_size += (kSegmentSize + kWordSize);
@@ -76,8 +76,8 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   {
@@ -100,8 +100,8 @@ UNIT_TEST_CASE(AllocGeneric_Overflow) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   {
@@ -119,16 +119,16 @@ UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   Thread* thread = Thread::Current();
   EXPECT(thread->zone() == NULL);
   static int marker;
 
   class SimpleZoneObject : public ZoneAllocated {
    public:
-    SimpleZoneObject() : slot(marker++) { }
-    virtual ~SimpleZoneObject() { }
+    SimpleZoneObject() : slot(marker++) {}
+    virtual ~SimpleZoneObject() {}
     virtual int GetSlot() { return slot; }
     int slot;
   };

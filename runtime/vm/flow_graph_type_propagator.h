@@ -77,13 +77,10 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   class RollbackEntry {
    public:
     // Default constructor needed for the container.
-    RollbackEntry()
-        : index_(), type_() {
-    }
+    RollbackEntry() : index_(), type_() {}
 
     RollbackEntry(intptr_t index, CompileType* type)
-        : index_(index), type_(type) {
-    }
+        : index_(index), type_(type) {}
 
     intptr_t index() const { return index_; }
     CompileType* type() const { return type_; }

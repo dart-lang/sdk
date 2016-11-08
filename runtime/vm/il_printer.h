@@ -13,9 +13,7 @@ namespace dart {
 class BufferFormatter : public ValueObject {
  public:
   BufferFormatter(char* buffer, intptr_t size)
-    : position_(0),
-      buffer_(buffer),
-      size_(size) { }
+      : position_(0), buffer_(buffer), size_(size) {}
 
   void VPrint(const char* format, va_list args);
   void Print(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
@@ -37,11 +35,11 @@ class FlowGraphPrinter : public ValueObject {
  public:
   static const intptr_t kPrintAll = -1;
 
-  FlowGraphPrinter(const FlowGraph& flow_graph,
-                   bool print_locations = false)
+  explicit FlowGraphPrinter(const FlowGraph& flow_graph,
+                            bool print_locations = false)
       : function_(flow_graph.function()),
         block_order_(flow_graph.reverse_postorder()),
-        print_locations_(print_locations) { }
+        print_locations_(print_locations) {}
 
   // Print the instructions in a block terminated by newlines.  Add "goto N"
   // to the end of the block if it ends with an unconditional jump to
