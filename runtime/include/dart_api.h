@@ -854,7 +854,9 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *
  * A snapshot can be used to restore the VM quickly to a saved state
  * and is useful for fast startup. If snapshot data is provided, the
- * isolate will be started using that snapshot data.
+ * isolate will be started using that snapshot data. Requires a core snapshot or
+ * an app snapshot created by Dart_CreateSnapshot or
+ * Dart_CreatePrecompiledSnapshot* from a VM with the same version.
  *
  * Requires there to be no current isolate.
  *
@@ -2795,7 +2797,9 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                                         intptr_t col_offset);
 
 /**
- * Loads the root script for current isolate from a snapshot.
+ * Loads the root script for current isolate from a script snapshot. The
+ * snapshot must have been created by Dart_CreateScriptSnapshot from a VM with
+ * the same version.
  *
  * \param buffer A buffer which contains a snapshot of the script.
  * \param buffer_len Length of the passed in buffer.

@@ -142,6 +142,21 @@ static intptr_t GetTypeIndex(ObjectStore* object_store,
 }
 
 
+const char* Snapshot::KindToCString(Kind kind) {
+  switch (kind) {
+    case kCore: return "core";
+    case kScript: return "script";
+    case kMessage: return "message";
+    case kAppWithJIT: return "app-jit";
+    case kAppNoJIT: return "app-aot";
+    case kNone: return "none";
+    case kInvalid:
+    default:
+      return "invalid";
+  }
+}
+
+
 // TODO(5411462): Temporary setup of snapshot for testing purposes,
 // the actual creation of a snapshot maybe done differently.
 const Snapshot* Snapshot::SetupFromBuffer(const void* raw_memory) {

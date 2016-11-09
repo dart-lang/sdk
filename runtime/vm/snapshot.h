@@ -165,6 +165,7 @@ class Snapshot {
     kNone,        // dart_bootstrap/gen_snapshot
     kInvalid
   };
+  static const char* KindToCString(Kind kind);
 
   static const int kHeaderSize = 2 * sizeof(int64_t);
   static const int kLengthIndex = 0;

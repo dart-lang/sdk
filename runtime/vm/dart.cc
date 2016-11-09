@@ -522,8 +522,14 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       const String& message = String::Handle(String::New("Invalid snapshot"));
       return ApiError::New(message);
     }
+    if (snapshot->kind() != snapshot_kind_) {
+      const String& message = String::Handle(
+          String::NewFormatted("Invalid snapshot kind: got '%s', expected '%s'",
+                               Snapshot::KindToCString(snapshot->kind()),
+                               Snapshot::KindToCString(snapshot_kind_)));
+      return ApiError::New(message);
+    }
     ASSERT(Snapshot::IsFull(snapshot->kind()));
-    ASSERT(snapshot->kind() == snapshot_kind_);
     if (FLAG_trace_isolates) {
       OS::Print("Size of isolate snapshot = %" Pd "\n", snapshot->length());
     }

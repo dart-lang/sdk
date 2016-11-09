@@ -1634,6 +1634,89 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 }
 
 
+UNIT_TEST_CASE(MismatchedSnapshotKinds) {
+  const char* kScriptChars =
+      "main() { print('Hello, world!'); }";
+  Dart_Handle result;
+
+  uint8_t* buffer;
+  intptr_t size;
+  intptr_t vm_isolate_snapshot_size;
+  uint8_t* isolate_snapshot = NULL;
+  intptr_t isolate_snapshot_size;
+  uint8_t* full_snapshot = NULL;
+  uint8_t* script_snapshot = NULL;
+
+  bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
+  FLAG_load_deferred_eagerly = true;
+  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
+  FLAG_concurrent_sweep = false;
+  {
+    // Start an Isolate, and create a full snapshot of it.
+    TestIsolateScope __test_isolate__;
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Write out the script snapshot.
+    result = Dart_CreateSnapshot(NULL,
+                                 &vm_isolate_snapshot_size,
+                                 &isolate_snapshot,
+                                 &isolate_snapshot_size);
+    EXPECT_VALID(result);
+    full_snapshot = reinterpret_cast<uint8_t*>(malloc(isolate_snapshot_size));
+    memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
+    Dart_ExitScope();
+  }
+  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
+  FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
+
+  {
+    // Create an Isolate using the full snapshot, load a script and create
+    // a script snapshot of the script.
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Create a test library and Load up a test script in it.
+    TestCase::LoadTestScript(kScriptChars, NULL);
+
+    EXPECT_VALID(Api::CheckAndFinalizePendingClasses(Thread::Current()));
+
+    // Write out the script snapshot.
+    result = Dart_CreateScriptSnapshot(&buffer, &size);
+    EXPECT_VALID(result);
+    script_snapshot = reinterpret_cast<uint8_t*>(malloc(size));
+    memmove(script_snapshot, buffer, size);
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+  }
+
+  {
+    // Use a script snapshot where a full snapshot is expected.
+    char* error = NULL;
+    Dart_Isolate isolate = Dart_CreateIsolate("script-uri", "main",
+                                              script_snapshot, NULL, NULL,
+                                              &error);
+    EXPECT(isolate == NULL);
+    EXPECT(error != NULL);
+    EXPECT_SUBSTRING("got 'script', expected 'core'", error);
+  }
+
+  {
+    TestCase::CreateTestIsolateFromSnapshot(full_snapshot);
+    Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
+
+    // Use a full snapshot where a script snapshot is expected.
+    Dart_Handle result = Dart_LoadScriptFromSnapshot(full_snapshot, size);
+    EXPECT_ERROR(result, "Dart_LoadScriptFromSnapshot expects parameter"
+                         " 'buffer' to be a script type snapshot.");
+
+    Dart_ExitScope();
+  }
+  Dart_ShutdownIsolate();
+  free(full_snapshot);
+  free(script_snapshot);
+}
+
+
 #endif  // !PRODUCT
 
 
