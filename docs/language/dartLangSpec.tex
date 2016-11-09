@@ -5,6 +5,7 @@
 \usepackage{bnf}
 \usepackage{hyperref}
 \usepackage{lmodern}
+\usepackage[T1]{fontenc}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification  \\
 {4th edition draft}\\
@@ -214,7 +215,7 @@ Naming conventions usually prevent such abuses. Nevertheless,the following progr
 
 \begin{dartCode}
 \CLASS{} HighlyStrung \{
-  String() $=>$ "?";
+  String() => "?";
 \}
 \end{dartCode}
 
@@ -233,15 +234,15 @@ Allowing inherited names to take precedence over locally declared names can crea
 
 \LIBRARY{} L2;
 \IMPORT{} `L1.dart';
-foo() =$>$ 42;
-\CLASS{} C \EXTENDS{} S\{ bar() =$>$ foo();\}
+foo() => 42;
+\CLASS{} C \EXTENDS{} S\{ bar() => foo();\}
 \end{dartCode}
 
 \rationale{Now assume a method \code{foo()} is added to \code{S}. }
 
 \begin{dartCode}
 \LIBRARY{} L1;
-\CLASS{} S \{foo() =$>$ 91;\}
+\CLASS{} S \{foo() => 91;\}
 \end{dartCode}
 
 \rationale{
@@ -570,7 +571,7 @@ Because Dart is optionally typed, we cannot guarantee that a function that does 
 }
 
 OR
-\item of the form   \code{=$>$ $e$} which is equivalent to a body of the form \code{\{\RETURN{} $e$;\}} or the form \code{\ASYNC{} =$>$ $e$} which is equivalent to a body of the form \code{\ASYNC{} \{\RETURN{} $e$;\}}. \rationale{The other modifiers do not apply here, because they apply only to generators, discussed below, and generators do not allow the form \code{\RETURN{} $e$}; values are added to the generated stream or iterable using \YIELD{} instead.}
+\item of the form   \code{=> $e$} which is equivalent to a body of the form \code{\{\RETURN{} $e$;\}} or the form \code{\ASYNC{} => $e$} which is equivalent to a body of the form \code{\ASYNC{} \{\RETURN{} $e$;\}}. \rationale{The other modifiers do not apply here, because they apply only to generators, discussed below, and generators do not allow the form \code{\RETURN{} $e$}; values are added to the generated stream or iterable using \YIELD{} instead.}
 
 \end{itemize}
 
@@ -592,9 +593,9 @@ An asynchronous constructor would, by definition, never return an instance of th
 One could allow modifiers for factories. A factory for \code{Future} could be modified by \ASYNC{}, a factory for \code{Stream} could be modified by \ASYNC* and a factory for \code{Iterable} could be modified by \SYNC*. No other scenario makes sense because the object returned by the factory would be of the wrong type. This situation is very unusual so it is not worth making an exception to the general rule for constructors in order to allow it.
 }
 \LMHash{}
-It is a static warning if the declared return type of a function marked \ASYNC{} is not a supertype of \code{Future$<$\mbox{$T$}$>$} for some type $T$.
-It is a static warning if the declared return type of a function marked \SYNC* is not a supertype of \code{Iterable$<$\mbox{$T$}$>$} for some type $T$.
-It is a static warning if the declared return type of a function marked \ASYNC* is not a supertype of \code{Stream$<$\mbox{$T$}$>$} for some type $T$.
+It is a static warning if the declared return type of a function marked \ASYNC{} is not a supertype of \code{Future<\mbox{$T$}>} for some type $T$.
+It is a static warning if the declared return type of a function marked \SYNC* is not a supertype of \code{Iterable<\mbox{$T$}>} for some type $T$.
+It is a static warning if the declared return type of a function marked \ASYNC* is not a supertype of \code{Stream<\mbox{$T$}>} for some type $T$.
 
 \subsection{Function Declarations}
 \LMLabel{functionDeclarations}
@@ -931,7 +932,7 @@ It is a compile-time error if a class has an instance member and a static member
 \CLASS{} A \{
   \VAR{} i = 0;
   \VAR{} j;
-  f(x) =$>$ 3;
+  f(x) => 3;
 \}
 
 \CLASS{} B \EXTENDS{} A \{
@@ -940,7 +941,7 @@ It is a compile-time error if a class has an instance member and a static member
   //instance getter \& setter
 
   /* compile-time error: static method conflicts with instance method */
-  \STATIC{} f(x) =$>$ 3;
+  \STATIC{} f(x) => 3;
 \}
 \end{dartCode}
 
@@ -996,11 +997,11 @@ It is a static warning if an instance method $m_1$ overrides an instance member 
 An operator declaration is identified using the built-in identifier (\ref{identifierReference}) \OPERATOR{}.
 
 \LMHash{}
-The following names are allowed for user-defined operators: \code{$<$, $>$, $<$=, $>$=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$,  []=, [], \~{}.}
+The following names are allowed for user-defined operators: \code{<, >, <=, >=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$,  []=, [], \~{}.}
 
 
 \LMHash{}
-It is a compile-time error if the arity of the user-declared operator \code{[]=} is not 2. It is a compile-time error if the arity of a user-declared operator with one of the names:  \code{ $<$, $>$, $<$=, $>$=, ==, -, +,  \~{}/, /, *, \%, $|$, \^{}, \&, $<<$, $>>$, []} is not 1. It is a compile-time error if the arity of the user-declared operator  \code{-} is not 0 or 1.
+It is a compile-time error if the arity of the user-declared operator \code{[]=} is not 2. It is a compile-time error if the arity of a user-declared operator with one of the names:  \code{ <, >, <=, >=, ==, -, +,  \~{}/, /, *, \%, $|$, \^{}, \&, $<<$, $>>$, []} is not 1. It is a compile-time error if the arity of the user-declared operator  \code{-} is not 0 or 1.
 
 \commentary{
 The \code{-} operator is unique in that two overloaded versions are permitted. If the operator has no arguments, it denotes unary minus. If it has an argument, it denotes binary subtraction.
@@ -1145,12 +1146,12 @@ We wish to warn if one declares a concrete class with abstract members. However,
 
 \begin{dartCode}
  class Base \{
-    int get one =$>$ 1;
+    int get one => 1;
  \}
 
  abstract class Mix \{
     int get one;
-    int get two =$>$ one + one;
+    int get two => one + one;
  \}
 
  class C extends Base with Mix \{ \}
@@ -1500,25 +1501,25 @@ At first glance, one might think that ordinary factory constructors could simply
 
 
 %\begin{dartCode}
-%\CLASS{} W$<$T$>$ \IMPLEMENTS{} A$<$T$>$ { W(w) {...} ...}
-%\CLASS{} X$<$T$>$ \IMPLEMENTS{} A$<$T$>$ { X(x) {...} ...}
-%\CLASS{} Y$<$T$>$ \IMPLEMENTS{} A$<$T$>$ { Y(y) {...} ...}
-%\CLASS{} Z$<$T$>$ \IMPLEMENTS{} A$<$T$>$ { Z(z) {...} ...}
+%\CLASS{} W<T> \IMPLEMENTS{} A<T> { W(w) {...} ...}
+%\CLASS{} X<T> \IMPLEMENTS{} A<T> { X(x) {...} ...}
+%\CLASS{} Y<T> \IMPLEMENTS{} A<T> { Y(y) {...} ...}
+%\CLASS{} Z<T> \IMPLEMENTS{} A<T> { Z(z) {...} ...}
 
 
-%\CLASS{} F$<$T$>$ { // note that F does not implement A
-%  \STATIC{} F$<$T$>$ idw(w) $=>$ \NEW{}  W$<$T$>$(w); // illegal - T not in scope in idw
-%  \FACTORY{} F.idx(x) $=>$ \NEW{} X$<$T$>$(x);
-%  \FACTORY{} F.idy(y) $=>$ \NEW{} Y$<$T$>$(y);
-%  \STATIC{} F idz(z) $=>$ \NEW{}  Z(z); // does not capture the type argument
+%\CLASS{} F<T> { // note that F does not implement A
+%  \STATIC{} F<T> idw(w) => \NEW{}  W<T>(w); // illegal - T not in scope in idw
+%  \FACTORY{} F.idx(x) => \NEW{} X<T>(x);
+%  \FACTORY{} F.idy(y) => \NEW{} Y<T>(y);
+%  \STATIC{} F idz(z) => \NEW{}  Z(z); // does not capture the type argument
 %}
 
-%\CLASS{} A$<$T$>${
-%  \FACTORY{} A.idw(w) $=>$ F$<$T$>$.idw(w);
+%\CLASS{} A<T>{
+%  \FACTORY{} A.idw(w) => F<T>.idw(w);
 %// illegal - cannot pass type parameter to static method
-%  \FACTORY{} A.idx(x) $=> \NEW{} $F$<$T$>$.idx(x); // works, but allocates a gratuitous instance of F
-%  \FACTORY{} A.idy(y) = Y$<$T$>$; // works
-%  \FACTORY{} A.idz(z) $=>$ F.idz(z); // wrong - returns Z$<$Dynamic$>$; no way to pass type argument
+%  \FACTORY{} A.idx(x) $=> \NEW{} $F<T>.idx(x); // works, but allocates a gratuitous instance of F
+%  \FACTORY{} A.idy(y) = Y<T>; // works
+%  \FACTORY{} A.idz(z) => F.idz(z); // wrong - returns Z<Dynamic>; no way to pass type argument
 }
 %\end{dartCode}
 
@@ -1756,7 +1757,7 @@ It is a compile-time error if  the \EXTENDS{} clause of a class $C$ specifies an
 class T \{\}
 
 /* Compilation error: Attempt to subclass a type parameter */
-class G$<$T$>$ extends T \{\}
+class G<T> extends T \{\}
 
 \end{dartCode}
 
@@ -2172,8 +2173,8 @@ metadata \CLASS{} E \{
   \STATIC{} \CONST{} E id$_0$ = \CONST{} E(0);
   $\ldots$
   \STATIC{} \CONST{} E id$_{n-1}$ = const E(n - 1);
-  \STATIC{} \CONST{} List$<$E$>$ values = const $<$E$>$[id$_0 \ldots $ id$_{n-1}$];
-  String toString() =$>$ \{ 0: `E.id$_0$', $\ldots$, n-1: `E.id$_{n-1}$'\}[index]
+  \STATIC{} \CONST{} List<E> values = const <E>[id$_0 \ldots $ id$_{n-1}$];
+  String toString() => \{ 0: `E.id$_0$', $\ldots$, n-1: `E.id$_{n-1}$'\}[index]
 \}
 \end{dartCode}
 
@@ -2213,12 +2214,12 @@ Because type parameters are in scope in their bounds, we support F-bounded quant
 }
 
 \begin{dartCode}
-\INTERFACE{} Ordered$<$T$>$ \{
-  operator $>$ (T x);
+\INTERFACE{} Ordered<T> \{
+  operator > (T x);
 \}
 
-\CLASS{} Sorter$<$T \EXTENDS{} Ordered$<$T$>>$ \{
-   sort(List$<$T$>$ l) {... l[n] $<$ l[n+1] ...}
+\CLASS{} Sorter<T \EXTENDS{} Ordered<T$>>$ \{
+   sort(List<T> l) {... l[n] < l[n+1] ...}
 \}
 
 \end{dartCode}
@@ -2245,23 +2246,23 @@ The normative versions of these  are given in the appropriate sections of this s
 %\rationale {A typical recursive type declaration such as}
 
 %\begin{dartCode}
-%\CLASS{} B$<$S$>$ \{\}
-%\CLASS{} D$<$T$>$ \EXTENDS{} B$<$D$<$T$>>$ \{\}
+%\CLASS{} B<S> \{\}
+%\CLASS{} D<T> \EXTENDS{} B<D<T$>>$ \{\}
 %\end{dartCode}
 
 %\rationale{
-%poses no problem under this rule. The instantiation \cd{D$<$T$>$} has an induced
-%set consisting of: \cd{B$<$D$<$T$>>$, Object, D$<$T$>$, T}. However, the following variant
+%poses no problem under this rule. The instantiation \cd{D<T>} has an induced
+%set consisting of: \cd{B<D<T$>>$, Object, D<T>, T}. However, the following variant
 %}
 
 %\begin{dartCode}
-%\CLASS{} B$<$S$>$ \{\}
-%\CLASS{} D$<$T$>$ \EXTENDS{} B$<$D$<$D$<$T$>>>$ \{\}
+%\CLASS{} B<S> \{\}
+%\CLASS{} D<T> \EXTENDS{} B<D<D<T$>>>$ \{\}
 %\end{dartCode}
 
 %\rationale{
-%is disallowed. Consider again the instantiation \cd{D$<$T$>$}. It leads to the
-%superclass \cd{B$<$D$<$D$<$T$>>>$}, and so adds \cd{D$<$D$< $T$>>$} to the induced set. The latter in turn leads to  \cd{B$<$D$<$D$<$D$<$T$>>>>$} and \cd{D$<$D$<$D$<$T$>>>$}
+%is disallowed. Consider again the instantiation \cd{D<T>}. It leads to the
+%superclass \cd{B<D<D<T$>>>$}, and so adds \cd{D<D$< $T$>>$} to the induced set. The latter in turn leads to  \cd{B<D<D<D<T$>>>>$} and \cd{D<D<D<T$>>>$}
 %and so on ad infinitum.}
 
 %\commentary{
@@ -2460,7 +2461,7 @@ A constant expression is one of the following:
 \item An expression of one of the forms \code{!$e$}, \code{$e_1$ \&\& $e_2$} or \code{$e_1 || e_2$}, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a boolean value.
 \item An expression of one of the forms \~{}$e$, $e_1$ \^{} $e_2$, \code{$e_1$ \& $e_2$}, $e_1 | e_2$, $e_1 >> e_2$ or $e_1 <<  e_2$, where  $e$, $e_1$ and $e_2$ are constant expressions that evaluate to an integer value  or to \NULL{}.
 \item An expression of the form \code{$e_1 + e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to \NULL{}.
-\item An expression of one of the forms \code{$-e$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$},  \code{$e_1  >  e_2$}, \code{$e_1  <  e_2$}, \code{$e_1$ $>$= $e_2$}, \code{$e_1$ $<$= $e_2$} or \code{$e_1$ \% $e_2$},  where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value  or to \NULL{}.
+\item An expression of one of the forms \code{$-e$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$},  \code{$e_1  >  e_2$}, \code{$e_1  <  e_2$}, \code{$e_1$ >= $e_2$}, \code{$e_1$ <= $e_2$} or \code{$e_1$ \% $e_2$},  where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value  or to \NULL{}.
 \item An expression of the form \code{$e_1$?$e_2$:$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
 \item An expression of the form \code{$e_1 ?? e_2$} where $e_1$ and $e_2$ are constant expressions.
 \item An expression of the form \code{$e$.length} where $e$ is a constant expression that evaluates to a string value.
@@ -3153,7 +3154,7 @@ We collapse multiple layers of futures into one. If $e$ evaluates to a future $f
 
 The  exception to that would be a type $X$ that extended or implemented \code{Future}. In that case, only one unwrapping takes place. As an example of why this is done, consider
 
-\cd{\CLASS{} C$<$T$>$  \IMPLEMENTS{}  Future$<$C$<$C$<$T$>>>$ \ldots }
+\cd{\CLASS{} C<T>  \IMPLEMENTS{}  Future<C<C<T$>>>$ \ldots }
 
 Here, a naive definition of $flatten$ diverges; there is not even a fixed point. A more sophisticated definition of $flatten$ is possible, but the existing rule deals with most realistic examples while remaining relatively simple to understand.
 
@@ -3512,7 +3513,7 @@ To see how such situations might arise, consider the following examples:
  \CONST{} IntPair(\THIS{}.x, \THIS{}.y);
  \FINAL{} int x;
  \FINAL{} int y;
- \OPERATOR *(v) $=>$ \NEW{} IntPair(x*v, y*v);
+ \OPERATOR *(v) => \NEW{} IntPair(x*v, y*v);
 \}
 
 \CONST{} A(\CONST{} IntPair(1,2)); // compile-time error: illegal in a subtler way
@@ -3904,7 +3905,7 @@ It is possible to bring about such a situation by overriding \code{noSuchMethod(
 
 \begin{code}
 \CLASS{} Perverse \{
-    noSuchMethod(x,y) =$>$ x + y;
+    noSuchMethod(x,y) => x + y;
 \}
 
 \NEW{} Perverse.unknownMethod();
@@ -3923,7 +3924,7 @@ $T$ or a superinterface of $T$ is annotated with an annotation denoting a consta
 \end{itemize}
 
 \LMHash{}
-If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $fi$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.
+If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.
 
 \LMHash{}
 It is a compile-time error to invoke any of the methods of class \cd{Object} on a prefix object (\ref{imports}) or on a constant type literal that is  immediately followed by the token `.'.
@@ -4170,7 +4171,7 @@ The static type of $i$ is:
 Let $o$ be an object, and let $u$ be a fresh final variable bound to $o$.
 The {\em closurization of method $f$ on object $o$} is defined to be equivalent to:
 \begin{itemize}
-%\item $(a) \{\RETURN{}$ $u$ $op$ $a;$\} if $f$ is named $op$ and $op$ is one of  \code{$<$, $>$, $<$=, $>$=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$} (this precludes closurization of unary -).
+%\item $(a) \{\RETURN{}$ $u$ $op$ $a;$\} if $f$ is named $op$ and $op$ is one of  \code{<, >, <=, >=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$} (this precludes closurization of unary -).
 %\item $() \{\RETURN{}$ \~{} $u;$\} if $f$ is named \~{}.
 %\item $(a) \{\RETURN{}$ $u[a];$\} if $f$ is named $[]$.
 %\item $(a, b) \{\RETURN{}$ $u[a] = b;$\} if $f$ is named $[]=$.
@@ -4211,7 +4212,7 @@ The {\em closurization of method $f$ with respect to superclass $S$} is defined 
 
 \LMHash{}
 \begin{itemize}
-%\item $(a) \{\RETURN{}$ \SUPER{} $op$ $a;$\} if $f$ is named $op$ and $op$ is one of  \code{$<$, $>$, $<$=, $>$=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$}.
+%\item $(a) \{\RETURN{}$ \SUPER{} $op$ $a;$\} if $f$ is named $op$ and $op$ is one of  \code{<, >, <=, >=, ==,  -, +, /, \~{}/, *, \%, $|$, \^{}, \&, $<<$, $>>$}.
 %\item $() \{\RETURN{}$ \~{}\SUPER;\} if $f$ is named \~{}.
 %\item $(a) \{\RETURN{}$ $\SUPER[a];$\} if $f$ is named $[]$.
 %\item $(a, b) \{\RETURN{}$ $\SUPER[a] = b;$\} if $f$ is named $[]=$.
@@ -5487,7 +5488,7 @@ A {\em variable declaration statement }declares a new local variable.
  A variable declaration statement of the form \VAR{} $v;$ is equivalent to \VAR{} $v = \NULL{};$. A variable declaration statement of the form $T$ $v;$ is equivalent to $T$ $v = \NULL{};$.
 
 \commentary{
-This holds regardless of the type $T$. For example, \code{int i;} does not cause \code{i} to be initialized to zero. Instead, \code{i} is initialized to \NULL{}, just as if we had written \VAR{} \code{i;} or \code{Object i;} or \code{Collection$<$String$>$ i;}.
+This holds regardless of the type $T$. For example, \code{int i;} does not cause \code{i} to be initialized to zero. Instead, \code{i} is initialized to \NULL{}, just as if we had written \VAR{} \code{i;} or \code{Object i;} or \code{Collection<String> i;}.
 }
 
 \rationale{
@@ -5527,19 +5528,19 @@ A function declaration statement of one of the forms $id$ $signature$ $\{ statem
 }
 
 \begin{dartCode}
-f(x) =$>$ x++;  // a top level function
+f(x) => x++;  // a top level function
 top() \{ // another top level function
   f(3); // illegal
-  f(x) $=>$ x $>$ 0? x*f(x-1): 1;  // recursion is legal
-  g1(x) $=>$ h(x, 1); // error: h is not declared yet
-  h(x, n) $=>$ x $>$ 1? h(x-1, n*x): n; // again, recursion is fine
-  g2(x) $=>$ h(x, 1); // legal
+  f(x) => x > 0? x*f(x-1): 1;  // recursion is legal
+  g1(x) => h(x, 1); // error: h is not declared yet
+  h(x, n) => x > 1? h(x-1, n*x): n; // again, recursion is fine
+  g2(x) => h(x, 1); // legal
 
-  p1(x) $=>$ q(x,x); // illegal
-  q1(a, b)$ =>$ a $>$ 0 ? p1(a-1): b; // fine
+  p1(x) => q(x,x); // illegal
+  q1(a, b)$ =>$ a > 0 ? p1(a-1): b; // fine
 
-  q2(a, b) $=>$ a $>$ 0 ? p2(a-1): b; // illegal
-  p1(x) $=>$ q2(x,x); // fine
+  q2(a, b) => a > 0 ? p2(a-1): b; // illegal
+  p1(x) => q2(x,x); // fine
 \}
 \end{dartCode}
 
@@ -5550,8 +5551,8 @@ There is no way to write a pair of mutually recursive local functions, because o
 \begin{dartCode}
 top2() \{ // a top level function
  \VAR{} p, q;
-  p = (x) $=>$ q(x,x);
-  q = (a, b) $=>$ a $>$ 0 ? p(a-1): b;
+  p = (x) => q(x,x);
+  q = (a, b) => a > 0 ? p(a-1): b;
 
 \}
 \end{dartCode}
@@ -6198,12 +6199,12 @@ The enclosing function cannot be marked as generator (i.e, \ASYNC* or \SYNC*), s
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.
 
 \LMHash{}
-It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future$<$flatten(T)$>$} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
+It is a static type warning if the body of $f$ is marked \ASYNC{} and the type \code{Future<flatten(T)>} (\ref{functionExpressions}) may not be assigned to the declared return type of $f$.    Otherwise, it is a static type warning if $T$ may not be assigned to the declared return type of $f$.
 
 \LMHash{}
 Let $S$ be the runtime type of $o$. In checked mode:
 \begin{itemize}
-\item  If the body of $f$ is marked \ASYNC{} (\ref{functions}) it is a dynamic type error if $o$ is not \NULL{} (\ref{null}) and \code{Future$<$flatten(S)$>$} is not a subtype of the actual return type  (\ref{actualTypeOfADeclaration}) of $f$.
+\item  If the body of $f$ is marked \ASYNC{} (\ref{functions}) it is a dynamic type error if $o$ is not \NULL{} (\ref{null}) and \code{Future<flatten(S)>} is not a subtype of the actual return type  (\ref{actualTypeOfADeclaration}) of $f$.
 \item Otherwise, it is a dynamic type error if $o$ is not \NULL{} and the runtime type of $o$ is not a subtype of the actual return type of $f$.
 \end{itemize}
 
@@ -6225,15 +6226,15 @@ In the case of a generator function, the value returned by the function is the i
 Let $f$ be the function immediately enclosing a return statement of the form \RETURN{}; It is a static warning  $f$ is neither a generator nor a generative constructor and either:
 \begin{itemize}
 \item  $f$ is synchronous and the return type of $f$ may not be assigned to \VOID{} (\ref{typeVoid}) or,
-\item  $f$ is asynchronous and the return type of $f$ may not be assigned to \code{Future$<$Null$>$}.
+\item  $f$ is asynchronous and the return type of $f$ may not be assigned to \code{Future<Null>}.
 \end{itemize}
 
  \commentary{
-Hence, a static warning will not be issued if $f$ has no declared return type, since the return type would be  \DYNAMIC{} and  \DYNAMIC{} may be assigned to \VOID{} and to \code{Future$<$Null$>$}. However, any synchronous non-generator function that declares a return type must return an expression explicitly.
+Hence, a static warning will not be issued if $f$ has no declared return type, since the return type would be  \DYNAMIC{} and  \DYNAMIC{} may be assigned to \VOID{} and to \code{Future<Null>}. However, any synchronous non-generator function that declares a return type must return an expression explicitly.
 }
 \rationale{This helps catch situations where users forget to return a value in a return statement.}
 
-\rationale{ An asynchronous non-generator always returns a future of some sort. If no expression is given, the future will be completed with \NULL{} and this motivates the requirement above.} \commentary{Leaving the return type of a function marked \ASYNC{}  blank will be interpreted as \DYNAMIC{} as always, and cause no type error. Using \code{Future} or \code{Future$<$Object$>$} is acceptable as well, but any other type will cause a warning, since \NULL{} has no subtypes.}
+\rationale{ An asynchronous non-generator always returns a future of some sort. If no expression is given, the future will be completed with \NULL{} and this motivates the requirement above.} \commentary{Leaving the return type of a function marked \ASYNC{}  blank will be interpreted as \DYNAMIC{} as always, and cause no type error. Using \code{Future} or \code{Future<Object>} is acceptable as well, but any other type will cause a warning, since \NULL{} has no subtypes.}
 
 \LMHash{}
 A return statement with no expression, \code{\RETURN;} is executed as follows:
@@ -6393,9 +6394,9 @@ It is a compile-time error if a yield statement appears in a function that is no
 Let $T$ be the static type of $e$ and let $f$ be the immediately enclosing function.  It is a static type warning if either:
 \begin{itemize}
 \item
- the body of $f$ is marked \ASYNC* and the type \code{Stream$<$T$>$} may not be assigned to the declared return type of $f$.
+ the body of $f$ is marked \ASYNC* and the type \code{Stream<T>} may not be assigned to the declared return type of $f$.
  \item
- the body of $f$ is marked \SYNC* and the type \code{Iterable$<$T$>$} may not be assigned to the declared return type of $f$.
+ the body of $f$ is marked \SYNC* and the type \code{Iterable<T>} may not be assigned to the declared return type of $f$.
  \end{itemize}
 
 
@@ -6928,9 +6929,9 @@ A {\em script} is a library whose exported namespace  (\ref{exports}) includes a
 A script $S$ may be executed as follows:
 
 \LMHash{}
-First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked. If \code{main} has no positional parameters, it is invoked with no arguments. Otherwise if \code{main} has exactly one positional parameter, it is invoked with a single actual argument whose runtime type implements \code{List$<$String$>$}.  Otherwise \code{main} is invoked with the following two actual arguments:
+First, $S$ is compiled as a library as specified above. Then, the top-level function \code{main} that is in the exported namespace of $S$ is invoked. If \code{main} has no positional parameters, it is invoked with no arguments. Otherwise if \code{main} has exactly one positional parameter, it is invoked with a single actual argument whose runtime type implements \code{List<String>}.  Otherwise \code{main} is invoked with the following two actual arguments:
 \begin{enumerate}
-\item An object whose runtime type implements \code{List$<$String$>$}.
+\item An object whose runtime type implements \code{List<String>}.
 \item The initial message of the current isolate $i$ as determined by the invocation of \code{Isolate.spawnUri} that spawned $i$.
 \end{enumerate}
 
@@ -7104,7 +7105,7 @@ type is used in a subtype test.
 
 \begin{dartCode}
 \TYPEDEF{} F(bool x);
-f(foo x) $=>$ x;
+f(foo x) => x;
 main() \{
   if (f is F) \{
     print("yoyoma");
@@ -7136,10 +7137,10 @@ Here is an example involving malbounded types:
 }
 
 \begin{dartCode}
-\CLASS{} I$<$T \EXTENDS{} num$>$ \{\}
+\CLASS{} I<T \EXTENDS{} num> \{\}
 \CLASS{} J \{\}
 
-\CLASS{} A$<$T$>$ \IMPLEMENTS{} J,  I$<$T$>$ // type warning: T is not a subtype of num
+\CLASS{} A<T> \IMPLEMENTS{} J,  I<T> // type warning: T is not a subtype of num
 \{ ...
 \}
 \end{dartCode}
@@ -7147,24 +7148,24 @@ Here is an example involving malbounded types:
 \commentary{Given the declarations above, the following}
 
 \begin{dartCode}
-I x = \NEW{} A$<$String$>$();
+I x = \NEW{} A<String>();
 \end{dartCode}
 
 \commentary{
-will cause a dynamic type error in checked mode, because the assignment requires a subtype test A$<$String$>$ $<$: I. To show that this holds, we need to show that A$<$String$>$  $<<$ I$<$String$>$, but I$<$String$>$ is a malbounded type, causing the dynamic error.  No error is thrown in production mode. Note that
+will cause a dynamic type error in checked mode, because the assignment requires a subtype test A<String> <: I. To show that this holds, we need to show that A<String>  $<<$ I<String>, but I<String> is a malbounded type, causing the dynamic error.  No error is thrown in production mode. Note that
 }
 
 \begin{dartCode}
-J x = \NEW{} A$<$String$>$();
+J x = \NEW{} A<String>();
 \end{dartCode}
 
 \commentary{
-does not cause a dynamic error, as there is no need to test against \code{I$<$String$>$} in this case.
+does not cause a dynamic error, as there is no need to test against \code{I<String>} in this case.
 Similarly, in production mode
 }
 
 \begin{dartCode}
-A x = \NEW{} A$<$String$>$();
+A x = \NEW{} A<String>();
 bool b = x is I;
 \end{dartCode}
 
@@ -7689,7 +7690,7 @@ Bitwise XOR & \^{} & Left & 10\\
 \hline
 Bitwise Or &  $|$ & Left & 9\\
 \hline
-Relational & $<$, $>$, $<=$, $>=$, \AS{}, \IS{}, \IS{}! &  None & 8\\
+Relational & <, >, $<=$, $>=$, \AS{}, \IS{}, \IS{}! &  None & 8\\
 \hline
 Equality &  ==, != & None & 7\\
 \hline
