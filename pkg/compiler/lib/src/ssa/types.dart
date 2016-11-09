@@ -14,12 +14,12 @@ import '../world.dart' show ClosedWorld;
 class TypeMaskFactory {
   static TypeMask inferredReturnTypeForElement(
       Element element, Compiler compiler) {
-    return compiler.globalInference.results.returnTypeOf(element) ??
+    return compiler.globalInference.results.resultOf(element).returnType ??
         compiler.commonMasks.dynamicType;
   }
 
   static TypeMask inferredTypeForElement(Element element, Compiler compiler) {
-    return compiler.globalInference.results.typeOf(element) ??
+    return compiler.globalInference.results.resultOf(element).type ??
         compiler.commonMasks.dynamicType;
   }
 

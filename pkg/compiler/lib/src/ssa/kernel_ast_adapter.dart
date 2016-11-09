@@ -63,9 +63,11 @@ class KernelAstAdapter {
 
   Compiler get _compiler => _backend.compiler;
   TreeElements get elements => _resolvedAst.elements;
-  GlobalTypeInferenceResults get _inferenceResults =>
-      _compiler.globalInference.results;
   DiagnosticReporter get reporter => _compiler.reporter;
+  Element get _target => _resolvedAst.element;
+
+  GlobalTypeInferenceElementResult _resultOf(Element e) =>
+      _compiler.globalInference.results.resultOf(e);
 
   ConstantValue getConstantForSymbol(ir.SymbolLiteral node) {
     ast.Node astNode = getNode(node);
@@ -163,35 +165,33 @@ class KernelAstAdapter {
   }
 
   TypeMask typeOfInvocation(ir.Expression send) {
-    return _inferenceResults.typeOfSend(getNode(send), elements);
+    return _resultOf(_target).typeOfSend(getNode(send));
   }
 
   TypeMask typeOfGet(ir.PropertyGet getter) {
-    return _inferenceResults.typeOfSend(getNode(getter), elements);
+    return _resultOf(_target).typeOfSend(getNode(getter));
   }
 
   TypeMask typeOfSend(ir.Expression send) {
     assert(send is ir.InvocationExpression || send is ir.PropertyGet);
-    return _inferenceResults.typeOfSend(getNode(send), elements);
+    return _resultOf(_target).typeOfSend(getNode(send));
   }
 
   TypeMask typeOfNewList(Element owner, ir.ListLiteral listLiteral) {
-    return _inferenceResults.typeOfNewList(owner, getNode(listLiteral)) ??
+    return _resultOf(owner).typeOfNewList(getNode(listLiteral)) ??
         _compiler.commonMasks.dynamicType;
   }
 
   TypeMask typeOfIterator(ir.ForInStatement forInStatement) {
-    return _inferenceResults.typeOfIterator(getNode(forInStatement), elements);
+    return _resultOf(_target).typeOfIterator(getNode(forInStatement));
   }
 
   TypeMask typeOfIteratorCurrent(ir.ForInStatement forInStatement) {
-    return _inferenceResults.typeOfIteratorCurrent(
-        getNode(forInStatement), elements);
+    return _resultOf(_target).typeOfIteratorCurrent(getNode(forInStatement));
   }
 
   TypeMask typeOfIteratorMoveNext(ir.ForInStatement forInStatement) {
-    return _inferenceResults.typeOfIteratorMoveNext(
-        getNode(forInStatement), elements);
+    return _resultOf(_target).typeOfIteratorMoveNext(getNode(forInStatement));
   }
 
   bool isJsIndexableIterator(ir.ForInStatement forInStatement) {

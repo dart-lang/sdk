@@ -142,7 +142,16 @@ class SsaBuilder extends ast.Visitor
   // used only for codegen, but currently we want to experiment using it for
   // code-analysis too.
   final CodegenRegistry registry;
+
+  /// All results from the global type-inference analysis.
   final GlobalTypeInferenceResults inferenceResults;
+
+  /// Results from the global type-inference analysis corresponding to the
+  /// current element being visited.
+  ///
+  /// Invariant: this property is updated together with [resolvedAst].
+  GlobalTypeInferenceElementResult elementInferenceResults;
+
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
   final RuntimeTypes rti;
@@ -194,6 +203,8 @@ class SsaBuilder extends ast.Visitor
         this.inferenceResults = backend.compiler.globalInference.results {
     assert(target.isImplementation);
     compiler = backend.compiler;
+    elementInferenceResults = _resultOf(target);
+    assert(elementInferenceResults != null);
     graph.element = target;
     sourceElementStack.add(target);
     sourceInformationBuilder =
@@ -234,6 +245,17 @@ class SsaBuilder extends ast.Visitor
   // TODO(johnniwinther): Check that all usages of sourceElement agree on
   // implementation/declaration distinction.
   Element get sourceElement => sourceElementStack.last;
+
+  /// Helper to retrieve global inference results for [element] with special
+  /// care for `ConstructorBodyElement`s which don't exist at the time the
+  /// global analysis run.
+  ///
+  /// Note: this helper is used selectively. When we know that we are in a
+  /// context were we don't expect to see a constructor body element, we
+  /// directly fetch the data from the global inference results.
+  GlobalTypeInferenceElementResult _resultOf(AstElement element) =>
+      inferenceResults.resultOf(
+          element is ConstructorBodyElementX ? element.constructor : element);
 
   bool get _checkOrTrustTypes =>
       compiler.options.enableTypeAssertions ||
@@ -437,7 +459,7 @@ class SsaBuilder extends ast.Visitor
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
       if (!element.isGenerativeConstructorBody) {
-        if (inferenceResults.throwsAlways(element)) {
+        if (inferenceResults.resultOf(element).throwsAlways) {
           isReachable = false;
           return false;
         }
@@ -569,12 +591,10 @@ class SsaBuilder extends ast.Visitor
     return inliningStack.isEmpty || inliningStack.last.allFunctionsCalledOnce;
   }
 
-  bool isFunctionCalledOnce(Element element) {
-    if (element is ConstructorBodyElement) {
-      // ConstructorBodyElements are not in the type inference graph.
-      return false;
-    }
-    return inferenceResults.isCalledOnce(element);
+  bool isFunctionCalledOnce(element) {
+    // ConstructorBodyElements are not in the type inference graph.
+    if (element is ConstructorBodyElement) return false;
+    return inferenceResults.resultOf(element).isCalledOnce;
   }
 
   bool isCalledOnce(Element element) {
@@ -869,6 +889,7 @@ class SsaBuilder extends ast.Visitor
     returnLocal = state.oldReturnLocal;
     inTryStatement = state.inTryStatement;
     resolvedAst = state.oldResolvedAst;
+    elementInferenceResults = state.oldElementInferenceResults;
     returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
@@ -1001,6 +1022,8 @@ class SsaBuilder extends ast.Visitor
       // Build the initializers in the context of the new constructor.
       ResolvedAst oldResolvedAst = resolvedAst;
       resolvedAst = callee.resolvedAst;
+      final oldElementInferenceResults = elementInferenceResults;
+      elementInferenceResults = inferenceResults.resultOf(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
@@ -1011,6 +1034,7 @@ class SsaBuilder extends ast.Visitor
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
       localsHandler.closureData = oldClosureData;
       resolvedAst = oldResolvedAst;
+      elementInferenceResults = oldElementInferenceResults;
     });
   }
 
@@ -1173,11 +1197,14 @@ class SsaBuilder extends ast.Visitor
           ast.Node right = initializer;
           ResolvedAst savedResolvedAst = resolvedAst;
           resolvedAst = fieldResolvedAst;
+          final oldElementInferenceResults = elementInferenceResults;
+          elementInferenceResults = inferenceResults.resultOf(member);
           // In case the field initializer uses closures, run the
           // closure to class mapper.
           compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
           inlinedFrom(fieldResolvedAst, () => right.accept(this));
           resolvedAst = savedResolvedAst;
+          elementInferenceResults = oldElementInferenceResults;
           fieldValues[member] = pop();
         }
       });
@@ -2070,7 +2097,7 @@ class SsaBuilder extends ast.Visitor
     }
 
     pushInvokeDynamic(node, elements.getSelector(node),
-        inferenceResults.typeOfSend(node, elements), [operand],
+        elementInferenceResults.typeOfSend(node), [operand],
         sourceInformation: sourceInformationBuilder.buildGeneric(node));
   }
 
@@ -2101,7 +2128,7 @@ class SsaBuilder extends ast.Visitor
         visitAndPop(left),
         visitAndPop(right),
         elements.getSelector(node),
-        inferenceResults.typeOfSend(node, elements),
+        elementInferenceResults.typeOfSend(node),
         node,
         sourceInformation:
             sourceInformationBuilder.buildGeneric(node.selector));
@@ -2264,7 +2291,7 @@ class SsaBuilder extends ast.Visitor
   void generateDynamicGet(ast.Send node) {
     HInstruction receiver = generateInstanceSendReceiver(node);
     generateInstanceGetterWithCompiledReceiver(node, elements.getSelector(node),
-        inferenceResults.typeOfSend(node, elements), receiver);
+        elementInferenceResults.typeOfSend(node), receiver);
   }
 
   /// Generate a closurization of the static or top level [method].
@@ -2314,7 +2341,7 @@ class SsaBuilder extends ast.Visitor
           generateInstanceGetterWithCompiledReceiver(
               node,
               elements.getSelector(node),
-              inferenceResults.typeOfSend(node, elements),
+              elementInferenceResults.typeOfSend(node),
               expression);
         });
   }
@@ -2379,7 +2406,7 @@ class SsaBuilder extends ast.Visitor
     if (selector == null) {
       assert(send != null);
       selector = elements.getSelector(send);
-      mask ??= inferenceResults.typeOfSend(send, elements);
+      mask ??= elementInferenceResults.typeOfSend(send);
     }
     if (location == null) {
       assert(send != null);
@@ -2650,7 +2677,7 @@ class SsaBuilder extends ast.Visitor
 
   void _generateDynamicSend(ast.Send node, HInstruction receiver) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inferenceResults.typeOfSend(node, elements);
+    TypeMask mask = elementInferenceResults.typeOfSend(node);
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildCall(node, node.selector);
 
@@ -4430,7 +4457,7 @@ class SsaBuilder extends ast.Visitor
         receiver,
         rhs,
         elements.getOperatorSelectorInComplexSendSet(node),
-        inferenceResults.typeOfOperator(node, elements),
+        elementInferenceResults.typeOfOperator(node),
         node,
         sourceInformation:
             sourceInformationBuilder.buildGeneric(node.assignmentOperator));
@@ -4793,7 +4820,7 @@ class SsaBuilder extends ast.Visitor
       }
 
       pushInvokeDynamic(node, elements.getGetterSelectorInComplexSendSet(node),
-          inferenceResults.typeOfGetter(node, elements), [receiver, index]);
+          elementInferenceResults.typeOfGetter(node), [receiver, index]);
       HInstruction getterInstruction = pop();
       if (node.isIfNullAssignment) {
         // Compile x[i] ??= e as:
@@ -4808,7 +4835,7 @@ class SsaBuilder extends ast.Visitor
           pushInvokeDynamic(
               node,
               elements.getSelector(node),
-              inferenceResults.typeOfSend(node, elements),
+              elementInferenceResults.typeOfSend(node),
               [receiver, index, value]);
           pop();
           stack.add(value);
@@ -4816,11 +4843,8 @@ class SsaBuilder extends ast.Visitor
       } else {
         handleComplexOperatorSend(node, getterInstruction, arguments);
         HInstruction value = pop();
-        pushInvokeDynamic(
-            node,
-            elements.getSelector(node),
-            inferenceResults.typeOfSend(node, elements),
-            [receiver, index, value]);
+        pushInvokeDynamic(node, elements.getSelector(node),
+            elementInferenceResults.typeOfSend(node), [receiver, index, value]);
         pop();
         if (node.isPostfix) {
           stack.add(getterInstruction);
@@ -5024,7 +5048,7 @@ class SsaBuilder extends ast.Visitor
         generateInstanceGetterWithCompiledReceiver(
             node,
             elements.getGetterSelectorInComplexSendSet(node),
-            inferenceResults.typeOfGetter(node, elements),
+            elementInferenceResults.typeOfGetter(node),
             receiver);
         HInstruction getterInstruction = pop();
         if (node.isIfNullAssignment) {
@@ -5487,7 +5511,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   _inferredTypeOfNewList(ast.Node node) =>
-      inferenceResults.typeOfNewList(sourceElement, node) ??
+      _resultOf(sourceElement).typeOfNewList(node) ??
       compiler.commonMasks.dynamicType;
 
   visitConditional(ast.Conditional node) {
@@ -5583,7 +5607,7 @@ class SsaBuilder extends ast.Visitor
 
     HInstruction buildCondition() {
       Selector selector = Selectors.moveNext;
-      TypeMask mask = inferenceResults.typeOfIteratorMoveNext(node, elements);
+      TypeMask mask = elementInferenceResults.typeOfIteratorMoveNext(node);
       pushInvokeDynamic(node, selector, mask, [streamIterator]);
       HInstruction future = pop();
       push(new HAwait(
@@ -5595,8 +5619,7 @@ class SsaBuilder extends ast.Visitor
 
     void buildBody() {
       Selector call = Selectors.current;
-      TypeMask callMask =
-          inferenceResults.typeOfIteratorCurrent(node, elements);
+      TypeMask callMask = elementInferenceResults.typeOfIteratorCurrent(node);
       pushInvokeDynamic(node, call, callMask, [streamIterator]);
 
       ast.Node identifier = node.declaredIdentifier;
@@ -5605,7 +5628,7 @@ class SsaBuilder extends ast.Visitor
       HInstruction value = pop();
       if (identifier.asSend() != null &&
           Elements.isInstanceSend(identifier, elements)) {
-        TypeMask mask = inferenceResults.typeOfSend(identifier, elements);
+        TypeMask mask = elementInferenceResults.typeOfSend(identifier);
         HInstruction receiver = generateInstanceSendReceiver(identifier);
         assert(receiver != null);
         generateInstanceSetterWithCompiledReceiver(null, receiver, value,
@@ -5644,7 +5667,7 @@ class SsaBuilder extends ast.Visitor
     // method is inlined.  We would require full scalar replacement in that
     // case.
 
-    TypeMask mask = inferenceResults.typeOfIterator(node, elements);
+    TypeMask mask = elementInferenceResults.typeOfIterator(node);
 
     ClosedWorld closedWorld = compiler.closedWorld;
     if (mask != null &&
@@ -5669,7 +5692,7 @@ class SsaBuilder extends ast.Visitor
 
     void buildInitializer() {
       Selector selector = Selectors.iterator;
-      TypeMask mask = inferenceResults.typeOfIterator(node, elements);
+      TypeMask mask = elementInferenceResults.typeOfIterator(node);
       visit(node.expression);
       HInstruction receiver = pop();
       pushInvokeDynamic(node, selector, mask, [receiver]);
@@ -5678,14 +5701,14 @@ class SsaBuilder extends ast.Visitor
 
     HInstruction buildCondition() {
       Selector selector = Selectors.moveNext;
-      TypeMask mask = inferenceResults.typeOfIteratorMoveNext(node, elements);
+      TypeMask mask = elementInferenceResults.typeOfIteratorMoveNext(node);
       pushInvokeDynamic(node, selector, mask, [iterator]);
       return popBoolified();
     }
 
     void buildBody() {
       Selector call = Selectors.current;
-      TypeMask mask = inferenceResults.typeOfIteratorCurrent(node, elements);
+      TypeMask mask = elementInferenceResults.typeOfIteratorCurrent(node);
       pushInvokeDynamic(node, call, mask, [iterator]);
       buildAssignLoopVariable(node, pop());
       visit(node.body);
@@ -5702,7 +5725,7 @@ class SsaBuilder extends ast.Visitor
 
     if (identifier.asSend() != null &&
         Elements.isInstanceSend(identifier, elements)) {
-      TypeMask mask = inferenceResults.typeOfSend(identifier, elements);
+      TypeMask mask = elementInferenceResults.typeOfSend(identifier);
       HInstruction receiver = generateInstanceSendReceiver(identifier);
       assert(receiver != null);
       generateInstanceSetterWithCompiledReceiver(null, receiver, value,
@@ -6641,8 +6664,10 @@ class SsaBuilder extends ast.Visitor
         stack,
         localsHandler,
         inTryStatement,
-        allInlinedFunctionsCalledOnce && isFunctionCalledOnce(function));
+        isCalledOnce(function),
+        elementInferenceResults);
     resolvedAst = functionResolvedAst;
+    elementInferenceResults = _resultOf(function);
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -6963,6 +6988,7 @@ class AstInliningState extends InliningState {
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
   final bool allFunctionsCalledOnce;
+  final GlobalTypeInferenceElementResult oldElementInferenceResults;
 
   AstInliningState(
       FunctionElement function,
@@ -6972,7 +6998,8 @@ class AstInliningState extends InliningState {
       this.oldStack,
       this.oldLocalsHandler,
       this.inTryStatement,
-      this.allFunctionsCalledOnce)
+      this.allFunctionsCalledOnce,
+      this.oldElementInferenceResults)
       : super(function);
 }
 
