@@ -1440,7 +1440,9 @@ class ContextManagerImpl implements ContextManager {
         break;
       case ChangeType.MODIFY:
         if (enableNewAnalysisDriver) {
-          info.analysisDriver.changeFile(path);
+          for (AnalysisDriver driver in driverMap.values) {
+            driver.changeFile(path);
+          }
         } else {
           List<Source> sources = info.context.getSourcesWithFullName(path);
           if (!sources.isEmpty) {
