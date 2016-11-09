@@ -31,39 +31,45 @@ abstract class ByteStore {
 
 /**
  * A wrapper around [ByteStore] which adds an in-memory LRU cache to it.
- *
- * TODO(scheglov) Consider implementing size and/or time eviction policies.
  */
 class MemoryCachingByteStore implements ByteStore {
-  final ByteStore store;
-  final int maxEntries;
+  final ByteStore _store;
+  final int _maxSizeBytes;
 
-  final _map = <String, List<int>>{};
-  final _keys = new LinkedHashSet<String>();
+  final _map = new LinkedHashMap<String, List<int>>();
+  int _currentSizeBytes = 0;
 
-  MemoryCachingByteStore(this.store, this.maxEntries);
+  MemoryCachingByteStore(this._store, this._maxSizeBytes);
 
   @override
   List<int> get(String key) {
-    _keys.remove(key);
-    _keys.add(key);
-    _evict();
-    return _map.putIfAbsent(key, () => store.get(key));
+    List<int> bytes = _map[key];
+    if (bytes == null) {
+      bytes = _store.get(key);
+      _map[key] = bytes;
+      _currentSizeBytes += bytes?.length ?? 0;
+      _evict();
+    }
+    return bytes;
   }
 
   @override
   void put(String key, List<int> bytes) {
-    store.put(key, bytes);
+    _store.put(key, bytes);
+    _currentSizeBytes -= _map[key]?.length ?? 0;
     _map[key] = bytes;
-    _keys.add(key);
+    _currentSizeBytes += bytes.length;
     _evict();
   }
 
   void _evict() {
-    if (_keys.length > maxEntries) {
-      String key = _keys.first;
-      _keys.remove(key);
-      _map.remove(key);
+    while (_currentSizeBytes > _maxSizeBytes) {
+      if (_map.isEmpty) {
+        break;
+      }
+      String key = _map.keys.first;
+      List<int> bytes = _map.remove(key);
+      _currentSizeBytes -= bytes.length;
     }
   }
 }

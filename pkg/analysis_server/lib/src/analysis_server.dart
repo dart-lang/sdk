@@ -369,8 +369,9 @@ class AnalysisServer {
     byteStore = new MemoryCachingByteStore(
         new FileByteStore(
             resourceProvider.getStateLocation('.analysis-driver')),
-        1024);
-    analysisDriverScheduler = new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
+        64 * 1024 * 1024);
+    analysisDriverScheduler =
+        new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
     analysisDriverScheduler.start();
     if (useSingleContextManager) {
       contextManager = new SingleContextManager(resourceProvider, sdkManager,
