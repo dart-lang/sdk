@@ -78,7 +78,6 @@ env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
-fixed_precision_double_test: Skip # double p getter only implemented in VM.
 
 # test issue https://code.google.com/p/dart/issues/detail?id=11518
 io/file_constructor_test: fail
@@ -114,7 +113,6 @@ unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 regress_25335_test: Skip # Int64List not supported.
 deferred_transitive_import_error_test: Skip # Contains intentional errors.
-fixed_precision_double_test: Skip # double p getter only implemented in VM.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented

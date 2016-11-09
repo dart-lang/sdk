@@ -275,11 +275,4 @@ class _Double implements double {
       return LESS;
     }
   }
-
-  static const int _FRACTIONAL_BITS = // Bits to keep after the decimal point.
-      const int.fromEnvironment("doubleFractionalBits", defaultValue: 20);
-  static const double _BIAS = 1.5 * (1 << (52 - _FRACTIONAL_BITS));
-
-  // Returns this with only _FRACTIONAL_BITS bits after the decimal point.
-  double get p => this + _BIAS - _BIAS;
 }
