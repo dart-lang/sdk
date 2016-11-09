@@ -876,6 +876,7 @@ metadata \ABSTRACT{}?  \CLASS{} mixinApplicationClass
 \LMHash{}
 A class has constructors,  instance members and static members. The instance members of a class are its instance methods, getters, setters and instance variables. The static members of a class are its static methods, getters, setters and static variables. The members of a class are its static and instance members.
 
+\LMHash{}
 A class has several scopes:
 \begin{itemize}
 \item A {\em type-parameter scope}, which is empty if the class is not generic (\ref{generics}).  The enclosing scope of the type-parameter scope of a class is the enclosing scope of the class declaration.
@@ -884,8 +885,10 @@ A class has several scopes:
 The enclosing scope of a class' instance scope is the class' static scope.
 \end{itemize}
 
+\LMHash{}
 The enclosing scope of an instance member declaration is the instance scope of the class in which it is declared.
 
+\LMHash{}
 The enclosing scope of a static member declaration is the static scope of the class in which it is declared.
 
 
@@ -1234,7 +1237,7 @@ A {\em generative constructor} consists of a constructor name, a constructor par
  \end{grammar}
 
 \LMHash{}
-A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters. A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal. An {\em initializing formal} has the form \code{\THIS{}.id}, where \code{id} is the name of an instance variable of the immediately enclosing class.  It is a compile-time error if \code{id} is not an instance variable of the immediately enclosing class. It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor.
+A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters. A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal. An {\em initializing formal} has the form \code{\THIS{}.$id$}, where $id$ is the name of an instance variable of the immediately enclosing class.  It is a compile-time error if \code{id} is not an instance variable of the immediately enclosing class. It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor.
 
 \LMHash{}
 If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named \code{id} is $T_{id}$, where $T_{id}$ is the type of the field named \code{id} in the immediately enclosing class. It is a static warning if the static type of \code{id} is not assignable to $T_{id}$.
@@ -2880,10 +2883,10 @@ A {\em symbol literal} denotes the name of a declaration in a Dart program.
 \end{grammar}
 
 \LMHash{}
-A symbol literal \code{\#id} where \code{id} does not begin with an underscore ('\code{\_}')  is equivalent to the expression \code{\CONST{} Symbol('id')}.
+A symbol literal \code{\#$id$} where $id$ does not begin with an underscore ('\code{\_}')  is equivalent to the expression \code{\CONST{} Symbol('$id$')}.
 
 \LMHash{}
-A symbol literal \code{\#\_id} evaluates to the object that would be returned by the call \code{MirrorSystem.getSymbol("\_id", libraryMirror)} where \code{libraryMirror} is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
+A symbol literal \code{\#\_$id$} evaluates to the object that would be returned by the call \code{MirrorSystem.getSymbol("\_$id$", \metavar{libraryMirror})} where \metavar{libraryMirror} is an instance of the class \code{LibraryMirror} defined in the library \code{dart:mirrors}, reflecting the current library.
 
 \rationale{
 One may well ask what is the motivation for introducing literal symbols? In some languages, symbols are canonicalized whereas strings are not. However literal strings are already canonicalized in Dart.  Symbols are slightly easier to type compared to strings and their use can become strangely addictive, but this is not nearly sufficient justification for adding a literal form to the language. The primary motivation is related to the use of reflection and a web specific practice known as minification.
@@ -3821,36 +3824,41 @@ Method invocation can take several forms as specified below.
 An ordinary method invocation can be {\em conditional} or {\em unconditional}.
 
 \LMHash{}
-Evaluation of a {\em conditional ordinary method invocation} $e$ of the form
+Evaluation of a {\em conditional ordinary method invocation} $i$ of the form
 
 \LMHash{}
-$o?.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$
+$e?.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$
 
 \LMHash{}
-is equivalent to the evaluation of the expression
+proceeds as follows:
 
 \LMHash{}
-$((x) => x == \NULL ? \NULL : x.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k}))(o)$.
-
-unless $o$ is  a type literal, in which case it is equivalent to $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+If $e$ is a type literal, $i$ is equivalent to \code{$e$.$m$($a_1$, \ldots , $a_n$, $x_{n+1}$: $a_{n+1}$, \ldots , $x_{n+k}$: $a_{n+k}$)}.
 
 \LMHash{}
-The static type of $e$ is the same as the static type of $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. Exactly the same static warnings that would be caused by $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ are also generated in the case of $o?.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+Otherwise, evaluate $e$ to an object $o$.
+If $o$ is the null value, $i$ evaluates to the null value.
+Otherwise let $v$ be a fresh variable bound to $o$ and evaluate
+\code{$v$.$m$($a_1$, $\ldots$ , $a_n$, $x_{n+1}$: $a_{n+1}$, $\ldots$ , $x_{n+k}$: $a_{n+k}$))} to a value $r$, and then $e$ evaluates to $r$.
+
+
+\LMHash{}
+The static type of $i$ is the same as the static type of $e.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. Exactly the same static warnings that would be caused by $e.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ are also generated in the case of $e?.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
 \LMHash{}
 An {\em unconditional ordinary method invocation} $i$ has the form
 
-$o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+$e.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
 \LMHash{}
 Evaluation of an unconditional ordinary method invocation $i$ of the form
 
-$o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$
+$e.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$
 
 proceeds as follows:
 
 \LMHash{}
-First, the expression $o$ is evaluated to a value $v_o$. Next, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated yielding actual argument objects $o_1, \ldots , o_{n+k}$. Let $f$ be the result of looking up (\ref{methodLookup}) method $m$  in $v_o$ with respect to the current library $L$.
+First, the expression $e$ is evaluated to a value $o$. Next, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated yielding actual argument objects $o_1, \ldots , o_{n+k}$. Let $f$ be the result of looking up (\ref{methodLookup}) method $m$  in $o$ with respect to the current library $L$.
 
 \LMHash{}
 Let $p_1 \ldots p_h$ be the required parameters of $f$,  let $p_1 \ldots p_m$ be the positional parameters of $f$ and let $p_{h+1}, \ldots, p_{h+l}$ be the optional parameters declared by $f$.
@@ -3860,15 +3868,15 @@ We have an argument list consisting of $n$ positional arguments and $k$ named ar
 }
 
 \LMHash{}
-If  $n < h$, or $n > m$, the method lookup has failed. Furthermore, each $x_i, n+1 \le i \le n+k$,  must have a corresponding named parameter in the set $\{p_{m+1}, \ldots, p_{h+l}\}$ or the method lookup also fails.  If $v_o$ is an instance of \code{Type} but $o$ is not a constant type literal, then if $m$ is a method that forwards (\ref{functionDeclarations}) to a static method, method lookup fails. Otherwise method lookup has succeeded.
+If  $n < h$, or $n > m$, the method lookup has failed. Furthermore, each $x_i, n+1 \le i \le n+k$,  must have a corresponding named parameter in the set $\{p_{m+1}, \ldots, p_{h+l}\}$ or the method lookup also fails.  If $o$ is an instance of \code{Type} but $e$ is not a constant type literal, then if $m$ is a method that forwards (\ref{functionDeclarations}) to a static method, method lookup fails. Otherwise method lookup has succeeded.
 
 \LMHash{}
-If the method lookup succeeded, the body of $f$ is executed with respect to the bindings that resulted from the evaluation of the argument list, and with \THIS{} bound to $v_o$. The value of $i$ is the value returned after $f$ is executed.
+If the method lookup succeeded, the body of $f$ is executed with respect to the bindings that resulted from the evaluation of the argument list, and with \THIS{} bound to $o$. The value of $i$ is the value returned after $f$ is executed.
 
 \LMHash{}
-If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $v_o$ with respect to $L$.
-If $v_o$ is an instance of \code{Type} but $o$ is not a constant type literal, then if $g$ is a getter that forwards to a static getter, getter lookup fails.
-If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $o.m$. Then the value of $i$ is the result of invoking
+If the method lookup has failed, then let $g$ be the result of looking up getter (\ref{getterAndSetterLookup}) $m$ in $o$ with respect to $L$.
+If $o$ is an instance of \code{Type} but $e$ is not a constant type literal, then if $g$ is a getter that forwards to a static getter, getter lookup fails.
+If the getter lookup succeeded, let $v_g$ be the value of the getter invocation $e.m$. Then the value of $i$ is the result of invoking
 the static method \code{Function.apply()} with arguments $v.g, [o_1, \ldots , o_n], \{\#x_{n+1}: o_{n+1}, \ldots , \#x_{n+k}: o_{n+k}\}$.
 
 \LMHash{}
@@ -3915,7 +3923,7 @@ $T$ or a superinterface of $T$ is annotated with an annotation denoting a consta
 \end{itemize}
 
 \LMHash{}
-If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $i$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.
+If $T.m$ exists, it  is a static type warning if the type $F$ of $T.m$ may not be assigned to a function type. If $T.m$ does not exist, or if $F$ is not a function type, the static type of $fi$ is \DYNAMIC{}; otherwise the static type of $i$ is the declared return type of  $F$.
 
 \LMHash{}
 It is a compile-time error to invoke any of the methods of class \cd{Object} on a prefix object (\ref{imports}) or on a constant type literal that is  immediately followed by the token `.'.
@@ -3925,8 +3933,8 @@ It is a compile-time error to invoke any of the methods of class \cd{Object} on 
 \LMLabel{cascadedInvocations}
 
 \LMHash{}
-A {\em cascaded method invocation} has the form {\em e..suffix}
-where $e$ is an expression and {\em suffix} is a sequence of operator, method, getter or setter invocations.
+A {\em cascaded method invocation} has the form \code{$e$..\metavar{suffix}}
+where $e$ is an expression and \metavar{suffix} is a sequence of operator, method, getter or setter invocations.
 
 \begin{grammar}
 {\bf cascadeSection:}
@@ -3939,10 +3947,15 @@ where $e$ is an expression and {\em suffix} is a sequence of operator, method, g
 \end{grammar}
 
 \LMHash{}
-A cascaded method invocation expression of the form {\em e..suffix} is equivalent to the expression \code{(t)\{t.{\em suffix}; \RETURN{} t;\}($e$)}.
+Evaluation of a cascaded method invocation expression $e$ of the form \code{$e$..\metavar{suffix}} proceeds as follows:
+
+Evaluate $e$ to an object $o$.
+Let $t$ be a fresh variable bound to $o$.
+Evaluate \code{$t$.\metavar{suffix}} to an object.
+Then $e$ evaluates to $o$.
 
 \rationale{
-With the introduction of null-aware conditional assignable expressions (\ref{assignableExpressions}), it would make sense to extend cascades with a null-aware conditional form as well. One might define {\em e?..suffix}  to be equivalent to the expression \code{(t)\{t?.{\em suffix}; \RETURN{} t;\}($e$)}.
+With the introduction of null-aware conditional assignable expressions (\ref{assignableExpressions}), it would make sense to extend cascades with a null-aware conditional form as well. One might define \code{$e$?..\metavar{suffix}} to be equivalent to the expression \code{$t$ == null ? null : $t$.\metavar{suffix}} where $t$ is a fresh variable bound to the value of $e$.
 
 The present specification has not added such a construct, in the interests of simplicity and rapid language evolution. However, Dart implementations may experiment with such constructs, as noted in section \ref{ecmaConformance}.
 }
@@ -4029,10 +4042,22 @@ A property extraction can be either:
 
 Property extraction can be either {\em conditional} or {\em unconditional}.
 
-Evaluation of a {\em conditional property extraction expression} $e$ of the form $e_1?.id$  is equivalent to the evaluation of the expression  $((x) => x == \NULL ? \NULL : x.id)(e_1)$.
-unless $e_1$ is  a type literal, in which case it is equivalent to $e_1.m$.
+\LMHash{}
+Evaluation of a {\em conditional property extraction expression} $e$
+of the form \code{$e_1$?.\metavar{id}} proceeds as follows:
 
-The static type of $e$ is the same as the static type of $e_1.id$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.id$ are also generated in the case of $e_1?.id$.
+\LMHash{}
+If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$m$}.
+
+\LMHash{}
+Otherwise evaluate $e_1$ to an object $o$.
+If $o$ is the null value, $e$ evaluates to the null value.
+Otherwise let $x$ be a fresh variable bound to $o$
+and evaluate \code{$x$.\metavar{id}} to a value $r$.
+Then $e$ evaluates to $r$.
+
+
+The static type of $e$ is the same as the static type of \code{$e_1$.\metavar{id}}. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by \code{$y$.\metavar{id}} are also generated in the case of \code{$e_1$?.\metavar{id}}.
 
 \LMHash{}
 Unconditional property extraction has one of two syntactic forms: $e.m$ (\ref{getterAccessAndMethodExtraction}) or $\SUPER.m$ (\ref{superGetterAccessAndMethodClosurization}), where $e$ is an expression and $m$ is an identifier.
@@ -4263,12 +4288,24 @@ In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interf
 It is a static type warning if the static type of $e$ may not be assigned to the static type of $v$. The static type of the expression $v$ \code{=} $e$ is the static type of $e$.
 
 \LMHash{}
-Evaluation of an assignment $a$ of the form $e_1?.v$ \code{=} $e_2$ is equivalent to the evaluation of the expression $((x) => x == \NULL? \NULL: x.v = e_2)(e_1)$
- unless $e_1$ is  a type literal, in which case it is equivalent to $e_1.v$ \code{=} $e_2$.
-. The static type of $a$ is the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.v = e_2$ are also generated in the case of $e_1?.v$ \code{=} $e_2$.
+Evaluation of an assignment $a$ of the form \code{$e_1$?.$v$ = $e_2$}
+proceeds as follows:
+
+\LMHash
+If $e_1$ is a type literal, $a$ is equivalent to \code{$e_1$.$v$ = $e_2$}.
 
 \LMHash{}
-Evaluation of an assignment of the form $e_1.v$ \code{=} $e_2$ proceeds as follows:
+Otherwise evaluate $e_1$ to an object $o$.
+If $o$ is the null value, $a$ evaluates to the null value.
+Otherwise let $x$ be a fresh variable bound to $o$
+and evaluate \code{$x$.$v$ = $e_2$} to an object $r$.
+Then $a$ evaluates to $r$.
+
+\LMHash{}
+The static type of $a$ is the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by \code{$y$.$v$ = $e_2$} are also generated in the case of \code{$e_1$?.$v$ = $e_2$}.
+
+\LMHash{}
+Evaluation of an assignment of the form \code{$e_1$.$v$ = $e_2$} proceeds as follows:
 
 \LMHash{}
 The expression $e_1$ is evaluated to an object $o_1$. Then, the expression $e_2$  is evaluated to an object $o_2$. Then, the setter $v=$ is looked up (\ref{getterAndSetterLookup}) in $o_1$ with respect to the current library.  If $o_1$ is an instance of \code{Type} but $e_1$ is not a constant type literal, then if $v=$ is a setter that forwards (\ref{functionDeclarations}) to a static setter, setter lookup fails. Otherwise, the body  of $v=$ is executed with its formal parameter bound to $o_2$ and \THIS{} bound to $o_1$.
@@ -4348,16 +4385,20 @@ Let $S_{static}$ be the superclass of the immediately enclosing class. It is a s
 \LMHash{}
 It is a static type warning if the static type of $e$ may not be assigned to the static type of the formal parameter of the setter $v=$.   The static type of the expression $\SUPER.v$ \code{=} $e$ is the static type of $e$.
 
-
-
-
-
+\LMHash{}
+Evaluation of an assignment $e$ of the form \code{$e_1$[$e_2$] = $e_3$}
+proceeds as follows:
 
 \LMHash{}
-Evaluation of an assignment of the form $e_1[e_2]$ \code{=} $e_3$ is equivalent to the evaluation of the expression \code{(a, i, e)\{a.[]=(i, e); \RETURN{} e; \} ($e_1, e_2, e_3$)}.  The static type of the expression $e_1[e_2]$ \code{=} $e_3$ is the static type of $e_3$.
+Evaluate $e_1$ to an object $a$, then evaluate $e_2$ to an object $i$, and finally evaluate $e_3$ to an object $v$.
+Call the method \code{[]=} on $a$ with $i$ as first argument and $v$ as second argument.
+Then $e$ evaluates to $v$.
 
 \LMHash{}
-An assignment of the form $\SUPER[e_1]$ \code{=} $e_2$ is equivalent to the expression $\SUPER.[e_1]$ \code{=} $e_2$.  The static type of the expression $\SUPER[e_1]$ \code{=} $e_2$ is the static type of $e_2$.
+The static type of the expression \code{$e_1$[$e_2$] = $e_3$} is the static type of $e_3$.
+
+\LMHash{}
+An assignment of the form \code{\SUPER[$e_1$] = $e_2$} is equivalent to the expression \code{\SUPER.[$e_1$] = $e_2$}.  The static type of the expression \code{\SUPER[$e_1$] = $e_2$} is the static type of $e_2$.
 
 
 % Should we add: It is a dynamic error if $e_1$ evaluates to an  constant list or map.
@@ -4374,27 +4415,71 @@ It is a compile-time error to invoke any of the setters of class \cd{Object} on 
 \LMLabel{compoundAssignment}
 
 \LMHash{}
-Evaluation of a compound assignment of the form $v$ {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ?  $v=e : x)(v)$ where $x$ is a fresh variable that is not used in $e$.
+Evaluation of a compound assignment $a$ of the form \code{$v$ ??= $e$}
+proceeds as follows:
+
+Evaluate $v$ to an object $o$.
+If $o$ is not the null value, $a$ evaluates to $o$.
+Otherwise evaluate \code{$v$ = $e$} to a value $r$,
+and then $a$ evaluates to $r$.
 
 \LMHash{}
-Evaluation of a compound assignment of the form $C.v$ {\em ??=} $e$, where $C$ is a type literal, is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$?  $C.v=e: x)(C.v)$ where $x$ is a fresh variable that is not used in $e$.
+Evaluation of a compound assignment, $a$ of the form \code{$C$.$v$ ??= $e$}, where $C$ is a type literal, proceeds as follow:
+
+Evaluate \code{$C$.$v$} to an object $o$.
+If $o$ is not the null value, $a$ evaluates to $o$.
+Otherwise evaluate \code{$C$.$v$ = $e$} to a value $r$,
+and then $a$ evaluates to $r$.
 
 \commentary {
 The two rules above also apply when the variable v or the type C is prefixed.
 }
 
 \LMHash{}
-Evaluation of a compound assignment of the form $e_1.v$ {\em ??=} $e_2$ is equivalent to the evaluation of the expression  $((x) =>((y) => y == \NULL{}$ ? $ x.v = e_2: y)(x.v))(e_1)$ where $x$ and $y$ are distinct fresh variables that are not used in $e_2$.
+Evaluation of a compound assignment $a$ of the form \code{$e_1$.$v$ ??= $e_2$}
+proceeds as follows:
 
 \LMHash{}
-Evaluation of a compound assignment of the form  $e_1[e_2]$  {\em ??=} $e_3$ is equivalent to the evaluation of the expression
-$((a, i) => ((x) => x == \NULL{}$ ?  $a[i] = e_3: x)(a[i]))(e_1, e_2)$ where $x$, $a$ and $i$ are distinct fresh variables that are not used in $e_3$.
+Evaluate $e_1$ to an object $u$.
+Let $x$ be a fresh variable bound to $u$.
+Evalute \code{$x$.$v$} to an object $o$.
+If $o$ is not the null value, $a$ evaluates to $o$.
+Otherwise evaluate \code{$x$.$v$ = $e_2$} to an object $r$,
+and then $a$ evaluates to $r$.
 
 \LMHash{}
-Evaluation of a compound assignment of the form $\SUPER.v$  {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ? $\SUPER.v = e: x)(\SUPER.v)$ where $x$ is a fresh variable that is not used in $e$.
+Evaluation of a compound assignment $a$ of the form \code{$e_1$[$e_2$] ??= $e_3$}
+proceeds as follows:
 
 \LMHash{}
-Evaluation of a compound assignment of the form $e_1?.v$  {\em ??=} $e_2$ is equivalent to the evaluation of the expression \code{((x) $=>$ x == \NULL{} ?  \NULL: $x.v ??=  e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$.
+Evaluate $e_1$ to an object $u$ and then evaluate $e_2$ to an object $i$.
+Call the \code{[]} method on $u$ with argument $i$, and let $o$ be the returned value.
+If $o$ is not the null value, $a$ evaluates to $o$.
+Otherwise evaluate $e_3$ to an object $v$
+and then call the \code{[]=} method on $u$ with $i$ as first argument and $v$ as second argument.
+Then $a$ evaluates to $v$.
+
+\LMHash{}
+Evaluation of a compound assignment $a$ of the form \code{\SUPER.$v$ ??= $e$}
+proceeds as follows:
+
+\LMHash{}
+Evaluate \code{\SUPER.$v$} to an object $o$.
+If $o$ is not the null value then $a$ evaluats to $o$.
+Otherwise evaluate \code{\SUPER.$v$ = $e$} to an object $r$,
+and then $a$ evaluates to $r$.
+
+\LMHash{}
+Evaluation of a compound assignment $a$ of the form \code{$e_1$?.$v$ ??= $e_2$}
+proceeds as follows:
+
+\LMHash{}
+Evaluate $e_1$ to an object $u$ and let $x$ be a fresh variable bound to $u$.
+Evaluate \code{$x$.$v$} to an object $o$.
+If $o$ is not the null value then $a$ evaluates to $o$.
+Otherwise evaluate \code{$x$.$v$ = $e_2$} to an object $r$,
+and then $a$ evaluates to $r$.
+
 % But what about C?.v ??= e
 
 \LMHash{}
@@ -4402,7 +4487,6 @@ A compound assignment of the form $C?.v$  {\em ??=} $e_2$ is equivalent to the e
 
 \LMHash{}
 The static type of a compound assignment of the form $v$ {\em ??=} $e$ is the least upper bound of the static type of $v$ and the static type of $e$.  Exactly the same static warnings that would be caused by $v = e$ are also generated in the case of $v$ {\em ??=} $e$.
-
 
 \LMHash{}
 The static type of a compound assignment of the form  $C.v$ {\em ??=} $e$  is the least upper bound of the static type of $C.v$ and the static type of $e$.  Exactly the same static warnings that would be caused by $C.v = e$ are also generated in the case of $C.v$ {\em ??=} $e$.
@@ -4417,11 +4501,33 @@ The static type of a compound assignment of the form $e_1[e_2]$  {\em ??=} $e_3$
 The static type of a compound assignment of the form $\SUPER.v$  {\em ??=} $e$  is the least upper bound of the static type of $\SUPER.v$ and the static type of $e$. Exactly the same static warnings that would be caused by $\SUPER.v = e$ are also generated in the case of $\SUPER.v$  {\em ??=} $e$.
 
 \LMHash{}
-For any other valid operator $op$, a compound assignment of the form $v$ $op\code{=} e$ is equivalent to $v \code{=} v$ $op$ $e$. A compound assignment of the form $C.v$ $op \code{=} e$ is equivalent to $C.v \code{=} C.v$ $op$ $e$. A compound assignment of the form $e_1.v$ $op = e_2$ is equivalent to \code{((x) $=>$ x.v = x.v $op$ $e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. A compound assignment of the form  $e_1[e_2]$ $op\code{=} e_3$ is equivalent to
-\code{((a, i) $=>$ a[i] = a[i] $op$ $e_3$)($e_1, e_2$)} where $a$ and $i$ are a variables that are not used in $e_3$.
+For any other valid operator $op$, a compound assignment of the form \code{$v$ $op$= $e$} is equivalent to \code{$v$ = $v$ $op$ $e$}. A compound assignment of the form \code{$C$.$v$ $op$= $e$} is equivalent to \code{$C$.$v$ = $C$.$v$ $op$ $e$}.
 
 \LMHash{}
-Evaluation of a compound assignment of the form $e_1?.v$ $op = e_2$ is equivalent to \code{((x) $=>$ x?.v = x.v $op$ $e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. The static type of $e_1?.v$ $op = e_2$ is the static type of $e_1.v$ $op$ $e_2$. Exactly the same static warnings that would be caused by $e_1.v$ $op = e_2$ are also generated in the case of $e_1?.v$ $op = e_2$.
+Evaluation of a compound assignment $a$ of the form \code{$e_1$.$v$ $op$= $e_2$} proceeds as follows:
+Evaluate $e_1$ to an object $u$ and let $x$ be a fresh variable bound to $u$.
+Evaluate \code{$x$.$v$ = $x$.$v$ $op$ $e_2$} to an object $r$
+and then $a$ evaluates to $r$.
+
+\LMHash{}
+Evaluation of s compound assignment $a$ of the form \code{$e_1$[$e_2$] $op$= $e_3$} proceeds as follows:
+Evaluate $e_1$ to an object $u$ and evaluate $e_2$ to an object $v$.
+Let $a$ and $i$ be fresh variables bound to $u$ and $v$ respectively.
+Evaluate \code{$a$[$i$] = $a$[$i$] $op$ $e_3$} to an object $r$,
+and then $a$ evaluates to $r$.
+
+\LMHash{}
+Evaluation of a compound assignment $a$ of the form \code{$e_1$?.$v$ $op$ = $e_2$} proceeds as follows:
+
+\LMHash{}
+Evaluate $e_1$ to an object $u$.
+If $u$ is the null value, then $a$ evaluates to the null value.
+Otherwise let $x$ be a fresh variable bound to $u$.
+Evaluate \code{$x$.$v$ $op$= $e_2$} to an object $r$.
+Then $a$ evaluates to $r$.
+
+\LMHash{}
+The static type of \code{$e_1$?.$v$ $op$= $e_2$} is the static type of \code{$e_1$.$v$ $op$ $e_2$}. Exactly the same static warnings that would be caused by \code{$e_1$.$v$ $op$= $e_2$} are also generated in the case of \code{$e_1$?.$v$ $op$= $e_2$}.
 
 \LMHash{}
 A compound assignment of the form $C?.v$ $op = e_2$ is equivalent to the expression
@@ -4489,7 +4595,17 @@ then the type of $v$ is known to be $T$ in $e_2$.
 \end{grammar}
 
 \LMHash{}
-Evaluation of an if-null expression $e$ of the form $e_1??e_2 $ is equivalent to the evaluation of the expression $((x) => x == \NULL? e_2: x)(e_1)$. The static type of $e$ is least upper bound (\ref{leastUpperBounds}) of the static type of $e_1$ and the static type of $e_2$.
+Evaluation of an if-null expression $e$ of the form \code{$e_1$ ?? $e_2$}
+proceeds as follows:
+
+\LMHash{}
+Evaluate $e_1$ to an object $o$.
+If $o$ is not the null value, then $e$ evaluates to $o$.
+Otherwise evaluate $e_2$ to an object $r$,
+and then $e$ evaluates to $r$.
+
+\LMHash{}
+The static type of $e$ is the least upper bound (\ref{leastUpperBounds}) of the static type of $e_1$ and the static type of $e_2$.
 
 
 \subsection{ Logical Boolean Expressions}
@@ -4860,7 +4976,12 @@ Postfix expressions invoke the postfix operators on objects.
  A {\em postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to executing \code{()\{\VAR{} r = $v$; $v$ = r + 1; \RETURN{} r\}()}.
+Evaluation of a postfix expression $e$ of the form \code{$v$++}, where $v$ is an identifier, proceeds as follows:
+
+\LMHash{}
+Evaluate $v$ to an object $r$ and let $y$ be a fresh variable bound to $r$.
+Evaluate \code{$v$ = $y$ + 1}.
+Then $e$ evaluates to $r$.
 
 \LMHash{}
 The static type of such an expression is the static type of $v$.
@@ -4870,86 +4991,140 @@ The static type of such an expression is the static type of $v$.
 }
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$C.v$ ++} is equivalent to executing
-
-\code{()\{\VAR{} r = $C.v$; $C.v$ = r + 1; \RETURN{} r\}()}.
-
-\LMHash{}
-The static type of such an expression is the static type of $C.v$.
-
+Evaluation of a postfix expression $e$ of the form \code{$C$.$v$++}
+proceeds as follows:
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$e_1.v$++} is equivalent to executing
-
-\code{(x)\{\VAR{} r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
+Evaluate \code{$C$.$v$} to a value $r$
+and let $y$ be a fresh variable bound to $r$.
+Evaluate \code{$C$.$v$ = $y$ + 1}.
+Then $e$ evaluates to $r$.
 
 \LMHash{}
-The static type of such an expression is the static type of $e_1.v$.
+The static type of such an expression is the static type of \code{$C$.$v$}.
 
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to executing
-
-\code{(a, i)\{\VAR{} r = a[i]; a[i] = r + 1; \RETURN{} r\}($e_1$, $e_2$)}.
-
-\LMHash{}
-The static type of such an expression is the static type of $e_1[e_2]$.
-
+Evaluation of a postfix expression $e$ of the form \code{$e_1$.$v$++}
+proceeds as follows:
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to executing
+Evaluate $e_1$ to an object $u$ and let $x$ be a fresh variable bound to $u$.
+Evaluate \code{$x$.$v$} to a value $r$
+and let $y$ be a fresh variable bound to $r$.
+Evaluate \code{$x$.$v$ = $y$ + 1}.
+Then $e$ evaluates to $r$.
 
-\code{()\{\VAR{} r = $v$; $v$ = r - 1; \RETURN{} r\}()}.
+\LMHash{}
+The static type of such an expression is the static type of \code{$e_1$.$v$}.
+
+
+\LMHash{}
+Evaluation of a postfix expression $e$ of the form \code{$e_1$[$e_2$]++}
+proceeds as follows:
+
+\LMHash{}
+Evaluate $e_1$ to an object $u$ and $e_2$ to an object $v$.
+Let $a$ and $i$ be fresh variables bound to $u$ and $v$ respectively.
+Evaluate \code{$a$[$i$]} to an object $r$
+and let $y$ be a fresh variable bound to $r$.
+Evaluate \code{$a$[$i$] = $y$ + 1}.
+Then $e$ evaluates to $r$.
+
+\LMHash{}
+The static type of such an expression is the static type of \code{$e_1$[$e_2$]}.
+
+
+\LMHash{}
+Evaluation of a postfix expression $e$ of the form \code{$v$-{}-}, where $v$ is an identifier, proceeds as follows:
+
+\LMHash{}
+Evaluate the expression $v$ to an object $r$
+and let $y$ be a fresh variable bound to $r$.
+Evaluate \code{$v$ = $y$ - 1}.
+Then $e$ evaluates to $r$.
 
 \LMHash{}
 The static type of such an expression is the static type of $v$.
 
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$C.v$-{}-} is equivalent to executing
-
-\code{()\{\VAR{} r = $C.v$; $C.v$ = r - 1; \RETURN{} r\}()}.
-
-\LMHash{}
-The static type of such an expression is the static type of $C.v$.
-
+Evaluation of a postfix expression $e$ of the form \code{$C$.$v$-{}-}
+proceeds as follows:
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$e_1.v$-{}-} is equivalent to executing
-
-\code{(x)\{\VAR{} r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
+Evaluate \code{$C$.$v$} to a value $r$
+and let $y$ be a fresh variable bound to $r$.
+Evaluate \code{$C$.$v$ = $y$ - 1}.
+Then $e$ evaluates to $r$.
 
 \LMHash{}
-The static type of such an expression is the static type of $e_1.v$.
+The static type of such an expression is the static type of \code{$C$.$v$}.
 
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to executing
-
-\code{(a, i)\{\VAR{} r = a[i]; a[i] = r - 1; \RETURN{} r\}($e_1$, $e_2$)}.
-
-\LMHash{}
-The static type of such an expression is the static type of $e_1[e_2]$.
+Evaluation of a postfix expression of the form \code{$e_1$.$v$-{}-}
+proceeds as follows:
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$e_1?.v$++} is equivalent to executing
+Evaluate $e_1$ to an object $u$ and let $x$ be a fresh variable bound to $u$.
+Evaluate \code{$x$.$v$} to a value $r$
+and let $y$ be a fresh variable bound to $r$.
+Evaluate \code{$x$.$v$ = $y$ - 1}.
+Then $e$ evaluates to $r$.
 
-\code{((x) =$>$ x == \NULL? \NULL : x.v++)($e_1$)}
-unless $e_1$ is a type literal, in which case it is equivalent to \code{$e_1.v$++}
-.
-
-\LMHash{}
-The static type of such an expression is the static type of $e_1.v$.
 
 \LMHash{}
-Execution of a postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to executing
+The static type of such an expression is the static type of \code{$e_1$.$v$}.
 
-\code{((x) =$>$ x == \NULL? \NULL : x.v-{}-)($e_1$)}
-unless $e_1$ is a type literal, in which case it is equivalent to \code{$e_1.v$-{}-}
-.
 
 \LMHash{}
-The static type of such an expression is the static type of $e_1.v$.
+Evaluation of a postfix expression $e$ of the form \code{$e_1$[$e_2$]-{}-}
+proceeds as follows:
+
+\LMHash{}
+Evaluate $e_1$ to an object $u$ and $e_2$ to an object $v$.
+Let $a$ and $i$ be fresh variables bound to $u$ and $v$ respectively.
+Evaluate \code{$a$[$i$]} to an object $r$
+and let $y$ be a fresh variable bound to $r$.
+Evaluate \code{$a$[$i$] = $y$ - 1}.
+Then $e$ evaluates to $r$.
+
+\LMHash{}
+The static type of such an expression is the static type of \code{$e_1$[$e_2$]}.
+
+\LMHash{}
+Evaluation of a postfix expression $e$ of the form \code{$e_1$?.$v$++}
+where $e_1$ is not a type literal, proceeds as follows:
+
+\LMHash{}
+If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$v$++}.
+
+\LMHash{}
+Otherwise evaluate $e_1$ to an object $u$.
+if $u$ is the null value, $e$ evaluates to the null value.
+Otherwise let $x$ be a fresh variable bound to $u$.
+Evaluate \code{$x$.$v$++} to an object $o$.
+Then $e$ evaluates to $o$.
+
+\LMHash{}
+The static type of such an expression is the static type of \code{$e_1$.$v$}.
+
+\LMHash{}
+Evaluation of a postfix expression $e$ of the form \code{$e_1$?.$v$-{}-}
+where $e_1$ is not a type literal, proceeds as follows:
+
+If $e_1$ is a type literal, $e$ is equivalent to \code{$e_1$.$v$-{}-}.
+
+Otherwise evaluate $e_1$ to an object $u$.
+If $u$ is the null value, $e$ evalkuates to the null value.
+Otherwise let $x$ be a fresh variable bound to $u$.
+Evaluate \code{$x$.$v$-{}-} to an object $o$.
+Then $e$ evaluates to $o$.
+
+
+\LMHash{}
+The static type of such an expression is the static type of \code{$e_1$.$v$}.
 
 
 \subsection{ Assignable Expressions}
@@ -5216,7 +5391,6 @@ In all other cases,  a \code{CastError} is thrown.
 
 \LMHash{}
 The static type of a cast expression  \code{$e$ \AS{} $T$}  is $T$.
-
 
 \section{Statements}
 \LMLabel{statements}
@@ -5949,7 +6123,8 @@ Otherwise $m$ terminates.
 Otherwise, execution resumes at the end of the try statement.
 
 \LMHash{}
-Execution of an \ON{}-\CATCH{} clause \code{\ON{} $T$ \CATCH{} ($p_1$, $p_2$)} $s$ of a try statement $t$ proceeds as follows: The statement $s$ is executed in the dynamic scope of the exception handler defined by the finally clause of $t$. Then, the current exception and active stack trace both become undefined.
+Execution of an \ON{}-\CATCH{} clause \code{\ON{} $T$ \CATCH{} ($p_1$, $p_2$)} $s$ of a try statement $t$ proceeds as follows:
+The statement $s$ is executed in the dynamic scope of the exception handler defined by the finally clause of $t$. Then, the current exception and active stack trace both become undefined.
 
 \LMHash{}
 Execution of a \FINALLY{} clause \FINALLY{} $s$ of a try statement proceeds as follows:
