@@ -432,6 +432,24 @@ class C {
     expect(_getClassFieldType(result.unit, 'C', 'f'), 'int');
   }
 
+  test_getResult_inferTypes_instanceMethod() async {
+    _addTestFile(
+        r'''
+class A {
+  int m(double p) => 1;
+}
+class B extends A {
+  m(double p) => 2;
+}
+''',
+        priority: true);
+    await _waitForIdle();
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(_getClassMethodReturnType(result.unit, 'A', 'm'), 'int');
+    expect(_getClassMethodReturnType(result.unit, 'B', 'm'), 'int');
+  }
+
   test_getResult_mix_fileAndPackageUris() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
@@ -1031,6 +1049,29 @@ var A = B;
   String _getClassFieldType(
       CompilationUnit unit, String className, String fieldName) {
     return _getClassField(unit, className, fieldName).element.type.toString();
+  }
+
+  MethodDeclaration _getClassMethod(
+      CompilationUnit unit, String className, String methodName) {
+    ClassDeclaration classDeclaration = _getClass(unit, className);
+    for (ClassMember declaration in classDeclaration.members) {
+      if (declaration is MethodDeclaration &&
+          declaration.name.name == methodName) {
+        return declaration;
+      }
+    }
+    fail('Cannot find the method $methodName in the class $className in\n'
+        '$unit');
+    return null;
+  }
+
+  String _getClassMethodReturnType(
+      CompilationUnit unit, String className, String fieldName) {
+    return _getClassMethod(unit, className, fieldName)
+        .element
+        .type
+        .returnType
+        .toString();
   }
 
   ImportElement _getImportElement(CompilationUnit unit, int directiveIndex) {

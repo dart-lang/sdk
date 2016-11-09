@@ -9761,6 +9761,14 @@ class TypeResolverVisitor extends ScopedVisitor {
       AnalysisEngine.instance.logger.logError(buffer.toString(),
           new CaughtException(new AnalysisException(), null));
     }
+
+    // When the library is resynthesized, types of all of its elements are
+    // already set - statically or inferred. We don't want to overwrite them.
+    if (LibraryElementImpl.hasResolutionCapability(
+        definingLibrary, LibraryResolutionCapability.resolvedTypeNames)) {
+      return null;
+    }
+
     element.declaredReturnType = _computeReturnType(node.returnType);
     element.type = new FunctionTypeImpl(element);
     _inferSetterReturnType(element);
@@ -9777,6 +9785,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         }
       }
     }
+
     return null;
   }
 
@@ -9947,7 +9956,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     var variableList = node.parent as VariableDeclarationList;
     // When the library is resynthesized, the types of field elements are
     // already set - statically or inferred. We don't want to overwrite them.
-    // See also dartbug.com/27482 for separating static and inferred types.
     if (variableList.parent is FieldDeclaration &&
         LibraryElementImpl.hasResolutionCapability(
             definingLibrary, LibraryResolutionCapability.resolvedTypeNames)) {
