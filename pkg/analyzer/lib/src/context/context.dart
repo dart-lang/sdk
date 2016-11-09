@@ -722,6 +722,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheEntry entry = getCacheEntry(target);
     CacheState state = entry.getState(descriptor);
     if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
+      // Check the result provider.
+      bool success = aboutToComputeResult(entry, descriptor);
+      if (success) {
+        return entry.getValue(descriptor);
+      }
+      // Compute the result.
       driver.computeResult(target, descriptor);
       entry = getCacheEntry(target);
     }
