@@ -65,7 +65,7 @@ ObjectStore::ObjectStore()
       collection_library_(Library::null()),
       convert_library_(Library::null()),
       developer_library_(Library::null()),
-      internal_library_(Library::null()),
+      _internal_library_(Library::null()),
       isolate_library_(Library::null()),
       math_library_(Library::null()),
       mirrors_library_(Library::null()),
@@ -73,7 +73,7 @@ ObjectStore::ObjectStore()
       profiler_library_(Library::null()),
       root_library_(Library::null()),
       typed_data_library_(Library::null()),
-      vmservice_library_(Library::null()),
+      _vmservice_library_(Library::null()),
       libraries_(GrowableObjectArray::null()),
       libraries_map_(Array::null()),
       closure_functions_(GrowableObjectArray::null()),
@@ -237,7 +237,7 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!cls.IsNull());
   set_stream_iterator_class(cls);
 
-  const Library& internal_lib = Library::Handle(internal_library());
+  const Library& internal_lib = Library::Handle(_internal_library());
   cls = internal_lib.LookupClass(Symbols::Symbol());
   set_symbol_class(cls);
 

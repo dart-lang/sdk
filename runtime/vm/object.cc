@@ -1587,7 +1587,7 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
-  const Error& error = Error::Handle(Bootstrap::LoadandCompileScripts());
+  const Error& error = Error::Handle(Bootstrap::DoBootstrapping());
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -10635,7 +10635,7 @@ RawLibrary* Library::DeveloperLibrary() {
 
 
 RawLibrary* Library::InternalLibrary() {
-  return Isolate::Current()->object_store()->internal_library();
+  return Isolate::Current()->object_store()->_internal_library();
 }
 
 
@@ -10649,9 +10649,11 @@ RawLibrary* Library::MathLibrary() {
 }
 
 
+#if !defined(PRODUCT)
 RawLibrary* Library::MirrorsLibrary() {
   return Isolate::Current()->object_store()->mirrors_library();
 }
+#endif
 
 
 RawLibrary* Library::NativeWrappersLibrary() {
@@ -10670,7 +10672,7 @@ RawLibrary* Library::TypedDataLibrary() {
 
 
 RawLibrary* Library::VMServiceLibrary() {
-  return Isolate::Current()->object_store()->vmservice_library();
+  return Isolate::Current()->object_store()->_vmservice_library();
 }
 
 

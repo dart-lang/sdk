@@ -5795,6 +5795,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
     I->debugger()->NotifyDoneLoading();
   }
 
+#if !defined(PRODUCT)
   if (FLAG_enable_mirrors) {
     // Notify mirrors that MirrorSystem.libraries needs to be recomputed.
     const Library& libmirrors = Library::Handle(Z, Library::MirrorsLibrary());
@@ -5803,6 +5804,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
     ASSERT(!dirty_bit.IsNull() && dirty_bit.is_static());
     dirty_bit.SetStaticValue(Bool::True());
   }
+#endif
 
   if (complete_futures) {
     const Library& corelib = Library::Handle(Z, Library::CoreLibrary());

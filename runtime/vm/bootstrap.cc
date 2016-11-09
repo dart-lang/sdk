@@ -16,16 +16,14 @@
 
 namespace dart {
 
-#define INIT_LIBRARY(index, name, source, patch)                               \
-  { index, "dart:" #name, source, "dart:" #name "-patch", patch }
 
-typedef struct {
-  ObjectStore::BootstrapLibraryId index_;
-  const char* uri_;
-  const char** source_paths_;
-  const char* patch_uri_;
-  const char** patch_paths_;
-} bootstrap_lib_props;
+struct BootstrapLibProps {
+  ObjectStore::BootstrapLibraryId index;
+  const char* uri;
+  const char** source_paths;
+  const char* patch_uri;
+  const char** patch_paths;
+};
 
 
 enum {
@@ -36,78 +34,36 @@ enum {
 };
 
 
-static bootstrap_lib_props bootstrap_libraries[] = {
-    INIT_LIBRARY(ObjectStore::kCore,
-                 core,
-                 Bootstrap::core_source_paths_,
-                 Bootstrap::core_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kAsync,
-                 async,
-                 Bootstrap::async_source_paths_,
-                 Bootstrap::async_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kConvert,
-                 convert,
-                 Bootstrap::convert_source_paths_,
-                 Bootstrap::convert_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kCollection,
-                 collection,
-                 Bootstrap::collection_source_paths_,
-                 Bootstrap::collection_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kDeveloper,
-                 developer,
-                 Bootstrap::developer_source_paths_,
-                 Bootstrap::developer_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kInternal,
-                 _internal,
-                 Bootstrap::_internal_source_paths_,
-                 Bootstrap::_internal_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kIsolate,
-                 isolate,
-                 Bootstrap::isolate_source_paths_,
-                 Bootstrap::isolate_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kMath,
-                 math,
-                 Bootstrap::math_source_paths_,
-                 Bootstrap::math_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kMirrors,
-                 mirrors,
-                 Bootstrap::mirrors_source_paths_,
-                 Bootstrap::mirrors_patch_paths_),
-    INIT_LIBRARY(ObjectStore::kProfiler,
-                 profiler,
-                 Bootstrap::profiler_source_paths_,
-                 NULL),
-    INIT_LIBRARY(ObjectStore::kTypedData,
-                 typed_data,
-                 Bootstrap::typed_data_source_paths_,
-                 NULL),
-    INIT_LIBRARY(ObjectStore::kVMService,
-                 _vmservice,
-                 Bootstrap::_vmservice_source_paths_,
-                 Bootstrap::_vmservice_patch_paths_),
-    {ObjectStore::kNone, NULL, NULL, NULL, NULL}};
+const char** Bootstrap::profiler_patch_paths_ = NULL;
+const char** Bootstrap::typed_data_patch_paths_ = NULL;
 
 
-static RawString* GetLibrarySource(const Library& lib,
-                                   const String& uri,
-                                   bool patch) {
-  // First check if this is a valid bootstrap library and find it's index
-  // in the 'bootstrap_libraries' table above.
-  intptr_t index;
-  const String& lib_uri = String::Handle(lib.url());
-  for (index = 0; bootstrap_libraries[index].index_ != ObjectStore::kNone;
-       ++index) {
-    if (lib_uri.Equals(bootstrap_libraries[index].uri_)) {
-      break;
-    }
-  }
-  if (bootstrap_libraries[index].index_ == ObjectStore::kNone) {
-    return String::null();  // Library is not a bootstrap library.
-  }
+#define MAKE_PROPERTIES(CamelName, name)                                       \
+  { ObjectStore::k##CamelName,                                                 \
+    "dart:" #name,                                                             \
+    Bootstrap::name##_source_paths_,                                           \
+    "dart:" #name "-patch",                                                    \
+    Bootstrap::name##_patch_paths_                                             \
+  },
+
+static const BootstrapLibProps bootstrap_libraries[] = {
+  FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_PROPERTIES)
+};
+
+#undef MAKE_PROPERTIES
+
+
+static const intptr_t kBootstrapLibraryCount = ARRAY_SIZE(bootstrap_libraries);
+
+
+static RawString* GetLibrarySourceByIndex(intptr_t index,
+                                          const String& uri,
+                                          bool patch) {
+  ASSERT(index >= 0 && index < kBootstrapLibraryCount);
 
   // Try to read the source using the path specified for the uri.
-  const char** source_paths = patch ? bootstrap_libraries[index].patch_paths_
-                                    : bootstrap_libraries[index].source_paths_;
+  const char** source_paths = patch ? bootstrap_libraries[index].patch_paths
+                                    : bootstrap_libraries[index].source_paths;
   if (source_paths == NULL) {
     return String::null();  // No path mapping information exists for library.
   }
@@ -149,6 +105,26 @@ static RawString* GetLibrarySource(const Library& lib,
   ASSERT(utf8_array != NULL);
   ASSERT(file_length >= 0);
   return String::FromUTF8(utf8_array, file_length);
+}
+
+
+static RawString* GetLibrarySource(const Library& lib,
+                                   const String& uri,
+                                   bool patch) {
+  // First check if this is a valid bootstrap library and find its index in
+  // the 'bootstrap_libraries' table above.
+  intptr_t index;
+  const String& lib_uri = String::Handle(lib.url());
+  for (index = 0; index < kBootstrapLibraryCount; ++index) {
+    if (lib_uri.Equals(bootstrap_libraries[index].uri)) {
+      break;
+    }
+  }
+  if (index == kBootstrapLibraryCount) {
+    return String::null();  // The library is not a bootstrap library.
+  }
+
+  return GetLibrarySourceByIndex(index, uri, patch);
 }
 
 
@@ -235,10 +211,15 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
 }
 
 
-static RawError* LoadPatchFiles(Zone* zone,
+static RawError* LoadPatchFiles(Thread* thread,
                                 const Library& lib,
-                                const String& patch_uri,
-                                const char** patch_files) {
+                                intptr_t index) {
+  const char** patch_files = bootstrap_libraries[index].patch_paths;
+  if (patch_files == NULL) return Error::null();
+
+  Zone* zone = thread->zone();
+  String& patch_uri = String::Handle(
+      zone, Symbols::New(thread, bootstrap_libraries[index].patch_uri));
   String& patch_file_uri = String::Handle(zone);
   String& source = String::Handle(zone);
   Script& script = Script::Handle(zone);
@@ -248,7 +229,7 @@ static RawError* LoadPatchFiles(Zone* zone,
   strings.SetAt(1, Symbols::Slash());
   for (intptr_t j = 0; patch_files[j] != NULL; j += kPathsEntryLength) {
     patch_file_uri = String::New(patch_files[j + kPathsUriOffset]);
-    source = GetLibrarySource(lib, patch_file_uri, true);
+    source = GetLibrarySourceByIndex(index, patch_file_uri, true);
     if (source.IsNull()) {
       const String& message = String::Handle(
           String::NewFormatted("Unable to find dart patch source for %s",
@@ -268,55 +249,28 @@ static RawError* LoadPatchFiles(Zone* zone,
 }
 
 
-RawError* Bootstrap::LoadandCompileScripts() {
-  Thread* thread = Thread::Current();
+static RawError* BootstrapFromSource(Thread* thread) {
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
   String& uri = String::Handle(zone);
-  String& patch_uri = String::Handle(zone);
   String& source = String::Handle(zone);
   Script& script = Script::Handle(zone);
   Library& lib = Library::Handle(zone);
   Error& error = Error::Handle(zone);
-  Dart_LibraryTagHandler saved_tag_handler = isolate->library_tag_handler();
 
   // Set the library tag handler for the isolate to the bootstrap
   // library tag handler so that we can load all the bootstrap libraries.
+  Dart_LibraryTagHandler saved_tag_handler = isolate->library_tag_handler();
   isolate->set_library_tag_handler(BootstrapLibraryTagHandler);
 
-  HANDLESCOPE(thread);
-
-  // Create library objects for all the bootstrap libraries.
-  for (intptr_t i = 0; bootstrap_libraries[i].index_ != ObjectStore::kNone;
-       ++i) {
-#ifdef PRODUCT
-    if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
-      continue;
-    }
-#endif  // !PRODUCT
-    uri = Symbols::New(thread, bootstrap_libraries[i].uri_);
-    lib = Library::LookupLibrary(thread, uri);
-    if (lib.IsNull()) {
-      lib = Library::NewLibraryHelper(uri, false);
-      lib.SetLoadRequested();
-      lib.Register(thread);
-    }
-    isolate->object_store()->set_bootstrap_library(
-        bootstrap_libraries[i].index_, lib);
-  }
-
   // Load, compile and patch bootstrap libraries.
-  for (intptr_t i = 0; bootstrap_libraries[i].index_ != ObjectStore::kNone;
-       ++i) {
-#ifdef PRODUCT
-    if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
-      continue;
-    }
-#endif  // PRODUCT
-    uri = Symbols::New(thread, bootstrap_libraries[i].uri_);
-    lib = Library::LookupLibrary(thread, uri);
+  for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
+    ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
+    uri = Symbols::New(thread, bootstrap_libraries[i].uri);
+    lib = isolate->object_store()->bootstrap_library(id);
     ASSERT(!lib.IsNull());
-    source = GetLibrarySource(lib, uri, false);
+    ASSERT(lib.raw() == Library::LookupLibrary(thread, uri));
+    source = GetLibrarySourceByIndex(i, uri, false);
     if (source.IsNull()) {
       const String& message = String::Handle(String::NewFormatted(
           "Unable to find dart source for %s", uri.ToCString()));
@@ -329,17 +283,14 @@ RawError* Bootstrap::LoadandCompileScripts() {
       break;
     }
     // If a patch exists, load and patch the script.
-    if (bootstrap_libraries[i].patch_paths_ != NULL) {
-      patch_uri = Symbols::New(thread, bootstrap_libraries[i].patch_uri_);
-      error = LoadPatchFiles(zone, lib, patch_uri,
-                             bootstrap_libraries[i].patch_paths_);
-      if (!error.IsNull()) {
-        break;
-      }
+    error = LoadPatchFiles(thread, lib, i);
+    if (!error.IsNull()) {
+      break;
     }
   }
+
   if (error.IsNull()) {
-    SetupNativeResolver();
+    Bootstrap::SetupNativeResolver();
     ClassFinalizer::ProcessPendingClasses();
 
     // Eagerly compile the _Closure class as it is the class of all closure
@@ -356,6 +307,33 @@ RawError* Bootstrap::LoadandCompileScripts() {
   isolate->set_library_tag_handler(saved_tag_handler);
 
   return error.raw();
+}
+
+
+RawError* Bootstrap::DoBootstrapping() {
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  String& uri = String::Handle(zone);
+  Library& lib = Library::Handle(zone);
+
+  HANDLESCOPE(thread);
+
+  // Ensure there are library objects for all the bootstrap libraries.
+  for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
+    ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
+    uri = Symbols::New(thread, bootstrap_libraries[i].uri);
+    lib = isolate->object_store()->bootstrap_library(id);
+    ASSERT(lib.raw() == Library::LookupLibrary(thread, uri));
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(uri, false);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+      isolate->object_store()->set_bootstrap_library(id, lib);
+    }
+  }
+
+  return BootstrapFromSource(thread);
 }
 
 }  // namespace dart

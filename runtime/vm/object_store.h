@@ -13,6 +13,32 @@ namespace dart {
 class Isolate;
 class ObjectPointerVisitor;
 
+// A list of the bootstrap libraries including CamelName and name.
+//
+// These are listed in the order that they are compiled (see vm/bootstrap.cc).
+#define FOR_EACH_PRODUCT_LIBRARY(M)                                            \
+  M(Core, core)                                                                \
+  M(Async, async)                                                              \
+  M(Collection, collection)                                                    \
+  M(Convert, convert)                                                          \
+  M(Developer, developer)                                                      \
+  M(Internal, _internal)                                                       \
+  M(Isolate, isolate)                                                          \
+  M(Math, math)                                                                \
+  M(Profiler, profiler)                                                        \
+  M(TypedData, typed_data)                                                     \
+  M(VMService, _vmservice)
+
+#ifdef PRODUCT
+#define FOR_EACH_BOOTSTRAP_LIBRARY(M) FOR_EACH_PRODUCT_LIBRARY(M)
+
+#else
+#define FOR_EACH_BOOTSTRAP_LIBRARY(M)                                          \
+  FOR_EACH_PRODUCT_LIBRARY(M)                                                  \
+  M(Mirrors, mirrors)
+
+#endif
+
 // The object store is a per isolate instance which stores references to
 // objects used by the VM.
 // TODO(iposva): Move the actual store into the object heap for quick handling
@@ -20,19 +46,10 @@ class ObjectPointerVisitor;
 class ObjectStore {
  public:
   enum BootstrapLibraryId {
-    kNone = 0,
-    kAsync,
-    kCore,
-    kCollection,
-    kConvert,
-    kDeveloper,
-    kInternal,
-    kIsolate,
-    kMath,
-    kMirrors,
-    kProfiler,
-    kTypedData,
-    kVMService,
+#define MAKE_ID(Name, _) k##Name,
+
+    FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_ID)
+#undef MAKE_ID
   };
 
   ~ObjectStore();
@@ -238,58 +255,36 @@ class ObjectStore {
     canonical_type_arguments_ = value.raw();
   }
 
-  RawLibrary* async_library() const { return async_library_; }
-  RawLibrary* builtin_library() const { return builtin_library_; }
-  RawLibrary* core_library() const { return core_library_; }
-  RawLibrary* collection_library() const { return collection_library_; }
-  RawLibrary* convert_library() const { return convert_library_; }
-  RawLibrary* developer_library() const { return developer_library_; }
-  RawLibrary* internal_library() const { return internal_library_; }
-  RawLibrary* isolate_library() const { return isolate_library_; }
-  RawLibrary* math_library() const { return math_library_; }
-  RawLibrary* mirrors_library() const { return mirrors_library_; }
-  RawLibrary* profiler_library() const { return profiler_library_; }
-  RawLibrary* typed_data_library() const { return typed_data_library_; }
-  RawLibrary* vmservice_library() const { return vmservice_library_; }
+#define MAKE_GETTER(_, name)                                                   \
+  RawLibrary* name##_library() const { return name##_library_; }
+
+  FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_GETTER)
+#undef MAKE_GETTER
+
+  RawLibrary* bootstrap_library(BootstrapLibraryId index) {
+    switch (index) {
+#define MAKE_CASE(CamelName, name)                                             \
+      case k##CamelName:                                                       \
+          return name##_library_;
+
+      FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_CASE)
+#undef MAKE_CASE
+
+      default:
+        UNREACHABLE();
+        return Library::null();
+    }
+  }
 
   void set_bootstrap_library(BootstrapLibraryId index, const Library& value) {
     switch (index) {
-      case kAsync:
-        async_library_ = value.raw();
-        break;
-      case kCore:
-        core_library_ = value.raw();
-        break;
-      case kCollection:
-        collection_library_ = value.raw();
-        break;
-      case kConvert:
-        convert_library_ = value.raw();
-        break;
-      case kDeveloper:
-        developer_library_ = value.raw();
-        break;
-      case kInternal:
-        internal_library_ = value.raw();
-        break;
-      case kIsolate:
-        isolate_library_ = value.raw();
-        break;
-      case kMath:
-        math_library_ = value.raw();
-        break;
-      case kMirrors:
-        mirrors_library_ = value.raw();
-        break;
-      case kProfiler:
-        profiler_library_ = value.raw();
-        break;
-      case kTypedData:
-        typed_data_library_ = value.raw();
-        break;
-      case kVMService:
-        vmservice_library_ = value.raw();
-        break;
+#define MAKE_CASE(CamelName, name)                                             \
+      case k##CamelName:                                                       \
+          name##_library_ = value.raw();                                       \
+          break;
+
+      FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_CASE)
+#undef MAKE_CASE
       default:
         UNREACHABLE();
     }
@@ -517,7 +512,7 @@ class ObjectStore {
   V(RawLibrary*, collection_library_)                                          \
   V(RawLibrary*, convert_library_)                                             \
   V(RawLibrary*, developer_library_)                                           \
-  V(RawLibrary*, internal_library_)                                            \
+  V(RawLibrary*, _internal_library_)                                           \
   V(RawLibrary*, isolate_library_)                                             \
   V(RawLibrary*, math_library_)                                                \
   V(RawLibrary*, mirrors_library_)                                             \
@@ -525,7 +520,7 @@ class ObjectStore {
   V(RawLibrary*, profiler_library_)                                            \
   V(RawLibrary*, root_library_)                                                \
   V(RawLibrary*, typed_data_library_)                                          \
-  V(RawLibrary*, vmservice_library_)                                           \
+  V(RawLibrary*, _vmservice_library_)                                          \
   V(RawGrowableObjectArray*, libraries_)                                       \
   V(RawArray*, libraries_map_)                                                 \
   V(RawGrowableObjectArray*, closure_functions_)                               \
