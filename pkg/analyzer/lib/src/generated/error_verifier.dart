@@ -924,6 +924,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitIsExpression(IsExpression node) {
     _checkForTypeAnnotationDeferredClass(node.type);
+    _checkForTypeAnnotationGenericFunctionParameter(node.type);
     return super.visitIsExpression(node);
   }
 
@@ -2610,8 +2611,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // terminated with 'throw' expression
       if (statement is ExpressionStatement) {
         Expression expression = statement.expression;
-        if (expression is ThrowExpression ||
-            expression is RethrowExpression) {
+        if (expression is ThrowExpression || expression is RethrowExpression) {
           return;
         }
       }
@@ -5686,6 +5686,29 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (name != null && name.isDeferred) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.TYPE_ANNOTATION_DEFERRED_CLASS, name, [name.name]);
+    }
+  }
+
+  /**
+   * Verify that the given type [name] is not a type parameter in a generic
+   * method.
+   *
+   * See [StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER].
+   */
+  void _checkForTypeAnnotationGenericFunctionParameter(TypeName typeName) {
+    if (typeName == null) {
+      return;
+    }
+    Identifier name = typeName.name;
+    if (name is SimpleIdentifier) {
+      Element element = name.staticElement;
+      if (element is TypeParameterElement &&
+          element.enclosingElement is ExecutableElement) {
+        _errorReporter.reportErrorForNode(
+            StaticWarningCode.TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER,
+            name,
+            [name.name]);
+      }
     }
   }
 
