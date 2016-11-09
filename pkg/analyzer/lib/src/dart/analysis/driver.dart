@@ -157,14 +157,26 @@ class AnalysisDriver {
   final _filesToAnalyze = new LinkedHashSet<String>();
 
   /**
-   * Mapping from library URIs to the dependency signature of the library.
+   * The mapping from the files for which analysis was requested using
+   * [getResult], and which were found to be parts without known libraries,
+   * to the [Completer]s to report the result.
    */
-  final _dependencySignatureMap = <Uri, String>{};
+  final _requestedParts = <String, List<Completer<AnalysisResult>>>{};
+
+  /**
+   * The set of part files that are currently scheduled for analysis.
+   */
+  final _partsToAnalyze = new LinkedHashSet<String>();
 
   /**
    * The controller for the [results] stream.
    */
   final _resultController = new StreamController<AnalysisResult>();
+
+  /**
+   * Mapping from library URIs to the dependency signature of the library.
+   */
+  final _dependencySignatureMap = <Uri, String>{};
 
   /**
    * The controller for the [status] stream.
@@ -261,6 +273,9 @@ class AnalysisDriver {
       return AnalysisDriverPriority.general;
     }
     if (_changedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.general;
+    }
+    if (_requestedParts.isNotEmpty || _partsToAnalyze.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
     _transitionToIdle();
@@ -414,19 +429,45 @@ class AnalysisDriver {
    *
    * The result will have the fully resolved unit and will always be newly
    * compute only if [withUnit] is `true`.
+   *
+   * Return `null` if the file is a part of an unknown library, so cannot be
+   * analyzed yet. But [asIsIfPartWithoutLibrary] is `true`, then the file is
+   * analyzed anyway, even without a library.
    */
-  AnalysisResult _computeAnalysisResult(String path, {bool withUnit: false}) {
+  AnalysisResult _computeAnalysisResult(String path,
+      {bool withUnit: false, bool asIsIfPartWithoutLibrary: false}) {
+    /**
+     * If the [file] is a library, return the [file] itself.
+     * If the [file] is a part, return a library it is known to be a part of.
+     * If there is no such library, return `null`.
+     */
+    FileState getLibraryFile(FileState file) {
+      FileState libraryFile = file.isPart ? file.library : file;
+      if (libraryFile == null && asIsIfPartWithoutLibrary) {
+        libraryFile = file;
+      }
+      return libraryFile;
+    }
+
     // If we don't need the fully resolved unit, check for the cached result.
     if (!withUnit) {
       FileState file = _fsState.getFileForPath(path);
+
+      // Prepare the library file - the file itself, or the known library.
+      FileState libraryFile = getLibraryFile(file);
+      if (libraryFile == null) {
+        return null;
+      }
+
       // Prepare the key for the cached result.
-      String key = _getResolvedUnitKey(file);
+      String key = _getResolvedUnitKey(libraryFile, file);
       if (key == null) {
         _logger.run('Compute the dependency hash for $path', () {
-          _createLibraryContext(file);
-          key = _getResolvedUnitKey(file);
+          _createLibraryContext(libraryFile);
+          key = _getResolvedUnitKey(libraryFile, file);
         });
       }
+
       // Check for the cached result.
       AnalysisResult result = _getCachedAnalysisResult(file, key);
       if (result != null) {
@@ -436,15 +477,22 @@ class AnalysisDriver {
 
     // We need the fully resolved unit, or the result is not cached.
     return _logger.run('Compute analysis result for $path', () {
-      // Still no result, compute and store it.
       FileState file = _verifyApiSignature(path);
-      _LibraryContext libraryContext = _createLibraryContext(file);
+
+      // Prepare the library file - the file itself, or the known library.
+      FileState libraryFile = getLibraryFile(file);
+      if (libraryFile == null) {
+        return null;
+      }
+
+      _LibraryContext libraryContext = _createLibraryContext(libraryFile);
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
         analysisContext.setContents(file.source, file.content);
         // TODO(scheglov) Add support for parts.
         CompilationUnit resolvedUnit = withUnit
-            ? analysisContext.resolveCompilationUnit2(file.source, file.source)
+            ? analysisContext.resolveCompilationUnit2(
+                file.source, libraryFile.source)
             : null;
         List<AnalysisError> errors = analysisContext.computeErrors(file.source);
 
@@ -460,7 +508,7 @@ class AnalysisDriver {
                           correction: error.correction))
                       .toList())
               .toBuffer();
-          String key = _getResolvedUnitKey(file);
+          String key = _getResolvedUnitKey(libraryFile, file);
           _byteStore.put(key, bytes);
         }
 
@@ -624,11 +672,12 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the key to store fully resolved results for the [file] into the
-   * cache. Return `null` if the dependency signature is not known yet.
+   * Return the key to store fully resolved results for the [file] in the
+   * [library] into the cache. Return `null` if the dependency signature is
+   * not known yet.
    */
-  String _getResolvedUnitKey(FileState file) {
-    String dependencyHash = _dependencySignatureMap[file.uri];
+  String _getResolvedUnitKey(FileState library, FileState file) {
+    String dependencyHash = _dependencySignatureMap[library.uri];
     if (dependencyHash != null) {
       ApiSignature signature = new ApiSignature();
       signature.addUint32List(_salt);
@@ -654,6 +703,13 @@ class AnalysisDriver {
     if (_requestedFiles.isNotEmpty) {
       String path = _requestedFiles.keys.first;
       AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
+      // If a part without a library, delay its analysis.
+      if (result == null) {
+        _requestedParts
+            .putIfAbsent(path, () => [])
+            .addAll(_requestedFiles.remove(path));
+        return;
+      }
       // Notify the completers.
       _requestedFiles.remove(path).forEach((completer) {
         completer.complete(result);
@@ -669,7 +725,11 @@ class AnalysisDriver {
       for (String path in _priorityFiles) {
         if (_filesToAnalyze.remove(path)) {
           AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
-          _resultController.add(result);
+          if (result == null) {
+            _partsToAnalyze.add(path);
+          } else {
+            _resultController.add(result);
+          }
           return;
         }
       }
@@ -679,6 +739,35 @@ class AnalysisDriver {
     if (_filesToAnalyze.isNotEmpty) {
       String path = _removeFirst(_filesToAnalyze);
       AnalysisResult result = _computeAnalysisResult(path, withUnit: false);
+      if (result == null) {
+        _partsToAnalyze.add(path);
+      } else {
+        _resultController.add(result);
+      }
+      return;
+    }
+
+    // Analyze a requested part file.
+    if (_requestedParts.isNotEmpty) {
+      String path = _requestedParts.keys.first;
+      AnalysisResult result = _computeAnalysisResult(path,
+          withUnit: true, asIsIfPartWithoutLibrary: true);
+      // Notify the completers.
+      _requestedParts.remove(path).forEach((completer) {
+        completer.complete(result);
+      });
+      // Remove from to be analyzed and produce it now.
+      _filesToAnalyze.remove(path);
+      _resultController.add(result);
+      return;
+    }
+
+    // Analyze a general part.
+    if (_partsToAnalyze.isNotEmpty) {
+      String path = _removeFirst(_partsToAnalyze);
+      AnalysisResult result = _computeAnalysisResult(path,
+          withUnit: _priorityFiles.contains(path),
+          asIsIfPartWithoutLibrary: true);
       _resultController.add(result);
       return;
     }

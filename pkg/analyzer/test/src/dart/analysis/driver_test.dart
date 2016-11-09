@@ -547,7 +547,7 @@ var B1 = A1;
       expect(_getTopLevelVarType(result.unit, 'A2'), 'int');
     }
 
-    // Update "a" that that "A1" is now "double".
+    // Update "a" so that "A1" is now "double".
     // Get result for "a".
     //
     // Even though we have not notified the driver about the change,
@@ -609,6 +609,257 @@ var A2 = B1;
     driver.removeFile(a);
     expect(driver.isAddedFile(a), isFalse);
     expect(driver.isAddedFile(b), isFalse);
+  }
+
+  test_part_getResult_afterLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    // Process a.dart so that we know that it's a library for c.dart later.
+    {
+      AnalysisResult result = await driver.getResult(a);
+      expect(result.errors, isEmpty);
+      expect(_getTopLevelVarType(result.unit, 'c'), 'C');
+    }
+
+    // Now c.dart can be resolved without errors in the context of a.dart
+    {
+      AnalysisResult result = await driver.getResult(c);
+      expect(result.errors, isEmpty);
+      expect(_getTopLevelVarType(result.unit, 'a'), 'A');
+      expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+    }
+  }
+
+  test_part_getResult_beforeLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    // b.dart will be analyzed after a.dart is analyzed.
+    // So, A and B references are resolved.
+    AnalysisResult result = await driver.getResult(c);
+    expect(result.errors, isEmpty);
+    expect(_getTopLevelVarType(result.unit, 'a'), 'A');
+    expect(_getTopLevelVarType(result.unit, 'b'), 'B');
+  }
+
+  test_part_getResult_noLibrary() async {
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(c);
+
+    // There is no library which c.dart is a part of, so it has unresolved
+    // A and B references.
+    AnalysisResult result = await driver.getResult(c);
+    expect(result.errors, isNotEmpty);
+    expect(result.unit, isNotNull);
+  }
+
+  test_part_results_afterLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    // The order is important for creating the test case.
+    driver.addFile(a);
+    driver.addFile(b);
+    driver.addFile(c);
+
+    {
+      await _waitForIdle();
+
+      // c.dart was added after a.dart, so it is analyzed after a.dart,
+      // so we know that a.dart is the library of c.dart, so no errors.
+      AnalysisResult result = allResults.lastWhere((r) => r.path == c);
+      expect(result.errors, isEmpty);
+      expect(result.unit, isNull);
+    }
+
+    // Update a.dart so that c.dart is not a part.
+    {
+      provider.updateFile(a, '// does not use c.dart anymore');
+      driver.changeFile(a);
+      await _waitForIdle();
+
+      // Now c.dart does not have a library context, so A and B cannot be
+      // resolved, so there are errors.
+      AnalysisResult result = allResults.lastWhere((r) => r.path == c);
+      expect(result.errors, isNotEmpty);
+      expect(result.unit, isNull);
+    }
+  }
+
+  test_part_results_beforeLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    // The order is important for creating the test case.
+    driver.addFile(c);
+    driver.addFile(a);
+    driver.addFile(b);
+
+    await _waitForIdle();
+
+    // c.dart was added before a.dart, so we attempt to analyze it before
+    // a.dart, but we cannot find the library for it, so we delay analysis
+    // until all other files are analyzed, including a.dart, after which we
+    // analyze the delayed parts.
+    AnalysisResult result = allResults.lastWhere((r) => r.path == c);
+    expect(result.errors, isEmpty);
+    expect(result.unit, isNull);
+  }
+
+  test_part_results_noLibrary() async {
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    driver.addFile(c);
+
+    await _waitForIdle();
+
+    // There is no library which c.dart is a part of, so it has unresolved
+    // A and B references.
+    AnalysisResult result = allResults.lastWhere((r) => r.path == c);
+    expect(result.errors, isNotEmpty);
+    expect(result.unit, isNull);
+  }
+
+  test_part_results_priority_beforeLibrary() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/lib/c.dart');
+    provider.newFile(
+        a,
+        r'''
+library a;
+import 'b.dart';
+part 'c.dart';
+class A {}
+var c = new C();
+''');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(
+        c,
+        r'''
+part of a;
+class C {}
+var a = new A();
+var b = new B();
+''');
+
+    // The order is important for creating the test case.
+    driver.priorityFiles = [c];
+    driver.addFile(c);
+    driver.addFile(a);
+    driver.addFile(b);
+
+    await _waitForIdle();
+
+    // c.dart was added before a.dart, so we attempt to analyze it before
+    // a.dart, but we cannot find the library for it, so we delay analysis
+    // until all other files are analyzed, including a.dart, after which we
+    // analyze the delayed parts.
+    AnalysisResult result = allResults.lastWhere((r) => r.path == c);
+    expect(result.errors, isEmpty);
+    expect(result.unit, isNotNull);
   }
 
   test_removeFile_changeFile_implicitlyAnalyzed() async {

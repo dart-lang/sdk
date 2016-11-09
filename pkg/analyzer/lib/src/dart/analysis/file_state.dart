@@ -128,6 +128,25 @@ class FileState {
   List<FileState> get importedFiles => _importedFiles;
 
   /**
+   * Return `true` if the file has a `part of` directive, so is probably a part.
+   */
+  bool get isPart => _unlinked.isPartOf;
+
+  /**
+   * If the file [isPart], return a currently know library the file is a part
+   * of. Return `null` if a library is not known, for example because we have
+   * not processed a library file yet.
+   */
+  FileState get library {
+    List<FileState> libraries = _fsState._partToLibraries[this];
+    if (libraries == null || libraries.isEmpty) {
+      return null;
+    } else {
+      return libraries.first;
+    }
+  }
+
+  /**
    * Return information about line in the file.
    */
   LineInfo get lineInfo => _lineInfo;
@@ -226,6 +245,13 @@ class FileState {
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
 
+    // This file is potentially not a library for its previous parts anymore.
+    if (_partedFiles != null) {
+      for (FileState part in _partedFiles) {
+        _fsState._partToLibraries[part]?.remove(this);
+      }
+    }
+
     // Build the graph.
     _importedFiles = <FileState>[];
     _exportedFiles = <FileState>[];
@@ -255,6 +281,10 @@ class FileState {
         FileState file = _fileForRelativeUri(uri);
         if (file != null) {
           _partedFiles.add(file);
+          // TODO(scheglov) Sort for stable results?
+          _fsState._partToLibraries
+              .putIfAbsent(file, () => <FileState>[])
+              .add(this);
         }
       }
     }
@@ -332,6 +362,11 @@ class FileSystemState {
    * Mapping from a path to the corresponding canonical [FileState].
    */
   final Map<String, FileState> _pathToCanonicalFile = {};
+
+  /**
+   * Mapping from a part to the libraries it is a part of.
+   */
+  final Map<FileState, List<FileState>> _partToLibraries = {};
 
   FileSystemState(
       this._logger,
