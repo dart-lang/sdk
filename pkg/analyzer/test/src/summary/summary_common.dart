@@ -849,6 +849,109 @@ abstract class SummaryTest {
     expect(signature3, isNot(signature1));
   }
 
+  test_apiSignature_excludeBody_constructor() {
+    List<int> signature1;
+    List<int> signature2;
+    List<int> signature3;
+    {
+      serializeLibraryText(r'''
+class A {
+  A() {
+  }
+}
+''');
+      signature1 = unlinkedUnits[0].apiSignature;
+    }
+    {
+      serializeLibraryText(r'''
+class A {
+  A() {
+    int v1;
+    f() {
+      double v2;
+    }
+  }
+}
+''');
+      signature2 = unlinkedUnits[0].apiSignature;
+    }
+    {
+      serializeLibraryText(r'''
+class A {
+  A(int p) {
+  }
+}
+''');
+    }
+    expect(signature2, signature1);
+    expect(signature3, isNot(signature1));
+  }
+
+  test_apiSignature_excludeBody_method() {
+    List<int> signature1;
+    List<int> signature2;
+    List<int> signature3;
+    {
+      serializeLibraryText(r'''
+class A {
+  m() {
+  }
+}
+''');
+      signature1 = unlinkedUnits[0].apiSignature;
+    }
+    {
+      serializeLibraryText(r'''
+class A {
+  m() {
+    int v1;
+    f() {
+      double v2;
+    }
+  }
+}
+''');
+      signature2 = unlinkedUnits[0].apiSignature;
+    }
+    {
+      serializeLibraryText(r'''
+class A {
+  m(p) {
+  }
+}
+''');
+    }
+    expect(signature2, signature1);
+    expect(signature3, isNot(signature1));
+  }
+
+  test_apiSignature_excludeBody_topLevelFunction() {
+    List<int> signature1;
+    List<int> signature2;
+    List<int> signature3;
+    {
+      serializeLibraryText('main() {}');
+      signature1 = unlinkedUnits[0].apiSignature;
+    }
+    {
+      serializeLibraryText(r'''
+main() {
+  int v1 = 1;
+  f() {
+    int v2 = 2;
+  }
+}
+''');
+      signature2 = unlinkedUnits[0].apiSignature;
+    }
+    {
+      serializeLibraryText('main(p) {}');
+      signature3 = unlinkedUnits[0].apiSignature;
+    }
+    expect(signature2, signature1);
+    expect(signature3, isNot(signature1));
+  }
+
   test_bottom_reference_shared() {
     if (skipFullyLinkedData) {
       return;
@@ -1353,21 +1456,22 @@ class E {}
   }
 
   test_closure_executable_with_bottom_return_type() {
-    UnlinkedExecutable executable =
-        serializeExecutableText('f() { print((() => null)()); }');
-    expect(executable.localFunctions, hasLength(1));
-    expect(executable.localFunctions[0].returnType, isNull);
+    UnlinkedVariable variable = serializeVariableText('var v = (() => null);');
+    UnlinkedExecutable closure;
+    {
+      UnlinkedExecutable executable = variable.initializer;
+      expect(executable.localFunctions, hasLength(1));
+      expect(executable.localFunctions[0].returnType, isNull);
+      closure = executable.localFunctions[0];
+    }
     if (strongMode) {
       // Strong mode infers a type for the closure of `() => dynamic`, so the
       // inferred return type slot should be empty.
-      expect(
-          getTypeRefForSlot(
-              executable.localFunctions[0].inferredReturnTypeSlot),
-          isNull);
+      expect(getTypeRefForSlot(closure.inferredReturnTypeSlot), isNull);
     } else {
       // Spec mode infers a type for the closure of `() => Bottom`.
-      checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
-          null, null, '*bottom*',
+      checkInferredTypeSlot(
+          closure.inferredReturnTypeSlot, null, null, '*bottom*',
           onlyInStrongMode: false);
     }
   }
@@ -1376,8 +1480,12 @@ class E {}
     addNamedSource('/a.dart', 'class C { D d; } class D {}');
     // The closure has type `() => D`; `D` is defined in a library that is
     // imported.
-    UnlinkedExecutable executable = serializeExecutableText(
-        'import "a.dart"; f() { print((() => new C().d)()); }');
+    UnlinkedExecutable executable = serializeVariableText(r'''
+import "a.dart";
+var v = (() {
+  print((() => new C().d)());
+});
+''').initializer.localFunctions[0];
     expect(executable.localFunctions, hasLength(1));
     expect(executable.localFunctions[0].returnType, isNull);
     checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
@@ -1420,8 +1528,12 @@ f() {
     addNamedSource('/b.dart', 'class D {}');
     // The closure has type `() => D`; `D` is defined in a library that is not
     // imported.
-    UnlinkedExecutable executable = serializeExecutableText(
-        'import "a.dart"; f() { print((() => new C().d)()); }');
+    UnlinkedExecutable executable = serializeVariableText(r'''
+import "a.dart";
+var v = (() {
+  print((() => new C().d)());
+});
+''').initializer.localFunctions[0];
     expect(executable.localFunctions, hasLength(1));
     expect(executable.localFunctions[0].returnType, isNull);
     checkInferredTypeSlot(executable.localFunctions[0].inferredReturnTypeSlot,
@@ -5046,24 +5158,16 @@ Stream f() async* {}
 
   test_executable_localFunctions() {
     String code = r'''
-f() { // 1
+f() {
   f1() {}
-  { // 2
+  {
     f2() {}
-  } // 3
-} // 4
+  }
+}
 ''';
     UnlinkedExecutable executable = serializeExecutableText(code);
     List<UnlinkedExecutable> functions = executable.localFunctions;
-    expect(functions, hasLength(2));
-    {
-      UnlinkedExecutable f1 = functions.singleWhere((v) => v.name == 'f1');
-      _assertExecutableVisible(code, f1, '{ // 1', '} // 4');
-    }
-    {
-      UnlinkedExecutable f2 = functions.singleWhere((v) => v.name == 'f2');
-      _assertExecutableVisible(code, f2, '{ // 2', '} // 3');
-    }
+    expect(functions, isEmpty);
   }
 
   test_executable_localLabels_inMethod() {
@@ -5078,19 +5182,7 @@ class C {
     UnlinkedExecutable executable =
         findExecutable('m', executables: serializeClassText(code).executables);
     List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, hasLength(2));
-    {
-      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
-      expect(aaa, isNotNull);
-      expect(aaa.isOnSwitchMember, isFalse);
-      expect(aaa.isOnSwitchStatement, isFalse);
-    }
-    {
-      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
-      expect(bbb, isNotNull);
-      expect(bbb.isOnSwitchMember, isFalse);
-      expect(bbb.isOnSwitchStatement, isFalse);
-    }
+    expect(labels, isEmpty);
   }
 
   test_executable_localLabels_inTopLevelFunction() {
@@ -5107,31 +5199,7 @@ f() {
 ''';
     UnlinkedExecutable executable = serializeExecutableText(code);
     List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, hasLength(4));
-    {
-      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
-      expect(aaa, isNotNull);
-      expect(aaa.isOnSwitchMember, isFalse);
-      expect(aaa.isOnSwitchStatement, isFalse);
-    }
-    {
-      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
-      expect(bbb, isNotNull);
-      expect(bbb.isOnSwitchMember, isFalse);
-      expect(bbb.isOnSwitchStatement, isTrue);
-    }
-    {
-      UnlinkedLabel ccc = labels.singleWhere((l) => l.name == 'ccc');
-      expect(ccc, isNotNull);
-      expect(ccc.isOnSwitchMember, isTrue);
-      expect(ccc.isOnSwitchStatement, isFalse);
-    }
-    {
-      UnlinkedLabel ccc = labels.singleWhere((l) => l.name == 'ddd');
-      expect(ccc, isNotNull);
-      expect(ccc.isOnSwitchMember, isTrue);
-      expect(ccc.isOnSwitchStatement, isFalse);
-    }
+    expect(labels, isEmpty);
   }
 
   test_executable_localLabels_inTopLevelGetter() {
@@ -5144,19 +5212,7 @@ get g {
     UnlinkedExecutable executable =
         serializeExecutableText(code, executableName: 'g');
     List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, hasLength(2));
-    {
-      UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
-      expect(aaa, isNotNull);
-      expect(aaa.isOnSwitchMember, isFalse);
-      expect(aaa.isOnSwitchStatement, isFalse);
-    }
-    {
-      UnlinkedLabel bbb = labels.singleWhere((l) => l.name == 'bbb');
-      expect(bbb, isNotNull);
-      expect(bbb.isOnSwitchMember, isFalse);
-      expect(bbb.isOnSwitchStatement, isFalse);
-    }
+    expect(labels, isEmpty);
   }
 
   test_executable_localLabels_namedExpressionLabel() {
@@ -5173,16 +5229,19 @@ foo({int p}) {}
 
   test_executable_localVariables_catch() {
     String code = r'''
-f() { // 1
-  try {
-    throw 42;
-  } on int catch (e, st) { // 2
-    print(e);
-    print(st);
-  } // 3
-} // 4
+var v = (
+  () { // 1
+    try {
+      throw 42;
+    } on int catch (e, st) { // 2
+      print(e);
+      print(st);
+    } // 3
+  } // 4
+);
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
+    UnlinkedExecutable executable =
+        serializeVariableText(code).initializer.localFunctions[0];
     List<UnlinkedVariable> variables = executable.localVariables;
     expect(variables, hasLength(2));
     {
@@ -5219,13 +5278,18 @@ f() {
 
   test_executable_localVariables_forEachLoop() {
     String code = r'''
-f() { // 1
-  for (int i in <int>[]) { // 2
-    print(i);
-  } // 3
-} // 4
+var v = (() {
+  f() { // 1
+    for (int i in <int>[]) { // 2
+      print(i);
+    } // 3
+  } // 4
+});
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
+    UnlinkedExecutable executable = serializeVariableText(code)
+        .initializer
+        .localFunctions[0]
+        .localFunctions[0];
     List<UnlinkedVariable> variables = executable.localVariables;
     expect(variables, hasLength(1));
     {
@@ -5237,14 +5301,19 @@ f() { // 1
 
   test_executable_localVariables_forEachLoop_outside() {
     String code = r'''
-f() { // 1
-  int i;
-  for (i in <int>[]) {
-    print(i);
-  }
-} // 4
+var v = (() {
+  f() { // 1
+    int i;
+    for (i in <int>[]) {
+      print(i);
+    }
+  } // 4
+});
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
+    UnlinkedExecutable executable = serializeVariableText(code)
+        .initializer
+        .localFunctions[0]
+        .localFunctions[0];
     List<UnlinkedVariable> variables = executable.localVariables;
     expect(variables, hasLength(1));
     {
@@ -5256,13 +5325,18 @@ f() { // 1
 
   test_executable_localVariables_forLoop() {
     String code = r'''
-f() { // 1
-  for (int i = 0, j = 0; i < 10; i++, j++) { // 2
-    print(i);
-  } // 3
-} // 4
+var v = (() {
+  f() { // 1
+    for (int i = 0, j = 0; i < 10; i++, j++) { // 2
+      print(i);
+    } // 3
+  } // 4
+});
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
+    UnlinkedExecutable executable = serializeVariableText(code)
+        .initializer
+        .localFunctions[0]
+        .localFunctions[0];
     List<UnlinkedVariable> variables = executable.localVariables;
     expect(variables, hasLength(2));
     {
@@ -5279,11 +5353,16 @@ f() { // 1
 
   test_executable_localVariables_forLoop_noVariables() {
     String code = r'''
-f() {
-  for (; true;) {}
-}
+var v = (() {
+  f() {
+    for (; true;) {}
+  }
+});
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
+    UnlinkedExecutable executable = serializeVariableText(code)
+        .initializer
+        .localFunctions[0]
+        .localFunctions[0];
     List<UnlinkedVariable> variables = executable.localVariables;
     expect(variables, isEmpty);
   }
@@ -5291,37 +5370,37 @@ f() {
   test_executable_localVariables_inConstructor() {
     String code = r'''
 class C {
-  C() { // 1
+  C() {
     int v;
-  } // 2
+  }
 }
 ''';
     UnlinkedExecutable executable =
         findExecutable('', executables: serializeClassText(code).executables);
     List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(1));
-    {
-      UnlinkedVariable v = variables.singleWhere((v) => v.name == 'v');
-      _assertVariableVisible(code, v, '{ // 1', '} // 2');
-      checkTypeRef(v.type, 'dart:core', 'dart:core', 'int');
-    }
+    expect(variables, isEmpty);
   }
 
   test_executable_localVariables_inLocalFunctions() {
     String code = r'''
-f() {
-  f1() { // 1
-    int v1 = 1;
-  } // 2
-  f2() { // 3
-    int v1 = 1;
-    f3() { // 4
-      int v2 = 1;
-    } // 5
-  } // 6
-} // 7
+var v = (() {
+  f() {
+    f1() { // 1
+      int v1 = 1;
+    } // 2
+    f2() { // 3
+      int v1 = 1;
+      f3() { // 4
+        int v2 = 1;
+      } // 5
+    } // 6
+  } // 7
+});
 ''';
-    UnlinkedExecutable executable = serializeExecutableText(code);
+    UnlinkedExecutable executable = serializeVariableText(code)
+        .initializer
+        .localFunctions[0]
+        .localFunctions[0];
     List<UnlinkedExecutable> functions = executable.localFunctions;
     expect(functions, hasLength(2));
     // f - f1
@@ -5362,57 +5441,31 @@ f() {
   test_executable_localVariables_inMethod() {
     String code = r'''
 class C {
-  m() { // 1
+  m() {
     int v;
     f() {}
-  } // 2
+  }
 }
 ''';
     UnlinkedExecutable executable =
         findExecutable('m', executables: serializeClassText(code).executables);
-    {
-      List<UnlinkedExecutable> functions = executable.localFunctions;
-      expect(functions, hasLength(1));
-      UnlinkedExecutable f = functions.singleWhere((v) => v.name == 'f');
-      _assertExecutableVisible(code, f, '{ // 1', '} // 2');
-    }
-    {
-      List<UnlinkedVariable> variables = executable.localVariables;
-      expect(variables, hasLength(1));
-      UnlinkedVariable v = variables.singleWhere((v) => v.name == 'v');
-      _assertVariableVisible(code, v, '{ // 1', '} // 2');
-      checkTypeRef(v.type, 'dart:core', 'dart:core', 'int');
-    }
+    expect(executable.localFunctions, isEmpty);
+    expect(executable.localVariables, isEmpty);
   }
 
   test_executable_localVariables_inTopLevelFunction() {
     String code = r'''
-f() { // 1
+f() {
   int v1 = 1;
-  { // 2
+  {
     int v2 = 2;
-  } // 3
+  }
   var v3 = 3;
-} // 4
+}
 ''';
     UnlinkedExecutable executable = serializeExecutableText(code);
     List<UnlinkedVariable> variables = executable.localVariables;
-    expect(variables, hasLength(3));
-    {
-      UnlinkedVariable v1 = variables.singleWhere((v) => v.name == 'v1');
-      _assertVariableVisible(code, v1, '{ // 1', '} // 4');
-      checkTypeRef(v1.type, 'dart:core', 'dart:core', 'int');
-    }
-    {
-      UnlinkedVariable v2 = variables.singleWhere((v) => v.name == 'v2');
-      _assertVariableVisible(code, v2, '{ // 2', '} // 3');
-      checkTypeRef(v2.type, 'dart:core', 'dart:core', 'int');
-    }
-    {
-      UnlinkedVariable v3 = variables.singleWhere((v) => v.name == 'v3');
-      _assertVariableVisible(code, v3, '{ // 1', '} // 4');
-      expect(v3.type, isNull);
-    }
+    expect(variables, isEmpty);
   }
 
   test_executable_localVariables_inTopLevelGetter() {
@@ -5424,19 +5477,8 @@ get g { // 1
 ''';
     UnlinkedExecutable executable =
         serializeExecutableText(code, executableName: 'g');
-    {
-      List<UnlinkedExecutable> functions = executable.localFunctions;
-      expect(functions, hasLength(1));
-      UnlinkedExecutable f = functions.singleWhere((v) => v.name == 'f');
-      _assertExecutableVisible(code, f, '{ // 1', '} // 2');
-    }
-    {
-      List<UnlinkedVariable> variables = executable.localVariables;
-      expect(variables, hasLength(1));
-      UnlinkedVariable v = variables.singleWhere((v) => v.name == 'v');
-      _assertVariableVisible(code, v, '{ // 1', '} // 2');
-      checkTypeRef(v.type, 'dart:core', 'dart:core', 'int');
-    }
+    expect(executable.localFunctions, isEmpty);
+    expect(executable.localVariables, isEmpty);
   }
 
   test_executable_member_function() {
@@ -5822,14 +5864,6 @@ int foo(int a, String b) => 0;
   test_executable_param_of_constructor_no_covariance() {
     UnlinkedExecutable executable =
         serializeClassText('class C { C(x); }').executables[0];
-    expect(executable.parameters[0].inheritsCovariantSlot, 0);
-  }
-
-  test_executable_param_of_local_function_no_covariance() {
-    UnlinkedExecutable executable =
-        serializeClassText('class C { m() { f(x) {} } }')
-            .executables[0]
-            .localFunctions[0];
     expect(executable.parameters[0].inheritsCovariantSlot, 0);
   }
 
@@ -7773,25 +7807,6 @@ f() {}''';
     expect(f.inferredReturnTypeSlot, 0);
   }
 
-  test_generic_gClass_gMethodStatic() {
-    UnlinkedClass cls = serializeClassText('''
-class C<T, U> {
-  static void m<V, W>(V v, W w) {
-    void f<X, Y>(V v, W w, X x, Y y) {
-    }
-  }
-}
-''');
-    UnlinkedExecutable m = cls.executables[0];
-    UnlinkedExecutable f = m.localFunctions[0];
-    checkParamTypeRef(m.parameters[0].type, 2);
-    checkParamTypeRef(m.parameters[1].type, 1);
-    checkParamTypeRef(f.parameters[0].type, 4);
-    checkParamTypeRef(f.parameters[1].type, 3);
-    checkParamTypeRef(f.parameters[2].type, 2);
-    checkParamTypeRef(f.parameters[3].type, 1);
-  }
-
   test_generic_method_in_generic_class() {
     UnlinkedClass cls = serializeClassText(
         'class C<T, U> { void m<V, W>(T t, U u, V v, W w) {} }');
@@ -9153,54 +9168,28 @@ class C {
   }
 
   test_nested_generic_functions() {
-    UnlinkedExecutable executable = serializeExecutableText('''
-void f<T, U>() {
-  void g<V, W>() {
-    void h<X, Y>() {
-      T t;
-      U u;
-      V v;
-      W w;
-      X x;
-      Y y;
+    UnlinkedExecutable executable = serializeVariableText('''
+var v = (() {
+  void f<T, U>() {
+    void g<V, W>() {
+      void h<X, Y>() {
+        T t;
+        U u;
+        V v;
+        W w;
+        X x;
+        Y y;
+      }
     }
   }
-}
-''');
+});
+''').initializer.localFunctions[0].localFunctions[0];
     expect(executable.typeParameters, hasLength(2));
     expect(executable.localFunctions[0].typeParameters, hasLength(2));
     expect(executable.localFunctions[0].localFunctions[0].typeParameters,
         hasLength(2));
     List<UnlinkedVariable> localVariables =
         executable.localFunctions[0].localFunctions[0].localVariables;
-    checkParamTypeRef(findVariable('t', variables: localVariables).type, 6);
-    checkParamTypeRef(findVariable('u', variables: localVariables).type, 5);
-    checkParamTypeRef(findVariable('v', variables: localVariables).type, 4);
-    checkParamTypeRef(findVariable('w', variables: localVariables).type, 3);
-    checkParamTypeRef(findVariable('x', variables: localVariables).type, 2);
-    checkParamTypeRef(findVariable('y', variables: localVariables).type, 1);
-  }
-
-  test_nested_generic_functions_in_generic_class() {
-    UnlinkedClass cls = serializeClassText('''
-class C<T, U> {
-  void g<V, W>() {
-    void h<X, Y>() {
-      T t;
-      U u;
-      V v;
-      W w;
-      X x;
-      Y y;
-    }
-  }
-}
-''');
-    expect(cls.typeParameters, hasLength(2));
-    expect(cls.executables[0].typeParameters, hasLength(2));
-    expect(cls.executables[0].localFunctions[0].typeParameters, hasLength(2));
-    List<UnlinkedVariable> localVariables =
-        cls.executables[0].localFunctions[0].localVariables;
     checkParamTypeRef(findVariable('t', variables: localVariables).type, 6);
     checkParamTypeRef(findVariable('u', variables: localVariables).type, 5);
     checkParamTypeRef(findVariable('v', variables: localVariables).type, 4);
@@ -9219,12 +9208,15 @@ class C<T, U> {
 
   test_parameter_visibleRange_function_blockBody() {
     String text = r'''
-f(x) { // 1
-  f2(y) { // 2
-  } // 3
-} // 4
+var v = (() {
+  f(x) { // 1
+    f2(y) { // 2
+    } // 3
+  } // 4
+});
 ''';
-    UnlinkedExecutable f = serializeExecutableText(text);
+    var closure = serializeVariableText(text).initializer.localFunctions[0];
+    UnlinkedExecutable f = closure.localFunctions[0];
     UnlinkedExecutable f2 = f.localFunctions[0];
     _assertParameterVisible(text, f.parameters[0], '{ // 1', '} // 4');
     _assertParameterVisible(text, f2.parameters[0], '{ // 2', '} // 3');
@@ -9270,6 +9262,13 @@ f(x) => 42;
     expect(unlinkedUnits[0].parts[0].uriEnd, text.indexOf('; // <-part'));
   }
 
+  test_part_isPartOf() {
+    addNamedSource('/a.dart', 'part of foo; class C {}');
+    serializeLibraryText('library foo; part "a.dart";');
+    expect(unlinkedUnits[0].isPartOf, isFalse);
+    expect(unlinkedUnits[1].isPartOf, isTrue);
+  }
+
   test_parts_defining_compilation_unit() {
     serializeLibraryText('');
     expect(linked.units, hasLength(1));
@@ -9292,13 +9291,6 @@ f(x) => 42;
     expect(unlinkedUnits[0].publicNamespace.names, isEmpty);
     expect(unlinkedUnits[1].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[1].publicNamespace.names[0].name, 'C');
-  }
-
-  test_part_isPartOf() {
-    addNamedSource('/a.dart', 'part of foo; class C {}');
-    serializeLibraryText('library foo; part "a.dart";');
-    expect(unlinkedUnits[0].isPartOf, isFalse);
-    expect(unlinkedUnits[1].isPartOf, isTrue);
   }
 
   test_reference_zero() {

@@ -624,7 +624,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       NodeList<Annotation> annotations,
       TypeParameterList typeParameters,
       bool isExternal,
-      bool serializeBodyExpr) {
+      bool serializeBodyExpr,
+      bool serializeBody) {
     int oldScopesLength = scopes.length;
     _TypeParameterScope typeParameterScope = new _TypeParameterScope();
     scopes.add(typeParameterScope);
@@ -682,7 +683,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       _parameterNames.addAll(formalParameters.parameters
           .map((FormalParameter p) => p.identifier.name));
     }
-    serializeFunctionBody(b, null, body, serializeBodyExpr);
+    serializeFunctionBody(b, null, body, serializeBodyExpr, serializeBody);
     _parameterNames = oldParameterNames;
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
@@ -709,7 +710,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       UnlinkedExecutableBuilder b,
       List<ConstructorInitializer> initializers,
       AstNode body,
-      bool serializeBodyExpr) {
+      bool serializeBodyExpr,
+      bool serializeBody) {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       for (UnlinkedParamBuilder parameter in b.parameters) {
         parameter.visibleOffset = body.offset;
@@ -731,7 +733,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         initializer.accept(this);
       }
     }
-    body.accept(this);
+    if (serializeBody) {
+      body.accept(this);
+    }
     if (serializeBodyExpr) {
       if (body is Expression) {
         b.bodyExpr =
@@ -787,7 +791,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     UnlinkedExecutableBuilder initializer =
         new UnlinkedExecutableBuilder(nameOffset: expression.offset);
-    serializeFunctionBody(initializer, null, expression, serializeBodyExpr);
+    serializeFunctionBody(
+        initializer, null, expression, serializeBodyExpr, true);
     initializer.inferredReturnTypeSlot = assignSlot();
     return initializer;
   }
@@ -1096,7 +1101,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
     Map<int, int> localClosureIndexMap = serializeFunctionBody(
-        b, node.initializers, node.body, node.constKeyword != null);
+        b, node.initializers, node.body, node.constKeyword != null, false);
     if (node.constKeyword != null) {
       Set<String> constructorParameterNames =
           node.parameters.parameters.map((p) => p.identifier.name).toSet();
@@ -1214,7 +1219,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.metadata,
         node.functionExpression.typeParameters,
         node.externalKeyword != null,
-        false));
+        false,
+        node.parent is FunctionDeclarationStatement));
   }
 
   @override
@@ -1238,7 +1244,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
           null,
           node.typeParameters,
           false,
-          _serializeClosureBodyExprs));
+          _serializeClosureBodyExprs,
+          true));
     }
   }
 
@@ -1339,6 +1346,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.metadata,
         node.typeParameters,
         node.externalKeyword != null,
+        false,
         false));
   }
 
