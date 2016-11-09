@@ -317,7 +317,9 @@ class AnalysisServer {
    */
   PubSummaryManager pubSummaryManager;
 
+  nd.PerformanceLog _analysisPerformanceLogger;
   ByteStore byteStore;
+  nd.AnalysisDriverScheduler analysisDriverScheduler;
 
   /**
    * The set of the files that are currently priority.
@@ -363,10 +365,13 @@ class AnalysisServer {
         options.finerGrainedInvalidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
+    _analysisPerformanceLogger = new nd.PerformanceLog(io.stdout);
     byteStore = new MemoryCachingByteStore(
         new FileByteStore(
             resourceProvider.getStateLocation('.analysis-driver')),
         1024);
+    analysisDriverScheduler = new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
+    analysisDriverScheduler.start();
     if (useSingleContextManager) {
       contextManager = new SingleContextManager(resourceProvider, sdkManager,
           packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
@@ -1748,7 +1753,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       context.dispose();
     }
     nd.AnalysisDriver analysisDriver = new nd.AnalysisDriver(
-        new nd.PerformanceLog(io.stdout),
+        analysisServer.analysisDriverScheduler,
+        analysisServer._analysisPerformanceLogger,
         resourceProvider,
         analysisServer.byteStore,
         analysisServer.fileContentOverlay,

@@ -68,7 +68,20 @@ class AnalysisDriver {
    */
   static const int DATA_VERSION = 1;
 
+  /**
+   * The name of the driver, e.g. the name of the folder.
+   */
   String name;
+
+  /**
+   * The scheduler that schedules analysis work in this, and possibly other
+   * analysis drivers.
+   */
+  final AnalysisDriverScheduler _scheduler;
+
+  /**
+   * The logger to write performed operations and performance to.
+   */
   final PerformanceLog _logger;
 
   /**
@@ -149,9 +162,9 @@ class AnalysisDriver {
   final _dependencySignatureMap = <Uri, String>{};
 
   /**
-   * The monitor that is signalled when there is work to do.
+   * The controller for the [results] stream.
    */
-  final _Monitor _hasWork = new _Monitor();
+  final _resultController = new StreamController<AnalysisResult>();
 
   /**
    * The controller for the [status] stream.
@@ -169,13 +182,20 @@ class AnalysisDriver {
    * The given [SourceFactory] is cloned to ensure that it does not contain a
    * reference to a [AnalysisContext] in which it could have been used.
    */
-  AnalysisDriver(this._logger, this._resourceProvider, this._byteStore,
-      this._contentOverlay, SourceFactory sourceFactory, this._analysisOptions)
+  AnalysisDriver(
+      this._scheduler,
+      this._logger,
+      this._resourceProvider,
+      this._byteStore,
+      this._contentOverlay,
+      SourceFactory sourceFactory,
+      this._analysisOptions)
       : _sourceFactory = sourceFactory.clone() {
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
     _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
         _resourceProvider, _sourceFactory, _analysisOptions, _salt);
+    _scheduler._add(this);
   }
 
   /**
@@ -191,19 +211,18 @@ class AnalysisDriver {
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
     _transitionToAnalyzing();
-    _hasWork.notify();
+    _scheduler._notify(this);
   }
 
   /**
    * Return the [Stream] that produces [AnalysisResult]s for added files.
    *
-   * Analysis starts when the client starts listening to the stream, and stops
-   * when the client cancels the subscription. Note that the stream supports
-   * only one single subscriber.
+   * Note that the stream supports only one single subscriber.
    *
-   * When the client starts listening, the analysis state transitions to
-   * "analyzing" and an analysis result is produced for every added file prior
-   * to the next time the analysis state transitions to "idle".
+   * Analysis starts when the [AnalysisDriverScheduler] is started and the
+   * driver is added to it. The analysis state transitions to "analyzing" and
+   * an analysis result is produced for every added file prior to the next time
+   * the analysis state transitions to "idle".
    *
    * At least one analysis result is produced for every file passed to
    * [addFile] or [changeFile] prior to the next time the analysis state
@@ -217,95 +236,36 @@ class AnalysisDriver {
    * Results might be produced even for files that have never been added
    * using [addFile], for example when [getResult] was called for a file.
    */
-  Stream<AnalysisResult> get results async* {
-    try {
-      PerformanceLogSection analysisSection = null;
-      while (true) {
-        // Pump the event queue to allow IO and other asynchronous data
-        // processing while analysis is active. For example Analysis Server
-        // needs to be able to process `updateContent` or `setPriorityFiles`
-        // requests while background analysis is in progress.
-        //
-        // The number of pumpings is arbitrary, might be changed if we see that
-        // analysis or other data processing tasks are starving. Ideally we
-        // would need to be able to set priority of (continuous) asynchronous
-        // tasks.
-        await _pumpEventQueue(128);
-
-        await _hasWork.signal;
-
-        if (analysisSection == null) {
-          analysisSection = _logger.enter('Analyzing');
-        }
-
-        // Verify all changed files one at a time.
-        if (_changedFiles.isNotEmpty) {
-          String path = _removeFirst(_changedFiles);
-          _verifyApiSignature(path);
-          // Repeat the processing loop.
-          _hasWork.notify();
-          continue;
-        }
-
-        // Analyze a requested file.
-        if (_requestedFiles.isNotEmpty) {
-          String path = _requestedFiles.keys.first;
-          AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
-          // Notify the completers.
-          _requestedFiles.remove(path).forEach((completer) {
-            completer.complete(result);
-          });
-          // Remove from to be analyzed and produce it now.
-          _filesToAnalyze.remove(path);
-          yield result;
-          // Repeat the processing loop.
-          _hasWork.notify();
-          continue;
-        }
-
-        // Analyze a priority file.
-        if (_priorityFiles.isNotEmpty) {
-          bool analyzed = false;
-          for (String path in _priorityFiles) {
-            if (_filesToAnalyze.remove(path)) {
-              analyzed = true;
-              AnalysisResult result =
-                  _computeAnalysisResult(path, withUnit: true);
-              yield result;
-              break;
-            }
-          }
-          // Repeat the processing loop.
-          if (analyzed) {
-            _hasWork.notify();
-            continue;
-          }
-        }
-
-        // Analyze a general file.
-        if (_filesToAnalyze.isNotEmpty) {
-          String path = _removeFirst(_filesToAnalyze);
-          AnalysisResult result = _computeAnalysisResult(path, withUnit: false);
-          yield result;
-          // Repeat the processing loop.
-          _hasWork.notify();
-          continue;
-        }
-
-        // There is nothing to do.
-        analysisSection.exit();
-        analysisSection = null;
-        _transitionToIdle();
-      }
-    } finally {
-      print('The stream was cancelled.');
-    }
-  }
+  Stream<AnalysisResult> get results => _resultController.stream;
 
   /**
    * Return the stream that produces [AnalysisStatus] events.
    */
   Stream<AnalysisStatus> get status => _statusController.stream;
+
+  /**
+   * Return the priority of work that the driver needs to perform.
+   */
+  AnalysisDriverPriority get _workPriority {
+    if (_requestedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.interactive;
+    }
+    if (_priorityFiles.isNotEmpty) {
+      for (String path in _priorityFiles) {
+        if (_filesToAnalyze.contains(path)) {
+          return AnalysisDriverPriority.priority;
+        }
+      }
+    }
+    if (_filesToAnalyze.isNotEmpty) {
+      return AnalysisDriverPriority.general;
+    }
+    if (_changedFiles.isNotEmpty) {
+      return AnalysisDriverPriority.general;
+    }
+    _transitionToIdle();
+    return AnalysisDriverPriority.nothing;
+  }
 
   /**
    * Add the file with the given [path] to the set of files to analyze.
@@ -320,7 +280,7 @@ class AnalysisDriver {
       _filesToAnalyze.add(path);
     }
     _transitionToAnalyzing();
-    _hasWork.notify();
+    _scheduler._notify(this);
   }
 
   /**
@@ -349,7 +309,14 @@ class AnalysisDriver {
       }
     }
     _transitionToAnalyzing();
-    _hasWork.notify();
+    _scheduler._notify(this);
+  }
+
+  /**
+   * Notify the driver that the client is going to stop using it.
+   */
+  void dispose() {
+    _scheduler._remove(this);
   }
 
   /**
@@ -372,7 +339,7 @@ class AnalysisDriver {
         .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
         .add(completer);
     _transitionToAnalyzing();
-    _hasWork.notify();
+    _scheduler._notify(this);
     return completer.future;
   }
 
@@ -673,6 +640,51 @@ class AnalysisDriver {
   }
 
   /**
+   * Perform a single chunk of work and produce [results].
+   */
+  Future<Null> _performWork() async {
+    // Verify all changed files one at a time.
+    if (_changedFiles.isNotEmpty) {
+      String path = _removeFirst(_changedFiles);
+      _verifyApiSignature(path);
+      return;
+    }
+
+    // Analyze a requested file.
+    if (_requestedFiles.isNotEmpty) {
+      String path = _requestedFiles.keys.first;
+      AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
+      // Notify the completers.
+      _requestedFiles.remove(path).forEach((completer) {
+        completer.complete(result);
+      });
+      // Remove from to be analyzed and produce it now.
+      _filesToAnalyze.remove(path);
+      _resultController.add(result);
+      return;
+    }
+
+    // Analyze a priority file.
+    if (_priorityFiles.isNotEmpty) {
+      for (String path in _priorityFiles) {
+        if (_filesToAnalyze.remove(path)) {
+          AnalysisResult result = _computeAnalysisResult(path, withUnit: true);
+          _resultController.add(result);
+          return;
+        }
+      }
+    }
+
+    // Analyze a general file.
+    if (_filesToAnalyze.isNotEmpty) {
+      String path = _removeFirst(_filesToAnalyze);
+      AnalysisResult result = _computeAnalysisResult(path, withUnit: false);
+      _resultController.add(result);
+      return;
+    }
+  }
+
+  /**
    * Send a notifications to the [status] stream that the driver started
    * analyzing.
    */
@@ -719,6 +731,123 @@ class AnalysisDriver {
   }
 
   /**
+   * Remove and return the first item in the given [set].
+   */
+  static Object/*=T*/ _removeFirst/*<T>*/(LinkedHashSet<Object/*=T*/ > set) {
+    Object/*=T*/ element = set.first;
+    set.remove(element);
+    return element;
+  }
+}
+
+/**
+ * Priorities of [AnalysisDriver] work. The farther a priority to the beginning
+ * of the list, the earlier the corresponding [AnalysisDriver] should be asked
+ * to perform work.
+ */
+enum AnalysisDriverPriority { nothing, general, priority, interactive }
+
+/**
+ * Instances of this class schedule work in multiple [AnalysisDriver]s so that
+ * work with the highest priority is performed first.
+ */
+class AnalysisDriverScheduler {
+  final PerformanceLog _logger;
+  final List<AnalysisDriver> _drivers = [];
+  final _Monitor _hasWork = new _Monitor();
+
+  bool _started = false;
+
+  AnalysisDriverScheduler(this._logger);
+
+  /**
+   * Start the scheduler, so that any [AnalysisDriver] created before or
+   * after will be asked to perform work.
+   */
+  void start() {
+    if (_started) {
+      throw new StateError('The scheduler has already been started.');
+    }
+    _started = true;
+    _run();
+  }
+
+  /**
+   * Add the given [driver] and schedule it to perform its work.
+   */
+  void _add(AnalysisDriver driver) {
+    _drivers.add(driver);
+    _hasWork.notify();
+  }
+
+  /**
+   * Notify that there is a change to the [driver], it it might need to
+   * perform some work.
+   */
+  void _notify(AnalysisDriver driver) {
+    _hasWork.notify();
+  }
+
+  /**
+   * Remove the given [driver] from the scheduler, so that it will not be
+   * asked to perform any new work.
+   */
+  void _remove(AnalysisDriver driver) {
+    _drivers.remove(driver);
+    _hasWork.notify();
+  }
+
+  /**
+   * Run infinitely analysis cycle, selecting the drivers with the highest
+   * priority first.
+   */
+  Future<Null> _run() async {
+    PerformanceLogSection analysisSection;
+    while (true) {
+      // Pump the event queue to allow IO and other asynchronous data
+      // processing while analysis is active. For example Analysis Server
+      // needs to be able to process `updateContent` or `setPriorityFiles`
+      // requests while background analysis is in progress.
+      //
+      // The number of pumpings is arbitrary, might be changed if we see that
+      // analysis or other data processing tasks are starving. Ideally we
+      // would need to be able to set priority of (continuous) asynchronous
+      // tasks.
+      await _pumpEventQueue(128);
+
+      await _hasWork.signal;
+
+      if (analysisSection == null) {
+        analysisSection = _logger.enter('Analyzing');
+      }
+
+      // Find the driver with the highest priority.
+      AnalysisDriver bestDriver;
+      AnalysisDriverPriority bestPriority = AnalysisDriverPriority.nothing;
+      for (AnalysisDriver driver in _drivers) {
+        AnalysisDriverPriority priority = driver._workPriority;
+        if (bestPriority == null || priority.index > bestPriority.index) {
+          bestDriver = driver;
+          bestPriority = priority;
+        }
+      }
+
+      // Continue to sleep if no work to do.
+      if (bestPriority == AnalysisDriverPriority.nothing) {
+        analysisSection.exit();
+        analysisSection = null;
+        continue;
+      }
+
+      // Ask the driver to perform a chunk of work.
+      await bestDriver._performWork();
+
+      // Schedule one more cycle.
+      _hasWork.notify();
+    }
+  }
+
+  /**
    * Returns a [Future] that completes after performing [times] pumpings of
    * the event queue.
    */
@@ -727,15 +856,6 @@ class AnalysisDriver {
       return new Future.value();
     }
     return new Future.delayed(Duration.ZERO, () => _pumpEventQueue(times - 1));
-  }
-
-  /**
-   * Remove and return the first item in the given [set].
-   */
-  static Object/*=T*/ _removeFirst/*<T>*/(LinkedHashSet<Object/*=T*/ > set) {
-    Object/*=T*/ element = set.first;
-    set.remove(element);
-    return element;
   }
 }
 

@@ -28,7 +28,8 @@ import '../../context/mock_sdk.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DriverTest);
+    defineReflectiveTests(AnalysisDriverTest);
+    defineReflectiveTests(AnalysisDriverSchedulerTest);
   });
 }
 
@@ -47,14 +48,152 @@ Future pumpEventQueue([int times = 5000]) {
 }
 
 @reflectiveTest
-class DriverTest {
+class AnalysisDriverSchedulerTest {
   static final MockSdk sdk = new MockSdk();
 
   final MemoryResourceProvider provider = new MemoryResourceProvider();
   final ByteStore byteStore = new _TestByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
-  final StringBuffer logBuffer = new StringBuffer();
 
+  final StringBuffer logBuffer = new StringBuffer();
+  PerformanceLog logger;
+
+  AnalysisDriverScheduler scheduler;
+
+  List<AnalysisResult> allResults = [];
+
+  AnalysisDriver newDriver() {
+    AnalysisDriver driver = new AnalysisDriver(
+        scheduler,
+        logger,
+        provider,
+        byteStore,
+        contentOverlay,
+        new SourceFactory(
+            [new DartUriResolver(sdk), new ResourceUriResolver(provider)],
+            null,
+            provider),
+        new AnalysisOptionsImpl()..strongMode = true);
+    driver.results.forEach(allResults.add);
+    return driver;
+  }
+
+  void setUp() {
+    logger = new PerformanceLog(logBuffer);
+    scheduler = new AnalysisDriverScheduler(logger);
+    scheduler.start();
+  }
+
+  test_priorities_getResult_beforePriority() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    String c = _p('/c.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, 'class C {}');
+    driver1.addFile(a);
+    driver2.addFile(b);
+    driver2.addFile(c);
+    driver1.priorityFiles = [a];
+    driver2.priorityFiles = [a];
+
+    AnalysisResult result = await driver2.getResult(b);
+    expect(result.path, b);
+
+    await driver1.status.firstWhere((status) => status.isIdle);
+    await driver2.status.firstWhere((status) => status.isIdle);
+
+    expect(allResults, hasLength(3));
+    expect(allResults[0].path, b);
+    expect(allResults[1].path, a);
+    expect(allResults[2].path, c);
+  }
+
+  test_priorities_priorityBeforeGeneral1() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+    driver1.addFile(a);
+    driver2.addFile(b);
+    driver1.priorityFiles = [a];
+    driver2.priorityFiles = [a];
+
+    await driver1.status.firstWhere((status) => status.isIdle);
+    await driver2.status.firstWhere((status) => status.isIdle);
+
+    expect(allResults, hasLength(2));
+    expect(allResults[0].path, a);
+    expect(allResults[1].path, b);
+  }
+
+  test_priorities_priorityBeforeGeneral2() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+    driver1.addFile(a);
+    driver2.addFile(b);
+    driver1.priorityFiles = [b];
+    driver2.priorityFiles = [b];
+
+    await driver1.status.firstWhere((status) => status.isIdle);
+    await driver2.status.firstWhere((status) => status.isIdle);
+
+    expect(allResults, hasLength(2));
+    expect(allResults[0].path, b);
+    expect(allResults[1].path, a);
+  }
+
+  test_priorities_priorityBeforeGeneral3() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    String c = _p('/c.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, 'class C {}');
+    driver1.addFile(a);
+    driver1.addFile(b);
+    driver2.addFile(c);
+    driver1.priorityFiles = [a, c];
+    driver2.priorityFiles = [a, c];
+
+    await driver1.status.firstWhere((status) => status.isIdle);
+    await driver2.status.firstWhere((status) => status.isIdle);
+
+    expect(allResults, hasLength(3));
+    expect(allResults[0].path, a);
+    expect(allResults[1].path, c);
+    expect(allResults[2].path, b);
+  }
+
+  String _p(String path) => provider.convertPath(path);
+}
+
+@reflectiveTest
+class AnalysisDriverTest {
+  static final MockSdk sdk = new MockSdk();
+
+  final MemoryResourceProvider provider = new MemoryResourceProvider();
+  final ByteStore byteStore = new _TestByteStore();
+  final FileContentOverlay contentOverlay = new FileContentOverlay();
+
+  final StringBuffer logBuffer = new StringBuffer();
+  PerformanceLog logger;
+
+  AnalysisDriverScheduler scheduler;
   AnalysisDriver driver;
   final _Monitor idleStatusMonitor = new _Monitor();
   final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
@@ -67,8 +206,11 @@ class DriverTest {
     new MockSdk();
     testProject = _p('/test/lib');
     testFile = _p('/test/lib/test.dart');
+    logger = new PerformanceLog(logBuffer);
+    scheduler = new AnalysisDriverScheduler(logger);
     driver = new AnalysisDriver(
-        new PerformanceLog(logBuffer),
+        scheduler,
+        logger,
         provider,
         byteStore,
         contentOverlay,
@@ -80,6 +222,7 @@ class DriverTest {
           new ResourceUriResolver(provider)
         ], null, provider),
         new AnalysisOptionsImpl()..strongMode = true);
+    scheduler.start();
     driver.status.lastWhere((status) {
       allStatuses.add(status);
       if (status.isIdle) {
@@ -289,43 +432,6 @@ class C {
     expect(_getClassFieldType(result.unit, 'C', 'f'), 'int');
   }
 
-  test_getResult_sameFile_twoUris() async {
-    var a = _p('/test/lib/a.dart');
-    var b = _p('/test/lib/b.dart');
-    var c = _p('/test/test/c.dart');
-    provider.newFile(a, 'class A<T> {}');
-    provider.newFile(
-        b,
-        r'''
-import 'a.dart';
-var VB = new A<int>();
-''');
-    provider.newFile(
-        c,
-        r'''
-import '../lib/a.dart';
-var VC = new A<double>();
-''');
-
-    driver.addFile(a);
-    driver.addFile(b);
-    await _waitForIdle();
-
-    {
-      AnalysisResult result = await driver.getResult(b);
-      expect(_getImportSource(result.unit, 0).uri.toString(),
-          'package:test/a.dart');
-      expect(_getTopLevelVarType(result.unit, 'VB'), 'A<int>');
-    }
-
-    {
-      AnalysisResult result = await driver.getResult(c);
-      expect(_getImportSource(result.unit, 0).uri,
-          provider.pathContext.toUri(_p('/test/lib/a.dart')));
-      expect(_getTopLevelVarType(result.unit, 'VC'), 'A<double>');
-    }
-  }
-
   test_getResult_mix_fileAndPackageUris() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');
@@ -374,6 +480,43 @@ String z = "string";
       List<AnalysisError> errors = result.errors;
       expect(errors, hasLength(1));
       expect(errors[0].errorCode, StaticTypeWarningCode.INVALID_ASSIGNMENT);
+    }
+  }
+
+  test_getResult_sameFile_twoUris() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+    var c = _p('/test/test/c.dart');
+    provider.newFile(a, 'class A<T> {}');
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+var VB = new A<int>();
+''');
+    provider.newFile(
+        c,
+        r'''
+import '../lib/a.dart';
+var VC = new A<double>();
+''');
+
+    driver.addFile(a);
+    driver.addFile(b);
+    await _waitForIdle();
+
+    {
+      AnalysisResult result = await driver.getResult(b);
+      expect(_getImportSource(result.unit, 0).uri.toString(),
+          'package:test/a.dart');
+      expect(_getTopLevelVarType(result.unit, 'VB'), 'A<int>');
+    }
+
+    {
+      AnalysisResult result = await driver.getResult(c);
+      expect(_getImportSource(result.unit, 0).uri,
+          provider.pathContext.toUri(_p('/test/lib/a.dart')));
+      expect(_getTopLevelVarType(result.unit, 'VC'), 'A<double>');
     }
   }
 
