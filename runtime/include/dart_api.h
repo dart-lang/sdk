@@ -2446,7 +2446,7 @@ enum {
 #define BITMASK(size) ((1 << size) - 1)
 #define DART_NATIVE_ARG_DESCRIPTOR(type, position)                             \
   (((type & BITMASK(kNativeArgTypeSize)) << kNativeArgTypePos) |               \
-   (position & BITMASK(kNativeArgNumberSize)))  // NOLINT
+   (position & BITMASK(kNativeArgNumberSize)))
 
 /**
  * Gets the native arguments based on the types passed in and populates
