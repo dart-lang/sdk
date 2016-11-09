@@ -16,6 +16,3 @@ dev_dependencies:
   package_config: '^1.0.0'
   test: ^0.12.0
   test_reflective_loader: ^0.1.0
-# TODO(sigmund): remove once kernel is moved into the sdk repo.
-dependency_overrides:
-  analyzer: '^0.29.0'
