@@ -401,6 +401,27 @@ var A2 = B1;
     expect(allResults, [result]);
   }
 
+  test_getResult_constants_defaultParameterValue_localFunction() async {
+    var a = _p('/test/bin/a.dart');
+    var b = _p('/test/bin/b.dart');
+    provider.newFile(a, 'const C = 42;');
+    provider.newFile(
+        b,
+        r'''
+import 'a.dart';
+main() {
+  foo({int p: C}) {}
+  foo();
+}
+''');
+    driver.addFile(a);
+    driver.addFile(b);
+    await _waitForIdle();
+
+    AnalysisResult result = await driver.getResult(b);
+    expect(result.errors, isEmpty);
+  }
+
   test_getResult_errors() async {
     String content = 'main() { int vv; }';
     _addTestFile(content, priority: true);

@@ -66,7 +66,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 4;
+  static const int DATA_VERSION = 5;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -804,8 +804,6 @@ class AnalysisDriver {
   /**
    * Verify the API signature for the file with the given [path], and decide
    * which linked libraries should be invalidated, and files reanalyzed.
-   *
-   * TODO(scheglov) I see that adding a local var changes (full) API signature.
    */
   FileState _verifyApiSignature(String path) {
     return _logger.run('Verify API signature of $path', () {

@@ -5784,8 +5784,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
-    if (!LibraryElementImpl.hasResolutionCapability(
-        definingLibrary, LibraryResolutionCapability.constantExpressions)) {
+    if (!_hasSerializedConstantInitializer(element)) {
       (element as ConstVariableElement).constantInitializer =
           new ConstantAstCloner().cloneNode(node.defaultValue);
     }
@@ -6641,6 +6640,25 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
+  }
+
+  /**
+   * Return `true` if the given [parameter] element of the AST being resolved
+   * is resynthesized and is an API-level, not local, so has its initializer
+   * serialized.
+   */
+  bool _hasSerializedConstantInitializer(ParameterElement parameter) {
+    if (LibraryElementImpl.hasResolutionCapability(
+        definingLibrary, LibraryResolutionCapability.constantExpressions)) {
+      Element executable = parameter.enclosingElement;
+      if (executable is MethodElement) {
+        return true;
+      }
+      if (executable is FunctionElement) {
+        return executable.enclosingElement is CompilationUnitElement;
+      }
+    }
+    return false;
   }
 
   void _inferArgumentTypesFromContext(InvocationExpression node) {
