@@ -629,10 +629,8 @@ class AnalysisDriver {
    * Fill [_salt] with data.
    */
   void _fillSalt() {
-    int analysisOptionsSalt = 0;
-    analysisOptionsSalt |= _analysisOptions.strongMode ? (1 << 0) : 0;
     _salt[0] = DATA_VERSION;
-    _salt[1] = analysisOptionsSalt;
+    _salt[1] = _analysisOptions.encodeCrossContextOptions();
   }
 
   /**
