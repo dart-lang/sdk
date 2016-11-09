@@ -212,7 +212,10 @@ class SdkDescription {
 
   @override
   int get hashCode {
-    int hashCode = options.encodeCrossContextOptions();
+    int hashCode = 0;
+    for (int value in options.encodeCrossContextOptions()) {
+      hashCode = JenkinsSmiHash.combine(hashCode, value);
+    }
     for (String path in paths) {
       hashCode = JenkinsSmiHash.combine(hashCode, path.hashCode);
     }
@@ -222,8 +225,9 @@ class SdkDescription {
   @override
   bool operator ==(Object other) {
     if (other is SdkDescription) {
-      if (options.encodeCrossContextOptions() !=
-          other.options.encodeCrossContextOptions()) {
+      if (!AnalysisOptions.crossContextOptionsEqual(
+          options.encodeCrossContextOptions(),
+          other.options.encodeCrossContextOptions())) {
         return false;
       }
       int length = paths.length;

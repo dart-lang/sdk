@@ -66,7 +66,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 2;
+  static const int DATA_VERSION = 3;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -116,7 +116,8 @@ class AnalysisDriver {
   /**
    * The salt to mix into all hashes used as keys for serialized data.
    */
-  final Uint32List _salt = new Uint32List(2);
+  final Uint32List _salt =
+      new Uint32List(1 + AnalysisOptions.crossContextOptionsLength);
 
   /**
    * The current file system state.
@@ -645,7 +646,13 @@ class AnalysisDriver {
    */
   void _fillSalt() {
     _salt[0] = DATA_VERSION;
-    _salt[1] = _analysisOptions.encodeCrossContextOptions();
+    List<int> crossContextOptions =
+        _analysisOptions.encodeCrossContextOptions();
+    assert(crossContextOptions.length ==
+        AnalysisOptions.crossContextOptionsLength);
+    for (int i = 0; i < crossContextOptions.length; i++) {
+      _salt[i + 1] = crossContextOptions[i];
+    }
   }
 
   /**
