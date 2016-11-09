@@ -688,13 +688,18 @@ ResolutionImpact laxImpact(
       new ResolutionWorldImpactBuilder('Lax impact of ${element}');
   for (StaticUse staticUse in impact.staticUses) {
     switch (staticUse.kind) {
+      case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         ConstructorElement constructor = staticUse.element;
         ConstructorElement effectiveTarget = constructor.effectiveTarget;
         DartType effectiveTargetType =
             constructor.computeEffectiveTargetType(staticUse.type);
-        builder.registerStaticUse(new StaticUse.constConstructorInvoke(
-            effectiveTarget.declaration, null, effectiveTargetType));
+        builder.registerStaticUse(
+            staticUse.kind == StaticUseKind.CONST_CONSTRUCTOR_INVOKE
+                ? new StaticUse.constConstructorInvoke(
+                    effectiveTarget.declaration, null, effectiveTargetType)
+                : new StaticUse.typedConstructorInvoke(
+                    effectiveTarget.declaration, null, effectiveTargetType));
         break;
       default:
         builder.registerStaticUse(staticUse);

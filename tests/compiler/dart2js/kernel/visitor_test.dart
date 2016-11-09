@@ -22,8 +22,8 @@ import '../memory_compiler.dart';
 const String TESTCASE_DIR = 'third_party/pkg/kernel/testcases/';
 
 const List<String> SKIP_TESTS = const <String>[
-  // Encoding of redirecting factories have changed.
-  'redirecting_factory',
+  /// The test expects an unpatched api.
+  'external',
 ];
 
 main(List<String> arguments) {

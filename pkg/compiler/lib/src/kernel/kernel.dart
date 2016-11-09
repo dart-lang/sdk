@@ -207,9 +207,13 @@ class Kernel {
           if (member.enclosingClass.declaration != cls) {
             // TODO(het): figure out why impact_test triggers this
             //internalError(cls, "`$member` isn't mine.");
-          } else if (member.isFunction ||
-              member.isAccessor ||
-              member.isConstructor) {
+          } else if (member.isConstructor) {
+            ConstructorElement constructor = member;
+            ir.Member memberNode = functionToIr(member);
+            if (!constructor.isRedirectingFactory) {
+              classNode.addMember(memberNode);
+            }
+          } else if (member.isFunction || member.isAccessor) {
             classNode.addMember(functionToIr(member));
           } else if (member.isField) {
             classNode.addMember(fieldToIr(member));
@@ -220,7 +224,9 @@ class Kernel {
         classNode.typeParameters.addAll(typeVariablesToIr(cls.typeVariables));
         for (ir.InterfaceType interface
             in typesToIr(cls.interfaces.reverse().toList())) {
-          classNode.implementedTypes.add(interface);
+          if (interface != classNode.mixedInType) {
+            classNode.implementedTypes.add(interface);
+          }
         }
         addWork(cls, () {
           addDefaultInstanceFieldInitializers(classNode);
