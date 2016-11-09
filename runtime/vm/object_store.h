@@ -264,8 +264,8 @@ class ObjectStore {
   RawLibrary* bootstrap_library(BootstrapLibraryId index) {
     switch (index) {
 #define MAKE_CASE(CamelName, name)                                             \
-      case k##CamelName:                                                       \
-          return name##_library_;
+  case k##CamelName:                                                           \
+    return name##_library_;
 
       FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_CASE)
 #undef MAKE_CASE
@@ -279,9 +279,9 @@ class ObjectStore {
   void set_bootstrap_library(BootstrapLibraryId index, const Library& value) {
     switch (index) {
 #define MAKE_CASE(CamelName, name)                                             \
-      case k##CamelName:                                                       \
-          name##_library_ = value.raw();                                       \
-          break;
+  case k##CamelName:                                                           \
+    name##_library_ = value.raw();                                             \
+    break;
 
       FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_CASE)
 #undef MAKE_CASE

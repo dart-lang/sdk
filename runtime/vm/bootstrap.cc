@@ -39,16 +39,11 @@ const char** Bootstrap::typed_data_patch_paths_ = NULL;
 
 
 #define MAKE_PROPERTIES(CamelName, name)                                       \
-  { ObjectStore::k##CamelName,                                                 \
-    "dart:" #name,                                                             \
-    Bootstrap::name##_source_paths_,                                           \
-    "dart:" #name "-patch",                                                    \
-    Bootstrap::name##_patch_paths_                                             \
-  },
+  {ObjectStore::k##CamelName, "dart:" #name, Bootstrap::name##_source_paths_,  \
+   "dart:" #name "-patch", Bootstrap::name##_patch_paths_},
 
 static const BootstrapLibProps bootstrap_libraries[] = {
-  FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_PROPERTIES)
-};
+    FOR_EACH_BOOTSTRAP_LIBRARY(MAKE_PROPERTIES)};
 
 #undef MAKE_PROPERTIES
 

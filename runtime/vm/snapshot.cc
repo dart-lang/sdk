@@ -144,12 +144,18 @@ static intptr_t GetTypeIndex(ObjectStore* object_store,
 
 const char* Snapshot::KindToCString(Kind kind) {
   switch (kind) {
-    case kCore: return "core";
-    case kScript: return "script";
-    case kMessage: return "message";
-    case kAppWithJIT: return "app-jit";
-    case kAppNoJIT: return "app-aot";
-    case kNone: return "none";
+    case kCore:
+      return "core";
+    case kScript:
+      return "script";
+    case kMessage:
+      return "message";
+    case kAppWithJIT:
+      return "app-jit";
+    case kAppNoJIT:
+      return "app-aot";
+    case kNone:
+      return "none";
     case kInvalid:
     default:
       return "invalid";

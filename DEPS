@@ -32,6 +32,7 @@ vars = {
 
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
+  "clang_format_rev": "@0ed791d1387a3c9146ea6c453c646f3c0fc97784",
 
   "gperftools_revision": "@02eeed29df112728564a5dde6417fa4622b57a06",
 
@@ -134,6 +135,9 @@ deps = {
   Var("dart_root") + "/buildtools":
      Var('chromium_git') + '/chromium/buildtools.git' +
      Var('buildtools_revision'),
+  Var("dart_root") + "/buildtools/clang_format/script":
+    Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
+    Var("clang_format_rev"),
 
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),
@@ -405,6 +409,21 @@ hooks = [
     ],
   },
   # Pull clang-format binaries using checked-in hashes.
+  {
+    'name': 'clang_format_win',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--quiet',
+      '--platform=win32',
+      '--bucket',
+      'chromium-clang-format',
+      '-s',
+      Var('dart_root') + '/buildtools/win/clang-format.exe.sha1',
+    ],
+  },
   {
     'name': 'clang_format_linux',
     'pattern': '.',
