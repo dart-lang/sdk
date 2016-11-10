@@ -949,20 +949,31 @@ class ContextManagerImpl implements ContextManager {
    * file.)
    */
   List<String> _computeFlushedFiles(ContextInfo info) {
-    AnalysisContext context = info.context;
-    HashSet<String> flushedFiles = new HashSet<String>();
-    for (Source source in context.sources) {
-      flushedFiles.add(source.fullName);
-    }
-    for (ContextInfo contextInfo in rootInfo.descendants) {
-      AnalysisContext contextN = contextInfo.context;
-      if (context != contextN) {
-        for (Source source in contextN.sources) {
-          flushedFiles.remove(source.fullName);
+    if (enableNewAnalysisDriver) {
+      Set<String> flushedFiles = info.analysisDriver.knownFiles.toSet();
+      for (ContextInfo contextInfo in rootInfo.descendants) {
+        AnalysisDriver other = contextInfo.analysisDriver;
+        if (other != info.analysisDriver) {
+          flushedFiles.removeAll(other.knownFiles);
         }
       }
+      return flushedFiles.toList(growable: false);
+    } else {
+      AnalysisContext context = info.context;
+      HashSet<String> flushedFiles = new HashSet<String>();
+      for (Source source in context.sources) {
+        flushedFiles.add(source.fullName);
+      }
+      for (ContextInfo contextInfo in rootInfo.descendants) {
+        AnalysisContext contextN = contextInfo.context;
+        if (context != contextN) {
+          for (Source source in contextN.sources) {
+            flushedFiles.remove(source.fullName);
+          }
+        }
+      }
+      return flushedFiles.toList(growable: false);
     }
-    return flushedFiles.toList(growable: false);
   }
 
   /**

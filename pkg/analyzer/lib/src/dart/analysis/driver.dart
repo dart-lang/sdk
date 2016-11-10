@@ -208,6 +208,16 @@ class AnalysisDriver {
   }
 
   /**
+   * Return the set of files added to analysis using [addFile].
+   */
+  Set<String> get addedFiles => _explicitFiles;
+
+  /**
+   * Return the set of files that are known, i.e. added or used implicitly.
+   */
+  Set<String> get knownFiles => _fsState.knownFiles;
+
+  /**
    * Set the list of files that the driver should try to analyze sooner.
    *
    * Every path in the list must be absolute and normalized.
@@ -353,14 +363,6 @@ class AnalysisDriver {
     _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return completer.future;
-  }
-
-  /**
-   * Return `true` if the file with the given [path] was explicitly added
-   * to analysis using [addFile].
-   */
-  bool isAddedFile(String path) {
-    return _explicitFiles.contains(path);
   }
 
   /**

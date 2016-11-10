@@ -378,6 +378,11 @@ class FileSystemState {
       this._salt);
 
   /**
+   * Return the set of known files.
+   */
+  Set<String> get knownFiles => _pathToFiles.keys.toSet();
+
+  /**
    * Return the canonical [FileState] for the given absolute [path]. The
    * returned file has the last known state since if was last refreshed.
    *

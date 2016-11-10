@@ -584,7 +584,7 @@ class AnalysisServer {
   nd.AnalysisDriver getAnalysisDriver(String path) {
     Iterable<nd.AnalysisDriver> drivers = driverMap.values;
     if (drivers.isNotEmpty) {
-      return drivers.firstWhere((driver) => driver.isAddedFile(path),
+      return drivers.firstWhere((driver) => driver.knownFiles.contains(path),
           orElse: () => drivers.first);
     }
     return null;
@@ -1180,7 +1180,7 @@ class AnalysisServer {
             subscriptions.values.expand((files) => files).toSet();
         for (String file in allNewFiles) {
           nd.AnalysisDriver driver = drivers.firstWhere(
-              (driver) => driver.isAddedFile(file),
+              (driver) => driver.addedFiles.contains(file),
               orElse: () => drivers.first);
           // The result will be produced by the "results" stream with
           // the fully resolved unit, and processed with sending analysis
@@ -1799,8 +1799,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
         if (analysisServer._hasAnalysisServiceSubscription(
             AnalysisService.HIGHLIGHTS, path)) {
           _runDelayed(() {
-            sendAnalysisNotificationHighlights(
-                analysisServer, path, unit);
+            sendAnalysisNotificationHighlights(analysisServer, path, unit);
           });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
@@ -1913,15 +1912,21 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
-    AnalysisContext context = analysisServer.folderMap.remove(folder);
-    sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
+    if (analysisServer.options.enableNewAnalysisDriver) {
+      sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
+      nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
+      driver.dispose();
+    } else {
+      AnalysisContext context = analysisServer.folderMap.remove(folder);
+      sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
 
-    analysisServer.operationQueue.contextRemoved(context);
-    analysisServer._onContextsChangedController
-        .add(new ContextsChangedEvent(removed: [context]));
-    analysisServer.sendContextAnalysisDoneNotifications(
-        context, AnalysisDoneReason.CONTEXT_REMOVED);
-    context.dispose();
+      analysisServer.operationQueue.contextRemoved(context);
+      analysisServer._onContextsChangedController
+          .add(new ContextsChangedEvent(removed: [context]));
+      analysisServer.sendContextAnalysisDoneNotifications(
+          context, AnalysisDoneReason.CONTEXT_REMOVED);
+      context.dispose();
+    }
   }
 
   @override

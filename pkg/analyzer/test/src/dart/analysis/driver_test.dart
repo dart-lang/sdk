@@ -265,6 +265,19 @@ class AnalysisDriverTest {
     driver.results.listen(allResults.add);
   }
 
+  test_addedFiles() async {
+    var a = _p('/test/lib/a.dart');
+    var b = _p('/test/lib/b.dart');
+
+    driver.addFile(a);
+    expect(driver.addedFiles, contains(a));
+    expect(driver.addedFiles, isNot(contains(b)));
+
+    driver.removeFile(a);
+    expect(driver.addedFiles, isNot(contains(a)));
+    expect(driver.addedFiles, isNot(contains(b)));
+  }
+
   test_addFile_thenRemove() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -704,17 +717,27 @@ var A2 = B1;
     expect(result1.unit, isNotNull);
   }
 
-  test_isAddedFile() async {
+  test_knownFiles() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
 
+    provider.newFile(
+        a,
+        r'''
+import 'b.dart';
+''');
+
     driver.addFile(a);
-    expect(driver.isAddedFile(a), isTrue);
-    expect(driver.isAddedFile(b), isFalse);
+    await _waitForIdle();
+
+    expect(driver.knownFiles, contains(a));
+    expect(driver.knownFiles, contains(b));
 
     driver.removeFile(a);
-    expect(driver.isAddedFile(a), isFalse);
-    expect(driver.isAddedFile(b), isFalse);
+
+    // a.dart was removed, but we don't clean up the file state state yet.
+    expect(driver.knownFiles, contains(a));
+    expect(driver.knownFiles, contains(b));
   }
 
   test_part_getResult_afterLibrary() async {
