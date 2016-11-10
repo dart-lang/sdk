@@ -43,12 +43,14 @@ class MemoryCachingByteStore implements ByteStore {
 
   @override
   List<int> get(String key) {
-    List<int> bytes = _map[key];
+    List<int> bytes = _map.remove(key);
     if (bytes == null) {
       bytes = _store.get(key);
       _map[key] = bytes;
       _currentSizeBytes += bytes?.length ?? 0;
       _evict();
+    } else {
+      _map[key] = bytes;
     }
     return bytes;
   }

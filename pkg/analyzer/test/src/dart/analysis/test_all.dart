@@ -6,11 +6,13 @@ library analyzer.test.src.dart.analysis.test_all;
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'byte_store_test.dart' as byte_store;
 import 'driver_test.dart' as driver;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
+    byte_store.main();
     driver.main();
   }, name: 'analysis');
 }
