@@ -250,7 +250,8 @@ class EditDomainHandler implements RequestHandler {
       } else if (requestName == EDIT_GET_REFACTORING) {
         return _getRefactoring(request);
       } else if (requestName == EDIT_ORGANIZE_DIRECTIVES) {
-        return organizeDirectives(request);
+        organizeDirectives(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == EDIT_SORT_MEMBERS) {
         sortMembers(request);
         return Response.DELAYED_RESPONSE;
@@ -261,36 +262,58 @@ class EditDomainHandler implements RequestHandler {
     return null;
   }
 
-  Response organizeDirectives(Request request) {
+  Future<Null> organizeDirectives(Request request) async {
     var params = new EditOrganizeDirectivesParams.fromRequest(request);
     // prepare file
     String file = params.file;
     if (!engine.AnalysisEngine.isDartFileName(file)) {
-      return new Response.fileNotAnalyzed(request, file);
+      server.sendResponse(new Response.fileNotAnalyzed(request, file));
+      return;
     }
-    // prepare resolved units
-    List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
-    if (units.isEmpty) {
-      return new Response.fileNotAnalyzed(request, file);
+    // Prepare the file information.
+    int fileStamp;
+    String code;
+    CompilationUnit unit;
+    List<engine.AnalysisError> errors;
+    if (server.options.enableNewAnalysisDriver) {
+      AnalysisResult result = await server.getAnalysisResult(file);
+      if (result == null) {
+        server.sendResponse(new Response.fileNotAnalyzed(request, file));
+        return;
+      }
+      fileStamp = -1;
+      code = result.content;
+      unit = result.unit;
+      errors = result.errors;
+    } else {
+      // prepare resolved units
+      List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
+      if (units.isEmpty) {
+        server.sendResponse(new Response.fileNotAnalyzed(request, file));
+        return;
+      }
+      // prepare context
+      unit = units.first;
+      engine.AnalysisContext context = unit.element.context;
+      Source source = unit.element.source;
+      errors = context.computeErrors(source);
+      // prepare code
+      fileStamp = context.getModificationStamp(source);
+      code = context.getContents(source).data;
     }
-    // prepare context
-    CompilationUnit unit = units.first;
-    engine.AnalysisContext context = unit.element.context;
-    Source source = unit.element.source;
-    List<engine.AnalysisError> errors = context.computeErrors(source);
     // check if there are scan/parse errors in the file
     int numScanParseErrors = _getNumberOfScanParseErrors(errors);
     if (numScanParseErrors != 0) {
-      return new Response.organizeDirectivesError(
-          request, 'File has $numScanParseErrors scan/parse errors.');
+      server.sendResponse(new Response.organizeDirectivesError(
+          request, 'File has $numScanParseErrors scan/parse errors.'));
+      return;
     }
     // do organize
-    int fileStamp = context.getModificationStamp(source);
-    String code = context.getContents(source).data;
     DirectiveOrganizer sorter = new DirectiveOrganizer(code, unit, errors);
     List<SourceEdit> edits = sorter.organize();
     SourceFileEdit fileEdit = new SourceFileEdit(file, fileStamp, edits: edits);
-    return new EditOrganizeDirectivesResult(fileEdit).toResponse(request.id);
+    server.sendResponse(
+        new EditOrganizeDirectivesResult(fileEdit).toResponse(request.id));
   }
 
   Future<Null> sortMembers(Request request) async {
@@ -299,6 +322,7 @@ class EditDomainHandler implements RequestHandler {
     String file = params.file;
     if (!engine.AnalysisEngine.isDartFileName(file)) {
       server.sendResponse(new Response.sortMembersInvalidFile(request));
+      return;
     }
     // Prepare the file information.
     int fileStamp;
@@ -308,6 +332,10 @@ class EditDomainHandler implements RequestHandler {
     if (server.options.enableNewAnalysisDriver) {
       AnalysisDriver driver = server.getAnalysisDriver(file);
       ParseResult result = await driver.parseFile(file);
+      if (result == null) {
+        server.sendResponse(new Response.fileNotAnalyzed(request, file));
+        return;
+      }
       fileStamp = -1;
       code = result.content;
       unit = result.unit;
