@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_foreign_helper' show JS;
-import "package:expect/expect.dart";
+import 'native_testing.dart';
 
 // Negative constant numbers must be generated as negation, not just a literal
 // with a sign, i.e.

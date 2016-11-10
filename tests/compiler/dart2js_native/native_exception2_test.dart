@@ -8,19 +8,24 @@
 library native_exception2_test;
 
 import 'native_exception_test.dart' as other;
-import 'dart:_js_helper';
+import 'native_testing.dart';
 
 @Native("NativeClass")
-class NativeClass {}
+class NativeClass {
+  foo() => 'oof';
+}
 
 makeNativeClass() native ;
 
 setup() native """
 function NativeClass() {}
 makeNativeClass = function() { return new NativeClass; }
+self.nativeConstructor(NativeClass);
 """;
 
 main() {
+  nativeTesting();
   setup();
+  Expect.equals('oof', makeNativeClass().foo());
   other.main();
 }

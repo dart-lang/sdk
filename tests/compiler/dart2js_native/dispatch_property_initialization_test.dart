@@ -4,9 +4,7 @@
 
 // Test for initialization of dispatchPropertyName.
 
-import "package:expect/expect.dart";
-import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show Native;
+import 'native_testing.dart';
 
 @Native("Foo")
 class Foo {
@@ -20,10 +18,13 @@ function Foo() {}
 Foo.prototype.method = function(x) { return 'Foo ' + x; }
 
 self.makeFoo = function() { return new Foo(); }
+
+self.nativeConstructor(Foo);
 """;
 
 
 main() {
+  nativeTesting();
   setup();
 
   // If the dispatchPropertyName is uninitialized, it will be `undefined` or

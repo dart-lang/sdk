@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import 'native_testing.dart';
 
 // Test calling convention of property extraction closures.
 
@@ -42,9 +41,13 @@ CC.prototype.foo = function(u, v) {
 makeBB = function(){return new BB;};
 makeCC = function(){return new CC;};
 inscrutable = function(a){return a;};
+
+self.nativeConstructor(BB);
+self.nativeConstructor(CC);
 """;
 
 main() {
+  nativeTesting();
   setup();
   var a = inscrutable(new AA());
   var b = inscrutable(makeBB());

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_js_helper';
+import 'native_testing.dart';
 
 // JavaScript reserved words:
 //
@@ -1384,9 +1384,11 @@ NativeClassWithOddNames makeNativeClassWithOddNames() native ;
 setup() native """
 function NativeClassWithOddNames() {}
 makeNativeClassWithOddNames = function() { return new NativeClassWithOddNames; }
+self.nativeConstructor(NativeClassWithOddNames);
 """;
 
 main() {
+  nativeTesting();
   setup();
   var object = makeNativeClassWithOddNames();
   object.testMyFields();
