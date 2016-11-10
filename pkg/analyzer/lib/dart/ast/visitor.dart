@@ -326,7 +326,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      visitExpression(node);
+      visitInvocationExpression(node);
 
   @override
   R visitFunctionTypeAlias(FunctionTypeAlias node) => visitTypeAlias(node);
@@ -369,6 +369,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitInterpolationString(InterpolationString node) =>
       visitInterpolationElement(node);
 
+  R visitInvocationExpression(InvocationExpression node) =>
+      visitExpression(node);
+
   @override
   R visitIsExpression(IsExpression node) => visitExpression(node);
 
@@ -399,7 +402,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitMethodDeclaration(MethodDeclaration node) => visitClassMember(node);
 
   @override
-  R visitMethodInvocation(MethodInvocation node) => visitExpression(node);
+  R visitMethodInvocation(MethodInvocation node) =>
+      visitInvocationExpression(node);
 
   R visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
       visitCompilationUnitMember(node);
