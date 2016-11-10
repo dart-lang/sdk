@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
 import 'package:analyzer/src/generated/source.dart';
@@ -180,14 +181,9 @@ class AnalysisDriver {
   final _dependencySignatureMap = <Uri, String>{};
 
   /**
-   * The controller for the [status] stream.
+   * The instance of the status helper.
    */
-  final _statusController = new StreamController<AnalysisStatus>();
-
-  /**
-   * The last status sent to the [status] stream.
-   */
-  AnalysisStatus _currentStatus = AnalysisStatus.IDLE;
+  final StatusSupport _statusSupport = new StatusSupport();
 
   /**
    * Create a new instance of [AnalysisDriver].
@@ -223,7 +219,7 @@ class AnalysisDriver {
   void set priorityFiles(List<String> priorityPaths) {
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
-    _transitionToAnalyzing();
+    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
 
@@ -254,7 +250,7 @@ class AnalysisDriver {
   /**
    * Return the stream that produces [AnalysisStatus] events.
    */
-  Stream<AnalysisStatus> get status => _statusController.stream;
+  Stream<AnalysisStatus> get status => _statusSupport.stream;
 
   /**
    * Return the priority of work that the driver needs to perform.
@@ -279,7 +275,7 @@ class AnalysisDriver {
     if (_requestedParts.isNotEmpty || _partsToAnalyze.isNotEmpty) {
       return AnalysisDriverPriority.general;
     }
-    _transitionToIdle();
+    _statusSupport.transitionToIdle();
     return AnalysisDriverPriority.nothing;
   }
 
@@ -295,7 +291,7 @@ class AnalysisDriver {
       _explicitFiles.add(path);
       _filesToAnalyze.add(path);
     }
-    _transitionToAnalyzing();
+    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
 
@@ -324,7 +320,7 @@ class AnalysisDriver {
         _filesToAnalyze.add(path);
       }
     }
-    _transitionToAnalyzing();
+    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
   }
 
@@ -354,7 +350,7 @@ class AnalysisDriver {
     _requestedFiles
         .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
         .add(completer);
-    _transitionToAnalyzing();
+    _statusSupport.transitionToAnalyzing();
     _scheduler._notify(this);
     return completer.future;
   }
@@ -781,27 +777,6 @@ class AnalysisDriver {
   }
 
   /**
-   * Send a notifications to the [status] stream that the driver started
-   * analyzing.
-   */
-  void _transitionToAnalyzing() {
-    if (_currentStatus != AnalysisStatus.ANALYZING) {
-      _currentStatus = AnalysisStatus.ANALYZING;
-      _statusController.add(AnalysisStatus.ANALYZING);
-    }
-  }
-
-  /**
-   * Send a notifications to the [status] stream that the driver is idle.
-   */
-  void _transitionToIdle() {
-    if (_currentStatus != AnalysisStatus.IDLE) {
-      _currentStatus = AnalysisStatus.IDLE;
-      _statusController.add(AnalysisStatus.IDLE);
-    }
-  }
-
-  /**
    * Verify the API signature for the file with the given [path], and decide
    * which linked libraries should be invalidated, and files reanalyzed.
    */
@@ -848,11 +823,17 @@ enum AnalysisDriverPriority { nothing, general, priority, interactive }
 class AnalysisDriverScheduler {
   final PerformanceLog _logger;
   final List<AnalysisDriver> _drivers = [];
-  final _Monitor _hasWork = new _Monitor();
+  final Monitor _hasWork = new Monitor();
+  final StatusSupport _statusSupport = new StatusSupport();
 
   bool _started = false;
 
   AnalysisDriverScheduler(this._logger);
+
+  /**
+   * Return the stream that produces [AnalysisStatus] events.
+   */
+  Stream<AnalysisStatus> get status => _statusSupport.stream;
 
   /**
    * Start the scheduler, so that any [AnalysisDriver] created before or
@@ -871,6 +852,7 @@ class AnalysisDriverScheduler {
    */
   void _add(AnalysisDriver driver) {
     _drivers.add(driver);
+    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -879,6 +861,7 @@ class AnalysisDriverScheduler {
    * perform some work.
    */
   void _notify(AnalysisDriver driver) {
+    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -888,6 +871,7 @@ class AnalysisDriverScheduler {
    */
   void _remove(AnalysisDriver driver) {
     _drivers.remove(driver);
+    _statusSupport.transitionToAnalyzing();
     _hasWork.notify();
   }
 
@@ -930,6 +914,7 @@ class AnalysisDriverScheduler {
       if (bestPriority == AnalysisDriverPriority.nothing) {
         analysisSection.exit();
         analysisSection = null;
+        _statusSupport.transitionToIdle();
         continue;
       }
 
@@ -1004,28 +989,6 @@ class AnalysisResult {
 
   AnalysisResult(this.path, this.uri, this.content, this.contentHash,
       this.lineInfo, this.unit, this.errors);
-}
-
-/**
- * The status of [AnalysisDriver]
- */
-class AnalysisStatus {
-  static const IDLE = const AnalysisStatus._(false);
-  static const ANALYZING = const AnalysisStatus._(true);
-
-  final bool _analyzing;
-
-  const AnalysisStatus._(this._analyzing);
-
-  /**
-   * Return `true` is the driver is analyzing.
-   */
-  bool get isAnalyzing => _analyzing;
-
-  /**
-   * Return `true` is the driver is idle.
-   */
-  bool get isIdle => !_analyzing;
 }
 
 /**
@@ -1211,33 +1174,4 @@ class _LibraryNode {
 
   @override
   String toString() => uri.toString();
-}
-
-/**
- * [_Monitor] can be used to wait for a signal.
- *
- * Signals are not queued, the client will receive exactly one signal
- * regardless of the number of [notify] invocations. The [signal] is reset
- * after completion and will not complete until [notify] is called next time.
- */
-class _Monitor {
-  Completer<Null> _completer = new Completer<Null>();
-
-  /**
-   * Return a [Future] that completes when [notify] is called at least once.
-   */
-  Future<Null> get signal async {
-    await _completer.future;
-    _completer = new Completer<Null>();
-  }
-
-  /**
-   * Complete the [signal] future if it is not completed yet. It is safe to
-   * call this method multiple times, but the [signal] will complete only once.
-   */
-  void notify() {
-    if (!_completer.isCompleted) {
-      _completer.complete(null);
-    }
-  }
 }

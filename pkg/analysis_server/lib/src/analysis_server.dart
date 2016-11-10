@@ -37,6 +37,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
+import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -372,6 +373,7 @@ class AnalysisServer {
         64 * 1024 * 1024);
     analysisDriverScheduler =
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
+    analysisDriverScheduler.status.listen(sendStatusNotificationNew);
     analysisDriverScheduler.start();
     if (useSingleContextManager) {
       contextManager = new SingleContextManager(resourceProvider, sdkManager,
@@ -1120,6 +1122,25 @@ class AnalysisServer {
     }
     statusAnalyzing = isAnalyzing;
     AnalysisStatus analysis = new AnalysisStatus(isAnalyzing);
+    channel.sendNotification(
+        new ServerStatusParams(analysis: analysis).toNotification());
+  }
+
+  /**
+   * Send status notification to the client. The `operation` is the operation
+   * being performed or `null` if analysis is complete.
+   */
+  void sendStatusNotificationNew(nd.AnalysisStatus status) {
+    // Only send status when subscribed.
+    if (!serverServices.contains(ServerService.STATUS)) {
+      return;
+    }
+    // Only send status when it changes
+    if (statusAnalyzing == status.isAnalyzing) {
+      return;
+    }
+    statusAnalyzing = status.isAnalyzing;
+    AnalysisStatus analysis = new AnalysisStatus(status.isAnalyzing);
     channel.sendNotification(
         new ServerStatusParams(analysis: analysis).toNotification());
   }

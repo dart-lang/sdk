@@ -16,6 +16,7 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
@@ -177,6 +178,38 @@ class AnalysisDriverSchedulerTest {
     expect(allResults[0].path, a);
     expect(allResults[1].path, c);
     expect(allResults[2].path, b);
+  }
+
+  test_status() async {
+    AnalysisDriver driver1 = newDriver();
+    AnalysisDriver driver2 = newDriver();
+
+    String a = _p('/a.dart');
+    String b = _p('/b.dart');
+    String c = _p('/c.dart');
+    provider.newFile(a, 'class A {}');
+    provider.newFile(b, 'class B {}');
+    provider.newFile(c, 'class C {}');
+    driver1.addFile(a);
+    driver2.addFile(b);
+    driver2.addFile(c);
+
+    Monitor idleStatusMonitor = new Monitor();
+    List<AnalysisStatus> allStatuses = [];
+    scheduler.status.forEach((status) {
+      allStatuses.add(status);
+      if (status.isIdle) {
+        idleStatusMonitor.notify();
+      }
+    });
+
+    await idleStatusMonitor.signal;
+
+    expect(allStatuses, hasLength(2));
+    expect(allStatuses[0].isAnalyzing, isTrue);
+    expect(allStatuses[1].isAnalyzing, isFalse);
+
+    expect(allResults, hasLength(3));
   }
 
   String _p(String path) => provider.convertPath(path);
