@@ -606,7 +606,7 @@ class AssertInitializerImpl extends ConstructorInitializerImpl
   Token get beginToken => assertKeyword;
 
   @override
-  Iterable get childEntities => new ChildEntities()
+  Iterable<SyntacticEntity> get childEntities => new ChildEntities()
     ..add(assertKeyword)
     ..add(leftParenthesis)
     ..add(_condition)

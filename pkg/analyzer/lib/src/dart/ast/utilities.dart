@@ -8160,6 +8160,18 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
   }
 
   @override
+  bool visitAssertInitializer(AssertInitializer node) {
+    sink.write("assert (");
+    safelyVisitNode(node.condition);
+    if (node.message != null) {
+      sink.write(', ');
+      safelyVisitNode(node.message);
+    }
+    sink.write(");");
+    return null;
+  }
+
+  @override
   Object visitAssertStatement(AssertStatement node) {
     sink.write("assert (");
     safelyVisitNode(node.condition);
