@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart'
-    show errorCodeValues, errorCodeByUniqueName;
-
 /**
  * An error code associated with an [AnalysisError].
  *
@@ -66,18 +63,6 @@ import 'package:analyzer/error/error.dart'
  */
 abstract class ErrorCode {
   /**
-   * Engine error code values.
-   */
-  @deprecated
-  static const List<ErrorCode> values = errorCodeValues;
-
-  /**
-   * An empty list of error codes.
-   */
-  @deprecated
-  static const List<ErrorCode> EMPTY_LIST = const <ErrorCode>[];
-
-  /**
    * The name of the error code.
    */
   final String name;
@@ -120,14 +105,6 @@ abstract class ErrorCode {
 
   @override
   String toString() => uniqueName;
-
-  /**
-   * Return the [ErrorCode] with the given [uniqueName], or `null` if not
-   * found.
-   */
-  @deprecated
-  static ErrorCode byUniqueName(String uniqueName) =>
-      errorCodeByUniqueName(uniqueName);
 }
 
 /**
