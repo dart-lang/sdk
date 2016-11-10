@@ -504,6 +504,40 @@ class B extends A {
     expect(_getClassMethodReturnType(result.unit, 'B', 'm'), 'int');
   }
 
+  test_getResult_invalidUri_exports_dart() async {
+    String content = r'''
+export 'dart:async';
+export 'dart:noSuchLib';
+export 'dart:math';
+''';
+    _addTestFile(content, priority: true);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    // Has only exports for valid URIs.
+    List<ExportElement> imports = result.unit.element.library.exports;
+    expect(
+        imports.map((import) => import.exportedLibrary.source.uri.toString()),
+        unorderedEquals(['dart:async', 'dart:math']));
+  }
+
+  test_getResult_invalidUri_imports_dart() async {
+    String content = r'''
+import 'dart:async';
+import 'dart:noSuchLib';
+import 'dart:math';
+''';
+    _addTestFile(content, priority: true);
+
+    AnalysisResult result = await driver.getResult(testFile);
+    expect(result.path, testFile);
+    // Has only imports for valid URIs.
+    List<ImportElement> imports = result.unit.element.library.imports;
+    expect(
+        imports.map((import) => import.importedLibrary.source.uri.toString()),
+        unorderedEquals(['dart:async', 'dart:math', 'dart:core']));
+  }
+
   test_getResult_mix_fileAndPackageUris() async {
     var a = _p('/test/bin/a.dart');
     var b = _p('/test/bin/b.dart');

@@ -5461,14 +5461,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           _unlinkedDefiningUnit.exports.length == unlinkedPublicExports.length);
       int length = unlinkedNonPublicExports.length;
       if (length != 0) {
-        List<ExportElement> exports = new List<ExportElement>(length);
+        List<ExportElement> exports = new List<ExportElement>();
         for (int i = 0; i < length; i++) {
           UnlinkedExportPublic serializedExportPublic =
               unlinkedPublicExports[i];
-          UnlinkedExportNonPublic serializedExportNonPublic =
-              unlinkedNonPublicExports[i];
-          exports[i] = new ExportElementImpl.forSerialized(
-              serializedExportPublic, serializedExportNonPublic, library);
+          LibraryElement exportedLibrary = resynthesizerContext
+              .buildExportedLibrary(serializedExportPublic.uri);
+          if (exportedLibrary != null) {
+            UnlinkedExportNonPublic serializedExportNonPublic =
+                unlinkedNonPublicExports[i];
+            ExportElementImpl exportElement =
+                new ExportElementImpl.forSerialized(
+                    serializedExportPublic, serializedExportNonPublic, library);
+            exports.add(exportElement);
+          }
         }
         _exports = exports;
       } else {
@@ -5534,11 +5540,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
       int length = unlinkedImports.length;
       if (length != 0) {
-        List<ImportElement> imports = new List<ImportElement>(length);
+        List<ImportElement> imports = new List<ImportElement>();
         LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
         for (int i = 0; i < length; i++) {
-          imports[i] = new ImportElementImpl.forSerialized(
-              unlinkedImports[i], linkedLibrary.importDependencies[i], library);
+          int dependency = linkedLibrary.importDependencies[i];
+          LibraryElement importedLibrary =
+              resynthesizerContext.buildImportedLibrary(dependency);
+          if (importedLibrary != null) {
+            ImportElementImpl importElement =
+                new ImportElementImpl.forSerialized(
+                    unlinkedImports[i], dependency, library);
+            imports.add(importElement);
+          }
         }
         _imports = imports;
       } else {

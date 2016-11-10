@@ -19,10 +19,8 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
@@ -1162,9 +1160,12 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   }
 
   LibraryElementHandle _getLibraryByRelativeUri(String depUri) {
-    String absoluteUri = resolveRelativeUri(
-            resynthesizer.librarySource.uri, FastUri.parse(depUri))
-        .toString();
+    Source source = resynthesizer.summaryResynthesizer.sourceFactory
+        .resolveUri(resynthesizer.librarySource, depUri);
+    if (source == null) {
+      return null;
+    }
+    String absoluteUri = source.uri.toString();
     return new LibraryElementHandle(resynthesizer.summaryResynthesizer,
         new ElementLocationImpl.con3(<String>[absoluteUri]));
   }
