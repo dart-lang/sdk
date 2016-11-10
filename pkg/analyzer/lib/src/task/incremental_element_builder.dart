@@ -382,7 +382,7 @@ class IncrementalCompilationUnitElementBuilder {
     if (classElement.constructors.isEmpty) {
       ConstructorElementImpl constructor =
           new ConstructorElementImpl.forNode(null);
-      constructor.synthetic = true;
+      constructor.isSynthetic = true;
       classElement.constructors = <ConstructorElement>[constructor];
       classDelta.addedConstructors.add(constructor);
     }

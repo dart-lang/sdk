@@ -98,8 +98,8 @@ class ElementFactory {
         constructor.nameEnd = definingClass.name.length + name.length + 1;
       }
     }
-    constructor.synthetic = name == null;
-    constructor.const2 = isConst;
+    constructor.isSynthetic = name == null;
+    constructor.isConst = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
       List<ParameterElement> parameters = new List<ParameterElement>(count);
@@ -149,7 +149,7 @@ class ElementFactory {
     nameField.type = stringType;
     fields.add(nameField);
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
-    valuesField.static = true;
+    valuesField.isStatic = true;
     valuesField.isConst = true;
     valuesField.type = typeProvider.listType.instantiate(<DartType>[enumType]);
     fields.add(valuesField);
@@ -162,7 +162,7 @@ class ElementFactory {
         String constantName = constantNames[i];
         FieldElementImpl constantElement =
             new ConstFieldElementImpl(constantName, -1);
-        constantElement.static = true;
+        constantElement.isStatic = true;
         constantElement.isConst = true;
         constantElement.type = enumType;
         HashMap<String, DartObjectImpl> fieldMap =
@@ -201,7 +201,7 @@ class ElementFactory {
         : new FieldElementImpl(name, 0);
     field.isConst = isConst;
     field.isFinal = isFinal;
-    field.static = isStatic;
+    field.isStatic = isStatic;
     field.type = type;
     if (isConst) {
       (field as ConstFieldElementImpl).constantInitializer = initializer;
@@ -391,17 +391,17 @@ class ElementFactory {
   static PropertyAccessorElementImpl getterElement(
       String name, bool isStatic, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, -1);
-    field.static = isStatic;
-    field.synthetic = true;
+    field.isStatic = isStatic;
+    field.isSynthetic = true;
     field.type = type;
     field.isFinal = true;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl(name, 0);
-    getter.synthetic = false;
+    getter.isSynthetic = false;
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
-    getter.static = isStatic;
+    getter.isStatic = isStatic;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
     getter.type = getterType;
@@ -526,8 +526,8 @@ class ElementFactory {
   static PropertyAccessorElementImpl setterElement(
       String name, bool isStatic, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, -1);
-    field.static = isStatic;
-    field.synthetic = true;
+    field.isStatic = isStatic;
+    field.isSynthetic = true;
     field.type = type;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl(name, -1);
@@ -541,7 +541,7 @@ class ElementFactory {
     PropertyAccessorElementImpl setter =
         new PropertyAccessorElementImpl(name, -1);
     setter.setter = true;
-    setter.synthetic = true;
+    setter.isSynthetic = true;
     setter.variable = field;
     setter.parameters = <ParameterElement>[parameter];
     setter.returnType = VoidTypeImpl.instance;
@@ -578,7 +578,7 @@ class ElementFactory {
     }
     variable.isConst = isConst;
     variable.isFinal = isFinal;
-    variable.synthetic = false;
+    variable.isSynthetic = false;
     variable.type = type;
     new PropertyAccessorElementImpl_ImplicitGetter(variable);
     if (!isConst && !isFinal) {

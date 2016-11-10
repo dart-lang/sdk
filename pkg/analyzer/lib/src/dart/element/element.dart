@@ -546,7 +546,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       // Ensure at least implicit default constructor.
       if (_constructors.isEmpty) {
         ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
-        constructor.synthetic = true;
+        constructor.isSynthetic = true;
         constructor.enclosingElement = this;
         _constructors = <ConstructorElement>[constructor];
       }
@@ -1149,7 +1149,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         .map((ConstructorElement superclassConstructor) {
       ConstructorElementImpl implicitConstructor =
           new ConstructorElementImpl(superclassConstructor.name, -1);
-      implicitConstructor.synthetic = true;
+      implicitConstructor.isSynthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
@@ -1163,7 +1163,7 @@ class ClassElementImpl extends AbstractClassElementImpl
           implicitParameter.isConst = superParameter.isConst;
           implicitParameter.isFinal = superParameter.isFinal;
           implicitParameter.parameterKind = superParameter.parameterKind;
-          implicitParameter.synthetic = true;
+          implicitParameter.isSynthetic = true;
           implicitParameter.type =
               superParameter.type.substitute2(argumentTypes, parameterTypes);
           implicitParameters[i] = implicitParameter;
@@ -1221,10 +1221,10 @@ class ClassElementImpl extends AbstractClassElementImpl
           field = new FieldElementImpl(fieldName, -1);
           implicitFields[fieldName] = field;
           field.enclosingElement = this;
-          field.synthetic = true;
+          field.isSynthetic = true;
           field.isFinal = e.kind == UnlinkedExecutableKind.getter;
           field.type = fieldType;
-          field.static = e.isStatic;
+          field.isStatic = e.isStatic;
         } else {
           field.isFinal = false;
         }
@@ -1857,7 +1857,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
   ConstFieldElementImpl_EnumValues(EnumElementImpl enumElement)
       : super(enumElement) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -1920,7 +1920,7 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   bool get isStatic => true;
 
   @override
-  void set static(bool isStatic) {
+  void set isStatic(bool isStatic) {
     assert(false);
   }
 
@@ -2005,14 +2005,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
 
-  /**
-   * Set whether this constructor represents a 'const' constructor.
-   */
-  void set const2(bool isConst) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.CONST, isConst);
-  }
-
   List<ConstructorInitializer> get constantInitializers {
     if (serializedExecutable != null && _constantInitializers == null) {
       _constantInitializers ??= serializedExecutable.constantInitializers
@@ -2050,6 +2042,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return serializedExecutable.isConst;
     }
     return hasModifier(Modifier.CONST);
+  }
+
+  /**
+   * Set whether this constructor represents a 'const' constructor.
+   */
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.CONST, isConst);
   }
 
   bool get isCycleFree {
@@ -2888,6 +2888,13 @@ abstract class ElementImpl implements Element {
   @override
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
 
+  /**
+   * Set whether this element is synthetic.
+   */
+  void set isSynthetic(bool isSynthetic) {
+    setModifier(Modifier.SYNTHETIC, isSynthetic);
+  }
+
   @override
   LibraryElement get library =>
       getAncestor((element) => element is LibraryElement);
@@ -2949,13 +2956,6 @@ abstract class ElementImpl implements Element {
       return null;
     }
     return _enclosingElement.source;
-  }
-
-  /**
-   * Set whether this element is synthetic.
-   */
-  void set synthetic(bool isSynthetic) {
-    setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
   /**
@@ -3519,7 +3519,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
     // Build the 'index' field.
     fields.add(new FieldElementImpl('index', -1)
       ..enclosingElement = this
-      ..synthetic = true
+      ..isSynthetic = true
       ..isFinal = true
       ..type = context.typeProvider.intType);
     // Build the 'values' field.
@@ -4220,6 +4220,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this field is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(_unlinkedVariable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   bool get isVirtual {
     for (ElementAnnotationImpl annotation in metadata) {
@@ -4232,14 +4240,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   ElementKind get kind => ElementKind.FIELD;
-
-  /**
-   * Set whether this field is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(_unlinkedVariable);
-    setModifier(Modifier.STATIC, isStatic);
-  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
@@ -4370,7 +4370,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   FunctionElementImpl.synthetic(
       List<ParameterElement> parameters, DartType returnType)
       : super("", -1) {
-    synthetic = true;
+    isSynthetic = true;
     this.returnType = returnType;
     this.parameters = parameters;
 
@@ -5797,7 +5797,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   void createLoadLibraryFunction(TypeProvider typeProvider) {
     FunctionElementImpl function =
         new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-    function.synthetic = true;
+    function.isSynthetic = true;
     function.enclosingElement = this;
     function.returnType = typeProvider.futureDynamicType;
     function.type = new FunctionTypeImpl(function);
@@ -6177,6 +6177,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this method is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   ElementKind get kind => ElementKind.METHOD;
 
@@ -6187,14 +6195,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       return 'unary-';
     }
     return super.name;
-  }
-
-  /**
-   * Set whether this method is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.STATIC, isStatic);
   }
 
   @override
@@ -6606,7 +6606,7 @@ class MultiplyInheritedMethodElementImpl extends MethodElementImpl
   List<ExecutableElement> _elements = MethodElement.EMPTY_LIST;
 
   MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -6632,7 +6632,7 @@ class MultiplyInheritedPropertyAccessorElementImpl
 
   MultiplyInheritedPropertyAccessorElementImpl(Identifier name)
       : super.forNode(name) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -6721,7 +6721,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       UnlinkedExecutable unlinkedInitializer = _unlinkedVariable.initializer;
       if (unlinkedInitializer != null) {
         _initializer = new FunctionElementImpl.forSerialized(
-            unlinkedInitializer, this)..synthetic = true;
+            unlinkedInitializer, this)..isSynthetic = true;
       } else {
         return null;
       }
@@ -6908,7 +6908,7 @@ class ParameterElementImpl extends VariableElementImpl
             unlinkedParameter, enclosingElement);
       }
     }
-    element.synthetic = synthetic;
+    element.isSynthetic = synthetic;
     return element;
   }
 
@@ -6919,7 +6919,7 @@ class ParameterElementImpl extends VariableElementImpl
       String name, DartType type, ParameterKind kind) {
     ParameterElementImpl element = new ParameterElementImpl(name, -1);
     element.type = type;
-    element.synthetic = true;
+    element.isSynthetic = true;
     element.parameterKind = kind;
     return element;
   }
@@ -7001,7 +7001,7 @@ class ParameterElementImpl extends VariableElementImpl
       UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
       if (unlinkedInitializer != null) {
         _initializer = new FunctionElementImpl.forSerialized(
-            unlinkedInitializer, this)..synthetic = true;
+            unlinkedInitializer, this)..isSynthetic = true;
       } else {
         return null;
       }
@@ -7304,7 +7304,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
       : setter = setter,
         super('_${setter.variable.name}', setter.variable.nameOffset) {
     enclosingElement = setter;
-    synthetic = true;
+    isSynthetic = true;
     parameterKind = ParameterKind.REQUIRED;
   }
 
@@ -7466,8 +7466,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable)
       : super(variable.name, variable.nameOffset) {
     this.variable = variable;
-    static = variable.isStatic;
-    synthetic = true;
+    isStatic = variable.isStatic;
+    isSynthetic = true;
   }
 
   /**
@@ -7557,6 +7557,14 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this accessor is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   ElementKind get kind {
     if (isGetter) {
@@ -7582,14 +7590,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   void set setter(bool isSetter) {
     _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.SETTER, isSetter);
-  }
-
-  /**
-   * Set whether this accessor is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.STATIC, isStatic);
   }
 
   @override
@@ -8001,7 +8001,7 @@ class TypeParameterElementImpl extends ElementImpl
       : _unlinkedTypeParam = null,
         nestingLevel = null,
         super(name, -1) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   DartType get bound {

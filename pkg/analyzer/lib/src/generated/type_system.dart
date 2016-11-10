@@ -219,7 +219,7 @@ class StrongTypeSystemImpl extends TypeSystem {
 
     List<ParameterElement> parameters = t.parameters.map(shave).toList();
     FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.synthetic = true;
+    function.isSynthetic = true;
     function.returnType = t.returnType;
     function.shareTypeParameters(t.typeFormals);
     function.shareParameters(parameters);

@@ -211,13 +211,13 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
             new LibraryElementImpl(context, '', -1, 0);
-        libraryElement.synthetic = true;
+        libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
             new CompilationUnitElementImpl(librarySource.shortName);
         libraryElement.definingCompilationUnit = unitElement;
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
-        return libraryElement..synthetic = true;
+        return libraryElement..isSynthetic = true;
       }
       UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);
       if (unlinkedSummary == null) {
@@ -1645,7 +1645,7 @@ class _UnitResynthesizer {
           variable.enclosingElement = unit;
           implicitVariables[name] = variable;
           accessorsData.implicitVariables.add(variable);
-          variable.synthetic = true;
+          variable.isSynthetic = true;
           variable.isFinal = kind == UnlinkedExecutableKind.getter;
         } else {
           variable.isFinal = false;

@@ -516,7 +516,7 @@ class TestTypeProvider extends TypeProviderBase {
       ClassElementImpl typeClass = ElementFactory.classElement2("Type");
       typeClass.constructors = <ConstructorElement>[
         ElementFactory.constructorElement(typeClass, null, false)
-          ..synthetic = true
+          ..isSynthetic = true
       ];
       _typeType = typeClass.type;
     }
@@ -611,12 +611,12 @@ class TestTypeProvider extends TypeProviderBase {
     fromEnvironment.isCycleFree = true;
     numElement.constructors = <ConstructorElement>[
       ElementFactory.constructorElement(numElement, null, false)
-        ..synthetic = true
+        ..isSynthetic = true
     ];
     intElement.constructors = <ConstructorElement>[fromEnvironment];
     doubleElement.constructors = <ConstructorElement>[
       ElementFactory.constructorElement(doubleElement, null, false)
-        ..synthetic = true
+        ..isSynthetic = true
     ];
     ConstFieldElementImpl varINFINITY = ElementFactory.fieldElement(
         "INFINITY", true, false, true, _doubleType,

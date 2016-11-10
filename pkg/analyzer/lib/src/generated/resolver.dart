@@ -2718,14 +2718,14 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     String indexFieldName = "index";
     FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
     indexField.isFinal = true;
-    indexField.synthetic = true;
+    indexField.isSynthetic = true;
     indexField.type = intType;
     fields.add(indexField);
     getters.add(_createGetter(indexField));
     ConstFieldElementImpl valuesField = new ConstFieldElementImpl("values", -1);
-    valuesField.static = true;
+    valuesField.isStatic = true;
     valuesField.isConst = true;
-    valuesField.synthetic = true;
+    valuesField.isSynthetic = true;
     valuesField.type = _typeProvider.listType.instantiate(<DartType>[enumType]);
     fields.add(valuesField);
     getters.add(_createGetter(valuesField));
@@ -10218,7 +10218,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       TypeName returnType, FormalParameterList parameterList) {
     List<ParameterElement> parameters = _getElements(parameterList);
     FunctionElementImpl functionElement = new FunctionElementImpl.forNode(null);
-    functionElement.synthetic = true;
+    functionElement.isSynthetic = true;
     functionElement.shareParameters(parameters);
     functionElement.declaredReturnType = _computeReturnType(returnType);
     functionElement.enclosingElement = element;

@@ -155,7 +155,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
     element.labels = holder.labels;
     element.localVariables = holder.localVariables;
     element.parameters = holder.parameters;
-    element.const2 = node.constKeyword != null;
+    element.isConst = node.constKeyword != null;
     if (body.isAsynchronous) {
       element.asynchronous = true;
     }
@@ -198,7 +198,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       SimpleIdentifier constantName = constant.name;
       FieldElementImpl constantField =
           new ConstFieldElementImpl.forNode(constantName);
-      constantField.static = true;
+      constantField.isStatic = true;
       constantField.isConst = true;
       constantField.type = enumType;
       setElementDocumentationComment(constantField, constant);
@@ -305,7 +305,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         if (variable == null) {
           variable = new TopLevelVariableElementImpl(node.name.name, -1);
           variable.isFinal = true;
-          variable.synthetic = true;
+          variable.isSynthetic = true;
           _currentHolder.addTopLevelVariable(variable);
         }
         if (node.isGetter) {
@@ -328,7 +328,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           }
           getter.variable = variable;
           getter.getter = true;
-          getter.static = true;
+          getter.isStatic = true;
           variable.getter = getter;
           if (node.returnType == null) {
             getter.hasImplicitReturnType = true;
@@ -357,7 +357,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           }
           setter.variable = variable;
           setter.setter = true;
-          setter.static = true;
+          setter.isStatic = true;
           if (node.returnType == null) {
             setter.hasImplicitReturnType = true;
           }
@@ -471,7 +471,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
-        element.static = isStatic;
+        element.isStatic = isStatic;
         element.typeParameters = holder.typeParameters;
         if (body.isAsynchronous) {
           element.asynchronous = true;
@@ -492,8 +492,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
         if (field == null) {
           field = new FieldElementImpl(node.name.name, -1);
           field.isFinal = true;
-          field.static = isStatic;
-          field.synthetic = true;
+          field.isStatic = isStatic;
+          field.isSynthetic = true;
           _currentHolder.addField(field);
         }
         if (node.isGetter) {
@@ -517,7 +517,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           getter.variable = field;
           getter.abstract = node.isAbstract;
           getter.getter = true;
-          getter.static = isStatic;
+          getter.isStatic = isStatic;
           field.getter = getter;
           if (node.returnType == null) {
             getter.hasImplicitReturnType = true;
@@ -546,7 +546,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
           setter.variable = field;
           setter.abstract = node.isAbstract;
           setter.setter = true;
-          setter.static = isStatic;
+          setter.isStatic = isStatic;
           if (node.returnType == null) {
             setter.hasImplicitReturnType = true;
           }
@@ -621,7 +621,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
         field = new FieldElementImpl.forNode(fieldName);
       }
       element = field;
-      field.static = fieldNode.isStatic;
+      field.isStatic = fieldNode.isStatic;
       _setCodeRange(element, node);
       setElementDocumentationComment(element, fieldNode);
       field.hasImplicitType = varList.type == null;
@@ -699,7 +699,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       ClassElementImpl definingClass) {
     ConstructorElementImpl constructor =
         new ConstructorElementImpl.forNode(null);
-    constructor.synthetic = true;
+    constructor.isSynthetic = true;
     constructor.enclosingElement = definingClass;
     return <ConstructorElement>[constructor];
   }
@@ -867,7 +867,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
     if (!explicitlyImportsCore && coreLibrarySource != librarySource) {
       ImportElementImpl importElement = new ImportElementImpl(-1);
       importElement.importedLibrary = importLibraryMap[coreLibrarySource];
-      importElement.synthetic = true;
+      importElement.isSynthetic = true;
       imports.add(importElement);
     }
     //
@@ -1344,7 +1344,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       initializer.labels = holder.labels;
       initializer.localVariables = holder.localVariables;
       initializer.parameters = holder.parameters;
-      initializer.synthetic = true;
+      initializer.isSynthetic = true;
       initializer.type = new FunctionTypeImpl(initializer);
       parameter.initializer = initializer;
       parameter.defaultValueCode = defaultValue.toSource();
@@ -1367,7 +1367,7 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       initializerElement.functions = holder.functions;
       initializerElement.labels = holder.labels;
       initializerElement.localVariables = holder.localVariables;
-      initializerElement.synthetic = true;
+      initializerElement.isSynthetic = true;
       initializerElement.type = new FunctionTypeImpl(initializerElement);
       variable.initializer = initializerElement;
       holder.validate();
