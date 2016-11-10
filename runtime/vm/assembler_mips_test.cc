@@ -408,18 +408,22 @@ ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
   typedef intptr_t (*LoadWordUnaligned)(intptr_t) DART_UNUSED;
   uint8_t buffer[8] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0};
 
-  EXPECT_EQ(0x78563412, EXECUTE_TEST_CODE_INTPTR_INTPTR(
-                            LoadWordUnaligned, test->entry(),
-                            reinterpret_cast<intptr_t>(&buffer[0])));
-  EXPECT_EQ(0x9A785634, EXECUTE_TEST_CODE_INTPTR_INTPTR(
-                            LoadWordUnaligned, test->entry(),
-                            reinterpret_cast<intptr_t>(&buffer[1])));
-  EXPECT_EQ(0xBC9A7856, EXECUTE_TEST_CODE_INTPTR_INTPTR(
-                            LoadWordUnaligned, test->entry(),
-                            reinterpret_cast<intptr_t>(&buffer[2])));
-  EXPECT_EQ(0xDEBC9A78, EXECUTE_TEST_CODE_INTPTR_INTPTR(
-                            LoadWordUnaligned, test->entry(),
-                            reinterpret_cast<intptr_t>(&buffer[3])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0x78563412),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0x9A785634),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0xBC9A7856),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[2])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0xDEBC9A78),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[3])));
 }
 
 
