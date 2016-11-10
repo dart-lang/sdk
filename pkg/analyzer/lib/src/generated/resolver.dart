@@ -136,6 +136,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAssertInitializer(AssertInitializer node) {
+    _checkForPossibleNullCondition(node.condition);
+    return super.visitAssertInitializer(node);
+  }
+
+  @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForPossibleNullCondition(node.condition);
     return super.visitAssertStatement(node);
@@ -2797,6 +2803,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitAsExpression(AsExpression node) => _nodeExits(node.expression);
+
+  @override
+  bool visitAssertInitializer(AssertInitializer node) => false;
 
   @override
   bool visitAssertStatement(AssertStatement node) => false;

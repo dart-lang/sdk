@@ -347,6 +347,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAssertInitializer(AssertInitializer node) {
+    _checkForNonBoolExpression(node);
+    _checkAssertMessage(node);
+    return super.visitAssertInitializer(node);
+  }
+
+  @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
     _checkAssertMessage(node);
@@ -1295,11 +1302,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * If the given assert [statement] specifies a message, verify that support
+   * If the given [assertion] specifies a message, verify that support
    * for assertions with messages is enabled.
    */
-  void _checkAssertMessage(AssertStatement statement) {
-    Expression expression = statement.message;
+  void _checkAssertMessage(Assertion assertion) {
+    Expression expression = assertion.message;
     if (expression != null && !enableAssertMessage) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT, expression);
@@ -5163,13 +5170,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the given assert [statement] has either a 'bool' or
-   * '() -> bool' input.
+   * Verify that the given [assertion] has either a 'bool' or '() -> bool'
+   * condition.
    *
    * See [StaticTypeWarningCode.NON_BOOL_EXPRESSION].
    */
-  void _checkForNonBoolExpression(AssertStatement statement) {
-    Expression expression = statement.condition;
+  void _checkForNonBoolExpression(Assertion assertion) {
+    Expression expression = assertion.condition;
     DartType type = getStaticType(expression);
     if (type is InterfaceType) {
       if (!_typeSystem.isAssignableTo(type, _boolType)) {

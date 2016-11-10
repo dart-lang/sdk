@@ -7846,7 +7846,12 @@ void''');
     expect(member, new isInstanceOf<ConstructorDeclaration>());
     ConstructorDeclaration constructor = member as ConstructorDeclaration;
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    expect(initializers, hasLength(2));
+    expect(initializers, hasLength(3));
+    ConstructorInitializer initializer = initializers[1];
+    expect(initializer, new isInstanceOf<AssertInitializer>());
+    AssertInitializer assertInitializer = initializer;
+    expect(assertInitializer.condition, isNotNull);
+    expect(assertInitializer.message, isNull);
   }
 
   void test_parseConstructor_with_pseudo_function_literal() {
