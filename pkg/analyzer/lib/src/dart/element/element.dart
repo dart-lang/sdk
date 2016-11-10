@@ -1160,8 +1160,8 @@ class ClassElementImpl extends AbstractClassElementImpl
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter =
               new ParameterElementImpl(superParameter.name, -1);
-          implicitParameter.const3 = superParameter.isConst;
-          implicitParameter.final2 = superParameter.isFinal;
+          implicitParameter.isConst = superParameter.isConst;
+          implicitParameter.isFinal = superParameter.isFinal;
           implicitParameter.parameterKind = superParameter.parameterKind;
           implicitParameter.synthetic = true;
           implicitParameter.type =
@@ -1222,11 +1222,11 @@ class ClassElementImpl extends AbstractClassElementImpl
           implicitFields[fieldName] = field;
           field.enclosingElement = this;
           field.synthetic = true;
-          field.final2 = e.kind == UnlinkedExecutableKind.getter;
+          field.isFinal = e.kind == UnlinkedExecutableKind.getter;
           field.type = fieldType;
           field.static = e.isStatic;
         } else {
-          field.final2 = false;
+          field.isFinal = false;
         }
         accessor.variable = field;
         if (e.kind == UnlinkedExecutableKind.getter) {
@@ -1899,22 +1899,22 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   }
 
   @override
-  void set const3(bool isConst) {
-    assert(false);
-  }
-
-  @override
   void set evaluationResult(_) {
     assert(false);
   }
 
   @override
-  void set final2(bool isFinal) {
+  bool get isConst => true;
+
+  @override
+  void set isConst(bool isConst) {
     assert(false);
   }
 
   @override
-  bool get isConst => true;
+  void set isFinal(bool isFinal) {
+    assert(false);
+  }
 
   @override
   bool get isStatic => true;
@@ -3520,7 +3520,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
     fields.add(new FieldElementImpl('index', -1)
       ..enclosingElement = this
       ..synthetic = true
-      ..final2 = true
+      ..isFinal = true
       ..type = context.typeProvider.intType);
     // Build the 'values' field.
     fields.add(new ConstFieldElementImpl_EnumValues(this));
@@ -6681,23 +6681,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   @override
-  void set const3(bool isConst) {
-    _assertNotResynthesized(_unlinkedVariable);
-    super.const3 = isConst;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedVariable != null) {
       return _unlinkedVariable?.documentationComment?.text;
     }
     return super.documentationComment;
-  }
-
-  @override
-  void set final2(bool isFinal) {
-    _assertNotResynthesized(_unlinkedVariable);
-    super.final2 = isFinal;
   }
 
   @override
@@ -6746,11 +6734,23 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   @override
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(_unlinkedVariable);
+    super.isConst = isConst;
+  }
+
+  @override
   bool get isFinal {
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isFinal;
     }
     return super.isFinal;
+  }
+
+  @override
+  void set isFinal(bool isFinal) {
+    _assertNotResynthesized(_unlinkedVariable);
+    super.isFinal = isFinal;
   }
 
   @override
@@ -6928,12 +6928,6 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  void set const3(bool isConst) {
-    _assertNotResynthesized(_unlinkedParam);
-    super.const3 = isConst;
-  }
-
-  @override
   String get defaultValueCode {
     if (_unlinkedParam != null) {
       if (_unlinkedParam.initializer?.bodyExpr == null) {
@@ -6950,12 +6944,6 @@ class ParameterElementImpl extends VariableElementImpl
   void set defaultValueCode(String defaultValueCode) {
     _assertNotResynthesized(_unlinkedParam);
     this._defaultValueCode = StringUtilities.intern(defaultValueCode);
-  }
-
-  @override
-  void set final2(bool isFinal) {
-    _assertNotResynthesized(_unlinkedParam);
-    super.final2 = isFinal;
   }
 
   @override
@@ -7026,6 +7014,12 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(_unlinkedParam);
+    super.isConst = isConst;
+  }
+
+  @override
   bool get isCovariant {
     if (inheritsCovariant) {
       return true;
@@ -7044,6 +7038,12 @@ class ParameterElementImpl extends VariableElementImpl
       return false;
     }
     return super.isFinal;
+  }
+
+  @override
+  void set isFinal(bool isFinal) {
+    _assertNotResynthesized(_unlinkedParam);
+    super.isFinal = isFinal;
   }
 
   @override
@@ -8344,13 +8344,6 @@ abstract class VariableElementImpl extends ElementImpl
       : super.forSerialized(enclosingElement);
 
   /**
-   * Set whether this variable is const.
-   */
-  void set const3(bool isConst) {
-    setModifier(Modifier.CONST, isConst);
-  }
-
-  /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
    *
@@ -8388,13 +8381,6 @@ abstract class VariableElementImpl extends ElementImpl
         "Invalid attempt to set a compile-time constant result");
   }
 
-  /**
-   * Set whether this variable is final.
-   */
-  void set final2(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
   @override
   bool get hasImplicitType {
     return hasModifier(Modifier.IMPLICIT_TYPE);
@@ -8426,9 +8412,23 @@ abstract class VariableElementImpl extends ElementImpl
     return hasModifier(Modifier.CONST);
   }
 
+  /**
+   * Set whether this variable is const.
+   */
+  void set isConst(bool isConst) {
+    setModifier(Modifier.CONST, isConst);
+  }
+
   @override
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
+  }
+
+  /**
+   * Set whether this variable is final.
+   */
+  void set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
   }
 
   @override

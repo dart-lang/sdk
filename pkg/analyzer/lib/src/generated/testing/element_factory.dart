@@ -140,17 +140,17 @@ class ElementFactory {
     InterfaceType stringType = typeProvider.stringType;
     String indexFieldName = "index";
     FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
-    indexField.final2 = true;
+    indexField.isFinal = true;
     indexField.type = intType;
     fields.add(indexField);
     String nameFieldName = "_name";
     FieldElementImpl nameField = new FieldElementImpl(nameFieldName, -1);
-    nameField.final2 = true;
+    nameField.isFinal = true;
     nameField.type = stringType;
     fields.add(nameField);
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
     valuesField.static = true;
-    valuesField.const3 = true;
+    valuesField.isConst = true;
     valuesField.type = typeProvider.listType.instantiate(<DartType>[enumType]);
     fields.add(valuesField);
     //
@@ -163,7 +163,7 @@ class ElementFactory {
         FieldElementImpl constantElement =
             new ConstFieldElementImpl(constantName, -1);
         constantElement.static = true;
-        constantElement.const3 = true;
+        constantElement.isConst = true;
         constantElement.type = enumType;
         HashMap<String, DartObjectImpl> fieldMap =
             new HashMap<String, DartObjectImpl>();
@@ -199,8 +199,8 @@ class ElementFactory {
     FieldElementImpl field = isConst
         ? new ConstFieldElementImpl(name, 0)
         : new FieldElementImpl(name, 0);
-    field.const3 = isConst;
-    field.final2 = isFinal;
+    field.isConst = isConst;
+    field.isFinal = isFinal;
     field.static = isStatic;
     field.type = type;
     if (isConst) {
@@ -394,7 +394,7 @@ class ElementFactory {
     field.static = isStatic;
     field.synthetic = true;
     field.type = type;
-    field.final2 = true;
+    field.isFinal = true;
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl(name, 0);
     getter.synthetic = false;
@@ -576,8 +576,8 @@ class ElementFactory {
     } else {
       variable = new TopLevelVariableElementImpl(name, -1);
     }
-    variable.const3 = isConst;
-    variable.final2 = isFinal;
+    variable.isConst = isConst;
+    variable.isFinal = isFinal;
     variable.synthetic = false;
     variable.type = type;
     new PropertyAccessorElementImpl_ImplicitGetter(variable);

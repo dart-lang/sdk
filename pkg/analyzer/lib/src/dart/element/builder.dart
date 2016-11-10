@@ -199,7 +199,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
       FieldElementImpl constantField =
           new ConstFieldElementImpl.forNode(constantName);
       constantField.static = true;
-      constantField.const3 = true;
+      constantField.isConst = true;
       constantField.type = enumType;
       setElementDocumentationComment(constantField, constant);
       fields.add(constantField);
@@ -235,8 +235,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
       FieldFormalParameterElementImpl parameter =
           new FieldFormalParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
-      parameter.const3 = node.isConst;
-      parameter.final2 = node.isFinal;
+      parameter.isConst = node.isConst;
+      parameter.isFinal = node.isFinal;
       parameter.parameterKind = node.kind;
       if (field != null) {
         parameter.field = field;
@@ -304,7 +304,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
             .getTopLevelVariable(propertyName) as TopLevelVariableElementImpl;
         if (variable == null) {
           variable = new TopLevelVariableElementImpl(node.name.name, -1);
-          variable.final2 = true;
+          variable.isFinal = true;
           variable.synthetic = true;
           _currentHolder.addTopLevelVariable(variable);
         }
@@ -362,7 +362,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
             setter.hasImplicitReturnType = true;
           }
           variable.setter = setter;
-          variable.final2 = false;
+          variable.isFinal = false;
           _currentHolder.addAccessor(setter);
           expression.element = setter;
           propertyNameNode.staticElement = setter;
@@ -491,7 +491,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
             synthetic: true) as FieldElementImpl;
         if (field == null) {
           field = new FieldElementImpl(node.name.name, -1);
-          field.final2 = true;
+          field.isFinal = true;
           field.static = isStatic;
           field.synthetic = true;
           _currentHolder.addField(field);
@@ -551,7 +551,7 @@ class ApiElementBuilder extends _BaseElementBuilder {
             setter.hasImplicitReturnType = true;
           }
           field.setter = setter;
-          field.final2 = false;
+          field.isFinal = false;
           _currentHolder.addAccessor(setter);
           propertyNameNode.staticElement = setter;
         }
@@ -644,8 +644,8 @@ class ApiElementBuilder extends _BaseElementBuilder {
       _currentHolder.addTopLevelVariable(variable);
       variableName.staticElement = element;
     }
-    element.const3 = isConst;
-    element.final2 = isFinal;
+    element.isConst = isConst;
+    element.isFinal = isFinal;
     if (element is PropertyInducingElementImpl) {
       PropertyAccessorElementImpl_ImplicitGetter getter =
           new PropertyAccessorElementImpl_ImplicitGetter(element);
@@ -1137,8 +1137,8 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.metadata = _createElementAnnotations(node.metadata);
     ForEachStatement statement = node.parent as ForEachStatement;
     element.setVisibleRange(statement.offset, statement.length);
-    element.const3 = node.isConst;
-    element.final2 = node.isFinal;
+    element.isConst = node.isConst;
+    element.isFinal = node.isFinal;
     if (node.type == null) {
       element.hasImplicitType = true;
     }
@@ -1283,8 +1283,8 @@ class LocalElementBuilder extends _BaseElementBuilder {
     element.hasImplicitType = varList.type == null;
     _currentHolder.addLocalVariable(element);
     variableName.staticElement = element;
-    element.const3 = isConst;
-    element.final2 = isFinal;
+    element.isConst = isConst;
+    element.isFinal = isFinal;
     buildVariableInitializer(element, initializerNode);
     return null;
   }
@@ -1388,8 +1388,8 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       parameter = new DefaultParameterElementImpl.forNode(parameterName);
     }
     _setCodeRange(parameter, node);
-    parameter.const3 = node.isConst;
-    parameter.final2 = node.isFinal;
+    parameter.isConst = node.isConst;
+    parameter.isFinal = node.isFinal;
     parameter.parameterKind = node.kind;
     // visible range
     _setParameterVisibleRange(node, parameter);
@@ -1436,8 +1436,8 @@ abstract class _BaseElementBuilder extends RecursiveAstVisitor<Object> {
       ParameterElementImpl parameter =
           new ParameterElementImpl.forNode(parameterName);
       _setCodeRange(parameter, node);
-      parameter.const3 = node.isConst;
-      parameter.final2 = node.isFinal;
+      parameter.isConst = node.isConst;
+      parameter.isFinal = node.isFinal;
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       if (node.type == null) {

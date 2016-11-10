@@ -1645,9 +1645,9 @@ class _UnitResynthesizer {
           implicitVariables[name] = variable;
           accessorsData.implicitVariables.add(variable);
           variable.synthetic = true;
-          variable.final2 = kind == UnlinkedExecutableKind.getter;
+          variable.isFinal = kind == UnlinkedExecutableKind.getter;
         } else {
-          variable.final2 = false;
+          variable.isFinal = false;
         }
         accessor.variable = variable;
         // link
