@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Copyright 2014 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -21,15 +22,26 @@ def run_command(command):
     return ("Command failed: " + ' '.join(command) + "\n" +
             "output: " + e.output)
 
-# Unless the path is absolute, this script is designed to run binaries produced
-# by the current build. We always prefix it with "./" to avoid picking up system
-# versions that might also be on the path.
-if os.path.isabs(sys.argv[1]):
-  path = sys.argv[1]
-else:
-  path = './' + sys.argv[1]
+def main(argv):
+  # Unless the path is absolute, this script is designed to run binaries
+  # produced by the current build. We always prefix it with "./" to avoid
+  # picking up system versions that might also be on the path.
+  if os.path.isabs(argv[1]):
+    path = argv[1]
+  else:
+    path = './' + argv[1]
 
-# The rest of the arguements are passed directly to the executable.
-args = [path] + sys.argv[2:]
+  if not os.path.isfile(path):
+    print "Binary not found: " + path
+    return 0
 
-sys.exit(run_command(args))
+  # The rest of the arguements are passed directly to the executable.
+  args = [path] + argv[2:]
+
+  result = run_command(args)
+  if result != 0:
+    print result
+  return 0
+
+if __name__ == '__main__':
+  sys.exit(main(sys.argv))
