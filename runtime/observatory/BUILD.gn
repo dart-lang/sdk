@@ -2,7 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import("../../utils/invoke_dart.gni")
+import("../../build/executable_suffix.gni")
+import("../../build/prebuilt_dart_sdk.gni")
 
 # Currently paths here are hard coded for convenience in building Mojo/Flutter.
 declare_args() {
@@ -29,19 +30,20 @@ if (dart_host_pub_exe != "") {
     "--pub-executable",
     dart_host_pub_exe,
   ]
-} else {
+} else if (!prebuilt_dart_exe_works) {
   pub_build_deps += [ "../bin:dart_bootstrap($host_toolchain)" ]
 
   dart_out_dir =
       get_label_info("../bin:dart_bootstrap($host_toolchain)", "root_out_dir")
-  dart_bootstrap =
-      rebase_path("$dart_out_dir/dart_bootstrap$dart_executable_suffix")
+  dart_bootstrap = rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
 
   pub_build_args = [
     "--sdk=True",
     "--dart-executable",
     dart_bootstrap,
   ]
+} else {
+  pub_build_args = [ "--sdk=True" ]
 }
 
 current_dir = rebase_path(".", "//")
