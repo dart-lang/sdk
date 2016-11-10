@@ -510,7 +510,7 @@ WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: RuntimeError # Please triage this failure
 WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-002_t01: RuntimeError # Please triage this failure
 
-[ $compiler == dart2js && $runtime != chrome && $system != linux]
+[ $compiler == dart2js && $system != linux]
 Language/Expressions/Strings/adjacent_strings_t01: RuntimeError # Please triage this failure
 Language/Expressions/Strings/escape_newline_t01: RuntimeError # Please triage this failure
 Language/Reference/Lexical_Rules/unicode_t10: RuntimeError # Please triage this failure
@@ -971,7 +971,6 @@ LibTest/typed_data/Int8List/sublist_A02_t01: Pass, Slow # Please triage this fai
 LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # Please triage this failure.
 
 [ $compiler == dart2js && $runtime == chrome && $system != linux]
-LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/Element/scrollWidth_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dom-parse-serialize-display_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/dom-parse-serialize_t01: RuntimeError # Please triage this failure
@@ -979,13 +978,13 @@ LayoutTests/fast/html/draggable_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/innerHTML/005_t01: RuntimeError # Please triage this failure
 LibTest/core/DateTime/toString_A01_t02: RuntimeError # Please triage this failure
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t03: RuntimeError # Please triage this failure
-LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # Please triage this failure
-LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: RuntimeError # Please triage this failure
 
 
 [ $compiler == dart2js && $runtime == chrome ]
+LayoutTests/fast/css/getComputedStyle/getComputedStyle-zIndex-auto_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/dom/shadow/link-in-shadow-tree_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/forms/paste-into-textarea_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-different-writing-modes-left_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError # Please triage this failure
@@ -2036,9 +2035,6 @@ LibTest/isolate/Isolate/spawn_A04_t04: Skip # Times out. Please triage this fail
 [ $compiler == dart2js && $runtime == chrome && $system == linux]
 LayoutTests/fast/text/international/combining-marks-position_t01: RuntimeError # Please triage this failure
 LibTest/math/log_A01_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/css/getComputedStyle/getComputedStyle-zIndex-auto_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/dom/shadow/link-in-shadow-tree_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/forms/paste-into-textarea_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/gl-get-calls_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == drt ]
