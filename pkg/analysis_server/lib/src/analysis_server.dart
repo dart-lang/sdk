@@ -1772,25 +1772,31 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       _runDelayed(() {
         new_sendErrorNotification(analysisServer, result);
       });
+      String path = result.path;
       CompilationUnit unit = result.unit;
       if (unit != null) {
         if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.HIGHLIGHTS, result.path)) {
+            AnalysisService.HIGHLIGHTS, path)) {
           _runDelayed(() {
             sendAnalysisNotificationHighlights(
-                analysisServer, result.path, unit);
+                analysisServer, path, unit);
           });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.NAVIGATION, result.path)) {
+            AnalysisService.NAVIGATION, path)) {
           _runDelayed(() {
             new_sendDartNotificationNavigation(analysisServer, result);
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.OVERRIDES, path)) {
+          _runDelayed(() {
+            sendAnalysisNotificationOverrides(analysisServer, path, unit);
           });
         }
       }
       // TODO(scheglov) Implement more notifications.
       // IMPLEMENTED
-      // OVERRIDES
       // OCCURRENCES (not used in IDEA)
       // OUTLINE (not used in IDEA)
     });
