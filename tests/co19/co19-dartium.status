@@ -27,38 +27,17 @@ LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-
 [ $compiler == none && $runtime == dartium && $system == linux ]
 language/mixin_illegal_constructor_test/01: Skip # Issue 43
 
-[ $compiler == none && $runtime == dartium && ($system == windows || $system == linux) ]
-LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # 45 roll webgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/canvas-zero-size_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/context-lost_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/draw-arrays-out-of-bounds_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/draw-elements-out-of-bounds_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/gl-object-get-calls_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/gl-vertex-attrib-zero-issues_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/gl-vertex-attrib_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/index-validation-copies-indices_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/index-validation-crash-with-buffer-sub-data_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/index-validation-with-resized-buffer_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/index-validation_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/null-uniform-location_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/program-test_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/tex-image-and-uniform-binding-bugs_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/tex-input-validation_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/texImageTest_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/webgl-exceptions_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux bots.
-
 
 [ $compiler == none && $runtime == dartium && $mode == debug ]
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: Skip # Issue 19495.
 WebPlatformTest/html/semantics/forms/the-datalist-element/datalistoptions_t01: Skip # Issue 20540.
 
 [ $compiler == none && $runtime == dartium && $checked ]
+LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # Please triage this failure.
+Language/Statements/Return/runtime_type_t04: RuntimeError # Please triage this failure.
+LayoutTests/fast/css/style-scoped/style-scoped-scoping-nodes-different-order_t01: RuntimeError # Please triage this failure.
+LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # Please triage this failure.
+LibTest/collection/LinkedHashSet/LinkedHashSet.from_A03_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/parser/pre-first-line-break_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # co19-roll r761: Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t02: RuntimeError # Please triage this failure.
@@ -148,6 +127,11 @@ WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeEr
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 
 [ $compiler == none && $runtime == dartium ]
+LayoutTests/fast/xpath/attr-namespace_t01: RuntimeError # Please triage this failure.
+LibTest/core/Iterable/Iterable.generate_A03_t02: RuntimeError # Please triage this failure.
+LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # Please triage this failure.
+LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # Please triage this failure.
+Language/Classes/same_name_type_variable_t01: Fail #: Please triage this failure.
 Language/Classes/Constructors/Generative_Constructors/execution_t03: Fail, OK
 Language/Classes/Constructors/Generative_Constructors/final_variables_t01: Pass, Fail #: Please triage this failure.
 Language/Classes/Getters/type_object_t01: RuntimeError # Please triage this failure.
@@ -156,35 +140,35 @@ Language/Classes/Setters/type_object_t01: RuntimeError # Please triage this fail
 Language/Classes/Setters/type_object_t02: RuntimeError # Please triage this failure.
 Language/Classes/Static_Methods/type_object_t01: RuntimeError # Please triage this failure.
 Language/Classes/Static_Methods/type_object_t02: RuntimeError # Please triage this failure.
-Language/Classes/deсlarations_t01: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t02: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t03: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t04: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t06: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t08: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t12: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t13: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t14: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t15: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t16: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t17: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t18: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t19: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t20: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t21: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t22: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t23: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t24: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t25: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t26: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t27: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t28: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t29: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t30: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t31: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t32: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t33: Skip # Times out. Please triage this failure.
-Language/Classes/deсlarations_t34: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t01: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t02: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t03: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t04: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t06: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t08: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t12: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t13: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t14: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t15: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t16: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t17: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t18: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t19: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t20: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t21: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t22: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t23: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t24: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t25: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t26: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t27: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t28: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t29: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t30: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t31: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t32: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t33: Skip # Times out. Please triage this failure.
+Language/Classes/declarations_t34: Skip # Times out. Please triage this failure.
 Language/Expressions/Assignment/super_assignment_failed_t05: RuntimeError # Issue 25671
 Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # Times out. Issue 25967
 Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Times out. Issue 25967
@@ -245,6 +229,8 @@ Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t08: Runtime
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t09: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_async_t10: RuntimeError # Issue 25748
 Language/Statements/Yield_and_Yield_Each/Yield_Each/execution_sync_t05: RuntimeError # Issue 25662,25634
+LayoutTests/fast/canvas/alpha_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: RuntimeError  # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -368,7 +354,6 @@ LayoutTests/fast/canvas/webgl/texture-bindings-uneffected-on-resize_t01: Runtime
 LayoutTests/fast/canvas/webgl/texture-color-profile_t01: RuntimeError # Issue 25653
 LayoutTests/fast/canvas/webgl/texture-complete_t01: RuntimeError # Issue 25653
 LayoutTests/fast/canvas/webgl/texture-npot_t01: RuntimeError # Issue 25653
-LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: RuntimeError # 45 rollwebgl doesn't run on on windows/linux but failed on mac bots.
 LayoutTests/fast/canvas/webgl/triangle_t01: RuntimeError, Pass # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/uniform-location-length-limits_t01: Pass, RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/uniform-location_t01: RuntimeError # Please triage this failure
@@ -972,7 +957,6 @@ LibTest/html/IFrameElement/attributes_setter_A01_t01: RuntimeError # co19-roll r
 LibTest/html/IFrameElement/blur_A01_t01: Skip # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/borderEdge_A01_t01: RuntimeError # co19-roll r706.  Issue 16574
 LibTest/html/IFrameElement/clone_A01_t02: RuntimeError # co19-roll r706.  Please triage this failure.
-LibTest/html/IFrameElement/contentWindow_A01_t01: RuntimeError # Also fails in dart2js as this test should not pass given current Dart semantics for cross frame windows.
 LibTest/html/IFrameElement/createFragment_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/createFragment_A01_t02: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/createFragment_A01_t03: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -999,11 +983,9 @@ LibTest/html/Window/document_A01_t01: Skip # accesses window.document from a cro
 LibTest/html/Window/find_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A03_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A06_t01: RuntimeError # co19-roll r706.  Please triage this failure.
-LibTest/html/Window/moveBy_A01_t01: RuntimeError # Also fails in dart2js as this test should not pass given current Dart semantics for cross frame windows.
 LibTest/html/Window/moveTo_A01_t01: RuntimeError, Pass # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/moveTo_A02_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/postMessage_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
-LibTest/html/Window/postMessage_A01_t02: RuntimeError # Also fails in dart2js.
 LibTest/html/Window/requestFileSystem_A01_t02: RuntimeError,Pass # co19-roll r722: Please triage this failure.
 LibTest/html/Window/requestFileSystem_A02_t01: Skip # Issue 24585.
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -1303,31 +1285,6 @@ WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Ti
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01: RuntimeError # Please triage this failure.
 # Must fix failures below after JsInterop checkin.
-WebPlatformTest/dom/nodes/Node-appendChild_t01: RuntimeError # Issue 26134
-WebPlatformTest/dom/nodes/attributes/setAttribute_A01_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/Document/createElement-invalid-names_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/createDocumentType2_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/createElementNS_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/HTMLTemplateElement/cycles-in-shadow_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/HTMLTemplateElement/cycles_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/custom/document-register-type-extensions_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/custom/document-register-namespace_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/custom/element-upgrade_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/DOMException/prototype-object_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/shadow/shadow-hierarchy-exception_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/Node/contains-method_t01: RuntimeError # Issue 26134
-LayoutTests/fast/events/mutation-during-append-child_t01: RuntimeError # Issue 26134
-LayoutTests/fast/events/mutation-during-insert-before_t01: RuntimeError # Issue 26134
 LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: Skip # Issue 26134, timesout
-LibTest/html/Document/text_A01_t01: RuntimeError # Issue 26134
-LibTest/html/Document/insertBefore_A01_t01: RuntimeError # Issue 26134
-LibTest/html/Document/insertAllBefore_A01_t01: RuntimeError # Issue 26134
-LibTest/html/IFrameElement/insertBefore_A01_t01: RuntimeError # Issue 26134
-LibTest/html/IFrameElement/insertAllBefore_A01_t01: RuntimeError # Issue 26134
-LibTest/html/Element/text_A01_t01: RuntimeError # Issue 26134
-LibTest/html/Element/insertBefore_A01_t01: RuntimeError # Issue 26134
-LibTest/html/Element/insertAllBefore_A01_t01: RuntimeError # Issue 26134
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: Skip # Issue 26134, timeout
 html/cross_domain_iframe_test: RuntimeError # Issue 26134
