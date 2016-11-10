@@ -127,6 +127,15 @@ class _PhysicalFile extends _PhysicalResource implements File {
   Stream<WatchEvent> get changes => new FileWatcher(_entry.path).events;
 
   @override
+  int get lengthSync {
+    try {
+      return _file.lengthSync();
+    } on io.FileSystemException catch (exception) {
+      throw new FileSystemException(exception.path, exception.message);
+    }
+  }
+
+  @override
   int get modificationStamp {
     try {
       return _file.lastModifiedSync().millisecondsSinceEpoch;
