@@ -30,6 +30,23 @@ abstract class ByteStore {
 }
 
 /**
+ * [ByteStore] which stores data only in memory.
+ */
+class MemoryByteStore implements ByteStore {
+  final Map<String, List<int>> _map = {};
+
+  @override
+  List<int> get(String key) {
+    return _map[key];
+  }
+
+  @override
+  void put(String key, List<int> bytes) {
+    _map[key] = bytes;
+  }
+}
+
+/**
  * A wrapper around [ByteStore] which adds an in-memory LRU cache to it.
  */
 class MemoryCachingByteStore implements ByteStore {

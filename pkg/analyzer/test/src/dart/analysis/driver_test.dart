@@ -53,7 +53,7 @@ class AnalysisDriverSchedulerTest {
   static final MockSdk sdk = new MockSdk();
 
   final MemoryResourceProvider provider = new MemoryResourceProvider();
-  final ByteStore byteStore = new _TestByteStore();
+  final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
   final StringBuffer logBuffer = new StringBuffer();
@@ -220,7 +220,7 @@ class AnalysisDriverTest {
   static final MockSdk sdk = new MockSdk();
 
   final MemoryResourceProvider provider = new MemoryResourceProvider();
-  final ByteStore byteStore = new _TestByteStore();
+  final ByteStore byteStore = new MemoryByteStore();
   final FileContentOverlay contentOverlay = new FileContentOverlay();
 
   final StringBuffer logBuffer = new StringBuffer();
@@ -1238,19 +1238,5 @@ class _Monitor {
     if (!_completer.isCompleted) {
       _completer.complete(null);
     }
-  }
-}
-
-class _TestByteStore implements ByteStore {
-  final map = <String, List<int>>{};
-
-  @override
-  List<int> get(String key) {
-    return map[key];
-  }
-
-  @override
-  void put(String key, List<int> bytes) {
-    map[key] = bytes;
   }
 }
