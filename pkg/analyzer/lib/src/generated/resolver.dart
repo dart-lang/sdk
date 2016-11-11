@@ -1643,25 +1643,28 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Validates that the expressions of the given initializers (of a constant constructor) are all
-   * compile time constants.
-   *
-   * @param constructor the constant constructor declaration to validate
+   * Validates that the expressions of the initializers of the given constant
+   * [constructor] are all compile time constants.
    */
   void _validateConstructorInitializers(ConstructorDeclaration constructor) {
     List<ParameterElement> parameterElements =
         constructor.parameters.parameterElements;
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
     for (ConstructorInitializer initializer in initializers) {
-      if (initializer is ConstructorFieldInitializer) {
+      if (initializer is AssertInitializer) {
+        _validateInitializerExpression(
+            parameterElements, initializer.condition);
+        Expression message = initializer.message;
+        if (message != null) {
+          _validateInitializerExpression(parameterElements, message);
+        }
+      } else if (initializer is ConstructorFieldInitializer) {
         _validateInitializerExpression(
             parameterElements, initializer.expression);
-      }
-      if (initializer is RedirectingConstructorInvocation) {
+      } else if (initializer is RedirectingConstructorInvocation) {
         _validateInitializerInvocationArguments(
             parameterElements, initializer.argumentList);
-      }
-      if (initializer is SuperConstructorInvocation) {
+      } else if (initializer is SuperConstructorInvocation) {
         _validateInitializerInvocationArguments(
             parameterElements, initializer.argumentList);
       }
