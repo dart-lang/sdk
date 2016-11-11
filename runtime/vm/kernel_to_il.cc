@@ -840,7 +840,8 @@ class TryFinallyBlock {
         // Finalizers are executed outside of the try block hence
         // try depth of finalizers are one less than current try
         // depth.
-        try_depth_(builder->try_depth_ - 1) {
+        try_depth_(builder->try_depth_ - 1),
+        try_index_(builder_->CurrentTryIndex()) {
     builder_->try_finally_block_ = this;
   }
   ~TryFinallyBlock() { builder_->try_finally_block_ = outer_; }
@@ -848,6 +849,7 @@ class TryFinallyBlock {
   Statement* finalizer() const { return finalizer_; }
   intptr_t context_depth() const { return context_depth_; }
   intptr_t try_depth() const { return try_depth_; }
+  intptr_t try_index() const { return try_index_; }
   TryFinallyBlock* outer() const { return outer_; }
 
  private:
@@ -856,6 +858,7 @@ class TryFinallyBlock {
   Statement* const finalizer_;
   const intptr_t context_depth_;
   const intptr_t try_depth_;
+  const intptr_t try_index_;
 };
 
 
@@ -871,7 +874,8 @@ class TryCatchBlock {
   }
   ~TryCatchBlock() { builder_->try_catch_block_ = outer_; }
 
-  intptr_t TryIndex() { return try_index_; }
+  intptr_t try_index() { return try_index_; }
+  TryCatchBlock* outer() const { return outer_; }
 
  private:
   FlowGraphBuilder* builder_;
@@ -1853,6 +1857,7 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
     TryFinallyBlock* outer_finally,
     intptr_t target_context_depth) {
   TryFinallyBlock* const saved_block = try_finally_block_;
+  TryCatchBlock* const saved_try_catch_block = try_catch_block_;
   const intptr_t saved_depth = context_depth_;
   const intptr_t saved_try_depth = try_depth_;
 
@@ -1868,6 +1873,20 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
     // block.
     instructions += AdjustContextTo(try_finally_block_->context_depth());
 
+    // The to-be-translated finalizer has to have the correct try-index (namely
+    // the one outside the try-finally block).
+    bool changed_try_index = false;
+    intptr_t target_try_index = try_finally_block_->try_index();
+    while (CurrentTryIndex() != target_try_index) {
+      try_catch_block_ = try_catch_block_->outer();
+      changed_try_index = true;
+    }
+    if (changed_try_index) {
+      JoinEntryInstr* entry = BuildJoinEntry();
+      instructions += Goto(entry);
+      instructions = Fragment(instructions.entry, entry);
+    }
+
     Statement* finalizer = try_finally_block_->finalizer();
     try_finally_block_ = try_finally_block_->outer();
 
@@ -1881,13 +1900,14 @@ Fragment FlowGraphBuilder::TranslateFinallyFinalizers(
   }
 
   if (instructions.is_open() && target_context_depth != -1) {
-    // A target context depth of -1 indicates that we the code after this
+    // A target context depth of -1 indicates that the code after this
     // will not care about the context chain so we can leave it any way we
     // want after the last finalizer.  That is used when returning.
     instructions += AdjustContextTo(target_context_depth);
   }
 
   try_finally_block_ = saved_block;
+  try_catch_block_ = saved_try_catch_block;
   context_depth_ = saved_depth;
   try_depth_ = saved_try_depth;
 
@@ -2668,7 +2688,7 @@ intptr_t FlowGraphBuilder::CurrentTryIndex() {
   if (try_catch_block_ == NULL) {
     return CatchClauseNode::kInvalidTryIndex;
   } else {
-    return try_catch_block_->TryIndex();
+    return try_catch_block_->try_index();
   }
 }
 
@@ -5432,8 +5452,8 @@ void FlowGraphBuilder::VisitTryFinally(TryFinally* node) {
   // Fill in the body of the try.
   ++try_depth_;
   {
-    TryCatchBlock tcb(this, try_handler_index);
     TryFinallyBlock tfb(this, node->finalizer());
+    TryCatchBlock tcb(this, try_handler_index);
     try_body += TranslateStatement(node->body());
   }
   --try_depth_;
