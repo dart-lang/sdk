@@ -4,7 +4,10 @@
 
 part of dart.developer;
 
-/// Information about the service protocol.
+/// Service protocol is the protocol that a client like the observatory
+/// could use to access the services provided by the Dart VM for
+/// debugging and inspecting Dart programs. This class encapsulates the
+/// version number and Uri for accessing this service.
 class ServiceProtocolInfo {
   /// The major version of the protocol. If the running Dart environment does
   /// not support the service protocol, this is 0.
@@ -28,9 +31,12 @@ class ServiceProtocolInfo {
   }
 }
 
-/// Access information about the service protocol and control the web server.
+/// Access information about the service protocol and control the web server
+/// that provides access to the services provided by the Dart VM for
+/// debugging and inspecting Dart programs.
 class Service {
-  /// Get information about the service protocol.
+  /// Get information about the service protocol (version number and
+  /// Uri to access the service).
   static Future<ServiceProtocolInfo> getInfo() async {
     // Port to receive response from service isolate.
     final RawReceivePort receivePort = new RawReceivePort();
@@ -46,6 +52,8 @@ class Service {
   }
 
   /// Control the web server that the service protocol is accessed through.
+  /// The [enable] argument must be a boolean and is used as a toggle to
+  /// enable(true) or disable(false) the web server servicing requests.
   static Future<ServiceProtocolInfo> controlWebServer(
       {bool enable: false}) async {
     if (enable is! bool) {
