@@ -26,7 +26,7 @@ if __name__ == '__main__':
       bot.RunProcess(['npm', 'install'])
 
     with bot.BuildStep('Compile tests and run unit tests'):
-      bot.RunProcess(['dart', 'test/all_tests.dart'])
+      bot.RunProcess([utils.CheckedInSdkExecutable(), 'test/all_tests.dart'])
 
     with bot.BuildStep('Execute compiled tests'):
       bot.RunProcess(['npm', 'test'])
