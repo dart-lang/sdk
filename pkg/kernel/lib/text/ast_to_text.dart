@@ -839,6 +839,8 @@ class Printer extends Visitor<Null> {
       if (character != null) {
         buffer ??= new StringBuffer(string.substring(0, i));
         buffer.write(character);
+      } else {
+        buffer?.write(string[i]);
       }
     }
     return buffer == null ? string : buffer.toString();

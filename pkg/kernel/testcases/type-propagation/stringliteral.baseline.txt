@@ -1,0 +1,10 @@
+library;
+import self as self;
+
+static field dynamic/dart.core::String* {string} color = "brown";
+static field dynamic/dart.core::String* {string} thing = "lazy dog";
+static field dynamic/dart.core::String* {string} phrase = "The quick ${self::color} fox\njumped over the ${self::thing}.\n";
+static field dynamic/dart.core::String* {string} adjacent = "${self::color}${self::color}${self::color}";
+static field dynamic/dart.core::String* {string} linebreaks = "${self::color}\n${self::color}\n${self::color}";
+static field dynamic/dart.core::String* {string} other = "${self::color}\n is \n${self::color}";
+static method main() → dynamic/Null {}
