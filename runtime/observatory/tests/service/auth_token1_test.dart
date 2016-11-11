@@ -16,26 +16,15 @@ Future<Null> testeeBefore() async {
   // Start the web server.
   ServiceProtocolInfo info = await Service.controlWebServer(enable: true);
   expect(info.serverUri, isNotNull);
-  // Ensure that we have the auth token in the path segments.
-  expect(info.serverUri.pathSegments.length, greaterThan(1));
-  // Sanity check the length of the auth token.
-  expect(info.serverUri.pathSegments[0].length, greaterThan(8));
+  // Ensure that we have no auth token in the path segments.
+  expect(info.serverUri.pathSegments.length, equals(0));
 
-  // Try connecting to the server without the auth token, it should throw
-  // an exception.
+  // Try connecting to the server without the auth token, it should succeed.
   var port = info.serverUri.port;
   var url = Uri.parse('http://127.0.0.1:$port');
   var httpClient = new io.HttpClient();
   try {
     var request = await httpClient.getUrl(url);
-    expect(true, false);
-  } catch (e) {
-    expect(true, true);
-  }
-
-  // Try connecting to the server with the auth token, it should succeed.
-  try {
-    var request = await httpClient.getUrl(info.serverUri);
     expect(true, true);
   } catch (e) {
     expect(true, false);
@@ -57,4 +46,4 @@ main(args) => runIsolateTests(args,
                               // the testee is responsible for starting the
                               // web server.
                               testeeControlsServer: true,
-                              useAuthToken: true);
+                              useAuthToken: false);
