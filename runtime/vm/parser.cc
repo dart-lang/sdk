@@ -45,6 +45,7 @@ namespace dart {
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
+DEFINE_FLAG(bool, warn_new_tearoff_syntax, true, "Warning on new tear off.");
 // TODO(floitsch): remove the conditional-directive flag, once we publicly
 // committed to the current version.
 DEFINE_FLAG(bool,
@@ -11665,6 +11666,11 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
 
 // Closurization e#m of getter, setter, method or operator.
 AstNode* Parser::ParseClosurization(AstNode* primary) {
+  if (FLAG_warn_new_tearoff_syntax) {
+    ReportWarning(
+        "Tear-offs using the x#id syntax is a deprecated feature,"
+        "it will not be supported in the next release");
+  }
   ExpectToken(Token::kHASH);
   TokenPosition property_pos = TokenPos();
   bool is_setter_name = false;
@@ -13250,6 +13256,11 @@ void Parser::ParseConstructorClosurization(Function* constructor,
   // type that is loaded.
   ASSERT(prefix.IsNull() || prefix.is_loaded());
   ASSERT(!type.IsMalformed() && !type.IsTypeParameter());
+  if (FLAG_warn_new_tearoff_syntax) {
+    ReportWarning(
+        "Tear-offs using the x#id syntax is a deprecated feature,"
+        "it will not be supported in the next release");
+  }
   ExpectToken(Token::kHASH);
   String* named_constructor = NULL;
   if (IsIdentifier()) {
@@ -13347,6 +13358,11 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   if (is_tearoff_expression) {
     if (is_const) {
       ReportError("tear-off closure not allowed with const allocation");
+    }
+    if (FLAG_warn_new_tearoff_syntax) {
+      ReportWarning(
+          "Tear-offs using the x#id syntax is a deprecated feature,"
+          "and will not be supported in the next release");
     }
     ConsumeToken();
     if (IsIdentifier()) {
@@ -13789,6 +13805,11 @@ AstNode* Parser::ParsePrimary() {
     const LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z, ParsePrefix());
     if (!prefix.IsNull()) {
       if (CurrentToken() == Token::kHASH) {
+        if (FLAG_warn_new_tearoff_syntax) {
+          ReportWarning(
+              "Tear-offs using the x#id syntax is a deprecated feature,"
+              "it will not be supported in the next release");
+        }
         // Closurization of top-level entity in prefix scope.
         return new (Z) LiteralNode(qual_ident_pos, prefix);
       } else {
