@@ -1155,6 +1155,31 @@ void IsolateReloadContext::Commit() {
                 saved_libs.Length(), libs.Length());
     }
   }
+
+  // Rehash constants map for all new classes and the closure class.
+  Class& cls = Class::Handle(zone_);
+  cls = I->class_table()->At(kClosureCid);
+  cls.RehashConstants(zone_);
+  {
+    ASSERT(class_map_storage_ != Array::null());
+    UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
+    UnorderedHashMap<ClassMapTraits>::Iterator it(&map);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      cls = Class::RawCast(map.GetKey(entry));
+      cls.RehashConstants(zone_);
+    }
+    map.Release();
+  }
+
+#ifdef DEBUG
+  // Verify that all canonical instances are correctly setup in the
+  // corresponding canonical tables.
+  Thread* thread = Thread::Current();
+  I->heap()->CollectAllGarbage();
+  VerifyCanonicalVisitor check_canonical(thread);
+  I->heap()->IterateObjects(&check_canonical);
+#endif  // DEBUG
 }
 
 

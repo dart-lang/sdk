@@ -4329,6 +4329,7 @@ typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
 RawInstance* Class::LookupCanonicalInstance(Zone* zone,
                                             const Instance& value) const {
   ASSERT(this->raw() == value.clazz());
+  ASSERT(is_finalized());
   Instance& canonical_value = Instance::Handle(zone);
   if (this->constants() != Object::empty_array().raw()) {
     CanonicalInstancesSet constants(zone, this->constants());

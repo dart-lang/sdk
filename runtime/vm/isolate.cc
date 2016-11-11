@@ -1111,16 +1111,6 @@ bool Isolate::ReloadSources(JSONStream* js,
   if (!dont_delete_reload_context) {
     DeleteReloadContext();
   }
-#if defined(DEBUG)
-  if (success) {
-    return success;
-    Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
-    isolate->heap()->CollectAllGarbage();
-    VerifyCanonicalVisitor check_canonical(thread);
-    isolate->heap()->IterateObjects(&check_canonical);
-  }
-#endif  // DEBUG
   return success;
 }
 
