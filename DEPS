@@ -57,7 +57,7 @@ vars = {
   "csslib_tag" : "@0.13.2",
   "dart2js_info_tag" : "@0.5.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@v0.2.11+1",
+  "dart_style_rev": "@a2b84e46a9e4044e61e3cc130087c18da40b9665",
   "dartdoc_tag" : "@v0.9.7+6",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@0.1.0",
@@ -205,7 +205,7 @@ deps = {
       (Var("github_mirror") % "dart-services") +
       Var("dart_services_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
-      (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
+      (Var("github_mirror") % "dart_style") + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
