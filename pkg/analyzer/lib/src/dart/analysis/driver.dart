@@ -514,6 +514,7 @@ class AnalysisDriver {
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
         return new AnalysisResult(
+            _sourceFactory,
             file.path,
             file.uri,
             withUnit ? file.content : null,
@@ -670,8 +671,8 @@ class AnalysisDriver {
               error.message,
               error.correction))
           .toList();
-      return new AnalysisResult(file.path, file.uri, null, file.contentHash,
-          file.lineInfo, null, errors);
+      return new AnalysisResult(_sourceFactory, file.path, file.uri, null,
+          file.contentHash, file.lineInfo, null, errors);
     }
     return null;
   }
@@ -953,6 +954,11 @@ class AnalysisDriverScheduler {
  */
 class AnalysisResult {
   /**
+   * The [SourceFactory] with which the file was analyzed.
+   */
+  final SourceFactory sourceFactory;
+
+  /**
    * The path of the analysed file, absolute and normalized.
    */
   final String path;
@@ -989,8 +995,8 @@ class AnalysisResult {
    */
   final List<AnalysisError> errors;
 
-  AnalysisResult(this.path, this.uri, this.content, this.contentHash,
-      this.lineInfo, this.unit, this.errors);
+  AnalysisResult(this.sourceFactory, this.path, this.uri, this.content,
+      this.contentHash, this.lineInfo, this.unit, this.errors);
 }
 
 /**

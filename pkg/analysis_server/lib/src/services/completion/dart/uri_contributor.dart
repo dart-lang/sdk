@@ -77,8 +77,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
             }
           }
         }
-      }
-      else if (offset == start && offset == end) {
+      } else if (offset == start && offset == end) {
         String data = request.source.contents.data;
         if (end == data.length) {
           String ch = data[end - 1];
@@ -112,7 +111,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
 
   void _addDartSuggestions() {
     _addSuggestion('dart:');
-    SourceFactory factory = request.context.sourceFactory;
+    SourceFactory factory = request.sourceFactory;
     for (SdkLibrary lib in factory.dartSdk.sdkLibraries) {
       if (!lib.isInternal && !lib.isImplementation) {
         if (!lib.shortName.startsWith('dart:_')) {
@@ -192,7 +191,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
   }
 
   void _addPackageSuggestions(String partial) {
-    SourceFactory factory = request.context.sourceFactory;
+    SourceFactory factory = request.sourceFactory;
     Map<String, List<Folder>> packageMap = factory.packageMap;
     if (packageMap != null) {
       _addSuggestion('package:');

@@ -177,8 +177,11 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   @override
   LibraryElement get coreLib {
-    if (_coreLib == null) {
-      Source coreUri = context.sourceFactory.forUri('dart:core');
+    if (result != null) {
+      AnalysisContext context = result.unit.element.context;
+      _coreLib = context.typeProvider.objectType.element.library;
+    } else {
+      Source coreUri = sourceFactory.forUri('dart:core');
       _coreLib = context.computeLibraryElement(coreUri);
     }
     return _coreLib;
@@ -220,6 +223,11 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       _opType = new OpType.forCompletion(target, offset);
     }
     return _opType;
+  }
+
+  @override
+  SourceFactory get sourceFactory {
+    return context?.sourceFactory ?? result.sourceFactory;
   }
 
   /**
