@@ -261,6 +261,7 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 
 [ $hot_reload || $hot_reload_rollback ]
+methods_as_constants_test: Skip # Issue 27803
 static_closure_identical_test: Pass, Fail # Closure identity
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries
