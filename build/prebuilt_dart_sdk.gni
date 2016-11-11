@@ -10,7 +10,7 @@ _prebuilt_dart_exe = "$_dart_root/tools/sdks/$host_os/dart-sdk/bin/dart"
 
 # Our gn_run_binary swallows output unless there is an error.
 _prebuilt_dart_exe_trial = exec_script("gn_run_binary.py",
-    [_prebuilt_dart_exe, "--version"], "string")
+    ["exec_script", _prebuilt_dart_exe, "--version"], "string")
 if (_prebuilt_dart_exe_trial == "") {
   prebuilt_dart_exe_works = true
 } else {
