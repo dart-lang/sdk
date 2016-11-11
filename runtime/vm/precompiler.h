@@ -139,7 +139,7 @@ class InstructionsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) { return key->size(); }
+  static inline intptr_t Hashcode(Key key) { return key->Size(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);

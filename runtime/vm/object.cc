@@ -11385,7 +11385,8 @@ RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
         Object::Allocate(Instructions::kClassId, aligned_size, Heap::kCode);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_size(has_single_entry_point ? size : -size);
+    result.SetSize(size);
+    result.SetHasSingleEntryPoint(has_single_entry_point);
   }
   return result.raw();
 }
@@ -13765,9 +13766,9 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
   const Instructions& instr = Instructions::Handle(instructions());
   uword start = instr.PayloadStart();
   if (formatter == NULL) {
-    Disassembler::Disassemble(start, start + instr.size(), *this);
+    Disassembler::Disassemble(start, start + instr.Size(), *this);
   } else {
-    Disassembler::Disassemble(start, start + instr.size(), formatter, *this);
+    Disassembler::Disassemble(start, start + instr.Size(), formatter, *this);
   }
 #endif
 }
@@ -13996,14 +13997,14 @@ RawCode* Code::FinalizeCode(const char* name,
   // Copy the instructions into the instruction area and apply all fixups.
   // Embedded pointers are still in handles at this point.
   MemoryRegion region(reinterpret_cast<void*>(instrs.PayloadStart()),
-                      instrs.size());
+                      instrs.Size());
   assembler->FinalizeInstructions(region);
-  CPU::FlushICache(instrs.PayloadStart(), instrs.size());
+  CPU::FlushICache(instrs.PayloadStart(), instrs.Size());
 
   code.set_compile_timestamp(OS::GetCurrentMonotonicMicros());
 #ifndef PRODUCT
   CodeObservers::NotifyAll(name, instrs.PayloadStart(),
-                           assembler->prologue_offset(), instrs.size(),
+                           assembler->prologue_offset(), instrs.Size(),
                            optimized);
 #endif
   {

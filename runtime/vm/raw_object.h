@@ -1161,7 +1161,9 @@ class RawObjectPool : public RawObject {
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
 
-  int32_t size_;
+  // Instructions size in bytes and flags.
+  // Currently, only flag indicates 1 or 2 entry points.
+  uint32_t size_and_flags_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }

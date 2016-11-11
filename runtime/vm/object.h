@@ -4012,14 +4012,33 @@ class ObjectPool : public Object {
 
 class Instructions : public Object {
  public:
+  enum {
+    kSizePos = 0,
+    kSizeSize = 31,
+    kFlagsPos = kSizePos + kSizeSize,
+    kFlagsSize = 1,  // Currently, only flag is single entry flag.
+  };
+
+  class SizeBits : public BitField<uint32_t, uint32_t, kSizePos, kSizeSize> {};
+  class FlagsBits : public BitField<uint32_t, bool, kFlagsPos, kFlagsSize> {};
+
   // Excludes HeaderSize().
-  intptr_t size() const { return abs(raw_ptr()->size_); }
-  bool HasSingleEntryPoint() const { return raw_ptr()->size_ >= 0; }
+  intptr_t Size() const { return SizeBits::decode(raw_ptr()->size_and_flags_); }
+  static intptr_t Size(const RawInstructions* instr) {
+    return SizeBits::decode(instr->ptr()->size_and_flags_);
+  }
+
+  bool HasSingleEntryPoint() const {
+    return FlagsBits::decode(raw_ptr()->size_and_flags_);
+  }
+  static bool HasSingleEntryPoint(const RawInstructions* instr) {
+    return FlagsBits::decode(instr->ptr()->size_and_flags_);
+  }
 
   uword PayloadStart() const { return PayloadStart(raw()); }
   uword CheckedEntryPoint() const { return CheckedEntryPoint(raw()); }
   uword UncheckedEntryPoint() const { return UncheckedEntryPoint(raw()); }
-  static uword PayloadStart(RawInstructions* instr) {
+  static uword PayloadStart(const RawInstructions* instr) {
     return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
 
@@ -4045,16 +4064,16 @@ class Instructions : public Object {
 #error Missing entry offsets for current architecture
 #endif
 
-  static uword CheckedEntryPoint(RawInstructions* instr) {
+  static uword CheckedEntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
-    if (instr->ptr()->size_ < 0) {
+    if (!HasSingleEntryPoint(instr)) {
       entry += kCheckedEntryOffset;
     }
     return entry;
   }
-  static uword UncheckedEntryPoint(RawInstructions* instr) {
+  static uword UncheckedEntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
-    if (instr->ptr()->size_ < 0) {
+    if (!HasSingleEntryPoint(instr)) {
       entry += kUncheckedEntryOffset;
     }
     return entry;
@@ -4089,16 +4108,23 @@ class Instructions : public Object {
   }
 
   bool Equals(const Instructions& other) const {
-    if (size() != other.size()) {
+    if (Size() != other.Size()) {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(size())) == 0;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(Size())) == 0;
   }
 
  private:
-  void set_size(intptr_t size) const {
-    StoreNonPointer(&raw_ptr()->size_, size);
+  void SetSize(intptr_t value) const {
+    ASSERT(value >= 0);
+    StoreNonPointer(&raw_ptr()->size_and_flags_,
+                    SizeBits::update(value, raw_ptr()->size_and_flags_));
+  }
+
+  void SetHasSingleEntryPoint(bool value) const {
+    StoreNonPointer(&raw_ptr()->size_and_flags_,
+                    FlagsBits::update(value, raw_ptr()->size_and_flags_));
   }
 
   // New is a private method as RawInstruction and RawCode objects should
@@ -4573,13 +4599,13 @@ class Code : public Object {
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
-    return instr.size();
+    return instr.Size();
   }
   RawObjectPool* GetObjectPool() const { return object_pool(); }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
     const uword offset = addr - instr.PayloadStart();
-    return offset < static_cast<uword>(instr.size());
+    return offset < static_cast<uword>(instr.Size());
   }
 
   // Returns true if there is a debugger breakpoint set in this code object.

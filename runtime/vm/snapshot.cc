@@ -814,7 +814,7 @@ void AssemblyInstructionsWriter::Write(uint8_t* vmisolate_buffer,
       NoSafepointScope no_safepoint;
       uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
       uword entry = beginning + Instructions::HeaderSize();
-      uword payload_size = insns.size();
+      uword payload_size = insns.Size();
       payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
       uword end = entry + payload_size;
 
@@ -945,7 +945,7 @@ void BlobInstructionsWriter::Write(uint8_t* vmisolate_buffer,
       NoSafepointScope no_safepoint;
       uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
       uword entry = beginning + Instructions::HeaderSize();
-      uword payload_size = insns.size();
+      uword payload_size = insns.Size();
       payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
       uword end = entry + payload_size;
 
