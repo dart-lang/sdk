@@ -2904,6 +2904,31 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_XOR:
       __ eor(result, left, Operand(right));
       break;
+    case Token::kSHL:
+      ASSERT(result != left);
+      ASSERT(result != right);
+      __ CompareImmediate(right,
+                          reinterpret_cast<int64_t>(Smi::New(Smi::kBits)));
+      __ b(slow_path->entry_label(), CS);
+
+      __ SmiUntag(TMP, right);
+      __ lslv(result, left, TMP);
+      __ asrv(TMP2, result, TMP);
+      __ CompareRegisters(left, TMP2);
+      __ b(slow_path->entry_label(), NE);  // Overflow.
+      break;
+    case Token::kSHR:
+      ASSERT(result != left);
+      ASSERT(result != right);
+      __ CompareImmediate(right,
+                          reinterpret_cast<int64_t>(Smi::New(Smi::kBits)));
+      __ b(slow_path->entry_label(), CS);
+
+      __ SmiUntag(result, right);
+      __ SmiUntag(TMP, left);
+      __ asrv(result, TMP, result);
+      __ SmiTag(result);
+      break;
     default:
       UNIMPLEMENTED();
   }

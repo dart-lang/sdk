@@ -209,11 +209,16 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   const Token::Kind op_kind = call->token_kind();
-  if (Token::IsRelationalOperator(op_kind) ||
-      Token::IsEqualityOperator(op_kind) || Token::IsBinaryOperator(op_kind)) {
-    // Guess cid: if one of the inputs is a number assume that the other
-    // is a number of same type.
-    if (FLAG_guess_icdata_cid) {
+  if (FLAG_guess_icdata_cid) {
+    if (Token::IsBinaryBitwiseOperator(op_kind)) {
+      class_ids[0] = kSmiCid;
+      class_ids[1] = kSmiCid;
+    }
+    if (Token::IsRelationalOperator(op_kind) ||
+        Token::IsEqualityOperator(op_kind) ||
+        Token::IsBinaryOperator(op_kind)) {
+      // Guess cid: if one of the inputs is a number assume that the other
+      // is a number of same type.
       const intptr_t cid_0 = class_ids[0];
       const intptr_t cid_1 = class_ids[1];
       if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
@@ -1796,6 +1801,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       }
       break;
     }
+    case Token::kSHL:
+    case Token::kSHR:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:

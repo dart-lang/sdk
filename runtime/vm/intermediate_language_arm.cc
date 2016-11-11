@@ -3202,6 +3202,30 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kBIT_XOR:
       __ eor(result, left, Operand(right));
       break;
+    case Token::kSHL:
+      ASSERT(result != left);
+      ASSERT(result != right);
+      __ CompareImmediate(right, Smi::RawValue(Smi::kBits));
+      __ b(slow_path->entry_label(), HI);
+
+      __ SmiUntag(TMP, right);
+      // Check for overflow by shifting left and shifting back arithmetically.
+      // If the result is different from the original, there was overflow.
+      __ Lsl(result, left, TMP);
+      __ cmp(left, Operand(result, ASR, TMP));
+      __ b(slow_path->entry_label(), NE);
+      break;
+    case Token::kSHR:
+      ASSERT(result != left);
+      ASSERT(result != right);
+      __ CompareImmediate(right, Smi::RawValue(Smi::kBits));
+      __ b(slow_path->entry_label(), HI);
+
+      __ SmiUntag(result, right);
+      __ SmiUntag(TMP, left);
+      __ Asr(result, TMP, result);
+      __ SmiTag(result);
+      break;
     default:
       UNREACHABLE();
   }

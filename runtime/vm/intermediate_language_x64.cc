@@ -2845,8 +2845,9 @@ class CheckedSmiSlowPath : public SlowPathCode {
 
 LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
+  bool is_shift = (op_kind() == Token::kSHL) || (op_kind() == Token::kSHR);
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps = 0;
+  const intptr_t kNumTemps = is_shift ? 1 : 0;
   LocationSummary* summary = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   summary->set_in(0, Location::RequiresRegister());
@@ -2855,6 +2856,8 @@ LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
     case Token::kADD:
     case Token::kSUB:
     case Token::kMUL:
+    case Token::kSHL:
+    case Token::kSHR:
       summary->set_out(0, Location::RequiresRegister());
       break;
     case Token::kBIT_OR:
@@ -2864,6 +2867,9 @@ LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
       break;
     default:
       UNIMPLEMENTED();
+  }
+  if (is_shift) {
+    summary->set_temp(0, Location::RegisterLocation(RCX));
   }
   return summary;
 }
@@ -2921,6 +2927,36 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(left == result);
       __ xorq(result, right);
       break;
+    case Token::kSHL:
+      ASSERT(result != right);
+      ASSERT(locs()->temp(0).reg() == RCX);
+      __ cmpq(right, Immediate(Smi::RawValue(Smi::kBits)));
+      __ j(ABOVE_EQUAL, slow_path->entry_label());
+
+      __ movq(RCX, right);
+      __ SmiUntag(RCX);
+      __ movq(result, left);
+      __ shlq(result, RCX);
+      __ movq(TMP, result);
+      __ sarq(TMP, RCX);
+      __ cmpq(TMP, result);
+      __ j(NOT_EQUAL, slow_path->entry_label());
+      break;
+    case Token::kSHR: {
+      Label shift_count_ok;
+      ASSERT(result != right);
+      ASSERT(locs()->temp(0).reg() == RCX);
+      __ cmpq(right, Immediate(Smi::RawValue(Smi::kBits)));
+      __ j(ABOVE_EQUAL, slow_path->entry_label());
+
+      __ movq(RCX, right);
+      __ SmiUntag(RCX);
+      __ movq(result, left);
+      __ SmiUntag(result);
+      __ sarq(result, RCX);
+      __ SmiTag(result);
+      break;
+    }
     default:
       UNIMPLEMENTED();
   }

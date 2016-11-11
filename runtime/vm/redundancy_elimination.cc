@@ -1003,7 +1003,8 @@ class AliasedSet : public ZoneAllocated {
     for (Value* use = defn->input_use_list(); use != NULL;
          use = use->next_use()) {
       Instruction* instr = use->instruction();
-      if (instr->IsPushArgument() ||
+      if (instr->IsPushArgument() || instr->IsCheckedSmiOp() ||
+          instr->IsCheckedSmiComparison() ||
           (instr->IsStoreIndexed() &&
            (use->use_index() == StoreIndexedInstr::kValuePos)) ||
           instr->IsStoreStaticField() || instr->IsPhi()) {

@@ -69,4 +69,18 @@ bool Token::IsUnaryArithmeticOperator(Token::Kind token) {
   return (token == kBIT_NOT) || (token == kNEGATE);
 }
 
+
+bool Token::IsBinaryBitwiseOperator(Token::Kind token) {
+  switch (token) {
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kBIT_AND:
+    case Token::kSHL:
+    case Token::kSHR:
+      return true;
+    default:
+      return false;
+  }
+}
+
 }  // namespace dart
