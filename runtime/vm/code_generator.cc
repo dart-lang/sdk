@@ -1960,7 +1960,7 @@ void DeoptimizeAt(const Code& optimized_code, StackFrame* frame) {
   const Instructions& instrs =
       Instructions::Handle(zone, optimized_code.instructions());
   {
-    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
+    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     CodePatcher::InsertDeoptimizationCallAt(frame->pc());
     if (FLAG_trace_patching) {
       const String& name = String::Handle(function.name());

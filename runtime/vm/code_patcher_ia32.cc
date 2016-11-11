@@ -163,7 +163,7 @@ void CodePatcher::PatchStaticCallAt(uword return_address,
                                     const Code& code,
                                     const Code& new_target) {
   const Instructions& instrs = Instructions::Handle(code.instructions());
-  WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
+  WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
   ASSERT(code.ContainsInstructionAt(return_address));
   StaticCall call(return_address);
   call.set_target(new_target);
