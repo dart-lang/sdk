@@ -93,7 +93,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_size_threshold = 5;
     FLAG_inline_getters_setters_smaller_than = 5;
     FLAG_inlining_callee_size_threshold = 20;
-    FLAG_inlining_depth_threshold = 2;
+    FLAG_inlining_depth_threshold = 4;
     FLAG_inlining_caller_size_threshold = 1000;
     FLAG_inlining_constant_arguments_max_size_threshold = 100;
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
