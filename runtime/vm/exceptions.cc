@@ -614,6 +614,7 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
                        false);
 }
 
+
 void Exceptions::ReThrow(Thread* thread,
                          const Instance& exception,
                          const Instance& stacktrace) {

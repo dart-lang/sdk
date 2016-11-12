@@ -578,6 +578,10 @@ class FlowGraphCompiler : public ValueObject {
   bool EndCodeSourceRange(TokenPosition token_pos);
 
 #if defined(TARGET_ARCH_DBC)
+  void RecordAfterCallHelper(TokenPosition token_pos,
+                             intptr_t deopt_id,
+                             intptr_t argument_count,
+                             LocationSummary* locs);
   void RecordAfterCall(Instruction* instr);
 #endif
 

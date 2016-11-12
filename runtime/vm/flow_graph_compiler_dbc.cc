@@ -176,27 +176,34 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 }
 
 
-void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
-  RecordSafepoint(instr->locs());
+void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
+                                              intptr_t deopt_id,
+                                              intptr_t argument_count,
+                                              LocationSummary* locs) {
+  RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(instr->deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     // Return/ReturnTOS instruction drops incoming arguments so
     // we have to drop outgoing arguments from the innermost environment.
     // On all other architectures caller drops outgoing arguments itself
     // hence the difference.
-    pending_deoptimization_env_->DropArguments(instr->ArgumentCount());
+    pending_deoptimization_env_->DropArguments(argument_count);
     AddDeoptIndexAtCall(deopt_id_after);
     // This descriptor is needed for exception handling in optimized code.
-    AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id_after,
-                         instr->token_pos());
+    AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id_after, token_pos);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after,
-                         instr->token_pos());
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
+}
+
+
+void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
+  RecordAfterCallHelper(instr->token_pos(), instr->deopt_id(),
+                        instr->ArgumentCount(), instr->locs());
 }
 
 
@@ -255,8 +262,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     // visits it.
     locs->SetStackBit(locs->out(0).reg());
   }
-  RecordSafepoint(locs);
   AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
+  RecordAfterCallHelper(token_pos, deopt_id, 0, locs);
   if (is_optimizing()) {
     // Assert assignable keeps the instance on the stack as the result,
     // all other arguments are popped.

@@ -202,10 +202,9 @@ EMIT_NATIVE_CODE(InstanceOf,
   __ PushConstant(type());
   __ PushConstant(test_cache);
   __ InstanceOf(negate_result() ? 1 : 0);
-  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
-
+  compiler->RecordAfterCall(this);
   if (compiler->is_optimizing()) {
     __ PopLocal(locs()->out(0).reg());
   }
@@ -226,9 +225,9 @@ EMIT_NATIVE_CODE(AssertBoolean,
     __ Push(locs()->in(0).reg());
   }
   __ AssertBoolean(Isolate::Current()->type_checks() ? 1 : 0);
-  compiler->RecordSafepoint(locs());
   compiler->AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id(),
                                  token_pos());
+  compiler->RecordAfterCall(this);
   if (compiler->is_optimizing()) {
     __ Drop1();
   }
