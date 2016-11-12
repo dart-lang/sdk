@@ -3,9 +3,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Converts a given gypi file to a python scope and writes the result to stdout.
+"""Converts given gypi files to a python scope and writes the result to stdout.
 
-It is assumed that the file contains a toplevel dictionary, and this script
+It is assumed that the files contain a toplevel dictionary, and this script
 will return that dictionary as a GN "scope" (see example below). This script
 does not know anything about GYP and it will not expand variables or execute
 conditions.
@@ -22,10 +22,11 @@ Say your_file.gypi looked like this:
   }
 
 You would call it like this:
+  gypi_files = [ "your_file.gypi", "your_other_file.gypi" ]
   gypi_values = exec_script("//build/gypi_to_gn.py",
-                            [ rebase_path("your_file.gypi") ],
+                            [ rebase_path(gypi_files) ],
                             "scope",
-                            [ "your_file.gypi" ])
+                            [ gypi_files ])
 
 Notes:
  - The rebase_path call converts the gypi file from being relative to the
@@ -41,14 +42,14 @@ Notes:
 
 Read the values into a target like this:
   component("mycomponent") {
-    sources = gypi_values.sources
-    defines = gypi_values.defines
+    sources = gypi_values.your_file_sources
+    defines = gypi_values.your_file_defines
   }
 
 Sometimes your .gypi file will include paths relative to a different
 directory than the current .gn file. In this case, you can rebase them to
 be relative to the current directory.
-  sources = rebase_path(gypi_values.sources, ".",
+  sources = rebase_path(gypi_values.your_files_sources, ".",
                         "//path/gypi/input/values/are/relative/to")
 
 This script will tolerate a 'variables' in the toplevel dictionary or not. If
@@ -73,6 +74,7 @@ the input will be replaced with "bar":
 import gn_helpers
 from optparse import OptionParser
 import sys
+import os.path
 
 def LoadPythonDictionary(path):
   file_string = open(path).read()
@@ -105,30 +107,6 @@ def LoadPythonDictionary(path):
   return file_data
 
 
-def ReplaceSubstrings(values, search_for, replace_with):
-  """Recursively replaces substrings in a value.
-
-  Replaces all substrings of the "search_for" with "repace_with" for all
-  strings occurring in "values". This is done by recursively iterating into
-  lists as well as the keys and values of dictionaries."""
-  if isinstance(values, str):
-    return values.replace(search_for, replace_with)
-
-  if isinstance(values, list):
-    return [ReplaceSubstrings(v, search_for, replace_with) for v in values]
-
-  if isinstance(values, dict):
-    # For dictionaries, do the search for both the key and values.
-    result = {}
-    for key, value in values.items():
-      new_key = ReplaceSubstrings(key, search_for, replace_with)
-      new_value = ReplaceSubstrings(value, search_for, replace_with)
-      result[new_key] = new_value
-    return result
-
-  # Assume everything else is unchanged.
-  return values
-
 def KeepOnly(values, filters):
   """Recursively filters out strings not ending in "f" from "values"""
 
@@ -147,37 +125,41 @@ def KeepOnly(values, filters):
 
 def main():
   parser = OptionParser()
-  parser.add_option("-r", "--replace", action="append",
-    help="Replaces substrings. If passed a=b, replaces all substrs a with b.")
   parser.add_option("-k", "--keep_only", default = [], action="append",
     help="Keeps only files ending with the listed strings.")
+  parser.add_option("--prefix", action="store_true",
+    help="Prefix variables with base name")
   (options, args) = parser.parse_args()
 
-  if len(args) != 1:
-    raise Exception("Need one argument which is the .gypi file to read.")
+  if len(args) < 1:
+    raise Exception("Need at least one .gypi file to read.")
 
-  data = LoadPythonDictionary(args[0])
-  if options.replace:
-    # Do replacements for all specified patterns.
-    for replace in options.replace:
-      split = replace.split('=')
-      # Allow "foo=" to replace with nothing.
-      if len(split) == 1:
-        split.append('')
-      assert len(split) == 2, "Replacement must be of the form 'key=value'."
-      data = ReplaceSubstrings(data, split[0], split[1])
+  data = {}
 
-  if options.keep_only != []:
-    data = KeepOnly(data, options.keep_only)
+  for gypi in args:
+    gypi_data = LoadPythonDictionary(gypi)
 
-  # Sometimes .gypi files use the GYP syntax with percents at the end of the
-  # variable name (to indicate not to overwrite a previously-defined value):
-  #   'foo%': 'bar',
-  # Convert these to regular variables.
-  for key in data:
-    if len(key) > 1 and key[len(key) - 1] == '%':
-      data[key[:-1]] = data[key]
-      del data[key]
+    if options.keep_only != []:
+      gypi_data = KeepOnly(gypi_data, options.keep_only)
+
+    # Sometimes .gypi files use the GYP syntax with percents at the end of the
+    # variable name (to indicate not to overwrite a previously-defined value):
+    #   'foo%': 'bar',
+    # Convert these to regular variables.
+    for key in gypi_data:
+      if len(key) > 1 and key[len(key) - 1] == '%':
+        gypi_data[key[:-1]] = gypi_data[key]
+        del gypi_data[key]
+    gypi_name = os.path.basename(gypi)[:-len(".gypi")]
+    for key in gypi_data:
+      if options.prefix:
+        # Prefix all variables from this gypi file with the name to disambiguate
+        data[gypi_name + "_" + key] = gypi_data[key]
+      elif key in data:
+        for entry in gypi_data[key]:
+            data[key].append(entry)
+      else:
+        data[key] = gypi_data[key]
 
   print gn_helpers.ToGNString(data)
 
