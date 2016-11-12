@@ -5,8 +5,10 @@
 library linter.src.rules.parameter_assignments;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/util/dart_type_utilities.dart';
 
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
@@ -19,6 +21,20 @@ const _details = r'''
 ```
 void badFunction(int parameter) { // LINT
   parameter = 4;
+}
+```
+
+**BAD:**
+```
+void badFunction(int required, {int optional: 42}) { // LINT
+  optional ??= 8;
+}
+```
+
+**BAD:**
+```
+void badFunctionPositional(int required, [int optional = 42]) { // LINT
+  optional ??= 8;
 }
 ```
 
@@ -40,6 +56,20 @@ void ok(String parameter) {
 
 **GOOD:**
 ```
+void actuallyGood(int required, {int optional}) { // OK
+  optional ??= ...;
+}
+```
+
+**GOOD:**
+```
+void actuallyGoodPositional(int required, [int optional]) { // OK
+  optional ??= ...;
+}
+```
+
+**GOOD:**
+```
 class A {
   void ok(String parameter) {
     print(parameter);
@@ -48,8 +78,31 @@ class A {
 ```
 ''';
 
+bool _isDefaultFormalParameterWithDefaultValue(FormalParameter parameter) =>
+    parameter is DefaultFormalParameter && parameter.defaultValue != null;
+
+bool _isDefaultFormalParameterWithoutDefaultValueReassigned(
+        FormalParameter parameter, AssignmentExpression assignment) =>
+    parameter is DefaultFormalParameter &&
+    parameter.defaultValue == null &&
+    _isFormalParameterReassigned(parameter, assignment);
+
+bool _isFormalParameterReassigned(
+        FormalParameter parameter, AssignmentExpression assignment) =>
+    assignment.leftHandSide is SimpleIdentifier &&
+    (assignment.leftHandSide as SimpleIdentifier).staticElement ==
+        parameter.element;
+
+bool _preOrPostFixExpressionMutation(FormalParameter parameter, AstNode n) {
+  return n is PrefixExpression && n.operand is SimpleIdentifier &&
+          (n.operand as SimpleIdentifier).staticElement == parameter.element ||
+      n is PostfixExpression && n.operand is SimpleIdentifier &&
+          (n.operand as SimpleIdentifier).staticElement == parameter.element;
+}
+
 class ParameterAssignments extends LintRule {
   _Visitor _visitor;
+
   ParameterAssignments()
       : super(
             name: 'parameter_assignments',
@@ -65,6 +118,7 @@ class ParameterAssignments extends LintRule {
 
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
+
   _Visitor(this.rule);
 
   @override
@@ -75,7 +129,7 @@ class _Visitor extends SimpleAstVisitor {
       parameters.parameters.forEach((e) {
         if (node.functionExpression.body
             .isPotentiallyMutatedInScope(e.element)) {
-          rule.reportLint(e);
+          _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }
       });
     }
@@ -88,9 +142,48 @@ class _Visitor extends SimpleAstVisitor {
       // Getters don't have parameters.
       parameterList.parameters.forEach((e) {
         if (node.body.isPotentiallyMutatedInScope(e.element)) {
-          rule.reportLint(e);
+          _reportIfSimpleParameterOrWithDefaultValue(e, node);
         }
       });
+    }
+  }
+
+  void _reportIfSimpleParameterOrWithDefaultValue(
+      FormalParameter parameter, AstNode functionOrMethodDeclaration) {
+    final nodes =
+        DartTypeUtilities.traverseNodesInDFS(functionOrMethodDeclaration);
+
+    if (parameter is SimpleFormalParameter ||
+        _isDefaultFormalParameterWithDefaultValue(parameter)) {
+      final mutatedNodes = nodes.where((n) =>
+          (n is AssignmentExpression &&
+              _isFormalParameterReassigned(parameter, n)) ||
+          _preOrPostFixExpressionMutation(parameter, n));
+      mutatedNodes.forEach((n) {
+        rule.reportLint(n);
+      });
+      return;
+    }
+
+    final assignmentsNodes = nodes
+        .where((n) =>
+            n is AssignmentExpression &&
+            _isDefaultFormalParameterWithoutDefaultValueReassigned(
+                parameter, n))
+        .toList();
+
+    final nonNullCoalescingAssignments = assignmentsNodes.where((n) =>
+        (n as AssignmentExpression).operator.type !=
+        TokenType.QUESTION_QUESTION_EQ);
+
+    if (assignmentsNodes.length > 1 ||
+        nonNullCoalescingAssignments.isNotEmpty) {
+      AstNode node = assignmentsNodes.length > 1
+          ? assignmentsNodes.last
+          : nonNullCoalescingAssignments.isNotEmpty
+              ? nonNullCoalescingAssignments.first
+              : parameter;
+      rule.reportLint(node);
     }
   }
 }
