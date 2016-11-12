@@ -46,3 +46,12 @@ class C {
     _f = '';
   }
 }
+
+class D {
+  int _f = 0; // OK
+}
+
+void accessD_f() {
+  D d = new D();
+  d._f  = 42;
+}

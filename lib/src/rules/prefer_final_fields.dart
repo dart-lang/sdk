@@ -90,9 +90,9 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    ClassDeclaration classDeclaration =
-        node.getAncestor((a) => a is ClassDeclaration);
-    if (classDeclaration == null) {
+    CompilationUnit compilationUnit =
+        node.getAncestor((a) => a is CompilationUnit);
+    if (compilationUnit == null) {
       return;
     }
 
@@ -102,7 +102,7 @@ class _Visitor extends SimpleAstVisitor {
       }
 
       final isMutated = DartTypeUtilities
-          .traverseNodesInDFS(classDeclaration)
+          .traverseNodesInDFS(compilationUnit)
           .where((n) =>
               n is SimpleIdentifier && n.bestElement is PropertyAccessorElement)
           .any((n) {
