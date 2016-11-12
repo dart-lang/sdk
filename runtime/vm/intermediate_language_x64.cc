@@ -2939,7 +2939,7 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ shlq(result, RCX);
       __ movq(TMP, result);
       __ sarq(TMP, RCX);
-      __ cmpq(TMP, result);
+      __ cmpq(TMP, left);
       __ j(NOT_EQUAL, slow_path->entry_label());
       break;
     case Token::kSHR: {
