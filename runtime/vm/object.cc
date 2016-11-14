@@ -2043,7 +2043,7 @@ void Class::InitEmptyFields() {
 }
 
 
-RawArray* Class::OffsetToFieldMap() const {
+RawArray* Class::OffsetToFieldMap(bool original_classes) const {
   Array& array = Array::Handle(raw_ptr()->offset_in_words_to_field_);
   if (array.IsNull()) {
     ASSERT(is_finalized());
@@ -2060,7 +2060,7 @@ RawArray* Class::OffsetToFieldMap() const {
           array.SetAt(f.Offset() >> kWordSizeLog2, f);
         }
       }
-      cls = cls.SuperClass();
+      cls = cls.SuperClass(original_classes);
     }
     StorePointer(&raw_ptr()->offset_in_words_to_field_, array.raw());
   }
@@ -2433,12 +2433,20 @@ intptr_t Class::NumTypeArguments() const {
 }
 
 
-RawClass* Class::SuperClass() const {
+RawClass* Class::SuperClass(bool original_classes) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   if (super_type() == AbstractType::null()) {
     return Class::null();
   }
-  const AbstractType& sup_type = AbstractType::Handle(super_type());
-  return sup_type.type_class();
+  const AbstractType& sup_type = AbstractType::Handle(zone, super_type());
+  const intptr_t type_class_id = sup_type.type_class_id();
+  if (original_classes) {
+    return isolate->GetClassForHeapWalkAt(type_class_id);
+  } else {
+    return isolate->class_table()->At(type_class_id);
+  }
 }
 
 
@@ -2999,10 +3007,10 @@ static RawString* BuildClosureSource(const Array& formal_params,
 }
 
 
-static RawFunction* EvaluateHelper(const Class& cls,
-                                   const String& expr,
-                                   const Array& param_names,
-                                   bool is_static) {
+RawFunction* Function::EvaluateHelper(const Class& cls,
+                                      const String& expr,
+                                      const Array& param_names,
+                                      bool is_static) {
   const String& func_src =
       String::Handle(BuildClosureSource(param_names, expr));
   Script& script = Script::Handle();
@@ -3037,8 +3045,8 @@ RawObject* Class::Evaluate(const String& expr,
     return UnhandledException::New(exception, stacktrace);
   }
 
-  const Function& eval_func =
-      Function::Handle(EvaluateHelper(*this, expr, param_names, true));
+  const Function& eval_func = Function::Handle(
+      Function::EvaluateHelper(*this, expr, param_names, true));
   const Object& result =
       Object::Handle(DartEntry::InvokeFunction(eval_func, param_values));
   return result.raw();
@@ -7495,6 +7503,36 @@ RawField* Field::Clone(const Field& original) const {
 }
 
 
+RawString* Field::InitializingExpression() const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const class Script& scr = Script::Handle(zone, Script());
+  ASSERT(!scr.IsNull());
+  const TokenStream& tkns = TokenStream::Handle(zone, scr.tokens());
+  if (tkns.IsNull()) {
+    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    return String::null();
+  }
+  TokenStream::Iterator tkit(zone, tkns, token_pos());
+  ASSERT(Token::IsIdentifier(tkit.CurrentTokenKind()));
+#if defined(DEBUG)
+  const String& literal = String::Handle(zone, tkit.CurrentLiteral());
+  ASSERT(literal.raw() == name());
+#endif
+  tkit.Advance();
+  if (tkit.CurrentTokenKind() != Token::kASSIGN) {
+    return String::null();
+  }
+  tkit.Advance();
+  const TokenPosition start_of_expression = tkit.CurrentPosition();
+  while (tkit.CurrentTokenKind() != Token::kSEMICOLON) {
+    tkit.Advance();
+  }
+  const TokenPosition end_of_expression = tkit.CurrentPosition();
+  return scr.GetSnippet(start_of_expression, end_of_expression);
+}
+
+
 RawString* Field::UserVisibleName() const {
   if (FLAG_show_internal_names) {
     return name();
@@ -8929,6 +8967,17 @@ RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
   } else {
     return Symbols::Empty().raw();
   }
+}
+
+
+RawString* Script::GetSnippet(TokenPosition from, TokenPosition to) const {
+  intptr_t from_line;
+  intptr_t from_column;
+  intptr_t to_line;
+  intptr_t to_column;
+  GetTokenLocation(from, &from_line, &from_column);
+  GetTokenLocation(to, &to_line, &to_column);
+  return GetSnippet(from_line, from_column, to_line, to_column);
 }
 
 
@@ -15176,8 +15225,8 @@ RawObject* Instance::Evaluate(const Class& method_cls,
                               const String& expr,
                               const Array& param_names,
                               const Array& param_values) const {
-  const Function& eval_func =
-      Function::Handle(EvaluateHelper(method_cls, expr, param_names, false));
+  const Function& eval_func = Function::Handle(
+      Function::EvaluateHelper(method_cls, expr, param_names, false));
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
   PassiveObject& param = PassiveObject::Handle();
   args.SetAt(0, *this);

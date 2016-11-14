@@ -577,7 +577,8 @@ void Class::CheckReload(const Class& replacement,
 bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   // Get the field maps for both classes. These field maps walk the class
   // hierarchy.
-  const Array& fields = Array::Handle(OffsetToFieldMap());
+  const Array& fields =
+      Array::Handle(OffsetToFieldMap(true /* original classes */));
   const Array& replacement_fields =
       Array::Handle(replacement.OffsetToFieldMap());
 

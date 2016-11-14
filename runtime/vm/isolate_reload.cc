@@ -58,11 +58,12 @@ InstanceMorpher::InstanceMorpher(Zone* zone, const Class& from, const Class& to)
     : from_(Class::Handle(zone, from.raw())),
       to_(Class::Handle(zone, to.raw())),
       mapping_(zone, 0) {
-  ComputeMapping();
   before_ = new (zone) ZoneGrowableArray<const Instance*>(zone, 0);
   after_ = new (zone) ZoneGrowableArray<const Instance*>(zone, 0);
+  new_fields_ = new (zone) ZoneGrowableArray<const Field*>(zone, 0);
   ASSERT(from_.id() == to_.id());
   cid_ = from_.id();
+  ComputeMapping();
 }
 
 
@@ -86,27 +87,50 @@ void InstanceMorpher::ComputeMapping() {
 
   // Add copying of the instance fields if matching by name.
   // Note: currently the type of the fields are ignored.
-  const Array& from_fields = Array::Handle(from_.OffsetToFieldMap());
+  const Array& from_fields =
+      Array::Handle(from_.OffsetToFieldMap(true /* original classes */));
   const Array& to_fields = Array::Handle(to_.OffsetToFieldMap());
   Field& from_field = Field::Handle();
   Field& to_field = Field::Handle();
   String& from_name = String::Handle();
   String& to_name = String::Handle();
-  for (intptr_t i = 0; i < from_fields.Length(); i++) {
-    if (from_fields.At(i) == Field::null()) continue;  // Ignore non-fields.
-    from_field = Field::RawCast(from_fields.At(i));
-    ASSERT(from_field.is_instance());
-    from_name = from_field.name();
-    // We now have to find where this field is in the to class.
-    for (intptr_t j = 0; j < to_fields.Length(); j++) {
-      if (to_fields.At(j) == Field::null()) continue;  // Ignore non-fields.
-      to_field = Field::RawCast(to_fields.At(j));
-      ASSERT(to_field.is_instance());
-      to_name = to_field.name();
+
+  // Scan across all the fields in the new class definition.
+  for (intptr_t i = 0; i < to_fields.Length(); i++) {
+    if (to_fields.At(i) == Field::null()) {
+      continue;  // Ignore non-fields.
+    }
+
+    // Grab the field's name.
+    to_field = Field::RawCast(to_fields.At(i));
+    ASSERT(to_field.is_instance());
+    to_name = to_field.name();
+
+    // Did this field not exist in the old class definition?
+    bool new_field = true;
+
+    // Find this field in the old class.
+    for (intptr_t j = 0; j < from_fields.Length(); j++) {
+      if (from_fields.At(j) == Field::null()) {
+        continue;  // Ignore non-fields.
+      }
+      from_field = Field::RawCast(from_fields.At(j));
+      ASSERT(from_field.is_instance());
+      from_name = from_field.name();
       if (from_name.Equals(to_name)) {
         // Success
         mapping_.Add(from_field.Offset());
         mapping_.Add(to_field.Offset());
+        // Field did exist in old class deifnition.
+        new_field = false;
+      }
+    }
+
+    if (new_field) {
+      if (to_field.has_initializer()) {
+        // This is a new field with an initializer.
+        const Field& field = Field::Handle(to_field.raw());
+        new_fields_->Add(&field);
       }
     }
   }
@@ -126,6 +150,48 @@ RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
   // Convert the instance into a filler object.
   Become::MakeDummyObject(instance);
   return result.raw();
+}
+
+
+void InstanceMorpher::RunNewFieldInitializers() const {
+  if ((new_fields_->length() == 0) || (after_->length() == 0)) {
+    return;
+  }
+
+  TIR_Print("Running new field initializers for class: %s\n", to_.ToCString());
+  String& initializing_expression = String::Handle();
+  Function& eval_func = Function::Handle();
+  Object& result = Object::Handle();
+  Class& owning_class = Class::Handle();
+  // For each new field.
+  for (intptr_t i = 0; i < new_fields_->length(); i++) {
+    // Create a function that returns the expression.
+    const Field* field = new_fields_->At(i);
+    owning_class ^= field->Owner();
+    ASSERT(!owning_class.IsNull());
+    // Extract the initializing expression.
+    initializing_expression = field->InitializingExpression();
+    TIR_Print("New `%s` has initializing expression `%s`\n", field->ToCString(),
+              initializing_expression.ToCString());
+    eval_func ^= Function::EvaluateHelper(owning_class, initializing_expression,
+                                          Array::empty_array(), true);
+    for (intptr_t j = 0; j < after_->length(); j++) {
+      const Instance* instance = after_->At(j);
+      TIR_Print("Initializing instance %" Pd " / %" Pd "\n", j + 1,
+                after_->length());
+      // Run the function and assign the field.
+      result = DartEntry::InvokeFunction(eval_func, Array::empty_array());
+      if (result.IsError()) {
+        // TODO(johnmccutchan): Report this error in the reload response?
+        OS::PrintErr(
+            "RELOAD: Running initializer for new field `%s` resulted in "
+            "an error: %s\n",
+            field->ToCString(), Error::Cast(result).ToErrorCString());
+        continue;
+      }
+      instance->RawSetFieldAtOffset(field->Offset(), result);
+    }
+  }
 }
 
 
@@ -1141,6 +1207,9 @@ void IsolateReloadContext::Commit() {
     Become::ElementsForwardIdentity(before, after);
   }
 
+  // Run the initializers for new instance fields.
+  RunNewFieldInitializers();
+
   if (FLAG_identity_reload) {
     if (saved_num_cids_ != I->class_table()->NumCids()) {
       TIR_Print("Identity reload failed! B#C=%" Pd " A#C=%" Pd "\n",
@@ -1299,6 +1368,14 @@ void IsolateReloadContext::MorphInstances() {
   free(saved_class_table_);
   saved_class_table_ = NULL;
   Become::ElementsForwardIdentity(before, after);
+}
+
+
+void IsolateReloadContext::RunNewFieldInitializers() {
+  // Run new field initializers on all instances.
+  for (intptr_t i = 0; i < instance_morphers_.length(); i++) {
+    instance_morphers_.At(i)->RunNewFieldInitializers();
+  }
 }
 
 

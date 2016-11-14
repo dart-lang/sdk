@@ -1030,7 +1030,10 @@ class Class : public Object {
   }
 
   // Asserts that the class of the super type has been resolved.
-  RawClass* SuperClass() const;
+  // |original_classes| only has an effect when reloading. If true and we
+  // are reloading, it will prefer the original classes to the replacement
+  // classes.
+  RawClass* SuperClass(bool original_classes = false) const;
 
   RawType* mixin() const { return raw_ptr()->mixin_; }
   void set_mixin(const Type& value) const;
@@ -1119,7 +1122,10 @@ class Class : public Object {
 
   // Returns an array of all instance fields of this class and its superclasses
   // indexed by offset in words.
-  RawArray* OffsetToFieldMap() const;
+  // |original_classes| only has an effect when reloading. If true and we
+  // are reloading, it will prefer the original classes to the replacement
+  // classes.
+  RawArray* OffsetToFieldMap(bool original_classes = false) const;
 
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
@@ -2741,6 +2747,11 @@ class Function : public Object {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
 
+  static RawFunction* EvaluateHelper(const Class& cls,
+                                     const String& expr,
+                                     const Array& param_names,
+                                     bool is_static);
+
   static RawFunction* New(const String& name,
                           RawFunction::Kind kind,
                           bool is_static,
@@ -3130,6 +3141,8 @@ class Field : public Object {
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
 
+  RawString* InitializingExpression() const;
+
   bool has_initializer() const {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
   }
@@ -3490,6 +3503,7 @@ class Script : public Object {
   RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number,
                      Heap::Space space = Heap::kNew) const;
+  RawString* GetSnippet(TokenPosition from, TokenPosition to) const;
   RawString* GetSnippet(intptr_t from_line,
                         intptr_t from_column,
                         intptr_t to_line,
