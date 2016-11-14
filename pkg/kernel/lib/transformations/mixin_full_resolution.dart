@@ -335,7 +335,7 @@ class SuperCallResolutionTransformer extends Transformer {
   }
 }
 
-class SuperInitializerResolutionTransformer extends Transformer {
+class SuperInitializerResolutionTransformer extends InitializerVisitor {
   final Class lookupClass;
 
   SuperInitializerResolutionTransformer(this.lookupClass);
@@ -356,7 +356,7 @@ class SuperInitializerResolutionTransformer extends Transformer {
       for (var replacement in lookupClass.constructors) {
         if (constructor.name == replacement.name) {
           node.target = replacement;
-          return;
+          return null;
         }
       }
 

@@ -417,7 +417,7 @@ class _DeepTypeSubstitutor extends _InnerTypeSubstitutor {
   }
 
   @override
-  _TypeSubstitutor newInnerEnvironment() {
+  _DeepTypeSubstitutor newInnerEnvironment() {
     return new _DeepTypeSubstitutor(<TypeParameter, DartType>{}, this);
   }
 

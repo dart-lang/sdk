@@ -4,13 +4,12 @@
 
 library kernel.class_hierarchy_basic;
 
-import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/ast.dart';
 
 /// A simple implementation of the class hierarchy interface using
 /// hash tables for everything.
-class BasicClassHierarchy implements ClassHierarchy {
+class BasicClassHierarchy {
   final Map<Class, Set<Class>> superclasses = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> superMixtures = <Class, Set<Class>>{};
   final Map<Class, Set<Class>> supertypes = <Class, Set<Class>>{};

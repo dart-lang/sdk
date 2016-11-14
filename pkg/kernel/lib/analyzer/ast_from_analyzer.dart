@@ -2431,7 +2431,7 @@ class ClassBodyBuilder extends GeneralizingAstVisitor<Null> {
     var intType =
         new ast.InterfaceType(scope.loader.getCoreClassReference('int'));
     var indexFieldElement = element.fields.firstWhere(_isIndexField);
-    var indexField = scope.getMemberReference(indexFieldElement);
+    ast.Field indexField = scope.getMemberReference(indexFieldElement);
     indexField.type = intType;
     classNode.addMember(indexField);
     var parameter = new ast.VariableDeclaration('index', type: intType);

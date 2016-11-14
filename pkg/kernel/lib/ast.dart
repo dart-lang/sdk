@@ -1247,7 +1247,7 @@ abstract class Expression extends TreeNode {
     }
     var type = getStaticType(types);
     while (type is TypeParameterType) {
-      type = type.parameter.bound;
+      type = (type as TypeParameterType).parameter.bound;
     }
     if (type is InterfaceType) {
       var upcastType = types.hierarchy.getTypeAsInstanceOf(type, superclass);

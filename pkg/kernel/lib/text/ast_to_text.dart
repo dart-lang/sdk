@@ -679,7 +679,7 @@ class Printer extends Visitor<Null> {
       writeExpression(node.initializer);
     }
     if ((node.enclosingClass == null &&
-        node.enclosingLibrary.fileUri != node.fileUri) ||
+            node.enclosingLibrary.fileUri != node.fileUri) ||
         (node.enclosingClass != null &&
             node.enclosingClass.fileUri != node.fileUri)) {
       writeWord("/* from ${node.fileUri} */");
@@ -1303,7 +1303,8 @@ class Printer extends Visitor<Null> {
       writeSymbol('>');
     }
     writeSymbol('(');
-    var allArgs = [node.positional, node.named].expand((x) => x);
+    var allArgs =
+        <List<TreeNode>>[node.positional, node.named].expand((x) => x);
     writeList(allArgs, writeNode);
     writeSymbol(')');
   }

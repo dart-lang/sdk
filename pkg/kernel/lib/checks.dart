@@ -10,7 +10,7 @@ void runSanityChecks(Program program) {
   CheckReferences.check(program);
 }
 
-class CheckParentPointers extends FakeNodeVisitor {
+class CheckParentPointers extends Visitor {
   static void check(TreeNode node) {
     node.accept(new CheckParentPointers(node.parent));
   }
@@ -116,87 +116,6 @@ class CheckReferences extends RecursiveVisitor {
   }
 }
 
-abstract class FakeNode implements TreeNode {}
-
-abstract class FakeNodeVisitor extends Visitor {
-  visitFakeNode(FakeNode node) => defaultNode(node);
-}
-
-class FakeExpression extends Expression implements FakeNode {
-  Expression node;
-
-  FakeExpression(this.node) {
-    node?.parent = this;
-  }
-
-  accept(FakeNodeVisitor v) => v.visitFakeNode(this);
-
-  visitChildren(Visitor v) {
-    node?.accept(v);
-  }
-
-  transformChildren(Transformer v) {
-    if (node != null) {
-      node = node.accept(v);
-      node?.parent = this;
-    }
-  }
-
-  DartType getStaticType(types) => const BottomType();
-}
-
-class FakeStatement extends Statement implements FakeNode {
-  Statement node;
-
-  FakeStatement(this.node) {
-    node?.parent = this;
-  }
-
-  accept(FakeNodeVisitor v) => v.visitFakeNode(this);
-
-  visitChildren(Visitor v) {
-    node?.accept(v);
-  }
-
-  transformChildren(Transformer v) {
-    if (node != null) {
-      node = node.accept(v);
-      node?.parent = this;
-    }
-  }
-}
-
-class InsertWrappers extends Transformer {
-  defaultExpression(node) => new FakeExpression(defaultTreeNode(node));
-  defaultStatement(node) => new FakeStatement(defaultTreeNode(node));
-
-  visitVariableDeclaration(VariableDeclaration node) {
-    return defaultTreeNode(node);
-  }
-}
-
-class CheckTransformers extends FakeNodeVisitor {
-  static void transformAndCheck(TreeNode node) {
-    var transformed = node.accept(new InsertWrappers());
-    CheckParentPointers.check(transformed);
-    transformed.accept(new CheckTransformers());
-  }
-
-  defaultNode(TreeNode node) {
-    if (node is FakeNode) {
-      if (node.parent is FakeNode) {
-        throw 'FakeNode was wrapped multiple times';
-      }
-    } else if (node is Expression ||
-        node is Statement && node is! VariableDeclaration) {
-      if (node.parent is! FakeNode) {
-        throw '${node.runtimeType} inside ${node.parent.runtimeType} was not wrapped';
-      }
-    }
-    node.visitChildren(this);
-  }
-}
-
 class SizeCounter extends RecursiveVisitor {
   int size = 0;
   int emptyArguments = 0;
@@ -212,7 +131,7 @@ class SizeCounter extends RecursiveVisitor {
     }
   }
 
-  defaultNode(TreeNode node) {
+  defaultNode(Node node) {
     ++size;
     node.visitChildren(this);
   }

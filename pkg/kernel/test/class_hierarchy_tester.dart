@@ -52,7 +52,7 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
   List<Name> nameList = names.toList();
   progress = 0;
   for (var classNode in classHierarchy.classes) {
-    Iterable<Name> candidateNames = [
+    Iterable<Name> candidateNames = <Iterable<Name>>[
       basic.gettersAndCalls[classNode].keys,
       basic.setters[classNode].keys,
       pickRandom(nameList, 100)
@@ -141,8 +141,8 @@ void testClassHierarchyOnProgram(Program program, {bool verbose: false}) {
 
 var random = new Random(12345);
 
-List pickRandom(List items, int n) {
-  var result = [];
+List/*<T>*/ pickRandom/*<T>*/(List/*<T>*/ items, int n) {
+  var result = /*<T>*/[];
   for (int i = 0; i < n; ++i) {
     result.add(items[random.nextInt(items.length)]);
   }
