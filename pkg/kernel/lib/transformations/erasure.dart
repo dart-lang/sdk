@@ -76,13 +76,19 @@ class Erasure extends Transformer {
     return node;
   }
 
+  bool isObject(DartType type) {
+    return type is InterfaceType && type.classNode.supertype == null;
+  }
+
   @override
   visitFunctionNode(FunctionNode node) {
     for (var parameter in node.typeParameters) {
       substitution[parameter] = const DynamicType();
     }
     for (var parameter in node.typeParameters) {
-      substitution[parameter] = substitute(parameter.bound, substitution);
+      if (!isObject(parameter.bound)) {
+        substitution[parameter] = substitute(parameter.bound, substitution);
+      }
     }
     node.transformChildren(this);
     node.typeParameters.forEach(substitution.remove);
