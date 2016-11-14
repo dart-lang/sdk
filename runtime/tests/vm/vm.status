@@ -8,6 +8,7 @@ cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash
 cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash
 cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
+cc/IsolateReload_EnumDelete: Skip # Issue 27802
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash, Timeout
@@ -159,9 +160,6 @@ cc/GuardFieldSimpleTest: Skip
 
 # This test is meaningless for DBC as allocation stubs are not used.
 cc/RegenerateAllocStubs: Skip
-
-[ ($arch == simdbc || $arch == simdbc64) && $checked ]
-dart/optimized_stacktrace_test: RuntimeError # Issue 27732
 
 [ $hot_reload || $hot_reload_rollback ]
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.

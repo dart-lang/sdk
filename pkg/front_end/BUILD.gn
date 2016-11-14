@@ -1,0 +1,16 @@
+# Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+import("//build/dart/dart_package.gni")
+
+dart_package("front_end") {
+  package_name = "front_end"
+
+  source_dir = "lib"
+
+  deps = [
+    "//third_party/dart-pkg/pub/path",
+    "//third_party/dart-pkg/pub/source_span",
+  ]
+}

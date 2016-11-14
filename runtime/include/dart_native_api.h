@@ -176,4 +176,4 @@ DART_EXPORT Dart_Handle Dart_CompileAll();
  */
 DART_EXPORT Dart_Handle Dart_ParseAll();
 
-#endif  /* INCLUDE_DART_NATIVE_API_H_ */  /* NOLINT */
+#endif /* INCLUDE_DART_NATIVE_API_H_ */ /* NOLINT */

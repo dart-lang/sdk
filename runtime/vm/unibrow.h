@@ -23,16 +23,16 @@ namespace unibrow {
 template <class T, intptr_t size = 256>
 class Mapping {
  public:
-  inline Mapping() { }
+  inline Mapping() {}
   inline intptr_t get(int32_t c, int32_t n, int32_t* result);
+
  private:
   friend class Test;
   intptr_t CalculateValue(int32_t c, int32_t n, int32_t* result);
   struct CacheEntry {
-    inline CacheEntry() : code_point_(kNoChar), offset_(0) { }
+    inline CacheEntry() : code_point_(kNoChar), offset_(0) {}
     inline CacheEntry(int32_t code_point, signed offset)
-      : code_point_(code_point),
-        offset_(offset) { }
+        : code_point_(code_point), offset_(offset) {}
     int32_t code_point_;
     signed offset_;
     static const intptr_t kNoChar = (1 << 21) - 1;

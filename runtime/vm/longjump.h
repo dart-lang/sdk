@@ -17,15 +17,13 @@ class Error;
 class LongJumpScope : public StackResource {
  public:
   LongJumpScope()
-    : StackResource(Thread::Current()),
-      top_(NULL),
-      base_(Thread::Current()->long_jump_base()) {
+      : StackResource(Thread::Current()),
+        top_(NULL),
+        base_(Thread::Current()->long_jump_base()) {
     Thread::Current()->set_long_jump_base(this);
   }
 
-  ~LongJumpScope() {
-    Thread::Current()->set_long_jump_base(base_);
-  }
+  ~LongJumpScope() { Thread::Current()->set_long_jump_base(base_); }
 
   jmp_buf* Set();
   void Jump(int value, const Error& error);

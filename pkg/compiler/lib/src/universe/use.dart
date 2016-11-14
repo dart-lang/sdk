@@ -323,6 +323,8 @@ enum TypeUseKind {
   CATCH_TYPE,
   TYPE_LITERAL,
   INSTANTIATION,
+  MIRROR_INSTANTIATION,
+  NATIVE_INSTANTIATION,
 }
 
 /// Use of a [DartType].
@@ -364,6 +366,16 @@ class TypeUse {
   /// [type] used in an instantiation, like `new T();`.
   factory TypeUse.instantiation(InterfaceType type) {
     return new TypeUse.internal(type, TypeUseKind.INSTANTIATION);
+  }
+
+  /// [type] used in an instantiation through mirrors.
+  factory TypeUse.mirrorInstantiation(InterfaceType type) {
+    return new TypeUse.internal(type, TypeUseKind.MIRROR_INSTANTIATION);
+  }
+
+  /// [type] used in a native instantiation.
+  factory TypeUse.nativeInstantiation(InterfaceType type) {
+    return new TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
   }
 
   bool operator ==(other) {

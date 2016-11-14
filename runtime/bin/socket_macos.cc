@@ -27,6 +27,13 @@
 namespace dart {
 namespace bin {
 
+static void SaveErrorAndClose(intptr_t fd) {
+  int err = errno;
+  VOID_TEMP_FAILURE_RETRY(close(fd));
+  errno = err;
+}
+
+
 SocketAddress::SocketAddress(struct sockaddr* sa) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   if (!Socket::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa), as_string_,
@@ -57,8 +64,14 @@ static intptr_t Create(const RawAddr& addr) {
   if (fd < 0) {
     return -1;
   }
-  FDUtils::SetCloseOnExec(fd);
-  FDUtils::SetNonBlocking(fd);
+  if (!FDUtils::SetCloseOnExec(fd)) {
+    SaveErrorAndClose(fd);
+    return -1;
+  }
+  if (!FDUtils::SetNonBlocking(fd)) {
+    SaveErrorAndClose(fd);
+    return -1;
+  }
   return fd;
 }
 
@@ -69,7 +82,7 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   if ((result == 0) || (errno == EINPROGRESS)) {
     return fd;
   }
-  VOID_TEMP_FAILURE_RETRY(close(fd));
+  SaveErrorAndClose(fd);
   return -1;
 }
 
@@ -94,7 +107,7 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   intptr_t result = TEMP_FAILURE_RETRY(
       bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
   if ((result != 0) && (errno != EINPROGRESS)) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    SaveErrorAndClose(fd);
     return -1;
   }
 
@@ -304,7 +317,10 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     return -1;
   }
 
-  FDUtils::SetCloseOnExec(fd);
+  if (!FDUtils::SetCloseOnExec(fd)) {
+    SaveErrorAndClose(fd);
+    return -1;
+  }
 
   if (reuseAddress) {
     int optval = 1;
@@ -314,11 +330,14 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    SaveErrorAndClose(fd);
     return -1;
   }
 
-  FDUtils::SetNonBlocking(fd);
+  if (!FDUtils::SetNonBlocking(fd)) {
+    SaveErrorAndClose(fd);
+    return -1;
+  }
   return fd;
 }
 
@@ -357,7 +376,9 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
 
   intptr_t count = 0;
   for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) count++;
+    if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
+      count++;
+    }
   }
 
   AddressList<InterfaceSocketAddress>* addresses =
@@ -387,7 +408,10 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     return -1;
   }
 
-  FDUtils::SetCloseOnExec(fd);
+  if (!FDUtils::SetCloseOnExec(fd)) {
+    SaveErrorAndClose(fd);
+    return -1;
+  }
 
   int optval = 1;
   VOID_NO_RETRY_EXPECTED(
@@ -401,7 +425,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    SaveErrorAndClose(fd);
     return -1;
   }
 
@@ -411,18 +435,19 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     // Don't close the socket until we have created a new socket, ensuring
     // that we do not get the bad port number again.
     intptr_t new_fd = CreateBindListen(addr, backlog, v6_only);
-    int err = errno;
-    VOID_TEMP_FAILURE_RETRY(close(fd));
-    errno = err;
+    SaveErrorAndClose(fd);
     return new_fd;
   }
 
   if (NO_RETRY_EXPECTED(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
-    VOID_TEMP_FAILURE_RETRY(close(fd));
+    SaveErrorAndClose(fd);
     return -1;
   }
 
-  FDUtils::SetNonBlocking(fd);
+  if (!FDUtils::SetNonBlocking(fd)) {
+    SaveErrorAndClose(fd);
+    return -1;
+  }
   return fd;
 }
 
@@ -447,8 +472,14 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
       socket = kTemporaryFailure;
     }
   } else {
-    FDUtils::SetCloseOnExec(socket);
-    FDUtils::SetNonBlocking(socket);
+    if (!FDUtils::SetCloseOnExec(socket)) {
+      SaveErrorAndClose(socket);
+      return -1;
+    }
+    if (!FDUtils::SetNonBlocking(socket)) {
+      SaveErrorAndClose(socket);
+      return -1;
+    }
   }
   return socket;
 }

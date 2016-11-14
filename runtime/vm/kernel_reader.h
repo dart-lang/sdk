@@ -18,8 +18,10 @@ class KernelReader;
 
 class BuildingTranslationHelper : public TranslationHelper {
  public:
-  BuildingTranslationHelper(KernelReader* reader, dart::Thread* thread,
-                            dart::Zone* zone, Isolate* isolate)
+  BuildingTranslationHelper(KernelReader* reader,
+                            dart::Thread* thread,
+                            dart::Zone* zone,
+                            Isolate* isolate)
       : TranslationHelper(thread, zone, isolate), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
 
@@ -72,7 +74,8 @@ class KernelReader {
                                       const dart::Class& owner,
                                       const dart::Function& function,
                                       FunctionNode* kernel_function,
-                                      bool is_method, bool is_closure);
+                                      bool is_method,
+                                      bool is_closure);
 
   void ReadLibrary(Library* kernel_library);
 
@@ -81,11 +84,14 @@ class KernelReader {
 
   void ReadPreliminaryClass(dart::Class* klass, Class* kernel_klass);
   void ReadClass(const dart::Library& library, Class* kernel_klass);
-  void ReadProcedure(const dart::Library& library, const dart::Class& owner,
-                     Procedure* procedure, Class* kernel_klass = NULL);
+  void ReadProcedure(const dart::Library& library,
+                     const dart::Class& owner,
+                     Procedure* procedure,
+                     Class* kernel_klass = NULL);
 
   void GenerateFieldAccessors(const dart::Class& klass,
-                              const dart::Field& field, Field* kernel_field);
+                              const dart::Field& field,
+                              Field* kernel_field);
 
   void SetupFieldAccessorFunction(const dart::Class& klass,
                                   const dart::Function& function);

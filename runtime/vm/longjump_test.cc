@@ -9,9 +9,8 @@
 namespace dart {
 
 static void LongJumpHelper(LongJumpScope* jump) {
-  const Error& error =
-      Error::Handle(LanguageError::New(
-          String::Handle(String::New("LongJumpHelper"))));
+  const Error& error = Error::Handle(
+      LanguageError::New(String::Handle(String::New("LongJumpHelper"))));
   jump->Jump(1, error);
   UNREACHABLE();
 }

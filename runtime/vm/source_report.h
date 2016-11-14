@@ -20,10 +20,10 @@ namespace dart {
 class SourceReport {
  public:
   enum ReportKind {
-    kCallSites           = 0x1,
-    kCoverage            = 0x2,
+    kCallSites = 0x1,
+    kCoverage = 0x2,
     kPossibleBreakpoints = 0x4,
-    kProfile             = 0x8,
+    kProfile = 0x8,
   };
 
   static const char* kCallSitesStr;
@@ -31,29 +31,28 @@ class SourceReport {
   static const char* kPossibleBreakpointsStr;
   static const char* kProfileStr;
 
-  enum CompileMode {
-    kNoCompile,
-    kForceCompile
-  };
+  enum CompileMode { kNoCompile, kForceCompile };
 
   // report_set is a bitvector indicating which reports to generate
   // (e.g. kCallSites | kCoverage).
-  explicit SourceReport(intptr_t report_set,
-                        CompileMode compile = kNoCompile);
+  explicit SourceReport(intptr_t report_set, CompileMode compile = kNoCompile);
   ~SourceReport();
 
   // Generate a source report for (some subrange of) a script.
   //
   // If script is null, then the report is generated for all scripts
   // in the isolate.
-  void PrintJSON(JSONStream* js, const Script& script,
+  void PrintJSON(JSONStream* js,
+                 const Script& script,
                  TokenPosition start_pos = TokenPosition::kNoSource,
                  TokenPosition end_pos = TokenPosition::kNoSource);
 
  private:
   void ClearScriptTable();
-  void Init(Thread* thread, const Script* script,
-            TokenPosition start_pos, TokenPosition end_pos);
+  void Init(Thread* thread,
+            const Script* script,
+            TokenPosition start_pos,
+            TokenPosition end_pos);
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread_->zone(); }
@@ -65,11 +64,14 @@ class SourceReport {
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
 
   void PrintCallSitesData(JSONObject* jsobj,
-                          const Function& func, const Code& code);
+                          const Function& func,
+                          const Code& code);
   void PrintCoverageData(JSONObject* jsobj,
-                         const Function& func, const Code& code);
+                         const Function& func,
+                         const Code& code);
   void PrintPossibleBreakpointsData(JSONObject* jsobj,
-                                    const Function& func, const Code& code);
+                                    const Function& func,
+                                    const Code& code);
   void PrintProfileData(JSONObject* jsobj, ProfileFunction* profile_function);
 #if defined(DEBUG)
   void VerifyScriptTable();
@@ -95,17 +97,11 @@ class SourceReport {
     typedef const String* Key;
     typedef ScriptTableEntry* Pair;
 
-    static Key KeyOf(Pair kv) {
-      return kv->key;
-    }
+    static Key KeyOf(Pair kv) { return kv->key; }
 
-    static Value ValueOf(Pair kv) {
-      return kv;
-    }
+    static Value ValueOf(Pair kv) { return kv; }
 
-    static inline intptr_t Hashcode(Key key) {
-      return key->Hash();
-    }
+    static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
     static inline bool IsKeyEqual(Pair kv, Key key) {
       return kv->key->Equals(*key);

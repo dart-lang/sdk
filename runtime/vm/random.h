@@ -20,7 +20,7 @@ class Random {
   uint32_t NextUInt32();
   uint64_t NextUInt64() {
     return (static_cast<uint64_t>(NextUInt32()) << 32) |
-        static_cast<uint64_t>(NextUInt32());
+           static_cast<uint64_t>(NextUInt32());
   }
 
  private:

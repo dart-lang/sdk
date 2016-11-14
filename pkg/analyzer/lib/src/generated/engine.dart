@@ -1055,6 +1055,11 @@ class AnalysisNotScheduledError implements Exception {}
  */
 abstract class AnalysisOptions {
   /**
+   * The length of the list returned by [encodeCrossContextOptions].
+   */
+  static const int crossContextOptionsLength = 2;
+
+  /**
    * Function that returns `true` if analysis is to parse and analyze function
    * bodies for a given source.
    */
@@ -1191,6 +1196,12 @@ abstract class AnalysisOptions {
   bool get lint;
 
   /**
+   * Return the "platform" bit mask which should be used to apply patch files,
+   * or `0` if no patch files should be applied.
+   */
+  int get patchPlatform;
+
+  /**
    * Return `true` if analysis is to parse comments.
    */
   bool get preserveComments;
@@ -1209,17 +1220,37 @@ abstract class AnalysisOptions {
   bool get trackCacheDependencies;
 
   /**
-   * Return an integer encoding of the values of the options that need to be the
-   * same across all of the contexts associated with partitions that are to be
-   * shared by a single analysis context.
+   * Return a list of integers encoding of the values of the options that need
+   * to be the same across all of the contexts associated with partitions that
+   * are to be shared by a single analysis context.
+   *
+   * The length of the list is guaranteed to equal [crossContextOptionsLength].
    */
-  int encodeCrossContextOptions();
+  List<int> encodeCrossContextOptions();
 
   /**
    * Set the values of the cross-context options to match those in the given set
    * of [options].
    */
   void setCrossContextOptionsFrom(AnalysisOptions options);
+
+  /**
+   * Determine whether two lists returned by [encodeCrossContextOptions] are
+   * equal.
+   */
+  static bool crossContextOptionsEqual(List<int> a, List<int> b) {
+    assert(a.length == crossContextOptionsLength);
+    assert(b.length == crossContextOptionsLength);
+    if (a.length != b.length) {
+      return false;
+    }
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
 
 /**
@@ -1306,6 +1337,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   bool lint = false;
+
+  @override
+  int patchPlatform = 0;
 
   @override
   bool preserveComments = true;
@@ -1395,6 +1429,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     trackCacheDependencies = options.trackCacheDependencies;
     disableCacheFlushing = options.disableCacheFlushing;
     finerGrainedInvalidation = options.finerGrainedInvalidation;
+    patchPlatform = options.patchPlatform;
   }
 
   bool get analyzeFunctionBodies {
@@ -1443,14 +1478,16 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   void set enableConditionalDirectives(_) {}
 
   @override
-  int encodeCrossContextOptions() =>
-      (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
-      (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
-      (enableLazyAssignmentOperators ? ENABLE_LAZY_ASSIGNMENT_OPERATORS : 0) |
-      (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
-      (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
-      (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
-      (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
+  List<int> encodeCrossContextOptions() {
+    int flags = (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
+        (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
+        (enableLazyAssignmentOperators ? ENABLE_LAZY_ASSIGNMENT_OPERATORS : 0) |
+        (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
+        (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0) |
+        (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
+        (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0);
+    return <int>[flags, patchPlatform];
+  }
 
   @override
   void setCrossContextOptionsFrom(AnalysisOptions options) {
@@ -1463,6 +1500,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     if (options is AnalysisOptionsImpl) {
       strongModeHints = options.strongModeHints;
     }
+    patchPlatform = options.patchPlatform;
   }
 
   /**
@@ -1470,42 +1508,39 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * encoded in the given [encoding], presumably from invoking the method
    * [encodeCrossContextOptions].
    */
-  static String decodeCrossContextOptions(int encoding) {
-    if (encoding == 0) {
+  static String decodeCrossContextOptions(List<int> encoding) {
+    List<String> parts = [];
+    int flags = encoding[0];
+    if (flags & ENABLE_ASSERT_FLAG > 0) {
+      parts.add('assert');
+    }
+    if (flags & ENABLE_GENERIC_METHODS_FLAG > 0) {
+      parts.add('genericMethods');
+    }
+    if (flags & ENABLE_LAZY_ASSIGNMENT_OPERATORS > 0) {
+      parts.add('lazyAssignmentOperators');
+    }
+    if (flags & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
+      parts.add('strictCallChecks');
+    }
+    if (flags & ENABLE_SUPER_MIXINS_FLAG > 0) {
+      parts.add('superMixins');
+    }
+    if (flags & ENABLE_STRONG_MODE_FLAG > 0) {
+      parts.add('strongMode');
+    }
+    if (flags & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
+      parts.add('strongModeHints');
+    }
+    int patchPlatform = encoding[1];
+    if (patchPlatform != 0) {
+      parts.add('patchPlatform=$patchPlatform');
+    }
+    if (parts.isEmpty) {
       return 'none';
+    } else {
+      return parts.join(', ');
     }
-    StringBuffer buffer = new StringBuffer();
-    bool needsSeparator = false;
-    void add(String optionName) {
-      if (needsSeparator) {
-        buffer.write(', ');
-      }
-      buffer.write(optionName);
-      needsSeparator = true;
-    }
-
-    if (encoding & ENABLE_ASSERT_FLAG > 0) {
-      add('assert');
-    }
-    if (encoding & ENABLE_GENERIC_METHODS_FLAG > 0) {
-      add('genericMethods');
-    }
-    if (encoding & ENABLE_LAZY_ASSIGNMENT_OPERATORS > 0) {
-      add('lazyAssignmentOperators');
-    }
-    if (encoding & ENABLE_STRICT_CALL_CHECKS_FLAG > 0) {
-      add('strictCallChecks');
-    }
-    if (encoding & ENABLE_SUPER_MIXINS_FLAG > 0) {
-      add('superMixins');
-    }
-    if (encoding & ENABLE_STRONG_MODE_FLAG > 0) {
-      add('strongMode');
-    }
-    if (encoding & ENABLE_STRONG_MODE_HINTS_FLAG > 0) {
-      add('strongModeHints');
-    }
-    return buffer.toString();
   }
 
   /**

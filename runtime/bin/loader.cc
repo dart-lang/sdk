@@ -449,7 +449,7 @@ void Loader::InitForSnapshot(const char* snapshot_uri) {
 }
 
 
-#define RETURN_ERROR(result) \
+#define RETURN_ERROR(result)                                                   \
   if (Dart_IsError(result)) return result;
 
 Dart_Handle Loader::ReloadNativeExtensions() {

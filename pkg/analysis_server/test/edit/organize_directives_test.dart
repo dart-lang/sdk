@@ -38,7 +38,7 @@ class OrganizeDirectivesTest extends AbstractAnalysisTest {
     await waitForTasksFinished();
     Request request =
         new EditOrganizeDirectivesParams('/no/such/file.dart').toRequest('0');
-    Response response = handler.handleRequest(request);
+    Response response = await waitResponse(request);
     expect(
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
   }
@@ -51,7 +51,7 @@ main() {}
 ''');
     await waitForTasksFinished();
     Request request = new EditOrganizeDirectivesParams(testFile).toRequest('0');
-    Response response = handler.handleRequest(request);
+    Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.ORGANIZE_DIRECTIVES_ERROR));
   }
@@ -60,7 +60,7 @@ main() {}
     await waitForTasksFinished();
     Request request =
         new EditOrganizeDirectivesParams('/not-a-Dart-file.txt').toRequest('0');
-    Response response = handler.handleRequest(request);
+    Response response = await waitResponse(request);
     expect(
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
   }
@@ -158,14 +158,14 @@ main() {
 
   Future _assertOrganized(String expectedCode) async {
     await waitForTasksFinished();
-    _requestOrganize();
+    await _requestOrganize();
     String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(resultCode, expectedCode);
   }
 
-  void _requestOrganize() {
+  Future _requestOrganize() async {
     Request request = new EditOrganizeDirectivesParams(testFile).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    Response response = await waitResponse(request);
     var result = new EditOrganizeDirectivesResult.fromResponse(response);
     fileEdit = result.edit;
   }

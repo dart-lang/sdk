@@ -39,28 +39,28 @@ class Zone;
 //  - runtime/observatory/lib/src/service/object.dart
 //
 enum JSONRpcErrorCode {
-  kParseError     = -32700,
+  kParseError = -32700,
   kInvalidRequest = -32600,
   kMethodNotFound = -32601,
-  kInvalidParams  = -32602,
-  kInternalError  = -32603,
+  kInvalidParams = -32602,
+  kInternalError = -32603,
 
   kExtensionError = -32000,
 
-  kFeatureDisabled           = 100,
-  kCannotAddBreakpoint       = 102,
-  kStreamAlreadySubscribed   = 103,
-  kStreamNotSubscribed       = 104,
-  kIsolateMustBeRunnable     = 105,
-  kIsolateMustBePaused       = 106,
+  kFeatureDisabled = 100,
+  kCannotAddBreakpoint = 102,
+  kStreamAlreadySubscribed = 103,
+  kStreamNotSubscribed = 104,
+  kIsolateMustBeRunnable = 105,
+  kIsolateMustBePaused = 106,
 
   // Experimental (used in private rpcs).
-  kIsolateIsReloading        = 1000,
-  kFileSystemAlreadyExists   = 1001,
-  kFileSystemDoesNotExist    = 1002,
-  kFileDoesNotExist          = 1003,
-  kIsolateReloadFailed       = 1004,
-  kIsolateReloadBarred       = 1005,
+  kIsolateIsReloading = 1000,
+  kFileSystemAlreadyExists = 1001,
+  kFileSystemDoesNotExist = 1002,
+  kFileDoesNotExist = 1003,
+  kIsolateReloadFailed = 1004,
+  kIsolateReloadBarred = 1005,
 };
 
 // Expected that user_data is a JSONStream*.
@@ -88,12 +88,8 @@ class JSONStream : ValueObject {
 
   void PostReply();
 
-  void set_id_zone(ServiceIdZone* id_zone) {
-    id_zone_ = id_zone;
-  }
-  ServiceIdZone* id_zone() {
-    return id_zone_;
-  }
+  void set_id_zone(ServiceIdZone* id_zone) { id_zone_ = id_zone; }
+  ServiceIdZone* id_zone() { return id_zone_; }
 
   TextBuffer* buffer() { return &buffer_; }
   const char* ToCString() { return buffer_.buf(); }
@@ -102,7 +98,8 @@ class JSONStream : ValueObject {
 
   void set_reply_port(Dart_Port port);
 
-  void SetParams(const char** param_keys, const char** param_values,
+  void SetParams(const char** param_keys,
+                 const char** param_values,
                  intptr_t num_params);
 
   Dart_Port reply_port() const { return reply_port_; }
@@ -113,12 +110,8 @@ class JSONStream : ValueObject {
   RawObject* LookupObjectParam(const char* key) const;
 
   intptr_t num_params() const { return num_params_; }
-  const char* GetParamKey(intptr_t i) const {
-    return param_keys_[i];
-  }
-  const char* GetParamValue(intptr_t i) const {
-    return param_values_[i];
-  }
+  const char* GetParamKey(intptr_t i) const { return param_keys_[i]; }
+  const char* GetParamValue(intptr_t i) const { return param_values_[i]; }
 
   const char* LookupParam(const char* key) const;
 
@@ -152,8 +145,7 @@ class JSONStream : ValueObject {
   void PrintCommaIfNeeded();
 
   // Append |buffer| to the stream.
-  void AppendSerializedObject(const uint8_t* buffer,
-                              intptr_t buffer_length);
+  void AppendSerializedObject(const uint8_t* buffer, intptr_t buffer_length);
 
   // Append |serialized_object| to the stream with |property_name|.
   void AppendSerializedObject(const char* property_name,
@@ -204,11 +196,13 @@ class JSONStream : ValueObject {
                            const uint8_t* bytes,
                            intptr_t length);
   void PrintProperty(const char* name, const char* s);
-  bool PrintPropertyStr(const char* name, const String& s,
-                        intptr_t offset, intptr_t count);
+  bool PrintPropertyStr(const char* name,
+                        const String& s,
+                        intptr_t offset,
+                        intptr_t count);
   void PrintPropertyNoEscape(const char* name, const char* s);
   void PrintfProperty(const char* name, const char* format, ...)
-  PRINTF_ATTRIBUTE(3, 4);
+      PRINTF_ATTRIBUTE(3, 4);
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
   void PrintProperty(const char* name, const ServiceEvent* event);
@@ -265,13 +259,9 @@ class JSONObject : public ValueObject {
   }
   explicit JSONObject(const JSONArray* arr);
 
-  ~JSONObject() {
-    stream_->CloseObject();
-  }
+  ~JSONObject() { stream_->CloseObject(); }
 
-  void AddServiceId(const Object& o) const {
-    stream_->PrintServiceId(o);
-  }
+  void AddServiceId(const Object& o) const { stream_->PrintServiceId(o); }
 
   void AddFixedServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
@@ -375,9 +365,7 @@ class JSONArray : public ValueObject {
   explicit JSONArray(const JSONArray* arr) : stream_(arr->stream_) {
     stream_->OpenArray();
   }
-  ~JSONArray() {
-    stream_->CloseArray();
-  }
+  ~JSONArray() { stream_->CloseArray(); }
 
   void AddValueNull() const { stream_->PrintValueNull(); }
   void AddValue(bool b) const { stream_->PrintValueBool(b); }
@@ -397,30 +385,18 @@ class JSONArray : public ValueObject {
   void AddValue(Isolate* isolate, bool ref = true) const {
     stream_->PrintValue(isolate, ref);
   }
-  void AddValue(Breakpoint* bpt) const {
-    stream_->PrintValue(bpt);
-  }
-  void AddValue(TokenPosition tp) const {
-    stream_->PrintValue(tp);
-  }
-  void AddValue(const ServiceEvent* event) const {
-    stream_->PrintValue(event);
-  }
-  void AddValue(Metric* metric) const {
-    stream_->PrintValue(metric);
-  }
-  void AddValue(MessageQueue* queue) const {
-    stream_->PrintValue(queue);
-  }
+  void AddValue(Breakpoint* bpt) const { stream_->PrintValue(bpt); }
+  void AddValue(TokenPosition tp) const { stream_->PrintValue(tp); }
+  void AddValue(const ServiceEvent* event) const { stream_->PrintValue(event); }
+  void AddValue(Metric* metric) const { stream_->PrintValue(metric); }
+  void AddValue(MessageQueue* queue) const { stream_->PrintValue(queue); }
   void AddValue(const TimelineEvent* timeline_event) const {
     stream_->PrintValue(timeline_event);
   }
   void AddValue(const TimelineEventBlock* timeline_event_block) const {
     stream_->PrintValue(timeline_event_block);
   }
-  void AddValueVM(bool ref = true) const {
-    stream_->PrintValueVM(ref);
-  }
+  void AddValueVM(bool ref = true) const { stream_->PrintValueVM(ref); }
   void AddValueF(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
  private:

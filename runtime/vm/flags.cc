@@ -11,21 +11,19 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_flags, false, "Print flags as they are being parsed.");
-DEFINE_FLAG(bool, ignore_unrecognized_flags, false,
-    "Ignore unrecognized flags.");
+DEFINE_FLAG(bool,
+            ignore_unrecognized_flags,
+            false,
+            "Ignore unrecognized flags.");
 
-#define PRODUCT_FLAG_MARCO(name, type, default_value, comment) \
-  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
-                                            #name,                             \
-                                            default_value,                     \
-                                            comment);
+#define PRODUCT_FLAG_MARCO(name, type, default_value, comment)                 \
+  type FLAG_##name =                                                           \
+      Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 
 #if defined(DEBUG)
-#define DEBUG_FLAG_MARCO(name, type, default_value, comment) \
-  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
-                                            #name,                             \
-                                            default_value,                     \
-                                            comment);
+#define DEBUG_FLAG_MARCO(name, type, default_value, comment)                   \
+  type FLAG_##name =                                                           \
+      Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 #else  // defined(DEBUG)
 #define DEBUG_FLAG_MARCO(name, type, default_value, comment)
 #endif  // defined(DEBUG)
@@ -46,26 +44,20 @@ DEFINE_FLAG(bool, ignore_unrecognized_flags, false,
 
 #elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
 #define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
-  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
-                                            #name,                             \
-                                            default_value,                     \
-                                            comment);
+  type FLAG_##name =                                                           \
+      Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 // Nothing to be done for the precompilation flag definitions.
 #define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
                               default_value, comment)
 
 #else  // !PRODUCT && !PRECOMPILED
 #define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
-  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
-                                            #name,                             \
-                                            default_value,                     \
-                                            comment);
+  type FLAG_##name =                                                           \
+      Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 #define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
                               default_value, comment)                          \
-  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
-                                            #name,                             \
-                                            default_value,                     \
-                                            comment);
+  type FLAG_##name =                                                           \
+      Flags::Register_##type(&FLAG_##name, #name, default_value, comment);
 #endif
 
 
@@ -90,21 +82,12 @@ intptr_t Flags::num_flags_ = 0;
 
 class Flag {
  public:
-  enum FlagType {
-    kBoolean,
-    kInteger,
-    kUint64,
-    kString,
-    kFunc,
-    kNumFlagTypes
-  };
+  enum FlagType { kBoolean, kInteger, kUint64, kString, kFunc, kNumFlagTypes };
 
   Flag(const char* name, const char* comment, void* addr, FlagType type)
-      : name_(name), comment_(comment), addr_(addr), type_(type) {
-  }
+      : name_(name), comment_(comment), addr_(addr), type_(type) {}
   Flag(const char* name, const char* comment, FlagHandler handler)
-      : name_(name), comment_(comment), handler_(handler), type_(kFunc) {
-  }
+      : name_(name), comment_(comment), handler_(handler), type_(kFunc) {}
 
   void Print() {
     if (IsUnrecognized()) {
@@ -113,8 +96,8 @@ class Flag {
     }
     switch (type_) {
       case kBoolean: {
-        OS::Print("%s: %s (%s)\n",
-            name_, *this->bool_ptr_ ? "true" : "false", comment_);
+        OS::Print("%s: %s (%s)\n", name_, *this->bool_ptr_ ? "true" : "false",
+                  comment_);
         break;
       }
       case kInteger: {
@@ -175,10 +158,8 @@ Flag* Flags::Lookup(const char* name) {
 
 bool Flags::IsSet(const char* name) {
   Flag* flag = Lookup(name);
-  return (flag != NULL) &&
-         (flag->type_ == Flag::kBoolean) &&
-         (flag->bool_ptr_ != NULL) &&
-         (*flag->bool_ptr_ == true);
+  return (flag != NULL) && (flag->type_ == Flag::kBoolean) &&
+         (flag->bool_ptr_ != NULL) && (*flag->bool_ptr_ == true);
 }
 
 
@@ -194,7 +175,7 @@ void Flags::AddFlag(Flag* flag) {
       for (intptr_t i = 0; i < num_flags_; i++) {
         new_flags[i] = flags_[i];
       }
-      delete [] flags_;
+      delete[] flags_;
       flags_ = new_flags;
       capacity_ = new_capacity;
     }
@@ -412,8 +393,8 @@ static bool IsValidFlag(const char* name,
 
 
 int Flags::CompareFlagNames(const void* left, const void* right) {
-  const Flag* left_flag = *reinterpret_cast<const Flag* const *>(left);
-  const Flag* right_flag = *reinterpret_cast<const Flag* const *>(right);
+  const Flag* left_flag = *reinterpret_cast<const Flag* const*>(left);
+  const Flag* right_flag = *reinterpret_cast<const Flag* const*>(right);
   return strcmp(left_flag->name_, right_flag->name_);
 }
 
@@ -463,9 +444,7 @@ bool Flags::ProcessCommandLineFlags(int number_of_vm_flags,
   return true;
 }
 
-bool Flags::SetFlag(const char* name,
-                    const char* value,
-                    const char** error) {
+bool Flags::SetFlag(const char* name, const char* value, const char** error) {
   Flag* flag = Lookup(name);
   if (flag == NULL) {
     *error = "Cannot set flag: flag not found";

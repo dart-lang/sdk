@@ -21,8 +21,8 @@ class Thread;
 // program control flow.
 class ValueObject {
  public:
-  ValueObject() { }
-  ~ValueObject() { }
+  ValueObject() {}
+  ~ValueObject() {}
 
  private:
   DISALLOW_ALLOCATION();
@@ -79,7 +79,7 @@ class AllStatic {
 // goes out of scope to reclaim memory.
 class ZoneAllocated {
  public:
-  ZoneAllocated() { }
+  ZoneAllocated() {}
 
   // Implicitly allocate the object in the current zone.
   void* operator new(uword size);
@@ -102,7 +102,6 @@ class ZoneAllocated {
 };
 
 
-
 // Within a NoSafepointScope, the thread must not reach any safepoint. Used
 // around code that manipulates raw object pointers directly without handles.
 #if defined(DEBUG)
@@ -110,13 +109,15 @@ class NoSafepointScope : public StackResource {
  public:
   NoSafepointScope();
   ~NoSafepointScope();
+
  private:
   DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
 };
-#else  // defined(DEBUG)
+#else   // defined(DEBUG)
 class NoSafepointScope : public ValueObject {
  public:
   NoSafepointScope() {}
+
  private:
   DISALLOW_COPY_AND_ASSIGN(NoSafepointScope);
 };

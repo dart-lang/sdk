@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
+import "native_testing.dart";
+import 'dart:_js_helper' show setNativeSubclassDispatchRecord;
 import 'dart:_interceptors'
     show findInterceptorForType, findConstructorForNativeSubclassType;
 
@@ -158,11 +157,9 @@ test_new() {
   checkThrows(() => new B.three([]), 'new B.three([])');
 }
 
-var inscrutable;
-
 main() {
+  nativeTesting();
   setup();
-  inscrutable = (x) => x;
   log = (message) {
     trace.add('$message');
     return message;

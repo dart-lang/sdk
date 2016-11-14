@@ -3104,8 +3104,10 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
    * Store the results of type inference for this function in [compilationUnit].
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
-    compilationUnit._storeLinkedType(
-        _unlinkedExecutable.inferredReturnTypeSlot, inferredReturnType, this);
+    if (_unlinkedExecutable.returnType == null) {
+      compilationUnit._storeLinkedType(
+          _unlinkedExecutable.inferredReturnTypeSlot, inferredReturnType, this);
+    }
     for (FunctionElementForLink_Local_NonSynthetic function in functions) {
       function.link(compilationUnit);
     }

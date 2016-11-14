@@ -72,7 +72,7 @@ namespace dart {
 //    uword Hash(const Key& key) for any number of desired lookup key types.
 //  kPayloadSize: number of components of the payload in each entry.
 //  kMetaDataSize: number of elements reserved (e.g., for iteration order data).
-template<typename KeyTraits, intptr_t kPayloadSize, intptr_t kMetaDataSize>
+template <typename KeyTraits, intptr_t kPayloadSize, intptr_t kMetaDataSize>
 class HashTable : public ValueObject {
  public:
   typedef KeyTraits Traits;
@@ -127,12 +127,12 @@ class HashTable : public ValueObject {
     data_->SetAt(kOccupiedEntriesIndex, *smi_handle_);
     data_->SetAt(kDeletedEntriesIndex, *smi_handle_);
 
-NOT_IN_PRODUCT(
+#if !defined(PRODUCT)
     data_->SetAt(kNumGrowsIndex, *smi_handle_);
     data_->SetAt(kNumLT5LookupsIndex, *smi_handle_);
     data_->SetAt(kNumLT25LookupsIndex, *smi_handle_);
     data_->SetAt(kNumGT25LookupsIndex, *smi_handle_);
-)  // !PRODUCT
+#endif  // !defined(PRODUCT)
 
     for (intptr_t i = kHeaderSize; i < data_->Length(); ++i) {
       data_->SetAt(i, Object::sentinel());
@@ -140,13 +140,13 @@ NOT_IN_PRODUCT(
   }
 
   // Returns whether 'key' matches any key in the table.
-  template<typename Key>
+  template <typename Key>
   bool ContainsKey(const Key& key) const {
     return FindKey(key) != -1;
   }
 
   // Returns the entry that matches 'key', or -1 if none exists.
-  template<typename Key>
+  template <typename Key>
   intptr_t FindKey(const Key& key) const {
     const intptr_t num_entries = NumEntries();
     ASSERT(NumOccupied() < num_entries);
@@ -179,7 +179,7 @@ NOT_IN_PRODUCT(
   // - an occupied entry matching 'key', and returns true, or
   // - an unused/deleted entry where a matching key may be inserted,
   //   and returns false.
-  template<typename Key>
+  template <typename Key>
   bool FindKeyOrDeletedOrUnused(const Key& key, intptr_t* entry) const {
     const intptr_t num_entries = NumEntries();
     ASSERT(entry != NULL);
@@ -271,23 +271,13 @@ NOT_IN_PRODUCT(
   intptr_t NumUnused() const {
     return NumEntries() - NumOccupied() - NumDeleted();
   }
-  intptr_t NumOccupied() const {
-    return GetSmiValueAt(kOccupiedEntriesIndex);
-  }
-  intptr_t NumDeleted() const {
-    return GetSmiValueAt(kDeletedEntriesIndex);
-  }
-  Object& KeyHandle() const {
-    return *key_handle_;
-  }
-  Smi& SmiHandle() const {
-    return *smi_handle_;
-  }
+  intptr_t NumOccupied() const { return GetSmiValueAt(kOccupiedEntriesIndex); }
+  intptr_t NumDeleted() const { return GetSmiValueAt(kDeletedEntriesIndex); }
+  Object& KeyHandle() const { return *key_handle_; }
+  Smi& SmiHandle() const { return *smi_handle_; }
 
-NOT_IN_PRODUCT(
-  intptr_t NumGrows() const {
-    return GetSmiValueAt(kNumGrowsIndex);
-  }
+#if !defined(PRODUCT)
+  intptr_t NumGrows() const { return GetSmiValueAt(kNumGrowsIndex); }
   intptr_t NumLT5Collisions() const {
     return GetSmiValueAt(kNumLT5LookupsIndex);
   }
@@ -297,9 +287,7 @@ NOT_IN_PRODUCT(
   intptr_t NumGT25Collisions() const {
     return GetSmiValueAt(kNumGT25LookupsIndex);
   }
-  void UpdateGrowth() const {
-    AdjustSmiValueAt(kNumGrowsIndex, 1);
-  }
+  void UpdateGrowth() const { AdjustSmiValueAt(kNumGrowsIndex, 1); }
   void UpdateCollisions(intptr_t collisions) const {
     if (data_->raw()->IsVMHeapObject()) {
       return;
@@ -316,6 +304,7 @@ NOT_IN_PRODUCT(
     if (!KeyTraits::ReportStats()) {
       return;
     }
+    // clang-format off
     OS::Print("Stats for %s table :\n"
               " Size of table = %" Pd ",Number of Occupied entries = %" Pd "\n"
               " Number of Grows = %" Pd "\n"
@@ -326,8 +315,9 @@ NOT_IN_PRODUCT(
               NumEntries(), NumOccupied(),
               NumGrows(),
               NumLT5Collisions(), NumLT25Collisions(), NumGT25Collisions());
+    // clang-format on
   }
-)  // !PRODUCT
+#endif  // !PRODUCT
 
  protected:
   static const intptr_t kOccupiedEntriesIndex = 0;
@@ -389,7 +379,7 @@ NOT_IN_PRODUCT(
 
 
 // Table with unspecified iteration order. No payload overhead or metadata.
-template<typename KeyTraits, intptr_t kUserPayloadSize>
+template <typename KeyTraits, intptr_t kUserPayloadSize>
 class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
  public:
   typedef HashTable<KeyTraits, kUserPayloadSize, 0> BaseTable;
@@ -413,9 +403,7 @@ class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
       }
       return false;
     }
-    intptr_t Current() {
-      return entry_;
-    }
+    intptr_t Current() { return entry_; }
 
    private:
     const UnorderedHashTable* table_;
@@ -429,16 +417,17 @@ class UnorderedHashTable : public HashTable<KeyTraits, kUserPayloadSize, 0> {
 class HashTables : public AllStatic {
  public:
   // Allocates and initializes a table.
-  template<typename Table>
+  template <typename Table>
   static RawArray* New(intptr_t initial_capacity,
                        Heap::Space space = Heap::kNew) {
-    Table table(Thread::Current()->zone(), Array::New(
-        Table::ArrayLengthForNumOccupied(initial_capacity), space));
+    Table table(
+        Thread::Current()->zone(),
+        Array::New(Table::ArrayLengthForNumOccupied(initial_capacity), space));
     table.Initialize();
     return table.Release().raw();
   }
 
-  template<typename Table>
+  template <typename Table>
   static RawArray* New(const Array& array) {
     Table table(Thread::Current()->zone(), array.raw());
     table.Initialize();
@@ -447,7 +436,7 @@ class HashTables : public AllStatic {
 
   // Clears 'to' and inserts all elements from 'from', in iteration order.
   // The tables must have the same user payload size.
-  template<typename From, typename To>
+  template <typename From, typename To>
   static void Copy(const From& from, const To& to) {
     COMPILE_ASSERT(From::kPayloadSize == To::kPayloadSize);
     to.Initialize();
@@ -469,25 +458,24 @@ class HashTables : public AllStatic {
     }
   }
 
-  template<typename Table>
+  template <typename Table>
   static void EnsureLoadFactor(double low, double high, const Table& table) {
     double current = (1 + table.NumOccupied() + table.NumDeleted()) /
-        static_cast<double>(table.NumEntries());
+                     static_cast<double>(table.NumEntries());
     if (low <= current && current < high) {
       return;
     }
     double target = (low + high) / 2.0;
     intptr_t new_capacity = (1 + table.NumOccupied()) / target;
-    Table new_table(New<Table>(
-        new_capacity,
-        table.data_->IsOld() ? Heap::kOld : Heap::kNew));
+    Table new_table(New<Table>(new_capacity,
+                               table.data_->IsOld() ? Heap::kOld : Heap::kNew));
     Copy(table, new_table);
     *table.data_ = new_table.Release().raw();
     NOT_IN_PRODUCT(table.UpdateGrowth(); table.PrintStats();)
   }
 
   // Serializes a table by concatenating its entries as an array.
-  template<typename Table>
+  template <typename Table>
   static RawArray* ToArray(const Table& table, bool include_payload) {
     const intptr_t entry_size = include_payload ? (1 + Table::kPayloadSize) : 1;
     Array& result = Array::Handle(Array::New(table.NumOccupied() * entry_size));
@@ -510,7 +498,7 @@ class HashTables : public AllStatic {
 };
 
 
-template<typename BaseIterTable>
+template <typename BaseIterTable>
 class HashMap : public BaseIterTable {
  public:
   explicit HashMap(RawArray* data)
@@ -518,7 +506,7 @@ class HashMap : public BaseIterTable {
   HashMap(Zone* zone, RawArray* data) : BaseIterTable(zone, data) {}
   HashMap(Object* key, Smi* value, Array* data)
       : BaseIterTable(key, value, data) {}
-  template<typename Key>
+  template <typename Key>
   RawObject* GetOrNull(const Key& key, bool* present = NULL) const {
     intptr_t entry = BaseIterTable::FindKey(key);
     if (present != NULL) {
@@ -537,7 +525,7 @@ class HashMap : public BaseIterTable {
     return present;
   }
   // Update the value of an existing key. Note that 'key' need not be an Object.
-  template<typename Key>
+  template <typename Key>
   void UpdateValue(const Key& key, const Object& value) const {
     intptr_t entry = BaseIterTable::FindKey(key);
     ASSERT(entry != -1);
@@ -558,7 +546,7 @@ class HashMap : public BaseIterTable {
     }
   }
   // Like InsertOrGetValue, but calls NewKey to allocate a key object if needed.
-  template<typename Key>
+  template <typename Key>
   RawObject* InsertNewOrGetValue(const Key& key,
                                  const Object& value_if_absent) const {
     EnsureCapacity();
@@ -574,7 +562,7 @@ class HashMap : public BaseIterTable {
     }
   }
 
-  template<typename Key>
+  template <typename Key>
   bool Remove(const Key& key) const {
     intptr_t entry = BaseIterTable::FindKey(key);
     if (entry == -1) {
@@ -585,9 +573,7 @@ class HashMap : public BaseIterTable {
     }
   }
 
-  void Clear() const {
-    BaseIterTable::Initialize();
-  }
+  void Clear() const { BaseIterTable::Initialize(); }
 
  protected:
   void EnsureCapacity() const {
@@ -598,7 +584,7 @@ class HashMap : public BaseIterTable {
 };
 
 
-template<typename KeyTraits>
+template <typename KeyTraits>
 class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
  public:
   typedef HashMap<UnorderedHashTable<KeyTraits, 1> > BaseMap;
@@ -610,7 +596,7 @@ class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
 };
 
 
-template<typename BaseIterTable>
+template <typename BaseIterTable>
 class HashSet : public BaseIterTable {
  public:
   explicit HashSet(RawArray* data)
@@ -642,7 +628,7 @@ class HashSet : public BaseIterTable {
   }
 
   // Like InsertOrGet, but calls NewKey to allocate a key object if needed.
-  template<typename Key>
+  template <typename Key>
   RawObject* InsertNewOrGet(const Key& key) const {
     EnsureCapacity();
     intptr_t entry = -1;
@@ -656,7 +642,7 @@ class HashSet : public BaseIterTable {
     }
   }
 
-  template<typename Key>
+  template <typename Key>
   RawObject* GetOrNull(const Key& key, bool* present = NULL) const {
     intptr_t entry = BaseIterTable::FindKey(key);
     if (present != NULL) {
@@ -665,7 +651,7 @@ class HashSet : public BaseIterTable {
     return (entry == -1) ? Object::null() : BaseIterTable::GetKey(entry);
   }
 
-  template<typename Key>
+  template <typename Key>
   bool Remove(const Key& key) const {
     intptr_t entry = BaseIterTable::FindKey(key);
     if (entry == -1) {
@@ -676,9 +662,7 @@ class HashSet : public BaseIterTable {
     }
   }
 
-  void Clear() const {
-    BaseIterTable::Initialize();
-  }
+  void Clear() const { BaseIterTable::Initialize(); }
 
  protected:
   void EnsureCapacity() const {
@@ -689,7 +673,7 @@ class HashSet : public BaseIterTable {
 };
 
 
-template<typename KeyTraits>
+template <typename KeyTraits>
 class UnorderedHashSet : public HashSet<UnorderedHashTable<KeyTraits, 0> > {
  public:
   typedef HashSet<UnorderedHashTable<KeyTraits, 0> > BaseSet;

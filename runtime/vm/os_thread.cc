@@ -20,23 +20,23 @@ Mutex* OSThread::thread_list_lock_ = NULL;
 bool OSThread::creation_enabled_ = false;
 
 
-OSThread::OSThread() :
-    BaseThread(true),
-    id_(OSThread::GetCurrentThreadId()),
+OSThread::OSThread()
+    : BaseThread(true),
+      id_(OSThread::GetCurrentThreadId()),
 #if defined(DEBUG)
-    join_id_(kInvalidThreadJoinId),
+      join_id_(kInvalidThreadJoinId),
 #endif
 #ifndef PRODUCT
-    trace_id_(OSThread::GetCurrentThreadTraceId()),
+      trace_id_(OSThread::GetCurrentThreadTraceId()),
 #endif
-    name_(NULL),
-    timeline_block_lock_(new Mutex()),
-    timeline_block_(NULL),
-    thread_list_next_(NULL),
-    thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
-    log_(new class Log()),
-    stack_base_(0),
-    thread_(NULL) {
+      name_(NULL),
+      timeline_block_lock_(new Mutex()),
+      timeline_block_(NULL),
+      thread_list_next_(NULL),
+      thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
+      log_(new class Log()),
+      stack_base_(0),
+      thread_(NULL) {
 }
 
 
@@ -65,7 +65,6 @@ OSThread::~OSThread() {
   delete timeline_block_lock_;
   free(name_);
 }
-
 
 
 void OSThread::SetName(const char* name) {
@@ -135,8 +134,8 @@ void OSThread::InitOnce() {
 
 
 void OSThread::Cleanup() {
-  // We cannot delete the thread local key and thread list lock,  yet.
-  // See the note on thread_list_lock_ in os_thread.h.
+// We cannot delete the thread local key and thread list lock,  yet.
+// See the note on thread_list_lock_ in os_thread.h.
 #if 0
   if (thread_list_lock_ != NULL) {
     // Delete the thread local key.
@@ -243,7 +242,7 @@ void OSThread::RemoveThreadFromList(OSThread* thread) {
           previous->thread_list_next_ = current->thread_list_next_;
         }
         thread->thread_list_next_ = NULL;
-        final_thread = !creation_enabled_  && (thread_list_head_ == NULL);
+        final_thread = !creation_enabled_ && (thread_list_head_ == NULL);
         break;
       }
       previous = current;

@@ -968,7 +968,7 @@ class InheritanceManagerTest {
     String methodName = "m";
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
-    (methodM as MethodElementImpl).static = true;
+    (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.interfaces = <InterfaceType>[classA.type];
@@ -1064,7 +1064,7 @@ class InheritanceManagerTest {
     String methodName = "m";
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
-    (methodM as MethodElementImpl).static = true;
+    (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement2("B");
     classB.mixins = <InterfaceType>[classA.type];
@@ -1140,7 +1140,7 @@ class InheritanceManagerTest {
     String methodName = "m";
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
-    (methodM as MethodElementImpl).static = true;
+    (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
     expect(_inheritanceManager.lookupInheritance(classB, methodName), isNull);
@@ -1183,7 +1183,7 @@ class InheritanceManagerTest {
     String methodName = "m";
     MethodElement methodM =
         ElementFactory.methodElement(methodName, _typeProvider.intType);
-    (methodM as MethodElementImpl).static = true;
+    (methodM as MethodElementImpl).isStatic = true;
     classA.methods = <MethodElement>[methodM];
     expect(_inheritanceManager.lookupMember(classA, methodName), isNull);
     _assertNoErrors(classA);
@@ -1286,7 +1286,7 @@ class InheritanceManagerTest {
   }
 
   void _assertErrors(ClassElement classElt,
-      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     HashSet<AnalysisError> actualErrors =
         _inheritanceManager.getErrors(classElt);

@@ -86,18 +86,26 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
-  FDUtils::SetNonBlocking(interrupt_fds_[0]);
-  FDUtils::SetCloseOnExec(interrupt_fds_[0]);
-  FDUtils::SetCloseOnExec(interrupt_fds_[1]);
+  if (!FDUtils::SetNonBlocking(interrupt_fds_[0])) {
+    FATAL("Failed to set pipe fd non blocking\n");
+  }
+  if (!FDUtils::SetCloseOnExec(interrupt_fds_[0])) {
+    FATAL("Failed to set pipe fd close on exec\n");
+  }
+  if (!FDUtils::SetCloseOnExec(interrupt_fds_[1])) {
+    FATAL("Failed to set pipe fd close on exec\n");
+  }
   shutdown_ = false;
-  // The initial size passed to epoll_create is ignore on newer (>=
-  // 2.6.8) Linux versions
+  // The initial size passed to epoll_create is ignored on newer (>= 2.6.8)
+  // Linux versions
   static const int kEpollInitialSize = 64;
   epoll_fd_ = NO_RETRY_EXPECTED(epoll_create(kEpollInitialSize));
   if (epoll_fd_ == -1) {
     FATAL1("Failed creating epoll file descriptor: %i", errno);
   }
-  FDUtils::SetCloseOnExec(epoll_fd_);
+  if (!FDUtils::SetCloseOnExec(epoll_fd_)) {
+    FATAL("Failed to set epoll fd close on exec\n");
+  }
   // Register the interrupt_fd with the epoll instance.
   struct epoll_event event;
   event.events = EPOLLIN;

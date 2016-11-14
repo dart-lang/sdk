@@ -23,8 +23,8 @@ Future runTest() async {
     // Assertions enabled:
     var compiler = compilerFor(TEST, uri, enableUserAssertions: true);
     await compiler.run(uri);
-    var commonMasks = compiler.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrer;
+    var commonMasks = compiler.closedWorld.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var foo = findElement(compiler, "foo");
     // Return type is null|bool.
     var mask = typesInferrer.getReturnTypeOfElement(foo);
@@ -52,8 +52,8 @@ Future runTest() async {
     // Assertions disabled:
     var compiler = compilerFor(TEST, uri, enableUserAssertions: false);
     await compiler.run(uri);
-    var commonMasks = compiler.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrer;
+    var commonMasks = compiler.closedWorld.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var foo = findElement(compiler, "foo");
     // Return type is null.
     var mask = typesInferrer.getReturnTypeOfElement(foo);

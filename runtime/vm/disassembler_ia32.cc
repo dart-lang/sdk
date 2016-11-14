@@ -18,11 +18,7 @@ namespace dart {
 #ifndef PRODUCT
 
 // Tables used for decoding of x86 instructions.
-enum OperandOrder {
-  UNSET_OP_ORDER = 0,
-  REG_OPER_OP_ORDER,
-  OPER_REG_OP_ORDER
-};
+enum OperandOrder { UNSET_OP_ORDER = 0, REG_OPER_OP_ORDER, OPER_REG_OP_ORDER };
 
 
 struct ByteMnemonic {
@@ -33,89 +29,60 @@ struct ByteMnemonic {
 
 
 static ByteMnemonic two_operands_instr[] = {
-  {0x01, "add", OPER_REG_OP_ORDER},
-  {0x03, "add", REG_OPER_OP_ORDER},
-  {0x09, "or", OPER_REG_OP_ORDER},
-  {0x0B, "or", REG_OPER_OP_ORDER},
-  {0x11, "adc", OPER_REG_OP_ORDER},
-  {0x13, "adc", REG_OPER_OP_ORDER},
-  {0x19, "sbb", OPER_REG_OP_ORDER},
-  {0x1B, "sbb", REG_OPER_OP_ORDER},
-  {0x21, "and", OPER_REG_OP_ORDER},
-  {0x23, "and", REG_OPER_OP_ORDER},
-  {0x29, "sub", OPER_REG_OP_ORDER},
-  {0x2B, "sub", REG_OPER_OP_ORDER},
-  {0x31, "xor", OPER_REG_OP_ORDER},
-  {0x33, "xor", REG_OPER_OP_ORDER},
-  {0x39, "cmp", OPER_REG_OP_ORDER},
-  {0x3B, "cmp", REG_OPER_OP_ORDER},
-  {0x85, "test", REG_OPER_OP_ORDER},
-  {0x87, "xchg", REG_OPER_OP_ORDER},
-  {0x8A, "mov_b", REG_OPER_OP_ORDER},
-  {0x8B, "mov", REG_OPER_OP_ORDER},
-  {0x8D, "lea", REG_OPER_OP_ORDER},
-  {-1, "", UNSET_OP_ORDER}
-};
+    {0x01, "add", OPER_REG_OP_ORDER},   {0x03, "add", REG_OPER_OP_ORDER},
+    {0x09, "or", OPER_REG_OP_ORDER},    {0x0B, "or", REG_OPER_OP_ORDER},
+    {0x11, "adc", OPER_REG_OP_ORDER},   {0x13, "adc", REG_OPER_OP_ORDER},
+    {0x19, "sbb", OPER_REG_OP_ORDER},   {0x1B, "sbb", REG_OPER_OP_ORDER},
+    {0x21, "and", OPER_REG_OP_ORDER},   {0x23, "and", REG_OPER_OP_ORDER},
+    {0x29, "sub", OPER_REG_OP_ORDER},   {0x2B, "sub", REG_OPER_OP_ORDER},
+    {0x31, "xor", OPER_REG_OP_ORDER},   {0x33, "xor", REG_OPER_OP_ORDER},
+    {0x39, "cmp", OPER_REG_OP_ORDER},   {0x3B, "cmp", REG_OPER_OP_ORDER},
+    {0x85, "test", REG_OPER_OP_ORDER},  {0x87, "xchg", REG_OPER_OP_ORDER},
+    {0x8A, "mov_b", REG_OPER_OP_ORDER}, {0x8B, "mov", REG_OPER_OP_ORDER},
+    {0x8D, "lea", REG_OPER_OP_ORDER},   {-1, "", UNSET_OP_ORDER}};
 
 
 static ByteMnemonic zero_operands_instr[] = {
-  {0xC3, "ret", UNSET_OP_ORDER},
-  {0xC9, "leave", UNSET_OP_ORDER},
-  {0x90, "nop", UNSET_OP_ORDER},
-  {0xF4, "hlt", UNSET_OP_ORDER},
-  {0xCC, "int3", UNSET_OP_ORDER},
-  {0x60, "pushad", UNSET_OP_ORDER},
-  {0x61, "popad", UNSET_OP_ORDER},
-  {0x9C, "pushfd", UNSET_OP_ORDER},
-  {0x9D, "popfd", UNSET_OP_ORDER},
-  {0x9E, "sahf", UNSET_OP_ORDER},
-  {0x99, "cdq", UNSET_OP_ORDER},
-  {0x9B, "fwait", UNSET_OP_ORDER},
-  {-1, "", UNSET_OP_ORDER}
-};
+    {0xC3, "ret", UNSET_OP_ORDER},   {0xC9, "leave", UNSET_OP_ORDER},
+    {0x90, "nop", UNSET_OP_ORDER},   {0xF4, "hlt", UNSET_OP_ORDER},
+    {0xCC, "int3", UNSET_OP_ORDER},  {0x60, "pushad", UNSET_OP_ORDER},
+    {0x61, "popad", UNSET_OP_ORDER}, {0x9C, "pushfd", UNSET_OP_ORDER},
+    {0x9D, "popfd", UNSET_OP_ORDER}, {0x9E, "sahf", UNSET_OP_ORDER},
+    {0x99, "cdq", UNSET_OP_ORDER},   {0x9B, "fwait", UNSET_OP_ORDER},
+    {-1, "", UNSET_OP_ORDER}};
 
 
-static ByteMnemonic call_jump_instr[] = {
-  {0xE8, "call", UNSET_OP_ORDER},
-  {0xE9, "jmp", UNSET_OP_ORDER},
-  {-1, "", UNSET_OP_ORDER}
-};
+static ByteMnemonic call_jump_instr[] = {{0xE8, "call", UNSET_OP_ORDER},
+                                         {0xE9, "jmp", UNSET_OP_ORDER},
+                                         {-1, "", UNSET_OP_ORDER}};
 
 
 static ByteMnemonic short_immediate_instr[] = {
-  {0x05, "add", UNSET_OP_ORDER},
-  {0x0D, "or", UNSET_OP_ORDER},
-  {0x15, "adc", UNSET_OP_ORDER},
-  {0x25, "and", UNSET_OP_ORDER},
-  {0x2D, "sub", UNSET_OP_ORDER},
-  {0x35, "xor", UNSET_OP_ORDER},
-  {0x3D, "cmp", UNSET_OP_ORDER},
-  {-1, "", UNSET_OP_ORDER}
-};
+    {0x05, "add", UNSET_OP_ORDER}, {0x0D, "or", UNSET_OP_ORDER},
+    {0x15, "adc", UNSET_OP_ORDER}, {0x25, "and", UNSET_OP_ORDER},
+    {0x2D, "sub", UNSET_OP_ORDER}, {0x35, "xor", UNSET_OP_ORDER},
+    {0x3D, "cmp", UNSET_OP_ORDER}, {-1, "", UNSET_OP_ORDER}};
 
 
 static const char* jump_conditional_mnem[] = {
-  /*0*/ "jo", "jno", "jc", "jnc",
-  /*4*/ "jz", "jnz", "jna", "ja",
-  /*8*/ "js", "jns", "jpe", "jpo",
-  /*12*/ "jl", "jnl", "jng", "jg"
-};
+    /*0*/ "jo",  "jno", "jc",  "jnc",
+    /*4*/ "jz",  "jnz", "jna", "ja",
+    /*8*/ "js",  "jns", "jpe", "jpo",
+    /*12*/ "jl", "jnl", "jng", "jg"};
 
 
 static const char* set_conditional_mnem[] = {
-  /*0*/ "seto", "setno", "setc", "setnc",
-  /*4*/ "setz", "setnz", "setna", "seta",
-  /*8*/ "sets", "setns", "setpe", "setpo",
-  /*12*/ "setl", "setnl", "setng", "setg"
-};
+    /*0*/ "seto",  "setno", "setc",  "setnc",
+    /*4*/ "setz",  "setnz", "setna", "seta",
+    /*8*/ "sets",  "setns", "setpe", "setpo",
+    /*12*/ "setl", "setnl", "setng", "setg"};
 
 
 static const char* conditional_move_mnem[] = {
-  /*0*/ "cmovo", "cmovno", "cmovc", "cmovnc",
-  /*4*/ "cmovz", "cmovnz", "cmovna", "cmova",
-  /*8*/ "cmovs", "cmovns", "cmovpe", "cmovpo",
-  /*12*/ "cmovl", "cmovnl", "cmovng", "cmovg"
-};
+    /*0*/ "cmovo",  "cmovno", "cmovc",  "cmovnc",
+    /*4*/ "cmovz",  "cmovnz", "cmovna", "cmova",
+    /*8*/ "cmovs",  "cmovns", "cmovpe", "cmovpo",
+    /*12*/ "cmovl", "cmovnl", "cmovng", "cmovg"};
 
 
 enum InstructionType {
@@ -228,43 +195,78 @@ static InstructionTable instruction_table;
 // Returns NULL if the instruction is not handled here.
 static const char* F0Mnem(uint8_t f0byte) {
   switch (f0byte) {
-    case 0x12: return "movhlps";
-    case 0x14: return "unpcklps";
-    case 0x15: return "unpckhps";
-    case 0x16: return "movlhps";
-    case 0xA2: return "cpuid";
-    case 0x31: return "rdtsc";
-    case 0xBE: return "movsx_b";
-    case 0xBF: return "movsx_w";
-    case 0xB6: return "movzx_b";
-    case 0xB7: return "movzx_w";
-    case 0xAF: return "imul";
+    case 0x12:
+      return "movhlps";
+    case 0x14:
+      return "unpcklps";
+    case 0x15:
+      return "unpckhps";
+    case 0x16:
+      return "movlhps";
+    case 0xA2:
+      return "cpuid";
+    case 0x31:
+      return "rdtsc";
+    case 0xBE:
+      return "movsx_b";
+    case 0xBF:
+      return "movsx_w";
+    case 0xB6:
+      return "movzx_b";
+    case 0xB7:
+      return "movzx_w";
+    case 0xAF:
+      return "imul";
     case 0xA4:  // Fall through.
-    case 0xA5: return "shld";
+    case 0xA5:
+      return "shld";
     case 0xAC:  // Fall through.
-    case 0xAD: return "shrd";
-    case 0xA3: return "bt";
-    case 0xAB: return "bts";
-    case 0xBD: return "bsr";
-    case 0xB1: return "cmpxchg";
-    case 0x50: return "movmskps";
-    case 0x51: return "sqrtps";
-    case 0x52: return "rqstps";
-    case 0x53: return "rcpps";
-    case 0x54: return "andps";
-    case 0x56: return "orps";
-    case 0x57: return "xorps";
-    case 0x58: return "addps";
-    case 0x59: return "mulps";
-    case 0x5A: return "cvtps2pd";
-    case 0x5C: return "subps";
-    case 0x5D: return "minps";
-    case 0x5E: return "divps";
-    case 0x5F: return "maxps";
-    case 0x28: return "movaps";
-    case 0x10: return "movups";
-    case 0x11: return "movups";
-    default: return NULL;
+    case 0xAD:
+      return "shrd";
+    case 0xA3:
+      return "bt";
+    case 0xAB:
+      return "bts";
+    case 0xBD:
+      return "bsr";
+    case 0xB1:
+      return "cmpxchg";
+    case 0x50:
+      return "movmskps";
+    case 0x51:
+      return "sqrtps";
+    case 0x52:
+      return "rqstps";
+    case 0x53:
+      return "rcpps";
+    case 0x54:
+      return "andps";
+    case 0x56:
+      return "orps";
+    case 0x57:
+      return "xorps";
+    case 0x58:
+      return "addps";
+    case 0x59:
+      return "mulps";
+    case 0x5A:
+      return "cvtps2pd";
+    case 0x5C:
+      return "subps";
+    case 0x5D:
+      return "minps";
+    case 0x5E:
+      return "divps";
+    case 0x5F:
+      return "maxps";
+    case 0x28:
+      return "movaps";
+    case 0x10:
+      return "movups";
+    case 0x11:
+      return "movups";
+    default:
+      return NULL;
   }
 }
 
@@ -287,12 +289,11 @@ static const char* PackedDoubleMnemonic(uint8_t data) {
 
 
 static bool IsTwoXmmRegInstruction(uint8_t f0byte) {
-  return f0byte == 0x28 || f0byte == 0x11 || f0byte == 0x12 ||
-         f0byte == 0x14 || f0byte == 0x15 || f0byte == 0x16 ||
-         f0byte == 0x51 || f0byte == 0x52 || f0byte == 0x53 ||
-         f0byte == 0x54 || f0byte == 0x56 || f0byte == 0x58 ||
-         f0byte == 0x59 || f0byte == 0x5C || f0byte == 0x5D ||
-         f0byte == 0x5E || f0byte == 0x5F || f0byte == 0x5A;
+  return f0byte == 0x28 || f0byte == 0x11 || f0byte == 0x12 || f0byte == 0x14 ||
+         f0byte == 0x15 || f0byte == 0x16 || f0byte == 0x51 || f0byte == 0x52 ||
+         f0byte == 0x53 || f0byte == 0x54 || f0byte == 0x56 || f0byte == 0x58 ||
+         f0byte == 0x59 || f0byte == 0x5C || f0byte == 0x5D || f0byte == 0x5E ||
+         f0byte == 0x5F || f0byte == 0x5A;
 }
 
 
@@ -300,9 +301,7 @@ static bool IsTwoXmmRegInstruction(uint8_t f0byte) {
 class X86Decoder : public ValueObject {
  public:
   X86Decoder(char* buffer, intptr_t buffer_size)
-      : buffer_(buffer),
-        buffer_size_(buffer_size),
-        buffer_pos_(0) {
+      : buffer_(buffer), buffer_size_(buffer_size), buffer_pos_(0) {
     buffer_[buffer_pos_] = '\0';
   }
 
@@ -386,9 +385,9 @@ class X86Decoder : public ValueObject {
   char* current_position_in_buffer() { return buffer_ + buffer_pos_; }
   intptr_t remaining_size_in_buffer() { return buffer_size_ - buffer_pos_; }
 
-  char* buffer_;  // Decode instructions into this buffer.
+  char* buffer_;          // Decode instructions into this buffer.
   intptr_t buffer_size_;  // The size of the buffer_.
-  intptr_t buffer_pos_;  // Current character position in the buffer_.
+  intptr_t buffer_pos_;   // Current character position in the buffer_.
 
   DISALLOW_COPY_AND_ASSIGN(X86Decoder);
 };
@@ -421,19 +420,16 @@ void X86Decoder::Print(const char* str) {
 
 
 static const int kMaxCPURegisters = 8;
-static const char* cpu_regs[kMaxCPURegisters] = {
-  "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"
-};
+static const char* cpu_regs[kMaxCPURegisters] = {"eax", "ecx", "edx", "ebx",
+                                                 "esp", "ebp", "esi", "edi"};
 
 static const int kMaxByteCPURegisters = 8;
 static const char* byte_cpu_regs[kMaxByteCPURegisters] = {
-  "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"
-};
+    "al", "cl", "dl", "bl", "ah", "ch", "dh", "bh"};
 
 static const int kMaxXmmRegisters = 8;
 static const char* xmm_regs[kMaxXmmRegisters] = {
-  "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"
-};
+    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"};
 
 void X86Decoder::PrintCPURegister(int reg) {
   ASSERT(0 <= reg);
@@ -459,8 +455,7 @@ void X86Decoder::PrintXmmComparison(int comparison) {
   ASSERT(0 <= comparison);
   ASSERT(comparison < 8);
   static const char* comparisons[8] = {
-    "eq", "lt", "le", "unordered", "not eq", "not lt", "not le", "ordered"
-  };
+      "eq", "lt", "le", "unordered", "not eq", "not lt", "not le", "ordered"};
   Print(comparisons[comparison]);
 }
 
@@ -487,7 +482,7 @@ int X86Decoder::PrintRightOperandHelper(uint8_t* modrmp,
   switch (mod) {
     case 0:
       if (rm == ebp) {
-        int32_t disp = *reinterpret_cast<int32_t*>(modrmp+1);
+        int32_t disp = *reinterpret_cast<int32_t*>(modrmp + 1);
         Print("[");
         PrintHex(disp);
         Print("]");
@@ -514,7 +509,7 @@ int X86Decoder::PrintRightOperandHelper(uint8_t* modrmp,
             Print("+");
           }
           PrintHex(disp);
-           Print("]");
+          Print("]");
           return 6;
         } else if (index != esp && base != ebp) {
           // [base+index*scale]
@@ -543,9 +538,8 @@ int X86Decoder::PrintRightOperandHelper(uint8_t* modrmp,
         uint8_t sib = *(modrmp + 1);
         int scale, index, base;
         GetSib(sib, &scale, &index, &base);
-        int disp = (mod == 2) ?
-                   *reinterpret_cast<int32_t*>(modrmp + 2) :
-                   *reinterpret_cast<int8_t*>(modrmp + 2);
+        int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 2)
+                              : *reinterpret_cast<int8_t*>(modrmp + 2);
         if (index == base && index == rm /*esp*/ && scale == 0 /*times_1*/) {
           Print("[");
           PrintCPURegister(rm);
@@ -576,9 +570,8 @@ int X86Decoder::PrintRightOperandHelper(uint8_t* modrmp,
         return mod == 2 ? 6 : 3;
       } else {
         // No sib.
-        int disp = (mod == 2) ?
-                   *reinterpret_cast<int32_t*>(modrmp + 1) :
-                   *reinterpret_cast<int8_t*>(modrmp + 1);
+        int disp = (mod == 2) ? *reinterpret_cast<int32_t*>(modrmp + 1)
+                              : *reinterpret_cast<int8_t*>(modrmp + 1);
         Print("[");
         PrintCPURegister(rm);
         if (disp < 0) {
@@ -652,24 +645,41 @@ int X86Decoder::PrintOperands(const char* mnem,
 
 int X86Decoder::PrintImmediateOp(uint8_t* data, bool size_override) {
   bool sign_extension_bit = (*data & 0x02) != 0;
-  uint8_t modrm = *(data+1);
+  uint8_t modrm = *(data + 1);
   int mod, regop, rm;
   GetModRm(modrm, &mod, &regop, &rm);
   const char* mnem = "Imm???";
   switch (regop) {
-    case 0: mnem = "add"; break;
-    case 1: mnem = "or"; break;
-    case 2: mnem = "adc"; break;
-    case 3: mnem = "sbb"; break;
-    case 4: mnem = "and"; break;
-    case 5: mnem = "sub"; break;
-    case 6: mnem = "xor"; break;
-    case 7: mnem = "cmp"; break;
-    default: UNIMPLEMENTED();
+    case 0:
+      mnem = "add";
+      break;
+    case 1:
+      mnem = "or";
+      break;
+    case 2:
+      mnem = "adc";
+      break;
+    case 3:
+      mnem = "sbb";
+      break;
+    case 4:
+      mnem = "and";
+      break;
+    case 5:
+      mnem = "sub";
+      break;
+    case 6:
+      mnem = "xor";
+      break;
+    case 7:
+      mnem = "cmp";
+      break;
+    default:
+      UNIMPLEMENTED();
   }
   Print(mnem);
   Print(" ");
-  int count = PrintRightOperand(data+1);
+  int count = PrintRightOperand(data + 1);
   Print(",");
   if (size_override) {
     PrintHex(*reinterpret_cast<int16_t*>(data + 1 + count));
@@ -698,7 +708,7 @@ int X86Decoder::DecodeEnter(uint8_t* data) {
 // Returns number of bytes used, including *data.
 int X86Decoder::JumpShort(uint8_t* data) {
   ASSERT(*data == 0xEB);
-  uint8_t b = *(data+1);
+  uint8_t b = *(data + 1);
   uword dest = reinterpret_cast<uword>(data) + static_cast<int8_t>(b) + 2;
   Print("jmp ");
   PrintAddress(dest);
@@ -709,9 +719,9 @@ int X86Decoder::JumpShort(uint8_t* data) {
 // Returns number of bytes used, including *data.
 int X86Decoder::JumpConditional(uint8_t* data, const char* comment) {
   ASSERT(*data == 0x0F);
-  uint8_t cond = *(data+1) & 0x0F;
-  uword dest = reinterpret_cast<uword>(data) +
-               *reinterpret_cast<int32_t*>(data+2) + 6;
+  uint8_t cond = *(data + 1) & 0x0F;
+  uword dest =
+      reinterpret_cast<uword>(data) + *reinterpret_cast<int32_t*>(data + 2) + 6;
   const char* mnem = jump_conditional_mnem[cond];
   Print(mnem);
   Print(" ");
@@ -727,7 +737,7 @@ int X86Decoder::JumpConditional(uint8_t* data, const char* comment) {
 // Returns number of bytes used, including *data.
 int X86Decoder::JumpConditionalShort(uint8_t* data, const char* comment) {
   uint8_t cond = *data & 0x0F;
-  uint8_t b = *(data+1);
+  uint8_t b = *(data + 1);
   uword dest = reinterpret_cast<uword>(data) + static_cast<int8_t>(b) + 2;
   const char* mnem = jump_conditional_mnem[cond];
   Print(mnem);
@@ -744,11 +754,11 @@ int X86Decoder::JumpConditionalShort(uint8_t* data, const char* comment) {
 // Returns number of bytes used, including *data.
 int X86Decoder::SetCC(uint8_t* data) {
   ASSERT(*data == 0x0F);
-  uint8_t cond = *(data+1) & 0x0F;
+  uint8_t cond = *(data + 1) & 0x0F;
   const char* mnem = set_conditional_mnem[cond];
   Print(mnem);
   Print(" ");
-  PrintRightByteOperand(data+2);
+  PrintRightByteOperand(data + 2);
   return 3;  // includes 0x0F
 }
 
@@ -767,31 +777,40 @@ int X86Decoder::D1D3C1Instruction(uint8_t* data) {
   uint8_t op = *data;
   ASSERT(op == 0xD1 || op == 0xD3 || op == 0xC1);
   int mod, regop, rm;
-  GetModRm(*(data+1), &mod, &regop, &rm);
+  GetModRm(*(data + 1), &mod, &regop, &rm);
   int num_bytes = 1;
   const char* mnem = NULL;
   switch (regop) {
-    case 2: mnem = "rcl"; break;
-    case 4: mnem = "shl"; break;
-    case 5: mnem = "shr"; break;
-    case 7: mnem = "sar"; break;
-    default: UNIMPLEMENTED();
+    case 2:
+      mnem = "rcl";
+      break;
+    case 4:
+      mnem = "shl";
+      break;
+    case 5:
+      mnem = "shr";
+      break;
+    case 7:
+      mnem = "sar";
+      break;
+    default:
+      UNIMPLEMENTED();
   }
   ASSERT(mnem != NULL);
   Print(mnem);
   Print(" ");
 
   if (op == 0xD1) {
-    num_bytes += PrintRightOperand(data+1);
+    num_bytes += PrintRightOperand(data + 1);
     Print(", 1");
   } else if (op == 0xC1) {
-    num_bytes += PrintRightOperand(data+1);
+    num_bytes += PrintRightOperand(data + 1);
     Print(", ");
-    PrintInt(*(data+2));
+    PrintInt(*(data + 2));
     num_bytes++;
   } else {
     ASSERT(op == 0xD3);
-    num_bytes += PrintRightOperand(data+1);
+    num_bytes += PrintRightOperand(data + 1);
     Print(", cl");
   }
   return num_bytes;
@@ -799,8 +818,8 @@ int X86Decoder::D1D3C1Instruction(uint8_t* data) {
 
 
 uint8_t* X86Decoder::F3Instruction(uint8_t* data) {
-  if (*(data+1) == 0x0F) {
-    uint8_t b2 = *(data+2);
+  if (*(data + 1) == 0x0F) {
+    uint8_t b2 = *(data + 2);
     switch (b2) {
       case 0x2C: {
         data += 3;
@@ -861,14 +880,29 @@ uint8_t* X86Decoder::F3Instruction(uint8_t* data) {
         GetModRm(*data, &mod, &regop, &rm);
         const char* mnem = "?? 0xF3";
         switch (b2) {
-          case 0x51: mnem = "sqrtss"; break;
-          case 0x58: mnem = "addss"; break;
-          case 0x59: mnem = "mulss"; break;
-          case 0x5A: mnem = "cvtss2sd"; break;
-          case 0x5C: mnem = "subss"; break;
-          case 0x5E: mnem = "divss"; break;
-          case 0xE6: mnem = "cvtdq2pd"; break;
-          default: UNIMPLEMENTED();
+          case 0x51:
+            mnem = "sqrtss";
+            break;
+          case 0x58:
+            mnem = "addss";
+            break;
+          case 0x59:
+            mnem = "mulss";
+            break;
+          case 0x5A:
+            mnem = "cvtss2sd";
+            break;
+          case 0x5C:
+            mnem = "subss";
+            break;
+          case 0x5E:
+            mnem = "divss";
+            break;
+          case 0xE6:
+            mnem = "cvtdq2pd";
+            break;
+          default:
+            UNIMPLEMENTED();
         }
         Print(mnem);
         Print(" ");
@@ -890,7 +924,7 @@ uint8_t* X86Decoder::F3Instruction(uint8_t* data) {
       default:
         UNIMPLEMENTED();
     }
-  } else if (*(data+1) == 0xA4) {
+  } else if (*(data + 1) == 0xA4) {
     Print("rep_movsb");
     data += 2;
   } else {
@@ -903,26 +937,39 @@ uint8_t* X86Decoder::F3Instruction(uint8_t* data) {
 // Returns number of bytes used, including *data.
 int X86Decoder::F7Instruction(uint8_t* data) {
   ASSERT(*data == 0xF7);
-  uint8_t modrm = *(data+1);
+  uint8_t modrm = *(data + 1);
   int mod, regop, rm;
   GetModRm(modrm, &mod, &regop, &rm);
   if (mod == 3 && regop != 0) {
     const char* mnem = NULL;
     switch (regop) {
-      case 2: mnem = "not"; break;
-      case 3: mnem = "neg"; break;
-      case 4: mnem = "mul"; break;
-      case 5: mnem = "imul"; break;
-      case 6: mnem = "div"; break;
-      case 7: mnem = "idiv"; break;
-      default: UNIMPLEMENTED();
+      case 2:
+        mnem = "not";
+        break;
+      case 3:
+        mnem = "neg";
+        break;
+      case 4:
+        mnem = "mul";
+        break;
+      case 5:
+        mnem = "imul";
+        break;
+      case 6:
+        mnem = "div";
+        break;
+      case 7:
+        mnem = "idiv";
+        break;
+      default:
+        UNIMPLEMENTED();
     }
     Print(mnem);
     Print(" ");
     PrintCPURegister(rm);
     return 2;
   } else if (mod == 3 && regop == eax) {
-    int32_t imm = *reinterpret_cast<int32_t*>(data+2);
+    int32_t imm = *reinterpret_cast<int32_t*>(data + 2);
     Print("test ");
     PrintCPURegister(rm);
     Print(",");
@@ -930,11 +977,11 @@ int X86Decoder::F7Instruction(uint8_t* data) {
     return 6;
   } else if (regop == eax) {
     Print("test ");
-    int count = PrintRightOperand(data+1);
-    int32_t imm = *reinterpret_cast<int32_t*>(data+1+count);
+    int count = PrintRightOperand(data + 1);
+    int32_t imm = *reinterpret_cast<int32_t*>(data + 1 + count);
     Print(",");
     PrintHex(imm);
-    return 1+count+4 /*int32_t*/;
+    return 1 + count + 4 /*int32_t*/;
   } else if (regop == 5) {
     Print("imul ");
     int count = PrintRightOperand(data + 1);
@@ -957,18 +1004,42 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
   if (b1 == 0xD9) {
     const char* mnem = NULL;
     switch (b2) {
-      case 0xE0: mnem = "fchs"; break;
-      case 0xE1: mnem = "fabs"; break;
-      case 0xE4: mnem = "ftst"; break;
-      case 0xE8: mnem = "fld1"; break;
-      case 0xEE: mnem = "fldz"; break;
-      case 0xF2: mnem = "fptan"; break;
-      case 0xF5: mnem = "fprem1"; break;
-      case 0xF8: mnem = "fprem"; break;
-      case 0xF7: mnem = "fincstp"; break;
-      case 0xFB: mnem = "fsincos"; break;
-      case 0xFE: mnem = "fsin"; break;
-      case 0xFF: mnem = "fcos"; break;
+      case 0xE0:
+        mnem = "fchs";
+        break;
+      case 0xE1:
+        mnem = "fabs";
+        break;
+      case 0xE4:
+        mnem = "ftst";
+        break;
+      case 0xE8:
+        mnem = "fld1";
+        break;
+      case 0xEE:
+        mnem = "fldz";
+        break;
+      case 0xF2:
+        mnem = "fptan";
+        break;
+      case 0xF5:
+        mnem = "fprem1";
+        break;
+      case 0xF8:
+        mnem = "fprem";
+        break;
+      case 0xF7:
+        mnem = "fincstp";
+        break;
+      case 0xFB:
+        mnem = "fsincos";
+        break;
+      case 0xFE:
+        mnem = "fsin";
+        break;
+      case 0xFF:
+        mnem = "fcos";
+        break;
     }
     if (mnem != NULL) {
       Print(mnem);
@@ -979,14 +1050,23 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
       return 2;
     } else {
       int mod, regop, rm;
-      GetModRm(*(data+1), &mod, &regop, &rm);
+      GetModRm(*(data + 1), &mod, &regop, &rm);
       const char* mnem = "? FPU 0xD9";
       switch (regop) {
-        case 0: mnem = "fld_s"; break;
-        case 3: mnem = "fstp_s"; break;
-        case 5: mnem = "fldcw"; break;
-        case 7: mnem = "fnstcw"; break;
-        default: UNIMPLEMENTED();
+        case 0:
+          mnem = "fld_s";
+          break;
+        case 3:
+          mnem = "fstp_s";
+          break;
+        case 5:
+          mnem = "fldcw";
+          break;
+        case 7:
+          mnem = "fnstcw";
+          break;
+        default:
+          UNIMPLEMENTED();
       }
       Print(mnem);
       Print(" ");
@@ -1000,12 +1080,17 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
       return 2;
     } else {
       int mod, regop, rm;
-      GetModRm(*(data+1), &mod, &regop, &rm);
+      GetModRm(*(data + 1), &mod, &regop, &rm);
       const char* mnem = "? FPU 0xDD";
       switch (regop) {
-        case 0: mnem = "fld_d"; break;
-        case 3: mnem = "fstp_d"; break;
-       default: UNIMPLEMENTED();
+        case 0:
+          mnem = "fld_d";
+          break;
+        case 3:
+          mnem = "fstp_d";
+          break;
+        default:
+          UNIMPLEMENTED();
       }
       Print(mnem);
       Print(" ");
@@ -1014,13 +1099,20 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
     }
   } else if (b1 == 0xDB) {
     int mod, regop, rm;
-    GetModRm(*(data+1), &mod, &regop, &rm);
+    GetModRm(*(data + 1), &mod, &regop, &rm);
     const char* mnem = "? FPU 0xDB";
     switch (regop) {
-      case 0: mnem = "fild_s"; break;
-      case 2: mnem = "fist_s"; break;
-      case 3: mnem = "fistp_s"; break;
-      default: UNIMPLEMENTED();
+      case 0:
+        mnem = "fild_s";
+        break;
+      case 2:
+        mnem = "fist_s";
+        break;
+      case 3:
+        mnem = "fistp_s";
+        break;
+      default:
+        UNIMPLEMENTED();
     }
     Print(mnem);
     Print(" ");
@@ -1032,12 +1124,17 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
       return 2;
     }
     int mod, regop, rm;
-    GetModRm(*(data+1), &mod, &regop, &rm);
+    GetModRm(*(data + 1), &mod, &regop, &rm);
     const char* mnem = "? FPU 0xDF";
     switch (regop) {
-      case 5: mnem = "fild_d"; break;
-      case 7: mnem = "fistp_d"; break;
-      default: UNIMPLEMENTED();
+      case 5:
+        mnem = "fild_d";
+        break;
+      case 7:
+        mnem = "fistp_d";
+        break;
+      default:
+        UNIMPLEMENTED();
     }
     Print(mnem);
     Print(" ");
@@ -1051,11 +1148,20 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
     }
     const char* mnem = "FP0xDC";
     switch (b2 & 0xF8) {
-      case 0xC0: mnem = "fadd"; break;
-      case 0xE8: mnem = "fsub"; break;
-      case 0xC8: mnem = "fmul"; break;
-      case 0xF8: mnem = "fdiv"; break;
-      default: UNIMPLEMENTED();
+      case 0xC0:
+        mnem = "fadd";
+        break;
+      case 0xE8:
+        mnem = "fsub";
+        break;
+      case 0xC8:
+        mnem = "fmul";
+        break;
+      case 0xF8:
+        mnem = "fdiv";
+        break;
+      default:
+        UNIMPLEMENTED();
     }
     Print(mnem);
     Print(is_pop ? "p" : "");
@@ -1072,7 +1178,8 @@ int X86Decoder::FPUInstruction(uint8_t* data) {
 }
 
 
-uint8_t* X86Decoder::SSEInstruction(uint8_t prefix, uint8_t primary,
+uint8_t* X86Decoder::SSEInstruction(uint8_t prefix,
+                                    uint8_t primary,
                                     uint8_t* data) {
   ASSERT(prefix == 0x0F);
   int mod, regop, rm;
@@ -1104,36 +1211,33 @@ uint8_t* X86Decoder::SSEInstruction(uint8_t prefix, uint8_t primary,
 
 
 int X86Decoder::BitwisePDInstruction(uint8_t* data) {
-  const char* mnem = (*data == 0x57)
-      ? "xorpd"
-      : (*data == 0x56)
-        ? "orpd"
-        : "andpd";
+  const char* mnem =
+      (*data == 0x57) ? "xorpd" : (*data == 0x56) ? "orpd" : "andpd";
   int mod, regop, rm;
-  GetModRm(*(data+1), &mod, &regop, &rm);
+  GetModRm(*(data + 1), &mod, &regop, &rm);
   Print(mnem);
   Print(" ");
   PrintXmmRegister(regop);
   Print(",");
-  return 1 + PrintRightXmmOperand(data+1);
+  return 1 + PrintRightXmmOperand(data + 1);
 }
 
 
 int X86Decoder::Packed660F38Instruction(uint8_t* data) {
-  if (*(data+1) == 0x25) {
+  if (*(data + 1) == 0x25) {
     Print("pmovsxdq ");
     int mod, regop, rm;
-    GetModRm(*(data+2), &mod, &regop, &rm);
+    GetModRm(*(data + 2), &mod, &regop, &rm);
     PrintXmmRegister(regop);
     Print(",");
-    return 2 + PrintRightXmmOperand(data+2);
-  } else if (*(data+1) == 0x29) {
+    return 2 + PrintRightXmmOperand(data + 2);
+  } else if (*(data + 1) == 0x29) {
     Print("pcmpeqq ");
     int mod, regop, rm;
-    GetModRm(*(data+2), &mod, &regop, &rm);
+    GetModRm(*(data + 2), &mod, &regop, &rm);
     PrintXmmRegister(regop);
     Print(",");
-    return 2 + PrintRightXmmOperand(data+2);
+    return 2 + PrintRightXmmOperand(data + 2);
   }
   UNREACHABLE();
   return 1;
@@ -1196,10 +1300,9 @@ bool X86Decoder::DecodeInstructionType(const InstructionDesc& idesc,
       return true;
 
     case MOVE_REG_INSTR: {
-      uword addr = *reinterpret_cast<uword*>(*data+1);
+      uword addr = *reinterpret_cast<uword*>(*data + 1);
       Print("mov ");
-      PrintCPURegister(**data & 0x07),
-      Print(",");
+      PrintCPURegister(**data & 0x07), Print(",");
       PrintAddress(addr);
       (*data) += 5;
       return true;
@@ -1207,7 +1310,7 @@ bool X86Decoder::DecodeInstructionType(const InstructionDesc& idesc,
 
     case CALL_JUMP_INSTR: {
       uword addr = reinterpret_cast<uword>(*data) +
-                   *reinterpret_cast<uword*>(*data+1) + 5;
+                   *reinterpret_cast<uword*>(*data + 1) + 5;
       Print(idesc.mnem);
       Print(" ");
       PrintAddress(addr);
@@ -1216,7 +1319,7 @@ bool X86Decoder::DecodeInstructionType(const InstructionDesc& idesc,
     }
 
     case SHORT_IMMEDIATE_INSTR: {
-      uword addr = *reinterpret_cast<uword*>(*data+1);
+      uword addr = *reinterpret_cast<uword*>(*data + 1);
       Print(idesc.mnem);
       Print(" eax, ");
       PrintAddress(addr);
@@ -1247,16 +1350,16 @@ int X86Decoder::InstructionDecode(uword pc) {
     switch (*data) {
       case 0xC2:
         Print("ret ");
-        PrintHex(*reinterpret_cast<uint16_t*>(data+1));
+        PrintHex(*reinterpret_cast<uint16_t*>(data + 1));
         data += 3;
         break;
 
       case 0x69:  // fall through
-      case 0x6B:
-      { int mod, regop, rm;
-        GetModRm(*(data+1), &mod, &regop, &rm);
+      case 0x6B: {
+        int mod, regop, rm;
+        GetModRm(*(data + 1), &mod, &regop, &rm);
         int32_t imm =
-        *data == 0x6B ? *(data+2) : *reinterpret_cast<int32_t*>(data+2);
+            *data == 0x6B ? *(data + 2) : *reinterpret_cast<int32_t*>(data + 2);
         Print("imul ");
         PrintCPURegister(regop);
         Print(",");
@@ -1264,17 +1367,16 @@ int X86Decoder::InstructionDecode(uword pc) {
         Print(",");
         PrintHex(imm);
         data += 2 + (*data == 0x6B ? 1 : 4);
-      }
-        break;
+      } break;
 
-      case 0xF6:
-      { int mod, regop, rm;
-        GetModRm(*(data+1), &mod, &regop, &rm);
+      case 0xF6: {
+        int mod, regop, rm;
+        GetModRm(*(data + 1), &mod, &regop, &rm);
         if ((mod == 3) && (regop == eax)) {
           Print("test_b ");
           PrintCPURegister(rm);
           Print(",");
-          PrintHex(*(data+2));
+          PrintHex(*(data + 2));
           data += 3;
         } else {
           data++;
@@ -1285,16 +1387,15 @@ int X86Decoder::InstructionDecode(uword pc) {
           PrintHex(imm);
           data++;
         }
-      }
-        break;
+      } break;
 
       case 0x81:  // fall through
       case 0x83:  // 0x81 with sign extension bit set
         data += PrintImmediateOp(data);
         break;
 
-      case 0x0F:
-      { uint8_t f0byte = *(data+1);
+      case 0x0F: {
+        uint8_t f0byte = *(data + 1);
         const char* f0mnem = F0Mnem(f0byte);
         if (f0byte == 0xA2 || f0byte == 0x31) {
           Print(f0mnem);
@@ -1331,30 +1432,24 @@ int X86Decoder::InstructionDecode(uword pc) {
           PrintXmmRegister(rm);
           data++;
         } else if (f0byte == 0x1F) {
-          if (*(data+2) == 0x00) {
+          if (*(data + 2) == 0x00) {
             Print("nop");
             data += 3;
-          } else if (*(data+2) == 0x40 && *(data+3) == 0x00) {
+          } else if (*(data + 2) == 0x40 && *(data + 3) == 0x00) {
             Print("nop");
             data += 4;
-          } else if (*(data+2) == 0x44 &&
-                     *(data+3) == 0x00 &&
-                     *(data+4) == 0x00) {
+          } else if (*(data + 2) == 0x44 && *(data + 3) == 0x00 &&
+                     *(data + 4) == 0x00) {
             Print("nop");
             data += 5;
-          } else if (*(data+2) == 0x80 &&
-                     *(data+3) == 0x00 &&
-                     *(data+4) == 0x00 &&
-                     *(data+5) == 0x00 &&
-                     *(data+6) == 0x00) {
+          } else if (*(data + 2) == 0x80 && *(data + 3) == 0x00 &&
+                     *(data + 4) == 0x00 && *(data + 5) == 0x00 &&
+                     *(data + 6) == 0x00) {
             Print("nop");
             data += 7;
-          } else if (*(data+2) == 0x84 &&
-                     *(data+3) == 0x00 &&
-                     *(data+4) == 0x00 &&
-                     *(data+5) == 0x00 &&
-                     *(data+6) == 0x00 &&
-                     *(data+7) == 0x00) {
+          } else if (*(data + 2) == 0x84 && *(data + 3) == 0x00 &&
+                     *(data + 4) == 0x00 && *(data + 5) == 0x00 &&
+                     *(data + 6) == 0x00 && *(data + 7) == 0x00) {
             Print("nop");
             data += 8;
           } else {
@@ -1410,42 +1505,51 @@ int X86Decoder::InstructionDecode(uword pc) {
             UNIMPLEMENTED();
           }
         }
-      }
-        break;
+      } break;
 
-      case 0x8F:
-      { data++;
+      case 0x8F: {
+        data++;
         int mod, regop, rm;
         GetModRm(*data, &mod, &regop, &rm);
         if (regop == eax) {
           Print("pop ");
           data += PrintRightOperand(data);
         }
-      }
-        break;
+      } break;
 
-      case 0xFF:
-      { data++;
+      case 0xFF: {
+        data++;
         int mod, regop, rm;
         GetModRm(*data, &mod, &regop, &rm);
         const char* mnem = NULL;
         switch (regop) {
-          case esi: mnem = "push"; break;
-          case eax: mnem = "inc"; break;
-          case ecx: mnem = "dec"; break;
-          case edx: mnem = "call"; break;
-          case esp: mnem = "jmp"; break;
-          default: mnem = "??? 0xFF";
+          case esi:
+            mnem = "push";
+            break;
+          case eax:
+            mnem = "inc";
+            break;
+          case ecx:
+            mnem = "dec";
+            break;
+          case edx:
+            mnem = "call";
+            break;
+          case esp:
+            mnem = "jmp";
+            break;
+          default:
+            mnem = "??? 0xFF";
         }
         Print(mnem);
         Print(" ");
         data += PrintRightOperand(data);
-      }
-        break;
+      } break;
 
       case 0xC7:  // imm32, fall through
       case 0xC6:  // imm8
-      { bool is_byte = *data == 0xC6;
+      {
+        bool is_byte = *data == 0xC6;
         data++;
         Print(is_byte ? "mov_b" : "mov");
         Print(" ");
@@ -1454,23 +1558,22 @@ int X86Decoder::InstructionDecode(uword pc) {
         Print(",");
         PrintHex(imm);
         data += is_byte ? 1 : 4;
-      }
-        break;
+      } break;
 
-      case 0x80:
-      { data++;
+      case 0x80: {
+        data++;
         Print("cmpb ");
         data += PrintRightOperand(data);
         int32_t imm = *data;
         Print(",");
         PrintHex(imm);
         data++;
-      }
-        break;
+      } break;
 
       case 0x88:  // 8bit, fall through
       case 0x89:  // 32bit
-      { bool is_byte = *data == 0x88;
+      {
+        bool is_byte = *data == 0x88;
         int mod, regop, rm;
         data++;
         GetModRm(*data, &mod, &regop, &rm);
@@ -1479,8 +1582,7 @@ int X86Decoder::InstructionDecode(uword pc) {
         data += PrintRightOperand(data);
         Print(",");
         PrintCPURegister(regop);
-      }
-        break;
+      } break;
 
       case 0x66:  // prefix
         data++;
@@ -1525,10 +1627,8 @@ int X86Decoder::InstructionDecode(uword pc) {
             PrintXmmRegister(regop);
           } else if (*data == 0x57 || *data == 0x56 || *data == 0x54) {
             data += BitwisePDInstruction(data);
-          } else if (*data == 0x1F &&
-                     *(data+1) == 0x44 &&
-                     *(data+2) == 0x00 &&
-                     *(data+3) == 0x00) {
+          } else if (*data == 0x1F && *(data + 1) == 0x44 &&
+                     *(data + 2) == 0x00 && *(data + 3) == 0x00) {
             data += 4;
             Print("nop");
           } else if (*data == 0x50) {
@@ -1539,7 +1639,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             PrintCPURegister(regop);
             Print(",");
             data += PrintRightXmmOperand(data);
-          } else if (*data == 0x3A && *(data+1) == 0x16) {
+          } else if (*data == 0x3A && *(data + 1) == 0x16) {
             Print("pextrd ");
             data += 2;
             int mod, regop, rm;
@@ -1548,13 +1648,13 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print(",");
             PrintXmmRegister(regop);
             Print(",");
-            PrintHex(*(data+1));
+            PrintHex(*(data + 1));
             data += 2;
           } else if (*data == 0x38) {
             data += Packed660F38Instruction(data);
           } else if (*data == 0xEF) {
             int mod, regop, rm;
-            GetModRm(*(data+1), &mod, &regop, &rm);
+            GetModRm(*(data + 1), &mod, &regop, &rm);
             Print("pxor ");
             PrintXmmRegister(regop);
             Print(",");
@@ -1578,7 +1678,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             }
           } else if (*data == 0x14) {
             int mod, regop, rm;
-            GetModRm(*(data+1), &mod, &regop, &rm);
+            GetModRm(*(data + 1), &mod, &regop, &rm);
             Print("unpcklpd ");
             PrintXmmRegister(regop);
             Print(",");
@@ -1586,7 +1686,7 @@ int X86Decoder::InstructionDecode(uword pc) {
             data += 2;
           } else if (*data == 0x15) {
             int mod, regop, rm;
-            GetModRm(*(data+1), &mod, &regop, &rm);
+            GetModRm(*(data + 1), &mod, &regop, &rm);
             Print("unpckhpd ");
             PrintXmmRegister(regop);
             Print(",");
@@ -1598,7 +1698,7 @@ int X86Decoder::InstructionDecode(uword pc) {
                      (*data == 0x51) || (*data == 0x5A)) {
             const char* mnemonic = PackedDoubleMnemonic(*data);
             int mod, regop, rm;
-            GetModRm(*(data+1), &mod, &regop, &rm);
+            GetModRm(*(data + 1), &mod, &regop, &rm);
             Print(mnemonic);
             PrintXmmRegister(regop);
             Print(",");
@@ -1646,8 +1746,8 @@ int X86Decoder::InstructionDecode(uword pc) {
         }
         break;
 
-      case 0xFE:
-      { data++;
+      case 0xFE: {
+        data++;
         int mod, regop, rm;
         GetModRm(*data, &mod, &regop, &rm);
         if (mod == 3 && regop == ecx) {
@@ -1657,12 +1757,11 @@ int X86Decoder::InstructionDecode(uword pc) {
           UNIMPLEMENTED();
         }
         data++;
-      }
-        break;
+      } break;
 
       case 0x68:
         Print("push ");
-        PrintHex(*reinterpret_cast<int32_t*>(data+1));
+        PrintHex(*reinterpret_cast<int32_t*>(data + 1));
         data += 5;
         break;
 
@@ -1674,13 +1773,13 @@ int X86Decoder::InstructionDecode(uword pc) {
 
       case 0xA8:
         Print("test al,");
-        PrintHex(*reinterpret_cast<uint8_t*>(data+1));
+        PrintHex(*reinterpret_cast<uint8_t*>(data + 1));
         data += 2;
         break;
 
       case 0xA9:
         Print("test eax,");
-        PrintHex(*reinterpret_cast<int32_t*>(data+1));
+        PrintHex(*reinterpret_cast<int32_t*>(data + 1));
         CheckPrintStop(data);
         data += 5;
         break;
@@ -1709,8 +1808,8 @@ int X86Decoder::InstructionDecode(uword pc) {
         data = F3Instruction(data);
         break;
       case 0xF2: {
-        if (*(data+1) == 0x0F) {
-          uint8_t b2 = *(data+2);
+        if (*(data + 1) == 0x0F) {
+          uint8_t b2 = *(data + 2);
           if (b2 == 0x11) {
             Print("movsd ");
             data += 3;
@@ -1730,16 +1829,35 @@ int X86Decoder::InstructionDecode(uword pc) {
           } else {
             const char* mnem = "? 0xF2";
             switch (b2) {
-              case 0x2A: mnem = "cvtsi2sd"; break;
-              case 0x2C: mnem = "cvttsd2si"; break;
-              case 0x2D: mnem = "cvtsd2i"; break;
-              case 0x51: mnem = "sqrtsd"; break;
-              case 0x58: mnem = "addsd"; break;
-              case 0x59: mnem = "mulsd"; break;
-              case 0x5A: mnem = "cvtsd2ss"; break;
-              case 0x5C: mnem = "subsd"; break;
-              case 0x5E: mnem = "divsd"; break;
-              default: UNIMPLEMENTED();
+              case 0x2A:
+                mnem = "cvtsi2sd";
+                break;
+              case 0x2C:
+                mnem = "cvttsd2si";
+                break;
+              case 0x2D:
+                mnem = "cvtsd2i";
+                break;
+              case 0x51:
+                mnem = "sqrtsd";
+                break;
+              case 0x58:
+                mnem = "addsd";
+                break;
+              case 0x59:
+                mnem = "mulsd";
+                break;
+              case 0x5A:
+                mnem = "cvtsd2ss";
+                break;
+              case 0x5C:
+                mnem = "subsd";
+                break;
+              case 0x5E:
+                mnem = "divsd";
+                break;
+              default:
+                UNIMPLEMENTED();
             }
             data += 3;
             int mod, regop, rm;
@@ -1791,10 +1909,14 @@ int X86Decoder::InstructionDecode(uword pc) {
 }  // NOLINT
 
 
-void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
-                                     char* human_buffer, intptr_t human_size,
-                                     int* out_instr_len, const Code& code,
-                                     Object** object, uword pc) {
+void Disassembler::DecodeInstruction(char* hex_buffer,
+                                     intptr_t hex_size,
+                                     char* human_buffer,
+                                     intptr_t human_size,
+                                     int* out_instr_len,
+                                     const Code& code,
+                                     Object** object,
+                                     uword pc) {
   ASSERT(hex_size > 0);
   ASSERT(human_size > 0);
   X86Decoder decoder(human_buffer, human_size);

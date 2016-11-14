@@ -10,7 +10,9 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, share_enclosing_context, true,
+DEFINE_FLAG(bool,
+            share_enclosing_context,
+            true,
             "Allocate captured variables in the existing context of an "
             "enclosing scope (up to innermost loop) and spare the allocation "
             "of a local context.");
@@ -201,7 +203,7 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   ASSERT(num_parameters >= 0);
   // Parameters must be listed first and must all appear in the top scope.
   ASSERT(num_parameters <= num_variables());
-  int pos = 0;  // Current variable position.
+  int pos = 0;                              // Current variable position.
   int frame_index = first_parameter_index;  // Current free frame index.
   while (pos < num_parameters) {
     LocalVariable* parameter = VariableAt(pos);
@@ -241,13 +243,11 @@ int LocalScope::AllocateVariables(int first_parameter_index,
   int min_frame_index = frame_index;  // Frame index decreases with allocations.
   LocalScope* child = this->child();
   while (child != NULL) {
-    int const dummy_parameter_index = 0;  // Ignored, since no parameters.
+    int const dummy_parameter_index = 0;    // Ignored, since no parameters.
     int const num_parameters_in_child = 0;  // No parameters in children scopes.
-    int child_frame_index = child->AllocateVariables(dummy_parameter_index,
-                                                     num_parameters_in_child,
-                                                     frame_index,
-                                                     context_owner,
-                                                     found_captured_variables);
+    int child_frame_index = child->AllocateVariables(
+        dummy_parameter_index, num_parameters_in_child, frame_index,
+        context_owner, found_captured_variables);
     if (child_frame_index < min_frame_index) {
       min_frame_index = child_frame_index;
     }
@@ -462,7 +462,7 @@ SourceLabel* LocalScope::LookupInnermostLabel(Token::Kind jump_kind) {
           (label->kind() == SourceLabel::kFor) ||
           (label->kind() == SourceLabel::kDoWhile) ||
           ((jump_kind == Token::kBREAK) &&
-              (label->kind() == SourceLabel::kSwitch))) {
+           (label->kind() == SourceLabel::kSwitch))) {
         return label;
       }
     }
@@ -533,8 +533,8 @@ int LocalScope::NumCapturedVariables() const {
 }
 
 
-RawContextScope* LocalScope::PreserveOuterScope(int current_context_level)
-    const {
+RawContextScope* LocalScope::PreserveOuterScope(
+    int current_context_level) const {
   // Since code generation for nested functions is postponed until first
   // invocation, the function level of the closure scope can only be 1.
   ASSERT(function_level() == 1);
@@ -587,19 +587,18 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   for (int i = 0; i < context_scope.num_variables(); i++) {
     LocalVariable* variable;
     if (context_scope.IsConstAt(i)) {
-      variable = new LocalVariable(
-          context_scope.DeclarationTokenIndexAt(i),
-          context_scope.TokenIndexAt(i),
-          String::ZoneHandle(context_scope.NameAt(i)),
-          Object::dynamic_type());
+      variable = new LocalVariable(context_scope.DeclarationTokenIndexAt(i),
+                                   context_scope.TokenIndexAt(i),
+                                   String::ZoneHandle(context_scope.NameAt(i)),
+                                   Object::dynamic_type());
       variable->SetConstValue(
           Instance::ZoneHandle(context_scope.ConstValueAt(i)));
     } else {
-      variable = new LocalVariable(
-          context_scope.DeclarationTokenIndexAt(i),
-          context_scope.TokenIndexAt(i),
-          String::ZoneHandle(context_scope.NameAt(i)),
-          AbstractType::ZoneHandle(context_scope.TypeAt(i)));
+      variable =
+          new LocalVariable(context_scope.DeclarationTokenIndexAt(i),
+                            context_scope.TokenIndexAt(i),
+                            String::ZoneHandle(context_scope.NameAt(i)),
+                            AbstractType::ZoneHandle(context_scope.TypeAt(i)));
     }
     variable->set_is_captured();
     variable->set_index(context_scope.ContextIndexAt(i));

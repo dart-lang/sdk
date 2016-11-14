@@ -87,8 +87,14 @@ def to_gn_args(args, mode, arch, target_os):
   gn_args['dart_use_tcmalloc'] = (gn_args['target_os'] == 'linux'
                                   and not args.asan)
 
-  if gn_args['target_cpu'].startswith('arm'):
+  # Force -mfloat-abi=hard and -mfpu=neon on Linux as we're specifying
+  # a gnueabihf compiler in //build/toolchain/linux BUILD.gn.
+  # TODO(zra): This will likely need some adjustment to build for armv6 etc.
+  hard_float = (gn_args['target_cpu'].startswith('arm') and
+                gn_args['target_os'] == 'linux')
+  if hard_float:
     gn_args['arm_float_abi'] = 'hard'
+    gn_args['arm_use_neon'] = True
 
   gn_args['is_debug'] = mode == 'debug'
   gn_args['is_release'] = mode == 'release'

@@ -74,7 +74,7 @@ main(List<String> args) async {
   if (handler == null) {
     // TODO(sigmund): implement the remaining benchmarks.
     print('unsupported bench-id: $bench. Please specify one of the following: '
-        '${handler.keys.join(", ")}');
+        '${handlers.keys.join(", ")}');
     exit(1);
   }
   await handler();

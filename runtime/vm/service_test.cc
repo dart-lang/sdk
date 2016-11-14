@@ -28,9 +28,7 @@ class ServiceTestMessageHandler : public MessageHandler {
  public:
   ServiceTestMessageHandler() : _msg(NULL) {}
 
-  ~ServiceTestMessageHandler() {
-    free(_msg);
-  }
+  ~ServiceTestMessageHandler() { free(_msg); }
 
   MessageStatus HandleMessage(Message* message) {
     if (_msg != NULL) {
@@ -112,8 +110,8 @@ static RawArray* EvalF(Dart_Handle lib, const char* fmt, ...) {
 
 
 static RawFunction* GetFunction(const Class& cls, const char* name) {
-  const Function& result = Function::Handle(cls.LookupDynamicFunction(
-      String::Handle(String::New(name))));
+  const Function& result = Function::Handle(
+      cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
@@ -140,8 +138,7 @@ static void HandleRootMessage(const Array& message) {
 
 
 TEST_CASE(Service_IsolateStickyError) {
-  const char* kScript =
-      "main() => throw 'HI THERE STICKY';\n";
+  const char* kScript = "main() => throw 'HI THERE STICKY';\n";
 
   Isolate* isolate = thread->isolate();
   isolate->set_is_runnable(true);
@@ -276,10 +273,10 @@ TEST_CASE(Service_Code) {
 
   // The following test checks that a code object can be found only
   // at compile_timestamp()-code.EntryPoint().
-  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
-                      "['objectId'], ['code/%" Px64"-%" Px "']]",
-                      compile_timestamp,
-                      entry);
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', "
+                      "['objectId'], ['code/%" Px64 "-%" Px "']]",
+                      compile_timestamp, entry);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"type\":\"Code\"", handler.msg());
@@ -287,20 +284,19 @@ TEST_CASE(Service_Code) {
     // Only perform a partial match.
     const intptr_t kBufferSize = 512;
     char buffer[kBufferSize];
-    OS::SNPrint(buffer, kBufferSize-1,
+    OS::SNPrint(buffer, kBufferSize - 1,
                 "\"fixedId\":true,\"id\":\"code\\/%" Px64 "-%" Px "\",",
-                compile_timestamp,
-                entry);
+                compile_timestamp, entry);
     EXPECT_SUBSTRING(buffer, handler.msg());
   }
 
   // Request code object at compile_timestamp-code.EntryPoint() + 16
   // Expect this to fail because the address is not the entry point.
   uintptr_t address = entry + 16;
-  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
-                      "['objectId'], ['code/%" Px64"-%" Px "']]",
-                      compile_timestamp,
-                      address);
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', "
+                      "['objectId'], ['code/%" Px64 "-%" Px "']]",
+                      compile_timestamp, address);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"error\"", handler.msg());
@@ -308,27 +304,28 @@ TEST_CASE(Service_Code) {
   // Request code object at (compile_timestamp - 1)-code.EntryPoint()
   // Expect this to fail because the timestamp is wrong.
   address = entry;
-  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
-                      "['objectId'], ['code/%" Px64"-%" Px "']]",
-                      compile_timestamp - 1,
-                      address);
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', "
+                      "['objectId'], ['code/%" Px64 "-%" Px "']]",
+                      compile_timestamp - 1, address);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 
   // Request native code at address. Expect the null code object back.
   address = last;
-  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', "
                       "['objectId'], ['code/native-%" Px "']]",
                       address);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // TODO(turnidge): It is pretty broken to return an Instance here.  Fix.
-  EXPECT_SUBSTRING("\"kind\":\"Null\"",
-                   handler.msg());
+  EXPECT_SUBSTRING("\"kind\":\"Null\"", handler.msg());
 
   // Request malformed native code.
-  service_msg = EvalF(lib, "[0, port, '0', 'getObject', ['objectId'], "
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', ['objectId'], "
                       "['code/native%" Px "']]",
                       address);
   HandleIsolateMessage(isolate, service_msg);
@@ -372,8 +369,10 @@ TEST_CASE(Service_TokenStream) {
   Array& service_msg = Array::Handle();
 
   // Fetch object.
-  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
-                      "['objectId'], ['objects/%" Pd "']]", id);
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', "
+                      "['objectId'], ['objects/%" Pd "']]",
+                      id);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
 
@@ -387,21 +386,21 @@ TEST_CASE(Service_TokenStream) {
 
 TEST_CASE(Service_PcDescriptors) {
   const char* kScript =
-    "var port;\n"  // Set to our mock port by C++.
-    "\n"
-    "class A {\n"
-    "  var a;\n"
-    "  dynamic b() {}\n"
-    "  dynamic c() {\n"
-    "    var d = () { b(); };\n"
-    "    return d;\n"
-    "  }\n"
-    "}\n"
-    "main() {\n"
-    "  var z = new A();\n"
-    "  var x = z.c();\n"
-    "  x();\n"
-    "}";
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "class A {\n"
+      "  var a;\n"
+      "  dynamic b() {}\n"
+      "  dynamic c() {\n"
+      "    var d = () { b(); };\n"
+      "    return d;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  var z = new A();\n"
+      "  var x = z.c();\n"
+      "  x();\n"
+      "}";
 
   Isolate* isolate = thread->isolate();
   isolate->set_is_runnable(true);
@@ -435,8 +434,10 @@ TEST_CASE(Service_PcDescriptors) {
   Array& service_msg = Array::Handle();
 
   // Fetch object.
-  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
-                      "['objectId'], ['objects/%" Pd "']]", id);
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', "
+                      "['objectId'], ['objects/%" Pd "']]",
+                      id);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Check type.
@@ -449,21 +450,21 @@ TEST_CASE(Service_PcDescriptors) {
 
 TEST_CASE(Service_LocalVarDescriptors) {
   const char* kScript =
-    "var port;\n"  // Set to our mock port by C++.
-    "\n"
-    "class A {\n"
-    "  var a;\n"
-    "  dynamic b() {}\n"
-    "  dynamic c() {\n"
-    "    var d = () { b(); };\n"
-    "    return d;\n"
-    "  }\n"
-    "}\n"
-    "main() {\n"
-    "  var z = new A();\n"
-    "  var x = z.c();\n"
-    "  x();\n"
-    "}";
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "class A {\n"
+      "  var a;\n"
+      "  dynamic b() {}\n"
+      "  dynamic c() {\n"
+      "    var d = () { b(); };\n"
+      "    return d;\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  var z = new A();\n"
+      "  var x = z.c();\n"
+      "  x();\n"
+      "}";
 
   Isolate* isolate = thread->isolate();
   isolate->set_is_runnable(true);
@@ -497,8 +498,10 @@ TEST_CASE(Service_LocalVarDescriptors) {
   Array& service_msg = Array::Handle();
 
   // Fetch object.
-  service_msg = EvalF(lib, "[0, port, '0', 'getObject', "
-                      "['objectId'], ['objects/%" Pd "']]", id);
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', "
+                      "['objectId'], ['objects/%" Pd "']]",
+                      id);
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // Check type.
@@ -509,24 +512,22 @@ TEST_CASE(Service_LocalVarDescriptors) {
 }
 
 
-
 static void WeakHandleFinalizer(void* isolate_callback_data,
                                 Dart_WeakPersistentHandle handle,
-                                void* peer) {
-}
+                                void* peer) {}
 
 
 TEST_CASE(Service_PersistentHandles) {
   const char* kScript =
-    "var port;\n"  // Set to our mock port by C++.
-    "\n"
-    "class A {\n"
-    "  var a;\n"
-    "}\n"
-    "var global = new A();\n"
-    "main() {\n"
-    "  return global;\n"
-    "}";
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "class A {\n"
+      "  var a;\n"
+      "}\n"
+      "var global = new A();\n"
+      "main() {\n"
+      "  return global;\n"
+      "}";
 
   Isolate* isolate = thread->isolate();
   isolate->set_is_runnable(true);
@@ -543,10 +544,8 @@ TEST_CASE(Service_PersistentHandles) {
 
   // Create a weak persistent handle to global.
   Dart_WeakPersistentHandle weak_persistent_handle =
-      Dart_NewWeakPersistentHandle(result,
-                                   reinterpret_cast<void*>(0xdeadbeef),
-                                   128,
-                                   WeakHandleFinalizer);
+      Dart_NewWeakPersistentHandle(result, reinterpret_cast<void*>(0xdeadbeef),
+                                   128, WeakHandleFinalizer);
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
@@ -613,52 +612,50 @@ TEST_CASE(Service_Address) {
     char buf[1024];
     bool ref = offset % 2 == 0;
     OS::SNPrint(buf, sizeof(buf),
-                (ref
-                 ? "[0, port, '0', '_getObjectByAddress', "
-                   "['address', 'ref'], ['%" Px "', 'true']]"
-                 : "[0, port, '0', '_getObjectByAddress', "
-                   "['address'], ['%" Px "']]"),
+                (ref ? "[0, port, '0', '_getObjectByAddress', "
+                       "['address', 'ref'], ['%" Px "', 'true']]"
+                     : "[0, port, '0', '_getObjectByAddress', "
+                       "['address'], ['%" Px "']]"),
                 addr);
     service_msg = Eval(lib, buf);
     HandleIsolateMessage(isolate, service_msg);
     EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-    EXPECT_SUBSTRING(ref ? "\"type\":\"@Instance\"" :
-                           "\"type\":\"Instance\"",
+    EXPECT_SUBSTRING(ref ? "\"type\":\"@Instance\"" : "\"type\":\"Instance\"",
                      handler.msg());
     EXPECT_SUBSTRING("\"kind\":\"String\"", handler.msg());
     EXPECT_SUBSTRING("foobar", handler.msg());
   }
   // Expect null when no object is found.
-  service_msg = Eval(lib, "[0, port, '0', '_getObjectByAddress', "
+  service_msg = Eval(lib,
+                     "[0, port, '0', '_getObjectByAddress', "
                      "['address'], ['7']]");
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   // TODO(turnidge): Should this be a ServiceException instead?
-  EXPECT_SUBSTRING("{\"type\":\"Sentinel\",\"kind\":\"Free\","
-                   "\"valueAsString\":\"<free>\"",
-               handler.msg());
+  EXPECT_SUBSTRING(
+      "{\"type\":\"Sentinel\",\"kind\":\"Free\","
+      "\"valueAsString\":\"<free>\"",
+      handler.msg());
 }
 
 
-static bool alpha_callback(
-    const char* name,
-    const char** option_keys,
-    const char** option_values,
-    intptr_t num_options,
-    void* user_data,
-    const char** result) {
+static bool alpha_callback(const char* name,
+                           const char** option_keys,
+                           const char** option_values,
+                           intptr_t num_options,
+                           void* user_data,
+                           const char** result) {
   *result = strdup("alpha");
   return true;
 }
 
 
-static bool beta_callback(
-    const char* name,
-    const char** option_keys,
-    const char** option_values,
-    intptr_t num_options,
-    void* user_data,
-    const char** result) {
+static bool beta_callback(const char* name,
+                          const char** option_keys,
+                          const char** option_values,
+                          intptr_t num_options,
+                          void* user_data,
+                          const char** result) {
   *result = strdup("beta");
   return false;
 }
@@ -666,13 +663,13 @@ static bool beta_callback(
 
 TEST_CASE(Service_EmbedderRootHandler) {
   const char* kScript =
-    "var port;\n"  // Set to our mock port by C++.
-    "\n"
-    "var x = 7;\n"
-    "main() {\n"
-    "  x = x * x;\n"
-    "  x = x / 13;\n"
-    "}";
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "var x = 7;\n"
+      "main() {\n"
+      "  x = x * x;\n"
+      "  x = x / 13;\n"
+      "}";
 
   Dart_RegisterRootServiceRequestCallback("alpha", alpha_callback, NULL);
   Dart_RegisterRootServiceRequestCallback("beta", beta_callback, NULL);
@@ -699,20 +696,19 @@ TEST_CASE(Service_EmbedderRootHandler) {
   service_msg = Eval(lib, "[0, port, 1, 'beta', [], []]");
   HandleRootMessage(service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
-  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":1}",
-               handler.msg());
+  EXPECT_STREQ("{\"jsonrpc\":\"2.0\", \"error\":beta,\"id\":1}", handler.msg());
 }
 
 
 TEST_CASE(Service_EmbedderIsolateHandler) {
   const char* kScript =
-    "var port;\n"  // Set to our mock port by C++.
-    "\n"
-    "var x = 7;\n"
-    "main() {\n"
-    "  x = x * x;\n"
-    "  x = x / 13;\n"
-    "}";
+      "var port;\n"  // Set to our mock port by C++.
+      "\n"
+      "var x = 7;\n"
+      "main() {\n"
+      "  x = x * x;\n"
+      "  x = x / 13;\n"
+      "}";
 
   Dart_RegisterIsolateServiceRequestCallback("alpha", alpha_callback, NULL);
   Dart_RegisterIsolateServiceRequestCallback("beta", beta_callback, NULL);

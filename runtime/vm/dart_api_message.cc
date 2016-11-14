@@ -17,8 +17,7 @@ ApiMessageReader::ApiMessageReader(const uint8_t* buffer, intptr_t length)
       zone_(NULL),
       backward_references_(kNumInitialReferences),
       vm_isolate_references_(kNumInitialReferences),
-      vm_symbol_references_(NULL) {
-}
+      vm_symbol_references_(NULL) {}
 
 
 ApiMessageReader::ApiMessageReader(Message* msg)
@@ -28,8 +27,7 @@ ApiMessageReader::ApiMessageReader(Message* msg)
       zone_(NULL),
       backward_references_(kNumInitialReferences),
       vm_isolate_references_(kNumInitialReferences),
-      vm_symbol_references_(NULL) {
-}
+      vm_symbol_references_(NULL) {}
 
 
 void ApiMessageReader::Init() {
@@ -60,7 +58,7 @@ Dart_CObject* ApiMessageReader::ReadMessage() {
         reinterpret_cast<const RawObject*>(CurrentBufferAddress());
     ASSERT(ApiObjectConverter::CanConvert(raw_obj));
     Dart_CObject* cobj =
-      reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));
+        reinterpret_cast<Dart_CObject*>(allocator(sizeof(Dart_CObject)));
     ApiObjectConverter::Convert(raw_obj, cobj);
     return cobj;
   }
@@ -143,9 +141,8 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectString(intptr_t length) {
   // Allocate a Dart_CObject structure followed by an array of chars
   // for the string content. The pointer to the string content is set
   // up to this area.
-  Dart_CObject* value =
-      reinterpret_cast<Dart_CObject*>(
-          allocator(sizeof(Dart_CObject) + length + 1));
+  Dart_CObject* value = reinterpret_cast<Dart_CObject*>(
+      allocator(sizeof(Dart_CObject) + length + 1));
   ASSERT(value != NULL);
   value->value.as_string = reinterpret_cast<char*>(value) + sizeof(*value);
   value->type = Dart_CObject_kString;
@@ -179,14 +176,14 @@ static int GetTypedDataSizeInBytes(Dart_TypedData_Type type) {
 
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectTypedData(
-    Dart_TypedData_Type type, intptr_t length) {
+    Dart_TypedData_Type type,
+    intptr_t length) {
   // Allocate a Dart_CObject structure followed by an array of bytes
   // for the byte array content. The pointer to the byte array content
   // is set up to this area.
   intptr_t length_in_bytes = GetTypedDataSizeInBytes(type) * length;
-  Dart_CObject* value =
-      reinterpret_cast<Dart_CObject*>(
-          allocator(sizeof(Dart_CObject) + length_in_bytes));
+  Dart_CObject* value = reinterpret_cast<Dart_CObject*>(
+      allocator(sizeof(Dart_CObject) + length_in_bytes));
   ASSERT(value != NULL);
   value->type = Dart_CObject_kTypedData;
   value->value.as_typed_data.type = type;
@@ -205,9 +202,8 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
   // Allocate a Dart_CObject structure followed by an array of
   // pointers to Dart_CObject structures. The pointer to the array
   // content is set up to this area.
-  Dart_CObject* value =
-      reinterpret_cast<Dart_CObject*>(
-          allocator(sizeof(Dart_CObject) + length * sizeof(value)));
+  Dart_CObject* value = reinterpret_cast<Dart_CObject*>(
+      allocator(sizeof(Dart_CObject) + length * sizeof(value)));
   ASSERT(value != NULL);
   value->type = Dart_CObject_kArray;
   value->value.as_array.length = length;
@@ -261,9 +257,8 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
 
 Dart_CObject_Internal* ApiMessageReader::AllocateDartCObjectInternal(
     Dart_CObject_Internal::Type type) {
-  Dart_CObject_Internal* value =
-      reinterpret_cast<Dart_CObject_Internal*>(
-          allocator(sizeof(Dart_CObject_Internal)));
+  Dart_CObject_Internal* value = reinterpret_cast<Dart_CObject_Internal*>(
+      allocator(sizeof(Dart_CObject_Internal)));
   ASSERT(value != NULL);
   value->type = static_cast<Dart_CObject_Type>(type);
   return value;
@@ -293,25 +288,24 @@ static Dart_TypedData_Type GetTypedDataTypeFromView(
     const char* name;
     Dart_TypedData_Type type;
   } view_class_names[] = {
-    { "_Int8ArrayView", Dart_TypedData_kInt8 },
-    { "_Uint8ArrayView", Dart_TypedData_kUint8 },
-    { "_Uint8ClampedArrayView", Dart_TypedData_kUint8Clamped },
-    { "_Int16ArrayView", Dart_TypedData_kInt16 },
-    { "_Uint16ArrayView", Dart_TypedData_kUint16 },
-    { "_Int32ArrayView", Dart_TypedData_kInt32 },
-    { "_Uint32ArrayView", Dart_TypedData_kUint32 },
-    { "_Int64ArrayView", Dart_TypedData_kInt64 },
-    { "_Uint64ArrayView", Dart_TypedData_kUint64 },
-    { "_ByteDataView", Dart_TypedData_kUint8 },
-    { "_Float32ArrayView", Dart_TypedData_kFloat32 },
-    { "_Float64ArrayView", Dart_TypedData_kFloat64 },
-    { NULL, Dart_TypedData_kInvalid },
+      {"_Int8ArrayView", Dart_TypedData_kInt8},
+      {"_Uint8ArrayView", Dart_TypedData_kUint8},
+      {"_Uint8ClampedArrayView", Dart_TypedData_kUint8Clamped},
+      {"_Int16ArrayView", Dart_TypedData_kInt16},
+      {"_Uint16ArrayView", Dart_TypedData_kUint16},
+      {"_Int32ArrayView", Dart_TypedData_kInt32},
+      {"_Uint32ArrayView", Dart_TypedData_kUint32},
+      {"_Int64ArrayView", Dart_TypedData_kInt64},
+      {"_Uint64ArrayView", Dart_TypedData_kUint64},
+      {"_ByteDataView", Dart_TypedData_kUint8},
+      {"_Float32ArrayView", Dart_TypedData_kFloat32},
+      {"_Float64ArrayView", Dart_TypedData_kFloat64},
+      {NULL, Dart_TypedData_kInvalid},
   };
 
   int i = 0;
   while (view_class_names[i].name != NULL) {
-    if (strncmp(view_class_names[i].name,
-                class_name,
+    if (strncmp(view_class_names[i].name, class_name,
                 strlen(view_class_names[i].name)) == 0) {
       return view_class_names[i].type;
     }
@@ -342,9 +336,8 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
       ASSERT(object->cls->type ==
              static_cast<Dart_CObject_Type>(Dart_CObject_Internal::kClass));
     }
-    ASSERT(object->type ==
-           static_cast<Dart_CObject_Type>(
-               Dart_CObject_Internal::kUninitialized));
+    ASSERT(object->type == static_cast<Dart_CObject_Type>(
+                               Dart_CObject_Internal::kUninitialized));
 
     char* library_uri =
         object->cls->internal.as_class.library_url->value.as_string;
@@ -373,8 +366,7 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
         object->type = Dart_CObject_kTypedData;
         object->value.as_typed_data.type = type;
         object->value.as_typed_data.length =
-            object->internal.as_view.length *
-            GetTypedDataSizeInBytes(type);
+            object->internal.as_view.length * GetTypedDataSizeInBytes(type);
         object->value.as_typed_data.values =
             buffer->value.as_typed_data.values +
             object->internal.as_view.offset_in_bytes;
@@ -428,8 +420,7 @@ Dart_CObject* ApiMessageReader::ReadPredefinedSymbol(intptr_t object_id) {
   if (vm_symbol_references_ == NULL) {
     intptr_t size =
         (sizeof(*vm_symbol_references_) * Symbols::kMaxPredefinedId);
-    vm_symbol_references_ =
-        reinterpret_cast<Dart_CObject**>(allocator(size));
+    vm_symbol_references_ = reinterpret_cast<Dart_CObject**>(allocator(size));
     memset(vm_symbol_references_, 0, size);
   }
 
@@ -628,7 +619,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
       Dart_CObject* digits = ReadObjectImpl();
       ASSERT(digits->type == Dart_CObject_kTypedData);
       ASSERT(digits->value.as_typed_data.type == Dart_TypedData_kUint32);
-      ASSERT(digits->value.as_typed_data.length >= 4*used);
+      ASSERT(digits->value.as_typed_data.length >= 4 * used);
       // Update the bigint object.
       object->value.as_bigint.neg = neg;
       object->value.as_bigint.used = used;
@@ -642,7 +633,7 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     }
     case kOneByteStringCid: {
       intptr_t len = ReadSmiValue();
-      uint8_t *latin1 =
+      uint8_t* latin1 =
           reinterpret_cast<uint8_t*>(allocator(len * sizeof(uint8_t)));
       intptr_t utf8_len = 0;
       for (intptr_t i = 0; i < len; i++) {
@@ -661,8 +652,8 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     }
     case kTwoByteStringCid: {
       intptr_t len = ReadSmiValue();
-      uint16_t *utf16 = reinterpret_cast<uint16_t*>(
-          allocator(len * sizeof(uint16_t)));
+      uint16_t* utf16 =
+          reinterpret_cast<uint16_t*>(allocator(len * sizeof(uint16_t)));
       intptr_t utf8_len = 0;
       // Read all the UTF-16 code units.
       for (intptr_t i = 0; i < len; i++) {
@@ -709,24 +700,23 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
     }
 
 #define READ_TYPED_DATA_HEADER(type)                                           \
-      intptr_t len = ReadSmiValue();                                           \
-      Dart_CObject* object =                                                   \
-          AllocateDartCObjectTypedData(Dart_TypedData_k##type, len);           \
-      AddBackRef(object_id, object, kIsDeserialized);                          \
+  intptr_t len = ReadSmiValue();                                               \
+  Dart_CObject* object =                                                       \
+      AllocateDartCObjectTypedData(Dart_TypedData_k##type, len);               \
+  AddBackRef(object_id, object, kIsDeserialized);
 
 
 #define READ_TYPED_DATA(type, ctype)                                           \
-    {                                                                          \
-      READ_TYPED_DATA_HEADER(type);                                            \
-      if (len > 0) {                                                           \
-        ctype* p =                                                             \
-            reinterpret_cast<ctype*>(object->value.as_typed_data.values);      \
-        for (intptr_t i = 0; i < len; i++) {                                   \
-          p[i] = Read<ctype>();                                                \
-        }                                                                      \
+  {                                                                            \
+    READ_TYPED_DATA_HEADER(type);                                              \
+    if (len > 0) {                                                             \
+      ctype* p = reinterpret_cast<ctype*>(object->value.as_typed_data.values); \
+      for (intptr_t i = 0; i < len; i++) {                                     \
+        p[i] = Read<ctype>();                                                  \
       }                                                                        \
-      return object;                                                           \
     }                                                                          \
+    return object;                                                             \
+  }
 
     case kTypedDataInt8ArrayCid:
     case kExternalTypedDataInt8ArrayCid: {
@@ -829,10 +819,8 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
 
 
 Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
-  if (object_id == kDynamicType ||
-      object_id == kDoubleType ||
-      object_id == kIntType ||
-      object_id == kBoolType ||
+  if (object_id == kDynamicType || object_id == kDoubleType ||
+      object_id == kIntType || object_id == kBoolType ||
       object_id == kStringType) {
     // Always return dynamic type (this is only a marker).
     return &dynamic_type_marker;
@@ -905,7 +893,7 @@ Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
 }
 
 
-void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t *data) {
+void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t* data) {
   // Write out the serialization header value for this object.
   WriteInlinedObjectHeader(kMaxPredefinedObjectIds);
 
@@ -939,8 +927,8 @@ void ApiMessageWriter::MarkCObject(Dart_CObject* object, intptr_t object_id) {
 
 void ApiMessageWriter::UnmarkCObject(Dart_CObject* object) {
   ASSERT(IsCObjectMarked(object));
-  object->type = static_cast<Dart_CObject_Type>(
-      object->type & kDartCObjectTypeMask);
+  object->type =
+      static_cast<Dart_CObject_Type>(object->type & kDartCObjectTypeMask);
 }
 
 
@@ -1053,8 +1041,7 @@ bool ApiMessageWriter::WriteCObject(Dart_CObject* object) {
   Dart_CObject_Type type = object->type;
   if (type == Dart_CObject_kArray) {
     const intptr_t array_length = object->value.as_array.length;
-    if (array_length < 0 ||
-        array_length > Array::kMaxElements) {
+    if (array_length < 0 || array_length > Array::kMaxElements) {
       return false;
     }
 
@@ -1088,8 +1075,7 @@ bool ApiMessageWriter::WriteCObjectRef(Dart_CObject* object) {
   Dart_CObject_Type type = object->type;
   if (type == Dart_CObject_kArray) {
     const intptr_t array_length = object->value.as_array.length;
-    if (array_length < 0 ||
-        array_length > Array::kMaxElements) {
+    if (array_length < 0 || array_length > Array::kMaxElements) {
       return false;
     }
     // Write out the serialization header value for this object.
@@ -1113,8 +1099,7 @@ bool ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
       static_cast<Dart_CObject_Type>(object->type & kDartCObjectTypeMask);
   ASSERT(type == Dart_CObject_kArray);
   const intptr_t array_length = object->value.as_array.length;
-  if (array_length < 0 ||
-      array_length > Array::kMaxElements) {
+  if (array_length < 0 || array_length > Array::kMaxElements) {
     return false;
   }
 
@@ -1203,10 +1188,8 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       if (type == Utf8::kLatin1) {
         uint8_t* latin1_str =
             reinterpret_cast<uint8_t*>(::malloc(len * sizeof(uint8_t)));
-        bool success = Utf8::DecodeToLatin1(utf8_str,
-                                            utf8_len,
-                                            latin1_str,
-                                            len);
+        bool success =
+            Utf8::DecodeToLatin1(utf8_str, utf8_len, latin1_str, len);
         ASSERT(success);
         for (intptr_t i = 0; i < len; i++) {
           Write<uint8_t>(latin1_str[i]);
@@ -1245,8 +1228,7 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
 
       intptr_t len = object->value.as_typed_data.length;
-      if (len < 0 ||
-          len > TypedData::MaxElements(class_id)) {
+      if (len < 0 || len > TypedData::MaxElements(class_id)) {
         return false;
       }
 
@@ -1288,8 +1270,8 @@ bool ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       WriteTags(0);
       intptr_t length = object->value.as_external_typed_data.length;
       if (length < 0 ||
-          length > ExternalTypedData::MaxElements(
-              kExternalTypedDataUint8ArrayCid)) {
+          length >
+              ExternalTypedData::MaxElements(kExternalTypedDataUint8ArrayCid)) {
         return false;
       }
       uint8_t* data = object->value.as_external_typed_data.data;

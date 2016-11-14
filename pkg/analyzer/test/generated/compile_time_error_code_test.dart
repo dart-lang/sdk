@@ -4596,6 +4596,32 @@ f() {
     ]);
   }
 
+  void test_nonConstValueInInitializer_assert_condition() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertInitializer = true);
+    Source source = addSource(r'''
+class A {
+  const A(int i) : assert(i.isNegative);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    verify([source]);
+  }
+
+  void test_nonConstValueInInitializer_assert_message() {
+    resetWithOptions(new AnalysisOptionsImpl()
+      ..enableAssertInitializer = true
+      ..enableAssertMessage = true);
+    Source source = addSource(r'''
+class A {
+  const A(int i) : assert(i < 0, 'isNegative = ${i.isNegative}');
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER]);
+    verify([source]);
+  }
+
   void test_nonConstValueInInitializer_binary_notBool_left() {
     Source source = addSource(r'''
 class A {

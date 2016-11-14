@@ -356,7 +356,7 @@ namespace dart {
   V(VMService_CancelStream, 1)                                                 \
   V(VMService_RequestAssets, 0)                                                \
   V(VMService_DecodeAssets, 1)                                                 \
-  V(VMService_spawnUriNotify, 2)                                               \
+  V(VMService_spawnUriNotify, 2)
 
 // List of bootstrap native entry points used in the dart:mirror library.
 #define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \
@@ -408,7 +408,7 @@ namespace dart {
   V(ParameterMirror_type, 3)                                                   \
   V(TypedefMirror_referent, 1)                                                 \
   V(TypedefMirror_declaration, 1)                                              \
-  V(VariableMirror_type, 2)                                                    \
+  V(VariableMirror_type, 2)
 
 class BootstrapNatives : public AllStatic {
  public:

@@ -540,3 +540,16 @@ defineNamedConstructorCallable(clazz, name, ctor) => JS(
   // like `caller` and `arguments`.
   $defineProperty($clazz, $name, { value: ctor, configurable: true });
 })()''');
+
+defineEnumValues(enumClass, names) => JS(
+    '',
+    '''(() => {
+  let values = [];
+  for (var i = 0; i < $names.length; i++) {
+    let value = $const_(new $enumClass(i));
+    values.push(value);
+    Object.defineProperty($enumClass, $names[i],
+        { value: value, configurable: true });
+  }
+  $enumClass.values = $constList(values, $enumClass);
+})()''');

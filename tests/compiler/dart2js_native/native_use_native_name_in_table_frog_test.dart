@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import 'native_testing.dart';
 
 // Test that we put native names and not Dart names into the dynamic
 // dispatch table.
@@ -37,18 +36,18 @@ NativeA.prototype.foo = function() { return 42; };
 
 makeA = function(){return new NativeA;};
 makeB = function(){return new NativeB;};
+
+self.nativeConstructor(NativeA);
+self.nativeConstructor(NativeB);
 """;
 
 main() {
+  nativeTesting();
   setup();
 
-  var a = makeA();
-  Expect.equals(42, a.foo());
-  A aa = a;
-  Expect.equals(42, aa.foo());
+  Expect.equals(42, makeA().foo());
+  Expect.equals(42, confuse(makeA()).foo());
 
-  var b = makeB();
-  Expect.equals(42, b.foo());
-  B bb = b;
-  Expect.equals(42, bb.foo());
+  Expect.equals(42, makeB().foo());
+  Expect.equals(42, confuse(makeB()).foo());
 }

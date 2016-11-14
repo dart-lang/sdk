@@ -19,10 +19,8 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
-import 'package:analyzer/src/util/fast_uri.dart';
 
 /**
  * Implementation of [ElementResynthesizer] used when resynthesizing an element
@@ -213,13 +211,13 @@ abstract class SummaryResynthesizer extends ElementResynthesizer {
       if (serializedLibrary == null) {
         LibraryElementImpl libraryElement =
             new LibraryElementImpl(context, '', -1, 0);
-        libraryElement.synthetic = true;
+        libraryElement.isSynthetic = true;
         CompilationUnitElementImpl unitElement =
             new CompilationUnitElementImpl(librarySource.shortName);
         libraryElement.definingCompilationUnit = unitElement;
         unitElement.source = librarySource;
         unitElement.librarySource = librarySource;
-        return libraryElement..synthetic = true;
+        return libraryElement..isSynthetic = true;
       }
       UnlinkedUnit unlinkedSummary = _getUnlinkedSummaryOrNull(uri);
       if (unlinkedSummary == null) {
@@ -1162,9 +1160,12 @@ class _LibraryResynthesizerContext implements LibraryResynthesizerContext {
   }
 
   LibraryElementHandle _getLibraryByRelativeUri(String depUri) {
-    String absoluteUri = resolveRelativeUri(
-            resynthesizer.librarySource.uri, FastUri.parse(depUri))
-        .toString();
+    Source source = resynthesizer.summaryResynthesizer.sourceFactory
+        .resolveUri(resynthesizer.librarySource, depUri);
+    if (source == null) {
+      return null;
+    }
+    String absoluteUri = source.uri.toString();
     return new LibraryElementHandle(resynthesizer.summaryResynthesizer,
         new ElementLocationImpl.con3(<String>[absoluteUri]));
   }
@@ -1644,10 +1645,10 @@ class _UnitResynthesizer {
           variable.enclosingElement = unit;
           implicitVariables[name] = variable;
           accessorsData.implicitVariables.add(variable);
-          variable.synthetic = true;
-          variable.final2 = kind == UnlinkedExecutableKind.getter;
+          variable.isSynthetic = true;
+          variable.isFinal = kind == UnlinkedExecutableKind.getter;
         } else {
-          variable.final2 = false;
+          variable.isFinal = false;
         }
         accessor.variable = variable;
         // link

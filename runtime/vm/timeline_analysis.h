@@ -15,17 +15,11 @@ class TimelineAnalysisThread : public ZoneAllocated {
   explicit TimelineAnalysisThread(ThreadId id);
   ~TimelineAnalysisThread();
 
-  ThreadId id() const {
-    return id_;
-  }
+  ThreadId id() const { return id_; }
 
-  intptr_t NumBlocks() const {
-    return blocks_.length();
-  }
+  intptr_t NumBlocks() const { return blocks_.length(); }
 
-  TimelineEventBlock* At(intptr_t i) const {
-    return blocks_.At(i);
-  }
+  TimelineEventBlock* At(intptr_t i) const { return blocks_.At(i); }
 
  private:
   void AddBlock(TimelineEventBlock* block);
@@ -69,23 +63,15 @@ class TimelineAnalysis : public ValueObject {
 
   void BuildThreads();
 
-  intptr_t NumThreads() const {
-    return threads_.length();
-  }
+  intptr_t NumThreads() const { return threads_.length(); }
 
-  TimelineAnalysisThread* At(intptr_t i) const {
-    return threads_[i];
-  }
+  TimelineAnalysisThread* At(intptr_t i) const { return threads_[i]; }
 
   TimelineAnalysisThread* GetThread(ThreadId tid);
 
-  bool has_error() const {
-    return has_error_;
-  }
+  bool has_error() const { return has_error_; }
 
-  const char* error_msg() const {
-    return error_msg_;
-  }
+  const char* error_msg() const { return error_msg_; }
 
  protected:
   TimelineAnalysisThread* GetOrAddThread(ThreadId tid);
@@ -109,25 +95,15 @@ class TimelineLabelPauseInfo : public ZoneAllocated {
  public:
   explicit TimelineLabelPauseInfo(const char* name);
 
-  const char* name() const {
-    return name_;
-  }
+  const char* name() const { return name_; }
 
-  int64_t inclusive_micros() const {
-    return inclusive_micros_;
-  }
+  int64_t inclusive_micros() const { return inclusive_micros_; }
 
-  int64_t exclusive_micros() const {
-    return exclusive_micros_;
-  }
+  int64_t exclusive_micros() const { return exclusive_micros_; }
 
-  int64_t max_inclusive_micros() const {
-    return max_inclusive_micros_;
-  }
+  int64_t max_inclusive_micros() const { return max_inclusive_micros_; }
 
-  int64_t max_exclusive_micros() const {
-    return max_exclusive_micros_;
-  }
+  int64_t max_exclusive_micros() const { return max_exclusive_micros_; }
 
  private:
   // Adjusts |inclusive_micros_| and |exclusive_micros_| by |micros|.
@@ -174,9 +150,7 @@ class TimelineLabelPauseInfo : public ZoneAllocated {
 
 class TimelinePauses : public TimelineAnalysis {
  public:
-  TimelinePauses(Zone* zone,
-                 Isolate* isolate,
-                 TimelineEventRecorder* recorder);
+  TimelinePauses(Zone* zone, Isolate* isolate, TimelineEventRecorder* recorder);
 
   void Setup();
 
@@ -189,9 +163,7 @@ class TimelinePauses : public TimelineAnalysis {
   int64_t MaxInclusiveTime(const char* name) const;
   int64_t MaxExclusiveTime(const char* name) const;
 
-  intptr_t NumPauseInfos() const {
-    return labels_.length();
-  }
+  intptr_t NumPauseInfos() const { return labels_.length(); }
 
   const TimelineLabelPauseInfo* PauseInfoAt(intptr_t i) const {
     return labels_.At(i);

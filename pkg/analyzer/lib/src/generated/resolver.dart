@@ -136,6 +136,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitAssertInitializer(AssertInitializer node) {
+    _checkForPossibleNullCondition(node.condition);
+    return super.visitAssertInitializer(node);
+  }
+
+  @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForPossibleNullCondition(node.condition);
     return super.visitAssertStatement(node);
@@ -1637,25 +1643,28 @@ class ConstantVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Validates that the expressions of the given initializers (of a constant constructor) are all
-   * compile time constants.
-   *
-   * @param constructor the constant constructor declaration to validate
+   * Validates that the expressions of the initializers of the given constant
+   * [constructor] are all compile time constants.
    */
   void _validateConstructorInitializers(ConstructorDeclaration constructor) {
     List<ParameterElement> parameterElements =
         constructor.parameters.parameterElements;
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
     for (ConstructorInitializer initializer in initializers) {
-      if (initializer is ConstructorFieldInitializer) {
+      if (initializer is AssertInitializer) {
+        _validateInitializerExpression(
+            parameterElements, initializer.condition);
+        Expression message = initializer.message;
+        if (message != null) {
+          _validateInitializerExpression(parameterElements, message);
+        }
+      } else if (initializer is ConstructorFieldInitializer) {
         _validateInitializerExpression(
             parameterElements, initializer.expression);
-      }
-      if (initializer is RedirectingConstructorInvocation) {
+      } else if (initializer is RedirectingConstructorInvocation) {
         _validateInitializerInvocationArguments(
             parameterElements, initializer.argumentList);
-      }
-      if (initializer is SuperConstructorInvocation) {
+      } else if (initializer is SuperConstructorInvocation) {
         _validateInitializerInvocationArguments(
             parameterElements, initializer.argumentList);
       }
@@ -2711,15 +2720,15 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     InterfaceType intType = _typeProvider.intType;
     String indexFieldName = "index";
     FieldElementImpl indexField = new FieldElementImpl(indexFieldName, -1);
-    indexField.final2 = true;
-    indexField.synthetic = true;
+    indexField.isFinal = true;
+    indexField.isSynthetic = true;
     indexField.type = intType;
     fields.add(indexField);
     getters.add(_createGetter(indexField));
     ConstFieldElementImpl valuesField = new ConstFieldElementImpl("values", -1);
-    valuesField.static = true;
-    valuesField.const3 = true;
-    valuesField.synthetic = true;
+    valuesField.isStatic = true;
+    valuesField.isConst = true;
+    valuesField.isSynthetic = true;
     valuesField.type = _typeProvider.listType.instantiate(<DartType>[enumType]);
     fields.add(valuesField);
     getters.add(_createGetter(valuesField));
@@ -2797,6 +2806,9 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 
   @override
   bool visitAsExpression(AsExpression node) => _nodeExits(node.expression);
+
+  @override
+  bool visitAssertInitializer(AssertInitializer node) => false;
 
   @override
   bool visitAssertStatement(AssertStatement node) => false;
@@ -5784,8 +5796,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // Clone the ASTs for default formal parameters, so that we can use them
     // during constant evaluation.
-    if (!LibraryElementImpl.hasResolutionCapability(
-        definingLibrary, LibraryResolutionCapability.constantExpressions)) {
+    if (!_hasSerializedConstantInitializer(element)) {
       (element as ConstVariableElement).constantInitializer =
           new ConstantAstCloner().cloneNode(node.defaultValue);
     }
@@ -6641,6 +6652,25 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
+  }
+
+  /**
+   * Return `true` if the given [parameter] element of the AST being resolved
+   * is resynthesized and is an API-level, not local, so has its initializer
+   * serialized.
+   */
+  bool _hasSerializedConstantInitializer(ParameterElement parameter) {
+    if (LibraryElementImpl.hasResolutionCapability(
+        definingLibrary, LibraryResolutionCapability.constantExpressions)) {
+      Element executable = parameter.enclosingElement;
+      if (executable is MethodElement) {
+        return true;
+      }
+      if (executable is FunctionElement) {
+        return executable.enclosingElement is CompilationUnitElement;
+      }
+    }
+    return false;
   }
 
   void _inferArgumentTypesFromContext(InvocationExpression node) {
@@ -9761,6 +9791,14 @@ class TypeResolverVisitor extends ScopedVisitor {
       AnalysisEngine.instance.logger.logError(buffer.toString(),
           new CaughtException(new AnalysisException(), null));
     }
+
+    // When the library is resynthesized, types of all of its elements are
+    // already set - statically or inferred. We don't want to overwrite them.
+    if (LibraryElementImpl.hasResolutionCapability(
+        definingLibrary, LibraryResolutionCapability.resolvedTypeNames)) {
+      return null;
+    }
+
     element.declaredReturnType = _computeReturnType(node.returnType);
     element.type = new FunctionTypeImpl(element);
     _inferSetterReturnType(element);
@@ -9777,6 +9815,7 @@ class TypeResolverVisitor extends ScopedVisitor {
         }
       }
     }
+
     return null;
   }
 
@@ -9947,7 +9986,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     var variableList = node.parent as VariableDeclarationList;
     // When the library is resynthesized, the types of field elements are
     // already set - statically or inferred. We don't want to overwrite them.
-    // See also dartbug.com/27482 for separating static and inferred types.
     if (variableList.parent is FieldDeclaration &&
         LibraryElementImpl.hasResolutionCapability(
             definingLibrary, LibraryResolutionCapability.resolvedTypeNames)) {
@@ -10183,7 +10221,7 @@ class TypeResolverVisitor extends ScopedVisitor {
       TypeName returnType, FormalParameterList parameterList) {
     List<ParameterElement> parameters = _getElements(parameterList);
     FunctionElementImpl functionElement = new FunctionElementImpl.forNode(null);
-    functionElement.synthetic = true;
+    functionElement.isSynthetic = true;
     functionElement.shareParameters(parameters);
     functionElement.declaredReturnType = _computeReturnType(returnType);
     functionElement.enclosingElement = element;

@@ -35,7 +35,7 @@ void CodeBreakpoint::PatchCode() {
   const Code& code = Code::Handle(code_);
   const Instructions& instrs = Instructions::Handle(code.instructions());
   {
-    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
+    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     saved_value_ = *CallInstructionFromReturnAddress(pc_);
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
@@ -43,11 +43,8 @@ void CodeBreakpoint::PatchCode() {
         // DebugBreak has an A operand matching the call it replaces.
         // This ensures that Return instructions continue to work - as they
         // look at calls to figure out how many arguments to drop.
-        *CallInstructionFromReturnAddress(pc_) =
-            Bytecode::Encode(Bytecode::kDebugBreak,
-                             Bytecode::DecodeArgc(saved_value_),
-                             0,
-                             0);
+        *CallInstructionFromReturnAddress(pc_) = Bytecode::Encode(
+            Bytecode::kDebugBreak, Bytecode::DecodeArgc(saved_value_), 0, 0);
         break;
       }
 
@@ -80,7 +77,7 @@ void CodeBreakpoint::RestoreCode() {
   const Code& code = Code::Handle(code_);
   const Instructions& instrs = Instructions::Handle(code.instructions());
   {
-    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.size());
+    WritableInstructionsScope writable(instrs.PayloadStart(), instrs.Size());
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
       case RawPcDescriptors::kUnoptStaticCall:

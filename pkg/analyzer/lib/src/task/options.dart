@@ -173,7 +173,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
     if (_errorCodes == null) {
       _errorCodes = new HashSet<String>();
       // Engine codes.
-      _errorCodes.addAll(ErrorCode.values.map((ErrorCode code) => code.name));
+      _errorCodes.addAll(errorCodeValues.map((ErrorCode code) => code.name));
     }
     return _errorCodes;
   }

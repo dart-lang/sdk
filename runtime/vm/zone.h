@@ -98,9 +98,7 @@ class Zone {
   uword AllocateLargeSegment(intptr_t size);
 
   // Insert zone into zone chain, after current_zone.
-  void Link(Zone* current_zone) {
-    previous_ = current_zone;
-  }
+  void Link(Zone* current_zone) { previous_ = current_zone; }
 
   // Delete all objects and free all memory allocated in the zone.
   void DeleteAll();
@@ -156,9 +154,9 @@ class Zone {
 
   friend class StackZone;
   friend class ApiZone;
-  template<typename T, typename B, typename Allocator>
+  template <typename T, typename B, typename Allocator>
   friend class BaseGrowableArray;
-  template<typename T, typename B, typename Allocator>
+  template <typename T, typename B, typename Allocator>
   friend class BaseDirectChainedHashMap;
   DISALLOW_COPY_AND_ASSIGN(Zone);
 };
@@ -181,8 +179,10 @@ class StackZone : public StackResource {
  private:
   Zone zone_;
 
-  template<typename T> friend class GrowableArray;
-  template<typename T> friend class ZoneGrowableArray;
+  template <typename T>
+  friend class GrowableArray;
+  template <typename T>
+  friend class ZoneGrowableArray;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(StackZone);
 };
@@ -251,8 +251,7 @@ inline ElementType* Zone::Realloc(ElementType* old_data,
   ElementType* new_data = Alloc<ElementType>(new_len);
   if (old_data != 0) {
     memmove(reinterpret_cast<void*>(new_data),
-            reinterpret_cast<void*>(old_data),
-            old_len * kElementSize);
+            reinterpret_cast<void*>(old_data), old_len * kElementSize);
   }
   return new_data;
 }

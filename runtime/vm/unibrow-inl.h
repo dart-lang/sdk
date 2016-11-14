@@ -11,8 +11,8 @@
 
 namespace unibrow {
 
-template <class T, intptr_t s> intptr_t Mapping<T, s>::get(
-    int32_t c, int32_t n, int32_t* result) {
+template <class T, intptr_t s>
+intptr_t Mapping<T, s>::get(int32_t c, int32_t n, int32_t* result) {
   CacheEntry entry = entries_[c & kMask];
   if (entry.code_point_ == c) {
     if (entry.offset_ == 0) {
@@ -26,8 +26,8 @@ template <class T, intptr_t s> intptr_t Mapping<T, s>::get(
   }
 }
 
-template <class T, intptr_t s> intptr_t Mapping<T, s>::CalculateValue(
-    int32_t c, int32_t n, int32_t* result) {
+template <class T, intptr_t s>
+intptr_t Mapping<T, s>::CalculateValue(int32_t c, int32_t n, int32_t* result) {
   bool allow_caching = true;
   intptr_t length = T::Convert(c, n, result, &allow_caching);
   if (allow_caching) {

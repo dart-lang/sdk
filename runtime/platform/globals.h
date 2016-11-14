@@ -128,15 +128,15 @@
 
 #if defined(PRODUCT)
 #define NOT_IN_PRODUCT(code)
-#define DEBUG_ONLY(code)
 #else  // defined(PRODUCT)
 #define NOT_IN_PRODUCT(code) code
+#endif  // defined(PRODUCT)
+
 #if defined(DEBUG)
 #define DEBUG_ONLY(code) code
 #else  // defined(DEBUG)
 #define DEBUG_ONLY(code)
 #endif  // defined(DEBUG)
-#endif  // defined(PRODUCT)
 
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
 #error DART_PRECOMPILED_RUNTIME and DART_PRECOMPILER are mutually exclusive

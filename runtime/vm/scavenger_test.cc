@@ -12,10 +12,8 @@ namespace dart {
 // Expects to visit no objects (since the space should be empty).
 class FailingObjectVisitor : public ObjectVisitor {
  public:
-  FailingObjectVisitor() { }
-  virtual void VisitObject(RawObject* obj) {
-    EXPECT(false);
-  }
+  FailingObjectVisitor() {}
+  virtual void VisitObject(RawObject* obj) { EXPECT(false); }
 };
 
 // Expects to visit no objects (since the space should be empty).
@@ -30,7 +28,7 @@ class FailingObjectPointerVisitor : public ObjectPointerVisitor {
 // Expects to visit no objects (since the space should be empty).
 class FailingFindObjectVisitor : public FindObjectVisitor {
  public:
-  FailingFindObjectVisitor() { }
+  FailingFindObjectVisitor() {}
   virtual bool FindObject(RawObject* obj) const {
     EXPECT(false);
     return false;

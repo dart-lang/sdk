@@ -97,6 +97,19 @@ class FileTest extends _BaseTest {
     expect(file.isOrContains('foo'), isFalse);
   }
 
+  void test_lengthSync_doesNotExist() {
+    File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+    expect(() {
+      file.lengthSync;
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_lengthSync_exists() {
+    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    new io.File(path).writeAsBytesSync(bytes);
+    expect(file.lengthSync, bytes.length);
+  }
+
   void test_modificationStamp_doesNotExist() {
     File file = PhysicalResourceProvider.INSTANCE.getResource(path);
     expect(() {

@@ -10,7 +10,7 @@
 
 namespace dart {
 
-template<typename KeyValueTrait, typename B, typename Allocator = Zone>
+template <typename KeyValueTrait, typename B, typename Allocator = Zone>
 class BaseDirectChainedHashMap : public B {
  public:
   explicit BaseDirectChainedHashMap(Allocator* allocator)
@@ -71,7 +71,7 @@ class BaseDirectChainedHashMap : public B {
     intptr_t array_index_;
     intptr_t list_index_;
 
-    template<typename T, typename Bs, typename A>
+    template <typename T, typename Bs, typename A>
     friend class BaseDirectChainedHashMap;
   };
 
@@ -80,7 +80,7 @@ class BaseDirectChainedHashMap : public B {
  protected:
   // A linked list of T values.  Stored in arrays.
   struct HashMapListElement {
-    HashMapListElement() : kv(), next(kNil) { }
+    HashMapListElement() : kv(), next(kNil) {}
     typename KeyValueTrait::Pair kv;
     intptr_t next;  // Index in the array of the next list element.
   };
@@ -101,7 +101,7 @@ class BaseDirectChainedHashMap : public B {
 
   intptr_t array_size_;
   intptr_t lists_size_;
-  intptr_t count_;  // The number of values stored in the HashMap.
+  intptr_t count_;             // The number of values stored in the HashMap.
   HashMapListElement* array_;  // Primary store - contains the first value
   // with a given hash.  Colliding elements are stored in linked lists.
   HashMapListElement* lists_;  // The linked lists containing hash collisions.
@@ -110,28 +110,28 @@ class BaseDirectChainedHashMap : public B {
 };
 
 
-template<typename KeyValueTrait, typename B, typename Allocator>
-BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
-    BaseDirectChainedHashMap(const BaseDirectChainedHashMap& other)
-  : B(),
-    array_size_(other.array_size_),
-    lists_size_(other.lists_size_),
-    count_(other.count_),
-    array_(other.allocator_->template Alloc<HashMapListElement>(
-        other.array_size_)),
-    lists_(other.allocator_->template Alloc<HashMapListElement>(
-        other.lists_size_)),
-    free_list_head_(other.free_list_head_),
-    allocator_(other.allocator_) {
+template <typename KeyValueTrait, typename B, typename Allocator>
+BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::BaseDirectChainedHashMap(
+    const BaseDirectChainedHashMap& other)
+    : B(),
+      array_size_(other.array_size_),
+      lists_size_(other.lists_size_),
+      count_(other.count_),
+      array_(other.allocator_->template Alloc<HashMapListElement>(
+          other.array_size_)),
+      lists_(other.allocator_->template Alloc<HashMapListElement>(
+          other.lists_size_)),
+      free_list_head_(other.free_list_head_),
+      allocator_(other.allocator_) {
   memmove(array_, other.array_, array_size_ * sizeof(HashMapListElement));
   memmove(lists_, other.lists_, lists_size_ * sizeof(HashMapListElement));
 }
 
 
-template<typename KeyValueTrait, typename B, typename Allocator>
+template <typename KeyValueTrait, typename B, typename Allocator>
 typename KeyValueTrait::Pair*
-    BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
-        Lookup(typename KeyValueTrait::Key key) const {
+BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Lookup(
+    typename KeyValueTrait::Key key) const {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
@@ -154,10 +154,10 @@ typename KeyValueTrait::Pair*
 }
 
 
-template<typename KeyValueTrait, typename B, typename Allocator>
+template <typename KeyValueTrait, typename B, typename Allocator>
 typename KeyValueTrait::Value
-    BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
-        LookupValue(typename KeyValueTrait::Key key) const {
+BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::LookupValue(
+    typename KeyValueTrait::Key key) const {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
   typename KeyValueTrait::Pair* pair = Lookup(key);
@@ -165,9 +165,9 @@ typename KeyValueTrait::Value
 }
 
 
-template<typename KeyValueTrait, typename B, typename Allocator>
+template <typename KeyValueTrait, typename B, typename Allocator>
 typename KeyValueTrait::Pair*
-    BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
+BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Iterator::Next() {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
@@ -200,7 +200,7 @@ typename KeyValueTrait::Pair*
 }
 
 
-template<typename KeyValueTrait, typename B, typename Allocator>
+template <typename KeyValueTrait, typename B, typename Allocator>
 void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Resize(
     intptr_t new_size) {
   const typename KeyValueTrait::Value kNoValue =
@@ -250,7 +250,7 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Resize(
 }
 
 
-template<typename KeyValueTrait, typename B, typename Allocator>
+template <typename KeyValueTrait, typename B, typename Allocator>
 void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::ResizeLists(
     intptr_t new_size) {
   ASSERT(new_size > lists_size_);
@@ -276,9 +276,9 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::ResizeLists(
 }
 
 
-template<typename KeyValueTrait, typename B, typename Allocator>
-void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
-    Insert(typename KeyValueTrait::Pair kv) {
+template <typename KeyValueTrait, typename B, typename Allocator>
+void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::Insert(
+    typename KeyValueTrait::Pair kv) {
   const typename KeyValueTrait::Value kNoValue =
       KeyValueTrait::ValueOf(typename KeyValueTrait::Pair());
 
@@ -308,16 +308,17 @@ void BaseDirectChainedHashMap<KeyValueTrait, B, Allocator>::
 }
 
 
-template<typename KeyValueTrait>
+template <typename KeyValueTrait>
 class DirectChainedHashMap
     : public BaseDirectChainedHashMap<KeyValueTrait, ValueObject> {
  public:
-  DirectChainedHashMap() : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
-          ASSERT_NOTNULL(Thread::Current()->zone())) {}
+  DirectChainedHashMap()
+      : BaseDirectChainedHashMap<KeyValueTrait, ValueObject>(
+            ASSERT_NOTNULL(Thread::Current()->zone())) {}
 };
 
 
-template<typename KeyValueTrait>
+template <typename KeyValueTrait>
 class MallocDirectChainedHashMap
     : public BaseDirectChainedHashMap<KeyValueTrait, EmptyBase, Malloc> {
  public:
@@ -326,32 +327,24 @@ class MallocDirectChainedHashMap
 };
 
 
-template<typename T>
+template <typename T>
 class PointerKeyValueTrait {
  public:
   typedef T* Value;
   typedef T* Key;
   typedef T* Pair;
 
-  static Key KeyOf(Pair kv) {
-    return kv;
-  }
+  static Key KeyOf(Pair kv) { return kv; }
 
-  static Value ValueOf(Pair kv) {
-    return kv;
-  }
+  static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->Hashcode();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->Hashcode(); }
 
-  static inline bool IsKeyEqual(Pair kv, Key key) {
-    return kv->Equals(key);
-  }
+  static inline bool IsKeyEqual(Pair kv, Key key) { return kv->Equals(key); }
 };
 
 
-template<typename T>
+template <typename T>
 class NumbersKeyValueTrait {
  public:
   typedef T Value;
@@ -365,7 +358,7 @@ class NumbersKeyValueTrait {
 };
 
 
-template<typename K, typename V>
+template <typename K, typename V>
 class RawPointerKeyValueTrait {
  public:
   typedef K* Key;

@@ -124,7 +124,7 @@ class NoSuchMethodRegistry {
   }
 
   _subcategorizeOther(FunctionElement element) {
-    if (_compiler.globalInference.results.throwsAlways(element)) {
+    if (_compiler.globalInference.results.resultOf(element).throwsAlways) {
       complexNoReturnImpls.add(element);
     } else {
       complexReturningImpls.add(element);

@@ -158,6 +158,9 @@ abstract class Resolution implements Frontend {
   /// Resolve [element] if it has not already been resolved.
   void ensureResolved(Element element);
 
+  /// Ensure the resolution of all members of [element].
+  void ensureClassMembers(ClassElement element);
+
   /// Registers that [element] has a compile time error.
   ///
   /// The error itself is given in [message].

@@ -32,6 +32,7 @@ vars = {
 
   # Revisions of GN related dependencies.
   "buildtools_revision": "@39b1db2ab4aa4b2ccaa263c29bdf63e7c1ee28aa",
+  "clang_format_rev": "@0ed791d1387a3c9146ea6c453c646f3c0fc97784",
 
   "gperftools_revision": "@02eeed29df112728564a5dde6417fa4622b57a06",
 
@@ -56,7 +57,7 @@ vars = {
   "csslib_tag" : "@0.13.2",
   "dart2js_info_tag" : "@0.5.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@v0.2.11+1",
+  "dart_style_rev": "@a2b84e46a9e4044e61e3cc130087c18da40b9665",
   "dartdoc_tag" : "@v0.9.7+6",
   "fixnum_tag": "@0.10.5",
   "func_tag": "@0.1.0",
@@ -134,6 +135,9 @@ deps = {
   Var("dart_root") + "/buildtools":
      Var('chromium_git') + '/chromium/buildtools.git' +
      Var('buildtools_revision'),
+  Var("dart_root") + "/buildtools/clang_format/script":
+    Var("chromium_git") + "/chromium/llvm-project/cfe/tools/clang-format.git" +
+    Var("clang_format_rev"),
 
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),
@@ -201,7 +205,7 @@ deps = {
       (Var("github_mirror") % "dart-services") +
       Var("dart_services_rev"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
-      (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
+      (Var("github_mirror") % "dart_style") + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dart2js_info":
       (Var("github_mirror") % "dart2js_info") + Var("dart2js_info_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
@@ -405,6 +409,21 @@ hooks = [
     ],
   },
   # Pull clang-format binaries using checked-in hashes.
+  {
+    'name': 'clang_format_win',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--quiet',
+      '--platform=win32',
+      '--bucket',
+      'chromium-clang-format',
+      '-s',
+      Var('dart_root') + '/buildtools/win/clang-format.exe.sha1',
+    ],
+  },
   {
     'name': 'clang_format_linux',
     'pattern': '.',

@@ -546,7 +546,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       // Ensure at least implicit default constructor.
       if (_constructors.isEmpty) {
         ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
-        constructor.synthetic = true;
+        constructor.isSynthetic = true;
         constructor.enclosingElement = this;
         _constructors = <ConstructorElement>[constructor];
       }
@@ -1149,7 +1149,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         .map((ConstructorElement superclassConstructor) {
       ConstructorElementImpl implicitConstructor =
           new ConstructorElementImpl(superclassConstructor.name, -1);
-      implicitConstructor.synthetic = true;
+      implicitConstructor.isSynthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
@@ -1160,10 +1160,10 @@ class ClassElementImpl extends AbstractClassElementImpl
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter =
               new ParameterElementImpl(superParameter.name, -1);
-          implicitParameter.const3 = superParameter.isConst;
-          implicitParameter.final2 = superParameter.isFinal;
+          implicitParameter.isConst = superParameter.isConst;
+          implicitParameter.isFinal = superParameter.isFinal;
           implicitParameter.parameterKind = superParameter.parameterKind;
-          implicitParameter.synthetic = true;
+          implicitParameter.isSynthetic = true;
           implicitParameter.type =
               superParameter.type.substitute2(argumentTypes, parameterTypes);
           implicitParameters[i] = implicitParameter;
@@ -1221,12 +1221,12 @@ class ClassElementImpl extends AbstractClassElementImpl
           field = new FieldElementImpl(fieldName, -1);
           implicitFields[fieldName] = field;
           field.enclosingElement = this;
-          field.synthetic = true;
-          field.final2 = e.kind == UnlinkedExecutableKind.getter;
+          field.isSynthetic = true;
+          field.isFinal = e.kind == UnlinkedExecutableKind.getter;
           field.type = fieldType;
-          field.static = e.isStatic;
+          field.isStatic = e.isStatic;
         } else {
-          field.final2 = false;
+          field.isFinal = false;
         }
         accessor.variable = field;
         if (e.kind == UnlinkedExecutableKind.getter) {
@@ -1857,7 +1857,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
   ConstFieldElementImpl_EnumValues(EnumElementImpl enumElement)
       : super(enumElement) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -1899,17 +1899,7 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   }
 
   @override
-  void set const3(bool isConst) {
-    assert(false);
-  }
-
-  @override
   void set evaluationResult(_) {
-    assert(false);
-  }
-
-  @override
-  void set final2(bool isFinal) {
     assert(false);
   }
 
@@ -1917,10 +1907,20 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   bool get isConst => true;
 
   @override
+  void set isConst(bool isConst) {
+    assert(false);
+  }
+
+  @override
+  void set isFinal(bool isFinal) {
+    assert(false);
+  }
+
+  @override
   bool get isStatic => true;
 
   @override
-  void set static(bool isStatic) {
+  void set isStatic(bool isStatic) {
     assert(false);
   }
 
@@ -2005,14 +2005,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
 
-  /**
-   * Set whether this constructor represents a 'const' constructor.
-   */
-  void set const2(bool isConst) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.CONST, isConst);
-  }
-
   List<ConstructorInitializer> get constantInitializers {
     if (serializedExecutable != null && _constantInitializers == null) {
       _constantInitializers ??= serializedExecutable.constantInitializers
@@ -2050,6 +2042,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return serializedExecutable.isConst;
     }
     return hasModifier(Modifier.CONST);
+  }
+
+  /**
+   * Set whether this constructor represents a 'const' constructor.
+   */
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.CONST, isConst);
   }
 
   bool get isCycleFree {
@@ -2888,6 +2888,13 @@ abstract class ElementImpl implements Element {
   @override
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
 
+  /**
+   * Set whether this element is synthetic.
+   */
+  void set isSynthetic(bool isSynthetic) {
+    setModifier(Modifier.SYNTHETIC, isSynthetic);
+  }
+
   @override
   LibraryElement get library =>
       getAncestor((element) => element is LibraryElement);
@@ -2949,13 +2956,6 @@ abstract class ElementImpl implements Element {
       return null;
     }
     return _enclosingElement.source;
-  }
-
-  /**
-   * Set whether this element is synthetic.
-   */
-  void set synthetic(bool isSynthetic) {
-    setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
   /**
@@ -3519,8 +3519,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
     // Build the 'index' field.
     fields.add(new FieldElementImpl('index', -1)
       ..enclosingElement = this
-      ..synthetic = true
-      ..final2 = true
+      ..isSynthetic = true
+      ..isFinal = true
       ..type = context.typeProvider.intType);
     // Build the 'values' field.
     fields.add(new ConstFieldElementImpl_EnumValues(this));
@@ -4220,6 +4220,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this field is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(_unlinkedVariable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   bool get isVirtual {
     for (ElementAnnotationImpl annotation in metadata) {
@@ -4232,14 +4240,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   ElementKind get kind => ElementKind.FIELD;
-
-  /**
-   * Set whether this field is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(_unlinkedVariable);
-    setModifier(Modifier.STATIC, isStatic);
-  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
@@ -4370,7 +4370,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   FunctionElementImpl.synthetic(
       List<ParameterElement> parameters, DartType returnType)
       : super("", -1) {
-    synthetic = true;
+    isSynthetic = true;
     this.returnType = returnType;
     this.parameters = parameters;
 
@@ -5461,14 +5461,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           _unlinkedDefiningUnit.exports.length == unlinkedPublicExports.length);
       int length = unlinkedNonPublicExports.length;
       if (length != 0) {
-        List<ExportElement> exports = new List<ExportElement>(length);
+        List<ExportElement> exports = new List<ExportElement>();
         for (int i = 0; i < length; i++) {
           UnlinkedExportPublic serializedExportPublic =
               unlinkedPublicExports[i];
-          UnlinkedExportNonPublic serializedExportNonPublic =
-              unlinkedNonPublicExports[i];
-          exports[i] = new ExportElementImpl.forSerialized(
-              serializedExportPublic, serializedExportNonPublic, library);
+          LibraryElement exportedLibrary = resynthesizerContext
+              .buildExportedLibrary(serializedExportPublic.uri);
+          if (exportedLibrary != null) {
+            UnlinkedExportNonPublic serializedExportNonPublic =
+                unlinkedNonPublicExports[i];
+            ExportElementImpl exportElement =
+                new ExportElementImpl.forSerialized(
+                    serializedExportPublic, serializedExportNonPublic, library);
+            exports.add(exportElement);
+          }
         }
         _exports = exports;
       } else {
@@ -5534,11 +5540,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
       int length = unlinkedImports.length;
       if (length != 0) {
-        List<ImportElement> imports = new List<ImportElement>(length);
+        List<ImportElement> imports = new List<ImportElement>();
         LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
         for (int i = 0; i < length; i++) {
-          imports[i] = new ImportElementImpl.forSerialized(
-              unlinkedImports[i], linkedLibrary.importDependencies[i], library);
+          int dependency = linkedLibrary.importDependencies[i];
+          LibraryElement importedLibrary =
+              resynthesizerContext.buildImportedLibrary(dependency);
+          if (importedLibrary != null) {
+            ImportElementImpl importElement =
+                new ImportElementImpl.forSerialized(
+                    unlinkedImports[i], dependency, library);
+            imports.add(importElement);
+          }
         }
         _imports = imports;
       } else {
@@ -5784,7 +5797,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   void createLoadLibraryFunction(TypeProvider typeProvider) {
     FunctionElementImpl function =
         new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-    function.synthetic = true;
+    function.isSynthetic = true;
     function.enclosingElement = this;
     function.returnType = typeProvider.futureDynamicType;
     function.type = new FunctionTypeImpl(function);
@@ -6164,6 +6177,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this method is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   ElementKind get kind => ElementKind.METHOD;
 
@@ -6174,14 +6195,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       return 'unary-';
     }
     return super.name;
-  }
-
-  /**
-   * Set whether this method is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.STATIC, isStatic);
   }
 
   @override
@@ -6593,7 +6606,7 @@ class MultiplyInheritedMethodElementImpl extends MethodElementImpl
   List<ExecutableElement> _elements = MethodElement.EMPTY_LIST;
 
   MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -6619,7 +6632,7 @@ class MultiplyInheritedPropertyAccessorElementImpl
 
   MultiplyInheritedPropertyAccessorElementImpl(Identifier name)
       : super.forNode(name) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -6681,23 +6694,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   @override
-  void set const3(bool isConst) {
-    _assertNotResynthesized(_unlinkedVariable);
-    super.const3 = isConst;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedVariable != null) {
       return _unlinkedVariable?.documentationComment?.text;
     }
     return super.documentationComment;
-  }
-
-  @override
-  void set final2(bool isFinal) {
-    _assertNotResynthesized(_unlinkedVariable);
-    super.final2 = isFinal;
   }
 
   @override
@@ -6720,7 +6721,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       UnlinkedExecutable unlinkedInitializer = _unlinkedVariable.initializer;
       if (unlinkedInitializer != null) {
         _initializer = new FunctionElementImpl.forSerialized(
-            unlinkedInitializer, this)..synthetic = true;
+            unlinkedInitializer, this)..isSynthetic = true;
       } else {
         return null;
       }
@@ -6746,11 +6747,23 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   @override
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(_unlinkedVariable);
+    super.isConst = isConst;
+  }
+
+  @override
   bool get isFinal {
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isFinal;
     }
     return super.isFinal;
+  }
+
+  @override
+  void set isFinal(bool isFinal) {
+    _assertNotResynthesized(_unlinkedVariable);
+    super.isFinal = isFinal;
   }
 
   @override
@@ -6895,7 +6908,7 @@ class ParameterElementImpl extends VariableElementImpl
             unlinkedParameter, enclosingElement);
       }
     }
-    element.synthetic = synthetic;
+    element.isSynthetic = synthetic;
     return element;
   }
 
@@ -6906,7 +6919,7 @@ class ParameterElementImpl extends VariableElementImpl
       String name, DartType type, ParameterKind kind) {
     ParameterElementImpl element = new ParameterElementImpl(name, -1);
     element.type = type;
-    element.synthetic = true;
+    element.isSynthetic = true;
     element.parameterKind = kind;
     return element;
   }
@@ -6928,12 +6941,6 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  void set const3(bool isConst) {
-    _assertNotResynthesized(_unlinkedParam);
-    super.const3 = isConst;
-  }
-
-  @override
   String get defaultValueCode {
     if (_unlinkedParam != null) {
       if (_unlinkedParam.initializer?.bodyExpr == null) {
@@ -6950,12 +6957,6 @@ class ParameterElementImpl extends VariableElementImpl
   void set defaultValueCode(String defaultValueCode) {
     _assertNotResynthesized(_unlinkedParam);
     this._defaultValueCode = StringUtilities.intern(defaultValueCode);
-  }
-
-  @override
-  void set final2(bool isFinal) {
-    _assertNotResynthesized(_unlinkedParam);
-    super.final2 = isFinal;
   }
 
   @override
@@ -7000,7 +7001,7 @@ class ParameterElementImpl extends VariableElementImpl
       UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
       if (unlinkedInitializer != null) {
         _initializer = new FunctionElementImpl.forSerialized(
-            unlinkedInitializer, this)..synthetic = true;
+            unlinkedInitializer, this)..isSynthetic = true;
       } else {
         return null;
       }
@@ -7026,6 +7027,12 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(_unlinkedParam);
+    super.isConst = isConst;
+  }
+
+  @override
   bool get isCovariant {
     if (inheritsCovariant) {
       return true;
@@ -7044,6 +7051,12 @@ class ParameterElementImpl extends VariableElementImpl
       return false;
     }
     return super.isFinal;
+  }
+
+  @override
+  void set isFinal(bool isFinal) {
+    _assertNotResynthesized(_unlinkedParam);
+    super.isFinal = isFinal;
   }
 
   @override
@@ -7291,7 +7304,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
       : setter = setter,
         super('_${setter.variable.name}', setter.variable.nameOffset) {
     enclosingElement = setter;
-    synthetic = true;
+    isSynthetic = true;
     parameterKind = ParameterKind.REQUIRED;
   }
 
@@ -7453,8 +7466,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable)
       : super(variable.name, variable.nameOffset) {
     this.variable = variable;
-    static = variable.isStatic;
-    synthetic = true;
+    isStatic = variable.isStatic;
+    isSynthetic = true;
   }
 
   /**
@@ -7544,6 +7557,14 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this accessor is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   ElementKind get kind {
     if (isGetter) {
@@ -7569,14 +7590,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   void set setter(bool isSetter) {
     _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.SETTER, isSetter);
-  }
-
-  /**
-   * Set whether this accessor is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.STATIC, isStatic);
   }
 
   @override
@@ -7988,7 +8001,7 @@ class TypeParameterElementImpl extends ElementImpl
       : _unlinkedTypeParam = null,
         nestingLevel = null,
         super(name, -1) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   DartType get bound {
@@ -8344,13 +8357,6 @@ abstract class VariableElementImpl extends ElementImpl
       : super.forSerialized(enclosingElement);
 
   /**
-   * Set whether this variable is const.
-   */
-  void set const3(bool isConst) {
-    setModifier(Modifier.CONST, isConst);
-  }
-
-  /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
    *
@@ -8388,13 +8394,6 @@ abstract class VariableElementImpl extends ElementImpl
         "Invalid attempt to set a compile-time constant result");
   }
 
-  /**
-   * Set whether this variable is final.
-   */
-  void set final2(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
   @override
   bool get hasImplicitType {
     return hasModifier(Modifier.IMPLICIT_TYPE);
@@ -8426,9 +8425,23 @@ abstract class VariableElementImpl extends ElementImpl
     return hasModifier(Modifier.CONST);
   }
 
+  /**
+   * Set whether this variable is const.
+   */
+  void set isConst(bool isConst) {
+    setModifier(Modifier.CONST, isConst);
+  }
+
   @override
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
+  }
+
+  /**
+   * Set whether this variable is final.
+   */
+  void set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
   }
 
   @override

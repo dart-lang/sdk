@@ -181,8 +181,9 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
       Script::New(H.DartString(""), H.DartString(""), RawScript::kScriptTag));
   script.SetLocationOffset(0, 0);
   script.Tokenize(H.DartString("nop() {}"));
-  dart::Class& toplevel_class = dart::Class::Handle(Z, dart::Class::New(
-      library, Symbols::TopLevel(), script, TokenPosition::kNoSource));
+  dart::Class& toplevel_class = dart::Class::Handle(
+      Z, dart::Class::New(library, Symbols::TopLevel(), script,
+                          TokenPosition::kNoSource));
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
   if (bootstrapping_) {
@@ -273,8 +274,8 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
 
   // Set super type.  Some classes (e.g., Object) do not have one.
   if (kernel_normal_class->super_class() != NULL) {
-    AbstractType& super_type = T.TranslateTypeWithoutFinalization(
-        kernel_normal_class->super_class());
+    AbstractType& super_type =
+        T.TranslateTypeWithoutFinalization(kernel_normal_class->super_class());
     if (super_type.IsMalformed()) H.ReportError("Malformed super type");
     klass->set_super_type(super_type);
   }
@@ -527,7 +528,8 @@ void KernelReader::SetupFunctionParameters(TranslationHelper translation_helper,
                                            DartTypeTranslator type_translator,
                                            const dart::Class& klass,
                                            const dart::Function& function,
-                                           FunctionNode* node, bool is_method,
+                                           FunctionNode* node,
+                                           bool is_method,
                                            bool is_closure) {
   dart::Zone* zone = translation_helper.zone();
 

@@ -346,6 +346,8 @@ class DeferredLoadTask extends CompilerTask {
                   }
                   break;
                 case TypeUseKind.INSTANTIATION:
+                case TypeUseKind.MIRROR_INSTANTIATION:
+                case TypeUseKind.NATIVE_INSTANTIATION:
                 case TypeUseKind.IS_CHECK:
                 case TypeUseKind.AS_CAST:
                 case TypeUseKind.CATCH_TYPE:
@@ -842,7 +844,7 @@ class DeferredLoadTask extends CompilerTask {
     }
     if (isProgramSplit) {
       isProgramSplit = compiler.backend.enableDeferredLoadingIfSupported(
-          lastDeferred, compiler.globalDependencies);
+          compiler.enqueuer.resolution, lastDeferred);
     }
   }
 

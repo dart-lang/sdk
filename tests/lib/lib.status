@@ -396,8 +396,11 @@ convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
 [ $hot_reload || $hot_reload_rollback ]
+async/zone_debug_test: Skip # Issue 27803
+async/intercept_print1_test: Skip # Issue 27803
 async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: Pass, Fail # Closure identity
+convert/json_toEncodable_reviver_test: Skip # Issue 27803
 mirrors/closurization_equivalence_test: SkipByDesign # Method equality
 mirrors/fake_function_with_call_test: SkipByDesign # Method equality
 
@@ -411,7 +414,6 @@ mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 
 [ $hot_reload ]
-mirrors/metadata_scope_test/none: Fail # Constant equality - Issue 26868
 mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869

@@ -29,8 +29,8 @@ class TimelineEvent;
 class DeoptContext {
  public:
   enum DestFrameOptions {
-    kDestIsOriginalFrame,   // Replace the original frame with deopt frame.
-    kDestIsAllocated        // Write deopt frame to a buffer.
+    kDestIsOriginalFrame,  // Replace the original frame with deopt frame.
+    kDestIsAllocated       // Write deopt frame to a buffer.
   };
 
   // If 'deoptimizing_code' is false, only frame is being deoptimized.
@@ -116,8 +116,8 @@ class DeoptContext {
 #if !defined(TARGET_ARCH_DBC)
     // SP of the deoptimization frame is the lowest slot because
     // stack is growing downwards.
-    return reinterpret_cast<intptr_t*>(
-      frame->sp() - (kDartFrameFixedSize * kWordSize));
+    return reinterpret_cast<intptr_t*>(frame->sp() -
+                                       (kDartFrameFixedSize * kWordSize));
 #else
     // First argument is the lowest slot because stack is growing upwards.
     return reinterpret_cast<intptr_t*>(
@@ -163,61 +163,44 @@ class DeoptContext {
 
   void DeferMaterializedObjectRef(intptr_t idx, intptr_t* slot) {
     deferred_slots_ = new DeferredObjectRef(
-        idx,
-        reinterpret_cast<RawObject**>(slot),
-        deferred_slots_);
+        idx, reinterpret_cast<RawObject**>(slot), deferred_slots_);
   }
 
   void DeferMaterialization(double value, RawDouble** slot) {
     deferred_slots_ = new DeferredDouble(
-        value,
-        reinterpret_cast<RawObject**>(slot),
-        deferred_slots_);
+        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
   }
 
   void DeferMintMaterialization(int64_t value, RawMint** slot) {
     deferred_slots_ = new DeferredMint(
-        value,
-        reinterpret_cast<RawObject**>(slot),
-        deferred_slots_);
+        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
   }
 
   void DeferMaterialization(simd128_value_t value, RawFloat32x4** slot) {
     deferred_slots_ = new DeferredFloat32x4(
-        value,
-        reinterpret_cast<RawObject**>(slot),
-        deferred_slots_);
+        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
   }
 
   void DeferMaterialization(simd128_value_t value, RawFloat64x2** slot) {
     deferred_slots_ = new DeferredFloat64x2(
-        value,
-        reinterpret_cast<RawObject**>(slot),
-        deferred_slots_);
+        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
   }
 
   void DeferMaterialization(simd128_value_t value, RawInt32x4** slot) {
     deferred_slots_ = new DeferredInt32x4(
-        value,
-        reinterpret_cast<RawObject**>(slot),
-        deferred_slots_);
+        value, reinterpret_cast<RawObject**>(slot), deferred_slots_);
   }
 
   void DeferRetAddrMaterialization(intptr_t index,
                                    intptr_t deopt_id,
                                    intptr_t* slot) {
     deferred_slots_ = new DeferredRetAddr(
-        index,
-        deopt_id,
-        reinterpret_cast<RawObject**>(slot),
-        deferred_slots_);
+        index, deopt_id, reinterpret_cast<RawObject**>(slot), deferred_slots_);
   }
 
   void DeferPcMarkerMaterialization(intptr_t index, intptr_t* slot) {
     deferred_slots_ = new DeferredPcMarker(
-        index,
-        reinterpret_cast<RawObject**>(slot),
-        deferred_slots_);
+        index, reinterpret_cast<RawObject**>(slot), deferred_slots_);
   }
 
   void DeferPpMaterialization(intptr_t index, RawObject** slot) {
@@ -257,9 +240,7 @@ class DeoptContext {
     deferred_objects_[idx] = object;
   }
 
-  intptr_t DeferredObjectsCount() const {
-    return deferred_objects_count_;
-  }
+  intptr_t DeferredObjectsCount() const { return deferred_objects_count_; }
 
   RawCode* code_;
   RawObjectPool* object_pool_;
@@ -289,7 +270,6 @@ class DeoptContext {
 
   DISALLOW_COPY_AND_ASSIGN(DeoptContext);
 };
-
 
 
 // Represents one deopt instruction, e.g, setup return address, store object,
@@ -363,9 +343,7 @@ class DeoptInstr : public ZoneAllocated {
 
   virtual intptr_t source_index() const = 0;
 
-  virtual const char* ArgumentsToCString() const {
-    return NULL;
-  }
+  virtual const char* ArgumentsToCString() const { return NULL; }
 
  private:
   static const char* KindToCString(Kind kind);
@@ -378,17 +356,17 @@ class DeoptInstr : public ZoneAllocated {
 // the DeoptContext as the specified type.
 // It calls different method depending on which kind of register (cpu/fpu) and
 // destination types are specified.
-template<typename RegisterType, typename DestinationType>
+template <typename RegisterType, typename DestinationType>
 struct RegisterReader;
 
-template<typename T>
+template <typename T>
 struct RegisterReader<Register, T> {
   static intptr_t Read(DeoptContext* context, Register reg) {
     return context->RegisterValue(reg);
   }
 };
 
-template<>
+template <>
 struct RegisterReader<FpuRegister, double> {
   static double Read(DeoptContext* context, FpuRegister reg) {
     return context->FpuRegisterValue(reg);
@@ -396,7 +374,7 @@ struct RegisterReader<FpuRegister, double> {
 };
 
 
-template<>
+template <>
 struct RegisterReader<FpuRegister, simd128_value_t> {
   static simd128_value_t Read(DeoptContext* context, FpuRegister reg) {
     return context->FpuRegisterValueAsSimd128(reg);
@@ -407,7 +385,7 @@ struct RegisterReader<FpuRegister, simd128_value_t> {
 // Class that encapsulates reading and writing of values that were either in
 // the registers in the optimized code or were spilled from those registers
 // to the stack.
-template<typename RegisterType>
+template <typename RegisterType>
 class RegisterSource {
  public:
   enum Kind {
@@ -418,20 +396,19 @@ class RegisterSource {
   };
 
   explicit RegisterSource(intptr_t source_index)
-      : source_index_(source_index) { }
+      : source_index_(source_index) {}
 
   RegisterSource(Kind kind, intptr_t index)
-      : source_index_(KindField::encode(kind) | RawIndexField::encode(index)) {
-  }
+      : source_index_(KindField::encode(kind) | RawIndexField::encode(index)) {}
 
-  template<typename T>
+  template <typename T>
   T Value(DeoptContext* context) const {
     if (is_register()) {
-      return static_cast<T>(RegisterReader<RegisterType, T>::Read(
-        context, reg()));
+      return static_cast<T>(
+          RegisterReader<RegisterType, T>::Read(context, reg()));
     } else {
-      return *reinterpret_cast<T*>(context->GetSourceFrameAddressAt(
-          raw_index()));
+      return *reinterpret_cast<T*>(
+          context->GetSourceFrameAddressAt(raw_index()));
     }
   }
 
@@ -441,15 +418,14 @@ class RegisterSource {
     if (is_register()) {
       return Name(reg());
     } else {
-      return Thread::Current()->zone()->PrintToString(
-          "s%" Pd "", raw_index());
+      return Thread::Current()->zone()->PrintToString("s%" Pd "", raw_index());
     }
   }
 
  private:
-  class KindField : public BitField<intptr_t, intptr_t, 0, 1> { };
-  class RawIndexField :
-      public BitField<intptr_t, intptr_t, 1, kBitsPerWord - 1> { };
+  class KindField : public BitField<intptr_t, intptr_t, 0, 1> {};
+  class RawIndexField
+      : public BitField<intptr_t, intptr_t, 1, kBitsPerWord - 1> {};
 
   bool is_register() const {
     return KindField::decode(source_index_) == kRegister;
@@ -458,9 +434,7 @@ class RegisterSource {
 
   RegisterType reg() const { return static_cast<RegisterType>(raw_index()); }
 
-  static const char* Name(Register reg) {
-    return Assembler::RegisterName(reg);
-  }
+  static const char* Name(Register reg) { return Assembler::RegisterName(reg); }
 
   static const char* Name(FpuRegister fpu_reg) {
     return Assembler::FpuRegisterName(fpu_reg);
@@ -525,8 +499,9 @@ class DeoptInfoBuilder : public ValueObject {
   class TrieNode;
 
   CpuRegisterSource ToCpuRegisterSource(const Location& loc);
-  FpuRegisterSource ToFpuRegisterSource(const Location& loc,
-                                      Location::Kind expected_stack_slot_kind);
+  FpuRegisterSource ToFpuRegisterSource(
+      const Location& loc,
+      Location::Kind expected_stack_slot_kind);
 
   intptr_t FindOrAddObjectInTable(const Object& obj) const;
   intptr_t FindMaterialization(MaterializeObjectInstr* mat) const;
@@ -591,13 +566,11 @@ class DeoptTable : public AllStatic {
 
   static RawSmi* EncodeReasonAndFlags(ICData::DeoptReasonId reason,
                                       uint32_t flags) {
-    return Smi::New(ReasonField::encode(reason) |
-                    FlagsField::encode(flags));
+    return Smi::New(ReasonField::encode(reason) | FlagsField::encode(flags));
   }
 
-  class ReasonField :
-      public BitField<intptr_t, ICData::DeoptReasonId, 0, 8> { };
-  class FlagsField : public BitField<intptr_t, uint32_t, 8, 8> { };
+  class ReasonField : public BitField<intptr_t, ICData::DeoptReasonId, 0, 8> {};
+  class FlagsField : public BitField<intptr_t, uint32_t, 8, 8> {};
 
  private:
   static const intptr_t kEntrySize = 3;

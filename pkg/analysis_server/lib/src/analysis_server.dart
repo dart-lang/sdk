@@ -37,6 +37,7 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as nd;
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as nd;
+import 'package:analyzer/src/dart/analysis/status.dart' as nd;
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -317,7 +318,9 @@ class AnalysisServer {
    */
   PubSummaryManager pubSummaryManager;
 
+  nd.PerformanceLog _analysisPerformanceLogger;
   ByteStore byteStore;
+  nd.AnalysisDriverScheduler analysisDriverScheduler;
 
   /**
    * The set of the files that are currently priority.
@@ -363,10 +366,15 @@ class AnalysisServer {
         options.finerGrainedInvalidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
+    _analysisPerformanceLogger = new nd.PerformanceLog(io.stdout);
     byteStore = new MemoryCachingByteStore(
         new FileByteStore(
             resourceProvider.getStateLocation('.analysis-driver')),
-        1024);
+        64 * 1024 * 1024);
+    analysisDriverScheduler =
+        new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
+    analysisDriverScheduler.status.listen(sendStatusNotificationNew);
+    analysisDriverScheduler.start();
     if (useSingleContextManager) {
       contextManager = new SingleContextManager(resourceProvider, sdkManager,
           packageResolverProvider, analyzedFilesGlobs, defaultContextOptions);
@@ -576,7 +584,7 @@ class AnalysisServer {
   nd.AnalysisDriver getAnalysisDriver(String path) {
     Iterable<nd.AnalysisDriver> drivers = driverMap.values;
     if (drivers.isNotEmpty) {
-      return drivers.firstWhere((driver) => driver.isAddedFile(path),
+      return drivers.firstWhere((driver) => driver.knownFiles.contains(path),
           orElse: () => drivers.first);
     }
     return null;
@@ -1119,6 +1127,25 @@ class AnalysisServer {
   }
 
   /**
+   * Send status notification to the client. The `operation` is the operation
+   * being performed or `null` if analysis is complete.
+   */
+  void sendStatusNotificationNew(nd.AnalysisStatus status) {
+    // Only send status when subscribed.
+    if (!serverServices.contains(ServerService.STATUS)) {
+      return;
+    }
+    // Only send status when it changes
+    if (statusAnalyzing == status.isAnalyzing) {
+      return;
+    }
+    statusAnalyzing = status.isAnalyzing;
+    AnalysisStatus analysis = new AnalysisStatus(status.isAnalyzing);
+    channel.sendNotification(
+        new ServerStatusParams(analysis: analysis).toNotification());
+  }
+
+  /**
    * Implementation for `analysis.setAnalysisRoots`.
    *
    * TODO(scheglov) implement complete projects/contexts semantics.
@@ -1153,7 +1180,7 @@ class AnalysisServer {
             subscriptions.values.expand((files) => files).toSet();
         for (String file in allNewFiles) {
           nd.AnalysisDriver driver = drivers.firstWhere(
-              (driver) => driver.isAddedFile(file),
+              (driver) => driver.addedFiles.contains(file),
               orElse: () => drivers.first);
           // The result will be produced by the "results" stream with
           // the fully resolved unit, and processed with sending analysis
@@ -1748,7 +1775,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       context.dispose();
     }
     nd.AnalysisDriver analysisDriver = new nd.AnalysisDriver(
-        new nd.PerformanceLog(io.stdout),
+        analysisServer.analysisDriverScheduler,
+        analysisServer._analysisPerformanceLogger,
         resourceProvider,
         analysisServer.byteStore,
         analysisServer.fileContentOverlay,
@@ -1765,25 +1793,30 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       _runDelayed(() {
         new_sendErrorNotification(analysisServer, result);
       });
+      String path = result.path;
       CompilationUnit unit = result.unit;
       if (unit != null) {
         if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.HIGHLIGHTS, result.path)) {
+            AnalysisService.HIGHLIGHTS, path)) {
           _runDelayed(() {
-            sendAnalysisNotificationHighlights(
-                analysisServer, result.path, unit);
+            sendAnalysisNotificationHighlights(analysisServer, path, unit);
           });
         }
         if (analysisServer._hasAnalysisServiceSubscription(
-            AnalysisService.NAVIGATION, result.path)) {
+            AnalysisService.NAVIGATION, path)) {
           _runDelayed(() {
             new_sendDartNotificationNavigation(analysisServer, result);
+          });
+        }
+        if (analysisServer._hasAnalysisServiceSubscription(
+            AnalysisService.OVERRIDES, path)) {
+          _runDelayed(() {
+            sendAnalysisNotificationOverrides(analysisServer, path, unit);
           });
         }
       }
       // TODO(scheglov) Implement more notifications.
       // IMPLEMENTED
-      // OVERRIDES
       // OCCURRENCES (not used in IDEA)
       // OUTLINE (not used in IDEA)
     });
@@ -1879,15 +1912,21 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
-    AnalysisContext context = analysisServer.folderMap.remove(folder);
-    sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
+    if (analysisServer.options.enableNewAnalysisDriver) {
+      sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
+      nd.AnalysisDriver driver = analysisServer.driverMap.remove(folder);
+      driver.dispose();
+    } else {
+      AnalysisContext context = analysisServer.folderMap.remove(folder);
+      sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
 
-    analysisServer.operationQueue.contextRemoved(context);
-    analysisServer._onContextsChangedController
-        .add(new ContextsChangedEvent(removed: [context]));
-    analysisServer.sendContextAnalysisDoneNotifications(
-        context, AnalysisDoneReason.CONTEXT_REMOVED);
-    context.dispose();
+      analysisServer.operationQueue.contextRemoved(context);
+      analysisServer._onContextsChangedController
+          .add(new ContextsChangedEvent(removed: [context]));
+      analysisServer.sendContextAnalysisDoneNotifications(
+          context, AnalysisDoneReason.CONTEXT_REMOVED);
+      context.dispose();
+    }
   }
 
   @override

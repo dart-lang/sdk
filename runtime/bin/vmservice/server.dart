@@ -338,7 +338,7 @@ class Server {
     }
 
     // Shutdown HTTP server and subscription.
-    String oldServerAddress = serverAddress;
+    Uri oldServerAddress = serverAddress;
     return cleanup(forced).then((_) {
       print('Observatory no longer listening on $oldServerAddress');
       _server = null;

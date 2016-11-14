@@ -5395,8 +5395,7 @@ class _ElementComparer extends GeneralizingElementVisitor {
   @override
   void visitElement(Element element) {
     Element previousElement = previousElements[element];
-    bool expectIdentical = element is! LocalVariableElement;
-    bool ok = expectIdentical
+    bool ok = _expectedIdentical(element)
         ? identical(previousElement, element)
         : previousElement == element;
     if (!ok) {
@@ -5413,6 +5412,23 @@ class _ElementComparer extends GeneralizingElementVisitor {
       }
     }
     super.visitElement(element);
+  }
+
+  /**
+   * Return `true` if the given [element] should be the same as the previous
+   * element at the same position in the element model.
+   */
+  static bool _expectedIdentical(Element element) {
+    while (element != null) {
+      if (element is ConstructorElement ||
+          element is MethodElement ||
+          element is FunctionElement &&
+              element.enclosingElement is CompilationUnitElement) {
+        return false;
+      }
+      element = element.enclosingElement;
+    }
+    return true;
   }
 }
 

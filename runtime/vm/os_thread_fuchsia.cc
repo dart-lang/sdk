@@ -16,9 +16,9 @@
 
 namespace dart {
 
-#define VALIDATE_PTHREAD_RESULT(result) \
-  if (result != 0) { \
-    FATAL1("pthread error: %d", result); \
+#define VALIDATE_PTHREAD_RESULT(result)                                        \
+  if (result != 0) {                                                           \
+    FATAL1("pthread error: %d", result);                                       \
   }
 
 
@@ -31,16 +31,13 @@ namespace dart {
 
 
 #ifdef DEBUG
-#define RETURN_ON_PTHREAD_FAILURE(result) \
-  if (result != 0) { \
-    const int kBufferSize = 1024; \
-    char error_buf[kBufferSize]; \
-    fprintf(stderr, "%s:%d: pthread error: %d\n", \
-            __FILE__, __LINE__, result); \
-    return result; \
+#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
+  if (result != 0) {                                                           \
+    fprintf(stderr, "%s:%d: pthread error: %d\n", __FILE__, __LINE__, result); \
+    return result;                                                             \
   }
 #else
-#define RETURN_ON_PTHREAD_FAILURE(result) \
+#define RETURN_ON_PTHREAD_FAILURE(result)                                      \
   if (result != 0) return result;
 #endif
 

@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 abstract class Window {
   final int document;
@@ -19,6 +18,7 @@ class _DOMWindowJs implements Window {
 class Win implements Window {}
 
 main() {
+  nativeTesting();
   // By typing this variable to 'Window', Frog will optimize calls on
   // it.
   Window win = new Win();

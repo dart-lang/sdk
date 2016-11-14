@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
+import 'native_testing.dart';
+import 'dart:_js_helper' show setNativeSubclassDispatchRecord;
 import 'dart:_interceptors' show findInterceptorForType;
 
 // Test calling convention of methods introduced on subclasses of native
@@ -37,6 +37,7 @@ getBPrototype = function(){return B.prototype;};
 """;
 
 main() {
+  nativeTesting();
   setup();
 
   setNativeSubclassDispatchRecord(getBPrototype(), findInterceptorForType(B));

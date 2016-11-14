@@ -117,8 +117,20 @@ const _Protected protected = const _Protected();
 ///   corresponding to a named parameter that has this annotation.
 const Required required = const Required();
 
-/// Used to annotate a field is allowed to be overridden in Strong Mode.
+/// Used to annotate a field that is allowed to be overridden in Strong Mode.
 const _Virtual virtual = const _Virtual();
+
+/// Used to annotate an instance member that was made public so that it could be
+/// overridden but that is not intended to be referenced from outside the
+/// defining library.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with a declaration other than a public
+///   instance member in a class, or
+/// * the member is referenced outside of the defining library.
+const _VisibleForOverriding visibleForOverriding =
+    const _VisibleForOverriding();
 
 /// Used to annotate a declaration was made public, so that it is more visible
 /// than otherwise necessary, to make code testable.
@@ -188,6 +200,10 @@ class _Protected {
 
 class _Virtual {
   const _Virtual();
+}
+
+class _VisibleForOverriding {
+  const _VisibleForOverriding();
 }
 
 class _VisibleForTesting {

@@ -382,9 +382,11 @@ void set zzz(_) {}
 
   void test_invalid_functionDeclaration_getter_inFunction() {
     String code = r'''
-main() {
-  int get zzz => 42;
-}
+var v = (() {
+  main() {
+    int get zzz => 42;
+  }
+});
 ''';
     CompilationUnit unit = resolveSource(code);
     FunctionElement getterElement =
@@ -397,9 +399,11 @@ main() {
 
   void test_invalid_functionDeclaration_setter_inFunction() {
     String code = r'''
-main() {
-  set zzz(x) {}
-}
+var v = (() {
+  main() {
+    set zzz(x) {}
+  }
+});
 ''';
     CompilationUnit unit = resolveSource(code);
     FunctionElement setterElement =

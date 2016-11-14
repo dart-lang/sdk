@@ -74,6 +74,7 @@ import 'enqueuer.dart';
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import '../kernel/task.dart';
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'mirrors_analysis.dart';
 import 'namer.dart';
 import 'native_data.dart' show NativeData;
 import 'no_such_method_registry.dart';
@@ -336,18 +337,19 @@ class JavaScriptBackend extends Backend {
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
   MethodElement traceHelper;
 
-  TypeMask get stringType => compiler.commonMasks.stringType;
-  TypeMask get doubleType => compiler.commonMasks.doubleType;
-  TypeMask get intType => compiler.commonMasks.intType;
-  TypeMask get uint32Type => compiler.commonMasks.uint32Type;
-  TypeMask get uint31Type => compiler.commonMasks.uint31Type;
-  TypeMask get positiveIntType => compiler.commonMasks.positiveIntType;
-  TypeMask get numType => compiler.commonMasks.numType;
-  TypeMask get boolType => compiler.commonMasks.boolType;
-  TypeMask get dynamicType => compiler.commonMasks.dynamicType;
-  TypeMask get nullType => compiler.commonMasks.nullType;
+  TypeMask get stringType => compiler.closedWorld.commonMasks.stringType;
+  TypeMask get doubleType => compiler.closedWorld.commonMasks.doubleType;
+  TypeMask get intType => compiler.closedWorld.commonMasks.intType;
+  TypeMask get uint32Type => compiler.closedWorld.commonMasks.uint32Type;
+  TypeMask get uint31Type => compiler.closedWorld.commonMasks.uint31Type;
+  TypeMask get positiveIntType =>
+      compiler.closedWorld.commonMasks.positiveIntType;
+  TypeMask get numType => compiler.closedWorld.commonMasks.numType;
+  TypeMask get boolType => compiler.closedWorld.commonMasks.boolType;
+  TypeMask get dynamicType => compiler.closedWorld.commonMasks.dynamicType;
+  TypeMask get nullType => compiler.closedWorld.commonMasks.nullType;
   TypeMask get emptyType => const TypeMask.nonNullEmpty();
-  TypeMask get nonNullType => compiler.commonMasks.nonNullType;
+  TypeMask get nonNullType => compiler.closedWorld.commonMasks.nonNullType;
 
   TypeMask _indexablePrimitiveTypeCache;
   TypeMask get indexablePrimitiveType {
@@ -518,6 +520,9 @@ class JavaScriptBackend extends Backend {
   /// True when we enqueue the loadLibrary code.
   bool isLoadLibraryFunctionResolved = false;
 
+  /// `true` if access to [BackendHelpers.invokeOnMethod] is supported.
+  bool hasInvokeOnSupport = false;
+
   /// List of constants from metadata.  If metadata must be preserved,
   /// these constants must be registered.
   final List<Dependency> metadataConstants = <Dependency>[];
@@ -571,6 +576,9 @@ class JavaScriptBackend extends Backend {
 
   /// Support for classifying `noSuchMethod` implementations.
   NoSuchMethodRegistry noSuchMethodRegistry;
+
+  /// Resolution and codegen support for computing reflectable elements.
+  MirrorsAnalysis mirrorsAnalysis;
 
   /// Builds kernel representation for the program.
   KernelTask kernelTask;
@@ -628,6 +636,7 @@ class JavaScriptBackend extends Backend {
     customElementsAnalysis = new CustomElementsAnalysis(this);
     lookupMapAnalysis = new LookupMapAnalysis(this, reporter);
     jsInteropAnalysis = new JsInteropAnalysis(this);
+    mirrorsAnalysis = new MirrorsAnalysis(this, compiler.resolution);
 
     noSuchMethodRegistry = new NoSuchMethodRegistry(this);
     kernelTask = new KernelTask(compiler);
@@ -1053,7 +1062,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void addInterceptors(ClassElement cls, Enqueuer enqueuer, Registry registry) {
+  void addInterceptors(ClassElement cls, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue) {
       _interceptedClasses.add(helpers.jsInterceptorClass);
       _interceptedClasses.add(cls);
@@ -1066,7 +1075,7 @@ class JavaScriptBackend extends Backend {
         set.add(member);
       }, includeSuperAndInjectedMembers: true);
     }
-    enqueueClass(enqueuer, cls, registry);
+    enqueueClass(enqueuer, cls);
   }
 
   Set<ClassElement> get interceptedClasses {
@@ -1159,20 +1168,17 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerInstantiatedClass(
-      ClassElement cls, Enqueuer enqueuer, Registry registry) {
-    _processClass(cls, enqueuer, registry);
+  void registerInstantiatedClass(ClassElement cls, Enqueuer enqueuer) {
+    _processClass(cls, enqueuer);
   }
 
-  void registerImplementedClass(
-      ClassElement cls, Enqueuer enqueuer, Registry registry) {
-    _processClass(cls, enqueuer, registry);
+  void registerImplementedClass(ClassElement cls, Enqueuer enqueuer) {
+    _processClass(cls, enqueuer);
   }
 
-  void _processClass(ClassElement cls, Enqueuer enqueuer, Registry registry) {
+  void _processClass(ClassElement cls, Enqueuer enqueuer) {
     if (!cls.typeVariables.isEmpty) {
-      typeVariableHandler.registerClassWithTypeVariables(
-          cls, enqueuer, registry);
+      typeVariableHandler.registerClassWithTypeVariables(cls, enqueuer);
     }
 
     // Register any helper that will be needed by the backend.
@@ -1182,33 +1188,32 @@ class JavaScriptBackend extends Backend {
           cls == coreClasses.numClass) {
         // The backend will try to optimize number operations and use the
         // `iae` helper directly.
-        enqueue(enqueuer, helpers.throwIllegalArgumentException, registry);
+        enqueue(enqueuer, helpers.throwIllegalArgumentException);
       } else if (cls == coreClasses.listClass ||
           cls == coreClasses.stringClass) {
         // The backend will try to optimize array and string access and use the
         // `ioore` and `iae` helpers directly.
-        enqueue(enqueuer, helpers.throwIndexOutOfRangeException, registry);
-        enqueue(enqueuer, helpers.throwIllegalArgumentException, registry);
+        enqueue(enqueuer, helpers.throwIndexOutOfRangeException);
+        enqueue(enqueuer, helpers.throwIllegalArgumentException);
       } else if (cls == coreClasses.functionClass) {
-        enqueueClass(enqueuer, helpers.closureClass, registry);
+        enqueueClass(enqueuer, helpers.closureClass);
       } else if (cls == coreClasses.mapClass) {
         // The backend will use a literal list to initialize the entries
         // of the map.
-        enqueueClass(enqueuer, coreClasses.listClass, registry);
-        enqueueClass(enqueuer, helpers.mapLiteralClass, registry);
+        enqueueClass(enqueuer, coreClasses.listClass);
+        enqueueClass(enqueuer, helpers.mapLiteralClass);
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
         rti.registerRtiDependency(helpers.mapLiteralClass, cls);
       } else if (cls == helpers.boundClosureClass) {
         // TODO(johnniwinther): Is this a noop?
-        enqueueClass(enqueuer, helpers.boundClosureClass, registry);
+        enqueueClass(enqueuer, helpers.boundClosureClass);
       } else if (isNativeOrExtendsNative(cls)) {
-        enqueue(enqueuer, helpers.getNativeInterceptorMethod, registry);
-        enqueueClass(
-            enqueuer, helpers.jsInterceptorClass, compiler.globalDependencies);
-        enqueueClass(enqueuer, helpers.jsJavaScriptObjectClass, registry);
-        enqueueClass(enqueuer, helpers.jsPlainJavaScriptObjectClass, registry);
-        enqueueClass(enqueuer, helpers.jsJavaScriptFunctionClass, registry);
+        enqueue(enqueuer, helpers.getNativeInterceptorMethod);
+        enqueueClass(enqueuer, helpers.jsInterceptorClass);
+        enqueueClass(enqueuer, helpers.jsJavaScriptObjectClass);
+        enqueueClass(enqueuer, helpers.jsPlainJavaScriptObjectClass);
+        enqueueClass(enqueuer, helpers.jsJavaScriptFunctionClass);
       } else if (cls == helpers.mapLiteralClass) {
         // For map literals, the dependency between the implementation class
         // and [Map] is not visible, so we have to add it manually.
@@ -1245,70 +1250,71 @@ class JavaScriptBackend extends Backend {
 
         helpers.mapLiteralConstructor = getFactory('_literal', 1);
         helpers.mapLiteralConstructorEmpty = getFactory('_empty', 0);
-        enqueueInResolution(helpers.mapLiteralConstructor, registry);
-        enqueueInResolution(helpers.mapLiteralConstructorEmpty, registry);
+        enqueue(enqueuer, helpers.mapLiteralConstructor);
+        enqueue(enqueuer, helpers.mapLiteralConstructorEmpty);
 
         helpers.mapLiteralUntypedMaker = getMember('_makeLiteral');
         helpers.mapLiteralUntypedEmptyMaker = getMember('_makeEmpty');
-        enqueueInResolution(helpers.mapLiteralUntypedMaker, registry);
-        enqueueInResolution(helpers.mapLiteralUntypedEmptyMaker, registry);
+        enqueue(enqueuer, helpers.mapLiteralUntypedMaker);
+        enqueue(enqueuer, helpers.mapLiteralUntypedEmptyMaker);
       }
     }
     if (cls == helpers.closureClass) {
-      enqueue(enqueuer, helpers.closureFromTearOff, registry);
+      enqueue(enqueuer, helpers.closureFromTearOff);
     }
     if (cls == coreClasses.stringClass || cls == helpers.jsStringClass) {
-      addInterceptors(helpers.jsStringClass, enqueuer, registry);
+      addInterceptors(helpers.jsStringClass, enqueuer);
     } else if (cls == coreClasses.listClass ||
         cls == helpers.jsArrayClass ||
         cls == helpers.jsFixedArrayClass ||
         cls == helpers.jsExtendableArrayClass ||
         cls == helpers.jsUnmodifiableArrayClass) {
-      addInterceptors(helpers.jsArrayClass, enqueuer, registry);
-      addInterceptors(helpers.jsMutableArrayClass, enqueuer, registry);
-      addInterceptors(helpers.jsFixedArrayClass, enqueuer, registry);
-      addInterceptors(helpers.jsExtendableArrayClass, enqueuer, registry);
-      addInterceptors(helpers.jsUnmodifiableArrayClass, enqueuer, registry);
-      // Literal lists can be translated into calls to these functions:
-      enqueueInResolution(helpers.jsArrayTypedConstructor, registry);
-      enqueueInResolution(helpers.setRuntimeTypeInfo, registry);
-      enqueueInResolution(helpers.getTypeArgumentByIndex, registry);
+      addInterceptors(helpers.jsArrayClass, enqueuer);
+      addInterceptors(helpers.jsMutableArrayClass, enqueuer);
+      addInterceptors(helpers.jsFixedArrayClass, enqueuer);
+      addInterceptors(helpers.jsExtendableArrayClass, enqueuer);
+      addInterceptors(helpers.jsUnmodifiableArrayClass, enqueuer);
+      if (enqueuer.isResolutionQueue) {
+        // Literal lists can be translated into calls to these functions:
+        enqueue(enqueuer, helpers.jsArrayTypedConstructor);
+        enqueue(enqueuer, helpers.setRuntimeTypeInfo);
+        enqueue(enqueuer, helpers.getTypeArgumentByIndex);
+      }
     } else if (cls == coreClasses.intClass || cls == helpers.jsIntClass) {
-      addInterceptors(helpers.jsIntClass, enqueuer, registry);
-      addInterceptors(helpers.jsPositiveIntClass, enqueuer, registry);
-      addInterceptors(helpers.jsUInt32Class, enqueuer, registry);
-      addInterceptors(helpers.jsUInt31Class, enqueuer, registry);
-      addInterceptors(helpers.jsNumberClass, enqueuer, registry);
+      addInterceptors(helpers.jsIntClass, enqueuer);
+      addInterceptors(helpers.jsPositiveIntClass, enqueuer);
+      addInterceptors(helpers.jsUInt32Class, enqueuer);
+      addInterceptors(helpers.jsUInt31Class, enqueuer);
+      addInterceptors(helpers.jsNumberClass, enqueuer);
     } else if (cls == coreClasses.doubleClass || cls == helpers.jsDoubleClass) {
-      addInterceptors(helpers.jsDoubleClass, enqueuer, registry);
-      addInterceptors(helpers.jsNumberClass, enqueuer, registry);
+      addInterceptors(helpers.jsDoubleClass, enqueuer);
+      addInterceptors(helpers.jsNumberClass, enqueuer);
     } else if (cls == coreClasses.boolClass || cls == helpers.jsBoolClass) {
-      addInterceptors(helpers.jsBoolClass, enqueuer, registry);
+      addInterceptors(helpers.jsBoolClass, enqueuer);
     } else if (cls == coreClasses.nullClass || cls == helpers.jsNullClass) {
-      addInterceptors(helpers.jsNullClass, enqueuer, registry);
+      addInterceptors(helpers.jsNullClass, enqueuer);
     } else if (cls == coreClasses.numClass || cls == helpers.jsNumberClass) {
-      addInterceptors(helpers.jsIntClass, enqueuer, registry);
-      addInterceptors(helpers.jsPositiveIntClass, enqueuer, registry);
-      addInterceptors(helpers.jsUInt32Class, enqueuer, registry);
-      addInterceptors(helpers.jsUInt31Class, enqueuer, registry);
-      addInterceptors(helpers.jsDoubleClass, enqueuer, registry);
-      addInterceptors(helpers.jsNumberClass, enqueuer, registry);
+      addInterceptors(helpers.jsIntClass, enqueuer);
+      addInterceptors(helpers.jsPositiveIntClass, enqueuer);
+      addInterceptors(helpers.jsUInt32Class, enqueuer);
+      addInterceptors(helpers.jsUInt31Class, enqueuer);
+      addInterceptors(helpers.jsDoubleClass, enqueuer);
+      addInterceptors(helpers.jsNumberClass, enqueuer);
     } else if (cls == helpers.jsJavaScriptObjectClass) {
-      addInterceptors(helpers.jsJavaScriptObjectClass, enqueuer, registry);
+      addInterceptors(helpers.jsJavaScriptObjectClass, enqueuer);
     } else if (cls == helpers.jsPlainJavaScriptObjectClass) {
-      addInterceptors(helpers.jsPlainJavaScriptObjectClass, enqueuer, registry);
+      addInterceptors(helpers.jsPlainJavaScriptObjectClass, enqueuer);
     } else if (cls == helpers.jsUnknownJavaScriptObjectClass) {
-      addInterceptors(
-          helpers.jsUnknownJavaScriptObjectClass, enqueuer, registry);
+      addInterceptors(helpers.jsUnknownJavaScriptObjectClass, enqueuer);
     } else if (cls == helpers.jsJavaScriptFunctionClass) {
-      addInterceptors(helpers.jsJavaScriptFunctionClass, enqueuer, registry);
+      addInterceptors(helpers.jsJavaScriptFunctionClass, enqueuer);
     } else if (isNativeOrExtendsNative(cls)) {
       addInterceptorsForNativeClassMembers(cls, enqueuer);
     } else if (cls == helpers.jsIndexingBehaviorInterface) {
       // These two helpers are used by the emitter and the codegen.
       // Because we cannot enqueue elements at the time of emission,
       // we make sure they are always generated.
-      enqueue(enqueuer, helpers.isJsIndexable, registry);
+      enqueue(enqueuer, helpers.isJsIndexable);
     }
 
     customElementsAnalysis.registerInstantiatedClass(cls,
@@ -1318,27 +1324,23 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerInstantiatedType(
-      InterfaceType type, Enqueuer enqueuer, Registry registry,
-      {bool mirrorUsage: false}) {
+  void registerInstantiatedType(InterfaceType type) {
     lookupMapAnalysis.registerInstantiatedType(type);
-    super.registerInstantiatedType(type, enqueuer, registry,
-        mirrorUsage: mirrorUsage);
   }
 
-  void enqueueHelpers(ResolutionEnqueuer world, Registry registry) {
+  void enqueueHelpers(ResolutionEnqueuer enqueuer) {
     assert(helpers.interceptorsLibrary != null);
     // TODO(ngeoffray): Not enqueuing those two classes currently make
     // the compiler potentially crash. However, any reasonable program
     // will instantiate those two classes.
-    addInterceptors(helpers.jsBoolClass, world, registry);
-    addInterceptors(helpers.jsNullClass, world, registry);
+    addInterceptors(helpers.jsBoolClass, enqueuer);
+    addInterceptors(helpers.jsNullClass, enqueuer);
     if (compiler.options.enableTypeAssertions) {
       // Unconditionally register the helper that checks if the
       // expression in an if/while/for is a boolean.
       // TODO(ngeoffray): Should we have the resolver register those instead?
       Element e = helpers.boolConversionCheck;
-      if (e != null) enqueue(world, e, registry);
+      if (e != null) enqueue(enqueuer, e);
     }
 
     if (TRACE_CALLS) {
@@ -1346,10 +1348,10 @@ class JavaScriptBackend extends Backend {
           ? helpers.consoleTraceHelper
           : helpers.postTraceHelper;
       assert(traceHelper != null);
-      enqueueInResolution(traceHelper, registry);
+      enqueue(enqueuer, traceHelper);
     }
-    enqueueInResolution(helpers.assertUnreachableMethod, registry);
-    registerCheckedModeHelpers(registry);
+    enqueue(enqueuer, helpers.assertUnreachableMethod);
+    registerCheckedModeHelpers(enqueuer);
   }
 
   onResolutionComplete() {
@@ -1364,53 +1366,47 @@ class JavaScriptBackend extends Backend {
     noSuchMethodRegistry.onTypeInferenceComplete();
   }
 
-  void registerGetRuntimeTypeArgument(Registry registry) {
-    enqueueImpact(
-        compiler.enqueuer.resolution, impacts.getRuntimeTypeArgument, registry);
+  void registerGetRuntimeTypeArgument() {
+    enqueueImpact(compiler.enqueuer.resolution, impacts.getRuntimeTypeArgument);
   }
 
   void registerCallMethodWithFreeTypeVariables(
-      Element callMethod, Enqueuer enqueuer, Registry registry) {
+      Element callMethod, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue || methodNeedsRti(callMethod)) {
-      registerComputeSignature(enqueuer, registry);
+      registerComputeSignature(enqueuer);
     }
   }
 
   void registerClosureWithFreeTypeVariables(
-      Element closure, Enqueuer enqueuer, Registry registry) {
+      Element closure, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue || methodNeedsRti(closure)) {
-      registerComputeSignature(enqueuer, registry);
+      registerComputeSignature(enqueuer);
     }
   }
 
   void registerBoundClosure(Enqueuer enqueuer) {
     helpers.boundClosureClass.ensureResolved(resolution);
-    registerInstantiatedType(
-        helpers.boundClosureClass.rawType,
-        enqueuer,
-        // Precise dependency is not important here.
-        compiler.globalDependencies);
+    enqueuer.registerInstantiatedType(helpers.boundClosureClass.rawType);
   }
 
   void registerGetOfStaticFunction(Enqueuer enqueuer) {
     helpers.closureClass.ensureResolved(resolution);
-    registerInstantiatedType(
-        helpers.closureClass.rawType, enqueuer, compiler.globalDependencies);
+    enqueuer.registerInstantiatedType(helpers.closureClass.rawType);
   }
 
-  void registerComputeSignature(Enqueuer enqueuer, Registry registry) {
+  void registerComputeSignature(Enqueuer enqueuer) {
     // Calls to [:computeSignature:] are generated by the emitter and we
     // therefore need to enqueue the used elements in the codegen enqueuer as
     // well as in the resolution enqueuer.
-    enqueueImpact(enqueuer, impacts.computeSignature, registry);
+    enqueueImpact(enqueuer, impacts.computeSignature);
   }
 
-  void registerRuntimeType(Enqueuer enqueuer, Registry registry) {
-    registerComputeSignature(enqueuer, registry);
-    enqueueInResolution(helpers.setRuntimeTypeInfo, registry);
-    registerGetRuntimeTypeArgument(registry);
-    enqueueInResolution(helpers.getRuntimeTypeInfo, registry);
-    enqueueClass(enqueuer, coreClasses.listClass, registry);
+  void registerRuntimeType(ResolutionEnqueuer enqueuer) {
+    registerComputeSignature(enqueuer);
+    enqueue(enqueuer, helpers.setRuntimeTypeInfo);
+    registerGetRuntimeTypeArgument();
+    enqueue(enqueuer, helpers.getRuntimeTypeInfo);
+    enqueueClass(enqueuer, coreClasses.listClass);
   }
 
   void registerTypeVariableBoundsSubtypeCheck(
@@ -1418,11 +1414,10 @@ class JavaScriptBackend extends Backend {
     rti.registerTypeVariableBoundsSubtypeCheck(typeArgument, bound);
   }
 
-  void registerCheckDeferredIsLoaded(Registry registry) {
-    enqueueInResolution(helpers.checkDeferredIsLoaded, registry);
+  void registerCheckDeferredIsLoaded(ResolutionEnqueuer enqueuer) {
+    enqueue(enqueuer, helpers.checkDeferredIsLoaded);
     // Also register the types of the arguments passed to this method.
-    enqueueClass(
-        compiler.enqueuer.resolution, coreClasses.stringClass, registry);
+    enqueueClass(enqueuer, coreClasses.stringClass);
   }
 
   void registerNoSuchMethod(FunctionElement noSuchMethod) {
@@ -1464,7 +1459,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void enableNoSuchMethod(Enqueuer world) {
-    enqueue(world, helpers.createInvocationMirror, compiler.globalDependencies);
+    enqueue(world, helpers.createInvocationMirror);
     world.registerDynamicUse(new DynamicUse(Selectors.noSuchMethod_, null));
   }
 
@@ -1498,13 +1493,13 @@ class JavaScriptBackend extends Backend {
   }
 
   bool classNeedsRti(ClassElement cls) {
-    if (compiler.enabledRuntimeType) return true;
+    if (compiler.resolverWorld.hasRuntimeTypeSupport) return true;
     return rti.classesNeedingRti.contains(cls.declaration);
   }
 
   bool classNeedsRtiField(ClassElement cls) {
     if (cls.rawType.typeArguments.isEmpty) return false;
-    if (compiler.enabledRuntimeType) return true;
+    if (compiler.resolverWorld.hasRuntimeTypeSupport) return true;
     return rti.classesNeedingRti.contains(cls.declaration);
   }
 
@@ -1521,32 +1516,23 @@ class JavaScriptBackend extends Backend {
 
   bool methodNeedsRti(FunctionElement function) {
     return rti.methodsNeedingRti.contains(function) ||
-        compiler.enabledRuntimeType;
+        compiler.resolverWorld.hasRuntimeTypeSupport;
   }
 
   /// Enqueue [e] in [enqueuer].
   ///
   /// This method calls [registerBackendUse].
-  void enqueue(Enqueuer enqueuer, Element e, Registry registry) {
+  void enqueue(Enqueuer enqueuer, Element e) {
     if (e == null) return;
     registerBackendUse(e);
     enqueuer.addToWorkList(e);
-    registry.registerDependency(e);
-  }
-
-  /// Enqueue [e] in the resolution enqueuer.
-  ///
-  /// This method calls [registerBackendUse].
-  void enqueueInResolution(Element e, Registry registry) {
-    if (e == null) return;
-    ResolutionEnqueuer enqueuer = compiler.enqueuer.resolution;
-    enqueue(enqueuer, e, registry);
+    compiler.globalDependencies.registerDependency(e);
   }
 
   /// Register instantiation of [cls] in [enqueuer].
   ///
   /// This method calls [registerBackendUse].
-  void enqueueClass(Enqueuer enqueuer, ClassElement cls, Registry registry) {
+  void enqueueClass(Enqueuer enqueuer, ClassElement cls) {
     if (cls == null) return;
     registerBackendUse(cls);
     helpersUsed.add(cls.declaration);
@@ -1554,13 +1540,13 @@ class JavaScriptBackend extends Backend {
       helpersUsed.add(cls.implementation);
     }
     cls.ensureResolved(resolution);
-    registerInstantiatedType(cls.rawType, enqueuer, registry);
+    enqueuer.registerInstantiatedType(cls.rawType);
   }
 
   /// Register instantiation of [type] in [enqueuer].
   ///
   /// This method calls [registerBackendUse].
-  void enqueueType(Enqueuer enqueuer, InterfaceType type, Registry registry) {
+  void enqueueType(Enqueuer enqueuer, InterfaceType type) {
     if (type == null) return;
     ClassElement cls = type.element;
     registerBackendUse(cls);
@@ -1569,29 +1555,29 @@ class JavaScriptBackend extends Backend {
       helpersUsed.add(cls.implementation);
     }
     cls.ensureResolved(resolution);
-    registerInstantiatedType(type, enqueuer, registry);
+    enqueuer.registerInstantiatedType(type);
   }
 
-  void enqueueImpact(
-      Enqueuer enqueuer, BackendImpact impact, Registry registry) {
+  void enqueueImpact(Enqueuer enqueuer, BackendImpact impact) {
     for (Element staticUse in impact.staticUses) {
-      enqueue(enqueuer, staticUse, registry);
+      enqueue(enqueuer, staticUse);
     }
     for (InterfaceType type in impact.instantiatedTypes) {
-      enqueueType(enqueuer, type, registry);
+      enqueueType(enqueuer, type);
     }
     for (ClassElement cls in impact.instantiatedClasses) {
-      enqueueClass(enqueuer, cls, registry);
+      enqueueClass(enqueuer, cls);
     }
     for (BackendImpact otherImpact in impact.otherImpacts) {
-      enqueueImpact(enqueuer, otherImpact, registry);
+      enqueueImpact(enqueuer, otherImpact);
     }
   }
 
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
 
-  CodegenEnqueuer createCodegenEnqueuer(Compiler compiler) {
-    return new CodegenEnqueuer(compiler, const TreeShakingEnqueuerStrategy());
+  CodegenEnqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler) {
+    return new CodegenEnqueuer(
+        task, compiler, const TreeShakingEnqueuerStrategy());
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -1665,12 +1651,12 @@ class JavaScriptBackend extends Backend {
     return worldImpact;
   }
 
-  native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
-    return new native.NativeResolutionEnqueuer(world, compiler);
+  native.NativeEnqueuer nativeResolutionEnqueuer() {
+    return new native.NativeResolutionEnqueuer(compiler);
   }
 
-  native.NativeEnqueuer nativeCodegenEnqueuer(Enqueuer world) {
-    return new native.NativeCodegenEnqueuer(world, compiler, emitter);
+  native.NativeEnqueuer nativeCodegenEnqueuer() {
+    return new native.NativeCodegenEnqueuer(compiler, emitter);
   }
 
   ClassElement defaultSuperclass(ClassElement element) {
@@ -1870,11 +1856,11 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void registerCheckedModeHelpers(Registry registry) {
+  void registerCheckedModeHelpers(ResolutionEnqueuer enqueuer) {
     // We register all the helpers in the resolution queue.
     // TODO(13155): Find a way to register fewer helpers.
     for (CheckedModeHelper helper in checkedModeHelpers) {
-      enqueueInResolution(helper.getStaticUse(compiler).element, registry);
+      enqueue(enqueuer, helper.getStaticUse(compiler).element);
     }
   }
 
@@ -1906,7 +1892,7 @@ class JavaScriptBackend extends Backend {
     return compiler.closedWorld.hasOnlySubclasses(classElement);
   }
 
-  void registerStaticUse(Element element, {bool forResolution}) {
+  void registerStaticUse(Enqueuer enqueuer, Element element) {
     if (element == helpers.disableTreeShakingMarker) {
       isTreeShakingDisabled = true;
     } else if (element == helpers.preserveNamesMarker) {
@@ -1923,14 +1909,15 @@ class JavaScriptBackend extends Backend {
       // TODO(sigurdm): Create a function registerLoadLibraryAccess.
       if (!isLoadLibraryFunctionResolved) {
         isLoadLibraryFunctionResolved = true;
-        enqueueInResolution(
-            helpers.loadLibraryWrapper, compiler.globalDependencies);
+        if (enqueuer.isResolutionQueue) {
+          enqueue(enqueuer, helpers.loadLibraryWrapper);
+        }
       }
     } else if (element == helpers.requiresPreambleMarker) {
       requiresPreamble = true;
     }
     customElementsAnalysis.registerStaticUse(element,
-        forResolution: forResolution);
+        forResolution: enqueuer.isResolutionQueue);
   }
 
   /// Called when [:const Symbol(name):] is seen.
@@ -2360,11 +2347,13 @@ class JavaScriptBackend extends Backend {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(customElementsAnalysis.flush(
-        forResolution: enqueuer.isResolutionQueue));
     enqueuer.applyImpact(
+        compiler.impactStrategy,
+        customElementsAnalysis.flush(
+            forResolution: enqueuer.isResolutionQueue));
+    enqueuer.applyImpact(compiler.impactStrategy,
         lookupMapAnalysis.flush(forResolution: enqueuer.isResolutionQueue));
-    enqueuer.applyImpact(
+    enqueuer.applyImpact(compiler.impactStrategy,
         typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
 
     if (!enqueuer.queueIsEmpty) return false;
@@ -2395,12 +2384,14 @@ class JavaScriptBackend extends Backend {
     }
 
     if (isTreeShakingDisabled) {
-      enqueuer.enqueueReflectiveElements(recentClasses);
+      mirrorsAnalysis.enqueueReflectiveElements(
+          enqueuer, recentClasses, compiler.libraryLoader.libraries);
     } else if (!targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
       // Add all static elements (not classes) that have been requested for
       // reflection. If there is no mirror-usage these are probably not
       // necessary, but the backend relies on them being resolved.
-      enqueuer.enqueueReflectiveStaticFields(_findStaticFieldTargets());
+      mirrorsAnalysis.enqueueReflectiveStaticFields(
+          enqueuer, _findStaticFieldTargets());
     }
 
     if (mustPreserveNames) reporter.log('Preserving names.');
@@ -2436,7 +2427,7 @@ class JavaScriptBackend extends Backend {
         }
         metadataConstants.clear();
       }
-      enqueuer.applyImpact(impactBuilder.flush());
+      enqueuer.applyImpact(compiler.impactStrategy, impactBuilder.flush());
     }
     return true;
   }
@@ -2561,7 +2552,7 @@ class JavaScriptBackend extends Backend {
           "@NoSideEffects() should always be combined with @NoInline.");
     }
     if (element == helpers.invokeOnMethod) {
-      compiler.enabledInvokeOn = true;
+      hasInvokeOnSupport = true;
     }
   }
 
@@ -2607,8 +2598,9 @@ class JavaScriptBackend extends Backend {
   }
 
   @override
-  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
-    registerCheckDeferredIsLoaded(registry);
+  bool enableDeferredLoadingIfSupported(
+      ResolutionEnqueuer enqueuer, Spannable node) {
+    registerCheckDeferredIsLoaded(enqueuer);
     return true;
   }
 
@@ -2792,13 +2784,9 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
 
   BackendImpacts get impacts => backend.impacts;
 
-  // TODO(johnniwinther): Avoid this dependency.
-  ResolutionEnqueuer get resolutionEnqueuer {
-    return backend.compiler.enqueuer.resolution;
-  }
-
   @override
-  WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
+  WorldImpact transformResolutionImpact(
+      ResolutionEnqueuer enqueuer, ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
         new TransformedWorldImpact(worldImpact);
     for (Feature feature in worldImpact.features) {
@@ -2885,6 +2873,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       DartType type = typeUse.type;
       switch (typeUse.kind) {
         case TypeUseKind.INSTANTIATION:
+        case TypeUseKind.MIRROR_INSTANTIATION:
+        case TypeUseKind.NATIVE_INSTANTIATION:
           registerRequiredType(type);
           break;
         case TypeUseKind.IS_CHECK:
@@ -2965,8 +2955,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           registerBackendImpact(transformed, impacts.closure);
           LocalFunctionElement closure = staticUse.element;
           if (closure.type.containsTypeVariables) {
-            resolutionEnqueuer.universe.closuresWithFreeTypeVariables
-                .add(closure);
             registerBackendImpact(transformed, impacts.computeSignature);
           }
           break;
@@ -3002,8 +2990,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     }
 
     for (native.NativeBehavior behavior in worldImpact.nativeData) {
-      resolutionEnqueuer.nativeEnqueuer
-          .registerNativeBehavior(behavior, worldImpact);
+      enqueuer.nativeEnqueuer
+          .registerNativeBehavior(transformed, behavior, worldImpact);
     }
 
     return transformed;
@@ -3103,8 +3091,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     // need to register checked mode helpers.
     if (inCheckedMode) {
       // All helpers are added to resolution queue in enqueueHelpers. These
-      // calls to enqueueInResolution serve as assertions that the helper was
-      // in fact added.
+      // calls to [enqueue] with the resolution enqueuer serve as assertions
+      // that the helper was in fact added.
       // TODO(13155): Find a way to enqueue helpers lazily.
       CheckedModeHelper helper =
           backend.getCheckedModeHelper(type, typeCast: false);

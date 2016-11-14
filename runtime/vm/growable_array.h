@@ -17,7 +17,7 @@
 
 namespace dart {
 
-template<typename T, typename B, typename Allocator = Zone>
+template <typename T, typename B, typename Allocator = Zone>
 class BaseGrowableArray : public B {
  public:
   explicit BaseGrowableArray(Allocator* allocator)
@@ -31,9 +31,7 @@ class BaseGrowableArray : public B {
     }
   }
 
-  ~BaseGrowableArray() {
-    allocator_->template Free<T>(data_, capacity_);
-  }
+  ~BaseGrowableArray() { allocator_->template Free<T>(data_, capacity_); }
 
   intptr_t length() const { return length_; }
   T* data() const { return data_; }
@@ -63,9 +61,7 @@ class BaseGrowableArray : public B {
     return data_[index];
   }
 
-  const T& At(intptr_t index) const {
-    return operator[](index);
-  }
+  const T& At(intptr_t index) const { return operator[](index); }
 
   T& Last() const {
     ASSERT(length_ > 0);
@@ -78,9 +74,7 @@ class BaseGrowableArray : public B {
     }
   }
 
-  void Clear() {
-    length_ = 0;
-  }
+  void Clear() { length_ = 0; }
 
   void InsertAt(intptr_t idx, const T& value) {
     Resize(length() + 1);
@@ -140,15 +134,15 @@ class BaseGrowableArray : public B {
 };
 
 
-template<typename T, typename B, typename Allocator>
-inline void BaseGrowableArray<T, B, Allocator>::Sort(
-    int compare(const T*, const T*)) {
+template <typename T, typename B, typename Allocator>
+inline void BaseGrowableArray<T, B, Allocator>::Sort(int compare(const T*,
+                                                                 const T*)) {
   typedef int (*CompareFunction)(const void*, const void*);
   qsort(data_, length_, sizeof(T), reinterpret_cast<CompareFunction>(compare));
 }
 
 
-template<typename T, typename B, typename Allocator>
+template <typename T, typename B, typename Allocator>
 void BaseGrowableArray<T, B, Allocator>::Resize(intptr_t new_length) {
   if (new_length > capacity_) {
     intptr_t new_capacity = Utils::RoundUpToPowerOfTwo(new_length);
@@ -162,7 +156,7 @@ void BaseGrowableArray<T, B, Allocator>::Resize(intptr_t new_length) {
 }
 
 
-template<typename T, typename B, typename Allocator>
+template <typename T, typename B, typename Allocator>
 void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
   if (new_length > capacity_) {
     T* new_data = allocator_->template Alloc<T>(new_length);
@@ -174,57 +168,51 @@ void BaseGrowableArray<T, B, Allocator>::SetLength(intptr_t new_length) {
 }
 
 
-template<typename T>
+template <typename T>
 class GrowableArray : public BaseGrowableArray<T, ValueObject> {
  public:
   GrowableArray(Zone* zone, intptr_t initial_capacity)
-      : BaseGrowableArray<T, ValueObject>(
-          initial_capacity, ASSERT_NOTNULL(zone)) {}
+      : BaseGrowableArray<T, ValueObject>(initial_capacity,
+                                          ASSERT_NOTNULL(zone)) {}
   explicit GrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
-          initial_capacity,
-          ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            initial_capacity,
+            ASSERT_NOTNULL(Thread::Current()->zone())) {}
   GrowableArray()
       : BaseGrowableArray<T, ValueObject>(
-          ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            ASSERT_NOTNULL(Thread::Current()->zone())) {}
 };
 
 
-template<typename T>
+template <typename T>
 class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
  public:
   ZoneGrowableArray(Zone* zone, intptr_t initial_capacity)
-      : BaseGrowableArray<T, ZoneAllocated>(
-          initial_capacity, ASSERT_NOTNULL(zone)) {}
+      : BaseGrowableArray<T, ZoneAllocated>(initial_capacity,
+                                            ASSERT_NOTNULL(zone)) {}
   explicit ZoneGrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
-          initial_capacity,
-          ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            initial_capacity,
+            ASSERT_NOTNULL(Thread::Current()->zone())) {}
   ZoneGrowableArray()
       : BaseGrowableArray<T, ZoneAllocated>(
-          ASSERT_NOTNULL(Thread::Current()->zone())) {}
+            ASSERT_NOTNULL(Thread::Current()->zone())) {}
 };
 
 
 // T must be a Handle type.
-template<typename T, typename B>
+template <typename T, typename B>
 class BaseGrowableHandlePtrArray : public B {
  public:
   BaseGrowableHandlePtrArray(Zone* zone, intptr_t initial_capacity)
       : zone_(zone), array_(zone, initial_capacity) {}
 
   // Use unique zone handles to store objects.
-  void Add(const T& t) {
-    array_.Add(&T::ZoneHandle(zone_, t.raw()));
-  }
+  void Add(const T& t) { array_.Add(&T::ZoneHandle(zone_, t.raw())); }
 
-  T& operator[](intptr_t index) const {
-    return *array_[index];
-  }
+  T& operator[](intptr_t index) const { return *array_[index]; }
 
-  const T& At(intptr_t index) const {
-    return operator[](index);
-  }
+  const T& At(intptr_t index) const { return operator[](index); }
 
   void SetAt(intptr_t index, const T& t) {
     array_[index] = &T::ZoneHandle(zone_, t.raw());
@@ -242,23 +230,22 @@ class BaseGrowableHandlePtrArray : public B {
 };
 
 
-template<typename T>
-class GrowableHandlePtrArray :
-    public BaseGrowableHandlePtrArray<T, ValueObject> {
+template <typename T>
+class GrowableHandlePtrArray
+    : public BaseGrowableHandlePtrArray<T, ValueObject> {
  public:
   GrowableHandlePtrArray(Zone* zone, intptr_t initial_capacity)
       : BaseGrowableHandlePtrArray<T, ValueObject>(zone, initial_capacity) {}
 };
 
 
-template<typename T>
-class ZoneGrowableHandlePtrArray :
-    public BaseGrowableHandlePtrArray<T, ZoneAllocated> {
+template <typename T>
+class ZoneGrowableHandlePtrArray
+    : public BaseGrowableHandlePtrArray<T, ZoneAllocated> {
  public:
   ZoneGrowableHandlePtrArray(Zone* zone, intptr_t initial_capacity)
       : BaseGrowableHandlePtrArray<T, ZoneAllocated>(zone, initial_capacity) {}
 };
-
 
 
 class Malloc : public AllStatic {
@@ -283,13 +270,12 @@ class Malloc : public AllStatic {
 class EmptyBase {};
 
 
-template<typename T>
+template <typename T>
 class MallocGrowableArray : public BaseGrowableArray<T, EmptyBase, Malloc> {
  public:
   explicit MallocGrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, EmptyBase, Malloc>(initial_capacity, NULL) {}
-  MallocGrowableArray()
-      : BaseGrowableArray<T, EmptyBase, Malloc>(NULL) {}
+  MallocGrowableArray() : BaseGrowableArray<T, EmptyBase, Malloc>(NULL) {}
 };
 
 }  // namespace dart

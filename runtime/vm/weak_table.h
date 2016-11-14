@@ -26,7 +26,7 @@ class WeakTable {
     }
     // Get a max size that avoids overflows.
     const intptr_t kMaxSize =
-      (kIntptrOne << (kBitsPerWord - 2)) / (kEntrySize * kWordSize);
+        (kIntptrOne << (kBitsPerWord - 2)) / (kEntrySize * kWordSize);
     ASSERT(Utils::IsPowerOfTwo(kMaxSize));
     if (size > kMaxSize) {
       size = kMaxSize;
@@ -36,9 +36,7 @@ class WeakTable {
     data_ = reinterpret_cast<intptr_t*>(calloc(size_, kEntrySize * kWordSize));
   }
 
-  ~WeakTable() {
-    free(data_);
-  }
+  ~WeakTable() { free(data_); }
 
   static WeakTable* NewFrom(WeakTable* original) {
     return new WeakTable(SizeFor(original->count(), original->size()));
@@ -49,11 +47,9 @@ class WeakTable {
   intptr_t count() const { return count_; }
 
   bool IsValidEntryAt(intptr_t i) const {
-    ASSERT(((ValueAt(i) == 0) &&
-            ((ObjectAt(i) == NULL) ||
-             (data_[ObjectIndex(i)] == kDeletedEntry))) ||
-           ((ValueAt(i) != 0) &&
-            (ObjectAt(i) != NULL) &&
+    ASSERT(((ValueAt(i) == 0) && ((ObjectAt(i) == NULL) ||
+                                  (data_[ObjectIndex(i)] == kDeletedEntry))) ||
+           ((ValueAt(i) != 0) && (ObjectAt(i) != NULL) &&
             (data_[ObjectIndex(i)] != kDeletedEntry)));
     return (data_[ValueIndex(i)] != 0);
   }
@@ -111,9 +107,7 @@ class WeakTable {
   }
   intptr_t limit() const { return LimitFor(size()); }
 
-  intptr_t index(intptr_t i) const {
-    return i * kEntrySize;
-  }
+  intptr_t index(intptr_t i) const { return i * kEntrySize; }
 
   void set_used(intptr_t val) {
     ASSERT(val <= limit());
@@ -126,13 +120,9 @@ class WeakTable {
     count_ = val;
   }
 
-  intptr_t ObjectIndex(intptr_t i) const {
-    return index(i) + kObjectOffset;
-  }
+  intptr_t ObjectIndex(intptr_t i) const { return index(i) + kObjectOffset; }
 
-  intptr_t ValueIndex(intptr_t i) const {
-    return index(i) + kValueOffset;
-  }
+  intptr_t ValueIndex(intptr_t i) const { return index(i) + kValueOffset; }
 
   void SetObjectAt(intptr_t i, RawObject* key) {
     ASSERT(i >= 0);

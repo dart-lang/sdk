@@ -6,8 +6,7 @@
 // This regression test verifies that compiler accounts for hidden constructor
 // when analysing field values.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 @Native("Node")
 class Node {
@@ -48,9 +47,11 @@ void setup() native """
 // This code is all inside 'setup' and so not accesible from the global scope.
 function Node(parent){ this.parentNode = parent; }
 makeNode = function(p){return new Node(p);};
+self.nativeConstructor(Node);
 """;
 
 main() {
+  nativeTesting();
   setup();
 
   var n1 = makeNode(null);

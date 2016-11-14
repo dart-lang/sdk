@@ -13,10 +13,8 @@ namespace dart {
 class ScopeTimer : public ValueObject {
  public:
   explicit ScopeTimer(const char* name, bool enabled = true)
-      : enabled_(enabled),
-        name_(name),
-        start_(0) {
-    if (!enabled_)     {
+      : enabled_(enabled), name_(name), start_(0) {
+    if (!enabled_) {
       return;
     }
     start_ = OS::GetCurrentTimeMicros();

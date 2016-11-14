@@ -211,11 +211,11 @@ void doTest(String allocation, [String keyElement, String valueElement]) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(generateTest(allocation), uri,
       expectedErrors: 0, expectedWarnings: 1);
-  var closedWorld = compiler.openWorld.closeWorld();
+  var closedWorld = compiler.openWorld.closeWorld(compiler.reporter);
   asyncTest(() => compiler.run(uri).then((_) {
         var keyType, valueType;
-        var commonMasks = compiler.commonMasks;
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var commonMasks = compiler.closedWorld.commonMasks;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
         var emptyType = new TypeMask.nonNullEmpty();
         var aKeyType =
             typesInferrer.getTypeOfElement(findElement(compiler, 'aKey'));

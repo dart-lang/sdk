@@ -14,6 +14,7 @@ const int BYTECODE_MASK = 0xff;
 const unsigned int MAX_FIRST_ARG = 0x7fffffu;
 const int BYTECODE_SHIFT = 8;
 
+// clang-format off
 #define BYTECODE_ITERATOR(V)                                                   \
 V(BREAK,              0, 4)   /* bc8                                        */ \
 V(PUSH_CP,            1, 4)   /* bc8 pad24                                  */ \
@@ -64,12 +65,13 @@ V(CHECK_GREEDY,      45, 8)   /* bc8 pad24 addr32                           */ \
 V(ADVANCE_CP_AND_GOTO, 46, 8) /* bc8 offset24 addr32                        */ \
 V(SET_CURRENT_POSITION_FROM_END, 47, 4) /* bc8 idx24                        */
 
-#define DECLARE_BYTECODES(name, code, length) \
-  static const int BC_##name = code;
+// clang-format on
+
+#define DECLARE_BYTECODES(name, code, length) static const int BC_##name = code;
 BYTECODE_ITERATOR(DECLARE_BYTECODES)
 #undef DECLARE_BYTECODES
 
-#define DECLARE_BYTECODE_LENGTH(name, code, length) \
+#define DECLARE_BYTECODE_LENGTH(name, code, length)                            \
   static const int BC_##name##_LENGTH = length;
 BYTECODE_ITERATOR(DECLARE_BYTECODE_LENGTH)
 #undef DECLARE_BYTECODE_LENGTH

@@ -7,7 +7,7 @@
 
 #include "vm/proccpuinfo.h"
 
-#include <ctype.h>  // NOLINT
+#include <ctype.h>   // NOLINT
 #include <string.h>  // NOLINT
 
 #include "platform/assert.h"
@@ -41,7 +41,7 @@ void ProcCpuInfo::InitOnce() {
   data_ = reinterpret_cast<char*>(malloc(datalen_ + 1));
   fp = fopen(PATHNAME, "r");
   if (fp != NULL) {
-    for (intptr_t offset = 0; offset < datalen_; ) {
+    for (intptr_t offset = 0; offset < datalen_;) {
       size_t n = fread(data_ + offset, 1, datalen_ - offset, fp);
       if (n == 0) {
         break;

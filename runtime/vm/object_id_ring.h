@@ -28,9 +28,9 @@ class ObjectIdRing {
   };
 
   enum IdPolicy {
-    kAllocateId,        // Always allocate a new object id.
-    kReuseId,           // If the object is already in the ring, reuse id.
-                        // Otherwise allocate a new object id.
+    kAllocateId,  // Always allocate a new object id.
+    kReuseId,     // If the object is already in the ring, reuse id.
+                  // Otherwise allocate a new object id.
     kNumIdPolicy,
   };
 
@@ -67,12 +67,8 @@ class ObjectIdRing {
   int32_t serial_num_;
   bool wrapped_;
 
-  RawObject** table() {
-    return table_;
-  }
-  int32_t table_size() {
-    return capacity_;
-  }
+  RawObject** table() { return table_; }
+  int32_t table_size() { return capacity_; }
 
   int32_t NextSerial();
   int32_t AllocateNewId(RawObject* object);

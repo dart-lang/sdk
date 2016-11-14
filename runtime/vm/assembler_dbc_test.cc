@@ -14,22 +14,19 @@ namespace dart {
 static RawObject* ExecuteTest(const Code& code) {
   Thread* thread = Thread::Current();
   TransitionToGenerated transition(thread);
-  return Simulator::Current()->Call(
-      code,
-      Array::Handle(ArgumentsDescriptor::New(0)),
-      Array::Handle(Array::New(0)),
-      thread);
+  return Simulator::Current()->Call(code,
+                                    Array::Handle(ArgumentsDescriptor::New(0)),
+                                    Array::Handle(Array::New(0)), thread);
 }
 
 
 #define EXECUTE_TEST_CODE_INTPTR(code)                                         \
-    Smi::Value(Smi::RawCast(ExecuteTest(code)))
+  Smi::Value(Smi::RawCast(ExecuteTest(code)))
 #define EXECUTE_TEST_CODE_BOOL(code)                                           \
-    (Bool::RawCast(ExecuteTest(code)) == Bool::True().raw())
-#define EXECUTE_TEST_CODE_OBJECT(code)                                         \
-    Object::Handle(ExecuteTest(code))
+  (Bool::RawCast(ExecuteTest(code)) == Bool::True().raw())
+#define EXECUTE_TEST_CODE_OBJECT(code) Object::Handle(ExecuteTest(code))
 #define EXECUTE_TEST_CODE_DOUBLE(code)                                         \
-    bit_cast<double, RawObject*>(ExecuteTest(code))
+  bit_cast<double, RawObject*>(ExecuteTest(code))
 
 #define __ assembler->
 
@@ -55,12 +52,11 @@ static RawFunction* CreateFunction(const char* name) {
   const Script& script = Script::Handle();
   const Class& owner_class =
       Class::Handle(CreateDummyClass(class_name, script));
-  const Library& owner_library =
-      Library::Handle(CreateDummyLibrary(lib_name));
+  const Library& owner_library = Library::Handle(CreateDummyLibrary(lib_name));
   owner_class.set_library(owner_library);
   const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
-  return Function::New(function_name, RawFunction::kRegularFunction,
-                       true, false, false, false, false, owner_class,
+  return Function::New(function_name, RawFunction::kRegularFunction, true,
+                       false, false, false, false, owner_class,
                        TokenPosition::kMinSource);
 }
 
@@ -86,11 +82,8 @@ static void MakeDummyInstanceCall(Assembler* assembler, const Object& result) {
   const Array& dummy_arguments_descriptor =
       Array::Handle(ArgumentsDescriptor::New(2));
   const ICData& ic_data = ICData::Handle(ICData::New(
-      dummy_instance_function,
-      String::Handle(dummy_instance_function.name()),
-      dummy_arguments_descriptor,
-      Thread::kNoDeoptId,
-      2,
+      dummy_instance_function, String::Handle(dummy_instance_function.name()),
+      dummy_arguments_descriptor, Thread::kNoDeoptId, 2,
       /* is_static_call= */ false));
 
   // Wire up the Function in the ICData.
@@ -1734,7 +1727,6 @@ ASSEMBLER_TEST_GENERATE(TestCidsNoMatch, assembler) {
 ASSEMBLER_TEST_RUN(TestCidsNoMatch, test) {
   EXPECT_EQ(2, EXECUTE_TEST_CODE_INTPTR(test->code()));
 }
-
 
 
 //  - CheckSmi rA

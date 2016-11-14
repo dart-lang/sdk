@@ -11,16 +11,15 @@ namespace dart {
 
 DEFINE_FLAG(bool, force_log_flush, false, "Always flush log messages.");
 
-DEFINE_FLAG(charp, isolate_log_filter, NULL,
+DEFINE_FLAG(charp,
+            isolate_log_filter,
+            NULL,
             "Log isolates whose name include the filter. "
             "Default: service isolate log messages are suppressed "
             "(specify 'vm-service' to log them).");
 
 Log::Log(LogPrinter printer)
-    : printer_(printer),
-      manual_flush_(0),
-      buffer_(0) {
-}
+    : printer_(printer), manual_flush_(0), buffer_(0) {}
 
 
 Log::~Log() {

@@ -141,8 +141,8 @@ compileAndTest(source, checker, {createCode: false}) async {
         compiler.stopAfterTypeInference = !createCode;
       });
   var compiler = result.compiler;
-  var commonMasks = compiler.commonMasks;
-  var typesInferrer = compiler.globalInference.typesInferrer;
+  var commonMasks = compiler.closedWorld.commonMasks;
+  var typesInferrer = compiler.globalInference.typesInferrerInternal;
   getType(String name) {
     var element = findElement(compiler, name);
     return typesInferrer.getTypeOfElement(element);

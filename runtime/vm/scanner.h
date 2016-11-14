@@ -46,9 +46,10 @@ class Scanner : ValueObject {
 
   class TokenCollector : public ValueObject {
    public:
-    TokenCollector() { }
-    virtual ~TokenCollector() { }
-    virtual void AddToken(const TokenDescriptor& token) { }
+    TokenCollector() {}
+    virtual ~TokenCollector() {}
+    virtual void AddToken(const TokenDescriptor& token) {}
+
    private:
     DISALLOW_COPY_AND_ASSIGN(TokenCollector);
   };
@@ -166,12 +167,8 @@ class Scanner : ValueObject {
 
   // Reads identifier.
   void ScanIdentChars(bool allow_dollar);
-  void ScanIdent() {
-    ScanIdentChars(true);
-  }
-  void ScanIdentNoDollar() {
-    ScanIdentChars(false);
-  }
+  void ScanIdent() { ScanIdentChars(true); }
+  void ScanIdentNoDollar() { ScanIdentChars(false); }
 
   // Reads a number literal.
   void ScanNumber(bool dec_point_seen);
@@ -183,17 +180,17 @@ class Scanner : ValueObject {
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
 
-  TokenDescriptor current_token_;  // Current token.
-  TokenDescriptor newline_token_;  // Newline token.
+  TokenDescriptor current_token_;       // Current token.
+  TokenDescriptor newline_token_;       // Newline token.
   TokenDescriptor empty_string_token_;  // Token for "".
-  const String& source_;           // The source text being tokenized.
-  intptr_t source_length_;         // The length of the source text.
-  intptr_t lookahead_pos_;         // Position of lookahead character
-                                   // within source_.
-  intptr_t token_start_;           // Begin of current token in src_.
-  int32_t c0_;                     // Lookahead character.
-  bool newline_seen_;              // Newline before current token.
-  intptr_t prev_token_line_;       // Line number of the previous token.
+  const String& source_;                // The source text being tokenized.
+  intptr_t source_length_;              // The length of the source text.
+  intptr_t lookahead_pos_;              // Position of lookahead character
+                                        // within source_.
+  intptr_t token_start_;                // Begin of current token in src_.
+  int32_t c0_;                          // Lookahead character.
+  bool newline_seen_;                   // Newline before current token.
+  intptr_t prev_token_line_;            // Line number of the previous token.
 
   // The following fields keep track whether we are scanning a string literal
   // and its interpolated expressions.
@@ -204,7 +201,7 @@ class Scanner : ValueObject {
 
   const String& private_key_;
 
-  SourcePosition c0_pos_;      // Source position of lookahead character c0_.
+  SourcePosition c0_pos_;  // Source position of lookahead character c0_.
 
   const CharAtFunc char_at_func_;
 

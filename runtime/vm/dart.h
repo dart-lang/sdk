@@ -21,19 +21,18 @@ class ThreadPool;
 
 class Dart : public AllStatic {
  public:
-  static char* InitOnce(
-      const uint8_t* vm_isolate_snapshot,
-      const uint8_t* instructions_snapshot,
-      const uint8_t* data_snapshot,
-      Dart_IsolateCreateCallback create,
-      Dart_IsolateShutdownCallback shutdown,
-      Dart_ThreadExitCallback thread_exit,
-      Dart_FileOpenCallback file_open,
-      Dart_FileReadCallback file_read,
-      Dart_FileWriteCallback file_write,
-      Dart_FileCloseCallback file_close,
-      Dart_EntropySource entropy_source,
-      Dart_GetVMServiceAssetsArchive get_service_assets);
+  static char* InitOnce(const uint8_t* vm_isolate_snapshot,
+                        const uint8_t* instructions_snapshot,
+                        const uint8_t* data_snapshot,
+                        Dart_IsolateCreateCallback create,
+                        Dart_IsolateShutdownCallback shutdown,
+                        Dart_ThreadExitCallback thread_exit,
+                        Dart_FileOpenCallback file_open,
+                        Dart_FileReadCallback file_read,
+                        Dart_FileWriteCallback file_write,
+                        Dart_FileCloseCallback file_close,
+                        Dart_EntropySource entropy_source,
+                        Dart_GetVMServiceAssetsArchive get_service_assets);
   static const char* Cleanup();
 
   static Isolate* CreateIsolate(const char* name_prefix,
@@ -63,18 +62,14 @@ class Dart : public AllStatic {
 
   static const char* FeaturesString(Snapshot::Kind kind);
 
-  static Snapshot::Kind snapshot_kind() {
-    return snapshot_kind_;
-  }
+  static Snapshot::Kind snapshot_kind() { return snapshot_kind_; }
   static const uint8_t* instructions_snapshot_buffer() {
     return instructions_snapshot_buffer_;
   }
   static void set_instructions_snapshot_buffer(const uint8_t* buffer) {
     instructions_snapshot_buffer_ = buffer;
   }
-  static const uint8_t* data_snapshot_buffer() {
-    return data_snapshot_buffer_;
-  }
+  static const uint8_t* data_snapshot_buffer() { return data_snapshot_buffer_; }
   static void set_data_snapshot_buffer(const uint8_t* buffer) {
     data_snapshot_buffer_ = buffer;
   }

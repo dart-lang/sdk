@@ -2937,7 +2937,7 @@ class ParserTestCase extends EngineTestCase {
    * match those that are expected, or if the result would have been `null`.
    */
   CompilationUnit parseCompilationUnitWithOptions(String source,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     createParser(source);
     CompilationUnit unit = parser.parseCompilationUnit2();
     expect(unit, isNotNull);
@@ -2955,7 +2955,7 @@ class ParserTestCase extends EngineTestCase {
    *           not match those that are expected, or if the result would have been `null`
    */
   Expression parseExpression(String source,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     createParser(source);
     Expression expression = parser.parseExpression2();
     expectNotNullIfNoErrors(expression);
@@ -2979,7 +2979,7 @@ class ParserTestCase extends EngineTestCase {
    *           not match those that are expected, or if the result would have been `null`
    */
   static CompilationUnit parseCompilationUnit(String source,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
@@ -3014,7 +3014,7 @@ class ParserTestCase extends EngineTestCase {
    * should be enabled.
    */
   static Statement parseStatement(String source,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST,
+      [List<ErrorCode> errorCodes = const <ErrorCode>[],
       bool enableLazyAssignmentOperators]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
@@ -3041,7 +3041,7 @@ class ParserTestCase extends EngineTestCase {
    *           are expected, or if the result would have been `null`
    */
   static List<Statement> parseStatements(String source, int expectedCount,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
@@ -7846,7 +7846,12 @@ void''');
     expect(member, new isInstanceOf<ConstructorDeclaration>());
     ConstructorDeclaration constructor = member as ConstructorDeclaration;
     NodeList<ConstructorInitializer> initializers = constructor.initializers;
-    expect(initializers, hasLength(2));
+    expect(initializers, hasLength(3));
+    ConstructorInitializer initializer = initializers[1];
+    expect(initializer, new isInstanceOf<AssertInitializer>());
+    AssertInitializer assertInitializer = initializer;
+    expect(assertInitializer.condition, isNotNull);
+    expect(assertInitializer.message, isNull);
   }
 
   void test_parseConstructor_with_pseudo_function_literal() {
@@ -13472,7 +13477,7 @@ void''');
    *           not match those that are expected, or if the result would have been `null`
    */
   CompilationUnit _parseDirectives(String source,
-      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> errorCodes = const <ErrorCode>[]]) {
     createParser(source);
     CompilationUnit unit = parser.parseDirectives2();
     expect(unit, isNotNull);

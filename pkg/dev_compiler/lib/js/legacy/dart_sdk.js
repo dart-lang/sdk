@@ -1075,6 +1075,15 @@ dart_library.library('dart_sdk', null, /* Imports */[
     ctor.prototype = clazz.prototype;
     dart.defineProperty(clazz, name, {value: ctor, configurable: true});
   };
+  dart.defineEnumValues = function(enumClass, names) {
+    let values = [];
+    for (var i = 0; i < names.length; i++) {
+      let value = dart.const(new enumClass(i));
+      values.push(value);
+      Object.defineProperty(enumClass, names[i], {value: value, configurable: true});
+    }
+    enumClass.values = dart.constList(values, enumClass);
+  };
   dart.fn = function(closure, t) {
     if (t == null) {
       t = dart.definiteFunctionType(dart.dynamic, Array(closure.length).fill(dart.dynamic), void 0);

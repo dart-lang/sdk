@@ -15,8 +15,8 @@ ASSEMBLER_TEST_EXTERN(StoreIntoObject);
 
 ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
 #define TEST_CODE(value, growable_array, thread)                               \
-  test->Invoke<void, RawObject*, RawObject*, Thread*>(                         \
-  value, growable_array, thread)
+  test->Invoke<void, RawObject*, RawObject*, Thread*>(value, growable_array,   \
+                                                      thread)
 
   const Array& old_array = Array::Handle(Array::New(3, Heap::kOld));
   const Array& new_array = Array::Handle(Array::New(3, Heap::kNew));

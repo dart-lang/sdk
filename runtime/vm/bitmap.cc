@@ -54,8 +54,7 @@ void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
       data_size_in_bytes_ =
           Utils::RoundUp(byte_offset + 1, kIncrementSizeInBytes);
       ASSERT(data_size_in_bytes_ > 0);
-      data_ = Thread::Current()->zone()->Alloc<uint8_t>(
-          data_size_in_bytes_);
+      data_ = Thread::Current()->zone()->Alloc<uint8_t>(data_size_in_bytes_);
       ASSERT(data_ != NULL);
       memmove(data_, old_data, old_size);
       memset(&data_[old_size], 0, (data_size_in_bytes_ - old_size));
@@ -98,8 +97,10 @@ bool BitmapBuilder::GetBit(intptr_t bit_offset) const {
 
 void BitmapBuilder::SetBit(intptr_t bit_offset, bool value) {
   if (!InRange(bit_offset)) {
-    FATAL1("Fatal error in BitmapBuilder::SetBit :"
-           " invalid bit_offset, %" Pd "\n", bit_offset);
+    FATAL1(
+        "Fatal error in BitmapBuilder::SetBit :"
+        " invalid bit_offset, %" Pd "\n",
+        bit_offset);
   }
   intptr_t byte_offset = bit_offset >> kBitsPerByteLog2;
   ASSERT(byte_offset < data_size_in_bytes_);

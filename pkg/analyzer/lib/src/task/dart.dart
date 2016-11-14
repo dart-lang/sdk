@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/inheritance_manager.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/dart/sdk/patch.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/pending_error.dart';
 import 'package:analyzer/src/generated/constant.dart';
@@ -1626,7 +1627,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     if (libraryElement == null) {
       libraryElement =
           new LibraryElementImpl.forNode(owningContext, libraryNameNode);
-      libraryElement.synthetic = modificationTime < 0;
+      libraryElement.isSynthetic = modificationTime < 0;
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
       libraryElement.parts = sourcedCompilationUnits;
@@ -4023,6 +4024,11 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
+
+    if (options.patchPlatform != 0 && _source.uri.scheme == 'dart') {
+      new SdkPatcher().patch(context.sourceFactory.dartSdk,
+          options.patchPlatform, errorListener, _source, unit);
+    }
 
     bool hasNonPartOfDirective = false;
     bool hasPartOfDirective = false;

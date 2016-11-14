@@ -195,9 +195,9 @@ static void FormatA_B_C(char* buf,
 }
 
 
-#define BYTECODE_FORMATTER(name, encoding, op1, op2, op3)                     \
-  static void Format##name(char* buf, intptr_t size, uword pc, uint32_t op) { \
-    Format##encoding(buf, size, pc, op, Fmt##op1, Fmt##op2, Fmt##op3);        \
+#define BYTECODE_FORMATTER(name, encoding, op1, op2, op3)                      \
+  static void Format##name(char* buf, intptr_t size, uword pc, uint32_t op) {  \
+    Format##encoding(buf, size, pc, op, Fmt##op1, Fmt##op2, Fmt##op3);         \
   }
 BYTECODES_LIST(BYTECODE_FORMATTER)
 #undef BYTECODE_FORMATTER

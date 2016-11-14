@@ -6,7 +6,7 @@
 
 library kernel.debug;
 
-import 'package:kernel/kernel.dart';
+import 'package:kernel/ast.dart';
 import 'package:kernel/visitor.dart';
 
 import '../util/util.dart' show Indentation, Tagging;

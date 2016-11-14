@@ -1096,12 +1096,12 @@ class CodeGenerator extends GeneralizingAstVisitor
         element.fields.where((f) => f.type == type));
 
     // Create toString() method
-    var properties = new List<JS.Property>();
+    var nameProperties = new List<JS.Property>(fields.length);
     for (var i = 0; i < fields.length; ++i) {
-      properties.add(new JS.Property(
-          js.number(i), js.string('${type.name}.${fields[i].name}')));
+      nameProperties[i] = new JS.Property(
+          js.number(i), js.string('${type.name}.${fields[i].name}'));
     }
-    var nameMap = new JS.ObjectInitializer(properties, multiline: true);
+    var nameMap = new JS.ObjectInitializer(nameProperties, multiline: true);
     var toStringF = new JS.Method(js.string('toString'),
         js.call('function() { return #[this.index]; }', nameMap) as JS.Fun);
 
@@ -1113,21 +1113,16 @@ class CodeGenerator extends GeneralizingAstVisitor
       js.statement('# = #', [id, classExpr])
     ];
 
-    // Create static fields for each enum value
-    for (var i = 0; i < fields.length; ++i) {
-      result.add(js.statement('#.# = #.const(new #(#));',
-          [id, fields[i].name, _runtimeModule, id, js.number(i)]));
-    }
-
-    // Create static values list
-    var values = new JS.ArrayInitializer(new List<JS.Expression>.from(
-        fields.map((f) => js.call('#.#', [id, f.name]))));
-
-    // dart.constList helper internally depends on _interceptors.JSArray.
+    // defineEnumValues internally depends on dart.constList which uses
+    // _interceptors.JSArray.
     _declareBeforeUse(_jsArray);
 
-    result.add(js.statement('#.values = #.constList(#, #);',
-        [id, _runtimeModule, values, _emitType(type)]));
+    // Create static fields for each enum value, and the "values" getter
+    result.add(_callHelperStatement('defineEnumValues(#, #);', [
+      id,
+      new JS.ArrayInitializer(fields.map((f) => _propertyName(f.name)).toList(),
+          multiline: true)
+    ]));
 
     return _statement(result);
   }
@@ -2486,7 +2481,7 @@ class CodeGenerator extends GeneralizingAstVisitor
       JS.Block block = body;
       if (block.statements.length == 1) {
         JS.Statement s = block.statements[0];
-        if (s is JS.Return) body = s.value;
+        if (s is JS.Return && s.value != null) body = s.value;
       }
     }
 
@@ -3077,8 +3072,8 @@ class CodeGenerator extends GeneralizingAstVisitor
             l,
             l,
             _runtimeModule,
-            name,
             _extensionSymbolsModule,
+            name,
             name,
             _visit(rhs)
           ])
@@ -3376,8 +3371,8 @@ class CodeGenerator extends GeneralizingAstVisitor
             l,
             l,
             _runtimeModule,
-            memberName,
             _extensionSymbolsModule,
+            memberName,
             memberName,
             l
           ])
@@ -4755,8 +4750,8 @@ class CodeGenerator extends GeneralizingAstVisitor
             l,
             l,
             _runtimeModule,
-            memberName,
             _extensionSymbolsModule,
+            memberName,
             memberName,
             l,
             _visitList(args)

@@ -105,16 +105,24 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
-  FDUtils::SetNonBlocking(interrupt_fds_[0]);
-  FDUtils::SetCloseOnExec(interrupt_fds_[0]);
-  FDUtils::SetCloseOnExec(interrupt_fds_[1]);
+  if (!FDUtils::SetNonBlocking(interrupt_fds_[0])) {
+    FATAL("Failed to set pipe fd non-blocking\n");
+  }
+  if (!FDUtils::SetCloseOnExec(interrupt_fds_[0])) {
+    FATAL("Failed to set pipe fd close on exec\n");
+  }
+  if (!FDUtils::SetCloseOnExec(interrupt_fds_[1])) {
+    FATAL("Failed to set pipe fd close on exec\n");
+  }
   shutdown_ = false;
 
   kqueue_fd_ = NO_RETRY_EXPECTED(kqueue());
   if (kqueue_fd_ == -1) {
     FATAL("Failed creating kqueue");
   }
-  FDUtils::SetCloseOnExec(kqueue_fd_);
+  if (!FDUtils::SetCloseOnExec(kqueue_fd_)) {
+    FATAL("Failed to set kqueue fd close on exec\n");
+  }
   // Register the interrupt_fd with the kqueue.
   struct kevent event;
   EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);

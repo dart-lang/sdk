@@ -42,8 +42,7 @@ SafepointHandler::SafepointHandler(Isolate* isolate)
       safepoint_lock_(new Monitor()),
       number_threads_not_at_safepoint_(0),
       safepoint_operation_count_(0),
-      owner_(NULL) {
-}
+      owner_(NULL) {}
 
 
 SafepointHandler::~SafepointHandler() {
@@ -114,8 +113,7 @@ void SafepointHandler::SafepointThreads(Thread* T) {
           // We have been waiting too long, start logging this as we might
           // have an issue where a thread is not checking in for a safepoint.
           OS::Print("Attempt:%" Pd " waiting for %d threads to check in\n",
-                    num_attempts,
-                    number_threads_not_at_safepoint_);
+                    num_attempts, number_threads_not_at_safepoint_);
         }
       }
     }

@@ -165,6 +165,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitAsExpression(AsExpression node) => visitExpression(node);
 
   @override
+  R visitAssertInitializer(AssertInitializer node) => visitNode(node);
+
+  @override
   R visitAssertStatement(AssertStatement node) => visitStatement(node);
 
   @override
@@ -323,7 +326,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitFunctionExpressionInvocation(FunctionExpressionInvocation node) =>
-      visitExpression(node);
+      visitInvocationExpression(node);
 
   @override
   R visitFunctionTypeAlias(FunctionTypeAlias node) => visitTypeAlias(node);
@@ -366,6 +369,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitInterpolationString(InterpolationString node) =>
       visitInterpolationElement(node);
 
+  R visitInvocationExpression(InvocationExpression node) =>
+      visitExpression(node);
+
   @override
   R visitIsExpression(IsExpression node) => visitExpression(node);
 
@@ -396,7 +402,8 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R visitMethodDeclaration(MethodDeclaration node) => visitClassMember(node);
 
   @override
-  R visitMethodInvocation(MethodInvocation node) => visitExpression(node);
+  R visitMethodInvocation(MethodInvocation node) =>
+      visitInvocationExpression(node);
 
   R visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
       visitCompilationUnitMember(node);
@@ -592,6 +599,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitAsExpression(AsExpression node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R visitAssertInitializer(AssertInitializer node) {
     node.visitChildren(this);
     return null;
   }
@@ -1244,6 +1257,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R visitAsExpression(AsExpression node) => null;
 
   @override
+  R visitAssertInitializer(AssertInitializer node) => null;
+
+  @override
   R visitAssertStatement(AssertStatement node) => null;
 
   @override
@@ -1611,6 +1627,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T visitAsExpression(AsExpression node) {
     stopwatch.start();
     T result = _baseVisitor.visitAsExpression(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T visitAssertInitializer(AssertInitializer node) {
+    stopwatch.start();
+    T result = _baseVisitor.visitAssertInitializer(node);
     stopwatch.stop();
     return result;
   }
@@ -2473,6 +2497,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R visitAsExpression(AsExpression node) => visitNode(node);
+
+  @override
+  R visitAssertInitializer(AssertInitializer node) => visitNode(node);
 
   @override
   R visitAssertStatement(AssertStatement node) => visitNode(node);

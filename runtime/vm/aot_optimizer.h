@@ -11,7 +11,8 @@
 namespace dart {
 
 class CSEInstructionMap;
-template <typename T> class GrowableArray;
+template <typename T>
+class GrowableArray;
 class ParsedFunction;
 class Precompiler;
 class RawBool;
@@ -110,12 +111,9 @@ class AotOptimizer : public FlowGraphVisitor {
   bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                    RawFunction::Kind kind) const;
 
-  bool InlineFloat32x4BinaryOp(InstanceCallInstr* call,
-                               Token::Kind op_kind);
-  bool InlineInt32x4BinaryOp(InstanceCallInstr* call,
-                              Token::Kind op_kind);
-  bool InlineFloat64x2BinaryOp(InstanceCallInstr* call,
-                               Token::Kind op_kind);
+  bool InlineFloat32x4BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
+  bool InlineInt32x4BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
+  bool InlineFloat64x2BinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool InlineImplicitInstanceGetter(InstanceCallInstr* call);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,

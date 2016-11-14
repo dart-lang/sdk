@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 // Tests super setter where the HInvokeSuper is using interceptor aka
 // explicit-receiver calling convention.
@@ -47,6 +46,8 @@ function A(){}
 function B(){}
 makeA = function(){return new A};
 makeB = function(){return new B};
+self.nativeConstructor(A);
+self.nativeConstructor(B);
 """;
 
 testThing(a) {
@@ -60,6 +61,7 @@ testThing(a) {
 }
 
 main() {
+  nativeTesting();
   setup();
   var things = [makeA(), makeB(), new C(), new D()];
   var test = testThing;

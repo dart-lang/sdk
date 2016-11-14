@@ -13,14 +13,9 @@ namespace dart {
 
 class CanonicalTypeKey {
  public:
-  explicit CanonicalTypeKey(const Type& key) : key_(key) {
-  }
-  bool Matches(const Type& arg) const {
-    return key_.Equals(arg);
-  }
-  uword Hash() const {
-    return key_.Hash();
-  }
+  explicit CanonicalTypeKey(const Type& key) : key_(key) {}
+  bool Matches(const Type& arg) const { return key_.Equals(arg); }
+  uword Hash() const { return key_.Hash(); }
   const Type& key_;
 
  private:
@@ -49,26 +44,21 @@ class CanonicalTypeTraits {
     ASSERT(key.IsType());
     return Type::Cast(key).Hash();
   }
-  static uword Hash(const CanonicalTypeKey& key) {
-    return key.Hash();
-  }
+  static uword Hash(const CanonicalTypeKey& key) { return key.Hash(); }
   static RawObject* NewKey(const CanonicalTypeKey& obj) {
     return obj.key_.raw();
   }
 };
-typedef UnorderedHashSet <CanonicalTypeTraits> CanonicalTypeSet;
+typedef UnorderedHashSet<CanonicalTypeTraits> CanonicalTypeSet;
 
 
 class CanonicalTypeArgumentsKey {
  public:
-  explicit CanonicalTypeArgumentsKey(const TypeArguments& key) : key_(key) {
-  }
+  explicit CanonicalTypeArgumentsKey(const TypeArguments& key) : key_(key) {}
   bool Matches(const TypeArguments& arg) const {
     return key_.Equals(arg) && (key_.Hash() == arg.Hash());
   }
-  uword Hash() const {
-    return key_.Hash();
-  }
+  uword Hash() const { return key_.Hash(); }
   const TypeArguments& key_;
 
  private:
@@ -97,9 +87,7 @@ class CanonicalTypeArgumentsTraits {
     ASSERT(key.IsTypeArguments());
     return TypeArguments::Cast(key).Hash();
   }
-  static uword Hash(const CanonicalTypeArgumentsKey& key) {
-    return key.Hash();
-  }
+  static uword Hash(const CanonicalTypeArgumentsKey& key) { return key.Hash(); }
   static RawObject* NewKey(const CanonicalTypeArgumentsKey& obj) {
     return obj.key_.raw();
   }

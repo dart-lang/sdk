@@ -94,8 +94,7 @@ void DeferredObjectRef::Materialize(DeoptContext* deopt_context) {
     const Class& cls = Class::Handle(Isolate::Current()->class_table()->At(
         Object::Handle(obj->object()).GetClassId()));
     OS::PrintErr("writing instance of class %s ref at %" Px ".\n",
-                 cls.ToCString(),
-                 reinterpret_cast<uword>(slot()));
+                 cls.ToCString(), reinterpret_cast<uword>(slot()));
   }
 }
 
@@ -105,21 +104,21 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
   Zone* zone = deopt_context->zone();
   Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
-  const Error& error = Error::Handle(zone,
-      Compiler::EnsureUnoptimizedCode(thread, function));
+  const Error& error =
+      Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
   const Code& code = Code::Handle(zone, function.unoptimized_code());
-  // Check that deopt_id exists.
-  // TODO(vegorov): verify after deoptimization targets as well.
+// Check that deopt_id exists.
+// TODO(vegorov): verify after deoptimization targets as well.
 #ifdef DEBUG
   ASSERT(Thread::IsDeoptAfter(deopt_id_) ||
          (code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt) != 0));
 #endif
 
-  uword continue_at_pc = code.GetPcForDeoptId(deopt_id_,
-                                              RawPcDescriptors::kDeopt);
+  uword continue_at_pc =
+      code.GetPcForDeoptId(deopt_id_, RawPcDescriptors::kDeopt);
   ASSERT(continue_at_pc != 0);
   uword* dest_addr = reinterpret_cast<uword*>(slot());
   *dest_addr = continue_at_pc;
@@ -162,8 +161,8 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
   ASSERT(!function.IsNull());
-  const Error& error = Error::Handle(zone,
-      Compiler::EnsureUnoptimizedCode(thread, function));
+  const Error& error =
+      Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -174,8 +173,8 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
 
   if (FLAG_trace_deoptimization_verbose) {
     THR_Print("materializing pc marker at 0x%" Px ": %s, %s\n",
-        reinterpret_cast<uword>(slot()), code.ToCString(),
-        function.ToCString());
+              reinterpret_cast<uword>(slot()), code.ToCString(),
+              function.ToCString());
   }
 
   // Increment the deoptimization counter. This effectively increments each
@@ -185,8 +184,8 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   }
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     THR_Print("Deoptimizing '%s' (count %d)\n",
-        function.ToFullyQualifiedCString(),
-        function.deoptimization_counter());
+              function.ToFullyQualifiedCString(),
+              function.deoptimization_counter());
   }
   // Clear invocation counter so that hopefully the function gets reoptimized
   // only after more feedback has been collected.
@@ -203,8 +202,8 @@ void DeferredPp::Materialize(DeoptContext* deopt_context) {
   Function& function = Function::Handle(zone);
   function ^= deopt_context->ObjectAt(index_);
   ASSERT(!function.IsNull());
-  const Error& error = Error::Handle(zone,
-      Compiler::EnsureUnoptimizedCode(thread, function));
+  const Error& error =
+      Error::Handle(zone, Compiler::EnsureUnoptimizedCode(thread, function));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
@@ -240,19 +239,16 @@ void DeferredObject::Create() {
   if (cls.raw() == Object::context_class()) {
     intptr_t num_variables = Smi::Cast(Object::Handle(GetLength())).Value();
     if (FLAG_trace_deoptimization_verbose) {
-      OS::PrintErr(
-          "materializing context of length %" Pd " (%" Px ", %" Pd " vars)\n",
-          num_variables,
-          reinterpret_cast<uword>(args_),
-          field_count_);
+      OS::PrintErr("materializing context of length %" Pd " (%" Px ", %" Pd
+                   " vars)\n",
+                   num_variables, reinterpret_cast<uword>(args_), field_count_);
     }
     object_ = &Context::ZoneHandle(Context::New(num_variables));
 
   } else {
     if (FLAG_trace_deoptimization_verbose) {
       OS::PrintErr("materializing instance of %s (%" Px ", %" Pd " fields)\n",
-                   cls.ToCString(),
-                   reinterpret_cast<uword>(args_),
+                   cls.ToCString(), reinterpret_cast<uword>(args_),
                    field_count_);
     }
 
@@ -289,8 +285,7 @@ void DeferredObject::Fill() {
         context.set_parent(parent);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    ctx@parent (offset %" Pd ") <- %s\n",
-                       offset.Value(),
-                       value.ToCString());
+                       offset.Value(), value.ToCString());
         }
       } else {
         intptr_t context_index = ToContextIndex(offset.Value());
@@ -298,9 +293,7 @@ void DeferredObject::Fill() {
         context.SetAt(context_index, value);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    ctx@%" Pd " (offset %" Pd ") <- %s\n",
-                       context_index,
-                       offset.Value(),
-                       value.ToCString());
+                       context_index, offset.Value(), value.ToCString());
         }
       }
     }
@@ -322,8 +315,7 @@ void DeferredObject::Fill() {
         closure.SetTypeArguments(arguments);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    closure@type_arguments (offset %" Pd ") <- %s\n",
-                       offset.Value(),
-                       value.ToCString());
+                       offset.Value(), value.ToCString());
         }
       } else if (offset.Value() == Closure::function_offset()) {
         Function& function = Function::Handle();
@@ -331,8 +323,7 @@ void DeferredObject::Fill() {
         closure.set_function(function);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    closure@function (offset %" Pd ") <- %s\n",
-                       offset.Value(),
-                       value.ToCString());
+                       offset.Value(), value.ToCString());
         }
       } else {
         ASSERT(offset.Value() == Closure::context_offset());
@@ -341,8 +332,7 @@ void DeferredObject::Fill() {
         closure.set_context(context);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    closure@context (offset %" Pd ") <- %s\n",
-                       offset.Value(),
-                       value.ToCString());
+                       offset.Value(), value.ToCString());
         }
       }
     }
@@ -370,8 +360,7 @@ void DeferredObject::Fill() {
         obj.SetFieldAtOffset(offset.Value(), value);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",
-                       offset.Value(),
-                       value.ToCString());
+                       offset.Value(), value.ToCString());
         }
       }
     }

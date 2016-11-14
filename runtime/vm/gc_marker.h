@@ -22,9 +22,8 @@ class RawWeakProperty;
 // of the mark-sweep collection. The marking bit used is defined in RawObject.
 class GCMarker : public ValueObject {
  public:
-  explicit GCMarker(Heap* heap)
-      : heap_(heap), marked_bytes_(0) { }
-  ~GCMarker() { }
+  explicit GCMarker(Heap* heap) : heap_(heap), marked_bytes_(0) {}
+  ~GCMarker() {}
 
   void MarkObjects(Isolate* isolate,
                    PageSpace* page_space,
@@ -38,15 +37,16 @@ class GCMarker : public ValueObject {
   void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateRoots(Isolate* isolate,
                     ObjectPointerVisitor* visitor,
-                    intptr_t slice_index, intptr_t num_slices);
+                    intptr_t slice_index,
+                    intptr_t num_slices);
   void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
-  template<class MarkingVisitorType>
+  template <class MarkingVisitorType>
   void IterateWeakReferences(Isolate* isolate, MarkingVisitorType* visitor);
   void ProcessWeakTables(PageSpace* page_space);
   void ProcessObjectIdTable(Isolate* isolate);
 
   // Called by anyone: finalize and accumulate stats from 'visitor'.
-  template<class MarkingVisitorType>
+  template <class MarkingVisitorType>
   void FinalizeResultsFrom(MarkingVisitorType* visitor);
 
   Heap* heap_;

@@ -27,12 +27,12 @@ class StackFrame;
 class Breakpoint {
  public:
   Breakpoint(intptr_t id, BreakpointLocation* bpt_location)
-    : id_(id),
-      kind_(Breakpoint::kNone),
-      next_(NULL),
-      closure_(Instance::null()),
-      bpt_location_(bpt_location),
-      is_synthetic_async_(false) {}
+      : id_(id),
+        kind_(Breakpoint::kNone),
+        next_(NULL),
+        closure_(Instance::null()),
+        bpt_location_(bpt_location),
+        is_synthetic_async_(false) {}
 
   intptr_t id() const { return id_; }
   Breakpoint* next() const { return next_; }
@@ -66,9 +66,7 @@ class Breakpoint {
   void set_is_synthetic_async(bool is_synthetic_async) {
     is_synthetic_async_ = is_synthetic_async;
   }
-  bool is_synthetic_async() const {
-    return is_synthetic_async_;
-  }
+  bool is_synthetic_async() const { return is_synthetic_async_; }
 
   void PrintJSON(JSONStream* stream);
 
@@ -247,8 +245,12 @@ class CodeBreakpoint {
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
  public:
-  ActivationFrame(uword pc, uword fp, uword sp, const Code& code,
-                  const Array& deopt_frame, intptr_t deopt_frame_offset);
+  ActivationFrame(uword pc,
+                  uword fp,
+                  uword sp,
+                  const Code& code,
+                  const Array& deopt_frame,
+                  intptr_t deopt_frame_offset);
 
   uword pc() const { return pc_; }
   uword fp() const { return fp_; }
@@ -352,14 +354,11 @@ class ActivationFrame : public ZoneAllocated {
 // Array of function activations on the call stack.
 class DebuggerStackTrace : public ZoneAllocated {
  public:
-  explicit DebuggerStackTrace(int capacity)
-      : trace_(capacity) { }
+  explicit DebuggerStackTrace(int capacity) : trace_(capacity) {}
 
   intptr_t Length() const { return trace_.length(); }
 
-  ActivationFrame* FrameAt(int i) const {
-    return trace_[i];
-  }
+  ActivationFrame* FrameAt(int i) const { return trace_[i]; }
 
   ActivationFrame* GetHandlerFrame(const Instance& exc_obj) const;
 
@@ -484,8 +483,7 @@ class Debugger {
   RawObject* GetInstanceField(const Class& cls,
                               const String& field_name,
                               const Instance& object);
-  RawObject* GetStaticField(const Class& cls,
-                            const String& field_name);
+  RawObject* GetStaticField(const Class& cls, const String& field_name);
 
   // Pause execution for a breakpoint.  Called from generated code.
   RawError* PauseBreakpoint();
@@ -516,12 +514,7 @@ class Debugger {
   intptr_t limitBreakpointId() { return next_id_; }
 
  private:
-  enum ResumeAction {
-    kContinue,
-    kStepOver,
-    kStepOut,
-    kSingleStep
-  };
+  enum ResumeAction { kContinue, kStepOver, kStepOut, kSingleStep };
 
   RawError* PauseRequest(ServiceEvent::EventKind kind);
 
@@ -540,9 +533,9 @@ class Debugger {
   RawFunction* FindInnermostClosure(const Function& function,
                                     TokenPosition token_pos);
   TokenPosition ResolveBreakpointPos(const Function& func,
-                                       TokenPosition requested_token_pos,
-                                       TokenPosition last_token_pos,
-                                       intptr_t requested_column);
+                                     TokenPosition requested_token_pos,
+                                     TokenPosition last_token_pos,
+                                     intptr_t requested_column);
   void DeoptimizeWorld();
   BreakpointLocation* SetBreakpoint(const Script& script,
                                     TokenPosition token_pos,
@@ -559,8 +552,7 @@ class Debugger {
   BreakpointLocation* GetBreakpointLocation(const Script& script,
                                             TokenPosition token_pos,
                                             intptr_t requested_column);
-  void MakeCodeBreakpointAt(const Function& func,
-                            BreakpointLocation* bpt);
+  void MakeCodeBreakpointAt(const Function& func, BreakpointLocation* bpt);
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
 
@@ -577,8 +569,7 @@ class Debugger {
                                      StackFrame* frame,
                                      const Code& code);
   static DebuggerStackTrace* CollectStackTrace();
-  void SignalPausedEvent(ActivationFrame* top_frame,
-                         Breakpoint* bpt);
+  void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }
 

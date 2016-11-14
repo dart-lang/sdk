@@ -17,20 +17,20 @@ DECLARE_FLAG(bool, trace_reload_verbose);
 
 // 'Trace Isolate Reload' TIR_Print
 #if defined(_MSC_VER)
-#define TIR_Print(format, ...) \
-    if (FLAG_trace_reload) Log::Current()->Print(format, __VA_ARGS__)
+#define TIR_Print(format, ...)                                                 \
+  if (FLAG_trace_reload) Log::Current()->Print(format, __VA_ARGS__)
 #else
-#define TIR_Print(format, ...) \
-    if (FLAG_trace_reload) Log::Current()->Print(format, ##__VA_ARGS__)
+#define TIR_Print(format, ...)                                                 \
+  if (FLAG_trace_reload) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
 // 'Verbose Trace Isolate Reload' VTIR_Print
 #if defined(_MSC_VER)
-#define VTIR_Print(format, ...) \
-    if (FLAG_trace_reload_verbose) Log::Current()->Print(format, __VA_ARGS__)
+#define VTIR_Print(format, ...)                                                \
+  if (FLAG_trace_reload_verbose) Log::Current()->Print(format, __VA_ARGS__)
 #else
-#define VTIR_Print(format, ...) \
-    if (FLAG_trace_reload_verbose) Log::Current()->Print(format, ##__VA_ARGS__)
+#define VTIR_Print(format, ...)                                                \
+  if (FLAG_trace_reload_verbose) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
 namespace dart {
@@ -128,8 +128,7 @@ class ClassReasonForCancelling : public ReasonForCancelling {
 
 class IsolateReloadContext {
  public:
-  explicit IsolateReloadContext(Isolate* isolate,
-                                JSONStream* js);
+  explicit IsolateReloadContext(Isolate* isolate, JSONStream* js);
   ~IsolateReloadContext();
 
   void Reload(bool force_reload);
@@ -191,9 +190,7 @@ class IsolateReloadContext {
   void AddInstanceMorpher(InstanceMorpher* morpher);
 
   // Tells whether instance in the heap must be morphed.
-  bool HasInstanceMorphers() const {
-    return !instance_morphers_.is_empty();
-  }
+  bool HasInstanceMorphers() const { return !instance_morphers_.is_empty(); }
 
   // NOTE: FinalizeLoading will be called *before* Reload() returns. This
   // function will not be called if the embedder does not call
@@ -307,8 +304,7 @@ class IsolateReloadContext {
   RawLibrary* OldLibraryOrNull(const Library& replacement_or_new);
   void BuildLibraryMapping();
 
-  void AddClassMapping(const Class& replacement_or_new,
-                       const Class& original);
+  void AddClassMapping(const Class& replacement_or_new, const Class& original);
 
   void AddLibraryMapping(const Library& replacement_or_new,
                          const Library& original);
@@ -348,4 +344,4 @@ class IsolateReloadContext {
 
 }  // namespace dart
 
-#endif   // RUNTIME_VM_ISOLATE_RELOAD_H_
+#endif  // RUNTIME_VM_ISOLATE_RELOAD_H_

@@ -11,9 +11,10 @@
 namespace dart {
 
 
-RawError* Bootstrap::LoadandCompileScripts() {
+RawError* Bootstrap::DoBootstrapping() {
   UNREACHABLE();
   return Error::null();
 }
+
 
 }  // namespace dart

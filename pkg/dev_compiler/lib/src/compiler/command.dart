@@ -170,6 +170,7 @@ void _compile(ArgResults argResults, void printFn(Object obj)) {
       var file = new File(summaryPath);
       if (!file.existsSync() ||
           _changed(file.readAsBytesSync(), module.summaryBytes)) {
+        if (!file.parent.existsSync()) file.parent.createSync(recursive: true);
         file.writeAsBytesSync(module.summaryBytes);
       }
     }

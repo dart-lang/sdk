@@ -15,11 +15,7 @@ namespace dart {
 
 class IrregexpInterpreter : public AllStatic {
  public:
-  enum IrregexpResult {
-    RE_FAILURE = 0,
-    RE_SUCCESS = 1,
-    RE_EXCEPTION = -1
-  };
+  enum IrregexpResult { RE_FAILURE = 0, RE_SUCCESS = 1, RE_EXCEPTION = -1 };
 
   static IrregexpResult Match(const TypedData& bytecode,
                               const String& subject,

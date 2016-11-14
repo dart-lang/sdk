@@ -84,11 +84,8 @@ class Handles {
   Handles()
       : zone_blocks_(NULL),
         first_scoped_block_(NULL),
-        scoped_blocks_(&first_scoped_block_) {
-  }
-  ~Handles() {
-    DeleteAll();
-  }
+        scoped_blocks_(&first_scoped_block_) {}
+  ~Handles() { DeleteAll(); }
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -148,8 +145,7 @@ class Handles {
   class HandlesBlock {
    public:
     explicit HandlesBlock(HandlesBlock* next)
-        : next_handle_slot_(0),
-          next_block_(next) { }
+        : next_handle_slot_(0), next_block_(next) {}
     ~HandlesBlock();
 
     // Reinitializes handle block for reuse.
@@ -200,7 +196,7 @@ class Handles {
    private:
     uword data_[kHandleSizeInWords * kHandlesPerChunk];  // Handles area.
     intptr_t next_handle_slot_;  // Next slot for allocation in current block.
-    HandlesBlock* next_block_;  // Link to next block of handles.
+    HandlesBlock* next_block_;   // Link to next block of handles.
 
     DISALLOW_COPY_AND_ASSIGN(HandlesBlock);
   };
@@ -231,9 +227,9 @@ class Handles {
   void ZapFreeScopedHandles();
 #endif
 
-  HandlesBlock* zone_blocks_;  // List of zone handles.
+  HandlesBlock* zone_blocks_;        // List of zone handles.
   HandlesBlock first_scoped_block_;  // First block of scoped handles.
-  HandlesBlock* scoped_blocks_;  // List of scoped handles.
+  HandlesBlock* scoped_blocks_;      // List of scoped handles.
 
   friend class HandleScope;
   friend class Dart;
@@ -253,9 +249,8 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
  public:
   static const int kOffsetOfRawPtrInHandle = kOffsetOfRawPtr;
 
-  VMHandles() : Handles<kVMHandleSizeInWords,
-                        kVMHandlesPerChunk,
-                        kOffsetOfRawPtr>() {
+  VMHandles()
+      : Handles<kVMHandleSizeInWords, kVMHandlesPerChunk, kOffsetOfRawPtr>() {
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new VM handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
@@ -314,7 +309,7 @@ class HandleScope : public StackResource {
 
 // Macro to start a new Handle scope.
 #define HANDLESCOPE(thread)                                                    \
-    dart::HandleScope vm_internal_handles_scope_(thread);
+  dart::HandleScope vm_internal_handles_scope_(thread);
 
 
 // The class NoHandleScope is used in critical regions of the virtual machine
@@ -338,12 +333,12 @@ class NoHandleScope : public StackResource {
  private:
   DISALLOW_COPY_AND_ASSIGN(NoHandleScope);
 };
-#else  // defined(DEBUG)
+#else   // defined(DEBUG)
 class NoHandleScope : public ValueObject {
  public:
-  explicit NoHandleScope(Thread* thread) { }
-  NoHandleScope() { }
-  ~NoHandleScope() { }
+  explicit NoHandleScope(Thread* thread) {}
+  NoHandleScope() {}
+  ~NoHandleScope() {}
 
  private:
   DISALLOW_COPY_AND_ASSIGN(NoHandleScope);
@@ -352,7 +347,7 @@ class NoHandleScope : public ValueObject {
 
 // Macro to start a no handles scope in the code.
 #define NOHANDLESCOPE(thread)                                                  \
-    dart::NoHandleScope no_vm_internal_handles_scope_(thread);
+  dart::NoHandleScope no_vm_internal_handles_scope_(thread);
 
 }  // namespace dart
 

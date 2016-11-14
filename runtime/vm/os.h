@@ -121,9 +121,7 @@ class OS {
   // that occur.
   static int SNPrint(char* str, size_t size, const char* format, ...)
       PRINTF_ATTRIBUTE(3, 4);
-  static int VSNPrint(char* str, size_t size,
-                      const char* format,
-                      va_list args);
+  static int VSNPrint(char* str, size_t size, const char* format, va_list args);
 
   // Allocate a string and print formatted output into the buffer.
   // Uses the zone for allocation if one if provided, and otherwise uses

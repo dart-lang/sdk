@@ -51,13 +51,9 @@ class RingServiceIdZone : public ServiceIdZone {
   // Returned string will be zone allocated.
   virtual char* GetServiceId(const Object& obj);
 
-  void set_policy(ObjectIdRing::IdPolicy policy) {
-    policy_ = policy;
-  }
+  void set_policy(ObjectIdRing::IdPolicy policy) { policy_ = policy; }
 
-  ObjectIdRing::IdPolicy policy() const {
-    return policy_;
-  }
+  ObjectIdRing::IdPolicy policy() const { return policy_; }
 
  private:
   ObjectIdRing* ring_;
@@ -99,10 +95,9 @@ class Service : public AllStatic {
       Dart_ServiceRequestCallback callback,
       void* user_data);
 
-  static void RegisterRootEmbedderCallback(
-      const char* name,
-      Dart_ServiceRequestCallback callback,
-      void* user_data);
+  static void RegisterRootEmbedderCallback(const char* name,
+                                           Dart_ServiceRequestCallback callback,
+                                           void* user_data);
 
   static void SetEmbedderStreamCallbacks(
       Dart_ServiceStreamListenCallback listen_callback,

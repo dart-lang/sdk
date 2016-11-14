@@ -14,9 +14,9 @@ class JSONObject;
 class RuntimeEntry;
 
 #define VM_TAG_LIST(V)                                                         \
-  V(Idle)          /* isolate is idle and is_runnable() */                     \
-  V(LoadWait)      /* isolate is idle and !is_runnable() */                    \
-  V(VM)            /* Catch all */                                             \
+  V(Idle)     /* isolate is idle and is_runnable() */                          \
+  V(LoadWait) /* isolate is idle and !is_runnable() */                         \
+  V(VM)       /* Catch all */                                                  \
   V(CompileOptimized)                                                          \
   V(CompileUnoptimized)                                                        \
   V(CompileClass)                                                              \
@@ -30,17 +30,16 @@ class RuntimeEntry;
   V(GCOldSpace)                                                                \
   V(Embedder)                                                                  \
   V(Runtime)                                                                   \
-  V(Native)                                                                    \
+  V(Native)
 
 class VMTag : public AllStatic {
  public:
   enum VMTagId {
     kInvalidTagId = 0,
-#define DEFINE_VM_TAG_ID(tag)                                                  \
-    k##tag##TagId,
+#define DEFINE_VM_TAG_ID(tag) k##tag##TagId,
     VM_TAG_LIST(DEFINE_VM_TAG_ID)
 #undef DEFINE_VM_TAG_KIND
-    kNumVMTags,
+        kNumVMTags,
     //
     // All tags below |kNumVMTags| are special meta-data tags and do not
     // indicate the state of the VM during a sample.
@@ -82,6 +81,7 @@ class VMTagScope : StackResource {
  public:
   VMTagScope(Thread* thread, uword tag, bool conditional_set = true);
   ~VMTagScope();
+
  private:
   uword previous_tag_;
 

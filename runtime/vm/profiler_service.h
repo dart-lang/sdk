@@ -54,10 +54,10 @@ class ProfileFunctionSourcePosition {
 class ProfileFunction : public ZoneAllocated {
  public:
   enum Kind {
-    kDartFunction,    // Dart function.
-    kNativeFunction,  // Synthetic function for Native (C/C++).
-    kTagFunction,     // Synthetic function for a VM or User tag.
-    kStubFunction,    // Synthetic function for stub code.
+    kDartFunction,     // Dart function.
+    kNativeFunction,   // Synthetic function for Native (C/C++).
+    kTagFunction,      // Synthetic function for a VM or User tag.
+    kStubFunction,     // Synthetic function for stub code.
     kUnknownFunction,  // A singleton function for unknown objects.
   };
 
@@ -73,26 +73,18 @@ class ProfileFunction : public ZoneAllocated {
 
   const char* Name() const;
 
-  const Function* function() const {
-    return &function_;
-  }
+  const Function* function() const { return &function_; }
 
   bool is_visible() const;
 
-  intptr_t table_index() const {
-    return table_index_;
-  }
+  intptr_t table_index() const { return table_index_; }
 
-  Kind kind() const {
-    return kind_;
-  }
+  Kind kind() const { return kind_; }
 
   intptr_t exclusive_ticks() const { return exclusive_ticks_; }
   intptr_t inclusive_ticks() const { return inclusive_ticks_; }
 
-  void IncInclusiveTicks() {
-    inclusive_ticks_++;
-  }
+  void IncInclusiveTicks() { inclusive_ticks_++; }
 
   void Tick(bool exclusive,
             intptr_t inclusive_serial,
@@ -180,9 +172,7 @@ class ProfileCode : public ZoneAllocated {
 
   void AdjustExtent(uword start, uword end);
 
-  bool Contains(uword pc) const {
-    return (pc >= start_) && (pc < end_);
-  }
+  bool Contains(uword pc) const { return (pc >= start_) && (pc < end_); }
 
   bool Overlaps(const ProfileCode* other) const;
 
@@ -195,22 +185,16 @@ class ProfileCode : public ZoneAllocated {
   void set_exclusive_ticks(intptr_t exclusive_ticks) {
     exclusive_ticks_ = exclusive_ticks;
   }
-  void IncExclusiveTicks() {
-    exclusive_ticks_++;
-  }
+  void IncExclusiveTicks() { exclusive_ticks_++; }
 
   intptr_t inclusive_ticks() const { return inclusive_ticks_; }
   void set_inclusive_ticks(intptr_t inclusive_ticks) {
     inclusive_ticks_ = inclusive_ticks;
   }
-  void IncInclusiveTicks() {
-    inclusive_ticks_++;
-  }
+  void IncInclusiveTicks() { inclusive_ticks_++; }
 
   bool IsOptimizedDart() const;
-  RawCode* code() const {
-    return code_.raw();
-  }
+  RawCode* code() const { return code_.raw(); }
 
   const char* name() const { return name_; }
   void SetName(const char* name);
@@ -226,9 +210,7 @@ class ProfileCode : public ZoneAllocated {
 
   ProfileFunction* SetFunctionAndName(ProfileFunctionTable* table);
 
-  ProfileFunction* function() const {
-    return function_;
-  }
+  ProfileFunction* function() const { return function_; }
 
   void PrintNativeCode(JSONObject* profile_code_obj);
   void PrintCollectedCode(JSONObject* profile_code_obj);
@@ -275,17 +257,11 @@ class ProfileTrieNode : public ZoneAllocated {
 
   intptr_t count() const { return count_; }
 
-  void Tick() {
-    count_++;
-  }
+  void Tick() { count_++; }
 
-  intptr_t NumChildren() const {
-    return children_.length();
-  }
+  intptr_t NumChildren() const { return children_.length(); }
 
-  ProfileTrieNode* At(intptr_t i) {
-    return children_.At(i);
-  }
+  ProfileTrieNode* At(intptr_t i) { return children_.At(i); }
 
   intptr_t IndexOf(ProfileTrieNode* node);
 
@@ -319,13 +295,7 @@ class ProfileTrieNode : public ZoneAllocated {
 // a zone must be created that lives longer than this object.
 class Profile : public ValueObject {
  public:
-  enum TagOrder {
-    kNoTags,
-    kUser,
-    kUserVM,
-    kVM,
-    kVMUser
-  };
+  enum TagOrder { kNoTags, kUser, kUserVM, kVM, kVMUser };
 
   enum TrieKind {
     kExclusiveCode,
@@ -339,22 +309,20 @@ class Profile : public ValueObject {
     return (kind == kExclusiveCode) || (kind == kInclusiveCode);
   }
 
-  static bool IsFunctionTrie(TrieKind kind) {
-    return !IsCodeTrie(kind);
-  }
+  static bool IsFunctionTrie(TrieKind kind) { return !IsCodeTrie(kind); }
 
   explicit Profile(Isolate* isolate);
 
   // Build a filtered model using |filter| with the specified |tag_order|.
   void Build(Thread* thread,
-             SampleFilter* filter, TagOrder tag_order, intptr_t extra_tags = 0);
+             SampleFilter* filter,
+             TagOrder tag_order,
+             intptr_t extra_tags = 0);
 
   // After building:
   int64_t min_time() const { return min_time_; }
   int64_t max_time() const { return max_time_; }
-  int64_t GetTimeSpan() const {
-    return max_time() - min_time();
-  }
+  int64_t GetTimeSpan() const { return max_time() - min_time(); }
   intptr_t sample_count() const { return sample_count_; }
 
   intptr_t NumFunctions() const;
@@ -399,10 +367,7 @@ class Profile : public ValueObject {
 class ProfileTrieWalker : public ValueObject {
  public:
   explicit ProfileTrieWalker(Profile* profile)
-      : profile_(profile),
-        parent_(NULL),
-        current_(NULL),
-        code_trie_(false) {
+      : profile_(profile), parent_(NULL), current_(NULL), code_trie_(false) {
     ASSERT(profile_ != NULL);
   }
 

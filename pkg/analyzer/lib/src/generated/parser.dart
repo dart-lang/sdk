@@ -5981,9 +5981,7 @@ class Parser {
    *     assertInitializer ::=
    *         'assert' '(' expression [',' expression] ')'
    */
-  void _parseAssertInitializer() {
-    // TODO(brianwilkerson) Capture the syntax in the AST using a new class,
-    // such as AssertInitializer
+  AssertInitializer _parseAssertInitializer() {
     Token keyword = getAndAdvance();
     Token leftParen = _expect(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
@@ -5994,8 +5992,8 @@ class Parser {
       message = parseExpression2();
     }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
-//    return new AssertInitializer(
-//        keyword, leftParen, expression, comma, message, rightParen);
+    return new AssertInitializer(
+        keyword, leftParen, expression, comma, message, rightParen);
   }
 
   /**
@@ -6230,7 +6228,7 @@ class Parser {
           _reportErrorForCurrentToken(ParserErrorCode.MISSING_INITIALIZER);
         } else if (_enableAssertInitializer &&
             _matchesKeyword(Keyword.ASSERT)) {
-          _parseAssertInitializer();
+          initializers.add(_parseAssertInitializer());
         } else {
           initializers.add(parseConstructorFieldInitializer(false));
         }

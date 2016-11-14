@@ -64,6 +64,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitBlockFunctionBody(BlockFunctionBody node) {
+    if (_isBodyToCreateElementsFor(node)) {
+      _walker.consumeLocalElements();
+      node.accept(_walker.elementBuilder);
+      return null;
+    } else {
+      return super.visitBlockFunctionBody(node);
+    }
+  }
+
+  @override
   Object visitCatchClause(CatchClause node) {
     _walker.elementBuilder.buildCatchVariableElements(node);
     return super.visitCatchClause(node);
@@ -149,6 +160,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    if (_isBodyToCreateElementsFor(node)) {
+      _walker.consumeLocalElements();
+      node.accept(_walker.elementBuilder);
+      return null;
+    } else {
+      return super.visitExpressionFunctionBody(node);
+    }
+  }
+
+  @override
   Object visitFieldDeclaration(FieldDeclaration node) {
     super.visitFieldDeclaration(node);
     _resolveMetadata(node, node.metadata, node.fields.variables[0].element);
@@ -189,6 +211,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       }
     }
     node.functionExpression.element = element;
+    _walker._elementHolder?.addFunction(element);
     _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
       super.visitFunctionDeclaration(node);
     });
@@ -202,6 +225,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       FunctionElement element = _walker.getFunction();
       _matchOffset(element, node.offset);
       node.element = element;
+      _walker._elementHolder.addFunction(element);
       _walk(new ElementWalker.forExecutable(element, _enclosingUnit), () {
         super.visitFunctionExpression(node);
       });
@@ -461,6 +485,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     walker.validate();
     _walker = outerWalker;
   }
+
+  static bool _isBodyToCreateElementsFor(FunctionBody node) {
+    AstNode parent = node.parent;
+    return parent is ConstructorDeclaration ||
+        parent is MethodDeclaration ||
+        parent.parent is FunctionDeclaration &&
+            parent.parent.parent is CompilationUnit;
+  }
 }
 
 /**
@@ -569,6 +601,10 @@ class ElementWalker {
         _parameters = element.parameters,
         _typeParameters = element.typeParameters;
 
+  void consumeLocalElements() {
+    _functionIndex = _functions.length;
+  }
+
   /**
    * Returns the next non-synthetic child of [element] which is an accessor;
    * throws an [IndexError] if there are no more.
@@ -649,6 +685,7 @@ class ElementWalker {
     check(_variables, _variableIndex);
     Element element = this.element;
     if (element is ExecutableElementImpl) {
+      element.functions = _elementHolder.functions;
       element.labels = _elementHolder.labels;
       element.localVariables = _elementHolder.localVariables;
     }

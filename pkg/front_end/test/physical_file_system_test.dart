@@ -5,6 +5,7 @@
 
 library front_end.test.physical_file_system_test;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
@@ -206,7 +207,15 @@ class _BaseTest {
     tempPath = tempDirectory.absolute.path;
   }
 
-  tearDown() {
-    tempDirectory.deleteSync(recursive: true);
+  tearDown() async {
+    try {
+      tempDirectory.deleteSync(recursive: true);
+    } on io.FileSystemException {
+      // Sometimes on Windows the delete fails with errno 32
+      // (ERROR_SHARING_VIOLATION: The process cannot access the file because it
+      // is being used by another process).  Wait 1 second and try again.
+      await new Future.delayed(new Duration(seconds: 1));
+      tempDirectory.deleteSync(recursive: true);
+    }
   }
 }

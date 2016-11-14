@@ -3086,6 +3086,22 @@ class StaticTypeWarningCode extends ErrorCode {
           "Try adjusting the number of type arguments.");
 
   /**
+   * It will be a static type warning if <i>m</i> is not a generic method with
+   * exactly <i>n</i> type parameters.
+   *
+   * Parameters:
+   * 0: the name of the method being referenced (<i>G</i>)
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   */
+  static const StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD =
+      const StaticTypeWarningCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
+          "The method '{0}' is declared with {1} type parameters, "
+          "but {2} type arguments were given.",
+          "Try adjusting the number of type arguments.");
+
+  /**
    * 17.16.1 Yield: Let T be the static type of e [the expression to the right
    * of "yield"] and let f be the immediately enclosing function.  It is a
    * static type warning if either:
@@ -4419,6 +4435,19 @@ class StaticWarningCode extends ErrorCode {
           "The deferred type '{0}' can't be used in a declaration, cast or type test.",
           "Try using a different type, or "
           "changing the import to not be deferred.");
+
+  /**
+   * Not yet spec'd.
+   *
+   * Parameters:
+   * 0: the name of the generic function's type parameter that is being used in
+   *    an `is` expression
+   */
+  static const StaticWarningCode TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER =
+      const StaticWarningCode(
+          'TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER',
+          "The type parameter '{0}' can't be used in a type test.",
+          "Try using a different type.");
 
   /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type

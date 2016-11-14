@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import "native_testing.dart";
 
 // Test for correct simple is-checks on hidden native classes.
 
@@ -29,11 +28,13 @@ function A(){}
 A.prototype.read = function() { return this._x; };
 A.prototype.write = function(x) { this._x = x; };
 makeA = function(){return new A};
+self.nativeConstructor(A);
 """;
 
 class B {}
 
 main() {
+  nativeTesting();
   setup();
 
   var a1 = makeA();

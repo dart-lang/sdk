@@ -16,7 +16,7 @@ main() {
   group('Hello World', () {
     final argsFile = new File('test/worker/hello_world.args').absolute;
     final inputDartFile = new File('test/worker/hello_world.dart').absolute;
-    final outputJsFile = new File('test/worker/hello_world.js').absolute;
+    final outputJsFile = new File('test/worker/out/hello_world.js').absolute;
     final dartSdkSummary = new File('lib/sdk/ddc_sdk.sum').absolute;
     final executableArgs = ['bin/dartdevc.dart'];
     final compilerArgs = [
@@ -36,7 +36,9 @@ main() {
 
     tearDown(() {
       if (inputDartFile.existsSync()) inputDartFile.deleteSync();
-      if (outputJsFile.existsSync()) outputJsFile.deleteSync();
+      if (outputJsFile.parent.existsSync()) {
+        outputJsFile.parent.deleteSync(recursive: true);
+      }
       if (argsFile.existsSync()) argsFile.deleteSync();
     });
 
