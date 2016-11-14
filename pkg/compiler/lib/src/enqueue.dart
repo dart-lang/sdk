@@ -216,7 +216,7 @@ class ResolutionEnqueuer extends Enqueuer {
       _universe.registerTypeInstantiation(type,
           isNative: isNative,
           byMirrors: mirrorUsage, onImplemented: (ClassElement cls) {
-            backend.registerImplementedClass(cls, this);
+        backend.registerImplementedClass(cls, this);
       });
       if (globalDependency && !mirrorUsage) {
         globalDependencies.registerDependency(type.element);

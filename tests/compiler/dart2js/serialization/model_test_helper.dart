@@ -139,8 +139,8 @@ void checkResolutionEnqueuers(
 
   JavaScriptBackend backend1 = enqueuer1.backend;
   JavaScriptBackend backend2 = enqueuer2.backend;
-  Expect.equals(backend1.hasInvokeOnSupport,
-      backend2.hasInvokeOnSupport, "Compiler.enabledInvokeOn mismatch");
+  Expect.equals(backend1.hasInvokeOnSupport, backend2.hasInvokeOnSupport,
+      "Compiler.enabledInvokeOn mismatch");
   Expect.equals(
       enqueuer1.universe.hasFunctionApplySupport,
       enqueuer2.universe.hasFunctionApplySupport,
