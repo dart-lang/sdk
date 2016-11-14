@@ -343,6 +343,9 @@ deferred_transitive_import_error_test: Skip # Contains intentional errors.
 [ $hot_reload || $hot_reload_rollback ]
 deferred_transitive_import_error_test: Crash # Uses deferred imports.
 package/*: SkipByDesign # Launches VMs in interesting ways.
+io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
+io/test_runner_test: Pass, Slow # Slow.
+io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 
 [ $builder_tag == no_ipv6 ]
 io/http_bind_test: Skip
