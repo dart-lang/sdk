@@ -33,11 +33,9 @@ part 'value_type_mask.dart';
 class CommonMasks {
   // TODO(sigmund): once we split out the backend common elements, depend
   // directly on those instead.
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
 
-  CommonMasks(this.compiler);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  CommonMasks(this.closedWorld);
 
   BackendClasses get backendClasses => closedWorld.backendClasses;
 

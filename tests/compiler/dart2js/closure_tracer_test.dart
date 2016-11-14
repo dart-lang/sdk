@@ -154,8 +154,8 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var commonMasks = compiler.commonMasks;
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var commonMasks = compiler.closedWorld.commonMasks;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkType(String name, type) {
           var element = findElement(compiler, name);

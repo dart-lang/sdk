@@ -3161,7 +3161,7 @@ class SsaBuilder extends ast.Visitor
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
       element = coreClasses.objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
-    if (compiler.enabledInvokeOn && !element.enclosingClass.isObject) {
+    if (backend.hasInvokeOnSupport && !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls
@@ -5512,7 +5512,7 @@ class SsaBuilder extends ast.Visitor
 
   _inferredTypeOfNewList(ast.Node node) =>
       _resultOf(sourceElement).typeOfNewList(node) ??
-      compiler.commonMasks.dynamicType;
+      compiler.closedWorld.commonMasks.dynamicType;
 
   visitConditional(ast.Conditional node) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);

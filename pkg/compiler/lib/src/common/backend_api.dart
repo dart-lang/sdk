@@ -86,17 +86,17 @@ abstract class Backend extends Target {
   void enqueueHelpers(ResolutionEnqueuer world);
 
   /// Creates an [Enqueuer] for code generation specific to this backend.
-  Enqueuer createCodegenEnqueuer(Compiler compiler);
+  Enqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler);
 
   WorldImpact codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
   // default, so tools like dart2dart can ignore the native classes.
-  native.NativeEnqueuer nativeResolutionEnqueuer(world) {
+  native.NativeEnqueuer nativeResolutionEnqueuer() {
     return new native.NativeEnqueuer();
   }
 
-  native.NativeEnqueuer nativeCodegenEnqueuer(world) {
+  native.NativeEnqueuer nativeCodegenEnqueuer() {
     return new native.NativeEnqueuer();
   }
 

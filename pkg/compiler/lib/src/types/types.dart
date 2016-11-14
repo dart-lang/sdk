@@ -233,24 +233,26 @@ class GlobalTypeInferenceTask extends CompilerTask {
   final String name = 'Type inference';
 
   final Compiler compiler;
-  TypeGraphInferrer typesInferrer;
-  CommonMasks masks;
+
+  /// The [TypeGraphInferrer] used by the global type inference. This should by
+  /// accessed from outside this class for testing only.
+  TypeGraphInferrer typesInferrerInternal;
+
   GlobalTypeInferenceResults results;
 
   GlobalTypeInferenceTask(Compiler compiler)
-      : masks = new CommonMasks(compiler),
-        compiler = compiler,
-        super(compiler.measurer) {
-    typesInferrer = new TypeGraphInferrer(compiler, masks);
-  }
+      : compiler = compiler,
+        super(compiler.measurer);
 
   /// Runs the global type-inference algorithm once.
   void runGlobalTypeInference(Element mainElement) {
     measure(() {
-      typesInferrer.analyzeMain(mainElement);
-      typesInferrer.clear();
+      CommonMasks masks = compiler.closedWorld.commonMasks;
+      typesInferrerInternal ??= new TypeGraphInferrer(compiler, masks);
+      typesInferrerInternal.analyzeMain(mainElement);
+      typesInferrerInternal.clear();
       results = new GlobalTypeInferenceResults(
-          typesInferrer, compiler, masks, typesInferrer.inferrer.types);
+          typesInferrerInternal, compiler, masks, typesInferrerInternal.inferrer.types);
     });
   }
 }

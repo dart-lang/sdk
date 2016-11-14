@@ -337,18 +337,19 @@ class JavaScriptBackend extends Backend {
       TRACE_METHOD == 'post' || TRACE_METHOD == 'console';
   MethodElement traceHelper;
 
-  TypeMask get stringType => compiler.commonMasks.stringType;
-  TypeMask get doubleType => compiler.commonMasks.doubleType;
-  TypeMask get intType => compiler.commonMasks.intType;
-  TypeMask get uint32Type => compiler.commonMasks.uint32Type;
-  TypeMask get uint31Type => compiler.commonMasks.uint31Type;
-  TypeMask get positiveIntType => compiler.commonMasks.positiveIntType;
-  TypeMask get numType => compiler.commonMasks.numType;
-  TypeMask get boolType => compiler.commonMasks.boolType;
-  TypeMask get dynamicType => compiler.commonMasks.dynamicType;
-  TypeMask get nullType => compiler.commonMasks.nullType;
+  TypeMask get stringType => compiler.closedWorld.commonMasks.stringType;
+  TypeMask get doubleType => compiler.closedWorld.commonMasks.doubleType;
+  TypeMask get intType => compiler.closedWorld.commonMasks.intType;
+  TypeMask get uint32Type => compiler.closedWorld.commonMasks.uint32Type;
+  TypeMask get uint31Type => compiler.closedWorld.commonMasks.uint31Type;
+  TypeMask get positiveIntType =>
+      compiler.closedWorld.commonMasks.positiveIntType;
+  TypeMask get numType => compiler.closedWorld.commonMasks.numType;
+  TypeMask get boolType => compiler.closedWorld.commonMasks.boolType;
+  TypeMask get dynamicType => compiler.closedWorld.commonMasks.dynamicType;
+  TypeMask get nullType => compiler.closedWorld.commonMasks.nullType;
   TypeMask get emptyType => const TypeMask.nonNullEmpty();
-  TypeMask get nonNullType => compiler.commonMasks.nonNullType;
+  TypeMask get nonNullType => compiler.closedWorld.commonMasks.nonNullType;
 
   TypeMask _indexablePrimitiveTypeCache;
   TypeMask get indexablePrimitiveType {
@@ -518,6 +519,9 @@ class JavaScriptBackend extends Backend {
 
   /// True when we enqueue the loadLibrary code.
   bool isLoadLibraryFunctionResolved = false;
+
+  /// `true` if access to [BackendHelpers.invokeOnMethod] is supported.
+  bool hasInvokeOnSupport = false;
 
   /// List of constants from metadata.  If metadata must be preserved,
   /// these constants must be registered.
@@ -1489,13 +1493,13 @@ class JavaScriptBackend extends Backend {
   }
 
   bool classNeedsRti(ClassElement cls) {
-    if (compiler.enabledRuntimeType) return true;
+    if (compiler.resolverWorld.hasRuntimeTypeSupport) return true;
     return rti.classesNeedingRti.contains(cls.declaration);
   }
 
   bool classNeedsRtiField(ClassElement cls) {
     if (cls.rawType.typeArguments.isEmpty) return false;
-    if (compiler.enabledRuntimeType) return true;
+    if (compiler.resolverWorld.hasRuntimeTypeSupport) return true;
     return rti.classesNeedingRti.contains(cls.declaration);
   }
 
@@ -1512,7 +1516,7 @@ class JavaScriptBackend extends Backend {
 
   bool methodNeedsRti(FunctionElement function) {
     return rti.methodsNeedingRti.contains(function) ||
-        compiler.enabledRuntimeType;
+        compiler.resolverWorld.hasRuntimeTypeSupport;
   }
 
   /// Enqueue [e] in [enqueuer].
@@ -1571,8 +1575,9 @@ class JavaScriptBackend extends Backend {
 
   CodegenEnqueuer get codegenEnqueuer => compiler.enqueuer.codegen;
 
-  CodegenEnqueuer createCodegenEnqueuer(Compiler compiler) {
-    return new CodegenEnqueuer(compiler, const TreeShakingEnqueuerStrategy());
+  CodegenEnqueuer createCodegenEnqueuer(CompilerTask task, Compiler compiler) {
+    return new CodegenEnqueuer(
+        task, compiler, const TreeShakingEnqueuerStrategy());
   }
 
   WorldImpact codegen(CodegenWorkItem work) {
@@ -1646,11 +1651,11 @@ class JavaScriptBackend extends Backend {
     return worldImpact;
   }
 
-  native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
+  native.NativeEnqueuer nativeResolutionEnqueuer() {
     return new native.NativeResolutionEnqueuer(compiler);
   }
 
-  native.NativeEnqueuer nativeCodegenEnqueuer(Enqueuer world) {
+  native.NativeEnqueuer nativeCodegenEnqueuer() {
     return new native.NativeCodegenEnqueuer(compiler, emitter);
   }
 
@@ -2342,11 +2347,13 @@ class JavaScriptBackend extends Backend {
     //
     // Return early if any elements are added to avoid counting the elements as
     // due to mirrors.
-    enqueuer.applyImpact(customElementsAnalysis.flush(
-        forResolution: enqueuer.isResolutionQueue));
     enqueuer.applyImpact(
+        compiler.impactStrategy,
+        customElementsAnalysis.flush(
+            forResolution: enqueuer.isResolutionQueue));
+    enqueuer.applyImpact(compiler.impactStrategy,
         lookupMapAnalysis.flush(forResolution: enqueuer.isResolutionQueue));
-    enqueuer.applyImpact(
+    enqueuer.applyImpact(compiler.impactStrategy,
         typeVariableHandler.flush(forResolution: enqueuer.isResolutionQueue));
 
     if (!enqueuer.queueIsEmpty) return false;
@@ -2420,7 +2427,7 @@ class JavaScriptBackend extends Backend {
         }
         metadataConstants.clear();
       }
-      enqueuer.applyImpact(impactBuilder.flush());
+      enqueuer.applyImpact(compiler.impactStrategy, impactBuilder.flush());
     }
     return true;
   }
@@ -2545,7 +2552,7 @@ class JavaScriptBackend extends Backend {
           "@NoSideEffects() should always be combined with @NoInline.");
     }
     if (element == helpers.invokeOnMethod) {
-      compiler.enabledInvokeOn = true;
+      hasInvokeOnSupport = true;
     }
   }
 

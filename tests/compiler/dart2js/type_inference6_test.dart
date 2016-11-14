@@ -24,8 +24,8 @@ Future runTest() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   return compiler.run(uri).then((_) {
-    var commonMasks = compiler.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrer;
+    var commonMasks = compiler.closedWorld.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfElement(element);
     Expect.equals(commonMasks.uint31Type, simplify(mask, compiler));

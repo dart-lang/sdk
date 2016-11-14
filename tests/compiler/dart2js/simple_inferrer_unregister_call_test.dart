@@ -32,7 +32,7 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkReturnInClass(String className, String methodName, type) {
           var cls = findElement(compiler, className);
@@ -40,6 +40,7 @@ void main() {
           Expect.equals(type, typesInferrer.getReturnTypeOfElement(element));
         }
 
-        checkReturnInClass('A', '+', compiler.commonMasks.uint31Type);
+        checkReturnInClass(
+            'A', '+', compiler.closedWorld.commonMasks.uint31Type);
       }));
 }

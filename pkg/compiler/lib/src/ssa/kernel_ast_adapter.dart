@@ -179,7 +179,7 @@ class KernelAstAdapter {
 
   TypeMask typeOfNewList(Element owner, ir.ListLiteral listLiteral) {
     return _resultOf(owner).typeOfNewList(getNode(listLiteral)) ??
-        _compiler.commonMasks.dynamicType;
+        _compiler.closedWorld.commonMasks.dynamicType;
   }
 
   TypeMask typeOfIterator(ir.ForInStatement forInStatement) {

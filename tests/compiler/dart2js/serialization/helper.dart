@@ -11,6 +11,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/filenames.dart';
 
 import '../memory_compiler.dart';
 import 'test_data.dart';
@@ -69,6 +70,13 @@ class Arguments {
         verbose: verbose,
         loadSerializedData: loadSerializedData,
         saveSerializedData: saveSerializedData);
+  }
+
+  Uri get uri {
+    if (filename != null) {
+      return Uri.base.resolve(nativeToUriPath(filename));
+    }
+    return null;
   }
 
   Future forEachTest(SerializedData serializedData, List<Test> tests,

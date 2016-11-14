@@ -77,7 +77,11 @@ import 'universe/world_builder.dart'
     show ResolutionWorldBuilder, CodegenWorldBuilder;
 import 'universe/use.dart' show StaticUse;
 import 'universe/world_impact.dart'
-    show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
+    show
+        ImpactStrategy,
+        WorldImpact,
+        WorldImpactBuilder,
+        WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show ClosedWorld, ClosedWorldRefiner, OpenWorld, WorldImpl;
 
@@ -90,7 +94,7 @@ abstract class Compiler implements LibraryLoaderListener {
   Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
-  WorldImpl _world;
+  WorldImpl get _world => resolverWorld.openWorld;
   Types types;
   _CompilerCoreTypes _coreTypes;
   CompilerDiagnosticReporter _reporter;
@@ -140,7 +144,6 @@ abstract class Compiler implements LibraryLoaderListener {
   CommonElements get commonElements => _coreTypes;
   CoreClasses get coreClasses => _coreTypes;
   CoreTypes get coreTypes => _coreTypes;
-  CommonMasks get commonMasks => globalInference.masks;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
 
@@ -185,10 +188,8 @@ abstract class Compiler implements LibraryLoaderListener {
   /// A customizable filter that is applied to enqueued work items.
   QueueFilter enqueuerFilter = new QueueFilter();
 
-  bool enabledRuntimeType = false;
-  bool enabledFunctionApply = false;
-  bool enabledInvokeOn = false;
-  bool hasIsolateSupport = false;
+  bool get hasFunctionApplySupport => resolverWorld.hasFunctionApplySupport;
+  bool get hasIsolateSupport => resolverWorld.hasIsolateSupport;
 
   bool get hasCrashed => _reporter.hasCrashed;
 
@@ -217,7 +218,6 @@ abstract class Compiler implements LibraryLoaderListener {
         this.userOutputProvider = outputProvider == null
             ? const NullCompilerOutput()
             : outputProvider {
-    _world = new WorldImpl(this);
     if (makeReporter != null) {
       _reporter = makeReporter(this, options);
     } else {
@@ -249,6 +249,7 @@ abstract class Compiler implements LibraryLoaderListener {
           useKernel: options.useKernel);
       backend = jsBackend;
     }
+    enqueuer = backend.makeEnqueuer();
 
     if (options.dumpInfo && options.useStartupEmitter) {
       throw new ArgumentError(
@@ -280,7 +281,9 @@ abstract class Compiler implements LibraryLoaderListener {
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
-      enqueuer = backend.makeEnqueuer(),
+      // [enqueuer] is created earlier because it contains the resolution world
+      // objects needed by other tasks.
+      enqueuer,
       dumpInfoTask = new DumpInfoTask(this),
       selfTask = new GenericTask('self', measurer),
     ];
@@ -647,7 +650,7 @@ abstract class Compiler implements LibraryLoaderListener {
         // something to the resolution queue.  So we cannot wait with
         // this until after the resolution queue is processed.
         deferredLoadTask.beforeResolution(this);
-        impactStrategy = backend.createImpactStrategy(
+        ImpactStrategy impactStrategy = backend.createImpactStrategy(
             supportDeferredLoad: deferredLoadTask.isProgramSplit,
             supportDumpInfo: options.dumpInfo,
             supportSerialization: serialization.supportSerialization);
@@ -755,7 +758,7 @@ abstract class Compiler implements LibraryLoaderListener {
   void closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    openWorld.closeWorld();
+    openWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionComplete();
@@ -827,28 +830,30 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   /**
-   * Empty the [world] queue.
+   * Empty the [enqueuer] queue.
    */
-  void emptyQueue(Enqueuer world) =>
-      selfTask.measureSubtask("Compiler.emptyQueue", () {
-        world.forEach((WorkItem work) {
-          reporter.withCurrentElement(
-              work.element,
-              () => selfTask.measureSubtask("world.applyImpact", () {
-                    world.applyImpact(
-                        selfTask.measureSubtask(
-                            "work.run", () => work.run(this, world)),
-                        impactSource: work.element);
-                  }));
-        });
+  void emptyQueue(Enqueuer enqueuer) {
+    selfTask.measureSubtask("Compiler.emptyQueue", () {
+      enqueuer.forEach((WorkItem work) {
+        reporter.withCurrentElement(
+            work.element,
+            () => selfTask.measureSubtask("world.applyImpact", () {
+                  enqueuer.applyImpact(
+                      impactStrategy,
+                      selfTask.measureSubtask(
+                          "work.run", () => work.run(this, enqueuer)),
+                      impactSource: work.element);
+                }));
       });
+    });
+  }
 
   void processQueue(Enqueuer enqueuer, Element main) {
     selfTask.measureSubtask("Compiler.processQueue", () {
       WorldImpactBuilderImpl nativeImpact = new WorldImpactBuilderImpl();
       enqueuer.nativeEnqueuer
           .processNativeClasses(nativeImpact, libraryLoader.libraries);
-      enqueuer.applyImpact(nativeImpact);
+      enqueuer.applyImpact(impactStrategy, nativeImpact);
       if (main != null && !main.isMalformed) {
         FunctionElement mainMethod = main;
         mainMethod.computeType(resolution);
@@ -2036,6 +2041,13 @@ class _CompilerResolution implements Resolution {
       return;
     }
     computeWorldImpact(element);
+  }
+
+  @override
+  void ensureClassMembers(ClassElement element) {
+    if (!compiler.serialization.isDeserialized(element)) {
+      compiler.resolver.checkClass(element);
+    }
   }
 
   @override

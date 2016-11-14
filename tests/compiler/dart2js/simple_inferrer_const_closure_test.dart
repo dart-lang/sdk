@@ -37,7 +37,7 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
@@ -47,10 +47,10 @@ void main() {
               name);
         }
 
-        checkReturn('method1', compiler.commonMasks.uint31Type);
-        checkReturn('returnInt1', compiler.commonMasks.uint31Type);
+        checkReturn('method1', compiler.closedWorld.commonMasks.uint31Type);
+        checkReturn('returnInt1', compiler.closedWorld.commonMasks.uint31Type);
 
-        checkReturn('method2', compiler.commonMasks.uint31Type);
-        checkReturn('returnInt2', compiler.commonMasks.uint31Type);
+        checkReturn('method2', compiler.closedWorld.commonMasks.uint31Type);
+        checkReturn('returnInt2', compiler.closedWorld.commonMasks.uint31Type);
       }));
 }

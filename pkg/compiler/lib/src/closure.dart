@@ -19,7 +19,6 @@ import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'resolution/tree_elements.dart' show TreeElements;
 import 'tokens/token.dart' show Token;
 import 'tree/tree.dart';
-import 'universe/world_builder.dart' show CodegenWorldBuilder;
 import 'util/util.dart';
 
 class ClosureTask extends CompilerTask {
@@ -122,7 +121,7 @@ class ClosureTask extends CompilerTask {
       throw new SpannableAssertionFailure(
           closure, 'Not a closure: $closure (${closure.runtimeType}).');
     }
-    compiler.enqueuer.codegen.forgetElement(cls);
+    compiler.enqueuer.codegen.forgetElement(cls, compiler);
   }
 }
 

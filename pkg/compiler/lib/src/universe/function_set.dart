@@ -17,11 +17,9 @@ import 'world_builder.dart' show ReceiverConstraint;
 // too and stricly they aren't functions. Maybe this needs a better
 // name -- something like ElementSet seems a bit too generic.
 class FunctionSet {
-  final Compiler compiler;
+  final ClosedWorld closedWorld;
   final Map<String, FunctionSetNode> nodes = new Map<String, FunctionSetNode>();
-  FunctionSet(this.compiler);
-
-  ClosedWorld get closedWorld => compiler.closedWorld;
+  FunctionSet(this.closedWorld);
 
   FunctionSetNode newNode(String name) => new FunctionSetNode(name);
 

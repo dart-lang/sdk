@@ -10,6 +10,7 @@ import '../common/backend_api.dart' show Backend;
 import '../common/codegen.dart' show CodegenWorkItem;
 import '../common/registry.dart' show Registry;
 import '../common/names.dart' show Identifiers;
+import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
@@ -39,7 +40,7 @@ import '../universe/world_builder.dart';
 import '../universe/use.dart'
     show DynamicUse, StaticUse, StaticUseKind, TypeUse, TypeUseKind;
 import '../universe/world_impact.dart'
-    show ImpactUseCase, WorldImpact, WorldImpactVisitor;
+    show ImpactUseCase, ImpactStrategy, WorldImpact, WorldImpactVisitor;
 import '../util/util.dart' show Setlet;
 import '../world.dart';
 
@@ -59,15 +60,16 @@ class CodegenEnqueuer implements Enqueuer {
       new CodegenWorldBuilderImpl(const TypeMaskStrategy());
 
   bool queueIsClosed = false;
-  EnqueueTask task;
-  native.NativeEnqueuer nativeEnqueuer; // Set by EnqueueTask
+  final CompilerTask task;
+  final native.NativeEnqueuer nativeEnqueuer;
 
   WorldImpactVisitor impactVisitor;
 
-  CodegenEnqueuer(Compiler compiler, this.strategy)
+  CodegenEnqueuer(this.task, Compiler compiler, this.strategy)
       : queue = new Queue<CodegenWorkItem>(),
         newlyEnqueuedElements = compiler.cacheStrategy.newSet(),
         newlySeenSelectors = compiler.cacheStrategy.newSet(),
+        nativeEnqueuer = compiler.backend.nativeCodegenEnqueuer(),
         this.name = 'codegen enqueuer',
         this._compiler = compiler {
     impactVisitor = new _EnqueuerImpactVisitor(this);
@@ -117,17 +119,16 @@ class CodegenEnqueuer implements Enqueuer {
           element, "Codegen work list is closed. Trying to add $element");
     }
     queue.add(new CodegenWorkItem(_compiler, element));
-    if (options.dumpInfo) {
-      // TODO(sigmund): add other missing dependencies (internals, selectors
-      // enqueued after allocations), also enable only for the codegen enqueuer.
-      _compiler.dumpInfoTask
-          .registerDependency(_compiler.currentElement, element);
-    }
+    // TODO(sigmund): add other missing dependencies (internals, selectors
+    // enqueued after allocations).
+    _compiler.dumpInfoTask
+        .registerDependency(_compiler.currentElement, element);
   }
 
-  void applyImpact(WorldImpact worldImpact, {Element impactSource}) {
-    _compiler.impactStrategy
-        .visitImpact(impactSource, worldImpact, impactVisitor, impactUse);
+  void applyImpact(ImpactStrategy impactStrategy, WorldImpact worldImpact,
+      {Element impactSource}) {
+    impactStrategy.visitImpact(
+        impactSource, worldImpact, impactVisitor, impactUse);
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -417,7 +418,7 @@ class CodegenEnqueuer implements Enqueuer {
   }
 
   void _registerIsCheck(DartType type) {
-    type = _universe.registerIsCheck(type, _compiler);
+    type = _universe.registerIsCheck(type, _compiler.resolution);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
     // against the type variable of a typedef.
@@ -500,7 +501,7 @@ class CodegenEnqueuer implements Enqueuer {
     log('Compiled ${generatedCode.length} methods.');
   }
 
-  void forgetElement(Element element) {
+  void forgetElement(Element element, Compiler compiler) {
     _forgetElement(element);
     generatedCode.remove(element);
     if (element is MemberElement) {

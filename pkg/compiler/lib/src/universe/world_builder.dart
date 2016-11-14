@@ -6,14 +6,19 @@ library universe;
 
 import 'dart:collection';
 
+import '../cache_strategy.dart';
 import '../common.dart';
+import '../common/backend_api.dart' show Backend;
+import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
+import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../types/masks.dart' show CommonMasks;
 import '../universe/class_set.dart' show Instantiation;
 import '../util/enumset.dart';
 import '../util/util.dart';
-import '../world.dart' show World, ClosedWorld, OpenWorld;
+import '../world.dart' show World, ClosedWorld, OpenWorld, WorldImpl;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
@@ -120,7 +125,7 @@ abstract class WorldBuilder {
 
   /// Registers that [type] is checked in this universe. The unaliased type is
   /// returned.
-  DartType registerIsCheck(DartType type, Compiler compiler);
+  DartType registerIsCheck(DartType type, Resolution resolution);
 
   /// All directly instantiated types, that is, the types of the directly
   /// instantiated classes.
@@ -162,6 +167,19 @@ abstract class ResolutionWorldBuilder implements WorldBuilder {
   /// Call [f] for all directly or abstractly instantiated classes.
   void forEachInstantiatedClass(
       f(ClassElement cls, EnumSet<Instantiation> instantiations));
+
+  /// `true` of `Object.runtimeType` is supported.
+  bool get hasRuntimeTypeSupport;
+
+  /// `true` of use of the `dart:isolate` library is supported.
+  bool get hasIsolateSupport;
+
+  /// `true` of `Function.apply` is supported.
+  bool get hasFunctionApplySupport;
+
+  /// The [OpenWorld] being created by this world builder.
+  // TODO(johnniwinther): Merge this with [ResolutionWorldBuilder].
+  OpenWorld get openWorld;
 }
 
 class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
@@ -236,7 +254,18 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
   final SelectorConstraintsStrategy selectorConstraintsStrategy;
 
-  ResolutionWorldBuilderImpl(this.selectorConstraintsStrategy);
+  bool hasRuntimeTypeSupport = false;
+  bool hasIsolateSupport = false;
+  bool hasFunctionApplySupport = false;
+
+  OpenWorld _openWorld;
+
+  ResolutionWorldBuilderImpl(Backend backend, CoreClasses coreClasses,
+      CacheStrategy cacheStrategy, this.selectorConstraintsStrategy) {
+    _openWorld = new WorldImpl(this, backend, coreClasses, cacheStrategy);
+  }
+
+  OpenWorld get openWorld => _openWorld;
 
   /// All directly instantiated classes, that is, classes with a generative
   /// constructor that has been called directly and not only through a
@@ -365,8 +394,8 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
     return constraints.addReceiverConstraint(mask);
   }
 
-  DartType registerIsCheck(DartType type, Compiler compiler) {
-    type.computeUnaliased(compiler.resolution);
+  DartType registerIsCheck(DartType type, Resolution resolution) {
+    type.computeUnaliased(resolution);
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -644,8 +673,7 @@ class CodegenWorldBuilderImpl implements CodegenWorldBuilder {
     _invokedSetters.forEach(f);
   }
 
-  DartType registerIsCheck(DartType type, Compiler compiler) {
-    type.computeUnaliased(compiler.resolution);
+  DartType registerIsCheck(DartType type, Resolution resolution) {
     type = type.unaliased;
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
