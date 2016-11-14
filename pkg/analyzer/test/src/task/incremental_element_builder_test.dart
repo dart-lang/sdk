@@ -711,6 +711,43 @@ class A {
     expect(helper.delta.removedMethods, unorderedEquals([oldElementA]));
   }
 
+  test_classDelta_method_async_addStar() {
+    var helper = new _ClassDeltaHelper('A');
+    _buildOldUnit(r'''
+class A {
+  Stream test() async {}
+}
+''');
+    helper.initOld(oldUnit);
+    _buildNewUnit(r'''
+class A {
+  Stream test() async* {}
+}
+''');
+    helper.initNew(newUnit, unitDelta);
+    // nodes
+    ClassMember oldNodeA = helper.oldMembers[0];
+    ClassMember newNodeA = helper.newMembers[0];
+    expect(newNodeA, isNot(same(oldNodeA)));
+    // elements
+    MethodElement oldElement = oldNodeA.element;
+    MethodElement newElement = newNodeA.element;
+    expect(newElement, isNotNull);
+    expect(newElement.name, 'test');
+    expect(oldElement.isAsynchronous, isTrue);
+    expect(oldElement.isGenerator, isFalse);
+    expect(newElement.isAsynchronous, isTrue);
+    expect(newElement.isGenerator, isTrue);
+    expect(helper.element.methods, [newElement]);
+    // verify delta
+    expect(helper.delta.addedConstructors, isEmpty);
+    expect(helper.delta.removedConstructors, isEmpty);
+    expect(helper.delta.addedAccessors, isEmpty);
+    expect(helper.delta.removedAccessors, isEmpty);
+    expect(helper.delta.addedMethods, unorderedEquals([newElement]));
+    expect(helper.delta.removedMethods, unorderedEquals([oldElement]));
+  }
+
   test_classDelta_method_changeName() {
     var helper = new _ClassDeltaHelper('A');
     _buildOldUnit(r'''
