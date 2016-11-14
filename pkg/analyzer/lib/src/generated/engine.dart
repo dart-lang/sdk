@@ -29,12 +29,14 @@ import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
 export 'package:analyzer/error/listener.dart' show RecordingErrorListener;
+export 'package:front_end/src/base/timestamped_data.dart' show TimestampedData;
 
 /**
  * Used by [AnalysisOptions] to allow function bodies to be analyzed in some
@@ -2719,25 +2721,4 @@ class SourcesChangedEvent {
   bool get wereSourcesRemoved =>
       _changeSet.removedSources.length > 0 ||
       _changeSet.removedContainers.length > 0;
-}
-
-/**
- * Analysis data for which we have a modification time.
- */
-class TimestampedData<E> {
-  /**
-   * The modification time of the source from which the data was created.
-   */
-  final int modificationTime;
-
-  /**
-   * The data that was created from the source.
-   */
-  final E data;
-
-  /**
-   * Initialize a newly created holder to associate the given [data] with the
-   * given [modificationTime].
-   */
-  TimestampedData(this.modificationTime, this.data);
 }

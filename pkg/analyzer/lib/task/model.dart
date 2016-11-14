@@ -14,6 +14,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/model.dart';
+import 'package:front_end/src/base/analysis_target.dart';
+
+export 'package:front_end/src/base/analysis_target.dart' show AnalysisTarget;
 
 /**
  * A function that converts the given [key] and [value] into a [TaskInput].
@@ -65,27 +68,6 @@ class AnalysisContextTarget implements AnalysisTarget {
 
   @override
   Source get source => null;
-}
-
-/**
- * An object with which an analysis result can be associated.
- *
- * Clients may implement this class when creating new kinds of targets.
- * Instances of this type are used in hashed data structures, so subtypes are
- * required to correctly implement [==] and [hashCode].
- */
-abstract class AnalysisTarget {
-  /**
-   * If this target is associated with a library, return the source of the
-   * library's defining compilation unit; otherwise return `null`.
-   */
-  Source get librarySource;
-
-  /**
-   * Return the source associated with this target, or `null` if this target is
-   * not associated with a source.
-   */
-  Source get source;
 }
 
 /**

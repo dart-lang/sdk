@@ -6,11 +6,10 @@
  * Defines the tokens that are produced by the scanner, used by the parser, and
  * referenced from the [AST structure](ast.dart).
  */
-
 import 'dart:collection';
 
+import 'package:front_end/src/base/syntactic_entity.dart';
 import 'package:front_end/src/scanner/string_utilities.dart';
-import 'package:front_end/src/scanner/syntactic_entity.dart';
 
 /**
  * The opening half of a grouping pair of tokens. This is used for curly

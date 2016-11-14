@@ -8,16 +8,19 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
-import 'package:analyzer/task/model.dart';
+import 'package:front_end/src/base/source.dart';
+import 'package:front_end/src/base/uri_kind.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
+
+export 'package:front_end/src/base/source.dart' show Source;
+export 'package:front_end/src/base/uri_kind.dart' show UriKind;
 
 /**
  * A function that is used to visit [ContentCache] entries.
@@ -411,147 +414,6 @@ class NonExistingSource extends Source {
 }
 
 /**
- * The interface `Source` defines the behavior of objects representing source code that can be
- * analyzed by the analysis engine.
- *
- * Implementations of this interface need to be aware of some assumptions made by the analysis
- * engine concerning sources:
- * * Sources are not required to be unique. That is, there can be multiple instances representing
- * the same source.
- * * Sources are long lived. That is, the engine is allowed to hold on to a source for an extended
- * period of time and that source must continue to report accurate and up-to-date information.
- * Because of these assumptions, most implementations will not maintain any state but will delegate
- * to an authoritative system of record in order to implement this API. For example, a source that
- * represents files on disk would typically query the file system to determine the state of the
- * file.
- *
- * If the instances that implement this API are the system of record, then they will typically be
- * unique. In that case, sources that are created that represent non-existent files must also be
- * retained so that if those files are created at a later date the long-lived sources representing
- * those files will know that they now exist.
- */
-abstract class Source implements AnalysisTarget {
-  /**
-   * An empty list of sources.
-   */
-  static const List<Source> EMPTY_LIST = const <Source>[];
-
-  /**
-   * Get the contents and timestamp of this source.
-   *
-   * Clients should consider using the method [AnalysisContext.getContents]
-   * because contexts can have local overrides of the content of a source that the source is not
-   * aware of.
-   *
-   * @return the contents and timestamp of the source
-   * @throws Exception if the contents of this source could not be accessed
-   */
-  TimestampedData<String> get contents;
-
-  /**
-   * Return an encoded representation of this source that can be used to create a source that is
-   * equal to this source.
-   *
-   * @return an encoded representation of this source
-   * See [SourceFactory.fromEncoding].
-   */
-  String get encoding;
-
-  /**
-   * Return the full (long) version of the name that can be displayed to the user to denote this
-   * source. For example, for a source representing a file this would typically be the absolute path
-   * of the file.
-   *
-   * @return a name that can be displayed to the user to denote this source
-   */
-  String get fullName;
-
-  /**
-   * Return a hash code for this source.
-   *
-   * @return a hash code for this source
-   * See [Object.hashCode].
-   */
-  @override
-  int get hashCode;
-
-  /**
-   * Return `true` if this source is in one of the system libraries.
-   *
-   * @return `true` if this is in a system library
-   */
-  bool get isInSystemLibrary;
-
-  @override
-  Source get librarySource => null;
-
-  /**
-   * Return the modification stamp for this source, or a negative value if the
-   * source does not exist. A modification stamp is a non-negative integer with
-   * the property that if the contents of the source have not been modified
-   * since the last time the modification stamp was accessed then the same value
-   * will be returned, but if the contents of the source have been modified one
-   * or more times (even if the net change is zero) the stamps will be different.
-   *
-   * Clients should consider using the method
-   * [AnalysisContext.getModificationStamp] because contexts can have local
-   * overrides of the content of a source that the source is not aware of.
-   */
-  int get modificationStamp;
-
-  /**
-   * Return a short version of the name that can be displayed to the user to denote this source. For
-   * example, for a source representing a file this would typically be the name of the file.
-   *
-   * @return a name that can be displayed to the user to denote this source
-   */
-  String get shortName;
-
-  @override
-  Source get source => this;
-
-  /**
-   * Return the URI from which this source was originally derived.
-   *
-   * @return the URI from which this source was originally derived
-   */
-  Uri get uri;
-
-  /**
-   * Return the kind of URI from which this source was originally derived. If this source was
-   * created from an absolute URI, then the returned kind will reflect the scheme of the absolute
-   * URI. If it was created from a relative URI, then the returned kind will be the same as the kind
-   * of the source against which the relative URI was resolved.
-   *
-   * @return the kind of URI from which this source was originally derived
-   */
-  UriKind get uriKind;
-
-  /**
-   * Return `true` if the given object is a source that represents the same source code as
-   * this source.
-   *
-   * @param object the object to be compared with this object
-   * @return `true` if the given object is a source that represents the same source code as
-   *         this source
-   * See [Object.==].
-   */
-  @override
-  bool operator ==(Object object);
-
-  /**
-   * Return `true` if this source exists.
-   *
-   * Clients should consider using the method [AnalysisContext.exists] because
-   * contexts can have local overrides of the content of a source that the source is not aware of
-   * and a source with local content is considered to exist even if there is no file on disk.
-   *
-   * @return `true` if this source exists
-   */
-  bool exists();
-}
-
-/**
  * The interface `ContentReceiver` defines the behavior of objects that can receive the
  * content of a source.
  */
@@ -860,90 +722,6 @@ class SourceRange {
 
   @override
   String toString() => '[offset=$offset, length=$length]';
-}
-
-/**
- * The enumeration `UriKind` defines the different kinds of URI's that are known to the
- * analysis engine. These are used to keep track of the kind of URI associated with a given source.
- */
-class UriKind implements Comparable<UriKind> {
-  /**
-   * A 'dart:' URI.
-   */
-  static const UriKind DART_URI = const UriKind('DART_URI', 0, 0x64);
-
-  /**
-   * A 'file:' URI.
-   */
-  static const UriKind FILE_URI = const UriKind('FILE_URI', 1, 0x66);
-
-  /**
-   * A 'package:' URI.
-   */
-  static const UriKind PACKAGE_URI = const UriKind('PACKAGE_URI', 2, 0x70);
-
-  static const List<UriKind> values = const [DART_URI, FILE_URI, PACKAGE_URI];
-
-  /**
-   * The name of this URI kind.
-   */
-  final String name;
-
-  /**
-   * The ordinal value of the URI kind.
-   */
-  final int ordinal;
-
-  /**
-   * The single character encoding used to identify this kind of URI.
-   */
-  final int encoding;
-
-  /**
-   * Initialize a newly created URI kind to have the given encoding.
-   */
-  const UriKind(this.name, this.ordinal, this.encoding);
-
-  @override
-  int get hashCode => ordinal;
-
-  @override
-  int compareTo(UriKind other) => ordinal - other.ordinal;
-
-  @override
-  String toString() => name;
-
-  /**
-   * Return the URI kind represented by the given [encoding], or `null` if there
-   * is no kind with the given encoding.
-   */
-  static UriKind fromEncoding(int encoding) {
-    while (true) {
-      if (encoding == 0x64) {
-        return DART_URI;
-      } else if (encoding == 0x66) {
-        return FILE_URI;
-      } else if (encoding == 0x70) {
-        return PACKAGE_URI;
-      }
-      break;
-    }
-    return null;
-  }
-
-  /**
-   * Return the URI kind corresponding to the given scheme string.
-   */
-  static UriKind fromScheme(String scheme) {
-    if (scheme == PackageMapUriResolver.PACKAGE_SCHEME) {
-      return UriKind.PACKAGE_URI;
-    } else if (scheme == DartUriResolver.DART_SCHEME) {
-      return UriKind.DART_URI;
-    } else if (scheme == ResourceUriResolver.FILE_SCHEME) {
-      return UriKind.FILE_URI;
-    }
-    return UriKind.FILE_URI;
-  }
 }
 
 /**
