@@ -471,22 +471,6 @@ class Thread : public BaseThread {
   RawGrowableObjectArray* pending_functions();
   void clear_pending_functions();
 
-  RawObject* active_exception() const { return active_exception_; }
-  void set_active_exception(const Object& value);
-  static intptr_t active_exception_offset() {
-    return OFFSET_OF(Thread, active_exception_);
-  }
-
-  RawObject* active_stacktrace() const { return active_stacktrace_; }
-  void set_active_stacktrace(const Object& value);
-  static intptr_t active_stacktrace_offset() {
-    return OFFSET_OF(Thread, active_stacktrace_);
-  }
-
-  uword resume_pc() const { return resume_pc_; }
-  void set_resume_pc(uword value) { resume_pc_ = value; }
-  static uword resume_pc_offset() { return OFFSET_OF(Thread, resume_pc_); }
-
   RawError* sticky_error() const;
   void set_sticky_error(const Error& value);
   void clear_sticky_error();
@@ -699,11 +683,6 @@ class Thread : public BaseThread {
   TypeRangeCache* type_range_cache_;
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
-
-  // JumpToExceptionHandler state:
-  RawObject* active_exception_;
-  RawObject* active_stacktrace_;
-  uword resume_pc_;
 
   RawError* sticky_error_;
 

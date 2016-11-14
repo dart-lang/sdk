@@ -210,19 +210,12 @@ static void JumpToExceptionHandler(Thread* thread,
                                    uword frame_pointer,
                                    const Object& exception_object,
                                    const Object& stacktrace_object) {
-  thread->set_active_exception(exception_object);
-  thread->set_active_stacktrace(stacktrace_object);
-  thread->set_resume_pc(program_counter);
-  uword run_exception_pc = StubCode::RunExceptionHandler_entry()->EntryPoint();
-  Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
-                          frame_pointer);
-}
+  // The no_gc StackResource is unwound through the tear down of
+  // stack resources below.
+  NoSafepointScope no_safepoint;
+  RawObject* raw_exception = exception_object.raw();
+  RawObject* raw_stacktrace = stacktrace_object.raw();
 
-
-void Exceptions::JumpToFrame(Thread* thread,
-                             uword program_counter,
-                             uword stack_pointer,
-                             uword frame_pointer) {
 #if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
@@ -291,8 +284,8 @@ void Exceptions::JumpToFrame(Thread* thread,
   // exception object in the kExceptionObjectReg register and the stacktrace
   // object (may be raw null) in the kStackTraceObjectReg register.
 
-  Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
-                                    frame_pointer, thread);
+  Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
+                                raw_exception, raw_stacktrace, thread);
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
@@ -301,16 +294,18 @@ void Exceptions::JumpToFrame(Thread* thread,
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
   // continue execution at the given pc in the given frame.
-  typedef void (*ExcpHandler)(uword, uword, uword, Thread*);
+  typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*,
+                              Thread*);
   ExcpHandler func = reinterpret_cast<ExcpHandler>(
-      StubCode::JumpToFrame_entry()->EntryPoint());
+      StubCode::JumpToExceptionHandler_entry()->EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = Thread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
                 stack_pointer - current_sp);
 
-  func(program_counter, stack_pointer, frame_pointer, thread);
+  func(program_counter, stack_pointer, frame_pointer, raw_exception,
+       raw_stacktrace, thread);
 #endif
   UNREACHABLE();
 }

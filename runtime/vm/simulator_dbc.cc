@@ -3691,7 +3691,12 @@ RawObject* Simulator::Call(const Code& code,
 }
 
 
-void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
+void Simulator::Longjmp(uword pc,
+                        uword sp,
+                        uword fp,
+                        RawObject* raw_exception,
+                        RawObject* raw_stacktrace,
+                        Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
   // and try to find the setjmp associated with the simulated stack pointer.
   SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
@@ -3711,22 +3716,12 @@ void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
 
+  ASSERT(raw_exception != Object::null());
   sp_ = reinterpret_cast<RawObject**>(sp);
   fp_ = reinterpret_cast<RawObject**>(fp);
-
-  if (pc == StubCode::RunExceptionHandler_entry()->EntryPoint()) {
-    // Instead of executing the RunException stub, we implement its
-    // behavior here.
-    RawObject* raw_exception = thread->active_exception();
-    RawObject* raw_stacktrace = thread->active_stacktrace();
-    ASSERT(raw_exception != Object::null());
-    special_[kExceptionSpecialIndex] = raw_exception;
-    special_[kStacktraceSpecialIndex] = raw_stacktrace;
-    pc_ = thread->resume_pc();
-  } else {
-    pc_ = pc;
-  }
-
+  pc_ = pc;
+  special_[kExceptionSpecialIndex] = raw_exception;
+  special_[kStacktraceSpecialIndex] = raw_stacktrace;
   buf->Longjmp();
   UNREACHABLE();
 }

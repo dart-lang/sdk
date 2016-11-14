@@ -41,12 +41,6 @@ void StubCode::GenerateOptimizeFunctionStub(Assembler* assembler) {
 }
 
 
-// Not executed, but used as a sentinel in Simulator::JumpToFrame.
-void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
-  __ Trap();
-}
-
-
 // TODO(vegorov) Don't generate this stub.
 void StubCode::GenerateFixCallersTargetStub(Assembler* assembler) {
   __ Trap();

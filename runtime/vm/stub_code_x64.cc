@@ -1845,17 +1845,33 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
-// Jump to a frame on the call stack.
+// Jump to the exception or error handler.
 // TOS + 0: return address
 // Arg1: program counter
 // Arg2: stack pointer
 // Arg3: frame_pointer
-// Arg4: thread
+// Arg4: exception object
+// Arg5: stacktrace object
+// Arg6: thread
 // No Result.
-void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
-  __ movq(THR, CallingConventions::kArg4Reg);
+void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
+  ASSERT(kExceptionObjectReg == RAX);
+  ASSERT(kStackTraceObjectReg == RDX);
+  ASSERT(CallingConventions::kArg4Reg != kStackTraceObjectReg);
+  ASSERT(CallingConventions::kArg1Reg != kStackTraceObjectReg);
+
+#if defined(_WIN64)
+  Register stacktrace_reg = RBX;
+  __ movq(stacktrace_reg, Address(RSP, 5 * kWordSize));
+  __ movq(THR, Address(RSP, 6 * kWordSize));
+#else
+  Register stacktrace_reg = CallingConventions::kArg5Reg;
+  __ movq(THR, CallingConventions::kArg6Reg);
+#endif
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
+  __ movq(kStackTraceObjectReg, stacktrace_reg);
+  __ movq(kExceptionObjectReg, CallingConventions::kArg4Reg);
   // Set the tag.
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
   // Clear top exit frame.
@@ -1863,31 +1879,7 @@ void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   // Restore the pool pointer.
   __ RestoreCodePointer();
   __ LoadPoolPointer(PP);
-  __ jmp(CallingConventions::kArg1Reg);  // Jump to program counter.
-}
-
-
-// Run an exception handler.  Execution comes from JumpToFrame stub.
-//
-// The arguments are stored in the Thread object.
-// No result.
-void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
-  ASSERT(kExceptionObjectReg == RAX);
-  ASSERT(kStackTraceObjectReg == RDX);
-  __ movq(CallingConventions::kArg1Reg,
-          Address(THR, Thread::resume_pc_offset()));
-
-  // Load the exception from the current thread.
-  Address exception_addr(THR, Thread::active_exception_offset());
-  __ movq(kExceptionObjectReg, exception_addr);
-  __ movq(exception_addr, Immediate(0));
-
-  // Load the stacktrace from the current thread.
-  Address stacktrace_addr(THR, Thread::active_stacktrace_offset());
-  __ movq(kStackTraceObjectReg, stacktrace_addr);
-  __ movq(stacktrace_addr, Immediate(0));
-
-  __ jmp(CallingConventions::kArg1Reg);  // Jump to continuation point.
+  __ jmp(CallingConventions::kArg1Reg);  // Jump to the exception handler code.
 }
 
 

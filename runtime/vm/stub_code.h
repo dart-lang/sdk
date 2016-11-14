@@ -25,8 +25,7 @@ class Deserializer;
 #if !defined(TARGET_ARCH_DBC)
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(GetStackPointer)                                                           \
-  V(JumpToFrame)                                                               \
-  V(RunExceptionHandler)                                                       \
+  V(JumpToExceptionHandler)                                                    \
   V(UpdateStoreBuffer)                                                         \
   V(PrintStopMessage)                                                          \
   V(CallToRuntime)                                                             \
@@ -74,7 +73,6 @@ class Deserializer;
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(LazyCompile)                                                               \
   V(OptimizeFunction)                                                          \
-  V(RunExceptionHandler)                                                       \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
@@ -140,8 +138,8 @@ class StubCode : public AllStatic {
   // transitioning into dart code.
   static bool InInvocationStub(uword pc);
 
-  // Check if the specified pc is in the jump to frame stub.
-  static bool InJumpToFrameStub(uword pc);
+  // Check if the specified pc is in the jump to exception handler stub.
+  static bool InJumpToExceptionHandlerStub(uword pc);
 
   // Returns NULL if no stub found.
   static const char* NameOfStub(uword entry_point);
