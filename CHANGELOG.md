@@ -1,3 +1,10 @@
+# 0.1.29
+
+* New `cascade_invocations` lint.
+* Expand `await_only_futures` to accept classes that extend or implement `Future`.
+* Improve camel case regular expression tests to accept `$`s.
+* Fixes to `parameter_assignments` (improved getter handling and an NPE).
+
 # 0.1.27
 
 * Fixed cast exception in `dart_type_utilities` (dart-lang/sdk#27405).
