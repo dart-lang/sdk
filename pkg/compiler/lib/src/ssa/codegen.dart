@@ -1933,7 +1933,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerForeignTypes(HForeign node) {
     native.NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
-    nativeEnqueuer.registerNativeBehavior(nativeBehavior, node);
+    nativeEnqueuer.registerNativeBehavior(
+        registry.worldImpact, nativeBehavior, node);
   }
 
   visitForeignCode(HForeignCode node) {

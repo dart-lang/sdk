@@ -76,7 +76,8 @@ import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
     show ResolutionWorldBuilder, CodegenWorldBuilder;
 import 'universe/use.dart' show StaticUse;
-import 'universe/world_impact.dart' show ImpactStrategy, WorldImpact;
+import 'universe/world_impact.dart'
+    show ImpactStrategy, WorldImpact, WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show ClosedWorld, ClosedWorldRefiner, OpenWorld, WorldImpl;
 
@@ -113,16 +114,6 @@ abstract class Compiler implements LibraryLoaderListener {
    * associated with a particular element.
    */
   GlobalDependencyRegistry globalDependencies;
-
-  /**
-   * Dependencies that are only included due to mirrors.
-   *
-   * We should get rid of this and ensure that all dependencies are
-   * associated with a particular element.
-   */
-  // TODO(johnniwinther): This should not be a [ResolutionRegistry].
-  final Registry mirrorDependencies =
-      new ResolutionRegistry(null, new TreeElementMapping(null));
 
   /// Options provided from command-line arguments.
   final CompilerOptions options;
@@ -687,7 +678,7 @@ abstract class Compiler implements LibraryLoaderListener {
         }
         // Elements required by enqueueHelpers are global dependencies
         // that are not pulled in by a particular element.
-        backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+        backend.enqueueHelpers(enqueuer.resolution);
         resolveLibraryMetadata();
         reporter.log('Resolving...');
         processQueue(enqueuer.resolution, mainFunction);
@@ -737,7 +728,6 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
         backend.onCodegenStart();
-        // TODO(johnniwinther): Move these to [CodegenEnqueuer].
         if (hasIsolateSupport) {
           backend.enableIsolateSupport(enqueuer.codegen);
         }
@@ -817,7 +807,7 @@ abstract class Compiler implements LibraryLoaderListener {
       ClassElement cls = element;
       cls.ensureResolved(resolution);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-      backend.registerInstantiatedType(cls.rawType, world, globalDependencies);
+      world.registerInstantiatedType(cls.rawType);
     } else {
       world.addToWorkList(element);
     }
@@ -853,43 +843,42 @@ abstract class Compiler implements LibraryLoaderListener {
         });
       });
 
-  void processQueue(Enqueuer world, Element main) =>
-      selfTask.measureSubtask("Compiler.processQueue", () {
-        world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
-        if (main != null && !main.isMalformed) {
-          FunctionElement mainMethod = main;
-          mainMethod.computeType(resolution);
-          if (mainMethod.functionSignature.parameterCount != 0) {
-            // The first argument could be a list of strings.
-            backend.backendClasses.listImplementation
-                .ensureResolved(resolution);
-            backend.registerInstantiatedType(
-                backend.backendClasses.listImplementation.rawType,
-                world,
-                globalDependencies);
-            backend.backendClasses.stringImplementation
-                .ensureResolved(resolution);
-            backend.registerInstantiatedType(
-                backend.backendClasses.stringImplementation.rawType,
-                world,
-                globalDependencies);
+  void processQueue(Enqueuer enqueuer, Element main) {
+    selfTask.measureSubtask("Compiler.processQueue", () {
+      WorldImpactBuilderImpl nativeImpact = new WorldImpactBuilderImpl();
+      enqueuer.nativeEnqueuer
+          .processNativeClasses(nativeImpact, libraryLoader.libraries);
+      enqueuer.applyImpact(nativeImpact);
+      if (main != null && !main.isMalformed) {
+        FunctionElement mainMethod = main;
+        mainMethod.computeType(resolution);
+        if (mainMethod.functionSignature.parameterCount != 0) {
+          // The first argument could be a list of strings.
+          backend.backendClasses.listImplementation.ensureResolved(resolution);
+          enqueuer.registerInstantiatedType(
+              backend.backendClasses.listImplementation.rawType);
+          backend.backendClasses.stringImplementation
+              .ensureResolved(resolution);
+          enqueuer.registerInstantiatedType(
+              backend.backendClasses.stringImplementation.rawType);
 
-            backend.registerMainHasArguments(world);
-          }
-          world.addToWorkList(main);
+          backend.registerMainHasArguments(enqueuer);
         }
-        if (options.verbose) {
-          progress.reset();
-        }
-        emptyQueue(world);
-        world.queueIsClosed = true;
-        // Notify the impact strategy impacts are no longer needed for this
-        // enqueuer.
-        impactStrategy.onImpactUsed(world.impactUse);
-        backend.onQueueClosed();
-        assert(
-            compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
-      });
+        enqueuer.addToWorkList(main);
+      }
+      if (options.verbose) {
+        progress.reset();
+      }
+      emptyQueue(enqueuer);
+      enqueuer.queueIsClosed = true;
+      // Notify the impact strategy impacts are no longer needed for this
+      // enqueuer.
+      impactStrategy.onImpactUsed(enqueuer.impactUse);
+      backend.onQueueClosed();
+      assert(compilationFailed ||
+          enqueuer.checkNoEnqueuedInvokedInstanceMethods());
+    });
+  }
 
   /**
    * Perform various checks of the queues. This includes checking that
@@ -2150,7 +2139,8 @@ class _CompilerResolution implements Resolution {
   WorldImpact transformResolutionImpact(
       Element element, ResolutionImpact resolutionImpact) {
     WorldImpact worldImpact = compiler.backend.impactTransformer
-        .transformResolutionImpact(resolutionImpact);
+        .transformResolutionImpact(
+            compiler.enqueuer.resolution, resolutionImpact);
     _worldImpactCache[element] = worldImpact;
     return worldImpact;
   }

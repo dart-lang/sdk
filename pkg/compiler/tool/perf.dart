@@ -382,7 +382,7 @@ class MyCompiler extends CompilerImpl {
           fullyEnqueueLibrary(library, enqueuer.resolution);
         });
 
-        backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+        backend.enqueueHelpers(enqueuer.resolution);
         resolveLibraryMetadata();
         reporter.log('Resolving...');
         processQueue(enqueuer.resolution, mainFunction);

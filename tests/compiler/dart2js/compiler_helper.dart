@@ -72,8 +72,7 @@ Future<String> compile(String code,
     lego.Element element = compiler.mainApp.find(entry);
     if (element == null) return null;
     compiler.phase = Compiler.PHASE_RESOLVING;
-    compiler.backend.enqueueHelpers(
-        compiler.enqueuer.resolution, compiler.globalDependencies);
+    compiler.backend.enqueueHelpers(compiler.enqueuer.resolution);
     compiler.processQueue(compiler.enqueuer.resolution, element);
     compiler.openWorld.closeWorld();
     compiler.backend.onResolutionComplete();
