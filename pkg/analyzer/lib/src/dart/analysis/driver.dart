@@ -342,8 +342,9 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the [Future] that completes with a [AnalysisResult] for the file
-   * with the given [path].
+   * Return the [Future] that completes with a [AnalysisResult] for the Dart
+   * file with the given [path]. If the file is not a Dart file, the [Future]
+   * completes with `null`.
    *
    * The [path] must be absolute and normalized.
    *
@@ -356,13 +357,16 @@ class AnalysisDriver {
    * transitions to "idle".
    */
   Future<AnalysisResult> getResult(String path) {
-    var completer = new Completer<AnalysisResult>();
-    _requestedFiles
-        .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
-        .add(completer);
-    _statusSupport.transitionToAnalyzing();
-    _scheduler._notify(this);
-    return completer.future;
+    if (AnalysisEngine.isDartFileName(path)) {
+      var completer = new Completer<AnalysisResult>();
+      _requestedFiles
+          .putIfAbsent(path, () => <Completer<AnalysisResult>>[])
+          .add(completer);
+      _statusSupport.transitionToAnalyzing();
+      _scheduler._notify(this);
+      return completer.future;
+    }
+    return new Future.value();
   }
 
   /**

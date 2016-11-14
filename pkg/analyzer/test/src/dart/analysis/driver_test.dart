@@ -602,6 +602,14 @@ String z = "string";
     }
   }
 
+  test_getResult_notDartFile() async {
+    var path = _p('/test/lib/test.txt');
+    provider.newFile(path, 'foo bar');
+
+    AnalysisResult result = await driver.getResult(path);
+    expect(result, isNull);
+  }
+
   test_getResult_sameFile_twoUris() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
