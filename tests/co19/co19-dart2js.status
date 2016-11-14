@@ -2835,10 +2835,8 @@ LayoutTests/fast/canvas/canvas-strokeText-zeroSizeGradient_t01: RuntimeError # P
 LayoutTests/fast/canvas/canvas-toDataURL-crash_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/draw-custom-focus-ring_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/drawImage-with-valid-image_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/fillText-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/getPutImageDataPairTest_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/rgba-parsing_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/text-globalAlpha_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-attributes-alpha-depth-stencil-antialias-t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/context-destroyed-crash_t01: Pass, RuntimeError # Issue 26898
@@ -8058,7 +8056,6 @@ LayoutTests/fast/xsl/xslt-fragment-in-empty-doc_t01: RuntimeError # Please triag
 LayoutTests/fast/xsl/xslt-string-parameters_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xsl/xslt-transform-to-fragment-crash_t01: RuntimeError # Please triage this failure
 LibTest/async/Future/doWhile_A05_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
-LibTest/async/Future/forEach_A04_t02: RuntimeError # Please triage this failure
 LibTest/async/Stream/Stream.periodic_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/async/Stream/timeout_A01_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
 LibTest/async/Stream/timeout_A03_t01: Pass, RuntimeError # Sometimes passes on windows 8. Please triage this failure
