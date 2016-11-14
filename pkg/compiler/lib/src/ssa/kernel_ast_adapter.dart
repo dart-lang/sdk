@@ -250,6 +250,8 @@ class KernelAstAdapter {
     return _backend.isInterceptedSelector(selector);
   }
 
+  LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
+
   JumpTarget getTargetDefinition(ir.Node node) =>
       elements.getTargetDefinition(getNode(node));
 
@@ -293,9 +295,13 @@ class KernelAstAdapter {
     return types.map(getDartType).toList();
   }
 
+  DartType getFunctionReturnType(ir.FunctionNode node) {
+    return getDartType(node.returnType);
+  }
+
   /// Computes the function type corresponding the signature of [node].
   FunctionType getFunctionType(ir.FunctionNode node) {
-    DartType returnType = getDartType(node.returnType);
+    DartType returnType = getFunctionReturnType(node);
     List<DartType> parameterTypes = <DartType>[];
     List<DartType> optionalParameterTypes = <DartType>[];
     for (ir.VariableDeclaration variable in node.positionalParameters) {

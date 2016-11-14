@@ -17,7 +17,9 @@ import '../kernel/kernel.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
 import '../types/masks.dart';
+import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
+import '../universe/use.dart' show TypeUse;
 import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
 import 'kernel_string_builder.dart';
@@ -25,6 +27,7 @@ import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
 import 'ssa_branch_builder.dart';
+import 'type_builder.dart';
 
 class SsaKernelBuilderTask extends CompilerTask {
   final JavaScriptBackend backend;
@@ -62,6 +65,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
   LoopHandler<ir.Node> loopHandler;
+  TypeBuilder typeBuilder;
 
   KernelSsaBuilder(
       this.targetElement,
@@ -72,6 +76,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       Kernel kernel) {
     this.compiler = compiler;
     this.loopHandler = new KernelLoopHandler(this);
+    typeBuilder = new TypeBuilder(this);
     graph.element = targetElement;
     // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
     this.sourceInformationBuilder =
@@ -118,10 +123,17 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     closeFunction();
   }
 
+  /// Pops the most recent instruction from the stack and 'boolifies' it.
+  ///
+  /// Boolification is checking if the value is '=== true'.
   @override
   HInstruction popBoolified() {
     HInstruction value = pop();
-    // TODO(het): add boolean conversion type check
+    if (typeBuilder.checkOrTrustTypes) {
+      return typeBuilder.potentiallyCheckOrTrustType(
+          value, compiler.coreTypes.boolType,
+          kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
+    }
     HInstruction result = new HBoolify(value, backend.boolType);
     add(result);
     return result;
@@ -135,6 +147,22 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     open(block);
     closeAndGotoExit(new HGoto());
     graph.finalize();
+  }
+
+  HTypeConversion buildFunctionTypeConversion(
+      HInstruction original, DartType type, int kind) {
+    String name =
+        kind == HTypeConversion.CAST_TYPE_CHECK ? '_asCheck' : '_assertCheck';
+
+    List<HInstruction> arguments = <HInstruction>[
+      buildFunctionType(type),
+      original
+    ];
+    _pushDynamicInvocation(null, null, arguments,
+        selector: new Selector.call(
+            new Name(name, astAdapter.jsHelperLibrary), CallStructure.ONE_ARG));
+
+    return new HTypeConversion(type, kind, original.instructionType, pop());
   }
 
   /// Builds a SSA graph for [procedure].
@@ -158,11 +186,24 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     graph.finalize();
   }
 
+  /// Pushes a boolean checking [expression] against null.
+  pushCheckNull(HInstruction expression) {
+    push(new HIdentity(
+        expression, graph.addConstantNull(compiler), null, backend.boolType));
+  }
+
   @override
   void defaultExpression(ir.Expression expression) {
     // TODO(het): This is only to get tests working
     stack.add(graph.addConstantNull(compiler));
   }
+
+  /// Returns the current source element.
+  ///
+  /// The returned element is a declaration element.
+  // TODO(efortuna): Update this when we implement inlining.
+  @override
+  Element get sourceElement => astAdapter.getElement(target);
 
   @override
   void visitBlock(ir.Block block) {
@@ -197,9 +238,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (returnStatement.expression == null) {
       value = graph.addConstantNull(compiler);
     } else {
+      assert(target is ir.Procedure);
       returnStatement.expression.accept(this);
-      value = pop();
-      // TODO(het): Check or trust the type of value
+      value = typeBuilder.potentiallyCheckOrTrustType(pop(),
+          astAdapter.getFunctionReturnType((target as ir.Procedure).function));
     }
     // TODO(het): Add source information
     // TODO(het): Set a return value instead of closing the function when we
@@ -591,8 +633,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           astAdapter.returnTypeOf(staticTarget));
       pop();
     } else {
-      // TODO(het): check or trust type
-      add(new HStaticStore(astAdapter.getMember(staticTarget), value));
+      add(new HStaticStore(
+          astAdapter.getMember(staticTarget),
+          typeBuilder.potentiallyCheckOrTrustType(
+              value, astAdapter.getDartType(staticTarget.setterType))));
     }
     stack.add(value);
   }
@@ -647,8 +691,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     stack.add(value);
-    // TODO(het): check or trust type
-    localsHandler.updateLocal(local, value);
+    localsHandler.updateLocal(
+        local,
+        typeBuilder.potentiallyCheckOrTrustType(
+            value, astAdapter.getDartType(variable.type)));
   }
 
   // TODO(het): Also extract type arguments
