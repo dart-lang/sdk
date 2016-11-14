@@ -332,8 +332,7 @@ class SsaBuilder extends ast.Visitor
     // For static calls, [providedArguments] is complete, default arguments
     // have been included if necessary, see [makeStaticArgumentList].
     if (!isInstanceMember ||
-        currentNode == null // In erroneous code, currentNode can be null.
-        ||
+        currentNode == null || // In erroneous code, currentNode can be null.
         providedArgumentsKnownToBeComplete(currentNode) ||
         function.isGenerativeConstructorBody ||
         selector.isGetter) {

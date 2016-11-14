@@ -16,6 +16,7 @@ import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
+import '../tree/nodes.dart' show FunctionExpression, Node;
 import '../types/masks.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
@@ -139,14 +140,170 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     return result;
   }
 
+  /// Builds generative constructors.
+  ///
+  /// Generative constructors are built in two stages.
+  ///
+  /// First, the field values for every instance field for every class in the
+  /// class hierarchy are collected. Then, create a function body that sets
+  /// all of the instance fields to the collected values and call the
+  /// constructor bodies for all constructors in the hierarchy.
   void buildConstructor(ir.Constructor constructor) {
-    // TODO(het): Actually handle this correctly
-    HBasicBlock block = graph.addNewBlock();
-    open(graph.entry);
-    close(new HGoto()).addSuccessor(block);
-    open(block);
-    closeAndGotoExit(new HGoto());
-    graph.finalize();
+    openFunction();
+
+    // Collect field values for the current class.
+    // TODO(het): Does kernel always put field initializers in the constructor
+    //            initializer list? If so then this is unnecessary...
+    Map<ir.Field, HInstruction> fieldValues =
+        _collectFieldValues(constructor.enclosingClass);
+
+    _buildInitializers(constructor, fieldValues);
+
+    final constructorArguments = <HInstruction>[];
+    astAdapter.getClass(constructor.enclosingClass).forEachInstanceField(
+        (ClassElement enclosingClass, FieldElement member) {
+      var value = fieldValues[astAdapter.getFieldFromElement(member)];
+      constructorArguments.add(value);
+    }, includeSuperAndInjectedMembers: true);
+
+    // TODO(het): If the class needs runtime type information, add it as a
+    // constructor argument.
+    HInstruction create = new HCreate(
+        astAdapter.getClass(constructor.enclosingClass),
+        constructorArguments,
+        new TypeMask.nonNullExact(
+            astAdapter.getClass(constructor.enclosingClass),
+            compiler.closedWorld),
+        instantiatedTypes: <DartType>[
+          astAdapter.getClass(constructor.enclosingClass).thisType
+        ],
+        hasRtiInput: false);
+
+    add(create);
+
+    // Generate calls to the constructor bodies.
+
+    closeAndGotoExit(new HReturn(create, null));
+    closeFunction();
+  }
+
+  /// Maps the fields of a class to their SSA values.
+  Map<ir.Field, HInstruction> _collectFieldValues(ir.Class clazz) {
+    final fieldValues = <ir.Field, HInstruction>{};
+
+    for (var field in clazz.fields) {
+      if (field.initializer == null) {
+        fieldValues[field] = graph.addConstantNull(compiler);
+      } else {
+        field.initializer.accept(this);
+        fieldValues[field] = pop();
+      }
+    }
+
+    return fieldValues;
+  }
+
+  /// Collects field initializers all the way up the inheritance chain.
+  void _buildInitializers(
+      ir.Constructor constructor, Map<ir.Field, HInstruction> fieldValues) {
+    var foundSuperCall = false;
+    for (var initializer in constructor.initializers) {
+      if (initializer is ir.SuperInitializer) {
+        foundSuperCall = true;
+        var superConstructor = initializer.target;
+        var arguments = _normalizeAndBuildArguments(
+            superConstructor.function, initializer.arguments);
+        _buildInlinedSuperInitializers(
+            superConstructor, arguments, fieldValues);
+      } else if (initializer is ir.FieldInitializer) {
+        initializer.value.accept(this);
+        fieldValues[initializer.field] = pop();
+      }
+    }
+
+    // TODO(het): does kernel always set the super initializer at the end?
+    // If there was no super-call initializer, then call the default constructor
+    // in the superclass.
+    if (!foundSuperCall) {
+      if (constructor.enclosingClass != astAdapter.objectClass) {
+        var superclass = constructor.enclosingClass.superclass;
+        var defaultConstructor = superclass.constructors
+            .firstWhere((c) => c.name == '', orElse: () => null);
+        if (defaultConstructor == null) {
+          compiler.reporter.internalError(
+              NO_LOCATION_SPANNABLE, 'Could not find default constructor.');
+        }
+        _buildInlinedSuperInitializers(
+            defaultConstructor, <HInstruction>[], fieldValues);
+      }
+    }
+  }
+
+  List<HInstruction> _normalizeAndBuildArguments(
+      ir.FunctionNode function, ir.Arguments arguments) {
+    var signature = astAdapter.getFunctionSignature(function);
+    var builtArguments = <HInstruction>[];
+    var positionalIndex = 0;
+    signature.forEachRequiredParameter((_) {
+      arguments.positional[positionalIndex++].accept(this);
+      builtArguments.add(pop());
+    });
+    if (!signature.optionalParametersAreNamed) {
+      signature.forEachOptionalParameter((ParameterElement element) {
+        if (positionalIndex < arguments.positional.length) {
+          arguments.positional[positionalIndex++].accept(this);
+          builtArguments.add(pop());
+        } else {
+          var constantValue =
+              backend.constants.getConstantValue(element.constant);
+          assert(invariant(element, constantValue != null,
+              message: 'No constant computed for $element'));
+          builtArguments.add(graph.addConstant(constantValue, compiler));
+        }
+      });
+    } else {
+      signature.orderedOptionalParameters.forEach((ParameterElement element) {
+        var correspondingNamed = arguments.named.firstWhere(
+            (named) => named.name == element.name,
+            orElse: () => null);
+        if (correspondingNamed != null) {
+          correspondingNamed.value.accept(this);
+          builtArguments.add(pop());
+        } else {
+          var constantValue =
+              backend.constants.getConstantValue(element.constant);
+          assert(invariant(element, constantValue != null,
+              message: 'No constant computed for $element'));
+          builtArguments.add(graph.addConstant(constantValue, compiler));
+        }
+      });
+    }
+
+    return builtArguments;
+  }
+
+  /// Inlines the given super [constructor]'s initializers by collecting it's
+  /// field values and building its constructor initializers. We visit super
+  /// constructors all the way up to the [Object] constructor.
+  void _buildInlinedSuperInitializers(ir.Constructor constructor,
+      List<HInstruction> arguments, Map<ir.Field, HInstruction> fieldValues) {
+    // TODO(het): Handle RTI if class needs it
+    fieldValues.addAll(_collectFieldValues(constructor.enclosingClass));
+
+    var signature = astAdapter.getFunctionSignature(constructor.function);
+    var index = 0;
+    signature.orderedForEachParameter((ParameterElement parameter) {
+      HInstruction argument = arguments[index++];
+      // Because we are inlining the initializer, we must update
+      // what was given as parameter. This will be used in case
+      // there is a parameter check expression in the initializer.
+      parameters[parameter] = argument;
+      localsHandler.updateLocal(parameter, argument);
+    });
+
+    // TODO(het): set the locals handler state as if we were inlining the
+    // constructor.
+    _buildInitializers(constructor, fieldValues);
   }
 
   HTypeConversion buildFunctionTypeConversion(
@@ -175,7 +332,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void openFunction() {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
-    localsHandler.startFunction(targetElement, resolvedAst.node);
+
+    Node function;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      function = resolvedAst.node;
+    }
+    localsHandler.startFunction(targetElement, function);
     close(new HGoto()).addSuccessor(block);
 
     open(block);

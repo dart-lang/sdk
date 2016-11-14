@@ -127,9 +127,17 @@ class KernelAstAdapter {
     return new CallStructure(argumentCount, namedArguments);
   }
 
+  FunctionSignature getFunctionSignature(ir.FunctionNode function) {
+    return getElement(function).asFunctionElement().functionSignature;
+  }
+
   Name getName(ir.Name name) {
     return new Name(
         name.name, name.isPrivate ? getElement(name.library) : null);
+  }
+
+  ir.Field getFieldFromElement(FieldElement field) {
+    return kernel.fields[field];
   }
 
   Selector getSelector(ir.Expression node) {
@@ -287,6 +295,8 @@ class KernelAstAdapter {
   TypeMask get assertThrowReturnType => TypeMaskFactory
       .inferredReturnTypeForElement(_backend.helpers.assertThrow, _compiler);
 
+  ir.Class get objectClass => kernel.classes[_compiler.coreClasses.objectClass];
+
   DartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);
   }
@@ -338,7 +348,6 @@ class KernelAstAdapter {
   }
 
   /// Compute the kind of foreign helper function called by [node], if any.
-  @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (isForeignLibrary(node.target.enclosingLibrary)) {
       switch (node.target.name.name) {
