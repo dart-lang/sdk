@@ -112,7 +112,8 @@ def to_gn_args(args, mode, arch, target_os):
   has_clang = (host_os != 'win'
                and args.os not in ['android']
                and not (gn_args['target_os'] == 'linux' and
-                        gn_args['host_cpu'] == 'x86')
+                        gn_args['host_cpu'] == 'x86' and
+                        not args.asan)  # Use clang for asan builds.
                and not gn_args['target_cpu'].startswith('arm')
                and not gn_args['target_cpu'].startswith('mips'))
   gn_args['is_clang'] = args.clang and has_clang
