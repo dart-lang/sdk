@@ -42882,8 +42882,11 @@ class _JSElementUpgrader implements ElementUpgrader {
       _nativeType = HtmlElement;
     } else {
       var element = document.createElement(extendsTag);
-      if (!JS('bool', '(# instanceof window[#])',
-          element, baseClassName)) {
+      if (!JS('bool', '(# instanceof window[#])', element, baseClassName) &&
+        // Exception to support template elements (extended for core pieces of
+        // Polymer 1.0) when using the webcomponents-lite.js polyfill on IE11:
+        !((extendsTag == 'template' &&
+         JS('bool', '(# instanceof window["HTMLUnknownElement"])', element)))) {
         throw new UnsupportedError(
             'extendsTag does not match base native class');
       }
