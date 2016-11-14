@@ -29,6 +29,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
@@ -367,10 +368,15 @@ class AnalysisServer {
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
     _analysisPerformanceLogger = new nd.PerformanceLog(io.stdout);
-    byteStore = new MemoryCachingByteStore(
-        new FileByteStore(
-            resourceProvider.getStateLocation('.analysis-driver')),
-        64 * 1024 * 1024);
+    if (resourceProvider is PhysicalResourceProvider) {
+      byteStore = new MemoryCachingByteStore(
+          new FileByteStore(
+              resourceProvider.getStateLocation('.analysis-driver').path,
+              1024 * 1024 * 1024 /*1 GiB*/),
+          64 * 1024 * 1024 /*64 MiB*/);
+    } else {
+      byteStore = new MemoryByteStore();
+    }
     analysisDriverScheduler =
         new nd.AnalysisDriverScheduler(_analysisPerformanceLogger);
     analysisDriverScheduler.status.listen(sendStatusNotificationNew);
