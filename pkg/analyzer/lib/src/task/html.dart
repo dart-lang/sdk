@@ -84,6 +84,9 @@ class DartScript implements Source {
   String get shortName => source.shortName;
 
   @override
+  SourceFile get sourceFile => source.sourceFile;
+
+  @override
   Uri get uri => source.uri
       .replace(queryParameters: {'offset': fragments[0].offset.toString()});
 

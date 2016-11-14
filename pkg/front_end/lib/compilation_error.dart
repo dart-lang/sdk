@@ -19,7 +19,7 @@ abstract class CompilationError {
   String get correction;
 
   /// The source location where the error occurred.
-  SourceSpan get location;
+  SourceSpan get span;
 
   /// A text description of the compile error.
   String get message;

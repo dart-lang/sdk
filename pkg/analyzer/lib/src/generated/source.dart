@@ -18,6 +18,7 @@ import 'package:front_end/src/base/source.dart';
 import 'package:front_end/src/base/uri_kind.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
+import 'package:source_span/source_span.dart' as source_span;
 
 export 'package:front_end/src/base/source.dart' show Source;
 export 'package:front_end/src/base/uri_kind.dart' show UriKind;
@@ -370,6 +371,8 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
  * An implementation of an non-existing [Source].
  */
 class NonExistingSource extends Source {
+  source_span.SourceFile _sourceFile;
+
   @override
   final String fullName;
 
@@ -400,6 +403,10 @@ class NonExistingSource extends Source {
 
   @override
   String get shortName => pathos.basename(fullName);
+
+  @override
+  source_span.SourceFile get sourceFile =>
+      _sourceFile ??= new source_span.SourceFile('', url: uri);
 
   @override
   bool operator ==(Object other) {

@@ -6,6 +6,7 @@ library analyzer.src.string_source;
 
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:source_span/source_span.dart' as source_span;
 
 /**
  * An implementation of [Source] that's based on an in-memory Dart string.
@@ -15,6 +16,8 @@ class StringSource extends Source {
    * The content of the source.
    */
   final String _contents;
+
+  source_span.SourceFile _sourceFile;
 
   @override
   final String fullName;
@@ -45,6 +48,10 @@ class StringSource extends Source {
 
   @override
   String get shortName => fullName;
+
+  @override
+  source_span.SourceFile get sourceFile =>
+      _sourceFile ??= new source_span.SourceFile(_contents, url: uri);
 
   @override
   UriKind get uriKind => UriKind.FILE_URI;

@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as path;
+import 'package:source_span/source_span.dart' as source_span;
 
 export 'package:analyzer/src/generated/source.dart';
 
@@ -146,6 +147,8 @@ class FileBasedSource extends Source {
    */
   static final Map<String, int> _idTable = new HashMap<String, int>();
 
+  source_span.SourceFile _sourceFile;
+
   /**
    * The URI from which this source was originally derived.
    */
@@ -233,6 +236,10 @@ class FileBasedSource extends Source {
 
   @override
   String get shortName => file.getName();
+
+  @override
+  source_span.SourceFile get sourceFile => _sourceFile ??=
+      new source_span.SourceFile(file.readAsStringSync(), url: uri);
 
   @override
   UriKind get uriKind {
