@@ -32,4 +32,8 @@ const String HOOKS_API_USAGE = """
 //    is loaded. It should load and eval the javascript of `uri`, and call
 //    successCallback. If it fails to do so, it should call errorCallback with
 //    an error.
+//
+// defaultPackagesBase:
+//    Override the location where `package:` uris are resolved from. By default
+//    they are resolved under "packages/" from the current window location.
 """;
