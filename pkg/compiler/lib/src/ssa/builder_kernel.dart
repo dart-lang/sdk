@@ -308,18 +308,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   HTypeConversion buildFunctionTypeConversion(
       HInstruction original, DartType type, int kind) {
-    String name =
-        kind == HTypeConversion.CAST_TYPE_CHECK ? '_asCheck' : '_assertCheck';
-
-    List<HInstruction> arguments = <HInstruction>[
-      buildFunctionType(type),
-      original
-    ];
-    _pushDynamicInvocation(null, null, arguments,
-        selector: new Selector.call(
-            new Name(name, astAdapter.jsHelperLibrary), CallStructure.ONE_ARG));
-
-    return new HTypeConversion(type, kind, original.instructionType, pop());
+    HInstruction reifiedType = buildFunctionType(type);
+    return new HTypeConversion.viaMethodOnType(
+        type, kind, original.instructionType, reifiedType, original);
   }
 
   /// Builds a SSA graph for [procedure].

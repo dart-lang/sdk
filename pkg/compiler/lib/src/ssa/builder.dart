@@ -300,21 +300,9 @@ class SsaBuilder extends ast.Visitor
 
   HTypeConversion buildFunctionTypeConversion(
       HInstruction original, DartType type, int kind) {
-    String name =
-        kind == HTypeConversion.CAST_TYPE_CHECK ? '_asCheck' : '_assertCheck';
-
-    List<HInstruction> arguments = <HInstruction>[
-      buildFunctionType(type),
-      original
-    ];
-    pushInvokeDynamic(
-        null,
-        new Selector.call(
-            new Name(name, helpers.jsHelperLibrary), CallStructure.ONE_ARG),
-        null,
-        arguments);
-
-    return new HTypeConversion(type, kind, original.instructionType, pop());
+    HInstruction reifiedType = buildFunctionType(type);
+    return new HTypeConversion.viaMethodOnType(
+        type, kind, original.instructionType, reifiedType, original);
   }
 
   /**
@@ -3470,12 +3458,8 @@ class SsaBuilder extends ast.Visitor
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
       if (!inputs[0].isNumber(compiler)) {
-        HTypeConversion conversion = new HTypeConversion(
-            null,
-            HTypeConversion.ARGUMENT_TYPE_CHECK,
-            backend.numType,
-            inputs[0],
-            null);
+        HTypeConversion conversion = new HTypeConversion(null,
+            HTypeConversion.ARGUMENT_TYPE_CHECK, backend.numType, inputs[0]);
         add(conversion);
         inputs[0] = conversion;
       }
