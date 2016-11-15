@@ -197,6 +197,11 @@ class BazelWorkspace {
           return file;
         }
       }
+      // Writable
+      File writableFile = provider.getFile(absolutePath);
+      if (writableFile.exists) {
+        return writableFile;
+      }
       // READONLY
       if (readonly != null) {
         File file = provider.getFile(context.join(readonly, relative));
@@ -205,7 +210,7 @@ class BazelWorkspace {
         }
       }
       // Not generated, return the default one.
-      return provider.getFile(absolutePath);
+      return writableFile;
     } catch (_) {
       return null;
     }

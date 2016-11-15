@@ -612,6 +612,22 @@ class BazelWorkspaceTest extends _BaseTest {
         _p('/Users/user/test/READONLY/prime/other/module/test4.dart'));
   }
 
+  void test_findFile_main_overrides_readonly() {
+    provider.newFolder(_p('/Users/user/test/READONLY/prime'));
+    provider.newFolder(_p('/Users/user/test/prime'));
+    provider.newFolder(_p('/Users/user/test/prime/bazel-genfiles'));
+    provider.newFile(_p('/Users/user/test/prime/my/module/test.dart'), '');
+    provider.newFile(
+        _p('/Users/user/test/READONLY/prime/my/module/test.dart'), '');
+    BazelWorkspace workspace =
+        BazelWorkspace.find(provider, _p('/Users/user/test/prime/my/module'));
+    expect(
+        workspace
+            .findFile(_p('/Users/user/test/prime/my/module/test.dart'))
+            .path,
+        _p('/Users/user/test/prime/my/module/test.dart'));
+  }
+
   void test_findFile_noReadOnly() {
     provider.newFile(_p('/workspace/WORKSPACE'), '');
     provider.newFile(_p('/workspace/my/module/test1.dart'), '');
