@@ -4854,6 +4854,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   }
   ExpectToken(Token::kRBRACE);
 
+  const Type& array_type = Type::Handle(Z, Type::ArrayType());
   // Add static field 'const List values'.
   Field& values_field = Field::ZoneHandle(Z);
   values_field =
@@ -4861,9 +4862,18 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                  /* is_static = */ true,
                  /* is_final = */ true,
                  /* is_const = */ true,
-                 /* is_reflectable = */ true, cls,
-                 Type::Handle(Z, Type::ArrayType()), cls.token_pos());
+                 /* is_reflectable = */ true, cls, array_type, cls.token_pos());
   enum_members.AddField(values_field);
+
+  // Add static field 'const _deleted_enum_sentinel'.
+  Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
+  deleted_enum_sentinel = Field::New(Symbols::_DeletedEnumSentinel(),
+                                     /* is_static = */ true,
+                                     /* is_final = */ true,
+                                     /* is_const = */ true,
+                                     /* is_reflectable = */ false, cls,
+                                     Object::dynamic_type(), cls.token_pos());
+  enum_members.AddField(deleted_enum_sentinel);
 
   // Allocate the immutable array containing the enumeration values.
   // The actual enum instance values will be patched in later.

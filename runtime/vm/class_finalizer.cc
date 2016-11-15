@@ -2478,17 +2478,31 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
   ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
   Array& values_list =
       Array::Handle(zone, Array::RawCast(values_field.StaticValue()));
-
-  const Array& fields = Array::Handle(zone, enum_cls.fields());
-  Field& field = Field::Handle(zone);
-  Instance& ordinal_value = Instance::Handle(zone);
-  Instance& enum_value = Instance::Handle(zone);
-
   const String& enum_name = String::Handle(enum_cls.ScrubbedName());
   const String& name_prefix =
       String::Handle(String::Concat(enum_name, Symbols::Dot()));
 
+  Field& field = Field::Handle(zone);
+  Instance& ordinal_value = Instance::Handle(zone);
+  Instance& enum_value = Instance::Handle(zone);
+
   String& enum_ident = String::Handle();
+
+  enum_ident =
+      Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), enum_name);
+  enum_value = Instance::New(enum_cls, Heap::kOld);
+  enum_value.SetField(index_field, Smi::Handle(zone, Smi::New(-1)));
+  enum_value.SetField(name_field, enum_ident);
+  const char* error_msg = NULL;
+  enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
+  ASSERT(!enum_value.IsNull());
+  ASSERT(enum_value.IsCanonical());
+  field = enum_cls.LookupStaticField(Symbols::_DeletedEnumSentinel());
+  ASSERT(!field.IsNull());
+  field.SetStaticValue(enum_value, true);
+  field.RecordStore(enum_value);
+
+  const Array& fields = Array::Handle(zone, enum_cls.fields());
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
     if (!field.is_static()) continue;
@@ -2509,7 +2523,6 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
     enum_value = Instance::New(enum_cls, Heap::kOld);
     enum_value.SetField(index_field, ordinal_value);
     enum_value.SetField(name_field, enum_ident);
-    const char* error_msg = "";
     enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
     ASSERT(!enum_value.IsNull());
     ASSERT(enum_value.IsCanonical());
@@ -2520,7 +2533,6 @@ void ClassFinalizer::AllocateEnumValues(const Class& enum_cls) {
     values_list.SetAt(ord, enum_value);
   }
   values_list.MakeImmutable();
-  const char* error_msg = NULL;
   values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
   ASSERT(!values_list.IsNull());
 }
