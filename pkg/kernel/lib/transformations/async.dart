@@ -321,7 +321,7 @@ class ExpressionLifter extends Transformer {
     // so they occur before in the corresponding block).
     var rightBody = blockOf(rightStatements);
     var result = allocateTemporary(nameIndex);
-    rightBody.statements.add(new ExpressionStatement(
+    rightBody.addStatement(new ExpressionStatement(
         new VariableSet(
             result,
             new MethodInvocation(
@@ -391,9 +391,9 @@ class ExpressionLifter extends Transformer {
     var result = allocateTemporary(nameIndex);
     var thenBody = blockOf(thenStatements);
     var otherwiseBody = blockOf(otherwiseStatements);
-    thenBody.statements.add(
+    thenBody.addStatement(
         new ExpressionStatement(new VariableSet(result, expr.then)));
-    otherwiseBody.statements.add(
+    otherwiseBody.addStatement(
         new ExpressionStatement(new VariableSet(result, expr.otherwise)));
     var branch = new IfStatement(expr.condition, thenBody, otherwiseBody);
     statements.add(branch);

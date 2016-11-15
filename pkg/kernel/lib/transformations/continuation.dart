@@ -499,7 +499,8 @@ abstract class AsyncRewriterBase extends ContinuationRewriterBase {
     loopBody.add(
         new IfStatement(cond, new Block(newBody), new BreakStatement(labeled)));
     labeled.body =
-        new WhileStatement(new BoolLiteral(true), new Block(loopBody));
+        new WhileStatement(new BoolLiteral(true), new Block(loopBody))
+        ..parent = labeled;
     statements.add(new Block(<Statement>[]
       ..addAll(temps)
       ..add(labeled)));

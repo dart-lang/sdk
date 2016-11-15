@@ -2455,6 +2455,11 @@ class Block extends Statement {
   transformChildren(Transformer v) {
     transformList(statements, v, this);
   }
+
+  void addStatement(Statement node) {
+    statements.add(node);
+    node.parent = this;
+  }
 }
 
 class EmptyStatement extends Statement {
