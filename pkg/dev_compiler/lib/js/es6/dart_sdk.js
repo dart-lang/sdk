@@ -36888,7 +36888,7 @@ js._wrapDartFunction = function(f) {
     let args = Array.prototype.map.call(arguments, js._convertToDart);
     return js._convertToJS(f(...args));
   };
-  dart.dsetindex(js._dartProxies, wrapper, f);
+  js._dartProxies.set(wrapper, f);
   return wrapper;
 };
 dart.fn(js._wrapDartFunction, dynamicTodynamic());
