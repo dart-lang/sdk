@@ -492,6 +492,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'native_gc_test': async_unittest,
       'notification_test': 'fail', // was sdk#27578, needs triage
       'postmessage_structured_test': async_unittest,
+      'queryall_test': ['slow'], // see sdk #27794
       'request_animation_frame_test': async_unittest,
       'resource_http_test': async_unittest,
       'rtc_test': is.chrome('<=55') ? fail : pass, // was sdk#27578, needs triage
