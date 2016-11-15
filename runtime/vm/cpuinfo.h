@@ -16,7 +16,8 @@ enum CpuInfoIndices {
   kCpuInfoModel = 1,
   kCpuInfoHardware = 2,
   kCpuInfoFeatures = 3,
-  kCpuInfoMax = 4,
+  kCpuInfoArchitecture = 4,
+  kCpuInfoMax = 5,
 };
 
 // For Intel architectures, the method to use to get CPU information.

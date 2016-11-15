@@ -26,6 +26,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "model name";
   fields_[kCpuInfoFeatures] = "flags";
+  fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoCpuId;
   CpuId::InitOnce();
 #elif defined(HOST_ARCH_ARM)
@@ -33,6 +34,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "Hardware";
   fields_[kCpuInfoFeatures] = "Features";
+  fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::InitOnce();
 #elif defined(HOST_ARCH_ARM64)
@@ -40,6 +42,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "CPU implementer";
   fields_[kCpuInfoHardware] = "CPU implementer";
   fields_[kCpuInfoFeatures] = "Features";
+  fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::InitOnce();
 #elif defined(HOST_ARCH_MIPS)
@@ -47,6 +50,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "cpu model";
   fields_[kCpuInfoHardware] = "cpu model";
   fields_[kCpuInfoFeatures] = "ASEs implemented";
+  fields_[kCpuInfoArchitecture] = "CPU architecture";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::InitOnce();
 #else

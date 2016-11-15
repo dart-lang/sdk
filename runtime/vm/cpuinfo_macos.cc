@@ -25,6 +25,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "machdep.cpu.brand_string";
   fields_[kCpuInfoHardware] = "machdep.cpu.brand_string";
   fields_[kCpuInfoFeatures] = "machdep.cpu.features";
+  fields_[kCpuInfoArchitecture] = NULL;
 }
 
 
