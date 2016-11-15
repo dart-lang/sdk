@@ -91,7 +91,6 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_tag": "@1.2.4",
   "protobuf_tag": "@0.5.3",
-  "pub_cache_tag": "@v0.1.0",
   "pub_rev": "@3dd04bd17ba269ccdd34502a253041dd96ded3be",
   "pub_semver_tag": "@1.3.0",
   "quiver_tag": "@0.22.0",
@@ -279,8 +278,6 @@ deps = {
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
       (Var("github_mirror") % "pub") + Var("pub_rev"),
-  Var("dart_root") + "/third_party/pkg/pub_cache":
-      (Var("github_mirror") % "pub_cache") + Var("pub_cache_tag"),
   Var("dart_root") + "/third_party/pkg/quiver":
       Var("chromium_git")
       + "/external/github.com/google/quiver-dart.git"
