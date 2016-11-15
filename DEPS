@@ -83,6 +83,7 @@ vars = {
   "mustache4dart_tag" : "@v1.0.10",
   "oauth2_tag": "@1.0.2",
   "observatory_pub_packages_rev": "@26aad88f1c1915d39bbcbff3cad589e2402fdcf1",
+  "observe_tag": "@0.13.5",
   "package_config_tag": "@1.0.0",
   "package_resolver_tag": "@1.0.2",
   "path_tag": "@1.3.9",
@@ -100,6 +101,7 @@ vars = {
   "shelf_packages_handler_tag": "@1.0.0",
   "shelf_tag": "@0.6.5+3",
   "shelf_web_socket_tag": "@0.2.1",
+  "smoke_tag" : "@v0.3.6+2",
   "source_map_stack_trace_tag": "@1.1.3",
   "source_maps-0.9.4_rev": "@38524",
   "source_maps_tag": "@0.10.1+2",
@@ -253,6 +255,8 @@ deps = {
       + Var("mustache4dart_tag"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       (Var("github_mirror") % "oauth2") + Var("oauth2_tag"),
+  Var("dart_root") + "/third_party/pkg/observe":
+      (Var("github_mirror") % "observe") + Var("observe_tag"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
      (Var("github_mirror") % "observatory_pub_packages")
       + Var("observatory_pub_packages_rev"),
@@ -292,6 +296,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +
       Var("shelf_web_socket_tag"),
+  Var("dart_root") + "/third_party/pkg/smoke":
+      (Var("github_mirror") % "smoke") + Var("smoke_tag"),
   Var("dart_root") + "/third_party/pkg/source_maps":
       (Var("github_mirror") % "source_maps") + Var("source_maps_tag"),
   Var("dart_root") + "/third_party/pkg/source_span":
