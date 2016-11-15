@@ -594,7 +594,8 @@ class ObjectGraph {
           succs[edge] = childId;
           edge++;
         } else {
-          // Reference into VM isolate's heap.
+          throw new Exception(
+              "Heap snapshot contains an edge but lacks its target node");
         }
         stream.readUnsigned();
       }
@@ -603,8 +604,7 @@ class ObjectGraph {
     firstSuccs[id] = edge; // Extra entry for cheap boundary detection.
 
     assert(id == N + 1);
-    assert(edge <= E); // edge is smaller because E was computed before we knew
-    // if references pointed into the VM isolate
+    assert(edge == E);
 
     _E = edge;
     _firstSuccs = firstSuccs;
