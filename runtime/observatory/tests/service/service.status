@@ -20,6 +20,8 @@ isolate_lifecycle_test: Pass, RuntimeError # Issue 24174
 debugger_location_second_test: Pass, Slow
 debugger_location_test: Pass, Slow
 
+[ $mode == debug && $runtime == vm ]
+step_test: RuntimeError
 
 # Disable on simulators.
 [ $arch == simarm || $arch == simmips || $arch == simarm64 ]
