@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
-import 'package:source_span/source_span.dart' as source_span;
 import 'package:test/test.dart';
 
 import 'analysis_context_factory.dart';
@@ -545,8 +544,6 @@ class TestSource extends Source {
   int _modificationStamp = 0;
   bool exists2 = true;
 
-  source_span.SourceFile _sourceFile;
-
   /**
    * A flag indicating whether an exception should be generated when an attempt
    * is made to access the contents of this source.
@@ -588,10 +585,6 @@ class TestSource extends Source {
   String get shortName {
     return _name;
   }
-
-  @override
-  source_span.SourceFile get sourceFile =>
-      _sourceFile ??= new source_span.SourceFile(_contents, url: uri);
 
   Uri get uri => new Uri.file(_name);
 

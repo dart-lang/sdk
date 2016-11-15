@@ -9,7 +9,6 @@ import 'dart:collection';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:source_span/source_span.dart' as source_span;
 
 /**
  * A function that can translate the contents of files on disk as they are read.
@@ -35,8 +34,6 @@ class FileSource extends Source {
    * character.
    */
   static final Map<String, int> _idTable = new HashMap<String, int>();
-
-  source_span.SourceFile _sourceFile;
 
   /**
    * The URI from which this source was originally derived.
@@ -120,10 +117,6 @@ class FileSource extends Source {
 
   @override
   String get shortName => file.shortName;
-
-  @override
-  source_span.SourceFile get sourceFile => _sourceFile ??=
-      new source_span.SourceFile(file.readAsStringSync(), url: uri);
 
   @override
   UriKind get uriKind => UriKind.fromScheme(uri.scheme);

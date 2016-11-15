@@ -13,10 +13,8 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:front_end/compilation_error.dart';
 import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/scanner/errors.dart';
-import 'package:source_span/src/span.dart';
 
 export 'package:front_end/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
@@ -644,7 +642,7 @@ ErrorCode errorCodeByUniqueName(String uniqueName) {
  *
  * See [AnalysisErrorListener].
  */
-class AnalysisError extends CompilationError {
+class AnalysisError {
   /**
    * An empty array of errors used when no errors are expected.
    */
@@ -751,9 +749,6 @@ class AnalysisError extends CompilationError {
     hashCode ^= (source != null) ? source.hashCode : 0;
     return hashCode;
   }
-
-  @override
-  SourceSpan get span => source.sourceFile.span(offset, offset + length);
 
   /**
    * Return the message to be displayed for this error. The message should

@@ -21,7 +21,6 @@ import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as pathos;
-import 'package:source_span/source_span.dart' as source_span;
 
 /**
  * The [ResultProvider] that provides results from input package summaries.
@@ -104,10 +103,6 @@ class InSummarySource extends Source {
 
   @override
   String get shortName => pathos.basename(fullName);
-
-  @override
-  source_span.SourceFile get sourceFile =>
-      throw new StateError('Tried to get location info for InSummarySource');
 
   @override
   UriKind get uriKind => UriKind.PACKAGE_URI;

@@ -5,7 +5,6 @@
 import 'package:front_end/src/base/analysis_target.dart';
 import 'package:front_end/src/base/timestamped_data.dart';
 import 'package:front_end/src/base/uri_kind.dart';
-import 'package:source_span/source_span.dart' as source_span;
 
 /**
  * The interface `Source` defines the behavior of objects representing source code that can be
@@ -106,11 +105,6 @@ abstract class Source implements AnalysisTarget {
 
   @override
   Source get source => this;
-
-  /**
-   * Return the [source_span.SourceFile] object corresponding to this source.
-   */
-  source_span.SourceFile get sourceFile;
 
   /**
    * Return the URI from which this source was originally derived.
