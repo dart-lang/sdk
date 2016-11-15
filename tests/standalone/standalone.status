@@ -309,12 +309,16 @@ link_natives_lazily_test: SkipByDesign
 # SIMDBC interpreter doesn't support --no_lazy_dispatchers
 no_lazy_dispatchers_test: SkipByDesign
 
-[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
+[ $system == android ]
 # Issue 26376
+io/platform_resolved_executable_test: RuntimeError
+io/process_path_test: RuntimeError
+io/file_test: RuntimeError
+io/process_path_environment_test: RuntimeError
 io/file_system_watcher_test: RuntimeError
 io/resolve_symbolic_links_test: RuntimeError
 io/file_stat_test: RuntimeError
-# Issue #27638
+# Issue 27638
 io/raw_datagram_socket_test: RuntimeError
 io/http_proxy_advanced_test: RuntimeError
 io/regress_21160_test: RuntimeError
