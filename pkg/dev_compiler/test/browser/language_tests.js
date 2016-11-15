@@ -400,7 +400,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     'corelib/regexp': {
       'default_arguments_test': fail,
       'UC16_test': firefox_fail,
-      'unicodeCaseInsensitive_test': firefox_fail
     },
 
     'lib/convert': {
@@ -678,7 +677,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'typedef_metadata_test': fail,
       'typedef_test': fail,
       'typevariable_mirror_metadata_test': fail,
-      'unmangled_type_test': firefox_fail,
       'unnamed_library_test': fail,
       'variable_is_const_test_none_multi': fail,
     },
