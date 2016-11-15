@@ -290,7 +290,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'throwing_lazy_variable_test': skip_fail,
       'top_level_non_prefixed_library_test': skip_fail,
       'truncdiv_test': fail,  // did not throw
-      'type_literal_test': firefox_fail,
       'type_variable_nested_test': skip_fail,  // unsound is-check
       'type_variable_typedef_test': skip_fail,  // unsound is-check
 
