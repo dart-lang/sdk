@@ -15,12 +15,7 @@
 # Tests that fail everywhere, including the analyzer.
 
 LibTest/typed_data/ByteData/buffer_A01_t01: Fail # co19 r736 bug - sent comment.
-
 LibTest/core/RegExp/firstMatch_A01_t01: Fail # co19 issue 742
-
-[ $runtime == vm && $checked != true]
-LibTest/isolate/Isolate/spawn_A02_t04: RuntimeError # Issue #26588
-LibTest/isolate/Isolate/spawn_A02_t05: RuntimeError # Issue #26588
 
 [ $compiler != dart2analyzer ]
 # Tests that fail on every runtime, but not on the analyzer.
