@@ -193,10 +193,6 @@ analyzer:
   }
 
   void test_getOptions_include() {
-    if (isWindows) {
-      // TODO(danrubel) fix on Windows.
-      return;
-    }
     pathTranslator.newFile(
         '/foo.include',
         r'''
@@ -208,7 +204,7 @@ analyzer:
     pathTranslator.newFile(
         '/$optionsFileName',
         r'''
-include: /foo.include
+include: foo.include
 ''');
     Map<String, YamlNode> options = _getOptions('/');
     expect(options, hasLength(1));
