@@ -83134,15 +83134,6 @@ dart_library.library('dart_sdk', null, /* Imports */[
       sanitizeNode: dart.definiteFunctionType(dart.void, [html$.Node, html$.Node])
     })
   });
-  html$.Point$ = math.Point$;
-  html$.Point = math.Point;
-  html$.Rectangle$ = math.Rectangle$;
-  html$.Rectangle = math.Rectangle;
-  html_common.SupportedBrowser = _metadata.SupportedBrowser;
-  html_common.Unstable = _metadata.Unstable;
-  html_common.DocsEditable = _metadata.DocsEditable;
-  html_common.Experimental = _metadata.Experimental;
-  html_common.DomName = _metadata.DomName;
   html_common.convertDartToNative_SerializedScriptValue = function(value) {
     return html_common.convertDartToNative_PrepareForStructuredClone(value);
   };

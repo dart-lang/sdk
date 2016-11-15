@@ -517,35 +517,32 @@ class CodeGenerator extends GeneralizingAstVisitor
         // modules we import, so we will never go down this code path for them.
         _moduleItems
             .add(js.statement('#.# = #;', [libraryName, name.selector, name]));
-      } else {
-        // top-level fields, getters, setters need to copy the property
-        // descriptor.
-        _moduleItems.add(_callHelperStatement(
-            'export(#, #, #);', [libraryName, name.receiver, name.selector]));
       }
     }
 
-    for (var export in exportedNames.definedNames.values) {
-      if (export is PropertyAccessorElement) {
-        export = (export as PropertyAccessorElement).variable;
-      }
+    // We only need to export main as it is the only method party of the
+    // publicly exposed JS API for a library.
+    // TODO(jacobr): add a library level annotation indicating that all
+    // contents of a library need to be exposed to JS.
+    // https://github.com/dart-lang/sdk/issues/26368
 
-      // Don't allow redefining names from this library.
-      if (currentNames.containsKey(export.name)) continue;
+    var export = exportedNames.get('main');
 
-      if (export.isSynthetic && export is PropertyInducingElement) {
-        _emitDeclaration(export.getter);
-        _emitDeclaration(export.setter);
-      } else {
-        _emitDeclaration(export);
-      }
-      if (export is ClassElement && export.typeParameters.isNotEmpty) {
-        // Export the generic name as well.
-        // TODO(jmesserly): revisit generic classes
-        emitExport(export, suffix: r'$');
-      }
-      emitExport(export);
+    if (export == null) return;
+    if (export is PropertyAccessorElement) {
+      export = (export as PropertyAccessorElement).variable;
     }
+
+    // Don't allow redefining names from this library.
+    if (currentNames.containsKey(export.name)) return;
+
+    if (export.isSynthetic && export is PropertyInducingElement) {
+      _emitDeclaration(export.getter);
+      _emitDeclaration(export.setter);
+    } else {
+      _emitDeclaration(export);
+    }
+    emitExport(export);
   }
 
   @override
