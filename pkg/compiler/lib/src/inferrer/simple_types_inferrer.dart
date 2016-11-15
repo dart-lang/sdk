@@ -1473,8 +1473,9 @@ class SimpleTypeInferrerVisitor<T>
     isThisExposed = true;
     Selector selector = elements.getSelector(node);
     TypeMask mask = inTreeData.typeOfSend(node);
-    return handleStaticSend(
+    handleStaticSend(
         node, selector, mask, element, new ArgumentsTypes<T>([rhsType], null));
+    return rhsType;
   }
 
   @override
