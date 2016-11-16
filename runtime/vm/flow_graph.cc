@@ -2056,6 +2056,46 @@ void FlowGraph::TryOptimizePatterns() {
 }
 
 
+// Returns true if use is dominated by the given instruction.
+// Note: uses that occur at instruction itself are not dominated by it.
+static bool IsDominatedUse(Instruction* dom, Value* use) {
+  BlockEntryInstr* dom_block = dom->GetBlock();
+
+  Instruction* instr = use->instruction();
+
+  PhiInstr* phi = instr->AsPhi();
+  if (phi != NULL) {
+    return dom_block->Dominates(phi->block()->PredecessorAt(use->use_index()));
+  }
+
+  BlockEntryInstr* use_block = instr->GetBlock();
+  if (use_block == dom_block) {
+    // Fast path for the case of block entry.
+    if (dom_block == dom) return true;
+
+    for (Instruction* curr = dom->next(); curr != NULL; curr = curr->next()) {
+      if (curr == instr) return true;
+    }
+
+    return false;
+  }
+
+  return dom_block->Dominates(use_block);
+}
+
+
+void FlowGraph::RenameDominatedUses(Definition* def,
+                                    Instruction* dom,
+                                    Definition* other) {
+  for (Value::Iterator it(def->input_use_list()); !it.Done(); it.Advance()) {
+    Value* use = it.Current();
+    if (IsDominatedUse(dom, use)) {
+      use->BindTo(other);
+    }
+  }
+}
+
+
 static bool IsPositiveOrZeroSmiConst(Definition* d) {
   ConstantInstr* const_instr = d->AsConstant();
   if ((const_instr != NULL) && (const_instr->value().IsSmi())) {

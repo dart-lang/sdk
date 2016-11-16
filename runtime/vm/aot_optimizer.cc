@@ -291,6 +291,18 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
         call->set_ic_data(&ic_data);
         if (has_unique_no_such_method_) {
           call->set_has_unique_selector(true);
+          // Add redefinition of the receiver to prevent code motion across
+          // this call.
+          RedefinitionInstr* redefinition =
+              new (Z) RedefinitionInstr(new (Z) Value(call->ArgumentAt(0)));
+          redefinition->set_ssa_temp_index(flow_graph_->alloc_ssa_temp_index());
+          redefinition->InsertAfter(call);
+          // Replace all uses of the receiver dominated by this call.
+          FlowGraph::RenameDominatedUses(call->ArgumentAt(0), redefinition,
+                                         redefinition);
+          if (!redefinition->HasUses()) {
+            redefinition->RemoveFromGraph();
+          }
         }
         return true;
       }
