@@ -17,7 +17,6 @@ import 'dart:collection';
 class BinaryPrinter extends Visitor {
   ImportTable _importTable;
 
-  // TODO: We can do the indexing on-the-fly, but for now just keep it simple.
   VariableIndexer _variableIndexer;
   LabelIndexer _labelIndexer;
   SwitchCaseIndexer _switchCaseIndexer;
@@ -274,7 +273,6 @@ class BinaryPrinter extends Visitor {
 
   void writeAnnotation(Expression annotation) {
     _variableIndexer ??= new VariableIndexer();
-    _variableIndexer.build(annotation);
     writeNode(annotation);
   }
 
@@ -293,45 +291,49 @@ class BinaryPrinter extends Visitor {
       writeStringReference(node.name ?? '');
       writeUriReference(node.fileUri ?? '');
       writeAnnotationList(node.annotations);
-      _typeParameterIndexer.push(node.typeParameters);
+      _typeParameterIndexer.enter(node.typeParameters);
       writeNodeList(node.typeParameters);
       writeNode(node.supertype);
       writeNode(node.mixedInType);
       writeNodeList(node.implementedTypes);
       writeNodeList(node.constructors);
-      _typeParameterIndexer.pop(node.typeParameters);
+      _typeParameterIndexer.exit(node.typeParameters);
     } else {
       writeByte(Tag.NormalClass);
       writeByte(flags);
       writeStringReference(node.name ?? '');
       writeUriReference(node.fileUri ?? '');
       writeAnnotationList(node.annotations);
-      _typeParameterIndexer.push(node.typeParameters);
+      _typeParameterIndexer.enter(node.typeParameters);
       writeNodeList(node.typeParameters);
       writeOptionalNode(node.supertype);
       writeNodeList(node.implementedTypes);
       writeNodeList(node.fields);
       writeNodeList(node.constructors);
       writeNodeList(node.procedures);
-      _typeParameterIndexer.pop(node.typeParameters);
+      _typeParameterIndexer.exit(node.typeParameters);
     }
   }
 
   static final Name _emptyName = new Name('');
 
   visitConstructor(Constructor node) {
-    _variableIndexer = new VariableIndexer()..build(node);
+    _variableIndexer = new VariableIndexer();
     writeByte(Tag.Constructor);
     writeByte(node.flags);
     writeName(node.name ?? _emptyName);
     writeAnnotationList(node.annotations);
     assert(node.function.typeParameters.isEmpty);
     writeNode(node.function);
+    // Parameters are in scope in the initializers.
+    _variableIndexer.restoreScope(node.function.positionalParameters.length +
+        node.function.namedParameters.length);
     writeNodeList(node.initializers);
+    _variableIndexer = null;
   }
 
   visitProcedure(Procedure node) {
-    _variableIndexer = new VariableIndexer()..build(node);
+    _variableIndexer = new VariableIndexer();
     writeByte(Tag.Procedure);
     writeByte(node.kind.index);
     writeByte(node.flags);
@@ -339,10 +341,11 @@ class BinaryPrinter extends Visitor {
     writeUriReference(node.fileUri ?? '');
     writeAnnotationList(node.annotations);
     writeOptionalNode(node.function);
+    _variableIndexer = null;
   }
 
   visitField(Field node) {
-    _variableIndexer = new VariableIndexer()..build(node);
+    _variableIndexer = new VariableIndexer();
     writeByte(Tag.Field);
     writeOffset(node);
     writeByte(node.flags);
@@ -352,6 +355,7 @@ class BinaryPrinter extends Visitor {
     writeNode(node.type);
     writeOptionalInferredValue(node.inferredValue);
     writeOptionalNode(node.initializer);
+    _variableIndexer = null;
   }
 
   visitInvalidInitializer(InvalidInitializer node) {
@@ -383,12 +387,13 @@ class BinaryPrinter extends Visitor {
 
   visitFunctionNode(FunctionNode node) {
     assert(_variableIndexer != null);
+    _variableIndexer.pushScope();
     var oldLabels = _labelIndexer;
-    _labelIndexer = new LabelIndexer()..build(node);
+    _labelIndexer = new LabelIndexer();
     var oldCases = _switchCaseIndexer;
-    _switchCaseIndexer = new SwitchCaseIndexer()..build(node);
+    _switchCaseIndexer = new SwitchCaseIndexer();
     // Note: FunctionNode has no tag.
-    _typeParameterIndexer.push(node.typeParameters);
+    _typeParameterIndexer.enter(node.typeParameters);
     writeByte(node.asyncMarker.index);
     writeNodeList(node.typeParameters);
     writeUInt30(node.requiredParameterCount);
@@ -399,7 +404,8 @@ class BinaryPrinter extends Visitor {
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;
-    _typeParameterIndexer.pop(node.typeParameters);
+    _typeParameterIndexer.exit(node.typeParameters);
+    _variableIndexer.popScope();
   }
 
   visitInvalidExpression(InvalidExpression node) {
@@ -683,6 +689,7 @@ class BinaryPrinter extends Visitor {
     writeByte(Tag.Let);
     writeVariableDeclaration(node.variable);
     writeNode(node.body);
+    --_variableIndexer.stackHeight;
   }
 
   writeStatementOrEmpty(Statement node) {
@@ -703,8 +710,10 @@ class BinaryPrinter extends Visitor {
   }
 
   visitBlock(Block node) {
+    _variableIndexer.pushScope();
     writeByte(Tag.Block);
     writeNodeList(node.statements);
+    _variableIndexer.popScope();
   }
 
   visitEmptyStatement(EmptyStatement node) {
@@ -718,8 +727,10 @@ class BinaryPrinter extends Visitor {
   }
 
   visitLabeledStatement(LabeledStatement node) {
+    _labelIndexer.enter(node);
     writeByte(Tag.LabeledStatement);
     writeNode(node.body);
+    _labelIndexer.exit();
   }
 
   visitBreakStatement(BreakStatement node) {
@@ -740,24 +751,30 @@ class BinaryPrinter extends Visitor {
   }
 
   visitForStatement(ForStatement node) {
+    _variableIndexer.pushScope();
     writeByte(Tag.ForStatement);
     writeVariableDeclarationList(node.variables);
     writeOptionalNode(node.condition);
     writeNodeList(node.updates);
     writeNode(node.body);
+    _variableIndexer.popScope();
   }
 
   visitForInStatement(ForInStatement node) {
+    _variableIndexer.pushScope();
     writeByte(node.isAsync ? Tag.AsyncForInStatement : Tag.ForInStatement);
     writeVariableDeclaration(node.variable);
     writeNode(node.iterable);
     writeNode(node.body);
+    _variableIndexer.popScope();
   }
 
   visitSwitchStatement(SwitchStatement node) {
+    _switchCaseIndexer.enter(node);
     writeByte(Tag.SwitchStatement);
     writeNode(node.expression);
     writeNodeList(node.cases);
+    _switchCaseIndexer.exit(node);
   }
 
   visitSwitchCase(SwitchCase node) {
@@ -792,10 +809,12 @@ class BinaryPrinter extends Visitor {
 
   visitCatch(Catch node) {
     // Note: there is no tag on Catch.
+    _variableIndexer.pushScope();
     writeNode(node.guard);
     writeOptionalVariableDeclaration(node.exception);
     writeOptionalVariableDeclaration(node.stackTrace);
     writeNode(node.body);
+    _variableIndexer.popScope();
   }
 
   visitTryFinally(TryFinally node) {
@@ -821,6 +840,9 @@ class BinaryPrinter extends Visitor {
     writeNode(node.type);
     writeOptionalInferredValue(node.inferredValue);
     writeOptionalNode(node.initializer);
+    // Declare the variable after its initializer. It is not in scope in its
+    // own initializer.
+    _variableIndexer.declare(node);
   }
 
   void writeVariableDeclarationList(List<VariableDeclaration> nodes) {
@@ -889,7 +911,7 @@ class BinaryPrinter extends Visitor {
       writeNode(node.returnType);
     } else {
       writeByte(Tag.FunctionType);
-      _typeParameterIndexer.push(node.typeParameters);
+      _typeParameterIndexer.enter(node.typeParameters);
       writeNodeList(node.typeParameters);
       writeUInt30(node.requiredParameterCount);
       writeNodeList(node.positionalParameters);
@@ -898,7 +920,7 @@ class BinaryPrinter extends Visitor {
         writeNode(node.namedParameters[name]);
       });
       writeNode(node.returnType);
-      _typeParameterIndexer.pop(node.typeParameters);
+      _typeParameterIndexer.exit(node.typeParameters);
     }
   }
 
@@ -917,132 +939,76 @@ class BinaryPrinter extends Visitor {
   }
 }
 
-class VariableIndexer extends RecursiveVisitor {
+class VariableIndexer {
   final Map<VariableDeclaration, int> index = <VariableDeclaration, int>{};
+  final List<int> scopes = <int>[];
   int stackHeight = 0;
 
-  void build(TreeNode node) => node.accept(this);
-
-  visitConstructor(Constructor node) {
-    node.function.accept(this);
-    // Keep parameters in scope when traversing initializers.
-    stackHeight = node.function.positionalParameters.length +
-        node.function.namedParameters.length;
-    for (var init in node.initializers) {
-      init.accept(this);
-    }
-    stackHeight = 0;
+  void declare(VariableDeclaration node) {
+    index[node] = stackHeight++;
   }
 
-  visitFunctionNode(FunctionNode node) {
-    int frame = stackHeight;
-    node.visitChildren(this);
-    stackHeight = frame;
+  void pushScope() {
+    scopes.add(stackHeight);
   }
 
-  visitBlock(Block node) {
-    int frame = stackHeight;
-    node.visitChildren(this);
-    stackHeight = frame;
+  void popScope() {
+    stackHeight = scopes.removeLast();
   }
 
-  visitLet(Let node) {
-    int frame = stackHeight;
-    node.visitChildren(this);
-    stackHeight = frame;
+  void restoreScope(int numberOfVariables) {
+    stackHeight += numberOfVariables;
   }
 
-  visitForInStatement(ForInStatement node) {
-    int frame = stackHeight;
-    node.visitChildren(this);
-    stackHeight = frame;
+  int operator [](VariableDeclaration node) {
+    return index[node];
   }
-
-  visitForStatement(ForStatement node) {
-    int frame = stackHeight;
-    node.visitChildren(this);
-    stackHeight = frame;
-  }
-
-  visitCatch(Catch node) {
-    int frame = stackHeight;
-    node.visitChildren(this);
-    stackHeight = frame;
-  }
-
-  visitVariableDeclaration(VariableDeclaration node) {
-    node.visitChildren(this);
-    assert(!index.containsKey(node));
-    index[node] = stackHeight;
-    ++stackHeight;
-  }
-
-  int operator [](VariableDeclaration node) => index[node];
 }
 
-class LabelIndexer extends RecursiveVisitor {
+class LabelIndexer {
   final Map<LabeledStatement, int> index = <LabeledStatement, int>{};
   int stackHeight = 0;
 
-  void build(FunctionNode node) => node.visitChildren(this);
-
-  visitFunctionNode(FunctionNode node) {
-    // Inhibit traversal into nested functions.
-    // The client must create a separate label indexer for the
-    // nested function.
+  void enter(LabeledStatement node) {
+    index[node] = stackHeight++;
   }
 
-  visitLabeledStatement(LabeledStatement node) {
-    index[node] = stackHeight;
-    ++stackHeight;
-    node.visitChildren(this);
+  void exit() {
     --stackHeight;
   }
 
   int operator [](LabeledStatement node) => index[node];
 }
 
-class SwitchCaseIndexer extends RecursiveVisitor {
+class SwitchCaseIndexer {
   final Map<SwitchCase, int> index = <SwitchCase, int>{};
   int stackHeight = 0;
 
-  void build(FunctionNode node) => node.visitChildren(this);
-
-  visitFunctionNode(FunctionNode node) {
-    // Inhibit traversal into nested functions.
-    // The client must create a separate case indexer for the
-    // nested function.
+  void enter(SwitchStatement node) {
+    for (var caseNode in node.cases) {
+      index[caseNode] = stackHeight++;
+    }
   }
 
-  visitSwitchStatement(SwitchStatement node) {
-    int oldHeight = stackHeight;
-    for (var caseNode in node.cases) {
-      index[caseNode] = stackHeight;
-      ++stackHeight;
-    }
-    node.visitChildren(this);
-    stackHeight = oldHeight;
+  void exit(SwitchStatement node) {
+    stackHeight -= node.cases.length;
   }
 
   int operator [](SwitchCase node) => index[node];
 }
 
-/// The type parameter indexer works differently from the other indexers because
-/// type parameters can be bound inside DartTypes, which can be shared by the
-/// in-memory representation (but not the binary form) and the index depends on
-/// the use site.
 class TypeParameterIndexer {
   final Map<TypeParameter, int> index = <TypeParameter, int>{};
   int stackHeight = 0;
 
-  void push(List<TypeParameter> typeParameters) {
+  void enter(List<TypeParameter> typeParameters) {
     for (var parameter in typeParameters) {
       index[parameter] = stackHeight;
       ++stackHeight;
     }
   }
 
-  void pop(List<TypeParameter> typeParameters) {
+  void exit(List<TypeParameter> typeParameters) {
     stackHeight -= typeParameters.length;
   }
 
