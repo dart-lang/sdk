@@ -571,7 +571,7 @@ two: {boo: newt}
     resourceProvider.newFile(
         pathContext.join(path, '.packages'),
         '''
-somepkg:/mypkgs/somepkg/lib
+somepkg:../../../mypkgs/somepkg/lib
 ''');
     resourceProvider.newFile(
         pathContext.join(path, 'bar.yaml'),
