@@ -1100,9 +1100,8 @@ void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
                                               const StubEntry& stub_entry,
                                               RawPcDescriptors::Kind kind,
                                               LocationSummary* locs) {
-  __ CallPatchable(stub_entry);
-  AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
-  RecordSafepoint(locs);
+  // No patchable calls on ia32.
+  GenerateCall(token_pos, stub_entry, kind, locs);
 }
 
 
