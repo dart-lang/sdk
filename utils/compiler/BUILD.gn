@@ -62,7 +62,8 @@ application_snapshot("dart2js") {
   main_dart = "$root_gen_dir/dart2js.dart"
   training_args = [
     "--library-root=" + rebase_path("../../sdk"),
-    rebase_path("../../tests/language/first_test.dart"),
+    "--categories=all",
+    rebase_path("$root_gen_dir/dart2js.dart"),
   ]
 }
 
