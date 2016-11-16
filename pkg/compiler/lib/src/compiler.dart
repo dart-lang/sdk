@@ -849,10 +849,10 @@ abstract class Compiler implements LibraryLoaderListener {
 
   void processQueue(Enqueuer enqueuer, Element main) {
     selfTask.measureSubtask("Compiler.processQueue", () {
-      WorldImpactBuilderImpl nativeImpact = new WorldImpactBuilderImpl();
-      enqueuer.nativeEnqueuer
-          .processNativeClasses(nativeImpact, libraryLoader.libraries);
-      enqueuer.applyImpact(impactStrategy, nativeImpact);
+      enqueuer.applyImpact(
+          impactStrategy,
+          enqueuer.nativeEnqueuer
+              .processNativeClasses(libraryLoader.libraries));
       if (main != null && !main.isMalformed) {
         FunctionElement mainMethod = main;
         mainMethod.computeType(resolution);
