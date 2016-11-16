@@ -338,7 +338,8 @@ static void PrintTypeCheck(const char* message,
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
 
-  const AbstractType& instance_type = AbstractType::Handle(instance.GetType());
+  const AbstractType& instance_type =
+      AbstractType::Handle(instance.GetType(Heap::kNew));
   ASSERT(instance_type.IsInstantiated());
   if (type.IsInstantiated()) {
     OS::PrintErr("%s: '%s' %" Pd " %s '%s' %" Pd " (pc: %#" Px ").\n", message,
@@ -551,7 +552,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     // Throw a dynamic type error.
     const TokenPosition location = GetCallerLocation();
     const AbstractType& src_type =
-        AbstractType::Handle(zone, src_instance.GetType());
+        AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       dst_type = dst_type.InstantiateFrom(instantiator_type_arguments, NULL,
@@ -603,7 +604,7 @@ DEFINE_RUNTIME_ENTRY(NonBoolTypeError, 1) {
   ASSERT(!src_instance.IsBool());
   const Type& bool_interface = Type::Handle(Type::BoolType());
   const AbstractType& src_type =
-      AbstractType::Handle(zone, src_instance.GetType());
+      AbstractType::Handle(zone, src_instance.GetType(Heap::kNew));
   const String& no_bound_error = String::Handle(zone);
   Exceptions::CreateAndThrowTypeError(location, src_type, bool_interface,
                                       Symbols::BooleanExpression(),
@@ -624,7 +625,7 @@ DEFINE_RUNTIME_ENTRY(BadTypeError, 3) {
   const AbstractType& dst_type =
       AbstractType::CheckedHandle(zone, arguments.ArgAt(2));
   const AbstractType& src_type =
-      AbstractType::Handle(zone, src_value.GetType());
+      AbstractType::Handle(zone, src_value.GetType(Heap::kNew));
   Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name,
                                       String::Handle(zone));
   UNREACHABLE();

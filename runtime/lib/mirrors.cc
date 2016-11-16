@@ -1370,7 +1370,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
 
 DEFINE_NATIVE_ENTRY(InstanceMirror_computeType, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
-  const AbstractType& type = AbstractType::Handle(instance.GetType());
+  const AbstractType& type = AbstractType::Handle(instance.GetType(Heap::kNew));
   // The static type of null is specified to be the bottom type, however, the
   // runtime type of null is the Null type, which we correctly return here.
   return type.Canonicalize();

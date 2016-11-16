@@ -1438,7 +1438,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                                      &error))) {
         if (Isolate::Current()->error_on_bad_type()) {
           const AbstractType& const_value_type =
-              AbstractType::Handle(zone, const_value.GetType());
+              AbstractType::Handle(zone, const_value.GetType(Heap::kNew));
           const String& const_value_type_name =
               String::Handle(zone, const_value_type.UserVisibleName());
           const String& type_name =

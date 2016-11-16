@@ -2136,7 +2136,7 @@ DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance) {
     RETURN_TYPE_ERROR(Z, instance, Instance);
   }
   const AbstractType& type =
-      AbstractType::Handle(Instance::Cast(obj).GetType());
+      AbstractType::Handle(Instance::Cast(obj).GetType(Heap::kNew));
   return Api::NewHandle(T, type.Canonicalize());
 }
 
@@ -4074,7 +4074,8 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
 
   // Construct name of the constructor to invoke.
   const String& constructor_name = Api::UnwrapStringHandle(Z, name);
-  const AbstractType& type_obj = AbstractType::Handle(Z, instance.GetType());
+  const AbstractType& type_obj =
+      AbstractType::Handle(Z, instance.GetType(Heap::kNew));
   const Class& cls = Class::Handle(Z, type_obj.type_class());
   const String& class_name = String::Handle(Z, cls.Name());
   const Array& strings = Array::Handle(Z, Array::New(3));

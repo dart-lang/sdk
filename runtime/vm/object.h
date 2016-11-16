@@ -5444,7 +5444,7 @@ class Instance : public Object {
     StorePointer(FieldAddr(field), value.raw());
   }
 
-  RawAbstractType* GetType() const;
+  RawAbstractType* GetType(Heap::Space space) const;
 
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;

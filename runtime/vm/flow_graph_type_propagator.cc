@@ -804,8 +804,11 @@ CompileType ConstantInstr::ComputeType() const {
   }
 
   if (value().IsInstance()) {
+    // Allocate in old-space since this may be invoked from the
+    // background compiler.
     return CompileType::Create(
-        cid, AbstractType::ZoneHandle(Instance::Cast(value()).GetType()));
+        cid,
+        AbstractType::ZoneHandle(Instance::Cast(value()).GetType(Heap::kOld)));
   } else {
     // Type info for non-instance objects.
     return CompileType::FromCid(cid);

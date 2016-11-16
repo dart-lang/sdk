@@ -15407,7 +15407,7 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
 #endif  // DEBUG
 
 
-RawAbstractType* Instance::GetType() const {
+RawAbstractType* Instance::GetType(Heap::Space space) const {
   if (IsNull()) {
     return Type::NullType();
   }
@@ -15427,8 +15427,8 @@ RawAbstractType* Instance::GetType() const {
     const Class& scope_cls = Class::Handle(type.type_class());
     ASSERT(scope_cls.NumTypeArguments() > 0);
     TypeArguments& type_arguments = TypeArguments::Handle(GetTypeArguments());
-    type = Type::New(scope_cls, type_arguments, TokenPosition::kNoSource,
-                     Heap::kNew);
+    type =
+        Type::New(scope_cls, type_arguments, TokenPosition::kNoSource, space);
     type.set_signature(signature);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
@@ -15443,7 +15443,7 @@ RawAbstractType* Instance::GetType() const {
     if (cls.NumTypeArguments() > 0) {
       type_arguments = GetTypeArguments();
     }
-    type = Type::New(cls, type_arguments, TokenPosition::kNoSource);
+    type = Type::New(cls, type_arguments, TokenPosition::kNoSource, space);
     type.SetIsFinalized();
     type ^= type.Canonicalize();
   }
