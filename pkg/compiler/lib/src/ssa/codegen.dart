@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
@@ -210,8 +211,58 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
+  // Returns the number of bits occupied by the value computed by [instruction].
+  // Returns `32` if the value is negative or does not fit in a smaller number
+  // of bits.
+  int bitWidth(HInstruction instruction) {
+    const int MAX = 32;
+    int constant(HInstruction insn) {
+      if (insn.isConstantInteger()) {
+        IntConstantValue constant = insn.constant;
+        return constant.primitiveValue;
+      }
+      return null;
+    }
+
+    if (instruction.isConstantInteger()) {
+      int value = constant(instruction);
+      if (value < 0) return MAX;
+      if (value > ((1 << 31) - 1)) return MAX;
+      return value.bitLength;
+    }
+    if (instruction is HBitAnd) {
+      return math.min(bitWidth(instruction.left), bitWidth(instruction.right));
+    }
+    if (instruction is HBitOr || instruction is HBitXor) {
+      int leftWidth = bitWidth(instruction.left);
+      if (leftWidth == MAX) return MAX;
+      return math.max(leftWidth, bitWidth(instruction.right));
+    }
+    if (instruction is HShiftLeft) {
+      int shiftCount = constant(instruction.right);
+      if (shiftCount == null || shiftCount < 0 || shiftCount > 31) return MAX;
+      int leftWidth = bitWidth(instruction.left);
+      int width = leftWidth + shiftCount;
+      return math.min(width, MAX);
+    }
+    if (instruction is HShiftRight) {
+      int shiftCount = constant(instruction.right);
+      if (shiftCount == null || shiftCount < 0 || shiftCount > 31) return MAX;
+      int leftWidth = bitWidth(instruction.left);
+      if (leftWidth >= MAX) return MAX;
+      return math.max(leftWidth - shiftCount, 0);
+    }
+    if (instruction is HAdd) {
+      return math.min(
+          1 + math.max(bitWidth(instruction.left), bitWidth(instruction.right)),
+          MAX);
+    }
+    return MAX;
+  }
+
   bool requiresUintConversion(instruction) {
     if (instruction.isUInt31(compiler)) return false;
+    if (bitWidth(instruction) <= 31) return false;
     // If the result of a bit-operation is only used by other bit
     // operations, we do not have to convert to an unsigned integer.
     return hasNonBitOpUser(instruction, new Set<HPhi>());
