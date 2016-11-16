@@ -3285,23 +3285,7 @@ class SsaBuilder extends ast.Visitor
     });
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(
-        type.element, inputs, newObject);
-  }
-
-  HInstruction callSetRuntimeTypeInfoWithTypeArguments(ClassElement element,
-      List<HInstruction> rtiInputs, HInstruction newObject) {
-    if (!backend.classNeedsRti(element)) {
-      return newObject;
-    }
-
-    HInstruction typeInfo = new HTypeInfoExpression(
-        TypeInfoExpressionKind.INSTANCE,
-        element.thisType,
-        rtiInputs,
-        backend.dynamicType);
-    add(typeInfo);
-    return callSetRuntimeTypeInfo(typeInfo, newObject);
+    return callSetRuntimeTypeInfoWithTypeArguments(type, inputs, newObject);
   }
 
   HInstruction callSetRuntimeTypeInfo(
@@ -5255,8 +5239,7 @@ class SsaBuilder extends ast.Visitor
     }
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(
-        type.element, arguments, object);
+    return callSetRuntimeTypeInfoWithTypeArguments(type, arguments, object);
   }
 
   visitLiteralList(ast.LiteralList node) {

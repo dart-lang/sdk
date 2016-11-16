@@ -292,6 +292,9 @@ class KernelAstAdapter {
   ir.Procedure get assertThrow =>
       kernel.functions[_backend.helpers.assertThrow];
 
+  ir.Procedure get setRuntimeTypeInfo =>
+      kernel.functions[_backend.helpers.setRuntimeTypeInfo];
+
   TypeMask get assertThrowReturnType => TypeMaskFactory
       .inferredReturnTypeForElement(_backend.helpers.assertThrow, _compiler);
 

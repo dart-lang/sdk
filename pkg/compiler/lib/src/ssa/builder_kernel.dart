@@ -596,6 +596,26 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         forInStatement, buildInitializer, buildCondition, () {}, buildBody);
   }
 
+  HInstruction callSetRuntimeTypeInfo(
+      HInstruction typeInfo, HInstruction newObject) {
+    // Set the runtime type information on the object.
+    ir.Procedure typeInfoSetterFn = astAdapter.setRuntimeTypeInfo;
+    // TODO(efortuna): Insert source information in this static invocation.
+    _pushStaticInvocation(typeInfoSetterFn, <HInstruction>[newObject, typeInfo],
+        backend.dynamicType);
+
+    // The new object will now be referenced through the
+    // `setRuntimeTypeInfo` call. We therefore set the type of that
+    // instruction to be of the object's type.
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE,
+        stack.last is HInvokeStatic || stack.last == newObject,
+        message: "Unexpected `stack.last`: Found ${stack.last}, "
+            "expected ${newObject} or an HInvokeStatic. "
+            "State: typeInfo=$typeInfo, stack=$stack."));
+    stack.last.instructionType = newObject.instructionType;
+    return pop();
+  }
+
   @override
   void visitWhileStatement(ir.WhileStatement whileStatement) {
     assert(isReachable);
@@ -695,6 +715,21 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     stack.add(graph.addConstantNull(compiler));
   }
 
+  HInstruction setRtiIfNeeded(HInstruction object, ir.ListLiteral listLiteral) {
+    InterfaceType type = localsHandler
+        .substInContext(elements.getType(astAdapter.getNode(listLiteral)));
+    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
+      return object;
+    }
+    List<HInstruction> arguments = <HInstruction>[];
+    for (DartType argument in type.typeArguments) {
+      arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
+    }
+    // TODO(15489): Register at codegen.
+    registry?.registerInstantiation(type);
+    return callSetRuntimeTypeInfoWithTypeArguments(type, arguments, object);
+  }
+
   @override
   void visitListLiteral(ir.ListLiteral listLiteral) {
     HInstruction listInstruction;
@@ -709,7 +744,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
       listInstruction = new HLiteralList(elements, backend.extendableArrayType);
       add(listInstruction);
-      // TODO(het): set runtime type info
+      listInstruction = setRtiIfNeeded(listInstruction, listLiteral);
     }
 
     TypeMask type = astAdapter.typeOfNewList(targetElement, listLiteral);

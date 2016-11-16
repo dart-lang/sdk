@@ -215,6 +215,24 @@ abstract class GraphBuilder {
         localsHandler.directLocals[local] != null;
   }
 
+  HInstruction callSetRuntimeTypeInfoWithTypeArguments(
+      DartType type, List<HInstruction> rtiInputs, HInstruction newObject) {
+    if (!backend.classNeedsRti(type.element)) {
+      return newObject;
+    }
+
+    HInstruction typeInfo = new HTypeInfoExpression(
+        TypeInfoExpressionKind.INSTANCE,
+        (type.element as ClassElement).thisType,
+        rtiInputs,
+        backend.dynamicType);
+    add(typeInfo);
+    return callSetRuntimeTypeInfo(typeInfo, newObject);
+  }
+
+  HInstruction callSetRuntimeTypeInfo(
+      HInstruction typeInfo, HInstruction newObject);
+
   /// The element for which this SSA builder is being used.
   Element get targetElement;
   TypeBuilder get typeBuilder;
