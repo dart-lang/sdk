@@ -72,8 +72,10 @@ bool TryReadKernel(const char* script_uri,
     DartUtils::ReadFile(&buffer, kernel_length, script_file);
     DartUtils::CloseFile(script_file);
     if (*kernel_length > 0 && buffer != NULL) {
-      *kernel_file = buffer;
-      if (DartUtils::SniffForMagicNumber(&buffer, kernel_length) !=
+      // We need a temporary variable because SniffForMagicNumber modifies the
+      // buffer pointer to skip snapshot magic number.
+      const uint8_t* temp = buffer;
+      if (DartUtils::SniffForMagicNumber(&temp, kernel_length) !=
           DartUtils::kKernelMagicNumber) {
         free(const_cast<uint8_t*>(buffer));
         *kernel_file = NULL;
@@ -83,6 +85,7 @@ bool TryReadKernel(const char* script_uri,
         // Caller is responsible for freeing the buffer when this function
         // returns true.
         is_kernel_file = true;
+        *kernel_file = buffer;
       }
     }
   }
