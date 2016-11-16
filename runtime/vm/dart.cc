@@ -491,7 +491,10 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
 }
 
 
-RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
+RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer,
+                                  intptr_t snapshot_length,
+                                  bool from_kernel,
+                                  void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
@@ -508,11 +511,18 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     ObjectStore::Init(I);
   }
 
-  const Error& error = Error::Handle(Object::Init(I));
+  Error& error = Error::Handle(T->zone());
+  if (from_kernel) {
+    ASSERT(snapshot_buffer != NULL);
+    ASSERT(snapshot_length > 0);
+    error = Object::Init(I, snapshot_buffer, snapshot_length);
+  } else {
+    error = Object::Init(I, NULL, -1);
+  }
   if (!error.IsNull()) {
     return error.raw();
   }
-  if (snapshot_buffer != NULL) {
+  if ((snapshot_buffer != NULL) && !from_kernel) {
     // Read the snapshot and setup the initial state.
     NOT_IN_PRODUCT(TimelineDurationScope tds(T, Timeline::GetIsolateStream(),
                                              "IsolateSnapshotReader"));
@@ -553,7 +563,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       MegamorphicCacheTable::PrintSizes(I);
     }
   } else {
-    if (snapshot_kind_ != Snapshot::kNone) {
+    if ((snapshot_kind_ != Snapshot::kNone) && !from_kernel) {
       const String& message =
           String::Handle(String::New("Missing isolate snapshot"));
       return ApiError::New(message);
@@ -581,7 +591,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
       Code::Handle(I->object_store()->megamorphic_miss_code());
   I->set_ic_miss_code(miss_code);
 
-  if (snapshot_buffer == NULL) {
+  if ((snapshot_buffer == NULL) || from_kernel) {
     const Error& error = Error::Handle(I->object_store()->PreallocateObjects());
     if (!error.IsNull()) {
       return error.raw();

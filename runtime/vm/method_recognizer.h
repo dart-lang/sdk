@@ -518,19 +518,20 @@ class MethodRecognizer : public AllStatic {
   static intptr_t ResultCid(const Function& function);
   static intptr_t MethodKindToReceiverCid(Kind kind);
   static const char* KindToCString(Kind kind);
-#if defined(DART_NO_SNAPSHOT)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static void InitializeState();
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 };
 
 
-#if defined(DART_NO_SNAPSHOT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FINGERPRINT2(f, p0, p1, fp)                                      \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
 
 #define CHECK_FINGERPRINT3(f, p0, p1, p2, fp)                                  \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 
 // clang-format off

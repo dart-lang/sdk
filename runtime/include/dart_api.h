@@ -873,7 +873,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  * \param error DOCUMENT
  *
  * \return The new isolate is returned. May be NULL if an error
- *   occurs duing isolate initialization.
+ *   occurs during isolate initialization.
  */
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             const char* main,
@@ -884,6 +884,34 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
 /* TODO(turnidge): Document behavior when there is already a current
  * isolate. */
 
+/**
+ * Creates a new isolate from a Dart Kernel file. The new isolate
+ * becomes the current isolate.
+ *
+ * Requires there to be no current isolate.
+ *
+ * \param script_uri The name of the script this isolate will load.
+ *   Provided only for advisory purposes to improve debugging messages.
+ * \param main The name of the main entry point this isolate will run.
+ *   Provided only for advisory purposes to improve debugging messages.
+ * \param kernel A buffer containing the Dart Kernel binary.
+ * \param kernel_length The length of the Kernel buffer.
+ * \param flags Pointer to VM specific flags or NULL for default flags.
+ * \param callback_data Embedder data.  This data will be passed to
+ *   the Dart_IsolateCreateCallback when new isolates are spawned from
+ *   this parent isolate.
+ * \param error DOCUMENT
+ *
+ * \return The new isolate is returned. May be NULL if an error
+ *   occurs during isolate initialization.
+ */
+DART_EXPORT Dart_Isolate Dart_CreateIsolateFromKernel(const char* script_uri,
+                                                      const char* main,
+                                                      const uint8_t* kernel,
+                                                      intptr_t kernel_length,
+                                                      Dart_IsolateFlags* flags,
+                                                      void* callback_data,
+                                                      char** error);
 /**
  * Shuts down the current isolate. After this call, the current isolate
  * is NULL. Invokes the shutdown callback and any callbacks of remaining

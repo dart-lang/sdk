@@ -525,8 +525,11 @@ class Object {
   static void InitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
 
-  // Initialize a new isolate either from source or from a snapshot.
-  static RawError* Init(Isolate* isolate);
+  // Initialize a new isolate either from a Kernel IR, from source, or from a
+  // snapshot.
+  static RawError* Init(Isolate* isolate,
+                        const uint8_t* kernel,
+                        intptr_t kernel_length);
 
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
@@ -1509,8 +1512,8 @@ class Class : public Object {
 // to a class after all classes have been loaded and finalized.
 class UnresolvedClass : public Object {
  public:
-  RawLibraryPrefix* library_prefix() const {
-    return raw_ptr()->library_prefix_;
+  RawObject* library_or_library_prefix() const {
+    return raw_ptr()->library_or_library_prefix_;
   }
   RawString* ident() const { return raw_ptr()->ident_; }
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
@@ -1521,12 +1524,12 @@ class UnresolvedClass : public Object {
     return RoundedAllocationSize(sizeof(RawUnresolvedClass));
   }
 
-  static RawUnresolvedClass* New(const LibraryPrefix& library_prefix,
+  static RawUnresolvedClass* New(const Object& library_prefix,
                                  const String& ident,
                                  TokenPosition token_pos);
 
  private:
-  void set_library_prefix(const LibraryPrefix& library_prefix) const;
+  void set_library_or_library_prefix(const Object& library_prefix) const;
   void set_ident(const String& ident) const;
   void set_token_pos(TokenPosition token_pos) const;
 
@@ -3780,7 +3783,7 @@ class Library : public Object {
   static RawLibrary* GetLibrary(intptr_t index);
 
   static void InitCoreLibrary(Isolate* isolate);
-  static void InitNativeWrappersLibrary(Isolate* isolate);
+  static void InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel_file);
 
   static RawLibrary* AsyncLibrary();
   static RawLibrary* ConvertLibrary();

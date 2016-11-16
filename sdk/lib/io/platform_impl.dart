@@ -11,6 +11,8 @@ class _Platform {
   external static _localHostname();
   external static _executable();
   external static _resolvedExecutable();
+  external static void set _nativeScript(String path);
+
   /**
    * Retrieve the entries of the process environment.
    *

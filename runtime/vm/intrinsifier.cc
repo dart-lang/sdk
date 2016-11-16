@@ -58,7 +58,7 @@ bool Intrinsifier::CanIntrinsify(const Function& function) {
 }
 
 
-#if defined(DART_NO_SNAPSHOT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void Intrinsifier::InitializeState() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -117,7 +117,7 @@ void Intrinsifier::InitializeState() {
 
 #undef SETUP_FUNCTION
 }
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 
 // DBC does not use graph intrinsics.

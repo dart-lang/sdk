@@ -132,7 +132,7 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
 }
 
 
-#if defined(DART_NO_SNAPSHOT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -182,6 +182,7 @@ void MethodRecognizer::InitializeState() {
 #undef SET_IS_POLYMORPHIC_TARGET
 #undef SET_FUNCTION_BIT
 }
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 
 }  // namespace dart

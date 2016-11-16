@@ -5,9 +5,11 @@
 #ifndef RUNTIME_VM_KERNEL_H_
 #define RUNTIME_VM_KERNEL_H_
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
+
 
 #define KERNEL_NODES_DO(M)                                                     \
   M(Name)                                                                      \
@@ -3243,4 +3245,5 @@ void WritePrecompiledKernel(ByteWriter* out, kernel::Program* program);
 
 }  // namespace dart
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_KERNEL_H_

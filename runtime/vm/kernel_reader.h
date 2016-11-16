@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_KERNEL_READER_H_
 #define RUNTIME_VM_KERNEL_READER_H_
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include <map>
 
 #include "vm/kernel.h"
@@ -24,8 +25,6 @@ class BuildingTranslationHelper : public TranslationHelper {
                             Isolate* isolate)
       : TranslationHelper(thread, zone, isolate), reader_(reader) {}
   virtual ~BuildingTranslationHelper() {}
-
-  virtual void SetFinalize(bool finalize);
 
   virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);
   virtual RawClass* LookupClassByKernelClass(Class* klass);
@@ -60,9 +59,10 @@ class KernelReader {
         zone_(thread_->zone()),
         isolate_(thread_->isolate()),
         translation_helper_(this, thread_, zone_, isolate_),
-        type_translator_(&translation_helper_, &active_class_, !bootstrapping),
+        type_translator_(&translation_helper_,
+                         &active_class_,
+                         /*finalize=*/false),
         bootstrapping_(bootstrapping),
-        finalize_(!bootstrapping),
         buffer_(buffer),
         buffer_length_(len) {}
 
@@ -83,7 +83,7 @@ class KernelReader {
   friend class BuildingTranslationHelper;
 
   void ReadPreliminaryClass(dart::Class* klass, Class* kernel_klass);
-  void ReadClass(const dart::Library& library, Class* kernel_klass);
+  dart::Class& ReadClass(const dart::Library& library, Class* kernel_klass);
   void ReadProcedure(const dart::Library& library,
                      const dart::Class& owner,
                      Procedure* procedure,
@@ -110,9 +110,6 @@ class KernelReader {
 
   bool bootstrapping_;
 
-  // Should created classes be finalized when they are created?
-  bool finalize_;
-
   const uint8_t* buffer_;
   intptr_t buffer_length_;
 
@@ -123,4 +120,5 @@ class KernelReader {
 }  // namespace kernel
 }  // namespace dart
 
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_KERNEL_READER_H_

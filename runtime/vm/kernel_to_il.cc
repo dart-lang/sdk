@@ -18,6 +18,7 @@
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
 DECLARE_FLAG(bool, support_externalizable_strings);
@@ -645,6 +646,16 @@ void ScopeBuilder::VisitFunctionNode(FunctionNode* node) {
   for (intptr_t i = 0; i < type_parameters.length(); ++i) {
     VisitTypeParameter(type_parameters[i]);
   }
+
+  if (node->async_marker() == FunctionNode::kSyncYielding) {
+    LocalScope* scope = parsed_function_->node_sequence()->scope();
+    for (intptr_t i = 0;
+         i < parsed_function_->function().NumOptionalPositionalParameters();
+         i++) {
+      scope->VariableAt(i)->set_is_forced_stack();
+    }
+  }
+
   // Do not visit the positional and named parameters, because they've
   // already been added to the scope.
   if (node->body() != NULL) {
@@ -1106,6 +1117,21 @@ dart::RawClass* TranslationHelper::LookupClassByKernelClass(
 
   ASSERT(klass != Object::null());
   return klass;
+}
+
+
+dart::RawUnresolvedClass* TranslationHelper::ToUnresolvedClass(
+    Class* kernel_klass) {
+  dart::RawClass* klass = NULL;
+
+  const dart::String& class_name = DartClassName(kernel_klass);
+  Library* kernel_library = Library::Cast(kernel_klass->parent());
+  dart::Library& library =
+      dart::Library::Handle(Z, LookupLibraryByKernelLibrary(kernel_library));
+
+  ASSERT(klass != Object::null());
+  return dart::UnresolvedClass::New(library, class_name,
+                                    TokenPosition::kNoSource);
 }
 
 
@@ -1843,7 +1869,9 @@ FlowGraphBuilder::FlowGraphBuilder(
       try_catch_block_(NULL),
       next_used_try_index_(0),
       catch_block_(NULL),
-      type_translator_(&translation_helper_, &active_class_),
+      type_translator_(&translation_helper_,
+                       &active_class_,
+                       /* finalize= */ true),
       constant_evaluator_(this,
                           zone_,
                           &translation_helper_,
@@ -3861,10 +3889,8 @@ AbstractType& DartTypeTranslator::TranslateTypeWithoutFinalization(
     DartType* node) {
   bool saved_finalize = finalize_;
   finalize_ = false;
-  H.SetFinalize(false);
   AbstractType& result = TranslateType(node);
   finalize_ = saved_finalize;
-  H.SetFinalize(saved_finalize);
   return result;
 }
 
@@ -4020,13 +4046,13 @@ void DartTypeTranslator::VisitInterfaceType(InterfaceType* node) {
   const TypeArguments& type_arguments = TranslateTypeArguments(
       node->type_arguments().raw_array(), node->type_arguments().length());
 
-  const dart::Class& klass =
-      dart::Class::Handle(Z, H.LookupClassByKernelClass(node->klass()));
 
+  dart::Object& klass =
+      dart::Object::Handle(Z, H.ToUnresolvedClass(node->klass()));
   result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
-  result_.SetIsResolved();
   if (finalize_) {
-    result_ = ClassFinalizer::FinalizeType(klass, result_,
+    ASSERT(active_class_->klass != NULL);
+    result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_,
                                            ClassFinalizer::kCanonicalize);
   }
 }
@@ -5653,9 +5679,6 @@ void FlowGraphBuilder::VisitYieldStatement(YieldStatement* node) {
     ASSERT(stack_trace_var->name().raw() ==
            Symbols::StackTraceParameter().raw());
 
-    exception_var->set_is_forced_stack();
-    stack_trace_var->set_is_forced_stack();
-
     TargetEntryInstr* no_error;
     TargetEntryInstr* error;
 
@@ -5745,3 +5768,4 @@ Fragment FlowGraphBuilder::TranslateFunctionNode(FunctionNode* node,
 
 }  // namespace kernel
 }  // namespace dart
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

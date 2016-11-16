@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_KERNEL_TO_IL_H_
 #define RUNTIME_VM_KERNEL_TO_IL_H_
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
 #include "vm/growable_array.h"
 #include "vm/hash_map.h"
 
@@ -202,11 +204,6 @@ class TranslationHelper {
 
   Heap::Space allocation_space() { return allocation_space_; }
 
-  // Set whether unfinalized classes should be finalized.  The base class
-  // implementation used at flow graph construction time looks up classes in the
-  // VM's heap, all of which should already be finalized.
-  virtual void SetFinalize(bool finalize) {}
-
   RawInstance* Canonicalize(const Instance& instance);
 
   const dart::String& DartString(const char* content) {
@@ -240,6 +237,8 @@ class TranslationHelper {
   // annotations).
   virtual RawLibrary* LookupLibraryByKernelLibrary(Library* library);
   virtual RawClass* LookupClassByKernelClass(Class* klass);
+
+  RawUnresolvedClass* ToUnresolvedClass(Class* klass);
 
   RawField* LookupFieldByKernelField(Field* field);
   RawFunction* LookupStaticMethodByKernelProcedure(Procedure* procedure);
@@ -282,7 +281,7 @@ class DartTypeTranslator : public DartTypeVisitor {
  public:
   DartTypeTranslator(TranslationHelper* helper,
                      ActiveClass* active_class,
-                     bool finalize = true)
+                     bool finalize = false)
       : translation_helper_(*helper),
         active_class_(active_class),
         zone_(helper->zone()),
@@ -501,7 +500,9 @@ class ScopeBuilder : public RecursiveVisitor {
         node_(node),
         zone_(Thread::Current()->zone()),
         translation_helper_(Thread::Current(), zone_, Isolate::Current()),
-        type_translator_(&translation_helper_, &active_class_),
+        type_translator_(&translation_helper_,
+                         &active_class_,
+                         /*finalize=*/true),
         current_function_scope_(NULL),
         scope_(NULL),
         depth_(0),
@@ -919,5 +920,5 @@ class FlowGraphBuilder : public TreeVisitor {
 }  // namespace kernel
 }  // namespace dart
 
-
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // RUNTIME_VM_KERNEL_TO_IL_H_

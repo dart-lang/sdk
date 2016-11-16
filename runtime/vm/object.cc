@@ -1119,631 +1119,629 @@ void Object::RegisterPrivateClass(const Class& cls,
 }
 
 
-RawError* Object::Init(Isolate* isolate) {
+// Initialize a new isolate from source or from a snapshot.
+//
+// There are three possibilities:
+//   1. Running a Kernel binary.  This function will bootstrap from the KERNEL
+//      file.
+//   2. There is no snapshot.  This function will bootstrap from source.
+//   3. There is a snapshot.  The caller should initialize from the snapshot.
+//
+// A non-NULL kernel argument indicates (1).  A NULL kernel indicates (2) or
+// (3), depending on whether the VM is compiled with DART_NO_SNAPSHOT defined or
+// not.
+RawError* Object::Init(Isolate* isolate,
+                       const uint8_t* kernel_buffer,
+                       intptr_t kernel_buffer_length) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  const bool is_kernel = (kernel_buffer != NULL);
+#endif
   NOT_IN_PRODUCT(TimelineDurationScope tds(thread, Timeline::GetIsolateStream(),
-                                           "Object::Init"));
+                                           "Object::Init");)
 
 #if defined(DART_NO_SNAPSHOT)
-  // Object::Init version when we are running in a version of dart that does
-  // not have a full snapshot linked in.
-  ObjectStore* object_store = isolate->object_store();
+  bool bootstrapping = true;
+#elif defined(DART_PRECOMPILED_RUNTIME)
+  bool bootstrapping = false;
+#else
+  bool bootstrapping = is_kernel;
+#endif
 
-  Class& cls = Class::Handle(zone);
-  Type& type = Type::Handle(zone);
-  Array& array = Array::Handle(zone);
-  Library& lib = Library::Handle(zone);
+  if (bootstrapping) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    // Object::Init version when we are bootstrapping from source or from a
+    // Kernel binary.
+    ObjectStore* object_store = isolate->object_store();
 
-  // All RawArray fields will be initialized to an empty array, therefore
-  // initialize array class first.
-  cls = Class::New<Array>();
-  object_store->set_array_class(cls);
+    Class& cls = Class::Handle(zone);
+    Type& type = Type::Handle(zone);
+    Array& array = Array::Handle(zone);
+    Library& lib = Library::Handle(zone);
 
-  // VM classes that are parameterized (Array, ImmutableArray,
-  // GrowableObjectArray, and LinkedHashMap) are also pre-finalized,
-  // so CalculateFieldOffsets() is not called, so we need to set the
-  // offset of their type_arguments_ field, which is explicitly
-  // declared in their respective Raw* classes.
-  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
-  cls.set_num_type_arguments(1);
+    // All RawArray fields will be initialized to an empty array, therefore
+    // initialize array class first.
+    cls = Class::New<Array>();
+    object_store->set_array_class(cls);
 
-  // Set up the growable object array class (Has to be done after the array
-  // class is setup as one of its field is an array object).
-  cls = Class::New<GrowableObjectArray>();
-  object_store->set_growable_object_array_class(cls);
-  cls.set_type_arguments_field_offset(
-      GrowableObjectArray::type_arguments_offset());
-  cls.set_num_type_arguments(1);
+    // VM classes that are parameterized (Array, ImmutableArray,
+    // GrowableObjectArray, and LinkedHashMap) are also pre-finalized, so
+    // CalculateFieldOffsets() is not called, so we need to set the offset of
+    // their type_arguments_ field, which is explicitly declared in their
+    // respective Raw* classes.
+    cls.set_type_arguments_field_offset(Array::type_arguments_offset());
+    cls.set_num_type_arguments(1);
 
-  // Initialize hash set for canonical_type_.
-  const intptr_t kInitialCanonicalTypeSize = 16;
-  array =
-      HashTables::New<CanonicalTypeSet>(kInitialCanonicalTypeSize, Heap::kOld);
-  object_store->set_canonical_types(array);
+    // Set up the growable object array class (Has to be done after the array
+    // class is setup as one of its field is an array object).
+    cls = Class::New<GrowableObjectArray>();
+    object_store->set_growable_object_array_class(cls);
+    cls.set_type_arguments_field_offset(
+        GrowableObjectArray::type_arguments_offset());
+    cls.set_num_type_arguments(1);
 
-  // Initialize hash set for canonical_type_arguments_.
-  const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
-  array = HashTables::New<CanonicalTypeArgumentsSet>(
-      kInitialCanonicalTypeArgumentsSize, Heap::kOld);
-  object_store->set_canonical_type_arguments(array);
+    // Initialize hash set for canonical_type_.
+    const intptr_t kInitialCanonicalTypeSize = 16;
+    array = HashTables::New<CanonicalTypeSet>(kInitialCanonicalTypeSize,
+                                              Heap::kOld);
+    object_store->set_canonical_types(array);
 
-  // Setup type class early in the process.
-  const Class& type_cls = Class::Handle(zone, Class::New<Type>());
-  const Class& type_ref_cls = Class::Handle(zone, Class::New<TypeRef>());
-  const Class& type_parameter_cls =
-      Class::Handle(zone, Class::New<TypeParameter>());
-  const Class& bounded_type_cls =
-      Class::Handle(zone, Class::New<BoundedType>());
-  const Class& mixin_app_type_cls =
-      Class::Handle(zone, Class::New<MixinAppType>());
-  const Class& library_prefix_cls =
-      Class::Handle(zone, Class::New<LibraryPrefix>());
+    // Initialize hash set for canonical_type_arguments_.
+    const intptr_t kInitialCanonicalTypeArgumentsSize = 4;
+    array = HashTables::New<CanonicalTypeArgumentsSet>(
+        kInitialCanonicalTypeArgumentsSize, Heap::kOld);
+    object_store->set_canonical_type_arguments(array);
 
-  // Pre-allocate the OneByteString class needed by the symbol table.
-  cls = Class::NewStringClass(kOneByteStringCid);
-  object_store->set_one_byte_string_class(cls);
+    // Setup type class early in the process.
+    const Class& type_cls = Class::Handle(zone, Class::New<Type>());
+    const Class& type_ref_cls = Class::Handle(zone, Class::New<TypeRef>());
+    const Class& type_parameter_cls =
+        Class::Handle(zone, Class::New<TypeParameter>());
+    const Class& bounded_type_cls =
+        Class::Handle(zone, Class::New<BoundedType>());
+    const Class& mixin_app_type_cls =
+        Class::Handle(zone, Class::New<MixinAppType>());
+    const Class& library_prefix_cls =
+        Class::Handle(zone, Class::New<LibraryPrefix>());
 
-  // Pre-allocate the TwoByteString class needed by the symbol table.
-  cls = Class::NewStringClass(kTwoByteStringCid);
-  object_store->set_two_byte_string_class(cls);
+    // Pre-allocate the OneByteString class needed by the symbol table.
+    cls = Class::NewStringClass(kOneByteStringCid);
+    object_store->set_one_byte_string_class(cls);
 
-  // Setup the symbol table for the symbols created in the isolate.
-  Symbols::SetupSymbolTable(isolate);
+    // Pre-allocate the TwoByteString class needed by the symbol table.
+    cls = Class::NewStringClass(kTwoByteStringCid);
+    object_store->set_two_byte_string_class(cls);
 
-  // Set up the libraries array before initializing the core library.
-  const GrowableObjectArray& libraries =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New(Heap::kOld));
-  object_store->set_libraries(libraries);
+    // Setup the symbol table for the symbols created in the isolate.
+    Symbols::SetupSymbolTable(isolate);
 
-  // Pre-register the core library.
-  Library::InitCoreLibrary(isolate);
+    // Set up the libraries array before initializing the core library.
+    const GrowableObjectArray& libraries =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New(Heap::kOld));
+    object_store->set_libraries(libraries);
 
-  // Basic infrastructure has been setup, initialize the class dictionary.
-  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
-  ASSERT(!core_lib.IsNull());
+    // Pre-register the core library.
+    Library::InitCoreLibrary(isolate);
 
-  const GrowableObjectArray& pending_classes =
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
-  object_store->set_pending_classes(pending_classes);
+    // Basic infrastructure has been setup, initialize the class dictionary.
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+    ASSERT(!core_lib.IsNull());
 
-  Context& context = Context::Handle(zone, Context::New(0, Heap::kOld));
-  object_store->set_empty_context(context);
+    const GrowableObjectArray& pending_classes =
+        GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
+    object_store->set_pending_classes(pending_classes);
 
-  // Now that the symbol table is initialized and that the core dictionary as
-  // well as the core implementation dictionary have been setup, preallocate
-  // remaining classes and register them by name in the dictionaries.
-  String& name = String::Handle(zone);
-  cls = object_store->array_class();  // Was allocated above.
-  RegisterPrivateClass(cls, Symbols::_List(), core_lib);
-  pending_classes.Add(cls);
-  // We cannot use NewNonParameterizedType(cls), because Array is parameterized.
-  // Warning: class _List has not been patched yet. Its declared number of type
-  // parameters is still 0. It will become 1 after patching. The array type
-  // allocated below represents the raw type _List and not _List<E> as we
-  // could expect. Use with caution.
-  type ^= Type::New(Object::Handle(zone, cls.raw()),
-                    TypeArguments::Handle(zone), TokenPosition::kNoSource);
-  type.SetIsFinalized();
-  type ^= type.Canonicalize();
-  object_store->set_array_type(type);
+    Context& context = Context::Handle(zone, Context::New(0, Heap::kOld));
+    object_store->set_empty_context(context);
 
-  cls = object_store->growable_object_array_class();  // Was allocated above.
-  RegisterPrivateClass(cls, Symbols::_GrowableList(), core_lib);
-  pending_classes.Add(cls);
+    // Now that the symbol table is initialized and that the core dictionary as
+    // well as the core implementation dictionary have been setup, preallocate
+    // remaining classes and register them by name in the dictionaries.
+    String& name = String::Handle(zone);
+    cls = object_store->array_class();  // Was allocated above.
+    RegisterPrivateClass(cls, Symbols::_List(), core_lib);
+    pending_classes.Add(cls);
+    // We cannot use NewNonParameterizedType(cls), because Array is
+    // parameterized.  Warning: class _List has not been patched yet. Its
+    // declared number of type parameters is still 0. It will become 1 after
+    // patching. The array type allocated below represents the raw type _List
+    // and not _List<E> as we could expect. Use with caution.
+    type ^= Type::New(Object::Handle(zone, cls.raw()),
+                      TypeArguments::Handle(zone), TokenPosition::kNoSource);
+    type.SetIsFinalized();
+    type ^= type.Canonicalize();
+    object_store->set_array_type(type);
 
-  cls = Class::New<Array>(kImmutableArrayCid);
-  object_store->set_immutable_array_class(cls);
-  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
-  cls.set_num_type_arguments(1);
-  ASSERT(object_store->immutable_array_class() != object_store->array_class());
-  cls.set_is_prefinalized();
-  RegisterPrivateClass(cls, Symbols::_ImmutableList(), core_lib);
-  pending_classes.Add(cls);
+    cls = object_store->growable_object_array_class();  // Was allocated above.
+    RegisterPrivateClass(cls, Symbols::_GrowableList(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = object_store->one_byte_string_class();  // Was allocated above.
-  RegisterPrivateClass(cls, Symbols::OneByteString(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Array>(kImmutableArrayCid);
+    object_store->set_immutable_array_class(cls);
+    cls.set_type_arguments_field_offset(Array::type_arguments_offset());
+    cls.set_num_type_arguments(1);
+    ASSERT(object_store->immutable_array_class() !=
+           object_store->array_class());
+    cls.set_is_prefinalized();
+    RegisterPrivateClass(cls, Symbols::_ImmutableList(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = object_store->two_byte_string_class();  // Was allocated above.
-  RegisterPrivateClass(cls, Symbols::TwoByteString(), core_lib);
-  pending_classes.Add(cls);
+    cls = object_store->one_byte_string_class();  // Was allocated above.
+    RegisterPrivateClass(cls, Symbols::OneByteString(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::NewStringClass(kExternalOneByteStringCid);
-  object_store->set_external_one_byte_string_class(cls);
-  RegisterPrivateClass(cls, Symbols::ExternalOneByteString(), core_lib);
-  pending_classes.Add(cls);
+    cls = object_store->two_byte_string_class();  // Was allocated above.
+    RegisterPrivateClass(cls, Symbols::TwoByteString(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::NewStringClass(kExternalTwoByteStringCid);
-  object_store->set_external_two_byte_string_class(cls);
-  RegisterPrivateClass(cls, Symbols::ExternalTwoByteString(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::NewStringClass(kExternalOneByteStringCid);
+    object_store->set_external_one_byte_string_class(cls);
+    RegisterPrivateClass(cls, Symbols::ExternalOneByteString(), core_lib);
+    pending_classes.Add(cls);
 
-  // Pre-register the isolate library so the native class implementations
-  // can be hooked up before compiling it.
-  Library& isolate_lib = Library::Handle(
-      zone, Library::LookupLibrary(thread, Symbols::DartIsolate()));
-  if (isolate_lib.IsNull()) {
-    isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
-    isolate_lib.SetLoadRequested();
-    isolate_lib.Register(thread);
+    cls = Class::NewStringClass(kExternalTwoByteStringCid);
+    object_store->set_external_two_byte_string_class(cls);
+    RegisterPrivateClass(cls, Symbols::ExternalTwoByteString(), core_lib);
+    pending_classes.Add(cls);
+
+    // Pre-register the isolate library so the native class implementations can
+    // be hooked up before compiling it.
+    Library& isolate_lib = Library::Handle(
+        zone, Library::LookupLibrary(thread, Symbols::DartIsolate()));
+    if (isolate_lib.IsNull()) {
+      isolate_lib = Library::NewLibraryHelper(Symbols::DartIsolate(), true);
+      isolate_lib.SetLoadRequested();
+      isolate_lib.Register(thread);
+    }
     object_store->set_bootstrap_library(ObjectStore::kIsolate, isolate_lib);
-  }
-  ASSERT(!isolate_lib.IsNull());
-  ASSERT(isolate_lib.raw() == Library::IsolateLibrary());
+    ASSERT(!isolate_lib.IsNull());
+    ASSERT(isolate_lib.raw() == Library::IsolateLibrary());
 
-  cls = Class::New<Capability>();
-  RegisterPrivateClass(cls, Symbols::_CapabilityImpl(), isolate_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Capability>();
+    RegisterPrivateClass(cls, Symbols::_CapabilityImpl(), isolate_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::New<ReceivePort>();
-  RegisterPrivateClass(cls, Symbols::_RawReceivePortImpl(), isolate_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<ReceivePort>();
+    RegisterPrivateClass(cls, Symbols::_RawReceivePortImpl(), isolate_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::New<SendPort>();
-  RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<SendPort>();
+    RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
+    pending_classes.Add(cls);
 
-  const Class& stacktrace_cls = Class::Handle(zone, Class::New<Stacktrace>());
-  RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
-  pending_classes.Add(stacktrace_cls);
-  // Super type set below, after Object is allocated.
+    const Class& stacktrace_cls = Class::Handle(zone, Class::New<Stacktrace>());
+    RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
+    pending_classes.Add(stacktrace_cls);
+    // Super type set below, after Object is allocated.
 
-  cls = Class::New<RegExp>();
-  RegisterPrivateClass(cls, Symbols::_RegExp(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<RegExp>();
+    RegisterPrivateClass(cls, Symbols::_RegExp(), core_lib);
+    pending_classes.Add(cls);
 
-  // Initialize the base interfaces used by the core VM classes.
+    // Initialize the base interfaces used by the core VM classes.
 
-  // Allocate and initialize the pre-allocated classes in the core library.
-  // The script and token index of these pre-allocated classes is set up in
-  // the parser when the corelib script is compiled (see
-  // Parser::ParseClassDefinition).
-  cls = Class::New<Instance>(kInstanceCid);
-  object_store->set_object_class(cls);
-  cls.set_name(Symbols::Object());
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  core_lib.AddClass(cls);
-  pending_classes.Add(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_object_type(type);
+    // Allocate and initialize the pre-allocated classes in the core library.
+    // The script and token index of these pre-allocated classes is set up in
+    // the parser when the corelib script is compiled (see
+    // Parser::ParseClassDefinition).
+    cls = Class::New<Instance>(kInstanceCid);
+    object_store->set_object_class(cls);
+    cls.set_name(Symbols::Object());
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    core_lib.AddClass(cls);
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_object_type(type);
 
-  cls = Class::New<Bool>();
-  object_store->set_bool_class(cls);
-  RegisterClass(cls, Symbols::Bool(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Bool>();
+    object_store->set_bool_class(cls);
+    RegisterClass(cls, Symbols::Bool(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::New<Instance>(kNullCid);
-  object_store->set_null_class(cls);
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  RegisterClass(cls, Symbols::Null(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Instance>(kNullCid);
+    object_store->set_null_class(cls);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    RegisterClass(cls, Symbols::Null(), core_lib);
+    pending_classes.Add(cls);
 
-  ASSERT(!library_prefix_cls.IsNull());
-  RegisterPrivateClass(library_prefix_cls, Symbols::_LibraryPrefix(), core_lib);
-  pending_classes.Add(library_prefix_cls);
+    ASSERT(!library_prefix_cls.IsNull());
+    RegisterPrivateClass(library_prefix_cls, Symbols::_LibraryPrefix(),
+                         core_lib);
+    pending_classes.Add(library_prefix_cls);
 
-  RegisterPrivateClass(type_cls, Symbols::Type(), core_lib);
-  pending_classes.Add(type_cls);
+    RegisterPrivateClass(type_cls, Symbols::Type(), core_lib);
+    pending_classes.Add(type_cls);
 
-  RegisterPrivateClass(type_ref_cls, Symbols::TypeRef(), core_lib);
-  pending_classes.Add(type_ref_cls);
+    RegisterPrivateClass(type_ref_cls, Symbols::TypeRef(), core_lib);
+    pending_classes.Add(type_ref_cls);
 
-  RegisterPrivateClass(type_parameter_cls, Symbols::TypeParameter(), core_lib);
-  pending_classes.Add(type_parameter_cls);
+    RegisterPrivateClass(type_parameter_cls, Symbols::TypeParameter(),
+                         core_lib);
+    pending_classes.Add(type_parameter_cls);
 
-  RegisterPrivateClass(bounded_type_cls, Symbols::BoundedType(), core_lib);
-  pending_classes.Add(bounded_type_cls);
+    RegisterPrivateClass(bounded_type_cls, Symbols::BoundedType(), core_lib);
+    pending_classes.Add(bounded_type_cls);
 
-  RegisterPrivateClass(mixin_app_type_cls, Symbols::MixinAppType(), core_lib);
-  pending_classes.Add(mixin_app_type_cls);
+    RegisterPrivateClass(mixin_app_type_cls, Symbols::MixinAppType(), core_lib);
+    pending_classes.Add(mixin_app_type_cls);
 
-  cls = Class::New<Integer>();
-  object_store->set_integer_implementation_class(cls);
-  RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Integer>();
+    object_store->set_integer_implementation_class(cls);
+    RegisterPrivateClass(cls, Symbols::IntegerImplementation(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::New<Smi>();
-  object_store->set_smi_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Smi(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Smi>();
+    object_store->set_smi_class(cls);
+    RegisterPrivateClass(cls, Symbols::_Smi(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::New<Mint>();
-  object_store->set_mint_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Mint(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Mint>();
+    object_store->set_mint_class(cls);
+    RegisterPrivateClass(cls, Symbols::_Mint(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::New<Bigint>();
-  object_store->set_bigint_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Bigint(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Bigint>();
+    object_store->set_bigint_class(cls);
+    RegisterPrivateClass(cls, Symbols::_Bigint(), core_lib);
+    pending_classes.Add(cls);
 
-  cls = Class::New<Double>();
-  object_store->set_double_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Double>();
+    object_store->set_double_class(cls);
+    RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
+    pending_classes.Add(cls);
 
-  // Class that represents the Dart class _Closure and C++ class Closure.
-  cls = Class::New<Closure>();
-  cls.set_type_arguments_field_offset(Closure::type_arguments_offset());
-  cls.set_num_type_arguments(0);  // Although a closure has type_arguments_.
-  cls.set_num_own_type_arguments(0);
-  RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
-  pending_classes.Add(cls);
-  object_store->set_closure_class(cls);
+    // Class that represents the Dart class _Closure and C++ class Closure.
+    cls = Class::New<Closure>();
+    cls.set_type_arguments_field_offset(Closure::type_arguments_offset());
+    cls.set_num_type_arguments(0);  // Although a closure has type_arguments_.
+    cls.set_num_own_type_arguments(0);
+    RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
+    pending_classes.Add(cls);
+    object_store->set_closure_class(cls);
 
-  cls = Class::New<WeakProperty>();
-  object_store->set_weak_property_class(cls);
-  RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
+    cls = Class::New<WeakProperty>();
+    object_store->set_weak_property_class(cls);
+    RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
 // Pre-register the mirrors library so we can place the vm class
 // MirrorReference there rather than the core library.
 #if !defined(PRODUCT)
-  lib = Library::LookupLibrary(thread, Symbols::DartMirrors());
-  if (lib.IsNull()) {
-    lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
-    lib.SetLoadRequested();
-    lib.Register(thread);
+    lib = Library::LookupLibrary(thread, Symbols::DartMirrors());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartMirrors(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
     object_store->set_bootstrap_library(ObjectStore::kMirrors, lib);
-  }
-  ASSERT(!lib.IsNull());
-  ASSERT(lib.raw() == Library::MirrorsLibrary());
+    ASSERT(!lib.IsNull());
+    ASSERT(lib.raw() == Library::MirrorsLibrary());
 
-  cls = Class::New<MirrorReference>();
-  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
-#endif  // !defined(PRODUCT)
+    cls = Class::New<MirrorReference>();
+    RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
+#endif
 
-  // Pre-register the collection library so we can place the vm class
-  // LinkedHashMap there rather than the core library.
-  lib = Library::LookupLibrary(thread, Symbols::DartCollection());
-  if (lib.IsNull()) {
-    lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
-    lib.SetLoadRequested();
-    lib.Register(thread);
+    // Pre-register the collection library so we can place the vm class
+    // LinkedHashMap there rather than the core library.
+    lib = Library::LookupLibrary(thread, Symbols::DartCollection());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+
     object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
-  }
-  ASSERT(!lib.IsNull());
-  ASSERT(lib.raw() == Library::CollectionLibrary());
-  cls = Class::New<LinkedHashMap>();
-  object_store->set_linked_hash_map_class(cls);
-  cls.set_type_arguments_field_offset(LinkedHashMap::type_arguments_offset());
-  cls.set_num_type_arguments(2);
-  cls.set_num_own_type_arguments(2);
-  RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
-  pending_classes.Add(cls);
+    ASSERT(!lib.IsNull());
+    ASSERT(lib.raw() == Library::CollectionLibrary());
+    cls = Class::New<LinkedHashMap>();
+    object_store->set_linked_hash_map_class(cls);
+    cls.set_type_arguments_field_offset(LinkedHashMap::type_arguments_offset());
+    cls.set_num_type_arguments(2);
+    cls.set_num_own_type_arguments(0);
+    RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
+    pending_classes.Add(cls);
 
-  // Pre-register the developer library so we can place the vm class
-  // UserTag there rather than the core library.
-  lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
-  if (lib.IsNull()) {
-    lib = Library::NewLibraryHelper(Symbols::DartDeveloper(), true);
-    lib.SetLoadRequested();
-    lib.Register(thread);
+    // Pre-register the developer library so we can place the vm class
+    // UserTag there rather than the core library.
+    lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartDeveloper(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
     object_store->set_bootstrap_library(ObjectStore::kDeveloper, lib);
-  }
-  ASSERT(!lib.IsNull());
-  ASSERT(lib.raw() == Library::DeveloperLibrary());
+    ASSERT(!lib.IsNull());
+    ASSERT(lib.raw() == Library::DeveloperLibrary());
+    cls = Class::New<UserTag>();
+    RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
+    pending_classes.Add(cls);
 
-  lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
-  ASSERT(!lib.IsNull());
-  cls = Class::New<UserTag>();
-  RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
-  pending_classes.Add(cls);
+    // Setup some default native field classes which can be extended for
+    // specifying native fields in dart classes.
+    Library::InitNativeWrappersLibrary(isolate, is_kernel);
+    ASSERT(object_store->native_wrappers_library() != Library::null());
 
-  // Setup some default native field classes which can be extended for
-  // specifying native fields in dart classes.
-  Library::InitNativeWrappersLibrary(isolate);
-  ASSERT(object_store->native_wrappers_library() != Library::null());
-
-  // Pre-register the typed_data library so the native class implementations
-  // can be hooked up before compiling it.
-  lib = Library::LookupLibrary(thread, Symbols::DartTypedData());
-  if (lib.IsNull()) {
-    lib = Library::NewLibraryHelper(Symbols::DartTypedData(), true);
-    lib.SetLoadRequested();
-    lib.Register(thread);
+    // Pre-register the typed_data library so the native class implementations
+    // can be hooked up before compiling it.
+    lib = Library::LookupLibrary(thread, Symbols::DartTypedData());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartTypedData(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
     object_store->set_bootstrap_library(ObjectStore::kTypedData, lib);
-  }
-  ASSERT(!lib.IsNull());
-  ASSERT(lib.raw() == Library::TypedDataLibrary());
+    ASSERT(!lib.IsNull());
+    ASSERT(lib.raw() == Library::TypedDataLibrary());
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##ArrayCid);                 \
   RegisterClass(cls, Symbols::clazz##List(), lib);
 
-  DART_CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
+    DART_CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);              \
   RegisterPrivateClass(cls, Symbols::_##clazz##View(), lib);                   \
   pending_classes.Add(cls);
 
-  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
-  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
-  RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
-  pending_classes.Add(cls);
+    CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
+    cls = Class::NewTypedDataViewClass(kByteDataViewCid);
+    RegisterPrivateClass(cls, Symbols::_ByteDataView(), lib);
+    pending_classes.Add(cls);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);      \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);
 
-  cls = Class::New<Instance>(kByteBufferCid);
-  cls.set_instance_size(0);
-  cls.set_next_field_offset(-kWordSize);
-  RegisterClass(cls, Symbols::ByteBuffer(), lib);
-  pending_classes.Add(cls);
+    cls = Class::New<Instance>(kByteBufferCid);
+    cls.set_instance_size(0);
+    cls.set_next_field_offset(-kWordSize);
+    RegisterClass(cls, Symbols::ByteBuffer(), lib);
+    pending_classes.Add(cls);
 
-  CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
+    CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
-  // Register Float32x4 and Int32x4 in the object store.
-  cls = Class::New<Float32x4>();
-  RegisterClass(cls, Symbols::Float32x4(), lib);
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  pending_classes.Add(cls);
-  object_store->set_float32x4_class(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_float32x4_type(type);
+    // Register Float32x4 and Int32x4 in the object store.
+    cls = Class::New<Float32x4>();
+    RegisterClass(cls, Symbols::Float32x4(), lib);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    object_store->set_float32x4_class(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_float32x4_type(type);
 
-  cls = Class::New<Int32x4>();
-  RegisterClass(cls, Symbols::Int32x4(), lib);
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  pending_classes.Add(cls);
-  object_store->set_int32x4_class(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_int32x4_type(type);
+    cls = Class::New<Int32x4>();
+    RegisterClass(cls, Symbols::Int32x4(), lib);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    object_store->set_int32x4_class(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_int32x4_type(type);
 
-  cls = Class::New<Float64x2>();
-  RegisterClass(cls, Symbols::Float64x2(), lib);
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  pending_classes.Add(cls);
-  object_store->set_float64x2_class(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_float64x2_type(type);
+    cls = Class::New<Float64x2>();
+    RegisterClass(cls, Symbols::Float64x2(), lib);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    object_store->set_float64x2_class(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_float64x2_type(type);
 
-  // Set the super type of class Stacktrace to Object type so that the
-  // 'toString' method is implemented.
-  type = object_store->object_type();
-  stacktrace_cls.set_super_type(type);
+    // Set the super type of class Stacktrace to Object type so that the
+    // 'toString' method is implemented.
+    type = object_store->object_type();
+    stacktrace_cls.set_super_type(type);
 
-  // Abstract class that represents the Dart class Function.
-  cls = Class::New<Instance>(kIllegalCid);
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  RegisterClass(cls, Symbols::Function(), core_lib);
-  pending_classes.Add(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_function_type(type);
+    // Abstract class that represents the Dart class Function.
+    cls = Class::New<Instance>(kIllegalCid);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    RegisterClass(cls, Symbols::Function(), core_lib);
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_function_type(type);
 
-  cls = Class::New<Number>();
-  RegisterClass(cls, Symbols::Number(), core_lib);
-  pending_classes.Add(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_number_type(type);
+    cls = Class::New<Number>();
+    RegisterClass(cls, Symbols::Number(), core_lib);
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_number_type(type);
 
-  cls = Class::New<Instance>(kIllegalCid);
-  RegisterClass(cls, Symbols::Int(), core_lib);
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  pending_classes.Add(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_int_type(type);
+    cls = Class::New<Instance>(kIllegalCid);
+    RegisterClass(cls, Symbols::Int(), core_lib);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_int_type(type);
 
-  cls = Class::New<Instance>(kIllegalCid);
-  RegisterClass(cls, Symbols::Double(), core_lib);
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  pending_classes.Add(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_double_type(type);
+    cls = Class::New<Instance>(kIllegalCid);
+    RegisterClass(cls, Symbols::Double(), core_lib);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_double_type(type);
 
-  name = Symbols::_String().raw();
-  cls = Class::New<Instance>(kIllegalCid);
-  RegisterClass(cls, name, core_lib);
-  cls.set_num_type_arguments(0);
-  cls.set_num_own_type_arguments(0);
-  cls.set_is_prefinalized();
-  pending_classes.Add(cls);
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_string_type(type);
+    name = Symbols::_String().raw();
+    cls = Class::New<Instance>(kIllegalCid);
+    RegisterClass(cls, name, core_lib);
+    cls.set_num_type_arguments(0);
+    cls.set_num_own_type_arguments(0);
+    cls.set_is_prefinalized();
+    pending_classes.Add(cls);
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_string_type(type);
 
-  cls = object_store->bool_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_bool_type(type);
+    cls = object_store->bool_class();
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_bool_type(type);
 
-  cls = object_store->smi_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_smi_type(type);
+    cls = object_store->smi_class();
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_smi_type(type);
 
-  cls = object_store->mint_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_mint_type(type);
+    cls = object_store->mint_class();
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_mint_type(type);
 
-  // The classes 'void' and 'dynamic' are phoney classes to make type checking
-  // more regular; they live in the VM isolate. The class 'void' is not
-  // registered in the class dictionary because its name is a reserved word.
-  // The class 'dynamic' is registered in the class dictionary because its name
-  // is a built-in identifier (this is wrong).
-  // The corresponding types are stored in the object store.
-  cls = object_store->null_class();
-  type = Type::NewNonParameterizedType(cls);
-  object_store->set_null_type(type);
+    // The classes 'void' and 'dynamic' are phony classes to make type checking
+    // more regular; they live in the VM isolate. The class 'void' is not
+    // registered in the class dictionary because its name is a reserved word.
+    // The class 'dynamic' is registered in the class dictionary because its
+    // name is a built-in identifier (this is wrong).  The corresponding types
+    // are stored in the object store.
+    cls = object_store->null_class();
+    type = Type::NewNonParameterizedType(cls);
+    object_store->set_null_type(type);
 
-  // Consider removing when/if Null becomes an ordinary class.
-  type = object_store->object_type();
-  cls.set_super_type(type);
+    // Consider removing when/if Null becomes an ordinary class.
+    type = object_store->object_type();
+    cls.set_super_type(type);
 
-  // Finish the initialization by compiling the bootstrap scripts containing the
-  // base interfaces and the implementation of the internal classes.
-  const Error& error = Error::Handle(Bootstrap::DoBootstrapping());
-  if (!error.IsNull()) {
-    return error.raw();
-  }
+    // Finish the initialization by compiling the bootstrap scripts containing
+    // the base interfaces and the implementation of the internal classes.
+    const Error& error = Error::Handle(
+        zone, Bootstrap::DoBootstrapping(kernel_buffer, kernel_buffer_length));
+    if (!error.IsNull()) {
+      return error.raw();
+    }
 
-  ClassFinalizer::VerifyBootstrapClasses();
+    ClassFinalizer::VerifyBootstrapClasses();
 
-  // Set up the intrinsic state of all functions (core, math and typed data).
-  Intrinsifier::InitializeState();
+    // Set up the intrinsic state of all functions (core, math and typed data).
+    Intrinsifier::InitializeState();
 
-  // Set up recognized state of all functions (core, math and typed data).
-  MethodRecognizer::InitializeState();
+    // Set up recognized state of all functions (core, math and typed data).
+    MethodRecognizer::InitializeState();
 
-  // Adds static const fields (class ids) to the class 'ClassID');
-  lib = Library::LookupLibrary(thread, Symbols::DartInternal());
-  ASSERT(!lib.IsNull());
-  cls = lib.LookupClassAllowPrivate(Symbols::ClassID());
-  ASSERT(!cls.IsNull());
-  Field& field = Field::Handle(zone);
-  Smi& value = Smi::Handle(zone);
-  String& field_name = String::Handle(zone);
+    isolate->object_store()->InitKnownObjects();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  } else {
+    // Object::Init version when we are running in a version of dart that has a
+    // full snapshot linked in and an isolate is initialized using the full
+    // snapshot.
+    ObjectStore* object_store = isolate->object_store();
 
-#define CLASS_LIST_WITH_NULL(V)                                                \
-  V(Null)                                                                      \
-  CLASS_LIST_NO_OBJECT(V)
+    Class& cls = Class::Handle(zone);
 
-#define ADD_SET_FIELD(clazz)                                                   \
-  field_name = Symbols::New(thread, "cid" #clazz);                             \
-  field =                                                                      \
-      Field::New(field_name, true, false, true, false, cls,                    \
-                 Type::Handle(Type::IntType()), TokenPosition::kMinSource);    \
-  value = Smi::New(k##clazz##Cid);                                             \
-  field.SetStaticValue(value, true);                                           \
-  cls.AddField(field);
+    // Set up empty classes in the object store, these will get initialized
+    // correctly when we read from the snapshot.  This is done to allow
+    // bootstrapping of reading classes from the snapshot.  Some classes are not
+    // stored in the object store. Yet we still need to create their Class
+    // object so that they get put into the class_table (as a side effect of
+    // Class::New()).
+    cls = Class::New<Instance>(kInstanceCid);
+    object_store->set_object_class(cls);
 
-  CLASS_LIST_WITH_NULL(ADD_SET_FIELD)
-#undef ADD_SET_FIELD
+    cls = Class::New<LibraryPrefix>();
+    cls = Class::New<Type>();
+    cls = Class::New<TypeRef>();
+    cls = Class::New<TypeParameter>();
+    cls = Class::New<BoundedType>();
+    cls = Class::New<MixinAppType>();
 
-  isolate->object_store()->InitKnownObjects();
+    cls = Class::New<Array>();
+    object_store->set_array_class(cls);
 
-  return Error::null();
-#else  // defined(DART_NO_SNAPSHOT).
-  // Object::Init version when we are running in a version of dart that has
-  // a full snapshot linked in and an isolate is initialized using the full
-  // snapshot.
-  ObjectStore* object_store = isolate->object_store();
+    cls = Class::New<Array>(kImmutableArrayCid);
+    object_store->set_immutable_array_class(cls);
 
-  Class& cls = Class::Handle();
+    cls = Class::New<GrowableObjectArray>();
+    object_store->set_growable_object_array_class(cls);
 
-  // Set up empty classes in the object store, these will get
-  // initialized correctly when we read from the snapshot.
-  // This is done to allow bootstrapping of reading classes from the snapshot.
-  // Some classes are not stored in the object store. Yet we still need to
-  // create their Class object so that they get put into the class_table
-  // (as a side effect of Class::New()).
+    cls = Class::New<LinkedHashMap>();
+    object_store->set_linked_hash_map_class(cls);
 
-  cls = Class::New<Instance>(kInstanceCid);
-  object_store->set_object_class(cls);
+    cls = Class::New<Float32x4>();
+    object_store->set_float32x4_class(cls);
 
-  cls = Class::New<LibraryPrefix>();
-  cls = Class::New<Type>();
-  cls = Class::New<TypeRef>();
-  cls = Class::New<TypeParameter>();
-  cls = Class::New<BoundedType>();
-  cls = Class::New<MixinAppType>();
+    cls = Class::New<Int32x4>();
+    object_store->set_int32x4_class(cls);
 
-  cls = Class::New<Array>();
-  object_store->set_array_class(cls);
-
-  cls = Class::New<Array>(kImmutableArrayCid);
-  object_store->set_immutable_array_class(cls);
-
-  cls = Class::New<GrowableObjectArray>();
-  object_store->set_growable_object_array_class(cls);
-
-  cls = Class::New<LinkedHashMap>();
-  object_store->set_linked_hash_map_class(cls);
-
-  cls = Class::New<Float32x4>();
-  object_store->set_float32x4_class(cls);
-
-  cls = Class::New<Int32x4>();
-  object_store->set_int32x4_class(cls);
-
-  cls = Class::New<Float64x2>();
-  object_store->set_float64x2_class(cls);
+    cls = Class::New<Float64x2>();
+    object_store->set_float64x2_class(cls);
 
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
   cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);
-  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
+    CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);
-  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
+    CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_VIEW_CLASS);
 #undef REGISTER_TYPED_DATA_VIEW_CLASS
-  cls = Class::NewTypedDataViewClass(kByteDataViewCid);
+    cls = Class::NewTypedDataViewClass(kByteDataViewCid);
 #define REGISTER_EXT_TYPED_DATA_CLASS(clazz)                                   \
   cls = Class::NewExternalTypedDataClass(kExternalTypedData##clazz##Cid);
-  CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
+    CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
 
-  cls = Class::New<Instance>(kByteBufferCid);
+    cls = Class::New<Instance>(kByteBufferCid);
 
-  cls = Class::New<Integer>();
-  object_store->set_integer_implementation_class(cls);
+    cls = Class::New<Integer>();
+    object_store->set_integer_implementation_class(cls);
 
-  cls = Class::New<Smi>();
-  object_store->set_smi_class(cls);
+    cls = Class::New<Smi>();
+    object_store->set_smi_class(cls);
 
-  cls = Class::New<Mint>();
-  object_store->set_mint_class(cls);
+    cls = Class::New<Mint>();
+    object_store->set_mint_class(cls);
 
-  cls = Class::New<Double>();
-  object_store->set_double_class(cls);
+    cls = Class::New<Double>();
+    object_store->set_double_class(cls);
 
-  cls = Class::New<Closure>();
-  object_store->set_closure_class(cls);
+    cls = Class::New<Closure>();
+    object_store->set_closure_class(cls);
 
-  cls = Class::New<Bigint>();
-  object_store->set_bigint_class(cls);
+    cls = Class::New<Bigint>();
+    object_store->set_bigint_class(cls);
 
-  cls = Class::NewStringClass(kOneByteStringCid);
-  object_store->set_one_byte_string_class(cls);
+    cls = Class::NewStringClass(kOneByteStringCid);
+    object_store->set_one_byte_string_class(cls);
 
-  cls = Class::NewStringClass(kTwoByteStringCid);
-  object_store->set_two_byte_string_class(cls);
+    cls = Class::NewStringClass(kTwoByteStringCid);
+    object_store->set_two_byte_string_class(cls);
 
-  cls = Class::NewStringClass(kExternalOneByteStringCid);
-  object_store->set_external_one_byte_string_class(cls);
+    cls = Class::NewStringClass(kExternalOneByteStringCid);
+    object_store->set_external_one_byte_string_class(cls);
 
-  cls = Class::NewStringClass(kExternalTwoByteStringCid);
-  object_store->set_external_two_byte_string_class(cls);
+    cls = Class::NewStringClass(kExternalTwoByteStringCid);
+    object_store->set_external_two_byte_string_class(cls);
 
-  cls = Class::New<Bool>();
-  object_store->set_bool_class(cls);
+    cls = Class::New<Bool>();
+    object_store->set_bool_class(cls);
 
-  cls = Class::New<Instance>(kNullCid);
-  object_store->set_null_class(cls);
+    cls = Class::New<Instance>(kNullCid);
+    object_store->set_null_class(cls);
 
-  cls = Class::New<Capability>();
-  cls = Class::New<ReceivePort>();
-  cls = Class::New<SendPort>();
-  cls = Class::New<Stacktrace>();
-  cls = Class::New<RegExp>();
-  cls = Class::New<Number>();
+    cls = Class::New<Capability>();
+    cls = Class::New<ReceivePort>();
+    cls = Class::New<SendPort>();
+    cls = Class::New<Stacktrace>();
+    cls = Class::New<RegExp>();
+    cls = Class::New<Number>();
 
-  cls = Class::New<WeakProperty>();
-  object_store->set_weak_property_class(cls);
+    cls = Class::New<WeakProperty>();
+    object_store->set_weak_property_class(cls);
 
-  cls = Class::New<MirrorReference>();
-  cls = Class::New<UserTag>();
+    cls = Class::New<MirrorReference>();
+    cls = Class::New<UserTag>();
 
-  const Context& context = Context::Handle(zone, Context::New(0, Heap::kOld));
-  object_store->set_empty_context(context);
-
-#endif  // defined(DART_NO_SNAPSHOT).
-
+    const Context& context = Context::Handle(zone, Context::New(0, Heap::kOld));
+    object_store->set_empty_context(context);
+  }
   return Error::null();
 }
 
@@ -1923,7 +1921,6 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
 
 
 RawString* Class::Name() const {
-  ASSERT(raw_ptr()->name_ != String::null());
   return raw_ptr()->name_;
 }
 
@@ -4406,11 +4403,11 @@ void Class::RehashConstants(Zone* zone) const {
 }
 
 
-RawUnresolvedClass* UnresolvedClass::New(const LibraryPrefix& library_prefix,
+RawUnresolvedClass* UnresolvedClass::New(const Object& library_prefix,
                                          const String& ident,
                                          TokenPosition token_pos) {
   const UnresolvedClass& type = UnresolvedClass::Handle(UnresolvedClass::New());
-  type.set_library_prefix(library_prefix);
+  type.set_library_or_library_prefix(library_prefix);
   type.set_ident(ident);
   type.set_token_pos(token_pos);
   return type.raw();
@@ -4436,19 +4433,24 @@ void UnresolvedClass::set_ident(const String& ident) const {
 }
 
 
-void UnresolvedClass::set_library_prefix(
-    const LibraryPrefix& library_prefix) const {
-  StorePointer(&raw_ptr()->library_prefix_, library_prefix.raw());
+void UnresolvedClass::set_library_or_library_prefix(
+    const Object& library_prefix) const {
+  StorePointer(&raw_ptr()->library_or_library_prefix_, library_prefix.raw());
 }
 
 
 RawString* UnresolvedClass::Name() const {
-  if (library_prefix() != LibraryPrefix::null()) {
+  if (library_or_library_prefix() != Object::null()) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
-    const LibraryPrefix& lib_prefix =
-        LibraryPrefix::Handle(zone, library_prefix());
-    const String& name = String::Handle(zone, lib_prefix.name());  // Qualifier.
+    const Object& lib_prefix =
+        Object::Handle(zone, library_or_library_prefix());
+    String& name = String::Handle(zone);  // Qualifier.
+    if (lib_prefix.IsLibraryPrefix()) {
+      name = LibraryPrefix::Cast(lib_prefix).name();
+    } else {
+      name = Library::Cast(lib_prefix).name();
+    }
     GrowableHandlePtrArray<const String> strs(zone, 3);
     strs.Add(name);
     strs.Add(Symbols::Dot());
@@ -7112,7 +7114,7 @@ void Function::SetDeoptReasonForAll(intptr_t deopt_id,
 
 
 bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
-  if (SourceFingerprint() != fp) {
+  if ((kernel_function() == NULL) && (SourceFingerprint() != fp)) {
     const bool recalculatingFingerprints = false;
     if (recalculatingFingerprints) {
       // This output can be copied into a file, then used with sed
@@ -10423,7 +10425,7 @@ RawObject* Library::Evaluate(const String& expr,
 }
 
 
-void Library::InitNativeWrappersLibrary(Isolate* isolate) {
+void Library::InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel) {
   static const int kNumNativeWrappersClasses = 4;
   COMPILE_ASSERT((kNumNativeWrappersClasses > 0) &&
                  (kNumNativeWrappersClasses < 10));
@@ -10449,7 +10451,12 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
     cls_name = Symbols::New(thread, name_buffer);
     Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
-  native_flds_lib.SetLoaded();
+  // NOTE: If we bootstrap from a Kernel IR file we want to generate the
+  // synthetic constructors for the native wrapper classes.  We leave this up to
+  // the [KernelReader] who will take care of it later.
+  if (!is_kernel) {
+    native_flds_lib.SetLoaded();
+  }
 }
 
 
@@ -17487,9 +17494,12 @@ RawTypeRef* TypeRef::New(const AbstractType& type) {
 
 
 const char* TypeRef::ToCString() const {
+  AbstractType& ref_type = AbstractType::Handle(type());
+  if (ref_type.IsNull()) {
+    return "TypeRef: null";
+  }
   const char* type_cstr =
       String::Handle(Class::Handle(type_class()).Name()).ToCString();
-  AbstractType& ref_type = AbstractType::Handle(type());
   if (ref_type.IsFinalized()) {
     const intptr_t hash = ref_type.Hash();
     return OS::SCreate(Thread::Current()->zone(),
