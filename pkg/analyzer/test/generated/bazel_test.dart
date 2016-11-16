@@ -570,10 +570,14 @@ class BazelWorkspaceTest extends _BaseTest {
   }
 
   void test_find_null_symlinkPrefix() {
+    String prefix = BazelWorkspace.defaultSymlinkPrefix;
     provider.newFile(_p('/workspace/WORKSPACE'), '');
     BazelWorkspace workspace =
         BazelWorkspace.find(provider, _p('/workspace/my/module'));
-    expect(workspace, isNull);
+    expect(workspace.root, _p('/workspace'));
+    expect(workspace.readonly, isNull);
+    expect(workspace.bin, _p('/workspace/$prefix-bin'));
+    expect(workspace.genfiles, _p('/workspace/$prefix-genfiles'));
   }
 
   void test_findFile_hasReadonlyFolder() {
