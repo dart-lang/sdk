@@ -471,12 +471,20 @@ class TypeCheckingVisitor
     }
     for (int i = 0; i < arguments.named.length; ++i) {
       var argument = arguments.named[i];
-      var expectedType = function.namedParameters[argument.name];
-      if (expectedType == null) {
+      bool found = false;
+      for (int j = 0; j < function.namedParameters.length; ++j) {
+        if (argument.name == function.namedParameters[j].name) {
+          var expectedType = instantiation.substituteType(
+              function.namedParameters[j].type,
+              contravariant: true);
+          checkAssignableExpression(argument.value, expectedType);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
         fail(argument.value, 'Unexpected named parameter: ${argument.name}');
-      } else {
-        checkAssignableExpression(argument.value,
-            instantiation.substituteType(expectedType, contravariant: true));
+        return const BottomType();
       }
     }
     return instantiation.substituteType(function.returnType);

@@ -641,12 +641,3 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
     return node.bound.accept(this);
   }
 }
-
-Map<dynamic/*=K*/, dynamic/*=W*/ > _mapValues/*<K,V,W>*/(
-    Map<dynamic/*=K*/, dynamic/*=V*/ > map, dynamic/*=W*/ fn(dynamic/*=V*/)) {
-  Map<dynamic/*=K*/, dynamic/*=W*/ > result = {};
-  map.forEach((key, value) {
-    result[key] = fn(value);
-  });
-  return result;
-}
