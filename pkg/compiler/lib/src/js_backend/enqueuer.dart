@@ -8,7 +8,6 @@ import 'dart:collection' show Queue;
 
 import '../common/backend_api.dart' show Backend;
 import '../common/codegen.dart' show CodegenWorkItem;
-import '../common/registry.dart' show Registry;
 import '../common/names.dart' show Identifiers;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show WorkItem;

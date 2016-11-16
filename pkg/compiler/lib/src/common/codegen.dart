@@ -21,7 +21,6 @@ import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilderImpl, WorldImpactVisitor;
 import '../util/util.dart' show Pair, Setlet;
-import 'registry.dart' show Registry;
 import 'work.dart' show WorkItem;
 
 class CodegenImpact extends WorldImpact {
@@ -146,7 +145,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
 
 // TODO(johnniwinther): Split this class into interface and implementation.
 // TODO(johnniwinther): Move this implementation to the JS backend.
-class CodegenRegistry extends Registry {
+class CodegenRegistry {
   final Compiler compiler;
   final Element currentElement;
   final _CodegenImpact worldImpact;

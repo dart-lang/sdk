@@ -13,7 +13,6 @@ import 'common/backend_api.dart' show Backend;
 import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
-import 'common/registry.dart' show Registry;
 import 'common/resolution.dart'
     show
         ParsingContext,
@@ -2213,7 +2212,7 @@ class _CompilerResolution implements Resolution {
   }
 }
 
-class GlobalDependencyRegistry extends Registry {
+class GlobalDependencyRegistry {
   Setlet<Element> _otherDependencies;
 
   GlobalDependencyRegistry();

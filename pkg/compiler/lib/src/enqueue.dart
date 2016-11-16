@@ -10,7 +10,6 @@ import 'cache_strategy.dart';
 import 'common/backend_api.dart' show Backend;
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show Resolution, ResolutionWorkItem;
-import 'common/registry.dart' show Registry;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';

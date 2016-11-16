@@ -19,7 +19,6 @@ import '../common/backend_api.dart'
         NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Selectors, Uris;
-import '../common/registry.dart' show Registry;
 import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -1927,9 +1926,6 @@ class JavaScriptBackend extends Backend {
       symbolsUsed.add(name.substring(0, name.length - 1));
     }
   }
-
-  /// Called when [:new Symbol(...):] is seen.
-  void registerNewSymbol(Registry registry) {}
 
   /// Should [element] (a getter) that would normally not be generated due to
   /// treeshaking be retained for reflection?

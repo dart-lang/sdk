@@ -6,7 +6,6 @@ import 'dart:collection' show Queue;
 
 import '../common.dart';
 import '../common/backend_api.dart' show ForeignResolver;
-import '../common/registry.dart' show Registry;
 import '../common/resolution.dart' show Resolution;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
@@ -14,7 +13,6 @@ import '../core_types.dart' show CoreTypes;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show FunctionElementX;
-import '../enqueue.dart' show Enqueuer;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
