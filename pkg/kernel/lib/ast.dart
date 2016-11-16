@@ -944,7 +944,13 @@ class Procedure extends Member {
   _MemberAccessor get _setterInterface => _reference;
 }
 
-enum ProcedureKind { Method, Getter, Setter, Operator, Factory, }
+enum ProcedureKind {
+  Method,
+  Getter,
+  Setter,
+  Operator,
+  Factory,
+}
 
 // ------------------------------------------------------------------------
 //                     CONSTRUCTOR INITIALIZERS
@@ -1100,7 +1106,7 @@ class FunctionNode extends TreeNode {
   List<TypeParameter> typeParameters;
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
-  List<VariableDeclaration> namedParameters;
+  List<VariableDeclaration> namedParameters; // Must be sorted.
   InferredValue inferredReturnValue; // May be null.
   DartType returnType; // Not null.
   Statement body;
@@ -1128,6 +1134,10 @@ class FunctionNode extends TreeNode {
 
   static DartType _getTypeOfVariable(VariableDeclaration node) => node.type;
 
+  static NamedType _getNamedTypeOfVariable(VariableDeclaration node) {
+    return new NamedType(node.name, node.type);
+  }
+
   FunctionType get functionType {
     Map<String, DartType> named = const <String, DartType>{};
     if (namedParameters.isNotEmpty) {
@@ -1139,7 +1149,7 @@ class FunctionNode extends TreeNode {
     TreeNode parent = this.parent;
     return new FunctionType(
         positionalParameters.map(_getTypeOfVariable).toList(), returnType,
-        namedParameters: named,
+        namedParameters: namedParameters.map(_getNamedTypeOfVariable).toList(),
         typeParameters: parent is Constructor
             ? parent.enclosingClass.typeParameters
             : typeParameters,
@@ -1981,8 +1991,8 @@ class ConditionalExpression extends Expression {
   /// The static type of the expression. Should not be `null`.
   DartType staticType;
 
-  ConditionalExpression(this.condition, this.then, this.otherwise,
-      this.staticType) {
+  ConditionalExpression(
+      this.condition, this.then, this.otherwise, this.staticType) {
     condition?.parent = this;
     then?.parent = this;
     otherwise?.parent = this;
@@ -2963,7 +2973,8 @@ class YieldStatement extends Statement {
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-class VariableDeclaration extends Statement {
+class VariableDeclaration extends Statement
+    implements Comparable<VariableDeclaration> {
   /// For named parameters, this is the name of the parameter. No two named
   /// parameters (in the same parameter list) can have the same name.
   ///
@@ -3036,6 +3047,10 @@ class VariableDeclaration extends Statement {
   /// Returns a possibly synthesized name for this variable, consistent with
   /// the names used across all [toString] calls.
   String toString() => debugVariableDeclarationName(this);
+
+  int compareTo(VariableDeclaration other) {
+    return name.compareTo(other.name);
+  }
 }
 
 /// Declaration a local function.
@@ -3262,12 +3277,12 @@ class FunctionType extends DartType {
   final List<TypeParameter> typeParameters;
   final int requiredParameterCount;
   final List<DartType> positionalParameters;
-  final Map<String, DartType> namedParameters;
+  final List<NamedType> namedParameters; // Must be sorted.
   final DartType returnType;
   int _hashCode;
 
   FunctionType(List<DartType> positionalParameters, this.returnType,
-      {this.namedParameters: const <String, DartType>{},
+      {this.namedParameters: const <NamedType>[],
       this.typeParameters: const <TypeParameter>[],
       int requiredParameterCount})
       : this.positionalParameters = positionalParameters,
@@ -3279,7 +3294,7 @@ class FunctionType extends DartType {
   visitChildren(Visitor v) {
     visitList(typeParameters, v);
     visitList(positionalParameters, v);
-    visitIterable(namedParameters.values, v);
+    visitList(namedParameters, v);
     returnType.accept(v);
   }
 
@@ -3298,10 +3313,8 @@ class FunctionType extends DartType {
             return false;
           }
         }
-        for (var name in namedParameters.keys) {
-          // If the other function type declared differently named parameters,
-          // one side of this equality will be null and we're good.
-          if (namedParameters[name] != other.namedParameters[name]) {
+        for (int i = 0; i < namedParameters.length; ++i) {
+          if (namedParameters[i] != other.namedParameters[i]) {
             return false;
           }
         }
@@ -3342,19 +3355,39 @@ class FunctionType extends DartType {
     for (int i = 0; i < positionalParameters.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + positionalParameters[i].hashCode);
     }
-    // TODO: Using a sorted list of names would be better than a map here.
-    namedParameters.forEach((String name, DartType type) {
-      // Note that we use only addition and truncation here, so that we do not
-      // rely on the iteration of the of the map.
-      hash = 0x3fffffff & (hash + name.hashCode);
-      hash = 0x3fffffff & (hash + type.hashCode);
-    });
+    for (int i = 0; i < namedParameters.length; ++i) {
+      hash = 0x3fffffff & (hash * 31 + namedParameters[i].hashCode);
+    }
     hash = 0x3fffffff & (hash * 31 + returnType.hashCode);
     for (int i = 0; i < typeParameters.length; ++i) {
       // Remove the type parameters from the scope again.
       _temporaryHashCodeTable.remove(typeParameters[i]);
     }
     return hash;
+  }
+}
+
+/// A named parameter in [FunctionType].
+class NamedType extends Node implements Comparable<NamedType> {
+  final String name;
+  final DartType type;
+
+  NamedType(this.name, this.type);
+
+  bool operator ==(Object other) {
+    return other is NamedType && name == other.name && type == other.type;
+  }
+
+  int get hashCode {
+    return name.hashCode * 31 + type.hashCode * 37;
+  }
+
+  int compareTo(NamedType other) => name.compareTo(other.name);
+
+  accept(Visitor v) => v.visitNamedType(this);
+
+  void visitChildren(Visitor v) {
+    type.accept(v);
   }
 }
 

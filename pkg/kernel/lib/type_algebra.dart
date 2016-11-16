@@ -325,6 +325,13 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     return new Supertype(node.classNode, typeArguments);
   }
 
+  NamedType visitNamedType(NamedType node) {
+    int before = useCounter;
+    var type = visit(node.type);
+    if (useCounter == before) return node;
+    return new NamedType(node.name, type);
+  }
+
   DartType visit(DartType node) => node.accept(this);
 
   DartType visitInvalidType(InvalidType node) => node;
@@ -368,8 +375,8 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
         ? const <DartType>[]
         : node.positionalParameters.map(inner.visit).toList();
     var namedParameters = node.namedParameters.isEmpty
-        ? const <String, DartType>{}
-        : _mapValues(node.namedParameters, inner.visit);
+        ? const <NamedType>[]
+        : node.namedParameters.map(inner.visitNamedType).toList();
     inner.invertVariance();
     var returnType = inner.visit(node.returnType);
     if (this.useCounter == before) return node;
@@ -552,11 +559,12 @@ class _TypeUnification {
         var right = substitute(type2.positionalParameters[i], rightInstance);
         if (!_unify(left, right)) return false;
       }
-      for (var name in type1.namedParameters.keys) {
-        var right = type2.namedParameters[name];
-        if (right == null) return _fail();
-        right = substitute(right, rightInstance);
-        var left = substitute(type1.namedParameters[name], leftInstance);
+      for (int i = 0; i < type1.namedParameters.length; ++i) {
+        if (type1.namedParameters[i].name != type2.namedParameters[i].name) {
+          return false;
+        }
+        var left = substitute(type1.namedParameters[i].type, leftInstance);
+        var right = substitute(type2.namedParameters[i].type, rightInstance);
         if (!_unify(left, right)) return false;
       }
       var leftReturn = substitute(type1.returnType, leftInstance);
@@ -605,6 +613,10 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
 
   bool visit(DartType node) => node.accept(this);
 
+  bool visitNamedType(NamedType node) {
+    return visit(node.type);
+  }
+
   bool visitInvalidType(InvalidType node) => false;
   bool visitDynamicType(DynamicType node) => false;
   bool visitVoidType(VoidType node) => false;
@@ -616,7 +628,7 @@ class _OccurrenceVisitor extends DartTypeVisitor<bool> {
   bool visitFunctionType(FunctionType node) {
     return node.typeParameters.any(handleTypeParameter) ||
         node.positionalParameters.any(visit) ||
-        node.namedParameters.values.any(visit) ||
+        node.namedParameters.any(visitNamedType) ||
         visit(node.returnType);
   }
 

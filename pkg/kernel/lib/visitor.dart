@@ -266,6 +266,7 @@ class Visitor<R> extends TreeVisitor<R>
 
   R visitName(Name node) => defaultNode(node);
   R visitSupertype(Supertype node) => defaultNode(node);
+  R visitNamedType(NamedType node) => defaultNode(node);
 }
 
 class RecursiveVisitor<R> extends Visitor<R> {

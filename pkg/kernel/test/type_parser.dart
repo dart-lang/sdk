@@ -151,7 +151,7 @@ class DartTypeParser {
 
       case Token.LeftParen:
         List<DartType> parameters = <DartType>[];
-        Map<String, DartType> namedParameters = <String, DartType>{};
+        List<NamedType> namedParameters = <NamedType>[];
         parseParameterList(parameters, namedParameters);
         consumeString('=>');
         var returnType = parseType();
@@ -161,7 +161,7 @@ class DartTypeParser {
       case Token.LeftAngle:
         var typeParameters = parseAndPushTypeParameterList();
         List<DartType> parameters = <DartType>[];
-        Map<String, DartType> namedParameters = <String, DartType>{};
+        List<NamedType> namedParameters = <NamedType>[];
         parseParameterList(parameters, namedParameters);
         consumeString('=>');
         var returnType = parseType();
@@ -175,7 +175,7 @@ class DartTypeParser {
   }
 
   void parseParameterList(
-      List<DartType> positional, Map<String, DartType> named) {
+      List<DartType> positional, List<NamedType> named) {
     int token = scanToken();
     assert(token == Token.LeftParen);
     token = peekToken();
@@ -184,7 +184,7 @@ class DartTypeParser {
       token = scanToken();
       if (token == Token.Colon) {
         String name = convertTypeToParameterName(type);
-        named[name] = parseType();
+        named.add(new NamedType(name, parseType()));
         token = scanToken();
       } else {
         positional.add(type);
@@ -193,6 +193,7 @@ class DartTypeParser {
         return fail('Unterminated parameter list');
       }
     }
+    named.sort();
   }
 
   String convertTypeToParameterName(DartType type) {

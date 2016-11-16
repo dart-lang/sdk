@@ -757,7 +757,9 @@ class _ExternalTypeVisitor extends DartTypeVisitor {
     for (int i = 0; i < node.positionalParameters.length; ++i) {
       visitContravariant(node.positionalParameters[i]);
     }
-    node.namedParameters.values.forEach(visitContravariant);
+    for (int i = 0; i < node.namedParameters.length; ++i) {
+      visitContravariant(node.namedParameters[i].type);
+    }
   }
 
   visitTypeParameterType(TypeParameterType node) {}

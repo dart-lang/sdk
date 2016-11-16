@@ -206,12 +206,17 @@ abstract class SubtypeTester {
         return false;
       }
     }
-    for (String name in supertype.namedParameters.keys) {
-      var supertypeParameter = supertype.namedParameters[name];
-      var subtypeParameter = subtype.namedParameters[name];
-      if (subtypeParameter == null) return false;
+    int subtypeNameIndex = 0;
+    for (NamedType supertypeParameter in supertype.namedParameters) {
+      while (subtypeNameIndex < subtype.namedParameters.length &&
+          subtype.namedParameters[subtypeNameIndex].name !=
+              supertypeParameter.name) {
+        ++subtypeNameIndex;
+      }
+      if (subtypeNameIndex == subtype.namedParameters.length) return false;
+      NamedType subtypeParameter = subtype.namedParameters[subtypeNameIndex];
       // Termination: Both types shrink in size.
-      if (!isSubtypeOf(supertypeParameter, subtypeParameter)) {
+      if (!isSubtypeOf(supertypeParameter.type, subtypeParameter.type)) {
         return false;
       }
     }

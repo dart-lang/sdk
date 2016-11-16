@@ -1836,11 +1836,12 @@ class CovariantExternalTypeVisitor extends DartTypeVisitor<int> {
       int argument = environment.getLoad(function, field);
       visitContravariant(node.positionalParameters[i], argument);
     }
-    node.namedParameters.forEach((String name, DartType type) {
-      int field = fieldNames.getNamedParameterField(arity, name);
+    for (int i = 0; i < node.namedParameters.length; ++i) {
+      var parameter = node.namedParameters[i];
+      int field = fieldNames.getNamedParameterField(arity, parameter.name);
       int argument = environment.getLoad(function, field);
-      visitContravariant(type, argument);
-    });
+      visitContravariant(parameter.type, argument);
+    }
     int returnVariable = visit(node.returnType);
     environment.addStore(
         function, fieldNames.getReturnField(arity), returnVariable);
@@ -1934,13 +1935,13 @@ class ContravariantExternalTypeVisitor extends DartTypeVisitor<Null> {
         environment.addStore(input, field, argument);
       }
     }
-    node.namedParameters.forEach((String name, DartType type) {
-      int argument = visitCovariant(type);
+    for (var parameter in node.namedParameters) {
+      int argument = visitCovariant(parameter.type);
       for (int arity = minArity; arity <= maxArity; ++arity) {
-        int field = fieldNames.getNamedParameterField(arity, name);
+        int field = fieldNames.getNamedParameterField(arity, parameter.name);
         environment.addStore(input, field, argument);
       }
-    });
+    }
     for (int arity = minArity; arity <= maxArity; ++arity) {
       int returnLocation =
           environment.getLoad(input, fieldNames.getReturnField(arity));

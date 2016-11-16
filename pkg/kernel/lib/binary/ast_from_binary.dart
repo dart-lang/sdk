@@ -816,6 +816,14 @@ class BinaryBuilder {
     return new List<DartType>.generate(readUInt(), (i) => readDartType());
   }
 
+  List<NamedType> readNamedTypeList() {
+    return new List<NamedType>.generate(readUInt(), (i) => readNamedType());
+  }
+
+  NamedType readNamedType() {
+    return new NamedType(readStringReference(), readDartType());
+  }
+
   DartType readDartTypeOption() {
     return readAndCheckOptionTag() ? readDartType() : null;
   }
@@ -840,13 +848,7 @@ class BinaryBuilder {
         var typeParameters = readAndPushTypeParameterList();
         var requiredParameterCount = readUInt();
         var positional = readDartTypeList();
-        int namedParameterCount = readUInt();
-        var named = <String, DartType>{};
-        for (int i = 0; i < namedParameterCount; ++i) {
-          var name = readStringReference();
-          var type = readDartType();
-          named[name] = type;
-        }
+        var named = readNamedTypeList();
         var returnType = readDartType();
         typeParameterStack.length = typeParameterStackHeight;
         return new FunctionType(positional, returnType,

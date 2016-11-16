@@ -456,6 +456,9 @@ class TypeScope extends ReferenceScope {
           break;
       }
     }
+    if (named.isNotEmpty) {
+      sortAndRemoveDuplicates(named);
+    }
     var returnType = element is ConstructorElement
         ? const ast.VoidType()
         : buildType(element.returnType);
@@ -556,6 +559,9 @@ class ExpressionScope extends TypeScope {
           named.add(declaration);
           break;
       }
+    }
+    if (named.isNotEmpty) {
+      sortAndRemoveDuplicates(named);
     }
     return new ast.FunctionNode(buildOptionalFunctionBody(body),
         typeParameters: typeParameters,
@@ -1950,7 +1956,10 @@ class ExpressionBuilder
       return scope.staticAccess(node.propertyName.name, element, auxiliary);
     } else if (node.operator.value() == '?.') {
       return new NullAwarePropertyAccessor(
-          build(target), scope.buildName(node.propertyName), getter, setter,
+          build(target),
+          scope.buildName(node.propertyName),
+          getter,
+          setter,
           scope.buildType(node.staticType));
     } else {
       return PropertyAccessor.make(
@@ -2150,13 +2159,14 @@ class TypeAnnotationBuilder extends GeneralizingAstVisitor<ast.DartType> {
     return types.map((t) => convertType(t, boundVariables)).toList();
   }
 
-  Map<String, ast.DartType> convertTypeMap(
+  List<ast.NamedType> convertTypeMap(
       Map<String, DartType> types, List<TypeParameterElement> boundVariables) {
-    if (types.isEmpty) return const <String, ast.DartType>{};
-    var result = <String, ast.DartType>{};
+    if (types.isEmpty) return const <ast.NamedType>[];
+    List<ast.NamedType> result = <ast.NamedType>[];
     types.forEach((name, type) {
-      result[name] = convertType(type, boundVariables);
+      result.add(new ast.NamedType(name, convertType(type, boundVariables)));
     });
+    sortAndRemoveDuplicates(result);
     return result;
   }
 
@@ -2782,4 +2792,20 @@ Element desynthesizeSetter(Element element) {
   if (element is PropertyAccessorElement) return element.variable;
   if (element is FieldElement) return element.setter;
   return element;
+}
+
+void sortAndRemoveDuplicates/*<T extends Comparable<T>>*/(List/*<T>*/ list) {
+  list.sort();
+  int deleted = 0;
+  for (int i = 1; i < list.length; ++i) {
+    var item = list[i];
+    if (list[i - 1].compareTo(item) == 0) {
+      ++deleted;
+    } else if (deleted > 0) {
+      list[i - deleted] = item;
+    }
+  }
+  if (deleted > 0) {
+    list.length -= deleted;
+  }
 }

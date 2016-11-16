@@ -1391,15 +1391,19 @@ class Printer extends Visitor<Null> {
         writeComma();
       }
       writeSymbol('{');
-      writeList(node.namedParameters.keys, (name) {
-        writeType(node.namedParameters[name]);
-        writeWord(name);
-      });
+      writeList(node.namedParameters, visitNamedType);
       writeSymbol('}');
     }
     writeSymbol(')');
     writeSpaced('→');
     writeType(node.returnType);
+  }
+
+  visitNamedType(NamedType node) {
+    writeWord(node.name);
+    writeSymbol(':');
+    writeSpace();
+    writeType(node.type);
   }
 
   visitTypeParameterType(TypeParameterType node) {

@@ -915,13 +915,15 @@ class BinaryPrinter extends Visitor {
       writeNodeList(node.typeParameters);
       writeUInt30(node.requiredParameterCount);
       writeNodeList(node.positionalParameters);
-      writeList(node.namedParameters.keys.toList(), (String name) {
-        writeStringReference(name);
-        writeNode(node.namedParameters[name]);
-      });
+      writeNodeList(node.namedParameters);
       writeNode(node.returnType);
       _typeParameterIndexer.exit(node.typeParameters);
     }
+  }
+
+  visitNamedType(NamedType node) {
+    writeStringReference(node.name);
+    writeNode(node.type);
   }
 
   visitTypeParameterType(TypeParameterType node) {
@@ -1105,8 +1107,8 @@ class StringIndexer extends RecursiveVisitor<Null> {
     node.visitChildren(this);
   }
 
-  visitFunctionType(FunctionType node) {
-    node.namedParameters.keys.forEach(put);
+  visitNamedType(NamedType node) {
+    put(node.name);
     node.visitChildren(this);
   }
 
