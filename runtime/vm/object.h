@@ -8200,6 +8200,10 @@ class LinkedHashMap : public Instance {
   }
 
   intptr_t Length() const {
+    // The map may be uninitialized.
+    if (raw_ptr()->used_data_ == Object::null()) return 0;
+    if (raw_ptr()->deleted_keys_ == Object::null()) return 0;
+
     intptr_t used = Smi::Value(raw_ptr()->used_data_);
     intptr_t deleted = Smi::Value(raw_ptr()->deleted_keys_);
     return (used >> 1) - deleted;
