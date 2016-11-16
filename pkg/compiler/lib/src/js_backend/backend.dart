@@ -2380,14 +2380,20 @@ class JavaScriptBackend extends Backend {
     }
 
     if (isTreeShakingDisabled) {
-      mirrorsAnalysis.enqueueReflectiveElements(
-          enqueuer, recentClasses, compiler.libraryLoader.libraries);
+      enqueuer.applyImpact(
+          compiler.impactStrategy,
+          mirrorsAnalysis.computeImpactForReflectiveElements(recentClasses,
+              enqueuer.processedClasses, compiler.libraryLoader.libraries,
+              forResolution: enqueuer.isResolutionQueue));
     } else if (!targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
       // Add all static elements (not classes) that have been requested for
       // reflection. If there is no mirror-usage these are probably not
       // necessary, but the backend relies on them being resolved.
-      mirrorsAnalysis.enqueueReflectiveStaticFields(
-          enqueuer, _findStaticFieldTargets());
+      enqueuer.applyImpact(
+          compiler.impactStrategy,
+          mirrorsAnalysis.computeImpactForReflectiveStaticFields(
+              _findStaticFieldTargets(),
+              forResolution: enqueuer.isResolutionQueue));
     }
 
     if (mustPreserveNames) reporter.log('Preserving names.');
