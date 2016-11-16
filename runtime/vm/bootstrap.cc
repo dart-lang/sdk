@@ -10,8 +10,10 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/kernel.h"
 #include "vm/kernel_reader.h"
+#endif
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
@@ -314,6 +316,7 @@ static RawError* BootstrapFromSource(Thread* thread) {
 }
 
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static RawError* BootstrapFromKernel(Thread* thread,
                                      const uint8_t* buffer,
                                      intptr_t buffer_size) {
@@ -360,6 +363,14 @@ static RawError* BootstrapFromKernel(Thread* thread,
   Finish(thread, /*from_kernel=*/true);
   return Error::null();
 }
+#else
+static RawError* BootstrapFromKernel(Thread* thread,
+                                     const uint8_t* buffer,
+                                     intptr_t buffer_size) {
+  UNREACHABLE();
+  return Error::null();
+}
+#endif
 
 
 RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
