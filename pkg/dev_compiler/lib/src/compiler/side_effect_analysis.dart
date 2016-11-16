@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/error/listener.dart'
     show AnalysisErrorListener, ErrorReporter;
-import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/dart/ast/ast.dart';
 
@@ -105,12 +105,12 @@ class _AssignmentFinder extends RecursiveAstVisitor {
 }
 
 class ConstFieldVisitor {
-  final ConstantVisitor _constantVisitor;
+  final ConstantVisitor constantVisitor;
 
-  ConstFieldVisitor(TypeProvider types, {Source dummySource})
-      // TODO(jmesserly): support -D variables on the command line
-      : _constantVisitor = new ConstantVisitor(
-            new ConstantEvaluationEngine(types, new DeclaredVariables()),
+  ConstFieldVisitor(AnalysisContext context, {Source dummySource})
+      : constantVisitor = new ConstantVisitor(
+            new ConstantEvaluationEngine(
+                context.typeProvider, context.declaredVariables),
             new ErrorReporter(
                 AnalysisErrorListener.NULL_LISTENER, dummySource));
 
@@ -134,6 +134,6 @@ class ConstFieldVisitor {
 
     var initializer = field.initializer;
     if (initializer == null) return null;
-    return initializer.accept(_constantVisitor);
+    return initializer.accept(constantVisitor);
   }
 }

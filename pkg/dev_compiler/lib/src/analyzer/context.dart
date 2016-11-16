@@ -46,16 +46,21 @@ class AnalyzerOptions {
   /// of the unsummarized one.
   final String dartSdkSummaryPath;
 
+  /// Defined variables used by `bool.fromEnvironment` etc.
+  final Map<String, String> declaredVariables;
+
   AnalyzerOptions(
       {this.summaryPaths: const [],
       String dartSdkPath,
       this.dartSdkSummaryPath,
       this.customUrlMappings: const {},
       this.packageRoot: null,
-      this.packagePaths: const []})
+      this.packagePaths: const [],
+      this.declaredVariables: const {}})
       : dartSdkPath = dartSdkPath ?? getSdkDir().path;
 
-  factory AnalyzerOptions.fromArguments(ArgResults args) {
+  factory AnalyzerOptions.fromArguments(
+      ArgResults args, Map<String, String> declaredVariables) {
     var sdkPath = args['dart-sdk'] ?? getSdkDir().path;
     var sdkSummaryPath = args['dart-sdk-summary'];
 
@@ -72,7 +77,8 @@ class AnalyzerOptions {
         dartSdkSummaryPath: sdkSummaryPath,
         customUrlMappings: _parseUrlMappings(args['url-mapping']),
         packageRoot: args['package-root'],
-        packagePaths: (args['package-paths'] as String)?.split(',') ?? []);
+        packagePaths: (args['package-paths'] as String)?.split(',') ?? [],
+        declaredVariables: declaredVariables);
   }
 
   /// Whether to resolve 'package:' uris using the multi-package resolver.
@@ -185,4 +191,26 @@ DartUriResolver createSdkPathResolver(String sdkSummaryPath, String sdkPath) {
       ? new SummaryBasedDartSdk(sdkSummaryPath, true)
       : _createFolderBasedDartSdk(sdkPath);
   return new DartUriResolver(sdk);
+}
+
+List<String> parseDeclaredVariables(
+    List<String> args, Map<String, String> declaredVars) {
+  var count = args.length;
+  var remainingArgs = <String>[];
+  for (int i = 0; i < count; i++) {
+    var arg = args[i];
+    if (arg == '--') {
+      while (i < count) {
+        remainingArgs.add(args[i++]);
+      }
+    } else if (arg.startsWith("-D")) {
+      // The format for defined variables is:
+      //     -D<name>=<value>
+      var parts = arg.substring(2).split('=');
+      declaredVars[parts[0]] = parts.length > 1 ? parts[1] : '';
+    } else {
+      remainingArgs.add(arg);
+    }
+  }
+  return remainingArgs;
 }

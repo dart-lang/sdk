@@ -10,7 +10,7 @@ import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:args/command_runner.dart' show UsageException;
 import 'package:path/path.dart' as path;
 
-import '../analyzer/context.dart' show AnalyzerOptions;
+import '../analyzer/context.dart' show AnalyzerOptions, parseDeclaredVariables;
 import 'compiler.dart' show BuildUnit, CompilerOptions, ModuleCompiler;
 import 'module_builder.dart';
 
@@ -41,14 +41,15 @@ final ArgParser _argParser = () {
 int compile(List<String> args, {void printFn(Object obj)}) {
   printFn ??= print;
   ArgResults argResults;
+  var declaredVars = <String, String>{};
   try {
-    argResults = _argParser.parse(args);
+    argResults = _argParser.parse(parseDeclaredVariables(args, declaredVars));
   } on FormatException catch (error) {
     printFn('$error\n\n$_usageMessage');
     return 64;
   }
   try {
-    _compile(argResults, printFn);
+    _compile(argResults, declaredVars, printFn);
     return 0;
   } on UsageException catch (error) {
     // Incorrect usage, input file not found, etc.
@@ -90,13 +91,14 @@ bool _changed(List<int> list1, List<int> list2) {
   return false;
 }
 
-void _compile(ArgResults argResults, void printFn(Object obj)) {
+void _compile(ArgResults argResults, Map<String, String> declaredVars,
+    void printFn(Object obj)) {
   if (argResults['help']) {
     printFn(_usageMessage);
     return;
   }
-  var compiler =
-      new ModuleCompiler(new AnalyzerOptions.fromArguments(argResults));
+  var compiler = new ModuleCompiler(
+      new AnalyzerOptions.fromArguments(argResults, declaredVars));
   var compilerOpts = new CompilerOptions.fromArguments(argResults);
   var outPaths = argResults['out'] as List<String>;
   var moduleFormats = parseModuleFormatOption(argResults);
