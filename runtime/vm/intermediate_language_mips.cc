@@ -1053,8 +1053,13 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LoadImmediate(A1, argc_tag);
   ExternalLabel label(entry);
   __ LoadNativeEntry(T5, &label, kNotPatchable);
-  compiler->GenerateCall(token_pos(), *stub_entry, RawPcDescriptors::kOther,
-                         locs());
+  if (link_lazily()) {
+    compiler->GeneratePatchableCall(token_pos(), *stub_entry,
+                                    RawPcDescriptors::kOther, locs());
+  } else {
+    compiler->GenerateCall(token_pos(), *stub_entry, RawPcDescriptors::kOther,
+                           locs());
+  }
   __ Pop(result);
 }
 
