@@ -16946,6 +16946,7 @@ RawAbstractType* Type::CloneUnfinalized() const {
 RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
                                            TrailPtr trail) const {
   ASSERT(IsFinalized());
+  ASSERT(IsCanonical());
   ASSERT(!IsMalformed());
   if (IsInstantiated()) {
     return raw();
@@ -17017,6 +17018,7 @@ RawAbstractType* Type::CloneUninstantiated(const Class& new_owner,
     clone.set_arguments(type_args);
   }
   clone.SetIsFinalized();
+  clone ^= clone.Canonicalize();
   return clone.raw();
 }
 
