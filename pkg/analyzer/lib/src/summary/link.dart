@@ -2962,6 +2962,9 @@ class FunctionElementForLink_Initializer extends Object
           .toList();
 
   @override
+  String get identifier => '';
+
+  @override
   DartType get returnType {
     // If this is a variable whose type needs inferring, infer it.
     if (_variable.hasImplicitType) {
@@ -3083,6 +3086,18 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
               new FunctionElementForLink_Local_NonSynthetic(
                   compilationUnit, this, ex))
           .toList();
+
+  @override
+  String get identifier {
+    String identifier = _unlinkedExecutable.name;
+    Element enclosing = this.enclosingElement;
+    if (enclosing is ExecutableElement) {
+      int id =
+          ElementImpl.findElementIndexUsingIdentical(enclosing.functions, this);
+      identifier += "@$id";
+    }
+    return identifier;
+  }
 
   @override
   bool get _hasTypeBeenInferred => _inferredReturnType != null;
@@ -4980,6 +4995,9 @@ abstract class VariableElementForLink
 
   @override
   bool get hasImplicitType => unlinkedVariable.type == null;
+
+  @override
+  String get identifier => unlinkedVariable.name;
 
   /**
    * Return the inferred type of the variable element.  Should only be called if

@@ -3143,7 +3143,7 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  static int _findElementIndexUsingIdentical(List items, Object item) {
+  static int findElementIndexUsingIdentical(List items, Object item) {
     int length = items.length;
     for (int i = 0; i < length; i++) {
       if (identical(items[i], item)) {
@@ -4387,8 +4387,8 @@ class FunctionElementImpl extends ExecutableElementImpl
     String identifier = super.identifier;
     Element enclosing = this.enclosingElement;
     if (enclosing is ExecutableElement) {
-      int id = ElementImpl._findElementIndexUsingIdentical(
-          enclosing.functions, this);
+      int id =
+          ElementImpl.findElementIndexUsingIdentical(enclosing.functions, this);
       identifier += "@$id";
     }
     return identifier;
@@ -6046,7 +6046,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
     String identifier = super.identifier;
     Element enclosing = this.enclosingElement;
     if (enclosing is ExecutableElement) {
-      int id = ElementImpl._findElementIndexUsingIdentical(
+      int id = ElementImpl.findElementIndexUsingIdentical(
           enclosing.localVariables, this);
       identifier += "@$id";
     }
