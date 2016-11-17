@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -1933,6 +1934,43 @@ linter:
     expect(lints.first, new isInstanceOf<AvoidAs>());
     expect(errorProcessors, hasLength(1));
     expect(getProcessor(missing_return).severity, isNull);
+  }
+
+  test_analysis_options_include() async {
+    // Create files.
+    String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    String sdkExtPath = newFolder([projPath, 'sdk_ext']);
+    newFile([sdkExtPath, 'entry.dart']);
+    String sdkExtSrcPath = newFolder([projPath, 'sdk_ext', 'src']);
+    newFile([sdkExtSrcPath, 'part.dart']);
+    // Setup analysis options file which includes another options file.
+    newFile(
+        [projPath, optionsFileName],
+        r'''
+include: other_options.yaml
+''');
+    newFile(
+        [projPath, 'other_options.yaml'],
+        r'''
+analyzer:
+  language:
+    enableGenericMethods: true
+  errors:
+    unused_local_variable: false
+linter:
+  rules:
+    - camel_case_types
+''');
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+
+    // Verify options were set.
+    expect(options.enableGenericMethods, isTrue);
+    expect(errorProcessors, hasLength(1));
+    expect(lints, hasLength(1));
+    expect(lints[0].name, 'camel_case_types');
   }
 
   test_analysis_options_parse_failure() async {

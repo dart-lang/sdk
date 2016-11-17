@@ -477,10 +477,6 @@ class ContextManagerImpl implements ContextManager {
    */
   final PubPackageMapProvider _packageMapProvider;
 
-  /// Provider of analysis options.
-  AnalysisOptionsProvider analysisOptionsProvider =
-      new AnalysisOptionsProvider();
-
   /**
    * A list of the globs used to determine which files should be analyzed.
    */
@@ -685,9 +681,19 @@ class ContextManagerImpl implements ContextManager {
    * if exists, or in one of the parent folders, or `null` if no analysis
    * options file is found or if the contents of the file are not valid YAML.
    */
-  Map<String, Object> readOptions(Folder folder) {
+  Map<String, Object> readOptions(Folder folder, Packages packages) {
     try {
-      return analysisOptionsProvider.getOptions(folder, crawlUp: true);
+      Map<String, List<Folder>> packageMap =
+          new ContextBuilder(resourceProvider, null, null)
+              .convertPackagesToMap(packages);
+      List<UriResolver> resolvers = <UriResolver>[
+        new ResourceUriResolver(resourceProvider),
+        new PackageMapUriResolver(resourceProvider, packageMap),
+      ];
+      SourceFactory sourceFactory =
+          new SourceFactory(resolvers, packages, resourceProvider);
+      return new AnalysisOptionsProvider(sourceFactory)
+          .getOptions(folder, crawlUp: true);
     } catch (_) {
       // Parse errors are reported by GenerateOptionsErrorsTask.
     }
@@ -916,7 +922,8 @@ class ContextManagerImpl implements ContextManager {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       var analysisContext = info.context;
       if (analysisContext is context.AnalysisContextImpl) {
-        Map<String, Object> options = readOptions(info.folder);
+        Map<String, Object> options =
+            readOptions(info.folder, info.disposition.packages);
         processOptionsForContext(info, options,
             optionsRemoved: changeType == ChangeType.REMOVE);
         analysisContext.sourceFactory = _createSourceFactory(
@@ -1069,7 +1076,8 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
         normalizedPackageRoots[folder.path], disposition);
 
-    Map<String, Object> optionMap = readOptions(info.folder);
+    Map<String, Object> optionMap =
+        readOptions(info.folder, disposition.packages);
     AnalysisOptions options =
         new AnalysisOptionsImpl.from(defaultContextOptions);
     applyToAnalysisOptions(options, optionMap);
