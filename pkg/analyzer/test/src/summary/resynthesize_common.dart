@@ -2590,6 +2590,27 @@ class C<T, U> {
 ''');
   }
 
+  test_constructor_redirected_factory_named_unresolved_class() {
+    checkLibrary(
+        '''
+class C<E> {
+  factory C() = D.named<E>;
+}
+''',
+        allowErrors: true);
+  }
+
+  test_constructor_redirected_factory_named_unresolved_constructor() {
+    checkLibrary(
+        '''
+class D {}
+class C<E> {
+  factory C() = D.named<E>;
+}
+''',
+        allowErrors: true);
+  }
+
   test_constructor_redirected_factory_unnamed() {
     checkLibrary('''
 class C {
@@ -2684,6 +2705,16 @@ class C<T, U> {
   C._();
 }
 ''');
+  }
+
+  test_constructor_redirected_factory_unnamed_unresolved() {
+    checkLibrary(
+        '''
+class C<E> {
+  factory C() = D<E>;
+}
+''',
+        allowErrors: true);
   }
 
   test_constructor_redirected_thisInvocation_named() {

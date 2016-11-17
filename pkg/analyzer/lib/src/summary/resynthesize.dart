@@ -1810,7 +1810,8 @@ class _UnitResynthesizer {
 
   /**
    * Return the defining type for a [ConstructorElement] by applying
-   * [typeArgumentRefs] to the given linked [info].
+   * [typeArgumentRefs] to the given linked [info].  Return [DynamicTypeImpl]
+   * if the [info] is unresolved.
    */
   DartType _createConstructorDefiningType(
       TypeParameterizedElementMixin typeParameterContext,
@@ -1818,6 +1819,9 @@ class _UnitResynthesizer {
       List<EntityRef> typeArgumentRefs) {
     bool isClass = info.element is ClassElement;
     _ReferenceInfo classInfo = isClass ? info : info.enclosing;
+    if (classInfo == null) {
+      return DynamicTypeImpl.instance;
+    }
     List<DartType> typeArguments = typeArgumentRefs
         .map((t) => buildType(t, typeParameterContext))
         .toList();
