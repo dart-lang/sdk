@@ -207,14 +207,15 @@ void HostCPUFeatures::InitOnce() {
   // - Qualcomm Krait CPUs (QCT APQ8064) in Nexus 4 and 7 incorrectly report
   //   that they lack integer division.
   // - Marvell Armada 370/XP incorrectly reports that it has integer division.
-  // - The Pixel lacks integer division even though ARMv8 requires it in A32.
+  // - Qualcomm Snapdragon 820/821 CPUs (MSM 8996 and MSM8996pro) in Xiaomi MI5
+  // and Pixel lack integer division even though ARMv8 requires it in A32.
   bool is_krait = CpuInfo::FieldContains(kCpuInfoHardware, "QCT APQ8064");
   bool is_armada_370xp =
       CpuInfo::FieldContains(kCpuInfoHardware, "Marvell Armada 370/XP");
-  bool is_pixel = CpuInfo::FieldContains(kCpuInfoHardware, "MSM8996pro");
+  bool is_snapdragon = CpuInfo::FieldContains(kCpuInfoHardware, "MSM8996");
   if (is_krait) {
     integer_division_supported_ = FLAG_use_integer_division;
-  } else if (is_armada_370xp || is_pixel) {
+  } else if (is_armada_370xp || is_snapdragon) {
     integer_division_supported_ = false;
   } else {
     integer_division_supported_ =
