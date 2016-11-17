@@ -1096,15 +1096,6 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
 }
 
 
-void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
-                                              const StubEntry& stub_entry,
-                                              RawPcDescriptors::Kind kind,
-                                              LocationSummary* locs) {
-  // No patchable calls on ia32.
-  GenerateCall(token_pos, stub_entry, kind, locs);
-}
-
-
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          TokenPosition token_pos,
                                          const StubEntry& stub_entry,
