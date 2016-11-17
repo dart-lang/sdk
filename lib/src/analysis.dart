@@ -80,8 +80,15 @@ class AnalysisDriver {
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];
 
     if (options.packageRootPath != null) {
-      builder.builderOptions.defaultPackagesDirectoryPath =
-          options.packageRootPath;
+      // TODO(brianwilkerson) After 0.30.0 is published, clean up the following.
+      try {
+        // Try to use the post 0.30.0 API.
+        (builder as dynamic).builderOptions.defaultPackagesDirectoryPath =
+            options.packageRootPath;
+      } catch (_) {
+        // If that fails, fall back to the pre 0.30.0 API.
+        builder.defaultPackagesDirectoryPath = options.packageRootPath;
+      }
       Map<String, List<Folder>> packageMap =
           builder.convertPackagesToMap(builder.createPackageMap(null));
       resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));

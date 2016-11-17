@@ -9,7 +9,7 @@ import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart' show AstNode, AstVisitor;
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:linter/src/analysis.dart';
