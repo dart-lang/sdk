@@ -120,7 +120,8 @@ class DartSdkManager {
   /**
    * Initialize a newly created manager.
    */
-  DartSdkManager(this.defaultSdkDirectory, this.canUseSummaries);
+  DartSdkManager(this.defaultSdkDirectory, this.canUseSummaries,
+      [dynamic ignored]);
 
   /**
    * Return any SDK that has been created, or `null` if no SDKs have been

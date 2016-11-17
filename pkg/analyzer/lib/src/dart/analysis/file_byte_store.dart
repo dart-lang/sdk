@@ -28,7 +28,7 @@ class FileByteStore implements ByteStore {
   static SendPort _cleanUpSendPort;
 
   final String _cachePath;
-  final String _tempName = 'temp_${pid}';
+  final String _tempName = 'temp_$pid';
   final int _maxSizeBytes;
 
   int _bytesWrittenSinceCleanup = 0;
