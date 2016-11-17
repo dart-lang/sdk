@@ -5696,21 +5696,36 @@ RawRegExp* Function::regexp() const {
 }
 
 
+class StickySpecialization : public BitField<intptr_t, bool, 0, 1> {};
+class StringSpecializationCid
+    : public BitField<intptr_t, intptr_t, 1, RawObject::kClassIdTagSize> {};
+
+
 intptr_t Function::string_specialization_cid() const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
   const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
-  return Smi::Value(Smi::RawCast(pair.At(1)));
+  return StringSpecializationCid::decode(Smi::Value(Smi::RawCast(pair.At(1))));
+}
+
+
+bool Function::is_sticky_specialization() const {
+  ASSERT(kind() == RawFunction::kIrregexpFunction);
+  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
+  return StickySpecialization::decode(Smi::Value(Smi::RawCast(pair.At(1))));
 }
 
 
 void Function::SetRegExpData(const RegExp& regexp,
-                             intptr_t string_specialization_cid) const {
+                             intptr_t string_specialization_cid,
+                             bool sticky) const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
   ASSERT(RawObject::IsStringClassId(string_specialization_cid));
   ASSERT(raw_ptr()->data_ == Object::null());
   const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
   pair.SetAt(0, regexp);
-  pair.SetAt(1, Smi::Handle(Smi::New(string_specialization_cid)));
+  pair.SetAt(1, Smi::Handle(Smi::New(StickySpecialization::encode(sticky) |
+                                     StringSpecializationCid::encode(
+                                         string_specialization_cid))));
   set_data(pair);
 }
 
@@ -22394,16 +22409,28 @@ void RegExp::set_pattern(const String& pattern) const {
 }
 
 
-void RegExp::set_function(intptr_t cid, const Function& value) const {
-  StorePointer(FunctionAddr(cid), value.raw());
+void RegExp::set_function(intptr_t cid,
+                          bool sticky,
+                          const Function& value) const {
+  StorePointer(FunctionAddr(cid, sticky), value.raw());
 }
 
 
-void RegExp::set_bytecode(bool is_one_byte, const TypedData& bytecode) const {
-  if (is_one_byte) {
-    StorePointer(&raw_ptr()->one_byte_bytecode_, bytecode.raw());
+void RegExp::set_bytecode(bool is_one_byte,
+                          bool sticky,
+                          const TypedData& bytecode) const {
+  if (sticky) {
+    if (is_one_byte) {
+      StorePointer(&raw_ptr()->one_byte_sticky_.bytecode_, bytecode.raw());
+    } else {
+      StorePointer(&raw_ptr()->two_byte_sticky_.bytecode_, bytecode.raw());
+    }
   } else {
-    StorePointer(&raw_ptr()->two_byte_bytecode_, bytecode.raw());
+    if (is_one_byte) {
+      StorePointer(&raw_ptr()->one_byte_.bytecode_, bytecode.raw());
+    } else {
+      StorePointer(&raw_ptr()->two_byte_.bytecode_, bytecode.raw());
+    }
   }
 }
 

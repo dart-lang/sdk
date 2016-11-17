@@ -2116,14 +2116,29 @@ class RawRegExp : public RawInstance {
   }
   RawSmi* num_bracket_expressions_;
   RawString* pattern_;  // Pattern to be used for matching.
-  RawFunction* one_byte_function_;
-  RawFunction* two_byte_function_;
+  union {
+    RawFunction* function_;
+    RawTypedData* bytecode_;
+  } one_byte_;
+  union {
+    RawFunction* function_;
+    RawTypedData* bytecode_;
+  } two_byte_;
   RawFunction* external_one_byte_function_;
   RawFunction* external_two_byte_function_;
-  RawTypedData* one_byte_bytecode_;
-  RawTypedData* two_byte_bytecode_;
+  union {
+    RawFunction* function_;
+    RawTypedData* bytecode_;
+  } one_byte_sticky_;
+  union {
+    RawFunction* function_;
+    RawTypedData* bytecode_;
+  } two_byte_sticky_;
+  RawFunction* external_one_byte_sticky_function_;
+  RawFunction* external_two_byte_sticky_function_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->two_byte_bytecode_);
+    return reinterpret_cast<RawObject**>(
+        &ptr()->external_two_byte_sticky_function_);
   }
 
   intptr_t num_registers_;

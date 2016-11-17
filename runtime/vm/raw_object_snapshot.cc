@@ -2894,16 +2894,12 @@ RawRegExp* RegExp::ReadFrom(SnapshotReader* reader,
                         reader->Read<int32_t>());
   regex.StoreNonPointer(&regex.raw_ptr()->type_flags_, reader->Read<int8_t>());
 
-  // TODO(18854): Need to implement a way of recreating the irrexp functions.
   const Function& no_function = Function::Handle(reader->zone());
-  regex.set_function(kOneByteStringCid, no_function);
-  regex.set_function(kTwoByteStringCid, no_function);
-  regex.set_function(kExternalOneByteStringCid, no_function);
-  regex.set_function(kExternalTwoByteStringCid, no_function);
-
-  const TypedData& no_bytecode = TypedData::Handle(reader->zone());
-  regex.set_bytecode(true, no_bytecode);
-  regex.set_bytecode(false, no_bytecode);
+  for (intptr_t cid = kOneByteStringCid; cid <= kExternalTwoByteStringCid;
+       cid++) {
+    regex.set_function(cid, /*sticky=*/false, no_function);
+    regex.set_function(cid, /*sticky=*/true, no_function);
+  }
 
   return regex.raw();
 }

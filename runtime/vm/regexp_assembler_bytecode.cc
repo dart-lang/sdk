@@ -457,11 +457,12 @@ void BytecodeRegExpMacroAssembler::Expand() {
 
 static intptr_t Prepare(const RegExp& regexp,
                         const String& subject,
+                        bool sticky,
                         Zone* zone) {
   bool is_one_byte =
       subject.IsOneByteString() || subject.IsExternalOneByteString();
 
-  if (regexp.bytecode(is_one_byte) == TypedData::null()) {
+  if (regexp.bytecode(is_one_byte, sticky) == TypedData::null()) {
     const String& pattern = String::Handle(zone, regexp.pattern());
 #if !defined(PRODUCT)
     TimelineDurationScope tds(Thread::Current(), Timeline::GetCompilerStream(),
@@ -486,13 +487,13 @@ static intptr_t Prepare(const RegExp& regexp,
       regexp.set_is_complex();
     }
 
-    RegExpEngine::CompilationResult result =
-        RegExpEngine::CompileBytecode(compile_data, regexp, is_one_byte, zone);
+    RegExpEngine::CompilationResult result = RegExpEngine::CompileBytecode(
+        compile_data, regexp, is_one_byte, sticky, zone);
     ASSERT(result.bytecode != NULL);
     ASSERT((regexp.num_registers() == -1) ||
            (regexp.num_registers() == result.num_registers));
     regexp.set_num_registers(result.num_registers);
-    regexp.set_bytecode(is_one_byte, *(result.bytecode));
+    regexp.set_bytecode(is_one_byte, sticky, *(result.bytecode));
   }
 
   ASSERT(regexp.num_registers() != -1);
@@ -505,6 +506,7 @@ static intptr_t Prepare(const RegExp& regexp,
 static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
                                                    const String& subject,
                                                    intptr_t index,
+                                                   bool sticky,
                                                    int32_t* output,
                                                    intptr_t output_size,
                                                    Zone* zone) {
@@ -527,7 +529,7 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
   }
 
   const TypedData& bytecode =
-      TypedData::Handle(zone, regexp.bytecode(is_one_byte));
+      TypedData::Handle(zone, regexp.bytecode(is_one_byte, sticky));
   ASSERT(!bytecode.IsNull());
   IrregexpInterpreter::IrregexpResult result =
       IrregexpInterpreter::Match(bytecode, subject, raw_output, index, zone);
@@ -551,8 +553,9 @@ static IrregexpInterpreter::IrregexpResult ExecRaw(const RegExp& regexp,
 RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
                                                      const String& subject,
                                                      const Smi& start_index,
+                                                     bool sticky,
                                                      Zone* zone) {
-  intptr_t required_registers = Prepare(regexp, subject, zone);
+  intptr_t required_registers = Prepare(regexp, subject, sticky, zone);
   if (required_registers < 0) {
     // Compiling failed with an exception.
     UNREACHABLE();
@@ -562,7 +565,7 @@ RawInstance* BytecodeRegExpMacroAssembler::Interpret(const RegExp& regexp,
   int32_t* output_registers = zone->Alloc<int32_t>(required_registers);
 
   IrregexpInterpreter::IrregexpResult result =
-      ExecRaw(regexp, subject, start_index.Value(), output_registers,
+      ExecRaw(regexp, subject, start_index.Value(), sticky, output_registers,
               required_registers, zone);
 
   if (result == IrregexpInterpreter::RE_SUCCESS) {

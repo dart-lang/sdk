@@ -107,6 +107,7 @@ class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
   static RawInstance* Interpret(const RegExp& regexp,
                                 const String& str,
                                 const Smi& start_index,
+                                bool is_sticky,
                                 Zone* zone);
 
  private:

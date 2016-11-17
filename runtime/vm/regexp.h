@@ -1398,6 +1398,7 @@ class RegExpEngine : public AllStatic {
   static CompilationResult CompileBytecode(RegExpCompileData* data,
                                            const RegExp& regexp,
                                            bool is_one_byte,
+                                           bool sticky,
                                            Zone* zone);
 
   static RawRegExp* CreateRegExp(Thread* thread,
