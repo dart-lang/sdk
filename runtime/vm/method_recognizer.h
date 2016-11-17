@@ -167,7 +167,7 @@ namespace dart {
   V(_GrowableList, add, GrowableArray_add, Dynamic, 0x0d1358ed)                \
   V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, Dynamic, 0x6036d7fa)          \
   V(_RegExp, _ExecuteMatchSticky, RegExp_ExecuteMatchSticky, Dynamic,          \
-    0x6036d7fa)                                                                \
+    0x71c67f7d)                                                                \
   V(Object, ==, ObjectEquals, Bool, 0x11662ed8)                                \
   V(Object, get:runtimeType, ObjectRuntimeType, Type, 0x00e7c26b)              \
   V(Object, _haveSameRuntimeType, ObjectHaveSameRuntimeType, Bool, 0x72aad7e2) \
