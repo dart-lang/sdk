@@ -133,6 +133,10 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the `analysis.getNavigation` request.
    */
   Response getNavigation(Request request) {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      return new Response.getNavigationInvalidFile(request);
+    }
     var params = new AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
     Future<AnalysisDoneReason> analysisFuture =
