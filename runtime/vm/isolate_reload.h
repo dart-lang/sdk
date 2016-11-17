@@ -254,6 +254,8 @@ class IsolateReloadContext {
 
   void PostCommit();
 
+  void RehashConstants();
+
   void ClearReplacedObjectBits();
 
   // atomic_install:

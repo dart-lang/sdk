@@ -1225,21 +1225,8 @@ void IsolateReloadContext::Commit() {
     }
   }
 
-  // Rehash constants map for all new classes and the closure class.
-  Class& cls = Class::Handle(zone_);
-  cls = I->class_table()->At(kClosureCid);
-  cls.RehashConstants(zone_);
-  {
-    ASSERT(class_map_storage_ != Array::null());
-    UnorderedHashMap<ClassMapTraits> map(class_map_storage_);
-    UnorderedHashMap<ClassMapTraits>::Iterator it(&map);
-    while (it.MoveNext()) {
-      const intptr_t entry = it.Current();
-      cls = Class::RawCast(map.GetKey(entry));
-      cls.RehashConstants(zone_);
-    }
-    map.Release();
-  }
+  // Rehash constants map for all classes.
+  RehashConstants();
 
 #ifdef DEBUG
   // Verify that all canonical instances are correctly setup in the
@@ -1249,6 +1236,28 @@ void IsolateReloadContext::Commit() {
   VerifyCanonicalVisitor check_canonical(thread);
   I->heap()->IterateObjects(&check_canonical);
 #endif  // DEBUG
+}
+
+
+void IsolateReloadContext::RehashConstants() {
+  TIMELINE_SCOPE(RehashConstants);
+  ClassTable* class_table = I->class_table();
+  Class& cls = Class::Handle(zone_);
+  const intptr_t top = class_table->NumCids();
+  for (intptr_t cid = kInstanceCid; cid < top; cid++) {
+    if (!class_table->IsValidIndex(cid) || !class_table->HasValidClassAt(cid)) {
+      // Skip invalid classes.
+      continue;
+    }
+    if (RawObject::IsNumberClassId(cid) || RawObject::IsStringClassId(cid)) {
+      // Skip classes that cannot be affected by the 'become' operation.
+      continue;
+    }
+    // Rehash constants.
+    cls = class_table->At(cid);
+    VTIR_Print("Rehashing constants in class `%s`\n", cls.ToCString());
+    cls.RehashConstants(zone_);
+  }
 }
 
 
