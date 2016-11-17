@@ -2734,7 +2734,8 @@ typedef enum {
  * Dart_kScriptTag
  *
  * This tag indicates that the root script should be loaded from
- * 'url'.  The 'library' parameter will always be null.  Once the root
+ * 'url'.  If the 'library' parameter is not null, it is the url of the
+ * package map that should be used when loading.  Once the root
  * script is loaded, the embedder should call Dart_LoadScript to
  * install the root script in the VM.  The return value should be an
  * error or null.
@@ -2753,9 +2754,10 @@ typedef enum {
  * call Dart_LoadLibrary to provide the script source to the VM.  The
  * return value should be an error or null.
  */
-typedef Dart_Handle (*Dart_LibraryTagHandler)(Dart_LibraryTag tag,
-                                              Dart_Handle library,
-                                              Dart_Handle url);
+typedef Dart_Handle (*Dart_LibraryTagHandler)(
+    Dart_LibraryTag tag,
+    Dart_Handle library_or_package_map_url,
+    Dart_Handle url);
 
 /**
  * Sets library tag handler for the current isolate. This handler is

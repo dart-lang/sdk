@@ -420,7 +420,11 @@ bool IsolateReloadContext::IsSameClass(const Class& a, const Class& b) {
 
   const Library& a_lib = Library::Handle(a.library());
   const Library& b_lib = Library::Handle(b.library());
-  return IsSameLibrary(a_lib, b_lib);
+
+  if (a_lib.IsNull() || b_lib.IsNull()) {
+    return a_lib.raw() == b_lib.raw();
+  }
+  return (a_lib.private_key() == b_lib.private_key());
 }
 
 
@@ -450,7 +454,7 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
       reasons_to_cancel_reload_(zone_, 0),
       cid_mapper_(),
       modified_libs_(NULL),
-      script_uri_(String::null()),
+      script_url_(String::null()),
       error_(Error::null()),
       old_classes_set_storage_(Array::null()),
       class_map_storage_(Array::null()),
@@ -459,7 +463,9 @@ IsolateReloadContext::IsolateReloadContext(Isolate* isolate, JSONStream* js)
       become_map_storage_(Array::null()),
       become_enum_mappings_(GrowableObjectArray::null()),
       saved_root_library_(Library::null()),
-      saved_libraries_(GrowableObjectArray::null()) {
+      saved_libraries_(GrowableObjectArray::null()),
+      root_url_prefix_(String::null()),
+      old_root_url_prefix_(String::null()) {
   // NOTE: DO NOT ALLOCATE ANY RAW OBJECTS HERE. The IsolateReloadContext is not
   // associated with the isolate yet and if a GC is triggered here the raw
   // objects will not be properly accounted for.
@@ -502,20 +508,58 @@ class Aborted : public ReasonForCancelling {
 };
 
 
+static intptr_t CommonSuffixLength(const char* a, const char* b) {
+  const intptr_t a_length = strlen(a);
+  const intptr_t b_length = strlen(b);
+  intptr_t a_cursor = a_length;
+  intptr_t b_cursor = b_length;
+
+  while ((a_cursor >= 0) && (b_cursor >= 0)) {
+    if (a[a_cursor] != b[b_cursor]) {
+      break;
+    }
+    a_cursor--;
+    b_cursor--;
+  }
+
+  ASSERT((a_length - a_cursor) == (b_length - b_cursor));
+  return (a_length - a_cursor);
+}
+
+
 // NOTE: This function returns *after* FinalizeLoading is called.
-void IsolateReloadContext::Reload(bool force_reload) {
+void IsolateReloadContext::Reload(bool force_reload,
+                                  const char* root_script_url,
+                                  const char* packages_url_) {
   TIMELINE_SCOPE(Reload);
   Thread* thread = Thread::Current();
   ASSERT(isolate() == thread->isolate());
 
   // Grab root library before calling CheckpointBeforeReload.
-  const Library& root_lib = Library::Handle(object_store()->root_library());
-  ASSERT(!root_lib.IsNull());
-  const String& root_lib_url = String::Handle(root_lib.url());
+  const Library& old_root_lib = Library::Handle(object_store()->root_library());
+  ASSERT(!old_root_lib.IsNull());
+  const String& old_root_lib_url = String::Handle(old_root_lib.url());
+  // Root library url.
+  const String& root_lib_url =
+      (root_script_url == NULL) ? old_root_lib_url
+                                : String::Handle(String::New(root_script_url));
+
+  // Check to see if the base url of the loaded libraries has moved.
+  if (!old_root_lib_url.Equals(root_lib_url)) {
+    const char* old_root_library_url_c = old_root_lib_url.ToCString();
+    const char* root_library_url_c = root_lib_url.ToCString();
+    const intptr_t common_suffix_length =
+        CommonSuffixLength(root_library_url_c, old_root_library_url_c);
+    root_url_prefix_ = String::SubString(
+        root_lib_url, 0, root_lib_url.Length() - common_suffix_length + 1);
+    old_root_url_prefix_ =
+        String::SubString(old_root_lib_url, 0,
+                          old_root_lib_url.Length() - common_suffix_length + 1);
+  }
 
   // Check to see which libraries have been modified.
   modified_libs_ = FindModifiedLibraries(force_reload);
-  if (!modified_libs_->Contains(root_lib.index())) {
+  if (!modified_libs_->Contains(old_root_lib.index())) {
     ASSERT(modified_libs_->IsEmpty());
     reload_skipped_ = true;
     ReportOnJSON(js_);
@@ -570,17 +614,25 @@ void IsolateReloadContext::Reload(bool force_reload) {
   // for example, top level parse errors. We want to capture these errors while
   // propagating the UnwindError or an UnhandledException error.
   Object& result = Object::Handle(thread->zone());
+
+  String& packages_url = String::Handle();
+  if (packages_url_ != NULL) {
+    packages_url = String::New(packages_url_);
+  }
+
+  TIR_Print("---- ENTERING TAG HANDLER\n");
   {
     TransitionVMToNative transition(thread);
     Api::Scope api_scope(thread);
 
     Dart_Handle retval = (I->library_tag_handler())(
-        Dart_kScriptTag, Api::NewHandle(thread, Library::null()),
+        Dart_kScriptTag, Api::NewHandle(thread, packages_url.raw()),
         Api::NewHandle(thread, root_lib_url.raw()));
     result = Api::UnwrapHandle(retval);
   }
   //
   // WEIRD CONTROL FLOW ENDS.
+  TIR_Print("---- EXITED TAG HANDLER\n");
 
   BackgroundCompiler::Enable();
 
@@ -613,6 +665,7 @@ void IsolateReloadContext::RegisterClass(const Class& new_cls) {
     AddClassMapping(new_cls, new_cls);
     return;
   }
+  VTIR_Print("Registering class: %s\n", new_cls.ToCString());
   new_cls.set_id(old_cls.id());
   isolate()->class_table()->SetAt(old_cls.id(), new_cls.raw());
   if (!old_cls.is_enum_class()) {
@@ -1658,6 +1711,11 @@ RawString* IsolateReloadContext::FindLibraryPrivateKey(
   if (old.IsNull()) {
     return String::null();
   }
+#if defined(DEBUG)
+  VTIR_Print("`%s` is getting `%s`'s private key.\n",
+             String::Handle(replacement_or_new.url()).ToCString(),
+             String::Handle(old.url()).ToCString());
+#endif
   return old.private_key();
 }
 
@@ -1669,7 +1727,51 @@ RawLibrary* IsolateReloadContext::OldLibraryOrNull(
   Library& lib = Library::Handle();
   lib ^= old_libraries_set.GetOrNull(replacement_or_new);
   old_libraries_set.Release();
+  if (lib.IsNull() && (root_url_prefix_ != String::null()) &&
+      (old_root_url_prefix_ != String::null())) {
+    return OldLibraryOrNullBaseMoved(replacement_or_new);
+  }
   return lib.raw();
+}
+
+
+// Attempt to find the pair to |replacement_or_new| with the knowledge that
+// the base url prefix has moved.
+RawLibrary* IsolateReloadContext::OldLibraryOrNullBaseMoved(
+    const Library& replacement_or_new) {
+  const String& url_prefix = String::Handle(root_url_prefix_);
+  const String& old_url_prefix = String::Handle(old_root_url_prefix_);
+  const intptr_t prefix_length = url_prefix.Length();
+  const intptr_t old_prefix_length = old_url_prefix.Length();
+  const String& new_url = String::Handle(replacement_or_new.url());
+  const String& suffix =
+      String::Handle(String::SubString(new_url, prefix_length));
+  if (!new_url.StartsWith(url_prefix)) {
+    return Library::null();
+  }
+  Library& old = Library::Handle();
+  String& old_url = String::Handle();
+  String& old_suffix = String::Handle();
+  GrowableObjectArray& saved_libs =
+      GrowableObjectArray::Handle(saved_libraries());
+  ASSERT(!saved_libs.IsNull());
+  for (intptr_t i = 0; i < saved_libs.Length(); i++) {
+    old = Library::RawCast(saved_libs.At(i));
+    old_url = old.url();
+    if (!old_url.StartsWith(old_url_prefix)) {
+      continue;
+    }
+    old_suffix ^= String::SubString(old_url, old_prefix_length);
+    if (old_suffix.IsNull()) {
+      continue;
+    }
+    if (old_suffix.Equals(suffix)) {
+      TIR_Print("`%s` is moving to `%s`\n", old_url.ToCString(),
+                new_url.ToCString());
+      return old.raw();
+    }
+  }
+  return Library::null();
 }
 
 

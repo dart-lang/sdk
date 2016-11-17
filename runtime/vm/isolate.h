@@ -262,6 +262,8 @@ class Isolate : public BaseIsolate {
   // the caller to delete is separately if it is still needed.
   bool ReloadSources(JSONStream* js,
                      bool force_reload,
+                     const char* root_script_url = NULL,
+                     const char* packages_url = NULL,
                      bool dont_delete_reload_context = false);
 
   bool MakeRunnable();

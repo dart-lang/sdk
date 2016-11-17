@@ -543,7 +543,7 @@ class UnimplementedDeferredLibrary : public ReasonForCancelling {
 };
 
 
-// This is executed before interating over the instances.
+// This is executed before iterating over the instances.
 void Class::CheckReload(const Class& replacement,
                         IsolateReloadContext* context) const {
   ASSERT(IsolateReloadContext::IsSameClass(*this, replacement));
