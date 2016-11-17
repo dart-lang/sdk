@@ -185,7 +185,7 @@ and utility functions:
 See: __Run existing tests__
 
 [build_sdk]: https://github.com/dart-lang/sdk/wiki/Building "Building the Dart SDK"
-[download_dartium]: https://www.dartlang.org/tools/dartium/ "Download Dartium"
+[download_dartium]: https://webdev.dartlang.org/tools/dartium/ "Download Dartium"
 [build_dartium]: https://github.com/dart-lang/sdk/wiki/Building-Dartium "Build Dartium"
 [open_observatory]: http://localhost:8080/ "Open Observatory"
 [observatory_get_started]: https://dart-lang.github.io/observatory/get-started.html "Observatory get started"
