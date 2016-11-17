@@ -795,43 +795,48 @@ dart.flattenFutures = function(builder) {
   }
   return flatten;
 };
-dart.generic = function(typeConstructor) {
-  let length = typeConstructor.length;
-  if (length < 1) {
-    dart.throwInternalError('must have at least one generic type argument');
-  }
-  let resultMap = new Map();
-  function makeGenericType(...args) {
-    if (args.length != length && args.length != 0) {
-      dart.throwInternalError('requires ' + length + ' or 0 type arguments');
+dart.generic = function(typeConstructor, setBaseClass) {
+  if (setBaseClass === void 0) setBaseClass = null;
+  return (() => {
+    let length = typeConstructor.length;
+    if (length < 1) {
+      dart.throwInternalError('must have at least one generic type argument');
     }
-    while (args.length < length)
-      args.push(dart.dynamic);
-    let value = resultMap;
-    for (let i = 0; i < length; i++) {
-      let arg = args[i];
-      if (arg == null) {
-        dart.throwInternalError('type arguments should not be null: ' + typeConstructor);
+    let resultMap = new Map();
+    function makeGenericType(...args) {
+      if (args.length != length && args.length != 0) {
+        dart.throwInternalError('requires ' + length + ' or 0 type arguments');
       }
-      let map = value;
-      value = map.get(arg);
-      if (value === void 0) {
-        if (i + 1 == length) {
-          value = typeConstructor.apply(null, args);
-          if (value) {
-            value[dart._typeArguments] = args;
-            value[dart._originalDeclaration] = makeGenericType;
-          }
-        } else {
-          value = new Map();
+      while (args.length < length)
+        args.push(dart.dynamic);
+      let value = resultMap;
+      for (let i = 0; i < length; i++) {
+        let arg = args[i];
+        if (arg == null) {
+          dart.throwInternalError('type arguments should not be null: ' + typeConstructor);
         }
-        map.set(arg, value);
+        let map = value;
+        value = map.get(arg);
+        if (value === void 0) {
+          if (i + 1 == length) {
+            value = typeConstructor.apply(null, args);
+            if (value) {
+              value[dart._typeArguments] = args;
+              value[dart._originalDeclaration] = makeGenericType;
+            }
+            map.set(arg, value);
+            if (setBaseClass) setBaseClass(value);
+          } else {
+            value = new Map();
+            map.set(arg, value);
+          }
+        }
       }
+      return value;
     }
-    return value;
-  }
-  makeGenericType[dart._genericTypeCtor] = typeConstructor;
-  return makeGenericType;
+    makeGenericType[dart._genericTypeCtor] = typeConstructor;
+    return makeGenericType;
+  })();
 };
 dart.getGenericClass = function(type) {
   return dart.safeGetOwnProperty(type, dart._originalDeclaration);
@@ -26758,7 +26763,6 @@ collection._UserDoubleLinkedQueueEntry$ = dart.generic(E => {
       return this[_nextLink];
     }
   }
-  dart.setBaseClass(_UserDoubleLinkedQueueEntry, collection._DoubleLink$(_UserDoubleLinkedQueueEntry));
   _UserDoubleLinkedQueueEntry[dart.implements] = () => [DoubleLinkedQueueEntryOfE()];
   dart.setSignature(_UserDoubleLinkedQueueEntry, {
     constructors: () => ({new: dart.definiteFunctionType(collection._UserDoubleLinkedQueueEntry$(E), [E])}),
@@ -26772,6 +26776,8 @@ collection._UserDoubleLinkedQueueEntry$ = dart.generic(E => {
     })
   });
   return _UserDoubleLinkedQueueEntry;
+}, _UserDoubleLinkedQueueEntry => {
+  dart.setBaseClass(_UserDoubleLinkedQueueEntry, collection._DoubleLink$(_UserDoubleLinkedQueueEntry));
 });
 collection._UserDoubleLinkedQueueEntry = _UserDoubleLinkedQueueEntry();
 const _queue = Symbol('_queue');
@@ -26801,7 +26807,6 @@ collection._DoubleLinkedQueueEntry$ = dart.generic(E => {
       return this[_previousLink][_asNonSentinelEntry]();
     }
   }
-  dart.setBaseClass(_DoubleLinkedQueueEntry, collection._DoubleLink$(_DoubleLinkedQueueEntry));
   dart.setSignature(_DoubleLinkedQueueEntry, {
     constructors: () => ({new: dart.definiteFunctionType(collection._DoubleLinkedQueueEntry$(E), [DoubleLinkedQueueOfE()])}),
     fields: () => ({[_queue]: DoubleLinkedQueueOfE()}),
@@ -26813,6 +26818,8 @@ collection._DoubleLinkedQueueEntry$ = dart.generic(E => {
     })
   });
   return _DoubleLinkedQueueEntry;
+}, _DoubleLinkedQueueEntry => {
+  dart.setBaseClass(_DoubleLinkedQueueEntry, collection._DoubleLink$(_DoubleLinkedQueueEntry));
 });
 collection._DoubleLinkedQueueEntry = _DoubleLinkedQueueEntry();
 const _elementCount = Symbol('_elementCount');

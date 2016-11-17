@@ -767,7 +767,8 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     // Emit things that come after the ES6 `class ... { ... }`.
     var jsPeerNames = _getJSPeerNames(classElem);
-    _setBaseClass(classElem, className, jsPeerNames, body);
+    JS.Statement deferredBaseClass =
+        _setBaseClass(classElem, className, jsPeerNames, body);
 
     _emitClassTypeTests(classElem, className, body);
 
@@ -779,9 +780,11 @@ class CodeGenerator extends GeneralizingAstVisitor
     _emitClassMetadata(node.metadata, className, body);
 
     JS.Statement classDef = _statement(body);
+
     var typeFormals = classElem.typeParameters;
     if (typeFormals.isNotEmpty) {
-      classDef = _defineClassTypeArguments(classElem, typeFormals, classDef);
+      classDef = _defineClassTypeArguments(
+          classElem, typeFormals, classDef, className, deferredBaseClass);
     }
 
     body = <JS.Statement>[classDef];
@@ -1126,14 +1129,23 @@ class CodeGenerator extends GeneralizingAstVisitor
 
   /// Wraps a possibly generic class in its type arguments.
   JS.Statement _defineClassTypeArguments(TypeDefiningElement element,
-      List<TypeParameterElement> formals, JS.Statement body) {
+      List<TypeParameterElement> formals, JS.Statement body,
+      [JS.Expression className, JS.Statement deferredBaseClass]) {
     assert(formals.isNotEmpty);
-    var genericCall = _callHelper('generic((#) => { #; #; return #; })', [
+    var typeConstructor = js.call('(#) => { #; #; return #; }', [
       _emitTypeFormals(formals),
       _typeTable.discharge(formals),
       body,
       element.name
     ]);
+
+    var genericArgs = [typeConstructor];
+    if (deferredBaseClass != null) {
+      genericArgs.add(js.call('(#) => { #; }', [className, deferredBaseClass]));
+    }
+
+    var genericCall = _callHelper('generic(#)', [genericArgs]);
+
     if (element.library.isDartAsync &&
         (element.name == "Future" || element.name == "_Future")) {
       genericCall = _callHelper('flattenFutures(#)', [genericCall]);
@@ -1601,9 +1613,10 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
   }
 
-  void _setBaseClass(ClassElement classElem, JS.Expression className,
+  JS.Statement _setBaseClass(ClassElement classElem, JS.Expression className,
       List<String> jsPeerNames, List<JS.Statement> body) {
-    if (jsPeerNames.isNotEmpty && classElem.typeParameters.isNotEmpty) {
+    var typeFormals = classElem.typeParameters;
+    if (jsPeerNames.isNotEmpty && typeFormals.isNotEmpty) {
       for (var peer in jsPeerNames) {
         // TODO(jmesserly): we should just extend Array in the first place
         var newBaseClass = _callHelper('global.#', [peer]);
@@ -1613,9 +1626,12 @@ class CodeGenerator extends GeneralizingAstVisitor
     } else if (_hasDeferredSupertype.contains(classElem)) {
       var newBaseClass = _emitType(classElem.type.superclass,
           nameType: false, subClass: classElem, className: className);
-      body.add(_callHelperStatement(
-          'setBaseClass(#, #);', [className, newBaseClass]));
+      var deferredBaseClass = _callHelperStatement(
+          'setBaseClass(#, #);', [className, newBaseClass]);
+      if (typeFormals.isNotEmpty) return deferredBaseClass;
+      body.add(deferredBaseClass);
     }
+    return null;
   }
 
   void _defineNamedConstructors(List<ConstructorDeclaration> ctors,
@@ -2954,7 +2970,7 @@ class CodeGenerator extends GeneralizingAstVisitor
             hoistType: hoistType,
             subClass: subClass,
             className: className));
-      } else if (lowerGeneric) {
+      } else if (lowerGeneric || element == subClass) {
         jsArgs = [];
       }
       if (jsArgs != null) {

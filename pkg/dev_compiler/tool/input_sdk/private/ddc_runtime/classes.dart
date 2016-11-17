@@ -97,7 +97,7 @@ flattenFutures(builder) => JS(
 })()''');
 
 /// Memoize a generic type constructor function.
-generic(typeConstructor) => JS(
+generic(typeConstructor, [setBaseClass]) => JS(
     '',
     '''(() => {
   let length = $typeConstructor.length;
@@ -128,10 +128,12 @@ generic(typeConstructor) => JS(
             value[$_typeArguments] = args;
             value[$_originalDeclaration] = makeGenericType;
           }
+          map.set(arg, value);
+          if ($setBaseClass) $setBaseClass(value);
         } else {
           value = new Map();
+          map.set(arg, value);
         }
-        map.set(arg, value);
       }
     }
     return value;
