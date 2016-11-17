@@ -6326,15 +6326,16 @@ DART_EXPORT void Dart_SetThreadName(const char* name) {
 
 DART_EXPORT Dart_Handle
 Dart_Precompile(Dart_QualifiedFunctionName entry_points[], bool reset_fields) {
-  UNREACHABLE();
-  return 0;
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
 }
 
 
 DART_EXPORT Dart_Handle
 Dart_CreatePrecompiledSnapshotAssembly(uint8_t** assembly_buffer,
                                        intptr_t* assembly_size) {
-  UNREACHABLE();
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
   return 0;
 }
 
@@ -6348,8 +6349,8 @@ Dart_CreatePrecompiledSnapshotBlob(uint8_t** vm_isolate_snapshot_buffer,
                                    intptr_t* instructions_blob_size,
                                    uint8_t** rodata_blob_buffer,
                                    intptr_t* rodata_blob_size) {
-  UNREACHABLE();
-  return 0;
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
 }
 
 #else  // DART_PRECOMPILER
