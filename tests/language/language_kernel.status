@@ -141,8 +141,6 @@ enum_syntax_test/06: MissingCompileTimeError
 enum_test: RuntimeError
 evaluation_redirecting_constructor_test: RuntimeError
 example_constructor_test: RuntimeError
-execute_finally8_test: RuntimeError
-execute_finally9_test: RuntimeError
 export_double_same_main_test: Crash
 export_main_test: Crash
 external_test/10: MissingRuntimeError
