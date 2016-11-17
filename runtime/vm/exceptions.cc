@@ -381,12 +381,11 @@ static void ThrowExceptionHelper(Thread* thread,
   Instance& stacktrace = Instance::Handle(zone);
   bool handler_exists = false;
   bool handler_needs_stacktrace = false;
+  // Find the exception handler and determine if the handler needs a
+  // stacktrace.
+  handler_exists = FindExceptionHandler(thread, &handler_pc, &handler_sp,
+                                        &handler_fp, &handler_needs_stacktrace);
   if (use_preallocated_stacktrace) {
-    stacktrace ^= isolate->object_store()->preallocated_stack_trace();
-    PreallocatedStacktraceBuilder frame_builder(stacktrace);
-    handler_exists =
-        FindExceptionHandler(thread, &handler_pc, &handler_sp, &handler_fp,
-                             &handler_needs_stacktrace);
     if (handler_pc == 0) {
       // No Dart frame.
       ASSERT(incoming_exception.raw() ==
@@ -396,37 +395,33 @@ static void ThrowExceptionHelper(Thread* thread,
       thread->long_jump_base()->Jump(1, error);
       UNREACHABLE();
     }
+    stacktrace ^= isolate->object_store()->preallocated_stack_trace();
+    PreallocatedStacktraceBuilder frame_builder(stacktrace);
     if (handler_needs_stacktrace) {
       BuildStackTrace(&frame_builder);
     }
   } else {
-    // Get stacktrace field of class Error. This is needed to determine whether
-    // we have a subclass of Error which carries around its stack trace.
-    const Field& stacktrace_field =
-        Field::Handle(zone, LookupStacktraceField(exception));
-
-    // Find the exception handler and determine if the handler needs a
-    // stacktrace.
-    handler_exists =
-        FindExceptionHandler(thread, &handler_pc, &handler_sp, &handler_fp,
-                             &handler_needs_stacktrace);
     if (!existing_stacktrace.IsNull()) {
       // If we have an existing stack trace then this better be a rethrow. The
       // reverse is not necessarily true (e.g. Dart_PropagateError can cause
       // a rethrow being called without an existing stacktrace.)
       ASSERT(is_rethrow);
-      ASSERT(stacktrace_field.IsNull() ||
-             (exception.GetField(stacktrace_field) != Object::null()));
       stacktrace = existing_stacktrace.raw();
-    } else if (!stacktrace_field.IsNull() || handler_needs_stacktrace) {
-      // Collect the stacktrace if needed.
-      ASSERT(existing_stacktrace.IsNull());
-      stacktrace = Exceptions::CurrentStacktrace();
-      // If we have an Error object, then set its stackTrace field only if it
-      // not yet initialized.
-      if (!stacktrace_field.IsNull() &&
-          (exception.GetField(stacktrace_field) == Object::null())) {
-        exception.SetField(stacktrace_field, stacktrace);
+    } else {
+      // Get stacktrace field of class Error to determine whether we have a
+      // subclass of Error which carries around its stack trace.
+      const Field& stacktrace_field =
+          Field::Handle(zone, LookupStacktraceField(exception));
+      if (!stacktrace_field.IsNull() || handler_needs_stacktrace) {
+        // Collect the stacktrace if needed.
+        ASSERT(existing_stacktrace.IsNull());
+        stacktrace = Exceptions::CurrentStacktrace();
+        // If we have an Error object, then set its stackTrace field only if it
+        // not yet initialized.
+        if (!stacktrace_field.IsNull() &&
+            (exception.GetField(stacktrace_field) == Object::null())) {
+          exception.SetField(stacktrace_field, stacktrace);
+        }
       }
     }
   }
