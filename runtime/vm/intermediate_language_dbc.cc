@@ -417,13 +417,17 @@ EMIT_NATIVE_CODE(LoadStaticField, 1, Location::RequiresRegister()) {
 }
 
 
-EMIT_NATIVE_CODE(InitStaticField, 1) {
+EMIT_NATIVE_CODE(InitStaticField,
+                 1,
+                 Location::NoLocation(),
+                 LocationSummary::kCall) {
   if (compiler->is_optimizing()) {
     __ Push(locs()->in(0).reg());
     __ InitStaticTOS();
   } else {
     __ InitStaticTOS();
   }
+  compiler->RecordAfterCall(this);
 }
 
 
