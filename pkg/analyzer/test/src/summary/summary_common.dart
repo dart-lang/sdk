@@ -179,10 +179,10 @@ abstract class SummaryTest {
    * Check that [annotations] contains a single entry which is a reference to
    * a top level variable called `a` in the current library.
    */
-  void checkAnnotationA(List<UnlinkedConst> annotations) {
+  void checkAnnotationA(List<UnlinkedExpr> annotations) {
     expect(annotations, hasLength(1));
     _assertUnlinkedConst(annotations[0], operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'a',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
@@ -1547,9 +1547,9 @@ var v = (() {
   test_constExpr_binary_add() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 + 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.add
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.add
     ], ints: [
       1,
       2
@@ -1560,18 +1560,18 @@ var v = (() {
     UnlinkedVariable variable =
         serializeVariableText('const v = true && false;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushTrue,
-      UnlinkedConstOperation.pushFalse,
-      UnlinkedConstOperation.and
+      UnlinkedExprOperation.pushTrue,
+      UnlinkedExprOperation.pushFalse,
+      UnlinkedExprOperation.and
     ]);
   }
 
   test_constExpr_binary_bitAnd() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 & 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.bitAnd
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.bitAnd
     ], ints: [
       1,
       2
@@ -1581,9 +1581,9 @@ var v = (() {
   test_constExpr_binary_bitOr() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 | 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.bitOr
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.bitOr
     ], ints: [
       1,
       2
@@ -1593,9 +1593,9 @@ var v = (() {
   test_constExpr_binary_bitShiftLeft() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 << 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.bitShiftLeft
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.bitShiftLeft
     ], ints: [
       1,
       2
@@ -1605,9 +1605,9 @@ var v = (() {
   test_constExpr_binary_bitShiftRight() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 >> 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.bitShiftRight
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.bitShiftRight
     ], ints: [
       1,
       2
@@ -1617,9 +1617,9 @@ var v = (() {
   test_constExpr_binary_bitXor() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 ^ 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.bitXor
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.bitXor
     ], ints: [
       1,
       2
@@ -1629,9 +1629,9 @@ var v = (() {
   test_constExpr_binary_divide() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 / 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.divide
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.divide
     ], ints: [
       1,
       2
@@ -1641,9 +1641,9 @@ var v = (() {
   test_constExpr_binary_equal() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 == 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.equal
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.equal
     ], ints: [
       1,
       2
@@ -1653,9 +1653,9 @@ var v = (() {
   test_constExpr_binary_equal_not() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 != 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.notEqual
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.notEqual
     ], ints: [
       1,
       2
@@ -1665,9 +1665,9 @@ var v = (() {
   test_constExpr_binary_floorDivide() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 ~/ 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.floorDivide
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.floorDivide
     ], ints: [
       1,
       2
@@ -1677,9 +1677,9 @@ var v = (() {
   test_constExpr_binary_greater() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 > 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.greater
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.greater
     ], ints: [
       1,
       2
@@ -1689,9 +1689,9 @@ var v = (() {
   test_constExpr_binary_greaterEqual() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 >= 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.greaterEqual
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.greaterEqual
     ], ints: [
       1,
       2
@@ -1701,9 +1701,9 @@ var v = (() {
   test_constExpr_binary_less() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 < 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.less
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.less
     ], ints: [
       1,
       2
@@ -1713,9 +1713,9 @@ var v = (() {
   test_constExpr_binary_lessEqual() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 <= 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.lessEqual
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.lessEqual
     ], ints: [
       1,
       2
@@ -1725,9 +1725,9 @@ var v = (() {
   test_constExpr_binary_modulo() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 % 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.modulo
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.modulo
     ], ints: [
       1,
       2
@@ -1737,9 +1737,9 @@ var v = (() {
   test_constExpr_binary_multiply() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 * 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.multiply
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.multiply
     ], ints: [
       1,
       2
@@ -1750,18 +1750,18 @@ var v = (() {
     UnlinkedVariable variable =
         serializeVariableText('const v = false || true;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushFalse,
-      UnlinkedConstOperation.pushTrue,
-      UnlinkedConstOperation.or
+      UnlinkedExprOperation.pushFalse,
+      UnlinkedExprOperation.pushTrue,
+      UnlinkedExprOperation.or
     ]);
   }
 
   test_constExpr_binary_subtract() {
     UnlinkedVariable variable = serializeVariableText('const v = 1 - 2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.subtract
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.subtract
     ], ints: [
       1,
       2
@@ -1783,7 +1783,7 @@ class C<T> {
     UnlinkedClass cls = serializeClassText(text, allowErrors: true);
     _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
         operators: [
-          UnlinkedConstOperation.pushReference
+          UnlinkedExprOperation.pushReference
         ],
         referenceValidators: [
           (EntityRef r) => checkTypeRef(r, null, null, 'T',
@@ -1799,10 +1799,10 @@ class C<T> {
     UnlinkedVariable variable =
         serializeVariableText('const v = true ? 1 : 2;', allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushTrue,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.conditional
+      UnlinkedExprOperation.pushTrue,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.conditional
     ], ints: [
       1,
       2
@@ -1818,7 +1818,7 @@ class C {
 }
 ''');
     _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
-        operators: [UnlinkedConstOperation.pushParameter], strings: ['a']);
+        operators: [UnlinkedExprOperation.pushParameter], strings: ['a']);
   }
 
   test_constExpr_constructorParam_shadows_typeParam() {
@@ -1829,7 +1829,7 @@ class C<T> {
 }
 ''');
     _assertUnlinkedConst(cls.executables[0].constantInitializers[0].expression,
-        operators: [UnlinkedConstOperation.pushParameter], strings: ['T']);
+        operators: [UnlinkedExprOperation.pushParameter], strings: ['T']);
   }
 
   test_constExpr_functionExpression_asArgument() {
@@ -1843,9 +1843,9 @@ foo(a, b) {}
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushLocalFunctionReference,
-          UnlinkedConstOperation.invokeMethodRef
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
           5,
@@ -1872,10 +1872,10 @@ foo(a, b, c) {}
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushLocalFunctionReference,
-          UnlinkedConstOperation.pushLocalFunctionReference,
-          UnlinkedConstOperation.invokeMethodRef
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
           5,
@@ -1906,11 +1906,11 @@ class C {
     expect(executable.localFunctions, hasLength(2));
     _assertUnlinkedConst(executable.constantInitializers[0].expression,
         isValidConst: false,
-        operators: [UnlinkedConstOperation.pushLocalFunctionReference],
+        operators: [UnlinkedExprOperation.pushLocalFunctionReference],
         ints: [0, 0]);
     _assertUnlinkedConst(executable.constantInitializers[1].expression,
         isValidConst: false,
-        operators: [UnlinkedConstOperation.pushLocalFunctionReference],
+        operators: [UnlinkedExprOperation.pushLocalFunctionReference],
         ints: [0, 1]);
   }
 
@@ -1922,7 +1922,7 @@ class C<K, V> {
 const v = const C<int, String>.named();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -1954,7 +1954,7 @@ import 'a.dart';
 const v = const C<int, String>.named();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -1988,7 +1988,7 @@ import 'a.dart' as p;
 const v = const p.C<int, String>.named();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2018,7 +2018,7 @@ class C<K, V> {
 const v = const C<int, String>();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2047,7 +2047,7 @@ import 'a.dart';
 const v = const C<int, String>();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2076,7 +2076,7 @@ import 'a.dart' as p;
 const v = const p.C<int, String>();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2103,7 +2103,7 @@ class C {
 const v = const C.named();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2129,7 +2129,7 @@ import 'a.dart';
 const v = const C.named();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2156,7 +2156,7 @@ import 'a.dart' as p;
 const v = const p.C.named();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2183,14 +2183,14 @@ const v = const C(11, 22, 3.3, '444', e: 55, g: '777', f: 66);
     // Doubles: ^pointer
     // Strings: ^pointer 'e' 'g' 'f' ''
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushDouble,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushDouble,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       11,
       22,
@@ -2225,7 +2225,7 @@ import 'a.dart';
 const v = const C();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2248,7 +2248,7 @@ import 'a.dart' as p;
 const v = const p.C();
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2269,7 +2269,7 @@ const v = const C.foo();
 ''',
         allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2289,7 +2289,7 @@ const v = const C.foo();
 ''',
         allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2316,7 +2316,7 @@ const v = const p.C.foo();
 ''',
         allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2340,7 +2340,7 @@ const v = const p.C.foo();
 ''',
         allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2361,7 +2361,7 @@ const v = const Foo();
 ''',
         allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -2375,9 +2375,9 @@ const v = const Foo();
     UnlinkedVariable variable =
         serializeVariableText('const v = identical(42, null);');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushNull,
-      UnlinkedConstOperation.invokeMethodRef
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushNull,
+      UnlinkedExprOperation.invokeMethodRef
     ], ints: [
       42,
       0,
@@ -2399,7 +2399,7 @@ class C {
 const int v = C.length;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2422,7 +2422,7 @@ import 'a.dart' as p;
 const int v = p.C.length;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2440,7 +2440,7 @@ const String a = 'aaa';
 const int v = a.length;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.unresolved,
@@ -2460,7 +2460,7 @@ class C {
 const int v = C.F.length;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.unresolved,
@@ -2483,7 +2483,7 @@ import 'a.dart';
 const int v = a.length;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.unresolved,
@@ -2507,7 +2507,7 @@ import 'a.dart' as p;
 const int v = p.a.length;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
               expectedKind: ReferenceKind.unresolved,
@@ -2525,10 +2525,10 @@ const int v = p.a.length;
     UnlinkedVariable variable =
         serializeVariableText('const v = ("abc" + "edf").length;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.add,
-      UnlinkedConstOperation.extractProperty
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.add,
+      UnlinkedExprOperation.extractProperty
     ], strings: [
       'abc',
       'edf',
@@ -2540,8 +2540,8 @@ const int v = p.a.length;
     UnlinkedVariable variable =
         serializeVariableText('const v = ("abc").length;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.extractProperty
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.extractProperty
     ], strings: [
       'abc',
       'length'
@@ -2552,8 +2552,8 @@ const int v = p.a.length;
     UnlinkedVariable variable =
         serializeVariableText('const v = "abc".length;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.extractProperty
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.extractProperty
     ], strings: [
       'abc',
       'length'
@@ -2563,17 +2563,17 @@ const int v = p.a.length;
   test_constExpr_makeSymbol() {
     UnlinkedVariable variable = serializeVariableText('const v = #a.bb.ccc;');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.makeSymbol], strings: ['a.bb.ccc']);
+        operators: [UnlinkedExprOperation.makeSymbol], strings: ['a.bb.ccc']);
   }
 
   test_constExpr_makeTypedList() {
     UnlinkedVariable variable =
         serializeVariableText('const v = const <int>[11, 22, 33];');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.makeTypedList
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.makeTypedList
     ], ints: [
       11,
       22,
@@ -2589,10 +2589,10 @@ const int v = p.a.length;
     UnlinkedVariable variable =
         serializeVariableText('const v = const <dynamic>[11, 22, 33];');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.makeTypedList
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.makeTypedList
     ], ints: [
       11,
       22,
@@ -2607,13 +2607,13 @@ const int v = p.a.length;
     UnlinkedVariable variable = serializeVariableText(
         'const v = const <int, String>{11: "aaa", 22: "bbb", 33: "ccc"};');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.makeTypedMap
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.makeTypedMap
     ], ints: [
       11,
       22,
@@ -2635,13 +2635,13 @@ const int v = p.a.length;
     UnlinkedVariable variable = serializeVariableText(
         'const v = const <dynamic, dynamic>{11: "aaa", 22: "bbb", 33: "ccc"};');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.makeTypedMap
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.makeTypedMap
     ], ints: [
       11,
       22,
@@ -2661,10 +2661,10 @@ const int v = p.a.length;
     UnlinkedVariable variable =
         serializeVariableText('const v = const [11, 22, 33];');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.makeUntypedList
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.makeUntypedList
     ], ints: [
       11,
       22,
@@ -2677,13 +2677,13 @@ const int v = p.a.length;
     UnlinkedVariable variable = serializeVariableText(
         'const v = const {11: "aaa", 22: "bbb", 33: "ccc"};');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.makeUntypedMap
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.makeUntypedMap
     ], ints: [
       11,
       22,
@@ -2699,11 +2699,11 @@ const int v = p.a.length;
   test_constExpr_parenthesized() {
     UnlinkedVariable variable = serializeVariableText('const v = (1 + 2) * 3;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.add,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.multiply,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.add,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.multiply,
     ], ints: [
       1,
       2,
@@ -2714,8 +2714,8 @@ const int v = p.a.length;
   test_constExpr_prefix_complement() {
     UnlinkedVariable variable = serializeVariableText('const v = ~2;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.complement
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.complement
     ], ints: [
       2
     ]);
@@ -2724,8 +2724,8 @@ const int v = p.a.length;
   test_constExpr_prefix_negate() {
     UnlinkedVariable variable = serializeVariableText('const v = -(2);');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.negate
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.negate
     ], ints: [
       2
     ]);
@@ -2733,34 +2733,32 @@ const int v = p.a.length;
 
   test_constExpr_prefix_not() {
     UnlinkedVariable variable = serializeVariableText('const v = !true;');
-    _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushTrue,
-      UnlinkedConstOperation.not
-    ]);
+    _assertUnlinkedConst(variable.initializer.bodyExpr,
+        operators: [UnlinkedExprOperation.pushTrue, UnlinkedExprOperation.not]);
   }
 
   test_constExpr_pushDouble() {
     UnlinkedVariable variable = serializeVariableText('const v = 123.4567;');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushDouble], doubles: [123.4567]);
+        operators: [UnlinkedExprOperation.pushDouble], doubles: [123.4567]);
   }
 
   test_constExpr_pushFalse() {
     UnlinkedVariable variable = serializeVariableText('const v = false;');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushFalse]);
+        operators: [UnlinkedExprOperation.pushFalse]);
   }
 
   test_constExpr_pushInt() {
     UnlinkedVariable variable = serializeVariableText('const v = 1;');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [1]);
   }
 
   test_constExpr_pushInt_max() {
     UnlinkedVariable variable = serializeVariableText('const v = 0xFFFFFFFF;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
+      UnlinkedExprOperation.pushInt,
     ], ints: [
       0xFFFFFFFF
     ]);
@@ -2769,8 +2767,8 @@ const int v = p.a.length;
   test_constExpr_pushInt_negative() {
     UnlinkedVariable variable = serializeVariableText('const v = -5;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.negate
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.negate
     ], ints: [
       5
     ]);
@@ -2780,14 +2778,14 @@ const int v = p.a.length;
     UnlinkedVariable variable =
         serializeVariableText('const v = 0xA123456789ABCDEF012345678;');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushLongInt],
+        operators: [UnlinkedExprOperation.pushLongInt],
         ints: [4, 0xA, 0x12345678, 0x9ABCDEF0, 0x12345678]);
   }
 
   test_constExpr_pushLongInt_min2() {
     UnlinkedVariable variable = serializeVariableText('const v = 0x100000000;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushLongInt
+      UnlinkedExprOperation.pushLongInt
     ], ints: [
       2,
       1,
@@ -2799,7 +2797,7 @@ const int v = p.a.length;
     UnlinkedVariable variable =
         serializeVariableText('const v = 0x10000000000000000;');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushLongInt
+      UnlinkedExprOperation.pushLongInt
     ], ints: [
       3,
       1,
@@ -2811,7 +2809,7 @@ const int v = p.a.length;
   test_constExpr_pushNull() {
     UnlinkedVariable variable = serializeVariableText('const v = null;');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushNull]);
+        operators: [UnlinkedExprOperation.pushNull]);
   }
 
   test_constExpr_pushReference_class() {
@@ -2820,7 +2818,7 @@ class C {}
 const v = C;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
@@ -2833,7 +2831,7 @@ enum C {V1, V2, V3}
 const v = C;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
@@ -2846,7 +2844,7 @@ enum C {V1, V2, V3}
 const v = C.V1;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'V1',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2867,7 +2865,7 @@ import 'a.dart';
 const v = C.V1;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'V1',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2884,7 +2882,7 @@ enum C {V1, V2, V3}
 const v = C.values;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'values',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2905,7 +2903,7 @@ import 'a.dart';
 const v = C.values;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'values',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2924,7 +2922,7 @@ class C {
 const v = C.F;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'F',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2947,7 +2945,7 @@ import 'a.dart';
 const v = C.F;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'F',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2971,7 +2969,7 @@ import 'a.dart' as p;
 const v = p.C.F;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'F',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -2991,7 +2989,7 @@ class C {
 }
 ''').fields[0];
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'b',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -3009,7 +3007,7 @@ class C {
 const v = C.x;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'x',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -3032,7 +3030,7 @@ import 'a.dart';
 const v = C.x;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'x',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -3056,7 +3054,7 @@ import 'a.dart' as p;
 const v = p.C.x;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'x',
               expectedKind: ReferenceKind.propertyAccessor,
@@ -3076,7 +3074,7 @@ class C {
 const v = C.m;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'm',
               expectedKind: ReferenceKind.method,
@@ -3099,7 +3097,7 @@ import 'a.dart';
 const v = C.m;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'm',
               expectedKind: ReferenceKind.method,
@@ -3123,7 +3121,7 @@ import 'a.dart' as p;
 const v = p.C.m;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'm',
               expectedKind: ReferenceKind.method,
@@ -3143,7 +3141,7 @@ class C {
 }
 ''').fields[0];
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'm',
               expectedKind: ReferenceKind.method,
@@ -3159,7 +3157,7 @@ f() {}
 const v = f;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'f',
           expectedKind: ReferenceKind.topLevelFunction)
@@ -3177,7 +3175,7 @@ import 'a.dart';
 const v = f;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'f',
           expectedKind: ReferenceKind.topLevelFunction)
@@ -3195,7 +3193,7 @@ import 'a.dart' as p;
 const v = p.f;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'f',
               expectedKind: ReferenceKind.topLevelFunction,
@@ -3211,7 +3209,7 @@ int get x => null;
 const v = x;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'x',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
@@ -3225,7 +3223,7 @@ import 'a.dart';
 const v = x;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'x',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
@@ -3239,7 +3237,7 @@ import 'a.dart' as p;
 const v = p.x;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'x',
           expectedKind: ReferenceKind.topLevelPropertyAccessor,
@@ -3253,7 +3251,7 @@ const int a = 1;
 const v = a;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'a',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
@@ -3267,7 +3265,7 @@ import 'a.dart';
 const v = a;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
@@ -3281,7 +3279,7 @@ import 'a.dart' as p;
 const v = p.a;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) {
         return checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'a',
@@ -3300,7 +3298,7 @@ class C<T> {
     UnlinkedVariable variable =
         serializeClassText(text, allowErrors: true).fields[0];
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) {
         return checkParamTypeRef(r, 1);
@@ -3315,7 +3313,7 @@ const v = foo;
 ''',
         allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
           expectedKind: ReferenceKind.unresolved)
@@ -3330,7 +3328,7 @@ const v = C.foo;
 ''',
         allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
               expectedKind: ReferenceKind.unresolved,
@@ -3353,7 +3351,7 @@ const v = p.C.foo;
 ''',
         allowErrors: true);
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
               expectedKind: ReferenceKind.unresolved,
@@ -3369,20 +3367,20 @@ const v = p.C.foo;
     UnlinkedVariable variable =
         serializeVariableText('const v = "aaa" "b" "ccc";');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushString], strings: ['aaabccc']);
+        operators: [UnlinkedExprOperation.pushString], strings: ['aaabccc']);
   }
 
   test_constExpr_pushString_adjacent_interpolation() {
     UnlinkedVariable variable =
         serializeVariableText(r'const v = "aaa" "bb ${42} bbb" "cccc";');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.concatenate,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.concatenate,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.concatenate,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.concatenate,
     ], ints: [
       42,
       3,
@@ -3399,10 +3397,10 @@ const v = p.C.foo;
     UnlinkedVariable variable =
         serializeVariableText(r'const v = "aaa ${42} bbb";');
     _assertUnlinkedConst(variable.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.concatenate
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.pushInt,
+      UnlinkedExprOperation.pushString,
+      UnlinkedExprOperation.concatenate
     ], ints: [
       42,
       3
@@ -3415,13 +3413,13 @@ const v = p.C.foo;
   test_constExpr_pushString_simple() {
     UnlinkedVariable variable = serializeVariableText('const v = "abc";');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushString], strings: ['abc']);
+        operators: [UnlinkedExprOperation.pushString], strings: ['abc']);
   }
 
   test_constExpr_pushTrue() {
     UnlinkedVariable variable = serializeVariableText('const v = true;');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushTrue]);
+        operators: [UnlinkedExprOperation.pushTrue]);
   }
 
   test_constructor() {
@@ -3513,7 +3511,7 @@ class C {
     expect(initializer.kind, UnlinkedConstructorInitializerKind.field);
     expect(initializer.name, 'x');
     _assertUnlinkedConst(initializer.expression,
-        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [42]);
     expect(initializer.arguments, isEmpty);
   }
 
@@ -3531,7 +3529,7 @@ class C {
     expect(initializer.kind, UnlinkedConstructorInitializerKind.field);
     expect(initializer.name, 'x');
     _assertUnlinkedConst(initializer.expression,
-        operators: [UnlinkedConstOperation.pushParameter], strings: ['p']);
+        operators: [UnlinkedExprOperation.pushParameter], strings: ['p']);
     expect(initializer.arguments, isEmpty);
   }
 
@@ -3565,7 +3563,7 @@ class C extends A {
     expect(initializer.expression, isNull);
     expect(initializer.arguments, hasLength(1));
     _assertUnlinkedConst(initializer.arguments[0],
-        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
 
   test_constructor_initializers_superInvocation_namedExpression() {
@@ -3587,11 +3585,11 @@ class C extends A {
     expect(initializer.expression, isNull);
     expect(initializer.arguments, hasLength(3));
     _assertUnlinkedConst(initializer.arguments[0],
-        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [1]);
     _assertUnlinkedConst(initializer.arguments[1],
-        operators: [UnlinkedConstOperation.pushInt], ints: [2]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [2]);
     _assertUnlinkedConst(initializer.arguments[2],
-        operators: [UnlinkedConstOperation.pushInt], ints: [3]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [3]);
     expect(initializer.argumentNames, ['b', 'c']);
   }
 
@@ -3614,7 +3612,7 @@ class C extends A {
     expect(initializer.expression, isNull);
     expect(initializer.arguments, hasLength(1));
     _assertUnlinkedConst(initializer.arguments[0],
-        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
 
   test_constructor_initializers_thisInvocation_named() {
@@ -3633,9 +3631,9 @@ class C {
     expect(initializer.expression, isNull);
     expect(initializer.arguments, hasLength(2));
     _assertUnlinkedConst(initializer.arguments[0],
-        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [1]);
     _assertUnlinkedConst(initializer.arguments[1],
-        operators: [UnlinkedConstOperation.pushString], strings: ['bbb']);
+        operators: [UnlinkedExprOperation.pushString], strings: ['bbb']);
   }
 
   test_constructor_initializers_thisInvocation_namedExpression() {
@@ -3654,11 +3652,11 @@ class C {
     expect(initializer.expression, isNull);
     expect(initializer.arguments, hasLength(3));
     _assertUnlinkedConst(initializer.arguments[0],
-        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [1]);
     _assertUnlinkedConst(initializer.arguments[1],
-        operators: [UnlinkedConstOperation.pushInt], ints: [2]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [2]);
     _assertUnlinkedConst(initializer.arguments[2],
-        operators: [UnlinkedConstOperation.pushInt], ints: [3]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [3]);
     expect(initializer.argumentNames, ['b', 'c']);
   }
 
@@ -3678,9 +3676,9 @@ class C {
     expect(initializer.expression, isNull);
     expect(initializer.arguments, hasLength(2));
     _assertUnlinkedConst(initializer.arguments[0],
-        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [1]);
     _assertUnlinkedConst(initializer.arguments[1],
-        operators: [UnlinkedConstOperation.pushString], strings: ['bbb']);
+        operators: [UnlinkedExprOperation.pushString], strings: ['bbb']);
   }
 
   test_constructor_initializing_formal() {
@@ -3765,7 +3763,7 @@ int foo() => 0;
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.defaultValueCode, 'foo');
     _assertUnlinkedConst(param.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
           expectedKind: ReferenceKind.topLevelFunction)
@@ -3810,7 +3808,7 @@ int foo() => 0;
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 10);
     _assertUnlinkedConst(parameter.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
 
   test_constructor_initializing_formal_non_function_typed() {
@@ -3842,7 +3840,7 @@ int foo() => 0;
     expect(parameter.defaultValueCode, '42');
     _assertCodeRange(parameter.codeRange, 13, 11);
     _assertUnlinkedConst(parameter.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
 
   test_constructor_initializing_formal_required() {
@@ -3874,7 +3872,7 @@ class C {
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.defaultValueCode, '42');
     _assertUnlinkedConst(param.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
 
   test_constructor_named() {
@@ -5784,7 +5782,7 @@ int foo(int a, String b) => 0;
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, 'foo');
     _assertUnlinkedConst(param.initializer.bodyExpr, operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'foo',
           expectedKind: ReferenceKind.topLevelFunction)
@@ -5807,7 +5805,7 @@ int foo(int a, String b) => 0;
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 5);
     _assertUnlinkedConst(param.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
 
   test_executable_param_kind_positional() {
@@ -5826,7 +5824,7 @@ int foo(int a, String b) => 0;
     expect(param.defaultValueCode, '42');
     _assertCodeRange(param.codeRange, 3, 6);
     _assertUnlinkedConst(param.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [42]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [42]);
   }
 
   test_executable_param_kind_required() {
@@ -6390,10 +6388,10 @@ final v = (a.b.c.f[1] = 5);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushReference,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToIndex,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToIndex,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6436,19 +6434,19 @@ final v = (a.b[1].c[2].f[3] = 5);
         isValidConst: false,
         operators: [
           // 5
-          UnlinkedConstOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
           // a.b[1]
-          UnlinkedConstOperation.pushReference,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.extractIndex,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.extractIndex,
           // c[2]
-          UnlinkedConstOperation.extractProperty,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.extractIndex,
+          UnlinkedExprOperation.extractProperty,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.extractIndex,
           // f[3] = 5
-          UnlinkedConstOperation.extractProperty,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToIndex,
+          UnlinkedExprOperation.extractProperty,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToIndex,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6484,10 +6482,10 @@ final v = (a[1] = 5);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushReference,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToIndex,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToIndex,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6516,9 +6514,9 @@ final v = (new C().f = 5);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.invokeConstructor,
-          UnlinkedConstOperation.assignToProperty,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeConstructor,
+          UnlinkedExprOperation.assignToProperty,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6550,8 +6548,8 @@ final v = (C.f = 1);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToRef,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6589,8 +6587,8 @@ final v = (a.b.c.f = 1);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToRef,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6642,8 +6640,8 @@ final v = (a = 1);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToRef,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6674,8 +6672,8 @@ final v = (a = 1);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToRef,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6706,8 +6704,8 @@ final v = (p.a = 1);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToRef,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToRef,
         ],
         assignmentOperators: [
           (UnlinkedExprAssignOperator.assign)
@@ -6739,14 +6737,14 @@ final v = c.items..[1] = 2;
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushReference,
+          UnlinkedExprOperation.pushReference,
           //   ..[1] = 2
-          UnlinkedConstOperation.cascadeSectionBegin,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToIndex,
+          UnlinkedExprOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToIndex,
           // c
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.cascadeSectionEnd,
         ],
         assignmentOperators: [
           UnlinkedExprAssignOperator.assign,
@@ -6781,19 +6779,19 @@ final v = new C()..f1 = 1..f2 += 2;
         isValidConst: false,
         operators: [
           // new C()
-          UnlinkedConstOperation.invokeConstructor,
+          UnlinkedExprOperation.invokeConstructor,
           //   ..f1 = 1
-          UnlinkedConstOperation.cascadeSectionBegin,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToProperty,
+          UnlinkedExprOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToProperty,
           // C
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.cascadeSectionEnd,
           //   ..f2 += 2
-          UnlinkedConstOperation.cascadeSectionBegin,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToProperty,
+          UnlinkedExprOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToProperty,
           // C
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.cascadeSectionEnd,
         ],
         assignmentOperators: [
           UnlinkedExprAssignOperator.assign,
@@ -6836,29 +6834,29 @@ final v = new A()
         isValidConst: false,
         operators: [
           // new A()
-          UnlinkedConstOperation.invokeConstructor,
+          UnlinkedExprOperation.invokeConstructor,
           // ..fa1 = 1
-          UnlinkedConstOperation.cascadeSectionBegin,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToProperty,
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToProperty,
+          UnlinkedExprOperation.cascadeSectionEnd,
           // ..b
-          UnlinkedConstOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.cascadeSectionBegin,
           //   new B()
-          UnlinkedConstOperation.invokeConstructor,
+          UnlinkedExprOperation.invokeConstructor,
           //   ..fb = 2
-          UnlinkedConstOperation.cascadeSectionBegin,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToProperty,
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToProperty,
+          UnlinkedExprOperation.cascadeSectionEnd,
           // ..b = <pop value>
-          UnlinkedConstOperation.assignToProperty,
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.assignToProperty,
+          UnlinkedExprOperation.cascadeSectionEnd,
           // ..fa2 = 3
-          UnlinkedConstOperation.cascadeSectionBegin,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.assignToProperty,
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.assignToProperty,
+          UnlinkedExprOperation.cascadeSectionEnd,
         ],
         assignmentOperators: [
           UnlinkedExprAssignOperator.assign,
@@ -6904,21 +6902,21 @@ final v = a..m(5).abs()..m(6);
         isValidConst: false,
         operators: [
           // a
-          UnlinkedConstOperation.pushReference,
+          UnlinkedExprOperation.pushReference,
           //   ..m(5)
-          UnlinkedConstOperation.cascadeSectionBegin,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.invokeMethod,
+          UnlinkedExprOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeMethod,
           //   ..abs()
-          UnlinkedConstOperation.invokeMethod,
+          UnlinkedExprOperation.invokeMethod,
           // a
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.cascadeSectionEnd,
           //   ..m(6)
-          UnlinkedConstOperation.cascadeSectionBegin,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.invokeMethod,
+          UnlinkedExprOperation.cascadeSectionBegin,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeMethod,
           // a
-          UnlinkedConstOperation.cascadeSectionEnd,
+          UnlinkedExprOperation.cascadeSectionEnd,
         ],
         ints: [
           5, 0, 1, 0, // m(5)
@@ -6949,10 +6947,10 @@ final v = new C().items[5];
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.invokeConstructor,
-          UnlinkedConstOperation.extractProperty,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.extractIndex,
+          UnlinkedExprOperation.invokeConstructor,
+          UnlinkedExprOperation.extractProperty,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.extractIndex,
         ],
         ints: [
           0,
@@ -6981,8 +6979,8 @@ final v = new C().f;
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.invokeConstructor,
-          UnlinkedConstOperation.extractProperty,
+          UnlinkedExprOperation.invokeConstructor,
+          UnlinkedExprOperation.extractProperty,
         ],
         ints: [
           0,
@@ -7008,9 +7006,9 @@ foo(a, b) {}
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushLocalFunctionReference,
-          UnlinkedConstOperation.invokeMethodRef
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
           5,
@@ -7037,10 +7035,10 @@ foo(a, b, c) {}
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushLocalFunctionReference,
-          UnlinkedConstOperation.pushLocalFunctionReference,
-          UnlinkedConstOperation.invokeMethodRef
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
           5,
@@ -7067,7 +7065,7 @@ final v = () { return 42; };
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
-        operators: [UnlinkedConstOperation.pushLocalFunctionReference],
+        operators: [UnlinkedExprOperation.pushLocalFunctionReference],
         ints: [0, 0]);
   }
 
@@ -7080,7 +7078,7 @@ final v = () => 42;
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
-        operators: [UnlinkedConstOperation.pushLocalFunctionReference],
+        operators: [UnlinkedExprOperation.pushLocalFunctionReference],
         ints: [0, 0]);
   }
 
@@ -7092,7 +7090,7 @@ final v = () => 42;
 final v = ((a, b) {return 42;})(1, 2);
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
+        isValidConst: false, operators: [UnlinkedExprOperation.pushNull]);
   }
 
   test_expr_functionExpressionInvocation_withExpressionBody() {
@@ -7103,7 +7101,7 @@ final v = ((a, b) {return 42;})(1, 2);
 final v = ((a, b) => 42)(1, 2);
 ''');
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
+        isValidConst: false, operators: [UnlinkedExprOperation.pushNull]);
   }
 
   test_expr_inClosure() {
@@ -7112,7 +7110,7 @@ final v = ((a, b) => 42)(1, 2);
     }
     UnlinkedVariable variable = serializeVariableText('var v = () => 1;');
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [1]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [1]);
   }
 
   test_expr_inClosure_noTypeInferenceNeeded() {
@@ -7130,7 +7128,7 @@ final v = ((a, b) => 42)(1, 2);
         serializeVariableText('var v = (x) => (y) => x;');
     _assertUnlinkedConst(
         variable.initializer.localFunctions[0].localFunctions[0].bodyExpr,
-        operators: [UnlinkedConstOperation.pushParameter],
+        operators: [UnlinkedExprOperation.pushParameter],
         strings: ['x']);
   }
 
@@ -7140,7 +7138,7 @@ final v = ((a, b) => 42)(1, 2);
     }
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x;');
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
-        operators: [UnlinkedConstOperation.pushParameter], strings: ['x']);
+        operators: [UnlinkedExprOperation.pushParameter], strings: ['x']);
   }
 
   test_expr_inClosure_refersToParam_methodCall() {
@@ -7151,8 +7149,8 @@ final v = ((a, b) => 42)(1, 2);
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushParameter,
-          UnlinkedConstOperation.invokeMethod
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.invokeMethod
         ],
         strings: [
           'x',
@@ -7174,9 +7172,9 @@ final v = ((a, b) => 42)(1, 2);
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushParameter,
-          UnlinkedConstOperation.extractProperty,
-          UnlinkedConstOperation.invokeMethod
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.extractProperty,
+          UnlinkedExprOperation.invokeMethod
         ],
         strings: [
           'x',
@@ -7199,10 +7197,10 @@ final v = ((a, b) => 42)(1, 2);
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushParameter,
-          UnlinkedConstOperation.pushLocalFunctionReference,
-          UnlinkedConstOperation.pushReference,
-          UnlinkedConstOperation.conditional,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.pushLocalFunctionReference,
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.conditional,
         ],
         strings: [
           'b'
@@ -7224,8 +7222,8 @@ final v = ((a, b) => 42)(1, 2);
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y;');
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [
-          UnlinkedConstOperation.pushParameter,
-          UnlinkedConstOperation.extractProperty
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.extractProperty
         ],
         strings: [
           'x',
@@ -7242,9 +7240,9 @@ final v = ((a, b) => 42)(1, 2);
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushNull,
-          UnlinkedConstOperation.pushParameter,
-          UnlinkedConstOperation.assignToProperty
+          UnlinkedExprOperation.pushNull,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.assignToProperty
         ],
         strings: [
           'x',
@@ -7262,9 +7260,9 @@ final v = ((a, b) => 42)(1, 2);
     UnlinkedVariable variable = serializeVariableText('var v = (x) => x.y.z;');
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         operators: [
-          UnlinkedConstOperation.pushParameter,
-          UnlinkedConstOperation.extractProperty,
-          UnlinkedConstOperation.extractProperty
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.extractProperty,
+          UnlinkedExprOperation.extractProperty
         ],
         strings: [
           'x',
@@ -7282,10 +7280,10 @@ final v = ((a, b) => 42)(1, 2);
     _assertUnlinkedConst(variable.initializer.localFunctions[0].bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushNull,
-          UnlinkedConstOperation.pushParameter,
-          UnlinkedConstOperation.extractProperty,
-          UnlinkedConstOperation.assignToProperty
+          UnlinkedExprOperation.pushNull,
+          UnlinkedExprOperation.pushParameter,
+          UnlinkedExprOperation.extractProperty,
+          UnlinkedExprOperation.assignToProperty
         ],
         strings: [
           'x',
@@ -7310,11 +7308,11 @@ final v = new C().m(1, b: 2, c: 3);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.invokeConstructor,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.invokeMethod,
+          UnlinkedExprOperation.invokeConstructor,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeMethod,
         ],
         ints: [
           0,
@@ -7350,8 +7348,8 @@ final v = new C().f<int, String>();
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.invokeConstructor,
-          UnlinkedConstOperation.invokeMethod
+          UnlinkedExprOperation.invokeConstructor,
+          UnlinkedExprOperation.invokeMethod
         ],
         ints: [
           0,
@@ -7390,9 +7388,9 @@ final v = a.b.c.m(10, 20);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.invokeMethodRef,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeMethodRef,
         ],
         ints: [
           10,
@@ -7432,7 +7430,7 @@ final v = p.C.m();
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.invokeMethodRef,
+          UnlinkedExprOperation.invokeMethodRef,
         ],
         ints: [
           0,
@@ -7463,8 +7461,8 @@ final v = f(u);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushReference,
-          UnlinkedConstOperation.invokeMethodRef
+          UnlinkedExprOperation.pushReference,
+          UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
           0,
@@ -7490,7 +7488,7 @@ final v = f<int, String>();
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.invokeMethodRef
+          UnlinkedExprOperation.invokeMethodRef
         ],
         ints: [
           0,
@@ -7516,10 +7514,10 @@ final v = throw 1 + 2;
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.add,
-          UnlinkedConstOperation.throwException,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.add,
+          UnlinkedExprOperation.throwException,
         ],
         ints: [
           1,
@@ -7537,8 +7535,8 @@ final v = 42 as num;
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.typeCast,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.typeCast,
         ],
         ints: [
           42
@@ -7559,8 +7557,8 @@ final v = 42 is num;
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.typeCheck,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.typeCheck,
         ],
         ints: [
           42
@@ -7591,7 +7589,7 @@ final v = 42 is num;
         serializeClassText('class C { static const int i = 0; }').fields[0];
     expect(variable.isConst, isTrue);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [0]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [0]);
   }
 
   test_field_documented() {
@@ -7612,7 +7610,7 @@ class C {
         serializeClassText('class C { final int i = 0; }').fields[0];
     expect(variable.isFinal, isTrue);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.pushInt], ints: [0]);
+        operators: [UnlinkedExprOperation.pushInt], ints: [0]);
   }
 
   test_field_final_notConstExpr() {
@@ -7625,9 +7623,9 @@ class C {
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.invokeMethodRef,
-          UnlinkedConstOperation.add,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.invokeMethodRef,
+          UnlinkedExprOperation.add,
         ],
         ints: [
           1,
@@ -7652,7 +7650,7 @@ class C<T> {
 }''').fields[0];
     expect(variable.isFinal, isTrue);
     _assertUnlinkedConst(variable.initializer.bodyExpr,
-        operators: [UnlinkedConstOperation.makeTypedList],
+        operators: [UnlinkedExprOperation.makeTypedList],
         ints: [0],
         referenceValidators: [(EntityRef r) => checkParamTypeRef(r, 1)]);
   }
@@ -8686,7 +8684,7 @@ D d;''');
         'class A { const A.named(); } @A.named() class C {}');
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8705,7 +8703,7 @@ D d;''');
         'import "foo.dart" as foo; @foo.A.named() class C {}');
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8727,7 +8725,7 @@ D d;''');
         allowErrors: true);
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8748,7 +8746,7 @@ D d;''');
         allowErrors: true);
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8768,7 +8766,7 @@ D d;''');
         serializeClassText('@A.named() class C {}', allowErrors: true);
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8786,7 +8784,7 @@ D d;''');
         allowErrors: true);
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8804,7 +8802,7 @@ D d;''');
         serializeClassText('class A { const A(); } @A() class C {}');
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8820,7 +8818,7 @@ D d;''');
         serializeClassText('import "foo.dart" as foo; @foo.A() class C {}');
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8837,7 +8835,7 @@ D d;''');
         allowErrors: true);
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8852,7 +8850,7 @@ D d;''');
         serializeClassText('@A() class C {}', allowErrors: true);
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       0
@@ -8867,8 +8865,8 @@ D d;''');
         serializeClassText('class A { const A(x); } @A(null) class C {}');
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.pushNull,
-      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedExprOperation.pushNull,
+      UnlinkedExprOperation.invokeConstructor,
     ], ints: [
       0,
       1
@@ -8994,16 +8992,16 @@ D d;''');
   test_metadata_multiple_annotations() {
     UnlinkedClass cls =
         serializeClassText('const a = null, b = null; @a @b class C {}');
-    List<UnlinkedConst> annotations = cls.annotations;
+    List<UnlinkedExpr> annotations = cls.annotations;
     expect(annotations, hasLength(2));
     _assertUnlinkedConst(annotations[0], operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'a',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
     ]);
     _assertUnlinkedConst(annotations[1], operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'b',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
@@ -9022,7 +9020,7 @@ D d;''');
         serializeClassText('import "a.dart" as a; @a.b class C {}');
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, absUri('/a.dart'), 'a.dart', 'b',
           expectedKind: ReferenceKind.topLevelPropertyAccessor,
@@ -9037,7 +9035,7 @@ D d;''');
         allowErrors: true);
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'b',
           expectedKind: ReferenceKind.unresolved, expectedPrefix: 'a')
@@ -9092,7 +9090,7 @@ D d;''');
     UnlinkedClass cls = serializeClassText('@a class C {}', allowErrors: true);
     expect(cls.annotations, hasLength(1));
     _assertUnlinkedConst(cls.annotations[0], operators: [
-      UnlinkedConstOperation.pushReference
+      UnlinkedExprOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'a',
           expectedKind: ReferenceKind.unresolved)
@@ -10237,12 +10235,12 @@ final v = $expr;
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.add,
-          UnlinkedConstOperation.assignToRef,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.add,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.add,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.add,
         ],
         assignmentOperators: [
           expectedAssignOperator
@@ -10304,9 +10302,9 @@ final v = $expr;
     _assertUnlinkedConst(variable.initializer.bodyExpr,
         isValidConst: false,
         operators: [
-          UnlinkedConstOperation.assignToRef,
-          UnlinkedConstOperation.pushInt,
-          UnlinkedConstOperation.add,
+          UnlinkedExprOperation.assignToRef,
+          UnlinkedExprOperation.pushInt,
+          UnlinkedExprOperation.add,
         ],
         assignmentOperators: [
           expectedAssignmentOperator
@@ -10324,9 +10322,9 @@ final v = $expr;
   /**
    * TODO(scheglov) rename "Const" to "Expr" everywhere
    */
-  void _assertUnlinkedConst(UnlinkedConst constExpr,
+  void _assertUnlinkedConst(UnlinkedExpr constExpr,
       {bool isValidConst: true,
-      List<UnlinkedConstOperation> operators: const <UnlinkedConstOperation>[],
+      List<UnlinkedExprOperation> operators: const <UnlinkedExprOperation>[],
       List<UnlinkedExprAssignOperator> assignmentOperators:
           const <UnlinkedExprAssignOperator>[],
       List<int> ints: const <int>[],

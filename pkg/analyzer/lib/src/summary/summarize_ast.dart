@@ -331,7 +331,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * If the library has a library directive, the annotations for it (if any).
    * Otherwise `null`.
    */
-  List<UnlinkedConst> libraryAnnotations = const <UnlinkedConstBuilder>[];
+  List<UnlinkedExpr> libraryAnnotations = const <UnlinkedExprBuilder>[];
 
   /**
    * The number of slot ids which have been assigned to this compilation unit.
@@ -407,10 +407,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * Serialize the given list of [annotations].  If there are no annotations,
    * the empty list is returned.
    */
-  List<UnlinkedConstBuilder> serializeAnnotations(
+  List<UnlinkedExprBuilder> serializeAnnotations(
       NodeList<Annotation> annotations) {
     if (annotations == null || annotations.isEmpty) {
-      return const <UnlinkedConstBuilder>[];
+      return const <UnlinkedExprBuilder>[];
     }
     return annotations.map((Annotation a) {
       // Closures can't appear inside annotations, so we don't need a
@@ -546,9 +546,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   /**
-   * Serialize the given [expression], creating an [UnlinkedConstBuilder].
+   * Serialize the given [expression], creating an [UnlinkedExprBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(
+  UnlinkedExprBuilder serializeConstExpr(
       Map<int, int> localClosureIndexMap, Expression expression,
       [Set<String> parameterNames]) {
     _ConstExprSerializer serializer =
