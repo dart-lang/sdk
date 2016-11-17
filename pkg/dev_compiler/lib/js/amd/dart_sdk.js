@@ -36890,7 +36890,7 @@ define([], function() {
       let args = Array.prototype.map.call(arguments, js._convertToDart);
       return js._convertToJS(f(...args));
     };
-    dart.dsetindex(js._dartProxies, wrapper, f);
+    js._dartProxies.set(wrapper, f);
     return wrapper;
   };
   dart.fn(js._wrapDartFunction, dynamicTodynamic$());
@@ -83133,15 +83133,6 @@ define([], function() {
       sanitizeNode: dart.definiteFunctionType(dart.void, [html$.Node, html$.Node])
     })
   });
-  html$.Point$ = math.Point$;
-  html$.Point = math.Point;
-  html$.Rectangle$ = math.Rectangle$;
-  html$.Rectangle = math.Rectangle;
-  html_common.SupportedBrowser = _metadata.SupportedBrowser;
-  html_common.Unstable = _metadata.Unstable;
-  html_common.DocsEditable = _metadata.DocsEditable;
-  html_common.Experimental = _metadata.Experimental;
-  html_common.DomName = _metadata.DomName;
   html_common.convertDartToNative_SerializedScriptValue = function(value) {
     return html_common.convertDartToNative_PrepareForStructuredClone(value);
   };

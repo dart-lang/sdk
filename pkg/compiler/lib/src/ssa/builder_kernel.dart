@@ -16,8 +16,11 @@ import '../js_backend/backend.dart' show JavaScriptBackend;
 import '../kernel/kernel.dart';
 import '../resolution/tree_elements.dart';
 import '../tree/dartstring.dart';
+import '../tree/nodes.dart' show FunctionExpression, Node;
 import '../types/masks.dart';
+import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart';
+import '../universe/use.dart' show TypeUse;
 import 'graph_builder.dart';
 import 'kernel_ast_adapter.dart';
 import 'kernel_string_builder.dart';
@@ -25,6 +28,7 @@ import 'locals_handler.dart';
 import 'loop_handler.dart';
 import 'nodes.dart';
 import 'ssa_branch_builder.dart';
+import 'type_builder.dart';
 
 class SsaKernelBuilderTask extends CompilerTask {
   final JavaScriptBackend backend;
@@ -62,6 +66,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   SourceInformationBuilder sourceInformationBuilder;
   KernelAstAdapter astAdapter;
   LoopHandler<ir.Node> loopHandler;
+  TypeBuilder typeBuilder;
 
   KernelSsaBuilder(
       this.targetElement,
@@ -72,6 +77,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       Kernel kernel) {
     this.compiler = compiler;
     this.loopHandler = new KernelLoopHandler(this);
+    typeBuilder = new TypeBuilder(this);
     graph.element = targetElement;
     // TODO(het): Should sourceInformationBuilder be in GraphBuilder?
     this.sourceInformationBuilder =
@@ -118,23 +124,193 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     closeFunction();
   }
 
+  /// Pops the most recent instruction from the stack and 'boolifies' it.
+  ///
+  /// Boolification is checking if the value is '=== true'.
   @override
   HInstruction popBoolified() {
     HInstruction value = pop();
-    // TODO(het): add boolean conversion type check
+    if (typeBuilder.checkOrTrustTypes) {
+      return typeBuilder.potentiallyCheckOrTrustType(
+          value, compiler.coreTypes.boolType,
+          kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
+    }
     HInstruction result = new HBoolify(value, backend.boolType);
     add(result);
     return result;
   }
 
+  /// Builds generative constructors.
+  ///
+  /// Generative constructors are built in two stages.
+  ///
+  /// First, the field values for every instance field for every class in the
+  /// class hierarchy are collected. Then, create a function body that sets
+  /// all of the instance fields to the collected values and call the
+  /// constructor bodies for all constructors in the hierarchy.
   void buildConstructor(ir.Constructor constructor) {
-    // TODO(het): Actually handle this correctly
-    HBasicBlock block = graph.addNewBlock();
-    open(graph.entry);
-    close(new HGoto()).addSuccessor(block);
-    open(block);
-    closeAndGotoExit(new HGoto());
-    graph.finalize();
+    openFunction();
+
+    // Collect field values for the current class.
+    // TODO(het): Does kernel always put field initializers in the constructor
+    //            initializer list? If so then this is unnecessary...
+    Map<ir.Field, HInstruction> fieldValues =
+        _collectFieldValues(constructor.enclosingClass);
+
+    _buildInitializers(constructor, fieldValues);
+
+    final constructorArguments = <HInstruction>[];
+    astAdapter.getClass(constructor.enclosingClass).forEachInstanceField(
+        (ClassElement enclosingClass, FieldElement member) {
+      var value = fieldValues[astAdapter.getFieldFromElement(member)];
+      constructorArguments.add(value);
+    }, includeSuperAndInjectedMembers: true);
+
+    // TODO(het): If the class needs runtime type information, add it as a
+    // constructor argument.
+    HInstruction create = new HCreate(
+        astAdapter.getClass(constructor.enclosingClass),
+        constructorArguments,
+        new TypeMask.nonNullExact(
+            astAdapter.getClass(constructor.enclosingClass),
+            compiler.closedWorld),
+        instantiatedTypes: <DartType>[
+          astAdapter.getClass(constructor.enclosingClass).thisType
+        ],
+        hasRtiInput: false);
+
+    add(create);
+
+    // Generate calls to the constructor bodies.
+
+    closeAndGotoExit(new HReturn(create, null));
+    closeFunction();
+  }
+
+  /// Maps the fields of a class to their SSA values.
+  Map<ir.Field, HInstruction> _collectFieldValues(ir.Class clazz) {
+    final fieldValues = <ir.Field, HInstruction>{};
+
+    for (var field in clazz.fields) {
+      if (field.initializer == null) {
+        fieldValues[field] = graph.addConstantNull(compiler);
+      } else {
+        field.initializer.accept(this);
+        fieldValues[field] = pop();
+      }
+    }
+
+    return fieldValues;
+  }
+
+  /// Collects field initializers all the way up the inheritance chain.
+  void _buildInitializers(
+      ir.Constructor constructor, Map<ir.Field, HInstruction> fieldValues) {
+    var foundSuperCall = false;
+    for (var initializer in constructor.initializers) {
+      if (initializer is ir.SuperInitializer) {
+        foundSuperCall = true;
+        var superConstructor = initializer.target;
+        var arguments = _normalizeAndBuildArguments(
+            superConstructor.function, initializer.arguments);
+        _buildInlinedSuperInitializers(
+            superConstructor, arguments, fieldValues);
+      } else if (initializer is ir.FieldInitializer) {
+        initializer.value.accept(this);
+        fieldValues[initializer.field] = pop();
+      }
+    }
+
+    // TODO(het): does kernel always set the super initializer at the end?
+    // If there was no super-call initializer, then call the default constructor
+    // in the superclass.
+    if (!foundSuperCall) {
+      if (constructor.enclosingClass != astAdapter.objectClass) {
+        var superclass = constructor.enclosingClass.superclass;
+        var defaultConstructor = superclass.constructors
+            .firstWhere((c) => c.name == '', orElse: () => null);
+        if (defaultConstructor == null) {
+          compiler.reporter.internalError(
+              NO_LOCATION_SPANNABLE, 'Could not find default constructor.');
+        }
+        _buildInlinedSuperInitializers(
+            defaultConstructor, <HInstruction>[], fieldValues);
+      }
+    }
+  }
+
+  List<HInstruction> _normalizeAndBuildArguments(
+      ir.FunctionNode function, ir.Arguments arguments) {
+    var signature = astAdapter.getFunctionSignature(function);
+    var builtArguments = <HInstruction>[];
+    var positionalIndex = 0;
+    signature.forEachRequiredParameter((_) {
+      arguments.positional[positionalIndex++].accept(this);
+      builtArguments.add(pop());
+    });
+    if (!signature.optionalParametersAreNamed) {
+      signature.forEachOptionalParameter((ParameterElement element) {
+        if (positionalIndex < arguments.positional.length) {
+          arguments.positional[positionalIndex++].accept(this);
+          builtArguments.add(pop());
+        } else {
+          var constantValue =
+              backend.constants.getConstantValue(element.constant);
+          assert(invariant(element, constantValue != null,
+              message: 'No constant computed for $element'));
+          builtArguments.add(graph.addConstant(constantValue, compiler));
+        }
+      });
+    } else {
+      signature.orderedOptionalParameters.forEach((ParameterElement element) {
+        var correspondingNamed = arguments.named.firstWhere(
+            (named) => named.name == element.name,
+            orElse: () => null);
+        if (correspondingNamed != null) {
+          correspondingNamed.value.accept(this);
+          builtArguments.add(pop());
+        } else {
+          var constantValue =
+              backend.constants.getConstantValue(element.constant);
+          assert(invariant(element, constantValue != null,
+              message: 'No constant computed for $element'));
+          builtArguments.add(graph.addConstant(constantValue, compiler));
+        }
+      });
+    }
+
+    return builtArguments;
+  }
+
+  /// Inlines the given super [constructor]'s initializers by collecting it's
+  /// field values and building its constructor initializers. We visit super
+  /// constructors all the way up to the [Object] constructor.
+  void _buildInlinedSuperInitializers(ir.Constructor constructor,
+      List<HInstruction> arguments, Map<ir.Field, HInstruction> fieldValues) {
+    // TODO(het): Handle RTI if class needs it
+    fieldValues.addAll(_collectFieldValues(constructor.enclosingClass));
+
+    var signature = astAdapter.getFunctionSignature(constructor.function);
+    var index = 0;
+    signature.orderedForEachParameter((ParameterElement parameter) {
+      HInstruction argument = arguments[index++];
+      // Because we are inlining the initializer, we must update
+      // what was given as parameter. This will be used in case
+      // there is a parameter check expression in the initializer.
+      parameters[parameter] = argument;
+      localsHandler.updateLocal(parameter, argument);
+    });
+
+    // TODO(het): set the locals handler state as if we were inlining the
+    // constructor.
+    _buildInitializers(constructor, fieldValues);
+  }
+
+  HTypeConversion buildFunctionTypeConversion(
+      HInstruction original, DartType type, int kind) {
+    HInstruction reifiedType = buildFunctionType(type);
+    return new HTypeConversion.viaMethodOnType(
+        type, kind, original.instructionType, reifiedType, original);
   }
 
   /// Builds a SSA graph for [procedure].
@@ -147,7 +323,12 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   void openFunction() {
     HBasicBlock block = graph.addNewBlock();
     open(graph.entry);
-    localsHandler.startFunction(targetElement, resolvedAst.node);
+
+    Node function;
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      function = resolvedAst.node;
+    }
+    localsHandler.startFunction(targetElement, function);
     close(new HGoto()).addSuccessor(block);
 
     open(block);
@@ -158,11 +339,24 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     graph.finalize();
   }
 
+  /// Pushes a boolean checking [expression] against null.
+  pushCheckNull(HInstruction expression) {
+    push(new HIdentity(
+        expression, graph.addConstantNull(compiler), null, backend.boolType));
+  }
+
   @override
   void defaultExpression(ir.Expression expression) {
     // TODO(het): This is only to get tests working
     stack.add(graph.addConstantNull(compiler));
   }
+
+  /// Returns the current source element.
+  ///
+  /// The returned element is a declaration element.
+  // TODO(efortuna): Update this when we implement inlining.
+  @override
+  Element get sourceElement => astAdapter.getElement(target);
 
   @override
   void visitBlock(ir.Block block) {
@@ -197,9 +391,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     if (returnStatement.expression == null) {
       value = graph.addConstantNull(compiler);
     } else {
+      assert(target is ir.Procedure);
       returnStatement.expression.accept(this);
-      value = pop();
-      // TODO(het): Check or trust the type of value
+      value = typeBuilder.potentiallyCheckOrTrustType(pop(),
+          astAdapter.getFunctionReturnType((target as ir.Procedure).function));
     }
     // TODO(het): Add source information
     // TODO(het): Set a return value instead of closing the function when we
@@ -401,6 +596,26 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
         forInStatement, buildInitializer, buildCondition, () {}, buildBody);
   }
 
+  HInstruction callSetRuntimeTypeInfo(
+      HInstruction typeInfo, HInstruction newObject) {
+    // Set the runtime type information on the object.
+    ir.Procedure typeInfoSetterFn = astAdapter.setRuntimeTypeInfo;
+    // TODO(efortuna): Insert source information in this static invocation.
+    _pushStaticInvocation(typeInfoSetterFn, <HInstruction>[newObject, typeInfo],
+        backend.dynamicType);
+
+    // The new object will now be referenced through the
+    // `setRuntimeTypeInfo` call. We therefore set the type of that
+    // instruction to be of the object's type.
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE,
+        stack.last is HInvokeStatic || stack.last == newObject,
+        message: "Unexpected `stack.last`: Found ${stack.last}, "
+            "expected ${newObject} or an HInvokeStatic. "
+            "State: typeInfo=$typeInfo, stack=$stack."));
+    stack.last.instructionType = newObject.instructionType;
+    return pop();
+  }
+
   @override
   void visitWhileStatement(ir.WhileStatement whileStatement) {
     assert(isReachable);
@@ -500,6 +715,21 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     stack.add(graph.addConstantNull(compiler));
   }
 
+  HInstruction setRtiIfNeeded(HInstruction object, ir.ListLiteral listLiteral) {
+    InterfaceType type = localsHandler
+        .substInContext(elements.getType(astAdapter.getNode(listLiteral)));
+    if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
+      return object;
+    }
+    List<HInstruction> arguments = <HInstruction>[];
+    for (DartType argument in type.typeArguments) {
+      arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
+    }
+    // TODO(15489): Register at codegen.
+    registry?.registerInstantiation(type);
+    return callSetRuntimeTypeInfoWithTypeArguments(type, arguments, object);
+  }
+
   @override
   void visitListLiteral(ir.ListLiteral listLiteral) {
     HInstruction listInstruction;
@@ -514,7 +744,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
       listInstruction = new HLiteralList(elements, backend.extendableArrayType);
       add(listInstruction);
-      // TODO(het): set runtime type info
+      listInstruction = setRtiIfNeeded(listInstruction, listLiteral);
     }
 
     TypeMask type = astAdapter.typeOfNewList(targetElement, listLiteral);
@@ -591,8 +821,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
           astAdapter.returnTypeOf(staticTarget));
       pop();
     } else {
-      // TODO(het): check or trust type
-      add(new HStaticStore(astAdapter.getMember(staticTarget), value));
+      add(new HStaticStore(
+          astAdapter.getMember(staticTarget),
+          typeBuilder.potentiallyCheckOrTrustType(
+              value, astAdapter.getDartType(staticTarget.setterType))));
     }
     stack.add(value);
   }
@@ -647,8 +879,10 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     }
 
     stack.add(value);
-    // TODO(het): check or trust type
-    localsHandler.updateLocal(local, value);
+    localsHandler.updateLocal(
+        local,
+        typeBuilder.potentiallyCheckOrTrustType(
+            value, astAdapter.getDartType(variable.type)));
   }
 
   // TODO(het): Also extract type arguments

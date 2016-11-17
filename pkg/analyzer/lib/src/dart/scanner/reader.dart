@@ -6,7 +6,8 @@ library analyzer.src.dart.scanner.reader;
 
 import 'package:front_end/src/scanner/reader.dart';
 
-export 'package:front_end/src/scanner/reader.dart' show CharacterReader;
+export 'package:front_end/src/scanner/reader.dart'
+    show CharacterReader, CharSequenceReader, SubSequenceReader;
 
 /**
  * A [CharacterReader] that reads a range of characters from another character
@@ -58,93 +59,4 @@ class CharacterRangeReader extends CharacterReader {
     }
     return baseReader.peek();
   }
-}
-
-/**
- * A [CharacterReader] that reads characters from a character sequence.
- */
-class CharSequenceReader implements CharacterReader {
-  /**
-   * The sequence from which characters will be read.
-   */
-  final String _sequence;
-
-  /**
-   * The number of characters in the string.
-   */
-  int _stringLength;
-
-  /**
-   * The index, relative to the string, of the next character to be read.
-   */
-  int _charOffset;
-
-  /**
-   * Initialize a newly created reader to read the characters in the given
-   * [_sequence].
-   */
-  CharSequenceReader(this._sequence) {
-    this._stringLength = _sequence.length;
-    this._charOffset = 0;
-  }
-
-  @override
-  int get offset => _charOffset - 1;
-
-  @override
-  void set offset(int offset) {
-    _charOffset = offset + 1;
-  }
-
-  @override
-  int advance() {
-    if (_charOffset >= _stringLength) {
-      return -1;
-    }
-    return _sequence.codeUnitAt(_charOffset++);
-  }
-
-  @override
-  String getString(int start, int endDelta) =>
-      _sequence.substring(start, _charOffset + endDelta);
-
-  @override
-  int peek() {
-    if (_charOffset >= _stringLength) {
-      return -1;
-    }
-    return _sequence.codeUnitAt(_charOffset);
-  }
-}
-
-/**
- * A [CharacterReader] that reads characters from a character sequence, but adds
- * a delta when reporting the current character offset so that the character
- * sequence can be a subsequence from a larger sequence.
- */
-class SubSequenceReader extends CharSequenceReader {
-  /**
-   * The offset from the beginning of the file to the beginning of the source
-   * being scanned.
-   */
-  final int _offsetDelta;
-
-  /**
-   * Initialize a newly created reader to read the characters in the given
-   * [sequence]. The [_offsetDelta] is the offset from the beginning of the file
-   * to the beginning of the source being scanned
-   */
-  SubSequenceReader(String sequence, this._offsetDelta) : super(sequence);
-
-  @override
-  int get offset => _offsetDelta + super.offset;
-
-  @override
-  void set offset(int offset) {
-    super.offset = offset - _offsetDelta;
-  }
-
-  @override
-  String getString(int start, int endDelta) =>
-      super.getString(start - _offsetDelta, endDelta);
 }

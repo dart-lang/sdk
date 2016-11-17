@@ -11,32 +11,15 @@ Future<int> testLockWholeFile(File file, int len) async {
   var raf = await file.open(mode: APPEND);
   await raf.setPosition(0);
   int nextToWrite = 1;
-  while (nextToWrite <= len) {
-    await raf.lock(FileLock.BLOCKING_EXCLUSIVE, 0, len);
-
-    int at;
-    int p;
-    while (true) {
-      p = await raf.position();
-      at = await raf.readByte();
-      if (at == 0 || at == -1) break;
-      nextToWrite++;
-    }
-    await raf.setPosition(p);
-    await raf.writeByte(nextToWrite);
-    await raf.flush();
-    nextToWrite++;
-    await raf.unlock(0, len);
-  }
-
   await raf.lock(FileLock.BLOCKING_EXCLUSIVE, 0, len);
-  await raf.setPosition(0);
-  for (int i = 1; i <= len; i++) {
-    if ((await raf.readByte()) != i) {
-      await raf.unlock(0, len);
-      await raf.close();
-      return 1;
-    }
+
+  // Make sure the peer fails a non-blocking lock at some point.
+  await new Future.delayed(const Duration(seconds: 1));
+
+  int p = 0;
+  while (p < len) {
+    await raf.writeByte(1);
+    p++;
   }
   await raf.unlock(0, len);
   await raf.close();

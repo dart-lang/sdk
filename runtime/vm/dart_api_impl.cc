@@ -1236,12 +1236,15 @@ static char* BuildIsolateName(const char* script_uri, const char* main) {
 }
 
 
-DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
-                                            const char* main,
-                                            const uint8_t* snapshot,
-                                            Dart_IsolateFlags* flags,
-                                            void* callback_data,
-                                            char** error) {
+static Dart_Isolate CreateIsolate(const char* script_uri,
+                                  const char* main,
+                                  const uint8_t* snapshot_buffer,
+                                  intptr_t snapshot_length,
+                                  bool from_kernel,
+                                  Dart_IsolateFlags* flags,
+                                  void* callback_data,
+                                  char** error) {
+  ASSERT(!from_kernel || (snapshot_buffer != NULL));
   CHECK_NO_ISOLATE(Isolate::Current());
   char* isolate_name = BuildIsolateName(script_uri, main);
 
@@ -1265,11 +1268,12 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
     Dart_EnterScope();
-    const Error& error_obj =
-        Error::Handle(Z, Dart::InitializeIsolate(snapshot, callback_data));
+    const Error& error_obj = Error::Handle(
+        Z, Dart::InitializeIsolate(snapshot_buffer, snapshot_length,
+                                   from_kernel, callback_data));
     if (error_obj.IsNull()) {
 #if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
-      if (FLAG_check_function_fingerprints) {
+      if (FLAG_check_function_fingerprints && !from_kernel) {
         Library::CheckFunctionFingerprints();
       }
 #endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT).
@@ -1289,6 +1293,30 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   }
   Dart::ShutdownIsolate();
   return reinterpret_cast<Dart_Isolate>(NULL);
+}
+
+
+DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
+                                            const char* main,
+                                            const uint8_t* snapshot_buffer,
+                                            Dart_IsolateFlags* flags,
+                                            void* callback_data,
+                                            char** error) {
+  return CreateIsolate(script_uri, main, snapshot_buffer, -1, false, flags,
+                       callback_data, error);
+}
+
+
+DART_EXPORT Dart_Isolate
+Dart_CreateIsolateFromKernel(const char* script_uri,
+                             const char* main,
+                             const uint8_t* kernel_file,
+                             intptr_t kernel_length,
+                             Dart_IsolateFlags* flags,
+                             void* callback_data,
+                             char** error) {
+  return CreateIsolate(script_uri, main, kernel_file, kernel_length, true,
+                       flags, callback_data, error);
 }
 
 
@@ -2108,7 +2136,7 @@ DART_EXPORT Dart_Handle Dart_InstanceGetType(Dart_Handle instance) {
     RETURN_TYPE_ERROR(Z, instance, Instance);
   }
   const AbstractType& type =
-      AbstractType::Handle(Instance::Cast(obj).GetType());
+      AbstractType::Handle(Instance::Cast(obj).GetType(Heap::kNew));
   return Api::NewHandle(T, type.Canonicalize());
 }
 
@@ -4046,7 +4074,8 @@ DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
 
   // Construct name of the constructor to invoke.
   const String& constructor_name = Api::UnwrapStringHandle(Z, name);
-  const AbstractType& type_obj = AbstractType::Handle(Z, instance.GetType());
+  const AbstractType& type_obj =
+      AbstractType::Handle(Z, instance.GetType(Heap::kNew));
   const Class& cls = Class::Handle(Z, type_obj.type_class());
   const String& class_name = String::Handle(Z, cls.Name());
   const Array& strings = Array::Handle(Z, Array::New(3));
@@ -5327,7 +5356,7 @@ DART_EXPORT Dart_Handle Dart_LoadKernel(const uint8_t* buffer,
   DARTSCOPE(Thread::Current());
   StackZone zone(T);
 
-#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_PRECOMPILER)
+#if defined(DART_PRECOMPILED_RUNTIME)
   return Api::NewError("%s: Can't load Kernel files from precompiled runtime.",
                        CURRENT_FUNC);
 #else

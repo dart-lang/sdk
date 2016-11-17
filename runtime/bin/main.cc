@@ -799,10 +799,26 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     return NULL;
   }
 
+  // If the script is a Kernel binary, then we will try to bootstrap from the
+  // script.
+  const uint8_t* kernel_file = NULL;
+  intptr_t kernel_length = -1;
+  const bool is_kernel =
+      !run_app_snapshot &&
+      TryReadKernel(script_uri, &kernel_file, &kernel_length);
+
   IsolateData* isolate_data =
       new IsolateData(script_uri, package_root, packages_config);
-  Dart_Isolate isolate = Dart_CreateIsolate(
-      script_uri, main, isolate_snapshot_buffer, flags, isolate_data, error);
+  Dart_Isolate isolate =
+      is_kernel ? Dart_CreateIsolateFromKernel(script_uri, main, kernel_file,
+                                               kernel_length, flags,
+                                               isolate_data, error)
+                : Dart_CreateIsolate(script_uri, main, isolate_snapshot_buffer,
+                                     flags, isolate_data, error);
+  if (is_kernel) {
+    free(const_cast<uint8_t*>(kernel_file));
+  }
+
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
@@ -810,7 +826,20 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 
   Dart_EnterScope();
 
-  if (isolate_snapshot_buffer != NULL) {
+  // Set up the library tag handler for this isolate.
+  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
+  CHECK_RESULT(result);
+
+  if (is_kernel) {
+    // TODO(27590): We should not read the kernel file again!
+    if (!TryReadKernel(script_uri, &kernel_file, &kernel_length)) {
+      FATAL("Failed to read kernel second time");
+    }
+    Dart_Handle result = Dart_LoadKernel(kernel_file, kernel_length);
+    free(const_cast<uint8_t*>(kernel_file));
+    CHECK_RESULT(result);
+  }
+  if (is_kernel || (isolate_snapshot_buffer != NULL)) {
     // Setup the native resolver as the snapshot does not carry it.
     Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
     Builtin::SetNativeResolver(Builtin::kIOLibrary);
@@ -819,10 +848,6 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     Dart_Handle result = Loader::ReloadNativeExtensions();
     CHECK_RESULT(result);
   }
-
-  // Set up the library tag handler for this isolate.
-  Dart_Handle result = Dart_SetLibraryTagHandler(Loader::LibraryTagHandler);
-  CHECK_RESULT(result);
 
   if (Dart_IsServiceIsolate(isolate)) {
     // If this is the service isolate, load embedder specific bits and return.
@@ -872,8 +897,10 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     Dart_Handle uri =
         DartUtils::ResolveScript(Dart_NewStringFromCString(script_uri));
     CHECK_RESULT(uri);
-    result = Loader::LibraryTagHandler(Dart_kScriptTag, Dart_Null(), uri);
-    CHECK_RESULT(result);
+    if (!is_kernel) {
+      result = Loader::LibraryTagHandler(Dart_kScriptTag, Dart_Null(), uri);
+      CHECK_RESULT(result);
+    }
 
     Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
                        Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
@@ -1835,6 +1862,9 @@ void main(int argc, char** argv) {
 
   if (gen_snapshot_kind == kAppJIT) {
     vm_options.AddArgument("--fields_may_be_reset");
+#if !defined(PRODUCT)
+    vm_options.AddArgument("--collect_code=false");
+#endif
   }
   if ((gen_snapshot_kind == kAppAOT) || is_noopt) {
     vm_options.AddArgument("--precompilation");

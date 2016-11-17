@@ -33,7 +33,6 @@ import '../tree/tree.dart' show Node;
 import '../universe/world_impact.dart'
     show ImpactStrategy, WorldImpact, WorldImpactBuilder;
 import 'codegen.dart' show CodegenWorkItem;
-import 'registry.dart' show Registry;
 import 'tasks.dart' show CompilerTask;
 
 abstract class Backend extends Target {
@@ -315,9 +314,6 @@ abstract class Backend extends Target {
   void forgetElement(Element element) {}
 
   void registerMainHasArguments(Enqueuer enqueuer) {}
-
-  void registerAsyncMarker(
-      FunctionElement element, Enqueuer enqueuer, Registry registry) {}
 
   /// Returns the location of the patch-file associated with [libraryName]
   /// resolved from [plaformConfigUri].

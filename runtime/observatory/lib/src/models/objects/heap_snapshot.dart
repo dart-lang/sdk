@@ -10,6 +10,7 @@ abstract class HeapSnapshot {
   int get references;
   int get size;
   HeapSnapshotDominatorNode get dominatorTree;
+  HeapSnapshotMergedDominatorNode get mergedDominatorTree;
   Iterable<HeapSnapshotClassReferences> get classReferences;
 }
 
@@ -18,6 +19,14 @@ abstract class HeapSnapshotDominatorNode {
   int get retainedSize;
   Future<ObjectRef> get object;
   Iterable<HeapSnapshotDominatorNode> get children;
+}
+
+abstract class HeapSnapshotMergedDominatorNode {
+  int get instanceCount;
+  int get shallowSize;
+  int get retainedSize;
+  Future<ObjectRef> get klass;
+  Iterable<HeapSnapshotMergedDominatorNode> get children;
 }
 
 abstract class HeapSnapshotClassReferences {

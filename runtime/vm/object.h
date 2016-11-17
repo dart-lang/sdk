@@ -525,8 +525,11 @@ class Object {
   static void InitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
 
-  // Initialize a new isolate either from source or from a snapshot.
-  static RawError* Init(Isolate* isolate);
+  // Initialize a new isolate either from a Kernel IR, from source, or from a
+  // snapshot.
+  static RawError* Init(Isolate* isolate,
+                        const uint8_t* kernel,
+                        intptr_t kernel_length);
 
   static void MakeUnusedSpaceTraversable(const Object& obj,
                                          intptr_t original_size,
@@ -1030,7 +1033,10 @@ class Class : public Object {
   }
 
   // Asserts that the class of the super type has been resolved.
-  RawClass* SuperClass() const;
+  // |original_classes| only has an effect when reloading. If true and we
+  // are reloading, it will prefer the original classes to the replacement
+  // classes.
+  RawClass* SuperClass(bool original_classes = false) const;
 
   RawType* mixin() const { return raw_ptr()->mixin_; }
   void set_mixin(const Type& value) const;
@@ -1119,7 +1125,10 @@ class Class : public Object {
 
   // Returns an array of all instance fields of this class and its superclasses
   // indexed by offset in words.
-  RawArray* OffsetToFieldMap() const;
+  // |original_classes| only has an effect when reloading. If true and we
+  // are reloading, it will prefer the original classes to the replacement
+  // classes.
+  RawArray* OffsetToFieldMap(bool original_classes = false) const;
 
   // Returns true if non-static fields are defined.
   bool HasInstanceFields() const;
@@ -1503,8 +1512,8 @@ class Class : public Object {
 // to a class after all classes have been loaded and finalized.
 class UnresolvedClass : public Object {
  public:
-  RawLibraryPrefix* library_prefix() const {
-    return raw_ptr()->library_prefix_;
+  RawObject* library_or_library_prefix() const {
+    return raw_ptr()->library_or_library_prefix_;
   }
   RawString* ident() const { return raw_ptr()->ident_; }
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
@@ -1515,12 +1524,12 @@ class UnresolvedClass : public Object {
     return RoundedAllocationSize(sizeof(RawUnresolvedClass));
   }
 
-  static RawUnresolvedClass* New(const LibraryPrefix& library_prefix,
+  static RawUnresolvedClass* New(const Object& library_prefix,
                                  const String& ident,
                                  TokenPosition token_pos);
 
  private:
-  void set_library_prefix(const LibraryPrefix& library_prefix) const;
+  void set_library_or_library_prefix(const Object& library_prefix) const;
   void set_ident(const String& ident) const;
   void set_token_pos(TokenPosition token_pos) const;
 
@@ -2741,6 +2750,11 @@ class Function : public Object {
     return RoundedAllocationSize(sizeof(RawFunction));
   }
 
+  static RawFunction* EvaluateHelper(const Class& cls,
+                                     const String& expr,
+                                     const Array& param_names,
+                                     bool is_static);
+
   static RawFunction* New(const String& name,
                           RawFunction::Kind kind,
                           bool is_static,
@@ -3130,6 +3144,8 @@ class Field : public Object {
 
   TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
 
+  RawString* InitializingExpression() const;
+
   bool has_initializer() const {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
   }
@@ -3490,6 +3506,7 @@ class Script : public Object {
   RawLibrary* FindLibrary() const;
   RawString* GetLine(intptr_t line_number,
                      Heap::Space space = Heap::kNew) const;
+  RawString* GetSnippet(TokenPosition from, TokenPosition to) const;
   RawString* GetSnippet(intptr_t from_line,
                         intptr_t from_column,
                         intptr_t to_line,
@@ -3766,7 +3783,7 @@ class Library : public Object {
   static RawLibrary* GetLibrary(intptr_t index);
 
   static void InitCoreLibrary(Isolate* isolate);
-  static void InitNativeWrappersLibrary(Isolate* isolate);
+  static void InitNativeWrappersLibrary(Isolate* isolate, bool is_kernel_file);
 
   static RawLibrary* AsyncLibrary();
   static RawLibrary* ConvertLibrary();
@@ -5427,7 +5444,7 @@ class Instance : public Object {
     StorePointer(FieldAddr(field), value.raw());
   }
 
-  RawAbstractType* GetType() const;
+  RawAbstractType* GetType(Heap::Space space) const;
 
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
@@ -8183,6 +8200,10 @@ class LinkedHashMap : public Instance {
   }
 
   intptr_t Length() const {
+    // The map may be uninitialized.
+    if (raw_ptr()->used_data_ == Object::null()) return 0;
+    if (raw_ptr()->deleted_keys_ == Object::null()) return 0;
+
     intptr_t used = Smi::Value(raw_ptr()->used_data_);
     intptr_t deleted = Smi::Value(raw_ptr()->deleted_keys_);
     return (used >> 1) - deleted;

@@ -155,7 +155,8 @@ char VmService::server_uri_[kServerUriStringBufferSize];
 bool VmService::LoadForGenPrecompiled() {
   Dart_Handle result;
   Dart_SetLibraryTagHandler(LibraryTagHandler);
-  Dart_Handle library = LoadLibrary(kVMServiceIOLibraryScriptResourceName);
+  Dart_Handle library =
+      LookupOrLoadLibrary(kVMServiceIOLibraryScriptResourceName);
   ASSERT(library != Dart_Null());
   SHUTDOWN_ON_ERROR(library);
   result = Dart_SetNativeResolver(library, VmServiceIONativeResolver, NULL);
@@ -314,10 +315,14 @@ Dart_Handle VmService::LoadScript(const char* name) {
 }
 
 
-Dart_Handle VmService::LoadLibrary(const char* name) {
+Dart_Handle VmService::LookupOrLoadLibrary(const char* name) {
   Dart_Handle uri = Dart_NewStringFromCString(kVMServiceIOLibraryUri);
-  Dart_Handle source = GetSource(name);
-  return Dart_LoadLibrary(uri, Dart_Null(), source, 0, 0);
+  Dart_Handle library = Dart_LookupLibrary(uri);
+  if (!Dart_IsLibrary(library)) {
+    Dart_Handle source = GetSource(name);
+    library = Dart_LoadLibrary(uri, Dart_Null(), source, 0, 0);
+  }
+  return library;
 }
 
 

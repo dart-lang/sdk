@@ -2454,11 +2454,6 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
                    "Cannot reload source when running a precompiled program.");
     return true;
   }
-  if (Dart::snapshot_kind() == Snapshot::kAppWithJIT) {
-    js->PrintError(kFeatureDisabled,
-                   "Cannot reload source when running an app snapshot.");
-    return true;
-  }
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler == NULL) {
     js->PrintError(kFeatureDisabled,

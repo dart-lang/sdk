@@ -237,7 +237,7 @@ abstract class Element implements Entity {
 
   /// `true` if this element is the body of a generative constructor.
   ///
-  /// This is a synthetic element kind used only be the JavaScript backend.
+  /// This is a synthetic element kind used only by the JavaScript backend.
   bool get isGenerativeConstructorBody;
 
   /// `true` if this element is a factory constructor,

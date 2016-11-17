@@ -1266,8 +1266,16 @@ int main(int argc, char** argv) {
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.
     isolate_data = new IsolateData(NULL, NULL, NULL);
-    if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error) ==
-        NULL) {
+    const uint8_t* kernel = NULL;
+    intptr_t kernel_length = 0;
+    const bool is_kernel_file =
+        TryReadKernel(app_script_name, &kernel, &kernel_length);
+    Dart_Isolate isolate =
+        is_kernel_file
+            ? Dart_CreateIsolateFromKernel(NULL, NULL, kernel, kernel_length,
+                                           NULL, isolate_data, &error)
+            : Dart_CreateIsolate(NULL, NULL, NULL, NULL, isolate_data, &error);
+    if (isolate == NULL) {
       fprintf(stderr, "%s", error);
       free(error);
       exit(255);
@@ -1284,14 +1292,9 @@ int main(int argc, char** argv) {
     Dart_QualifiedFunctionName* entry_points =
         ParseEntryPointsManifestIfPresent();
 
-    intptr_t payload_bytes = 0;
-    const uint8_t* payload = NULL;
-    const bool is_kernel_file =
-        TryReadKernel(app_script_name, &payload, &payload_bytes);
-
     if (is_kernel_file) {
-      Dart_Handle library = Dart_LoadKernel(payload, payload_bytes);
-      free(const_cast<uint8_t*>(payload));
+      Dart_Handle library = Dart_LoadKernel(kernel, kernel_length);
+      free(const_cast<uint8_t*>(kernel));
       if (Dart_IsError(library)) FATAL("Failed to load app from Kernel IR");
     } else {
       // Set up the library tag handler in such a manner that it will use the

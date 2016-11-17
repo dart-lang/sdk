@@ -23,7 +23,7 @@ class Intrinsifier : public AllStatic {
  public:
   static bool Intrinsify(const ParsedFunction& parsed_function,
                          FlowGraphCompiler* compiler);
-#if defined(DART_NO_SNAPSHOT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
   static void InitializeState();
 #endif
 

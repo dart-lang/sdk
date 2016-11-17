@@ -4,5 +4,4 @@
 
 library analyzer.dart.ast.syntactic_entity;
 
-export 'package:front_end/src/scanner/syntactic_entity.dart'
-    show SyntacticEntity;
+export 'package:front_end/src/base/syntactic_entity.dart' show SyntacticEntity;

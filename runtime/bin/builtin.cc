@@ -110,7 +110,17 @@ Dart_Handle Builtin::GetSource(const char** source_paths, const char* uri) {
 
 
 void Builtin::SetNativeResolver(BuiltinLibraryId id) {
-  UNREACHABLE();
+  ASSERT(static_cast<int>(id) >= 0);
+  ASSERT(static_cast<int>(id) < num_libs_);
+
+  if (builtin_libraries_[id].has_natives_) {
+    Dart_Handle url = DartUtils::NewString(builtin_libraries_[id].url_);
+    Dart_Handle library = Dart_LookupLibrary(url);
+    ASSERT(!Dart_IsError(library));
+    // Setup the native resolver for built in library functions.
+    DART_CHECK_VALID(
+        Dart_SetNativeResolver(library, NativeLookup, NativeSymbol));
+  }
 }
 
 

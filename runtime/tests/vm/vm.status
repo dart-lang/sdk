@@ -8,7 +8,6 @@ cc/IsolateReload_PendingConstructorCall_AbstractToConcrete: Fail, Crash
 cc/IsolateReload_PendingConstructorCall_ConcreteToAbstract: Fail, Crash
 cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail, Crash
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash
-cc/IsolateReload_EnumDelete: Skip # Issue 27802
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash, Timeout

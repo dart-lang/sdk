@@ -12,10 +12,15 @@ import utils
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 DART_USE_GN = "DART_USE_GN"
+DART_DISABLE_BUILDFILES = "DART_DISABLE_BUILDFILES"
 
 
 def use_gn():
   return DART_USE_GN in os.environ
+
+
+def disable_buildfiles():
+  return DART_DISABLE_BUILDFILES in os.environ
 
 
 def execute(args):
@@ -68,6 +73,9 @@ def parse_args(args):
 
 
 def main(argv):
+  # Check the environment and become a no-op if directed.
+  if disable_buildfiles():
+    return 0
   options = parse_args(argv)
   if options.gn:
     return run_gn()

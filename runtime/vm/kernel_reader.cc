@@ -12,6 +12,7 @@
 #include "vm/parser.h"
 #include "vm/symbols.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 namespace kernel {
 
@@ -81,18 +82,17 @@ class SimpleExpressionConverter : public ExpressionVisitor {
   dart::Instance* simple_value_;
 };
 
-void BuildingTranslationHelper::SetFinalize(bool finalize) {
-  reader_->finalize_ = finalize;
-}
 
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
     Library* library) {
   return reader_->LookupLibrary(library).raw();
 }
 
+
 RawClass* BuildingTranslationHelper::LookupClassByKernelClass(Class* klass) {
   return reader_->LookupClass(klass).raw();
 }
+
 
 Object& KernelReader::ReadProgram() {
   ASSERT(!bootstrapping_);
@@ -113,29 +113,13 @@ Object& KernelReader::ReadProgram() {
       ReadLibrary(kernel_library);
     }
 
-    // We finalize classes after we've constructed all classes since we
-    // currently don't construct them in pre-order of the class hierarchy (and
-    // finalization of a class needs all of its superclasses to be finalized).
-    dart::String& name = dart::String::Handle(Z);
     for (intptr_t i = 0; i < length; i++) {
-      Library* kernel_library = program->libraries()[i];
-      dart::Library& library = LookupLibrary(kernel_library);
-      name = library.url();
+      dart::Library& library = LookupLibrary(program->libraries()[i]);
+      if (!library.Loaded()) library.SetLoaded();
+    }
 
-      // TODO(27590) unskip this library when we fix underlying issue.
-      if (name.Equals("dart:vmservice_io")) {
-        continue;
-      }
-
-      if (!library.Loaded()) {
-        dart::Class& klass = dart::Class::Handle(Z);
-        for (intptr_t i = 0; i < kernel_library->classes().length(); i++) {
-          klass = LookupClass(kernel_library->classes()[i]).raw();
-          ClassFinalizer::FinalizeTypesInClass(klass);
-          ClassFinalizer::FinalizeClass(klass);
-        }
-        library.SetLoaded();
-      }
+    if (!ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
+      FATAL("Error in class finalization during bootstrapping.");
     }
 
     dart::Library& library = LookupLibrary(kernel_main_library);
@@ -160,6 +144,7 @@ Object& KernelReader::ReadProgram() {
     return Object::Handle(Z, LanguageError::New(error_message));
   }
 }
+
 
 void KernelReader::ReadLibrary(Library* kernel_library) {
   dart::Library& library = LookupLibrary(kernel_library);
@@ -217,12 +202,16 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
     ReadProcedure(library, toplevel_class, kernel_procedure);
   }
 
+  const GrowableObjectArray& classes =
+      GrowableObjectArray::Handle(I->object_store()->pending_classes());
+
   // Load all classes.
   for (intptr_t i = 0; i < kernel_library->classes().length(); i++) {
     Class* kernel_klass = kernel_library->classes()[i];
-    ReadClass(library, kernel_klass);
+    classes.Add(ReadClass(library, kernel_klass), Heap::kOld);
   }
 }
+
 
 void KernelReader::ReadPreliminaryClass(dart::Class* klass,
                                         Class* kernel_klass) {
@@ -284,7 +273,6 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
   intptr_t interface_count = kernel_klass->implemented_classes().length();
   const dart::Array& interfaces =
       dart::Array::Handle(Z, dart::Array::New(interface_count));
-  dart::Class& interface_class = dart::Class::Handle(Z);
   for (intptr_t i = 0; i < interface_count; i++) {
     InterfaceType* kernel_interface_type =
         kernel_klass->implemented_classes()[i];
@@ -292,33 +280,14 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
         T.TranslateTypeWithoutFinalization(kernel_interface_type);
     if (type.IsMalformed()) H.ReportError("Malformed interface type.");
     interfaces.SetAt(i, type);
-
-    // NOTE: Normally the DartVM keeps a list of pending classes and iterates
-    // through them later on using `ClassFinalizer::ProcessPendingClasses()`.
-    // This involes calling `ClassFinalizer::ResolveSuperTypeAndInterfaces()`
-    // which does a lot of error validation (e.g. cycle checks) which we don't
-    // need here.  But we do need to do one thing which this resolving phase
-    // normally does for us: set the `is_implemented` boolean.
-
-    // TODO(27590): Maybe we can do this differently once we have
-    // "bootstrapping from kernel"-support.
-    interface_class = type.type_class();
-    interface_class.set_is_implemented();
   }
   klass->set_interfaces(interfaces);
   if (kernel_klass->is_abstract()) klass->set_is_abstract();
-  klass->set_is_cycle_free();
-
-  // When bootstrapping we should not finalize types yet because they will be
-  // finalized when the object store's pending_classes list is drained by
-  // ClassFinalizer::ProcessPendingClasses.  Even when not bootstrapping we are
-  // careful not to eagerly finalize types that may introduce a circularity
-  // (such as type arguments, interface types, field types, etc.).
-  if (finalize_) ClassFinalizer::FinalizeTypesInClass(*klass);
 }
 
-void KernelReader::ReadClass(const dart::Library& library,
-                             Class* kernel_klass) {
+
+dart::Class& KernelReader::ReadClass(const dart::Library& library,
+                                     Class* kernel_klass) {
   // This will trigger a call to [ReadPreliminaryClass] if not already done.
   dart::Class& klass = LookupClass(kernel_klass);
 
@@ -383,7 +352,10 @@ void KernelReader::ReadClass(const dart::Library& library,
     GrowableObjectArray::Handle(Z, I->object_store()->pending_classes())
         .Add(klass, Heap::kOld);
   }
+
+  return klass;
 }
+
 
 void KernelReader::ReadProcedure(const dart::Library& library,
                                  const dart::Class& owner,
@@ -524,6 +496,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   }
 }
 
+
 void KernelReader::SetupFunctionParameters(TranslationHelper translation_helper,
                                            DartTypeTranslator type_translator,
                                            const dart::Class& klass,
@@ -593,6 +566,7 @@ void KernelReader::SetupFunctionParameters(TranslationHelper translation_helper,
   function.set_result_type(return_type.IsMalformed() ? Type::dynamic_type()
                                                      : return_type);
 }
+
 
 void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
                                               const dart::Function& function) {
@@ -679,6 +653,7 @@ dart::Class& KernelReader::LookupClass(Class* klass) {
   return *handle;
 }
 
+
 RawFunction::Kind KernelReader::GetFunctionType(Procedure* kernel_procedure) {
   intptr_t lookuptable[] = {
       RawFunction::kRegularFunction,  // Procedure::kMethod
@@ -696,5 +671,7 @@ RawFunction::Kind KernelReader::GetFunctionType(Procedure* kernel_procedure) {
   }
 }
 
+
 }  // namespace kernel
 }  // namespace dart
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

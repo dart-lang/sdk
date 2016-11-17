@@ -10,6 +10,10 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/dart_api_impl.h"
+#if !defined(DART_PRECOMPILED_RUNTIME)
+#include "vm/kernel.h"
+#include "vm/kernel_reader.h"
+#endif
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/symbols.h"
@@ -244,6 +248,24 @@ static RawError* LoadPatchFiles(Thread* thread,
 }
 
 
+static void Finish(Thread* thread, bool from_kernel) {
+  Bootstrap::SetupNativeResolver();
+  if (!ClassFinalizer::ProcessPendingClasses(from_kernel)) {
+    FATAL("Error in class finalization during bootstrapping.");
+  }
+
+  // Eagerly compile the _Closure class as it is the class of all closure
+  // instances. This allows us to just finalize function types without going
+  // through the hoops of trying to compile their scope class.
+  ObjectStore* object_store = thread->isolate()->object_store();
+  Class& cls = Class::Handle(thread->zone(), object_store->closure_class());
+  Compiler::CompileClass(cls);
+  // Eagerly compile Bool class, bool constants are used from within compiler.
+  cls = object_store->bool_class();
+  Compiler::CompileClass(cls);
+}
+
+
 static RawError* BootstrapFromSource(Thread* thread) {
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -285,19 +307,8 @@ static RawError* BootstrapFromSource(Thread* thread) {
   }
 
   if (error.IsNull()) {
-    Bootstrap::SetupNativeResolver();
-    ClassFinalizer::ProcessPendingClasses();
-
-    // Eagerly compile the _Closure class as it is the class of all closure
-    // instances. This allows us to just finalize function types
-    // without going through the hoops of trying to compile their scope class.
-    Class& cls = Class::Handle(zone, isolate->object_store()->closure_class());
-    Compiler::CompileClass(cls);
-    // Eagerly compile Bool class, bool constants are used from within compiler.
-    cls = isolate->object_store()->bool_class();
-    Compiler::CompileClass(cls);
+    Finish(thread, /*from_kernel=*/false);
   }
-
   // Restore the library tag handler for the isolate.
   isolate->set_library_tag_handler(saved_tag_handler);
 
@@ -305,7 +316,65 @@ static RawError* BootstrapFromSource(Thread* thread) {
 }
 
 
-RawError* Bootstrap::DoBootstrapping() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static RawError* BootstrapFromKernel(Thread* thread,
+                                     const uint8_t* buffer,
+                                     intptr_t buffer_size) {
+  Zone* zone = thread->zone();
+  kernel::Program* program =
+      ReadPrecompiledKernelFromBuffer(buffer, buffer_size);
+  if (program == NULL) {
+    const String& message =
+        String::Handle(zone, String::New("Failed to read Kernel file"));
+    return ApiError::New(message);
+  }
+
+  Isolate* isolate = thread->isolate();
+  // Mark the already-pending classes.  This mark bit will be used to avoid
+  // adding classes to the list more than once.
+  GrowableObjectArray& pending_classes = GrowableObjectArray::Handle(
+      zone, isolate->object_store()->pending_classes());
+  dart::Class& pending = dart::Class::Handle(zone);
+  for (intptr_t i = 0; i < pending_classes.Length(); ++i) {
+    pending ^= pending_classes.At(i);
+    pending.set_is_marked_for_parsing();
+  }
+
+  Library& library = Library::Handle(zone);
+  String& dart_name = String::Handle(zone);
+  String& kernel_name = String::Handle(zone);
+  kernel::KernelReader reader(NULL, -1, true);
+  for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
+    ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
+    library = isolate->object_store()->bootstrap_library(id);
+    dart_name = library.url();
+    for (intptr_t j = 0; j < program->libraries().length(); ++j) {
+      kernel::Library* kernel_library = program->libraries()[j];
+      kernel::String* uri = kernel_library->import_uri();
+      kernel_name = Symbols::FromUTF8(thread, uri->buffer(), uri->size());
+      if (kernel_name.Equals(dart_name)) {
+        reader.ReadLibrary(kernel_library);
+        library.SetLoaded();
+        break;
+      }
+    }
+  }
+
+  Finish(thread, /*from_kernel=*/true);
+  return Error::null();
+}
+#else
+static RawError* BootstrapFromKernel(Thread* thread,
+                                     const uint8_t* buffer,
+                                     intptr_t buffer_size) {
+  UNREACHABLE();
+  return Error::null();
+}
+#endif
+
+
+RawError* Bootstrap::DoBootstrapping(const uint8_t* kernel_buffer,
+                                     intptr_t kernel_buffer_length) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -328,7 +397,9 @@ RawError* Bootstrap::DoBootstrapping() {
     }
   }
 
-  return BootstrapFromSource(thread);
+  return (kernel_buffer == NULL)
+             ? BootstrapFromSource(thread)
+             : BootstrapFromKernel(thread, kernel_buffer, kernel_buffer_length);
 }
 
 }  // namespace dart

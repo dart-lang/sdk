@@ -94,6 +94,8 @@ class ModuleCompiler {
     context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
     context.resultProvider =
         new InputPackagesResultProvider(context, summaryData);
+    options.declaredVariables.forEach(context.declaredVariables.define);
+    context.declaredVariables.define('dart.isVM', 'false');
 
     return new ModuleCompiler.withContext(context, summaryData);
   }

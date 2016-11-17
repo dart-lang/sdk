@@ -290,7 +290,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'throwing_lazy_variable_test': skip_fail,
       'top_level_non_prefixed_library_test': skip_fail,
       'truncdiv_test': fail,  // did not throw
-      'type_literal_test': firefox_fail,
       'type_variable_nested_test': skip_fail,  // unsound is-check
       'type_variable_typedef_test': skip_fail,  // unsound is-check
 
@@ -401,7 +400,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
     'corelib/regexp': {
       'default_arguments_test': fail,
       'UC16_test': firefox_fail,
-      'unicodeCaseInsensitive_test': firefox_fail
     },
 
     'lib/convert': {
@@ -494,6 +492,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'native_gc_test': async_unittest,
       'notification_test': 'fail', // was sdk#27578, needs triage
       'postmessage_structured_test': async_unittest,
+      'queryall_test': ['slow'], // see sdk #27794
       'request_animation_frame_test': async_unittest,
       'resource_http_test': async_unittest,
       'rtc_test': is.chrome('<=55') ? fail : pass, // was sdk#27578, needs triage
@@ -679,7 +678,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
       'typedef_metadata_test': fail,
       'typedef_test': fail,
       'typevariable_mirror_metadata_test': fail,
-      'unmangled_type_test': firefox_fail,
       'unnamed_library_test': fail,
       'variable_is_const_test_none_multi': fail,
     },

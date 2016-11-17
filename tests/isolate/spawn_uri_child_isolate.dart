@@ -4,9 +4,8 @@
 
 // Child isolate code to be spawned from a URI to this file.
 library SpawnUriChildIsolate;
-import 'dart:isolate';
 
-void main(List<String> args, SendPort replyTo) {
+void main(List<String> args, replyTo) {
   var data = args[0];
   replyTo.send('re: $data');
 }

@@ -346,6 +346,11 @@ class FlowGraphCompiler : public ValueObject {
                     RawPcDescriptors::Kind kind,
                     LocationSummary* locs);
 
+  void GeneratePatchableCall(TokenPosition token_pos,
+                             const StubEntry& stub_entry,
+                             RawPcDescriptors::Kind kind,
+                             LocationSummary* locs);
+
   void GenerateDartCall(intptr_t deopt_id,
                         TokenPosition token_pos,
                         const StubEntry& stub_entry,

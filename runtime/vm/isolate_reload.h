@@ -58,6 +58,8 @@ class InstanceMorpher : public ZoneAllocated {
   // Called on each instance that needs to be morphed.
   RawInstance* Morph(const Instance& instance) const;
 
+  void RunNewFieldInitializers() const;
+
   // Adds an object to be morphed.
   void AddObject(RawObject* object) const;
 
@@ -74,6 +76,8 @@ class InstanceMorpher : public ZoneAllocated {
   ZoneGrowableArray<const Instance*>* before() const { return before_; }
   // Returns the list of morphed objects (matches order in before()).
   ZoneGrowableArray<const Instance*>* after() const { return after_; }
+  // Returns the list of new fields.
+  ZoneGrowableArray<const Field*>* new_fields() const { return new_fields_; }
 
   // Returns the cid associated with the from_ and to_ class.
   intptr_t cid() const { return cid_; }
@@ -84,6 +88,7 @@ class InstanceMorpher : public ZoneAllocated {
   ZoneGrowableArray<intptr_t> mapping_;
   ZoneGrowableArray<const Instance*>* before_;
   ZoneGrowableArray<const Instance*>* after_;
+  ZoneGrowableArray<const Field*>* new_fields_;
   intptr_t cid_;
 
   void ComputeMapping();
@@ -231,6 +236,8 @@ class IsolateReloadContext {
 
   // Transforms the heap based on instance_morphers_.
   void MorphInstances();
+
+  void RunNewFieldInitializers();
 
   bool ValidateReload();
 

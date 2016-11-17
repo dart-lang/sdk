@@ -125,7 +125,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   final ClassElement objectClass;
   final ClassElement stringClass;
 
-  ConstFieldVisitor _constField;
+  ConstFieldVisitor _constants;
 
   /// The current function body being compiled.
   FunctionBody _currentFunction;
@@ -276,7 +276,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     }
     _loader = new ElementLoader(nodes);
     if (compilationUnits.isNotEmpty) {
-      _constField = new ConstFieldVisitor(types,
+      _constants = new ConstFieldVisitor(context,
           dummySource: compilationUnits.first.element.source);
     }
 
@@ -517,35 +517,32 @@ class CodeGenerator extends GeneralizingAstVisitor
         // modules we import, so we will never go down this code path for them.
         _moduleItems
             .add(js.statement('#.# = #;', [libraryName, name.selector, name]));
-      } else {
-        // top-level fields, getters, setters need to copy the property
-        // descriptor.
-        _moduleItems.add(_callHelperStatement(
-            'export(#, #, #);', [libraryName, name.receiver, name.selector]));
       }
     }
 
-    for (var export in exportedNames.definedNames.values) {
-      if (export is PropertyAccessorElement) {
-        export = (export as PropertyAccessorElement).variable;
-      }
+    // We only need to export main as it is the only method party of the
+    // publicly exposed JS API for a library.
+    // TODO(jacobr): add a library level annotation indicating that all
+    // contents of a library need to be exposed to JS.
+    // https://github.com/dart-lang/sdk/issues/26368
 
-      // Don't allow redefining names from this library.
-      if (currentNames.containsKey(export.name)) continue;
+    var export = exportedNames.get('main');
 
-      if (export.isSynthetic && export is PropertyInducingElement) {
-        _emitDeclaration(export.getter);
-        _emitDeclaration(export.setter);
-      } else {
-        _emitDeclaration(export);
-      }
-      if (export is ClassElement && export.typeParameters.isNotEmpty) {
-        // Export the generic name as well.
-        // TODO(jmesserly): revisit generic classes
-        emitExport(export, suffix: r'$');
-      }
-      emitExport(export);
+    if (export == null) return;
+    if (export is PropertyAccessorElement) {
+      export = (export as PropertyAccessorElement).variable;
     }
+
+    // Don't allow redefining names from this library.
+    if (currentNames.containsKey(export.name)) return;
+
+    if (export.isSynthetic && export is PropertyInducingElement) {
+      _emitDeclaration(export.getter);
+      _emitDeclaration(export.setter);
+    } else {
+      _emitDeclaration(export);
+    }
+    emitExport(export);
   }
 
   @override
@@ -2120,7 +2117,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     for (var declaration in fieldDecls) {
       for (var fieldNode in declaration.fields.variables) {
         var element = fieldNode.element;
-        if (_constField.isFieldInitConstant(fieldNode)) {
+        if (_constants.isFieldInitConstant(fieldNode)) {
           unsetFields[element as FieldElement] = fieldNode;
         } else {
           fields[element as FieldElement] = _visitInitializer(fieldNode);
@@ -3767,7 +3764,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     bool isLoaded = _loader.finishCheckingReferences();
 
     bool eagerInit =
-        isLoaded && (field.isConst || _constField.isFieldInitConstant(field));
+        isLoaded && (field.isConst || _constants.isFieldInitConstant(field));
 
     var fieldName = field.name.name;
     if (eagerInit &&
@@ -3796,7 +3793,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     bool eagerInit;
     JS.Expression jsInit;
-    if (field.isConst || _constField.isFieldInitConstant(field)) {
+    if (field.isConst || _constants.isFieldInitConstant(field)) {
       // If the field is constant, try and generate it at the top level.
       _loader.startTopLevel(element);
       jsInit = _visitInitializer(field);
@@ -3961,6 +3958,41 @@ class CodeGenerator extends GeneralizingAstVisitor
     var constructor = node.constructorName;
     var name = constructor.name;
     var type = constructor.type.type;
+    if (node.isConst &&
+        element?.name == 'fromEnvironment' &&
+        element.library.isDartCore) {
+      var value = node.accept(_constants.constantVisitor);
+
+      if (value == null || value.isNull) {
+        return new JS.LiteralNull();
+      }
+      // Handle unknown value: when the declared variable wasn't found, and no
+      // explicit default value was passed either.
+      // TODO(jmesserly): ideally Analyzer would simply resolve this to the
+      // default value that is specified in the SDK. Instead we implement that
+      // here. `bool.fromEnvironment` defaults to `false`, the others to `null`:
+      // https://api.dartlang.org/stable/1.20.1/dart-core/bool/bool.fromEnvironment.html
+      if (value.isUnknown) {
+        return type == types.boolType
+            ? js.boolean(false)
+            : new JS.LiteralNull();
+      }
+      if (value.type == types.boolType) {
+        var boolValue = value.toBoolValue();
+        return boolValue != null ? js.boolean(boolValue) : new JS.LiteralNull();
+      }
+      if (value.type == types.intType) {
+        var intValue = value.toIntValue();
+        return intValue != null ? js.number(intValue) : new JS.LiteralNull();
+      }
+      if (value.type == types.stringType) {
+        var stringValue = value.toStringValue();
+        return stringValue != null
+            ? js.escapedString(stringValue)
+            : new JS.LiteralNull();
+      }
+      throw new StateError('failed to evaluate $node');
+    }
     return _emitInstanceCreationExpression(
         element, type, name, node.argumentList, node.isConst);
   }

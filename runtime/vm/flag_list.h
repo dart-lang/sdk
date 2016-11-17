@@ -122,6 +122,8 @@
     "Polymorphic calls with deoptimization / megamorphic call")                \
   P(precompiled_mode, bool, false, "Precompilation compiler mode")             \
   C(precompiled_runtime, true, false, bool, false, "Precompiled runtime mode") \
+  R(print_snapshot_sizes, false, bool, false,                                  \
+    "Print sizes of generated snapshots.")                                     \
   R(print_ssa_liveranges, false, bool, false,                                  \
     "Print live ranges after allocation.")                                     \
   C(print_stop_message, false, false, bool, false, "Print stop message.")      \

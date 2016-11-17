@@ -7,9 +7,9 @@ library dart2js.mirrors_handler;
 import '../common/resolution.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
-import '../enqueue.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
+import '../universe/world_impact.dart';
 import 'backend.dart';
 
 class MirrorsAnalysis {
@@ -20,26 +20,26 @@ class MirrorsAnalysis {
       : resolutionHandler = new MirrorsHandler(backend, resolution),
         codegenHandler = new MirrorsHandler(backend, resolution);
 
-  /// Enqueue all elements that are matched by the mirrors used
+  /// Compute the impact for elements that are matched by the mirrors used
   /// annotation or, in lack thereof, all elements.
-  // TODO(johnniwinther): Compute [WorldImpact] instead of enqueuing directly.
-  void enqueueReflectiveElements(
-      Enqueuer enqueuer,
+  WorldImpact computeImpactForReflectiveElements(
       Iterable<ClassElement> recents,
-      Iterable<LibraryElement> loadedLibraries) {
-    MirrorsHandler handler =
-        enqueuer.isResolutionQueue ? resolutionHandler : codegenHandler;
-    handler.enqueueReflectiveElements(enqueuer, recents, loadedLibraries);
+      Iterable<ClassElement> processedClasses,
+      Iterable<LibraryElement> loadedLibraries,
+      {bool forResolution}) {
+    MirrorsHandler handler = forResolution ? resolutionHandler : codegenHandler;
+    handler.enqueueReflectiveElements(
+        recents, processedClasses, loadedLibraries);
+    return handler.flush();
   }
 
-  /// Enqueue the static fields that have been marked as used by reflective
-  /// usage through `MirrorsUsed`.
-  // TODO(johnniwinther): Compute [WorldImpact] instead of enqueuing directly.
-  void enqueueReflectiveStaticFields(
-      Enqueuer enqueuer, Iterable<Element> elements) {
-    MirrorsHandler handler =
-        enqueuer.isResolutionQueue ? resolutionHandler : codegenHandler;
-    handler.enqueueReflectiveStaticFields(enqueuer, elements);
+  /// Compute the impact for the static fields that have been marked as used by
+  /// reflective usage through `MirrorsUsed`.
+  WorldImpact computeImpactForReflectiveStaticFields(Iterable<Element> elements,
+      {bool forResolution}) {
+    MirrorsHandler handler = forResolution ? resolutionHandler : codegenHandler;
+    handler.enqueueReflectiveStaticFields(elements);
+    return handler.flush();
   }
 }
 
@@ -53,9 +53,13 @@ class MirrorsHandler {
   bool hasEnqueuedReflectiveElements = false;
   bool hasEnqueuedReflectiveStaticFields = false;
 
+  StagedWorldImpactBuilder impactBuilder = new StagedWorldImpactBuilder();
+
   MirrorsHandler(this._backend, this._resolution);
 
   DiagnosticReporter get _reporter => _resolution.reporter;
+
+  WorldImpact flush() => impactBuilder.flush();
 
   void _logEnqueueReflectiveAction(action, [msg = ""]) {
     if (TRACE_MIRROR_ENQUEUING) {
@@ -80,15 +84,15 @@ class MirrorsHandler {
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
-  void _enqueueReflectiveConstructor(
-      Enqueuer enqueuer, ConstructorElement constructor,
+  void _enqueueReflectiveConstructor(ConstructorElement constructor,
       {bool enclosingWasIncluded}) {
     if (_shouldIncludeElementDueToMirrors(constructor,
         includedEnclosing: enclosingWasIncluded)) {
       _logEnqueueReflectiveAction(constructor);
       ClassElement cls = constructor.declaration.enclosingClass;
-      enqueuer.registerTypeUse(new TypeUse.mirrorInstantiation(cls.rawType));
-      enqueuer
+      impactBuilder
+          .registerTypeUse(new TypeUse.mirrorInstantiation(cls.rawType));
+      impactBuilder
           .registerStaticUse(new StaticUse.foreignUse(constructor.declaration));
     }
   }
@@ -97,8 +101,7 @@ class MirrorsHandler {
   ///
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
-  void _enqueueReflectiveMember(
-      Enqueuer enqueuer, Element element, bool enclosingWasIncluded) {
+  void _enqueueReflectiveMember(Element element, bool enclosingWasIncluded) {
     if (_shouldIncludeElementDueToMirrors(element,
         includedEnclosing: enclosingWasIncluded)) {
       _logEnqueueReflectiveAction(element);
@@ -106,7 +109,7 @@ class MirrorsHandler {
         TypedefElement typedef = element;
         typedef.ensureResolved(_resolution);
       } else if (Elements.isStaticOrTopLevel(element)) {
-        enqueuer
+        impactBuilder
             .registerStaticUse(new StaticUse.foreignUse(element.declaration));
       } else if (element.isInstanceMember) {
         // We need to enqueue all members matching this one in subclasses, as
@@ -114,13 +117,13 @@ class MirrorsHandler {
         // TODO(herhut): Use TypedSelector.subtype for enqueueing
         DynamicUse dynamicUse =
             new DynamicUse(new Selector.fromElement(element), null);
-        enqueuer.registerDynamicUse(dynamicUse);
+        impactBuilder.registerDynamicUse(dynamicUse);
         if (element.isField) {
           DynamicUse dynamicUse = new DynamicUse(
               new Selector.setter(
                   new Name(element.name, element.library, isSetter: true)),
               null);
-          enqueuer.registerDynamicUse(dynamicUse);
+          impactBuilder.registerDynamicUse(dynamicUse);
         }
       }
     }
@@ -131,7 +134,7 @@ class MirrorsHandler {
   /// [enclosingWasIncluded] provides a hint whether the enclosing element was
   /// needed for reflection.
   void _enqueueReflectiveElementsInClass(
-      Enqueuer enqueuer, ClassElement cls, Iterable<ClassElement> recents,
+      ClassElement cls, Iterable<ClassElement> recents,
       {bool enclosingWasIncluded}) {
     if (cls.library.isInternalLibrary || cls.isInjected) return;
     bool includeClass = _shouldIncludeElementDueToMirrors(cls,
@@ -140,7 +143,7 @@ class MirrorsHandler {
       _logEnqueueReflectiveAction(cls, "register");
       ClassElement declaration = cls.declaration;
       declaration.ensureResolved(_resolution);
-      enqueuer.registerTypeUse(
+      impactBuilder.registerTypeUse(
           new TypeUse.mirrorInstantiation(declaration.rawType));
     }
     // If the class is never instantiated, we know nothing of it can possibly
@@ -149,11 +152,11 @@ class MirrorsHandler {
     if (recents.contains(cls.declaration)) {
       _logEnqueueReflectiveAction(cls, "members");
       cls.constructors.forEach((Element element) {
-        _enqueueReflectiveConstructor(enqueuer, element,
+        _enqueueReflectiveConstructor(element,
             enclosingWasIncluded: includeClass);
       });
       cls.forEachClassMember((Member member) {
-        _enqueueReflectiveMember(enqueuer, member.element, includeClass);
+        _enqueueReflectiveMember(member.element, includeClass);
       });
     }
   }
@@ -165,13 +168,14 @@ class MirrorsHandler {
   /// Although it is in an internal library, we mark it as reflectable. Note
   /// that none of its methods are reflectable, unless reflectable by
   /// inheritance.
-  void _enqueueReflectiveSpecialClasses(Enqueuer enqueuer) {
+  void _enqueueReflectiveSpecialClasses() {
     Iterable<ClassElement> classes = _backend.classesRequiredForReflection;
     for (ClassElement cls in classes) {
       if (_backend.referencedFromMirrorSystem(cls)) {
         _logEnqueueReflectiveAction(cls);
         cls.ensureResolved(_resolution);
-        enqueuer.registerTypeUse(new TypeUse.mirrorInstantiation(cls.rawType));
+        impactBuilder
+            .registerTypeUse(new TypeUse.mirrorInstantiation(cls.rawType));
       }
     }
   }
@@ -179,16 +183,16 @@ class MirrorsHandler {
   /// Enqeue all local members of the library [lib] if they are required for
   /// reflection.
   void _enqueueReflectiveElementsInLibrary(
-      Enqueuer enqueuer, LibraryElement lib, Iterable<ClassElement> recents) {
+      LibraryElement lib, Iterable<ClassElement> recents) {
     bool includeLibrary =
         _shouldIncludeElementDueToMirrors(lib, includedEnclosing: false);
     lib.forEachLocalMember((Element member) {
       if (member.isInjected) return;
       if (member.isClass) {
-        _enqueueReflectiveElementsInClass(enqueuer, member, recents,
+        _enqueueReflectiveElementsInClass(member, recents,
             enclosingWasIncluded: includeLibrary);
       } else {
-        _enqueueReflectiveMember(enqueuer, member, includeLibrary);
+        _enqueueReflectiveMember(member, includeLibrary);
       }
     });
   }
@@ -197,8 +201,8 @@ class MirrorsHandler {
   /// annotation or, in lack thereof, all elements.
   // TODO(johnniwinther): Compute [WorldImpact] instead of enqueuing directly.
   void enqueueReflectiveElements(
-      Enqueuer enqueuer,
       Iterable<ClassElement> recents,
+      Iterable<ClassElement> processedClasses,
       Iterable<LibraryElement> loadedLibraries) {
     if (!hasEnqueuedReflectiveElements) {
       _logEnqueueReflectiveAction("!START enqueueAll");
@@ -208,12 +212,12 @@ class MirrorsHandler {
       // as recently seen, as we do not know how many rounds of resolution might
       // have run before tree shaking is disabled and thus everything is
       // enqueued.
-      recents = enqueuer.processedClasses.toSet();
+      recents = processedClasses.toSet();
       _reporter.log('Enqueuing everything');
       for (LibraryElement lib in loadedLibraries) {
-        _enqueueReflectiveElementsInLibrary(enqueuer, lib, recents);
+        _enqueueReflectiveElementsInLibrary(lib, recents);
       }
-      _enqueueReflectiveSpecialClasses(enqueuer);
+      _enqueueReflectiveSpecialClasses();
       hasEnqueuedReflectiveElements = true;
       hasEnqueuedReflectiveStaticFields = true;
       _logEnqueueReflectiveAction("!DONE enqueueAll");
@@ -221,7 +225,7 @@ class MirrorsHandler {
       // Keep looking at new classes until fixpoint is reached.
       _logEnqueueReflectiveAction("!START enqueueRecents");
       recents.forEach((ClassElement cls) {
-        _enqueueReflectiveElementsInClass(enqueuer, cls, recents,
+        _enqueueReflectiveElementsInClass(cls, recents,
             enclosingWasIncluded: _shouldIncludeElementDueToMirrors(cls.library,
                 includedEnclosing: false));
       });
@@ -232,12 +236,11 @@ class MirrorsHandler {
   /// Enqueue the static fields that have been marked as used by reflective
   /// usage through `MirrorsUsed`.
   // TODO(johnniwinther): Compute [WorldImpact] instead of enqueuing directly.
-  void enqueueReflectiveStaticFields(
-      Enqueuer enqueuer, Iterable<Element> elements) {
+  void enqueueReflectiveStaticFields(Iterable<Element> elements) {
     if (hasEnqueuedReflectiveStaticFields) return;
     hasEnqueuedReflectiveStaticFields = true;
     for (Element element in elements) {
-      _enqueueReflectiveMember(enqueuer, element, true);
+      _enqueueReflectiveMember(element, true);
     }
   }
 }

@@ -2825,8 +2825,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (helper == null) {
       assert(type.isFunctionType);
-      use(node.inputs[0]);
+      assert(node.usesMethodOnType);
+
+      String name = node.isCastTypeCheck ? '_asCheck' : '_assertCheck';
+      HInstruction reifiedType = node.inputs[0];
+      HInstruction checkedInput = node.inputs[1];
+      use(reifiedType);
+      js.Expression receiver = pop();
+      use(checkedInput);
+      Selector selector = new Selector.call(
+          new Name(name, helpers.jsHelperLibrary), CallStructure.ONE_ARG);
+      registry.registerDynamicUse(
+          new DynamicUse(selector, reifiedType.instructionType));
+      js.Name methodLiteral = backend.namer.invocationName(selector);
+      push(js.js('#.#(#)', [receiver, methodLiteral, pop()]));
     } else {
+      assert(!node.usesMethodOnType);
       push(helper.generateCall(this, node));
     }
   }

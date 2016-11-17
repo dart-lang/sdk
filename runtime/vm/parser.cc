@@ -4854,6 +4854,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   }
   ExpectToken(Token::kRBRACE);
 
+  const Type& array_type = Type::Handle(Z, Type::ArrayType());
   // Add static field 'const List values'.
   Field& values_field = Field::ZoneHandle(Z);
   values_field =
@@ -4861,9 +4862,18 @@ void Parser::ParseEnumDefinition(const Class& cls) {
                  /* is_static = */ true,
                  /* is_final = */ true,
                  /* is_const = */ true,
-                 /* is_reflectable = */ true, cls,
-                 Type::Handle(Z, Type::ArrayType()), cls.token_pos());
+                 /* is_reflectable = */ true, cls, array_type, cls.token_pos());
   enum_members.AddField(values_field);
+
+  // Add static field 'const _deleted_enum_sentinel'.
+  Field& deleted_enum_sentinel = Field::ZoneHandle(Z);
+  deleted_enum_sentinel = Field::New(Symbols::_DeletedEnumSentinel(),
+                                     /* is_static = */ true,
+                                     /* is_final = */ true,
+                                     /* is_const = */ true,
+                                     /* is_reflectable = */ false, cls,
+                                     Object::dynamic_type(), cls.token_pos());
+  enum_members.AddField(deleted_enum_sentinel);
 
   // Allocate the immutable array containing the enumeration values.
   // The actual enum instance values will be patched in later.
@@ -11871,7 +11881,7 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
     const String& unresolved_class_name =
         String::Handle(Z, unresolved_class.ident());
     Class& resolved_type_class = Class::Handle(Z);
-    if (unresolved_class.library_prefix() == LibraryPrefix::null()) {
+    if (unresolved_class.library_or_library_prefix() == Object::null()) {
       // First check if the type is a function type parameter.
       if (!innermost_function().IsNull()) {
         // TODO(regis): Shortcut this lookup if no generic functions in scope.
@@ -11921,9 +11931,11 @@ void Parser::ResolveType(ClassFinalizer::FinalizationKind finalization,
       }
     } else {
       // Resolve class name in the scope of the library prefix.
-      const LibraryPrefix& lib_prefix =
-          LibraryPrefix::Handle(Z, unresolved_class.library_prefix());
-      resolved_type_class = lib_prefix.LookupClass(unresolved_class_name);
+      const Object& prefix =
+          Object::Handle(Z, unresolved_class.library_or_library_prefix());
+      ASSERT(prefix.IsLibraryPrefix());
+      resolved_type_class =
+          LibraryPrefix::Cast(prefix).LookupClass(unresolved_class_name);
     }
     // At this point, we can only have a parameterized_type.
     const Type& parameterized_type = Type::Cast(*type);
@@ -13468,8 +13480,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         // into throwing a type error.
         const UnresolvedClass& cls =
             UnresolvedClass::Handle(Z, redirect_type.unresolved_class());
-        const LibraryPrefix& prefix =
-            LibraryPrefix::Handle(Z, cls.library_prefix());
+        const LibraryPrefix& prefix = LibraryPrefix::Cast(
+            Object::Handle(Z, cls.library_or_library_prefix()));
         if (!prefix.IsNull() && !prefix.is_loaded() &&
             !FLAG_load_deferred_eagerly) {
           // If the redirection type is unresolved because it refers to

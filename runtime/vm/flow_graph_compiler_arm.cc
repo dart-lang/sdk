@@ -1094,6 +1094,16 @@ void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,
 }
 
 
+void FlowGraphCompiler::GeneratePatchableCall(TokenPosition token_pos,
+                                              const StubEntry& stub_entry,
+                                              RawPcDescriptors::Kind kind,
+                                              LocationSummary* locs) {
+  __ BranchLinkPatchable(stub_entry);
+  AddCurrentDescriptor(kind, Thread::kNoDeoptId, token_pos);
+  RecordSafepoint(locs);
+}
+
+
 void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          TokenPosition token_pos,
                                          const StubEntry& stub_entry,

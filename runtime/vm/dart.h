@@ -37,7 +37,15 @@ class Dart : public AllStatic {
 
   static Isolate* CreateIsolate(const char* name_prefix,
                                 const Dart_IsolateFlags& api_flags);
-  static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);
+
+  // Initialize an isolate, either from a snapshot, from a Kernel binary, or
+  // from SDK library sources.  If the snapshot_buffer is non-NULL,
+  // initialize from a snapshot or a Kernel binary depending on the value of
+  // from_kernel.  Otherwise, initialize from sources.
+  static RawError* InitializeIsolate(const uint8_t* snapshot_buffer,
+                                     intptr_t snapshot_length,
+                                     bool from_kernel,
+                                     void* data);
   static void RunShutdownCallback();
   static void ShutdownIsolate(Isolate* isolate);
   static void ShutdownIsolate();

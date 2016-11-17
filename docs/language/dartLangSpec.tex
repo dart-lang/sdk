@@ -1238,10 +1238,10 @@ A {\em generative constructor} consists of a constructor name, a constructor par
  \end{grammar}
 
 \LMHash{}
-A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters. A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal. An {\em initializing formal} has the form \code{\THIS{}.$id$}, where $id$ is the name of an instance variable of the immediately enclosing class.  It is a compile-time error if \code{id} is not an instance variable of the immediately enclosing class. It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor.
+A {\em constructor parameter list} is a parenthesized, comma-separated list of formal constructor parameters. A {\em formal constructor parameter} is either a formal parameter (\ref{formalParameters}) or an initializing formal. An {\em initializing formal} has the form \code{\THIS{}.$id$}, where $id$ is the name of an instance variable of the immediately enclosing class.  It is a compile-time error if $id$ is not an instance variable of the immediately enclosing class. It is a compile-time error if an initializing formal is used by a function other than a non-redirecting generative constructor.
 
 \LMHash{}
-If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named \code{id} is $T_{id}$, where $T_{id}$ is the type of the field named \code{id} in the immediately enclosing class. It is a static warning if the static type of \code{id} is not assignable to $T_{id}$.
+If an explicit type is attached to the initializing formal, that is its static type. Otherwise, the type of an initializing formal named $id$ is $T_{id}$, where $T_{id}$ is the type of the field named $id$ in the immediately enclosing class. It is a static warning if the static type of $id$ is not assignable to $T_{id}$.
 
 \LMHash{}
 Initializing formals constitute an exception to the rule that every formal parameter introduces a local variable into the formal parameter scope (\ref{formalParameters}).
@@ -3154,7 +3154,7 @@ We collapse multiple layers of futures into one. If $e$ evaluates to a future $f
 
 The  exception to that would be a type $X$ that extended or implemented \code{Future}. In that case, only one unwrapping takes place. As an example of why this is done, consider
 
-\cd{\CLASS{} C<T>  \IMPLEMENTS{}  Future<C<C<T$>>>$ \ldots }
+\cd{\CLASS{} C<T>  \IMPLEMENTS{}  Future<C<C<T>>> \ldots }
 
 Here, a naive definition of $flatten$ diverges; there is not even a fixed point. A more sophisticated definition of $flatten$ is possible, but the existing rule deals with most realistic examples while remaining relatively simple to understand.
 
@@ -3713,10 +3713,15 @@ where $id$ is an identifier.
 If there exists a lexically visible declaration named $id$, let $f_{id}$ be the innermost such declaration. Then:
 \begin{itemize}
 \item
+If $id$ is a type literal, then $i$ is interpreted as a function expression invocation (ref{functionExpressionInvociation}) with $(id)$ as the expression $e_f$.
+\commentary{
+The expression $(id)$ where $id$ is a type literal always evaluates to an instance of class \code{Type} which is not a function. This ensures that a runtime error occurs when trying to call a type literal.
+}
+\item
 If $f_{id}$ is a prefix object, a compile-time error occurs.
 \item
- If $f_{id}$ is a local function, a library function, a library or static getter or a variable then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}).
- \item
+If $f_{id}$ is a local function, a library function, a library or static getter or a variable then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}).
+\item
 Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equivalent to $C.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 \item Otherwise, $f_{id}$ is considered equivalent to the ordinary method invocation $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 \end{itemize}
@@ -3743,7 +3748,14 @@ A function expression invocation $i$ has the form
 
 $e_f(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$,
 
-where $e_f$ is an expression. If $e_f$ is an identifier $id$, then $id$ must necessarily denote a local function, a library function, a library or static getter or a variable as described above, or $i$ is not considered a function expression invocation. If $e_f$ is a property extraction expression (\ref{propertyExtraction}), then $i$ is is not a function expression invocation and is instead recognized as an ordinary method invocation (\ref{ordinaryInvocation}).
+where $e_f$ is an expression. If $e_f$ is an identifier $id$, then $id$ must necessarily denote a local function, a library function, a library or static getter or a variable as described above, or $i$ is not considered a function expression invocation.
+If $e_f$ is a type literal, then it is equivalent to the expression $(e_f)$.
+
+\commentary{
+The expression $(e_f)$ where $e_f$ is a type literal always evaluates to an instance of class \code{Type} which is not a function. This ensures that a runtime error occurs when trying to call a type literal.
+}
+
+If $e_f$ is a property extraction expression (\ref{propertyExtraction}), then $i$ is is not a function expression invocation and is instead recognized as an ordinary method invocation (\ref{ordinaryInvocation}).
 
 \commentary{
 \code{$a.b(x)$} is parsed as a method invocation of method \code{$b()$} on object \code{$a$}, not as an invocation of getter \code{$b$} on \code{$a$} followed by a function call \code{$(a.b)(x)$}.  If a method or getter \code{$b$} exists, the two will be equivalent. However, if \code{$b$} is not defined on \code{$a$}, the resulting invocation of \code{noSuchMethod()} would differ.  The \code{Invocation} passed to \code{noSuchMethod()} would describe a call to a method \code{$b$} with argument \code{$x$} in the former case, and a call to a getter \code{$b$} (with no arguments) in the latter.

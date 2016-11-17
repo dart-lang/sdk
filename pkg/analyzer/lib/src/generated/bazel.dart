@@ -143,6 +143,12 @@ class BazelWorkspace {
   static const String _WORKSPACE = 'WORKSPACE';
   static const String _READONLY = 'READONLY';
 
+  /**
+   * Default prefix for "-genfiles" and "-bin" that will be assumed if no build
+   * output symlinks are found.
+   */
+  static const defaultSymlinkPrefix = 'bazel';
+
   final ResourceProvider provider;
 
   /**
@@ -197,6 +203,11 @@ class BazelWorkspace {
           return file;
         }
       }
+      // Writable
+      File writableFile = provider.getFile(absolutePath);
+      if (writableFile.exists) {
+        return writableFile;
+      }
       // READONLY
       if (readonly != null) {
         File file = provider.getFile(context.join(readonly, relative));
@@ -205,7 +216,7 @@ class BazelWorkspace {
         }
       }
       // Not generated, return the default one.
-      return provider.getFile(absolutePath);
+      return writableFile;
     } catch (_) {
       return null;
     }
@@ -281,8 +292,9 @@ class BazelWorkspace {
 
   /**
    * Return the symlink prefix for folders `X-bin` or `X-genfiles` by probing
-   * the internal `blaze-genfiles` and `bazel-genfiles`. Return `null` if
-   * neither of the folders exists.
+   * the internal `blaze-genfiles` and `bazel-genfiles`. Make a default
+   * assumption according to defaultSymlinkPrefix if neither of the folders
+   * exists.
    */
   static String _findSymlinkPrefix(ResourceProvider provider, String root) {
     Context context = provider.pathContext;
@@ -292,6 +304,7 @@ class BazelWorkspace {
     if (provider.getFolder(context.join(root, 'bazel-genfiles')).exists) {
       return 'bazel';
     }
-    return null;
+    // Couldn't find it.  Make a default assumption.
+    return defaultSymlinkPrefix;
   }
 }

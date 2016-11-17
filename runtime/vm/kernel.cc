@@ -4,6 +4,7 @@
 
 #include "vm/kernel.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
 namespace kernel {
@@ -1207,3 +1208,4 @@ void Program::VisitChildren(Visitor* visitor) {
 }  // namespace kernel
 
 }  // namespace dart
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

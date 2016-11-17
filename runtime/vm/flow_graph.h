@@ -285,6 +285,12 @@ class FlowGraph : public ZoneAllocated {
   // Merge instructions (only per basic-block).
   void TryOptimizePatterns();
 
+  // Replaces uses that are dominated by dom of 'def' with 'other'.
+  // Note: uses that occur at instruction dom itself are not dominated by it.
+  static void RenameDominatedUses(Definition* def,
+                                  Instruction* dom,
+                                  Definition* other);
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;

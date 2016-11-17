@@ -247,17 +247,6 @@ libdart_library("libdart_nosnapshot") {
   ]
 }
 
-libdart_library("libdart_nosnapshot_precompiled_runtime") {
-  extra_configs = [
-    ":dart_no_snapshot_config",
-    ":dart_precompiled_runtime_config",
-  ]
-  extra_deps = [
-    "vm:libdart_lib_nosnapshot_precompiled_runtime",
-    "vm:libdart_vm_nosnapshot_precompiled_runtime",
-  ]
-}
-
 libdart_library("libdart_nosnapshot_with_precompiler") {
   extra_configs = [
     ":dart_no_snapshot_config",

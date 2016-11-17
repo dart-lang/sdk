@@ -2180,7 +2180,8 @@ TEST_CASE(IsolateReload_EnumDelete) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("Fruit.Cantalope true 2", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("Deleted enum value from Fruit true -1",
+               SimpleInvokeStr(lib, "main"));
 }
 
 
@@ -3121,6 +3122,297 @@ TEST_CASE(IsolateReload_ConstFieldUpdate) {
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
   EXPECT_STREQ("value=0:00:02.000000", SimpleInvokeStr(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_RunNewFieldInitializers) {
+  const char* kScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y.
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = 7;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return value.y;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Verify that we ran field initializers on existing instances.
+  EXPECT_EQ(7, SimpleInvoke(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_RunNewFieldInitializersReferenceStaticField) {
+  const char* kScript =
+      "int myInitialValue = 8 * 7;\n"
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y.
+  const char* kReloadScript =
+      "int myInitialValue = 8 * 7;\n"
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = myInitialValue;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return value.y;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Verify that we ran field initializers on existing instances.
+  EXPECT_EQ(56, SimpleInvoke(lib, "main"));
+}
+
+
+TEST_CASE(IsolateReload_RunNewFieldInitializersMutateStaticField) {
+  const char* kScript =
+      "int myInitialValue = 8 * 7;\n"
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "Foo value1;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  value1 = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y.
+  const char* kReloadScript =
+      "int myInitialValue = 8 * 7;\n"
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = myInitialValue++;\n"
+      "}\n"
+      "Foo value;\n"
+      "Foo value1;\n"
+      "main() {\n"
+      "  return myInitialValue;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Verify that we ran field initializers on existing instances and that
+  // they affected the value of the field myInitialValue.
+  EXPECT_EQ(58, SimpleInvoke(lib, "main"));
+}
+
+
+// When an initializer expression throws, we leave the field as null.
+TEST_CASE(IsolateReload_RunNewFieldInitializersThrows) {
+  const char* kScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y.
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = throw 'a';\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return '${value.y == null}';"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Verify that we ran field initializers on existing instances.
+  EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
+}
+
+
+// When an initializer expression has a syntax error, we detect it at reload
+// time.
+TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError) {
+  const char* kScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y with a syntax error in the initializing expression.
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  int x = 4;\n"
+      "  int y = ......;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return '${value.y == null}';"
+      "}\n";
+
+  // The reload fails because the initializing expression is parsed at
+  // class finalization time.
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib, "......");
+}
+
+
+// When an initializer expression has a syntax error, we detect it at reload
+// time.
+TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError2) {
+  const char* kScript =
+      "class Foo {\n"
+      "  Foo() { /* default constructor */ }\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y with a syntax error in the initializing expression.
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  Foo() { /* default constructor */ }\n"
+      "  int x = 4;\n"
+      "  int y = ......;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return '${value.y == null}';"
+      "}\n";
+
+  // The reload fails because the initializing expression is parsed at
+  // class finalization time.
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib, "......");
+}
+
+
+// When an initializer expression has a syntax error, we detect it at reload
+// time.
+TEST_CASE(IsolateReload_RunNewFieldInitializersSyntaxError3) {
+  const char* kScript =
+      "class Foo {\n"
+      "  Foo() { /* default constructor */ }\n"
+      "  int x = 4;\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  value = new Foo();\n"
+      "  return value.x;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(4, SimpleInvoke(lib, "main"));
+
+  // Add the field y with a syntax error in the initializing expression.
+  const char* kReloadScript =
+      "class Foo {\n"
+      "  Foo() { /* default constructor */ }\n"
+      "  int x = 4;\n"
+      "  int y = ......\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return '${value.y == null}';"
+      "}\n";
+
+  // The reload fails because the initializing expression is parsed at
+  // class finalization time.
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib, "......");
+}
+
+
+TEST_CASE(IsolateREload_RunNewFieldInitialiazersSuperClass) {
+  const char* kScript =
+      "class Super {\n"
+      "  static var foo = 'right';\n"
+      "}\n"
+      "class Foo extends Super {\n"
+      "  static var foo = 'wrong';\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  Super.foo;\n"
+      "  Foo.foo;\n"
+      "  value = new Foo();\n"
+      "  return 0;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_EQ(0, SimpleInvoke(lib, "main"));
+
+  const char* kReloadScript =
+      "class Super {\n"
+      "  static var foo = 'right';\n"
+      "  var newField = foo;\n"
+      "}\n"
+      "class Foo extends Super {\n"
+      "  static var foo = 'wrong';\n"
+      "}\n"
+      "Foo value;\n"
+      "main() {\n"
+      "  return value.newField;\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  // Verify that we ran field initializers on existing instances in the
+  // correct scope.
+  EXPECT_STREQ("right", SimpleInvokeStr(lib, "main"));
 }
 
 #endif  // !PRODUCT

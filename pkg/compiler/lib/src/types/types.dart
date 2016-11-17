@@ -251,8 +251,8 @@ class GlobalTypeInferenceTask extends CompilerTask {
       typesInferrerInternal ??= new TypeGraphInferrer(compiler, masks);
       typesInferrerInternal.analyzeMain(mainElement);
       typesInferrerInternal.clear();
-      results = new GlobalTypeInferenceResults(
-          typesInferrerInternal, compiler, masks, typesInferrerInternal.inferrer.types);
+      results = new GlobalTypeInferenceResults(typesInferrerInternal, compiler,
+          masks, typesInferrerInternal.inferrer.types);
     });
   }
 }

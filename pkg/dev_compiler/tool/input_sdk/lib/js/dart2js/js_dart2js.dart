@@ -470,7 +470,8 @@ dynamic _wrapDartFunction(f) {
       '  let args = Array.prototype.map.call(arguments, #);'
       '  return #(#(...args));'
       '}', _convertToDart, _convertToJS, f);
-  _dartProxies[wrapper] = f;
+  JS('', '#.set(#, #)', _dartProxies, wrapper, f);
+
   return wrapper;
 }
 

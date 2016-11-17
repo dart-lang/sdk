@@ -13,9 +13,10 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:front_end/src/base/errors.dart';
 import 'package:front_end/src/scanner/errors.dart';
 
-export 'package:front_end/src/scanner/errors.dart'
+export 'package:front_end/src/base/errors.dart'
     show ErrorCode, ErrorSeverity, ErrorType;
 
 const List<ErrorCode> errorCodeValues = const [

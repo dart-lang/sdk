@@ -29,6 +29,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "Hardware";
   fields_[kCpuInfoHardware] = "Hardware";
   fields_[kCpuInfoFeatures] = "Features";
+  fields_[kCpuInfoArchitecture] = NULL;
 }
 
 

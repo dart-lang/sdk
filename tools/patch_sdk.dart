@@ -264,6 +264,17 @@ List<String> _patchLibrary(String name,
     partUnit.accept(new PatchApplier(partEdits, patchFinder));
     results.add(partEdits);
   }
+
+  if (patchFinder.patches.length != patchFinder.applied.length) {
+    print('Some elements marked as @patch do not have corresponding elements:');
+    for (var patched in patchFinder.patches.keys) {
+      if (!patchFinder.applied.contains(patched)) {
+        print('*** ${patched}');
+      }
+    }
+    throw "Failed to apply all @patch-es";
+  }
+
   return new List<String>.from(results.map((e) => e.toString()));
 }
 
@@ -343,14 +354,16 @@ class PatchApplier extends GeneralizingAstVisitor {
     if (node is FieldDeclaration) return;
 
     var externalKeyword = (node as dynamic).externalKeyword;
-    if (externalKeyword == null) return;
 
     var name = _qualifiedName(node);
     var patchNode = patch.patches[name];
     if (patchNode == null) {
-      print('warning: patch not found for $name: $node');
+      if (externalKeyword != null) {
+        print('warning: patch not found for $name: $node');
+      }
       return;
     }
+    patch.applied.add(name);
 
     Annotation patchMeta = patchNode.metadata.lastWhere(_isPatchAnnotation);
     int start = patchMeta.endToken.next.offset;
@@ -359,7 +372,7 @@ class PatchApplier extends GeneralizingAstVisitor {
     // For some node like static fields, the node's offset doesn't include
     // the external keyword. Also starting from the keyword lets us preserve
     // documentation comments.
-    edits.replace(externalKeyword.offset, node.end, code);
+    edits.replace(externalKeyword?.offset ?? node.offset, node.end, code);
   }
 }
 
@@ -370,6 +383,7 @@ class PatchFinder extends GeneralizingAstVisitor {
   final Map patches = <String, Declaration>{};
   final Map mergeMembers = <String, List<ClassMember>>{};
   final List mergeDeclarations = <CompilationUnitMember>[];
+  final Set<String> applied = new Set<String>();
 
   PatchFinder.parseAndVisit(String name, String contents)
       : contents = contents,

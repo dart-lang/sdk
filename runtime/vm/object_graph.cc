@@ -491,13 +491,14 @@ class WritePointerVisitor : public ObjectPointerVisitor {
       : ObjectPointerVisitor(isolate), stream_(stream), count_(0) {}
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
-      if (!(*current)->IsHeapObject() || (*current == Object::null())) {
-        // Ignore smis and nulls for now.
+      RawObject* object = *current;
+      if (!object->IsHeapObject() || object->IsVMHeapObject()) {
+        // Ignore smis and objects in the VM isolate for now.
         // TODO(koda): To track which field each pointer corresponds to,
         // we'll need to encode which fields were omitted here.
         continue;
       }
-      WritePtr(*current, stream_);
+      WritePtr(object, stream_);
       ++count_;
     }
   }

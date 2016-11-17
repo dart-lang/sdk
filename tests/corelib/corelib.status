@@ -207,3 +207,7 @@ http_resource_test: Skip # Resolve URI not supported yet in product mode.
 
 [ $arch == simdbc || $arch == simdbc64 ]
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
+
+[ $hot_reload || $hot_reload_rollback ]
+big_integer_parsed_mul_div_vm_test: Pass, Slow # Slow.
+

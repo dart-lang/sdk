@@ -18,8 +18,8 @@ abstract class CompilationError {
   /// A text description of how the user can fix the error.  May be `null`.
   String get correction;
 
-  /// The source location where the error occurred.
-  SourceSpan get location;
+  /// The source span where the error occurred.
+  SourceSpan get span;
 
   /// A text description of the compile error.
   String get message;

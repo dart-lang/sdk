@@ -167,7 +167,9 @@ void HostCPUFeatures::InitOnce() {
   // Check for ARMv5TE, ARMv6, ARMv7, or aarch64.
   // It can be in either the Processor or Model information fields.
   if (CpuInfo::FieldContains(kCpuInfoProcessor, "aarch64") ||
-      CpuInfo::FieldContains(kCpuInfoModel, "aarch64")) {
+      CpuInfo::FieldContains(kCpuInfoModel, "aarch64") ||
+      CpuInfo::FieldContains(kCpuInfoArchitecture, "8") ||
+      CpuInfo::FieldContains(kCpuInfoArchitecture, "AArch64")) {
     // pretend that this arm64 cpu is really an ARMv7
     arm_version_ = ARMv7;
     is_arm64 = true;

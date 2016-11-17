@@ -2801,23 +2801,29 @@ class HIsViaInterceptor extends HLateInstruction {
 }
 
 class HTypeConversion extends HCheck {
-  final DartType typeExpression;
-  final int kind;
-  final Selector receiverTypeCheckSelector;
-  final bool contextIsTypeArguments;
-  TypeMask checkedType; // Not final because we refine it.
-
+  // Values for [kind].
   static const int CHECKED_MODE_CHECK = 0;
   static const int ARGUMENT_TYPE_CHECK = 1;
   static const int CAST_TYPE_CHECK = 2;
   static const int BOOLEAN_CONVERSION_CHECK = 3;
   static const int RECEIVER_TYPE_CHECK = 4;
 
+  final DartType typeExpression;
+  final int kind;
+  // [receiverTypeCheckSelector] is the selector used for a receiver type check
+  // on open-coded operators, e.g. the not-null check on `x` in `x + 1` would be
+  // compiled to the following, for which we need the selector `$add`.
+  //
+  //     if (typeof x != "number") x.$add();
+  //
+  final Selector receiverTypeCheckSelector;
+
+  TypeMask checkedType; // Not final because we refine it.
+
   HTypeConversion(
       this.typeExpression, this.kind, TypeMask type, HInstruction input,
-      [this.receiverTypeCheckSelector])
-      : contextIsTypeArguments = false,
-        checkedType = type,
+      {this.receiverTypeCheckSelector})
+      : checkedType = type,
         super(<HInstruction>[input], type) {
     assert(!isReceiverTypeCheck || receiverTypeCheckSelector != null);
     assert(typeExpression == null || typeExpression.kind != TypeKind.TYPEDEF);
@@ -2826,21 +2832,21 @@ class HTypeConversion extends HCheck {
 
   HTypeConversion.withTypeRepresentation(this.typeExpression, this.kind,
       TypeMask type, HInstruction input, HInstruction typeRepresentation)
-      : contextIsTypeArguments = false,
-        checkedType = type,
+      : checkedType = type,
         super(<HInstruction>[input, typeRepresentation], type),
         receiverTypeCheckSelector = null {
     assert(typeExpression.kind != TypeKind.TYPEDEF);
     sourceElement = input.sourceElement;
   }
 
-  HTypeConversion.withContext(this.typeExpression, this.kind, TypeMask type,
-      HInstruction input, HInstruction context,
-      {bool this.contextIsTypeArguments})
-      : super(<HInstruction>[input, context], type),
-        checkedType = type,
+  HTypeConversion.viaMethodOnType(this.typeExpression, this.kind, TypeMask type,
+      HInstruction reifiedType, HInstruction input)
+      : checkedType = type,
+        super(<HInstruction>[reifiedType, input], type),
         receiverTypeCheckSelector = null {
-    assert(typeExpression.kind != TypeKind.TYPEDEF);
+    // This form is currently used only for function types.
+    assert(typeExpression.isFunctionType);
+    assert(kind == CHECKED_MODE_CHECK || kind == CAST_TYPE_CHECK);
     sourceElement = input.sourceElement;
   }
 
@@ -2850,11 +2856,11 @@ class HTypeConversion extends HCheck {
 
   HInstruction get typeRepresentation => inputs[1];
 
-  bool get hasContext {
-    return typeExpression.isFunctionType && inputs.length > 1;
-  }
+  bool get usesMethodOnType =>
+      typeExpression != null && typeExpression.isFunctionType;
 
-  HInstruction get context => inputs[1];
+  HInstruction get checkedInput =>
+      usesMethodOnType ? inputs[1] : super.checkedInput;
 
   HInstruction convertType(Compiler compiler, DartType type, int kind) {
     if (typeExpression == type) {

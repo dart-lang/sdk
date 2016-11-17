@@ -424,7 +424,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   void _checkForAbstractSuperMemberReference(
       Expression target, SimpleIdentifier name) {
-    if (target is SuperExpression) {
+    if (target is SuperExpression &&
+        !_currentLibrary.context.analysisOptions.enableSuperMixins) {
       Element element = name.staticElement;
       if (element is ExecutableElement && element.isAbstract) {
         if (!_enclosingClass.hasNoSuchMethod) {

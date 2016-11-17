@@ -606,7 +606,7 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
 DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   DARTSCOPE(Thread::Current());
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
-  return Api::NewHandle(T, obj.GetType());
+  return Api::NewHandle(T, obj.GetType(Heap::kNew));
 }
 
 

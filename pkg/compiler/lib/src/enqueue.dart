@@ -10,7 +10,6 @@ import 'cache_strategy.dart';
 import 'common/backend_api.dart' show Backend;
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show Resolution, ResolutionWorkItem;
-import 'common/registry.dart' show Registry;
 import 'common/tasks.dart' show CompilerTask;
 import 'common/work.dart' show WorkItem;
 import 'common.dart';
@@ -85,7 +84,6 @@ abstract class Enqueuer {
   void registerStaticUse(StaticUse staticUse);
   void registerStaticUseInternal(StaticUse staticUse);
   void registerDynamicUse(DynamicUse dynamicUse);
-  void registerTypeUse(TypeUse typeUse);
 
   /// Returns [:true:] if this enqueuer is the resolution enqueuer.
   bool get isResolutionQueue;
@@ -455,7 +453,7 @@ class ResolutionEnqueuer extends Enqueuer {
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        registerTypeUse(new TypeUse.instantiation(staticUse.type));
+        _registerTypeUse(new TypeUse.instantiation(staticUse.type));
         break;
       case StaticUseKind.DIRECT_INVOKE:
         invariant(
@@ -467,7 +465,7 @@ class ResolutionEnqueuer extends Enqueuer {
     }
   }
 
-  void registerTypeUse(TypeUse typeUse) {
+  void _registerTypeUse(TypeUse typeUse) {
     DartType type = typeUse.type;
     switch (typeUse.kind) {
       case TypeUseKind.INSTANTIATION:
@@ -743,7 +741,7 @@ class TreeShakingEnqueuerStrategy implements EnqueuerStrategy {
 }
 
 class _EnqueuerImpactVisitor implements WorldImpactVisitor {
-  final Enqueuer enqueuer;
+  final ResolutionEnqueuer enqueuer;
 
   _EnqueuerImpactVisitor(this.enqueuer);
 
@@ -759,7 +757,7 @@ class _EnqueuerImpactVisitor implements WorldImpactVisitor {
 
   @override
   void visitTypeUse(TypeUse typeUse) {
-    enqueuer.registerTypeUse(typeUse);
+    enqueuer._registerTypeUse(typeUse);
   }
 }
 

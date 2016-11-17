@@ -706,10 +706,11 @@ class RawUnresolvedClass : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(UnresolvedClass);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->library_prefix_);
+    return reinterpret_cast<RawObject**>(&ptr()->library_or_library_prefix_);
   }
-  RawLibraryPrefix* library_prefix_;  // Library prefix qualifier for the ident.
-  RawString* ident_;                  // Name of the unresolved identifier.
+  RawObject* library_or_library_prefix_;  // Library or library prefix qualifier
+                                          // for the ident.
+  RawString* ident_;                      // Name of the unresolved identifier.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->ident_); }
   TokenPosition token_pos_;
 };

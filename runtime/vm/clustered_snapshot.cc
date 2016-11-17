@@ -5307,21 +5307,29 @@ void FullSnapshotWriter::WriteFullSnapshot() {
 
   WriteIsolateFullSnapshot(num_base_objects);
 
+  if (FLAG_print_snapshot_sizes) {
+    OS::Print("VMIsolate(CodeSize): %" Pd "\n", VmIsolateSnapshotSize());
+    OS::Print("Isolate(CodeSize): %" Pd "\n", IsolateSnapshotSize());
+  }
+  intptr_t total_size = VmIsolateSnapshotSize() + IsolateSnapshotSize();
+
   if (Snapshot::IncludesCode(kind_)) {
     instructions_writer_->Write(
         *vm_isolate_snapshot_buffer_, vm_isolate_snapshot_size_,
         *isolate_snapshot_buffer_, isolate_snapshot_size_);
 
-    OS::Print("VMIsolate(CodeSize): %" Pd "\n", VmIsolateSnapshotSize());
-    OS::Print("Isolate(CodeSize): %" Pd "\n", IsolateSnapshotSize());
-    OS::Print("ReadOnlyData(CodeSize): %" Pd "\n",
-              instructions_writer_->data_size());
-    OS::Print("Instructions(CodeSize): %" Pd "\n",
-              instructions_writer_->text_size());
-    intptr_t total = VmIsolateSnapshotSize() + IsolateSnapshotSize() +
-                     instructions_writer_->data_size() +
-                     instructions_writer_->text_size();
-    OS::Print("Total(CodeSize): %" Pd "\n", total);
+    if (FLAG_print_snapshot_sizes) {
+      OS::Print("ReadOnlyData(CodeSize): %" Pd "\n",
+                instructions_writer_->data_size());
+      OS::Print("Instructions(CodeSize): %" Pd "\n",
+                instructions_writer_->text_size());
+    }
+    total_size +=
+        instructions_writer_->data_size() + instructions_writer_->text_size();
+  }
+
+  if (FLAG_print_snapshot_sizes) {
+    OS::Print("Total(CodeSize): %" Pd "\n", total_size);
   }
 }
 

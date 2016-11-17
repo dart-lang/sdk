@@ -25,16 +25,19 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "model name";
   fields_[kCpuInfoFeatures] = "flags";
+  fields_[kCpuInfoArchitecture] = "CPU architecture";
 #elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
   fields_[kCpuInfoProcessor] = "Processor";
   fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "Hardware";
   fields_[kCpuInfoFeatures] = "Features";
+  fields_[kCpuInfoArchitecture] = "CPU architecture";
 #elif defined(HOST_ARCH_MIPS)
   fields_[kCpuInfoProcessor] = "system type";
   fields_[kCpuInfoModel] = "cpu model";
   fields_[kCpuInfoHardware] = "cpu model";
   fields_[kCpuInfoFeatures] = "ASEs implemented";
+  fields_[kCpuInfoArchitecture] = "CPU architecture";
 #else
 #error Unrecognized target architecture
 #endif

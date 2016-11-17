@@ -1011,6 +1011,55 @@ class A {
         expectedSuccess: false);
   }
 
+  void test_false_inBody_addAsync() {
+    _resolveUnit(r'''
+class C {
+  test() {}
+}
+''');
+    _updateAndValidate(
+        r'''
+class C {
+  test() async {}
+}
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_inBody_async_addStar() {
+    _resolveUnit(r'''
+import 'dart:async';
+class C {
+  Stream test() async {}
+}
+''');
+    _updateAndValidate(
+        r'''
+import 'dart:async';
+class C {
+  Stream test() async* {}
+}
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_inBody_async_removeStar() {
+    _resolveUnit(r'''
+import 'dart:async';
+class C {
+  Stream test() async* {}
+}
+''');
+    _updateAndValidate(
+        r'''
+import 'dart:async';
+class C {
+  Stream test() async {}
+}
+''',
+        expectedSuccess: false);
+  }
+
   void test_false_inBody_functionExpression() {
     _resolveUnit(r'''
 class C extends D {
@@ -1030,6 +1079,36 @@ class C extends D {
 }
 
 class D {}
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_inBody_removeAsync() {
+    _resolveUnit(r'''
+class C {
+  test() async {}
+}
+''');
+    _updateAndValidate(
+        r'''
+class C {
+  test() {}
+}
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_inBody_sync_addStar() {
+    _resolveUnit(r'''
+class C {
+  test() {}
+}
+''');
+    _updateAndValidate(
+        r'''
+class C {
+  test() sync* {}
+}
 ''',
         expectedSuccess: false);
   }

@@ -19,7 +19,6 @@ import '../common/backend_api.dart'
         NativeRegistry;
 import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Selectors, Uris;
-import '../common/registry.dart' show Registry;
 import '../common/resolution.dart' show Frontend, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
@@ -1928,9 +1927,6 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  /// Called when [:new Symbol(...):] is seen.
-  void registerNewSymbol(Registry registry) {}
-
   /// Should [element] (a getter) that would normally not be generated due to
   /// treeshaking be retained for reflection?
   bool shouldRetainGetter(Element element) {
@@ -2384,14 +2380,20 @@ class JavaScriptBackend extends Backend {
     }
 
     if (isTreeShakingDisabled) {
-      mirrorsAnalysis.enqueueReflectiveElements(
-          enqueuer, recentClasses, compiler.libraryLoader.libraries);
+      enqueuer.applyImpact(
+          compiler.impactStrategy,
+          mirrorsAnalysis.computeImpactForReflectiveElements(recentClasses,
+              enqueuer.processedClasses, compiler.libraryLoader.libraries,
+              forResolution: enqueuer.isResolutionQueue));
     } else if (!targetsUsed.isEmpty && enqueuer.isResolutionQueue) {
       // Add all static elements (not classes) that have been requested for
       // reflection. If there is no mirror-usage these are probably not
       // necessary, but the backend relies on them being resolved.
-      mirrorsAnalysis.enqueueReflectiveStaticFields(
-          enqueuer, _findStaticFieldTargets());
+      enqueuer.applyImpact(
+          compiler.impactStrategy,
+          mirrorsAnalysis.computeImpactForReflectiveStaticFields(
+              _findStaticFieldTargets(),
+              forResolution: enqueuer.isResolutionQueue));
     }
 
     if (mustPreserveNames) reporter.log('Preserving names.');

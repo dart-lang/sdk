@@ -84,6 +84,7 @@ static void PrecompilationModeHandler(bool value) {
     FATAL("Precompilation not supported on IA32");
 #endif
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
     // Flags affecting compilation only:
     // There is no counter feedback in precompilation, so ignore the counter
     // when making inlining decisions.
@@ -97,6 +98,7 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_caller_size_threshold = 1000;
     FLAG_inlining_constant_arguments_max_size_threshold = 100;
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
+#endif
 
     FLAG_background_compilation = false;
     FLAG_fields_may_be_reset = true;

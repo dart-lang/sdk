@@ -309,12 +309,16 @@ link_natives_lazily_test: SkipByDesign
 # SIMDBC interpreter doesn't support --no_lazy_dispatchers
 no_lazy_dispatchers_test: SkipByDesign
 
-[ $compiler == precompiler && $runtime == dart_precompiled && $system == android ]
+[ $system == android ]
 # Issue 26376
+io/platform_resolved_executable_test: RuntimeError
+io/process_path_test: RuntimeError
+io/file_test: RuntimeError
+io/process_path_environment_test: RuntimeError
 io/file_system_watcher_test: RuntimeError
 io/resolve_symbolic_links_test: RuntimeError
 io/file_stat_test: RuntimeError
-# Issue #27638
+# Issue 27638
 io/raw_datagram_socket_test: RuntimeError
 io/http_proxy_advanced_test: RuntimeError
 io/regress_21160_test: RuntimeError
@@ -343,6 +347,9 @@ deferred_transitive_import_error_test: Skip # Contains intentional errors.
 [ $hot_reload || $hot_reload_rollback ]
 deferred_transitive_import_error_test: Crash # Uses deferred imports.
 package/*: SkipByDesign # Launches VMs in interesting ways.
+io/raw_datagram_read_all_test: Pass, Fail # Timing dependent.
+io/test_runner_test: Pass, Slow # Slow.
+io/skipping_dart2js_compilations_test: Pass, Slow # Slow.
 
 [ $builder_tag == no_ipv6 ]
 io/http_bind_test: Skip

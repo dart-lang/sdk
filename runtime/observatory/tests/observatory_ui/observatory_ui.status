@@ -14,6 +14,7 @@ vm_connect/element_test: Skip # See issue 27714
 allocation_profile: Skip
 cpu_profile_table: Skip
 persistent_handles_page: Skip
+vm_connect/element_test: Skip # See issue 27714
 
 [ $runtime == ff || $runtime == chrome ]
 vm_connect/element_test: Skip # Times out

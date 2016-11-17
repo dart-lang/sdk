@@ -1473,8 +1473,9 @@ class SimpleTypeInferrerVisitor<T>
     isThisExposed = true;
     Selector selector = elements.getSelector(node);
     TypeMask mask = inTreeData.typeOfSend(node);
-    return handleStaticSend(
+    handleStaticSend(
         node, selector, mask, element, new ArgumentsTypes<T>([rhsType], null));
+    return rhsType;
   }
 
   @override
@@ -1684,13 +1685,13 @@ class SimpleTypeInferrerVisitor<T>
       return handleForeignSend(node, target);
     }
     Selector selector = elements.getSelector(node);
+    CallStructure callStructure = selector.callStructure;
     TypeMask mask = inTreeData.typeOfSend(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn't break anything
-    if (!selector.applies(target) ||
-        (mask != null &&
-            !mask.canHit(target, selector, compiler.closedWorld))) {
+    if (target.isMalformed ||
+        !callStructure.signatureApplies(target.functionSignature)) {
       return types.dynamicType;
     }
 

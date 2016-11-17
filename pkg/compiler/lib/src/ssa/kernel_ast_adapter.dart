@@ -127,9 +127,17 @@ class KernelAstAdapter {
     return new CallStructure(argumentCount, namedArguments);
   }
 
+  FunctionSignature getFunctionSignature(ir.FunctionNode function) {
+    return getElement(function).asFunctionElement().functionSignature;
+  }
+
   Name getName(ir.Name name) {
     return new Name(
         name.name, name.isPrivate ? getElement(name.library) : null);
+  }
+
+  ir.Field getFieldFromElement(FieldElement field) {
+    return kernel.fields[field];
   }
 
   Selector getSelector(ir.Expression node) {
@@ -250,6 +258,8 @@ class KernelAstAdapter {
     return _backend.isInterceptedSelector(selector);
   }
 
+  LibraryElement get jsHelperLibrary => _backend.helpers.jsHelperLibrary;
+
   JumpTarget getTargetDefinition(ir.Node node) =>
       elements.getTargetDefinition(getNode(node));
 
@@ -282,8 +292,13 @@ class KernelAstAdapter {
   ir.Procedure get assertThrow =>
       kernel.functions[_backend.helpers.assertThrow];
 
+  ir.Procedure get setRuntimeTypeInfo =>
+      kernel.functions[_backend.helpers.setRuntimeTypeInfo];
+
   TypeMask get assertThrowReturnType => TypeMaskFactory
       .inferredReturnTypeForElement(_backend.helpers.assertThrow, _compiler);
+
+  ir.Class get objectClass => kernel.classes[_compiler.coreClasses.objectClass];
 
   DartType getDartType(ir.DartType type) {
     return type.accept(_typeConverter);
@@ -293,9 +308,13 @@ class KernelAstAdapter {
     return types.map(getDartType).toList();
   }
 
+  DartType getFunctionReturnType(ir.FunctionNode node) {
+    return getDartType(node.returnType);
+  }
+
   /// Computes the function type corresponding the signature of [node].
   FunctionType getFunctionType(ir.FunctionNode node) {
-    DartType returnType = getDartType(node.returnType);
+    DartType returnType = getFunctionReturnType(node);
     List<DartType> parameterTypes = <DartType>[];
     List<DartType> optionalParameterTypes = <DartType>[];
     for (ir.VariableDeclaration variable in node.positionalParameters) {
@@ -332,7 +351,6 @@ class KernelAstAdapter {
   }
 
   /// Compute the kind of foreign helper function called by [node], if any.
-  @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (isForeignLibrary(node.target.enclosingLibrary)) {
       switch (node.target.name.name) {

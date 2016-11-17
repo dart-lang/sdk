@@ -28,7 +28,7 @@
       => VMLibraryHooks.packageConfigString;
 
   // This script singleton is written to by the embedder if applicable.
-  @patch static void set _nativeScript(String path) {
+  static void set _nativeScript(String path) {
     if (path.startsWith('http:') ||
         path.startsWith('https:') ||
         path.startsWith('package:') ||

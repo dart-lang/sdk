@@ -123,7 +123,7 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
   } else if (instance.IsDouble()) {
     return Type::Double();
   }
-  return instance.GetType();
+  return instance.GetType(Heap::kNew);
 }
 
 
@@ -147,8 +147,10 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 2) {
   const Class& cls = Class::Handle(left.clazz());
   if (cls.IsClosureClass()) {
     // TODO(vegorov): provide faster implementation for closure classes.
-    const AbstractType& left_type = AbstractType::Handle(left.GetType());
-    const AbstractType& right_type = AbstractType::Handle(right.GetType());
+    const AbstractType& left_type =
+        AbstractType::Handle(left.GetType(Heap::kNew));
+    const AbstractType& right_type =
+        AbstractType::Handle(right.GetType(Heap::kNew));
     return Bool::Get(left_type.raw() == right_type.raw()).raw();
   }
 
@@ -182,7 +184,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Native Object.instanceOf: result %s\n", result_str);
     const AbstractType& instance_type =
-        AbstractType::Handle(zone, instance.GetType());
+        AbstractType::Handle(zone, instance.GetType(Heap::kNew));
     OS::Print("  instance type: %s\n",
               String::Handle(zone, instance_type.Name()).ToCString());
     OS::Print("  test type: %s\n",
@@ -318,7 +320,7 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Object.as: result %s\n", result_str);
     const AbstractType& instance_type =
-        AbstractType::Handle(zone, instance.GetType());
+        AbstractType::Handle(zone, instance.GetType(Heap::kNew));
     OS::Print("  instance type: %s\n",
               String::Handle(zone, instance_type.Name()).ToCString());
     OS::Print("  cast type: %s\n",
@@ -333,7 +335,7 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
     ASSERT(caller_frame != NULL);
     const TokenPosition location = caller_frame->GetTokenPos();
     const AbstractType& instance_type =
-        AbstractType::Handle(zone, instance.GetType());
+        AbstractType::Handle(zone, instance.GetType(Heap::kNew));
     if (!type.IsInstantiated()) {
       // Instantiate type before reporting the error.
       type = type.InstantiateFrom(instantiator_type_arguments, NULL, NULL, NULL,

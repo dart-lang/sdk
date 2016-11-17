@@ -800,11 +800,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // throw a type error at runtime.
         return node;
       }
-      if (!type.treatAsRaw || type.isTypeVariable) {
+      if (type.isTypeVariable) {
+        return node;
+      }
+      if (!type.treatAsRaw) {
+        HInstruction input = node.checkedInput;
+        // `null` always passes type conversion.
+        if (input.isNull()) return input;
+        // TODO(sra): We can statically check [input] if it is a constructor.
+        // TODO(sra): We can statically check [input] if it is load from a field
+        // of the same ground type, or load from a field of a parameterized type
+        // with the same receiver.
         return node;
       }
       if (type.isFunctionType) {
+        HInstruction input = node.checkedInput; 
+        // `null` always passes type conversion.
+        if (input.isNull()) return input;
         // TODO(johnniwinther): Optimize function type conversions.
+        // TODO(sra): We can statically check [input] if it is a closure getter.
         return node;
       }
     }
@@ -944,15 +958,18 @@ class SsaInstructionSimplifier extends HBaseVisitor
     FieldElement field =
         findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable) return node;
-    // Use [:node.inputs.last:] in case the call follows the
-    // interceptor calling convention, but is not a call on an
-    // interceptor.
+    // Use `node.inputs.last` in case the call follows the interceptor calling
+    // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
     if (compiler.options.enableTypeAssertions) {
       DartType type = field.type;
-      if (!type.treatAsRaw || type.isTypeVariable) {
+      if (!type.treatAsRaw ||
+          type.isTypeVariable ||
+          type.unaliased.isFunctionType) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
+        // TODO(sra): If the input is such that we don't need a type check, we
+        // can skip the test an generate the HFieldSet.
         return node;
       }
       HInstruction other =

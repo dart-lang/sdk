@@ -310,8 +310,10 @@ class DartPrecompiledAdbRuntimeConfiguration
     }
 
     String precompiledRunner = suite.dartPrecompiledBinaryFileName;
+    String processTest = suite.processTestBinaryFileName;
     return <Command>[
       commandBuilder.getAdbPrecompiledCommand(precompiledRunner,
+                                              processTest,
                                               script,
                                               arguments,
                                               useBlobs)
