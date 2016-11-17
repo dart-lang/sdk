@@ -527,13 +527,13 @@ class MethodRecognizer : public AllStatic {
 };
 
 
-#if defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 #define CHECK_FINGERPRINT2(f, p0, p1, fp)                                      \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1, fp))
 
 #define CHECK_FINGERPRINT3(f, p0, p1, p2, fp)                                  \
   ASSERT(f.CheckSourceFingerprint(#p0 ", " #p1 ", " #p2, fp))
-#endif  // defined(DART_NO_SNAPSHOT) && !defined(PRODUCT)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 
 // clang-format off
