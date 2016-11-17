@@ -6,9 +6,8 @@ library linter.test.rule;
 
 import 'dart:io';
 
-import 'mock_sdk.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/formatter.dart';
@@ -21,6 +20,8 @@ import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/util.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'mock_sdk.dart';
 
 main() {
   defineSanityTests();

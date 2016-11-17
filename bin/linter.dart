@@ -5,8 +5,8 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/error.dart';
 import 'package:args/args.dart';
 import 'package:linter/src/config.dart';
 import 'package:linter/src/formatter.dart';

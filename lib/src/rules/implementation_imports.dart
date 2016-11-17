@@ -75,7 +75,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitImportDirective(ImportDirective node) {
-    Uri importUri = node?.source?.uri;
+    Uri importUri = node?.uriSource?.uri;
     Uri sourceUri = node?.element?.source?.uri;
 
     // Test for 'package:*/src/'.

@@ -9,11 +9,12 @@ import 'dart:io' as io;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart'
-    show File, ResourceUriResolver;
+    show File, Folder, ResourceProvider, ResourceUriResolver;
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -44,7 +45,6 @@ void printAndFail(String message, {int exitCode: 15}) {
 
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
-  analysisOptions.cacheSize = options.cacheSize;
   analysisOptions.strongMode = options.strongMode;
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
@@ -69,20 +69,27 @@ class AnalysisDriver {
   int get numSourcesAnalyzed => _sourcesAnalyzed.length;
 
   List<UriResolver> get resolvers {
+    // TODO(brianwilkerson) Use the context builder to compute all of the resolvers.
+    ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+    ContextBuilder builder = new ContextBuilder(resourceProvider, null, null);
+
     DartSdk sdk = options.mockSdk ??
-        new FolderBasedDartSdk(PhysicalResourceProvider.INSTANCE,
-            PhysicalResourceProvider.INSTANCE.getFolder(sdkDir));
+        new FolderBasedDartSdk(
+            resourceProvider, resourceProvider.getFolder(sdkDir));
 
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];
 
     if (options.packageRootPath != null) {
-      JavaFile packageDirectory = new JavaFile(options.packageRootPath);
-      resolvers.add(new PackageUriResolver([packageDirectory]));
+      builder.builderOptions.defaultPackagesDirectoryPath =
+          options.packageRootPath;
+      Map<String, List<Folder>> packageMap =
+          builder.convertPackagesToMap(builder.createPackageMap(null));
+      resolvers.add(new PackageMapUriResolver(resourceProvider, packageMap));
     }
 
     // File URI resolver must come last so that files inside "/lib" are
     // are analyzed via "package:" URI's.
-    resolvers.add(new ResourceUriResolver(PhysicalResourceProvider.INSTANCE));
+    resolvers.add(new ResourceUriResolver(resourceProvider));
     return resolvers;
   }
 

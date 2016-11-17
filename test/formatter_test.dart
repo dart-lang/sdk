@@ -4,7 +4,7 @@
 
 library linter.test.formatter;
 
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:linter/src/formatter.dart';
 import 'package:linter/src/linter.dart';
 import 'package:mockito/mockito.dart';
