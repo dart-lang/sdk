@@ -982,7 +982,7 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void _pushStaticInvocation(
       ir.Node target, List<HInstruction> arguments, TypeMask typeMask) {
-    HInstruction instruction = new HInvokeStatic(
+    HInvokeStatic instruction = new HInvokeStatic(
         astAdapter.getMember(target), arguments, typeMask,
         targetCanThrow: astAdapter.getCanThrow(target));
     if (currentImplicitInstantiations.isNotEmpty) {
