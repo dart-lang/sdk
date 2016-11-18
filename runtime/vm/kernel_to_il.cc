@@ -2360,10 +2360,22 @@ Fragment FlowGraphBuilder::LoadClassId() {
 }
 
 
+const dart::Field& MayCloneField(Zone* zone, const dart::Field& field) {
+  if ((Compiler::IsBackgroundCompilation() ||
+       FLAG_force_clone_compiler_objects) &&
+      field.IsOriginal()) {
+    return dart::Field::ZoneHandle(zone, field.CloneFromOriginal());
+  } else {
+    ASSERT(field.IsZoneHandle());
+    return field;
+  }
+}
+
+
 Fragment FlowGraphBuilder::LoadField(const dart::Field& field) {
-  LoadFieldInstr* load = new (Z)
-      LoadFieldInstr(Pop(), &field, AbstractType::ZoneHandle(Z, field.type()),
-                     TokenPosition::kNoSource);
+  LoadFieldInstr* load = new (Z) LoadFieldInstr(
+      Pop(), &MayCloneField(Z, field),
+      AbstractType::ZoneHandle(Z, field.type()), TokenPosition::kNoSource);
   Push(load);
   return Fragment(load);
 }
@@ -2409,7 +2421,8 @@ Fragment FlowGraphBuilder::LoadLocal(LocalVariable* variable) {
 
 
 Fragment FlowGraphBuilder::InitStaticField(const dart::Field& field) {
-  InitStaticFieldInstr* init = new (Z) InitStaticFieldInstr(Pop(), field);
+  InitStaticFieldInstr* init =
+      new (Z) InitStaticFieldInstr(Pop(), MayCloneField(Z, field));
   return Fragment(init);
 }
 
@@ -2527,23 +2540,26 @@ Fragment FlowGraphBuilder::StoreInstanceField(
   if (value->BindsToConstant()) {
     emit_store_barrier = kNoStoreBarrier;
   }
-  StoreInstanceFieldInstr* store = new (Z) StoreInstanceFieldInstr(
-      field, Pop(), value, emit_store_barrier, TokenPosition::kNoSource);
+  StoreInstanceFieldInstr* store = new (Z)
+      StoreInstanceFieldInstr(MayCloneField(Z, field), Pop(), value,
+                              emit_store_barrier, TokenPosition::kNoSource);
   return Fragment(store);
 }
 
 
 Fragment FlowGraphBuilder::StoreInstanceFieldGuarded(const dart::Field& field) {
   Fragment instructions;
+  const dart::Field& field_clone = MayCloneField(Z, field);
   if (FLAG_use_field_guards) {
     LocalVariable* store_expression = MakeTemporary();
     instructions += LoadLocal(store_expression);
-    instructions += GuardFieldClass(field, Thread::Current()->GetNextDeoptId());
+    instructions +=
+        GuardFieldClass(field_clone, Thread::Current()->GetNextDeoptId());
     instructions += LoadLocal(store_expression);
     instructions +=
-        GuardFieldLength(field, Thread::Current()->GetNextDeoptId());
+        GuardFieldLength(field_clone, Thread::Current()->GetNextDeoptId());
   }
-  instructions += StoreInstanceField(field);
+  instructions += StoreInstanceField(field_clone);
   return instructions;
 }
 
@@ -2580,8 +2596,8 @@ Fragment FlowGraphBuilder::StoreLocal(LocalVariable* variable) {
 
 
 Fragment FlowGraphBuilder::StoreStaticField(const dart::Field& field) {
-  return Fragment(
-      new (Z) StoreStaticFieldInstr(field, Pop(), TokenPosition::kNoSource));
+  return Fragment(new (Z) StoreStaticFieldInstr(MayCloneField(Z, field), Pop(),
+                                                TokenPosition::kNoSource));
 }
 
 
