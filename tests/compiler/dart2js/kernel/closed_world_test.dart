@@ -35,7 +35,7 @@ import '../serialization/model_test_helper.dart';
 const SOURCE = const {
   'main.dart': '''
 main() {
-  print('Hello World!');
+  print(new List<String>()..add('Hello World!'));
 }
 '''
 };
@@ -107,7 +107,7 @@ main(List<String> args) {
         return false;
       }
       return true;
-    }, verbose: arguments.verbose);
+    }, checkInstantiatedTypesAndClasses: false, verbose: arguments.verbose);
     checkClosedWorlds(compiler.closedWorld, closedWorld,
         verbose: arguments.verbose);
   });

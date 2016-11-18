@@ -73,6 +73,7 @@ enum StaticUseKind {
   CLOSURE,
   CONSTRUCTOR_INVOKE,
   CONST_CONSTRUCTOR_INVOKE,
+  REDIRECTION,
   DIRECT_INVOKE,
 }
 
@@ -266,9 +267,12 @@ class StaticUse {
         element, StaticUseKind.CONST_CONSTRUCTOR_INVOKE, type);
   }
 
-  /// Constructor redirection to [element].
-  factory StaticUse.constructorRedirect(ConstructorElement element) {
-    return new StaticUse.internal(element, StaticUseKind.GENERAL);
+  /// Constructor redirection to [element] on [type].
+  factory StaticUse.constructorRedirect(
+      ConstructorElement element, InterfaceType type) {
+    assert(invariant(element, type != null,
+        message: "No type provided for constructor invocation."));
+    return new StaticUse.internal(element, StaticUseKind.REDIRECTION, type);
   }
 
   /// Initialization of an instance field [element].

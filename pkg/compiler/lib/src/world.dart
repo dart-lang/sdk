@@ -25,8 +25,8 @@ import 'universe/class_set.dart';
 import 'universe/function_set.dart' show FunctionSet;
 import 'universe/selector.dart' show Selector;
 import 'universe/side_effects.dart' show SideEffects;
-import 'universe/world_builder.dart' show ResolutionWorldBuilder;
-import 'util/enumset.dart';
+import 'universe/world_builder.dart'
+    show InstantiationInfo, ResolutionWorldBuilder;
 import 'util/util.dart' show Link;
 
 /// Common superinterface for [OpenWorld] and [ClosedWorld].
@@ -1007,7 +1007,10 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
     /// Updates the `isDirectlyInstantiated` and `isIndirectlyInstantiated`
     /// properties of the [ClassHierarchyNode] for [cls].
 
-    void addSubtypes(ClassElement cls, EnumSet<Instantiation> instantiations) {
+    void addSubtypes(ClassElement cls, InstantiationInfo info) {
+      if (!info.hasInstantiation) {
+        return;
+      }
       if (cacheStrategy.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
         return;
       }
@@ -1017,10 +1020,8 @@ class WorldImpl implements ClosedWorld, ClosedWorldRefiner, OpenWorld {
       }
 
       _updateClassHierarchyNodeForClass(cls,
-          directlyInstantiated:
-              instantiations.contains(Instantiation.DIRECTLY_INSTANTIATED),
-          abstractlyInstantiated:
-              instantiations.contains(Instantiation.ABSTRACTLY_INSTANTIATED));
+          directlyInstantiated: info.isDirectlyInstantiated,
+          abstractlyInstantiated: info.isAbstractlyInstantiated);
 
       // Walk through the superclasses, and record the types
       // implemented by that type on the superclasses.

@@ -22,6 +22,7 @@ import 'elements/elements.dart'
         AnalyzableElement,
         AstElement,
         ClassElement,
+        ConstructorElement,
         Element,
         Entity,
         FunctionElement,
@@ -158,9 +159,9 @@ class ResolutionEnqueuer extends Enqueuer {
       this.globalDependencies,
       Backend backend,
       CommonElements commonElements,
-      CacheStrategy cacheStrategy)
-      : this.name = 'resolution enqueuer',
-        this.backend = backend,
+      CacheStrategy cacheStrategy,
+      [this.name = 'resolution enqueuer'])
+      : this.backend = backend,
         this.commonElements = commonElements,
         this.nativeEnqueuer = backend.nativeResolutionEnqueuer(),
         processedElements = new Set<AstElement>(),
@@ -204,16 +205,20 @@ class ResolutionEnqueuer extends Enqueuer {
   }
 
   void _registerInstantiatedType(InterfaceType type,
-      {bool mirrorUsage: false,
+      {ConstructorElement constructor,
+      bool mirrorUsage: false,
       bool nativeUsage: false,
-      bool globalDependency: false}) {
+      bool globalDependency: false,
+      bool isRedirection: false}) {
     task.measure(() {
       ClassElement cls = type.element;
       cls.ensureResolved(resolution);
       bool isNative = backend.isNative(cls);
       _universe.registerTypeInstantiation(type,
+          constructor: constructor,
           isNative: isNative,
-          byMirrors: mirrorUsage, onImplemented: (ClassElement cls) {
+          byMirrors: mirrorUsage,
+          isRedirection: isRedirection, onImplemented: (ClassElement cls) {
         backend.registerImplementedClass(cls, this);
       });
       if (globalDependency && !mirrorUsage) {
@@ -453,7 +458,14 @@ class ResolutionEnqueuer extends Enqueuer {
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
-        _registerTypeUse(new TypeUse.instantiation(staticUse.type));
+        _registerInstantiatedType(staticUse.type,
+            constructor: staticUse.element, globalDependency: false);
+        break;
+      case StaticUseKind.REDIRECTION:
+        _registerInstantiatedType(staticUse.type,
+            constructor: staticUse.element,
+            globalDependency: false,
+            isRedirection: true);
         break;
       case StaticUseKind.DIRECT_INVOKE:
         invariant(
