@@ -1557,7 +1557,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     super['length'] = length;
   }
 
-  // Methods overriden for better performance
+  // Methods overridden for better performance
 
   void add(E value) {
     callMethod('push', [value]);

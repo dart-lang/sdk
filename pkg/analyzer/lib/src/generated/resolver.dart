@@ -8669,7 +8669,7 @@ class TypeOverrideManager_TypeOverrideScope {
   /**
    * A table mapping elements to the overridden type of that element.
    */
-  Map<VariableElement, DartType> _overridenTypes =
+  Map<VariableElement, DartType> _overriddenTypes =
       new HashMap<VariableElement, DartType>();
 
   /**
@@ -8685,7 +8685,7 @@ class TypeOverrideManager_TypeOverrideScope {
    * @param overrides the overrides to be applied
    */
   void applyOverrides(Map<VariableElement, DartType> overrides) {
-    _overridenTypes.addAll(overrides);
+    _overriddenTypes.addAll(overrides);
   }
 
   /**
@@ -8694,7 +8694,7 @@ class TypeOverrideManager_TypeOverrideScope {
    *
    * @return the overrides in the current scope
    */
-  Map<VariableElement, DartType> captureLocalOverrides() => _overridenTypes;
+  Map<VariableElement, DartType> captureLocalOverrides() => _overriddenTypes;
 
   /**
    * Return a map from the elements for the variables in the given list that have their types
@@ -8711,7 +8711,7 @@ class TypeOverrideManager_TypeOverrideScope {
       for (VariableDeclaration variable in variableList.variables) {
         VariableElement element = variable.element;
         if (element != null) {
-          DartType type = _overridenTypes[element];
+          DartType type = _overriddenTypes[element];
           if (type != null) {
             overrides[element] = type;
           }
@@ -8731,8 +8731,8 @@ class TypeOverrideManager_TypeOverrideScope {
   DartType getType(Element element) {
     Element nonAccessor =
         element is PropertyAccessorElement ? element.variable : element;
-    DartType type = _overridenTypes[nonAccessor];
-    if (_overridenTypes.containsKey(nonAccessor)) {
+    DartType type = _overriddenTypes[nonAccessor];
+    if (_overriddenTypes.containsKey(nonAccessor)) {
       return type;
     }
     return type ?? _outerScope?.getType(element);
@@ -8742,7 +8742,7 @@ class TypeOverrideManager_TypeOverrideScope {
    * Clears the overridden type of the given [element].
    */
   void resetType(VariableElement element) {
-    _overridenTypes[element] = null;
+    _overriddenTypes[element] = null;
   }
 
   /**
@@ -8752,7 +8752,7 @@ class TypeOverrideManager_TypeOverrideScope {
    * @param type the overridden type of the given element
    */
   void setType(VariableElement element, DartType type) {
-    _overridenTypes[element] = type;
+    _overriddenTypes[element] = type;
   }
 }
 

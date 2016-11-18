@@ -5094,7 +5094,7 @@ RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
         }
       }
     }
-    // Check for default VM provided values. If it was not overriden on the
+    // Check for default VM provided values. If it was not overridden on the
     // command line.
     if (Symbols::DartIsVM().Equals(name)) {
       return Symbols::True().raw();
