@@ -330,7 +330,7 @@ class HintCode extends ErrorCode {
    */
   static const HintCode MUST_CALL_SUPER = const HintCode(
       'MUST_CALL_SUPER',
-      "This method overrides a method annotated as @mustCall super in '{0}', "
+      "This method overrides a method annotated as @mustCallSuper in '{0}', "
       "but does invoke the overridden method.");
 
   /**
