@@ -276,15 +276,13 @@ static int run_test(mx_handle_t binary_vmo,
   RETURN_IF_ERROR(r);
 
   mx_info_process_t proc_info;
-  mx_size_t info_size;
-  mx_status_t status =
-      mx_object_get_info(p, MX_INFO_PROCESS, sizeof(proc_info.rec), &proc_info,
-                         sizeof(proc_info), &info_size);
+  mx_status_t status = mx_object_get_info(p, MX_INFO_PROCESS, &proc_info,
+                                          sizeof(proc_info), nullptr, nullptr);
   RETURN_IF_ERROR(status);
 
   r = mx_handle_close(p);
   RETURN_IF_ERROR(r);
-  return proc_info.rec.return_code;
+  return proc_info.return_code;
 }
 
 
