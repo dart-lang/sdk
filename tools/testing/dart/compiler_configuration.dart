@@ -217,7 +217,7 @@ class DartKCompilerConfiguration extends CompilerConfiguration {
 
   @override
   String computeCompilerPath(String buildDir) {
-    return 'third_party/pkg/kernel/bin/dartk.dart';
+    return 'tools/dartk_wrappers/dartk$executableScriptSuffix';
   }
 
   CompilationCommand computeCompilationCommand(
