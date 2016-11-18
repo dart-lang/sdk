@@ -154,8 +154,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitExportDirective(ExportDirective node) {
     super.visitExportDirective(node);
-    _resolveAnnotations(
-        node, node.metadata, _enclosingUnit.getAnnotations(node.offset));
+    List<ElementAnnotation> annotations =
+        _enclosingUnit.getAnnotations(node.offset);
+    if (annotations.isEmpty && node.metadata.isNotEmpty) {
+      int index = (node.parent as CompilationUnit)
+          .directives
+          .where((directive) => directive is ExportDirective)
+          .toList()
+          .indexOf(node);
+      annotations = _walker.element.library.exports[index].metadata;
+    }
+    _resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
@@ -263,8 +272,17 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   @override
   Object visitImportDirective(ImportDirective node) {
     super.visitImportDirective(node);
-    _resolveAnnotations(
-        node, node.metadata, _enclosingUnit.getAnnotations(node.offset));
+    List<ElementAnnotation> annotations =
+        _enclosingUnit.getAnnotations(node.offset);
+    if (annotations.isEmpty && node.metadata.isNotEmpty) {
+      int index = (node.parent as CompilationUnit)
+          .directives
+          .where((directive) => directive is ImportDirective)
+          .toList()
+          .indexOf(node);
+      annotations = _walker.element.library.imports[index].metadata;
+    }
+    _resolveAnnotations(node, node.metadata, annotations);
     return null;
   }
 
