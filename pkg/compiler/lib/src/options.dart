@@ -289,7 +289,7 @@ class CompilerOptions implements DiagnosticOptions, ParserOptions {
         dumpInfo: _hasOption(options, Flags.dumpInfo),
         enableAssertMessage: _hasOption(options, Flags.enableAssertMessage),
         enableGenericMethodSyntax:
-            true, // No check for `Flags.genericMethodSyntax`: always enabled.
+            _hasOption(options, Flags.genericMethodSyntax),
         enableInitializingFormalAccess:
             _hasOption(options, Flags.initializingFormalAccess),
         enableExperimentalMirrors:
