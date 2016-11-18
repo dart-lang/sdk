@@ -160,10 +160,9 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
   }
   // Setup toplevel class (which contains library fields/procedures).
 
-  // TODO(27590): Figure out why we need this script stuff here.
-  Script& script = Script::Handle(
-      Z,
-      Script::New(H.DartString(""), H.DartString(""), RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Z, Script::New(Symbols::KernelScriptUri(),
+                                    Symbols::Empty(), RawScript::kScriptTag));
   script.SetLocationOffset(0, 0);
   script.Tokenize(H.DartString("nop() {}"));
   dart::Class& toplevel_class = dart::Class::Handle(
@@ -627,9 +626,9 @@ dart::Class& KernelReader::LookupClass(Class* klass) {
       // detect test functions some other way (like simply not setting the
       // optimizable bit on those functions in the first place).
       TokenPosition pos(0);
-      Script& script =
-          Script::Handle(Z, Script::New(H.DartString(""), H.DartString(""),
-                                        RawScript::kScriptTag));
+      Script& script = Script::Handle(
+          Z, Script::New(Symbols::KernelScriptUri(), Symbols::Empty(),
+                         RawScript::kScriptTag));
       handle =
           &dart::Class::Handle(Z, dart::Class::New(library, name, script, pos));
       library.AddClass(*handle);
@@ -637,9 +636,9 @@ dart::Class& KernelReader::LookupClass(Class* klass) {
       // When bootstrapping we can encounter classes that do not yet have a
       // dummy script.
       TokenPosition pos(0);
-      Script& script =
-          Script::Handle(Z, Script::New(H.DartString(""), H.DartString(""),
-                                        RawScript::kScriptTag));
+      Script& script = Script::Handle(
+          Z, Script::New(Symbols::KernelScriptUri(), Symbols::Empty(),
+                         RawScript::kScriptTag));
       handle->set_script(script);
     }
     // Insert the class in the cache before calling ReadPreliminaryClass so

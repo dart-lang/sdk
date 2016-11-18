@@ -8856,7 +8856,8 @@ void Script::GetTokenLocation(TokenPosition token_pos,
   Zone* zone = Thread::Current()->zone();
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (tkns.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT((Dart::snapshot_kind() == Snapshot::kAppNoJIT) ||
+           (url() == Symbols::KernelScriptUri().raw()));
     *line = -1;
     if (column != NULL) {
       *column = -1;
