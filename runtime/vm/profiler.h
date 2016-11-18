@@ -54,7 +54,7 @@ class Profiler : public AllStatic {
 
   static SampleBuffer* sample_buffer() { return sample_buffer_; }
 
-  static void DumpStackTrace(bool native_stack_trace = true);
+  static void DumpStackTrace();
 
   static void SampleAllocation(Thread* thread, intptr_t cid);
 
