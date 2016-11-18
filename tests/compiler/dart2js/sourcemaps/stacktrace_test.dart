@@ -27,29 +27,35 @@ main() {
 }
 ''',
   '''
+import 'package:expect/expect.dart';
 main() {
   @{1:main}test();
 }
+@NoInline()
 test() {
   @{2:test}throw '$EXCEPTION_MARKER';
 }
 ''',
   '''
+import 'package:expect/expect.dart';
 main() {
   @{1:main}Class.test();
 }
 class Class {
+  @NoInline()
   static test() {
     @{2:Class.test}throw '$EXCEPTION_MARKER';
   }
 }
 ''',
   '''
+import 'package:expect/expect.dart';
 main() {
   var c = new Class();
   c.@{1:main}test();
 }
 class Class {
+  @NoInline()
   test() {
     @{2:Class.test}throw '$EXCEPTION_MARKER';
   }
@@ -67,6 +73,85 @@ class Class {
   }
 }
 ''',
+  '''
+import 'package:expect/expect.dart';
+main() {
+  @{1:main}test();
+}
+@NoInline()
+test() {
+  try {
+    @{2:test}throw '$EXCEPTION_MARKER';
+  } finally {
+  }
+}
+''',
+  '''
+import 'package:expect/expect.dart';
+main() {
+  @{1:main}test();
+}
+@NoInline()
+test() {
+  try {
+    @{2:test}throw '$EXCEPTION_MARKER';
+  } on Error catch (e) {
+  }
+}
+''',
+  '''
+import 'package:expect/expect.dart';
+main() {
+  @{1:main}test();
+}
+@NoInline()
+test() {
+  try {
+    @{2:test}throw '$EXCEPTION_MARKER';
+  } on String catch (e) {
+    rethrow;
+  }
+}
+''',
+  '''
+import 'package:expect/expect.dart';
+main() {
+  test(); // This call is no longer on the stack when the error is thrown.
+}
+@NoInline()
+test() async {
+  @{1:test}throw '$EXCEPTION_MARKER';
+}
+''',
+  '''
+import 'package:expect/expect.dart';
+main() {
+  test1();
+}
+@NoInline()
+test1() async {
+  // This call is no longer on the stack when the error is thrown.
+  await test2();
+}
+@NoInline()
+test2() async {
+  @{1:test2}throw '$EXCEPTION_MARKER';
+}
+''',
+  '''
+import 'package:expect/expect.dart';
+main() {
+  test1();
+}
+@NoInline()
+test1() async {
+  @{1:test1}test2();
+}
+@NoInline()
+test2() {
+  @{2:test2}throw '$EXCEPTION_MARKER';
+}
+''',
 ];
 
 class Test {
@@ -79,7 +164,6 @@ class Test {
 const int _LF = 0x0A;
 const int _CR = 0x0D;
 const int _LBRACE = 0x7B;
-
 
 Test processTestCode(String code) {
   StringBuffer codeBuffer = new StringBuffer();
@@ -135,12 +219,12 @@ Test processTestCode(String code) {
 void main(List<String> arguments) {
   asyncTest(() async {
     for (String code in TESTS) {
-      await runTest(processTestCode(code));
+      await runTest(processTestCode(code), verbose: arguments.contains('-v'));
     }
   });
 }
 
-Future runTest(Test test) async {
+Future runTest(Test test, {bool verbose: false}) async {
   Directory tmpDir = await createTempDir();
   String input = '${tmpDir.path}/$INPUT_FILE_NAME';
   new File(input).writeAsStringSync(test.code);
@@ -162,9 +246,13 @@ Future runTest(Test test) async {
       JSON.decode(new File('$output.map').readAsStringSync()));
 
   print("Running d8 $output");
-  ProcessResult runResult =
-      Process.runSync(d8executable, [output]);
+  ProcessResult runResult = Process.runSync(d8executable,
+      ['sdk/lib/_internal/js_runtime/lib/preambles/d8.js', output]);
   String out = '${runResult.stderr}\n${runResult.stdout}';
+  if (verbose) {
+    print('d8 output:');
+    print(out);
+  }
   List<String> lines = out.split(new RegExp(r'(\r|\n|\r\n)'));
   List<StackTraceLine> jsStackTrace = <StackTraceLine>[];
   bool seenMarker = false;
@@ -209,6 +297,12 @@ Future runTest(Test test) async {
         expectedIndex++;
       }
     }
+  }
+  if (verbose) {
+    print('JavaScript stacktrace:');
+    print(jsStackTrace.join('\n'));
+    print('Dart stacktrace:');
+    print(dartStackTrace.join('\n'));
   }
   Expect.equals(
       expectedIndex,
