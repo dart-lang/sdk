@@ -24,7 +24,7 @@ testMain() async {
 }
 
 // Directory that we are running in.
-String directory = Platform.pathSeparator +
+String directory = (Platform.isWindows ? '' : Platform.pathSeparator) +
     Platform.script.pathSegments.sublist(
         0,
         Platform.script.pathSegments.length - 1).join(Platform.pathSeparator);
