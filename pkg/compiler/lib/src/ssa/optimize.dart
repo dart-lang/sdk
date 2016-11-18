@@ -814,7 +814,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return node;
       }
       if (type.isFunctionType) {
-        HInstruction input = node.checkedInput; 
+        HInstruction input = node.checkedInput;
         // `null` always passes type conversion.
         if (input.isNull()) return input;
         // TODO(johnniwinther): Optimize function type conversions.
