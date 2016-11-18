@@ -90,7 +90,6 @@ static_library("libdart_vm_nosnapshot") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
-    "..:dart_maybe_precompiled_runtime_config",
     "..:dart_no_snapshot_config",
   ]
   public_configs = [ ":libdart_vm_config" ]
