@@ -46,6 +46,7 @@ import 'package:linter/src/rules/prefer_final_locals.dart';
 import 'package:linter/src/rules/prefer_is_not_empty.dart';
 import 'package:linter/src/rules/pub/package_names.dart';
 import 'package:linter/src/rules/public_member_api_docs.dart';
+import 'package:linter/src/rules/recursive_getter.dart';
 import 'package:linter/src/rules/slash_for_doc_comments.dart';
 import 'package:linter/src/rules/sort_constructors_first.dart';
 import 'package:linter/src/rules/sort_unnamed_constructors_first.dart';
@@ -99,6 +100,7 @@ final Registry ruleRegistry = new Registry()
   ..register(new PreferIsNotEmpty())
   ..register(new PublicMemberApiDocs())
   ..register(new PubPackageNames())
+  ..register(new RecursiveGetter())
   ..register(new SlashForDocComments())
   ..register(new SortConstructorsFirst())
   ..register(new SortUnnamedConstructorsFirst())
