@@ -418,54 +418,67 @@ class ProfilerStackWalker : public ValueObject {
 };
 
 
+// Given an exit frame, walk the Dart stack.
+class ProfilerDartExitStackWalker : public ProfilerStackWalker {
+ public:
+  ProfilerDartExitStackWalker(Thread* thread,
+                              Isolate* isolate,
+                              Sample* sample,
+                              SampleBuffer* sample_buffer)
+      : ProfilerStackWalker(isolate, sample, sample_buffer),
+        frame_iterator_(thread) {}
+
+  void walk() {
+    // Mark that this sample was collected from an exit frame.
+    sample_->set_exit_frame_sample(true);
+
+    StackFrame* frame = frame_iterator_.NextFrame();
+    if (sample_ == NULL) {
+      // Only when we are dumping the stack trace for debug purposes.
+      Code& code = Code::Handle();
+      while (frame != NULL) {
+        code ^= frame->LookupDartCode();
+        if (!Append(frame->pc(), code)) {
+          return;
+        }
+        frame = frame_iterator_.NextFrame();
+      }
+    } else {
+      while (frame != NULL) {
+        if (!Append(frame->pc())) {
+          return;
+        }
+        frame = frame_iterator_.NextFrame();
+      }
+    }
+  }
+
+ private:
+  DartFrameIterator frame_iterator_;
+};
+
+
 // Executing Dart code, walk the stack.
 class ProfilerDartStackWalker : public ProfilerStackWalker {
  public:
-  ProfilerDartStackWalker(Thread* thread,
+  ProfilerDartStackWalker(Isolate* isolate,
                           Sample* sample,
                           SampleBuffer* sample_buffer,
                           uword stack_lower,
                           uword stack_upper,
                           uword pc,
                           uword fp,
-                          uword sp,
-                          bool exited_dart_code,
-                          bool allocation_sample)
-      : ProfilerStackWalker(thread->isolate(), sample, sample_buffer),
-        pc_(reinterpret_cast<uword*>(pc)),
-        fp_(reinterpret_cast<uword*>(fp)),
-        sp_(reinterpret_cast<uword*>(sp)),
+                          uword sp)
+      : ProfilerStackWalker(isolate, sample, sample_buffer),
         stack_upper_(stack_upper),
-        stack_lower_(stack_lower),
-        has_exit_frame_(exited_dart_code) {
-    if (exited_dart_code) {
-      StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames,
-                                  thread);
-      pc_ = NULL;
-      fp_ = NULL;
-      sp_ = NULL;
-      if (!iterator.HasNextFrame()) {
-        return;
-      }
-      // Ensure we are able to get to the exit frame.
-      StackFrame* frame = iterator.NextFrame();
-      if (!frame->IsExitFrame()) {
-        return;
-      }
-      // Skip the exit frame.
-      if (!iterator.HasNextFrame()) {
-        return;
-      }
-      frame = iterator.NextFrame();
-      // Record frame details of the first frame from which we start walking.
-      pc_ = reinterpret_cast<uword*>(frame->pc());
-      fp_ = reinterpret_cast<uword*>(frame->fp());
-      sp_ = reinterpret_cast<uword*>(frame->sp());
-    }
+        stack_lower_(stack_lower) {
+    pc_ = reinterpret_cast<uword*>(pc);
+    fp_ = reinterpret_cast<uword*>(fp);
+    sp_ = reinterpret_cast<uword*>(sp);
   }
 
   void walk() {
-    sample_->set_exit_frame_sample(has_exit_frame_);
+    sample_->set_exit_frame_sample(false);
     if (!ValidFramePointer()) {
       sample_->set_ignore_sample(true);
       return;
@@ -592,8 +605,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
   uword* fp_;
   uword* sp_;
   const uword stack_upper_;
-  const uword stack_lower_;
-  bool has_exit_frame_;
+  uword stack_lower_;
 };
 
 
@@ -746,6 +758,7 @@ static void CollectSample(Isolate* isolate,
                           bool in_dart_code,
                           Sample* sample,
                           ProfilerNativeStackWalker* native_stack_walker,
+                          ProfilerDartExitStackWalker* dart_exit_stack_walker,
                           ProfilerDartStackWalker* dart_stack_walker,
                           uword pc,
                           uword fp,
@@ -770,7 +783,7 @@ static void CollectSample(Isolate* isolate,
     } else if (StubCode::HasBeenInitialized() && exited_dart_code) {
       AtomicOperations::IncrementInt64By(&counters->stack_walker_dart_exit, 1);
       // We have a valid exit frame info, use the Dart stack walker.
-      dart_stack_walker->walk();
+      dart_exit_stack_walker->walk();
     } else if (StubCode::HasBeenInitialized() && in_dart_code) {
       AtomicOperations::IncrementInt64By(&counters->stack_walker_dart, 1);
       // We are executing Dart code. We have frame pointers.
@@ -931,28 +944,7 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 #endif
 
 
-#if defined(TARGET_OS_WINDOWS)
-static uintptr_t GetFramePointer() {
-#if defined(HOST_ARCH_IA32)
-  uintptr_t fp = 0;
-  COPY_FP_REGISTER(fp);
-  return fp;
-#else
-  // We don't have the asm equivalent to get at the frame pointer on
-  // windows x64, return the stack pointer instead.
-  return Thread::GetCurrentStackPointer();
-#endif  // defined(HOST_ARCH_IA32).
-}
-#else
-static uintptr_t GetFramePointer() {
-  uintptr_t fp = 0;
-  COPY_FP_REGISTER(fp);
-  return fp;
-}
-#endif  // defined(TARGET_OS_WINDOWS).
-
-
-void Profiler::DumpStackTrace() {
+void Profiler::DumpStackTrace(bool native_stack_trace) {
   // Allow only one stack trace to prevent recursively printing stack traces if
   // we hit an assert while printing the stack.
   static uintptr_t started_dump = 0;
@@ -972,12 +964,18 @@ void Profiler::DumpStackTrace() {
     return;
   }
 
-  OS::PrintErr("Dumping native stack trace for thread %" Px "\n",
+  const bool exited_dart_code = thread->HasExitedDartCode();
+
+  OS::PrintErr("Dumping %s stack trace for thread %" Px "\n",
+               native_stack_trace ? "native" : "dart-only",
                OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
 
   uintptr_t sp = Thread::GetCurrentStackPointer();
-  uintptr_t fp = GetFramePointer();
+  uintptr_t fp = 0;
   uintptr_t pc = GetProgramCounter();
+
+  COPY_FP_REGISTER(fp);
+
   uword stack_lower = 0;
   uword stack_upper = 0;
 
@@ -993,9 +991,18 @@ void Profiler::DumpStackTrace() {
     return;
   }
 
-  ProfilerNativeStackWalker native_stack_walker(
-      isolate, NULL, NULL, stack_lower, stack_upper, pc, fp, sp);
-  native_stack_walker.walk();
+  if (native_stack_trace) {
+    ProfilerNativeStackWalker native_stack_walker(
+        isolate, NULL, NULL, stack_lower, stack_upper, pc, fp, sp);
+    native_stack_walker.walk();
+  } else if (exited_dart_code) {
+    ProfilerDartExitStackWalker dart_exit_stack_walker(thread, isolate, NULL,
+                                                       NULL);
+    dart_exit_stack_walker.walk();
+  } else {
+    ProfilerDartStackWalker dart_stack_walker(isolate, NULL, NULL, stack_lower,
+                                              stack_upper, pc, fp, sp);
+  }
   OS::PrintErr("-- End of DumpStackTrace\n");
 }
 
@@ -1017,33 +1024,36 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
     return;
   }
 
-  uintptr_t sp = Thread::GetCurrentStackPointer();
-  uintptr_t fp = GetFramePointer();
-  uintptr_t pc = GetProgramCounter();
-  uword stack_lower = 0;
-  uword stack_upper = 0;
-
-  if (!InitialRegisterCheck(pc, fp, sp)) {
-    return;
-  }
-
-  if (!GetAndValidateIsolateStackBounds(thread, fp, sp, &stack_lower,
-                                        &stack_upper)) {
-    // Could not get stack boundary.
-    return;
-  }
-
-  Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
-  sample->SetAllocationCid(cid);
-
   if (FLAG_profile_vm) {
+    uintptr_t sp = Thread::GetCurrentStackPointer();
+    uintptr_t fp = 0;
+    uintptr_t pc = GetProgramCounter();
+
+    COPY_FP_REGISTER(fp);
+
+    uword stack_lower = 0;
+    uword stack_upper = 0;
+
+    if (!InitialRegisterCheck(pc, fp, sp)) {
+      return;
+    }
+
+    if (!GetAndValidateIsolateStackBounds(thread, fp, sp, &stack_lower,
+                                          &stack_upper)) {
+      // Could not get stack boundary.
+      return;
+    }
+
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
+    sample->SetAllocationCid(cid);
     ProfilerNativeStackWalker native_stack_walker(
         isolate, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
-    ProfilerDartStackWalker dart_exit_stack_walker(
-        thread, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp,
-        exited_dart_code, true);
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
+    sample->SetAllocationCid(cid);
+    ProfilerDartExitStackWalker dart_exit_stack_walker(thread, isolate, sample,
+                                                       sample_buffer);
     dart_exit_stack_walker.walk();
   } else {
     // Fall back.
@@ -1182,15 +1192,19 @@ void Profiler::SampleThread(Thread* thread,
 
   ProfilerNativeStackWalker native_stack_walker(
       isolate, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+
+  ProfilerDartExitStackWalker dart_exit_stack_walker(thread, isolate, sample,
+                                                     sample_buffer);
+
+  ProfilerDartStackWalker dart_stack_walker(
+      isolate, sample, sample_buffer, stack_lower, stack_upper, pc, fp, sp);
+
   const bool exited_dart_code = thread->HasExitedDartCode();
-  ProfilerDartStackWalker dart_stack_walker(thread, sample, sample_buffer,
-                                            stack_lower, stack_upper, pc, fp,
-                                            sp, exited_dart_code, false);
 
   // All memory access is done inside CollectSample.
   CollectSample(isolate, exited_dart_code, in_dart_code, sample,
-                &native_stack_walker, &dart_stack_walker, pc, fp, sp,
-                &counters_);
+                &native_stack_walker, &dart_exit_stack_walker,
+                &dart_stack_walker, pc, fp, sp, &counters_);
 }
 
 

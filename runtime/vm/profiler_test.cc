@@ -252,8 +252,6 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
@@ -267,8 +265,6 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
 
@@ -277,8 +273,6 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     // Move down from the root.
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
@@ -292,8 +286,6 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -380,8 +372,6 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
@@ -395,8 +385,6 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
 
@@ -405,8 +393,6 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     // Move down from the root.
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
@@ -420,8 +406,6 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -515,12 +499,10 @@ TEST_CASE(Profiler_CodeTicks) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
@@ -540,8 +522,6 @@ TEST_CASE(Profiler_CodeTicks) {
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
@@ -618,12 +598,10 @@ TEST_CASE(Profiler_FunctionTicks) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(3, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
@@ -643,8 +621,6 @@ TEST_CASE(Profiler_FunctionTicks) {
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentNodeTickCount());
     EXPECT_EQ(3, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(3, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
@@ -771,8 +747,6 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateArray", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] AllocateArray", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("_List._List", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("List.List", walker.CurrentName());
@@ -822,8 +796,6 @@ TEST_CASE(Profiler_ArrayAllocation) {
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateArray", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] AllocateArray", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("_List._List", walker.CurrentName());
     EXPECT(walker.Down());
@@ -884,8 +856,6 @@ TEST_CASE(Profiler_ContextAllocation) {
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateContext", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] AllocateContext", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -952,8 +922,6 @@ TEST_CASE(Profiler_ClosureAllocation) {
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
     EXPECT_SUBSTRING("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate _Closure", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_SUBSTRING("foo", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1112,10 +1080,8 @@ TEST_CASE(Profiler_StringAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("String_concat", walker.CurrentName());
     EXPECT(walker.Down());
-#if 1
     EXPECT_STREQ("_StringBase.+", walker.CurrentName());
     EXPECT(walker.Down());
-#endif
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
@@ -1320,13 +1286,11 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("mainA", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
@@ -1347,8 +1311,6 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
@@ -1360,13 +1322,11 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.choo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.foo", walker.CurrentName());
     EXPECT_EQ(1, walker.SiblingCount());
@@ -1413,8 +1373,6 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_EQ(1, walker.SiblingCount());
     EXPECT_EQ(50000, walker.CurrentNodeTickCount());
     EXPECT_EQ(50000, walker.CurrentInclusiveTicks());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT_EQ(50000, walker.CurrentExclusiveTicks());
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
@@ -1439,10 +1397,6 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
@@ -1462,10 +1416,6 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
 
@@ -1474,10 +1424,6 @@ TEST_CASE(Profiler_FunctionInline) {
     walker.Reset(Profile::kExclusiveFunction);
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1500,6 +1446,8 @@ TEST_CASE(Profiler_FunctionInline) {
     // mainA -> B.boo -> B.foo -> B.choo.
     walker.Reset(Profile::kInclusiveFunction);
     EXPECT(walker.Down());
+    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
+    EXPECT(walker.Down());
     EXPECT_STREQ("mainA", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Optimized Code]", walker.CurrentName());
@@ -1513,10 +1461,6 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("B.choo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Unoptimized Code]", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1574,7 +1518,6 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
 
-  /*
   // Compile and optimize.
   Dart_Handle result = Dart_Invoke(lib, NewString("mainNoAlloc"), 0, NULL);
   EXPECT_VALID(result);
@@ -1607,12 +1550,11 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
     // We should have no allocation samples.
     EXPECT_EQ(0, profile.sample_count());
   }
-  */
 
   // Turn on allocation tracing for A.
   class_a.SetTraceAllocation(true);
 
-  Dart_Handle result = Dart_Invoke(lib, NewString("mainAlloc"), 0, NULL);
+  result = Dart_Invoke(lib, NewString("mainAlloc"), 0, NULL);
   EXPECT_VALID(result);
 
   {
@@ -1630,8 +1572,6 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
     walker.Reset(Profile::kExclusiveFunction);
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("maybeAlloc", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1652,8 +1592,6 @@ TEST_CASE(Profiler_InliningIntervalBoundry) {
     EXPECT_STREQ("right", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("maybeAlloc", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -1728,8 +1666,6 @@ TEST_CASE(Profiler_ChainedSamples) {
     // Move down from the root.
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
-    EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
@@ -1832,12 +1768,10 @@ TEST_CASE(Profiler_BasicSourcePosition) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
@@ -1926,12 +1860,10 @@ TEST_CASE(Profiler_BasicSourcePositionOptimized) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
@@ -2013,12 +1945,10 @@ TEST_CASE(Profiler_SourcePosition) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.oats", walker.CurrentName());
@@ -2138,12 +2068,10 @@ TEST_CASE(Profiler_SourcePositionOptimized) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.oats", walker.CurrentName());
@@ -2246,12 +2174,10 @@ TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.oats", walker.CurrentName());
@@ -2380,12 +2306,10 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     EXPECT(walker.Down());
     EXPECT_STREQ("DRT_AllocateObject", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("[Stub] Allocate A", walker.CurrentName());
-    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
-    EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT_EQ(1, walker.CurrentNodeTickCount());
     EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
     EXPECT_STREQ("A", walker.CurrentToken());
     EXPECT(walker.Down());
     EXPECT_STREQ("B.oats", walker.CurrentName());
