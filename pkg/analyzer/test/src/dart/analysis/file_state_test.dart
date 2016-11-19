@@ -67,7 +67,7 @@ class FileSystemStateTest {
     expect(file.importedFiles, isEmpty);
     expect(file.exportedFiles, isEmpty);
     expect(file.partedFiles, isEmpty);
-    expect(file.dependencies, isEmpty);
+    expect(file.directReferencedFiles, isEmpty);
     expect(file.isPart, isFalse);
     expect(file.library, isNull);
     expect(file.unlinked, isNotNull);
@@ -123,7 +123,7 @@ class A1 {}
     expect(file.partedFiles[0].path, a4);
     expect(file.partedFiles[0].uri, FastUri.parse('package:aaa/a4.dart'));
 
-    expect(file.dependencies, hasLength(5));
+    expect(file.directReferencedFiles, hasLength(5));
 
     expect(fileSystemState.getFilesForPath(a1), [file]);
   }
@@ -155,7 +155,7 @@ class A2 {}
     expect(file_a2.importedFiles, isEmpty);
     expect(file_a2.exportedFiles, isEmpty);
     expect(file_a2.partedFiles, isEmpty);
-    expect(file_a2.dependencies, isEmpty);
+    expect(file_a2.directReferencedFiles, isEmpty);
 
     // The library is not known yet.
     expect(file_a2.isPart, isTrue);
@@ -165,7 +165,7 @@ class A2 {}
     FileState file_a1 = fileSystemState.getFileForPath(a1);
     expect(file_a1.partedFiles, hasLength(1));
     expect(file_a1.partedFiles[0], same(file_a2));
-    expect(file_a1.dependencies, unorderedEquals([file_a2]));
+    expect(file_a1.directReferencedFiles, unorderedEquals([file_a2]));
 
     // Now the part knows its library.
     expect(file_a2.library, same(file_a1));
@@ -263,6 +263,93 @@ class C {
     expect(apiSignatureChanged, isFalse);
 
     expect(file.apiSignature, signature);
+  }
+
+  test_transitiveFiles() {
+    String pa = _p('/aaa/lib/a.dart');
+    String pb = _p('/aaa/lib/b.dart');
+    String pc = _p('/aaa/lib/c.dart');
+    String pd = _p('/aaa/lib/d.dart');
+
+    FileState fa = fileSystemState.getFileForPath(pa);
+    FileState fb = fileSystemState.getFileForPath(pb);
+    FileState fc = fileSystemState.getFileForPath(pc);
+    FileState fd = fileSystemState.getFileForPath(pd);
+
+    // Compute transitive closures for all files.
+    fa.transitiveFiles;
+    fb.transitiveFiles;
+    fc.transitiveFiles;
+    fd.transitiveFiles;
+    expect(fileSystemState.test.filesWithoutTransitive, isEmpty);
+
+    // No imports, so just a single file.
+    provider.newFile(pa, "");
+    _assertTransitiveFiles(fa, [fa]);
+
+    // Import b.dart into a.dart, two files now.
+    provider.newFile(pa, "import 'b.dart';");
+    fa.refresh();
+    _assertFilesWithoutTransitive([fa]);
+    _assertTransitiveFiles(fa, [fa, fb]);
+
+    // Update b.dart so that it imports c.dart now.
+    provider.newFile(pb, "import 'c.dart';");
+    fb.refresh();
+    _assertFilesWithoutTransitive([fa, fb]);
+    _assertTransitiveFiles(fa, [fa, fb, fc]);
+    _assertTransitiveFiles(fb, [fb, fc]);
+    _assertFilesWithoutTransitive([]);
+
+    // Update b.dart so that it exports d.dart instead.
+    provider.newFile(pb, "export 'd.dart';");
+    fb.refresh();
+    _assertFilesWithoutTransitive([fa, fb]);
+    _assertTransitiveFiles(fa, [fa, fb, fd]);
+    _assertTransitiveFiles(fb, [fb, fd]);
+    _assertFilesWithoutTransitive([]);
+
+    // Update a.dart so that it does not import b.dart anymore.
+    provider.newFile(pa, "");
+    fa.refresh();
+    _assertFilesWithoutTransitive([fa]);
+    _assertTransitiveFiles(fa, [fa]);
+  }
+
+  test_transitiveFiles_cycle() {
+    String pa = _p('/aaa/lib/a.dart');
+    String pb = _p('/aaa/lib/b.dart');
+
+    provider.newFile(pa, "import 'b.dart';");
+    provider.newFile(pb, "import 'a.dart';");
+
+    FileState fa = fileSystemState.getFileForPath(pa);
+    FileState fb = fileSystemState.getFileForPath(pb);
+
+    // Compute transitive closures for all files.
+    fa.transitiveFiles;
+    fb.transitiveFiles;
+    _assertFilesWithoutTransitive([]);
+
+    // It's a cycle.
+    _assertTransitiveFiles(fa, [fa, fb]);
+    _assertTransitiveFiles(fb, [fa, fb]);
+
+    // Update a.dart so that it does not import b.dart anymore.
+    provider.newFile(pa, "");
+    fa.refresh();
+    _assertFilesWithoutTransitive([fa, fb]);
+    _assertTransitiveFiles(fa, [fa]);
+    _assertTransitiveFiles(fb, [fa, fb]);
+  }
+
+  void _assertFilesWithoutTransitive(List<FileState> expected) {
+    var actual = fileSystemState.test.filesWithoutTransitive;
+    expect(actual, unorderedEquals(expected));
+  }
+
+  void _assertTransitiveFiles(FileState file, List<FileState> expected) {
+    expect(file.transitiveFiles, unorderedEquals(expected));
   }
 
   String _p(String path) => provider.convertPath(path);

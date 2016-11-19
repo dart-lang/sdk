@@ -1139,7 +1139,6 @@ class _LibraryNode {
   final FileState file;
   final Uri uri;
 
-  Set<FileState> transitiveDependencies;
   String _dependencySignature;
 
   _LibraryNode(this.driver, this.file, this.uri);
@@ -1152,8 +1151,7 @@ class _LibraryNode {
       signature.addString(driver._sdkBundle.apiSignature);
 
       // Add all unlinked API signatures.
-      computeTransitiveDependencies();
-      transitiveDependencies
+      file.transitiveFiles
           .map((file) => file.apiSignature)
           .forEach(signature.addBytes);
 
@@ -1168,20 +1166,6 @@ class _LibraryNode {
 
   bool operator ==(other) {
     return other is _LibraryNode && other.uri == uri;
-  }
-
-  void computeTransitiveDependencies() {
-    if (transitiveDependencies == null) {
-      transitiveDependencies = new Set<FileState>();
-
-      void appendDependencies(FileState file) {
-        if (transitiveDependencies.add(file)) {
-          file.dependencies.forEach(appendDependencies);
-        }
-      }
-
-      appendDependencies(file);
-    }
   }
 
   @override
