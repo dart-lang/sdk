@@ -931,6 +931,27 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 #endif
 
 
+#if defined(TARGET_OS_WINDOWS)
+static uintptr_t GetFramePointer() {
+#if defined(HOST_ARCH_IA32)
+  uintptr_t fp = 0;
+  COPY_FP_REGISTER(fp);
+  return fp;
+#else
+  // We don't have the asm equivalent to get at the frame pointer on
+  // windows x64, return the stack pointer instead.
+  return Thread::GetCurrentStackPointer();
+#endif  // defined(HOST_ARCH_IA32).
+}
+#else
+static uintptr_t GetFramePointer() {
+  uintptr_t fp = 0;
+  COPY_FP_REGISTER(fp);
+  return fp;
+}
+#endif  // defined(TARGET_OS_WINDOWS).
+
+
 void Profiler::DumpStackTrace() {
   // Allow only one stack trace to prevent recursively printing stack traces if
   // we hit an assert while printing the stack.
@@ -955,11 +976,8 @@ void Profiler::DumpStackTrace() {
                OSThread::ThreadIdToIntPtr(os_thread->trace_id()));
 
   uintptr_t sp = Thread::GetCurrentStackPointer();
-  uintptr_t fp = 0;
+  uintptr_t fp = GetFramePointer();
   uintptr_t pc = GetProgramCounter();
-
-  COPY_FP_REGISTER(fp);
-
   uword stack_lower = 0;
   uword stack_upper = 0;
 
@@ -1000,11 +1018,8 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   }
 
   uintptr_t sp = Thread::GetCurrentStackPointer();
-  uintptr_t fp = 0;
+  uintptr_t fp = GetFramePointer();
   uintptr_t pc = GetProgramCounter();
-
-  COPY_FP_REGISTER(fp);
-
   uword stack_lower = 0;
   uword stack_upper = 0;
 
