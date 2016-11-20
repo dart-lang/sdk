@@ -11,7 +11,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -26,7 +25,7 @@ import 'package:analyzer/src/task/options.dart'
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules/avoid_as.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
@@ -46,11 +45,11 @@ main() {
 @reflectiveTest
 class AbstractContextManagerTest extends ContextManagerTest {
   void test_contextsInAnalysisRoot_nestedContext() {
-    String subProjPath = posix.join(projPath, 'subproj');
+    String subProjPath = path.posix.join(projPath, 'subproj');
     Folder subProjFolder = resourceProvider.newFolder(subProjPath);
     resourceProvider.newFile(
-        posix.join(subProjPath, 'pubspec.yaml'), 'contents');
-    String subProjFilePath = posix.join(subProjPath, 'file.dart');
+        path.posix.join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = path.posix.join(subProjPath, 'file.dart');
     resourceProvider.newFile(subProjFilePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Make sure that there really are contexts for both the main project and
@@ -168,16 +167,16 @@ test_pack:lib/''');
 
   test_ignoreFilesInPackagesFolder() {
     // create a context with a pubspec.yaml file
-    String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     // create a file in the "packages" folder
-    String filePath1 = posix.join(projPath, 'packages', 'file1.dart');
+    String filePath1 = path.posix.join(projPath, 'packages', 'file1.dart');
     resourceProvider.newFile(filePath1, 'contents');
     // "packages" files are ignored initially
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     expect(callbacks.currentContextFilePaths[projPath], isEmpty);
     // "packages" files are ignored during watch
-    String filePath2 = posix.join(projPath, 'packages', 'file2.dart');
+    String filePath2 = path.posix.join(projPath, 'packages', 'file2.dart');
     resourceProvider.newFile(filePath2, 'contents');
     return pumpEventQueue().then((_) {
       expect(callbacks.currentContextFilePaths[projPath], isEmpty);
@@ -198,11 +197,11 @@ test_pack:lib/''');
   }
 
   void test_isInAnalysisRoot_inNestedContext() {
-    String subProjPath = posix.join(projPath, 'subproj');
+    String subProjPath = path.posix.join(projPath, 'subproj');
     Folder subProjFolder = resourceProvider.newFolder(subProjPath);
     resourceProvider.newFile(
-        posix.join(subProjPath, 'pubspec.yaml'), 'contents');
-    String subProjFilePath = posix.join(subProjPath, 'file.dart');
+        path.posix.join(subProjPath, 'pubspec.yaml'), 'contents');
+    String subProjFilePath = path.posix.join(subProjPath, 'file.dart');
     resourceProvider.newFile(subProjFilePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // Make sure that there really is a context for the subproject.
@@ -254,7 +253,7 @@ test_pack:lib/''');
 
   test_refresh_folder_with_packagespec() {
     // create a context with a .packages file
-    String packagespecFile = posix.join(projPath, '.packages');
+    String packagespecFile = path.posix.join(projPath, '.packages');
     resourceProvider.newFile(packagespecFile, '');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     return pumpEventQueue().then((_) {
@@ -274,10 +273,10 @@ test_pack:lib/''');
   test_refresh_folder_with_packagespec_subfolders() {
     // Create a folder with no .packages file, containing two subfolders with
     // .packages files.
-    String subdir1Path = posix.join(projPath, 'subdir1');
-    String subdir2Path = posix.join(projPath, 'subdir2');
-    String packagespec1Path = posix.join(subdir1Path, '.packages');
-    String packagespec2Path = posix.join(subdir2Path, '.packages');
+    String subdir1Path = path.posix.join(projPath, 'subdir1');
+    String subdir2Path = path.posix.join(projPath, 'subdir2');
+    String packagespec1Path = path.posix.join(subdir1Path, '.packages');
+    String packagespec2Path = path.posix.join(subdir2Path, '.packages');
     resourceProvider.newFile(packagespec1Path, '');
     resourceProvider.newFile(packagespec2Path, '');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -298,7 +297,7 @@ test_pack:lib/''');
 
   test_refresh_folder_with_pubspec() {
     // create a context with a pubspec.yaml file
-    String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     return pumpEventQueue().then((_) {
@@ -315,10 +314,10 @@ test_pack:lib/''');
   test_refresh_folder_with_pubspec_subfolders() {
     // Create a folder with no pubspec.yaml, containing two subfolders with
     // pubspec.yaml files.
-    String subdir1Path = posix.join(projPath, 'subdir1');
-    String subdir2Path = posix.join(projPath, 'subdir2');
-    String pubspec1Path = posix.join(subdir1Path, 'pubspec.yaml');
-    String pubspec2Path = posix.join(subdir2Path, 'pubspec.yaml');
+    String subdir1Path = path.posix.join(projPath, 'subdir1');
+    String subdir2Path = path.posix.join(projPath, 'subdir2');
+    String pubspec1Path = path.posix.join(subdir1Path, 'pubspec.yaml');
+    String pubspec2Path = path.posix.join(subdir2Path, 'pubspec.yaml');
     resourceProvider.newFile(pubspec1Path, 'pubspec');
     resourceProvider.newFile(pubspec2Path, 'pubspec');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -339,12 +338,12 @@ test_pack:lib/''');
 
   test_refresh_oneContext() {
     // create two contexts with pubspec.yaml files
-    String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec1');
 
     String proj2Path = '/my/proj2';
     resourceProvider.newFolder(proj2Path);
-    String pubspec2Path = posix.join(proj2Path, 'pubspec.yaml');
+    String pubspec2Path = path.posix.join(proj2Path, 'pubspec.yaml');
     resourceProvider.newFile(pubspec2Path, 'pubspec2');
 
     List<String> roots = <String>[projPath, proj2Path];
@@ -397,7 +396,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithDartFile() {
-    String filePath = posix.join(projPath, 'foo.dart');
+    String filePath = path.posix.join(projPath, 'foo.dart');
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -415,7 +414,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithDartFileInSubfolder() {
-    String filePath = posix.join(projPath, 'foo', 'bar.dart');
+    String filePath = path.posix.join(projPath, 'foo', 'bar.dart');
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -425,7 +424,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithDummyLink() {
-    String filePath = posix.join(projPath, 'foo.dart');
+    String filePath = path.posix.join(projPath, 'foo.dart');
     resourceProvider.newDummyLink(filePath);
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -498,12 +497,12 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithPackagespec() {
-    String packagespecPath = posix.join(projPath, '.packages');
+    String packagespecPath = path.posix.join(projPath, '.packages');
     resourceProvider.newFile(packagespecPath,
         'unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/');
     String libPath = newFolder([projPath, ContextManagerTest.LIB_NAME]);
     File mainFile =
-        resourceProvider.newFile(posix.join(libPath, 'main.dart'), '');
+        resourceProvider.newFile(path.posix.join(libPath, 'main.dart'), '');
     Source source = mainFile.createSource();
 
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -524,7 +523,7 @@ test_pack:lib/''');
 
   void test_setRoots_addFolderWithPackagespecAndPackageRoot() {
     // The package root should take priority.
-    String packagespecPath = posix.join(projPath, '.packages');
+    String packagespecPath = path.posix.join(projPath, '.packages');
     resourceProvider.newFile(packagespecPath,
         'unittest:file:///home/somebody/.pub/cache/unittest-0.9.9/lib/');
     String packageRootPath = '/package/root/';
@@ -536,7 +535,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithPubspec() {
-    String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -546,8 +545,8 @@ test_pack:lib/''');
   }
 
   void test_setRoots_addFolderWithPubspec_andPackagespec() {
-    String pubspecPath = posix.join(projPath, 'pubspec.yaml');
-    String packagespecPath = posix.join(projPath, '.packages');
+    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
+    String packagespecPath = path.posix.join(projPath, '.packages');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     resourceProvider.newFile(packagespecPath, '');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -932,7 +931,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_noContext_inDotFolder() {
-    String pubspecPath = posix.join(projPath, '.pub', 'pubspec.yaml');
+    String pubspecPath = path.posix.join(projPath, '.pub', 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'name: test');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -942,7 +941,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_noContext_inPackagesFolder() {
-    String pubspecPath = posix.join(projPath, 'packages', 'pubspec.yaml');
+    String pubspecPath = path.posix.join(projPath, 'packages', 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'name: test');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // verify
@@ -952,7 +951,7 @@ test_pack:lib/''');
   }
 
   void test_setRoots_packageResolver() {
-    String filePath = posix.join(projPath, 'lib', 'foo.dart');
+    String filePath = path.posix.join(projPath, 'lib', 'foo.dart');
     newFile([projPath, ContextManagerImpl.PACKAGE_SPEC_NAME], 'foo:lib/');
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -992,7 +991,7 @@ test_pack:lib/''');
 
   void test_setRoots_removeFolderWithPackagespec() {
     // create a pubspec
-    String pubspecPath = posix.join(projPath, '.packages');
+    String pubspecPath = path.posix.join(projPath, '.packages');
     resourceProvider.newFile(pubspecPath, '');
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1042,7 +1041,7 @@ test_pack:lib/''');
 
   void test_setRoots_removeFolderWithPubspec() {
     // create a pubspec
-    String pubspecPath = posix.join(projPath, 'pubspec.yaml');
+    String pubspecPath = path.posix.join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
     // add one root - there is a context
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1125,7 +1124,7 @@ test_pack:lib/''');
     Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
     expect(filePaths, isEmpty);
     // add link
-    String filePath = posix.join(projPath, 'foo.dart');
+    String filePath = path.posix.join(projPath, 'foo.dart');
     resourceProvider.newDummyLink(filePath);
     // the link was ignored
     return pumpEventQueue().then((_) {
@@ -1139,7 +1138,7 @@ test_pack:lib/''');
     Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(0));
     // add file
-    String filePath = posix.join(projPath, 'foo.dart');
+    String filePath = path.posix.join(projPath, 'foo.dart');
     resourceProvider.newFile(filePath, 'contents');
     // the file was added
     return pumpEventQueue().then((_) {
@@ -1245,7 +1244,7 @@ test_pack:lib/''');
     Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(0));
     // add file in subfolder
-    String filePath = posix.join(projPath, 'foo', 'bar.dart');
+    String filePath = path.posix.join(projPath, 'foo', 'bar.dart');
     resourceProvider.newFile(filePath, 'contents');
     // the file was added
     return pumpEventQueue().then((_) {
@@ -1426,7 +1425,7 @@ test_pack:lib/''');
   }
 
   test_watch_deleteFile() {
-    String filePath = posix.join(projPath, 'foo.dart');
+    String filePath = path.posix.join(projPath, 'foo.dart');
     // add root with a file
     File file = resourceProvider.newFile(filePath, 'contents');
     Folder projFolder = file.parent;
@@ -1447,7 +1446,7 @@ test_pack:lib/''');
   }
 
   test_watch_deleteFolder() {
-    String filePath = posix.join(projPath, 'foo.dart');
+    String filePath = path.posix.join(projPath, 'foo.dart');
     // add root with a file
     File file = resourceProvider.newFile(filePath, 'contents');
     Folder projFolder = file.parent;
@@ -1596,7 +1595,7 @@ test_pack:lib/''');
   }
 
   test_watch_modifyFile() {
-    String filePath = posix.join(projPath, 'foo.dart');
+    String filePath = path.posix.join(projPath, 'foo.dart');
     // add root with a file
     resourceProvider.newFile(filePath, 'contents');
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1615,11 +1614,11 @@ test_pack:lib/''');
 
   test_watch_modifyPackageMapDependency_fail() async {
     // create a dependency file
-    String dependencyPath = posix.join(projPath, 'dep');
+    String dependencyPath = path.posix.join(projPath, 'dep');
     resourceProvider.newFile(dependencyPath, 'contents');
     packageMapProvider.dependencies.add(dependencyPath);
     // create a Dart file
-    String dartFilePath = posix.join(projPath, 'main.dart');
+    String dartFilePath = path.posix.join(projPath, 'main.dart');
     resourceProvider.newFile(dartFilePath, 'contents');
     // the created context has the expected empty package map
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -1744,7 +1743,7 @@ abstract class ContextManagerTest {
       '**/${AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE}'
     ];
     return patterns
-        .map((pattern) => new Glob(posix.separator, pattern))
+        .map((pattern) => new Glob(path.posix.separator, pattern))
         .toList();
   }
 
@@ -1758,7 +1757,7 @@ abstract class ContextManagerTest {
   Map<String, List<Folder>> get _currentPackageMap => _packageMap(projPath);
 
   void deleteFile(List<String> pathComponents) {
-    String filePath = posix.joinAll(pathComponents);
+    String filePath = path.posix.joinAll(pathComponents);
     resourceProvider.deleteFile(filePath);
   }
 
@@ -1766,13 +1765,13 @@ abstract class ContextManagerTest {
       ErrorProcessor.getProcessor(callbacks.currentContext, error);
 
   String newFile(List<String> pathComponents, [String content = '']) {
-    String filePath = posix.joinAll(pathComponents);
+    String filePath = path.posix.joinAll(pathComponents);
     resourceProvider.newFile(filePath, content);
     return filePath;
   }
 
   String newFolder(List<String> pathComponents) {
-    String folderPath = posix.joinAll(pathComponents);
+    String folderPath = path.posix.joinAll(pathComponents);
     resourceProvider.newFolder(folderPath);
     return folderPath;
   }
