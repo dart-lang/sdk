@@ -116,9 +116,6 @@ a:focus, a:hover {
 
 /* Styles for index */
 
-.subindex {
-}
-
 .subindex ul {
   padding-left: 0;
   margin-left: 0;
@@ -196,6 +193,7 @@ abstract class HtmlMixin {
   void head(void callback()) => element('head', {}, callback);
   void html(void callback()) => element('html', {}, callback);
   void i(void callback()) => element('i', {}, callback);
+  void li(void callback()) => element('li', {}, callback);
   void link(String id, void callback()) {
     element('a', {'href': '#$id'}, callback);
   }
@@ -204,6 +202,7 @@ abstract class HtmlMixin {
   void pre(void callback()) => element('pre', {}, callback);
   void title(void callback()) => element('title', {}, callback);
   void tt(void callback()) => element('tt', {}, callback);
+  void ul(void callback()) => element('ul', {}, callback);
 }
 
 /**
@@ -268,6 +267,22 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
         generateNotificationsIndex(domain.notifications);
       });
     }
+  }
+
+  void generateTableOfContents() {
+    ul(() {
+      writeln();
+
+      for (var domain in api.domains.where((domain) => !domain.experimental)) {
+        write('      ');
+        li(() {
+          link('domain_${domain.name}', () {
+            write(_toTitleCase(domain.name));
+          });
+        });
+        writeln();
+      }
+    });
   }
 
   void generateIndex() {
@@ -424,6 +439,9 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
             break;
           case 'version':
             translateHtml(node, squashParagraphs: squashParagraphs);
+            break;
+          case 'toc':
+            generateTableOfContents();
             break;
           case 'index':
             generateIndex();
@@ -768,4 +786,9 @@ class TypeVisitor extends HierarchicalApiVisitor
       verticalBarNeeded = true;
     }
   }
+}
+
+String _toTitleCase(String str) {
+  if (str.isEmpty) return str;
+  return str.substring(0, 1).toUpperCase() + str.substring(1);
 }
