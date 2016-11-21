@@ -24,11 +24,13 @@ final hasOwnProperty = JS('', 'Object.prototype.hasOwnProperty');
 /// This error indicates a strong mode specific failure, other than a type
 /// assertion failure (TypeError) or CastError.
 void throwStrongModeError(String message) {
+  JS('', 'debugger');
   JS('', 'throw new #(#);', StrongModeErrorImplementation, message);
 }
 
 /// This error indicates a bug in the runtime or the compiler.
 void throwInternalError(String message) {
+  JS('', 'debugger');
   JS('', 'throw Error(#)', message);
 }
 
