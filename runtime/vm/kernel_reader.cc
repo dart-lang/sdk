@@ -103,8 +103,7 @@ Program* KernelReader::ReadPrecompiledProgram() {
 }
 
 Object& KernelReader::ReadProgram() {
-  ASSERT(!bootstrapping_);
-  Program* program = ReadPrecompiledProgram();
+  Program* program = ReadPrecompiledKernelFromBuffer(buffer_, buffer_length_);
   if (program == NULL) {
     const dart::String& error = H.DartString("Failed to read .kernell file");
     return Object::Handle(Z, ApiError::New(error));
@@ -174,10 +173,6 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
                           TokenPosition::kNoSource));
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
-  if (bootstrapping_) {
-    GrowableObjectArray::Handle(Z, I->object_store()->pending_classes())
-        .Add(toplevel_class, Heap::kOld);
-  }
 
   ActiveClassScope active_class_scope(&active_class_, NULL, &toplevel_class);
   // Load toplevel fields.
@@ -215,6 +210,8 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
     Class* kernel_klass = kernel_library->classes()[i];
     classes.Add(ReadClass(library, kernel_klass), Heap::kOld);
   }
+
+  classes.Add(toplevel_class, Heap::kOld);
 }
 
 
@@ -350,10 +347,8 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
     ReadProcedure(library, klass, kernel_procedure, kernel_klass);
   }
 
-  if (bootstrapping_ && !klass.is_marked_for_parsing()) {
+  if (!klass.is_marked_for_parsing()) {
     klass.set_is_marked_for_parsing();
-    GrowableObjectArray::Handle(Z, I->object_store()->pending_classes())
-        .Add(klass, Heap::kOld);
   }
 
   return klass;
@@ -672,7 +667,7 @@ dart::Class& KernelReader::LookupClass(Class* klass) {
     // we do not risk allocating the class again by calling LookupClass
     // recursively from ReadPreliminaryClass for the same class.
     classes_.Insert(klass, handle);
-    if (!handle->is_type_finalized()) {
+    if (!handle->is_cycle_free()) {
       ReadPreliminaryClass(handle, klass);
     }
   }

@@ -331,7 +331,6 @@ try_catch_on_syntax_test/11: MissingRuntimeError
 try_finally_regress_25654_test: RuntimeError
 type_checks_in_factory_method_test: RuntimeError
 type_parameter_literal_test: RuntimeError
-type_parameter_test/04: Crash
 type_variable_conflict2_test/02: MissingCompileTimeError
 type_variable_conflict2_test/06: MissingCompileTimeError
 type_variable_conflict2_test/08: MissingCompileTimeError
@@ -697,7 +696,6 @@ try_catch_on_syntax_test/11: MissingRuntimeError
 try_finally_regress_25654_test: RuntimeError
 type_checks_in_factory_method_test: RuntimeError
 type_parameter_literal_test: RuntimeError
-type_parameter_test/04: Crash
 type_variable_conflict2_test/02: MissingCompileTimeError
 type_variable_function_type_test: RuntimeError
 vm/debug_break_enabled_vm_test/01: CompileTimeError

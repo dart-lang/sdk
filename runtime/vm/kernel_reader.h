@@ -54,7 +54,7 @@ class Mapping {
 
 class KernelReader {
  public:
-  KernelReader(const uint8_t* buffer, intptr_t len, bool bootstrapping = false)
+  KernelReader(const uint8_t* buffer, intptr_t len)
       : thread_(dart::Thread::Current()),
         zone_(thread_->zone()),
         isolate_(thread_->isolate()),
@@ -64,7 +64,6 @@ class KernelReader {
         type_translator_(&translation_helper_,
                          &active_class_,
                          /*finalize=*/false),
-        bootstrapping_(bootstrapping),
         buffer_(buffer),
         buffer_length_(len) {}
 
@@ -121,8 +120,6 @@ class KernelReader {
   ActiveClass active_class_;
   BuildingTranslationHelper translation_helper_;
   DartTypeTranslator type_translator_;
-
-  bool bootstrapping_;
 
   const uint8_t* buffer_;
   intptr_t buffer_length_;

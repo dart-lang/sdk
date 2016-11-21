@@ -321,7 +321,7 @@ static RawError* BootstrapFromKernel(Thread* thread,
                                      const uint8_t* buffer,
                                      intptr_t buffer_size) {
   Zone* zone = thread->zone();
-  kernel::KernelReader reader(buffer, buffer_size, true);
+  kernel::KernelReader reader(buffer, buffer_size);
   kernel::Program* program = reader.ReadPrecompiledProgram();
   if (program == NULL) {
     const String& message =
