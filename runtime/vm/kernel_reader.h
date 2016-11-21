@@ -58,6 +58,8 @@ class KernelReader {
       : thread_(dart::Thread::Current()),
         zone_(thread_->zone()),
         isolate_(thread_->isolate()),
+        scripts_(Array::ZoneHandle(zone_)),
+        program_(NULL),
         translation_helper_(this, thread_, zone_, isolate_),
         type_translator_(&translation_helper_,
                          &active_class_,
@@ -65,6 +67,9 @@ class KernelReader {
         bootstrapping_(bootstrapping),
         buffer_(buffer),
         buffer_length_(len) {}
+
+  // Returns either pointer to a program or null.
+  Program* ReadPrecompiledProgram();
 
   // Returns either a library or a failure object.
   dart::Object& ReadProgram();
@@ -89,6 +94,13 @@ class KernelReader {
                      Procedure* procedure,
                      Class* kernel_klass = NULL);
 
+  // If klass's script is not the script at the uri index, return a PatchClass
+  // for klass whose script corresponds to the uri index.
+  // Otherwise return klass.
+  const Object& ClassForScriptAt(const dart::Class& klass,
+                                 intptr_t source_uri_index);
+  Script& ScriptAt(intptr_t source_uri_index);
+
   void GenerateFieldAccessors(const dart::Class& klass,
                               const dart::Field& field,
                               Field* kernel_field);
@@ -104,6 +116,8 @@ class KernelReader {
   dart::Thread* thread_;
   dart::Zone* zone_;
   dart::Isolate* isolate_;
+  Array& scripts_;
+  Program* program_;
   ActiveClass active_class_;
   BuildingTranslationHelper translation_helper_;
   DartTypeTranslator type_translator_;

@@ -93,10 +93,18 @@ RawClass* BuildingTranslationHelper::LookupClassByKernelClass(Class* klass) {
   return reader_->LookupClass(klass).raw();
 }
 
+Program* KernelReader::ReadPrecompiledProgram() {
+  Program* program = ReadPrecompiledKernelFromBuffer(buffer_, buffer_length_);
+  if (program == NULL) return NULL;
+  intptr_t source_file_count = program->line_starting_table().size();
+  scripts_ = Array::New(source_file_count);
+  program_ = program;
+  return program;
+}
 
 Object& KernelReader::ReadProgram() {
   ASSERT(!bootstrapping_);
-  Program* program = ReadPrecompiledKernelFromBuffer(buffer_, buffer_length_);
+  Program* program = ReadPrecompiledProgram();
   if (program == NULL) {
     const dart::String& error = H.DartString("Failed to read .kernell file");
     return Object::Handle(Z, ApiError::New(error));
@@ -160,11 +168,7 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
   }
   // Setup toplevel class (which contains library fields/procedures).
 
-  Script& script =
-      Script::Handle(Z, Script::New(Symbols::KernelScriptUri(),
-                                    Symbols::Empty(), RawScript::kScriptTag));
-  script.SetLocationOffset(0, 0);
-  script.Tokenize(H.DartString("nop() {}"));
+  Script& script = ScriptAt(kernel_library->source_uri_index());
   dart::Class& toplevel_class = dart::Class::Handle(
       Z, dart::Class::New(library, Symbols::TopLevel(), script,
                           TokenPosition::kNoSource));
@@ -182,10 +186,12 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
 
     ActiveMemberScope active_member_scope(&active_class_, kernel_field);
     const dart::String& name = H.DartFieldName(kernel_field->name());
+    const Object& script_class =
+        ClassForScriptAt(toplevel_class, kernel_field->source_uri_index());
     dart::Field& field = dart::Field::Handle(
         Z, dart::Field::NewTopLevel(name, kernel_field->IsFinal(),
-                                    kernel_field->IsConst(), toplevel_class,
-                                    TokenPosition::kNoSource));
+                                    kernel_field->IsConst(), script_class,
+                                    kernel_field->position()));
     field.set_kernel_field(kernel_field);
     const AbstractType& type = T.TranslateType(kernel_field->type());
     field.SetFieldType(type);
@@ -292,8 +298,6 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
 
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
 
-  TokenPosition pos(0);
-
   for (intptr_t i = 0; i < kernel_klass->fields().length(); i++) {
     Field* kernel_field = kernel_klass->fields()[i];
     ActiveMemberScope active_member_scope(&active_class_, kernel_field);
@@ -309,7 +313,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                             kernel_field->IsFinal() || kernel_field->IsConst(),
                             kernel_field->IsConst(),
                             false,  // is_reflectable
-                            klass, type, pos));
+                            klass, type, kernel_field->position()));
     field.set_kernel_field(kernel_field);
     field.set_has_initializer(kernel_field->initializer() != NULL);
     GenerateFieldAccessors(klass, field, kernel_field);
@@ -330,7 +334,7 @@ dart::Class& KernelReader::ReadClass(const dart::Library& library,
                                false,  // is_abstract
                                kernel_constructor->IsExternal(),
                                false,  // is_native
-                               klass, pos));
+                               klass, TokenPosition::kNoSource));
     klass.AddFunction(function);
     function.set_kernel_function(kernel_constructor);
     function.set_result_type(T.ReceiverType(klass));
@@ -366,7 +370,6 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                                             kernel_procedure->function());
 
   const dart::String& name = H.DartProcedureName(kernel_procedure);
-  TokenPosition pos(0);
   bool is_method = kernel_klass != NULL && !kernel_procedure->IsStatic();
   bool is_abstract = kernel_procedure->IsAbstract();
   bool is_external = kernel_procedure->IsExternal();
@@ -402,13 +405,15 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       break;
     }
   }
+  const Object& script_class =
+      ClassForScriptAt(owner, kernel_procedure->source_uri_index());
   dart::Function& function = dart::Function::ZoneHandle(
       Z, Function::New(name, GetFunctionType(kernel_procedure),
                        !is_method,  // is_static
                        false,       // is_const
                        is_abstract, is_external,
                        native_name != NULL,  // is_native
-                       owner, pos));
+                       script_class, TokenPosition::kNoSource));
   owner.AddFunction(function);
   function.set_kernel_function(kernel_procedure);
   function.set_is_debuggable(false);
@@ -428,11 +433,42 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   }
 }
 
+const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
+                                             intptr_t source_uri_index) {
+  Script& correct_script = ScriptAt(source_uri_index);
+  if (klass.script() != correct_script.raw()) {
+    // TODO(jensj): We could probably cache this so we don't create
+    // new PatchClasses all the time
+    return PatchClass::ZoneHandle(Z, PatchClass::New(klass, correct_script));
+  }
+  return klass;
+}
+
+Script& KernelReader::ScriptAt(intptr_t source_uri_index) {
+  Script& script = Script::ZoneHandle(Z);
+  script ^= scripts_.At(source_uri_index);
+  if (script.IsNull()) {
+    String* uri = program_->source_uri_table().strings()[source_uri_index];
+    script = Script::New(H.DartString(uri), dart::String::ZoneHandle(Z),
+                         RawScript::kKernelTag);
+    scripts_.SetAt(source_uri_index, script);
+    intptr_t* line_starts =
+        program_->line_starting_table().valuesFor(source_uri_index);
+    intptr_t line_count = line_starts[0];
+    Array& array_object = Array::Handle(Z, Array::New(line_count));
+    Smi& value = Smi::Handle(Z);
+    for (intptr_t i = 0; i < line_count; ++i) {
+      value = Smi::New(line_starts[i + 1]);
+      array_object.SetAt(i, value);
+    }
+    script.set_line_starts(array_object);
+  }
+  return script;
+}
+
 void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                                           const dart::Field& field,
                                           Field* kernel_field) {
-  TokenPosition pos(0);
-
   if (kernel_field->IsStatic() && kernel_field->initializer() != NULL) {
     // Static fields with initializers either have the static value set to the
     // initializer value if it is simple enough or else set to an uninitialized
@@ -448,6 +484,8 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   }
 
   const dart::String& getter_name = H.DartGetterName(kernel_field->name());
+  const Object& script_class =
+      ClassForScriptAt(klass, kernel_field->source_uri_index());
   Function& getter = Function::ZoneHandle(
       Z,
       Function::New(
@@ -464,7 +502,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_abstract
           false,  // is_external
           false,  // is_native
-          klass, pos));
+          script_class, kernel_field->position()));
   klass.AddFunction(getter);
   if (klass.IsTopLevel()) {
     dart::Library& library = dart::Library::Handle(Z, klass.library());
@@ -486,7 +524,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                          false,  // is_abstract
                          false,  // is_external
                          false,  // is_native
-                         klass, pos));
+                         script_class, kernel_field->position()));
     klass.AddFunction(setter);
     setter.set_kernel_function(kernel_field);
     setter.set_result_type(Object::void_type());
@@ -619,26 +657,15 @@ dart::Class& KernelReader::LookupClass(Class* klass) {
       // The class needs to have a script because all the functions in the class
       // will inherit it.  The predicate Function::IsOptimizable uses the
       // absence of a script to detect test functions that should not be
-      // optimized.  Use a dummy script.
-      //
-      // TODO(27590): We shouldn't need a dummy script per class.  At the
-      // least we could have a singleton.  At best, we'd change IsOptimizable to
-      // detect test functions some other way (like simply not setting the
-      // optimizable bit on those functions in the first place).
-      TokenPosition pos(0);
-      Script& script = Script::Handle(
-          Z, Script::New(Symbols::KernelScriptUri(), Symbols::Empty(),
-                         RawScript::kScriptTag));
-      handle =
-          &dart::Class::Handle(Z, dart::Class::New(library, name, script, pos));
+      // optimized.
+      Script& script = ScriptAt(klass->source_uri_index());
+      handle = &dart::Class::Handle(
+          Z, dart::Class::New(library, name, script, TokenPosition::kNoSource));
       library.AddClass(*handle);
     } else if (handle->script() == Script::null()) {
       // When bootstrapping we can encounter classes that do not yet have a
       // dummy script.
-      TokenPosition pos(0);
-      Script& script = Script::Handle(
-          Z, Script::New(Symbols::KernelScriptUri(), Symbols::Empty(),
-                         RawScript::kScriptTag));
+      Script& script = ScriptAt(klass->source_uri_index());
       handle->set_script(script);
     }
     // Insert the class in the cache before calling ReadPreliminaryClass so

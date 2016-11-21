@@ -506,12 +506,15 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
 
   DartFrameIterator iterator;
   const Script& script = Script::Handle(zone, GetCallerScript(&iterator));
-  intptr_t line;
+  intptr_t line = -1;
   intptr_t column = -1;
-  if (script.HasSource()) {
-    script.GetTokenLocation(location, &line, &column);
-  } else {
-    script.GetTokenLocation(location, &line, NULL);
+  ASSERT(!script.IsNull());
+  if (location.IsReal()) {
+    if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
+      script.GetTokenLocation(location, &line, &column);
+    } else {
+      script.GetTokenLocation(location, &line, NULL);
+    }
   }
   // Initialize '_url', '_line', and '_column' arguments.
   args.SetAt(0, String::Handle(zone, script.url()));
