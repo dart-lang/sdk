@@ -17,7 +17,6 @@ import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
     show
         ClassElement,
-        ConstructorElement,
         Element,
         Elements,
         Entity,
@@ -378,6 +377,7 @@ class CodegenEnqueuer implements Enqueuer {
         break;
       case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.REDIRECTION:
         registerTypeUse(new TypeUse.instantiation(staticUse.type));
         break;
       case StaticUseKind.DIRECT_INVOKE:

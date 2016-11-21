@@ -92,7 +92,12 @@ void VerifyCanonicalVisitor::VisitObject(RawObject* obj) {
   if (obj->GetClassId() >= kInstanceCid) {
     if (obj->IsCanonical()) {
       instanceHandle_ ^= obj;
-      ASSERT(instanceHandle_.CheckIsCanonical(thread_));
+      const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);
+      if (!is_canonical) {
+        OS::PrintErr("Instance `%s` is not canonical!\n",
+                     instanceHandle_.ToCString());
+      }
+      ASSERT(is_canonical);
     }
   }
 }

@@ -18,7 +18,8 @@ static RawArray* Match(const String& pat, const String& str) {
   const RegExp& regexp =
       RegExp::Handle(RegExpEngine::CreateRegExp(thread, pat, false, false));
   const Smi& idx = Smi::Handle(Smi::New(0));
-  return IRRegExpMacroAssembler::Execute(regexp, str, idx, zone);
+  return IRRegExpMacroAssembler::Execute(regexp, str, idx, /*sticky=*/false,
+                                         zone);
 }
 
 TEST_CASE(RegExp_OneByteString) {

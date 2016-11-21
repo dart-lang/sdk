@@ -1290,7 +1290,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   @deprecated
-  int cacheSize = DEFAULT_CACHE_SIZE;
+  int cacheSize = 64;
 
   @override
   bool dart2jsHint = false;

@@ -77,14 +77,12 @@ class ContextBuilder {
    * The resolver provider used to create a package: URI resolver, or `null` if
    * the normal (Package Specification DEP) lookup mechanism is to be used.
    */
-  @deprecated
   ResolverProvider packageResolverProvider;
 
   /**
    * The resolver provider used to create a file: URI resolver, or `null` if
    * the normal file URI resolver is to be used.
    */
-  @deprecated
   ResolverProvider fileResolverProvider;
 
   /**

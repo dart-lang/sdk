@@ -49,6 +49,15 @@ class SearchDomainHandler implements protocol.RequestHandler {
         searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      String searchId = (_nextSearchId++).toString();
+      var result = new protocol.SearchFindElementReferencesResult();
+      result.id = searchId;
+      _sendSearchResult(request, result);
+      _sendSearchNotification(searchId, true, <protocol.SearchResult>[]);
+      return;
+    }
     var params =
         new protocol.SearchFindElementReferencesParams.fromRequest(request);
     await server.onAnalysisComplete;
@@ -145,6 +154,14 @@ class SearchDomainHandler implements protocol.RequestHandler {
    * Implement the `search.getTypeHierarchy` request.
    */
   Future getTypeHierarchy(protocol.Request request) async {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      protocol.Response response =
+          new protocol.SearchGetTypeHierarchyResult(hierarchyItems: [])
+              .toResponse(request.id);
+      server.sendResponse(response);
+      return;
+    }
     var params = new protocol.SearchGetTypeHierarchyParams.fromRequest(request);
     String file = params.file;
     // wait for analysis

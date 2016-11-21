@@ -59,6 +59,7 @@ import '../universe/world_impact.dart'
         TransformedWorldImpact,
         WorldImpact,
         WorldImpactBuilder,
+        WorldImpactBuilderImpl,
         WorldImpactVisitor,
         StagedWorldImpactBuilder;
 import '../util/util.dart';
@@ -2577,12 +2578,23 @@ class JavaScriptBackend extends Backend {
     aliasedSuperMembers.remove(element);
   }
 
-  void registerMainHasArguments(Enqueuer enqueuer) {
-    // If the main method takes arguments, this compilation could be the target
-    // of Isolate.spawnUri. Strictly speaking, that can happen also if main
-    // takes no arguments, but in this case the spawned isolate can't
-    // communicate with the spawning isolate.
-    enqueuer.enableIsolateSupport();
+  @override
+  WorldImpact computeMainImpact(Enqueuer enqueuer, MethodElement mainMethod) {
+    WorldImpactBuilderImpl mainImpact = new WorldImpactBuilderImpl();
+    if (mainMethod.parameters.isNotEmpty) {
+      impactTransformer.registerBackendImpact(
+          mainImpact, impacts.mainWithArguments);
+      mainImpact.registerStaticUse(
+          new StaticUse.staticInvoke(mainMethod, CallStructure.TWO_ARGS));
+      // If the main method takes arguments, this compilation could be the
+      // target of Isolate.spawnUri. Strictly speaking, that can happen also if
+      // main takes no arguments, but in this case the spawned isolate can't
+      // communicate with the spawning isolate.
+      enqueuer.enableIsolateSupport();
+    }
+    mainImpact.registerStaticUse(
+        new StaticUse.staticInvoke(mainMethod, CallStructure.NO_ARGS));
+    return mainImpact;
   }
 
   /// Returns the filename for the output-unit named [name].
@@ -3000,7 +3012,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
   }
 
   void registerBackendImpact(
-      TransformedWorldImpact worldImpact, BackendImpact backendImpact) {
+      WorldImpactBuilder worldImpact, BackendImpact backendImpact) {
     for (Element staticUse in backendImpact.staticUses) {
       assert(staticUse != null);
       backend.registerBackendUse(staticUse);

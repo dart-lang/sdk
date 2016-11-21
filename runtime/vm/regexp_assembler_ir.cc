@@ -317,9 +317,10 @@ bool IRRegExpMacroAssembler::CanReadUnaligned() {
 RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
                                           const String& input,
                                           const Smi& start_offset,
+                                          bool sticky,
                                           Zone* zone) {
   const intptr_t cid = input.GetClassId();
-  const Function& fun = Function::Handle(regexp.function(cid));
+  const Function& fun = Function::Handle(regexp.function(cid, sticky));
   ASSERT(!fun.IsNull());
   // Create the argument list.
   const Array& args =

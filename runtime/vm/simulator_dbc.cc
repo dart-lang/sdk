@@ -2669,7 +2669,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(LoadFieldTOS, A_D);
+    BYTECODE(LoadFieldTOS, __D);
     const uint16_t offset_in_words = rD;
     RawInstance* instance = static_cast<RawInstance*>(SP[0]);
     SP[0] = reinterpret_cast<RawObject**>(instance->ptr())[offset_in_words];
@@ -2677,7 +2677,7 @@ RawObject* Simulator::Call(const Code& code,
   }
 
   {
-    BYTECODE(InitStaticTOS, A);
+    BYTECODE(InitStaticTOS, 0);
     RawField* field = static_cast<RawField*>(*SP--);
     RawObject* value = field->ptr()->value_.static_value_;
     if ((value == Object::sentinel().raw()) ||

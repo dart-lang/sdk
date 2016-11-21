@@ -1102,11 +1102,13 @@ bool Isolate::CanReload() const {
 #ifndef PRODUCT
 bool Isolate::ReloadSources(JSONStream* js,
                             bool force_reload,
+                            const char* root_script_url,
+                            const char* packages_url,
                             bool dont_delete_reload_context) {
   ASSERT(!IsReloading());
   has_attempted_reload_ = true;
   reload_context_ = new IsolateReloadContext(this, js);
-  reload_context_->Reload(force_reload);
+  reload_context_->Reload(force_reload, root_script_url, packages_url);
   bool success = !reload_context_->reload_aborted();
   if (!dont_delete_reload_context) {
     DeleteReloadContext();

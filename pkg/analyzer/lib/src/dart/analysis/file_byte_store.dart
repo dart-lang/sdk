@@ -10,6 +10,17 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:path/path.dart';
 
 /**
+ * The request that is sent from the main isolate to the clean-up isolate.
+ */
+class CacheCleanUpRequest {
+  final String cachePath;
+  final int maxSizeBytes;
+  final SendPort replyTo;
+
+  CacheCleanUpRequest(this.cachePath, this.maxSizeBytes, this.replyTo);
+}
+
+/**
  * [ByteStore] that stores values as files.
  */
 class FileByteStore implements ByteStore {
@@ -17,7 +28,7 @@ class FileByteStore implements ByteStore {
   static SendPort _cleanUpSendPort;
 
   final String _cachePath;
-  final String _tempName = 'temp_${pid}';
+  final String _tempName = 'temp_$pid';
   final int _maxSizeBytes;
 
   int _bytesWrittenSinceCleanup = 0;
@@ -74,7 +85,8 @@ class FileByteStore implements ByteStore {
       _evictionIsolateIsRunning = true;
       try {
         ReceivePort response = new ReceivePort();
-        _cleanUpSendPort.send([_cachePath, _maxSizeBytes, response.sendPort]);
+        _cleanUpSendPort.send(new CacheCleanUpRequest(
+            _cachePath, _maxSizeBytes, response.sendPort));
         await response.first;
       } finally {
         _evictionIsolateIsRunning = false;
@@ -90,18 +102,11 @@ class FileByteStore implements ByteStore {
   static void _cacheCleanUpFunction(SendPort initialReplyTo) {
     ReceivePort port = new ReceivePort();
     initialReplyTo.send(port.sendPort);
-    port.listen((args) async {
-      if (args is List &&
-          args.length == 3 &&
-          args[0] is String &&
-          args[1] is int &&
-          args[2] is SendPort) {
-        String cachePath = args[0] as String;
-        int maxSizeBytes = args[1] as int;
-        await _cleanUpFolder(cachePath, maxSizeBytes);
-        // Let that client know that we're done.
-        SendPort replyTo = args[2] as SendPort;
-        replyTo.send(true);
+    port.listen((request) async {
+      if (request is CacheCleanUpRequest) {
+        await _cleanUpFolder(request.cachePath, request.maxSizeBytes);
+        // Let the client know that we're done.
+        request.replyTo.send(true);
       }
     });
   }

@@ -23,6 +23,19 @@ class AnalysisOptionsErrorCode extends ErrorCode {
       const AnalysisOptionsErrorCode('PARSE_ERROR', '{0}');
 
   /**
+   * An error code indicating that there is a syntactic error
+   * in the included file.
+   *
+   * Parameters:
+   * 0: the path of the file containing the error
+   * 1: the starting offset of the text in the file that contains the error
+   * 2: the ending offset of the text in the file that contains the error
+   * 3: the error message
+   */
+  static const INCLUDED_FILE_PARSE_ERROR = const AnalysisOptionsErrorCode(
+      'INCLUDED_FILE_PARSE_ERROR', '{3} in {0}({1}..{2})');
+
+  /**
    * Initialize a newly created error code to have the given [name].
    */
   const AnalysisOptionsErrorCode(String name, String message,
@@ -43,6 +56,30 @@ class AnalysisOptionsErrorCode extends ErrorCode {
  * wrong and, when appropriate, how the problem can be corrected.
  */
 class AnalysisOptionsWarningCode extends ErrorCode {
+  /**
+   * An error code indicating a specified include file could not be found.
+   *
+   * Parameters:
+   * 0: the uri of the file to be included
+   * 1: the path of the file containing the include directive
+   */
+  static const AnalysisOptionsWarningCode INCLUDE_FILE_NOT_FOUND =
+      const AnalysisOptionsWarningCode('INCLUDE_FILE_NOT_FOUND',
+          "The include file {0} in {1} cannot be found.");
+
+  /**
+   * An error code indicating a specified include file has a warning.
+   *
+   * Parameters:
+   * 0: the path of the file containing the warnings
+   * 1: the starting offset of the text in the file that contains the warning
+   * 2: the ending offset of the text in the file that contains the warning
+   * 3: the warning message
+   */
+  static const AnalysisOptionsWarningCode INCLUDED_FILE_WARNING =
+      const AnalysisOptionsWarningCode('INCLUDED_FILE_WARNING',
+          "Warning in the included options file {0}({1}..{2}): {3}");
+
   /**
    * An error code indicating that a plugin is being configured with an
    * unsupported option and legal options are provided.

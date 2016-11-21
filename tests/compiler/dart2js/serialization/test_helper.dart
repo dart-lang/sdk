@@ -208,18 +208,20 @@ Set computeSetDifference(
   // set.difference would work)
   Set remaining = set2.toSet();
   for (var element1 in set1) {
+    bool found = false;
     var correspondingElement;
     for (var element2 in remaining) {
       if (sameElement(element1, element2)) {
         if (checkElements != null) {
           checkElements(element1, element2);
         }
+        found = true;
         correspondingElement = element2;
         remaining.remove(element2);
         break;
       }
     }
-    if (correspondingElement != null) {
+    if (found) {
       common.add([element1, correspondingElement]);
     } else {
       unfound.add(element1);
@@ -474,7 +476,17 @@ void checkSets(
     void onSameElement(a, b),
     void onUnfoundElement(a),
     void onExtraElement(b),
+    bool elementFilter(element),
+    elementConverter(element),
     String elementToString(key): defaultToString}) {
+  if (elementFilter != null) {
+    set1 = set1.where(elementFilter);
+    set2 = set2.where(elementFilter);
+  }
+  if (elementConverter != null) {
+    set1 = set1.map(elementConverter);
+    set2 = set2.map(elementConverter);
+  }
   List<List> common = <List>[];
   List unfound = [];
   Set remaining = computeSetDifference(set1, set2, common, unfound,

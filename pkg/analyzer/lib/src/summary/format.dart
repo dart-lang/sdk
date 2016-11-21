@@ -64,19 +64,6 @@ class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   }
 }
 
-class _UnlinkedConstOperationReader extends fb.Reader<idl.UnlinkedConstOperation> {
-  const _UnlinkedConstOperationReader() : super();
-
-  @override
-  int get size => 1;
-
-  @override
-  idl.UnlinkedConstOperation read(fb.BufferContext bc, int offset) {
-    int index = const fb.Uint8Reader().read(bc, offset);
-    return index < idl.UnlinkedConstOperation.values.length ? idl.UnlinkedConstOperation.values[index] : idl.UnlinkedConstOperation.pushInt;
-  }
-}
-
 class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedConstructorInitializerKind> {
   const _UnlinkedConstructorInitializerKindReader() : super();
 
@@ -113,6 +100,19 @@ class _UnlinkedExprAssignOperatorReader extends fb.Reader<idl.UnlinkedExprAssign
   idl.UnlinkedExprAssignOperator read(fb.BufferContext bc, int offset) {
     int index = const fb.Uint8Reader().read(bc, offset);
     return index < idl.UnlinkedExprAssignOperator.values.length ? idl.UnlinkedExprAssignOperator.values[index] : idl.UnlinkedExprAssignOperator.assign;
+  }
+}
+
+class _UnlinkedExprOperationReader extends fb.Reader<idl.UnlinkedExprOperation> {
+  const _UnlinkedExprOperationReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.UnlinkedExprOperation read(fb.BufferContext bc, int offset) {
+    int index = const fb.Uint8Reader().read(bc, offset);
+    return index < idl.UnlinkedExprOperation.values.length ? idl.UnlinkedExprOperation.values[index] : idl.UnlinkedExprOperation.pushInt;
   }
 }
 
@@ -3425,7 +3425,7 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
 }
 
 class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements idl.UnlinkedClass {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   List<UnlinkedExecutableBuilder> _executables;
@@ -3441,12 +3441,12 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this class.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -3585,7 +3585,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     this._typeParameters = value;
   }
 
-  UnlinkedClassBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedExecutableBuilder> executables, List<UnlinkedVariableBuilder> fields, bool hasNoSupertype, List<EntityRefBuilder> interfaces, bool isAbstract, bool isMixinApplication, List<EntityRefBuilder> mixins, String name, int nameOffset, EntityRefBuilder supertype, List<UnlinkedTypeParamBuilder> typeParameters})
+  UnlinkedClassBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedExecutableBuilder> executables, List<UnlinkedVariableBuilder> fields, bool hasNoSupertype, List<EntityRefBuilder> interfaces, bool isAbstract, bool isMixinApplication, List<EntityRefBuilder> mixins, String name, int nameOffset, EntityRefBuilder supertype, List<UnlinkedTypeParamBuilder> typeParameters})
     : _annotations = annotations,
       _codeRange = codeRange,
       _documentationComment = documentationComment,
@@ -3778,7 +3778,7 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
 
   _UnlinkedClassImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   idl.CodeRange _codeRange;
   idl.UnlinkedDocumentationComment _documentationComment;
   List<idl.UnlinkedExecutable> _executables;
@@ -3794,8 +3794,8 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
   List<idl.UnlinkedTypeParam> _typeParameters;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 5, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -4240,313 +4240,10 @@ abstract class _UnlinkedConfigurationMixin implements idl.UnlinkedConfiguration 
   String toString() => convert.JSON.encode(toJson());
 }
 
-class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
-  List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
-  List<double> _doubles;
-  List<int> _ints;
-  bool _isValidConst;
-  List<idl.UnlinkedConstOperation> _operations;
-  List<EntityRefBuilder> _references;
-  List<String> _strings;
-
-  @override
-  List<idl.UnlinkedExprAssignOperator> get assignmentOperators => _assignmentOperators ??= <idl.UnlinkedExprAssignOperator>[];
-
-  /**
-   * Sequence of operators used by assignment operations.
-   */
-  void set assignmentOperators(List<idl.UnlinkedExprAssignOperator> value) {
-    this._assignmentOperators = value;
-  }
-
-  @override
-  List<double> get doubles => _doubles ??= <double>[];
-
-  /**
-   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
-   */
-  void set doubles(List<double> value) {
-    this._doubles = value;
-  }
-
-  @override
-  List<int> get ints => _ints ??= <int>[];
-
-  /**
-   * Sequence of unsigned 32-bit integers consumed by the operations
-   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
-   * `makeList`, and `makeMap`.
-   */
-  void set ints(List<int> value) {
-    assert(value == null || value.every((e) => e >= 0));
-    this._ints = value;
-  }
-
-  @override
-  bool get isValidConst => _isValidConst ??= false;
-
-  /**
-   * Indicates whether the expression is a valid potentially constant
-   * expression.
-   */
-  void set isValidConst(bool value) {
-    this._isValidConst = value;
-  }
-
-  @override
-  List<idl.UnlinkedConstOperation> get operations => _operations ??= <idl.UnlinkedConstOperation>[];
-
-  /**
-   * Sequence of operations to execute (starting with an empty stack) to form
-   * the constant value.
-   */
-  void set operations(List<idl.UnlinkedConstOperation> value) {
-    this._operations = value;
-  }
-
-  @override
-  List<EntityRefBuilder> get references => _references ??= <EntityRefBuilder>[];
-
-  /**
-   * Sequence of language constructs consumed by the operations
-   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
-   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
-   * actual entity being referred to may be something other than a type.
-   */
-  void set references(List<EntityRefBuilder> value) {
-    this._references = value;
-  }
-
-  @override
-  List<String> get strings => _strings ??= <String>[];
-
-  /**
-   * Sequence of strings consumed by the operations `pushString` and
-   * `invokeConstructor`.
-   */
-  void set strings(List<String> value) {
-    this._strings = value;
-  }
-
-  UnlinkedConstBuilder({List<idl.UnlinkedExprAssignOperator> assignmentOperators, List<double> doubles, List<int> ints, bool isValidConst, List<idl.UnlinkedConstOperation> operations, List<EntityRefBuilder> references, List<String> strings})
-    : _assignmentOperators = assignmentOperators,
-      _doubles = doubles,
-      _ints = ints,
-      _isValidConst = isValidConst,
-      _operations = operations,
-      _references = references,
-      _strings = strings;
-
-  /**
-   * Flush [informative] data recursively.
-   */
-  void flushInformative() {
-    _references?.forEach((b) => b.flushInformative());
-  }
-
-  /**
-   * Accumulate non-[informative] data into [signature].
-   */
-  void collectApiSignature(api_sig.ApiSignature signature) {
-    if (this._operations == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._operations.length);
-      for (var x in this._operations) {
-        signature.addInt(x.index);
-      }
-    }
-    if (this._ints == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._ints.length);
-      for (var x in this._ints) {
-        signature.addInt(x);
-      }
-    }
-    if (this._references == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._references.length);
-      for (var x in this._references) {
-        x?.collectApiSignature(signature);
-      }
-    }
-    if (this._strings == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._strings.length);
-      for (var x in this._strings) {
-        signature.addString(x);
-      }
-    }
-    if (this._doubles == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._doubles.length);
-      for (var x in this._doubles) {
-        signature.addDouble(x);
-      }
-    }
-    signature.addBool(this._isValidConst == true);
-    if (this._assignmentOperators == null) {
-      signature.addInt(0);
-    } else {
-      signature.addInt(this._assignmentOperators.length);
-      for (var x in this._assignmentOperators) {
-        signature.addInt(x.index);
-      }
-    }
-  }
-
-  fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_assignmentOperators;
-    fb.Offset offset_doubles;
-    fb.Offset offset_ints;
-    fb.Offset offset_operations;
-    fb.Offset offset_references;
-    fb.Offset offset_strings;
-    if (!(_assignmentOperators == null || _assignmentOperators.isEmpty)) {
-      offset_assignmentOperators = fbBuilder.writeListUint8(_assignmentOperators.map((b) => b.index).toList());
-    }
-    if (!(_doubles == null || _doubles.isEmpty)) {
-      offset_doubles = fbBuilder.writeListFloat64(_doubles);
-    }
-    if (!(_ints == null || _ints.isEmpty)) {
-      offset_ints = fbBuilder.writeListUint32(_ints);
-    }
-    if (!(_operations == null || _operations.isEmpty)) {
-      offset_operations = fbBuilder.writeListUint8(_operations.map((b) => b.index).toList());
-    }
-    if (!(_references == null || _references.isEmpty)) {
-      offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
-    }
-    if (!(_strings == null || _strings.isEmpty)) {
-      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
-    }
-    fbBuilder.startTable();
-    if (offset_assignmentOperators != null) {
-      fbBuilder.addOffset(6, offset_assignmentOperators);
-    }
-    if (offset_doubles != null) {
-      fbBuilder.addOffset(4, offset_doubles);
-    }
-    if (offset_ints != null) {
-      fbBuilder.addOffset(1, offset_ints);
-    }
-    if (_isValidConst == true) {
-      fbBuilder.addBool(5, true);
-    }
-    if (offset_operations != null) {
-      fbBuilder.addOffset(0, offset_operations);
-    }
-    if (offset_references != null) {
-      fbBuilder.addOffset(2, offset_references);
-    }
-    if (offset_strings != null) {
-      fbBuilder.addOffset(3, offset_strings);
-    }
-    return fbBuilder.endTable();
-  }
-}
-
-class _UnlinkedConstReader extends fb.TableReader<_UnlinkedConstImpl> {
-  const _UnlinkedConstReader();
-
-  @override
-  _UnlinkedConstImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedConstImpl(bc, offset);
-}
-
-class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  _UnlinkedConstImpl(this._bc, this._bcOffset);
-
-  List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
-  List<double> _doubles;
-  List<int> _ints;
-  bool _isValidConst;
-  List<idl.UnlinkedConstOperation> _operations;
-  List<idl.EntityRef> _references;
-  List<String> _strings;
-
-  @override
-  List<idl.UnlinkedExprAssignOperator> get assignmentOperators {
-    _assignmentOperators ??= const fb.ListReader<idl.UnlinkedExprAssignOperator>(const _UnlinkedExprAssignOperatorReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedExprAssignOperator>[]);
-    return _assignmentOperators;
-  }
-
-  @override
-  List<double> get doubles {
-    _doubles ??= const fb.Float64ListReader().vTableGet(_bc, _bcOffset, 4, const <double>[]);
-    return _doubles;
-  }
-
-  @override
-  List<int> get ints {
-    _ints ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
-    return _ints;
-  }
-
-  @override
-  bool get isValidConst {
-    _isValidConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
-    return _isValidConst;
-  }
-
-  @override
-  List<idl.UnlinkedConstOperation> get operations {
-    _operations ??= const fb.ListReader<idl.UnlinkedConstOperation>(const _UnlinkedConstOperationReader()).vTableGet(_bc, _bcOffset, 0, const <idl.UnlinkedConstOperation>[]);
-    return _operations;
-  }
-
-  @override
-  List<idl.EntityRef> get references {
-    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 2, const <idl.EntityRef>[]);
-    return _references;
-  }
-
-  @override
-  List<String> get strings {
-    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
-    return _strings;
-  }
-}
-
-abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> _result = <String, Object>{};
-    if (assignmentOperators.isNotEmpty) _result["assignmentOperators"] = assignmentOperators.map((_value) => _value.toString().split('.')[1]).toList();
-    if (doubles.isNotEmpty) _result["doubles"] = doubles.map((_value) => _value.isFinite ? _value : _value.toString()).toList();
-    if (ints.isNotEmpty) _result["ints"] = ints;
-    if (isValidConst != false) _result["isValidConst"] = isValidConst;
-    if (operations.isNotEmpty) _result["operations"] = operations.map((_value) => _value.toString().split('.')[1]).toList();
-    if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
-    if (strings.isNotEmpty) _result["strings"] = strings;
-    return _result;
-  }
-
-  @override
-  Map<String, Object> toMap() => {
-    "assignmentOperators": assignmentOperators,
-    "doubles": doubles,
-    "ints": ints,
-    "isValidConst": isValidConst,
-    "operations": operations,
-    "references": references,
-    "strings": strings,
-  };
-
-  @override
-  String toString() => convert.JSON.encode(toJson());
-}
-
 class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstructorInitializerMixin implements idl.UnlinkedConstructorInitializer {
   List<String> _argumentNames;
-  List<UnlinkedConstBuilder> _arguments;
-  UnlinkedConstBuilder _expression;
+  List<UnlinkedExprBuilder> _arguments;
+  UnlinkedExprBuilder _expression;
   idl.UnlinkedConstructorInitializerKind _kind;
   String _name;
 
@@ -4563,24 +4260,24 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
   }
 
   @override
-  List<UnlinkedConstBuilder> get arguments => _arguments ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get arguments => _arguments ??= <UnlinkedExprBuilder>[];
 
   /**
    * If [kind] is `thisInvocation` or `superInvocation`, the arguments of the
    * invocation.  Otherwise empty.
    */
-  void set arguments(List<UnlinkedConstBuilder> value) {
+  void set arguments(List<UnlinkedExprBuilder> value) {
     this._arguments = value;
   }
 
   @override
-  UnlinkedConstBuilder get expression => _expression;
+  UnlinkedExprBuilder get expression => _expression;
 
   /**
    * If [kind] is `field`, the expression of the field initializer.
    * Otherwise `null`.
    */
-  void set expression(UnlinkedConstBuilder value) {
+  void set expression(UnlinkedExprBuilder value) {
     this._expression = value;
   }
 
@@ -4607,7 +4304,7 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
     this._name = value;
   }
 
-  UnlinkedConstructorInitializerBuilder({List<String> argumentNames, List<UnlinkedConstBuilder> arguments, UnlinkedConstBuilder expression, idl.UnlinkedConstructorInitializerKind kind, String name})
+  UnlinkedConstructorInitializerBuilder({List<String> argumentNames, List<UnlinkedExprBuilder> arguments, UnlinkedExprBuilder expression, idl.UnlinkedConstructorInitializerKind kind, String name})
     : _argumentNames = argumentNames,
       _arguments = arguments,
       _expression = expression,
@@ -4699,8 +4396,8 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
   _UnlinkedConstructorInitializerImpl(this._bc, this._bcOffset);
 
   List<String> _argumentNames;
-  List<idl.UnlinkedConst> _arguments;
-  idl.UnlinkedConst _expression;
+  List<idl.UnlinkedExpr> _arguments;
+  idl.UnlinkedExpr _expression;
   idl.UnlinkedConstructorInitializerKind _kind;
   String _name;
 
@@ -4711,14 +4408,14 @@ class _UnlinkedConstructorInitializerImpl extends Object with _UnlinkedConstruct
   }
 
   @override
-  List<idl.UnlinkedConst> get arguments {
-    _arguments ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get arguments {
+    _arguments ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
     return _arguments;
   }
 
   @override
-  idl.UnlinkedConst get expression {
-    _expression ??= const _UnlinkedConstReader().vTableGet(_bc, _bcOffset, 1, null);
+  idl.UnlinkedExpr get expression {
+    _expression ??= const _UnlinkedExprReader().vTableGet(_bc, _bcOffset, 1, null);
     return _expression;
   }
 
@@ -4857,7 +4554,7 @@ abstract class _UnlinkedDocumentationCommentMixin implements idl.UnlinkedDocumen
 }
 
 class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.UnlinkedEnum {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   String _name;
@@ -4865,12 +4562,12 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   List<UnlinkedEnumValueBuilder> _values;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this enum.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -4926,7 +4623,7 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
     this._values = value;
   }
 
-  UnlinkedEnumBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedEnumValueBuilder> values})
+  UnlinkedEnumBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedEnumValueBuilder> values})
     : _annotations = annotations,
       _codeRange = codeRange,
       _documentationComment = documentationComment,
@@ -5025,7 +4722,7 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
 
   _UnlinkedEnumImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   idl.CodeRange _codeRange;
   idl.UnlinkedDocumentationComment _documentationComment;
   String _name;
@@ -5033,8 +4730,8 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
   List<idl.UnlinkedEnumValue> _values;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -5234,8 +4931,8 @@ abstract class _UnlinkedEnumValueMixin implements idl.UnlinkedEnumValue {
 }
 
 class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
-  List<UnlinkedConstBuilder> _annotations;
-  UnlinkedConstBuilder _bodyExpr;
+  List<UnlinkedExprBuilder> _annotations;
+  UnlinkedExprBuilder _bodyExpr;
   CodeRangeBuilder _codeRange;
   List<UnlinkedConstructorInitializerBuilder> _constantInitializers;
   int _constCycleSlot;
@@ -5266,24 +4963,24 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   int _visibleOffset;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this executable.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
   @override
-  UnlinkedConstBuilder get bodyExpr => _bodyExpr;
+  UnlinkedExprBuilder get bodyExpr => _bodyExpr;
 
   /**
    * If this executable's function body is declared using `=>`, the expression
    * to the right of the `=>`.  May be omitted if neither type inference nor
    * constant evaluation depends on the function body.
    */
-  void set bodyExpr(UnlinkedConstBuilder value) {
+  void set bodyExpr(UnlinkedExprBuilder value) {
     this._bodyExpr = value;
   }
 
@@ -5607,7 +5304,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     this._visibleOffset = value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder bodyExpr, CodeRangeBuilder codeRange, List<UnlinkedConstructorInitializerBuilder> constantInitializers, int constCycleSlot, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isAsynchronous, bool isConst, bool isExternal, bool isFactory, bool isGenerator, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
+  UnlinkedExecutableBuilder({List<UnlinkedExprBuilder> annotations, UnlinkedExprBuilder bodyExpr, CodeRangeBuilder codeRange, List<UnlinkedConstructorInitializerBuilder> constantInitializers, int constCycleSlot, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isAsynchronous, bool isConst, bool isExternal, bool isFactory, bool isGenerator, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _bodyExpr = bodyExpr,
       _codeRange = codeRange,
@@ -5892,8 +5589,8 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
 
   _UnlinkedExecutableImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
-  idl.UnlinkedConst _bodyExpr;
+  List<idl.UnlinkedExpr> _annotations;
+  idl.UnlinkedExpr _bodyExpr;
   idl.CodeRange _codeRange;
   List<idl.UnlinkedConstructorInitializer> _constantInitializers;
   int _constCycleSlot;
@@ -5924,14 +5621,14 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   int _visibleOffset;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
   @override
-  idl.UnlinkedConst get bodyExpr {
-    _bodyExpr ??= const _UnlinkedConstReader().vTableGet(_bc, _bcOffset, 29, null);
+  idl.UnlinkedExpr get bodyExpr {
+    _bodyExpr ??= const _UnlinkedExprReader().vTableGet(_bc, _bcOffset, 29, null);
     return _bodyExpr;
   }
 
@@ -6180,18 +5877,18 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
 }
 
 class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPublicMixin implements idl.UnlinkedExportNonPublic {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   int _offset;
   int _uriEnd;
   int _uriOffset;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this export directive.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -6230,7 +5927,7 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
     this._uriOffset = value;
   }
 
-  UnlinkedExportNonPublicBuilder({List<UnlinkedConstBuilder> annotations, int offset, int uriEnd, int uriOffset})
+  UnlinkedExportNonPublicBuilder({List<UnlinkedExprBuilder> annotations, int offset, int uriEnd, int uriOffset})
     : _annotations = annotations,
       _offset = offset,
       _uriEnd = uriEnd,
@@ -6295,14 +5992,14 @@ class _UnlinkedExportNonPublicImpl extends Object with _UnlinkedExportNonPublicM
 
   _UnlinkedExportNonPublicImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   int _offset;
   int _uriEnd;
   int _uriOffset;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -6504,8 +6201,311 @@ abstract class _UnlinkedExportPublicMixin implements idl.UnlinkedExportPublic {
   String toString() => convert.JSON.encode(toJson());
 }
 
+class UnlinkedExprBuilder extends Object with _UnlinkedExprMixin implements idl.UnlinkedExpr {
+  List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
+  List<double> _doubles;
+  List<int> _ints;
+  bool _isValidConst;
+  List<idl.UnlinkedExprOperation> _operations;
+  List<EntityRefBuilder> _references;
+  List<String> _strings;
+
+  @override
+  List<idl.UnlinkedExprAssignOperator> get assignmentOperators => _assignmentOperators ??= <idl.UnlinkedExprAssignOperator>[];
+
+  /**
+   * Sequence of operators used by assignment operations.
+   */
+  void set assignmentOperators(List<idl.UnlinkedExprAssignOperator> value) {
+    this._assignmentOperators = value;
+  }
+
+  @override
+  List<double> get doubles => _doubles ??= <double>[];
+
+  /**
+   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
+   */
+  void set doubles(List<double> value) {
+    this._doubles = value;
+  }
+
+  @override
+  List<int> get ints => _ints ??= <int>[];
+
+  /**
+   * Sequence of unsigned 32-bit integers consumed by the operations
+   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
+   * `makeList`, and `makeMap`.
+   */
+  void set ints(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._ints = value;
+  }
+
+  @override
+  bool get isValidConst => _isValidConst ??= false;
+
+  /**
+   * Indicates whether the expression is a valid potentially constant
+   * expression.
+   */
+  void set isValidConst(bool value) {
+    this._isValidConst = value;
+  }
+
+  @override
+  List<idl.UnlinkedExprOperation> get operations => _operations ??= <idl.UnlinkedExprOperation>[];
+
+  /**
+   * Sequence of operations to execute (starting with an empty stack) to form
+   * the constant value.
+   */
+  void set operations(List<idl.UnlinkedExprOperation> value) {
+    this._operations = value;
+  }
+
+  @override
+  List<EntityRefBuilder> get references => _references ??= <EntityRefBuilder>[];
+
+  /**
+   * Sequence of language constructs consumed by the operations
+   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
+   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
+   * actual entity being referred to may be something other than a type.
+   */
+  void set references(List<EntityRefBuilder> value) {
+    this._references = value;
+  }
+
+  @override
+  List<String> get strings => _strings ??= <String>[];
+
+  /**
+   * Sequence of strings consumed by the operations `pushString` and
+   * `invokeConstructor`.
+   */
+  void set strings(List<String> value) {
+    this._strings = value;
+  }
+
+  UnlinkedExprBuilder({List<idl.UnlinkedExprAssignOperator> assignmentOperators, List<double> doubles, List<int> ints, bool isValidConst, List<idl.UnlinkedExprOperation> operations, List<EntityRefBuilder> references, List<String> strings})
+    : _assignmentOperators = assignmentOperators,
+      _doubles = doubles,
+      _ints = ints,
+      _isValidConst = isValidConst,
+      _operations = operations,
+      _references = references,
+      _strings = strings;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _references?.forEach((b) => b.flushInformative());
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._operations == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._operations.length);
+      for (var x in this._operations) {
+        signature.addInt(x.index);
+      }
+    }
+    if (this._ints == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._ints.length);
+      for (var x in this._ints) {
+        signature.addInt(x);
+      }
+    }
+    if (this._references == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._references.length);
+      for (var x in this._references) {
+        x?.collectApiSignature(signature);
+      }
+    }
+    if (this._strings == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._strings.length);
+      for (var x in this._strings) {
+        signature.addString(x);
+      }
+    }
+    if (this._doubles == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._doubles.length);
+      for (var x in this._doubles) {
+        signature.addDouble(x);
+      }
+    }
+    signature.addBool(this._isValidConst == true);
+    if (this._assignmentOperators == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._assignmentOperators.length);
+      for (var x in this._assignmentOperators) {
+        signature.addInt(x.index);
+      }
+    }
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_assignmentOperators;
+    fb.Offset offset_doubles;
+    fb.Offset offset_ints;
+    fb.Offset offset_operations;
+    fb.Offset offset_references;
+    fb.Offset offset_strings;
+    if (!(_assignmentOperators == null || _assignmentOperators.isEmpty)) {
+      offset_assignmentOperators = fbBuilder.writeListUint8(_assignmentOperators.map((b) => b.index).toList());
+    }
+    if (!(_doubles == null || _doubles.isEmpty)) {
+      offset_doubles = fbBuilder.writeListFloat64(_doubles);
+    }
+    if (!(_ints == null || _ints.isEmpty)) {
+      offset_ints = fbBuilder.writeListUint32(_ints);
+    }
+    if (!(_operations == null || _operations.isEmpty)) {
+      offset_operations = fbBuilder.writeListUint8(_operations.map((b) => b.index).toList());
+    }
+    if (!(_references == null || _references.isEmpty)) {
+      offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_strings == null || _strings.isEmpty)) {
+      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_assignmentOperators != null) {
+      fbBuilder.addOffset(6, offset_assignmentOperators);
+    }
+    if (offset_doubles != null) {
+      fbBuilder.addOffset(4, offset_doubles);
+    }
+    if (offset_ints != null) {
+      fbBuilder.addOffset(1, offset_ints);
+    }
+    if (_isValidConst == true) {
+      fbBuilder.addBool(5, true);
+    }
+    if (offset_operations != null) {
+      fbBuilder.addOffset(0, offset_operations);
+    }
+    if (offset_references != null) {
+      fbBuilder.addOffset(2, offset_references);
+    }
+    if (offset_strings != null) {
+      fbBuilder.addOffset(3, offset_strings);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnlinkedExprReader extends fb.TableReader<_UnlinkedExprImpl> {
+  const _UnlinkedExprReader();
+
+  @override
+  _UnlinkedExprImpl createObject(fb.BufferContext bc, int offset) => new _UnlinkedExprImpl(bc, offset);
+}
+
+class _UnlinkedExprImpl extends Object with _UnlinkedExprMixin implements idl.UnlinkedExpr {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _UnlinkedExprImpl(this._bc, this._bcOffset);
+
+  List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
+  List<double> _doubles;
+  List<int> _ints;
+  bool _isValidConst;
+  List<idl.UnlinkedExprOperation> _operations;
+  List<idl.EntityRef> _references;
+  List<String> _strings;
+
+  @override
+  List<idl.UnlinkedExprAssignOperator> get assignmentOperators {
+    _assignmentOperators ??= const fb.ListReader<idl.UnlinkedExprAssignOperator>(const _UnlinkedExprAssignOperatorReader()).vTableGet(_bc, _bcOffset, 6, const <idl.UnlinkedExprAssignOperator>[]);
+    return _assignmentOperators;
+  }
+
+  @override
+  List<double> get doubles {
+    _doubles ??= const fb.Float64ListReader().vTableGet(_bc, _bcOffset, 4, const <double>[]);
+    return _doubles;
+  }
+
+  @override
+  List<int> get ints {
+    _ints ??= const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 1, const <int>[]);
+    return _ints;
+  }
+
+  @override
+  bool get isValidConst {
+    _isValidConst ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 5, false);
+    return _isValidConst;
+  }
+
+  @override
+  List<idl.UnlinkedExprOperation> get operations {
+    _operations ??= const fb.ListReader<idl.UnlinkedExprOperation>(const _UnlinkedExprOperationReader()).vTableGet(_bc, _bcOffset, 0, const <idl.UnlinkedExprOperation>[]);
+    return _operations;
+  }
+
+  @override
+  List<idl.EntityRef> get references {
+    _references ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bc, _bcOffset, 2, const <idl.EntityRef>[]);
+    return _references;
+  }
+
+  @override
+  List<String> get strings {
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 3, const <String>[]);
+    return _strings;
+  }
+}
+
+abstract class _UnlinkedExprMixin implements idl.UnlinkedExpr {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (assignmentOperators.isNotEmpty) _result["assignmentOperators"] = assignmentOperators.map((_value) => _value.toString().split('.')[1]).toList();
+    if (doubles.isNotEmpty) _result["doubles"] = doubles.map((_value) => _value.isFinite ? _value : _value.toString()).toList();
+    if (ints.isNotEmpty) _result["ints"] = ints;
+    if (isValidConst != false) _result["isValidConst"] = isValidConst;
+    if (operations.isNotEmpty) _result["operations"] = operations.map((_value) => _value.toString().split('.')[1]).toList();
+    if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
+    if (strings.isNotEmpty) _result["strings"] = strings;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "assignmentOperators": assignmentOperators,
+    "doubles": doubles,
+    "ints": ints,
+    "isValidConst": isValidConst,
+    "operations": operations,
+    "references": references,
+    "strings": strings,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements idl.UnlinkedImport {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   List<UnlinkedCombinatorBuilder> _combinators;
   List<UnlinkedConfigurationBuilder> _configurations;
   bool _isDeferred;
@@ -6518,12 +6518,12 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
   int _uriOffset;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this import declaration.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -6640,7 +6640,7 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
     this._uriOffset = value;
   }
 
-  UnlinkedImportBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedCombinatorBuilder> combinators, List<UnlinkedConfigurationBuilder> configurations, bool isDeferred, bool isImplicit, int offset, int prefixOffset, int prefixReference, String uri, int uriEnd, int uriOffset})
+  UnlinkedImportBuilder({List<UnlinkedExprBuilder> annotations, List<UnlinkedCombinatorBuilder> combinators, List<UnlinkedConfigurationBuilder> configurations, bool isDeferred, bool isImplicit, int offset, int prefixOffset, int prefixReference, String uri, int uriEnd, int uriOffset})
     : _annotations = annotations,
       _combinators = combinators,
       _configurations = configurations,
@@ -6768,7 +6768,7 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
 
   _UnlinkedImportImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   List<idl.UnlinkedCombinator> _combinators;
   List<idl.UnlinkedConfiguration> _configurations;
   bool _isDeferred;
@@ -6781,8 +6781,8 @@ class _UnlinkedImportImpl extends Object with _UnlinkedImportMixin implements id
   int _uriOffset;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -7043,7 +7043,7 @@ abstract class _UnlinkedLabelMixin implements idl.UnlinkedLabel {
 }
 
 class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements idl.UnlinkedParam {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   String _defaultValueCode;
   int _inferredTypeSlot;
@@ -7060,12 +7060,12 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   int _visibleOffset;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this parameter.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -7232,7 +7232,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     this._visibleOffset = value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedParamBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, String defaultValueCode, int inferredTypeSlot, int inheritsCovariantSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _codeRange = codeRange,
       _defaultValueCode = defaultValueCode,
@@ -7388,7 +7388,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
 
   _UnlinkedParamImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   idl.CodeRange _codeRange;
   String _defaultValueCode;
   int _inferredTypeSlot;
@@ -7405,8 +7405,8 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   int _visibleOffset;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 9, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 9, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -7541,17 +7541,17 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
 }
 
 class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.UnlinkedPart {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   int _uriEnd;
   int _uriOffset;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this part declaration.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -7579,7 +7579,7 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
     this._uriOffset = value;
   }
 
-  UnlinkedPartBuilder({List<UnlinkedConstBuilder> annotations, int uriEnd, int uriOffset})
+  UnlinkedPartBuilder({List<UnlinkedExprBuilder> annotations, int uriEnd, int uriOffset})
     : _annotations = annotations,
       _uriEnd = uriEnd,
       _uriOffset = uriOffset;
@@ -7639,13 +7639,13 @@ class _UnlinkedPartImpl extends Object with _UnlinkedPartMixin implements idl.Un
 
   _UnlinkedPartImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   int _uriEnd;
   int _uriOffset;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 2, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -8148,7 +8148,7 @@ abstract class _UnlinkedReferenceMixin implements idl.UnlinkedReference {
 }
 
 class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   String _name;
@@ -8158,12 +8158,12 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   List<UnlinkedTypeParamBuilder> _typeParameters;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this typedef.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -8239,7 +8239,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     this._typeParameters = value;
   }
 
-  UnlinkedTypedefBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
+  UnlinkedTypedefBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
     : _annotations = annotations,
       _codeRange = codeRange,
       _documentationComment = documentationComment,
@@ -8366,7 +8366,7 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
 
   _UnlinkedTypedefImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   idl.CodeRange _codeRange;
   idl.UnlinkedDocumentationComment _documentationComment;
   String _name;
@@ -8376,8 +8376,8 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
   List<idl.UnlinkedTypeParam> _typeParameters;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 4, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -8456,19 +8456,19 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
 }
 
 class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   EntityRefBuilder _bound;
   CodeRangeBuilder _codeRange;
   String _name;
   int _nameOffset;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this type parameter.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -8514,7 +8514,7 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     this._nameOffset = value;
   }
 
-  UnlinkedTypeParamBuilder({List<UnlinkedConstBuilder> annotations, EntityRefBuilder bound, CodeRangeBuilder codeRange, String name, int nameOffset})
+  UnlinkedTypeParamBuilder({List<UnlinkedExprBuilder> annotations, EntityRefBuilder bound, CodeRangeBuilder codeRange, String name, int nameOffset})
     : _annotations = annotations,
       _bound = bound,
       _codeRange = codeRange,
@@ -8598,15 +8598,15 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
 
   _UnlinkedTypeParamImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   idl.EntityRef _bound;
   idl.CodeRange _codeRange;
   String _name;
   int _nameOffset;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 3, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 
@@ -8670,7 +8670,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   String _fallbackModePath;
   List<UnlinkedImportBuilder> _imports;
   bool _isPartOf;
-  List<UnlinkedConstBuilder> _libraryAnnotations;
+  List<UnlinkedExprBuilder> _libraryAnnotations;
   UnlinkedDocumentationCommentBuilder _libraryDocumentationComment;
   String _libraryName;
   int _libraryNameLength;
@@ -8781,13 +8781,13 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   }
 
   @override
-  List<UnlinkedConstBuilder> get libraryAnnotations => _libraryAnnotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get libraryAnnotations => _libraryAnnotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for the library declaration, or the empty list if there is no
    * library declaration.
    */
-  void set libraryAnnotations(List<UnlinkedConstBuilder> value) {
+  void set libraryAnnotations(List<UnlinkedExprBuilder> value) {
     this._libraryAnnotations = value;
   }
 
@@ -8901,7 +8901,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     this._variables = value;
   }
 
-  UnlinkedUnitBuilder({List<int> apiSignature, List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, bool isPartOf, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+  UnlinkedUnitBuilder({List<int> apiSignature, List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, bool isPartOf, List<UnlinkedExprBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<int> lineStarts, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
     : _apiSignature = apiSignature,
       _classes = classes,
       _codeRange = codeRange,
@@ -9210,7 +9210,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   String _fallbackModePath;
   List<idl.UnlinkedImport> _imports;
   bool _isPartOf;
-  List<idl.UnlinkedConst> _libraryAnnotations;
+  List<idl.UnlinkedExpr> _libraryAnnotations;
   idl.UnlinkedDocumentationComment _libraryDocumentationComment;
   String _libraryName;
   int _libraryNameLength;
@@ -9277,8 +9277,8 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   }
 
   @override
-  List<idl.UnlinkedConst> get libraryAnnotations {
-    _libraryAnnotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 14, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get libraryAnnotations {
+    _libraryAnnotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 14, const <idl.UnlinkedExpr>[]);
     return _libraryAnnotations;
   }
 
@@ -9399,7 +9399,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
 }
 
 class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin implements idl.UnlinkedVariable {
-  List<UnlinkedConstBuilder> _annotations;
+  List<UnlinkedExprBuilder> _annotations;
   CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   int _inferredTypeSlot;
@@ -9415,12 +9415,12 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   int _visibleOffset;
 
   @override
-  List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
+  List<UnlinkedExprBuilder> get annotations => _annotations ??= <UnlinkedExprBuilder>[];
 
   /**
    * Annotations for this variable.
    */
-  void set annotations(List<UnlinkedConstBuilder> value) {
+  void set annotations(List<UnlinkedExprBuilder> value) {
     this._annotations = value;
   }
 
@@ -9573,7 +9573,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     this._visibleOffset = value;
   }
 
-  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedVariableBuilder({List<UnlinkedExprBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
       _codeRange = codeRange,
       _documentationComment = documentationComment,
@@ -9712,7 +9712,7 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
 
   _UnlinkedVariableImpl(this._bc, this._bcOffset);
 
-  List<idl.UnlinkedConst> _annotations;
+  List<idl.UnlinkedExpr> _annotations;
   idl.CodeRange _codeRange;
   idl.UnlinkedDocumentationComment _documentationComment;
   int _inferredTypeSlot;
@@ -9728,8 +9728,8 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   int _visibleOffset;
 
   @override
-  List<idl.UnlinkedConst> get annotations {
-    _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedConst>[]);
+  List<idl.UnlinkedExpr> get annotations {
+    _annotations ??= const fb.ListReader<idl.UnlinkedExpr>(const _UnlinkedExprReader()).vTableGet(_bc, _bcOffset, 8, const <idl.UnlinkedExpr>[]);
     return _annotations;
   }
 

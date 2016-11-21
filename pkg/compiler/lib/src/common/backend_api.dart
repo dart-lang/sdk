@@ -17,7 +17,7 @@ import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
-    show ClassElement, Element, FunctionElement, LibraryElement;
+    show ClassElement, Element, FunctionElement, MethodElement, LibraryElement;
 import '../enqueue.dart' show Enqueuer, EnqueueTask, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
@@ -313,7 +313,8 @@ abstract class Backend extends Target {
 
   void forgetElement(Element element) {}
 
-  void registerMainHasArguments(Enqueuer enqueuer) {}
+  /// Computes the [WorldImpact] of calling [mainMethod] as the entry point.
+  WorldImpact computeMainImpact(Enqueuer enqueuer, MethodElement mainMethod) {}
 
   /// Returns the location of the patch-file associated with [libraryName]
   /// resolved from [plaformConfigUri].

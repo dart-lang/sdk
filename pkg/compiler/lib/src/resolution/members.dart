@@ -3681,13 +3681,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       isValidAsConstant = false;
     }
 
-    registry.registerStaticUse(
-        new StaticUse.constructorRedirect(redirectionTarget));
-    // TODO(johnniwinther): Register the effective target type as part of the
-    // static use instead.
-    registry.registerTypeUse(new TypeUse.instantiation(redirectionTarget
-        .enclosingClass.thisType
-        .subst(type.typeArguments, targetClass.typeVariables)));
+    registry.registerStaticUse(new StaticUse.constructorRedirect(
+        redirectionTarget,
+        redirectionTarget.enclosingClass.thisType
+            .subst(type.typeArguments, targetClass.typeVariables)));
     if (resolution.commonElements.isSymbolConstructor(enclosingElement)) {
       registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }

@@ -298,8 +298,9 @@ class Parser {
    * parameters, followed by a left-parenthesis. This is used by
    * [parseTypeAlias] to determine whether or not to parse a return type.
    */
-  @deprecated
   bool get hasReturnTypeInTypeAlias {
+    // TODO(brianwilkerson) This is too expensive as implemented and needs to be
+    // re-implemented or removed.
     Token next = skipReturnType(_currentToken);
     if (next == null) {
       return false;

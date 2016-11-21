@@ -5,13 +5,14 @@
 library rewrite_async;
 
 import 'dart:collection';
-import "dart:math" show max;
+import 'dart:math' show max;
 
 import 'package:js_runtime/shared/async_await_error_codes.dart' as error_codes;
 
 import '../common.dart';
+import '../io/source_information.dart' show SourceInformation;
 import '../util/util.dart' show Pair;
-import "js.dart" as js;
+import 'js.dart' as js;
 
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
 /// (with dart-like semantics) to an equivalent function without these.
@@ -519,7 +520,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Fun finishFunction(
       List<js.Parameter> parameters,
       js.Statement rewrittenBody,
-      js.VariableDeclarationList variableDeclarations);
+      js.VariableDeclarationList variableDeclarations,
+      SourceInformation sourceInformation);
 
   Iterable<js.VariableInitialization> variableInitializations();
 
@@ -705,7 +707,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     js.VariableDeclarationList variableDeclarations =
         new js.VariableDeclarationList(variables);
 
-    return finishFunction(node.params, rewrittenBody, variableDeclarations);
+    return finishFunction(node.params, rewrittenBody, variableDeclarations,
+        node.sourceInformation);
   }
 
   @override
@@ -851,7 +854,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     bool storeTarget = node.arguments.any(shouldTransform);
     return withCallTargetExpression(node.target, (target) {
       return withExpressions(node.arguments, (List<js.Expression> arguments) {
-        return new js.Call(target, arguments);
+        return new js.Call(target, arguments)
+            .withSourceInformation(node.sourceInformation);
       });
     }, store: storeTarget);
   }
@@ -1405,7 +1409,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   @override
   void visitThrow(js.Throw node) {
     withExpression(node.expression, (js.Expression expression) {
-      addStatement(new js.Throw(expression));
+      addStatement(new js.Throw(expression)
+          .withSourceInformation(node.sourceInformation));
     }, store: false);
   }
 
@@ -1712,14 +1717,13 @@ class AsyncRewriter extends AsyncRewriterBase {
       addStatement(new js.Comment("implicit return"));
     }
     addStatement(js.js.statement(
-        "return #runtimeHelper(#returnValue, #successCode, #completer);",
-        {
-          "runtimeHelper": asyncHelper,
-          "successCode": js.number(error_codes.SUCCESS),
-          "returnValue":
-              analysis.hasExplicitReturns ? returnValue : new js.LiteralNull(),
-          "completer": completer
-        }));
+        "return #runtimeHelper(#returnValue, #successCode, #completer);", {
+      "runtimeHelper": asyncHelper,
+      "successCode": js.number(error_codes.SUCCESS),
+      "returnValue":
+          analysis.hasExplicitReturns ? returnValue : new js.LiteralNull(),
+      "completer": completer
+    }));
   }
 
   @override
@@ -1759,7 +1763,8 @@ class AsyncRewriter extends AsyncRewriterBase {
   js.Fun finishFunction(
       List<js.Parameter> parameters,
       js.Statement rewrittenBody,
-      js.VariableDeclarationList variableDeclarations) {
+      js.VariableDeclarationList variableDeclarations,
+      SourceInformation sourceInformation) {
     return js.js(
         """
         function (#parameters) {
@@ -1787,7 +1792,7 @@ class AsyncRewriter extends AsyncRewriterBase {
           "asyncHelper": asyncHelper,
           "completer": completer,
           "wrapBody": wrapBody,
-        });
+        }).withSourceInformation(sourceInformation);
   }
 }
 
@@ -1838,7 +1843,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
   js.Fun finishFunction(
       List<js.Parameter> parameters,
       js.Statement rewrittenBody,
-      js.VariableDeclarationList variableDeclarations) {
+      js.VariableDeclarationList variableDeclarations,
+      SourceInformation sourceInformation) {
     // Each iterator invocation on the iterable should work on its own copy of
     // the parameters.
     // TODO(sigurdm): We only need to do this copying for parameters that are
@@ -1891,7 +1897,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
           "handler": handler,
           "currentError": currentErrorName,
           "ERROR": js.number(error_codes.ERROR),
-        });
+        }).withSourceInformation(sourceInformation);
   }
 
   void addErrorExit() {
@@ -2030,7 +2036,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   js.Fun finishFunction(
       List<js.Parameter> parameters,
       js.Statement rewrittenBody,
-      js.VariableDeclarationList variableDeclarations) {
+      js.VariableDeclarationList variableDeclarations,
+      SourceInformation sourceInformation) {
     return js.js(
         """
         function (#parameters) {
@@ -2074,7 +2081,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
           "streamOfController": streamOfController,
           "controller": controllerName,
           "wrapBody": wrapBody,
-        });
+        }).withSourceInformation(sourceInformation);
   }
 
   @override

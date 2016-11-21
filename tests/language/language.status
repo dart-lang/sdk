@@ -261,7 +261,6 @@ library_env_test/has_no_mirror_support: RuntimeError, OK
 library_env_test/has_mirror_support: RuntimeError, OK
 
 [ $hot_reload || $hot_reload_rollback ]
-methods_as_constants_test: Skip # Issue 27803
 static_closure_identical_test: Pass, Fail # Closure identity
 cha_deopt1_test: Crash # Requires deferred libraries
 cha_deopt2_test: Crash # Requires deferred libraries
@@ -297,6 +296,10 @@ regress_22443_test: Crash # Requires deferred libraries
 tearoff_basic_test: Crash # Requires deferred libraries
 conditional_import_test: Crash # Requires deferred libraries
 conditional_import_string_test: Crash # Requires deferred libraries
+override_field_method1_negative_test: Pass, Crash # Issue 27835
+override_field_method2_negative_test: Pass, Crash # Issue 27835
+override_field_method4_negative_test: Pass, Crash # Issue 27835
+override_field_method5_negative_test: Pass, Crash # Issue 27835
 
 [$runtime != vm || $compiler != none]
 assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.

@@ -2215,8 +2215,10 @@ class Function : public Object {
 
   RawRegExp* regexp() const;
   intptr_t string_specialization_cid() const;
+  bool is_sticky_specialization() const;
   void SetRegExpData(const RegExp& regexp,
-                     intptr_t string_specialization_cid) const;
+                     intptr_t string_specialization_cid,
+                     bool sticky) const;
 
   RawString* native_name() const;
   void set_native_name(const String& name) const;
@@ -3500,6 +3502,10 @@ class Script : public Object {
   void set_compile_time_constants(const Array& value) const;
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
+
+  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
+
+  void set_line_starts(const Array& value) const;
 
   void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
 
@@ -8451,37 +8457,59 @@ class RegExp : public Instance {
     return raw_ptr()->num_bracket_expressions_;
   }
 
-  RawTypedData* bytecode(bool is_one_byte) const {
-    return is_one_byte ? raw_ptr()->one_byte_bytecode_
-                       : raw_ptr()->two_byte_bytecode_;
+  RawTypedData* bytecode(bool is_one_byte, bool sticky) const {
+    if (sticky) {
+      return is_one_byte ? raw_ptr()->one_byte_sticky_.bytecode_
+                         : raw_ptr()->two_byte_sticky_.bytecode_;
+    } else {
+      return is_one_byte ? raw_ptr()->one_byte_.bytecode_
+                         : raw_ptr()->two_byte_.bytecode_;
+    }
   }
 
-  static intptr_t function_offset(intptr_t cid) {
-    switch (cid) {
-      case kOneByteStringCid:
-        return OFFSET_OF(RawRegExp, one_byte_function_);
-      case kTwoByteStringCid:
-        return OFFSET_OF(RawRegExp, two_byte_function_);
-      case kExternalOneByteStringCid:
-        return OFFSET_OF(RawRegExp, external_one_byte_function_);
-      case kExternalTwoByteStringCid:
-        return OFFSET_OF(RawRegExp, external_two_byte_function_);
+  static intptr_t function_offset(intptr_t cid, bool sticky) {
+    if (sticky) {
+      switch (cid) {
+        case kOneByteStringCid:
+          return OFFSET_OF(RawRegExp, one_byte_sticky_.function_);
+        case kTwoByteStringCid:
+          return OFFSET_OF(RawRegExp, two_byte_sticky_.function_);
+        case kExternalOneByteStringCid:
+          return OFFSET_OF(RawRegExp, external_one_byte_sticky_function_);
+        case kExternalTwoByteStringCid:
+          return OFFSET_OF(RawRegExp, external_two_byte_sticky_function_);
+      }
+    } else {
+      switch (cid) {
+        case kOneByteStringCid:
+          return OFFSET_OF(RawRegExp, one_byte_.function_);
+        case kTwoByteStringCid:
+          return OFFSET_OF(RawRegExp, two_byte_.function_);
+        case kExternalOneByteStringCid:
+          return OFFSET_OF(RawRegExp, external_one_byte_function_);
+        case kExternalTwoByteStringCid:
+          return OFFSET_OF(RawRegExp, external_two_byte_function_);
+      }
     }
 
     UNREACHABLE();
     return -1;
   }
 
-  RawFunction** FunctionAddr(intptr_t cid) const {
+  RawFunction** FunctionAddr(intptr_t cid, bool sticky) const {
     return reinterpret_cast<RawFunction**>(
-        FieldAddrAtOffset(function_offset(cid)));
+        FieldAddrAtOffset(function_offset(cid, sticky)));
   }
 
-  RawFunction* function(intptr_t cid) const { return *FunctionAddr(cid); }
+  RawFunction* function(intptr_t cid, bool sticky) const {
+    return *FunctionAddr(cid, sticky);
+  }
 
   void set_pattern(const String& pattern) const;
-  void set_function(intptr_t cid, const Function& value) const;
-  void set_bytecode(bool is_one_byte, const TypedData& bytecode) const;
+  void set_function(intptr_t cid, bool sticky, const Function& value) const;
+  void set_bytecode(bool is_one_byte,
+                    bool sticky,
+                    const TypedData& bytecode) const;
 
   void set_num_bracket_expressions(intptr_t value) const;
   void set_is_global() const { set_flags(flags() | kGlobal); }

@@ -25,6 +25,7 @@ import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/util/fast_uri.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 
 /**
  * [FileContentOverlay] is used to temporary override content of files.
@@ -90,7 +91,8 @@ class FileState {
   List<FileState> _importedFiles;
   List<FileState> _exportedFiles;
   List<FileState> _partedFiles;
-  List<FileState> _dependencies;
+  Set<FileState> _directReferencedFiles = new Set<FileState>();
+  Set<FileState> _transitiveFiles;
 
   FileState._(this._fsState, this.path, this.uri, this.source);
 
@@ -110,9 +112,10 @@ class FileState {
   String get contentHash => _contentHash;
 
   /**
-   * Return the list of all direct dependencies.
+   * Return the set of all directly referenced files - imported, exported or
+   * parted.
    */
-  List<FileState> get dependencies => _dependencies;
+  Set<FileState> get directReferencedFiles => _directReferencedFiles;
 
   /**
    * The list of files this file exports.
@@ -155,6 +158,25 @@ class FileState {
    * The list of files this library file references as parts.
    */
   List<FileState> get partedFiles => _partedFiles;
+
+  /**
+   * Return the set of transitive files - the file itself and all of the
+   * directly or indirectly referenced files.
+   */
+  Set<FileState> get transitiveFiles {
+    if (_transitiveFiles == null) {
+      _transitiveFiles = new Set<FileState>();
+
+      void appendReferenced(FileState file) {
+        if (_transitiveFiles.add(file)) {
+          file._directReferencedFiles.forEach(appendReferenced);
+        }
+      }
+
+      appendReferenced(this);
+    }
+    return _transitiveFiles;
+  }
 
   /**
    * The [UnlinkedUnit] of the file.
@@ -289,12 +311,25 @@ class FileState {
       }
     }
 
-    // Compute direct dependencies.
-    _dependencies = (new Set<FileState>()
-          ..addAll(_importedFiles)
-          ..addAll(_exportedFiles)
-          ..addAll(_partedFiles))
-        .toList();
+    // Compute referenced files.
+    Set<FileState> oldDirectReferencedFiles = _directReferencedFiles;
+    _directReferencedFiles = new Set<FileState>()
+      ..addAll(_importedFiles)
+      ..addAll(_exportedFiles)
+      ..addAll(_partedFiles);
+
+    // If the set of directly referenced files of this file is changed,
+    // then the transitive sets of files that include this file are also
+    // changed. Reset these transitive sets.
+    if (_directReferencedFiles.length != oldDirectReferencedFiles.length ||
+        !_directReferencedFiles.containsAll(oldDirectReferencedFiles)) {
+      for (FileState file in _fsState._uriToFile.values) {
+        if (file._transitiveFiles != null &&
+            file._transitiveFiles.contains(this)) {
+          file._transitiveFiles = null;
+        }
+      }
+    }
 
     // Return whether the API signature changed.
     return apiSignatureChanged;
@@ -368,6 +403,8 @@ class FileSystemState {
    */
   final Map<FileState, List<FileState>> _partToLibraries = {};
 
+  FileSystemStateTestView _testView;
+
   FileSystemState(
       this._logger,
       this._byteStore,
@@ -375,12 +412,17 @@ class FileSystemState {
       this._resourceProvider,
       this._sourceFactory,
       this._analysisOptions,
-      this._salt);
+      this._salt) {
+    _testView = new FileSystemStateTestView(this);
+  }
 
   /**
    * Return the set of known files.
    */
   Set<String> get knownFiles => _pathToFiles.keys.toSet();
+
+  @visibleForTesting
+  FileSystemStateTestView get test => _testView;
 
   /**
    * Return the canonical [FileState] for the given absolute [path]. The
@@ -451,5 +493,18 @@ class FileSystemState {
     return allFiles
       ..remove(canonicalFile)
       ..insert(0, canonicalFile);
+  }
+}
+
+@visibleForTesting
+class FileSystemStateTestView {
+  final FileSystemState state;
+
+  FileSystemStateTestView(this.state);
+
+  Set<FileState> get filesWithoutTransitive {
+    return state._uriToFile.values
+        .where((f) => f._transitiveFiles == null)
+        .toSet();
   }
 }

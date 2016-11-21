@@ -288,8 +288,9 @@ Dart_Handle TestCase::TriggerReload() {
     TransitionNativeToVM transition(Thread::Current());
     success = isolate->ReloadSources(&js,
                                      false,  // force_reload
+                                     NULL, NULL,
                                      true);  // dont_delete_reload_context
-    fprintf(stderr, "RELOAD REPORT:\n%s\n", js.ToCString());
+    OS::PrintErr("RELOAD REPORT:\n%s\n", js.ToCString());
   }
 
   if (success) {

@@ -64,7 +64,7 @@ vars = {
   "glob_tag": "@1.1.3",
   "html_tag" : "@0.13.1",
   "http_multi_server_tag" : "@2.0.2",
-  "http_parser_tag" : "@3.0.2",
+  "http_parser_tag" : "@3.0.3",
   "http_tag" : "@0.11.3+9",
   "http_throttle_rev" : "@284344cd357e435c6c8ff9a4a21f02b9e384a541",
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",

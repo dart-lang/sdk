@@ -51,9 +51,8 @@ void main() {
     expect(decode('{"foo":"bar"}'), equals({'foo': 'bar'}));
     expect(decode('{"foo":"bar",}'), equals({'foo': 'bar'}));
     expect(
-        decode(
-            '{"foo":true, "bar": false, "baz": true, '
-                '"boz": \nnull\n,"qux": false,}'),
+        decode('{"foo":true, "bar": false, "baz": true, '
+            '"boz": \nnull\n,"qux": false,}'),
         equals({
           'foo': true,
           'bar': false,

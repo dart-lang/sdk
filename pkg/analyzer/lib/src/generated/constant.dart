@@ -97,7 +97,6 @@ export 'package:analyzer/src/dart/constant/value.dart';
 /// In addition, this class defines several values that can be returned to
 /// indicate various conditions encountered during evaluation. These are
 /// documented with the static fields that define those values.
-@deprecated
 class ConstantEvaluator {
   /**
    * The source containing the expression(s) that will be evaluated.

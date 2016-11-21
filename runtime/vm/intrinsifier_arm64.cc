@@ -2284,7 +2284,8 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
+                                                bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
@@ -2303,7 +2304,8 @@ void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   __ LoadClassId(R1, R1);
   __ AddImmediate(R1, R1, -kOneByteStringCid);
   __ add(R1, R2, Operand(R1, LSL, kWordSizeLog2));
-  __ ldr(R0, FieldAddress(R1, RegExp::function_offset(kOneByteStringCid)));
+  __ ldr(R0,
+         FieldAddress(R1, RegExp::function_offset(kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.

@@ -56,6 +56,8 @@ class Intrinsifier : public AllStatic {
   GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)
 
 #undef DECLARE_FUNCTION
+
+  static void IntrinsifyRegExpExecuteMatch(Assembler* assembler, bool sticky);
 #endif
 };
 

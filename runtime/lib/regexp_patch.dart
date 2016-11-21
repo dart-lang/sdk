@@ -160,11 +160,8 @@ class _RegExp implements RegExp {
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
-    // Inefficient check that searches for a later match too.
-    // Change this when possible.
-    List<int> list = _ExecuteMatch(string, start);
+    List<int> list = _ExecuteMatchSticky(string, start);
     if (list == null) return null;
-    if (list[0] != start) return null;
     return new _RegExpMatch(this, string, list);
   }
 
@@ -238,6 +235,9 @@ class _RegExp implements RegExp {
 
   List _ExecuteMatch(String str, int start_index)
       native "RegExp_ExecuteMatch";
+
+  List _ExecuteMatchSticky(String str, int start_index)
+      native "RegExp_ExecuteMatchSticky";
 }
 
 class _AllMatchesIterable extends IterableBase<Match> {

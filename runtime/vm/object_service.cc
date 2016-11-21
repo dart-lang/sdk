@@ -1512,21 +1512,35 @@ void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("isCaseSensitive", !is_ignore_case());
   jsobj.AddProperty("isMultiLine", is_multi_line());
 
-  Function& func = Function::Handle();
-  func = function(kOneByteStringCid);
-  jsobj.AddProperty("_oneByteFunction", func);
-  func = function(kTwoByteStringCid);
-  jsobj.AddProperty("_twoByteFunction", func);
-  func = function(kExternalOneByteStringCid);
-  jsobj.AddProperty("_externalOneByteFunction", func);
-  func = function(kExternalTwoByteStringCid);
-  jsobj.AddProperty("_externalTwoByteFunction", func);
-
-  TypedData& bc = TypedData::Handle();
-  bc = bytecode(true);
-  jsobj.AddProperty("_oneByteBytecode", bc);
-  bc = bytecode(false);
-  jsobj.AddProperty("_twoByteBytecode", bc);
+  if (!FLAG_interpret_irregexp) {
+    Function& func = Function::Handle();
+    func = function(kOneByteStringCid, /*sticky=*/false);
+    jsobj.AddProperty("_oneByteFunction", func);
+    func = function(kTwoByteStringCid, /*sticky=*/false);
+    jsobj.AddProperty("_twoByteFunction", func);
+    func = function(kExternalOneByteStringCid, /*sticky=*/false);
+    jsobj.AddProperty("_externalOneByteFunction", func);
+    func = function(kExternalTwoByteStringCid, /*sticky=*/false);
+    jsobj.AddProperty("_externalTwoByteFunction", func);
+    func = function(kOneByteStringCid, /*sticky=*/true);
+    jsobj.AddProperty("_oneByteFunctionSticky", func);
+    func = function(kTwoByteStringCid, /*sticky=*/true);
+    jsobj.AddProperty("_twoByteFunctionSticky", func);
+    func = function(kExternalOneByteStringCid, /*sticky=*/true);
+    jsobj.AddProperty("_externalOneByteFunctionSticky", func);
+    func = function(kExternalTwoByteStringCid, /*sticky=*/true);
+    jsobj.AddProperty("_externalTwoByteFunctionSticky", func);
+  } else {
+    TypedData& bc = TypedData::Handle();
+    bc = bytecode(/*is_one_byte=*/true, /*sticky=*/false);
+    jsobj.AddProperty("_oneByteBytecode", bc);
+    bc = bytecode(/*is_one_byte=*/false, /*sticky=*/false);
+    jsobj.AddProperty("_twoByteBytecode", bc);
+    bc = bytecode(/*is_one_byte=*/true, /*sticky=*/true);
+    jsobj.AddProperty("_oneByteBytecodeSticky", bc);
+    bc = bytecode(/*is_one_byte=*/false, /*sticky=*/true);
+    jsobj.AddProperty("_twoByteBytecodeSticky", bc);
+  }
 }
 
 

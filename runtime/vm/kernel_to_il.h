@@ -753,17 +753,19 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment CreateArray();
   Fragment Goto(JoinEntryInstr* destination);
   Fragment IntConstant(int64_t value);
-  Fragment InstanceCall(const dart::String& name,
+  Fragment InstanceCall(TokenPosition position,
+                        const dart::String& name,
                         Token::Kind kind,
                         intptr_t argument_count,
                         intptr_t num_args_checked = 1);
-  Fragment InstanceCall(const dart::String& name,
+  Fragment InstanceCall(TokenPosition position,
+                        const dart::String& name,
                         Token::Kind kind,
                         intptr_t argument_count,
                         const Array& argument_names,
                         intptr_t num_args_checked = 1);
   Fragment ClosureCall(int argument_count, const Array& argument_names);
-  Fragment ThrowException();
+  Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(int catch_try_index);
   Fragment LoadClassId();
   Fragment LoadField(const dart::Field& field);
@@ -780,8 +782,11 @@ class FlowGraphBuilder : public TreeVisitor {
   Fragment NativeCall(const dart::String* name, const Function* function);
   Fragment PushArgument();
   Fragment Return();
-  Fragment StaticCall(const Function& target, intptr_t argument_count);
-  Fragment StaticCall(const Function& target,
+  Fragment StaticCall(TokenPosition position,
+                      const Function& target,
+                      intptr_t argument_count);
+  Fragment StaticCall(TokenPosition position,
+                      const Function& target,
                       intptr_t argument_count,
                       const Array& argument_names);
   Fragment StoreIndexed(intptr_t class_id);

@@ -9,24 +9,18 @@ library dart2js.kernel.closed_world_test;
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
-import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/enqueue.dart';
 import 'package:compiler/src/js_backend/backend.dart';
 import 'package:compiler/src/js_backend/type_variable_handler.dart';
-import 'package:compiler/src/resolution/registry.dart';
-import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
-import 'package:compiler/src/universe/call_structure.dart';
-import 'package:compiler/src/universe/feature.dart';
+import 'package:compiler/src/universe/world_builder.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'package:compiler/src/world.dart';
-import 'package:expect/expect.dart';
 import 'impact_test.dart';
 import '../memory_compiler.dart';
 import '../serialization/helper.dart';
@@ -34,8 +28,27 @@ import '../serialization/model_test_helper.dart';
 
 const SOURCE = const {
   'main.dart': '''
-main() {
-  print('Hello World!');
+abstract class A {
+  // redirecting factory in abstract class to other class
+  factory A.a() = D.a;
+  // redirecting factory in abstract class to factory in abstract class
+  factory A.b() = B.a;
+}
+abstract class B implements A {
+  factory B.a() => null;
+}
+class C implements B {
+  // redirecting factory in concrete to other class
+  factory C.a() = D.a;
+}
+class D implements C {
+  D.a();
+}
+main(args) {
+  new A.a();
+  new A.b();
+  new C.a();
+  print(new List<String>()..add('Hello World!'));
 }
 '''
 };
@@ -62,6 +75,9 @@ main(List<String> args) {
           Flags.useKernel,
           Flags.enableAssertMessage
         ]);
+    ResolutionWorldBuilderImpl worldBuilder =
+        compiler.enqueuer.resolution.universe;
+    worldBuilder.useInstantiationMap = true;
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
     compiler.openWorld.closeWorld(compiler.reporter);
@@ -78,14 +94,20 @@ main(List<String> args) {
         compiler.globalDependencies,
         backend,
         compiler.commonElements,
-        compiler.cacheStrategy);
+        compiler.cacheStrategy,
+        'enqueuer from kernel');
     // TODO(johnniwinther): Store backend info separately. This replacement is
     // made to reset a field in [TypeVariableHandler] that prevents it from
     // enqueuing twice.
     backend.typeVariableHandler = new TypeVariableHandler(compiler);
 
     backend.enqueueHelpers(enqueuer);
-    enqueuer.addToWorkList(compiler.mainFunction);
+    enqueuer.applyImpact(
+        compiler.impactStrategy,
+        enqueuer.nativeEnqueuer
+            .processNativeClasses(compiler.libraryLoader.libraries));
+    enqueuer.applyImpact(compiler.impactStrategy,
+        backend.computeMainImpact(enqueuer, compiler.mainFunction));
     enqueuer.forEach((work) {
       AstElement element = work.element;
       ResolutionImpact resolutionImpact = build(compiler, element.resolvedAst);
@@ -104,6 +126,15 @@ main(List<String> args) {
     }, elementFilter: (Element element) {
       if (element is ConstructorElement && element.isRedirectingFactory) {
         // Redirecting factory constructors are skipped in kernel.
+        return false;
+      }
+      if (element is ClassElement) {
+        for (ConstructorElement constructor in element.constructors) {
+          if (!constructor.isRedirectingFactory) {
+            return true;
+          }
+        }
+        // The class cannot itself be instantiated.
         return false;
       }
       return true;

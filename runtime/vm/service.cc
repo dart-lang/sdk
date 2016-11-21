@@ -552,6 +552,15 @@ class IdParameter : public MethodParameter {
 };
 
 
+class StringParameter : public MethodParameter {
+ public:
+  StringParameter(const char* name, bool required)
+      : MethodParameter(name, required) {}
+
+  virtual bool Validate(const char* value) const { return (value != NULL); }
+};
+
+
 class RunnableIsolateParameter : public MethodParameter {
  public:
   explicit RunnableIsolateParameter(const char* name)
@@ -2442,8 +2451,12 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
 
 
 static const MethodParameter* reload_sources_params[] = {
-    RUNNABLE_ISOLATE_PARAMETER, new BoolParameter("force", false),
-    new BoolParameter("pause", false), NULL,
+    RUNNABLE_ISOLATE_PARAMETER,
+    new BoolParameter("force", false),
+    new BoolParameter("pause", false),
+    new StringParameter("rootLibUri", false),
+    new StringParameter("packagesUri", false),
+    NULL,
 };
 
 
@@ -2479,7 +2492,8 @@ static bool ReloadSources(Thread* thread, JSONStream* js) {
   const bool force_reload =
       BoolParameter::Parse(js->LookupParam("force"), false);
 
-  isolate->ReloadSources(js, force_reload);
+  isolate->ReloadSources(js, force_reload, js->LookupParam("rootLibUri"),
+                         js->LookupParam("packagesUri"));
 
   Service::CheckForPause(isolate, js);
 

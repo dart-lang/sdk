@@ -29,6 +29,7 @@ import 'loop_handler.dart';
 import 'nodes.dart';
 import 'ssa_branch_builder.dart';
 import 'type_builder.dart';
+import 'types.dart' show TypeMaskFactory;
 
 class SsaKernelBuilderTask extends CompilerTask {
   final JavaScriptBackend backend;
@@ -56,6 +57,14 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
   final AstElement targetElement;
   final ResolvedAst resolvedAst;
   final CodegenRegistry registry;
+
+  /// A stack of [DartType]s that have been seen during inlining of factory
+  /// constructors.  These types are preserved in [HInvokeStatic]s and
+  /// [HCreate]s inside the inline code and registered during code generation
+  /// for these nodes.
+  // TODO(karlklose): consider removing this and keeping the (substituted) types
+  // of the type variables in an environment (like the [LocalsHandler]).
+  final List<DartType> currentImplicitInstantiations = <DartType>[];
 
   @override
   JavaScriptBackend get backend => compiler.backend;
@@ -318,6 +327,18 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     openFunction();
     procedure.function.body.accept(this);
     closeFunction();
+  }
+
+  void addImplicitInstantiation(DartType type) {
+    if (type != null) {
+      currentImplicitInstantiations.add(type);
+    }
+  }
+
+  void removeImplicitInstantiation(DartType type) {
+    if (type != null) {
+      currentImplicitInstantiations.removeLast();
+    }
   }
 
   void openFunction() {
@@ -715,7 +736,9 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
     stack.add(graph.addConstantNull(compiler));
   }
 
-  HInstruction setRtiIfNeeded(HInstruction object, ir.ListLiteral listLiteral) {
+  /// Set the runtime type information if necessary.
+  HInstruction setListRuntimeTypeInfoIfNeeded(
+      HInstruction object, ir.ListLiteral listLiteral) {
     InterfaceType type = localsHandler
         .substInContext(elements.getType(astAdapter.getNode(listLiteral)));
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
@@ -744,7 +767,8 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       }
       listInstruction = new HLiteralList(elements, backend.extendableArrayType);
       add(listInstruction);
-      listInstruction = setRtiIfNeeded(listInstruction, listLiteral);
+      listInstruction =
+          setListRuntimeTypeInfoIfNeeded(listInstruction, listLiteral);
     }
 
     TypeMask type = astAdapter.typeOfNewList(targetElement, listLiteral);
@@ -783,8 +807,52 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
       inputs.add(argList);
     }
 
-    // TODO(het): Add type information
-    _pushStaticInvocation(constructor, inputs, backend.dynamicType);
+    assert(constructor.kind == ir.ProcedureKind.Factory);
+
+    InterfaceType type = localsHandler
+        .substInContext(elements.getType(astAdapter.getNode(mapLiteral)));
+
+    ir.Class cls = constructor.enclosingClass;
+
+    if (backend.classNeedsRti(astAdapter.getElement(cls))) {
+      List<HInstruction> typeInputs = <HInstruction>[];
+      type.typeArguments.forEach((DartType argument) {
+        typeInputs
+            .add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
+      });
+
+      // We lift this common call pattern into a helper function to save space
+      // in the output.
+      if (typeInputs.every((HInstruction input) => input.isNull())) {
+        if (constructorArgs.isEmpty) {
+          constructor = astAdapter.mapLiteralUntypedEmptyMaker;
+        } else {
+          constructor = astAdapter.mapLiteralUntypedMaker;
+        }
+      } else {
+        inputs.addAll(typeInputs);
+      }
+    }
+
+    // If runtime type information is needed and the map literal has no type
+    // parameters, 'constructor' is a static function that forwards the call to
+    // the factory constructor without type parameters.
+    assert(constructor.kind == ir.ProcedureKind.Factory);
+
+    // The instruction type will always be a subtype of the mapLiteralClass, but
+    // type inference might discover a more specific type, or find nothing (in
+    // dart2js unit tests).
+    TypeMask mapType = new TypeMask.nonNullSubtype(
+        astAdapter.getElement(astAdapter.mapLiteralClass),
+        compiler.closedWorld);
+    TypeMask returnTypeMask = TypeMaskFactory.inferredReturnTypeForElement(
+        astAdapter.getElement(constructor), compiler);
+    TypeMask instructionType =
+        mapType.intersection(returnTypeMask, compiler.closedWorld);
+
+    addImplicitInstantiation(type);
+    _pushStaticInvocation(constructor, inputs, instructionType);
+    removeImplicitInstantiation(type);
   }
 
   @override
@@ -914,9 +982,13 @@ class KernelSsaBuilder extends ir.Visitor with GraphBuilder {
 
   void _pushStaticInvocation(
       ir.Node target, List<HInstruction> arguments, TypeMask typeMask) {
-    HInstruction instruction = new HInvokeStatic(
+    HInvokeStatic instruction = new HInvokeStatic(
         astAdapter.getMember(target), arguments, typeMask,
         targetCanThrow: astAdapter.getCanThrow(target));
+    if (currentImplicitInstantiations.isNotEmpty) {
+      instruction.instantiatedTypes =
+          new List<DartType>.from(currentImplicitInstantiations);
+    }
     instruction.sideEffects = astAdapter.getSideEffects(target);
 
     push(instruction);

@@ -5696,21 +5696,36 @@ RawRegExp* Function::regexp() const {
 }
 
 
+class StickySpecialization : public BitField<intptr_t, bool, 0, 1> {};
+class StringSpecializationCid
+    : public BitField<intptr_t, intptr_t, 1, RawObject::kClassIdTagSize> {};
+
+
 intptr_t Function::string_specialization_cid() const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
   const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
-  return Smi::Value(Smi::RawCast(pair.At(1)));
+  return StringSpecializationCid::decode(Smi::Value(Smi::RawCast(pair.At(1))));
+}
+
+
+bool Function::is_sticky_specialization() const {
+  ASSERT(kind() == RawFunction::kIrregexpFunction);
+  const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
+  return StickySpecialization::decode(Smi::Value(Smi::RawCast(pair.At(1))));
 }
 
 
 void Function::SetRegExpData(const RegExp& regexp,
-                             intptr_t string_specialization_cid) const {
+                             intptr_t string_specialization_cid,
+                             bool sticky) const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
   ASSERT(RawObject::IsStringClassId(string_specialization_cid));
   ASSERT(raw_ptr()->data_ == Object::null());
   const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
   pair.SetAt(0, regexp);
-  pair.SetAt(1, Smi::Handle(Smi::New(string_specialization_cid)));
+  pair.SetAt(1, Smi::Handle(Smi::New(StickySpecialization::encode(sticky) |
+                                     StringSpecializationCid::encode(
+                                         string_specialization_cid))));
   set_data(pair);
 }
 
@@ -8767,6 +8782,8 @@ const char* Script::GetKindAsCString() const {
       return "patch";
     case RawScript::kEvaluateTag:
       return "evaluate";
+    case RawScript::kKernelTag:
+      return "kernel";
     default:
       UNIMPLEMENTED();
   }
@@ -8787,6 +8804,10 @@ void Script::set_resolved_url(const String& value) const {
 
 void Script::set_source(const String& value) const {
   StorePointer(&raw_ptr()->source_, value.raw());
+}
+
+void Script::set_line_starts(const Array& value) const {
+  StorePointer(&raw_ptr()->line_starts_, value.raw());
 }
 
 
@@ -8839,9 +8860,49 @@ void Script::GetTokenLocation(TokenPosition token_pos,
                               intptr_t* token_len) const {
   ASSERT(line != NULL);
   Zone* zone = Thread::Current()->zone();
+
+  if (kind() == RawScript::kKernelTag) {
+    const Array& line_starts_array = Array::Handle(line_starts());
+    if (line_starts_array.IsNull()) {
+      // Scripts in the AOT snapshot do not have a line starts array.
+      *line = -1;
+      if (column != NULL) {
+        *column = -1;
+      }
+      if (token_len != NULL) {
+        *token_len = 1;
+      }
+      return;
+    }
+    ASSERT(line_starts_array.Length() > 0);
+    intptr_t offset = token_pos.value();
+    int min = 0;
+    int max = line_starts_array.Length() - 1;
+
+    // Binary search to find the line containing this offset.
+    Smi& smi = Smi::Handle();
+    while (min < max) {
+      int midpoint = (max - min + 1) / 2 + min;
+
+      smi ^= line_starts_array.At(midpoint);
+      if (smi.Value() > offset) {
+        max = midpoint - 1;
+      } else {
+        min = midpoint;
+      }
+    }
+    *line = min + 1;
+    smi ^= line_starts_array.At(min);
+    *column = offset - smi.Value() + 1;
+    if (token_len != NULL) {
+      *token_len = 1;
+    }
+    return;
+  }
+
   const TokenStream& tkns = TokenStream::Handle(zone, tokens());
   if (tkns.IsNull()) {
-    ASSERT(Dart::snapshot_kind() == Snapshot::kAppNoJIT);
+    ASSERT((Dart::snapshot_kind() == Snapshot::kAppNoJIT));
     *line = -1;
     if (column != NULL) {
       *column = -1;
@@ -22296,7 +22357,7 @@ static intptr_t PrintOneStacktrace(Zone* zone,
   intptr_t line = -1;
   intptr_t column = -1;
   if (!script.IsNull() && token_pos.IsReal()) {
-    if (script.HasSource()) {
+    if (script.HasSource() || script.kind() == RawScript::kKernelTag) {
       script.GetTokenLocation(token_pos, &line, &column);
     } else {
       script.GetTokenLocation(token_pos, &line, NULL);
@@ -22394,16 +22455,28 @@ void RegExp::set_pattern(const String& pattern) const {
 }
 
 
-void RegExp::set_function(intptr_t cid, const Function& value) const {
-  StorePointer(FunctionAddr(cid), value.raw());
+void RegExp::set_function(intptr_t cid,
+                          bool sticky,
+                          const Function& value) const {
+  StorePointer(FunctionAddr(cid, sticky), value.raw());
 }
 
 
-void RegExp::set_bytecode(bool is_one_byte, const TypedData& bytecode) const {
-  if (is_one_byte) {
-    StorePointer(&raw_ptr()->one_byte_bytecode_, bytecode.raw());
+void RegExp::set_bytecode(bool is_one_byte,
+                          bool sticky,
+                          const TypedData& bytecode) const {
+  if (sticky) {
+    if (is_one_byte) {
+      StorePointer(&raw_ptr()->one_byte_sticky_.bytecode_, bytecode.raw());
+    } else {
+      StorePointer(&raw_ptr()->two_byte_sticky_.bytecode_, bytecode.raw());
+    }
   } else {
-    StorePointer(&raw_ptr()->two_byte_bytecode_, bytecode.raw());
+    if (is_one_byte) {
+      StorePointer(&raw_ptr()->one_byte_.bytecode_, bytecode.raw());
+    } else {
+      StorePointer(&raw_ptr()->two_byte_.bytecode_, bytecode.raw());
+    }
   }
 }
 

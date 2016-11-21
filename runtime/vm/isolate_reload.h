@@ -136,7 +136,9 @@ class IsolateReloadContext {
   explicit IsolateReloadContext(Isolate* isolate, JSONStream* js);
   ~IsolateReloadContext();
 
-  void Reload(bool force_reload);
+  void Reload(bool force_reload,
+              const char* root_script_url = NULL,
+              const char* packages_url = NULL);
 
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
@@ -254,6 +256,8 @@ class IsolateReloadContext {
 
   void PostCommit();
 
+  void RehashConstants();
+
   void ClearReplacedObjectBits();
 
   // atomic_install:
@@ -309,6 +313,9 @@ class IsolateReloadContext {
   RawClass* OldClassOrNull(const Class& replacement_or_new);
 
   RawLibrary* OldLibraryOrNull(const Library& replacement_or_new);
+
+  RawLibrary* OldLibraryOrNullBaseMoved(const Library& replacement_or_new);
+
   void BuildLibraryMapping();
 
   void AddClassMapping(const Class& replacement_or_new, const Class& original);
@@ -326,8 +333,8 @@ class IsolateReloadContext {
   RawClass* MappedClass(const Class& replacement_or_new);
   RawLibrary* MappedLibrary(const Library& replacement_or_new);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&script_uri_); }
-  RawString* script_uri_;
+  RawObject** from() { return reinterpret_cast<RawObject**>(&script_url_); }
+  RawString* script_url_;
   RawError* error_;
   RawArray* old_classes_set_storage_;
   RawArray* class_map_storage_;
@@ -337,7 +344,11 @@ class IsolateReloadContext {
   RawGrowableObjectArray* become_enum_mappings_;
   RawLibrary* saved_root_library_;
   RawGrowableObjectArray* saved_libraries_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&saved_libraries_); }
+  RawString* root_url_prefix_;
+  RawString* old_root_url_prefix_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&old_root_url_prefix_);
+  }
 
   friend class Isolate;
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.

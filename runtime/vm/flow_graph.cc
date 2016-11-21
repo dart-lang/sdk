@@ -428,7 +428,7 @@ bool FlowGraph::IsReceiver(Definition* def) const {
 
 
 // Use CHA to determine if the call needs a class check: if the callee's
-// receiver is the same as the caller's receiver and there are no overriden
+// receiver is the same as the caller's receiver and there are no overridden
 // callee functions, then no class check is needed.
 bool FlowGraph::InstanceCallNeedsClassCheck(InstanceCallInstr* call,
                                             RawFunction::Kind kind) const {

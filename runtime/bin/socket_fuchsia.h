@@ -9,4 +9,8 @@
 #error Do not include socket_fuchsia.h directly. Use socket.h.
 #endif
 
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sys/socket.h>
+
 #endif  // RUNTIME_BIN_SOCKET_FUCHSIA_H_

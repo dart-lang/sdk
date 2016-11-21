@@ -263,11 +263,20 @@ class KernelAstAdapter {
   JumpTarget getTargetDefinition(ir.Node node) =>
       elements.getTargetDefinition(getNode(node));
 
+  ir.Class get mapLiteralClass =>
+      kernel.classes[_backend.helpers.mapLiteralClass];
+
   ir.Procedure get mapLiteralConstructor =>
       kernel.functions[_backend.helpers.mapLiteralConstructor];
 
   ir.Procedure get mapLiteralConstructorEmpty =>
       kernel.functions[_backend.helpers.mapLiteralConstructorEmpty];
+
+  ir.Procedure get mapLiteralUntypedEmptyMaker =>
+      kernel.functions[_backend.helpers.mapLiteralUntypedEmptyMaker];
+
+  ir.Procedure get mapLiteralUntypedMaker =>
+      kernel.functions[_backend.helpers.mapLiteralUntypedMaker];
 
   MemberElement get jsIndexableLength => _backend.helpers.jsIndexableLength;
 

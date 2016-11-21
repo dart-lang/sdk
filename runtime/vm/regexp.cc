@@ -4824,6 +4824,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
 
   const Function& function = parsed_function->function();
   const intptr_t specialization_cid = function.string_specialization_cid();
+  const intptr_t is_sticky = function.is_sticky_specialization();
   const bool is_one_byte = (specialization_cid == kOneByteStringCid ||
                             specialization_cid == kExternalOneByteStringCid);
   RegExp& regexp = RegExp::Handle(zone, function.regexp());
@@ -4851,12 +4852,12 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
       RegExpCapture::ToNode(data->tree, 0, &compiler, compiler.accept());
 
   RegExpNode* node = captured_body;
-  bool is_end_anchored = data->tree->IsAnchoredAtEnd();
-  bool is_start_anchored = data->tree->IsAnchoredAtStart();
+  const bool is_end_anchored = data->tree->IsAnchoredAtEnd();
+  const bool is_start_anchored = data->tree->IsAnchoredAtStart();
   intptr_t max_length = data->tree->max_match();
-  if (!is_start_anchored) {
+  if (!is_start_anchored && !is_sticky) {
     // Add a .*? at the beginning, outside the body capture, unless
-    // this expression is anchored at the beginning.
+    // this expression is anchored at the beginning or is sticky.
     RegExpNode* loop_node = RegExpQuantifier::ToNode(
         0, RegExpTree::kInfinity, false, new (zone) RegExpCharacterClass('*'),
         &compiler, captured_body, data->contains_anchor);
@@ -4900,7 +4901,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
   // Inserted here, instead of in Assembler, because it depends on information
   // in the AST that isn't replicated in the Node structure.
   static const intptr_t kMaxBacksearchLimit = 1024;
-  if (is_end_anchored && !is_start_anchored &&
+  if (is_end_anchored && !is_start_anchored && !is_sticky &&
       max_length < kMaxBacksearchLimit) {
     macro_assembler->SetCurrentPositionFromEnd(max_length);
   }
@@ -4927,6 +4928,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
     RegExpCompileData* data,
     const RegExp& regexp,
     bool is_one_byte,
+    bool is_sticky,
     Zone* zone) {
   ASSERT(FLAG_interpret_irregexp);
   const String& pattern = String::Handle(zone, regexp.pattern());
@@ -4956,7 +4958,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
   bool is_end_anchored = data->tree->IsAnchoredAtEnd();
   bool is_start_anchored = data->tree->IsAnchoredAtStart();
   intptr_t max_length = data->tree->max_match();
-  if (!is_start_anchored) {
+  if (!is_start_anchored && !is_sticky) {
     // Add a .*? at the beginning, outside the body capture, unless
     // this expression is anchored at the beginning.
     RegExpNode* loop_node = RegExpQuantifier::ToNode(
@@ -5002,7 +5004,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
   // Inserted here, instead of in Assembler, because it depends on information
   // in the AST that isn't replicated in the Node structure.
   static const intptr_t kMaxBacksearchLimit = 1024;
-  if (is_end_anchored && !is_start_anchored &&
+  if (is_end_anchored && !is_start_anchored && !is_sticky &&
       max_length < kMaxBacksearchLimit) {
     macro_assembler->SetCurrentPositionFromEnd(max_length);
   }
@@ -5029,6 +5031,7 @@ static void CreateSpecializedFunction(Thread* thread,
                                       Zone* zone,
                                       const RegExp& regexp,
                                       intptr_t specialization_cid,
+                                      bool sticky,
                                       const Object& owner) {
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
 
@@ -5063,9 +5066,9 @@ static void CreateSpecializedFunction(Thread* thread,
   fn.set_result_type(Type::Handle(zone, Type::ArrayType()));
 
   // Cache the result.
-  regexp.set_function(specialization_cid, fn);
+  regexp.set_function(specialization_cid, sticky, fn);
 
-  fn.SetRegExpData(regexp, specialization_cid);
+  fn.SetRegExpData(regexp, specialization_cid, sticky);
   fn.set_is_debuggable(false);
 
   // The function is compiled lazily during the first call.
@@ -5098,12 +5101,13 @@ RawRegExp* RegExpEngine::CreateRegExp(Thread* thread,
     const Class& owner =
         Class::Handle(zone, lib.LookupClass(Symbols::RegExp()));
 
-    CreateSpecializedFunction(thread, zone, regexp, kOneByteStringCid, owner);
-    CreateSpecializedFunction(thread, zone, regexp, kTwoByteStringCid, owner);
-    CreateSpecializedFunction(thread, zone, regexp, kExternalOneByteStringCid,
-                              owner);
-    CreateSpecializedFunction(thread, zone, regexp, kExternalTwoByteStringCid,
-                              owner);
+    for (intptr_t cid = kOneByteStringCid; cid <= kExternalTwoByteStringCid;
+         cid++) {
+      CreateSpecializedFunction(thread, zone, regexp, cid, /*sticky=*/false,
+                                owner);
+      CreateSpecializedFunction(thread, zone, regexp, cid, /*sticky=*/true,
+                                owner);
+    }
   }
 
   return regexp.raw();

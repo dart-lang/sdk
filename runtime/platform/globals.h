@@ -142,6 +142,10 @@
 #error DART_PRECOMPILED_RUNTIME and DART_PRECOMPILER are mutually exclusive
 #endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_PRECOMPILER)
 
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
+#error DART_PRECOMPILED_RUNTIME and DART_NOSNAPSHOT are mutually exclusive
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && defined(DART_NOSNAPSHOT)
+
 #if defined(DART_PRECOMPILED_RUNTIME)
 #define NOT_IN_PRECOMPILED(code)
 #else

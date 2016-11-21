@@ -326,12 +326,12 @@ class HintCode extends ErrorCode {
    * that do not invoke the overridden super method.
    *
    * Parameters:
-   * 0: the name of the class declaring the overriden method
+   * 0: the name of the class declaring the overridden method
    */
   static const HintCode MUST_CALL_SUPER = const HintCode(
       'MUST_CALL_SUPER',
-      "This method overrides a method annotated as @mustCall super in '{0}', "
-      "but does invoke the overriden method.");
+      "This method overrides a method annotated as @mustCallSuper in '{0}', "
+      "but does invoke the overridden method.");
 
   /**
    * A condition in a control flow statement could evaluate to `null` because it

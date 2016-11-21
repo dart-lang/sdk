@@ -2336,7 +2336,7 @@ abstract class ConstVariableElement
    * If this element is resynthesized from the summary, return the unlinked
    * initializer, otherwise return `null`.
    */
-  UnlinkedConst get _unlinkedConst;
+  UnlinkedExpr get _unlinkedConst;
 
   /**
    * Return a representation of the value of this variable, forcing the value
@@ -3129,7 +3129,7 @@ abstract class ElementImpl implements Element {
    * Return annotations for the given [unlinkedConsts] in the [unit].
    */
   List<ElementAnnotation> _buildAnnotations(
-      CompilationUnitElementImpl unit, List<UnlinkedConst> unlinkedConsts) {
+      CompilationUnitElementImpl unit, List<UnlinkedExpr> unlinkedConsts) {
     int length = unlinkedConsts.length;
     if (length != 0) {
       List<ElementAnnotation> annotations = new List<ElementAnnotation>(length);
@@ -3143,7 +3143,7 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  static int _findElementIndexUsingIdentical(List items, Object item) {
+  static int findElementIndexUsingIdentical(List items, Object item) {
     int length = items.length;
     for (int i = 0; i < length; i++) {
       if (identical(items[i], item)) {
@@ -4387,8 +4387,8 @@ class FunctionElementImpl extends ExecutableElementImpl
     String identifier = super.identifier;
     Element enclosing = this.enclosingElement;
     if (enclosing is ExecutableElement) {
-      int id = ElementImpl._findElementIndexUsingIdentical(
-          enclosing.functions, this);
+      int id =
+          ElementImpl.findElementIndexUsingIdentical(enclosing.functions, this);
       identifier += "@$id";
     }
     return identifier;
@@ -6046,7 +6046,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
     String identifier = super.identifier;
     Element enclosing = this.enclosingElement;
     if (enclosing is ExecutableElement) {
-      int id = ElementImpl._findElementIndexUsingIdentical(
+      int id = ElementImpl.findElementIndexUsingIdentical(
           enclosing.localVariables, this);
       identifier += "@$id";
     }
@@ -6811,7 +6811,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   /**
    * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
    */
-  UnlinkedConst get _unlinkedConst => _unlinkedVariable?.initializer?.bodyExpr;
+  UnlinkedExpr get _unlinkedConst => _unlinkedVariable?.initializer?.bodyExpr;
 }
 
 /**
@@ -7178,7 +7178,7 @@ class ParameterElementImpl extends VariableElementImpl
   /**
    * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
    */
-  UnlinkedConst get _unlinkedConst => _unlinkedParam?.initializer?.bodyExpr;
+  UnlinkedExpr get _unlinkedConst => _unlinkedParam?.initializer?.bodyExpr;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
@@ -7760,14 +7760,14 @@ abstract class PropertyInducingElementImpl
  */
 abstract class ResynthesizerContext {
   /**
-   * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
+   * Build [ElementAnnotationImpl] for the given [UnlinkedExpr].
    */
-  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedConst uc);
+  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc);
 
   /**
-   * Build [Expression] for the given [UnlinkedConst].
+   * Build [Expression] for the given [UnlinkedExpr].
    */
-  Expression buildExpression(ElementImpl context, UnlinkedConst uc);
+  Expression buildExpression(ElementImpl context, UnlinkedExpr uc);
 
   /**
    * Build explicit top-level property accessors.

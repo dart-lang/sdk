@@ -22,6 +22,8 @@ import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/tree/nodes.dart';
 import 'package:compiler/src/universe/class_set.dart';
+import 'package:compiler/src/universe/world_builder.dart';
+import 'package:compiler/src/util/enumset.dart';
 import 'package:compiler/src/world.dart' show ClosedWorld;
 import '../memory_compiler.dart';
 import 'helper.dart';
@@ -108,15 +110,19 @@ void checkResolutionEnqueuers(
     {bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
     bool verbose: false}) {
-  Iterable<Element> processedElements1 = enqueuer1.processedElements;
-  Iterable<Element> processedElements2 = enqueuer2.processedElements;
-  if (elementFilter != null) {
-    processedElements1 = processedElements1.where(elementFilter);
-    processedElements2 = processedElements2.where(elementFilter);
-  }
-
-  checkSets(processedElements1, processedElements2,
+  checkSets(enqueuer1.processedElements, enqueuer2.processedElements,
       "Processed element mismatch", areElementsEquivalent,
+      elementFilter: elementFilter, verbose: verbose);
+
+  ResolutionWorldBuilderImpl worldBuilder1 = enqueuer1.universe;
+  ResolutionWorldBuilderImpl worldBuilder2 = enqueuer2.universe;
+
+  checkMaps(
+      worldBuilder1.getInstantiationMap(),
+      worldBuilder2.getInstantiationMap(),
+      "Instantiated classes mismatch",
+      areElementsEquivalent,
+      (a, b) => areInstantiationInfosEquivalent(a, b, typeEquivalence),
       verbose: verbose);
 
   checkSets(
@@ -418,4 +424,24 @@ void checkOutputUnits(
       outputUnit1.imports,
       outputUnit2.imports,
       (a, b) => areElementsEquivalent(a.declaration, b.declaration));
+}
+
+bool areInstantiationInfosEquivalent(InstantiationInfo info1,
+    InstantiationInfo info2, bool typeEquivalence(DartType a, DartType b)) {
+  checkMaps(
+      info1.instantiationMap,
+      info2.instantiationMap,
+      'instantiationMap of\n   '
+      '${info1.instantiationMap}\nvs ${info2.instantiationMap}',
+      areElementsEquivalent,
+      (a, b) => areSetsEquivalent(
+          a, b, (a, b) => areInstancesEquivalent(a, b, typeEquivalence)));
+  return true;
+}
+
+bool areInstancesEquivalent(Instance instance1, Instance instance2,
+    bool typeEquivalence(DartType a, DartType b)) {
+  return typeEquivalence(instance1.type, instance2.type) &&
+      instance1.kind == instance2.kind &&
+      instance1.isRedirection == instance2.isRedirection;
 }

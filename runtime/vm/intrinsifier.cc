@@ -1160,6 +1160,16 @@ bool Intrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
 
   return BuildInvokeMathCFunction(&builder, MethodRecognizer::kDoubleRound);
 }
+
+
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
+  IntrinsifyRegExpExecuteMatch(assembler, /*sticky=*/false);
+}
+
+
+void Intrinsifier::RegExp_ExecuteMatchSticky(Assembler* assembler) {
+  IntrinsifyRegExpExecuteMatch(assembler, /*sticky=*/true);
+}
 #endif  // !defined(TARGET_ARCH_DBC)
 
 

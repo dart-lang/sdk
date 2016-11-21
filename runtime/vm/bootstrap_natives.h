@@ -112,6 +112,7 @@ namespace dart {
   V(RegExp_getIsCaseSensitive, 1)                                              \
   V(RegExp_getGroupCount, 1)                                                   \
   V(RegExp_ExecuteMatch, 3)                                                    \
+  V(RegExp_ExecuteMatchSticky, 3)                                              \
   V(List_allocate, 2)                                                          \
   V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
