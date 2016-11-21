@@ -46,6 +46,10 @@ var tests = [
   // Stop at 'debugger' statement.
   hasStoppedAtBreakpoint,
   (Isolate mainIsolate) async {
+    for (var i = 0; i < Platform.script.pathSegments.length; i++) {
+      print('segment $i: "${Platform.script.pathSegments[i]}"');
+    }
+    print('Directory: $directory');
     // Grab the VM.
     VM vm = mainIsolate.vm;
     await vm.reloadIsolates();
