@@ -26,17 +26,17 @@ class StubEntry;
 
 // Instruction encoding bits.
 enum {
-  H   = 1 << 5,   // halfword (or byte)
-  L   = 1 << 20,  // load (or store)
-  S   = 1 << 20,  // set condition code (or leave unchanged)
-  W   = 1 << 21,  // writeback base register (or leave unchanged)
-  A   = 1 << 21,  // accumulate in multiply instruction (or not)
-  B   = 1 << 22,  // unsigned byte (or word)
-  D   = 1 << 22,  // high/lo bit of start of s/d register range
-  N   = 1 << 22,  // long (or short)
-  U   = 1 << 23,  // positive (or negative) offset/index
-  P   = 1 << 24,  // offset/pre-indexed addressing (or post-indexed addressing)
-  I   = 1 << 25,  // immediate shifter operand (or not)
+  H = 1 << 5,   // halfword (or byte)
+  L = 1 << 20,  // load (or store)
+  S = 1 << 20,  // set condition code (or leave unchanged)
+  W = 1 << 21,  // writeback base register (or leave unchanged)
+  A = 1 << 21,  // accumulate in multiply instruction (or not)
+  B = 1 << 22,  // unsigned byte (or word)
+  D = 1 << 22,  // high/lo bit of start of s/d register range
+  N = 1 << 22,  // long (or short)
+  U = 1 << 23,  // positive (or negative) offset/index
+  P = 1 << 24,  // offset/pre-indexed addressing (or post-indexed addressing)
+  I = 1 << 25,  // immediate shifter operand (or not)
 
   B0 = 1,
   B1 = 1 << 1,
@@ -68,7 +68,7 @@ enum {
 
 class Label : public ValueObject {
  public:
-  Label() : position_(0) { }
+  Label() : position_(0) {}
 
   ~Label() {
     // Assert if label is being destroyed with unresolved branches pending.
@@ -89,9 +89,7 @@ class Label : public ValueObject {
  private:
   intptr_t position_;
 
-  void Reinitialize() {
-    position_ = 0;
-  }
+  void Reinitialize() { position_ = 0; }
 
   void BindTo(intptr_t position) {
     ASSERT(!IsBound());
@@ -114,11 +112,11 @@ class Label : public ValueObject {
 class Operand : public ValueObject {
  public:
   // Data-processing operands - Uninitialized.
-  Operand() : type_(-1), encoding_(-1) { }
+  Operand() : type_(-1), encoding_(-1) {}
 
   // Data-processing operands - Copy constructor.
   Operand(const Operand& other)
-      : ValueObject(), type_(other.type_), encoding_(other.encoding_) { }
+      : ValueObject(), type_(other.type_), encoding_(other.encoding_) {}
 
   // Data-processing operands - Assignment operator.
   Operand& operator=(const Operand& other) {
@@ -173,7 +171,7 @@ class Operand : public ValueObject {
     }
     // Note that immediate must be unsigned for the test to work correctly.
     for (int rot = 0; rot < 16; rot++) {
-      uint32_t imm8 = (immediate << 2*rot) | (immediate >> (32 - 2*rot));
+      uint32_t imm8 = (immediate << 2 * rot) | (immediate >> (32 - 2 * rot));
       if (imm8 < (1 << kImmed8Bits)) {
         o->type_ = 1;
         o->encoding_ = (rot << kRotateShift) | (imm8 << kImmed8Shift);
@@ -221,14 +219,14 @@ enum OperandSize {
 // Load/store multiple addressing mode.
 enum BlockAddressMode {
   // bit encoding P U W
-  DA           = (0|0|0) << 21,  // decrement after
-  IA           = (0|4|0) << 21,  // increment after
-  DB           = (8|0|0) << 21,  // decrement before
-  IB           = (8|4|0) << 21,  // increment before
-  DA_W         = (0|0|1) << 21,  // decrement after with writeback to base
-  IA_W         = (0|4|1) << 21,  // increment after with writeback to base
-  DB_W         = (8|0|1) << 21,  // decrement before with writeback to base
-  IB_W         = (8|4|1) << 21   // increment before with writeback to base
+  DA = (0 | 0 | 0) << 21,    // decrement after
+  IA = (0 | 4 | 0) << 21,    // increment after
+  DB = (8 | 0 | 0) << 21,    // decrement before
+  IB = (8 | 4 | 0) << 21,    // increment before
+  DA_W = (0 | 0 | 1) << 21,  // decrement after with writeback to base
+  IA_W = (0 | 4 | 1) << 21,  // increment after with writeback to base
+  DB_W = (8 | 0 | 1) << 21,  // decrement before with writeback to base
+  IB_W = (8 | 4 | 1) << 21   // increment before with writeback to base
 };
 
 
@@ -242,19 +240,18 @@ class Address : public ValueObject {
 
   // Memory operand addressing mode
   enum Mode {
-    kModeMask    = (8|4|1) << 21,
+    kModeMask = (8 | 4 | 1) << 21,
     // bit encoding P U W
-    Offset       = (8|4|0) << 21,  // offset (w/o writeback to base)
-    PreIndex     = (8|4|1) << 21,  // pre-indexed addressing with writeback
-    PostIndex    = (0|4|0) << 21,  // post-indexed addressing with writeback
-    NegOffset    = (8|0|0) << 21,  // negative offset (w/o writeback to base)
-    NegPreIndex  = (8|0|1) << 21,  // negative pre-indexed with writeback
-    NegPostIndex = (0|0|0) << 21   // negative post-indexed with writeback
+    Offset = (8 | 4 | 0) << 21,       // offset (w/o writeback to base)
+    PreIndex = (8 | 4 | 1) << 21,     // pre-indexed addressing with writeback
+    PostIndex = (0 | 4 | 0) << 21,    // post-indexed addressing with writeback
+    NegOffset = (8 | 0 | 0) << 21,    // negative offset (w/o writeback to base)
+    NegPreIndex = (8 | 0 | 1) << 21,  // negative pre-indexed with writeback
+    NegPostIndex = (0 | 0 | 0) << 21  // negative post-indexed with writeback
   };
 
   Address(const Address& other)
-      : ValueObject(), encoding_(other.encoding_), kind_(other.kind_) {
-  }
+      : ValueObject(), encoding_(other.encoding_), kind_(other.kind_) {}
 
   Address& operator=(const Address& other) {
     encoding_ = other.encoding_;
@@ -281,8 +278,11 @@ class Address : public ValueObject {
   // shifted register case below should be used.
   Address(Register rn, Register r, Mode am);
 
-  Address(Register rn, Register rm,
-          Shift shift = LSL, uint32_t shift_imm = 0, Mode am = Offset) {
+  Address(Register rn,
+          Register rm,
+          Shift shift = LSL,
+          uint32_t shift_imm = 0,
+          Mode am = Offset) {
     Operand o(rm, shift, shift_imm);
 
     if ((shift == LSL) && (shift_imm == 0)) {
@@ -314,9 +314,9 @@ class Address : public ValueObject {
   }
 
   Register rm() const {
-    return ((kind() == IndexRegister) || (kind() == ScaledIndexRegister)) ?
-        Instr::At(reinterpret_cast<uword>(&encoding_))->RmField() :
-        kNoRegister;
+    return ((kind() == IndexRegister) || (kind() == ScaledIndexRegister))
+               ? Instr::At(reinterpret_cast<uword>(&encoding_))->RmField()
+               : kNoRegister;
   }
 
   Mode mode() const { return static_cast<Mode>(encoding() & kModeMask); }
@@ -347,12 +347,12 @@ class Address : public ValueObject {
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
-      : Address(base, disp - kHeapObjectTag) { }
+      : Address(base, disp - kHeapObjectTag) {}
 
   // This addressing mode does not exist.
   FieldAddress(Register base, Register r);
 
-  FieldAddress(const FieldAddress& other) : Address(other) { }
+  FieldAddress(const FieldAddress& other) : Address(other) {}
 
   FieldAddress& operator=(const FieldAddress& other) {
     Address::operator=(other);
@@ -366,13 +366,12 @@ class Assembler : public ValueObject {
   explicit Assembler(bool use_far_branches = false)
       : buffer_(),
         prologue_offset_(-1),
+        has_single_entry_point_(true),
         use_far_branches_(use_far_branches),
         comments_(),
-        constant_pool_allowed_(false) {
-    MonomorphicCheckedEntry();
-  }
+        constant_pool_allowed_(false) {}
 
-  ~Assembler() { }
+  ~Assembler() {}
 
   void PopRegister(Register r) { Pop(r); }
 
@@ -382,6 +381,7 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.  On ARM there are no pointers in code.
@@ -405,9 +405,7 @@ class Assembler : public ValueObject {
 #if defined(TESTING) || defined(DEBUG)
   // Used in unit tests and to ensure predictable verification code size in
   // FlowGraphCompiler::EmitEdgeCounter.
-  void set_use_far_branches(bool b) {
-    use_far_branches_ = b;
-  }
+  void set_use_far_branches(bool b) { use_far_branches_ = b; }
 #endif  // TESTING || DEBUG
 
   void FinalizeInstructions(const MemoryRegion& region) {
@@ -482,17 +480,35 @@ class Assembler : public ValueObject {
   // Multiply instructions.
   void mul(Register rd, Register rn, Register rm, Condition cond = AL);
   void muls(Register rd, Register rn, Register rm, Condition cond = AL);
-  void mla(Register rd, Register rn, Register rm, Register ra,
+  void mla(Register rd,
+           Register rn,
+           Register rm,
+           Register ra,
            Condition cond = AL);
-  void mls(Register rd, Register rn, Register rm, Register ra,
+  void mls(Register rd,
+           Register rn,
+           Register rm,
+           Register ra,
            Condition cond = AL);
-  void smull(Register rd_lo, Register rd_hi, Register rn, Register rm,
+  void smull(Register rd_lo,
+             Register rd_hi,
+             Register rn,
+             Register rm,
              Condition cond = AL);
-  void umull(Register rd_lo, Register rd_hi, Register rn, Register rm,
+  void umull(Register rd_lo,
+             Register rd_hi,
+             Register rn,
+             Register rm,
              Condition cond = AL);
-  void smlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
+  void smlal(Register rd_lo,
+             Register rd_hi,
+             Register rn,
+             Register rm,
              Condition cond = AL);
-  void umlal(Register rd_lo, Register rd_hi, Register rn, Register rm,
+  void umlal(Register rd_lo,
+             Register rd_hi,
+             Register rn,
+             Register rm,
              Condition cond = AL);
 
   // Emulation of this instruction uses IP and the condition codes. Therefore,
@@ -521,15 +537,25 @@ class Assembler : public ValueObject {
   // we don't use them, and we need to split them up into two instructions for
   // ARMv5TE, so we only support the base + offset mode.
   // rd must be an even register and rd2 must be rd + 1.
-  void ldrd(Register rd, Register rd2, Register rn, int32_t offset,
+  void ldrd(Register rd,
+            Register rd2,
+            Register rn,
+            int32_t offset,
             Condition cond = AL);
-  void strd(Register rd, Register rd2, Register rn, int32_t offset,
+  void strd(Register rd,
+            Register rd2,
+            Register rn,
+            int32_t offset,
             Condition cond = AL);
 
-  void ldm(BlockAddressMode am, Register base,
-           RegList regs, Condition cond = AL);
-  void stm(BlockAddressMode am, Register base,
-           RegList regs, Condition cond = AL);
+  void ldm(BlockAddressMode am,
+           Register base,
+           RegList regs,
+           Condition cond = AL);
+  void stm(BlockAddressMode am,
+           Register base,
+           RegList regs,
+           Condition cond = AL);
 
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
@@ -543,13 +569,11 @@ class Assembler : public ValueObject {
 
   static int32_t BkptEncoding(uint16_t imm16) {
     // bkpt requires that the cond field is AL.
-    return (AL << kConditionShift) | B24 | B21 |
-           ((imm16 >> 4) << 8) | B6 | B5 | B4 | (imm16 & 0xf);
+    return (AL << kConditionShift) | B24 | B21 | ((imm16 >> 4) << 8) | B6 | B5 |
+           B4 | (imm16 & 0xf);
   }
 
-  static uword GetBreakInstructionFiller() {
-    return BkptEncoding(0);
-  }
+  static uword GetBreakInstructionFiller() { return BkptEncoding(0); }
 
   // Floating point instructions (VFPv3-D16 and VFPv3-D32 profiles).
   void vmovsr(SRegister sn, Register rt, Condition cond = AL);
@@ -572,15 +596,27 @@ class Assembler : public ValueObject {
   void vldrd(DRegister dd, Address ad, Condition cond = AL);
   void vstrd(DRegister dd, Address ad, Condition cond = AL);
 
-  void vldms(BlockAddressMode am, Register base,
-             SRegister first, SRegister last, Condition cond = AL);
-  void vstms(BlockAddressMode am, Register base,
-             SRegister first, SRegister last, Condition cond = AL);
+  void vldms(BlockAddressMode am,
+             Register base,
+             SRegister first,
+             SRegister last,
+             Condition cond = AL);
+  void vstms(BlockAddressMode am,
+             Register base,
+             SRegister first,
+             SRegister last,
+             Condition cond = AL);
 
-  void vldmd(BlockAddressMode am, Register base,
-             DRegister first, intptr_t count, Condition cond = AL);
-  void vstmd(BlockAddressMode am, Register base,
-             DRegister first, intptr_t count, Condition cond = AL);
+  void vldmd(BlockAddressMode am,
+             Register base,
+             DRegister first,
+             intptr_t count,
+             Condition cond = AL);
+  void vstmd(BlockAddressMode am,
+             Register base,
+             DRegister first,
+             intptr_t count,
+             Condition cond = AL);
 
   void vadds(SRegister sd, SRegister sn, SRegister sm, Condition cond = AL);
   void vaddd(DRegister dd, DRegister dn, DRegister dm, Condition cond = AL);
@@ -693,11 +729,17 @@ class Assembler : public ValueObject {
 
   // Add signed immediate value to rd. May clobber IP.
   void AddImmediate(Register rd, int32_t value, Condition cond = AL);
-  void AddImmediate(Register rd, Register rn, int32_t value,
+  void AddImmediate(Register rd,
+                    Register rn,
+                    int32_t value,
                     Condition cond = AL);
-  void AddImmediateSetFlags(Register rd, Register rn, int32_t value,
+  void AddImmediateSetFlags(Register rd,
+                            Register rn,
+                            int32_t value,
                             Condition cond = AL);
-  void SubImmediateSetFlags(Register rd, Register rn, int32_t value,
+  void SubImmediateSetFlags(Register rd,
+                            Register rn,
+                            int32_t value,
                             Condition cond = AL);
   void AndImmediate(Register rd, Register rs, int32_t imm, Condition cond = AL);
 
@@ -712,8 +754,11 @@ class Assembler : public ValueObject {
   // division is supported. If not, uses the FPU for division with
   // temporary registers tmpl and tmpr. tmpl and tmpr must be different
   // registers.
-  void IntegerDivide(Register result, Register left, Register right,
-                     DRegister tmpl, DRegister tmpr);
+  void IntegerDivide(Register result,
+                     Register left,
+                     Register right,
+                     DRegister tmpl,
+                     DRegister tmpr);
 
   // Load and Store.
   // These three do not clobber IP.
@@ -722,8 +767,10 @@ class Assembler : public ValueObject {
   void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
   // These two may clobber IP.
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
-  void LoadDImmediate(DRegister dd, double value,
-                      Register scratch, Condition cond = AL);
+  void LoadDImmediate(DRegister dd,
+                      double value,
+                      Register scratch,
+                      Condition cond = AL);
 
   void MarkExceptionHandler(Label* label);
 
@@ -746,9 +793,9 @@ class Assembler : public ValueObject {
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 
-  void StoreIntoObject(Register object,  // Object we are storing into.
+  void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
-                       Register value,  // Value we are storing.
+                       Register value,       // Value we are storing.
                        bool can_value_be_smi = true);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
@@ -841,12 +888,21 @@ class Assembler : public ValueObject {
                               Register base,
                               int32_t offset);
 
-  void CopyDoubleField(Register dst, Register src,
-                       Register tmp1, Register tmp2, DRegister dtmp);
-  void CopyFloat32x4Field(Register dst, Register src,
-                          Register tmp1, Register tmp2, DRegister dtmp);
-  void CopyFloat64x2Field(Register dst, Register src,
-                          Register tmp1, Register tmp2, DRegister dtmp);
+  void CopyDoubleField(Register dst,
+                       Register src,
+                       Register tmp1,
+                       Register tmp2,
+                       DRegister dtmp);
+  void CopyFloat32x4Field(Register dst,
+                          Register src,
+                          Register tmp1,
+                          Register tmp2,
+                          DRegister dtmp);
+  void CopyFloat64x2Field(Register dst,
+                          Register src,
+                          Register tmp1,
+                          Register tmp2,
+                          DRegister dtmp);
 
   void Push(Register rd, Condition cond = AL);
   void Pop(Register rd, Condition cond = AL);
@@ -858,18 +914,28 @@ class Assembler : public ValueObject {
 
   // Convenience shift instructions. Use mov instruction with shifter operand
   // for variants setting the status flags.
-  void Lsl(Register rd, Register rm, const Operand& shift_imm,
+  void Lsl(Register rd,
+           Register rm,
+           const Operand& shift_imm,
            Condition cond = AL);
   void Lsl(Register rd, Register rm, Register rs, Condition cond = AL);
-  void Lsr(Register rd, Register rm, const Operand& shift_imm,
+  void Lsr(Register rd,
+           Register rm,
+           const Operand& shift_imm,
            Condition cond = AL);
   void Lsr(Register rd, Register rm, Register rs, Condition cond = AL);
-  void Asr(Register rd, Register rm, const Operand& shift_imm,
+  void Asr(Register rd,
+           Register rm,
+           const Operand& shift_imm,
            Condition cond = AL);
   void Asr(Register rd, Register rm, Register rs, Condition cond = AL);
-  void Asrs(Register rd, Register rm, const Operand& shift_imm,
+  void Asrs(Register rd,
+            Register rm,
+            const Operand& shift_imm,
             Condition cond = AL);
-  void Ror(Register rd, Register rm, const Operand& shift_imm,
+  void Ror(Register rd,
+           Register rm,
+           const Operand& shift_imm,
            Condition cond = AL);
   void Ror(Register rd, Register rm, Register rs, Condition cond = AL);
   void Rrx(Register rd, Register rm, Condition cond = AL);
@@ -946,7 +1012,6 @@ class Assembler : public ValueObject {
   void EnterStubFrame();
   void LeaveStubFrame();
 
-  void NoMonomorphicCheckedEntry();
   void MonomorphicCheckedEntry();
 
   // The register into which the allocation stats table is loaded with
@@ -954,8 +1019,7 @@ class Assembler : public ValueObject {
   // IncrementAllocationStats(WithSize) as stats_addr_reg to update the
   // allocation stats. These are separate assembler macros so we can
   // avoid a dependent load too nearby the load of the table address.
-  void LoadAllocationStatsAddress(Register dest,
-                                  intptr_t cid);
+  void LoadAllocationStatsAddress(Register dest, intptr_t cid);
   void IncrementAllocationStats(Register stats_addr,
                                 intptr_t cid,
                                 Heap::Space space);
@@ -971,6 +1035,14 @@ class Assembler : public ValueObject {
                                     intptr_t index,
                                     Register temp);
 
+  void LoadElementAddressForIntIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     intptr_t index);
+
   Address ElementAddressForRegIndex(bool is_load,
                                     bool is_external,
                                     intptr_t cid,
@@ -978,11 +1050,23 @@ class Assembler : public ValueObject {
                                     Register array,
                                     Register index);
 
+  void LoadElementAddressForRegIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     Register index);
+
+  void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
+  void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
+  void StoreHalfWordUnaligned(Register src, Register addr, Register tmp);
+  void LoadWordUnaligned(Register dst, Register addr, Register tmp);
+  void StoreWordUnaligned(Register src, Register addr, Register tmp);
+
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
-  void MaybeTraceAllocation(intptr_t cid,
-                            Register temp_reg,
-                            Label* trace);
+  void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label* trace);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -1009,19 +1093,14 @@ class Assembler : public ValueObject {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
-  bool constant_pool_allowed() const {
-    return constant_pool_allowed_;
-  }
-  void set_constant_pool_allowed(bool b) {
-    constant_pool_allowed_ = b;
-  }
+  bool constant_pool_allowed() const { return constant_pool_allowed_; }
+  void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
   ObjectPoolWrapper object_pool_wrapper_;
-
   int32_t prologue_offset_;
-
+  bool has_single_entry_point_;
   bool use_far_branches_;
 
   // If you are thinking of using one or both of these instructions directly,
@@ -1042,7 +1121,7 @@ class Assembler : public ValueObject {
   class CodeComment : public ZoneAllocated {
    public:
     CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) { }
+        : pc_offset_(pc_offset), comment_(comment) {}
 
     intptr_t pc_offset() const { return pc_offset_; }
     const String& comment() const { return comment_; }
@@ -1074,11 +1153,7 @@ class Assembler : public ValueObject {
 
   void EmitType5(Condition cond, int32_t offset, bool link);
 
-  void EmitMemOp(Condition cond,
-                 bool load,
-                 bool byte,
-                 Register rd,
-                 Address ad);
+  void EmitMemOp(Condition cond, bool load, bool byte, Register rd, Address ad);
 
   void EmitMemOpAddressMode3(Condition cond,
                              int32_t mode,
@@ -1142,21 +1217,21 @@ class Assembler : public ValueObject {
                   DRegister dn,
                   DRegister dm);
 
-  void EmitVFPsd(Condition cond,
-                 int32_t opcode,
-                 SRegister sd,
-                 DRegister dm);
+  void EmitVFPsd(Condition cond, int32_t opcode, SRegister sd, DRegister dm);
 
-  void EmitVFPds(Condition cond,
-                 int32_t opcode,
-                 DRegister dd,
-                 SRegister sm);
+  void EmitVFPds(Condition cond, int32_t opcode, DRegister dd, SRegister sm);
 
-  void EmitSIMDqqq(int32_t opcode, OperandSize sz,
-                   QRegister qd, QRegister qn, QRegister qm);
+  void EmitSIMDqqq(int32_t opcode,
+                   OperandSize sz,
+                   QRegister qd,
+                   QRegister qn,
+                   QRegister qm);
 
-  void EmitSIMDddd(int32_t opcode, OperandSize sz,
-                   DRegister dd, DRegister dn, DRegister dm);
+  void EmitSIMDddd(int32_t opcode,
+                   OperandSize sz,
+                   DRegister dd,
+                   DRegister dn,
+                   DRegister dm);
 
   void EmitFarBranch(Condition cond, int32_t offset, bool link);
   void EmitBranch(Condition cond, Label* label, bool link);

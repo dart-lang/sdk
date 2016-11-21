@@ -37,6 +37,7 @@
     'extensions_win.cc',
     'fdutils.h',
     'fdutils_android.cc',
+    'fdutils_fuchsia.cc',
     'fdutils_linux.cc',
     'fdutils_macos.cc',
     'file.cc',

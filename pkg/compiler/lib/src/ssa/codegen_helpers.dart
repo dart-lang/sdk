@@ -419,7 +419,7 @@ class SsaInstructionMerger extends HBaseVisitor {
   }
 
   void visitInvokeSuper(HInvokeSuper instruction) {
-    Element superMethod = instruction.element;
+    MemberElement superMethod = instruction.element;
     Selector selector = instruction.selector;
     // If aliased super members cannot be used, we will generate code like
     //
@@ -440,9 +440,16 @@ class SsaInstructionMerger extends HBaseVisitor {
 
   void visitIs(HIs instruction) {
     // In the general case the input might be used multple multiple times, so it
-    // must not be set generate at use site.  If the code will generate
-    // 'instanceof' then we can generate at use site.
+    // must not be set generate at use site.
+
+    // If the code will generate 'instanceof' then we can generate at use site.
     if (instruction.useInstanceOf) {
+      analyzeInputs(instruction, 0);
+    }
+
+    // Compound and variable checks use a separate instruction to compute the
+    // result.
+    if (instruction.isCompoundCheck || instruction.isVariableCheck) {
       analyzeInputs(instruction, 0);
     }
   }

@@ -14,11 +14,20 @@ namespace dart {
 // Scan the stack until we hit the first function in the _AssertionError
 // class. We then return the next frame's script taking inlining into account.
 static RawScript* FindScript(DartFrameIterator* iterator) {
+  if (FLAG_precompiled_runtime) {
+    // The precompiled runtime faces two issues in recovering the correct
+    // assertion text. First, the precompiled runtime does not include
+    // the inlining meta-data so we cannot walk the inline-aware stack trace.
+    // Second, the script text itself is missing so whatever script is returned
+    // from here will be missing the assertion expression text.
+    iterator->NextFrame();  // Skip _AssertionError._checkAssertion frame
+    return Exceptions::GetCallerScript(iterator);
+  }
   StackFrame* stack_frame = iterator->NextFrame();
   Code& code = Code::Handle();
   Function& func = Function::Handle();
-  const Class& assert_error_class = Class::Handle(
-        Library::LookupCoreClass(Symbols::AssertionError()));
+  const Class& assert_error_class =
+      Class::Handle(Library::LookupCoreClass(Symbols::AssertionError()));
   ASSERT(!assert_error_class.IsNull());
   bool hit_assertion_error = false;
   while (stack_frame != NULL) {
@@ -75,8 +84,8 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
   script.GetTokenLocation(assertion_end, &to_line, &to_column);
   // The snippet will extract the correct assertion code even if the source
   // is generated.
-  args.SetAt(0, String::Handle(
-      script.GetSnippet(from_line, from_column, to_line, to_column)));
+  args.SetAt(0, String::Handle(script.GetSnippet(from_line, from_column,
+                                                 to_line, to_column)));
 
   // Initialize location arguments starting at position 1.
   // Do not set a column if the source has been generated as it will be wrong.
@@ -108,9 +117,10 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
       AbstractType::CheckedHandle(arguments->NativeArgAt(2));
   const String& dst_name = String::CheckedHandle(arguments->NativeArgAt(3));
   const String& error_msg = String::CheckedHandle(arguments->NativeArgAt(4));
-  const AbstractType& src_type = AbstractType::Handle(src_value.GetType());
-  Exceptions::CreateAndThrowTypeError(
-      location, src_type, dst_type, dst_name, error_msg);
+  const AbstractType& src_type =
+      AbstractType::Handle(src_value.GetType(Heap::kNew));
+  Exceptions::CreateAndThrowTypeError(location, src_type, dst_type, dst_name,
+                                      error_msg);
   UNREACHABLE();
   return Object::null();
 }

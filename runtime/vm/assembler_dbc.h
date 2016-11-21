@@ -29,7 +29,7 @@ class Address : public ValueObject {
 
 class Label : public ValueObject {
  public:
-  Label() : position_(0) { }
+  Label() : position_(0) {}
 
   ~Label() {
     // Assert if label is being destroyed with unresolved branches pending.
@@ -50,9 +50,7 @@ class Label : public ValueObject {
  private:
   intptr_t position_;
 
-  void Reinitialize() {
-    position_ = 0;
-  }
+  void Reinitialize() { position_ = 0; }
 
   void BindTo(intptr_t position) {
     ASSERT(!IsBound());
@@ -73,12 +71,9 @@ class Label : public ValueObject {
 
 class Assembler : public ValueObject {
  public:
-  explicit Assembler(bool use_far_branches = false)
-      : buffer_(),
-        comments_() {
-  }
+  explicit Assembler(bool use_far_branches = false) : buffer_(), comments_() {}
 
-  ~Assembler() { }
+  ~Assembler() {}
 
   void Bind(Label* label);
   void Jump(Label* label);
@@ -86,6 +81,7 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return 0; }
+  bool has_single_entry_point() const { return true; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.
@@ -121,20 +117,16 @@ class Assembler : public ValueObject {
 
   static const char* RegisterName(Register reg);
 
-  static const char* FpuRegisterName(FpuRegister reg) {
-    return "?";
-  }
+  static const char* FpuRegisterName(FpuRegister reg) { return "?"; }
 
-  static uword GetBreakInstructionFiller() {
-    return Bytecode::kTrap;
-  }
+  static uword GetBreakInstructionFiller() { return Bytecode::kTrap; }
 
   static bool IsSafe(const Object& value) { return true; }
   static bool IsSafeSmi(const Object& value) { return false; }
 
-  // Bytecodes.
+// Bytecodes.
 
-#define DECLARE_EMIT(Name, Signature, Fmt0, Fmt1, Fmt2) \
+#define DECLARE_EMIT(Name, Signature, Fmt0, Fmt1, Fmt2)                        \
   void Name(PARAMS_##Signature);
 
 #define PARAMS_0
@@ -175,7 +167,7 @@ class Assembler : public ValueObject {
   class CodeComment : public ZoneAllocated {
    public:
     CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) { }
+        : pc_offset_(pc_offset), comment_(comment) {}
 
     intptr_t pc_offset() const { return pc_offset_; }
     const String& comment() const { return comment_; }

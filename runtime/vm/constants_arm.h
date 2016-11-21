@@ -61,16 +61,16 @@ namespace dart {
 
 
 enum Register {
-  R0  =  0,
-  R1  =  1,
-  R2  =  2,
-  R3  =  3,
-  R4  =  4,
-  R5  =  5,  // PP
-  R6  =  6,  // CTX
-  R7  =  7,  // iOS FP
-  R8  =  8,
-  R9  =  9,
+  R0 = 0,
+  R1 = 1,
+  R2 = 2,
+  R3 = 3,
+  R4 = 4,
+  R5 = 5,  // PP
+  R6 = 6,  // CTX
+  R7 = 7,  // iOS FP
+  R8 = 8,
+  R9 = 9,
   R10 = 10,  // THR
   R11 = 11,  // Linux FP
   R12 = 12,  // IP aka TMP
@@ -80,36 +80,36 @@ enum Register {
   kNumberOfCpuRegisters = 16,
   kNoRegister = -1,  // Signals an illegal register.
 
-  // Aliases.
+// Aliases.
 #if defined(TARGET_ABI_IOS)
-  FP   = R7,
+  FP = R7,
   NOTFP = R11,
 #elif defined(TARGET_ABI_EABI)
-  FP   = R11,
+  FP = R11,
   NOTFP = R7,
 #else
 #error Unknown ABI
 #endif
-  IP  = R12,
-  SP  = R13,
-  LR  = R14,
-  PC  = R15,
+  IP = R12,
+  SP = R13,
+  LR = R14,
+  PC = R15,
 };
 
 
 // Values for single-precision floating point registers.
 enum SRegister {
   kNoSRegister = -1,
-  S0  =  0,
-  S1  =  1,
-  S2  =  2,
-  S3  =  3,
-  S4  =  4,
-  S5  =  5,
-  S6  =  6,
-  S7  =  7,
-  S8  =  8,
-  S9  =  9,
+  S0 = 0,
+  S1 = 1,
+  S2 = 2,
+  S3 = 3,
+  S4 = 4,
+  S5 = 5,
+  S6 = 6,
+  S7 = 7,
+  S8 = 8,
+  S9 = 9,
   S10 = 10,
   S11 = 11,
   S12 = 12,
@@ -139,16 +139,16 @@ enum SRegister {
 // Values for double-precision floating point registers.
 enum DRegister {
   kNoDRegister = -1,
-  D0  =  0,
-  D1  =  1,
-  D2  =  2,
-  D3  =  3,
-  D4  =  4,
-  D5  =  5,
-  D6  =  6,
-  D7  =  7,
-  D8  =  8,
-  D9  =  9,
+  D0 = 0,
+  D1 = 1,
+  D2 = 2,
+  D3 = 3,
+  D4 = 4,
+  D5 = 5,
+  D6 = 6,
+  D7 = 7,
+  D8 = 8,
+  D9 = 9,
   D10 = 10,
   D11 = 11,
   D12 = 12,
@@ -201,18 +201,18 @@ enum DRegister {
 
 enum QRegister {
   kNoQRegister = -1,
-  Q0  =  0,
-  Q1  =  1,
-  Q2  =  2,
-  Q3  =  3,
-  Q4  =  4,
-  Q5  =  5,
-  Q6  =  6,
-  Q7  =  7,
+  Q0 = 0,
+  Q1 = 1,
+  Q2 = 2,
+  Q3 = 3,
+  Q4 = 4,
+  Q5 = 5,
+  Q6 = 6,
+  Q7 = 7,
 #if defined(VFPv3_D16)
   kNumberOfQRegisters = 8,
-  Q8  = kNoQRegister,
-  Q9  = kNoQRegister,
+  Q8 = kNoQRegister,
+  Q9 = kNoQRegister,
   Q10 = kNoQRegister,
   Q11 = kNoQRegister,
   Q12 = kNoQRegister,
@@ -220,8 +220,8 @@ enum QRegister {
   Q14 = kNoQRegister,
   Q15 = kNoQRegister,
 #else
-  Q8  =  8,
-  Q9  =  9,
+  Q8 = 8,
+  Q9 = 9,
   Q10 = 10,
   Q11 = 11,
   Q12 = 12,
@@ -260,7 +260,7 @@ static inline SRegister OddSRegisterOf(DRegister d) {
 
 
 // Register aliases for floating point scratch registers.
-const QRegister QTMP = Q7;  // Overlaps with DTMP, STMP.
+const QRegister QTMP = Q7;                     // Overlaps with DTMP, STMP.
 const DRegister DTMP = EvenDRegisterOf(QTMP);  // Overlaps with STMP.
 const SRegister STMP = EvenSRegisterOf(DTMP);
 
@@ -272,10 +272,10 @@ const int kNumberOfFpuRegisters = kNumberOfQRegisters;
 const FpuRegister kNoFpuRegister = kNoQRegister;
 
 // Register aliases.
-const Register TMP = IP;  // Used as scratch register by assembler.
+const Register TMP = IP;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // There is no second assembler temporary.
-const Register CTX = R6;  // Location of current context at method entry.
-const Register PP = R5;  // Caches object pool pointer in generated code.
+const Register CTX = R6;    // Location of current context at method entry.
+const Register PP = R5;     // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = LR;  // Link register.
@@ -307,13 +307,12 @@ const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3);
 #if defined(TARGET_ABI_IOS)
 const RegList kAbiPreservedCpuRegs =
-    (1 << R4)  | (1 << R5) | (1 << R6) | (1 << R8) |
-    (1 << R10) | (1 << R11);
+    (1 << R4) | (1 << R5) | (1 << R6) | (1 << R8) | (1 << R10) | (1 << R11);
 const int kAbiPreservedCpuRegCount = 6;
 #elif defined(TARGET_ABI_EABI)
-const RegList kAbiPreservedCpuRegs =
-    (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7) |
-    (1 << R8) | (1 << R9) | (1 << R10);
+const RegList kAbiPreservedCpuRegs = (1 << R4) | (1 << R5) | (1 << R6) |
+                                     (1 << R7) | (1 << R8) | (1 << R9) |
+                                     (1 << R10);
 const int kAbiPreservedCpuRegCount = 7;
 #else
 #error Unknown ABI
@@ -322,13 +321,8 @@ const QRegister kAbiFirstPreservedFpuReg = Q4;
 const QRegister kAbiLastPreservedFpuReg = Q7;
 const int kAbiPreservedFpuRegCount = 4;
 
-const RegList kReservedCpuRegisters =
-    (1 << SPREG) |
-    (1 << FPREG) |
-    (1 << TMP)   |
-    (1 << PP)    |
-    (1 << THR)   |
-    (1 << PC);
+const RegList kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << TMP) |
+                                      (1 << PP) | (1 << THR) | (1 << PC);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -348,21 +342,21 @@ const int kDartVolatileFpuRegCount = 4;
 // Values for the condition field as defined in section A3.2.
 enum Condition {
   kNoCondition = -1,
-  EQ =  0,  // equal
-  NE =  1,  // not equal
-  CS =  2,  // carry set/unsigned higher or same
-  CC =  3,  // carry clear/unsigned lower
-  MI =  4,  // minus/negative
-  PL =  5,  // plus/positive or zero
-  VS =  6,  // overflow
-  VC =  7,  // no overflow
-  HI =  8,  // unsigned higher
-  LS =  9,  // unsigned lower or same
-  GE = 10,  // signed greater than or equal
-  LT = 11,  // signed less than
-  GT = 12,  // signed greater than
-  LE = 13,  // signed less than or equal
-  AL = 14,  // always (unconditional)
+  EQ = 0,                  // equal
+  NE = 1,                  // not equal
+  CS = 2,                  // carry set/unsigned higher or same
+  CC = 3,                  // carry clear/unsigned lower
+  MI = 4,                  // minus/negative
+  PL = 5,                  // plus/positive or zero
+  VS = 6,                  // overflow
+  VC = 7,                  // no overflow
+  HI = 8,                  // unsigned higher
+  LS = 9,                  // unsigned lower or same
+  GE = 10,                 // signed greater than or equal
+  LT = 11,                 // signed less than
+  GT = 12,                 // signed greater than
+  LE = 13,                 // signed less than or equal
+  AL = 14,                 // always (unconditional)
   kSpecialCondition = 15,  // special condition (refer to section A3.2.1)
   kMaxCondition = 16,
 };
@@ -372,16 +366,16 @@ enum Condition {
 // as defined in section A3.4
 enum Opcode {
   kNoOperand = -1,
-  AND =  0,  // Logical AND
-  EOR =  1,  // Logical Exclusive OR
-  SUB =  2,  // Subtract
-  RSB =  3,  // Reverse Subtract
-  ADD =  4,  // Add
-  ADC =  5,  // Add with Carry
-  SBC =  6,  // Subtract with Carry
-  RSC =  7,  // Reverse Subtract with Carry
-  TST =  8,  // Test
-  TEQ =  9,  // Test Equivalence
+  AND = 0,   // Logical AND
+  EOR = 1,   // Logical Exclusive OR
+  SUB = 2,   // Subtract
+  RSB = 3,   // Reverse Subtract
+  ADD = 4,   // Add
+  ADC = 5,   // Add with Carry
+  SBC = 6,   // Subtract with Carry
+  RSC = 7,   // Reverse Subtract with Carry
+  TST = 8,   // Test
+  TEQ = 9,   // Test Equivalence
   CMP = 10,  // Compare
   CMN = 11,  // Compare Negated
   ORR = 12,  // Logical (inclusive) OR
@@ -495,17 +489,13 @@ enum InstructionFields {
 //
 class Instr {
  public:
-  enum {
-    kInstrSize = 4,
-    kInstrSizeLog2 = 2,
-    kPCReadOffset = 8
-  };
+  enum { kInstrSize = 4, kInstrSizeLog2 = 2, kPCReadOffset = 8 };
 
   static const int32_t kNopInstruction =  // nop
       ((AL << kConditionShift) | (0x32 << 20) | (0xf << 12));
 
-  static const int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
-  static const int32_t kStopMessageCode = 0xdeb1;  // For Stop(message).
+  static const int32_t kBreakPointCode = 0xdeb0;      // For breakpoint.
+  static const int32_t kStopMessageCode = 0xdeb1;     // For Stop(message).
   static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
   static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
@@ -535,9 +525,7 @@ class Instr {
   }
 
   // Read one particular bit out of the instruction bits.
-  inline int Bit(int nr) const {
-    return (InstructionBits() >> nr) & 1;
-  }
+  inline int Bit(int nr) const { return (InstructionBits() >> nr) & 1; }
 
   // Read a bit field out of the instruction bits.
   inline int Bits(int shift, int count) const {
@@ -553,10 +541,12 @@ class Instr {
   }
   inline int TypeField() const { return Bits(kTypeShift, kTypeBits); }
 
-  inline Register RnField() const { return static_cast<Register>(
-                                        Bits(kRnShift, kRnBits)); }
-  inline Register RdField() const { return static_cast<Register>(
-                                        Bits(kRdShift, kRdBits)); }
+  inline Register RnField() const {
+    return static_cast<Register>(Bits(kRnShift, kRnBits));
+  }
+  inline Register RdField() const {
+    return static_cast<Register>(Bits(kRdShift, kRdBits));
+  }
 
   // Fields used in Data processing instructions
   inline Opcode OpcodeField() const {
@@ -567,27 +557,30 @@ class Instr {
   inline Register RmField() const {
     return static_cast<Register>(Bits(kRmShift, kRmBits));
   }
-  inline Shift ShiftField() const { return static_cast<Shift>(
-                                        Bits(kShiftShift, kShiftBits)); }
+  inline Shift ShiftField() const {
+    return static_cast<Shift>(Bits(kShiftShift, kShiftBits));
+  }
   inline int RegShiftField() const { return Bit(4); }
   inline Register RsField() const {
     return static_cast<Register>(Bits(kRsShift, kRsBits));
   }
-  inline int ShiftAmountField() const { return Bits(kShiftImmShift,
-                                                    kShiftImmBits); }
+  inline int ShiftAmountField() const {
+    return Bits(kShiftImmShift, kShiftImmBits);
+  }
   // with immediate
   inline int RotateField() const { return Bits(kRotateShift, kRotateBits); }
   inline int Immed8Field() const { return Bits(kImmed8Shift, kImmed8Bits); }
 
   // Fields used in Load/Store instructions
   inline int PUField() const { return Bits(23, 2); }
-  inline int  BField() const { return Bit(22); }
-  inline int  WField() const { return Bit(21); }
-  inline int  LField() const { return Bit(20); }
+  inline int BField() const { return Bit(22); }
+  inline int WField() const { return Bit(21); }
+  inline int LField() const { return Bit(20); }
   // with register uses same fields as Data processing instructions above
   // with immediate
-  inline int Offset12Field() const { return Bits(kOffset12Shift,
-                                                 kOffset12Bits); }
+  inline int Offset12Field() const {
+    return Bits(kOffset12Shift, kOffset12Bits);
+  }
   // multiple
   inline int RlistField() const { return Bits(0, 16); }
   // extra loads and stores
@@ -622,8 +615,8 @@ class Instr {
 
   // Field used in VFP double immediate move instruction
   inline double ImmDoubleField() const {
-    uint64_t imm64 = (Bit(19)*(1LL << 63)) | (((1LL << 8) - Bit(18)) << 54) |
-                     (Bits(16, 2)*(1LL << 52)) | (Bits(0, 4)*(1LL << 48));
+    uint64_t imm64 = (Bit(19) * (1LL << 63)) | (((1LL << 8) - Bit(18)) << 54) |
+                     (Bits(16, 2) * (1LL << 52)) | (Bits(0, 4) * (1LL << 48));
     return bit_cast<double, uint64_t>(imm64);
   }
 
@@ -644,9 +637,9 @@ class Instr {
     ASSERT(ConditionField() != kSpecialCondition);
     ASSERT(Bits(26, 2) == 0);  // Type 0 or 1.
     return ((Bits(20, 5) & 0x19) != 0x10) &&
-      ((Bit(25) == 1) ||  // Data processing immediate.
-       (Bit(4) == 0) ||  // Data processing register.
-       (Bit(7) == 0));  // Data processing register-shifted register.
+           ((Bit(25) == 1) ||  // Data processing immediate.
+            (Bit(4) == 0) ||   // Data processing register.
+            (Bit(7) == 0));    // Data processing register-shifted register.
   }
 
   // Tests for special encodings of type 0 instructions (extra loads and stores,
@@ -706,8 +699,8 @@ class Instr {
   inline bool IsDivision() const {
     ASSERT(ConditionField() != kSpecialCondition);
     ASSERT(TypeField() == 3);
-    return ((Bit(4) == 1) && (Bits(5, 3) == 0) &&
-            (Bit(20) == 1) && (Bits(22, 3) == 4));
+    return ((Bit(4) == 1) && (Bits(5, 3) == 0) && (Bit(20) == 1) &&
+            (Bits(22, 3) == 4));
   }
 
   // Test for VFP data processing or single transfer instructions of type 7.
@@ -753,12 +746,12 @@ class Instr {
   }
 
   // Special accessors that test for existence of a value.
-  inline bool HasS()    const { return SField() == 1; }
-  inline bool HasB()    const { return BField() == 1; }
-  inline bool HasW()    const { return WField() == 1; }
-  inline bool HasL()    const { return LField() == 1; }
+  inline bool HasS() const { return SField() == 1; }
+  inline bool HasB() const { return BField() == 1; }
+  inline bool HasW() const { return WField() == 1; }
+  inline bool HasL() const { return LField() == 1; }
   inline bool HasSign() const { return SignField() == 1; }
-  inline bool HasH()    const { return HField() == 1; }
+  inline bool HasH() const { return HField() == 1; }
   inline bool HasLink() const { return LinkField() == 1; }
 
   // Instructions are read out of a code stream. The only way to get a

@@ -40,9 +40,8 @@ bool HostCPUFeatures::initialized_ = false;
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
-  sse4_1_supported_ =
-      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
-      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
+  sse4_1_supported_ = CpuInfo::FieldContains(kCpuInfoFeatures, "sse4_1") ||
+                      CpuInfo::FieldContains(kCpuInfoFeatures, "sse4.1");
 
 #if defined(DEBUG)
   initialized_ = true;

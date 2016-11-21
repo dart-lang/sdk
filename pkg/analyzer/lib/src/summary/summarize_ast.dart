@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart' show DartType;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/public_namespace_computer.dart';
@@ -298,6 +299,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   bool isCoreLibrary = false;
 
   /**
+   * True is a [PartOfDirective] was found, so the unit is a part.
+   */
+  bool isPartOf = false;
+
+  /**
    * If the library has a library directive, the library name derived from it.
    * Otherwise `null`.
    */
@@ -325,7 +331,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * If the library has a library directive, the annotations for it (if any).
    * Otherwise `null`.
    */
-  List<UnlinkedConst> libraryAnnotations = const <UnlinkedConstBuilder>[];
+  List<UnlinkedExpr> libraryAnnotations = const <UnlinkedExprBuilder>[];
 
   /**
    * The number of slot ids which have been assigned to this compilation unit.
@@ -401,10 +407,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * Serialize the given list of [annotations].  If there are no annotations,
    * the empty list is returned.
    */
-  List<UnlinkedConstBuilder> serializeAnnotations(
+  List<UnlinkedExprBuilder> serializeAnnotations(
       NodeList<Annotation> annotations) {
     if (annotations == null || annotations.isEmpty) {
-      return const <UnlinkedConstBuilder>[];
+      return const <UnlinkedExprBuilder>[];
     }
     return annotations.map((Annotation a) {
       // Closures can't appear inside annotations, so we don't need a
@@ -518,6 +524,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     compilationUnit.declarations.accept(this);
     UnlinkedUnitBuilder b = new UnlinkedUnitBuilder();
     b.lineStarts = compilationUnit.lineInfo?.lineStarts;
+    b.isPartOf = isPartOf;
     b.libraryName = libraryName;
     b.libraryNameOffset = libraryNameOffset;
     b.libraryNameLength = libraryNameLength;
@@ -534,13 +541,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.typedefs = typedefs;
     b.variables = variables;
     b.publicNamespace = computePublicNamespace(compilationUnit);
+    _computeApiSignature(b);
     return b;
   }
 
   /**
-   * Serialize the given [expression], creating an [UnlinkedConstBuilder].
+   * Serialize the given [expression], creating an [UnlinkedExprBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(
+  UnlinkedExprBuilder serializeConstExpr(
       Map<int, int> localClosureIndexMap, Expression expression,
       [Set<String> parameterNames]) {
     _ConstExprSerializer serializer =
@@ -616,7 +624,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       NodeList<Annotation> annotations,
       TypeParameterList typeParameters,
       bool isExternal,
-      bool serializeBodyExpr) {
+      bool serializeBodyExpr,
+      bool serializeBody) {
     int oldScopesLength = scopes.length;
     _TypeParameterScope typeParameterScope = new _TypeParameterScope();
     scopes.add(typeParameterScope);
@@ -674,7 +683,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       _parameterNames.addAll(formalParameters.parameters
           .map((FormalParameter p) => p.identifier.name));
     }
-    serializeFunctionBody(b, null, body, serializeBodyExpr);
+    serializeFunctionBody(b, null, body, serializeBodyExpr, serializeBody);
     _parameterNames = oldParameterNames;
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
@@ -701,7 +710,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       UnlinkedExecutableBuilder b,
       List<ConstructorInitializer> initializers,
       AstNode body,
-      bool serializeBodyExpr) {
+      bool serializeBodyExpr,
+      bool serializeBody) {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       for (UnlinkedParamBuilder parameter in b.parameters) {
         parameter.visibleOffset = body.offset;
@@ -723,7 +733,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         initializer.accept(this);
       }
     }
-    body.accept(this);
+    if (serializeBody) {
+      body.accept(this);
+    }
     if (serializeBodyExpr) {
       if (body is Expression) {
         b.bodyExpr =
@@ -779,7 +791,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     UnlinkedExecutableBuilder initializer =
         new UnlinkedExecutableBuilder(nameOffset: expression.offset);
-    serializeFunctionBody(initializer, null, expression, serializeBodyExpr);
+    serializeFunctionBody(
+        initializer, null, expression, serializeBodyExpr, true);
     initializer.inferredReturnTypeSlot = assignSlot();
     return initializer;
   }
@@ -1088,7 +1101,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.annotations = serializeAnnotations(node.metadata);
     b.codeRange = serializeCodeRange(node);
     Map<int, int> localClosureIndexMap = serializeFunctionBody(
-        b, node.initializers, node.body, node.constKeyword != null);
+        b, node.initializers, node.body, node.constKeyword != null, false);
     if (node.constKeyword != null) {
       Set<String> constructorParameterNames =
           node.parameters.parameters.map((p) => p.identifier.name).toSet();
@@ -1206,7 +1219,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.metadata,
         node.functionExpression.typeParameters,
         node.externalKeyword != null,
-        false));
+        false,
+        node.parent is FunctionDeclarationStatement));
   }
 
   @override
@@ -1230,7 +1244,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
           null,
           node.typeParameters,
           false,
-          _serializeClosureBodyExprs));
+          _serializeClosureBodyExprs,
+          true));
     }
   }
 
@@ -1331,6 +1346,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.metadata,
         node.typeParameters,
         node.externalKeyword != null,
+        false,
         false));
   }
 
@@ -1345,6 +1361,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitPartOfDirective(PartOfDirective node) {
     isCoreLibrary = node.libraryName.name == 'dart.core';
+    isPartOf = true;
   }
 
   @override
@@ -1385,6 +1402,15 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   static bool isDynamic(TypeName typeName) {
     Identifier name = typeName.name;
     return name is SimpleIdentifier && name.name == 'dynamic';
+  }
+
+  /**
+   * Compute the API signature of the unit and record it.
+   */
+  static void _computeApiSignature(UnlinkedUnitBuilder b) {
+    ApiSignature apiSignature = new ApiSignature();
+    b.collectApiSignature(apiSignature);
+    b.apiSignature = apiSignature.toByteList();
   }
 }
 

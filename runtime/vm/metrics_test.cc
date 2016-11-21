@@ -16,8 +16,8 @@ namespace dart {
 #ifndef PRODUCT
 
 UNIT_TEST_CASE(Metric_Simple) {
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   {
     Metric metric;
 
@@ -45,8 +45,8 @@ class MyMetric : public Metric {
 };
 
 UNIT_TEST_CASE(Metric_OnDemand) {
-  Dart_CreateIsolate(
-      NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
+  Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL,
+                     NULL);
   {
     Thread* thread = Thread::Current();
     StackZone zone(thread);
@@ -63,10 +63,12 @@ UNIT_TEST_CASE(Metric_OnDemand) {
     JSONStream js;
     metric.PrintJSON(&js);
     const char* json = js.ToCString();
-    EXPECT_STREQ("{\"type\":\"Counter\",\"name\":\"a.b.c\",\"description\":"
-                 "\"foobar\",\"unit\":\"byte\","
-                 "\"fixedId\":true,\"id\":\"metrics\\/native\\/a.b.c\""
-                 ",\"value\":99.000000}", json);
+    EXPECT_STREQ(
+        "{\"type\":\"Counter\",\"name\":\"a.b.c\",\"description\":"
+        "\"foobar\",\"unit\":\"byte\","
+        "\"fixedId\":true,\"id\":\"metrics\\/native\\/a.b.c\""
+        ",\"value\":99.000000}",
+        json);
   }
   Dart_ShutdownIsolate();
 }

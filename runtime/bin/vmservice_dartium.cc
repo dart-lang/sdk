@@ -22,8 +22,7 @@ namespace bin {
     Dart_ExitScope();                                                          \
     Dart_ShutdownIsolate();                                                    \
     return 0;                                                                  \
-  }                                                                            \
-
+  }
 
 
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
@@ -43,16 +42,12 @@ void VmServiceServer::Bootstrap() {
 Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   ASSERT(snapshot_buffer != NULL);
   // Create the isolate.
-  IsolateData* isolate_data = new IsolateData(DART_VM_SERVICE_ISOLATE_NAME,
-                                              NULL,
-                                              NULL);
+  IsolateData* isolate_data =
+      new IsolateData(DART_VM_SERVICE_ISOLATE_NAME, NULL, NULL);
   char* error = 0;
-  Dart_Isolate isolate = Dart_CreateIsolate(DART_VM_SERVICE_ISOLATE_NAME,
-                                            "main",
-                                            snapshot_buffer,
-                                            NULL,
-                                            isolate_data,
-                                            &error);
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(DART_VM_SERVICE_ISOLATE_NAME, "main", snapshot_buffer,
+                         NULL, isolate_data, &error);
   if (!isolate) {
     fprintf(stderr, "Dart_CreateIsolate failed: %s\n", error);
     return 0;
@@ -63,12 +58,11 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   Builtin::SetNativeResolver(Builtin::kIOLibrary);
 
   ASSERT(Dart_IsServiceIsolate(isolate));
-  if (!VmService::Setup(DEFAULT_VM_SERVICE_SERVER_IP,
-                        DEFAULT_VM_SERVICE_SERVER_PORT,
-                        false /* running_precompiled */,
-                        false /* disable origin checks */)) {
-    fprintf(stderr,
-            "Vmservice::Setup failed: %s\n", VmService::GetErrorMessage());
+  if (!VmService::Setup(
+          DEFAULT_VM_SERVICE_SERVER_IP, DEFAULT_VM_SERVICE_SERVER_PORT,
+          false /* running_precompiled */, false /* disable origin checks */)) {
+    fprintf(stderr, "Vmservice::Setup failed: %s\n",
+            VmService::GetErrorMessage());
     isolate = NULL;
   }
   Dart_ExitScope();
@@ -77,13 +71,8 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
 }
 
 
-const char* VmServiceServer::GetServerIP() {
-  return VmService::GetServerIP();
-}
-
-
-intptr_t VmServiceServer::GetServerPort() {
-  return VmService::GetServerPort();
+const char* VmServiceServer::GetServerAddress() {
+  return VmService::GetServerAddress();
 }
 
 
@@ -151,7 +140,7 @@ void VmServiceServer::DecompressAssets(const uint8_t* input,
 
 
 /* DISALLOW_ALLOCATION */
-void VmServiceServer::operator delete(void* pointer)  {
+void VmServiceServer::operator delete(void* pointer) {
   fprintf(stderr, "unreachable code\n");
   abort();
 }

@@ -34,8 +34,8 @@ Future runTest1() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST1, uri);
   return compiler.run(uri).then((_) {
-    var commonMasks = compiler.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrer;
+    var commonMasks = compiler.closedWorld.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfElement(element);
     var falseType =
@@ -77,8 +77,8 @@ Future runTest2() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST2, uri);
   return compiler.run(uri).then((_) {
-    var commonMasks = compiler.commonMasks;
-    var typesInferrer = compiler.globalInference.typesInferrer;
+    var commonMasks = compiler.closedWorld.commonMasks;
+    var typesInferrer = compiler.globalInference.typesInferrerInternal;
     var element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfElement(element);
     // Can't infer value for foo's return type, it could be either true or false

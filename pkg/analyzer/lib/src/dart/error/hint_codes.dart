@@ -95,12 +95,6 @@ class HintCode extends ErrorCode {
       "Try replacing the use of the deprecated member with the replacement.");
 
   /**
-   * Duplicate imports.
-   */
-  static const HintCode DUPLICATE_IMPORT = const HintCode('DUPLICATE_IMPORT',
-      "Duplicate import.", "Try removing all but one import of the library.");
-
-  /**
    * Hint to use the ~/ operator.
    */
   static const HintCode DIVISION_OPTIMIZATION = const HintCode(
@@ -109,40 +103,39 @@ class HintCode extends ErrorCode {
       "Try re-writing the expression to use the '~/' operator.");
 
   /**
-   * Hint for the `x is double` type checks.
+   * Duplicate imports.
    */
-  static const HintCode IS_DOUBLE = const HintCode(
-      'IS_DOUBLE',
-      "When compiled to JS, this test might return true when the left hand "
-      "side is an int.",
-      "Try testing for 'num' instead.");
+  static const HintCode DUPLICATE_IMPORT = const HintCode('DUPLICATE_IMPORT',
+      "Duplicate import.", "Try removing all but one import of the library.");
 
   /**
-   * Hint for the `x is int` type checks.
+   * It is a bad practice for a source file in a package "lib" directory
+   * hierarchy to traverse outside that directory hierarchy. For example, a
+   * source file in the "lib" directory should not contain a directive such as
+   * `import '../web/some.dart'` which references a file outside the lib
+   * directory.
    */
-  static const HintCode IS_INT = const HintCode(
-      'IS_INT',
-      "When compiled to JS, this test might return true when the left hand "
-      "side is a double.",
-      "Try testing for 'num' instead.");
+  static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE =
+  const HintCode(
+      'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
+      "A file in the 'lib' directory shouldn't import a file outside the "
+          "'lib' directory.",
+      "Try removing the import, or "
+          "moving the imported file inside the 'lib' directory.");
 
   /**
-   * Hint for the `x is! double` type checks.
+   * It is a bad practice for a source file ouside a package "lib" directory
+   * hierarchy to traverse into that directory hierarchy. For example, a source
+   * file in the "web" directory should not contain a directive such as
+   * `import '../lib/some.dart'` which references a file inside the lib
+   * directory.
    */
-  static const HintCode IS_NOT_DOUBLE = const HintCode(
-      'IS_NOT_DOUBLE',
-      "When compiled to JS, this test might return false when the left hand "
-      "side is an int.",
-      "Try testing for 'num' instead.");
-
-  /**
-   * Hint for the `x is! int` type checks.
-   */
-  static const HintCode IS_NOT_INT = const HintCode(
-      'IS_NOT_INT',
-      "When compiled to JS, this test might return false when the left hand "
-      "side is a double.",
-      "Try testing for 'num' instead.");
+  static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE =
+  const HintCode(
+      'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
+      "A file outside the 'lib' directory shouldn't reference a file "
+          "inside the 'lib' directory using a relative path.",
+      "Try using a package: URI instead.");
 
   /**
    * Deferred libraries shouldn't define a top level function 'loadLibrary'.
@@ -199,6 +192,40 @@ class HintCode extends ErrorCode {
       "Factory method '{0}' doesn't return a newly allocated object.");
 
   /**
+   * Generic Method DEP: number of type parameters must match.
+   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
+   *
+   * Parameters:
+   * 0: the number of type parameters in the method
+   * 1: the number of type parameters in the overridden method
+   * 2: the name of the class where the overridden method is declared
+   */
+  static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
+  const HintCode(
+      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
+      "The method has {0} type parameters, but it is overriding a method "
+          "with {1} type parameters from '{2}'.",
+      "Try changing the number of type parameters so that they are the same.");
+
+  /**
+   * Generic Method DEP: bounds of type parameters must be compatible.
+   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
+   *
+   * Parameters:
+   * 0: the type parameter name
+   * 1: the type parameter bound
+   * 2: the overridden type parameter name
+   * 3: the overridden type parameter bound
+   * 4: the name of the class where the overridden method is declared
+   */
+  static const HintCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND =
+  const HintCode(
+      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
+      "The type parameter '{0}' extends '{1}', but that is stricter than "
+          "'{2}' extends '{3}' in the overridden method from '{4}'.",
+      "Try changing the bounds on the type parameters so that they are compatible.");
+
+  /**
    * This hint is generated anywhere where a member annotated with `@protected`
    * is used outside an instance member of a subclass.
    *
@@ -210,6 +237,52 @@ class HintCode extends ErrorCode {
       'INVALID_USE_OF_PROTECTED_MEMBER',
       "The member '{0}' can only be used within instance members of subclasses "
       "of '{1}'.");
+
+  /**
+   * Hint for the `x is double` type checks.
+   */
+  static const HintCode IS_DOUBLE = const HintCode(
+      'IS_DOUBLE',
+      "When compiled to JS, this test might return true when the left hand "
+          "side is an int.",
+      "Try testing for 'num' instead.");
+
+  /**
+   * Hint for the `x is int` type checks.
+   */
+  static const HintCode IS_INT = const HintCode(
+      'IS_INT',
+      "When compiled to JS, this test might return true when the left hand "
+          "side is a double.",
+      "Try testing for 'num' instead.");
+
+  /**
+   * Hint for the `x is! double` type checks.
+   */
+  static const HintCode IS_NOT_DOUBLE = const HintCode(
+      'IS_NOT_DOUBLE',
+      "When compiled to JS, this test might return false when the left hand "
+          "side is an int.",
+      "Try testing for 'num' instead.");
+
+  /**
+   * Hint for the `x is! int` type checks.
+   */
+  static const HintCode IS_NOT_INT = const HintCode(
+      'IS_NOT_INT',
+      "When compiled to JS, this test might return false when the left hand "
+          "side is a double.",
+      "Try testing for 'num' instead.");
+
+  /**
+   * Generate a hint for an element that is annotated with `@JS(...)` whose
+   * library declaration is not similarly annotated.
+   */
+  static const HintCode MISSING_JS_LIB_ANNOTATION = const HintCode(
+      'MISSING_JS_LIB_ANNOTATION',
+      "The @JS() annotation can only be used if it is also declared on the "
+          "library directive.",
+      "Try adding the annotation to the library directive.");
 
   /**
    * Generate a hint for a constructor, function or method invocation where a
@@ -234,16 +307,6 @@ class HintCode extends ErrorCode {
       "The parameter '{0}' is required. {1}.");
 
   /**
-   * Generate a hint for an element that is annotated with `@JS(...)` whose
-   * library declaration is not similarly annotated.
-   */
-  static const HintCode MISSING_JS_LIB_ANNOTATION = const HintCode(
-      'MISSING_JS_LIB_ANNOTATION',
-      "The @JS() annotation can only be used if it is also declared on the "
-      "library directive.",
-      "Try adding the annotation to the library directive.");
-
-  /**
    * Generate a hint for methods or functions that have a return type, but do
    * not have a non-void return statement on all branches. At the end of methods
    * or functions with no return, Dart implicitly returns `null`, avoiding these
@@ -263,12 +326,12 @@ class HintCode extends ErrorCode {
    * that do not invoke the overridden super method.
    *
    * Parameters:
-   * 0: the name of the class declaring the overriden method
+   * 0: the name of the class declaring the overridden method
    */
   static const HintCode MUST_CALL_SUPER = const HintCode(
       'MUST_CALL_SUPER',
-      "This method overrides a method annotated as @mustCall super in '{0}', "
-      "but does invoke the overriden method.");
+      "This method overrides a method annotated as @mustCallSuper in '{0}', "
+      "but does invoke the overridden method.");
 
   /**
    * A condition in a control flow statement could evaluate to `null` because it
@@ -280,6 +343,17 @@ class HintCode extends ErrorCode {
       "in a condition.",
       "Try replacing the '?.' with a '.', testing the left-hand side for null if "
       "necessary.");
+
+  /**
+   * Hint for classes that override equals, but not hashCode.
+   *
+   * Parameters:
+   * 0: the name of the current class
+   */
+  static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode(
+      'OVERRIDE_EQUALS_BUT_NOT_HASH_CODE',
+      "The class '{0}' overrides 'operator==', but not 'get hashCode'.",
+      "Try implementing 'hashCode'.");
 
   /**
    * A getter with the override annotation does not override an existing getter.
@@ -318,15 +392,14 @@ class HintCode extends ErrorCode {
       "removing the override annotation.");
 
   /**
-   * Hint for classes that override equals, but not hashCode.
-   *
-   * Parameters:
-   * 0: the name of the current class
+   * It is a bad practice for a package import to reference anything outside the
+   * given package, or more generally, it is bad practice for a package import
+   * to contain a "..". For example, a source file should not contain a
+   * directive such as `import 'package:foo/../some.dart'`.
    */
-  static const HintCode OVERRIDE_EQUALS_BUT_NOT_HASH_CODE = const HintCode(
-      'OVERRIDE_EQUALS_BUT_NOT_HASH_CODE',
-      "The class '{0}' overrides 'operator==', but not 'get hashCode'.",
-      "Try implementing 'hashCode'.");
+  static const HintCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = const HintCode(
+      'PACKAGE_IMPORT_CONTAINS_DOT_DOT',
+      "A package import shouldn't contain '..'.");
 
   /**
    * Type checks of the type `x is! Null` should be done with `x != null`.
@@ -379,7 +452,7 @@ class HintCode extends ErrorCode {
   static const HintCode UNDEFINED_METHOD = const HintCode(
       'UNDEFINED_METHOD',
       "The method '{0}' isn't defined for the class '{1}'.",
-      "Try correcting the name to the name of an existing method, or"
+      "Try correcting the name to the name of an existing method, or "
       "defining a method named '{0}'.");
 
   /**
@@ -450,6 +523,25 @@ class HintCode extends ErrorCode {
       "Try correcting the type check, or removing the type check.");
 
   /**
+   * Unused catch exception variables.
+   */
+  static const HintCode UNUSED_CATCH_CLAUSE = const HintCode(
+      'UNUSED_CATCH_CLAUSE',
+      "The exception variable '{0}' isn't used, so the 'catch' clause can be removed.",
+  // TODO(brianwilkerson) Split this error code so that we can differentiate
+  // between removing the catch clause and replacing the catch clause with
+  // an on clause.
+      "Try removing the catch clause.");
+
+  /**
+   * Unused catch stack trace variables.
+   */
+  static const HintCode UNUSED_CATCH_STACK = const HintCode(
+      'UNUSED_CATCH_STACK',
+      "The stack trace variable '{0}' isn't used and can be removed.",
+      "Try removing the stack trace variable, or using it.");
+
+  /**
    * See [Modifier.IS_USED_IN_LIBRARY].
    */
   static const HintCode UNUSED_ELEMENT = const HintCode('UNUSED_ELEMENT',
@@ -468,25 +560,6 @@ class HintCode extends ErrorCode {
    */
   static const HintCode UNUSED_IMPORT = const HintCode(
       'UNUSED_IMPORT', "Unused import.", "Try removing the import directive.");
-
-  /**
-   * Unused catch exception variables.
-   */
-  static const HintCode UNUSED_CATCH_CLAUSE = const HintCode(
-      'UNUSED_CATCH_CLAUSE',
-      "The exception variable '{0}' isn't used, so the 'catch' clause can be removed.",
-      // TODO(brianwilkerson) Split this error code so that we can differentiate
-      // between removing the catch clause and replacing the catch clause with
-      // an on clause.
-      "Try removing the catch clause.");
-
-  /**
-   * Unused catch stack trace variables.
-   */
-  static const HintCode UNUSED_CATCH_STACK = const HintCode(
-      'UNUSED_CATCH_STACK',
-      "The stack trace variable '{0}' isn't used and can be removed.",
-      "Try removing the stack trace variable, or using it.");
 
   /**
    * Unused local variables are local variables which are never read.
@@ -516,43 +589,20 @@ class HintCode extends ErrorCode {
       "The result of '{0}' is being used, even though it is declared to be 'void'.");
 
   /**
-   * It is a bad practice for a source file in a package "lib" directory
-   * hierarchy to traverse outside that directory hierarchy. For example, a
-   * source file in the "lib" directory should not contain a directive such as
-   * `import '../web/some.dart'` which references a file outside the lib
-   * directory.
+   * It will be a static type warning if <i>m</i> is not a generic method with
+   * exactly <i>n</i> type parameters.
+   *
+   * Parameters:
+   * 0: the name of the method being referenced (<i>G</i>)
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
    */
-  static const HintCode FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE =
-      const HintCode(
-          'FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE',
-          "A file in the 'lib' directory shouldn't import a file outside the "
-          "'lib' directory.",
-          "Try removing the import, or "
-          "moving the imported file inside the 'lib' directory.");
-
-  /**
-   * It is a bad practice for a source file ouside a package "lib" directory
-   * hierarchy to traverse into that directory hierarchy. For example, a source
-   * file in the "web" directory should not contain a directive such as
-   * `import '../lib/some.dart'` which references a file inside the lib
-   * directory.
-   */
-  static const HintCode FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE =
-      const HintCode(
-          'FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE',
-          "A file outside the 'lib' directory shouldn't reference a file "
-          "inside the 'lib' directory using a relative path.",
-          "Try using a package: URI instead.");
-
-  /**
-   * It is a bad practice for a package import to reference anything outside the
-   * given package, or more generally, it is bad practice for a package import
-   * to contain a "..". For example, a source file should not contain a
-   * directive such as `import 'package:foo/../some.dart'`.
-   */
-  static const HintCode PACKAGE_IMPORT_CONTAINS_DOT_DOT = const HintCode(
-      'PACKAGE_IMPORT_CONTAINS_DOT_DOT',
-      "A package import shouldn't contain '..'.");
+  static const HintCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD =
+  const HintCode(
+      'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
+      "The method '{0}' is declared with {1} type parameters, "
+          "but {2} type arguments were given.",
+      "Try adjusting the number of type arguments.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

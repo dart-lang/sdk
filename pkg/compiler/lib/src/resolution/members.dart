@@ -85,6 +85,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// in static contexts, factory methods, and field initializers).
   bool inInstanceContext;
   bool inCheckContext;
+  bool inCatchParameters = false;
   bool inCatchBlock;
   ConstantState constantState;
 
@@ -456,14 +457,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             resolver.constantCompiler.compileConstant(parameter);
       });
     });
-    if (!functionSignature.returnType.isDynamic) {
-      registry.registerTypeUse(
-          new TypeUse.checkedModeCheck(functionSignature.returnType));
-    }
+    registry.registerCheckedModeCheck(functionSignature.returnType);
     functionSignature.forEachParameter((ParameterElement element) {
-      if (!element.type.isDynamic) {
-        registry.registerTypeUse(new TypeUse.checkedModeCheck(element.type));
-      }
+      registry.registerCheckedModeCheck(element.type);
     });
   }
 
@@ -1147,10 +1143,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     DartType type =
         resolveTypeAnnotation(typeNode, registerCheckedModeCheck: false);
 
-    // GENERIC_METHODS: Method type variables are not reified so we must warn
-    // about the error which will occur at runtime.
+    // GENERIC_METHODS: Method type variables are not reified, so we must inform
+    // the developer about the potentially bug-inducing semantics.
     if (type is MethodTypeVariableType) {
-      reporter.reportWarningMessage(
+      reporter.reportHintMessage(
           node, MessageKind.TYPE_VARIABLE_FROM_METHOD_CONSIDERED_DYNAMIC);
     }
 
@@ -2355,6 +2351,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (result.kind == ResultKind.PREFIX) {
       return handlePrefixSend(node, name, result);
     } else if (node.isConditional) {
+      registry.registerConstantLiteral(new NullConstantExpression());
+      registry.registerDynamicUse(new DynamicUse(Selectors.equals, null));
       return handleDynamicAccessSemantics(
           node, name, new DynamicAccess.ifNotNullProperty(name));
     } else {
@@ -2388,6 +2386,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (result.kind == ResultKind.PREFIX) {
       return handlePrefixSendSet(node, name, result);
     } else if (node.isConditional) {
+      registry.registerConstantLiteral(new NullConstantExpression());
+      registry.registerDynamicUse(new DynamicUse(Selectors.equals, null));
       return handleDynamicUpdateSemantics(
           node, name, null, new DynamicAccess.ifNotNullProperty(name));
     } else {
@@ -3681,13 +3681,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       isValidAsConstant = false;
     }
 
-    registry.registerStaticUse(
-        new StaticUse.constructorRedirect(redirectionTarget));
-    // TODO(johnniwinther): Register the effective target type as part of the
-    // static use instead.
-    registry.registerTypeUse(new TypeUse.instantiation(redirectionTarget
-        .enclosingClass.thisType
-        .subst(type.typeArguments, targetClass.typeVariables)));
+    registry.registerStaticUse(new StaticUse.constructorRedirect(
+        redirectionTarget,
+        redirectionTarget.enclosingClass.thisType
+            .subst(type.typeArguments, targetClass.typeVariables)));
     if (resolution.commonElements.isSymbolConstructor(enclosingElement)) {
       registry.registerFeature(Feature.SYMBOL_CONSTRUCTOR);
     }
@@ -4080,8 +4077,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     DartType type = typeResolver.resolveTypeAnnotation(this, node,
         malformedIsError: malformedIsError,
         deferredIsMalformed: deferredIsMalformed);
-    if (registerCheckedModeCheck && !type.isDynamic) {
-      registry.registerTypeUse(new TypeUse.checkedModeCheck(type));
+    if (registerCheckedModeCheck) {
+      registry.registerCheckedModeCheck(type);
     }
     return type;
   }
@@ -4607,10 +4604,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       if (cases.isNotEmpty && switchCase.statements.isNotEmpty) {
         Node last = switchCase.statements.last;
-        if (last.asBreakStatement() == null &&
+        if (last.asReturn() == null &&
+            last.asBreakStatement() == null &&
             last.asContinueStatement() == null &&
-            last.asThrow() == null &&
-            last.asReturn() == null) {
+            (last.asExpressionStatement() == null ||
+                last.asExpressionStatement().expression.asThrow() == null)) {
           registry.registerFeature(Feature.FALL_THROUGH_ERROR);
         }
       }
@@ -4703,6 +4701,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               nodeList, MessageKind.OPTIONAL_PARAMETER_IN_CATCH);
         } else {
           VariableDefinitions declaration = link.head;
+
           for (Node modifier in declaration.modifiers.nodes) {
             reporter.reportErrorMessage(
                 modifier, MessageKind.PARAMETER_WITH_MODIFIER_IN_CATCH);
@@ -4717,15 +4716,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
 
     Scope blockScope = new BlockScope(scope);
-    TypeResult exceptionTypeResult = visitIn(node.type, blockScope);
+    inCatchParameters = true;
     visitIn(node.formals, blockScope);
+    inCatchParameters = false;
     var oldInCatchBlock = inCatchBlock;
     inCatchBlock = true;
     visitIn(node.block, blockScope);
     inCatchBlock = oldInCatchBlock;
 
-    if (exceptionTypeResult != null) {
-      DartType exceptionType = exceptionTypeResult.type;
+    if (node.type != null) {
+      DartType exceptionType =
+          resolveTypeAnnotation(node.type, registerCheckedModeCheck: false);
       if (exceptionDefinition != null) {
         Node exceptionVariable = exceptionDefinition.definitions.nodes.head;
         VariableElementX exceptionElement =

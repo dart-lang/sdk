@@ -69,9 +69,8 @@ main(List<String> args) async {
     // deleted.
     // Use default options; comparing SSA and CPS output using the new
     // source information strategy.
+    options.add(commonArguments);
     options.add([Flags.useNewSourceInfo]..addAll(commonArguments));
-    options.add([Flags.useNewSourceInfo]..addAll(commonArguments));
-    throw "missing options: please specify options for the second column";
   } else if (optionSegments.length == 2) {
     // Use alternative options for the second output column.
     options.add(commonArguments);
@@ -793,7 +792,7 @@ Future<CodeLinesResult> computeCodeLines(
     if (!added) {
       int offset;
       if (options.contains(Flags.useNewSourceInfo)) {
-        offset = step.offset.subexpressionOffset;
+        offset = step.offset.value;
       } else {
         offset = info.jsCodePositions[step.node].startPosition;
       }

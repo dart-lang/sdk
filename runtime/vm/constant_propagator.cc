@@ -16,8 +16,10 @@
 namespace dart {
 
 DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
-DEFINE_FLAG(bool, trace_constant_propagation, false,
-    "Print constant propagation and useless code elimination.");
+DEFINE_FLAG(bool,
+            trace_constant_propagation,
+            false,
+            "Print constant propagation and useless code elimination.");
 
 // Quick access to the current zone and isolate.
 #define I (isolate())
@@ -31,10 +33,8 @@ ConstantPropagator::ConstantPropagator(
       graph_(graph),
       unknown_(Object::unknown_constant()),
       non_constant_(Object::non_constant()),
-      reachable_(new(Z) BitVector(
-          Z, graph->preorder().length())),
-      marked_phis_(new(Z) BitVector(
-          Z, graph->max_virtual_register_number())),
+      reachable_(new (Z) BitVector(Z, graph->preorder().length())),
+      marked_phis_(new (Z) BitVector(Z, graph->max_virtual_register_number())),
       block_worklist_(),
       definition_worklist_(graph, 10) {}
 
@@ -235,40 +235,40 @@ void ConstantPropagator::VisitBranch(BranchInstr* instr) {
 // Analysis of non-definition instructions.  They do not have values so they
 // cannot have constant values.
 void ConstantPropagator::VisitCheckStackOverflow(
-    CheckStackOverflowInstr* instr) { }
+    CheckStackOverflowInstr* instr) {}
 
 
-void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) { }
+void ConstantPropagator::VisitCheckClass(CheckClassInstr* instr) {}
 
 
-void ConstantPropagator::VisitCheckClassId(CheckClassIdInstr* instr) { }
+void ConstantPropagator::VisitCheckClassId(CheckClassIdInstr* instr) {}
 
 
-void ConstantPropagator::VisitGuardFieldClass(GuardFieldClassInstr* instr) { }
+void ConstantPropagator::VisitGuardFieldClass(GuardFieldClassInstr* instr) {}
 
 
-void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) { }
+void ConstantPropagator::VisitGuardFieldLength(GuardFieldLengthInstr* instr) {}
 
 
-void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) { }
+void ConstantPropagator::VisitCheckSmi(CheckSmiInstr* instr) {}
 
 
 void ConstantPropagator::VisitGenericCheckBound(GenericCheckBoundInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitCheckEitherNonSmi(
-    CheckEitherNonSmiInstr* instr) { }
+void ConstantPropagator::VisitCheckEitherNonSmi(CheckEitherNonSmiInstr* instr) {
+}
 
 
-void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) { }
+void ConstantPropagator::VisitCheckArrayBound(CheckArrayBoundInstr* instr) {}
 
 
 void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
 
-void ConstantPropagator::VisitGrowRegExpStack(GrowRegExpStackInstr* instr) { }
+void ConstantPropagator::VisitGrowRegExpStack(GrowRegExpStackInstr* instr) {}
 
 Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   if (defn->IsPhi()) {
@@ -309,8 +309,7 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
   for (intptr_t pred_idx = 0; pred_idx < instr->InputCount(); ++pred_idx) {
     if (reachable_->Contains(
             block->PredecessorAt(pred_idx)->preorder_number())) {
-      Join(&value,
-           instr->InputAt(pred_idx)->definition()->constant_value());
+      Join(&value, instr->InputAt(pred_idx)->definition()->constant_value());
     }
   }
   if (!SetValue(instr, value) &&
@@ -326,8 +325,7 @@ void ConstantPropagator::VisitRedefinition(RedefinitionInstr* instr) {
   // are guaranteed to fold away code paths that correspond to non-matching
   // class ids. Otherwise LICM might potentially hoist incorrect code.
   const Object& value = instr->value()->definition()->constant_value();
-  if (IsConstant(value) &&
-      !Field::IsExternalizableCid(value.GetClassId())) {
+  if (IsConstant(value) && !Field::IsExternalizableCid(value.GetClassId())) {
     SetValue(instr, value);
   } else {
     SetValue(instr, non_constant_);
@@ -428,9 +426,8 @@ void ConstantPropagator::VisitIfThenElse(IfThenElseInstr* instr) {
     ASSERT(!value.IsNull());
     ASSERT(value.IsBool());
     bool result = Bool::Cast(value).value();
-    SetValue(instr,
-             Smi::Handle(Z, Smi::New(
-                 result ? instr->if_true() : instr->if_false())));
+    SetValue(instr, Smi::Handle(Z, Smi::New(result ? instr->if_true()
+                                                   : instr->if_false())));
   }
 }
 
@@ -493,12 +490,18 @@ static bool CompareIntegers(Token::Kind kind,
                             const Integer& right) {
   const int result = left.CompareWith(right);
   switch (kind) {
-    case Token::kEQ: return (result == 0);
-    case Token::kNE: return (result != 0);
-    case Token::kLT: return (result < 0);
-    case Token::kGT: return (result > 0);
-    case Token::kLTE: return (result <= 0);
-    case Token::kGTE: return (result >= 0);
+    case Token::kEQ:
+      return (result == 0);
+    case Token::kNE:
+      return (result != 0);
+    case Token::kLT:
+      return (result < 0);
+    case Token::kGT:
+      return (result > 0);
+    case Token::kLTE:
+      return (result <= 0);
+    case Token::kGTE:
+      return (result >= 0);
     default:
       UNREACHABLE();
       return false;
@@ -515,8 +518,8 @@ void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
     // BitOp does not work on Bigints.
-    if (left.IsInteger() && right.IsInteger() &&
-        !left.IsBigint() && !right.IsBigint()) {
+    if (left.IsInteger() && right.IsInteger() && !left.IsBigint() &&
+        !right.IsBigint()) {
       const bool result = CompareIntegers(
           instr->kind(),
           Integer::Handle(Z, Integer::Cast(left).BitOp(Token::kBIT_AND,
@@ -563,8 +566,7 @@ void ConstantPropagator::VisitEqualityCompare(EqualityCompareInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
     if (left.IsInteger() && right.IsInteger()) {
-      const bool result = CompareIntegers(instr->kind(),
-                                          Integer::Cast(left),
+      const bool result = CompareIntegers(instr->kind(), Integer::Cast(left),
                                           Integer::Cast(right));
       SetValue(instr, Bool::Get(result));
     } else if (left.IsString() && right.IsString()) {
@@ -584,8 +586,7 @@ void ConstantPropagator::VisitRelationalOp(RelationalOpInstr* instr) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
     if (left.IsInteger() && right.IsInteger()) {
-      const bool result = CompareIntegers(instr->kind(),
-                                          Integer::Cast(left),
+      const bool result = CompareIntegers(instr->kind(), Integer::Cast(left),
                                           Integer::Cast(right));
       SetValue(instr, Bool::Get(result));
     } else if (left.IsDouble() && right.IsDouble()) {
@@ -661,8 +662,9 @@ void ConstantPropagator::VisitLoadIndexed(LoadIndexedInstr* instr) {
       if (array_obj.IsString()) {
         const String& str = String::Cast(array_obj);
         if (str.Length() > index) {
-          SetValue(instr, Smi::Handle(Z,
-              Smi::New(static_cast<intptr_t>(str.CharAt(index)))));
+          SetValue(instr,
+                   Smi::Handle(
+                       Z, Smi::New(static_cast<intptr_t>(str.CharAt(index)))));
           return;
         }
       } else if (array_obj.IsArray()) {
@@ -764,13 +766,12 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
       if (instr->instantiator_type_arguments()->BindsToConstantNull()) {
         const TypeArguments& checked_type_arguments = TypeArguments::Handle();
         Error& bound_error = Error::Handle();
-        bool is_instance = instance.IsInstanceOf(checked_type,
-                                                 checked_type_arguments,
-                                                 &bound_error);
+        bool is_instance = instance.IsInstanceOf(
+            checked_type, checked_type_arguments, &bound_error);
         // Can only have bound error with generics.
         ASSERT(bound_error.IsNull());
-        SetValue(instr, Bool::Get(instr->negate_result()
-                                  ? !is_instance : is_instance));
+        SetValue(instr, Bool::Get(instr->negate_result() ? !is_instance
+                                                         : is_instance));
         return;
       }
     }
@@ -817,8 +818,10 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
   Value* instance = instr->instance();
   if ((instr->recognized_kind() == MethodRecognizer::kObjectArrayLength) &&
       instance->definition()->OriginalDefinition()->IsCreateArray()) {
-    Value* num_elements = instance->definition()->OriginalDefinition()
-        ->AsCreateArray()->num_elements();
+    Value* num_elements = instance->definition()
+                              ->OriginalDefinition()
+                              ->AsCreateArray()
+                              ->num_elements();
     if (num_elements->BindsToConstant() &&
         num_elements->BoundConstant().IsSmi()) {
       intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
@@ -833,18 +836,21 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
         instance->definition()->OriginalDefinition()->AsConstant();
     if (constant != NULL) {
       if (constant->value().IsString()) {
-        SetValue(instr, Smi::ZoneHandle(Z,
-            Smi::New(String::Cast(constant->value()).Length())));
+        SetValue(instr,
+                 Smi::ZoneHandle(
+                     Z, Smi::New(String::Cast(constant->value()).Length())));
         return;
       }
       if (constant->value().IsArray()) {
-        SetValue(instr, Smi::ZoneHandle(Z,
-            Smi::New(Array::Cast(constant->value()).Length())));
+        SetValue(instr,
+                 Smi::ZoneHandle(
+                     Z, Smi::New(Array::Cast(constant->value()).Length())));
         return;
       }
       if (constant->value().IsTypedData()) {
-        SetValue(instr, Smi::ZoneHandle(Z,
-            Smi::New(TypedData::Cast(constant->value()).Length())));
+        SetValue(instr,
+                 Smi::ZoneHandle(
+                     Z, Smi::New(TypedData::Cast(constant->value()).Length())));
         return;
       }
     }
@@ -854,8 +860,7 @@ void ConstantPropagator::VisitLoadField(LoadFieldInstr* instr) {
 
 
 void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
-  const Object& object =
-      instr->instantiator()->definition()->constant_value();
+  const Object& object = instr->instantiator()->definition()->constant_value();
   if (IsNonConstant(object)) {
     SetValue(instr, non_constant_);
     return;
@@ -876,16 +881,14 @@ void ConstantPropagator::VisitInstantiateType(InstantiateTypeInstr* instr) {
 
 void ConstantPropagator::VisitInstantiateTypeArguments(
     InstantiateTypeArgumentsInstr* instr) {
-  const Object& object =
-      instr->instantiator()->definition()->constant_value();
+  const Object& object = instr->instantiator()->definition()->constant_value();
   if (IsNonConstant(object)) {
     SetValue(instr, non_constant_);
     return;
   }
   if (IsConstant(object)) {
     const intptr_t len = instr->type_arguments().Length();
-    if (instr->type_arguments().IsRawInstantiatedRaw(len) &&
-        object.IsNull()) {
+    if (instr->type_arguments().IsRawInstantiatedRaw(len) && object.IsNull()) {
       SetValue(instr, object);
       return;
     }
@@ -941,6 +944,12 @@ void ConstantPropagator::VisitCheckedSmiOp(CheckedSmiOpInstr* instr) {
 }
 
 
+void ConstantPropagator::VisitCheckedSmiComparison(
+    CheckedSmiComparisonInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
+
 void ConstantPropagator::VisitBinarySmiOp(BinarySmiOpInstr* instr) {
   VisitBinaryIntegerOp(instr);
 }
@@ -987,8 +996,7 @@ void ConstantPropagator::VisitUnaryIntegerOp(UnaryIntegerOpInstr* unary_op) {
   const Object& value = unary_op->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
     const Integer& value_int = Integer::Cast(value);
-    const Integer& result =
-        Integer::Handle(Z, unary_op->Evaluate(value_int));
+    const Integer& result = Integer::Handle(Z, unary_op->Evaluate(value_int));
     if (!result.IsNull()) {
       SetValue(unary_op, Integer::ZoneHandle(Z, result.raw()));
       return;
@@ -1023,8 +1031,9 @@ void ConstantPropagator::VisitUnaryDoubleOp(UnaryDoubleOpInstr* instr) {
 void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
-    SetValue(instr, Double::Handle(Z,
-        Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
+    SetValue(instr,
+             Double::Handle(Z, Double::New(Integer::Cast(value).AsDoubleValue(),
+                                           Heap::kOld)));
   } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
@@ -1034,8 +1043,9 @@ void ConstantPropagator::VisitSmiToDouble(SmiToDoubleInstr* instr) {
 void ConstantPropagator::VisitMintToDouble(MintToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
-    SetValue(instr, Double::Handle(Z,
-        Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
+    SetValue(instr,
+             Double::Handle(Z, Double::New(Integer::Cast(value).AsDoubleValue(),
+                                           Heap::kOld)));
   } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
@@ -1045,8 +1055,9 @@ void ConstantPropagator::VisitMintToDouble(MintToDoubleInstr* instr) {
 void ConstantPropagator::VisitInt32ToDouble(Int32ToDoubleInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
   if (IsConstant(value) && value.IsInteger()) {
-    SetValue(instr, Double::Handle(Z,
-        Double::New(Integer::Cast(value).AsDoubleValue(), Heap::kOld)));
+    SetValue(instr,
+             Double::Handle(Z, Double::New(Integer::Cast(value).AsDoubleValue(),
+                                           Heap::kOld)));
   } else if (!IsUnknown(value)) {
     SetValue(instr, non_constant_);
   }
@@ -1134,8 +1145,7 @@ static double ToDouble(const Object& value) {
 }
 
 
-void ConstantPropagator::VisitBinaryDoubleOp(
-    BinaryDoubleOpInstr* instr) {
+void ConstantPropagator::VisitBinaryDoubleOp(BinaryDoubleOpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
@@ -1170,16 +1180,21 @@ void ConstantPropagator::VisitBinaryDoubleOp(
 
 void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
   const Object& value = instr->value()->definition()->constant_value();
+  const bool is_negated = instr->kind() != Token::kEQ;
   if (value.IsInteger()) {
-    SetValue(instr, Bool::False());
+    SetValue(instr, is_negated ? Bool::True() : Bool::False());
   } else if (IsIntegerOrDouble(value)) {
     switch (instr->op_kind()) {
-      case MethodRecognizer::kDouble_getIsNaN:
-        SetValue(instr, Bool::Get(isnan(ToDouble(value))));
+      case MethodRecognizer::kDouble_getIsNaN: {
+        const bool is_nan = isnan(ToDouble(value));
+        SetValue(instr, Bool::Get(is_negated ? !is_nan : is_nan));
         break;
-      case MethodRecognizer::kDouble_getIsInfinite:
-        SetValue(instr, Bool::Get(isinf(ToDouble(value))));
+      }
+      case MethodRecognizer::kDouble_getIsInfinite: {
+        const bool is_inf = isinf(ToDouble(value));
+        SetValue(instr, Bool::Get(is_negated ? !is_inf : is_inf));
         break;
+      }
       default:
         UNREACHABLE();
     }
@@ -1189,8 +1204,7 @@ void ConstantPropagator::VisitDoubleTestOp(DoubleTestOpInstr* instr) {
 }
 
 
-void ConstantPropagator::VisitBinaryFloat32x4Op(
-    BinaryFloat32x4OpInstr* instr) {
+void ConstantPropagator::VisitBinaryFloat32x4Op(BinaryFloat32x4OpInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
@@ -1337,14 +1351,12 @@ void ConstantPropagator::VisitFloat64x2ToFloat32x4(
 }
 
 
-void ConstantPropagator::VisitFloat64x2Zero(
-    Float64x2ZeroInstr* instr) {
+void ConstantPropagator::VisitFloat64x2Zero(Float64x2ZeroInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
 
-void ConstantPropagator::VisitFloat64x2Splat(
-    Float64x2SplatInstr* instr) {
+void ConstantPropagator::VisitFloat64x2Splat(Float64x2SplatInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -1391,7 +1403,7 @@ void ConstantPropagator::VisitMathMinMax(MathMinMaxInstr* instr) {
 
 
 void ConstantPropagator::VisitCaseInsensitiveCompareUC16(
-    CaseInsensitiveCompareUC16Instr *instr) {
+    CaseInsensitiveCompareUC16Instr* instr) {
   SetValue(instr, non_constant_);
 }
 
@@ -1478,17 +1490,16 @@ void ConstantPropagator::Analyze() {
 
 static bool IsEmptyBlock(BlockEntryInstr* block) {
   return block->next()->IsGoto() &&
-      (!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL)) &&
-      !block->IsIndirectEntry();
+         (!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL)) &&
+         !block->IsIndirectEntry();
 }
 
 
 // Traverses a chain of empty blocks and returns the first reachable non-empty
 // block that is not dominated by the start block. The empty blocks are added
 // to the supplied bit vector.
-static BlockEntryInstr* FindFirstNonEmptySuccessor(
-    TargetEntryInstr* block,
-    BitVector* empty_blocks) {
+static BlockEntryInstr* FindFirstNonEmptySuccessor(TargetEntryInstr* block,
+                                                   BitVector* empty_blocks) {
   BlockEntryInstr* current = block;
   while (IsEmptyBlock(current) && block->Dominates(current)) {
     ASSERT(!block->IsJoinEntry() || (block->AsJoinEntry()->phis() == NULL));
@@ -1503,11 +1514,8 @@ void ConstantPropagator::EliminateRedundantBranches() {
   // Canonicalize branches that have no side-effects and where true- and
   // false-targets are the same.
   bool changed = false;
-  BitVector* empty_blocks = new(Z) BitVector(Z,
-      graph_->preorder().length());
-  for (BlockIterator b = graph_->postorder_iterator();
-       !b.Done();
-       b.Advance()) {
+  BitVector* empty_blocks = new (Z) BitVector(Z, graph_->preorder().length());
+  for (BlockIterator b = graph_->postorder_iterator(); !b.Done(); b.Advance()) {
     BlockEntryInstr* block = b.Current();
     BranchInstr* branch = block->last_instruction()->AsBranch();
     empty_blocks->Clear();
@@ -1522,7 +1530,7 @@ void ConstantPropagator::EliminateRedundantBranches() {
         // Drop the comparison, which does not have side effects
         JoinEntryInstr* join = if_true->AsJoinEntry();
         if (join->phis() == NULL) {
-          GotoInstr* jump = new(Z) GotoInstr(if_true->AsJoinEntry());
+          GotoInstr* jump = new (Z) GotoInstr(if_true->AsJoinEntry());
           jump->InheritDeoptTarget(Z, branch);
 
           Instruction* previous = branch->previous();
@@ -1568,8 +1576,7 @@ void ConstantPropagator::Transform() {
   // instructions, previous pointers, predecessors, etc. after eliminating
   // unreachable code.  We do not maintain those properties during the
   // transformation.
-  for (BlockIterator b = graph_->reverse_postorder_iterator();
-       !b.Done();
+  for (BlockIterator b = graph_->reverse_postorder_iterator(); !b.Done();
        b.Advance()) {
     BlockEntryInstr* block = b.Current();
     if (!reachable_->Contains(block->preorder_number())) {
@@ -1638,18 +1645,14 @@ void ConstantPropagator::Transform() {
       // Replace constant-valued instructions without observable side
       // effects.  Do this for smis only to avoid having to copy other
       // objects into the heap's old generation.
-      if ((defn != NULL) &&
-          IsConstant(defn->constant_value()) &&
+      if ((defn != NULL) && IsConstant(defn->constant_value()) &&
           (defn->constant_value().IsSmi() || defn->constant_value().IsOld()) &&
-          !defn->IsConstant() &&
-          !defn->IsPushArgument() &&
-          !defn->IsStoreIndexed() &&
-          !defn->IsStoreInstanceField() &&
+          !defn->IsConstant() && !defn->IsPushArgument() &&
+          !defn->IsStoreIndexed() && !defn->IsStoreInstanceField() &&
           !defn->IsStoreStaticField()) {
         if (FLAG_trace_constant_propagation &&
             FlowGraphPrinter::ShouldPrint(graph_->function())) {
-          THR_Print("Constant v%" Pd " = %s\n",
-                    defn->ssa_temp_index(),
+          THR_Print("Constant v%" Pd " = %s\n", defn->ssa_temp_index(),
                     defn->constant_value().ToCString());
         }
         ConstantInstr* constant = graph_->GetConstant(defn->constant_value());
@@ -1670,16 +1673,16 @@ void ConstantPropagator::Transform() {
         ASSERT(reachable_->Contains(if_false->preorder_number()));
         ASSERT(if_false->parallel_move() == NULL);
         ASSERT(if_false->loop_info() == NULL);
-        join = new(Z) JoinEntryInstr(if_false->block_id(),
-                                     if_false->try_index());
+        join =
+            new (Z) JoinEntryInstr(if_false->block_id(), if_false->try_index());
         join->InheritDeoptTarget(Z, if_false);
         if_false->UnuseAllInputs();
         next = if_false->next();
       } else if (!reachable_->Contains(if_false->preorder_number())) {
         ASSERT(if_true->parallel_move() == NULL);
         ASSERT(if_true->loop_info() == NULL);
-        join = new(Z) JoinEntryInstr(if_true->block_id(),
-                                     if_true->try_index());
+        join =
+            new (Z) JoinEntryInstr(if_true->block_id(), if_true->try_index());
         join->InheritDeoptTarget(Z, if_true);
         if_true->UnuseAllInputs();
         next = if_true->next();
@@ -1690,7 +1693,7 @@ void ConstantPropagator::Transform() {
         // Drop the comparison, which does not have side effects as long
         // as it is a strict compare (the only one we can determine is
         // constant with the current analysis).
-        GotoInstr* jump = new(Z) GotoInstr(join);
+        GotoInstr* jump = new (Z) GotoInstr(join);
         jump->InheritDeoptTarget(Z, branch);
 
         Instruction* previous = branch->previous();

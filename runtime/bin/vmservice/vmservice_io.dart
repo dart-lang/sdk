@@ -162,6 +162,27 @@ Future<List<Map<String,String>>> listFilesCallback(Uri dirPath) async {
   return result;
 }
 
+Future<Uri> serverInformationCallback() async {
+  _lazyServerBoot();
+  return server.serverAddress;
+}
+
+Future<Uri> webServerControlCallback(bool enable) async {
+  _lazyServerBoot();
+  if (server.running == enable) {
+    // No change.
+    return server.serverAddress;
+  }
+
+  if (enable) {
+    await server.startup();
+    return server.serverAddress;
+  } else {
+    await server.shutdown(true);
+    return server.serverAddress;
+  }
+}
+
 _clearFuture(_) {
   serverFuture = null;
 }
@@ -204,6 +225,8 @@ main() {
   VMServiceEmbedderHooks.writeStreamFile = writeStreamFileCallback;
   VMServiceEmbedderHooks.readFile = readFileCallback;
   VMServiceEmbedderHooks.listFiles = listFilesCallback;
+  VMServiceEmbedderHooks.serverInformation = serverInformationCallback;
+  VMServiceEmbedderHooks.webServerControl = webServerControlCallback;
   // Always instantiate the vmservice object so that the exit message
   // can be delivered and waiting loaders can be cancelled.
   var service = new VMService();

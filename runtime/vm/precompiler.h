@@ -69,9 +69,7 @@ class SymbolKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->Hash();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -91,9 +89,7 @@ class StackmapKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->PcOffset();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->PcOffset(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -114,9 +110,7 @@ class ArrayKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->Length();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->Length(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     if (pair->Length() != key->Length()) {
@@ -145,9 +139,7 @@ class InstructionsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->size();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->Size(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->Equals(*key);
@@ -174,7 +166,7 @@ class UnlinkedCallKeyValueTrait {
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return (pair->target_name() == key->target_name()) &&
-        (pair->args_descriptor() == key->args_descriptor());
+           (pair->args_descriptor() == key->args_descriptor());
   }
 };
 
@@ -192,9 +184,7 @@ class FunctionKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->token_pos().value();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -215,9 +205,7 @@ class FieldKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->token_pos().value();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -238,9 +226,7 @@ class ClassKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->token_pos().value();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -261,9 +247,7 @@ class AbstractTypeKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->Hash();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -284,9 +268,7 @@ class TypeArgumentsKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->Hash();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->Hash(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -307,9 +289,7 @@ class InstanceKeyValueTrait {
 
   static Value ValueOf(Pair kv) { return kv; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->GetClassId();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->GetClassId(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair->raw() == key->raw();
@@ -329,17 +309,15 @@ struct FieldTypePair {
 
   static Value ValueOf(Pair kv) { return kv.cid_; }
 
-  static inline intptr_t Hashcode(Key key) {
-    return key->token_pos().value();
-  }
+  static inline intptr_t Hashcode(Key key) { return key->token_pos().value(); }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
     return pair.field_->raw() == key->raw();
   }
 
-  FieldTypePair(const Field* f, intptr_t cid) : field_(f), cid_(cid) { }
+  FieldTypePair(const Field* f, intptr_t cid) : field_(f), cid_(cid) {}
 
-  FieldTypePair() : field_(NULL), cid_(-1) { }
+  FieldTypePair() : field_(NULL), cid_(-1) {}
 
   void Print() const;
 
@@ -356,7 +334,8 @@ class Precompiler : public ValueObject {
       Dart_QualifiedFunctionName embedder_entry_points[],
       bool reset_fields);
 
-  static RawError* CompileFunction(Thread* thread,
+  static RawError* CompileFunction(Precompiler* precompiler,
+                                   Thread* thread,
                                    Zone* zone,
                                    const Function& function,
                                    FieldTypeMap* field_type_map = NULL);
@@ -366,6 +345,13 @@ class Precompiler : public ValueObject {
 
   static RawFunction* CompileStaticInitializer(const Field& field,
                                                bool compute_type);
+
+  // Returns true if get:runtimeType is not overloaded by any class.
+  bool get_runtime_type_is_unique() const {
+    return get_runtime_type_is_unique_;
+  }
+
+  FieldTypeMap* field_type_map() { return &field_type_map_; }
 
  private:
   Precompiler(Thread* thread, bool reset_fields);
@@ -417,7 +403,7 @@ class Precompiler : public ValueObject {
   void PrecompileStaticInitializers();
   void PrecompileConstructors();
 
-  template<typename T>
+  template <typename T>
   class Visitor : public ValueObject {
    public:
     virtual ~Visitor() {}
@@ -466,6 +452,8 @@ class Precompiler : public ValueObject {
   InstanceSet consts_to_retain_;
   FieldTypeMap field_type_map_;
   Error& error_;
+
+  bool get_runtime_type_is_unique_;
 };
 
 
@@ -491,9 +479,7 @@ class FunctionsTraits {
       return String::Cast(obj).Hash();
     }
   }
-  static RawObject* NewKey(const Function& function) {
-    return function.raw();
-  }
+  static RawObject* NewKey(const Function& function) { return function.raw(); }
 };
 
 typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;

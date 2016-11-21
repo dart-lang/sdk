@@ -13,6 +13,7 @@
 namespace dart {
 
 class ObjectPointerVisitor;
+class SendPort;
 
 class ServiceIsolate : public AllStatic {
  public:
@@ -36,12 +37,13 @@ class ServiceIsolate : public AllStatic {
 
   static void BootVmServiceLibrary();
 
+  static void RequestServerInfo(const SendPort& sp);
+  static void ControlWebServer(const SendPort& sp, bool enable);
+
   static void SetServerAddress(const char* address);
 
   // Returns the server's web address or NULL if none is running.
-  static const char* server_address() {
-    return server_address_;
-  }
+  static const char* server_address() { return server_address_; }
 
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
 

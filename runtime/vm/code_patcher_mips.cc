@@ -53,8 +53,9 @@ intptr_t CodePatcher::InstanceCallSizeInBytes() {
 }
 
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
-    uword return_address, const Code& code, ICData* ic_data_result) {
+RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
+                                                     const Code& code,
+                                                     ICData* ic_data_result) {
   ASSERT(code.ContainsInstructionAt(return_address));
   CallPattern static_call(return_address, code);
   ICData& ic_data = ICData::Handle();

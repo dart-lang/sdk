@@ -18,9 +18,9 @@ class Mutex;
 // debuggers to map address ranges to function names.
 class CodeObserver {
  public:
-  CodeObserver() { }
+  CodeObserver() {}
 
-  virtual ~CodeObserver() { }
+  virtual ~CodeObserver() {}
 
   // Returns true if this observer is active and should be notified
   // about newly created code objects.
@@ -57,9 +57,7 @@ class CodeObservers : public AllStatic {
 
   static void DeleteAll();
 
-  static Mutex* mutex() {
-    return mutex_;
-  }
+  static Mutex* mutex() { return mutex_; }
 
  private:
   static Mutex* mutex_;

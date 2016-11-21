@@ -63,6 +63,7 @@ class AnalyzerOptions {
 
   static const String errors = 'errors';
   static const String exclude = 'exclude';
+  static const String include = 'include';
   static const String language = 'language';
   static const String plugins = 'plugins';
   static const String strong_mode = 'strong-mode';
@@ -173,7 +174,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
     if (_errorCodes == null) {
       _errorCodes = new HashSet<String>();
       // Engine codes.
-      _errorCodes.addAll(ErrorCode.values.map((ErrorCode code) => code.name));
+      _errorCodes.addAll(errorCodeValues.map((ErrorCode code) => code.name));
     }
     return _errorCodes;
   }
@@ -228,10 +229,12 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS, LINE_INFO],
       suitabilityFor: suitabilityFor);
 
-  final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
+  AnalysisOptionsProvider optionsProvider;
 
   GenerateOptionsErrorsTask(AnalysisContext context, AnalysisTarget target)
-      : super(context, target);
+      : super(context, target) {
+    optionsProvider = new AnalysisOptionsProvider(context?.sourceFactory);
+  }
 
   @override
   TaskDescriptor get descriptor => DESCRIPTOR;
@@ -243,16 +246,80 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
     String content = getRequiredInput(CONTENT_INPUT_NAME);
 
     List<AnalysisError> errors = <AnalysisError>[];
+    Source initialSource = source;
+    SourceSpan initialIncludeSpan;
+
+    // Validate the specified options and any included option files
+    void validate(Source source, Map<String, YamlNode> options) {
+      List<AnalysisError> validationErrors =
+          new OptionsFileValidator(source).validate(options);
+      if (initialIncludeSpan != null && validationErrors.isNotEmpty) {
+        for (AnalysisError error in validationErrors) {
+          var args = [
+            source.fullName,
+            error.offset.toString(),
+            (error.offset + error.length - 1).toString(),
+            error.message,
+          ];
+          errors.add(new AnalysisError(
+              initialSource,
+              initialIncludeSpan.start.column + 1,
+              initialIncludeSpan.length,
+              AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
+              args));
+        }
+      } else {
+        errors.addAll(validationErrors);
+      }
+
+      YamlNode node = options[AnalyzerOptions.include];
+      if (node == null) {
+        return;
+      }
+      SourceSpan span = node.span;
+      initialIncludeSpan ??= span;
+      String includeUri = span.text;
+      Source includedSource =
+          context.sourceFactory.resolveUri(source, includeUri);
+      if (!includedSource.exists()) {
+        errors.add(new AnalysisError(
+            initialSource,
+            initialIncludeSpan.start.column + 1,
+            initialIncludeSpan.length,
+            AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
+            [includeUri, source.fullName]));
+        return;
+      }
+      try {
+        Map<String, YamlNode> options =
+            optionsProvider.getOptionsFromString(includedSource.contents.data);
+        validate(includedSource, options);
+      } on OptionsFormatException catch (e) {
+        var args = [
+          includedSource.fullName,
+          e.span.start.offset.toString(),
+          e.span.end.offset.toString(),
+          e.message,
+        ];
+        // Report errors for included option files
+        // on the include directive located in the initial options file.
+        errors.add(new AnalysisError(
+            initialSource,
+            initialIncludeSpan.start.column + 1,
+            initialIncludeSpan.length,
+            AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
+            args));
+      }
+    }
 
     try {
       Map<String, YamlNode> options =
           optionsProvider.getOptionsFromString(content);
-      errors.addAll(_validate(options));
+      validate(source, options);
     } on OptionsFormatException catch (e) {
       SourceSpan span = e.span;
-      var error = new AnalysisError(source, span.start.column + 1, span.length,
-          AnalysisOptionsErrorCode.PARSE_ERROR, [e.message]);
-      errors.add(error);
+      errors.add(new AnalysisError(source, span.start.column + 1, span.length,
+          AnalysisOptionsErrorCode.PARSE_ERROR, [e.message]));
     }
 
     //
@@ -261,9 +328,6 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
     outputs[ANALYSIS_OPTIONS_ERRORS] = errors;
     outputs[LINE_INFO] = computeLineInfo(content);
   }
-
-  List<AnalysisError> _validate(Map<String, YamlNode> options) =>
-      new OptionsFileValidator(source).validate(options);
 
   /// Return a map from the names of the inputs of this kind of task to the
   /// task input descriptors describing those inputs for a task with the

@@ -24,11 +24,10 @@ DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 Assembler::Assembler(bool use_far_branches)
     : buffer_(),
       prologue_offset_(-1),
+      has_single_entry_point_(true),
       use_far_branches_(use_far_branches),
       comments_(),
-      constant_pool_allowed_(false) {
-  MonomorphicCheckedEntry();
-}
+      constant_pool_allowed_(false) {}
 
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
@@ -49,10 +48,9 @@ void Assembler::Emit(int32_t value) {
 
 
 static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
-  "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",
-  "r8",  "r9",  "r10", "r11", "r12", "r13", "r14", "r15",
-  "r16", "r17", "r18", "r19", "r20", "r21", "r22", "r23",
-  "r24", "ip0", "ip1", "pp",  "ctx", "fp",  "lr",  "r31",
+    "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",  "r10",
+    "r11", "r12", "r13", "r14", "r15", "r16", "r17", "r18", "r19", "r20", "r21",
+    "r22", "r23", "r24", "ip0", "ip1", "pp",  "ctx", "fp",  "lr",  "r31",
 };
 
 
@@ -63,10 +61,9 @@ const char* Assembler::RegisterName(Register reg) {
 
 
 static const char* fpu_reg_names[kNumberOfFpuRegisters] = {
-  "v0",  "v1",  "v2",  "v3",  "v4",  "v5",  "v6",  "v7",
-  "v8",  "v9",  "v10", "v11", "v12", "v13", "v14", "v15",
-  "v16", "v17", "v18", "v19", "v20", "v21", "v22", "v23",
-  "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
+    "v0",  "v1",  "v2",  "v3",  "v4",  "v5",  "v6",  "v7",  "v8",  "v9",  "v10",
+    "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20", "v21",
+    "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30", "v31",
 };
 
 
@@ -136,14 +133,14 @@ void Assembler::Bind(Label* label) {
       int32_t encoded_guard_branch =
           EncodeImm19BranchOffset(dest, guard_branch);
       const Condition c = DecodeImm19BranchCondition(encoded_guard_branch);
-      encoded_guard_branch = EncodeImm19BranchCondition(
-          InvertCondition(c), encoded_guard_branch);
+      encoded_guard_branch =
+          EncodeImm19BranchCondition(InvertCondition(c), encoded_guard_branch);
 
       // Write back the re-encoded instructions. The far branch becomes a nop.
-      buffer_.Store<int32_t>(
-          position + 0 * Instr::kInstrSize, encoded_guard_branch);
-      buffer_.Store<int32_t>(
-          position + 1 * Instr::kInstrSize, Instr::kNopInstruction);
+      buffer_.Store<int32_t>(position + 0 * Instr::kInstrSize,
+                             encoded_guard_branch);
+      buffer_.Store<int32_t>(position + 1 * Instr::kInstrSize,
+                             Instr::kNopInstruction);
       label->position_ = next;
     } else {
       const int32_t next = buffer_.Load<int32_t>(position);
@@ -184,7 +181,7 @@ static int CountLeadingZeros(uint64_t value, int width) {
 
 static int CountOneBits(uint64_t value, int width) {
   // Mask out unused bits to ensure that they are not counted.
-  value &= (0xffffffffffffffffUL >> (64-width));
+  value &= (0xffffffffffffffffUL >> (64 - width));
 
   value = ((value >> 1) & 0x5555555555555555) + (value & 0x5555555555555555);
   value = ((value >> 2) & 0x3333333333333333) + (value & 0x3333333333333333);
@@ -382,8 +379,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
 }
 
 
-void Assembler::LoadNativeEntry(Register dst,
-                                const ExternalLabel* label) {
+void Assembler::LoadNativeEntry(Register dst, const ExternalLabel* label) {
   const int32_t offset = ObjectPool::element_offset(
       object_pool_wrapper_.FindNativeEntry(label, kNotPatchable));
   LoadWordFromPoolOffset(dst, offset);
@@ -741,8 +737,10 @@ void Assembler::CompareImmediate(Register rn, int64_t imm) {
 }
 
 
-void Assembler::LoadFromOffset(
-    Register dest, Register base, int32_t offset, OperandSize sz) {
+void Assembler::LoadFromOffset(Register dest,
+                               Register base,
+                               int32_t offset,
+                               OperandSize sz) {
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
     ldr(dest, Address(base, offset, Address::Offset, sz), sz);
   } else {
@@ -775,8 +773,10 @@ void Assembler::LoadQFromOffset(VRegister dest, Register base, int32_t offset) {
 }
 
 
-void Assembler::StoreToOffset(
-    Register src, Register base, int32_t offset, OperandSize sz) {
+void Assembler::StoreToOffset(Register src,
+                              Register base,
+                              int32_t offset,
+                              OperandSize sz) {
   ASSERT(base != TMP2);
   if (Address::CanHoldOffset(offset, Address::Offset, sz)) {
     str(src, Address(base, offset, Address::Offset, sz), sz);
@@ -832,15 +832,14 @@ void Assembler::VRSqrts(VRegister vd, VRegister vn) {
   vrsqrtes(vd, vn);
   // 2 Newton-Raphson steps. xn+1 = xn * (3 - V1*xn^2) / 2.
   // First step.
-  vmuls(VTMP, vd, vd);  // VTMP <- xn^2
+  vmuls(VTMP, vd, vd);       // VTMP <- xn^2
   vrsqrtss(VTMP, vn, VTMP);  // VTMP <- (3 - V1*VTMP) / 2.
-  vmuls(vd, vd, VTMP);  // xn+1 <- xn * VTMP
+  vmuls(vd, vd, VTMP);       // xn+1 <- xn * VTMP
   // Second step.
   vmuls(VTMP, vd, vd);
   vrsqrtss(VTMP, vn, VTMP);
   vmuls(vd, vd, VTMP);
 }
-
 
 
 // Store into object.
@@ -880,8 +879,8 @@ void Assembler::StoreIntoObjectOffset(Register object,
                                       Register value,
                                       bool can_value_be_smi) {
   if (Address::CanHoldOffset(offset - kHeapObjectTag)) {
-    StoreIntoObject(
-        object, FieldAddress(object, offset), value, can_value_be_smi);
+    StoreIntoObject(object, FieldAddress(object, offset), value,
+                    can_value_be_smi);
   } else {
     AddImmediate(TMP, object, offset - kHeapObjectTag);
     StoreIntoObject(object, Address(TMP), value, can_value_be_smi);
@@ -976,8 +975,8 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
 void Assembler::LoadClassId(Register result, Register object) {
   ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
   ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
-  const intptr_t class_id_offset = Object::tags_offset() +
-      RawObject::kClassIdTagPos / kBitsPerByte;
+  const intptr_t class_id_offset =
+      Object::tags_offset() + RawObject::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag,
                  kUnsignedWord);
 }
@@ -1238,18 +1237,10 @@ void Assembler::LeaveStubFrame() {
 }
 
 
-void Assembler::NoMonomorphicCheckedEntry() {
-  buffer_.Reset();
-  brk(0);
-  brk(0);
-  brk(0);
-  brk(0);
-  ASSERT(CodeSize() == Instructions::kCheckedEntryOffset);
-}
-
-
 // R0 receiver, R5 guarded cid as Smi
 void Assembler::MonomorphicCheckedEntry() {
+  ASSERT(has_single_entry_point_);
+  has_single_entry_point_ = false;
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
 
@@ -1298,8 +1289,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
 }
 
 
-void Assembler::UpdateAllocationStats(intptr_t cid,
-                                      Heap::Space space) {
+void Assembler::UpdateAllocationStats(intptr_t cid, Heap::Space space) {
   ASSERT(cid > 0);
   intptr_t counter_offset =
       ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
@@ -1319,12 +1309,14 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Heap::Space space) {
   ASSERT(cid > 0);
   const uword class_offset = ClassTable::ClassOffsetFor(cid);
-  const uword count_field_offset = (space == Heap::kNew) ?
-    ClassHeapStats::allocated_since_gc_new_space_offset() :
-    ClassHeapStats::allocated_since_gc_old_space_offset();
-  const uword size_field_offset = (space == Heap::kNew) ?
-    ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-    ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  const uword count_field_offset =
+      (space == Heap::kNew)
+          ? ClassHeapStats::allocated_since_gc_new_space_offset()
+          : ClassHeapStats::allocated_since_gc_old_space_offset();
+  const uword size_field_offset =
+      (space == Heap::kNew)
+          ? ClassHeapStats::allocated_size_since_gc_new_space_offset()
+          : ClassHeapStats::allocated_size_since_gc_old_space_offset();
   LoadIsolate(TMP2);
   intptr_t table_offset =
       Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
@@ -1368,8 +1360,7 @@ void Assembler::TryAllocate(const Class& cls,
     str(instance_reg, Address(temp_reg, Heap::TopOffset(space)));
 
     ASSERT(instance_size >= kHeapObjectTag);
-    AddImmediate(
-        instance_reg, instance_reg, -instance_size + kHeapObjectTag);
+    AddImmediate(instance_reg, instance_reg, -instance_size + kHeapObjectTag);
     NOT_IN_PRODUCT(UpdateAllocationStats(cls.id(), space));
 
     uword tags = 0;
@@ -1435,12 +1426,26 @@ Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t index_scale,
                                              Register array,
                                              intptr_t index) const {
-  const int64_t offset = index * index_scale +
+  const int64_t offset =
+      index * index_scale +
       (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
   ASSERT(Utils::IsInt(32, offset));
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(array, static_cast<int32_t>(offset), Address::Offset, size);
+}
+
+
+void Assembler::LoadElementAddressForIntIndex(Register address,
+                                              bool is_external,
+                                              intptr_t cid,
+                                              intptr_t index_scale,
+                                              Register array,
+                                              intptr_t index) {
+  const int64_t offset =
+      index * index_scale +
+      (is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  AddImmediate(address, array, offset);
 }
 
 
@@ -1468,6 +1473,106 @@ Address Assembler::ElementAddressForRegIndex(bool is_load,
   const OperandSize size = Address::OperandSizeFor(cid);
   ASSERT(Address::CanHoldOffset(offset, Address::Offset, size));
   return Address(base, offset, Address::Offset, size);
+}
+
+
+void Assembler::LoadElementAddressForRegIndex(Register address,
+                                              bool is_load,
+                                              bool is_external,
+                                              intptr_t cid,
+                                              intptr_t index_scale,
+                                              Register array,
+                                              Register index) {
+  // Note that index is expected smi-tagged, (i.e, LSL 1) for all arrays.
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(index_scale) - kSmiTagShift;
+  const int32_t offset =
+      is_external ? 0 : (Instance::DataOffsetFor(cid) - kHeapObjectTag);
+  if (shift == 0) {
+    add(address, array, Operand(index));
+  } else if (shift < 0) {
+    ASSERT(shift == -1);
+    add(address, array, Operand(index, ASR, 1));
+  } else {
+    add(address, array, Operand(index, LSL, shift));
+  }
+  if (offset != 0) {
+    AddImmediate(address, address, offset);
+  }
+}
+
+
+void Assembler::LoadUnaligned(Register dst,
+                              Register addr,
+                              Register tmp,
+                              OperandSize sz) {
+  ASSERT(dst != addr);
+  ldr(dst, Address(addr, 0), kUnsignedByte);
+  if (sz == kHalfword) {
+    ldr(tmp, Address(addr, 1), kByte);
+    orr(dst, dst, Operand(tmp, LSL, 8));
+    return;
+  }
+  ldr(tmp, Address(addr, 1), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 8));
+  if (sz == kUnsignedHalfword) {
+    return;
+  }
+  ldr(tmp, Address(addr, 2), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 16));
+  if (sz == kWord) {
+    ldr(tmp, Address(addr, 3), kByte);
+    orr(dst, dst, Operand(tmp, LSL, 24));
+    return;
+  }
+  ldr(tmp, Address(addr, 3), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 24));
+  if (sz == kUnsignedWord) {
+    return;
+  }
+  ldr(tmp, Address(addr, 4), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 32));
+  ldr(tmp, Address(addr, 5), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 40));
+  ldr(tmp, Address(addr, 6), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 48));
+  ldr(tmp, Address(addr, 7), kUnsignedByte);
+  orr(dst, dst, Operand(tmp, LSL, 56));
+  if (sz == kDoubleWord) {
+    return;
+  }
+  UNIMPLEMENTED();
+}
+
+
+void Assembler::StoreUnaligned(Register src,
+                               Register addr,
+                               Register tmp,
+                               OperandSize sz) {
+  str(src, Address(addr, 0), kUnsignedByte);
+  LsrImmediate(tmp, src, 8);
+  str(tmp, Address(addr, 1), kUnsignedByte);
+  if ((sz == kHalfword) || (sz == kUnsignedHalfword)) {
+    return;
+  }
+  LsrImmediate(tmp, src, 16);
+  str(tmp, Address(addr, 2), kUnsignedByte);
+  LsrImmediate(tmp, src, 24);
+  str(tmp, Address(addr, 3), kUnsignedByte);
+  if ((sz == kWord) || (sz == kUnsignedWord)) {
+    return;
+  }
+  LsrImmediate(tmp, src, 24);
+  str(tmp, Address(addr, 4), kUnsignedByte);
+  LsrImmediate(tmp, src, 32);
+  str(tmp, Address(addr, 5), kUnsignedByte);
+  LsrImmediate(tmp, src, 40);
+  str(tmp, Address(addr, 6), kUnsignedByte);
+  LsrImmediate(tmp, src, 48);
+  str(tmp, Address(addr, 7), kUnsignedByte);
+  if (sz == kDoubleWord) {
+    return;
+  }
+  UNIMPLEMENTED();
 }
 
 }  // namespace dart

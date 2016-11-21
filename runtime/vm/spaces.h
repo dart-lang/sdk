@@ -12,10 +12,7 @@ namespace dart {
 
 // Usage statistics for a space/generation at a particular moment in time.
 struct SpaceUsage {
-  SpaceUsage()
-    : capacity_in_words(0),
-      used_in_words(0),
-      external_in_words(0) {}
+  SpaceUsage() : capacity_in_words(0), used_in_words(0), external_in_words(0) {}
   intptr_t capacity_in_words;
   intptr_t used_in_words;
   intptr_t external_in_words;

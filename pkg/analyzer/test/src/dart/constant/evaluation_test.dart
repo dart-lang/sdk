@@ -1196,7 +1196,7 @@ const A a = const A();
   }
 
   void _assertProperDependencies(String sourceText,
-      [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
+      [List<ErrorCode> expectedErrorCodes = const <ErrorCode>[]]) {
     Source source = addSource(sourceText);
     LibraryElement element = resolve2(source);
     CompilationUnit unit =

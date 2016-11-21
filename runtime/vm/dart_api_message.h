@@ -50,7 +50,7 @@ class ApiMessageReader : public BaseReader {
   // the enclosing ApiNativeScope.
   ApiMessageReader(const uint8_t* buffer, intptr_t length);
   explicit ApiMessageReader(Message* message);
-  ~ApiMessageReader() { }
+  ~ApiMessageReader() {}
 
   Dart_CObject* ReadMessage();
 
@@ -93,8 +93,8 @@ class ApiMessageReader : public BaseReader {
   // Allocates a Dart_CObject object for string data.
   Dart_CObject* AllocateDartCObjectString(intptr_t length);
   // Allocates a C Dart_CObject object for a typed data.
-  Dart_CObject* AllocateDartCObjectTypedData(
-      Dart_TypedData_Type type, intptr_t length);
+  Dart_CObject* AllocateDartCObjectTypedData(Dart_TypedData_Type type,
+                                             intptr_t length);
   // Allocates a C array of Dart_CObject objects.
   Dart_CObject* AllocateDartCObjectArray(intptr_t length);
   // Allocate a C Dart_CObject object for a VM isolate object.
@@ -137,8 +137,7 @@ class ApiMessageReader : public BaseReader {
   }
 
   Dart_CObject* CreateDartCObjectString(RawObject* raw);
-  Dart_CObject* GetCanonicalMintObject(Dart_CObject_Type type,
-                                       int64_t value64);
+  Dart_CObject* GetCanonicalMintObject(Dart_CObject_Type type, int64_t value64);
 
   uint8_t* allocator(intptr_t size) {
     return zone_->Realloc<uint8_t>(NULL, 0, size);
@@ -160,16 +159,16 @@ class ApiMessageWriter : public BaseWriter {
   static const intptr_t kInitialSize = 512;
   ApiMessageWriter(uint8_t** buffer, ReAlloc alloc)
       : BaseWriter(buffer, alloc, kInitialSize),
-        object_id_(0), forward_list_(NULL),
-        forward_list_length_(0), forward_id_(0) {
+        object_id_(0),
+        forward_list_(NULL),
+        forward_list_length_(0),
+        forward_id_(0) {
     ASSERT(kDartCObjectTypeMask >= Dart_CObject_kNumberOfTypes - 1);
   }
-  ~ApiMessageWriter() {
-    ::free(forward_list_);
-  }
+  ~ApiMessageWriter() { ::free(forward_list_); }
 
   // Writes a message of integers.
-  void WriteMessage(intptr_t field_count, intptr_t *data);
+  void WriteMessage(intptr_t field_count, intptr_t* data);
 
   // Writes a message with a single object.
   bool WriteCMessage(Dart_CObject* object);

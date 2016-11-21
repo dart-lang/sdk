@@ -591,4 +591,28 @@ void main() {
   // Tests skipped from V8:
   // Test that RegExp.prototype.toString() throws TypeError for
   // incompatible receivers (ES5 section 15.10.6 and 15.10.6.4).
+
+  testSticky();
+}
+
+testSticky() {
+  var re = new RegExp(r"foo.bar");
+  Expect.isNotNull(re.matchAsPrefix("foo_bar", 0));
+  Expect.isNull(re.matchAsPrefix("..foo_bar", 0));
+  Expect.isNotNull(re.matchAsPrefix("..foo_bar", 2));
+
+  re = new RegExp(r"^foo");
+  Expect.isNotNull(re.matchAsPrefix("foobar", 0));
+  Expect.isNull(re.matchAsPrefix("..foo", 0));
+  Expect.isNull(re.matchAsPrefix("..foo", 2));
+
+  re = new RegExp(r"^foo", multiLine: true);
+  Expect.isNotNull(re.matchAsPrefix("foobar", 0));
+  Expect.isNull(re.matchAsPrefix("..\nfoo", 0));
+  Expect.isNotNull(re.matchAsPrefix("..\nfoo", 3));
+  Expect.isNull(re.matchAsPrefix("..\nfoofoo", 6));
+
+  re = new RegExp(r"bar$");
+  Expect.isNull(re.matchAsPrefix("foobar", 0));
+  Expect.isNotNull(re.matchAsPrefix("foobar", 3));
 }

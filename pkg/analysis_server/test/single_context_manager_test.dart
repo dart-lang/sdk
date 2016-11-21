@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test/test.dart';
@@ -43,18 +43,18 @@ class SingleContextManagerTest {
       '**/*.${AnalysisEngine.SUFFIX_HTML}',
     ];
     return patterns
-        .map((pattern) => new Glob(posix.separator, pattern))
+        .map((pattern) => new Glob(path.posix.separator, pattern))
         .toList();
   }
 
   String newFile(List<String> pathComponents, [String content = '']) {
-    String filePath = posix.joinAll(pathComponents);
+    String filePath = path.posix.joinAll(pathComponents);
     resourceProvider.newFile(filePath, content);
     return filePath;
   }
 
   String newFolder(List<String> pathComponents) {
-    String folderPath = posix.joinAll(pathComponents);
+    String folderPath = path.posix.joinAll(pathComponents);
     resourceProvider.newFolder(folderPath);
     return folderPath;
   }
@@ -99,7 +99,7 @@ class SingleContextManagerTest {
     resourceProvider.newFolder(root1);
     resourceProvider.newFolder(root2);
     manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
-    expect(manager.isIgnored('$context/root3/file.dart'), isTrue);
+    expect(manager.isIgnored('/context/root3/file.dart'), isTrue);
   }
 
   void test_isInAnalysisRoot_false_inExcludedPath() {
@@ -117,7 +117,7 @@ class SingleContextManagerTest {
     resourceProvider.newFolder(root1);
     resourceProvider.newFolder(root2);
     manager.setRoots(<String>[root1, root2], <String>[], <String, String>{});
-    expect(manager.isInAnalysisRoot('$context/root3/file.dart'), isFalse);
+    expect(manager.isInAnalysisRoot('/context/root3/file.dart'), isFalse);
   }
 
   void test_isInAnalysisRoot_true() {

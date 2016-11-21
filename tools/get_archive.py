@@ -114,7 +114,7 @@ def GetDartiumRevision(name, bot, directory, version_file, latest_pattern,
         None, we return the latest revision. If the revision number is specified
         but unavailable, find the nearest older revision and use that instead.
   """
-  osdict = {'Darwin':'mac', 'Linux':'lucid64', 'Windows':'win'}
+  osdict = {'Darwin':'mac-x64', 'Linux':'linux-x64', 'Windows':'win-ia32'}
 
   def FindPermanentUrl(out, osname, the_revision_num):
     output_lines = out.split()
@@ -318,7 +318,9 @@ def main():
   # Issue 13399 Quick fix, update with channel support.
   bot = 'inc-be'
   if args.debug:
-    bot = 'debug-be'
+    print >>sys.stderr, (
+      'Debug versions of Dartium and content_shell not available')
+    return 1
 
   if positional[0] == 'dartium':
     GetDartiumRevision('Dartium', bot, DARTIUM_DIR, DARTIUM_VERSION,

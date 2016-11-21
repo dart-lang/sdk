@@ -9,9 +9,9 @@
 
 #include "bin/stdio.h"
 
-#include <errno.h>  // NOLINT
+#include <errno.h>      // NOLINT
 #include <sys/ioctl.h>  // NOLINT
-#include <termios.h>  // NOLINT
+#include <termios.h>    // NOLINT
 
 #include "bin/fdutils.h"
 #include "platform/signal_blocker.h"

@@ -4,16 +4,17 @@
 
 library dart2js.kernel.impact_test;
 
-import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/resolution/registry.dart';
+import 'package:compiler/src/resolution/tree_elements.dart';
 import 'package:compiler/src/ssa/kernel_impact.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/universe/call_structure.dart';
@@ -26,6 +27,7 @@ import '../serialization/test_helper.dart';
 const Map<String, String> SOURCE = const <String, String>{
   'main.dart': r'''
 import 'helper.dart';
+import 'dart:html';
 
 main() {
   testEmpty();
@@ -39,6 +41,8 @@ main() {
   testStringInterpolationConst();
   testStringJuxtaposition();
   testSymbol();
+  testTypeLiteral();
+  testBoolFromEnvironment();
   testEmptyListLiteral();
   testEmptyListLiteralDynamic();
   testEmptyListLiteralTyped();
@@ -56,23 +60,26 @@ main() {
   testPostDec(null);
   testPreInc(null);
   testPreDec(null);
-  testIs(null);
-  testIsGeneric(null);
-  testIsGenericRaw(null);
-  testIsGenericDynamic(null);
-  testIsNot(null);
-  testIsNotGeneric(null);
-  testIsNotGenericRaw(null);
-  testIsNotGenericDynamic(null);
-  testIsTypedef(null);
-  testIsTypedefGeneric(null);
-  testIsTypedefGenericRaw(null);
-  testIsTypedefGenericDynamic(null);
-  testAs(null);
-  testAsGeneric(null);
-  testAsGenericRaw(null);
-  testAsGenericDynamic(null);
+  testIs();
+  testIsGeneric();
+  testIsGenericRaw();
+  testIsGenericDynamic();
+  testIsNot();
+  testIsNotGeneric();
+  testIsNotGenericRaw();
+  testIsNotGenericDynamic();
+  testIsTypedef();
+  testIsTypedefGeneric();
+  testIsTypedefGenericRaw();
+  testIsTypedefGenericDynamic();
+  testIsTypedefDeep();
+  testAs();
+  testAsGeneric();
+  testAsGenericRaw();
+  testAsGenericDynamic();
   testThrow();
+  testIfNotNull(null);
+  testIfNotNullSet(null);
   testIfNull(null);
   testSetIfNull(null);
   testSyncStar();
@@ -107,6 +114,7 @@ main() {
   testTopLevelFieldGeneric2();
   testTopLevelFieldGeneric3();
   testTopLevelFieldWrite();
+  testStaticFunctionGet();
   testDynamicInvoke(null);
   testDynamicGet(null);
   testDynamicSet(null);
@@ -143,6 +151,23 @@ main() {
   testFactoryConstructor();
   testDefaultValuesPositional();
   testDefaultValuesNamed();
+  testFieldInitializer1();
+  testFieldInitializer2();
+  testFieldInitializer3();
+  testInstanceFieldWithInitializer();
+  testInstanceFieldTyped();
+  testThisInitializer();
+  testSuperInitializer();
+  testGenericClass();
+  testSuperCall();
+  testSuperGet();
+  testSuperFieldSet();
+  testSuperSetterSet();
+  testSuperClosurization();
+  testForwardingConstructor();
+  testForwardingConstructorTyped();
+  testForwardingConstructorGeneric();
+  testEnum();
 }
 
 testEmpty() {}
@@ -158,6 +183,8 @@ testStringInterpolationConst() {
 }
 testStringJuxtaposition() => 'a' 'b';
 testSymbol() => #main;
+testTypeLiteral() => Object;
+testBoolFromEnvironment() => const bool.fromEnvironment('FOO');
 testEmptyListLiteral() => [];
 testEmptyListLiteralDynamic() => <dynamic>[];
 testEmptyListLiteralTyped() => <String>[];
@@ -176,23 +203,26 @@ testPostDec(o) => o--;
 testPreInc(o) => ++o;
 testPreDec(o) => --o;
 
-testIs(o) => o is Class;
-testIsGeneric(o) => o is GenericClass<int, String>;
-testIsGenericRaw(o) => o is GenericClass;
-testIsGenericDynamic(o) => o is GenericClass<dynamic, dynamic>;
-testIsNot(o) => o is! Class;
-testIsNotGeneric(o) => o is! GenericClass<int, String>;
-testIsNotGenericRaw(o) => o is! GenericClass;
-testIsNotGenericDynamic(o) => o is! GenericClass<dynamic, dynamic>;
-testIsTypedef(o) => o is Typedef;
-testIsTypedefGeneric(o) => o is GenericTypedef<int, String>;
-testIsTypedefGenericRaw(o) => o is GenericTypedef;
-testIsTypedefGenericDynamic(o) => o is GenericTypedef<dynamic, dynamic>;
-testAs(o) => o as Class;
-testAsGeneric(o) => o as GenericClass<int, String>;
-testAsGenericRaw(o) => o as GenericClass;
-testAsGenericDynamic(o) => o as GenericClass<dynamic, dynamic>;
+testIs() => null is Class;
+testIsGeneric() => null is GenericClass<int, String>;
+testIsGenericRaw() => null is GenericClass;
+testIsGenericDynamic() => null is GenericClass<dynamic, dynamic>;
+testIsNot() => null is! Class;
+testIsNotGeneric() => null is! GenericClass<int, String>;
+testIsNotGenericRaw() => null is! GenericClass;
+testIsNotGenericDynamic() => null is! GenericClass<dynamic, dynamic>;
+testIsTypedef() => null is Typedef;
+testIsTypedefGeneric() => null is GenericTypedef<int, String>;
+testIsTypedefGenericRaw() => null is GenericTypedef;
+testIsTypedefGenericDynamic() => null is GenericTypedef<dynamic, dynamic>;
+testIsTypedefDeep() => null is List<GenericTypedef<int, GenericTypedef>>;
+testAs() => null as Class;
+testAsGeneric() => null as GenericClass<int, String>;
+testAsGenericRaw() => null as GenericClass;
+testAsGenericDynamic() => null as GenericClass<dynamic, dynamic>;
 testThrow() => throw '';
+testIfNotNull(o) => o?.foo;
+testIfNotNullSet(o) => o?.foo = 42;
 testIfNull(o) => o ?? 42;
 testSetIfNull(o) => o ??= 42;
 
@@ -244,6 +274,8 @@ testSwitchWithoutFallthrough(o) {
     o = 3;
     return;
   case 3:
+    throw '';
+  case 4:
   default:
   }
 }
@@ -327,6 +359,11 @@ testTopLevelFieldGeneric2() => topLevelFieldGeneric2;
 GenericClass<int, String> topLevelFieldGeneric3;
 testTopLevelFieldGeneric3() => topLevelFieldGeneric3;
 testTopLevelFieldWrite() => topLevelField = 3;
+class StaticFunctionGetClass {
+  static foo() {}
+}
+testStaticFunctionGet() => StaticFunctionGetClass.foo;
+
 testDynamicInvoke(o) {
   o.f1(0);
   o.f2(1);
@@ -433,6 +470,119 @@ class ClassFactoryConstructor {
 testFactoryConstructor() => new ClassFactoryConstructor();
 testDefaultValuesPositional([bool value = false]) {}
 testDefaultValuesNamed({bool value: false}) {}
+
+class ClassFieldInitializer1 {
+  var field;
+  ClassFieldInitializer1(this.field);
+}
+testFieldInitializer1() => new ClassFieldInitializer1(42);
+class ClassFieldInitializer2 {
+  var field;
+  ClassFieldInitializer2(value) : field = value;
+}
+testFieldInitializer2() => new ClassFieldInitializer2(42);
+class ClassFieldInitializer3 {
+  var field;
+  ClassFieldInitializer3.a();
+  ClassFieldInitializer3.b(value) : field = value;
+}
+testFieldInitializer3() {
+  new ClassFieldInitializer3.a();
+  new ClassFieldInitializer3.b(42);
+}
+class ClassInstanceFieldWithInitializer {
+  var field = false;
+}
+testInstanceFieldWithInitializer() => new ClassInstanceFieldWithInitializer();
+class ClassInstanceFieldTyped {
+  int field;
+}
+testInstanceFieldTyped() => new ClassInstanceFieldTyped();
+class ClassGeneric<T> {
+  ClassGeneric(T arg);
+}
+class ClassThisInitializer {
+  ClassThisInitializer() : this.internal();
+  ClassThisInitializer.internal();
+}
+testThisInitializer() => new ClassThisInitializer();
+class ClassSuperInitializer extends ClassThisInitializer {
+  ClassSuperInitializer() : super.internal();
+}
+testSuperInitializer() => new ClassSuperInitializer();
+testGenericClass() => new ClassGeneric<int>(0);
+class Super1 {
+  foo() {}
+}
+class Sub1 extends Super1 {
+  Sub1() {
+    super.foo();
+  }
+}
+testSuperCall() => new Sub1();
+class Super2 {
+  var foo;
+}
+class Sub2 extends Super2 {
+  Sub2() {
+    super.foo;
+  }
+}
+testSuperGet() => new Sub2();
+class Super3 {
+  var foo;
+}
+class Sub3 extends Super3 {
+  Sub3() {
+    super.foo = 42;
+  }
+}
+testSuperFieldSet() => new Sub3();
+class Super4 {
+  set foo(_) {}
+}
+class Sub4 extends Super4 {
+  Sub4() {
+    super.foo = 42;
+  }
+}
+testSuperSetterSet() => new Sub4();
+class Super5 {
+  foo() {}
+}
+class Sub5 extends Super5 {
+  Sub5() {
+    super.foo;
+  }
+}
+testSuperClosurization() => new Sub5();
+
+class EmptyMixin {}
+class ForwardingConstructorSuperClass {
+  ForwardingConstructorSuperClass(arg);
+}
+class ForwardingConstructorClass =
+    ForwardingConstructorSuperClass with EmptyMixin;
+testForwardingConstructor() => new ForwardingConstructorClass(null);
+
+class ForwardingConstructorTypedSuperClass {
+  ForwardingConstructorTypedSuperClass(int arg);
+}
+class ForwardingConstructorTypedClass =
+    ForwardingConstructorTypedSuperClass with EmptyMixin;
+testForwardingConstructorTyped() => new ForwardingConstructorTypedClass(null);
+
+class ForwardingConstructorGenericSuperClass<T> {
+  ForwardingConstructorGenericSuperClass(T arg);
+}
+class ForwardingConstructorGenericClass<S> =
+    ForwardingConstructorGenericSuperClass<S> with EmptyMixin;
+testForwardingConstructorGeneric() {
+  new ForwardingConstructorGenericClass<int>(null);
+}
+
+enum Enum { A }
+testEnum() => Enum.A;
 ''',
   'helper.dart': '''
 class Class {
@@ -464,26 +614,64 @@ main(List<String> args) {
         ]);
     compiler.resolution.retainCachesForTesting = true;
     await compiler.run(entryPoint);
-    checkLibrary(compiler, compiler.mainApp);
+    compiler.libraryLoader.libraries.forEach((LibraryElement library) {
+      checkLibrary(compiler, library, fullTest: args.contains('--full'));
+    });
   });
 }
 
-void checkLibrary(Compiler compiler, LibraryElement library) {
+void checkLibrary(Compiler compiler, LibraryElement library,
+    {bool fullTest: false}) {
   library.forEachLocalMember((AstElement element) {
     if (element.isClass) {
       ClassElement cls = element;
       cls.forEachLocalMember((AstElement member) {
-        checkElement(compiler, member);
+        checkElement(compiler, member, fullTest: fullTest);
       });
     } else if (element.isTypedef) {
       // Skip typedefs.
     } else {
-      checkElement(compiler, element);
+      checkElement(compiler, element, fullTest: fullTest);
     }
   });
 }
 
-void checkElement(Compiler compiler, AstElement element) {
+void checkElement(Compiler compiler, AstElement element,
+    {bool fullTest: false}) {
+  if (!fullTest) {
+    if (element.library.isPlatformLibrary) {
+      // Test only selected elements in web-related platform libraries since
+      // this unittest otherwise takes too long to run.
+      switch (element.library.canonicalUri.path) {
+        case 'html':
+          if ('$element' ==
+              'function(_ValidatingTreeSanitizer#_sanitizeUntrustedElement)') {
+            break;
+          }
+          return;
+        case 'web_gl':
+          if ('$element' ==
+              'function(RenderingContext#getFramebufferAttachmentParameter)') {
+            return;
+          }
+          break;
+        case 'indexed_db':
+          if ('$element' == 'field(ObjectStore#keyPath)') {
+            break;
+          }
+          return;
+        case 'web_audio':
+          return;
+      }
+    }
+  }
+  if (element.isConstructor) {
+    ConstructorElement constructor = element;
+    if (constructor.isRedirectingFactory) {
+      // Skip redirecting constructors for now; they might not be supported.
+      return;
+    }
+  }
   ResolutionImpact astImpact = compiler.resolution.getResolutionImpact(element);
   astImpact = laxImpact(compiler, element, astImpact);
   ResolutionImpact kernelImpact = build(compiler, element.resolvedAst);
@@ -500,13 +688,18 @@ ResolutionImpact laxImpact(
       new ResolutionWorldImpactBuilder('Lax impact of ${element}');
   for (StaticUse staticUse in impact.staticUses) {
     switch (staticUse.kind) {
+      case StaticUseKind.CONSTRUCTOR_INVOKE:
       case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
         ConstructorElement constructor = staticUse.element;
         ConstructorElement effectiveTarget = constructor.effectiveTarget;
         DartType effectiveTargetType =
             constructor.computeEffectiveTargetType(staticUse.type);
-        builder.registerStaticUse(new StaticUse.constConstructorInvoke(
-            effectiveTarget, null, effectiveTargetType));
+        builder.registerStaticUse(
+            staticUse.kind == StaticUseKind.CONST_CONSTRUCTOR_INVOKE
+                ? new StaticUse.constConstructorInvoke(
+                    effectiveTarget.declaration, null, effectiveTargetType)
+                : new StaticUse.typedConstructorInvoke(
+                    effectiveTarget.declaration, null, effectiveTargetType));
         break;
       default:
         builder.registerStaticUse(staticUse);
@@ -515,10 +708,8 @@ ResolutionImpact laxImpact(
   }
   impact.dynamicUses.forEach(builder.registerDynamicUse);
   for (TypeUse typeUse in impact.typeUses) {
-    if (typeUse.type.isTypedef) {
-      typeUse = new TypeUse.internal(typeUse.type.unaliased, typeUse.kind);
-    }
-    builder.registerTypeUse(typeUse);
+    builder.registerTypeUse(
+        new TypeUse.internal(unalias(typeUse.type), typeUse.kind));
   }
   impact.constantLiterals.forEach(builder.registerConstantLiteral);
   impact.constSymbolNames.forEach(builder.registerConstSymbolName);
@@ -526,6 +717,38 @@ ResolutionImpact laxImpact(
   impact.mapLiterals.forEach(builder.registerMapLiteral);
   for (Feature feature in impact.features) {
     switch (feature) {
+      case Feature.FIELD_WITHOUT_INITIALIZER:
+        if (element.isInstanceMember) {
+          bool missing = false;
+          OUTER:
+          for (ConstructorElement constructor
+              in element.enclosingClass.constructors) {
+            if (constructor.isGenerativeConstructor &&
+                !constructor.isRedirectingGenerative) {
+              for (ParameterElement parameter in constructor.parameters) {
+                if (parameter is InitializingFormalElement &&
+                    parameter.fieldElement == element) {
+                  continue OUTER;
+                }
+              }
+              if (constructor.resolvedAst.kind == ResolvedAstKind.PARSED) {
+                var function = constructor.resolvedAst.node;
+                if (function.initializers != null) {
+                  TreeElements elements = constructor.resolvedAst.elements;
+                  for (var initializer in function.initializers) {
+                    if (elements[initializer] == element) {
+                      continue OUTER;
+                    }
+                  }
+                }
+              }
+              missing = true;
+            }
+          }
+          if (!missing) continue;
+        }
+        builder.registerConstantLiteral(new NullConstantExpression());
+        break;
       case Feature.STRING_INTERPOLATION:
       case Feature.STRING_JUXTAPOSITION:
         // These are both converted into a string concatenation in kernel so
@@ -550,4 +773,43 @@ ResolutionImpact laxImpact(
   }
   impact.nativeData.forEach(builder.registerNativeData);
   return builder;
+}
+
+/// Visitor the performers unaliasing of all typedefs nested within a
+/// [DartType].
+class Unaliaser extends BaseDartTypeVisitor<dynamic, DartType> {
+  const Unaliaser();
+
+  @override
+  DartType visit(DartType type, [_]) => type.accept(this, null);
+
+  @override
+  DartType visitType(DartType type, _) => type;
+
+  List<DartType> visitList(List<DartType> types) => types.map(visit).toList();
+
+  @override
+  DartType visitInterfaceType(InterfaceType type, _) {
+    return type.createInstantiation(visitList(type.typeArguments));
+  }
+
+  @override
+  DartType visitTypedefType(TypedefType type, _) {
+    return visit(type.unaliased);
+  }
+
+  @override
+  DartType visitFunctionType(FunctionType type, _) {
+    return new FunctionType.synthesized(
+        visit(type.returnType),
+        visitList(type.parameterTypes),
+        visitList(type.optionalParameterTypes),
+        type.namedParameters,
+        visitList(type.namedParameterTypes));
+  }
+}
+
+/// Perform unaliasing of all typedefs nested within a [DartType].
+DartType unalias(DartType type) {
+  return const Unaliaser().visit(type);
 }

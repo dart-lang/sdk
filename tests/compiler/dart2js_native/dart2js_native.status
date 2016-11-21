@@ -25,11 +25,3 @@ optimization_hints_test: Fail, OK # Test relies on unminified names.
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
 compute_this_script_test: Skip # Issue 17458
-
-[ $compiler == dart2js && $cps_ir ]
-foreign_test: RuntimeError # Expect.equals(expected: <1234567891011>, actual: <1234567891011>) fails.
-native_exception_test: RuntimeError # Issue 24421
-optimization_hints_test: RuntimeError # Please triage this failure.
-
-[ $compiler == dart2js && $cps_ir && $checked ]
-*: Skip # `assert` not implemented, 75% of the tests fail.

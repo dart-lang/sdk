@@ -529,7 +529,7 @@ class CompileTimeErrorCode extends ErrorCode {
           "Constant values from a deferred library can't be used to "
           "initialized a const variable.",
           "Try initializing the variable without referencing members of the "
-          "deferred library, or"
+          "deferred library, or "
           "changing the import to not be deferred.");
 
   /**
@@ -2779,7 +2779,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'NON_TYPE_AS_TYPE_ARGUMENT',
           "The name '{0}' isn't a type so it can't be used as a type argument.",
-          "Try correcting the name to an existing type, or"
+          "Try correcting the name to an existing type, or "
           "defining a type named '{0}'.");
 
   /**
@@ -2859,7 +2859,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_ENUM_CONSTANT',
           "There is no constant named '{0}' in '{1}'.",
-          "Try correcting the name to the name of an existing constant, or"
+          "Try correcting the name to the name of an existing constant, or "
           "defining a constant named '{0}'.");
 
   /**
@@ -2879,7 +2879,7 @@ class StaticTypeWarningCode extends ErrorCode {
           'UNDEFINED_FUNCTION',
           "The function '{0}' isn't defined.",
           "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing function, or"
+          "correcting the name to the name of an existing function, or "
           "defining a funtion named '{0}'.");
 
   /**
@@ -2895,7 +2895,7 @@ class StaticTypeWarningCode extends ErrorCode {
           'UNDEFINED_GETTER',
           "The getter '{0}' isn't defined for the class '{1}'.",
           "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing getter, or"
+          "correcting the name to the name of an existing getter, or "
           "defining a getter or field named '{0}'.");
 
   /**
@@ -2911,7 +2911,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_METHOD',
           "The method '{0}' isn't defined for the class '{1}'.",
-          "Try correcting the name to the name of an existing method, or"
+          "Try correcting the name to the name of an existing method, or "
           "defining a method named '{0}'.");
 
   /**
@@ -2970,7 +2970,7 @@ class StaticTypeWarningCode extends ErrorCode {
           'UNDEFINED_SETTER',
           "The setter '{0}' isn't defined for the class '{1}'.",
           "Try importing the library that defines '{0}', "
-          "correcting the name to the name of an existing setter, or"
+          "correcting the name to the name of an existing setter, or "
           "defining a setter or field named '{0}'.");
 
   /**
@@ -2985,7 +2985,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_SUPER_GETTER',
           "The getter '{0}' isn't defined in a superclass of '{1}'.",
-          "Try correcting the name to the name of an existing getter, or"
+          "Try correcting the name to the name of an existing getter, or "
           "defining a getter or field named '{0}' in a superclass.");
 
   /**
@@ -3003,7 +3003,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_SUPER_METHOD',
           "The method '{0}' isn't defined in a superclass of '{1}'.",
-          "Try correcting the name to the name of an existing method, or"
+          "Try correcting the name to the name of an existing method, or "
           "defining a method named '{0}' in a superclass.");
 
   /**
@@ -3045,7 +3045,7 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'UNDEFINED_SUPER_SETTER',
           "The setter '{0}' isn't defined in a superclass of '{1}'.",
-          "Try correcting the name to the name of an existing setter, or"
+          "Try correcting the name to the name of an existing setter, or "
           "defining a setter or field named '{0}' in a superclass.");
 
   /**
@@ -3082,6 +3082,22 @@ class StaticTypeWarningCode extends ErrorCode {
       const StaticTypeWarningCode(
           'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
           "The type '{0}' is declared with {1} type parameters, "
+          "but {2} type arguments were given.",
+          "Try adjusting the number of type arguments.");
+
+  /**
+   * It will be a static type warning if <i>m</i> is not a generic method with
+   * exactly <i>n</i> type parameters.
+   *
+   * Parameters:
+   * 0: the name of the method being referenced (<i>G</i>)
+   * 1: the number of type parameters that were declared
+   * 2: the number of type arguments provided
+   */
+  static const StaticTypeWarningCode WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD =
+      const StaticTypeWarningCode(
+          'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
+          "The method '{0}' is declared with {1} type parameters, "
           "but {2} type arguments were given.",
           "Try adjusting the number of type arguments.");
 
@@ -4421,6 +4437,19 @@ class StaticWarningCode extends ErrorCode {
           "changing the import to not be deferred.");
 
   /**
+   * Not yet spec'd.
+   *
+   * Parameters:
+   * 0: the name of the generic function's type parameter that is being used in
+   *    an `is` expression
+   */
+  static const StaticWarningCode TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER =
+      const StaticWarningCode(
+          'TYPE_ANNOTATION_GENERIC_FUNCTION_PARAMETER',
+          "The type parameter '{0}' can't be used in a type test.",
+          "Try using a different type.");
+
+  /**
    * 12.31 Type Test: It is a static warning if <i>T</i> does not denote a type
    * available in the current lexical scope.
    */
@@ -4651,10 +4680,12 @@ class StaticWarningCode extends ErrorCode {
  */
 class StrongModeCode extends ErrorCode {
   static const String _implicitCastMessage =
-      "Unsound implicit cast from '{0}' to '{1}'.";
+      "Unsafe implicit cast from '{0}' to '{1}'. "
+      "This usually indicates that type information was lost and resulted in "
+      "'dynamic' and/or a place that will have a failure at runtime.";
 
   static const String _implicitCastCorrection =
-      "Try adding an explicit cast to '{1}'.";
+      "Try adding an explicit cast to '{1}' or improving the type of '{0}'.";
 
   static const String _invalidOverrideMessage =
       "The type of '{0}.{1}' ('{2}') isn't a subtype of '{3}.{1}' ('{4}').";
@@ -4725,10 +4756,50 @@ class StrongModeCode extends ErrorCode {
   static const StrongModeCode INFERRED_TYPE_CLOSURE = const StrongModeCode(
       ErrorType.HINT, 'INFERRED_TYPE_CLOSURE', _inferredTypeMessage);
 
-  static const StrongModeCode STATIC_TYPE_ERROR = const StrongModeCode(
+  static const StrongModeCode INVALID_CAST_LITERAL = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,
-      'STATIC_TYPE_ERROR',
-      "Type check failed: '{0}' ('{1}') isn't of type '{2}'.");
+      'INVALID_CAST_LITERAL',
+      "The literal '{0}' with type '{1}' isn't of expected type '{2}'.");
+
+  static const StrongModeCode INVALID_CAST_LITERAL_LIST = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_CAST_LITERAL_LIST',
+      "The list literal type '{0}' isn't of expected type '{1}'. The list's "
+      "type can be changed with an explicit generic type argument or by "
+      "changing the element types.");
+
+  static const StrongModeCode INVALID_CAST_LITERAL_MAP = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_CAST_LITERAL_MAP',
+      "The map literal type '{0}' isn't of expected type '{1}'. The maps's "
+      "type can be changed with an explicit generic type arguments or by "
+      "changing the key and value types.");
+
+  static const StrongModeCode INVALID_CAST_FUNCTION_EXPR = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_CAST_FUNCTION_EXPR',
+      "The function expression type '{0}' isn't of type '{1}'. "
+      "This means its parameter or return type does not match what is "
+      "expected. Consider changing parameter type(s) or the returned type(s).");
+
+  static const StrongModeCode INVALID_CAST_NEW_EXPR = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_CAST_NEW_EXPR',
+      "The constructor returns type '{0}' that isn't of expected type '{1}'.");
+
+  static const StrongModeCode INVALID_CAST_METHOD = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_CAST_METHOD',
+      "The method tear-off '{0}' has type '{1}' that isn't of expected type "
+      "'{2}'. This means its parameter or return type does not match what is "
+      "expected.");
+
+  static const StrongModeCode INVALID_CAST_FUNCTION = const StrongModeCode(
+      ErrorType.COMPILE_TIME_ERROR,
+      'INVALID_CAST_FUNCTION',
+      "The function '{0}' has type '{1}' that isn't of expected type "
+      "'{2}'. This means its parameter or return type does not match what is "
+      "expected.");
 
   static const StrongModeCode INVALID_SUPER_INVOCATION = const StrongModeCode(
       ErrorType.COMPILE_TIME_ERROR,

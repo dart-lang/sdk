@@ -923,12 +923,6 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   TypeParameterType get type => _type;
 
   @override
-  bool operator ==(obj) =>
-      // TODO(jmesserly): this equality should consider the bound, see:
-      // https://github.com/dart-lang/sdk/issues/27210
-      obj is TypeParameterMember && obj.baseElement == baseElement;
-
-  @override
   accept(ElementVisitor visitor) => visitor.visitTypeParameterElement(this);
 
   /**

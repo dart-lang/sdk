@@ -54,21 +54,17 @@ class UnoptimizedCall : public ValueObject {
 
   bool IsValid() const {
     static int16_t pattern[kCallPatternSize] = {
-      0x49, 0x8b, 0x9f, -1, -1, -1, -1,  // movq RBX, [PP + offs]
-      0x4d, 0x8b, 0xa7, -1, -1, -1, -1,  // movq CR, [PP + offs]
-      0x4d, 0x8b, 0x5c, 0x24, 0x07,      // movq TMP, [CR + entry_point_offs]
-      0x41, 0xff, 0xd3                   // callq TMP
+        0x49, 0x8b, 0x9f, -1,   -1,   -1, -1,  // movq RBX, [PP + offs]
+        0x4d, 0x8b, 0xa7, -1,   -1,   -1, -1,  // movq CR, [PP + offs]
+        0x4d, 0x8b, 0x5c, 0x24, 0x07,  // movq TMP, [CR + entry_point_offs]
+        0x41, 0xff, 0xd3               // callq TMP
     };
     return MatchesPattern(start_, pattern, kCallPatternSize);
   }
 
-  intptr_t argument_index() const {
-    return IndexFromPPLoad(start_ + 3);
-  }
+  intptr_t argument_index() const { return IndexFromPPLoad(start_ + 3); }
 
-  RawObject* ic_data() const {
-    return object_pool_.ObjectAt(argument_index());
-  }
+  RawObject* ic_data() const { return object_pool_.ObjectAt(argument_index()); }
 
   RawCode* target() const {
     intptr_t index = IndexFromPPLoad(start_ + 10);
@@ -95,8 +91,7 @@ class UnoptimizedCall : public ValueObject {
 class NativeCall : public UnoptimizedCall {
  public:
   NativeCall(uword return_address, const Code& code)
-      : UnoptimizedCall(return_address, code) {
-  }
+      : UnoptimizedCall(return_address, code) {}
 
   NativeFunction native_function() const {
     return reinterpret_cast<NativeFunction>(
@@ -104,8 +99,7 @@ class NativeCall : public UnoptimizedCall {
   }
 
   void set_native_function(NativeFunction func) const {
-    object_pool_.SetRawValueAt(argument_index(),
-        reinterpret_cast<uword>(func));
+    object_pool_.SetRawValueAt(argument_index(), reinterpret_cast<uword>(func));
   }
 
  private:
@@ -159,16 +153,14 @@ class PoolPointerCall : public ValueObject {
 
   bool IsValid() const {
     static int16_t pattern[kCallPatternSize] = {
-      0x4d, 0x8b, 0xa7,   -1,   -1, -1, -1,  // movq CR, [PP + offs]
-      0x4d, 0x8b, 0x5c, 0x24, 0x07,          // movq TMP, [CR + entry_point_off]
-      0x41, 0xff, 0xd3                       // callq TMP
+        0x4d, 0x8b, 0xa7, -1,   -1,   -1, -1,  // movq CR, [PP + offs]
+        0x4d, 0x8b, 0x5c, 0x24, 0x07,  // movq TMP, [CR + entry_point_off]
+        0x41, 0xff, 0xd3               // callq TMP
     };
     return MatchesPattern(start_, pattern, kCallPatternSize);
   }
 
-  intptr_t pp_index() const {
-    return IndexFromPPLoad(start_ + 3);
-  }
+  intptr_t pp_index() const { return IndexFromPPLoad(start_ + 3); }
 
   RawCode* Target() const {
     Code& code = Code::Handle();
@@ -207,25 +199,19 @@ class SwitchableCall : public ValueObject {
 
   bool IsValid() const {
     static int16_t pattern[kCallPatternSize] = {
-      0x4d, 0x8b, 0xa7, -1, -1, -1, -1,  // movq r12, [PP + code_offs]
-      0x49, 0x8b, 0x4c, 0x24, 0x0f,      // movq rcx, [r12 + entrypoint_off]
-      0x49, 0x8b, 0x9f, -1, -1, -1, -1,  // movq rbx, [PP + cache_offs]
-      0xff, 0xd1,                        // call rcx
+        0x4d, 0x8b, 0xa7, -1,   -1,   -1, -1,  // movq r12, [PP + code_offs]
+        0x49, 0x8b, 0x4c, 0x24, 0x0f,  // movq rcx, [r12 + entrypoint_off]
+        0x49, 0x8b, 0x9f, -1,   -1,   -1, -1,  // movq rbx, [PP + cache_offs]
+        0xff, 0xd1,                            // call rcx
     };
     ASSERT(ARRAY_SIZE(pattern) == kCallPatternSize);
     return MatchesPattern(start_, pattern, kCallPatternSize);
   }
 
-  intptr_t data_index() const {
-    return IndexFromPPLoad(start_ + 15);
-  }
-  intptr_t target_index() const {
-    return IndexFromPPLoad(start_ + 3);
-  }
+  intptr_t data_index() const { return IndexFromPPLoad(start_ + 15); }
+  intptr_t target_index() const { return IndexFromPPLoad(start_ + 3); }
 
-  RawObject* data() const {
-    return object_pool_.ObjectAt(data_index());
-  }
+  RawObject* data() const { return object_pool_.ObjectAt(data_index()); }
   RawCode* target() const {
     return reinterpret_cast<RawCode*>(object_pool_.ObjectAt(target_index()));
   }
@@ -249,7 +235,6 @@ class SwitchableCall : public ValueObject {
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(SwitchableCall);
 };
-
 
 
 RawCode* CodePatcher::GetStaticCallTargetAt(uword return_address,
@@ -298,8 +283,9 @@ void CodePatcher::InsertDeoptimizationCallAt(uword start) {
 }
 
 
-RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(
-    uword return_address, const Code& code, ICData* ic_data_result) {
+RawFunction* CodePatcher::GetUnoptimizedStaticCallAt(uword return_address,
+                                                     const Code& code,
+                                                     ICData* ic_data_result) {
   ASSERT(code.ContainsInstructionAt(return_address));
   UnoptimizedStaticCall static_call(return_address, code);
   ICData& ic_data = ICData::Handle();

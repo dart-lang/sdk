@@ -30,10 +30,10 @@ class TestGraphVisitor;
 
 // A class to collect the exits from an inlined function during graph
 // construction so they can be plugged into the caller's flow graph.
-class InlineExitCollector: public ZoneAllocated {
+class InlineExitCollector : public ZoneAllocated {
  public:
   InlineExitCollector(FlowGraph* caller_graph, Definition* call)
-      : caller_graph_(caller_graph), call_(call), exits_(4) { }
+      : caller_graph_(caller_graph), call_(call), exits_(4) {}
 
   void AddExit(ReturnInstr* exit);
 
@@ -70,13 +70,9 @@ class InlineExitCollector: public ZoneAllocated {
     return ReturnAt(i)->previous();
   }
 
-  Value* ValueAt(intptr_t i) const {
-    return ReturnAt(i)->value();
-  }
+  Value* ValueAt(intptr_t i) const { return ReturnAt(i)->value(); }
 
-  ReturnInstr* ReturnAt(intptr_t i) const {
-    return exits_[i].exit_return;
-  }
+  ReturnInstr* ReturnAt(intptr_t i) const { return exits_[i].exit_return; }
 
   static int LowestBlockIdFirst(const Data* a, const Data* b);
   void SortExits();
@@ -140,19 +136,11 @@ class FlowGraphBuilder : public ValueObject {
 
   void AddCatchEntry(CatchBlockEntryInstr* entry);
 
-  GraphEntryInstr* graph_entry() const {
-    return graph_entry_;
-  }
+  GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
-  intptr_t num_copied_params() const {
-    return num_copied_params_;
-  }
-  intptr_t num_non_copied_params() const {
-    return num_non_copied_params_;
-  }
-  intptr_t num_stack_locals() const {
-    return num_stack_locals_;
-  }
+  intptr_t num_copied_params() const { return num_copied_params_; }
+  intptr_t num_non_copied_params() const { return num_non_copied_params_; }
+  intptr_t num_stack_locals() const { return num_stack_locals_; }
 
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
@@ -241,9 +229,7 @@ class FlowGraphBuilder : public ValueObject {
 class EffectGraphVisitor : public AstNodeVisitor {
  public:
   explicit EffectGraphVisitor(FlowGraphBuilder* owner)
-      : owner_(owner),
-        entry_(NULL),
-        exit_(NULL) { }
+      : owner_(owner), entry_(NULL), exit_(NULL) {}
 
 #define DECLARE_VISIT(BaseName)                                                \
   virtual void Visit##BaseName##Node(BaseName##Node* node);
@@ -309,19 +295,16 @@ class EffectGraphVisitor : public AstNodeVisitor {
                               TokenPosition token_pos);
   Definition* BuildLoadLocal(const LocalVariable& local,
                              TokenPosition token_pos);
-  LoadLocalInstr* BuildLoadThisVar(LocalScope* scope,
-                                   TokenPosition token_pos);
-  LoadFieldInstr* BuildNativeGetter(
-      NativeBodyNode* node,
-      MethodRecognizer::Kind kind,
-      intptr_t offset,
-      const Type& type,
-      intptr_t class_id);
+  LoadLocalInstr* BuildLoadThisVar(LocalScope* scope, TokenPosition token_pos);
+  LoadFieldInstr* BuildNativeGetter(NativeBodyNode* node,
+                                    MethodRecognizer::Kind kind,
+                                    intptr_t offset,
+                                    const Type& type,
+                                    intptr_t class_id);
   // Assumes setter parameter is named 'value'. Returns null constant.
-  ConstantInstr* DoNativeSetterStoreValue(
-      NativeBodyNode* node,
-      intptr_t offset,
-      StoreBarrierType emit_store_barrier);
+  ConstantInstr* DoNativeSetterStoreValue(NativeBodyNode* node,
+                                          intptr_t offset,
+                                          StoreBarrierType emit_store_barrier);
 
   // Helpers for translating parts of the AST.
   void BuildPushArguments(const ArgumentListNode& node,
@@ -330,9 +313,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Creates an instantiated type argument vector used in preparation of an
   // allocation call.
   // May be called only if allocating an object of a parameterized class.
-  Value* BuildInstantiatedTypeArguments(
-      TokenPosition token_pos,
-      const TypeArguments& type_arguments);
+  Value* BuildInstantiatedTypeArguments(TokenPosition token_pos,
+                                        const TypeArguments& type_arguments);
 
   void BuildTypecheckPushArguments(
       TokenPosition token_pos,
@@ -394,8 +376,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildConstructorCall(ConstructorCallNode* node,
                             PushArgumentInstr* alloc_value);
 
-  void BuildSaveContext(const LocalVariable& variable,
-                        TokenPosition token_pos);
+  void BuildSaveContext(const LocalVariable& variable, TokenPosition token_pos);
   void BuildRestoreContext(const LocalVariable& variable,
                            TokenPosition token_pos);
 
@@ -452,9 +433,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   friend class TempLocalScope;  // For ReturnDefinition.
 
   // Helper to drop the result value.
-  virtual void ReturnValue(Value* value) {
-    Do(new DropTempsInstr(0, value));
-  }
+  virtual void ReturnValue(Value* value) { Do(new DropTempsInstr(0, value)); }
 
   // Specify a definition of the final result.  Adds the definition to
   // the graph, but normally overridden in subclasses.
@@ -483,7 +462,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
 class ValueGraphVisitor : public EffectGraphVisitor {
  public:
   explicit ValueGraphVisitor(FlowGraphBuilder* owner)
-      : EffectGraphVisitor(owner), value_(NULL) { }
+      : EffectGraphVisitor(owner), value_(NULL) {}
 
   // Visit functions overridden by this class.
   virtual void VisitAssignableNode(AssignableNode* node);
@@ -540,12 +519,11 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 // condition of the test is of type bool.
 class TestGraphVisitor : public ValueGraphVisitor {
  public:
-  TestGraphVisitor(FlowGraphBuilder* owner,
-                   TokenPosition condition_token_pos)
+  TestGraphVisitor(FlowGraphBuilder* owner, TokenPosition condition_token_pos)
       : ValueGraphVisitor(owner),
         true_successor_addresses_(1),
         false_successor_addresses_(1),
-        condition_token_pos_(condition_token_pos) { }
+        condition_token_pos_(condition_token_pos) {}
 
   void IfFalseGoto(JoinEntryInstr* join) const;
   void IfTrueGoto(JoinEntryInstr* join) const;
@@ -570,11 +548,10 @@ class TestGraphVisitor : public ValueGraphVisitor {
   void MergeBranchWithNegate(BooleanNegateInstr* comp);
 
   BlockEntryInstr* CreateSuccessorFor(
-    const GrowableArray<TargetEntryInstr**>& branches) const;
+      const GrowableArray<TargetEntryInstr**>& branches) const;
 
-  void ConnectBranchesTo(
-    const GrowableArray<TargetEntryInstr**>& branches,
-    JoinEntryInstr* join) const;
+  void ConnectBranchesTo(const GrowableArray<TargetEntryInstr**>& branches,
+                         JoinEntryInstr* join) const;
 
   // Output parameters.
   GrowableArray<TargetEntryInstr**> true_successor_addresses_;

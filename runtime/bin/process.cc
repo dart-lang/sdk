@@ -39,8 +39,8 @@ static char** ExtractCStringList(Dart_Handle strings,
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
-    result = DartUtils::SetStringField(
-        status_handle, "_errorMessage", "Max argument list length exceeded");
+    result = DartUtils::SetStringField(status_handle, "_errorMessage",
+                                       "Max argument list length exceeded");
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
@@ -48,8 +48,8 @@ static char** ExtractCStringList(Dart_Handle strings,
   }
   *length = len;
   char** string_args;
-  string_args = reinterpret_cast<char**>(
-      Dart_ScopeAllocate(len * sizeof(*string_args)));
+  string_args =
+      reinterpret_cast<char**>(Dart_ScopeAllocate(len * sizeof(*string_args)));
   for (int i = 0; i < len; i++) {
     Dart_Handle arg = Dart_ListGetAt(strings, i);
     if (Dart_IsError(arg)) {
@@ -60,20 +60,20 @@ static char** ExtractCStringList(Dart_Handle strings,
       if (Dart_IsError(result)) {
         Dart_PropagateError(result);
       }
-      result = DartUtils::SetStringField(
-          status_handle, "_errorMessage", error_msg);
+      result =
+          DartUtils::SetStringField(status_handle, "_errorMessage", error_msg);
       if (Dart_IsError(result)) {
         Dart_PropagateError(result);
       }
       return NULL;
     }
-    string_args[i] = const_cast<char *>(DartUtils::GetStringValue(arg));
+    string_args[i] = const_cast<char*>(DartUtils::GetStringValue(arg));
   }
   return string_args;
 }
 
 void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
-  Dart_Handle process =  Dart_GetNativeArgument(args, 0);
+  Dart_Handle process = Dart_GetNativeArgument(args, 0);
   intptr_t process_stdin;
   intptr_t process_stdout;
   intptr_t process_stderr;
@@ -89,8 +89,8 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
-    result = DartUtils::SetStringField(
-        status_handle, "_errorMessage", "Path must be a builtin string");
+    result = DartUtils::SetStringField(status_handle, "_errorMessage",
+                                       "Path must be a builtin string");
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
@@ -101,10 +101,8 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_Handle arguments = Dart_GetNativeArgument(args, 2);
   intptr_t args_length = 0;
   char** string_args =
-      ExtractCStringList(arguments,
-                         status_handle,
-                         "Arguments must be builtin strings",
-                         &args_length);
+      ExtractCStringList(arguments, status_handle,
+                         "Arguments must be builtin strings", &args_length);
   if (string_args == NULL) {
     Dart_SetReturnValue(args, Dart_NewBoolean(false));
     return;
@@ -119,9 +117,9 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
-    result = DartUtils::SetStringField(
-        status_handle, "_errorMessage",
-        "WorkingDirectory must be a builtin string");
+    result =
+        DartUtils::SetStringField(status_handle, "_errorMessage",
+                                  "WorkingDirectory must be a builtin string");
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
@@ -132,11 +130,9 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   intptr_t environment_length = 0;
   char** string_environment = NULL;
   if (!Dart_IsNull(environment)) {
-    string_environment =
-        ExtractCStringList(environment,
-                           status_handle,
-                           "Environment values must be builtin strings",
-                           &environment_length);
+    string_environment = ExtractCStringList(
+        environment, status_handle,
+        "Environment values must be builtin strings", &environment_length);
     if (string_environment == NULL) {
       Dart_SetReturnValue(args, Dart_NewBoolean(false));
       return;
@@ -151,19 +147,10 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   intptr_t pid = -1;
   char* os_error_message = NULL;  // Scope allocated by Process::Start.
 
-  int error_code = Process::Start(path,
-                                  string_args,
-                                  args_length,
-                                  working_directory,
-                                  string_environment,
-                                  environment_length,
-                                  static_cast<ProcessStartMode>(mode),
-                                  &process_stdout,
-                                  &process_stdin,
-                                  &process_stderr,
-                                  &pid,
-                                  &exit_event,
-                                  &os_error_message);
+  int error_code = Process::Start(
+      path, string_args, args_length, working_directory, string_environment,
+      environment_length, static_cast<ProcessStartMode>(mode), &process_stdout,
+      &process_stdin, &process_stderr, &pid, &exit_event, &os_error_message);
   if (error_code == 0) {
     if (mode != kDetached) {
       Socket::SetSocketIdNativeField(stdin_handle, process_stdin);
@@ -175,16 +162,15 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
     }
     Process::SetProcessIdNativeField(process, pid);
   } else {
-    result = DartUtils::SetIntegerField(
-        status_handle, "_errorCode", error_code);
+    result =
+        DartUtils::SetIntegerField(status_handle, "_errorCode", error_code);
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
-    result = DartUtils::SetStringField(
-        status_handle,
-        "_errorMessage",
-        os_error_message != NULL ? os_error_message
-                                 : "Cannot get error message");
+    result = DartUtils::SetStringField(status_handle, "_errorMessage",
+                                       os_error_message != NULL
+                                           ? os_error_message
+                                           : "Cannot get error message");
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);
     }
@@ -194,7 +180,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
-  Dart_Handle process =  Dart_GetNativeArgument(args, 0);
+  Dart_Handle process = Dart_GetNativeArgument(args, 0);
   intptr_t process_stdin =
       Socket::GetSocketIdNativeField(Dart_GetNativeArgument(args, 1));
   intptr_t process_stdout =
@@ -206,12 +192,8 @@ void FUNCTION_NAME(Process_Wait)(Dart_NativeArguments args) {
   ProcessResult result;
   intptr_t pid;
   Process::GetProcessIdNativeField(process, &pid);
-  if (Process::Wait(pid,
-                    process_stdin,
-                    process_stdout,
-                    process_stderr,
-                    exit_event,
-                    &result)) {
+  if (Process::Wait(pid, process_stdin, process_stdout, process_stderr,
+                    exit_event, &result)) {
     Dart_Handle out = result.stdout_data();
     if (Dart_IsError(out)) {
       Dart_PropagateError(out);
@@ -246,11 +228,7 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   int64_t status = 0;
   // Ignore result if passing invalid argument and just exit 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  if (isolate_data->exit_hook() != NULL) {
-    isolate_data->exit_hook()(status);
-  }
+  Process::RunExitHook(status);
   Dart_ExitIsolate();
   Platform::Exit(static_cast<int>(status));
 }
@@ -334,14 +312,13 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
     Dart_PropagateError(result);
   }
   intptr_t len;
-  char* str = StringUtils::ConsoleStringToUtf8(
-      reinterpret_cast<char*>(buffer), bytes_length, &len);
+  char* str = StringUtils::ConsoleStringToUtf8(reinterpret_cast<char*>(buffer),
+                                               bytes_length, &len);
   if (str == NULL) {
     Dart_ThrowException(
         DartUtils::NewInternalError("SystemEncodingToString failed"));
   }
-  result =
-      Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str), len);
+  result = Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str), len);
   Dart_SetReturnValue(args, result);
 }
 
@@ -350,8 +327,8 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
   char* utf8;
   intptr_t utf8_len;
-  Dart_Handle result = Dart_StringToUTF8(
-      str, reinterpret_cast<uint8_t **>(&utf8), &utf8_len);
+  Dart_Handle result =
+      Dart_StringToUTF8(str, reinterpret_cast<uint8_t**>(&utf8), &utf8_len);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }

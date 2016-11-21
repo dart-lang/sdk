@@ -10,16 +10,16 @@
 namespace dart {
 
 enum Register {
-  R0  =  0,
-  R1  =  1,
-  R2  =  2,
-  R3  =  3,
-  R4  =  4,
-  R5  =  5,
-  R6  =  6,
-  R7  =  7,
-  R8  =  8,
-  R9  =  9,
+  R0 = 0,
+  R1 = 1,
+  R2 = 2,
+  R3 = 3,
+  R4 = 4,
+  R5 = 5,
+  R6 = 6,
+  R7 = 7,
+  R8 = 8,
+  R9 = 9,
   R10 = 10,
   R11 = 11,
   R12 = 12,
@@ -60,16 +60,16 @@ enum Register {
 
 
 enum VRegister {
-  V0  =  0,
-  V1  =  1,
-  V2  =  2,
-  V3  =  3,
-  V4  =  4,
-  V5  =  5,
-  V6  =  6,
-  V7  =  7,
-  V8  =  8,
-  V9  =  9,
+  V0 = 0,
+  V1 = 1,
+  V2 = 2,
+  V3 = 3,
+  V4 = 4,
+  V5 = 5,
+  V6 = 6,
+  V7 = 7,
+  V8 = 8,
+  V9 = 9,
   V10 = 10,
   V11 = 11,
   V12 = 12,
@@ -109,14 +109,14 @@ const FpuRegister kNoFpuRegister = kNoVRegister;
 const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
 const Register CTX = R28;  // Location of current context at method entry.
-const Register PP = R27;  // Caches object pool pointer in generated code.
+const Register PP = R27;   // Caches object pool pointer in generated code.
 const Register CODE_REG = R24;
-const Register FPREG = FP;  // Frame pointer register.
-const Register SPREG = R15;  // Stack pointer register.
-const Register LRREG = LR;  // Link register.
-const Register ICREG = R5;  // IC data register.
+const Register FPREG = FP;          // Frame pointer register.
+const Register SPREG = R15;         // Stack pointer register.
+const Register LRREG = LR;          // Link register.
+const Register ICREG = R5;          // IC data register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
-const Register THR = R26;  // Caches current thread in generated code.
+const Register THR = R26;           // Caches current thread in generated code.
 const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
 
@@ -140,13 +140,12 @@ const RegList kAllCpuRegistersList = 0xFFFF;
 
 
 // C++ ABI call registers.
-const RegList kAbiArgumentCpuRegs =
-    (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3) |
-    (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7);
+const RegList kAbiArgumentCpuRegs = (1 << R0) | (1 << R1) | (1 << R2) |
+                                    (1 << R3) | (1 << R4) | (1 << R5) |
+                                    (1 << R6) | (1 << R7);
 const RegList kAbiPreservedCpuRegs =
-    (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
-    (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) |
-    (1 << R27) | (1 << R28);
+    (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) | (1 << R23) |
+    (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) | (1 << R28);
 const Register kAbiFirstPreservedCpuReg = R19;
 const Register kAbiLastPreservedCpuReg = R28;
 const int kAbiPreservedCpuRegCount = 10;
@@ -156,16 +155,10 @@ const int kAbiPreservedFpuRegCount = 8;
 
 const intptr_t kReservedCpuRegisters =
     (1 << SPREG) |  // Dart SP
-    (1 << FPREG) |
-    (1 << TMP)   |
-    (1 << TMP2)  |
-    (1 << PP)    |
-    (1 << THR)   |
-    (1 << LR)    |
-    (1 << R31)   |  // C++ SP
-    (1 << CTX)   |
-    (1 << R18);     // iOS platform register.
-                    // TODO(rmacnak): Only reserve on Mac & iOS.
+    (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
+    (1 << LR) | (1 << R31) |  // C++ SP
+    (1 << CTX) | (1 << R18);  // iOS platform register.
+                              // TODO(rmacnak): Only reserve on Mac & iOS.
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -184,16 +177,16 @@ static inline Register ConcreteRegister(Register r) {
 // Values for the condition field as defined in section A3.2.
 enum Condition {
   kNoCondition = -1,
-  EQ =  0,  // equal
-  NE =  1,  // not equal
-  CS =  2,  // carry set/unsigned higher or same
-  CC =  3,  // carry clear/unsigned lower
-  MI =  4,  // minus/negative
-  PL =  5,  // plus/positive or zero
-  VS =  6,  // overflow
-  VC =  7,  // no overflow
-  HI =  8,  // unsigned higher
-  LS =  9,  // unsigned lower or same
+  EQ = 0,   // equal
+  NE = 1,   // not equal
+  CS = 2,   // carry set/unsigned higher or same
+  CC = 3,   // carry clear/unsigned lower
+  MI = 4,   // minus/negative
+  PL = 5,   // plus/positive or zero
+  VS = 6,   // overflow
+  VC = 7,   // no overflow
+  HI = 8,   // unsigned higher
+  LS = 9,   // unsigned lower or same
   GE = 10,  // signed greater than or equal
   LT = 11,  // signed less than
   GT = 12,  // signed greater than
@@ -209,14 +202,38 @@ static inline Condition InvertCondition(Condition c) {
 }
 
 enum Bits {
-  B0  =  (1 << 0), B1  =  (1 << 1), B2  =  (1 << 2), B3  =  (1 << 3),
-  B4  =  (1 << 4), B5  =  (1 << 5), B6  =  (1 << 6), B7  =  (1 << 7),
-  B8  =  (1 << 8), B9  =  (1 << 9), B10 = (1 << 10), B11 = (1 << 11),
-  B12 = (1 << 12), B13 = (1 << 13), B14 = (1 << 14), B15 = (1 << 15),
-  B16 = (1 << 16), B17 = (1 << 17), B18 = (1 << 18), B19 = (1 << 19),
-  B20 = (1 << 20), B21 = (1 << 21), B22 = (1 << 22), B23 = (1 << 23),
-  B24 = (1 << 24), B25 = (1 << 25), B26 = (1 << 26), B27 = (1 << 27),
-  B28 = (1 << 28), B29 = (1 << 29), B30 = (1 << 30), B31 = (1 << 31),
+  B0 = (1 << 0),
+  B1 = (1 << 1),
+  B2 = (1 << 2),
+  B3 = (1 << 3),
+  B4 = (1 << 4),
+  B5 = (1 << 5),
+  B6 = (1 << 6),
+  B7 = (1 << 7),
+  B8 = (1 << 8),
+  B9 = (1 << 9),
+  B10 = (1 << 10),
+  B11 = (1 << 11),
+  B12 = (1 << 12),
+  B13 = (1 << 13),
+  B14 = (1 << 14),
+  B15 = (1 << 15),
+  B16 = (1 << 16),
+  B17 = (1 << 17),
+  B18 = (1 << 18),
+  B19 = (1 << 19),
+  B20 = (1 << 20),
+  B21 = (1 << 21),
+  B22 = (1 << 22),
+  B23 = (1 << 23),
+  B24 = (1 << 24),
+  B25 = (1 << 25),
+  B26 = (1 << 26),
+  B27 = (1 << 27),
+  B28 = (1 << 28),
+  B29 = (1 << 29),
+  B30 = (1 << 30),
+  B31 = (1 << 31),
 };
 
 enum OperandSize {
@@ -331,8 +348,11 @@ enum SystemOp {
   SystemMask = 0xffc00000,
   SystemFixed = CompareBranchFixed | B31 | B30 | B24,
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
-  CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 |
-      B6 | B4 | B3 | B2 | B1 | B0,
+  CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 | B6 | B4 |
+          B3 |
+          B2 |
+          B1 |
+          B0,
 };
 
 // C3.2.5
@@ -554,8 +574,8 @@ enum SIMDTwoRegOp {
   VABSD = SIMDTwoRegFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
   VNEGD = SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B15 | B14 | B13 | B12,
   VSQRTS = SIMDTwoRegFixed | B30 | B29 | B23 | B16 | B15 | B14 | B13 | B12,
-  VSQRTD = SIMDTwoRegFixed | B30 | B29 | B23 | B22
-                           | B16 | B15 | B14 | B13 | B12,
+  VSQRTD =
+      SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B16 | B15 | B14 | B13 | B12,
   VRECPES = SIMDTwoRegFixed | B30 | B23 | B16 | B15 | B14 | B12,
   VRSQRTES = SIMDTwoRegFixed | B30 | B29 | B23 | B16 | B15 | B14 | B12,
 };
@@ -605,48 +625,48 @@ enum FPIntCvtOp {
   FMOVRD = FPIntCvtFixed | B22 | B18 | B17,
   FMOVDR = FPIntCvtFixed | B22 | B18 | B17 | B16,
   FCVTZDS = FPIntCvtFixed | B22 | B20 | B19,
-  SCVTFD = FPIntCvtFixed |  B22 | B17,
+  SCVTFD = FPIntCvtFixed | B22 | B17,
 };
 
 
 #define APPLY_OP_LIST(_V)                                                      \
-_V(DPImmediate)                                                                \
-_V(CompareBranch)                                                              \
-_V(LoadStore)                                                                  \
-_V(DPRegister)                                                                 \
-_V(DPSimd1)                                                                    \
-_V(DPSimd2)                                                                    \
-_V(FP)                                                                         \
-_V(CompareAndBranch)                                                           \
-_V(ConditionalBranch)                                                          \
-_V(ExceptionGen)                                                               \
-_V(System)                                                                     \
-_V(TestAndBranch)                                                              \
-_V(UnconditionalBranch)                                                        \
-_V(UnconditionalBranchReg)                                                     \
-_V(LoadStoreReg)                                                               \
-_V(LoadStoreRegPair)                                                           \
-_V(LoadRegLiteral)                                                             \
-_V(LoadStoreExclusive)                                                         \
-_V(AddSubImm)                                                                  \
-_V(LogicalImm)                                                                 \
-_V(MoveWide)                                                                   \
-_V(PCRel)                                                                      \
-_V(AddSubShiftExt)                                                             \
-_V(AddSubWithCarry)                                                            \
-_V(ConditionalSelect)                                                          \
-_V(MiscDP1Source)                                                              \
-_V(MiscDP2Source)                                                              \
-_V(MiscDP3Source)                                                              \
-_V(LogicalShift)                                                               \
-_V(SIMDCopy)                                                                   \
-_V(SIMDThreeSame)                                                              \
-_V(SIMDTwoReg)                                                                 \
-_V(FPCompare)                                                                  \
-_V(FPOneSource)                                                                \
-_V(FPTwoSource)                                                                \
-_V(FPImm)                                                                      \
-_V(FPIntCvt)                                                                   \
+  _V(DPImmediate)                                                              \
+  _V(CompareBranch)                                                            \
+  _V(LoadStore)                                                                \
+  _V(DPRegister)                                                               \
+  _V(DPSimd1)                                                                  \
+  _V(DPSimd2)                                                                  \
+  _V(FP)                                                                       \
+  _V(CompareAndBranch)                                                         \
+  _V(ConditionalBranch)                                                        \
+  _V(ExceptionGen)                                                             \
+  _V(System)                                                                   \
+  _V(TestAndBranch)                                                            \
+  _V(UnconditionalBranch)                                                      \
+  _V(UnconditionalBranchReg)                                                   \
+  _V(LoadStoreReg)                                                             \
+  _V(LoadStoreRegPair)                                                         \
+  _V(LoadRegLiteral)                                                           \
+  _V(LoadStoreExclusive)                                                       \
+  _V(AddSubImm)                                                                \
+  _V(LogicalImm)                                                               \
+  _V(MoveWide)                                                                 \
+  _V(PCRel)                                                                    \
+  _V(AddSubShiftExt)                                                           \
+  _V(AddSubWithCarry)                                                          \
+  _V(ConditionalSelect)                                                        \
+  _V(MiscDP1Source)                                                            \
+  _V(MiscDP2Source)                                                            \
+  _V(MiscDP3Source)                                                            \
+  _V(LogicalShift)                                                             \
+  _V(SIMDCopy)                                                                 \
+  _V(SIMDThreeSame)                                                            \
+  _V(SIMDTwoReg)                                                               \
+  _V(FPCompare)                                                                \
+  _V(FPOneSource)                                                              \
+  _V(FPTwoSource)                                                              \
+  _V(FPImm)                                                                    \
+  _V(FPIntCvt)
 
 
 enum Shift {
@@ -785,16 +805,18 @@ enum InstructionFields {
 
 
 // Helper functions for decoding logical immediates.
-static inline uint64_t RotateRight(
-    uint64_t value, uint8_t rotate, uint8_t width) {
+static inline uint64_t RotateRight(uint64_t value,
+                                   uint8_t rotate,
+                                   uint8_t width) {
   ASSERT(width <= 64);
   rotate &= 63;
   return ((value & ((1UL << rotate) - 1UL)) << (width - rotate)) |
          (value >> rotate);
 }
 
-static inline uint64_t RepeatBitsAcrossReg(
-    uint8_t reg_size, uint64_t value, uint8_t width) {
+static inline uint64_t RepeatBitsAcrossReg(uint8_t reg_size,
+                                           uint64_t value,
+                                           uint8_t width) {
   ASSERT((width == 2) || (width == 4) || (width == 8) || (width == 16) ||
          (width == 32));
   ASSERT((reg_size == kWRegSizeInBits) || (reg_size == kXRegSizeInBits));
@@ -818,17 +840,13 @@ static inline uint64_t RepeatBitsAcrossReg(
 //
 class Instr {
  public:
-  enum {
-    kInstrSize = 4,
-    kInstrSizeLog2 = 2,
-    kPCReadOffset = 8
-  };
+  enum { kInstrSize = 4, kInstrSizeLog2 = 2, kPCReadOffset = 8 };
 
   static const int32_t kNopInstruction = HINT;  // hint #0 === nop.
 
   // Reserved brk and hlt instruction codes.
-  static const int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
-  static const int32_t kStopMessageCode = 0xdeb1;  // For Stop(message).
+  static const int32_t kBreakPointCode = 0xdeb0;      // For breakpoint.
+  static const int32_t kStopMessageCode = 0xdeb1;     // For Stop(message).
   static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
   static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
@@ -847,9 +865,7 @@ class Instr {
       HLT | (kSimulatorRedirectCode << kImm16Shift);
 
   // Read one particular bit out of the instruction bits.
-  inline int Bit(int nr) const {
-    return (InstructionBits() >> nr) & 1;
-  }
+  inline int Bit(int nr) const { return (InstructionBits() >> nr) & 1; }
 
   // Read a bit field out of the instruction bits.
   inline int Bits(int shift, int count) const {
@@ -866,23 +882,22 @@ class Instr {
     *reinterpret_cast<int32_t*>(this) = value;
   }
 
-  inline void SetMoveWideBits(
-      MoveWideOp op, Register rd, uint16_t imm, int hw, OperandSize sz) {
+  inline void SetMoveWideBits(MoveWideOp op,
+                              Register rd,
+                              uint16_t imm,
+                              int hw,
+                              OperandSize sz) {
     ASSERT((hw >= 0) && (hw <= 3));
     ASSERT((sz == kDoubleWord) || (sz == kWord));
     const int32_t size = (sz == kDoubleWord) ? B31 : 0;
-    SetInstructionBits(
-        op | size |
-        (static_cast<int32_t>(rd) << kRdShift) |
-        (static_cast<int32_t>(hw) << kHWShift) |
-        (static_cast<int32_t>(imm) << kImm16Shift));
+    SetInstructionBits(op | size | (static_cast<int32_t>(rd) << kRdShift) |
+                       (static_cast<int32_t>(hw) << kHWShift) |
+                       (static_cast<int32_t>(imm) << kImm16Shift));
   }
 
-  inline void SetUnconditionalBranchRegBits(
-      UnconditionalBranchRegOp op, Register rn) {
-    SetInstructionBits(
-        op |
-        (static_cast<int32_t>(rn) << kRnShift));
+  inline void SetUnconditionalBranchRegBits(UnconditionalBranchRegOp op,
+                                            Register rn) {
+    SetInstructionBits(op | (static_cast<int32_t>(rn) << kRnShift));
   }
 
   inline void SetImm12Bits(int32_t orig, int32_t imm12) {
@@ -894,29 +909,40 @@ class Instr {
   inline int SField() const { return Bit(kSShift); }
   inline int SFField() const { return Bit(kSFShift); }
   inline int SzField() const { return Bits(kSzShift, kSzBits); }
-  inline Register RdField() const { return static_cast<Register>(
-                                        Bits(kRdShift, kRdBits)); }
-  inline Register RnField() const { return static_cast<Register>(
-                                        Bits(kRnShift, kRnBits)); }
-  inline Register RaField() const { return static_cast<Register>(
-                                        Bits(kRaShift, kRaBits)); }
-  inline Register RmField() const { return static_cast<Register>(
-                                        Bits(kRmShift, kRmBits)); }
-  inline Register RtField() const { return static_cast<Register>(
-                                        Bits(kRtShift, kRtBits)); }
-  inline Register Rt2Field() const { return static_cast<Register>(
-                                        Bits(kRt2Shift, kRt2Bits)); }
-  inline Register RsField() const { return static_cast<Register>(
-                                        Bits(kRsShift, kRsBits)); }
+  inline Register RdField() const {
+    return static_cast<Register>(Bits(kRdShift, kRdBits));
+  }
+  inline Register RnField() const {
+    return static_cast<Register>(Bits(kRnShift, kRnBits));
+  }
+  inline Register RaField() const {
+    return static_cast<Register>(Bits(kRaShift, kRaBits));
+  }
+  inline Register RmField() const {
+    return static_cast<Register>(Bits(kRmShift, kRmBits));
+  }
+  inline Register RtField() const {
+    return static_cast<Register>(Bits(kRtShift, kRtBits));
+  }
+  inline Register Rt2Field() const {
+    return static_cast<Register>(Bits(kRt2Shift, kRt2Bits));
+  }
+  inline Register RsField() const {
+    return static_cast<Register>(Bits(kRsShift, kRsBits));
+  }
 
-  inline VRegister VdField() const { return static_cast<VRegister>(
-                                        Bits(kVdShift, kVdBits)); }
-  inline VRegister VnField() const { return static_cast<VRegister>(
-                                        Bits(kVnShift, kVnBits)); }
-  inline VRegister VmField() const { return static_cast<VRegister>(
-                                        Bits(kVmShift, kVmBits)); }
-  inline VRegister VtField() const { return static_cast<VRegister>(
-                                        Bits(kVtShift, kVtBits)); }
+  inline VRegister VdField() const {
+    return static_cast<VRegister>(Bits(kVdShift, kVdBits));
+  }
+  inline VRegister VnField() const {
+    return static_cast<VRegister>(Bits(kVnShift, kVnBits));
+  }
+  inline VRegister VmField() const {
+    return static_cast<VRegister>(Bits(kVmShift, kVmBits));
+  }
+  inline VRegister VtField() const {
+    return static_cast<VRegister>(Bits(kVtShift, kVtBits));
+  }
 
   // Immediates
   inline int Imm3Field() const { return Bits(kImm3Shift, kImm3Bits); }
@@ -924,16 +950,19 @@ class Instr {
   inline int Imm7Field() const { return Bits(kImm7Shift, kImm7Bits); }
   // Sign-extended Imm7Field()
   inline int64_t SImm7Field() const {
-      return (static_cast<int32_t>(Imm7Field()) << 25) >> 25; }
+    return (static_cast<int32_t>(Imm7Field()) << 25) >> 25;
+  }
   inline int Imm8Field() const { return Bits(kImm8Shift, kImm8Bits); }
   inline int Imm9Field() const { return Bits(kImm9Shift, kImm9Bits); }
   // Sign-extended Imm9Field()
   inline int64_t SImm9Field() const {
-      return (static_cast<int32_t>(Imm9Field()) << 23) >> 23; }
+    return (static_cast<int32_t>(Imm9Field()) << 23) >> 23;
+  }
 
   inline int Imm12Field() const { return Bits(kImm12Shift, kImm12Bits); }
   inline int Imm12ShiftField() const {
-    return Bits(kImm12ShiftShift, kImm12ShiftBits); }
+    return Bits(kImm12ShiftShift, kImm12ShiftBits);
+  }
 
   inline int Imm16Field() const { return Bits(kImm16Shift, kImm16Bits); }
   inline int HWField() const { return Bits(kHWShift, kHWBits); }
@@ -943,13 +972,16 @@ class Instr {
 
   inline int Imm14Field() const { return Bits(kImm14Shift, kImm14Bits); }
   inline int64_t SImm14Field() const {
-      return (static_cast<int32_t>(Imm14Field()) << 18) >> 18; }
+    return (static_cast<int32_t>(Imm14Field()) << 18) >> 18;
+  }
   inline int Imm19Field() const { return Bits(kImm19Shift, kImm19Bits); }
   inline int64_t SImm19Field() const {
-      return (static_cast<int32_t>(Imm19Field()) << 13) >> 13; }
+    return (static_cast<int32_t>(Imm19Field()) << 13) >> 13;
+  }
   inline int Imm26Field() const { return Bits(kImm26Shift, kImm26Bits); }
   inline int64_t SImm26Field() const {
-      return (static_cast<int32_t>(Imm26Field()) << 6) >> 6; }
+    return (static_cast<int32_t>(Imm26Field()) << 6) >> 6;
+  }
 
   inline Condition ConditionField() const {
     return static_cast<Condition>(Bits(kCondShift, kCondBits));
@@ -966,18 +998,21 @@ class Instr {
     return !IsLogicalShiftOp() && (Bit(kAddShiftExtendShift) == 1);
   }
   inline Shift ShiftTypeField() const {
-      return static_cast<Shift>(Bits(kShiftTypeShift, kShiftTypeBits)); }
+    return static_cast<Shift>(Bits(kShiftTypeShift, kShiftTypeBits));
+  }
   inline Extend ExtendTypeField() const {
-      return static_cast<Extend>(Bits(kExtendTypeShift, kExtendTypeBits)); }
+    return static_cast<Extend>(Bits(kExtendTypeShift, kExtendTypeBits));
+  }
   inline int ShiftAmountField() const { return Imm6Field(); }
   inline int ExtShiftAmountField() const { return Imm3Field(); }
 
-  // Instruction identification.
-  #define IS_OP(op)                                                            \
-    inline bool Is##op##Op() const {                                           \
-      return ((InstructionBits() & op##Mask) == (op##Fixed & op##Mask)); }
+// Instruction identification.
+#define IS_OP(op)                                                              \
+  inline bool Is##op##Op() const {                                             \
+    return ((InstructionBits() & op##Mask) == (op##Fixed & op##Mask));         \
+  }
   APPLY_OP_LIST(IS_OP)
-  #undef IS_OP
+#undef IS_OP
 
   inline bool HasS() const { return (SField() == 1); }
 
@@ -1016,8 +1051,7 @@ class Instr {
     //  Add/sub (immediate).
     //  Add/sub (extended).
     // Otherwise, r31 is ZR.
-    if (IsLoadStoreOp() ||
-        IsAddSubImmOp() ||
+    if (IsLoadStoreOp() || IsAddSubImmOp() ||
         (IsAddSubShiftExtOp() && IsExtend())) {
       return R31IsSP;
     }
@@ -1028,8 +1062,7 @@ class Instr {
   // indicate a failure case. Specifically, where the constraints on imm_s are
   // not met.
   uint64_t ImmLogical() {
-    const uint8_t reg_size =
-        SFField() == 1 ? kXRegSizeInBits : kWRegSizeInBits;
+    const uint8_t reg_size = SFField() == 1 ? kXRegSizeInBits : kWRegSizeInBits;
     const int64_t n = NField();
     const int64_t imm_s = ImmSField();
     const int64_t imm_r = ImmRField();
@@ -1067,9 +1100,8 @@ class Instr {
             return 0;
           }
           uint64_t bits = (1UL << ((imm_s & mask) + 1)) - 1;
-          return RepeatBitsAcrossReg(reg_size,
-                                     RotateRight(bits, imm_r & mask, width),
-                                     width);
+          return RepeatBitsAcrossReg(
+              reg_size, RotateRight(bits, imm_r & mask, width), width);
         }
       }
     }
@@ -1078,16 +1110,11 @@ class Instr {
   }
 
   static int64_t VFPExpandImm(uint8_t imm8) {
-    const int64_t sign =
-        static_cast<int64_t>((imm8 & 0x80) >> 7) << 63;
-    const int64_t hi_exp =
-        static_cast<int64_t>(!((imm8 & 0x40) >> 6)) << 62;
-    const int64_t mid_exp =
-        (((imm8 & 0x40) >> 6) == 0) ? 0 : (0xffLL << 54);
-    const int64_t low_exp =
-        static_cast<int64_t>((imm8 & 0x30) >> 4) << 52;
-    const int64_t frac =
-        static_cast<int64_t>(imm8 & 0x0f) << 48;
+    const int64_t sign = static_cast<int64_t>((imm8 & 0x80) >> 7) << 63;
+    const int64_t hi_exp = static_cast<int64_t>(!((imm8 & 0x40) >> 6)) << 62;
+    const int64_t mid_exp = (((imm8 & 0x40) >> 6) == 0) ? 0 : (0xffLL << 54);
+    const int64_t low_exp = static_cast<int64_t>((imm8 & 0x30) >> 4) << 52;
+    const int64_t frac = static_cast<int64_t>(imm8 & 0x0f) << 48;
     return sign | hi_exp | mid_exp | low_exp | frac;
   }
 

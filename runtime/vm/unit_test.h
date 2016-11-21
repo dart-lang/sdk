@@ -34,8 +34,7 @@
 // this macro is transitioned from kThreadInNative to kThreadInVM.
 #define VM_TEST_CASE(name)                                                     \
   static void Dart_TestHelper##name(Thread* thread);                           \
-  UNIT_TEST_CASE(name)                                                         \
-  {                                                                            \
+  UNIT_TEST_CASE(name) {                                                       \
     TestIsolateScope __test_isolate__;                                         \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
@@ -52,8 +51,7 @@
 // execution state of threads using this macro remains kThreadNative.
 #define TEST_CASE(name)                                                        \
   static void Dart_TestHelper##name(Thread* thread);                           \
-  UNIT_TEST_CASE(name)                                                         \
-  {                                                                            \
+  UNIT_TEST_CASE(name) {                                                       \
     TestIsolateScope __test_isolate__;                                         \
     Thread* __thread__ = Thread::Current();                                    \
     ASSERT(__thread__->isolate() == __test_isolate__.isolate());               \
@@ -80,7 +78,7 @@
   static void AssemblerTestRun##name(AssemblerTest* test);                     \
   VM_TEST_CASE(name) {                                                         \
     Assembler __assembler__;                                                   \
-    AssemblerTest test(""#name, &__assembler__);                               \
+    AssemblerTest test("" #name, &__assembler__);                              \
     AssemblerTestGenerate##name(test.assembler());                             \
     test.Assemble();                                                           \
     AssemblerTestRun##name(&test);                                             \
@@ -102,7 +100,7 @@
 #define CODEGEN_TEST_RUN(name, expected)                                       \
   static void CodeGenTestRun##name(const Function& function);                  \
   VM_TEST_CASE(name) {                                                         \
-    CodeGenTest __test__(""#name);                                             \
+    CodeGenTest __test__("" #name);                                            \
     CodeGenTestGenerate##name(&__test__);                                      \
     __test__.Compile();                                                        \
     CodeGenTestRun##name(__test__.function());                                 \
@@ -122,7 +120,7 @@
 #define CODEGEN_TEST_RAW_RUN(name, function)                                   \
   static void CodeGenTestRun##name(const Function& function);                  \
   VM_TEST_CASE(name) {                                                         \
-    CodeGenTest __test__(""#name);                                             \
+    CodeGenTest __test__("" #name);                                            \
     CodeGenTestGenerate##name(&__test__);                                      \
     __test__.Compile();                                                        \
     CodeGenTestRun##name(__test__.function());                                 \
@@ -136,11 +134,11 @@
   static void CodeGenTestRun##name1(const Function& function);                 \
   VM_TEST_CASE(name1) {                                                        \
     /* Generate code for name2 */                                              \
-    CodeGenTest __test2__(""#name2);                                           \
+    CodeGenTest __test2__("" #name2);                                          \
     CodeGenTestGenerate##name2(&__test2__);                                    \
     __test2__.Compile();                                                       \
     /* Generate code for name1, providing function2 */                         \
-    CodeGenTest __test1__(""#name1);                                           \
+    CodeGenTest __test1__("" #name1);                                          \
     CodeGenTestGenerate##name1(__test2__.function(), &__test1__);              \
     __test1__.Compile();                                                       \
     CodeGenTestRun##name1(__test1__.function());                               \
@@ -155,74 +153,76 @@
   }
 
 
-#if defined(TARGET_ARCH_ARM) ||                                                \
-    defined(TARGET_ARCH_MIPS) ||                                               \
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS) ||                   \
     defined(TARGET_ARCH_ARM64)
-#if defined(HOST_ARCH_ARM) ||                                                  \
-    defined(HOST_ARCH_MIPS) ||                                                 \
+#if defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS) ||                       \
     defined(HOST_ARCH_ARM64)
 // Running on actual ARM or MIPS hardware, execute code natively.
 #define EXECUTE_TEST_CODE_INT32(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
-    reinterpret_cast<name>(entry)(long_arg0, long_arg1)
+  reinterpret_cast<name>(entry)(long_arg0, long_arg1)
 #define EXECUTE_TEST_CODE_FLOAT(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_DOUBLE(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT32_F(name, entry, float_arg)                      \
-    reinterpret_cast<name>(entry)(float_arg)
+  reinterpret_cast<name>(entry)(float_arg)
 #define EXECUTE_TEST_CODE_INT32_D(name, entry, double_arg)                     \
-    reinterpret_cast<name>(entry)(double_arg)
+  reinterpret_cast<name>(entry)(double_arg)
 #define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
-    reinterpret_cast<name>(entry)(pointer_arg)
+  reinterpret_cast<name>(entry)(pointer_arg)
+#define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
+  reinterpret_cast<name>(entry)(pointer_arg)
 #else
 // Not running on ARM or MIPS hardware, call simulator to execute code.
 #if defined(ARCH_IS_64_BIT)
-// TODO(zra): Supply more macros for 64-bit as tests are added for ARM64.
 #define EXECUTE_TEST_CODE_INT64(name, entry)                                   \
-  static_cast<int64_t>(Simulator::Current()->Call(                             \
-      bit_cast<int64_t, uword>(entry), 0, 0, 0, 0))
+  static_cast<int64_t>(                                                        \
+      Simulator::Current()->Call(bit_cast<int64_t, uword>(entry), 0, 0, 0, 0))
 #define EXECUTE_TEST_CODE_DOUBLE(name, entry)                                  \
   bit_cast<double, int64_t>(Simulator::Current()->Call(                        \
       bit_cast<int64_t, uword>(entry), 0, 0, 0, 0, true))
 #define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
   static_cast<intptr_t>(Simulator::Current()->Call(                            \
       bit_cast<int64_t, uword>(entry),                                         \
-      bit_cast<int64_t, intptr_t>(pointer_arg),                                \
-      0, 0, 0))
+      bit_cast<int64_t, intptr_t>(pointer_arg), 0, 0, 0))
+#define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
+  static_cast<int32_t>(Simulator::Current()->Call(                             \
+      bit_cast<int64_t, uword>(entry),                                         \
+      bit_cast<int64_t, intptr_t>(pointer_arg), 0, 0, 0))
 #else
 #define EXECUTE_TEST_CODE_INT32(name, entry)                                   \
-  static_cast<int32_t>(Simulator::Current()->Call(                             \
-      bit_cast<int32_t, uword>(entry), 0, 0, 0, 0))
+  static_cast<int32_t>(                                                        \
+      Simulator::Current()->Call(bit_cast<int32_t, uword>(entry), 0, 0, 0, 0))
 #define EXECUTE_TEST_CODE_DOUBLE(name, entry)                                  \
   bit_cast<double, int64_t>(Simulator::Current()->Call(                        \
       bit_cast<int32_t, uword>(entry), 0, 0, 0, 0, true))
 #define EXECUTE_TEST_CODE_INTPTR_INTPTR(name, entry, pointer_arg)              \
   static_cast<intptr_t>(Simulator::Current()->Call(                            \
       bit_cast<int32_t, uword>(entry),                                         \
-      bit_cast<int32_t, intptr_t>(pointer_arg),                                \
-      0, 0, 0))
+      bit_cast<int32_t, intptr_t>(pointer_arg), 0, 0, 0))
+#define EXECUTE_TEST_CODE_INT32_INTPTR(name, entry, pointer_arg)               \
+  static_cast<int32_t>(Simulator::Current()->Call(                             \
+      bit_cast<int32_t, uword>(entry),                                         \
+      bit_cast<int32_t, intptr_t>(pointer_arg), 0, 0, 0))
 #endif  // defined(ARCH_IS_64_BIT)
 #define EXECUTE_TEST_CODE_INT64_LL(name, entry, long_arg0, long_arg1)          \
   static_cast<int64_t>(Simulator::Current()->Call(                             \
-      bit_cast<int32_t, uword>(entry),                                         \
-      Utils::Low32Bits(long_arg0),                                             \
-      Utils::High32Bits(long_arg0),                                            \
-      Utils::Low32Bits(long_arg1),                                             \
+      bit_cast<int32_t, uword>(entry), Utils::Low32Bits(long_arg0),            \
+      Utils::High32Bits(long_arg0), Utils::Low32Bits(long_arg1),               \
       Utils::High32Bits(long_arg1)))
 #define EXECUTE_TEST_CODE_FLOAT(name, entry)                                   \
   bit_cast<float, int32_t>(Simulator::Current()->Call(                         \
       bit_cast<int32_t, uword>(entry), 0, 0, 0, 0, true))
 #define EXECUTE_TEST_CODE_INT32_F(name, entry, float_arg)                      \
   static_cast<int32_t>(Simulator::Current()->Call(                             \
-      bit_cast<int32_t, uword>(entry),                                         \
-      bit_cast<int32_t, float>(float_arg),                                     \
-      0, 0, 0, false, true))
+      bit_cast<int32_t, uword>(entry), bit_cast<int32_t, float>(float_arg), 0, \
+      0, 0, false, true))
 #define EXECUTE_TEST_CODE_INT32_D(name, entry, double_arg)                     \
   static_cast<int32_t>(Simulator::Current()->Call(                             \
       bit_cast<int32_t, uword>(entry),                                         \
       Utils::Low32Bits(bit_cast<int64_t, double>(double_arg)),                 \
-      Utils::High32Bits(bit_cast<int64_t, double>(double_arg)),                \
-      0, 0, false, true))
+      Utils::High32Bits(bit_cast<int64_t, double>(double_arg)), 0, 0, false,   \
+      true))
 #endif  // defined(HOST_ARCH_ARM) || defined(HOST_ARCH_MIPS)
 #endif  // defined(TARGET_ARCH_{ARM, ARM64, MIPS})
 
@@ -254,7 +254,7 @@ extern const uint8_t* isolate_snapshot_buffer;
 class TestCaseBase {
  public:
   explicit TestCaseBase(const char* name);
-  virtual ~TestCaseBase() { }
+  virtual ~TestCaseBase() {}
 
   const char* name() const { return name_; }
 
@@ -278,9 +278,9 @@ class TestCaseBase {
 
 class TestCase : TestCaseBase {
  public:
-  typedef void (RunEntry)();
+  typedef void(RunEntry)();
 
-  TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) { }
+  TestCase(RunEntry* run, const char* name) : TestCaseBase(name), run_(run) {}
 
   static Dart_Handle LoadTestScript(const char* script,
                                     Dart_NativeEntryResolver resolver,
@@ -290,8 +290,8 @@ class TestCase : TestCaseBase {
                                         Dart_NativeEntryResolver resolver);
   static Dart_Handle lib();
   static const char* url() { return USER_TEST_URI; }
-  static Dart_Isolate CreateTestIsolateFromSnapshot(
-      uint8_t* buffer, const char* name = NULL) {
+  static Dart_Isolate CreateTestIsolateFromSnapshot(uint8_t* buffer,
+                                                    const char* name = NULL) {
     return CreateIsolate(buffer, name);
   }
   static Dart_Isolate CreateTestIsolate(const char* name = NULL) {
@@ -345,22 +345,26 @@ class TestIsolateScope {
 };
 
 
-template<typename T> struct is_void {
+template <typename T>
+struct is_void {
   static const bool value = false;
 };
 
 
-template<> struct is_void<void> {
+template <>
+struct is_void<void> {
   static const bool value = true;
 };
 
 
-template<typename T> struct is_double {
+template <typename T>
+struct is_double {
   static const bool value = false;
 };
 
 
-template<> struct is_double<double> {
+template <>
+struct is_double<double> {
   static const bool value = true;
 };
 
@@ -368,13 +372,11 @@ template<> struct is_double<double> {
 class AssemblerTest {
  public:
   AssemblerTest(const char* name, Assembler* assembler)
-      : name_(name),
-        assembler_(assembler),
-        code_(Code::ZoneHandle()) {
+      : name_(name), assembler_(assembler), code_(Code::ZoneHandle()) {
     ASSERT(name != NULL);
     ASSERT(assembler != NULL);
   }
-  ~AssemblerTest() { }
+  ~AssemblerTest() {}
 
   Assembler* assembler() const { return assembler_; }
 
@@ -383,10 +385,10 @@ class AssemblerTest {
   uword payload_start() const { return code_.PayloadStart(); }
   uword entry() const { return code_.UncheckedEntryPoint(); }
 
-  // Invoke/InvokeWithCodeAndThread is used to call assembler test functions
-  // using the ABI calling convention.
-  // ResultType is the return type of the assembler test function.
-  // ArgNType is the type of the Nth argument.
+// Invoke/InvokeWithCodeAndThread is used to call assembler test functions
+// using the ABI calling convention.
+// ResultType is the return type of the assembler test function.
+// ArgNType is the type of the Nth argument.
 #if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
 
 #if defined(ARCH_IS_64_BIT)
@@ -396,18 +398,17 @@ class AssemblerTest {
   // on 32-bit platforms when returning an int32_t. Since template functions
   // don't support partial specialization, we'd need to introduce a helper
   // class to support 32-bit return types.
-  template<typename ResultType> ResultType InvokeWithCodeAndThread() {
+  template <typename ResultType>
+  ResultType InvokeWithCodeAndThread() {
     const bool fp_return = is_double<ResultType>::value;
     const bool fp_args = false;
     Thread* thread = Thread::Current();
     ASSERT(thread != NULL);
     return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
-        bit_cast<intptr_t, uword>(entry()),
-        reinterpret_cast<intptr_t>(&code_),
-        reinterpret_cast<intptr_t>(thread),
-        0, 0, fp_return, fp_args));
+        bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(&code_),
+        reinterpret_cast<intptr_t>(thread), 0, 0, fp_return, fp_args));
   }
-  template<typename ResultType, typename Arg1Type>
+  template <typename ResultType, typename Arg1Type>
   ResultType InvokeWithCodeAndThread(Arg1Type arg1) {
     const bool fp_return = is_double<ResultType>::value;
     const bool fp_args = is_double<Arg1Type>::value;
@@ -416,18 +417,16 @@ class AssemblerTest {
     Thread* thread = Thread::Current();
     ASSERT(thread != NULL);
     return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
-        bit_cast<intptr_t, uword>(entry()),
-        reinterpret_cast<intptr_t>(&code_),
-        reinterpret_cast<intptr_t>(thread),
-        reinterpret_cast<intptr_t>(arg1),
-        0, fp_return, fp_args));
+        bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(&code_),
+        reinterpret_cast<intptr_t>(thread), reinterpret_cast<intptr_t>(arg1), 0,
+        fp_return, fp_args));
   }
 #endif  // ARCH_IS_64_BIT
 
-  template<typename ResultType,
-           typename Arg1Type,
-           typename Arg2Type,
-           typename Arg3Type>
+  template <typename ResultType,
+            typename Arg1Type,
+            typename Arg2Type,
+            typename Arg3Type>
   ResultType Invoke(Arg1Type arg1, Arg2Type arg2, Arg3Type arg3) {
     // TODO(fschneider): Support double arguments for simulator calls.
     COMPILE_ASSERT(is_void<ResultType>::value);
@@ -437,17 +436,15 @@ class AssemblerTest {
     const bool fp_args = false;
     const bool fp_return = false;
     Simulator::Current()->Call(
-        bit_cast<intptr_t, uword>(entry()),
-        reinterpret_cast<intptr_t>(arg1),
-        reinterpret_cast<intptr_t>(arg2),
-        reinterpret_cast<intptr_t>(arg3),
-        0, fp_return, fp_args);
+        bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(arg1),
+        reinterpret_cast<intptr_t>(arg2), reinterpret_cast<intptr_t>(arg3), 0,
+        fp_return, fp_args);
   }
 #elif defined(USING_SIMULATOR) && defined(TARGET_ARCH_DBC)
-  template<typename ResultType,
-           typename Arg1Type,
-           typename Arg2Type,
-           typename Arg3Type>
+  template <typename ResultType,
+            typename Arg1Type,
+            typename Arg2Type,
+            typename Arg3Type>
   ResultType Invoke(Arg1Type arg1, Arg2Type arg2, Arg3Type arg3) {
     // TODO(fschneider): Support double arguments for simulator calls.
     COMPILE_ASSERT(is_void<ResultType>::value);
@@ -460,34 +457,32 @@ class AssemblerTest {
     const Array& arguments = Array::Handle(Array::New(2));
     arguments.SetAt(0, arg1obj);
     arguments.SetAt(1, arg2obj);
-    Simulator::Current()->Call(
-        code(),
-        argdesc,
-        arguments,
-        reinterpret_cast<Thread*>(arg3));
+    Simulator::Current()->Call(code(), argdesc, arguments,
+                               reinterpret_cast<Thread*>(arg3));
   }
 #else
-  template<typename ResultType> ResultType InvokeWithCodeAndThread() {
+  template <typename ResultType>
+  ResultType InvokeWithCodeAndThread() {
     Thread* thread = Thread::Current();
     ASSERT(thread != NULL);
-    typedef ResultType (*FunctionType) (const Code&, Thread*);
+    typedef ResultType (*FunctionType)(const Code&, Thread*);
     return reinterpret_cast<FunctionType>(entry())(code_, thread);
   }
 
-  template<typename ResultType, typename Arg1Type>
+  template <typename ResultType, typename Arg1Type>
   ResultType InvokeWithCodeAndThread(Arg1Type arg1) {
     Thread* thread = Thread::Current();
     ASSERT(thread != NULL);
-    typedef ResultType (*FunctionType) (const Code&, Thread*, Arg1Type);
+    typedef ResultType (*FunctionType)(const Code&, Thread*, Arg1Type);
     return reinterpret_cast<FunctionType>(entry())(code_, thread, arg1);
   }
 
-  template<typename ResultType,
-           typename Arg1Type,
-           typename Arg2Type,
-           typename Arg3Type>
+  template <typename ResultType,
+            typename Arg1Type,
+            typename Arg2Type,
+            typename Arg3Type>
   ResultType Invoke(Arg1Type arg1, Arg2Type arg2, Arg3Type arg3) {
-    typedef ResultType (*FunctionType) (Arg1Type, Arg2Type, Arg3Type);
+    typedef ResultType (*FunctionType)(Arg1Type, Arg2Type, Arg3Type);
     return reinterpret_cast<FunctionType>(entry())(arg1, arg2, arg3);
   }
 #endif  // defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
@@ -507,9 +502,9 @@ class AssemblerTest {
 class CodeGenTest {
  public:
   explicit CodeGenTest(const char* name);
-  ~CodeGenTest() { }
+  ~CodeGenTest() {}
 
-    // Accessors.
+  // Accessors.
   const Function& function() const { return function_; }
 
   SequenceNode* node_sequence() const { return node_sequence_; }
@@ -545,10 +540,12 @@ class CompilerTest : public AllStatic {
   do {                                                                         \
     Dart_Handle tmp_handle = (handle);                                         \
     if (Dart_IsError(tmp_handle)) {                                            \
-      dart::Expect(__FILE__, __LINE__).Fail(                                   \
-          "expected '%s' to be a valid handle but found an error handle:\n"    \
-          "    '%s'\n",                                                        \
-          #handle, Dart_GetError(tmp_handle));                                 \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail(                                                               \
+              "expected '%s' to be a valid handle but found an error "         \
+              "handle:\n"                                                      \
+              "    '%s'\n",                                                    \
+              #handle, Dart_GetError(tmp_handle));                             \
     }                                                                          \
   } while (0)
 
@@ -556,12 +553,14 @@ class CompilerTest : public AllStatic {
   do {                                                                         \
     Dart_Handle tmp_handle = (handle);                                         \
     if (Dart_IsError(tmp_handle)) {                                            \
-      dart::Expect(__FILE__, __LINE__).IsSubstring((substring),                \
-                                                   Dart_GetError(tmp_handle)); \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .IsSubstring((substring), Dart_GetError(tmp_handle));                \
     } else {                                                                   \
-      dart::Expect(__FILE__, __LINE__).Fail(                                   \
-          "expected '%s' to be an error handle but found a valid handle.\n",   \
-          #handle);                                                            \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail(                                                               \
+              "expected '%s' to be an error handle but found a valid "         \
+              "handle.\n",                                                     \
+              #handle);                                                        \
     }                                                                          \
   } while (0)
 
@@ -572,12 +571,12 @@ class CompilerTest : public AllStatic {
       bool value;                                                              \
       Dart_BooleanValue(tmp_handle, &value);                                   \
       if (!value) {                                                            \
-        dart::Expect(__FILE__, __LINE__).Fail("expected True, but was '%s'\n", \
-            #handle);                                                          \
+        dart::Expect(__FILE__, __LINE__)                                       \
+            .Fail("expected True, but was '%s'\n", #handle);                   \
       }                                                                        \
     } else {                                                                   \
-      dart::Expect(__FILE__, __LINE__).Fail("expected True, but was '%s'\n",   \
-          #handle);                                                            \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("expected True, but was '%s'\n", #handle);                     \
     }                                                                          \
   } while (0)
 
@@ -599,18 +598,14 @@ class CompilerTest : public AllStatic {
 void ElideJSONSubstring(const char* prefix, const char* in, char* out);
 
 
-template<typename T>
+template <typename T>
 class SetFlagScope : public ValueObject {
  public:
-  SetFlagScope(T* flag, T value)
-      : flag_(flag),
-        original_value_(*flag) {
+  SetFlagScope(T* flag, T value) : flag_(flag), original_value_(*flag) {
     *flag_ = value;
   }
 
-  ~SetFlagScope() {
-    *flag_ = original_value_;
-  }
+  ~SetFlagScope() { *flag_ = original_value_; }
 
  private:
   T* flag_;

@@ -58,4 +58,3 @@ class FileSystemWatcher {
 }  // namespace dart
 
 #endif  // RUNTIME_BIN_FILE_SYSTEM_WATCHER_H_
-

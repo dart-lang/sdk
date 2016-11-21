@@ -10,6 +10,7 @@ let MapOfMap$Map = () => (MapOfMap$Map = dart.constFn(core.Map$(core.Map, core.M
 let Foo = () => (Foo = dart.constFn(closure.Foo$()))();
 let ListOfTAndTToListOfT = () => (ListOfTAndTToListOfT = dart.constFn(dart.definiteFunctionType(T => [core.List$(T), [core.List$(T), T]])))();
 let dynamicTovoid = () => (dynamicTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [dart.dynamic])))();
+let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
 closure.generic_function = function(T) {
   return (items: core.List<T>, seed: T): core.List<T> => {
     let strings = items[dartx.map](core.String)(dart.fn((i: T): string => dart.str`${i}`, dart.definiteFunctionType(core.String, [T])))[dartx.toList]();
@@ -116,6 +117,14 @@ dart.setSignature(closure.Baz, {
 closure.main = function(args): void {
 };
 dart.fn(closure.main, dynamicTovoid());
+dart.defineLazy(closure, {
+  get closure() {
+    return dart.fn(() => {
+      return;
+    }, VoidTodynamic());
+  },
+  set closure(_) {}
+});
 /** @final {string} */
 closure.some_top_level_constant = "abc";
 /** @final {string} */

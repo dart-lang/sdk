@@ -20,8 +20,8 @@ class JSONArray;
 // disassembled instructions in any desired form.
 class DisassemblyFormatter {
  public:
-  DisassemblyFormatter() { }
-  virtual ~DisassemblyFormatter() { }
+  DisassemblyFormatter() {}
+  virtual ~DisassemblyFormatter() {}
 
   // Consume the decoded instruction at the given pc.
   virtual void ConsumeInstruction(const Code& code,
@@ -41,8 +41,8 @@ class DisassemblyFormatter {
 // to stdout.
 class DisassembleToStdout : public DisassemblyFormatter {
  public:
-  DisassembleToStdout() : DisassemblyFormatter() { }
-  ~DisassembleToStdout() { }
+  DisassembleToStdout() : DisassemblyFormatter() {}
+  ~DisassembleToStdout() {}
 
   virtual void ConsumeInstruction(const Code& code,
                                   char* hex_buffer,
@@ -64,8 +64,8 @@ class DisassembleToStdout : public DisassemblyFormatter {
 class DisassembleToJSONStream : public DisassemblyFormatter {
  public:
   explicit DisassembleToJSONStream(const JSONArray& jsarr)
-      : DisassemblyFormatter(), jsarr_(jsarr) { }
-  ~DisassembleToJSONStream() { }
+      : DisassemblyFormatter(), jsarr_(jsarr) {}
+  ~DisassembleToJSONStream() {}
 
   virtual void ConsumeInstruction(const Code& code,
                                   char* hex_buffer,
@@ -101,9 +101,7 @@ class Disassembler : public AllStatic {
     Disassemble(start, end, formatter, Code::Handle());
   }
 
-  static void Disassemble(uword start,
-                          uword end,
-                          const Code& code) {
+  static void Disassemble(uword start, uword end, const Code& code) {
     DisassembleToStdout stdout_formatter;
     LogBlock lb;
     Disassemble(start, end, &stdout_formatter, code);
@@ -119,18 +117,23 @@ class Disassembler : public AllStatic {
   // Writes a hexadecimal representation into the hex_buffer and a
   // human-readable representation into the human_buffer.
   // Writes the length of the decoded instruction in bytes in out_instr_len.
-  static void DecodeInstruction(char* hex_buffer, intptr_t hex_size,
-                                char* human_buffer, intptr_t human_size,
-                                int* out_instr_len, const Code& code,
-                                Object** object, uword pc);
+  static void DecodeInstruction(char* hex_buffer,
+                                intptr_t hex_size,
+                                char* human_buffer,
+                                intptr_t human_size,
+                                int* out_instr_len,
+                                const Code& code,
+                                Object** object,
+                                uword pc);
 
   static void DisassembleCode(const Function& function, bool optimized);
-  static void DisassembleCodeUnoptimized(
-      const Function& function, bool optimized);
+  static void DisassembleCodeUnoptimized(const Function& function,
+                                         bool optimized);
 
  private:
-  static void DisassembleCodeHelper(
-      const char* function_fullname, const Code& code, bool optimized);
+  static void DisassembleCodeHelper(const char* function_fullname,
+                                    const Code& code,
+                                    bool optimized);
 
   static const int kHexadecimalBufferSize = 32;
   static const int kUserReadableBufferSize = 256;

@@ -282,7 +282,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
         ElementFactory.getterElement("foo", false, null);
     classA.accessors = <PropertyAccessorElement>[getter];
     // "foo" is static
-    getter.static = true;
+    getter.isStatic = true;
     expect(classA.hasStaticMember, isTrue);
   }
 
@@ -291,7 +291,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     MethodElementImpl method = ElementFactory.methodElement("foo", null);
     classA.methods = <MethodElement>[method];
     // "foo" is static
-    method.static = true;
+    method.isStatic = true;
     expect(classA.hasStaticMember, isTrue);
   }
 
@@ -301,7 +301,7 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
         ElementFactory.setterElement("foo", false, null);
     classA.accessors = <PropertyAccessorElement>[setter];
     // "foo" is static
-    setter.static = true;
+    setter.isStatic = true;
     expect(classA.hasStaticMember, isTrue);
   }
 
@@ -1942,7 +1942,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     // the user (and hence can't participate in circularities).
     FunctionTypeAliasElementImpl f =
         ElementFactory.functionTypeAliasElement('f');
-    f.synthetic = true;
+    f.isSynthetic = true;
     FunctionTypeImpl type = f.type;
     expect(type.newPrune, isNull);
   }

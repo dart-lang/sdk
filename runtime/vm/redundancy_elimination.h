@@ -15,13 +15,9 @@ class CSEInstructionMap;
 class AllocationSinking : public ZoneAllocated {
  public:
   explicit AllocationSinking(FlowGraph* flow_graph)
-      : flow_graph_(flow_graph),
-        candidates_(5),
-        materializations_(5) { }
+      : flow_graph_(flow_graph), candidates_(5), materializations_(5) {}
 
-  const GrowableArray<Definition*>& candidates() const {
-    return candidates_;
-  }
+  const GrowableArray<Definition*>& candidates() const { return candidates_; }
 
   // Find the materialization insterted for the given allocation
   // at the given exit.
@@ -40,7 +36,7 @@ class AllocationSinking : public ZoneAllocated {
   // this object.
   class ExitsCollector : public ValueObject {
    public:
-    ExitsCollector() : exits_(10), worklist_(3) { }
+    ExitsCollector() : exits_(10), worklist_(3) {}
 
     const GrowableArray<Instruction*>& exits() const { return exits_; }
 
@@ -66,10 +62,9 @@ class AllocationSinking : public ZoneAllocated {
 
   void InsertMaterializations(Definition* alloc);
 
-  void CreateMaterializationAt(
-      Instruction* exit,
-      Definition* alloc,
-      const ZoneGrowableArray<const Object*>& fields);
+  void CreateMaterializationAt(Instruction* exit,
+                               Definition* alloc,
+                               const ZoneGrowableArray<const Object*>& fields);
 
   void EliminateAllocation(Definition* alloc);
 
@@ -94,10 +89,9 @@ class DominatorBasedCSE : public AllStatic {
   static bool Optimize(FlowGraph* graph);
 
  private:
-  static bool OptimizeRecursive(
-      FlowGraph* graph,
-      BlockEntryInstr* entry,
-      CSEInstructionMap* map);
+  static bool OptimizeRecursive(FlowGraph* graph,
+                                BlockEntryInstr* entry,
+                                CSEInstructionMap* map);
 };
 
 

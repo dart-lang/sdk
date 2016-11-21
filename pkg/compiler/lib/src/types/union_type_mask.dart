@@ -334,10 +334,10 @@ class UnionTypeMask implements TypeMask {
     return disjointMasks.any((e) => e.canHit(element, selector, closedWorld));
   }
 
-  Element locateSingleElement(Selector selector, Compiler compiler) {
+  Element locateSingleElement(Selector selector, ClosedWorld closedWorld) {
     Element candidate;
     for (FlatTypeMask mask in disjointMasks) {
-      Element current = mask.locateSingleElement(selector, compiler);
+      Element current = mask.locateSingleElement(selector, closedWorld);
       if (current == null) {
         return null;
       } else if (candidate == null) {

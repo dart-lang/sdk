@@ -6,8 +6,7 @@
 // fields.  However, native fields keep their name.  The implication: a getter
 // for the field must be based on the field's name, not the field's jsname.
 
-import "package:expect/expect.dart";
-import 'dart:_js_helper' show Native, JSName;
+import 'native_testing.dart';
 
 @Native("A")
 class A {
@@ -44,13 +43,15 @@ X.prototype.key = function(){return 666;};
 
 makeA = function(){return new A};
 makeX = function(){return new X};
+
+self.nativeConstructor(A);
+self.nativeConstructor(X);
 """;
 
 testDynamic() {
-  var things = [makeA(), new B(), makeX()];
-  var a = things[0];
-  var b = things[1];
-  var x = things[2];
+  var a = confuse(makeA());
+  var b = confuse(new B());
+  var x = confuse(makeX());
 
   Expect.equals(111, a.key);
   Expect.equals(222, b.key);
@@ -77,6 +78,7 @@ testTyped() {
 }
 
 main() {
+  nativeTesting();
   setup();
 
   testTyped();

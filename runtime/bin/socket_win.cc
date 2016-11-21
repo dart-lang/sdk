@@ -33,8 +33,7 @@ SocketAddress::SocketAddress(struct sockaddr* sockaddr) {
   if (err != 0) {
     as_string_[0] = 0;
   }
-  memmove(reinterpret_cast<void *>(&addr_),
-          sockaddr,
+  memmove(reinterpret_cast<void*>(&addr_), sockaddr,
           SocketAddress::GetAddrLength(*raw));
 }
 
@@ -43,11 +42,7 @@ bool Socket::FormatNumericAddress(const RawAddr& addr, char* address, int len) {
   socklen_t salen = SocketAddress::GetAddrLength(addr);
   DWORD l = len;
   RawAddr& raw = const_cast<RawAddr&>(addr);
-  return WSAAddressToStringA(&raw.addr,
-                             salen,
-                             NULL,
-                             address,
-                             &l) != 0;
+  return WSAAddressToStringA(&raw.addr, salen, NULL, address, &l) != 0;
 }
 
 
@@ -83,8 +78,10 @@ intptr_t Socket::Read(intptr_t fd, void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::RecvFrom(
-    intptr_t fd, void* buffer, intptr_t num_bytes, RawAddr* addr) {
+intptr_t Socket::RecvFrom(intptr_t fd,
+                          void* buffer,
+                          intptr_t num_bytes,
+                          RawAddr* addr) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   socklen_t addr_len = sizeof(addr->ss);
   return handle->RecvFrom(buffer, num_bytes, &addr->addr, addr_len);
@@ -97,12 +94,14 @@ intptr_t Socket::Write(intptr_t fd, const void* buffer, intptr_t num_bytes) {
 }
 
 
-intptr_t Socket::SendTo(
-    intptr_t fd, const void* buffer, intptr_t num_bytes, const RawAddr& addr) {
+intptr_t Socket::SendTo(intptr_t fd,
+                        const void* buffer,
+                        intptr_t num_bytes,
+                        const RawAddr& addr) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   RawAddr& raw = const_cast<RawAddr&>(addr);
-  return handle->SendTo(
-    buffer, num_bytes, &raw.addr, SocketAddress::GetAddrLength(addr));
+  return handle->SendTo(buffer, num_bytes, &raw.addr,
+                        SocketAddress::GetAddrLength(addr));
 }
 
 
@@ -111,7 +110,7 @@ intptr_t Socket::GetPort(intptr_t fd) {
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
   RawAddr raw;
   socklen_t size = sizeof(raw);
-  if (getsockname(socket_handle->socket(),  &raw.addr, &size) == SOCKET_ERROR) {
+  if (getsockname(socket_handle->socket(), &raw.addr, &size) == SOCKET_ERROR) {
     return 0;
   }
   return SocketAddress::GetAddrPort(raw);
@@ -143,10 +142,7 @@ static intptr_t Create(const RawAddr& addr) {
   linger l;
   l.l_onoff = 1;
   l.l_linger = 10;
-  int status = setsockopt(s,
-                          SOL_SOCKET,
-                          SO_LINGER,
-                          reinterpret_cast<char*>(&l),
+  int status = setsockopt(s, SOL_SOCKET, SO_LINGER, reinterpret_cast<char*>(&l),
                           sizeof(l));
   if (status != NO_ERROR) {
     FATAL("Failed setting SO_LINGER on socket");
@@ -157,14 +153,15 @@ static intptr_t Create(const RawAddr& addr) {
 }
 
 
-static intptr_t Connect(
-    intptr_t fd, const RawAddr& addr, const RawAddr& bind_addr) {
+static intptr_t Connect(intptr_t fd,
+                        const RawAddr& addr,
+                        const RawAddr& bind_addr) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_client_socket());
   ClientSocket* handle = reinterpret_cast<ClientSocket*>(fd);
   SOCKET s = handle->socket();
 
-  int status = bind(
-      s, &bind_addr.addr, SocketAddress::GetAddrLength(bind_addr));
+  int status =
+      bind(s, &bind_addr.addr, SocketAddress::GetAddrLength(bind_addr));
   if (status != NO_ERROR) {
     int rc = WSAGetLastError();
     handle->mark_closed();  // Destructor asserts that socket is marked closed.
@@ -177,28 +174,17 @@ static intptr_t Connect(
   LPFN_CONNECTEX connectEx = NULL;
   GUID guid_connect_ex = WSAID_CONNECTEX;
   DWORD bytes;
-  status = WSAIoctl(s,
-                    SIO_GET_EXTENSION_FUNCTION_POINTER,
-                    &guid_connect_ex,
-                    sizeof(guid_connect_ex),
-                    &connectEx,
-                    sizeof(connectEx),
-                    &bytes,
-                    NULL,
-                    NULL);
+  status = WSAIoctl(s, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid_connect_ex,
+                    sizeof(guid_connect_ex), &connectEx, sizeof(connectEx),
+                    &bytes, NULL, NULL);
   DWORD rc;
   if (status != SOCKET_ERROR) {
     handle->EnsureInitialized(EventHandler::delegate());
 
     OverlappedBuffer* overlapped = OverlappedBuffer::AllocateConnectBuffer();
 
-    status = connectEx(s,
-                       &addr.addr,
-                       SocketAddress::GetAddrLength(addr),
-                       NULL,
-                       0,
-                       NULL,
-                       overlapped->GetCleanOverlapped());
+    status = connectEx(s, &addr.addr, SocketAddress::GetAddrLength(addr), NULL,
+                       0, NULL, overlapped->GetCleanOverlapped());
 
 
     if (status == TRUE) {
@@ -252,7 +238,7 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
 
 bool Socket::IsBindError(intptr_t error_number) {
   return error_number == WSAEADDRINUSE || error_number == WSAEADDRNOTAVAIL ||
-      error_number == WSAEINVAL;
+         error_number == WSAEINVAL;
 }
 
 
@@ -265,10 +251,14 @@ void Socket::GetError(intptr_t fd, OSError* os_error) {
 int Socket::GetType(intptr_t fd) {
   Handle* handle = reinterpret_cast<Handle*>(fd);
   switch (GetFileType(handle->handle())) {
-    case FILE_TYPE_CHAR: return File::kTerminal;
-    case FILE_TYPE_PIPE: return File::kPipe;
-    case FILE_TYPE_DISK: return File::kFile;
-    default: return GetLastError == NO_ERROR ? File::kOther : -1;
+    case FILE_TYPE_CHAR:
+      return File::kTerminal;
+    case FILE_TYPE_PIPE:
+      return File::kPipe;
+    case FILE_TYPE_DISK:
+      return File::kFile;
+    default:
+      return GetLastError == NO_ERROR ? File::kOther : -1;
   }
 }
 
@@ -350,13 +340,8 @@ bool Socket::ReverseLookup(const RawAddr& addr,
                            intptr_t host_len,
                            OSError** os_error) {
   ASSERT(host_len >= NI_MAXHOST);
-  int status = getnameinfo(&addr.addr,
-                           SocketAddress::GetAddrLength(addr),
-                           host,
-                           host_len,
-                           NULL,
-                           0,
-                           NI_NAMEREQD);
+  int status = getnameinfo(&addr.addr, SocketAddress::GetAddrLength(addr), host,
+                           host_len, NULL, 0, NI_NAMEREQD);
   if (status != 0) {
     ASSERT(*os_error == NULL);
     DWORD error_code = WSAGetLastError();
@@ -390,11 +375,8 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
   int status;
   if (reuseAddress) {
     BOOL optval = true;
-    status = setsockopt(s,
-                        SOL_SOCKET,
-                        SO_REUSEADDR,
-                        reinterpret_cast<const char*>(&optval),
-                        sizeof(optval));
+    status = setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+                        reinterpret_cast<const char*>(&optval), sizeof(optval));
     if (status == SOCKET_ERROR) {
       DWORD rc = WSAGetLastError();
       closesocket(s);
@@ -403,7 +385,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
     }
   }
 
-  status = bind(s, &addr.addr,  SocketAddress::GetAddrLength(addr));
+  status = bind(s, &addr.addr, SocketAddress::GetAddrLength(addr));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -428,24 +410,17 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
   Initialize();
 
   ULONG size = 0;
-  DWORD flags = GAA_FLAG_SKIP_ANYCAST |
-                GAA_FLAG_SKIP_MULTICAST |
+  DWORD flags = GAA_FLAG_SKIP_ANYCAST | GAA_FLAG_SKIP_MULTICAST |
                 GAA_FLAG_SKIP_DNS_SERVER;
   // Query the size needed.
-  int status = GetAdaptersAddresses(SocketAddress::FromType(type),
-                                    flags,
-                                    NULL,
-                                    NULL,
-                                    &size);
+  int status = GetAdaptersAddresses(SocketAddress::FromType(type), flags, NULL,
+                                    NULL, &size);
   IP_ADAPTER_ADDRESSES* addrs = NULL;
   if (status == ERROR_BUFFER_OVERFLOW) {
     addrs = reinterpret_cast<IP_ADAPTER_ADDRESSES*>(malloc(size));
     // Get the addresses now we have the right buffer.
-    status = GetAdaptersAddresses(SocketAddress::FromType(type),
-                                  flags,
-                                  NULL,
-                                  addrs,
-                                  &size);
+    status = GetAdaptersAddresses(SocketAddress::FromType(type), flags, NULL,
+                                  addrs, &size);
   }
   if (status != NO_ERROR) {
     ASSERT(*os_error == NULL);
@@ -456,8 +431,8 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
   }
   intptr_t count = 0;
   for (IP_ADAPTER_ADDRESSES* a = addrs; a != NULL; a = a->Next) {
-    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress;
-         u != NULL; u = u->Next) {
+    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != NULL;
+         u = u->Next) {
       count++;
     }
   }
@@ -465,12 +440,12 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
       new AddressList<InterfaceSocketAddress>(count);
   intptr_t i = 0;
   for (IP_ADAPTER_ADDRESSES* a = addrs; a != NULL; a = a->Next) {
-    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress;
-         u != NULL; u = u->Next) {
-      addresses->SetAt(i, new InterfaceSocketAddress(
-          u->Address.lpSockaddr,
-          StringUtilsWin::WideToUtf8(a->FriendlyName),
-          a->Ipv6IfIndex));
+    for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != NULL;
+         u = u->Next) {
+      addresses->SetAt(
+          i, new InterfaceSocketAddress(
+                 u->Address.lpSockaddr,
+                 StringUtilsWin::WideToUtf8(a->FriendlyName), a->Ipv6IfIndex));
       i++;
     }
   }
@@ -488,11 +463,9 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
   }
 
   BOOL optval = true;
-  int status = setsockopt(s,
-                          SOL_SOCKET,
-                          SO_EXCLUSIVEADDRUSE,
-                          reinterpret_cast<const char*>(&optval),
-                          sizeof(optval));
+  int status =
+      setsockopt(s, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
+                 reinterpret_cast<const char*>(&optval), sizeof(optval));
   if (status == SOCKET_ERROR) {
     DWORD rc = WSAGetLastError();
     closesocket(s);
@@ -502,11 +475,8 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
 
   if (addr.ss.ss_family == AF_INET6) {
     optval = v6_only;
-    setsockopt(s,
-               IPPROTO_IPV6,
-               IPV6_V6ONLY,
-               reinterpret_cast<const char*>(&optval),
-               sizeof(optval));
+    setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY,
+               reinterpret_cast<const char*>(&optval), sizeof(optval));
   }
 
   status = bind(s, &addr.addr, SocketAddress::GetAddrLength(addr));
@@ -576,11 +546,8 @@ bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int on;
   socklen_t len = sizeof(on);
-  int err = getsockopt(handle->socket(),
-                       IPPROTO_TCP,
-                       TCP_NODELAY,
-                       reinterpret_cast<char *>(&on),
-                       &len);
+  int err = getsockopt(handle->socket(), IPPROTO_TCP, TCP_NODELAY,
+                       reinterpret_cast<char*>(&on), &len);
   if (err == 0) {
     *enabled = (on == 1);
   }
@@ -591,11 +558,8 @@ bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
 bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int on = enabled ? 1 : 0;
-  return setsockopt(handle->socket(),
-                    IPPROTO_TCP,
-                    TCP_NODELAY,
-                    reinterpret_cast<char *>(&on),
-                    sizeof(on)) == 0;
+  return setsockopt(handle->socket(), IPPROTO_TCP, TCP_NODELAY,
+                    reinterpret_cast<char*>(&on), sizeof(on)) == 0;
 }
 
 
@@ -604,12 +568,9 @@ bool Socket::GetMulticastLoop(intptr_t fd, intptr_t protocol, bool* enabled) {
   uint8_t on;
   socklen_t len = sizeof(on);
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
-  int optname = protocol == SocketAddress::TYPE_IPV4
-      ? IP_MULTICAST_LOOP : IPV6_MULTICAST_LOOP;
-  if (getsockopt(handle->socket(),
-                 level,
-                 optname,
-                 reinterpret_cast<char *>(&on),
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_LOOP
+                                                     : IPV6_MULTICAST_LOOP;
+  if (getsockopt(handle->socket(), level, optname, reinterpret_cast<char*>(&on),
                  &len) == 0) {
     *enabled = (on == 1);
     return true;
@@ -622,13 +583,10 @@ bool Socket::SetMulticastLoop(intptr_t fd, intptr_t protocol, bool enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int on = enabled ? 1 : 0;
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
-  int optname = protocol == SocketAddress::TYPE_IPV4
-      ? IP_MULTICAST_LOOP : IPV6_MULTICAST_LOOP;
-  return setsockopt(handle->socket(),
-                    level,
-                    optname,
-                    reinterpret_cast<char *>(&on),
-                    sizeof(on)) == 0;
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_LOOP
+                                                     : IPV6_MULTICAST_LOOP;
+  return setsockopt(handle->socket(), level, optname,
+                    reinterpret_cast<char*>(&on), sizeof(on)) == 0;
 }
 
 
@@ -637,12 +595,9 @@ bool Socket::GetMulticastHops(intptr_t fd, intptr_t protocol, int* value) {
   uint8_t v;
   socklen_t len = sizeof(v);
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
-  int optname = protocol == SocketAddress::TYPE_IPV4
-      ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
-  if (getsockopt(handle->socket(),
-                 level,
-                 optname,
-                 reinterpret_cast<char *>(&v),
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_TTL
+                                                     : IPV6_MULTICAST_HOPS;
+  if (getsockopt(handle->socket(), level, optname, reinterpret_cast<char*>(&v),
                  &len) == 0) {
     *value = v;
     return true;
@@ -655,13 +610,10 @@ bool Socket::SetMulticastHops(intptr_t fd, intptr_t protocol, int value) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int v = value;
   int level = protocol == SocketAddress::TYPE_IPV4 ? IPPROTO_IP : IPPROTO_IPV6;
-  int optname = protocol == SocketAddress::TYPE_IPV4
-      ? IP_MULTICAST_TTL : IPV6_MULTICAST_HOPS;
-  return setsockopt(handle->socket(),
-                    level,
-                    optname,
-                    reinterpret_cast<char *>(&v),
-                    sizeof(v)) == 0;
+  int optname = protocol == SocketAddress::TYPE_IPV4 ? IP_MULTICAST_TTL
+                                                     : IPV6_MULTICAST_HOPS;
+  return setsockopt(handle->socket(), level, optname,
+                    reinterpret_cast<char*>(&v), sizeof(v)) == 0;
 }
 
 
@@ -669,11 +621,8 @@ bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int on;
   socklen_t len = sizeof(on);
-  int err = getsockopt(handle->socket(),
-                       SOL_SOCKET,
-                       SO_BROADCAST,
-                       reinterpret_cast<char *>(&on),
-                       &len);
+  int err = getsockopt(handle->socket(), SOL_SOCKET, SO_BROADCAST,
+                       reinterpret_cast<char*>(&on), &len);
   if (err == 0) {
     *enabled = (on == 1);
   }
@@ -684,41 +633,36 @@ bool Socket::GetBroadcast(intptr_t fd, bool* enabled) {
 bool Socket::SetBroadcast(intptr_t fd, bool enabled) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int on = enabled ? 1 : 0;
-  return setsockopt(handle->socket(),
-                    SOL_SOCKET,
-                    SO_BROADCAST,
-                    reinterpret_cast<char *>(&on),
-                    sizeof(on)) == 0;
+  return setsockopt(handle->socket(), SOL_SOCKET, SO_BROADCAST,
+                    reinterpret_cast<char*>(&on), sizeof(on)) == 0;
 }
 
 
-bool Socket::JoinMulticast(
-    intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
+bool Socket::JoinMulticast(intptr_t fd,
+                           const RawAddr& addr,
+                           const RawAddr&,
+                           int interfaceIndex) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
   memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
-  return setsockopt(handle->socket(),
-                    proto,
-                    MCAST_JOIN_GROUP,
-                    reinterpret_cast<char *>(&mreq),
-                    sizeof(mreq)) == 0;
+  return setsockopt(handle->socket(), proto, MCAST_JOIN_GROUP,
+                    reinterpret_cast<char*>(&mreq), sizeof(mreq)) == 0;
 }
 
 
-bool Socket::LeaveMulticast(
-    intptr_t fd, const RawAddr& addr, const RawAddr&, int interfaceIndex) {
+bool Socket::LeaveMulticast(intptr_t fd,
+                            const RawAddr& addr,
+                            const RawAddr&,
+                            int interfaceIndex) {
   SocketHandle* handle = reinterpret_cast<SocketHandle*>(fd);
   int proto = addr.addr.sa_family == AF_INET ? IPPROTO_IP : IPPROTO_IPV6;
   struct group_req mreq;
   mreq.gr_interface = interfaceIndex;
   memmove(&mreq.gr_group, &addr.ss, SocketAddress::GetAddrLength(addr));
-  return setsockopt(handle->socket(),
-                    proto,
-                    MCAST_LEAVE_GROUP,
-                    reinterpret_cast<char *>(&mreq),
-                    sizeof(mreq)) == 0;
+  return setsockopt(handle->socket(), proto, MCAST_LEAVE_GROUP,
+                    reinterpret_cast<char*>(&mreq), sizeof(mreq)) == 0;
 }
 
 }  // namespace bin

@@ -20,6 +20,7 @@ import '../dart_types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
 import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
@@ -35,7 +36,7 @@ import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
-import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
+import '../universe/use.dart' show DynamicUse, StaticUse;
 import '../util/util.dart';
 import '../world.dart' show ClosedWorld;
 
@@ -46,6 +47,7 @@ import 'loop_handler.dart';
 import 'nodes.dart';
 import 'optimize.dart';
 import 'ssa_branch_builder.dart';
+import 'type_builder.dart';
 import 'types.dart';
 
 class SsaBuilderTask extends CompilerTask {
@@ -141,7 +143,16 @@ class SsaBuilder extends ast.Visitor
   // used only for codegen, but currently we want to experiment using it for
   // code-analysis too.
   final CodegenRegistry registry;
+
+  /// All results from the global type-inference analysis.
   final GlobalTypeInferenceResults inferenceResults;
+
+  /// Results from the global type-inference analysis corresponding to the
+  /// current element being visited.
+  ///
+  /// Invariant: this property is updated together with [resolvedAst].
+  GlobalTypeInferenceElementResult elementInferenceResults;
+
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
   final RuntimeTypes rti;
@@ -178,6 +189,9 @@ class SsaBuilder extends ast.Visitor
   /// Handles the building of loops.
   LoopHandler<ast.Node> loopHandler;
 
+  /// Handles type check building.
+  TypeBuilder typeBuilder;
+
   // TODO(sigmund): make most args optional
   SsaBuilder(
       this.target,
@@ -193,6 +207,8 @@ class SsaBuilder extends ast.Visitor
         this.inferenceResults = backend.compiler.globalInference.results {
     assert(target.isImplementation);
     compiler = backend.compiler;
+    elementInferenceResults = _resultOf(target);
+    assert(elementInferenceResults != null);
     graph.element = target;
     sourceElementStack.add(target);
     sourceInformationBuilder =
@@ -201,6 +217,7 @@ class SsaBuilder extends ast.Visitor
         sourceInformationBuilder.buildVariableDeclaration();
     localsHandler = new LocalsHandler(this, target, null, compiler);
     loopHandler = new SsaLoopHandler(this);
+    typeBuilder = new TypeBuilder(this);
   }
 
   BackendHelpers get helpers => backend.helpers;
@@ -210,6 +227,8 @@ class SsaBuilder extends ast.Visitor
   DiagnosticReporter get reporter => compiler.reporter;
 
   CoreClasses get coreClasses => compiler.coreClasses;
+
+  Element get targetElement => target;
 
   /// Reference to resolved elements in [target]'s AST.
   TreeElements get elements => resolvedAst.elements;
@@ -232,11 +251,19 @@ class SsaBuilder extends ast.Visitor
   /// The returned element is a declaration element.
   // TODO(johnniwinther): Check that all usages of sourceElement agree on
   // implementation/declaration distinction.
+  @override
   Element get sourceElement => sourceElementStack.last;
 
-  bool get _checkOrTrustTypes =>
-      compiler.options.enableTypeAssertions ||
-      compiler.options.trustTypeAnnotations;
+  /// Helper to retrieve global inference results for [element] with special
+  /// care for `ConstructorBodyElement`s which don't exist at the time the
+  /// global analysis run.
+  ///
+  /// Note: this helper is used selectively. When we know that we are in a
+  /// context were we don't expect to see a constructor body element, we
+  /// directly fetch the data from the global inference results.
+  GlobalTypeInferenceElementResult _resultOf(AstElement element) =>
+      inferenceResults.resultOf(
+          element is ConstructorBodyElementX ? element.constructor : element);
 
   /// Build the graph for [target].
   HGraph build() {
@@ -271,6 +298,13 @@ class SsaBuilder extends ast.Visitor
     add(attachPosition(instruction, node));
   }
 
+  HTypeConversion buildFunctionTypeConversion(
+      HInstruction original, DartType type, int kind) {
+    HInstruction reifiedType = buildFunctionType(type);
+    return new HTypeConversion.viaMethodOnType(
+        type, kind, original.instructionType, reifiedType, original);
+  }
+
   /**
    * Returns a complete argument list for a call of [function].
    */
@@ -286,8 +320,7 @@ class SsaBuilder extends ast.Visitor
     // For static calls, [providedArguments] is complete, default arguments
     // have been included if necessary, see [makeStaticArgumentList].
     if (!isInstanceMember ||
-        currentNode == null // In erroneous code, currentNode can be null.
-        ||
+        currentNode == null || // In erroneous code, currentNode can be null.
         providedArgumentsKnownToBeComplete(currentNode) ||
         function.isGenerativeConstructorBody ||
         selector.isGetter) {
@@ -377,7 +410,7 @@ class SsaBuilder extends ast.Visitor
     // TODO(johnniwinther): Register this on the [registry]. Currently the
     // [CodegenRegistry] calls the enqueuer, but [element] should _not_ be
     // enqueued.
-    backend.registerStaticUse(element, forResolution: false);
+    backend.registerStaticUse(compiler.enqueuer.codegen, element);
 
     if (backend.isJsInterop(element) && !element.isFactoryConstructor) {
       // We only inline factory JavaScript interop constructors.
@@ -436,7 +469,7 @@ class SsaBuilder extends ast.Visitor
       // A generative constructor body is not seen by global analysis,
       // so we should not query for its type.
       if (!element.isGenerativeConstructorBody) {
-        if (inferenceResults.throwsAlways(element)) {
+        if (inferenceResults.resultOf(element).throwsAlways) {
           isReachable = false;
           return false;
         }
@@ -568,12 +601,10 @@ class SsaBuilder extends ast.Visitor
     return inliningStack.isEmpty || inliningStack.last.allFunctionsCalledOnce;
   }
 
-  bool isFunctionCalledOnce(Element element) {
-    if (element is ConstructorBodyElement) {
-      // ConstructorBodyElements are not in the type inference graph.
-      return false;
-    }
-    return inferenceResults.isCalledOnce(element);
+  bool isFunctionCalledOnce(element) {
+    // ConstructorBodyElements are not in the type inference graph.
+    if (element is ConstructorBodyElement) return false;
+    return inferenceResults.resultOf(element).isCalledOnce;
   }
 
   bool isCalledOnce(Element element) {
@@ -612,7 +643,7 @@ class SsaBuilder extends ast.Visitor
     return graph.addConstant(constantValue, compiler);
   }
 
-  Element get currentNonClosureClass {
+  ClassElement get currentNonClosureClass {
     ClassElement cls = sourceElement.enclosingClass;
     if (cls != null && cls.isClosure) {
       var closureClass = cls;
@@ -719,7 +750,7 @@ class SsaBuilder extends ast.Visitor
         isStatement: true));
   }
 
-  HGraph buildCheckedSetter(VariableElement field) {
+  HGraph buildCheckedSetter(FieldElement field) {
     ResolvedAst resolvedAst = field.resolvedAst;
     openFunction(field, resolvedAst.node);
     HInstruction thisInstruction = localsHandler.readThis();
@@ -730,7 +761,8 @@ class SsaBuilder extends ast.Visitor
     // If the method is intercepted, we want the actual receiver
     // to be the first parameter.
     graph.entry.addBefore(graph.entry.last, parameter);
-    HInstruction value = potentiallyCheckOrTrustType(parameter, field.type);
+    HInstruction value =
+        typeBuilder.potentiallyCheckOrTrustType(parameter, field.type);
     add(new HFieldSet(field, thisInstruction, value));
     return closeFunction();
   }
@@ -746,10 +778,21 @@ class SsaBuilder extends ast.Visitor
     openFunction(variable, node);
     visit(initializer);
     HInstruction value = pop();
-    value = potentiallyCheckOrTrustType(value, variable.type);
-    ast.SendSet sendSet = node.definitions.nodes.head;
-    closeAndGotoExit(new HReturn(value,
-        sourceInformationBuilder.buildReturn(sendSet.assignmentOperator)));
+    value = typeBuilder.potentiallyCheckOrTrustType(value, variable.type);
+    // In the case of multiple declarations (and some definitions) on the same
+    // line, the source pointer needs to point to the right initialized
+    // variable. So find the specific initialized variable we are referring to.
+    ast.Node sourceInfoNode = initializer;
+    for (var definition in node.definitions) {
+      if (definition is ast.SendSet &&
+          definition.selector.asIdentifier().source == variable.name) {
+        sourceInfoNode = definition.assignmentOperator;
+        break;
+      }
+    }
+
+    closeAndGotoExit(new HReturn(
+        value, sourceInformationBuilder.buildReturn(sourceInfoNode)));
     return closeFunction();
   }
 
@@ -857,6 +900,7 @@ class SsaBuilder extends ast.Visitor
     returnLocal = state.oldReturnLocal;
     inTryStatement = state.inTryStatement;
     resolvedAst = state.oldResolvedAst;
+    elementInferenceResults = state.oldElementInferenceResults;
     returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
@@ -866,7 +910,8 @@ class SsaBuilder extends ast.Visitor
    * Run this builder on the body of the [function] to be inlined.
    */
   void visitInlinedFunction(ResolvedAst resolvedAst) {
-    potentiallyCheckInlinedParameterTypes(resolvedAst.element.implementation);
+    typeBuilder.potentiallyCheckInlinedParameterTypes(
+        resolvedAst.element.implementation);
 
     if (resolvedAst.element.isGenerativeConstructor) {
       buildFactory(resolvedAst);
@@ -896,20 +941,6 @@ class SsaBuilder extends ast.Visitor
      * [visitForIn].
      */
     return currentNode.asForIn() != null;
-  }
-
-  /**
-   * In checked mode, generate type tests for the parameters of the inlined
-   * function.
-   */
-  void potentiallyCheckInlinedParameterTypes(FunctionElement function) {
-    if (!_checkOrTrustTypes) return;
-
-    FunctionSignature signature = function.functionSignature;
-    signature.orderedForEachParameter((ParameterElement parameter) {
-      HInstruction argument = localsHandler.readLocal(parameter);
-      potentiallyCheckOrTrustType(argument, parameter.type);
-    });
   }
 
   /**
@@ -947,7 +978,7 @@ class SsaBuilder extends ast.Visitor
             TypeVariableType typeVariable = variables.current;
             localsHandler.updateLocal(
                 localsHandler.getTypeVariableAsLocal(typeVariable),
-                analyzeTypeArgument(argument));
+                typeBuilder.analyzeTypeArgument(argument, sourceElement));
           });
         } else {
           // If the supertype is a raw type, we need to set to null the
@@ -989,6 +1020,8 @@ class SsaBuilder extends ast.Visitor
       // Build the initializers in the context of the new constructor.
       ResolvedAst oldResolvedAst = resolvedAst;
       resolvedAst = callee.resolvedAst;
+      final oldElementInferenceResults = elementInferenceResults;
+      elementInferenceResults = inferenceResults.resultOf(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
       ClosureClassMap newClosureData =
           compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
@@ -999,6 +1032,7 @@ class SsaBuilder extends ast.Visitor
       buildInitializers(callee, constructorResolvedAsts, fieldValues);
       localsHandler.closureData = oldClosureData;
       resolvedAst = oldResolvedAst;
+      elementInferenceResults = oldElementInferenceResults;
     });
   }
 
@@ -1161,11 +1195,14 @@ class SsaBuilder extends ast.Visitor
           ast.Node right = initializer;
           ResolvedAst savedResolvedAst = resolvedAst;
           resolvedAst = fieldResolvedAst;
+          final oldElementInferenceResults = elementInferenceResults;
+          elementInferenceResults = inferenceResults.resultOf(member);
           // In case the field initializer uses closures, run the
           // closure to class mapper.
           compiler.closureToClassMapper.getClosureToClassMapping(resolvedAst);
           inlinedFrom(fieldResolvedAst, () => right.accept(this));
           resolvedAst = savedResolvedAst;
+          elementInferenceResults = oldElementInferenceResults;
           fieldValues[member] = pop();
         }
       });
@@ -1230,10 +1267,10 @@ class SsaBuilder extends ast.Visitor
 
     // Call the JavaScript constructor with the fields as argument.
     List<HInstruction> constructorArguments = <HInstruction>[];
-    List<Element> fields = <Element>[];
+    List<FieldEntity> fields = <FieldEntity>[];
 
     classElement.forEachInstanceField(
-        (ClassElement enclosingClass, VariableElement member) {
+        (ClassElement enclosingClass, FieldElement member) {
       HInstruction value = fieldValues[member];
       if (value == null) {
         // Uninitialized native fields are pre-initialized by the native
@@ -1243,7 +1280,8 @@ class SsaBuilder extends ast.Visitor
       } else {
         fields.add(member);
         DartType type = localsHandler.substInContext(member.type);
-        constructorArguments.add(potentiallyCheckOrTrustType(value, type));
+        constructorArguments
+            .add(typeBuilder.potentiallyCheckOrTrustType(value, type));
       }
     }, includeSuperAndInjectedMembers: true);
 
@@ -1441,8 +1479,8 @@ class SsaBuilder extends ast.Visitor
           //       new A("foo");  // invalid in checked mode.
           //
           // Only the final target is allowed to check for the argument types.
-          newParameter =
-              potentiallyCheckOrTrustType(newParameter, parameterElement.type);
+          newParameter = typeBuilder.potentiallyCheckOrTrustType(
+              newParameter, parameterElement.type);
         }
         localsHandler.directLocals[parameterElement] = newParameter;
       });
@@ -1480,115 +1518,15 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  /// Check that [type] is valid in the context of `localsHandler.contextClass`.
-  /// This should only be called in assertions.
-  bool assertTypeInContext(DartType type, [Spannable spannable]) {
-    return invariant(spannable == null ? CURRENT_ELEMENT_SPANNABLE : spannable,
-        () {
-      ClassElement contextClass = Types.getClassContext(type);
-      return contextClass == null || contextClass == localsHandler.contextClass;
-    },
-        message: "Type '$type' is not valid context of "
-            "${localsHandler.contextClass}.");
-  }
-
-  /// Build a [HTypeConversion] for converting [original] to type [type].
-  ///
-  /// Invariant: [type] must be valid in the context.
-  /// See [LocalsHandler.substInContext].
-  HInstruction buildTypeConversion(
-      HInstruction original, DartType type, int kind) {
-    if (type == null) return original;
-    // GENERIC_METHODS: The following statement was added for parsing and
-    // ignoring method type variables; must be generalized for full support of
-    // generic methods.
-    type = type.dynamifyMethodTypeVariableType;
-    type = type.unaliased;
-    assert(assertTypeInContext(type, original));
-    if (type.isInterfaceType && !type.treatAsRaw) {
-      TypeMask subtype =
-          new TypeMask.subtype(type.element, compiler.closedWorld);
-      HInstruction representations = buildTypeArgumentRepresentations(type);
-      add(representations);
-      return new HTypeConversion.withTypeRepresentation(
-          type, kind, subtype, original, representations);
-    } else if (type.isTypeVariable) {
-      TypeMask subtype = original.instructionType;
-      HInstruction typeVariable = addTypeVariableReference(type);
-      return new HTypeConversion.withTypeRepresentation(
-          type, kind, subtype, original, typeVariable);
-    } else if (type.isFunctionType) {
-      String name =
-          kind == HTypeConversion.CAST_TYPE_CHECK ? '_asCheck' : '_assertCheck';
-
-      List<HInstruction> arguments = <HInstruction>[
-        buildFunctionType(type),
-        original
-      ];
-      pushInvokeDynamic(
-          null,
-          new Selector.call(
-              new Name(name, helpers.jsHelperLibrary), CallStructure.ONE_ARG),
-          null,
-          arguments);
-
-      return new HTypeConversion(type, kind, original.instructionType, pop());
-    } else {
-      return original.convertType(compiler, type, kind);
-    }
-  }
-
-  HInstruction _trustType(HInstruction original, DartType type) {
-    assert(compiler.options.trustTypeAnnotations);
-    assert(type != null);
-    type = localsHandler.substInContext(type);
-    type = type.unaliased;
-    if (type.isDynamic) return original;
-    if (!type.isInterfaceType) return original;
-    if (type.isObject) return original;
-    // The type element is either a class or the void element.
-    Element element = type.element;
-    TypeMask mask = new TypeMask.subtype(element, compiler.closedWorld);
-    return new HTypeKnown.pinned(mask, original);
-  }
-
-  HInstruction _checkType(HInstruction original, DartType type, int kind) {
-    assert(compiler.options.enableTypeAssertions);
-    assert(type != null);
-    type = localsHandler.substInContext(type);
-    HInstruction other = buildTypeConversion(original, type, kind);
-    // TODO(johnniwinther): This operation on `registry` may be inconsistent.
-    // If it is needed then it seems likely that similar invocations of
-    // `buildTypeConversion` in `SsaBuilder.visitAs` should also be followed by
-    // a similar operation on `registry`; otherwise, this one might not be
-    // needed.
-    registry?.registerTypeUse(new TypeUse.isCheck(type));
-    return other;
-  }
-
-  HInstruction potentiallyCheckOrTrustType(HInstruction original, DartType type,
-      {int kind: HTypeConversion.CHECKED_MODE_CHECK}) {
-    if (type == null) return original;
-    HInstruction checkedOrTrusted = original;
-    if (compiler.options.trustTypeAnnotations) {
-      checkedOrTrusted = _trustType(original, type);
-    } else if (compiler.options.enableTypeAssertions) {
-      checkedOrTrusted = _checkType(original, type, kind);
-    }
-    if (checkedOrTrusted == original) return original;
-    add(checkedOrTrusted);
-    return checkedOrTrusted;
-  }
-
   void assertIsSubtype(
       ast.Node node, DartType subtype, DartType supertype, String message) {
-    HInstruction subtypeInstruction =
-        analyzeTypeArgument(localsHandler.substInContext(subtype));
-    HInstruction supertypeInstruction =
-        analyzeTypeArgument(localsHandler.substInContext(supertype));
+    HInstruction subtypeInstruction = typeBuilder.analyzeTypeArgument(
+        localsHandler.substInContext(subtype), sourceElement);
+    HInstruction supertypeInstruction = typeBuilder.analyzeTypeArgument(
+        localsHandler.substInContext(supertype), sourceElement);
     HInstruction messageInstruction =
         graph.addConstantString(new ast.DartString.literal(message), compiler);
-    Element element = helpers.assertIsSubtype;
+    MethodElement element = helpers.assertIsSubtype;
     var inputs = <HInstruction>[
       subtypeInstruction,
       supertypeInstruction,
@@ -1611,11 +1549,15 @@ class SsaBuilder extends ast.Visitor
     push(attachPosition(instruction, node));
   }
 
+  /// Pops the most recent instruction from the stack and 'boolifies' it.
+  ///
+  /// Boolification is checking if the value is '=== true'.
   @override
   HInstruction popBoolified() {
     HInstruction value = pop();
-    if (_checkOrTrustTypes) {
-      return potentiallyCheckOrTrustType(value, compiler.coreTypes.boolType,
+    if (typeBuilder.checkOrTrustTypes) {
+      return typeBuilder.potentiallyCheckOrTrustType(
+          value, compiler.coreTypes.boolType,
           kind: HTypeConversion.BOOLEAN_CONVERSION_CHECK);
     }
     HInstruction result = new HBoolify(value, backend.boolType);
@@ -2058,7 +2000,7 @@ class SsaBuilder extends ast.Visitor
     }
 
     pushInvokeDynamic(node, elements.getSelector(node),
-        inferenceResults.typeOfSend(node, elements), [operand],
+        elementInferenceResults.typeOfSend(node), [operand],
         sourceInformation: sourceInformationBuilder.buildGeneric(node));
   }
 
@@ -2089,7 +2031,7 @@ class SsaBuilder extends ast.Visitor
         visitAndPop(left),
         visitAndPop(right),
         elements.getSelector(node),
-        inferenceResults.typeOfSend(node, elements),
+        elementInferenceResults.typeOfSend(node),
         node,
         sourceInformation:
             sourceInformationBuilder.buildGeneric(node.selector));
@@ -2223,8 +2165,8 @@ class SsaBuilder extends ast.Visitor
       } else {
         // TODO(5346): Try to avoid the need for calling [declaration] before
         // creating an [HStatic].
-        HInstruction instruction = new HStatic(field.declaration,
-            TypeMaskFactory.inferredTypeForElement(field, compiler))
+        HInstruction instruction = new HStatic(
+            field, TypeMaskFactory.inferredTypeForElement(field, compiler))
           ..sourceInformation = sourceInformation;
         push(instruction);
       }
@@ -2252,16 +2194,17 @@ class SsaBuilder extends ast.Visitor
   void generateDynamicGet(ast.Send node) {
     HInstruction receiver = generateInstanceSendReceiver(node);
     generateInstanceGetterWithCompiledReceiver(node, elements.getSelector(node),
-        inferenceResults.typeOfSend(node, elements), receiver);
+        elementInferenceResults.typeOfSend(node), receiver);
   }
 
-  /// Generate a closurization of the static or top level [function].
-  void generateStaticFunctionGet(ast.Send node, MethodElement function) {
+  /// Generate a closurization of the static or top level [method].
+  void generateStaticFunctionGet(ast.Send node, MethodElement method) {
+    assert(method.isDeclaration);
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildGet(node);
-    push(new HStatic(function.declaration, backend.nonNullType)
+    push(new HStatic(method, backend.nonNullType)
       ..sourceInformation = sourceInformation);
   }
 
@@ -2301,7 +2244,7 @@ class SsaBuilder extends ast.Visitor
           generateInstanceGetterWithCompiledReceiver(
               node,
               elements.getSelector(node),
-              inferenceResults.typeOfSend(node, elements),
+              elementInferenceResults.typeOfSend(node),
               expression);
         });
   }
@@ -2366,7 +2309,7 @@ class SsaBuilder extends ast.Visitor
     if (selector == null) {
       assert(send != null);
       selector = elements.getSelector(send);
-      mask ??= inferenceResults.typeOfSend(send, elements);
+      mask ??= elementInferenceResults.typeOfSend(send);
     }
     if (location == null) {
       assert(send != null);
@@ -2404,9 +2347,9 @@ class SsaBuilder extends ast.Visitor
         pushInvokeStatic(location, element, <HInstruction>[value]);
         pop();
       } else {
-        VariableElement field = element;
-        value = potentiallyCheckOrTrustType(value, field.type);
-        addWithPosition(new HStaticStore(element, value), location);
+        FieldElement field = element;
+        value = typeBuilder.potentiallyCheckOrTrustType(value, field.type);
+        addWithPosition(new HStaticStore(field, value), location);
       }
       stack.add(value);
     } else if (Elements.isError(element)) {
@@ -2422,7 +2365,7 @@ class SsaBuilder extends ast.Visitor
         value.sourceElement = local;
       }
       HInstruction checkedOrTrusted =
-          potentiallyCheckOrTrustType(value, local.type);
+          typeBuilder.potentiallyCheckOrTrustType(value, local.type);
       if (!identical(checkedOrTrusted, value)) {
         pop();
         stack.add(checkedOrTrusted);
@@ -2444,24 +2387,6 @@ class SsaBuilder extends ast.Visitor
     return new HLiteralList(inputs, backend.extendableArrayType);
   }
 
-  HInstruction buildTypeArgumentRepresentations(DartType type) {
-    assert(!type.isTypeVariable);
-    // Compute the representation of the type arguments, including access
-    // to the runtime type information for type variables as instructions.
-    assert(type.element.isClass);
-    InterfaceType interface = type;
-    List<HInstruction> inputs = <HInstruction>[];
-    for (DartType argument in interface.typeArguments) {
-      inputs.add(analyzeTypeArgument(argument));
-    }
-    HInstruction representation = new HTypeInfoExpression(
-        TypeInfoExpressionKind.INSTANCE,
-        interface.element.thisType,
-        inputs,
-        backend.dynamicType);
-    return representation;
-  }
-
   @override
   void visitAs(ast.Send node, ast.Node expression, DartType type, _) {
     HInstruction expressionInstruction = visitAndPop(expression);
@@ -2474,8 +2399,10 @@ class SsaBuilder extends ast.Visitor
         stack.add(expressionInstruction);
       }
     } else {
-      HInstruction converted = buildTypeConversion(expressionInstruction,
-          localsHandler.substInContext(type), HTypeConversion.CAST_TYPE_CHECK);
+      HInstruction converted = typeBuilder.buildTypeConversion(
+          expressionInstruction,
+          localsHandler.substInContext(type),
+          HTypeConversion.CAST_TYPE_CHECK);
       if (converted != expressionInstruction) add(converted);
       stack.add(converted);
     }
@@ -2521,7 +2448,8 @@ class SsaBuilder extends ast.Visitor
           arguments);
       return new HIs.compound(type, expression, pop(), backend.boolType);
     } else if (type.isTypeVariable) {
-      HInstruction runtimeType = addTypeVariableReference(type);
+      HInstruction runtimeType =
+          typeBuilder.addTypeVariableReference(type, sourceElement);
       Element helper = helpers.checkSubtypeOfRuntimeType;
       List<HInstruction> inputs = <HInstruction>[expression, runtimeType];
       pushInvokeStatic(null, helper, inputs, typeMask: backend.boolType);
@@ -2530,7 +2458,8 @@ class SsaBuilder extends ast.Visitor
     } else if (RuntimeTypes.hasTypeArguments(type)) {
       ClassElement element = type.element;
       Element helper = helpers.checkSubtype;
-      HInstruction representations = buildTypeArgumentRepresentations(type);
+      HInstruction representations =
+          typeBuilder.buildTypeArgumentRepresentations(type, sourceElement);
       add(representations);
       js.Name operator = backend.namer.operatorIs(element);
       HInstruction isFieldName = addConstantStringFromName(operator);
@@ -2556,11 +2485,6 @@ class SsaBuilder extends ast.Visitor
       return new HIs.raw(
           type, expression, invokeInterceptor(expression), backend.boolType);
     }
-  }
-
-  HInstruction buildFunctionType(FunctionType type) {
-    type.accept(new TypeBuilder(compiler.closedWorld), this);
-    return pop();
   }
 
   void addDynamicSendArgumentsToList(ast.Send node, List<HInstruction> list) {
@@ -2637,7 +2561,7 @@ class SsaBuilder extends ast.Visitor
 
   void _generateDynamicSend(ast.Send node, HInstruction receiver) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = inferenceResults.typeOfSend(node, elements);
+    TypeMask mask = elementInferenceResults.typeOfSend(node);
     SourceInformation sourceInformation =
         sourceInformationBuilder.buildCall(node, node.selector);
 
@@ -3064,7 +2988,7 @@ class SsaBuilder extends ast.Visitor
 
   void handleForeignSend(ast.Send node, FunctionElement element) {
     String name = element.name;
-    if (name == 'JS') {
+    if (name == BackendHelpers.JS) {
       handleForeignJs(node);
     } else if (name == 'JS_CURRENT_ISOLATE_CONTEXT') {
       handleForeignJsCurrentIsolateContext(node);
@@ -3080,15 +3004,15 @@ class SsaBuilder extends ast.Visitor
       handleForeignJsGetStaticState(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
-    } else if (name == 'JS_EMBEDDED_GLOBAL') {
+    } else if (name == BackendHelpers.JS_EMBEDDED_GLOBAL) {
       handleForeignJsEmbeddedGlobal(node);
-    } else if (name == 'JS_BUILTIN') {
+    } else if (name == BackendHelpers.JS_BUILTIN) {
       handleForeignJsBuiltin(node);
     } else if (name == 'JS_GET_FLAG') {
       handleForeignJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(compiler));
-    } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
+    } else if (name == BackendHelpers.JS_INTERCEPTOR_CONSTANT) {
       handleJsInterceptorConstant(node);
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
@@ -3101,7 +3025,7 @@ class SsaBuilder extends ast.Visitor
       SourceInformation sourceInformation) {
     // Until now we only handle these as getters.
     invariant(node, deferredLoader.isDeferredLoaderGetter);
-    Element loadFunction = helpers.loadLibraryWrapper;
+    FunctionEntity loadFunction = helpers.loadLibraryWrapper;
     PrefixElement prefixElement = deferredLoader.enclosingElement;
     String loadId =
         compiler.deferredLoadTask.getImportDeferName(node, prefixElement);
@@ -3121,7 +3045,7 @@ class SsaBuilder extends ast.Visitor
     if (!Selectors.noSuchMethod_.signatureApplies(element)) {
       element = coreClasses.objectClass.lookupMember(Identifiers.noSuchMethod_);
     }
-    if (compiler.enabledInvokeOn && !element.enclosingClass.isObject) {
+    if (backend.hasInvokeOnSupport && !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls
@@ -3170,16 +3094,16 @@ class SsaBuilder extends ast.Visitor
   }
 
   /// Generate a call to a super method or constructor.
-  void generateSuperInvoke(ast.Send node, FunctionElement function,
+  void generateSuperInvoke(ast.Send node, MethodElement method,
       SourceInformation sourceInformation) {
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
     Selector selector = elements.getSelector(node);
-    assert(invariant(node, selector.applies(function.implementation),
-        message: "$selector does not apply to ${function.implementation}"));
+    assert(invariant(node, selector.applies(method.implementation),
+        message: "$selector does not apply to ${method.implementation}"));
     List<HInstruction> inputs = makeStaticArgumentList(
-        selector.callStructure, node.arguments, function.implementation);
-    push(buildInvokeSuper(selector, function, inputs, sourceInformation));
+        selector.callStructure, node.arguments, method.implementation);
+    push(buildInvokeSuper(selector, method, inputs, sourceInformation));
   }
 
   /// Access the value from the super [element].
@@ -3349,113 +3273,6 @@ class SsaBuilder extends ast.Visitor
     });
   }
 
-  /**
-   * Generate code to extract the type argument from the object.
-   */
-  HInstruction readTypeVariable(TypeVariableType variable,
-      {SourceInformation sourceInformation}) {
-    assert(sourceElement.isInstanceMember);
-    assert(variable is! MethodTypeVariableType);
-    HInstruction target = localsHandler.readThis();
-    push(new HTypeInfoReadVariable(variable, target, backend.dynamicType)
-      ..sourceInformation = sourceInformation);
-    return pop();
-  }
-
-  // TODO(karlklose): this is needed to avoid a bug where the resolved type is
-  // not stored on a type annotation in the closure translator. Remove when
-  // fixed.
-  bool hasDirectLocal(Local local) {
-    return !localsHandler.isAccessedDirectly(local) ||
-        localsHandler.directLocals[local] != null;
-  }
-
-  /**
-   * Helper to create an instruction that gets the value of a type variable.
-   */
-  HInstruction addTypeVariableReference(TypeVariableType type,
-      {SourceInformation sourceInformation}) {
-    assert(assertTypeInContext(type));
-    if (type is MethodTypeVariableType) {
-      return graph.addConstantNull(compiler);
-    }
-    Element member = sourceElement;
-    bool isClosure = member.enclosingElement.isClosure;
-    if (isClosure) {
-      ClosureClassElement closureClass = member.enclosingElement;
-      member = closureClass.methodElement;
-      member = member.outermostEnclosingMemberOrTopLevel;
-    }
-    bool isInConstructorContext =
-        member.isConstructor || member.isGenerativeConstructorBody;
-    Local typeVariableLocal = localsHandler.getTypeVariableAsLocal(type);
-    if (isClosure) {
-      if (member.isFactoryConstructor ||
-          (isInConstructorContext && hasDirectLocal(typeVariableLocal))) {
-        // The type variable is used from a closure in a factory constructor.
-        // The value of the type argument is stored as a local on the closure
-        // itself.
-        return localsHandler.readLocal(typeVariableLocal,
-            sourceInformation: sourceInformation);
-      } else if (member.isFunction ||
-          member.isGetter ||
-          member.isSetter ||
-          isInConstructorContext) {
-        // The type variable is stored on the "enclosing object" and needs to be
-        // accessed using the this-reference in the closure.
-        return readTypeVariable(type, sourceInformation: sourceInformation);
-      } else {
-        assert(member.isField);
-        // The type variable is stored in a parameter of the method.
-        return localsHandler.readLocal(typeVariableLocal);
-      }
-    } else if (isInConstructorContext ||
-        // When [member] is a field, we can be either
-        // generating a checked setter or inlining its
-        // initializer in a constructor. An initializer is
-        // never built standalone, so in that case [target] is not
-        // the [member] itself.
-        (member.isField && member != target)) {
-      // The type variable is stored in a parameter of the method.
-      return localsHandler.readLocal(typeVariableLocal,
-          sourceInformation: sourceInformation);
-    } else if (member.isInstanceMember) {
-      // The type variable is stored on the object.
-      return readTypeVariable(type, sourceInformation: sourceInformation);
-    } else {
-      reporter.internalError(
-          type.element, 'Unexpected type variable in static context.');
-      return null;
-    }
-  }
-
-  HInstruction analyzeTypeArgument(DartType argument,
-      {SourceInformation sourceInformation}) {
-    assert(assertTypeInContext(argument));
-    argument = argument.unaliased;
-    if (argument.treatAsDynamic) {
-      // Represent [dynamic] as [null].
-      return graph.addConstantNull(compiler);
-    }
-
-    if (argument.isTypeVariable) {
-      return addTypeVariableReference(argument,
-          sourceInformation: sourceInformation);
-    }
-
-    List<HInstruction> inputs = <HInstruction>[];
-    argument.forEachTypeVariable((variable) {
-      if (variable is! MethodTypeVariableType) {
-        inputs.add(analyzeTypeArgument(variable));
-      }
-    });
-    HInstruction result = new HTypeInfoExpression(
-        TypeInfoExpressionKind.COMPLETE, argument, inputs, backend.dynamicType)
-      ..sourceInformation = sourceInformation;
-    add(result);
-    return result;
-  }
-
   HInstruction handleListConstructor(
       InterfaceType type, ast.Node currentNode, HInstruction newObject) {
     if (!backend.classNeedsRti(type.element) || type.treatAsRaw) {
@@ -3464,27 +3281,11 @@ class SsaBuilder extends ast.Visitor
     List<HInstruction> inputs = <HInstruction>[];
     type = localsHandler.substInContext(type);
     type.typeArguments.forEach((DartType argument) {
-      inputs.add(analyzeTypeArgument(argument));
+      inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
     });
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(
-        type.element, inputs, newObject);
-  }
-
-  HInstruction callSetRuntimeTypeInfoWithTypeArguments(ClassElement element,
-      List<HInstruction> rtiInputs, HInstruction newObject) {
-    if (!backend.classNeedsRti(element)) {
-      return newObject;
-    }
-
-    HInstruction typeInfo = new HTypeInfoExpression(
-        TypeInfoExpressionKind.INSTANCE,
-        element.thisType,
-        rtiInputs,
-        backend.dynamicType);
-    add(typeInfo);
-    return callSetRuntimeTypeInfo(typeInfo, newObject);
+    return callSetRuntimeTypeInfoWithTypeArguments(type, inputs, newObject);
   }
 
   HInstruction callSetRuntimeTypeInfo(
@@ -3641,12 +3442,8 @@ class SsaBuilder extends ast.Visitor
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
       if (!inputs[0].isNumber(compiler)) {
-        HTypeConversion conversion = new HTypeConversion(
-            null,
-            HTypeConversion.ARGUMENT_TYPE_CHECK,
-            backend.numType,
-            inputs[0],
-            null);
+        HTypeConversion conversion = new HTypeConversion(null,
+            HTypeConversion.ARGUMENT_TYPE_CHECK, backend.numType, inputs[0]);
         add(conversion);
         inputs[0] = conversion;
       }
@@ -3684,7 +3481,7 @@ class SsaBuilder extends ast.Visitor
           sourceInformationBuilder.buildNew(send);
       potentiallyAddTypeArguments(inputs, cls, expectedType);
       addInlinedInstantiation(expectedType);
-      pushInvokeStatic(node, constructor, inputs,
+      pushInvokeStatic(node, constructor.declaration, inputs,
           typeMask: elementType,
           instanceType: expectedType,
           sourceInformation: sourceInformation);
@@ -3712,7 +3509,8 @@ class SsaBuilder extends ast.Visitor
 
     // Finally, if we called a redirecting factory constructor, check the type.
     if (isRedirected) {
-      HInstruction checked = potentiallyCheckOrTrustType(newInstance, type);
+      HInstruction checked =
+          typeBuilder.potentiallyCheckOrTrustType(newInstance, type);
       if (checked != newInstance) {
         pop();
         stack.add(checked);
@@ -3726,8 +3524,8 @@ class SsaBuilder extends ast.Visitor
     if (!backend.classNeedsRti(cls)) return;
     assert(cls.typeVariables.length == expectedType.typeArguments.length);
     expectedType.typeArguments.forEach((DartType argument) {
-      inputs.add(
-          analyzeTypeArgument(argument, sourceInformation: sourceInformation));
+      inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement,
+          sourceInformation: sourceInformation));
     });
   }
 
@@ -3999,7 +3797,7 @@ class SsaBuilder extends ast.Visitor
       generateTypeError(node, "Method type variables are not reified");
     } else {
       DartType type = localsHandler.substInContext(typeVariable);
-      HInstruction value = analyzeTypeArgument(type,
+      HInstruction value = typeBuilder.analyzeTypeArgument(type, sourceElement,
           sourceInformation: sourceInformationBuilder.buildGet(node));
       pushInvokeStatic(node, helpers.runtimeTypeToString, [value],
           typeMask: backend.stringType);
@@ -4334,10 +4132,11 @@ class SsaBuilder extends ast.Visitor
   }
 
   void pushInvokeStatic(
-      ast.Node location, Element element, List<HInstruction> arguments,
+      ast.Node location, MethodElement element, List<HInstruction> arguments,
       {TypeMask typeMask,
       InterfaceType instanceType,
       SourceInformation sourceInformation}) {
+    assert(element.isDeclaration);
     // TODO(johnniwinther): Use [sourceInformation] instead of [location].
     if (tryInlineMethod(element, null, null, arguments, location,
         instanceType: instanceType)) {
@@ -4356,7 +4155,7 @@ class SsaBuilder extends ast.Visitor
           invokeJsInteropFunction(element, arguments, sourceInformation);
     } else {
       // creating an [HInvokeStatic].
-      instruction = new HInvokeStatic(element.declaration, arguments, typeMask,
+      instruction = new HInvokeStatic(element, arguments, typeMask,
           targetCanThrow: targetCanThrow)
         ..sourceInformation = sourceInformation;
       if (currentInlinedInstantiations.isNotEmpty) {
@@ -4374,7 +4173,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   HInstruction buildInvokeSuper(
-      Selector selector, Element element, List<HInstruction> arguments,
+      Selector selector, MemberElement element, List<HInstruction> arguments,
       [SourceInformation sourceInformation]) {
     HInstruction receiver = localsHandler.readThis();
     // TODO(5346): Try to avoid the need for calling [declaration] before
@@ -4416,7 +4215,7 @@ class SsaBuilder extends ast.Visitor
         receiver,
         rhs,
         elements.getOperatorSelectorInComplexSendSet(node),
-        inferenceResults.typeOfOperator(node, elements),
+        elementInferenceResults.typeOfOperator(node),
         node,
         sourceInformation:
             sourceInformationBuilder.buildGeneric(node.assignmentOperator));
@@ -4779,7 +4578,7 @@ class SsaBuilder extends ast.Visitor
       }
 
       pushInvokeDynamic(node, elements.getGetterSelectorInComplexSendSet(node),
-          inferenceResults.typeOfGetter(node, elements), [receiver, index]);
+          elementInferenceResults.typeOfGetter(node), [receiver, index]);
       HInstruction getterInstruction = pop();
       if (node.isIfNullAssignment) {
         // Compile x[i] ??= e as:
@@ -4794,7 +4593,7 @@ class SsaBuilder extends ast.Visitor
           pushInvokeDynamic(
               node,
               elements.getSelector(node),
-              inferenceResults.typeOfSend(node, elements),
+              elementInferenceResults.typeOfSend(node),
               [receiver, index, value]);
           pop();
           stack.add(value);
@@ -4802,11 +4601,8 @@ class SsaBuilder extends ast.Visitor
       } else {
         handleComplexOperatorSend(node, getterInstruction, arguments);
         HInstruction value = pop();
-        pushInvokeDynamic(
-            node,
-            elements.getSelector(node),
-            inferenceResults.typeOfSend(node, elements),
-            [receiver, index, value]);
+        pushInvokeDynamic(node, elements.getSelector(node),
+            elementInferenceResults.typeOfSend(node), [receiver, index, value]);
         pop();
         if (node.isPostfix) {
           stack.add(getterInstruction);
@@ -5010,7 +4806,7 @@ class SsaBuilder extends ast.Visitor
         generateInstanceGetterWithCompiledReceiver(
             node,
             elements.getGetterSelectorInComplexSendSet(node),
-            inferenceResults.typeOfGetter(node, elements),
+            elementInferenceResults.typeOfGetter(node),
             receiver);
         HInstruction getterInstruction = pop();
         if (node.isIfNullAssignment) {
@@ -5327,10 +5123,10 @@ class SsaBuilder extends ast.Visitor
           redirectingConstructor.computeEffectiveTargetType(cls.thisType);
       targetType = localsHandler.substInContext(targetType);
       targetType.typeArguments.forEach((DartType argument) {
-        inputs.add(analyzeTypeArgument(argument));
+        inputs.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
       });
     }
-    pushInvokeStatic(node, targetConstructor, inputs);
+    pushInvokeStatic(node, targetConstructor.declaration, inputs);
     HInstruction value = pop();
     emitReturn(value, node);
   }
@@ -5377,7 +5173,7 @@ class SsaBuilder extends ast.Visitor
           return;
         }
       } else {
-        value = potentiallyCheckOrTrustType(value, returnType);
+        value = typeBuilder.potentiallyCheckOrTrustType(value, returnType);
       }
     }
 
@@ -5439,12 +5235,11 @@ class SsaBuilder extends ast.Visitor
     }
     List<HInstruction> arguments = <HInstruction>[];
     for (DartType argument in type.typeArguments) {
-      arguments.add(analyzeTypeArgument(argument));
+      arguments.add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
     }
     // TODO(15489): Register at codegen.
     registry?.registerInstantiation(type);
-    return callSetRuntimeTypeInfoWithTypeArguments(
-        type.element, arguments, object);
+    return callSetRuntimeTypeInfoWithTypeArguments(type, arguments, object);
   }
 
   visitLiteralList(ast.LiteralList node) {
@@ -5473,8 +5268,8 @@ class SsaBuilder extends ast.Visitor
   }
 
   _inferredTypeOfNewList(ast.Node node) =>
-      inferenceResults.typeOfNewList(sourceElement, node) ??
-      compiler.commonMasks.dynamicType;
+      _resultOf(sourceElement).typeOfNewList(node) ??
+      compiler.closedWorld.commonMasks.dynamicType;
 
   visitConditional(ast.Conditional node) {
     SsaBranchBuilder brancher = new SsaBranchBuilder(this, compiler, node);
@@ -5569,7 +5364,7 @@ class SsaBuilder extends ast.Visitor
 
     HInstruction buildCondition() {
       Selector selector = Selectors.moveNext;
-      TypeMask mask = inferenceResults.typeOfIteratorMoveNext(node, elements);
+      TypeMask mask = elementInferenceResults.typeOfIteratorMoveNext(node);
       pushInvokeDynamic(node, selector, mask, [streamIterator]);
       HInstruction future = pop();
       push(new HAwait(
@@ -5581,8 +5376,7 @@ class SsaBuilder extends ast.Visitor
 
     void buildBody() {
       Selector call = Selectors.current;
-      TypeMask callMask =
-          inferenceResults.typeOfIteratorCurrent(node, elements);
+      TypeMask callMask = elementInferenceResults.typeOfIteratorCurrent(node);
       pushInvokeDynamic(node, call, callMask, [streamIterator]);
 
       ast.Node identifier = node.declaredIdentifier;
@@ -5591,7 +5385,7 @@ class SsaBuilder extends ast.Visitor
       HInstruction value = pop();
       if (identifier.asSend() != null &&
           Elements.isInstanceSend(identifier, elements)) {
-        TypeMask mask = inferenceResults.typeOfSend(identifier, elements);
+        TypeMask mask = elementInferenceResults.typeOfSend(identifier);
         HInstruction receiver = generateInstanceSendReceiver(identifier);
         assert(receiver != null);
         generateInstanceSetterWithCompiledReceiver(null, receiver, value,
@@ -5630,7 +5424,7 @@ class SsaBuilder extends ast.Visitor
     // method is inlined.  We would require full scalar replacement in that
     // case.
 
-    TypeMask mask = inferenceResults.typeOfIterator(node, elements);
+    TypeMask mask = elementInferenceResults.typeOfIterator(node);
 
     ClosedWorld closedWorld = compiler.closedWorld;
     if (mask != null &&
@@ -5655,7 +5449,7 @@ class SsaBuilder extends ast.Visitor
 
     void buildInitializer() {
       Selector selector = Selectors.iterator;
-      TypeMask mask = inferenceResults.typeOfIterator(node, elements);
+      TypeMask mask = elementInferenceResults.typeOfIterator(node);
       visit(node.expression);
       HInstruction receiver = pop();
       pushInvokeDynamic(node, selector, mask, [receiver]);
@@ -5664,14 +5458,14 @@ class SsaBuilder extends ast.Visitor
 
     HInstruction buildCondition() {
       Selector selector = Selectors.moveNext;
-      TypeMask mask = inferenceResults.typeOfIteratorMoveNext(node, elements);
+      TypeMask mask = elementInferenceResults.typeOfIteratorMoveNext(node);
       pushInvokeDynamic(node, selector, mask, [iterator]);
       return popBoolified();
     }
 
     void buildBody() {
       Selector call = Selectors.current;
-      TypeMask mask = inferenceResults.typeOfIteratorCurrent(node, elements);
+      TypeMask mask = elementInferenceResults.typeOfIteratorCurrent(node);
       pushInvokeDynamic(node, call, mask, [iterator]);
       buildAssignLoopVariable(node, pop());
       visit(node.body);
@@ -5688,7 +5482,7 @@ class SsaBuilder extends ast.Visitor
 
     if (identifier.asSend() != null &&
         Elements.isInstanceSend(identifier, elements)) {
-      TypeMask mask = inferenceResults.typeOfSend(identifier, elements);
+      TypeMask mask = elementInferenceResults.typeOfSend(identifier);
       HInstruction receiver = generateInstanceSendReceiver(identifier);
       assert(receiver != null);
       generateInstanceSetterWithCompiledReceiver(null, receiver, value,
@@ -5719,7 +5513,7 @@ class SsaBuilder extends ast.Visitor
     HInstruction originalLength = null; // Set for growable lists.
 
     HInstruction buildGetLength() {
-      Element lengthElement = helpers.jsIndexableLength;
+      MemberElement lengthElement = helpers.jsIndexableLength;
       HFieldGet result = new HFieldGet(
           lengthElement, array, backend.positiveIntType,
           isAssignable: !isFixed);
@@ -5888,7 +5682,8 @@ class SsaBuilder extends ast.Visitor
     if (backend.classNeedsRti(cls)) {
       List<HInstruction> typeInputs = <HInstruction>[];
       expectedType.typeArguments.forEach((DartType argument) {
-        typeInputs.add(analyzeTypeArgument(argument));
+        typeInputs
+            .add(typeBuilder.analyzeTypeArgument(argument, sourceElement));
       });
 
       // We lift this common call pattern into a helper function to save space
@@ -6197,7 +5992,6 @@ class SsaBuilder extends ast.Visitor
 
     List<HStatementInformation> statements = <HStatementInformation>[];
     bool hasDefault = false;
-    Element getFallThroughErrorElement = helpers.fallThroughError;
     HasNextIterator<ast.Node> caseIterator =
         new HasNextIterator<ast.Node>(switchCases.iterator);
     while (caseIterator.hasNext) {
@@ -6220,8 +6014,8 @@ class SsaBuilder extends ast.Visitor
       localsHandler = new LocalsHandler.from(savedLocals);
       buildSwitchCase(switchCase);
       if (!isAborted()) {
-        if (caseIterator.hasNext) {
-          pushInvokeStatic(switchCase, getFallThroughErrorElement, []);
+        if (caseIterator.hasNext && isReachable) {
+          pushInvokeStatic(switchCase, helpers.fallThroughError, []);
           HInstruction error = pop();
           closeAndGotoExit(new HThrow(error, error.sourceInformation));
         } else if (!isDefaultCase(switchCase)) {
@@ -6628,8 +6422,10 @@ class SsaBuilder extends ast.Visitor
         stack,
         localsHandler,
         inTryStatement,
-        allInlinedFunctionsCalledOnce && isFunctionCalledOnce(function));
+        isCalledOnce(function),
+        elementInferenceResults);
     resolvedAst = functionResolvedAst;
+    elementInferenceResults = _resultOf(function);
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -6950,6 +6746,7 @@ class AstInliningState extends InliningState {
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
   final bool allFunctionsCalledOnce;
+  final GlobalTypeInferenceElementResult oldElementInferenceResults;
 
   AstInliningState(
       FunctionElement function,
@@ -6959,97 +6756,7 @@ class AstInliningState extends InliningState {
       this.oldStack,
       this.oldLocalsHandler,
       this.inTryStatement,
-      this.allFunctionsCalledOnce)
+      this.allFunctionsCalledOnce,
+      this.oldElementInferenceResults)
       : super(function);
-}
-
-class TypeBuilder implements DartTypeVisitor<dynamic, SsaBuilder> {
-  final ClosedWorld closedWorld;
-
-  TypeBuilder(this.closedWorld);
-
-  void visit(DartType type, SsaBuilder builder) => type.accept(this, builder);
-
-  void visitVoidType(VoidType type, SsaBuilder builder) {
-    ClassElement cls = builder.backend.helpers.VoidRuntimeType;
-    builder.push(new HVoidType(type, new TypeMask.exact(cls, closedWorld)));
-  }
-
-  void visitTypeVariableType(TypeVariableType type, SsaBuilder builder) {
-    ClassElement cls = builder.backend.helpers.RuntimeType;
-    TypeMask instructionType = new TypeMask.subclass(cls, closedWorld);
-    if (!builder.sourceElement.enclosingElement.isClosure &&
-        builder.sourceElement.isInstanceMember) {
-      HInstruction receiver = builder.localsHandler.readThis();
-      builder.push(new HReadTypeVariable(type, receiver, instructionType));
-    } else {
-      builder.push(new HReadTypeVariable.noReceiver(
-          type, builder.addTypeVariableReference(type), instructionType));
-    }
-  }
-
-  void visitFunctionType(FunctionType type, SsaBuilder builder) {
-    type.returnType.accept(this, builder);
-    HInstruction returnType = builder.pop();
-    List<HInstruction> inputs = <HInstruction>[returnType];
-
-    for (DartType parameter in type.parameterTypes) {
-      parameter.accept(this, builder);
-      inputs.add(builder.pop());
-    }
-
-    for (DartType parameter in type.optionalParameterTypes) {
-      parameter.accept(this, builder);
-      inputs.add(builder.pop());
-    }
-
-    List<DartType> namedParameterTypes = type.namedParameterTypes;
-    List<String> names = type.namedParameters;
-    for (int index = 0; index < names.length; index++) {
-      ast.DartString dartString = new ast.DartString.literal(names[index]);
-      inputs.add(builder.graph.addConstantString(dartString, builder.compiler));
-      namedParameterTypes[index].accept(this, builder);
-      inputs.add(builder.pop());
-    }
-
-    ClassElement cls = builder.backend.helpers.RuntimeFunctionType;
-    builder.push(
-        new HFunctionType(inputs, type, new TypeMask.exact(cls, closedWorld)));
-  }
-
-  void visitMalformedType(MalformedType type, SsaBuilder builder) {
-    visitDynamicType(const DynamicType(), builder);
-  }
-
-  void visitStatementType(StatementType type, SsaBuilder builder) {
-    throw 'not implemented visitStatementType($type)';
-  }
-
-  void visitInterfaceType(InterfaceType type, SsaBuilder builder) {
-    List<HInstruction> inputs = <HInstruction>[];
-    for (DartType typeArgument in type.typeArguments) {
-      typeArgument.accept(this, builder);
-      inputs.add(builder.pop());
-    }
-    ClassElement cls;
-    if (type.typeArguments.isEmpty) {
-      cls = builder.backend.helpers.RuntimeTypePlain;
-    } else {
-      cls = builder.backend.helpers.RuntimeTypeGeneric;
-    }
-    builder.push(
-        new HInterfaceType(inputs, type, new TypeMask.exact(cls, closedWorld)));
-  }
-
-  void visitTypedefType(TypedefType type, SsaBuilder builder) {
-    DartType unaliased = type.unaliased;
-    if (unaliased is TypedefType) throw 'unable to unalias $type';
-    unaliased.accept(this, builder);
-  }
-
-  void visitDynamicType(DynamicType type, SsaBuilder builder) {
-    JavaScriptBackend backend = builder.compiler.backend;
-    ClassElement cls = backend.helpers.DynamicRuntimeType;
-    builder.push(new HDynamicType(type, new TypeMask.exact(cls, closedWorld)));
-  }
 }

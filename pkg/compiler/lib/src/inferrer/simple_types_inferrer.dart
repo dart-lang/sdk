@@ -12,12 +12,13 @@ import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../core_types.dart' show CoreClasses, CoreTypes;
 import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
+import '../js_backend/backend_helpers.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart' as op;
 import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
-import '../types/types.dart' show TypeMask;
+import '../types/types.dart' show TypeMask, GlobalTypeInferenceElementData;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
@@ -37,6 +38,11 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   final V types;
   final Map<ast.Node, T> concreteTypes = new Map<ast.Node, T>();
   final Set<Element> generativeConstructorsExposingThis = new Set<Element>();
+
+  /// Data computed internally within elements, like the type-mask of a send a
+  /// list allocation, or a for-in loop.
+  final Map<Element, GlobalTypeInferenceElementData> inTreeData =
+      new Map<Element, GlobalTypeInferenceElementData>();
 
   InferrerEngine(Compiler compiler, this.types)
       : this.compiler = compiler,
@@ -180,6 +186,9 @@ abstract class InferrerEngine<T, V extends TypeSystem>
     }
   }
 
+  GlobalTypeInferenceElementData _dataOf(AstElement element) => inTreeData
+      .putIfAbsent(element, () => new GlobalTypeInferenceElementData());
+
   /**
    * Update [sideEffects] with the side effects of [callee] being
    * called with [selector].
@@ -260,27 +269,27 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   void updateSelectorInTree(
       AstElement owner, Spannable node, Selector selector, TypeMask mask) {
     ast.Node astNode = node;
-    TreeElements elements = owner.resolvedAst.elements;
+    GlobalTypeInferenceElementData data = _dataOf(owner);
     if (astNode.asSendSet() != null) {
       if (selector.isSetter || selector.isIndexSet) {
-        elements.setTypeMask(node, mask);
+        data.setTypeMask(node, mask);
       } else if (selector.isGetter || selector.isIndex) {
-        elements.setGetterTypeMaskInComplexSendSet(node, mask);
+        data.setGetterTypeMaskInComplexSendSet(node, mask);
       } else {
         assert(selector.isOperator);
-        elements.setOperatorTypeMaskInComplexSendSet(node, mask);
+        data.setOperatorTypeMaskInComplexSendSet(node, mask);
       }
     } else if (astNode.asSend() != null) {
-      elements.setTypeMask(node, mask);
+      data.setTypeMask(node, mask);
     } else {
       assert(astNode.asForIn() != null);
       if (selector == Selectors.iterator) {
-        elements.setIteratorTypeMask(node, mask);
+        data.setIteratorTypeMask(node, mask);
       } else if (selector == Selectors.current) {
-        elements.setCurrentTypeMask(node, mask);
+        data.setCurrentTypeMask(node, mask);
       } else {
         assert(selector == Selectors.moveNext);
-        elements.setMoveNextTypeMask(node, mask);
+        data.setMoveNextTypeMask(node, mask);
       }
     }
   }
@@ -323,6 +332,7 @@ class SimpleTypeInferrerVisitor<T>
   final Element outermostElement;
   final InferrerEngine<T, TypeSystem<T>> inferrer;
   final Setlet<Entity> capturedVariables = new Setlet<Entity>();
+  final GlobalTypeInferenceElementData inTreeData;
 
   SimpleTypeInferrerVisitor.internal(
       AstElement analyzedElement,
@@ -333,7 +343,8 @@ class SimpleTypeInferrerVisitor<T>
       locals)
       : super(analyzedElement, resolvedAst, inferrer, inferrer.types, compiler,
             locals),
-        this.inferrer = inferrer {
+        this.inferrer = inferrer,
+        this.inTreeData = inferrer._dataOf(analyzedElement) {
     assert(outermostElement != null);
   }
 
@@ -692,10 +703,10 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     Selector getterSelector = elements.getGetterSelectorInComplexSendSet(node);
-    TypeMask getterMask = elements.getGetterTypeMaskInComplexSendSet(node);
-    TypeMask operatorMask = elements.getOperatorTypeMaskInComplexSendSet(node);
+    TypeMask getterMask = inTreeData.typeOfGetter(node);
+    TypeMask operatorMask = inTreeData.typeOfOperator(node);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = elements.getTypeMask(node);
+    TypeMask setterMask = inTreeData.typeOfSend(node);
 
     String op = node.assignmentOperator.source;
     bool isIncrementOrDecrement = op == '++' || op == '--';
@@ -805,12 +816,13 @@ class SimpleTypeInferrerVisitor<T>
   T handleCompoundIndexSet(
       ast.SendSet node, T receiverType, T indexType, T rhsType) {
     Selector getterSelector = elements.getGetterSelectorInComplexSendSet(node);
-    TypeMask getterMask = elements.getGetterTypeMaskInComplexSendSet(node);
+
+    TypeMask getterMask = inTreeData.typeOfGetter(node);
     Selector operatorSelector =
         elements.getOperatorSelectorInComplexSendSet(node);
-    TypeMask operatorMask = elements.getOperatorTypeMaskInComplexSendSet(node);
+    TypeMask operatorMask = inTreeData.typeOfOperator(node);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = elements.getTypeMask(node);
+    TypeMask setterMask = inTreeData.typeOfSend(node);
 
     T getterType = handleDynamicSend(node, getterSelector, getterMask,
         receiverType, new ArgumentsTypes<T>([indexType], null));
@@ -905,9 +917,10 @@ class SimpleTypeInferrerVisitor<T>
   T _handleSuperCompoundIndexSet(ast.SendSet node, Element getter,
       Element setter, T indexType, T rhsType) {
     Selector getterSelector = elements.getGetterSelectorInComplexSendSet(node);
-    TypeMask getterMask = elements.getGetterTypeMaskInComplexSendSet(node);
+
+    TypeMask getterMask = inTreeData.typeOfGetter(node);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = elements.getTypeMask(node);
+    TypeMask setterMask = inTreeData.typeOfSend(node);
 
     T getterType = handleSuperSend(node, getterSelector, getterMask, getter,
         new ArgumentsTypes<T>([indexType], null));
@@ -918,8 +931,7 @@ class SimpleTypeInferrerVisitor<T>
     } else {
       Selector operatorSelector =
           elements.getOperatorSelectorInComplexSendSet(node);
-      TypeMask operatorMask =
-          elements.getOperatorTypeMaskInComplexSendSet(node);
+      TypeMask operatorMask = inTreeData.typeOfOperator(node);
       returnType = handleDynamicSend(node, operatorSelector, operatorMask,
           getterType, new ArgumentsTypes<T>([rhsType], null));
     }
@@ -1267,9 +1279,9 @@ class SimpleTypeInferrerVisitor<T>
   T _handleSuperCompound(
       ast.SendSet node, Element getter, Element setter, T rhsType) {
     Selector getterSelector = elements.getGetterSelectorInComplexSendSet(node);
-    TypeMask getterMask = elements.getGetterTypeMaskInComplexSendSet(node);
+    TypeMask getterMask = inTreeData.typeOfGetter(node);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = elements.getTypeMask(node);
+    TypeMask setterMask = inTreeData.typeOfSend(node);
 
     T getterType =
         handleSuperSend(node, getterSelector, getterMask, getter, null);
@@ -1280,8 +1292,7 @@ class SimpleTypeInferrerVisitor<T>
     } else {
       Selector operatorSelector =
           elements.getOperatorSelectorInComplexSendSet(node);
-      TypeMask operatorMask =
-          elements.getOperatorTypeMaskInComplexSendSet(node);
+      TypeMask operatorMask = inTreeData.typeOfOperator(node);
       returnType = handleDynamicSend(node, operatorSelector, operatorMask,
           getterType, new ArgumentsTypes<T>([rhsType], null));
     }
@@ -1294,7 +1305,7 @@ class SimpleTypeInferrerVisitor<T>
   /// Handle index set, like `foo[0] = 42`.
   T handleIndexSet(ast.SendSet node, T receiverType, T indexType, T rhsType) {
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = elements.getTypeMask(node);
+    TypeMask setterMask = inTreeData.typeOfSend(node);
     handleDynamicSend(node, setterSelector, setterMask, receiverType,
         new ArgumentsTypes<T>([indexType, rhsType], null));
     return rhsType;
@@ -1315,7 +1326,7 @@ class SimpleTypeInferrerVisitor<T>
     T indexType = visit(index);
     T rhsType = visit(rhs);
     Selector setterSelector = elements.getSelector(node);
-    TypeMask setterMask = elements.getTypeMask(node);
+    TypeMask setterMask = inTreeData.typeOfSend(node);
     handleStaticSend(node, setterSelector, setterMask, element,
         new ArgumentsTypes<T>([indexType, rhsType], null));
     return rhsType;
@@ -1391,7 +1402,7 @@ class SimpleTypeInferrerVisitor<T>
     ArgumentsTypes arguments =
         node.isPropertyAccess ? null : analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     // TODO(herhut): We could do better here if we knew what we
     // are calling does not expose this.
     // TODO(johnniwinther): Do we still need this when calling directly?
@@ -1418,7 +1429,7 @@ class SimpleTypeInferrerVisitor<T>
       ast.Send node, Element element, ast.NodeList arguments) {
     ArgumentsTypes argumentTypes = analyzeArguments(arguments.nodes);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     // TODO(herhut): We could do better here if we knew what we
     // are calling does not expose this.
     isThisExposed = true;
@@ -1440,7 +1451,7 @@ class SimpleTypeInferrerVisitor<T>
     // are calling does not expose this.
     isThisExposed = true;
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, method, arguments);
   }
 
@@ -1450,7 +1461,7 @@ class SimpleTypeInferrerVisitor<T>
     // are calling does not expose this.
     isThisExposed = true;
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, element, null);
   }
 
@@ -1461,9 +1472,10 @@ class SimpleTypeInferrerVisitor<T>
     // are calling does not expose this.
     isThisExposed = true;
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
-    return handleStaticSend(
+    TypeMask mask = inTreeData.typeOfSend(node);
+    handleStaticSend(
         node, selector, mask, element, new ArgumentsTypes<T>([rhsType], null));
+    return rhsType;
   }
 
   @override
@@ -1673,13 +1685,13 @@ class SimpleTypeInferrerVisitor<T>
       return handleForeignSend(node, target);
     }
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    CallStructure callStructure = selector.callStructure;
+    TypeMask mask = inTreeData.typeOfSend(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn't break anything
-    if (!selector.applies(target) ||
-        (mask != null &&
-            !mask.canHit(target, selector, compiler.closedWorld))) {
+    if (target.isMalformed ||
+        !callStructure.signatureApplies(target.functionSignature)) {
       return types.dynamicType;
     }
 
@@ -1732,7 +1744,7 @@ class SimpleTypeInferrerVisitor<T>
   T handleStaticFieldOrGetterInvoke(ast.Send node, Element element) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     handleStaticSend(node, selector, mask, element, arguments);
     return inferrer.registerCalledClosure(
         node,
@@ -1752,7 +1764,7 @@ class SimpleTypeInferrerVisitor<T>
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, function, arguments);
   }
 
@@ -1836,10 +1848,12 @@ class SimpleTypeInferrerVisitor<T>
   T handleForeignSend(ast.Send node, Element element) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     String name = element.name;
     handleStaticSend(node, selector, mask, element, arguments);
-    if (name == 'JS' || name == 'JS_EMBEDDED_GLOBAL' || name == 'JS_BUILTIN') {
+    if (name == BackendHelpers.JS ||
+        name == BackendHelpers.JS_EMBEDDED_GLOBAL ||
+        name == BackendHelpers.JS_BUILTIN) {
       native.NativeBehavior nativeBehavior = elements.getNativeData(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
@@ -1879,21 +1893,21 @@ class SimpleTypeInferrerVisitor<T>
   /// Read a static or top level field.
   T handleStaticFieldGet(ast.Send node, FieldElement field) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, field, null);
   }
 
   /// Invoke a static or top level getter.
   T handleStaticGetterGet(ast.Send node, MethodElement getter) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, getter, null);
   }
 
   /// Closurize a static or top level function.
   T handleStaticFunctionGet(ast.Send node, MethodElement function) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     return handleStaticSend(node, selector, mask, function, null);
   }
 
@@ -1977,7 +1991,7 @@ class SimpleTypeInferrerVisitor<T>
   T handleCallInvoke(ast.Send node, T closure) {
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     return inferrer.registerCalledClosure(node, selector, mask, closure,
         outermostElement, arguments, sideEffects, inLoop);
   }
@@ -2011,7 +2025,7 @@ class SimpleTypeInferrerVisitor<T>
       ast.NodeList arguments, CallStructure callStructure, _) {
     ArgumentsTypes argumentTypes = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     // This only works for function statements. We need a
     // more sophisticated type system with function types to support
     // more.
@@ -2097,7 +2111,7 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
+    TypeMask mask = inTreeData.typeOfSend(node);
     if (!isThisExposed && isCallOnThis) {
       checkIfExposesThis(selector, types.newTypedSelector(receiverType, mask));
     }
@@ -2192,7 +2206,7 @@ class SimpleTypeInferrerVisitor<T>
     ast.Node identifier = node.declaredIdentifier;
     Element element = elements.getForInVariable(node);
     Selector selector = elements.getSelector(identifier);
-    TypeMask mask = elements.getTypeMask(identifier);
+    TypeMask mask = inTreeData.typeOfSend(identifier);
 
     T receiverType;
     if (element != null && element.isInstanceMember) {
@@ -2212,9 +2226,9 @@ class SimpleTypeInferrerVisitor<T>
     T expressionType = visit(node.expression);
 
     Selector currentSelector = Selectors.current;
-    TypeMask currentMask = elements.getCurrentTypeMask(node);
+    TypeMask currentMask = inTreeData.typeOfIteratorCurrent(node);
     Selector moveNextSelector = Selectors.moveNext;
-    TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
+    TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
 
     js.JavaScriptBackend backend = compiler.backend;
     Element ctor = backend.helpers.streamIteratorConstructor;
@@ -2230,11 +2244,11 @@ class SimpleTypeInferrerVisitor<T>
   T visitSyncForIn(ast.SyncForIn node) {
     T expressionType = visit(node.expression);
     Selector iteratorSelector = Selectors.iterator;
-    TypeMask iteratorMask = elements.getIteratorTypeMask(node);
+    TypeMask iteratorMask = inTreeData.typeOfIterator(node);
     Selector currentSelector = Selectors.current;
-    TypeMask currentMask = elements.getCurrentTypeMask(node);
+    TypeMask currentMask = inTreeData.typeOfIteratorCurrent(node);
     Selector moveNextSelector = Selectors.moveNext;
-    TypeMask moveNextMask = elements.getMoveNextTypeMask(node);
+    TypeMask moveNextMask = inTreeData.typeOfIteratorMoveNext(node);
 
     T iteratorType = handleDynamicSend(node, iteratorSelector, iteratorMask,
         expressionType, new ArgumentsTypes<T>.empty());

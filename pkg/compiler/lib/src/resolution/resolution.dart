@@ -315,11 +315,22 @@ class ResolverTask extends CompilerTask {
           // Ensure the signature of the synthesized element is
           // resolved. This is the only place where the resolver is
           // seeing this element.
-          element.computeType(resolution);
+          FunctionType type = element.computeType(resolution);
           if (!target.isMalformed) {
             registry.registerStaticUse(new StaticUse.superConstructorInvoke(
-                target, CallStructure.NO_ARGS));
+                // TODO(johnniwinther): Provide the right call structure for
+                // forwarding constructors.
+                target,
+                CallStructure.NO_ARGS));
           }
+          // TODO(johnniwinther): Remove this substitution when synthesized
+          // constructors handle type variables correctly.
+          type = type.substByContext(
+              constructor.enclosingClass.asInstanceOf(target.enclosingClass));
+          type.parameterTypes.forEach(registry.registerCheckedModeCheck);
+          type.optionalParameterTypes
+              .forEach(registry.registerCheckedModeCheck);
+          type.namedParameterTypes.forEach(registry.registerCheckedModeCheck);
           return registry.impactBuilder;
         } else {
           assert(element.isDeferredLoaderGetter || element.isMalformed);
@@ -382,6 +393,8 @@ class ResolverTask extends CompilerTask {
         // happens for enum fields where the type is known but is not in the
         // synthesized AST.
         element.variables.type = const DynamicType();
+      } else {
+        registry.registerCheckedModeCheck(element.variables.type);
       }
 
       Expression initializer = element.initializer;
@@ -412,7 +425,8 @@ class ResolverTask extends CompilerTask {
           }
         });
         if (initializer != null) {
-          if (!element.modifiers.isConst) {
+          if (!element.modifiers.isConst &&
+              initializer.asLiteralNull() == null) {
             // TODO(johnniwinther): Determine the const-ness eagerly to avoid
             // unnecessary registrations.
             registry.registerFeature(Feature.LAZY_FIELD);

@@ -34,9 +34,7 @@ class PortTestMessageHandler : public MessageHandler {
  public:
   PortTestMessageHandler() : notify_count(0) {}
 
-  void MessageNotify(Message::Priority priority) {
-    notify_count++;
-  }
+  void MessageNotify(Message::Priority priority) { notify_count++; }
 
   MessageStatus HandleMessage(Message* message) { return kOK; }
 
@@ -141,9 +139,9 @@ TEST_CASE(PortMap_PostMessage) {
   const char* message = "msg";
   intptr_t message_len = strlen(message) + 1;
 
-  EXPECT(PortMap::PostMessage(new Message(
-      port, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
-      Message::kNormalPriority)));
+  EXPECT(PortMap::PostMessage(
+      new Message(port, reinterpret_cast<uint8_t*>(strdup(message)),
+                  message_len, Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
   EXPECT_EQ(1, handler.notify_count);
@@ -156,8 +154,8 @@ TEST_CASE(PortMap_PostIntegerMessage) {
   Dart_Port port = PortMap::CreatePort(&handler);
   EXPECT_EQ(0, handler.notify_count);
 
-  EXPECT(PortMap::PostMessage(new Message(
-      port, Smi::New(42), Message::kNormalPriority)));
+  EXPECT(PortMap::PostMessage(
+      new Message(port, Smi::New(42), Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
   EXPECT_EQ(1, handler.notify_count);
@@ -170,8 +168,8 @@ TEST_CASE(PortMap_PostNullMessage) {
   Dart_Port port = PortMap::CreatePort(&handler);
   EXPECT_EQ(0, handler.notify_count);
 
-  EXPECT(PortMap::PostMessage(new Message(
-      port, Object::null(), Message::kNormalPriority)));
+  EXPECT(PortMap::PostMessage(
+      new Message(port, Object::null(), Message::kNormalPriority)));
 
   // Check that the message notify callback was called.
   EXPECT_EQ(1, handler.notify_count);
@@ -188,9 +186,9 @@ TEST_CASE(PortMap_PostMessageClosedPort) {
   const char* message = "msg";
   intptr_t message_len = strlen(message) + 1;
 
-  EXPECT(!PortMap::PostMessage(new Message(
-      port, reinterpret_cast<uint8_t*>(strdup(message)), message_len,
-      Message::kNormalPriority)));
+  EXPECT(!PortMap::PostMessage(
+      new Message(port, reinterpret_cast<uint8_t*>(strdup(message)),
+                  message_len, Message::kNormalPriority)));
 }
 
 }  // namespace dart

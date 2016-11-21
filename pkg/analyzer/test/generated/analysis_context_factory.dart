@@ -209,7 +209,7 @@ class AnalysisContextFactory {
     }
     FunctionElementImpl thenOnValue = ElementFactory.functionElement3('onValue',
         DynamicElementImpl.instance, [futureElement.typeParameters[0]], null);
-    thenOnValue.synthetic = true;
+    thenOnValue.isSynthetic = true;
 
     DartType futureRType = futureElement.type.instantiate([futureThenR.type]);
     MethodElementImpl thenMethod = ElementFactory
@@ -248,7 +248,7 @@ class AnalysisContextFactory {
         VoidTypeImpl.instance.element,
         <TypeDefiningElement>[streamElement.typeParameters[0]],
         null);
-    listenOnData.synthetic = true;
+    listenOnData.isSynthetic = true;
     List<DartType> parameterTypes = <DartType>[
       listenOnData.type,
     ];

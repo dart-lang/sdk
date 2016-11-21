@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
-      function(dart_sdk, async_helper, expect, unittest, require) {
+define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'is', 'require'],
+      function(dart_sdk, async_helper, expect, unittest, is, require) {
   'use strict';
 
   async_helper = async_helper.async_helper;
@@ -14,6 +14,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
   // Test attributes are a list of strings, or a string for a single
   // attribute. Valid attributes are:
   //
+  //   'pass' - test passes (default)
   //   'skip' - don't run the test
   //   'fail' - test fails
   //   'timeout' - test times out
@@ -22,9 +23,14 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
   //   'unittest' - run separately as a unittest test.
   //
   // Common combinations:
+  const pass = 'pass';
   const fail = 'fail';
   const skip_fail = ['skip', 'fail'];
   const skip_timeout = ['skip', 'timeout'];
+
+  // Browsers
+  const firefox_fail = is.firefox() ? fail : pass;
+  const chrome_fail = is.chrome() ? fail : pass;
 
   // Tests marked with this are still using the deprecated unittest package
   // because they rely on its support for futures and asynchronous tests, which
@@ -118,22 +124,15 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'cyclic_type_test_03_multi': skip_fail,
       'cyclic_type_test_04_multi': skip_fail,
       'cyclic_type_variable_test_none_multi': skip_fail,
+
+      // Deferred libraries are not actually deferred. These tests all test
+      // that synchronous access to the library fails.
       'deferred_call_empty_before_load_test': skip_fail,
-      'deferred_closurize_load_library_test': skip_fail,
-      'deferred_constant_list_test': skip_fail,
-      'deferred_function_type_test': skip_fail,
-      'deferred_inlined_test': skip_fail,
-      'deferred_load_inval_code_test': skip_fail,
-      'deferred_mixin_test': skip_fail,
-      'deferred_no_such_method_test': skip_fail, // deferred libs not implemented
       'deferred_not_loaded_check_test': skip_fail,
-      'deferred_only_constant_test': skip_fail,
-      'deferred_optimized_test': skip_fail,
       'deferred_redirecting_factory_test': skip_fail,
-      'deferred_regression_22995_test': skip_fail,
-      'deferred_shadow_load_library_test': skip_fail,
-      'deferred_shared_and_unshared_classes_test': skip_fail,
       'deferred_static_seperate_test': skip_fail,
+
+      'deferred_regression_22995_test': skip_fail, // Strong mode "is" rejects some type tests.
       'double_int_to_string_test': skip_fail,
       'double_to_string_test': skip_fail,
       'dynamic_test': skip_fail,
@@ -257,6 +256,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'mixin_type_parameter3_test': skip_fail,
       'modulo_test': fail,
       'named_parameter_clash_test': skip_fail,
+      'named_parameters_passing_falsy_test': firefox_fail,
       'nan_identical_test': skip_fail,
       'nested_switch_label_test': skip_fail,
       'number_identifier_test_05_multi': skip_fail,
@@ -268,6 +268,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'regress_13462_1_test': skip_fail,
       'regress_14105_test': skip_fail,
       'regress_16640_test': skip_fail,
+      'regress_18535_test': fail,
       'regress_21795_test': skip_fail,
       'regress_22443_test': skip_fail,
       'regress_22666_test': skip_fail,
@@ -342,8 +343,10 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'const_list_remove_range_test': fail,
       'const_list_set_range_test': fail,
       'double_parse_test_01_multi': fail,
+      'double_parse_test_02_multi': firefox_fail,
       'error_stack_trace1_test': fail,
       'error_stack_trace2_test': fail,
+      'for_in_test': firefox_fail,
       'hash_map2_test': skip_timeout,
       'hash_set_test_01_multi': fail,
       'hidden_library2_test_01_multi': fail,
@@ -366,22 +369,28 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'main_test': fail,
       'map_keys2_test': fail,
       'map_to_string_test': fail,
+      'map_from_iterable_test': firefox_fail,
       'nan_infinity_test_01_multi': fail,
       'null_nosuchmethod_test': fail,
       'null_test': fail,
       'num_sign_test': fail,
       'regress_r21715_test': fail,
       'throw_half_surrogate_pair_test_02_multi': fail,
-      'stacktrace_current_test': fail,
+      'splay_tree_from_iterable_test': firefox_fail,
+      'stacktrace_current_test': chrome_fail,
+      'string_case_test_01_multi': firefox_fail,
       'string_fromcharcodes_test': skip_timeout,
       'string_operations_with_null_test': fail,
       'symbol_reserved_word_test_06_multi': fail,
       'symbol_reserved_word_test_09_multi': fail,
       'symbol_reserved_word_test_12_multi': fail,
       'throw_half_surrogate_pair_test_01_multi': fail,
+      'unicode_test': firefox_fail,
+      'uri_parameters_all_test': firefox_fail,
       // TODO(rnystrom): Times out because it tests a huge number of
       // combinations of URLs (4 * 5 * 5 * 8 * 6 * 6 * 4 = 115200).
       'uri_parse_test': skip_timeout,
+      'uri_test': firefox_fail,
 
       'list_insert_test': fail,
       'list_removeat_test': fail,
@@ -389,7 +398,8 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
     },
 
     'corelib/regexp': {
-      'default_arguments_test': fail
+      'default_arguments_test': fail,
+      'UC16_test': firefox_fail,
     },
 
     'lib/convert': {
@@ -413,7 +423,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
     'lib/html': {
       'async_spawnuri_test': async_unittest,
       'async_test': async_unittest,
-      'audiocontext_test': 'fail', // was sdk#27578, needs triage
+      'audiocontext_test': is.chrome('<=55') ? fail : pass, // was sdk#27578, needs triage
       'blob_constructor_test': 'fail', // was sdk#27578, needs triage
       'canvas_test': ['unittest'],
       'canvasrenderingcontext2d_test': ['unittest'],
@@ -436,6 +446,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       // Failure: 'Expected 56 to be in the inclusive range [111, 160].'.
       'element_offset_test': 'fail',
       'element_test': async_unittest,
+      'element_types_test': firefox_fail,
       'event_customevent_test': async_unittest,
       'events_test': async_unittest,
 
@@ -481,14 +492,17 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'native_gc_test': async_unittest,
       'notification_test': 'fail', // was sdk#27578, needs triage
       'postmessage_structured_test': async_unittest,
+      'queryall_test': ['slow'], // see sdk #27794
       'request_animation_frame_test': async_unittest,
       'resource_http_test': async_unittest,
-      'rtc_test': 'fail', // was sdk#27578, needs triage
+      'rtc_test': is.chrome('<=55') ? fail : pass, // was sdk#27578, needs triage
 
       // Expected 1, got null.
       'serialized_script_value_test': 'fail',
+      'shadow_dom_test': firefox_fail,
       'speechrecognition_test': 'fail', // was sdk#27578, needs triage
-      'svgelement_test': 'fail', // was sdk#27578, needs triage
+      'svgelement_test': chrome_fail, // was sdk#27578, needs triage
+      'text_event_test': firefox_fail,
       'touchevent_test': 'fail', // was sdk#27578, needs triage
       'transferables_test': async_unittest,
       'transition_event_test': async_unittest,
@@ -635,7 +649,6 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'private_class_field_test': fail,
       'private_symbol_mangling_test': fail,
       'private_types_test': fail,
-      'proxy_type_test': fail,
       'raw_type_test_01_multi': fail,
       'raw_type_test_none_multi': fail,
       'reflect_class_test_none_multi': fail,
@@ -652,9 +665,7 @@ define(['dart_sdk', 'async_helper', 'expect', 'unittest', 'require'],
       'regress_26187_test': fail,
       'relation_assignable_test': fail,
       'relation_subtype_test': fail,
-      'runtime_type_test': fail,
       'set_field_with_final_test': fail,
-      'superclass2_test': fail,
       'symbol_validation_test_01_multi': fail,
       'symbol_validation_test_none_multi': fail,
       'to_string_test': fail,

@@ -22,7 +22,8 @@ import 'package:analyzer/analyzer.dart'
         parseDirectives;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart' show ArgParser, ArgResults;
-import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
+import 'package:dev_compiler/src/analyzer/context.dart'
+    show AnalyzerOptions, parseDeclaredVariables;
 import 'package:dev_compiler/src/compiler/compiler.dart'
     show BuildUnit, CompilerOptions, JSModuleFile, ModuleCompiler;
 import 'package:dev_compiler/src/compiler/module_builder.dart'
@@ -68,7 +69,7 @@ main(List<String> arguments) {
 
   var sdkDir = path.join(repoDirectory, 'gen', 'patched_sdk');
   var sdkSummaryFile =
-      path.join(testDirectory, '..', 'lib', 'js', 'amd', 'dart_sdk.sum');
+      path.join(testDirectory, '..', 'lib', 'sdk', 'ddc_sdk.sum');
 
   var summaryPaths = new Directory(path.join(codegenOutputDir, 'pkg'))
       .listSync()
@@ -76,9 +77,8 @@ main(List<String> arguments) {
       .where((p) => p.endsWith('.sum'))
       .toList();
 
-  var analyzerOptions = new AnalyzerOptions(
-      dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths);
-  var compiler = new ModuleCompiler(analyzerOptions);
+  var sharedCompiler = new ModuleCompiler(new AnalyzerOptions(
+      dartSdkSummaryPath: sdkSummaryFile, summaryPaths: summaryPaths));
 
   var testDirs = [
     'language',
@@ -100,9 +100,20 @@ main(List<String> arguments) {
 
   // Our default compiler options. Individual tests can override these.
   var defaultOptions = ['--no-source-map', '--no-summarize'];
-  var compilerArgParser = new ArgParser();
-  CompilerOptions.addArguments(compilerArgParser);
-  addModuleFormatOptions(compilerArgParser);
+  var compileArgParser = new ArgParser();
+  CompilerOptions.addArguments(compileArgParser);
+  addModuleFormatOptions(compileArgParser);
+
+  var testFileOptionsMatcher =
+      new RegExp(r'// (compile options: |SharedOptions=)(.*)', multiLine: true);
+
+  // Ignore dart2js options that we don't support in DDC.
+  var ignoreOptions = [
+    '--enable-enum',
+    '--experimental-trust-js-interop-type-annotations',
+    '--trust-type-annotations',
+    '--supermixin'
+  ];
 
   // Compile each test file to JS and put the result in gen/codegen_output.
   for (var testFile in testFiles) {
@@ -116,15 +127,17 @@ main(List<String> arguments) {
     test('dartdevc $name', () {
       // Check if we need to use special compile options.
       var contents = new File(testFile).readAsStringSync();
-      var match =
-          new RegExp(r'// compile options: (.*)').matchAsPrefix(contents);
+      var match = testFileOptionsMatcher.firstMatch(contents);
 
       var args = defaultOptions.toList();
       if (match != null) {
-        args.addAll(match.group(1).split(' '));
+        var matchedArgs = match.group(2).split(' ');
+        args.addAll(matchedArgs.where((s) => !ignoreOptions.contains(s)));
       }
 
-      var argResults = compilerArgParser.parse(args);
+      var declaredVars = <String, String>{};
+      var argResults =
+          compileArgParser.parse(parseDeclaredVariables(args, declaredVars));
       var options = new CompilerOptions.fromArguments(argResults);
       var moduleFormat = parseModuleFormatOption(argResults).first;
 
@@ -133,6 +146,14 @@ main(List<String> arguments) {
       _collectTransitiveImports(contents, files, from: testFile);
       var unit = new BuildUnit(
           name, path.dirname(testFile), files.toList(), _moduleForLibrary);
+
+      var compiler = sharedCompiler;
+      if (declaredVars.isNotEmpty) {
+        compiler = new ModuleCompiler(new AnalyzerOptions(
+            dartSdkSummaryPath: sdkSummaryFile,
+            summaryPaths: summaryPaths,
+            declaredVariables: declaredVars));
+      }
       var module = compiler.compile(unit, options);
 
       bool notStrong = notYetStrongTests.contains(name);
@@ -155,7 +176,7 @@ main(List<String> arguments) {
 
   if (filePattern.hasMatch('sunflower')) {
     test('sunflower', () {
-      _buildSunflower(compiler, codegenOutputDir, codegenExpectDir);
+      _buildSunflower(sharedCompiler, codegenOutputDir, codegenExpectDir);
     });
   }
 
@@ -174,7 +195,7 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
   if (errors.isNotEmpty && !errors.endsWith('\n')) errors += '\n';
   new File(outPath + '.txt').writeAsStringSync(errors);
 
-  result.writeCodeSync(format, false, outPath + '.js');
+  result.writeCodeSync(format, outPath + '.js');
 
   if (result.summaryBytes != null) {
     new File(outPath + '.sum').writeAsBytesSync(result.summaryBytes);
@@ -188,7 +209,7 @@ void _writeModule(String outPath, String expectPath, ModuleFormat format,
 
     var expectFile = new File(expectPath + '.js');
     if (result.isValid) {
-      result.writeCodeSync(format, false, expectFile.path);
+      result.writeCodeSync(format, expectFile.path);
     } else {
       expectFile.writeAsStringSync("//FAILED TO COMPILE");
     }

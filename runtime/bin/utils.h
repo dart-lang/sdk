@@ -16,12 +16,7 @@ namespace bin {
 
 class OSError {
  public:
-  enum SubSystem {
-    kSystem,
-    kGetAddressInfo,
-    kBoringSSL,
-    kUnknown = -1
-  };
+  enum SubSystem { kSystem, kGetAddressInfo, kBoringSSL, kUnknown = -1 };
 
   OSError();
   OSError(int code, const char* message, SubSystem sub_system) {

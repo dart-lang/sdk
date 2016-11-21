@@ -12,6 +12,7 @@ import 'package:observatory/app.dart';
 import 'package:observatory/src/elements/helpers/tag.dart';
 import 'package:observatory/src/elements/helpers/rendering_scheduler.dart';
 import 'package:observatory/src/elements/helpers/nav_bar.dart';
+import 'package:observatory/src/elements/helpers/uris.dart';
 import 'package:observatory/src/elements/nav/notify.dart';
 import 'package:observatory/src/elements/nav/top_menu.dart';
 import 'package:observatory/src/elements/view_footer.dart';
@@ -119,7 +120,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
                         ..text = 'Connect'
                         ..onClick.listen((e) {
                           e.preventDefault();
-                          _create();
+                          _createAndConnect();
                         }),
                     ],
                   new BRElement(),
@@ -150,11 +151,11 @@ class VMConnectElement extends HtmlElement implements Renderable {
   TextInputElement _createAddressBox() {
     var textbox = new TextInputElement()
       ..classes = ['textbox']
-      ..placeholder = '127.0.0.1:8181'
+      ..placeholder = 'http://127.0.0.1:8181/...'
       ..value = _address
       ..onKeyUp.where((e) => e.key == '\n').listen((e) {
         e.preventDefault();
-        _create();
+        _createAndConnect();
       });
     textbox.onInput.listen((e) {
       _address = textbox.value;
@@ -176,9 +177,14 @@ class VMConnectElement extends HtmlElement implements Renderable {
     return e;
   }
 
-  void _create() {
+  void _createAndConnect() {
     if (_address == null || _address.isEmpty) return;
-    _targets.add(_normalizeStandaloneAddress(_address));
+    String normalizedNetworkAddress = _normalizeStandaloneAddress(_address);
+    _targets.add(normalizedNetworkAddress);
+    var target = _targets.find(normalizedNetworkAddress);
+    assert(target != null);
+    _targets.setCurrent(target);
+    ObservatoryApplication.app.locationManager.go(Uris.vm());
   }
 
   void _connect(TargetEvent e) {
@@ -194,8 +200,7 @@ class VMConnectElement extends HtmlElement implements Renderable {
     }
     try {
       Uri uri = Uri.parse(networkAddress);
-      print('returning ${uri.host} ${uri.port}');
-      return 'ws://${uri.host}:${uri.port}/ws';
+      return 'ws://${uri.authority}${uri.path}ws';
     } catch (e) {
       print('caught exception with: $networkAddress -- $e');
       return networkAddress;

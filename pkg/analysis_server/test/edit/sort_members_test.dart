@@ -37,7 +37,7 @@ class SortMembersTest extends AbstractAnalysisTest {
   test_BAD_doesNotExist() async {
     Request request =
         new EditSortMembersParams('/no/such/file.dart').toRequest('0');
-    Response response = handler.handleRequest(request);
+    Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
@@ -49,7 +49,7 @@ main() {
 }
 ''');
     Request request = new EditSortMembersParams(testFile).toRequest('0');
-    Response response = handler.handleRequest(request);
+    Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS));
   }
@@ -57,7 +57,7 @@ main() {
   test_BAD_notDartFile() async {
     Request request =
         new EditSortMembersParams('/not-a-Dart-file.txt').toRequest('0');
-    Response response = handler.handleRequest(request);
+    Response response = await waitResponse(request);
     expect(response,
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
@@ -192,14 +192,14 @@ class C {}
   }
 
   Future _assertSorted(String expectedCode) async {
-    _requestSort();
+    await _requestSort();
     String resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     expect(resultCode, expectedCode);
   }
 
-  void _requestSort() {
+  Future _requestSort() async {
     Request request = new EditSortMembersParams(testFile).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    Response response = await waitResponse(request);
     var result = new EditSortMembersResult.fromResponse(response);
     fileEdit = result.edit;
   }

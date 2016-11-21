@@ -10,8 +10,7 @@
 #endif
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_ANDROID) || \
-    defined(TARGET_OS_LINUX)   || \
+#if defined(TARGET_OS_ANDROID) || defined(TARGET_OS_LINUX) ||                  \
     defined(TARGET_OS_WINDOWS)
 #include "bin/secure_socket_boringssl.h"
 #elif defined(TARGET_OS_MACOS)

@@ -2555,6 +2555,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       : super(element, element.name);
 
   @override
+  ElementLocation get definition => element.location;
+
+  @override
+  DartType get bound => element.bound ?? DynamicTypeImpl.instance;
+
+  @override
   TypeParameterElement get element => super.element as TypeParameterElement;
 
   @override

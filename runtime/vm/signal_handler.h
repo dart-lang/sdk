@@ -9,7 +9,7 @@
 #include "vm/globals.h"
 
 #if defined(TARGET_OS_LINUX)
-#include <signal.h>  // NOLINT
+#include <signal.h>    // NOLINT
 #include <ucontext.h>  // NOLINT
 #elif defined(TARGET_OS_ANDROID)
 #include <signal.h>  // NOLINT
@@ -19,23 +19,22 @@
 typedef struct sigcontext mcontext_t;
 typedef struct ucontext {
   uint32_t uc_flags;
-  struct ucontext *uc_link;
+  struct ucontext* uc_link;
   stack_t uc_stack;
   struct sigcontext uc_mcontext;
   uint32_t uc_sigmask;
 } ucontext_t;
-#endif  // !defined(__BIONIC_HAVE_UCONTEXT_T)
+#endif                       // !defined(__BIONIC_HAVE_UCONTEXT_T)
 #elif defined(TARGET_OS_MACOS)
-#include <signal.h>  // NOLINT
+#include <signal.h>        // NOLINT
 #include <sys/ucontext.h>  // NOLINT
 #elif defined(TARGET_OS_WINDOWS)
 // Stub out for windows.
 struct siginfo_t;
 struct mcontext_t;
-struct sigset_t {
-};
+struct sigset_t {};
 #elif defined(TARGET_OS_FUCHSIA)
-#include <signal.h>  // NOLINT
+#include <signal.h>    // NOLINT
 #include <ucontext.h>  // NOLINT
 #endif
 
@@ -43,8 +42,8 @@ struct sigset_t {
 // Old linux kernels on ARM might require a trampoline to
 // work around incorrect Thumb -> ARM transitions. See SignalHandlerTrampoline
 // below for more details.
-#if defined(HOST_ARCH_ARM) && \
-    (defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)) && \
+#if defined(HOST_ARCH_ARM) &&                                                  \
+    (defined(TARGET_OS_LINUX) || defined(TARGET_OS_ANDROID)) &&                \
     !defined(__thumb__)
 #define USE_SIGNAL_HANDLER_TRAMPOLINE
 #endif
@@ -52,12 +51,11 @@ struct sigset_t {
 
 namespace dart {
 
-typedef void (*SignalAction)(int signal, siginfo_t* info,
-                             void* context);
+typedef void (*SignalAction)(int signal, siginfo_t* info, void* context);
 
 class SignalHandler : public AllStatic {
  public:
-  template<SignalAction action>
+  template <SignalAction action>
   static void Install() {
 #if defined(USE_SIGNAL_HANDLER_TRAMPOLINE)
     InstallImpl(SignalHandlerTrampoline<action>);
@@ -108,10 +106,9 @@ class SignalHandler : public AllStatic {
     register siginfo_t* arg1 asm("r1") = info;
     register void* arg2 asm("r2") = context_;
     asm volatile("bx %3"
-                  :
-                  : "r"(arg0), "r"(arg1), "r"(arg2),
-                    "r"(action)
-                  : "memory");
+                 :
+                 : "r"(arg0), "r"(arg1), "r"(arg2), "r"(action)
+                 : "memory");
   }
 #endif  // defined(USE_SIGNAL_HANDLER_TRAMPOLINE)
 };

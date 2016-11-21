@@ -183,7 +183,8 @@ class FastUri implements Uri {
     }
     if (refPath.startsWith('../') ||
         refPath.contains('/../') ||
-        refPath.contains('/./')) {
+        refPath.contains('/./') ||
+        refPath.startsWith('/')) {
       Uri slowResult = _fallbackUri.resolveUri(reference);
       return FastUri.parse(slowResult.toString());
     }

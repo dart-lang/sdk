@@ -37,6 +37,7 @@ class IsolateSaver {
       Dart_EnterIsolate(I);
     }
   }
+
  private:
   Isolate* saved_isolate_;
 
@@ -64,8 +65,8 @@ DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
 
 DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
   if (Smi::IsValid(message)) {
-    return PortMap::PostMessage(new Message(
-        port_id, Smi::New(message), Message::kNormalPriority));
+    return PortMap::PostMessage(
+        new Message(port_id, Smi::New(message), Message::kNormalPriority));
   }
   Dart_CObject cobj;
   cobj.type = Dart_CObject_kInt64;
@@ -132,8 +133,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
 
 static void ParseAll(Thread* thread, Dart_Handle* result) {
   ASSERT(thread != NULL);
-  const Error& error = Error::Handle(thread->zone(),
-                                     Library::ParseAll(thread));
+  const Error& error = Error::Handle(thread->zone(), Library::ParseAll(thread));
   if (error.IsNull()) {
     *result = Api::Success();
   } else {

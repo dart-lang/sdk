@@ -511,7 +511,7 @@ abstract class Stream<T> {
    * Creates a wrapper Stream that intercepts some errors from this stream.
    *
    * If this stream sends an error that matches [test], then it is intercepted
-   * by the [handle] function.
+   * by the [onError] function.
    *
    * The [onError] callback must be of type `void onError(error)` or
    * `void onError(error, StackTrace stackTrace)`. Depending on the function
@@ -519,10 +519,11 @@ abstract class Stream<T> {
    * trace. The stack trace argument might be `null` if the stream itself
    * received an error without stack trace.
    *
-   * An asynchronous error [:e:] is matched by a test function if [:test(e):]
-   * returns true. If [test] is omitted, every error is considered matching.
+   * An asynchronous error `error` is matched by a test function if
+   *`test(error)` returns true. If [test] is omitted, every error is considered
+   * matching.
    *
-   * If the error is intercepted, the [handle] function can decide what to do
+   * If the error is intercepted, the [onError] function can decide what to do
    * with it. It can throw if it wants to raise a new (or the same) error,
    * or simply return to make the stream forget the error.
    *
@@ -902,23 +903,23 @@ abstract class Stream<T> {
       => listen(null, cancelOnError: true).asFuture/*<E>*/(futureValue);
 
   /**
-   * Provides at most the first [n] values of this stream.
+   * Provides at most the first [count] data events of this stream.
    *
-   * Forwards the first [n] data events of this stream, and all error
-   * events, to the returned stream, and ends with a done event.
+   * Forwards all events of this stream to the returned stream
+   * until [count] data events have been forwarded or this stream ends,
+   * then ends the returned stream with a done event.
    *
-   * If this stream produces fewer than [count] values before it's done,
+   * If this stream produces fewer than [count] data events before it's done,
    * so will the returned stream.
    *
-   * Stops listening to the stream after the first [n] elements have been
-   * received.
+   * Starts listening to this stream when the returned stream is listened to
+   * and stops listening when the first [count] data events have been received.
    *
-   * Internally the method cancels its subscription after these elements. This
-   * means that single-subscription (non-broadcast) streams are closed and
-   * cannot be reused after a call to this method.
+   * This means that if this is a single-subscription (non-broadcast) streams
+   * it cannot be reused after the returned stream has been listened to.
    *
-   * The returned stream is a broadcast stream if this stream is.
-   * For a broadcast stream, the events are only counted from the time
+   * If this is a broadcast stream, the returned stream is a broadcast stream.
+   * In that case, the events are only counted from the time
    * the returned stream is listened to.
    */
   Stream<T> take(int count) {
@@ -929,7 +930,7 @@ abstract class Stream<T> {
    * Forwards data events while [test] is successful.
    *
    * The returned stream provides the same events as this stream as long
-   * as [test] returns [:true:] for the event data. The stream is done
+   * as [test] returns `true` for the event data. The stream is done
    * when either this stream is done, or when this stream first provides
    * a value that [test] doesn't accept.
    *

@@ -76,7 +76,7 @@ class InterceptorEmitter extends CodeEmitterHelper {
     // We could also generate the list of intercepted names at
     // runtime, by running through the subclasses of Interceptor
     // (which can easily be identified).
-    if (!compiler.enabledInvokeOn) return null;
+    if (!backend.hasInvokeOnSupport) return null;
 
     Iterable<jsAst.Name> invocationNames = interceptorInvocationNames.toList()
       ..sort();

@@ -2,9 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
-import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show Native, Creates, setNativeSubclassDispatchRecord;
+import "native_testing.dart";
+import 'dart:_js_helper' show setNativeSubclassDispatchRecord;
 import 'dart:_interceptors'
     show findInterceptorForType, findConstructorForNativeSubclassType;
 
@@ -44,11 +43,9 @@ makeB = function(){return new B;};
 getBPrototype = function(){return B.prototype;};
 """;
 
-var inscrutable;
-
 main() {
+  nativeTesting();
   setup();
-  inscrutable = (x) => x;
 
   setNativeSubclassDispatchRecord(getBPrototype(), findInterceptorForType(B));
 
@@ -60,9 +57,9 @@ main() {
 
   print(b);
 
-  Expect.equals(333, inscrutable(b).Bfoo());
-  Expect.equals(222, inscrutable(b).Afoo());
-  Expect.equals(111, inscrutable(b).Nfoo());
+  Expect.equals(333, confuse(b).Bfoo());
+  Expect.equals(222, confuse(b).Afoo());
+  Expect.equals(111, confuse(b).Nfoo());
 
   Expect.equals(333, b.Bfoo());
   Expect.equals(222, b.Afoo());

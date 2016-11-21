@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_js_helper";
-import "package:expect/expect.dart";
+import 'native_testing.dart';
 
 @Native("A")
 class A {}
 
 main() {
-  var a = [new Object()];
-  Expect.isFalse(a[0] is A);
+  JS('A', '(null)'); // Class 'A' appears to be created.
+  Expect.isFalse(confuse(new Object()) is A);
 }

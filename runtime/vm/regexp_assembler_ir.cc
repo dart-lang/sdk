@@ -21,14 +21,20 @@
 
 // Debugging output macros. TAG() is called at the head of each interesting
 // function and prints its name during execution if irregexp tracing is enabled.
-#define TAG() if (FLAG_trace_irregexp) { TAG_(); }
-#define TAG_() \
-  Print(PushArgument( \
-    Bind(new(Z) ConstantInstr(String::ZoneHandle(Z, String::Concat( \
-        String::Handle(String::New("TAG: ")), \
-        String::Handle(String::New(__FUNCTION__)), Heap::kOld))))));
+#define TAG()                                                                  \
+  if (FLAG_trace_irregexp) {                                                   \
+    TAG_();                                                                    \
+  }
+#define TAG_()                                                                 \
+  Print(PushArgument(Bind(new (Z) ConstantInstr(String::ZoneHandle(            \
+      Z, String::Concat(String::Handle(String::New("TAG: ")),                  \
+                        String::Handle(String::New(__FUNCTION__)),             \
+                        Heap::kOld))))));
 
-#define PRINT(arg) if (FLAG_trace_irregexp) { Print(arg); }
+#define PRINT(arg)                                                             \
+  if (FLAG_trace_irregexp) {                                                   \
+    Print(arg);                                                                \
+  }
 
 namespace dart {
 
@@ -40,8 +46,8 @@ static const intptr_t kMinStackSize = 512;
 
 
 void PrintUtf16(uint16_t c) {
-  const char* format = (0x20 <= c && c <= 0x7F) ?
-        "%c" : (c <= 0xff) ? "\\x%02x" : "\\u%04x";
+  const char* format =
+      (0x20 <= c && c <= 0x7F) ? "%c" : (c <= 0xff) ? "\\x%02x" : "\\u%04x";
   OS::Print(format, c);
 }
 
@@ -92,10 +98,15 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
       registers_array_(TypedData::ZoneHandle(zone, TypedData::null())) {
   switch (specialization_cid) {
     case kOneByteStringCid:
-    case kExternalOneByteStringCid: mode_ = ASCII; break;
+    case kExternalOneByteStringCid:
+      mode_ = ASCII;
+      break;
     case kTwoByteStringCid:
-    case kExternalTwoByteStringCid: mode_ = UC16; break;
-    default: UNREACHABLE();
+    case kExternalTwoByteStringCid:
+      mode_ = UC16;
+      break;
+    default:
+      UNREACHABLE();
   }
 
   InitializeLocals();
@@ -103,23 +114,22 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
   // Allocate an initial stack backing of the minimum stack size. The stack
   // backing is indirectly referred to so we can reuse it on subsequent matches
   // even in the case where the backing has been enlarged and thus reallocated.
-  stack_array_cell_.SetAt(0, TypedData::Handle(zone,
-    TypedData::New(kTypedDataInt32ArrayCid, kMinStackSize / 4, Heap::kOld)));
+  stack_array_cell_.SetAt(
+      0,
+      TypedData::Handle(zone, TypedData::New(kTypedDataInt32ArrayCid,
+                                             kMinStackSize / 4, Heap::kOld)));
 
   // Create and generate all preset blocks.
-  entry_block_ =
-      new(zone) GraphEntryInstr(
-        *parsed_function_,
-        new(zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex),
-        Compiler::kNoOSRDeoptId);
-  start_block_ =
-      new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+  entry_block_ = new (zone) GraphEntryInstr(
+      *parsed_function_,
+      new (zone) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex),
+      Compiler::kNoOSRDeoptId);
+  start_block_ = new (zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   success_block_ =
-      new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+      new (zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   backtrack_block_ =
-      new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
-  exit_block_ =
-      new(zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+      new (zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
+  exit_block_ = new (zone) JoinEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
 
   GenerateEntryBlock();
   GenerateSuccessBlock();
@@ -137,7 +147,7 @@ IRRegExpMacroAssembler::IRRegExpMacroAssembler(
 }
 
 
-IRRegExpMacroAssembler::~IRRegExpMacroAssembler() { }
+IRRegExpMacroAssembler::~IRRegExpMacroAssembler() {}
 
 
 void IRRegExpMacroAssembler::InitializeLocals() {
@@ -175,12 +185,10 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
   // Store string.length.
   PushArgumentInstr* string_push = PushLocal(string_param_);
 
-  StoreLocal(
-      string_param_length_,
-      Bind(InstanceCall(
-          InstanceCallDescriptor(
-              String::ZoneHandle(Field::GetterSymbol(Symbols::Length()))),
-          string_push)));
+  StoreLocal(string_param_length_,
+             Bind(InstanceCall(InstanceCallDescriptor(String::ZoneHandle(
+                                   Field::GetterSymbol(Symbols::Length()))),
+                               string_push)));
 
   // Store (start_index - string.length) as the current position (since it's a
   // negative offset from the end of the string).
@@ -191,16 +199,16 @@ void IRRegExpMacroAssembler::GenerateEntryBlock() {
 
   // Generate a local list variable to represent "registers" and
   // initialize capture registers (others remain garbage).
-  StoreLocal(registers_, Bind(new(Z) ConstantInstr(registers_array_)));
+  StoreLocal(registers_, Bind(new (Z) ConstantInstr(registers_array_)));
   ClearRegisters(0, saved_registers_count_ - 1);
 
   // Generate a local list variable to represent the backtracking stack.
   PushArgumentInstr* stack_cell_push =
-      PushArgument(Bind(new(Z) ConstantInstr(stack_array_cell_)));
-  StoreLocal(stack_, Bind(InstanceCall(
-      InstanceCallDescriptor::FromToken(Token::kINDEX),
-      stack_cell_push,
-      PushArgument(Bind(Uint64Constant(0))))));
+      PushArgument(Bind(new (Z) ConstantInstr(stack_array_cell_)));
+  StoreLocal(stack_,
+             Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
+                               stack_cell_push,
+                               PushArgument(Bind(Uint64Constant(0))))));
   StoreLocal(stack_pointer_, Bind(Int64Constant(-1)));
 
   // Jump to the start block.
@@ -215,19 +223,18 @@ void IRRegExpMacroAssembler::GenerateBacktrackBlock() {
 
   const intptr_t entries_count = entry_block_->indirect_entries().length();
 
-  TypedData& offsets = TypedData::ZoneHandle(Z,
-      TypedData::New(kTypedDataInt32ArrayCid, entries_count, Heap::kOld));
+  TypedData& offsets = TypedData::ZoneHandle(
+      Z, TypedData::New(kTypedDataInt32ArrayCid, entries_count, Heap::kOld));
 
   PushArgumentInstr* block_offsets_push =
-      PushArgument(Bind(new(Z) ConstantInstr(offsets)));
+      PushArgument(Bind(new (Z) ConstantInstr(offsets)));
   PushArgumentInstr* block_id_push = PushArgument(Bind(PopStack()));
 
   Value* offset_value =
       Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                        block_offsets_push,
-                        block_id_push));
+                        block_offsets_push, block_id_push));
 
-  backtrack_goto_ = new(Z) IndirectGotoInstr(&offsets, offset_value);
+  backtrack_goto_ = new (Z) IndirectGotoInstr(&offsets, offset_value);
   CloseBlockWith(backtrack_goto_);
 
   // Add an edge from the "indirect" goto to each of the targets.
@@ -242,11 +249,11 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   set_current_instruction(success_block_);
   TAG();
 
-  Value* type = Bind(new(Z) ConstantInstr(
+  Value* type = Bind(new (Z) ConstantInstr(
       TypeArguments::ZoneHandle(Z, TypeArguments::null())));
   Value* length = Bind(Uint64Constant(saved_registers_count_));
-  Value* array = Bind(new(Z) CreateArrayInstr(
-      TokenPosition::kNoSource, type, length));
+  Value* array =
+      Bind(new (Z) CreateArrayInstr(TokenPosition::kNoSource, type, length));
   StoreLocal(result_, array);
 
   // Store captured offsets in the `matches` parameter.
@@ -262,17 +269,15 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
         PushArgument(Bind(Add(offset_push, len_push)));
 
     Do(InstanceCall(InstanceCallDescriptor::FromToken(Token::kASSIGN_INDEX),
-                    matches_push,
-                    index_push,
-                    value_push));
+                    matches_push, index_push, value_push));
   }
 
   // Print the result if tracing.
   PRINT(PushLocal(result_));
 
   // Return true on success.
-  AppendInstruction(new(Z) ReturnInstr(
-      TokenPosition::kNoSource, Bind(LoadLocal(result_))));
+  AppendInstruction(
+      new (Z) ReturnInstr(TokenPosition::kNoSource, Bind(LoadLocal(result_))));
 }
 
 
@@ -281,8 +286,8 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
   TAG();
 
   // Return false on failure.
-  AppendInstruction(new(Z) ReturnInstr(
-      TokenPosition::kNoSource, Bind(LoadLocal(result_))));
+  AppendInstruction(
+      new (Z) ReturnInstr(TokenPosition::kNoSource, Bind(LoadLocal(result_))));
 }
 
 
@@ -293,8 +298,7 @@ void IRRegExpMacroAssembler::FinalizeRegistersArray() {
 }
 
 
-#if defined(TARGET_ARCH_ARM64) ||                                              \
-    defined(TARGET_ARCH_ARM) ||                                                \
+#if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_ARM) ||                  \
     defined(TARGET_ARCH_MIPS)
 // Disabling unaligned accesses forces the regexp engine to load characters one
 // by one instead of up to 4 at once, along with the associated performance hit.
@@ -310,13 +314,13 @@ bool IRRegExpMacroAssembler::CanReadUnaligned() {
 }
 
 
-RawArray* IRRegExpMacroAssembler::Execute(
-    const RegExp& regexp,
-    const String& input,
-    const Smi& start_offset,
-    Zone* zone) {
+RawArray* IRRegExpMacroAssembler::Execute(const RegExp& regexp,
+                                          const String& input,
+                                          const Smi& start_offset,
+                                          bool sticky,
+                                          Zone* zone) {
   const intptr_t cid = input.GetClassId();
-  const Function& fun = Function::Handle(regexp.function(cid));
+  const Function& fun = Function::Handle(regexp.function(cid, sticky));
   ASSERT(!fun.IsNull());
   // Create the argument list.
   const Array& args =
@@ -362,10 +366,10 @@ static RawBool* CaseInsensitiveCompareUC16(RawString* str_raw,
     int32_t c1 = str.CharAt(lhs_index.Value() + i);
     int32_t c2 = str.CharAt(rhs_index.Value() + i);
     if (c1 != c2) {
-      int32_t s1[1] = { c1 };
+      int32_t s1[1] = {c1};
       canonicalize.get(c1, '\0', s1);
       if (s1[0] != c2) {
-        int32_t s2[1] = { c2 };
+        int32_t s2[1] = {c2};
         canonicalize.get(c2, '\0', s2);
         if (s1[0] != s2[0]) {
           return Bool::False().raw();
@@ -378,17 +382,17 @@ static RawBool* CaseInsensitiveCompareUC16(RawString* str_raw,
 
 
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(
-    CaseInsensitiveCompareUC16, 4, false /* is_float */,
+    CaseInsensitiveCompareUC16,
+    4,
+    false /* is_float */,
     reinterpret_cast<RuntimeFunction>(&CaseInsensitiveCompareUC16));
 
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
                                                  intptr_t index) const {
-  LocalVariable* local = new(Z) LocalVariable(
-      TokenPosition::kNoSource,
-      TokenPosition::kNoSource,
-      name,
-      Object::dynamic_type());
+  LocalVariable* local =
+      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                            name, Object::dynamic_type());
 
   intptr_t param_frame_index = kParamEndSlotFromFp + kParamCount - index;
   local->set_index(param_frame_index);
@@ -398,11 +402,9 @@ LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
 
 
 LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
-  LocalVariable* local = new(Z) LocalVariable(
-      TokenPosition::kNoSource,
-      TokenPosition::kNoSource,
-      name,
-      Object::dynamic_type());
+  LocalVariable* local =
+      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                            name, Object::dynamic_type());
   local->set_index(GetNextLocalIndex());
 
   return local;
@@ -410,33 +412,34 @@ LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
 
 
 ConstantInstr* IRRegExpMacroAssembler::Int64Constant(int64_t value) const {
-  return new(Z) ConstantInstr(
-        Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
+  return new (Z)
+      ConstantInstr(Integer::ZoneHandle(Z, Integer::New(value, Heap::kOld)));
 }
 
 
 ConstantInstr* IRRegExpMacroAssembler::Uint64Constant(uint64_t value) const {
-  return new(Z) ConstantInstr(
-        Integer::ZoneHandle(Z, Integer::NewFromUint64(value, Heap::kOld)));
+  return new (Z) ConstantInstr(
+      Integer::ZoneHandle(Z, Integer::NewFromUint64(value, Heap::kOld)));
 }
 
 
 ConstantInstr* IRRegExpMacroAssembler::BoolConstant(bool value) const {
-  return new(Z) ConstantInstr(value ? Bool::True() : Bool::False());
+  return new (Z) ConstantInstr(value ? Bool::True() : Bool::False());
 }
 
 
 ConstantInstr* IRRegExpMacroAssembler::StringConstant(const char* value) const {
-  return new(Z) ConstantInstr(
-        String::ZoneHandle(Z, String::New(value, Heap::kOld)));
+  return new (Z)
+      ConstantInstr(String::ZoneHandle(Z, String::New(value, Heap::kOld)));
 }
 
 
 ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   const Library& lib = Library::Handle(Z, Library::CoreLibrary());
-  const Class& regexp_class = Class::Handle(Z,
-        lib.LookupClassAllowPrivate(Symbols::_RegExp()));
-  const Field& word_character_field = Field::ZoneHandle(Z,
+  const Class& regexp_class =
+      Class::Handle(Z, lib.LookupClassAllowPrivate(Symbols::_RegExp()));
+  const Field& word_character_field = Field::ZoneHandle(
+      Z,
       regexp_class.LookupStaticFieldAllowPrivate(Symbols::_wordCharacterMap()));
   ASSERT(!word_character_field.IsNull());
 
@@ -446,54 +449,53 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   }
   ASSERT(!word_character_field.IsUninitialized());
 
-  return new(Z) ConstantInstr(
-        Instance::ZoneHandle(Z, word_character_field.StaticValue()));
+  return new (Z) ConstantInstr(
+      Instance::ZoneHandle(Z, word_character_field.StaticValue()));
 }
 
 
-ComparisonInstr* IRRegExpMacroAssembler::Comparison(
-    ComparisonKind kind, PushArgumentInstr* lhs, PushArgumentInstr* rhs) {
+ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
+                                                    PushArgumentInstr* lhs,
+                                                    PushArgumentInstr* rhs) {
   Token::Kind strict_comparison = Token::kEQ_STRICT;
   Token::Kind intermediate_operator = Token::kILLEGAL;
   switch (kind) {
-  case kEQ:
-    intermediate_operator = Token::kEQ;
-    break;
-  case kNE:
-    intermediate_operator = Token::kEQ;
-    strict_comparison = Token::kNE_STRICT;
-    break;
-  case kLT:
-    intermediate_operator = Token::kLT;
-    break;
-  case kGT:
-    intermediate_operator = Token::kGT;
-    break;
-  case kLTE:
-    intermediate_operator = Token::kLTE;
-    break;
-  case kGTE:
-    intermediate_operator = Token::kGTE;
-    break;
-  default:
-    UNREACHABLE();
+    case kEQ:
+      intermediate_operator = Token::kEQ;
+      break;
+    case kNE:
+      intermediate_operator = Token::kEQ;
+      strict_comparison = Token::kNE_STRICT;
+      break;
+    case kLT:
+      intermediate_operator = Token::kLT;
+      break;
+    case kGT:
+      intermediate_operator = Token::kGT;
+      break;
+    case kLTE:
+      intermediate_operator = Token::kLTE;
+      break;
+    case kGTE:
+      intermediate_operator = Token::kGTE;
+      break;
+    default:
+      UNREACHABLE();
   }
 
   ASSERT(intermediate_operator != Token::kILLEGAL);
 
-  Value* lhs_value =
-      Bind(InstanceCall(
-             InstanceCallDescriptor::FromToken(intermediate_operator),
-             lhs,
-             rhs));
+  Value* lhs_value = Bind(InstanceCall(
+      InstanceCallDescriptor::FromToken(intermediate_operator), lhs, rhs));
   Value* rhs_value = Bind(BoolConstant(true));
 
-  return new(Z) StrictCompareInstr(
-      TokenPosition::kNoSource, strict_comparison, lhs_value, rhs_value, true);
+  return new (Z) StrictCompareInstr(TokenPosition::kNoSource, strict_comparison,
+                                    lhs_value, rhs_value, true);
 }
 
-ComparisonInstr* IRRegExpMacroAssembler::Comparison(
-    ComparisonKind kind, Definition* lhs, Definition* rhs) {
+ComparisonInstr* IRRegExpMacroAssembler::Comparison(ComparisonKind kind,
+                                                    Definition* lhs,
+                                                    Definition* rhs) {
   PushArgumentInstr* lhs_push = PushArgument(Bind(lhs));
   PushArgumentInstr* rhs_push = PushArgument(Bind(rhs));
   return Comparison(kind, lhs_push, rhs_push);
@@ -503,7 +505,7 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(0);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(0);
   return StaticCall(function, arguments);
 }
 
@@ -512,7 +514,7 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     PushArgumentInstr* arg1) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(1);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(arg1);
 
   return StaticCall(function, arguments);
@@ -524,7 +526,7 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     PushArgumentInstr* arg1,
     PushArgumentInstr* arg2) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(arg1);
   arguments->Add(arg2);
 
@@ -535,11 +537,9 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
-  return new(Z) StaticCallInstr(TokenPosition::kNoSource,
-                                function,
-                                Object::null_array(),
-                                arguments,
-                                ic_data_array_);
+  return new (Z)
+      StaticCallInstr(TokenPosition::kNoSource, function, Object::null_array(),
+                      arguments, ic_data_array_);
 }
 
 
@@ -547,7 +547,7 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     PushArgumentInstr* arg1) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(1);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(arg1);
 
   return InstanceCall(desc, arguments);
@@ -559,7 +559,7 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     PushArgumentInstr* arg1,
     PushArgumentInstr* arg2) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(arg1);
   arguments->Add(arg2);
 
@@ -573,7 +573,7 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     PushArgumentInstr* arg2,
     PushArgumentInstr* arg3) const {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new(Z) ZoneGrowableArray<PushArgumentInstr*>(3);
+      new (Z) ZoneGrowableArray<PushArgumentInstr*>(3);
   arguments->Add(arg1);
   arguments->Add(arg2);
   arguments->Add(arg3);
@@ -584,26 +584,20 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
 
 InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
-    ZoneGrowableArray<PushArgumentInstr*> *arguments) const {
-  return
-    new(Z) InstanceCallInstr(TokenPosition::kNoSource,
-                             desc.name,
-                             desc.token_kind,
-                             arguments,
-                             Object::null_array(),
-                             desc.checked_argument_count,
-                             ic_data_array_);
+    ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
+  return new (Z) InstanceCallInstr(
+      TokenPosition::kNoSource, desc.name, desc.token_kind, arguments,
+      Object::null_array(), desc.checked_argument_count, ic_data_array_);
 }
 
 
 LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
-  return new(Z) LoadLocalInstr(*local, TokenPosition::kNoSource);
+  return new (Z) LoadLocalInstr(*local, TokenPosition::kNoSource);
 }
 
 
-void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local,
-                                        Value* value) {
-  Do(new(Z) StoreLocalInstr(*local, value, TokenPosition::kNoSource));
+void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local, Value* value) {
+  Do(new (Z) StoreLocalInstr(*local, value, TokenPosition::kNoSource));
 }
 
 
@@ -616,7 +610,7 @@ Value* IRRegExpMacroAssembler::Bind(Definition* definition) {
   AppendInstruction(definition);
   definition->set_temp_index(temp_id_.Alloc());
 
-  return new(Z) Value(definition);
+  return new (Z) Value(definition);
 }
 
 
@@ -627,10 +621,10 @@ void IRRegExpMacroAssembler::Do(Definition* definition) {
 
 Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
   if (local.IsConst()) {
-    return Bind(new(Z) ConstantInstr(*local.ConstValue()));
+    return Bind(new (Z) ConstantInstr(*local.ConstValue()));
   }
   ASSERT(!local.is_captured());
-  return Bind(new(Z) LoadLocalInstr(local, TokenPosition::kNoSource));
+  return Bind(new (Z) LoadLocalInstr(local, TokenPosition::kNoSource));
 }
 
 
@@ -638,15 +632,16 @@ Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
 // a jmp not followed by a bind. We cannot do the same, since it is impossible
 // to append to a block following a jmp. In such cases, assume that we are doing
 // the correct thing, but output a warning when tracing.
-#define HANDLE_DEAD_CODE_EMISSION() \
-  if (current_instruction_ == NULL) { \
-    if (FLAG_trace_irregexp) { \
-      OS::Print("WARNING: Attempting to append to a closed assembler. " \
-                "This could be either a bug or generation of dead code " \
-                "inherited from V8.\n"); \
-    } \
-    BlockLabel dummy; \
-    BindBlock(&dummy); \
+#define HANDLE_DEAD_CODE_EMISSION()                                            \
+  if (current_instruction_ == NULL) {                                          \
+    if (FLAG_trace_irregexp) {                                                 \
+      OS::Print(                                                               \
+          "WARNING: Attempting to append to a closed assembler. "              \
+          "This could be either a bug or generation of dead code "             \
+          "inherited from V8.\n");                                             \
+    }                                                                          \
+    BlockLabel dummy;                                                          \
+    BindBlock(&dummy);                                                         \
   }
 
 void IRRegExpMacroAssembler::AppendInstruction(Instruction* instruction) {
@@ -701,7 +696,7 @@ void IRRegExpMacroAssembler::GoTo(JoinEntryInstr* to) {
 
 PushArgumentInstr* IRRegExpMacroAssembler::PushArgument(Value* value) {
   arg_id_.Alloc();
-  PushArgumentInstr* push = new(Z) PushArgumentInstr(value);
+  PushArgumentInstr* push = new (Z) PushArgumentInstr(value);
   // Do *not* use Do() for push argument instructions.
   AppendInstruction(push);
   return push;
@@ -714,16 +709,15 @@ PushArgumentInstr* IRRegExpMacroAssembler::PushLocal(LocalVariable* local) {
 
 
 void IRRegExpMacroAssembler::Print(const char* str) {
-  Print(PushArgument(
-    Bind(new(Z) ConstantInstr(
-           String::ZoneHandle(Z, String::New(str, Heap::kOld))))));
+  Print(PushArgument(Bind(new (Z) ConstantInstr(
+      String::ZoneHandle(Z, String::New(str, Heap::kOld))))));
 }
 
 
 void IRRegExpMacroAssembler::Print(PushArgumentInstr* argument) {
   const Library& lib = Library::Handle(Library::CoreLibrary());
-  const Function& print_fn = Function::ZoneHandle(
-        Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
+  const Function& print_fn =
+      Function::ZoneHandle(Z, lib.LookupFunctionAllowPrivate(Symbols::print()));
   Do(StaticCall(print_fn, argument));
 }
 
@@ -735,7 +729,7 @@ void IRRegExpMacroAssembler::PrintBlocks() {
 }
 
 
-intptr_t IRRegExpMacroAssembler::stack_limit_slack()  {
+intptr_t IRRegExpMacroAssembler::stack_limit_slack() {
   return 32;
 }
 
@@ -804,8 +798,7 @@ Value* IRRegExpMacroAssembler::LoadRegister(intptr_t index) {
   PushArgumentInstr* registers_push = PushLocal(registers_);
   PushArgumentInstr* index_push = PushRegisterIndex(index);
   return Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                           registers_push,
-                           index_push));
+                           registers_push, index_push));
 }
 
 void IRRegExpMacroAssembler::StoreRegister(intptr_t index, intptr_t value) {
@@ -821,9 +814,7 @@ void IRRegExpMacroAssembler::StoreRegister(PushArgumentInstr* registers,
                                            PushArgumentInstr* value) {
   TAG();
   Do(InstanceCall(InstanceCallDescriptor::FromToken(Token::kASSIGN_INDEX),
-                  registers,
-                  index,
-                  value));
+                  registers, index, value));
 }
 
 PushArgumentInstr* IRRegExpMacroAssembler::PushRegisterIndex(intptr_t index) {
@@ -846,10 +837,9 @@ void IRRegExpMacroAssembler::CheckCharacter(uint32_t c, BlockLabel* on_equal) {
 void IRRegExpMacroAssembler::CheckCharacterGT(uint16_t limit,
                                               BlockLabel* on_greater) {
   TAG();
-  BranchOrBacktrack(Comparison(kGT,
-                               LoadLocal(current_character_),
-                               Uint64Constant(limit)),
-                    on_greater);
+  BranchOrBacktrack(
+      Comparison(kGT, LoadLocal(current_character_), Uint64Constant(limit)),
+      on_greater);
 }
 
 
@@ -859,10 +849,9 @@ void IRRegExpMacroAssembler::CheckAtStart(BlockLabel* on_at_start) {
   BlockLabel not_at_start;
 
   // Did we start the match at the start of the string at all?
-  BranchOrBacktrack(Comparison(kNE,
-                               LoadLocal(start_index_param_),
-                               Uint64Constant(0)),
-                    &not_at_start);
+  BranchOrBacktrack(
+      Comparison(kNE, LoadLocal(start_index_param_), Uint64Constant(0)),
+      &not_at_start);
 
   // If we did, are we still at the start of the input, i.e. is
   // (offset == string_length * -1)?
@@ -870,8 +859,7 @@ void IRRegExpMacroAssembler::CheckAtStart(BlockLabel* on_at_start) {
       InstanceCall(InstanceCallDescriptor::FromToken(Token::kNEGATE),
                    PushLocal(string_param_length_));
   Definition* offset_def = LoadLocal(current_position_);
-  BranchOrBacktrack(Comparison(kEQ, neg_len_def, offset_def),
-                    on_at_start);
+  BranchOrBacktrack(Comparison(kEQ, neg_len_def, offset_def), on_at_start);
 
   BindBlock(&not_at_start);
 }
@@ -881,10 +869,9 @@ void IRRegExpMacroAssembler::CheckNotAtStart(BlockLabel* on_not_at_start) {
   TAG();
 
   // Did we start the match at the start of the string at all?
-  BranchOrBacktrack(Comparison(kNE,
-                               LoadLocal(start_index_param_),
-                               Uint64Constant(0)),
-                    on_not_at_start);
+  BranchOrBacktrack(
+      Comparison(kNE, LoadLocal(start_index_param_), Uint64Constant(0)),
+      on_not_at_start);
 
   // If we did, are we still at the start of the input, i.e. is
   // (offset == string_length * -1)?
@@ -892,18 +879,16 @@ void IRRegExpMacroAssembler::CheckNotAtStart(BlockLabel* on_not_at_start) {
       InstanceCall(InstanceCallDescriptor::FromToken(Token::kNEGATE),
                    PushLocal(string_param_length_));
   Definition* offset_def = LoadLocal(current_position_);
-  BranchOrBacktrack(Comparison(kNE, neg_len_def, offset_def),
-                    on_not_at_start);
+  BranchOrBacktrack(Comparison(kNE, neg_len_def, offset_def), on_not_at_start);
 }
 
 
 void IRRegExpMacroAssembler::CheckCharacterLT(uint16_t limit,
                                               BlockLabel* on_less) {
   TAG();
-  BranchOrBacktrack(Comparison(kLT,
-                               LoadLocal(current_character_),
-                               Uint64Constant(limit)),
-                    on_less);
+  BranchOrBacktrack(
+      Comparison(kLT, LoadLocal(current_character_), Uint64Constant(limit)),
+      on_less);
 }
 
 
@@ -914,8 +899,7 @@ void IRRegExpMacroAssembler::CheckGreedyLoop(BlockLabel* on_equal) {
 
   Definition* head = PeekStack();
   Definition* cur_pos_def = LoadLocal(current_position_);
-  BranchOrBacktrack(Comparison(kNE, head, cur_pos_def),
-                    &fallthrough);
+  BranchOrBacktrack(Comparison(kNE, head, cur_pos_def), &fallthrough);
 
   // Pop, throwing away the value.
   Do(PopStack());
@@ -943,29 +927,26 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
   // the start of the capture.
   // BranchOrBacktrack(less, on_no_match);
 
-  BranchOrBacktrack(Comparison(kLT,
-                               LoadLocal(capture_length_),
-                               Uint64Constant(0)),
-                    on_no_match);
+  BranchOrBacktrack(
+      Comparison(kLT, LoadLocal(capture_length_), Uint64Constant(0)),
+      on_no_match);
 
   // If length is zero, either the capture is empty or it is completely
   // uncaptured. In either case succeed immediately.
-  BranchOrBacktrack(Comparison(kEQ,
-                               LoadLocal(capture_length_),
-                               Uint64Constant(0)),
-                    &fallthrough);
+  BranchOrBacktrack(
+      Comparison(kEQ, LoadLocal(capture_length_), Uint64Constant(0)),
+      &fallthrough);
 
 
   // Check that there are sufficient characters left in the input.
   PushArgumentInstr* pos_push = PushLocal(current_position_);
   PushArgumentInstr* len_push = PushLocal(capture_length_);
   BranchOrBacktrack(
-        Comparison(kGT,
-                   InstanceCall(InstanceCallDescriptor::FromToken(Token::kADD),
-                                pos_push,
-                                len_push),
-                   Uint64Constant(0)),
-        on_no_match);
+      Comparison(kGT,
+                 InstanceCall(InstanceCallDescriptor::FromToken(Token::kADD),
+                              pos_push, len_push),
+                 Uint64Constant(0)),
+      on_no_match);
 
   pos_push = PushLocal(current_position_);
   len_push = PushLocal(string_param_length_);
@@ -988,63 +969,54 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     StoreLocal(char_in_capture_, CharacterAt(capture_start_index_));
     StoreLocal(char_in_match_, CharacterAt(match_start_index_));
 
-    BranchOrBacktrack(Comparison(kEQ,
-                                 LoadLocal(char_in_capture_),
-                                 LoadLocal(char_in_match_)),
-                      &loop_increment);
+    BranchOrBacktrack(
+        Comparison(kEQ, LoadLocal(char_in_capture_), LoadLocal(char_in_match_)),
+        &loop_increment);
 
     // Mismatch, try case-insensitive match (converting letters to lower-case).
     PushArgumentInstr* match_char_push = PushLocal(char_in_match_);
     PushArgumentInstr* mask_push = PushArgument(Bind(Uint64Constant(0x20)));
-    StoreLocal(char_in_match_,
-               Bind(InstanceCall(
-                      InstanceCallDescriptor::FromToken(Token::kBIT_OR),
-                      match_char_push,
-                      mask_push)));
+    StoreLocal(
+        char_in_match_,
+        Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kBIT_OR),
+                          match_char_push, mask_push)));
 
     BlockLabel convert_capture;
     BlockLabel on_not_in_range;
-    BranchOrBacktrack(Comparison(kLT,
-                                 LoadLocal(char_in_match_),
-                                 Uint64Constant('a')),
-                      &on_not_in_range);
-    BranchOrBacktrack(Comparison(kGT,
-                                 LoadLocal(char_in_match_),
-                                 Uint64Constant('z')),
-                      &on_not_in_range);
+    BranchOrBacktrack(
+        Comparison(kLT, LoadLocal(char_in_match_), Uint64Constant('a')),
+        &on_not_in_range);
+    BranchOrBacktrack(
+        Comparison(kGT, LoadLocal(char_in_match_), Uint64Constant('z')),
+        &on_not_in_range);
     GoTo(&convert_capture);
     BindBlock(&on_not_in_range);
 
     // Latin-1: Check for values in range [224,254] but not 247.
-    BranchOrBacktrack(Comparison(kLT,
-                                 LoadLocal(char_in_match_),
-                                 Uint64Constant(224)),
-                      on_no_match);
-    BranchOrBacktrack(Comparison(kGT,
-                                 LoadLocal(char_in_match_),
-                                 Uint64Constant(254)),
-                      on_no_match);
+    BranchOrBacktrack(
+        Comparison(kLT, LoadLocal(char_in_match_), Uint64Constant(224)),
+        on_no_match);
+    BranchOrBacktrack(
+        Comparison(kGT, LoadLocal(char_in_match_), Uint64Constant(254)),
+        on_no_match);
 
-    BranchOrBacktrack(Comparison(kEQ,
-                                 LoadLocal(char_in_match_),
-                                 Uint64Constant(247)),
-                      on_no_match);
+    BranchOrBacktrack(
+        Comparison(kEQ, LoadLocal(char_in_match_), Uint64Constant(247)),
+        on_no_match);
 
     // Also convert capture character.
     BindBlock(&convert_capture);
 
     PushArgumentInstr* capture_char_push = PushLocal(char_in_capture_);
     mask_push = PushArgument(Bind(Uint64Constant(0x20)));
-    StoreLocal(char_in_capture_,
-               Bind(InstanceCall(
-                      InstanceCallDescriptor::FromToken(Token::kBIT_OR),
-                      capture_char_push,
-                      mask_push)));
+    StoreLocal(
+        char_in_capture_,
+        Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kBIT_OR),
+                          capture_char_push, mask_push)));
 
-    BranchOrBacktrack(Comparison(kNE,
-                                 LoadLocal(char_in_match_),
-                                 LoadLocal(char_in_capture_)),
-                      on_no_match);
+    BranchOrBacktrack(
+        Comparison(kNE, LoadLocal(char_in_match_), LoadLocal(char_in_capture_)),
+        on_no_match);
 
     BindBlock(&loop_increment);
 
@@ -1058,8 +1030,7 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     StoreLocal(match_start_index_, Bind(Add(index_push, inc_push)));
 
     // Compare to end of match, and loop if not done.
-    BranchOrBacktrack(Comparison(kLT,
-                                 LoadLocal(match_start_index_),
+    BranchOrBacktrack(Comparison(kLT, LoadLocal(match_start_index_),
                                  LoadLocal(match_end_index_)),
                       &loop);
   } else {
@@ -1070,13 +1041,9 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
     Value* rhs_index_value = Bind(LoadLocal(capture_start_index_));
     Value* length_value = Bind(LoadLocal(capture_length_));
 
-    Definition* is_match_def =
-        new(Z) CaseInsensitiveCompareUC16Instr(
-                            string_value,
-                            lhs_index_value,
-                            rhs_index_value,
-                            length_value,
-                            specialization_cid_);
+    Definition* is_match_def = new (Z) CaseInsensitiveCompareUC16Instr(
+        string_value, lhs_index_value, rhs_index_value, length_value,
+        specialization_cid_);
 
     BranchOrBacktrack(Comparison(kNE, is_match_def, BoolConstant(true)),
                       on_no_match);
@@ -1093,9 +1060,8 @@ void IRRegExpMacroAssembler::CheckNotBackReferenceIgnoreCase(
 }
 
 
-void IRRegExpMacroAssembler::CheckNotBackReference(
-    intptr_t start_reg,
-    BlockLabel* on_no_match) {
+void IRRegExpMacroAssembler::CheckNotBackReference(intptr_t start_reg,
+                                                   BlockLabel* on_no_match) {
   TAG();
   ASSERT(start_reg + 1 <= registers_count_);
 
@@ -1108,27 +1074,24 @@ void IRRegExpMacroAssembler::CheckNotBackReference(
   StoreLocal(capture_length_, Bind(Sub(end_push, start_push)));
 
   // Fail on partial or illegal capture (start of capture after end of capture).
-  BranchOrBacktrack(Comparison(kLT,
-                               LoadLocal(capture_length_),
-                               Uint64Constant(0)),
-                    on_no_match);
+  BranchOrBacktrack(
+      Comparison(kLT, LoadLocal(capture_length_), Uint64Constant(0)),
+      on_no_match);
 
   // Succeed on empty capture (including no capture)
-  BranchOrBacktrack(Comparison(kEQ,
-                               LoadLocal(capture_length_),
-                               Uint64Constant(0)),
-                    &fallthrough);
+  BranchOrBacktrack(
+      Comparison(kEQ, LoadLocal(capture_length_), Uint64Constant(0)),
+      &fallthrough);
 
   // Check that there are sufficient characters left in the input.
   PushArgumentInstr* pos_push = PushLocal(current_position_);
   PushArgumentInstr* len_push = PushLocal(capture_length_);
   BranchOrBacktrack(
-        Comparison(kGT,
-                   InstanceCall(InstanceCallDescriptor::FromToken(Token::kADD),
-                                pos_push,
-                                len_push),
-                   Uint64Constant(0)),
-        on_no_match);
+      Comparison(kGT,
+                 InstanceCall(InstanceCallDescriptor::FromToken(Token::kADD),
+                              pos_push, len_push),
+                 Uint64Constant(0)),
+      on_no_match);
 
   // Compute pointers to match string and capture string.
   pos_push = PushLocal(current_position_);
@@ -1149,10 +1112,9 @@ void IRRegExpMacroAssembler::CheckNotBackReference(
   StoreLocal(char_in_capture_, CharacterAt(capture_start_index_));
   StoreLocal(char_in_match_, CharacterAt(match_start_index_));
 
-  BranchOrBacktrack(Comparison(kNE,
-                               LoadLocal(char_in_capture_),
-                               LoadLocal(char_in_match_)),
-                    on_no_match);
+  BranchOrBacktrack(
+      Comparison(kNE, LoadLocal(char_in_capture_), LoadLocal(char_in_match_)),
+      on_no_match);
 
   // Increment indexes into capture and match strings.
   PushArgumentInstr* index_push = PushLocal(capture_start_index_);
@@ -1164,8 +1126,7 @@ void IRRegExpMacroAssembler::CheckNotBackReference(
   StoreLocal(match_start_index_, Bind(Add(index_push, inc_push)));
 
   // Check if we have reached end of match area.
-  BranchOrBacktrack(Comparison(kLT,
-                               LoadLocal(match_start_index_),
+  BranchOrBacktrack(Comparison(kLT, LoadLocal(match_start_index_),
                                LoadLocal(match_end_index_)),
                     &loop);
 
@@ -1183,10 +1144,9 @@ void IRRegExpMacroAssembler::CheckNotBackReference(
 void IRRegExpMacroAssembler::CheckNotCharacter(uint32_t c,
                                                BlockLabel* on_not_equal) {
   TAG();
-  BranchOrBacktrack(Comparison(kNE,
-                               LoadLocal(current_character_),
-                               Uint64Constant(c)),
-                    on_not_equal);
+  BranchOrBacktrack(
+      Comparison(kNE, LoadLocal(current_character_), Uint64Constant(c)),
+      on_not_equal);
 }
 
 
@@ -1201,8 +1161,7 @@ void IRRegExpMacroAssembler::CheckCharacterAfterAnd(uint32_t c,
   PushArgumentInstr* actual_push = PushArgument(Bind(actual_def));
   PushArgumentInstr* mask_push = PushArgument(Bind(Uint64Constant(mask)));
   actual_def = InstanceCall(InstanceCallDescriptor::FromToken(Token::kBIT_AND),
-                            actual_push,
-                            mask_push);
+                            actual_push, mask_push);
 
   BranchOrBacktrack(Comparison(kEQ, actual_def, expected_def), on_equal);
 }
@@ -1220,8 +1179,7 @@ void IRRegExpMacroAssembler::CheckNotCharacterAfterAnd(
   PushArgumentInstr* actual_push = PushArgument(Bind(actual_def));
   PushArgumentInstr* mask_push = PushArgument(Bind(Uint64Constant(mask)));
   actual_def = InstanceCall(InstanceCallDescriptor::FromToken(Token::kBIT_AND),
-                            actual_push,
-                            mask_push);
+                            actual_push, mask_push);
 
   BranchOrBacktrack(Comparison(kNE, actual_def, expected_def), on_not_equal);
 }
@@ -1244,17 +1202,15 @@ void IRRegExpMacroAssembler::CheckNotCharacterAfterMinusAnd(
   actual_push = PushArgument(Bind(Sub(actual_push, minus_push)));
   PushArgumentInstr* mask_push = PushArgument(Bind(Uint64Constant(mask)));
   actual_def = InstanceCall(InstanceCallDescriptor::FromToken(Token::kBIT_AND),
-                            actual_push,
-                            mask_push);
+                            actual_push, mask_push);
 
   BranchOrBacktrack(Comparison(kNE, actual_def, expected_def), on_not_equal);
 }
 
 
-void IRRegExpMacroAssembler::CheckCharacterInRange(
-    uint16_t from,
-    uint16_t to,
-    BlockLabel* on_in_range) {
+void IRRegExpMacroAssembler::CheckCharacterInRange(uint16_t from,
+                                                   uint16_t to,
+                                                   BlockLabel* on_in_range) {
   TAG();
   ASSERT(from <= to);
 
@@ -1262,14 +1218,12 @@ void IRRegExpMacroAssembler::CheckCharacterInRange(
   // compares. This pattern repeats in various places.
 
   BlockLabel on_not_in_range;
-  BranchOrBacktrack(Comparison(kLT,
-                               LoadLocal(current_character_),
-                               Uint64Constant(from)),
-                    &on_not_in_range);
-  BranchOrBacktrack(Comparison(kGT,
-                               LoadLocal(current_character_),
-                               Uint64Constant(to)),
-                    &on_not_in_range);
+  BranchOrBacktrack(
+      Comparison(kLT, LoadLocal(current_character_), Uint64Constant(from)),
+      &on_not_in_range);
+  BranchOrBacktrack(
+      Comparison(kGT, LoadLocal(current_character_), Uint64Constant(to)),
+      &on_not_in_range);
   BranchOrBacktrack(NULL, on_in_range);
 
   BindBlock(&on_not_in_range);
@@ -1283,40 +1237,34 @@ void IRRegExpMacroAssembler::CheckCharacterNotInRange(
   TAG();
   ASSERT(from <= to);
 
-  BranchOrBacktrack(Comparison(kLT,
-                               LoadLocal(current_character_),
-                               Uint64Constant(from)),
-                    on_not_in_range);
+  BranchOrBacktrack(
+      Comparison(kLT, LoadLocal(current_character_), Uint64Constant(from)),
+      on_not_in_range);
 
-  BranchOrBacktrack(Comparison(kGT,
-                               LoadLocal(current_character_),
-                               Uint64Constant(to)),
-                    on_not_in_range);
+  BranchOrBacktrack(
+      Comparison(kGT, LoadLocal(current_character_), Uint64Constant(to)),
+      on_not_in_range);
 }
 
 
-void IRRegExpMacroAssembler::CheckBitInTable(
-    const TypedData& table,
-    BlockLabel* on_bit_set) {
+void IRRegExpMacroAssembler::CheckBitInTable(const TypedData& table,
+                                             BlockLabel* on_bit_set) {
   TAG();
 
   PushArgumentInstr* table_push =
-      PushArgument(Bind(new(Z) ConstantInstr(table)));
+      PushArgument(Bind(new (Z) ConstantInstr(table)));
   PushArgumentInstr* index_push = PushLocal(current_character_);
 
   if (mode_ != ASCII || kTableMask != Symbols::kMaxOneCharCodeSymbol) {
     PushArgumentInstr* mask_push =
         PushArgument(Bind(Uint64Constant(kTableSize - 1)));
     index_push = PushArgument(
-          Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kBIT_AND),
-                            index_push,
-                            mask_push)));
+        Bind(InstanceCall(InstanceCallDescriptor::FromToken(Token::kBIT_AND),
+                          index_push, mask_push)));
   }
 
-  Definition* byte_def =
-      InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                   table_push,
-                   index_push);
+  Definition* byte_def = InstanceCall(
+      InstanceCallDescriptor::FromToken(Token::kINDEX), table_push, index_push);
   Definition* zero_def = Int64Constant(0);
 
   BranchOrBacktrack(Comparison(kNE, byte_def, zero_def), on_bit_set);
@@ -1331,145 +1279,131 @@ bool IRRegExpMacroAssembler::CheckSpecialCharacterClass(
   // Range checks (c in min..max) are generally implemented by an unsigned
   // (c - min) <= (max - min) check
   switch (type) {
-  case 's':
-    // Match space-characters
-    if (mode_ == ASCII) {
-      // One byte space characters are '\t'..'\r', ' ' and \u00a0.
+    case 's':
+      // Match space-characters
+      if (mode_ == ASCII) {
+        // One byte space characters are '\t'..'\r', ' ' and \u00a0.
+        BlockLabel success;
+        // Space (' ').
+        BranchOrBacktrack(
+            Comparison(kEQ, LoadLocal(current_character_), Uint64Constant(' ')),
+            &success);
+        // Check range 0x09..0x0d.
+        CheckCharacterInRange('\t', '\r', &success);
+        // \u00a0 (NBSP).
+        BranchOrBacktrack(Comparison(kNE, LoadLocal(current_character_),
+                                     Uint64Constant(0x00a0)),
+                          on_no_match);
+        BindBlock(&success);
+        return true;
+      }
+      return false;
+    case 'S':
+      // The emitted code for generic character classes is good enough.
+      return false;
+    case 'd':
+      // Match ASCII digits ('0'..'9')
+      CheckCharacterNotInRange('0', '9', on_no_match);
+      return true;
+    case 'D':
+      // Match non ASCII-digits
+      CheckCharacterInRange('0', '9', on_no_match);
+      return true;
+    case '.': {
+      // Match non-newlines (not 0x0a('\n'), 0x0d('\r'), 0x2028 and 0x2029)
+      BranchOrBacktrack(
+          Comparison(kEQ, LoadLocal(current_character_), Uint64Constant('\n')),
+          on_no_match);
+      BranchOrBacktrack(
+          Comparison(kEQ, LoadLocal(current_character_), Uint64Constant('\r')),
+          on_no_match);
+      if (mode_ == UC16) {
+        BranchOrBacktrack(Comparison(kEQ, LoadLocal(current_character_),
+                                     Uint64Constant(0x2028)),
+                          on_no_match);
+        BranchOrBacktrack(Comparison(kEQ, LoadLocal(current_character_),
+                                     Uint64Constant(0x2029)),
+                          on_no_match);
+      }
+      return true;
+    }
+    case 'w': {
+      if (mode_ != ASCII) {
+        // Table is 128 entries, so all ASCII characters can be tested.
+        BranchOrBacktrack(
+            Comparison(kGT, LoadLocal(current_character_), Uint64Constant('z')),
+            on_no_match);
+      }
+
+      PushArgumentInstr* table_push =
+          PushArgument(Bind(WordCharacterMapConstant()));
+      PushArgumentInstr* index_push = PushLocal(current_character_);
+
+      Definition* byte_def =
+          InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
+                       table_push, index_push);
+      Definition* zero_def = Int64Constant(0);
+
+      BranchOrBacktrack(Comparison(kEQ, byte_def, zero_def), on_no_match);
+
+      return true;
+    }
+    case 'W': {
+      BlockLabel done;
+      if (mode_ != ASCII) {
+        // Table is 128 entries, so all ASCII characters can be tested.
+        BranchOrBacktrack(
+            Comparison(kGT, LoadLocal(current_character_), Uint64Constant('z')),
+            &done);
+      }
+
+      // TODO(zerny): Refactor to use CheckBitInTable if possible.
+
+      PushArgumentInstr* table_push =
+          PushArgument(Bind(WordCharacterMapConstant()));
+      PushArgumentInstr* index_push = PushLocal(current_character_);
+
+      Definition* byte_def =
+          InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
+                       table_push, index_push);
+      Definition* zero_def = Int64Constant(0);
+
+      BranchOrBacktrack(Comparison(kNE, byte_def, zero_def), on_no_match);
+
+      if (mode_ != ASCII) {
+        BindBlock(&done);
+      }
+      return true;
+    }
+    // Non-standard classes (with no syntactic shorthand) used internally.
+    case '*':
+      // Match any character.
+      return true;
+    case 'n': {
+      // Match newlines (0x0a('\n'), 0x0d('\r'), 0x2028 or 0x2029).
+      // The opposite of '.'.
       BlockLabel success;
-      // Space (' ').
-      BranchOrBacktrack(Comparison(kEQ,
-                                   LoadLocal(current_character_),
-                                   Uint64Constant(' ')),
-                        &success);
-      // Check range 0x09..0x0d.
-      CheckCharacterInRange('\t', '\r', &success);
-      // \u00a0 (NBSP).
-      BranchOrBacktrack(Comparison(kNE,
-                                   LoadLocal(current_character_),
-                                   Uint64Constant(0x00a0)),
-                        on_no_match);
+      BranchOrBacktrack(
+          Comparison(kEQ, LoadLocal(current_character_), Uint64Constant('\n')),
+          &success);
+      BranchOrBacktrack(
+          Comparison(kEQ, LoadLocal(current_character_), Uint64Constant('\r')),
+          &success);
+      if (mode_ == UC16) {
+        BranchOrBacktrack(Comparison(kEQ, LoadLocal(current_character_),
+                                     Uint64Constant(0x2028)),
+                          &success);
+        BranchOrBacktrack(Comparison(kEQ, LoadLocal(current_character_),
+                                     Uint64Constant(0x2029)),
+                          &success);
+      }
+      BranchOrBacktrack(NULL, on_no_match);
       BindBlock(&success);
       return true;
     }
-    return false;
-  case 'S':
-    // The emitted code for generic character classes is good enough.
-    return false;
-  case 'd':
-    // Match ASCII digits ('0'..'9')
-    CheckCharacterNotInRange('0', '9', on_no_match);
-    return true;
-  case 'D':
-    // Match non ASCII-digits
-    CheckCharacterInRange('0', '9', on_no_match);
-    return true;
-  case '.': {
-    // Match non-newlines (not 0x0a('\n'), 0x0d('\r'), 0x2028 and 0x2029)
-    BranchOrBacktrack(Comparison(kEQ,
-                                 LoadLocal(current_character_),
-                                 Uint64Constant('\n')),
-                      on_no_match);
-    BranchOrBacktrack(Comparison(kEQ,
-                                 LoadLocal(current_character_),
-                                 Uint64Constant('\r')),
-                      on_no_match);
-    if (mode_ == UC16) {
-      BranchOrBacktrack(Comparison(kEQ,
-                                   LoadLocal(current_character_),
-                                   Uint64Constant(0x2028)),
-                        on_no_match);
-      BranchOrBacktrack(Comparison(kEQ,
-                                   LoadLocal(current_character_),
-                                   Uint64Constant(0x2029)),
-                        on_no_match);
-    }
-    return true;
-  }
-  case 'w': {
-    if (mode_ != ASCII) {
-      // Table is 128 entries, so all ASCII characters can be tested.
-      BranchOrBacktrack(Comparison(kGT,
-                                   LoadLocal(current_character_),
-                                   Uint64Constant('z')),
-                        on_no_match);
-    }
-
-    PushArgumentInstr* table_push =
-        PushArgument(Bind(WordCharacterMapConstant()));
-    PushArgumentInstr* index_push = PushLocal(current_character_);
-
-    Definition* byte_def =
-        InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                     table_push,
-                     index_push);
-    Definition* zero_def = Int64Constant(0);
-
-    BranchOrBacktrack(Comparison(kEQ, byte_def, zero_def), on_no_match);
-
-    return true;
-  }
-  case 'W': {
-    BlockLabel done;
-    if (mode_ != ASCII) {
-      // Table is 128 entries, so all ASCII characters can be tested.
-      BranchOrBacktrack(Comparison(kGT,
-                                   LoadLocal(current_character_),
-                                   Uint64Constant('z')),
-                        &done);
-    }
-
-    // TODO(zerny): Refactor to use CheckBitInTable if possible.
-
-    PushArgumentInstr* table_push =
-        PushArgument(Bind(WordCharacterMapConstant()));
-    PushArgumentInstr* index_push = PushLocal(current_character_);
-
-    Definition* byte_def =
-        InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                     table_push,
-                     index_push);
-    Definition* zero_def = Int64Constant(0);
-
-    BranchOrBacktrack(Comparison(kNE, byte_def, zero_def), on_no_match);
-
-    if (mode_ != ASCII) {
-      BindBlock(&done);
-    }
-    return true;
-  }
-  // Non-standard classes (with no syntactic shorthand) used internally.
-  case '*':
-    // Match any character.
-    return true;
-  case 'n': {
-    // Match newlines (0x0a('\n'), 0x0d('\r'), 0x2028 or 0x2029).
-    // The opposite of '.'.
-    BlockLabel success;
-    BranchOrBacktrack(Comparison(kEQ,
-                                 LoadLocal(current_character_),
-                                 Uint64Constant('\n')),
-                      &success);
-    BranchOrBacktrack(Comparison(kEQ,
-                                 LoadLocal(current_character_),
-                                 Uint64Constant('\r')),
-                      &success);
-    if (mode_ == UC16) {
-      BranchOrBacktrack(Comparison(kEQ,
-                                   LoadLocal(current_character_),
-                                   Uint64Constant(0x2028)),
-                        &success);
-      BranchOrBacktrack(Comparison(kEQ,
-                                   LoadLocal(current_character_),
-                                   Uint64Constant(0x2029)),
-                        &success);
-    }
-    BranchOrBacktrack(NULL, on_no_match);
-    BindBlock(&success);
-    return true;
-  }
-  // No custom implementation (yet): s(uint16_t), S(uint16_t).
-  default:
-    return false;
+    // No custom implementation (yet): s(uint16_t), S(uint16_t).
+    default:
+      return false;
   }
 }
 
@@ -1504,8 +1438,7 @@ void IRRegExpMacroAssembler::IfRegisterLT(intptr_t reg,
 }
 
 
-void IRRegExpMacroAssembler::IfRegisterEqPos(intptr_t reg,
-                                             BlockLabel* if_eq) {
+void IRRegExpMacroAssembler::IfRegisterEqPos(intptr_t reg, BlockLabel* if_eq) {
   TAG();
   PushArgumentInstr* reg_push = PushArgument(LoadRegister(reg));
   PushArgumentInstr* pos = PushArgument(Bind(LoadLocal(current_position_)));
@@ -1514,7 +1447,7 @@ void IRRegExpMacroAssembler::IfRegisterEqPos(intptr_t reg,
 
 
 RegExpMacroAssembler::IrregexpImplementation
-    IRRegExpMacroAssembler::Implementation() {
+IRRegExpMacroAssembler::Implementation() {
   return kIRImplementation;
 }
 
@@ -1524,8 +1457,8 @@ void IRRegExpMacroAssembler::LoadCurrentCharacter(intptr_t cp_offset,
                                                   bool check_bounds,
                                                   intptr_t characters) {
   TAG();
-  ASSERT(cp_offset >= -1);      // ^ and \b can look behind one character.
-  ASSERT(cp_offset < (1<<30));  // Be sane! (And ensure negation works)
+  ASSERT(cp_offset >= -1);        // ^ and \b can look behind one character.
+  ASSERT(cp_offset < (1 << 30));  // Be sane! (And ensure negation works)
   if (check_bounds) {
     CheckPosition(cp_offset + characters - 1, on_end_of_input);
   }
@@ -1549,19 +1482,16 @@ void IRRegExpMacroAssembler::PopRegister(intptr_t reg) {
 }
 
 
-void IRRegExpMacroAssembler::PushStack(Definition *definition) {
+void IRRegExpMacroAssembler::PushStack(Definition* definition) {
   PushArgumentInstr* stack_push = PushLocal(stack_);
   PushArgumentInstr* stack_pointer_push = PushLocal(stack_pointer_);
-  StoreLocal(stack_pointer_,
-             Bind(Add(stack_pointer_push,
-                      PushArgument(Bind(Uint64Constant(1))))));
+  StoreLocal(stack_pointer_, Bind(Add(stack_pointer_push,
+                                      PushArgument(Bind(Uint64Constant(1))))));
   stack_pointer_push = PushLocal(stack_pointer_);
   // TODO(zerny): bind value and push could break stack discipline.
   PushArgumentInstr* value_push = PushArgument(Bind(definition));
   Do(InstanceCall(InstanceCallDescriptor::FromToken(Token::kASSIGN_INDEX),
-                  stack_push,
-                  stack_pointer_push,
-                  value_push));
+                  stack_push, stack_pointer_push, value_push));
 }
 
 
@@ -1569,12 +1499,10 @@ Definition* IRRegExpMacroAssembler::PopStack() {
   PushArgumentInstr* stack_push = PushLocal(stack_);
   PushArgumentInstr* stack_pointer_push1 = PushLocal(stack_pointer_);
   PushArgumentInstr* stack_pointer_push2 = PushLocal(stack_pointer_);
-  StoreLocal(stack_pointer_,
-             Bind(Sub(stack_pointer_push2,
-                      PushArgument(Bind(Uint64Constant(1))))));
+  StoreLocal(stack_pointer_, Bind(Sub(stack_pointer_push2,
+                                      PushArgument(Bind(Uint64Constant(1))))));
   return InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                      stack_push,
-                      stack_pointer_push1);
+                      stack_push, stack_pointer_push1);
 }
 
 
@@ -1582,8 +1510,7 @@ Definition* IRRegExpMacroAssembler::PeekStack() {
   PushArgumentInstr* stack_push = PushLocal(stack_);
   PushArgumentInstr* stack_pointer_push = PushLocal(stack_pointer_);
   return InstanceCall(InstanceCallDescriptor::FromToken(Token::kINDEX),
-                      stack_push,
-                      stack_pointer_push);
+                      stack_push, stack_pointer_push);
 }
 
 
@@ -1616,16 +1543,13 @@ void IRRegExpMacroAssembler::PushRegister(intptr_t reg) {
   // TODO(zerny): Refactor PushStack so it can be reused here.
   PushArgumentInstr* stack_push = PushLocal(stack_);
   PushArgumentInstr* stack_pointer_push = PushLocal(stack_pointer_);
-  StoreLocal(stack_pointer_,
-             Bind(Add(stack_pointer_push,
-                      PushArgument(Bind(Uint64Constant(1))))));
+  StoreLocal(stack_pointer_, Bind(Add(stack_pointer_push,
+                                      PushArgument(Bind(Uint64Constant(1))))));
   stack_pointer_push = PushLocal(stack_pointer_);
   // TODO(zerny): bind value and push could break stack discipline.
   PushArgumentInstr* value_push = PushArgument(LoadRegister(reg));
   Do(InstanceCall(InstanceCallDescriptor::FromToken(Token::kASSIGN_INDEX),
-                  stack_push,
-                  stack_pointer_push,
-                  value_push));
+                  stack_push, stack_pointer_push, value_push));
   CheckStackLimit();
 }
 
@@ -1637,24 +1561,21 @@ void IRRegExpMacroAssembler::PushRegister(intptr_t reg) {
 void IRRegExpMacroAssembler::CheckStackLimit() {
   TAG();
   PushArgumentInstr* stack_push = PushLocal(stack_);
-  PushArgumentInstr* length_push = PushArgument(Bind(InstanceCall(
-      InstanceCallDescriptor(
-          String::ZoneHandle(Field::GetterSymbol(Symbols::Length()))),
-      stack_push)));
+  PushArgumentInstr* length_push = PushArgument(
+      Bind(InstanceCall(InstanceCallDescriptor(String::ZoneHandle(
+                            Field::GetterSymbol(Symbols::Length()))),
+                        stack_push)));
   PushArgumentInstr* capacity_push = PushArgument(Bind(Sub(
-      length_push,
-      PushArgument(Bind(Uint64Constant(stack_limit_slack()))))));
+      length_push, PushArgument(Bind(Uint64Constant(stack_limit_slack()))))));
   PushArgumentInstr* stack_pointer_push = PushLocal(stack_pointer_);
-  BranchInstr* branch = new(Z) BranchInstr(
-      Comparison(kGT, capacity_push, stack_pointer_push));
+  BranchInstr* branch =
+      new (Z) BranchInstr(Comparison(kGT, capacity_push, stack_pointer_push));
   CloseBlockWith(branch);
 
   BlockLabel grow_stack;
   BlockLabel fallthrough;
-  *branch->true_successor_address() =
-      TargetWithJoinGoto(fallthrough.block());
-  *branch->false_successor_address() =
-      TargetWithJoinGoto(grow_stack.block());
+  *branch->true_successor_address() = TargetWithJoinGoto(fallthrough.block());
+  *branch->false_successor_address() = TargetWithJoinGoto(grow_stack.block());
 
   BindBlock(&grow_stack);
   GrowStack();
@@ -1665,8 +1586,8 @@ void IRRegExpMacroAssembler::CheckStackLimit() {
 
 void IRRegExpMacroAssembler::GrowStack() {
   TAG();
-  Value* cell = Bind(new(Z) ConstantInstr(stack_array_cell_));
-  StoreLocal(stack_, Bind(new(Z) GrowRegExpStackInstr(cell)));
+  Value* cell = Bind(new (Z) ConstantInstr(stack_array_cell_));
+  StoreLocal(stack_, Bind(new (Z) GrowRegExpStackInstr(cell)));
 }
 
 
@@ -1682,7 +1603,7 @@ void IRRegExpMacroAssembler::ReadStackPointerFromRegister(intptr_t reg) {
   StoreLocal(stack_pointer_, LoadRegister(reg));
 }
 
-void IRRegExpMacroAssembler::SetCurrentPositionFromEnd(intptr_t by)  {
+void IRRegExpMacroAssembler::SetCurrentPositionFromEnd(intptr_t by) {
   TAG();
 
   BlockLabel after_position;
@@ -1720,7 +1641,8 @@ bool IRRegExpMacroAssembler::Succeed() {
 
 
 void IRRegExpMacroAssembler::WriteCurrentPositionToRegister(
-    intptr_t reg, intptr_t cp_offset) {
+    intptr_t reg,
+    intptr_t cp_offset) {
   TAG();
 
   PushArgumentInstr* registers_push = PushLocal(registers_);
@@ -1734,8 +1656,8 @@ void IRRegExpMacroAssembler::WriteCurrentPositionToRegister(
 }
 
 
-void IRRegExpMacroAssembler::ClearRegisters(
-    intptr_t reg_from, intptr_t reg_to) {
+void IRRegExpMacroAssembler::ClearRegisters(intptr_t reg_from,
+                                            intptr_t reg_to) {
   TAG();
 
   ASSERT(reg_from <= reg_to);
@@ -1746,8 +1668,7 @@ void IRRegExpMacroAssembler::ClearRegisters(
   for (intptr_t reg = reg_from; reg <= reg_to; reg++) {
     PushArgumentInstr* registers_push = PushLocal(registers_);
     PushArgumentInstr* index_push = PushRegisterIndex(reg);
-    PushArgumentInstr* minus_one_push =
-        PushArgument(Bind(Int64Constant(-1)));
+    PushArgumentInstr* minus_one_push = PushArgument(Bind(Int64Constant(-1)));
     PushArgumentInstr* length_push = PushLocal(string_param_length_);
     PushArgumentInstr* value_push =
         PushArgument(Bind(Sub(minus_one_push, length_push)));
@@ -1778,14 +1699,12 @@ void IRRegExpMacroAssembler::CheckPosition(intptr_t cp_offset,
   // If (current_position_ < -cp_offset), we are in bounds.
   // Remember, current_position_ is a negative offset from the string end.
 
-  BranchOrBacktrack(Comparison(kGTE, curpos_def, cp_off_def),
-                    on_outside_input);
+  BranchOrBacktrack(Comparison(kGTE, curpos_def, cp_off_def), on_outside_input);
 }
 
 
-void IRRegExpMacroAssembler::BranchOrBacktrack(
-    ComparisonInstr* comparison,
-    BlockLabel* true_successor) {
+void IRRegExpMacroAssembler::BranchOrBacktrack(ComparisonInstr* comparison,
+                                               BlockLabel* true_successor) {
   if (comparison == NULL) {  // No condition
     if (true_successor == NULL) {
       Backtrack();
@@ -1806,11 +1725,9 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(
   // If the condition is not true, fall through to a new block.
   BlockLabel fallthrough;
 
-  BranchInstr* branch = new(Z) BranchInstr(comparison);
-  *branch->true_successor_address() =
-      TargetWithJoinGoto(true_successor_block);
-  *branch->false_successor_address() =
-      TargetWithJoinGoto(fallthrough.block());
+  BranchInstr* branch = new (Z) BranchInstr(comparison);
+  *branch->true_successor_address() = TargetWithJoinGoto(true_successor_block);
+  *branch->false_successor_address() = TargetWithJoinGoto(fallthrough.block());
 
   CloseBlockWith(branch);
   BindBlock(&fallthrough);
@@ -1819,11 +1736,11 @@ void IRRegExpMacroAssembler::BranchOrBacktrack(
 
 TargetEntryInstr* IRRegExpMacroAssembler::TargetWithJoinGoto(
     JoinEntryInstr* dst) {
-  TargetEntryInstr* target = new(Z) TargetEntryInstr(
-          block_id_.Alloc(), kInvalidTryIndex);
+  TargetEntryInstr* target =
+      new (Z) TargetEntryInstr(block_id_.Alloc(), kInvalidTryIndex);
   blocks_.Add(target);
 
-  target->AppendInstruction(new(Z) GotoInstr(dst));
+  target->AppendInstruction(new (Z) GotoInstr(dst));
 
   return target;
 }
@@ -1831,11 +1748,11 @@ TargetEntryInstr* IRRegExpMacroAssembler::TargetWithJoinGoto(
 
 IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
     JoinEntryInstr* dst) {
-  IndirectEntryInstr* target = new(Z) IndirectEntryInstr(
-          block_id_.Alloc(), indirect_id_.Alloc(), kInvalidTryIndex);
+  IndirectEntryInstr* target = new (Z) IndirectEntryInstr(
+      block_id_.Alloc(), indirect_id_.Alloc(), kInvalidTryIndex);
   blocks_.Add(target);
 
-  target->AppendInstruction(new(Z) GotoInstr(dst));
+  target->AppendInstruction(new (Z) GotoInstr(dst));
 
   return target;
 }
@@ -1843,27 +1760,26 @@ IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
 
 void IRRegExpMacroAssembler::CheckPreemption() {
   TAG();
-  AppendInstruction(new(Z) CheckStackOverflowInstr(
-      TokenPosition::kNoSource, 0));
+  AppendInstruction(new (Z)
+                        CheckStackOverflowInstr(TokenPosition::kNoSource, 0));
 }
 
 
-Definition* IRRegExpMacroAssembler::Add(
-    PushArgumentInstr* lhs,
-    PushArgumentInstr* rhs) {
+Definition* IRRegExpMacroAssembler::Add(PushArgumentInstr* lhs,
+                                        PushArgumentInstr* rhs) {
   return InstanceCall(InstanceCallDescriptor::FromToken(Token::kADD), lhs, rhs);
 }
 
 
-Definition* IRRegExpMacroAssembler::Sub(
-    PushArgumentInstr* lhs,
-    PushArgumentInstr* rhs) {
+Definition* IRRegExpMacroAssembler::Sub(PushArgumentInstr* lhs,
+                                        PushArgumentInstr* rhs) {
   return InstanceCall(InstanceCallDescriptor::FromToken(Token::kSUB), lhs, rhs);
 }
 
 
 void IRRegExpMacroAssembler::LoadCurrentCharacterUnchecked(
-    intptr_t cp_offset, intptr_t characters) {
+    intptr_t cp_offset,
+    intptr_t characters) {
   TAG();
 
   ASSERT(characters == 1 || CanReadUnaligned());
@@ -1877,12 +1793,9 @@ void IRRegExpMacroAssembler::LoadCurrentCharacterUnchecked(
   // Calculate the addressed string index as:
   //    cp_offset + current_position_ + string_param_length_
   // TODO(zerny): Avoid generating 'add' instance-calls here.
-  PushArgumentInstr* off_arg =
-      PushArgument(Bind(Int64Constant(cp_offset)));
-  PushArgumentInstr* pos_arg =
-      PushArgument(BindLoadLocal(*current_position_));
-  PushArgumentInstr* off_pos_arg =
-      PushArgument(Bind(Add(off_arg, pos_arg)));
+  PushArgumentInstr* off_arg = PushArgument(Bind(Int64Constant(cp_offset)));
+  PushArgumentInstr* pos_arg = PushArgument(BindLoadLocal(*current_position_));
+  PushArgumentInstr* off_pos_arg = PushArgument(Bind(Add(off_arg, pos_arg)));
   PushArgumentInstr* len_arg =
       PushArgument(BindLoadLocal(*string_param_length_));
   // Index is stored in a temporary local so that we can later load it safely.
@@ -1921,20 +1834,16 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
     // the first value is consumed to obtain the second value which is consumed
     // by LoadCodeUnitsAtInstr below.
     Value* external_val =
-        Bind(new(Z) LoadUntaggedInstr(pattern_val, external_offset));
-    pattern_val =
-        Bind(new(Z) LoadUntaggedInstr(external_val, data_offset));
+        Bind(new (Z) LoadUntaggedInstr(pattern_val, external_offset));
+    pattern_val = Bind(new (Z) LoadUntaggedInstr(external_val, data_offset));
   }
 
   // Here pattern_val might be untagged so this must not trigger a GC.
   Value* index_val = BindLoadLocal(*index);
 
-  return Bind(new(Z) LoadCodeUnitsInstr(
-      pattern_val,
-      index_val,
-      characters,
-      specialization_cid_,
-      TokenPosition::kNoSource));
+  return Bind(new (Z) LoadCodeUnitsInstr(pattern_val, index_val, characters,
+                                         specialization_cid_,
+                                         TokenPosition::kNoSource));
 }
 
 

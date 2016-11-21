@@ -383,7 +383,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     super['length'] = length;
   }
 
-  // Methods overriden for better performance
+  // Methods overridden for better performance
 
   void add(E value) {
     callMethod('push', [value]);
@@ -470,7 +470,8 @@ dynamic _wrapDartFunction(f) {
       '  let args = Array.prototype.map.call(arguments, #);'
       '  return #(#(...args));'
       '}', _convertToDart, _convertToJS, f);
-  _dartProxies[wrapper] = f;
+  JS('', '#.set(#, #)', _dartProxies, wrapper, f);
+
   return wrapper;
 }
 

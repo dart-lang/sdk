@@ -413,7 +413,7 @@ class GetHandler {
    */
   String _encodeSdkDescriptor(SdkDescription descriptor) {
     StringBuffer buffer = new StringBuffer();
-    buffer.write(descriptor.options.encodeCrossContextOptions());
+    buffer.write(descriptor.options.encodeCrossContextOptions().join(','));
     for (String path in descriptor.paths) {
       buffer.write('+');
       buffer.write(path);

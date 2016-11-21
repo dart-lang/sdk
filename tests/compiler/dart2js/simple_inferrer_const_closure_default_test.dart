@@ -42,7 +42,7 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkArgument(String functionName, type) {
           var functionElement = findElement(compiler, functionName);
@@ -66,41 +66,47 @@ void main() {
               functionName);
         }
 
-        checkArgument('foo1', compiler.commonMasks.functionType);
+        checkArgument('foo1', compiler.closedWorld.commonMasks.functionType);
 
         /// 01: ok
-        checkArgument('foo2', compiler.commonMasks.functionType);
+        checkArgument('foo2', compiler.closedWorld.commonMasks.functionType);
 
         /// 02: ok
-        checkArgument('foo3', compiler.commonMasks.functionType);
+        checkArgument('foo3', compiler.closedWorld.commonMasks.functionType);
 
         /// 03: ok
-        checkArgument('foo4', compiler.commonMasks.functionType);
+        checkArgument('foo4', compiler.closedWorld.commonMasks.functionType);
 
         /// 04: ok
-        checkArgument('foo5', compiler.commonMasks.dynamicType);
+        checkArgument('foo5', compiler.closedWorld.commonMasks.dynamicType);
 
         /// 05: ok
-        checkArgument('foo6', compiler.commonMasks.dynamicType);
+        checkArgument('foo6', compiler.closedWorld.commonMasks.dynamicType);
 
         /// 06: ok
 
-        checkArgument('defaultFn1', compiler.commonMasks.uint31Type);
+        checkArgument(
+            'defaultFn1', compiler.closedWorld.commonMasks.uint31Type);
 
         /// 07: ok
-        checkArgument('defaultFn2', compiler.commonMasks.uint31Type);
+        checkArgument(
+            'defaultFn2', compiler.closedWorld.commonMasks.uint31Type);
 
         /// 08: ok
-        checkArgument('defaultFn3', compiler.commonMasks.uint31Type);
+        checkArgument(
+            'defaultFn3', compiler.closedWorld.commonMasks.uint31Type);
 
         /// 09: ok
-        checkArgument('defaultFn4', compiler.commonMasks.uint31Type);
+        checkArgument(
+            'defaultFn4', compiler.closedWorld.commonMasks.uint31Type);
 
         /// 10: ok
-        checkArgument('defaultFn5', compiler.commonMasks.uint31Type);
+        checkArgument(
+            'defaultFn5', compiler.closedWorld.commonMasks.uint31Type);
 
         /// 11: ok
-        checkArgument('defaultFn6', compiler.commonMasks.uint31Type);
+        checkArgument(
+            'defaultFn6', compiler.closedWorld.commonMasks.uint31Type);
 
         /// 12: ok
       }));

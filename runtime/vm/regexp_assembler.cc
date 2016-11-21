@@ -10,10 +10,7 @@
 namespace dart {
 
 BlockLabel::BlockLabel()
-    : block_(NULL),
-      is_bound_(false),
-      is_linked_(false),
-      pos_(-1) {
+    : block_(NULL), is_bound_(false), is_linked_(false), pos_(-1) {
   if (!FLAG_interpret_irregexp) {
     // Only needed by the compiled IR backend.
     block_ = new JoinEntryInstr(-1, -1);
@@ -22,13 +19,9 @@ BlockLabel::BlockLabel()
 
 
 RegExpMacroAssembler::RegExpMacroAssembler(Zone* zone)
-  : slow_safe_compiler_(false),
-    global_mode_(NOT_GLOBAL),
-    zone_(zone) {
-}
+    : slow_safe_compiler_(false), global_mode_(NOT_GLOBAL), zone_(zone) {}
 
 
-RegExpMacroAssembler::~RegExpMacroAssembler() {
-}
+RegExpMacroAssembler::~RegExpMacroAssembler() {}
 
 }  // namespace dart

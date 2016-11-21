@@ -63,9 +63,7 @@ class Platform {
   static void SetExecutableName(const char* executable_name) {
     executable_name_ = executable_name;
   }
-  static const char* GetExecutableName() {
-    return executable_name_;
-  }
+  static const char* GetExecutableName() { return executable_name_; }
   static const char* GetResolvedExecutableName() {
     if (resolved_executable_name_ == NULL) {
       // Try to resolve the executable path using platform specific APIs.
@@ -82,12 +80,8 @@ class Platform {
     script_index_ = script_index;
     argv_ = argv;
   }
-  static int GetScriptIndex() {
-    return script_index_;
-  }
-  static char** GetArgv() {
-    return argv_;
-  }
+  static int GetScriptIndex() { return script_index_; }
+  static char** GetArgv() { return argv_; }
 
   static DART_NORETURN void Exit(int exit_code);
 

@@ -16,7 +16,7 @@ CpuInfoMethod CpuInfo::method_ = kCpuInfoDefault;
 const char* CpuInfo::fields_[kCpuInfoMax] = {0};
 
 void CpuInfo::InitOnce() {
-  // TODO(zra): Add support for HOST_ARCH_ARM64
+// TODO(zra): Add support for HOST_ARCH_ARM64
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
   method_ = kCpuInfoCpuId;
 
@@ -27,6 +27,7 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoModel] = "Hardware";
   fields_[kCpuInfoHardware] = "Hardware";
   fields_[kCpuInfoFeatures] = "Features";
+  fields_[kCpuInfoArchitecture] = "CPU architecture";
 #endif
 }
 

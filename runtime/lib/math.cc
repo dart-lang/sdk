@@ -68,8 +68,8 @@ DEFINE_NATIVE_ENTRY(Math_log, 1) {
 DEFINE_NATIVE_ENTRY(Math_doublePow, 2) {
   const double operand =
       Double::CheckedHandle(arguments->NativeArgAt(0)).value();
-  GET_NON_NULL_NATIVE_ARGUMENT(
-      Double, exponent_object, arguments->NativeArgAt(1));
+  GET_NON_NULL_NATIVE_ARGUMENT(Double, exponent_object,
+                               arguments->NativeArgAt(1));
   const double exponent = exponent_object.value();
   return Double::New(pow(operand, exponent));
 }
@@ -106,14 +106,14 @@ DEFINE_NATIVE_ENTRY(Random_nextState, 1) {
   uint64_t state = (A * state_lo) + state_hi;
   array.SetUint32(0, static_cast<uint32_t>(state));
   array.SetUint32(array.ElementSizeInBytes(),
-      static_cast<uint32_t>(state >> 32));
+                  static_cast<uint32_t>(state >> 32));
   return Object::null();
 }
 
 
 RawTypedData* CreateRandomState(Zone* zone, uint64_t seed) {
-  const TypedData& result = TypedData::Handle(
-      zone, TypedData::New(kTypedDataUint32ArrayCid, 2));
+  const TypedData& result =
+      TypedData::Handle(zone, TypedData::New(kTypedDataUint32ArrayCid, 2));
   result.SetUint32(0, static_cast<uint32_t>(seed));
   result.SetUint32(result.ElementSizeInBytes(),
                    static_cast<uint32_t>(seed >> 32));
@@ -125,11 +125,11 @@ uint64_t mix64(uint64_t n) {
   // Thomas Wang 64-bit mix.
   // http://www.concentric.net/~Ttwang/tech/inthash.htm
   // via. http://web.archive.org/web/20071223173210/http://www.concentric.net/~Ttwang/tech/inthash.htm
-  n = (~n) + (n << 21);           // n = (n << 21) - n - 1;
+  n = (~n) + (n << 21);  // n = (n << 21) - n - 1;
   n = n ^ (n >> 24);
-  n = n * 265;                    // n = (n + (n << 3)) + (n << 8);
+  n = n * 265;  // n = (n + (n << 3)) + (n << 8);
   n = n ^ (n >> 14);
-  n = n * 21;                     // n = (n + (n << 2)) + (n << 4);
+  n = n * 21;  // n = (n + (n << 2)) + (n << 4);
   n = n ^ (n >> 28);
   n = n + (n << 31);
   return n;

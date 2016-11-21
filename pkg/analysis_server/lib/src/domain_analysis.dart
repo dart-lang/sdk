@@ -23,6 +23,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/model.dart' show ResultDescriptor;
@@ -85,13 +86,20 @@ class AnalysisDomainHandler implements RequestHandler {
   /**
    * Implement the `analysis.getHover` request.
    */
-  Response getHover(Request request) {
-    // prepare parameters
+  Future<Null> getHover(Request request) async {
     var params = new AnalysisGetHoverParams.fromRequest(request);
-    // prepare hovers
+
+    // Prepare the resolved units.
+    List<CompilationUnit> units;
+    if (server.options.enableNewAnalysisDriver) {
+      AnalysisResult result = await server.getAnalysisResult(params.file);
+      units = result != null ? [result.unit] : null;
+    } else {
+      units = server.getResolvedCompilationUnits(params.file);
+    }
+
+    // Prepare the hovers.
     List<HoverInformation> hovers = <HoverInformation>[];
-    List<CompilationUnit> units =
-        server.getResolvedCompilationUnits(params.file);
     for (CompilationUnit unit in units) {
       HoverInformation hoverInformation =
           new DartUnitHoverComputer(unit, params.offset).compute();
@@ -99,8 +107,10 @@ class AnalysisDomainHandler implements RequestHandler {
         hovers.add(hoverInformation);
       }
     }
-    // send response
-    return new AnalysisGetHoverResult(hovers).toResponse(request.id);
+
+    // Send the response.
+    server.sendResponse(
+        new AnalysisGetHoverResult(hovers).toResponse(request.id));
   }
 
   /// Implement the `analysis.getLibraryDependencies` request.
@@ -123,6 +133,10 @@ class AnalysisDomainHandler implements RequestHandler {
    * Implement the `analysis.getNavigation` request.
    */
   Response getNavigation(Request request) {
+    if (server.options.enableNewAnalysisDriver) {
+      // TODO(scheglov) implement for the new analysis driver
+      return new Response.getNavigationInvalidFile(request);
+    }
     var params = new AnalysisGetNavigationParams.fromRequest(request);
     String file = params.file;
     Future<AnalysisDoneReason> analysisFuture =
@@ -187,7 +201,8 @@ class AnalysisDomainHandler implements RequestHandler {
       if (requestName == ANALYSIS_GET_ERRORS) {
         return getErrors(request);
       } else if (requestName == ANALYSIS_GET_HOVER) {
-        return getHover(request);
+        getHover(request);
+        return Response.DELAYED_RESPONSE;
       } else if (requestName == ANALYSIS_GET_LIBRARY_DEPENDENCIES) {
         return getLibraryDependencies(request);
       } else if (requestName == ANALYSIS_GET_NAVIGATION) {

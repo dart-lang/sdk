@@ -22,8 +22,7 @@ class UsePosition;
 class ReachingDefs : public ValueObject {
  public:
   explicit ReachingDefs(const FlowGraph& flow_graph)
-      : flow_graph_(flow_graph),
-        phis_(10) { }
+      : flow_graph_(flow_graph), phis_(10) {}
 
   BitVector* Get(PhiInstr* phi);
 
@@ -41,7 +40,7 @@ class SSALivenessAnalysis : public LivenessAnalysis {
   explicit SSALivenessAnalysis(const FlowGraph& flow_graph)
       : LivenessAnalysis(flow_graph.max_virtual_register_number(),
                          flow_graph.postorder()),
-        graph_entry_(flow_graph.graph_entry()) { }
+        graph_entry_(flow_graph.graph_entry()) {}
 
  private:
   // Compute initial values for live-out, kill and live-in sets.
@@ -214,8 +213,7 @@ class FlowGraphAllocator : public ValueObject {
 
   // Find first intersection between unallocated live range and
   // live ranges currently allocated to the given register.
-  intptr_t FirstIntersectionWithAllocated(intptr_t reg,
-                                          LiveRange* unallocated);
+  intptr_t FirstIntersectionWithAllocated(intptr_t reg, LiveRange* unallocated);
 
   bool UpdateFreeUntil(intptr_t reg,
                        LiveRange* unallocated,
@@ -345,11 +343,10 @@ class FlowGraphAllocator : public ValueObject {
 class BlockInfo : public ZoneAllocated {
  public:
   explicit BlockInfo(BlockEntryInstr* entry)
-    : entry_(entry),
-      loop_(NULL),
-      is_loop_header_(false),
-      backedge_interference_(NULL) {
-  }
+      : entry_(entry),
+        loop_(NULL),
+        is_loop_header_(false),
+        backedge_interference_(NULL) {}
 
   BlockEntryInstr* entry() const { return entry_; }
 
@@ -379,16 +376,12 @@ class BlockInfo : public ZoneAllocated {
   }
 
   BlockEntryInstr* last_block() const { return last_block_; }
-  void set_last_block(BlockEntryInstr* last_block) {
-    last_block_ = last_block;
-  }
+  void set_last_block(BlockEntryInstr* last_block) { last_block_ = last_block; }
 
   intptr_t loop_id() const { return loop_id_; }
   void set_loop_id(intptr_t loop_id) { loop_id_ = loop_id; }
 
-  BitVector* backedge_interference() const {
-    return backedge_interference_;
-  }
+  BitVector* backedge_interference() const { return backedge_interference_; }
 
   void set_backedge_interference(BitVector* backedge_interference) {
     backedge_interference_ = backedge_interference;
@@ -430,13 +423,9 @@ class UsePosition : public ZoneAllocated {
     return *hint_;
   }
 
-  void set_hint(Location* hint) {
-    hint_ = hint;
-  }
+  void set_hint(Location* hint) { hint_ = hint; }
 
-  bool HasHint() const {
-    return (hint_ != NULL) && !hint_->IsUnallocated();
-  }
+  bool HasHint() const { return (hint_ != NULL) && !hint_->IsUnallocated(); }
 
 
   void set_next(UsePosition* next) { next_ = next; }
@@ -464,9 +453,7 @@ class UsePosition : public ZoneAllocated {
 class UseInterval : public ZoneAllocated {
  public:
   UseInterval(intptr_t start, intptr_t end, UseInterval* next)
-      : start_(start),
-        end_(end),
-        next_(next) { }
+      : start_(start), end_(end), next_(next) {}
 
   void Print();
 
@@ -501,8 +488,7 @@ class AllocationFinger : public ValueObject {
       : first_pending_use_interval_(NULL),
         first_register_use_(NULL),
         first_register_beneficial_use_(NULL),
-        first_hinted_use_(NULL) {
-  }
+        first_hinted_use_(NULL) {}
 
   void Initialize(LiveRange* range);
   void UpdateAfterSplit(intptr_t first_use_after_split_pos);
@@ -529,9 +515,8 @@ class AllocationFinger : public ValueObject {
 
 class SafepointPosition : public ZoneAllocated {
  public:
-  SafepointPosition(intptr_t pos,
-                    LocationSummary* locs)
-      : pos_(pos), locs_(locs), next_(NULL) { }
+  SafepointPosition(intptr_t pos, LocationSummary* locs)
+      : pos_(pos), locs_(locs), next_(NULL) {}
 
   void set_next(SafepointPosition* next) { next_ = next; }
   SafepointPosition* next() const { return next_; }
@@ -552,20 +537,19 @@ class SafepointPosition : public ZoneAllocated {
 class LiveRange : public ZoneAllocated {
  public:
   explicit LiveRange(intptr_t vreg, Representation rep)
-    : vreg_(vreg),
-      representation_(rep),
-      assigned_location_(),
-      spill_slot_(),
-      uses_(NULL),
-      first_use_interval_(NULL),
-      last_use_interval_(NULL),
-      first_safepoint_(NULL),
-      last_safepoint_(NULL),
-      next_sibling_(NULL),
-      has_only_any_uses_in_loops_(0),
-      is_loop_phi_(false),
-      finger_() {
-  }
+      : vreg_(vreg),
+        representation_(rep),
+        assigned_location_(),
+        spill_slot_(),
+        uses_(NULL),
+        first_use_interval_(NULL),
+        last_use_interval_(NULL),
+        first_safepoint_(NULL),
+        last_safepoint_(NULL),
+        next_sibling_(NULL),
+        has_only_any_uses_in_loops_(0),
+        is_loop_phi_(false),
+        finger_() {}
 
   intptr_t vreg() const { return vreg_; }
   Representation representation() const { return representation_; }
@@ -587,9 +571,7 @@ class LiveRange : public ZoneAllocated {
     assigned_location_ = location;
   }
 
-  void set_spill_slot(Location spill_slot) {
-    spill_slot_ = spill_slot;
-  }
+  void set_spill_slot(Location spill_slot) { spill_slot_ = spill_slot; }
 
   void DefineAt(intptr_t pos);
 
@@ -614,9 +596,7 @@ class LiveRange : public ZoneAllocated {
   // True if the range contains the given position.
   bool Contains(intptr_t pos) const;
 
-  Location spill_slot() const {
-    return spill_slot_;
-  }
+  Location spill_slot() const { return spill_slot_; }
 
   bool HasOnlyUnconstrainedUsesInLoop(intptr_t loop_id) const {
     if (loop_id < kBitsPerWord) {
@@ -633,9 +613,7 @@ class LiveRange : public ZoneAllocated {
   }
 
   bool is_loop_phi() const { return is_loop_phi_; }
-  void mark_loop_phi() {
-    is_loop_phi_ = true;
-  }
+  void mark_loop_phi() { is_loop_phi_ = true; }
 
  private:
   LiveRange(intptr_t vreg,
@@ -645,19 +623,18 @@ class LiveRange : public ZoneAllocated {
             UseInterval* last_use_interval,
             SafepointPosition* first_safepoint,
             LiveRange* next_sibling)
-    : vreg_(vreg),
-      representation_(rep),
-      assigned_location_(),
-      uses_(uses),
-      first_use_interval_(first_use_interval),
-      last_use_interval_(last_use_interval),
-      first_safepoint_(first_safepoint),
-      last_safepoint_(NULL),
-      next_sibling_(next_sibling),
-      has_only_any_uses_in_loops_(0),
-      is_loop_phi_(false),
-      finger_() {
-  }
+      : vreg_(vreg),
+        representation_(rep),
+        assigned_location_(),
+        uses_(uses),
+        first_use_interval_(first_use_interval),
+        last_use_interval_(last_use_interval),
+        first_safepoint_(first_safepoint),
+        last_safepoint_(NULL),
+        next_sibling_(next_sibling),
+        has_only_any_uses_in_loops_(0),
+        is_loop_phi_(false),
+        finger_() {}
 
   const intptr_t vreg_;
   Representation representation_;

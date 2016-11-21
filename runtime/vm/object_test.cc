@@ -62,14 +62,14 @@ VM_TEST_CASE(Class) {
   Function& function = Function::Handle();
   String& function_name = String::Handle();
   function_name = Symbols::New(thread, "foo");
-  function = Function::New(
-      function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, TokenPosition::kMinSource);
+  function =
+      Function::New(function_name, RawFunction::kRegularFunction, false, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, function);
   function_name = Symbols::New(thread, "bar");
-  function = Function::New(
-      function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, TokenPosition::kMinSource);
+  function =
+      Function::New(function_name, RawFunction::kRegularFunction, false, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
 
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
@@ -80,26 +80,26 @@ VM_TEST_CASE(Class) {
   functions.SetAt(1, function);
 
   function_name = Symbols::New(thread, "baz");
-  function = Function::New(
-      function_name, RawFunction::kRegularFunction,
-      false, false, false, false, false, cls, TokenPosition::kMinSource);
+  function =
+      Function::New(function_name, RawFunction::kRegularFunction, false, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(2, function);
 
   function_name = Symbols::New(thread, "Foo");
-  function = Function::New(
-      function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, TokenPosition::kMinSource);
+  function =
+      Function::New(function_name, RawFunction::kRegularFunction, true, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
 
   functions.SetAt(3, function);
   function_name = Symbols::New(thread, "Bar");
-  function = Function::New(
-      function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, TokenPosition::kMinSource);
+  function =
+      Function::New(function_name, RawFunction::kRegularFunction, true, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(4, function);
   function_name = Symbols::New(thread, "BaZ");
-  function = Function::New(
-      function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, TokenPosition::kMinSource);
+  function =
+      Function::New(function_name, RawFunction::kRegularFunction, true, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
@@ -142,12 +142,12 @@ VM_TEST_CASE(Class) {
 VM_TEST_CASE(TypeArguments) {
   const Type& type1 = Type::Handle(Type::Double());
   const Type& type2 = Type::Handle(Type::StringType());
-  const TypeArguments& type_arguments1 = TypeArguments::Handle(
-    TypeArguments::New(2));
+  const TypeArguments& type_arguments1 =
+      TypeArguments::Handle(TypeArguments::New(2));
   type_arguments1.SetTypeAt(0, type1);
   type_arguments1.SetTypeAt(1, type2);
-  const TypeArguments& type_arguments2 = TypeArguments::Handle(
-    TypeArguments::New(2));
+  const TypeArguments& type_arguments2 =
+      TypeArguments::Handle(TypeArguments::New(2));
   type_arguments2.SetTypeAt(0, type1);
   type_arguments2.SetTypeAt(1, type2);
   EXPECT_NE(type_arguments1.raw(), type_arguments2.raw());
@@ -165,8 +165,8 @@ VM_TEST_CASE(TokenStream) {
   Zone* zone = Thread::Current()->zone();
   String& source = String::Handle(zone, String::New("= ( 9 , ."));
   String& private_key = String::Handle(zone, String::New(""));
-  const TokenStream& token_stream = TokenStream::Handle(
-      zone, TokenStream::New(source, private_key, false));
+  const TokenStream& token_stream =
+      TokenStream::Handle(zone, TokenStream::New(source, private_key, false));
   TokenStream::Iterator iterator(zone, token_stream, TokenPosition::kMinSource);
   iterator.Advance();  // Advance to '(' token.
   EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
@@ -182,36 +182,35 @@ VM_TEST_CASE(TokenStream) {
 VM_TEST_CASE(GenerateExactSource) {
   // Verify the exact formatting of generated sources.
   const char* kScriptChars =
-  "\n"
-  "class A {\n"
-  "  static bar() { return 42; }\n"
-  "  static fly() { return 5; }\n"
-  "  void catcher(x) {\n"
-  "    try {\n"
-  "      if (x is! List) {\n"
-  "        for (int i = 0; i < x; i++) {\n"
-  "          fly();\n"
-  "          ++i;\n"
-  "        }\n"
-  "      } else {\n"
-  "        for (int i = 0; i < x; i--) {\n"
-  "          !fly();\n"
-  "          --i;\n"
-  "        }\n"
-  "      }\n"
-  "    } on Blah catch (a) {\n"
-  "      _print(17);\n"
-  "    } catch (e, s) {\n"
-  "      bar()\n"
-  "    }\n"
-  "  }\n"
-  "}\n";
+      "\n"
+      "class A {\n"
+      "  static bar() { return 42; }\n"
+      "  static fly() { return 5; }\n"
+      "  void catcher(x) {\n"
+      "    try {\n"
+      "      if (x is! List) {\n"
+      "        for (int i = 0; i < x; i++) {\n"
+      "          fly();\n"
+      "          ++i;\n"
+      "        }\n"
+      "      } else {\n"
+      "        for (int i = 0; i < x; i--) {\n"
+      "          !fly();\n"
+      "          --i;\n"
+      "        }\n"
+      "      }\n"
+      "    } on Blah catch (a) {\n"
+      "      _print(17);\n"
+      "    } catch (e, s) {\n"
+      "      bar()\n"
+      "    }\n"
+      "  }\n"
+      "}\n";
 
   String& url = String::Handle(String::New("dart-test:GenerateExactSource"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url,
-                                              source,
-                                              RawScript::kScriptTag));
+  Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   script.Tokenize(String::Handle(String::New("")));
   const TokenStream& tokens = TokenStream::Handle(script.tokens());
   const String& gen_source = String::Handle(tokens.GenerateSource());
@@ -221,23 +220,23 @@ VM_TEST_CASE(GenerateExactSource) {
 
 TEST_CASE(Class_ComputeEndTokenPos) {
   const char* kScript =
-  "\n"
-  "class A {\n"
-  "  /**\n"
-  "   * Description of foo().\n"
-  "   */\n"
-  "  foo(a) { return '''\"}'''; }\n"
-  "  // }\n"
-  "  var bar = '\\'}';\n"
-  "  var baz = \"${foo('}')}\";\n"
-  "}\n";
+      "\n"
+      "class A {\n"
+      "  /**\n"
+      "   * Description of foo().\n"
+      "   */\n"
+      "  foo(a) { return '''\"}'''; }\n"
+      "  // }\n"
+      "  var bar = '\\'}';\n"
+      "  var baz = \"${foo('}')}\";\n"
+      "}\n";
   Dart_Handle lib_h = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib_h);
   Library& lib = Library::Handle();
   lib ^= Api::UnwrapHandle(lib_h);
   EXPECT(!lib.IsNull());
-  const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::New("A"))));
+  const Class& cls =
+      Class::Handle(lib.LookupClass(String::Handle(String::New("A"))));
   EXPECT(!cls.IsNull());
   const TokenPosition end_token_pos = cls.ComputeEndTokenPos();
   const Script& scr = Script::Handle(cls.script());
@@ -313,7 +312,7 @@ VM_TEST_CASE(Smi) {
   EXPECT(Smi::IsValid(0));
   EXPECT(Smi::IsValid(-15));
   EXPECT(Smi::IsValid(0xFFu));
-  // Upper two bits must be either 00 or 11.
+// Upper two bits must be either 00 or 11.
 #if defined(ARCH_IS_64_BIT)
   EXPECT(!Smi::IsValid(kMaxInt64));
   EXPECT(Smi::IsValid(0x3FFFFFFFFFFFFFFF));
@@ -345,10 +344,9 @@ VM_TEST_CASE(Smi) {
   EXPECT_EQ(-1, c.CompareWith(mint1));
   EXPECT_EQ(1, c.CompareWith(mint2));
 
-  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
-      "10000000000000000000"));
-  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
-      "-10000000000000000000"));
+  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
+  Bigint& big2 =
+      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
   EXPECT_EQ(-1, a.CompareWith(big1));
   EXPECT_EQ(1, a.CompareWith(big2));
   EXPECT_EQ(-1, c.CompareWith(big1));
@@ -365,14 +363,13 @@ VM_TEST_CASE(StringCompareTo) {
   EXPECT(abce.CompareTo(abcd) > 0);
 
   const int kMonkeyLen = 4;
-  const uint8_t monkey_utf8[kMonkeyLen] = { 0xf0, 0x9f, 0x90, 0xb5 };
+  const uint8_t monkey_utf8[kMonkeyLen] = {0xf0, 0x9f, 0x90, 0xb5};
   const String& monkey_face =
       String::Handle(String::FromUTF8(monkey_utf8, kMonkeyLen));
   const int kDogLen = 4;
   // 0x1f436 DOG FACE.
-  const uint8_t dog_utf8[kDogLen] = { 0xf0, 0x9f, 0x90, 0xb6 };
-  const String& dog_face =
-      String::Handle(String::FromUTF8(dog_utf8, kDogLen));
+  const uint8_t dog_utf8[kDogLen] = {0xf0, 0x9f, 0x90, 0xb6};
+  const String& dog_face = String::Handle(String::FromUTF8(dog_utf8, kDogLen));
   EXPECT_EQ(0, monkey_face.CompareTo(monkey_face));
   EXPECT_EQ(0, dog_face.CompareTo(dog_face));
   EXPECT(monkey_face.CompareTo(dog_face) < 0);
@@ -380,7 +377,7 @@ VM_TEST_CASE(StringCompareTo) {
 
   const int kDominoLen = 4;
   // 0x1f036 DOMINO TILE HORIZONTAL-00-05.
-  const uint8_t domino_utf8[kDominoLen] = { 0xf0, 0x9f, 0x80, 0xb6 };
+  const uint8_t domino_utf8[kDominoLen] = {0xf0, 0x9f, 0x80, 0xb6};
   const String& domino =
       String::Handle(String::FromUTF8(domino_utf8, kDominoLen));
   EXPECT_EQ(0, domino.CompareTo(domino));
@@ -442,11 +439,11 @@ VM_TEST_CASE(StringDecodeIRIInvalid) {
 
 VM_TEST_CASE(StringIRITwoByte) {
   const intptr_t kInputLen = 3;
-  const uint16_t kInput[kInputLen] = { 'x', '/', 256 };
+  const uint16_t kInput[kInputLen] = {'x', '/', 256};
   const String& input = String::Handle(String::FromUTF16(kInput, kInputLen));
   const intptr_t kOutputLen = 10;
-  const uint16_t kOutput[kOutputLen] =
-      { 'x', '%', '2', 'F', '%', 'C', '4', '%', '8', '0' };
+  const uint16_t kOutput[kOutputLen] = {'x', '%', '2', 'F', '%',
+                                        'C', '4', '%', '8', '0'};
   const String& output = String::Handle(String::FromUTF16(kOutput, kOutputLen));
   const String& encoded = String::Handle(String::New(String::EncodeIRI(input)));
   EXPECT(output.Equals(encoded));
@@ -459,7 +456,8 @@ VM_TEST_CASE(Mint) {
 // On 64-bit architectures a Smi is stored in a 64 bit word. A Midint cannot
 // be allocated if it does fit into a Smi.
 #if !defined(ARCH_IS_64_BIT)
-  { Mint& med = Mint::Handle();
+  {
+    Mint& med = Mint::Handle();
     EXPECT(med.IsNull());
     int64_t v = DART_2PART_UINT64_C(1, 0);
     med ^= Integer::New(v);
@@ -507,10 +505,9 @@ VM_TEST_CASE(Mint) {
   EXPECT_EQ(-1, c.CompareWith(smi1));
   EXPECT_EQ(-1, c.CompareWith(smi2));
 
-  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
-      "10000000000000000000"));
-  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
-      "-10000000000000000000"));
+  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString("10000000000000000000"));
+  Bigint& big2 =
+      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
   EXPECT_EQ(-1, a.CompareWith(big1));
   EXPECT_EQ(1, a.CompareWith(big2));
   EXPECT_EQ(-1, c.CompareWith(big1));
@@ -586,10 +583,10 @@ VM_TEST_CASE(Double) {
     EXPECT(nan0.IsIdenticalTo(nan0));
     EXPECT(nan0.CanonicalizeEquals(nan0));
     EXPECT(!nan0.OperatorEquals(nan0));
-    const Double& nan1 = Double::Handle(
-        Double::New(bit_cast<double>(kMaxUint64 - 0)));
-    const Double& nan2 = Double::Handle(
-        Double::New(bit_cast<double>(kMaxUint64 - 1)));
+    const Double& nan1 =
+        Double::Handle(Double::New(bit_cast<double>(kMaxUint64 - 0)));
+    const Double& nan2 =
+        Double::Handle(Double::New(bit_cast<double>(kMaxUint64 - 1)));
     EXPECT(isnan(nan1.value()));
     EXPECT(isnan(nan2.value()));
     EXPECT(!nan1.IsIdenticalTo(nan2));
@@ -628,12 +625,12 @@ VM_TEST_CASE(Bigint) {
   big = Bigint::NewFromCString("10000000000000000000");
   EXPECT_EQ(1e19, big.AsDoubleValue());
 
-  Bigint& big1 = Bigint::Handle(Bigint::NewFromCString(
-      "100000000000000000000"));
-  Bigint& big2 = Bigint::Handle(Bigint::NewFromCString(
-      "100000000000000000010"));
-  Bigint& big3 = Bigint::Handle(Bigint::NewFromCString(
-      "-10000000000000000000"));
+  Bigint& big1 =
+      Bigint::Handle(Bigint::NewFromCString("100000000000000000000"));
+  Bigint& big2 =
+      Bigint::Handle(Bigint::NewFromCString("100000000000000000010"));
+  Bigint& big3 =
+      Bigint::Handle(Bigint::NewFromCString("-10000000000000000000"));
 
   EXPECT_EQ(0, big1.CompareWith(big1));
   EXPECT_EQ(-1, big1.CompareWith(big2));
@@ -694,7 +691,7 @@ VM_TEST_CASE(String) {
 
   const uint8_t* motto =
       reinterpret_cast<const uint8_t*>("Dart's bescht wos je hets gits");
-  const String& str2 = String::Handle(String::FromUTF8(motto+7, 4));
+  const String& str2 = String::Handle(String::FromUTF8(motto + 7, 4));
   EXPECT_EQ(4, str2.Length());
   EXPECT_EQ('b', str2.CharAt(0));
   EXPECT_EQ('e', str2.CharAt(1));
@@ -721,7 +718,7 @@ VM_TEST_CASE(String) {
   EXPECT(empty1.Equals(empty2, 0, 0));
 
   const intptr_t kCharsLen = 8;
-  const uint8_t chars[kCharsLen] = { 1, 2, 127, 64, 92, 0, 55, 55 };
+  const uint8_t chars[kCharsLen] = {1, 2, 127, 64, 92, 0, 55, 55};
   const String& str8 = String::Handle(String::FromUTF8(chars, kCharsLen));
   EXPECT_EQ(kCharsLen, str8.Length());
   EXPECT_EQ(1, str8.CharAt(0));
@@ -740,9 +737,9 @@ VM_TEST_CASE(String) {
   EXPECT_EQ(55, sub1.CharAt(4));
 
   const intptr_t kWideCharsLen = 7;
-  uint16_t wide_chars[kWideCharsLen] = { 'H', 'e', 'l', 'l', 'o', 256, '!' };
-  const String& two_str = String::Handle(String::FromUTF16(wide_chars,
-                                                           kWideCharsLen));
+  uint16_t wide_chars[kWideCharsLen] = {'H', 'e', 'l', 'l', 'o', 256, '!'};
+  const String& two_str =
+      String::Handle(String::FromUTF16(wide_chars, kWideCharsLen));
   EXPECT(two_str.IsInstance());
   EXPECT(two_str.IsString());
   EXPECT(two_str.IsTwoByteString());
@@ -766,7 +763,7 @@ VM_TEST_CASE(String) {
     EXPECT_EQ(false, str1.StartsWith(str3));
   }
 
-  const int32_t four_chars[] = { 'C', 0xFF, 'h', 0xFFFF, 'a', 0x10FFFF, 'r' };
+  const int32_t four_chars[] = {'C', 0xFF, 'h', 0xFFFF, 'a', 0x10FFFF, 'r'};
   const String& four_str = String::Handle(String::FromUTF32(four_chars, 7));
   EXPECT_EQ(four_str.Hash(), four_str.Hash());
   EXPECT(four_str.IsTwoByteString());
@@ -783,7 +780,7 @@ VM_TEST_CASE(String) {
 
   // Create a 1-byte string from an array of 2-byte elements.
   {
-    const uint16_t char16[] = { 0x00, 0x7F, 0xFF };
+    const uint16_t char16[] = {0x00, 0x7F, 0xFF};
     const String& str8 = String::Handle(String::FromUTF16(char16, 3));
     EXPECT(str8.IsOneByteString());
     EXPECT(!str8.IsTwoByteString());
@@ -794,7 +791,7 @@ VM_TEST_CASE(String) {
 
   // Create a 1-byte string from an array of 4-byte elements.
   {
-    const int32_t char32[] = { 0x00, 0x1F, 0x7F };
+    const int32_t char32[] = {0x00, 0x1F, 0x7F};
     const String& str8 = String::Handle(String::FromUTF32(char32, 3));
     EXPECT(str8.IsOneByteString());
     EXPECT(!str8.IsTwoByteString());
@@ -805,7 +802,7 @@ VM_TEST_CASE(String) {
 
   // Create a 2-byte string from an array of 4-byte elements.
   {
-    const int32_t char32[] = { 0, 0x7FFF, 0xFFFF };
+    const int32_t char32[] = {0, 0x7FFF, 0xFFFF};
     const String& str16 = String::Handle(String::FromUTF32(char32, 3));
     EXPECT(!str16.IsOneByteString());
     EXPECT(str16.IsTwoByteString());
@@ -1010,7 +1007,7 @@ VM_TEST_CASE(StringConcat) {
     EXPECT(str1.IsOneByteString());
     EXPECT_EQ(0, str1.Length());
 
-    uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
+    uint16_t two[] = {0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9};
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
     const String& str2 = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(str2.IsTwoByteString());
@@ -1056,8 +1053,8 @@ VM_TEST_CASE(StringConcat) {
     const String& str7 = String::Handle(String::ConcatAll(array3));
     EXPECT(str7.IsTwoByteString());
     EXPECT_EQ(two_len * 2, str7.Length());
-    uint16_t twotwo[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
-                          0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
+    uint16_t twotwo[] = {0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
+                         0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9};
     intptr_t twotwo_len = sizeof(twotwo) / sizeof(twotwo[0]);
     EXPECT(str7.IsTwoByteString());
     EXPECT(str7.Equals(twotwo, twotwo_len));
@@ -1065,13 +1062,13 @@ VM_TEST_CASE(StringConcat) {
 
   // Concatenating non-empty 2-byte strings.
   {
-    const uint16_t one[] = { 0x05D0, 0x05D9, 0x05D9, 0x05DF };
+    const uint16_t one[] = {0x05D0, 0x05D9, 0x05D9, 0x05DF};
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
     const String& str1 = String::Handle(String::FromUTF16(one, one_len));
     EXPECT(str1.IsTwoByteString());
     EXPECT_EQ(one_len, str1.Length());
 
-    const uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
+    const uint16_t two[] = {0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9};
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
     const String& str2 = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(str2.IsTwoByteString());
@@ -1081,16 +1078,16 @@ VM_TEST_CASE(StringConcat) {
 
     const String& one_two_str = String::Handle(String::Concat(str1, str2));
     EXPECT(one_two_str.IsTwoByteString());
-    const uint16_t one_two[] = { 0x05D0, 0x05D9, 0x05D9, 0x05DF,
-                                 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
+    const uint16_t one_two[] = {0x05D0, 0x05D9, 0x05D9, 0x05DF, 0x05E6,
+                                0x05D5, 0x05D5, 0x05D9, 0x05D9};
     intptr_t one_two_len = sizeof(one_two) / sizeof(one_two[0]);
     EXPECT_EQ(one_two_len, one_two_str.Length());
     EXPECT(one_two_str.Equals(one_two, one_two_len));
 
     const String& two_one_str = String::Handle(String::Concat(str2, str1));
     EXPECT(two_one_str.IsTwoByteString());
-    const uint16_t two_one[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
-                                 0x05D0, 0x05D9, 0x05D9, 0x05DF };
+    const uint16_t two_one[] = {0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
+                                0x05D0, 0x05D9, 0x05D9, 0x05DF};
     intptr_t two_one_len = sizeof(two_one) / sizeof(two_one[0]);
     EXPECT_EQ(two_one_len, two_one_str.Length());
     EXPECT(two_one_str.Equals(two_one, two_one_len));
@@ -1122,9 +1119,9 @@ VM_TEST_CASE(StringConcat) {
     array3.SetAt(2, str1);
     const String& str5 = String::Handle(String::ConcatAll(array3));
     EXPECT(str5.IsTwoByteString());
-    const uint16_t one_two_one[] = { 0x05D0, 0x05D9, 0x05D9, 0x05DF,
-                                     0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
-                                     0x05D0, 0x05D9, 0x05D9, 0x05DF };
+    const uint16_t one_two_one[] = {0x05D0, 0x05D9, 0x05D9, 0x05DF, 0x05E6,
+                                    0x05D5, 0x05D5, 0x05D9, 0x05D9, 0x05D0,
+                                    0x05D9, 0x05D9, 0x05DF};
     intptr_t one_two_one_len = sizeof(one_two_one) / sizeof(one_two_one[0]);
     EXPECT_EQ(one_two_one_len, str5.Length());
     EXPECT(str5.Equals(one_two_one, one_two_one_len));
@@ -1136,9 +1133,9 @@ VM_TEST_CASE(StringConcat) {
     array4.SetAt(2, str2);
     const String& str6 = String::Handle(String::ConcatAll(array4));
     EXPECT(str6.IsTwoByteString());
-    const uint16_t two_one_two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
-                                     0x05D0, 0x05D9, 0x05D9, 0x05DF,
-                                     0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
+    const uint16_t two_one_two[] = {0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
+                                    0x05D0, 0x05D9, 0x05D9, 0x05DF, 0x05E6,
+                                    0x05D5, 0x05D5, 0x05D9, 0x05D9};
     intptr_t two_one_two_len = sizeof(two_one_two) / sizeof(two_one_two[0]);
     EXPECT_EQ(two_one_two_len, str6.Length());
     EXPECT(str6.Equals(two_one_two, two_one_two_len));
@@ -1150,7 +1147,7 @@ VM_TEST_CASE(StringConcat) {
     EXPECT(str1.IsOneByteString());
     EXPECT_EQ(0, str1.Length());
 
-    int32_t four[] = { 0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1 };
+    int32_t four[] = {0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1};
     intptr_t four_len = sizeof(four) / sizeof(four[0]);
     intptr_t expected_len = (four_len * 2);
     const String& str2 = String::Handle(String::FromUTF32(four, four_len));
@@ -1195,8 +1192,8 @@ VM_TEST_CASE(StringConcat) {
     array3.SetAt(2, str2);
     const String& str7 = String::Handle(String::ConcatAll(array3));
     EXPECT(str7.IsTwoByteString());
-    int32_t fourfour[] = { 0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1,
-                           0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1 };
+    int32_t fourfour[] = {0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1,
+                          0x1D4D5, 0x1D4DE, 0x1D4E4, 0x1D4E1};
     intptr_t fourfour_len = sizeof(fourfour) / sizeof(fourfour[0]);
     EXPECT_EQ((fourfour_len * 2), str7.Length());
     const String& fourfour_str =
@@ -1206,13 +1203,13 @@ VM_TEST_CASE(StringConcat) {
 
   // Concatenate non-empty strings built from 4-byte elements.
   {
-    const int32_t one[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF };
+    const int32_t one[] = {0x105D0, 0x105D9, 0x105D9, 0x105DF};
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
     const String& onestr = String::Handle(String::FromUTF32(one, one_len));
     EXPECT(onestr.IsTwoByteString());
-    EXPECT_EQ((one_len *2), onestr.Length());
+    EXPECT_EQ((one_len * 2), onestr.Length());
 
-    const int32_t two[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9 };
+    const int32_t two[] = {0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9};
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
     const String& twostr = String::Handle(String::FromUTF32(two, two_len));
     EXPECT(twostr.IsTwoByteString());
@@ -1222,8 +1219,8 @@ VM_TEST_CASE(StringConcat) {
 
     const String& str1 = String::Handle(String::Concat(onestr, twostr));
     EXPECT(str1.IsTwoByteString());
-    const int32_t one_two[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF,
-                                0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9 };
+    const int32_t one_two[] = {0x105D0, 0x105D9, 0x105D9, 0x105DF, 0x105E6,
+                               0x105D5, 0x105D5, 0x105D9, 0x105D9};
     intptr_t one_two_len = sizeof(one_two) / sizeof(one_two[0]);
     EXPECT_EQ((one_two_len * 2), str1.Length());
     const String& one_two_str =
@@ -1232,8 +1229,8 @@ VM_TEST_CASE(StringConcat) {
 
     const String& str2 = String::Handle(String::Concat(twostr, onestr));
     EXPECT(str2.IsTwoByteString());
-    const int32_t two_one[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9,
-                                0x105D0, 0x105D9, 0x105D9, 0x105DF };
+    const int32_t two_one[] = {0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9,
+                               0x105D0, 0x105D9, 0x105D9, 0x105DF};
     intptr_t two_one_len = sizeof(two_one) / sizeof(two_one[0]);
     EXPECT_EQ((two_one_len * 2), str2.Length());
     const String& two_one_str =
@@ -1267,10 +1264,9 @@ VM_TEST_CASE(StringConcat) {
     array3.SetAt(2, onestr);
     const String& str5 = String::Handle(String::ConcatAll(array3));
     EXPECT(str5.IsTwoByteString());
-    const int32_t one_two_one[] = { 0x105D0, 0x105D9, 0x105D9, 0x105DF,
-                                    0x105E6, 0x105D5, 0x105D5, 0x105D9,
-                                    0x105D9,
-                                    0x105D0, 0x105D9, 0x105D9, 0x105DF };
+    const int32_t one_two_one[] = {0x105D0, 0x105D9, 0x105D9, 0x105DF, 0x105E6,
+                                   0x105D5, 0x105D5, 0x105D9, 0x105D9, 0x105D0,
+                                   0x105D9, 0x105D9, 0x105DF};
     intptr_t one_two_one_len = sizeof(one_two_one) / sizeof(one_two_one[0]);
     EXPECT_EQ((one_two_one_len * 2), str5.Length());
     const String& one_two_one_str =
@@ -1284,11 +1280,9 @@ VM_TEST_CASE(StringConcat) {
     array4.SetAt(2, twostr);
     const String& str6 = String::Handle(String::ConcatAll(array4));
     EXPECT(str6.IsTwoByteString());
-    const int32_t two_one_two[] = { 0x105E6, 0x105D5, 0x105D5, 0x105D9,
-                                    0x105D9,
-                                    0x105D0, 0x105D9, 0x105D9, 0x105DF,
-                                    0x105E6, 0x105D5, 0x105D5, 0x105D9,
-                                    0x105D9 };
+    const int32_t two_one_two[] = {0x105E6, 0x105D5, 0x105D5, 0x105D9, 0x105D9,
+                                   0x105D0, 0x105D9, 0x105D9, 0x105DF, 0x105E6,
+                                   0x105D5, 0x105D5, 0x105D9, 0x105D9};
     intptr_t two_one_two_len = sizeof(two_one_two) / sizeof(two_one_two[0]);
     EXPECT_EQ((two_one_two_len * 2), str6.Length());
     const String& two_one_two_str =
@@ -1298,14 +1292,14 @@ VM_TEST_CASE(StringConcat) {
 
   // Concatenate 1-byte strings and 2-byte strings.
   {
-    const uint8_t one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
+    const uint8_t one[] = {'o', 'n', 'e', ' ', 'b', 'y', 't', 'e'};
     intptr_t one_len = sizeof(one) / sizeof(one[0]);
     const String& onestr = String::Handle(String::FromLatin1(one, one_len));
     EXPECT(onestr.IsOneByteString());
     EXPECT_EQ(one_len, onestr.Length());
     EXPECT(onestr.EqualsLatin1(one, one_len));
 
-    uint16_t two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
+    uint16_t two[] = {0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9};
     intptr_t two_len = sizeof(two) / sizeof(two[0]);
     const String& twostr = String::Handle(String::FromUTF16(two, two_len));
     EXPECT(twostr.IsTwoByteString());
@@ -1316,16 +1310,16 @@ VM_TEST_CASE(StringConcat) {
 
     const String& one_two_str = String::Handle(String::Concat(onestr, twostr));
     EXPECT(one_two_str.IsTwoByteString());
-    uint16_t one_two[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e',
-                           0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
+    uint16_t one_two[] = {'o', 'n',    'e',    ' ',    'b',    'y',   't',
+                          'e', 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9};
     intptr_t one_two_len = sizeof(one_two) / sizeof(one_two[0]);
     EXPECT_EQ(one_two_len, one_two_str.Length());
     EXPECT(one_two_str.Equals(one_two, one_two_len));
 
     const String& two_one_str = String::Handle(String::Concat(twostr, onestr));
     EXPECT(two_one_str.IsTwoByteString());
-    uint16_t two_one[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
-                           'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
+    uint16_t two_one[] = {0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9, 'o', 'n',
+                          'e',    ' ',    'b',    'y',    't',    'e'};
     intptr_t two_one_len = sizeof(two_one) / sizeof(two_one[0]);
     EXPECT_EQ(two_one_len, two_one_str.Length());
     EXPECT(two_one_str.Equals(two_one, two_one_len));
@@ -1339,10 +1333,10 @@ VM_TEST_CASE(StringConcat) {
     array1.SetAt(2, onestr);
     const String& one_two_one_str = String::Handle(String::ConcatAll(array1));
     EXPECT(one_two_one_str.IsTwoByteString());
-    EXPECT_EQ(onestr.Length()*2 + twostr.Length(), one_two_one_str.Length());
-    uint16_t one_two_one[] = { 'o', 'n', 'e', ' ', 'b', 'y', 't', 'e',
-                               0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
-                               'o', 'n', 'e', ' ', 'b', 'y', 't', 'e' };
+    EXPECT_EQ(onestr.Length() * 2 + twostr.Length(), one_two_one_str.Length());
+    uint16_t one_two_one[] = {'o', 'n',    'e',    ' ',    'b',    'y',    't',
+                              'e', 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9, 'o',
+                              'n', 'e',    ' ',    'b',    'y',    't',    'e'};
     intptr_t one_two_one_len = sizeof(one_two_one) / sizeof(one_two_one[0]);
     EXPECT(one_two_one_str.Equals(one_two_one, one_two_one_len));
 
@@ -1353,10 +1347,10 @@ VM_TEST_CASE(StringConcat) {
     array2.SetAt(2, twostr);
     const String& two_one_two_str = String::Handle(String::ConcatAll(array2));
     EXPECT(two_one_two_str.IsTwoByteString());
-    EXPECT_EQ(twostr.Length()*2 + onestr.Length(), two_one_two_str.Length());
-    uint16_t two_one_two[] = { 0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9,
-                               'o', 'n', 'e', ' ', 'b', 'y', 't', 'e',
-                               0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9 };
+    EXPECT_EQ(twostr.Length() * 2 + onestr.Length(), two_one_two_str.Length());
+    uint16_t two_one_two[] = {0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9, 'o',
+                              'n',    'e',    ' ',    'b',    'y',    't',
+                              'e',    0x05E6, 0x05D5, 0x05D5, 0x05D9, 0x05D9};
     intptr_t two_one_two_len = sizeof(two_one_two) / sizeof(two_one_two[0]);
     EXPECT(two_one_two_str.Equals(two_one_two, two_one_two_len));
   }
@@ -1367,22 +1361,21 @@ VM_TEST_CASE(StringHashConcat) {
   EXPECT_EQ(String::Handle(String::New("onebyte")).Hash(),
             String::HashConcat(String::Handle(String::New("one")),
                                String::Handle(String::New("byte"))));
-  uint16_t clef_utf16[] = { 0xD834, 0xDD1E };
+  uint16_t clef_utf16[] = {0xD834, 0xDD1E};
   const String& clef = String::Handle(String::FromUTF16(clef_utf16, 2));
-  int32_t clef_utf32[] = { 0x1D11E };
+  int32_t clef_utf32[] = {0x1D11E};
   EXPECT(clef.Equals(clef_utf32, 1));
   intptr_t hash32 = String::Hash(clef_utf32, 1);
   EXPECT_EQ(hash32, clef.Hash());
   EXPECT_EQ(hash32, String::HashConcat(
-      String::Handle(String::FromUTF16(clef_utf16, 1)),
-      String::Handle(String::FromUTF16(clef_utf16 + 1, 1))));
+                        String::Handle(String::FromUTF16(clef_utf16, 1)),
+                        String::Handle(String::FromUTF16(clef_utf16 + 1, 1))));
 }
 
 
 VM_TEST_CASE(StringSubStringDifferentWidth) {
   // Create 1-byte substring from a 1-byte source string.
-  const char* onechars =
-      "\xC3\xB6\xC3\xB1\xC3\xA9";
+  const char* onechars = "\xC3\xB6\xC3\xB1\xC3\xA9";
 
   const String& onestr = String::Handle(String::New(onechars));
   EXPECT(!onestr.IsNull());
@@ -1470,18 +1463,14 @@ VM_TEST_CASE(StringFromUtf8Literal) {
         "\xC3\xB8\xC3\xB9\xC3\xBA\xC3\xBB"
         "\xC3\xBC\xC3\xBD\xC3\xBE\xC3\xBF";
     const uint8_t expected[] = {
-      0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7,
-      0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF,
-      0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7,
-      0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF,
-      0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7,
-      0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF,
-      0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7,
-      0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF,
-      0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7,
-      0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE, 0xEF,
-      0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7,
-      0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF,
+        0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB,
+        0xAC, 0xAD, 0xAE, 0xAF, 0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7,
+        0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBE, 0xBF, 0xC0, 0xC1, 0xC2, 0xC3,
+        0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA, 0xCB, 0xCC, 0xCD, 0xCE, 0xCF,
+        0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB,
+        0xDC, 0xDD, 0xDE, 0xDF, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7,
+        0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE, 0xEF, 0xF0, 0xF1, 0xF2, 0xF3,
+        0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE, 0xFF,
     };
     const String& str = String::Handle(String::New(src));
     EXPECT(str.IsOneByteString());
@@ -1497,10 +1486,8 @@ VM_TEST_CASE(StringFromUtf8Literal) {
     const char* src =
         "\xD7\x92\xD7\x9C\xD7\xA2\xD7\x93"
         "\xD7\x91\xD7\xA8\xD7\x9B\xD7\x94";
-    const uint16_t expected[] = {
-      0x5D2, 0x5DC, 0x5E2, 0x5D3,
-      0x5D1, 0x5E8, 0x5DB, 0x5D4
-    };
+    const uint16_t expected[] = {0x5D2, 0x5DC, 0x5E2, 0x5D3,
+                                 0x5D1, 0x5E8, 0x5DB, 0x5D4};
     const String& str = String::Handle(String::New(src));
     EXPECT(str.IsTwoByteString());
     intptr_t expected_size = sizeof(expected) / sizeof(expected[0]);
@@ -1522,10 +1509,9 @@ VM_TEST_CASE(StringFromUtf8Literal) {
         "\x80\x80\xEC\x80\x80\xED\x80\x80"
         "\xEE\x80\x80\xEF\x80\x80";
     const intptr_t expected[] = {
-      0x000A, 0x000B, 0x000D, 0x000C, 0x000E, 0x000F, 0x00A0, 0x00B0,
-      0x00C0, 0x00D0, 0x00E0, 0x00F0, 0x0A00, 0x0B00, 0x0C00, 0x0D00,
-      0x0E00, 0x0F00, 0xA000, 0xB000, 0xC000, 0xD000, 0xE000, 0xF000
-    };
+        0x000A, 0x000B, 0x000D, 0x000C, 0x000E, 0x000F, 0x00A0, 0x00B0,
+        0x00C0, 0x00D0, 0x00E0, 0x00F0, 0x0A00, 0x0B00, 0x0C00, 0x0D00,
+        0x0E00, 0x0F00, 0xA000, 0xB000, 0xC000, 0xD000, 0xE000, 0xF000};
     const String& str = String::Handle(String::New(src));
     EXPECT(str.IsTwoByteString());
     intptr_t expected_size = sizeof(expected) / sizeof(expected[0]);
@@ -1541,8 +1527,8 @@ VM_TEST_CASE(StringFromUtf8Literal) {
     const char* src =
         "\xF0\x9D\x91\xA0\xF0\x9D\x91\xA1"
         "\xF0\x9D\x91\xA2\xF0\x9D\x91\xA3";
-    const intptr_t expected[] = { 0xd835, 0xdc60, 0xd835, 0xdc61,
-                                  0xd835, 0xdc62, 0xd835, 0xdc63 };
+    const intptr_t expected[] = {0xd835, 0xdc60, 0xd835, 0xdc61,
+                                 0xd835, 0xdc62, 0xd835, 0xdc63};
     const String& str = String::Handle(String::New(src));
     EXPECT(str.IsTwoByteString());
     intptr_t expected_size = (sizeof(expected) / sizeof(expected[0]));
@@ -1564,9 +1550,9 @@ VM_TEST_CASE(StringFromUtf8Literal) {
         "\xF0\x9B\x80\x80\xF0\x9D\x80\x80"
         "\xF0\x9E\x80\x80\xF0\x9F\x80\x80";
     const intptr_t expected[] = {
-      0x0A00, 0x0B00, 0x0C00, 0x0D00, 0x0E00, 0x0F00, 0xA000, 0xB000, 0xC000,
-      0xD000, 0xE000, 0xF000, 0xD828, 0xDC00, 0xD82c, 0xDC00, 0xD834, 0xDC00,
-      0xD838, 0xDC00, 0xD83c, 0xDC00,
+        0x0A00, 0x0B00, 0x0C00, 0x0D00, 0x0E00, 0x0F00, 0xA000, 0xB000,
+        0xC000, 0xD000, 0xE000, 0xF000, 0xD828, 0xDC00, 0xD82c, 0xDC00,
+        0xD834, 0xDC00, 0xD838, 0xDC00, 0xD83c, 0xDC00,
     };
     const String& str = String::Handle(String::New(src));
     EXPECT(str.IsTwoByteString());
@@ -1592,11 +1578,10 @@ VM_TEST_CASE(StringFromUtf8Literal) {
         "\x80\x80\xF0\x9E\x80\x80\xF0\x9F"
         "\x80\x80";
     const intptr_t expected[] = {
-      0x000A, 0x000B, 0x000D, 0x000C, 0x000E, 0x000F, 0x00A0, 0x00B0,
-      0x00C0, 0x00D0, 0x00E0, 0x00F0, 0x0A00, 0x0B00, 0x0C00, 0x0D00,
-      0x0E00, 0x0F00, 0xA000, 0xB000, 0xC000, 0xD000, 0xE000, 0xF000,
-      0xD828, 0xDC00, 0xD82c, 0xDC00, 0xD834, 0xDC00, 0xD838, 0xDC00,
-      0xD83c, 0xDC00,
+        0x000A, 0x000B, 0x000D, 0x000C, 0x000E, 0x000F, 0x00A0, 0x00B0, 0x00C0,
+        0x00D0, 0x00E0, 0x00F0, 0x0A00, 0x0B00, 0x0C00, 0x0D00, 0x0E00, 0x0F00,
+        0xA000, 0xB000, 0xC000, 0xD000, 0xE000, 0xF000, 0xD828, 0xDC00, 0xD82c,
+        0xDC00, 0xD834, 0xDC00, 0xD838, 0xDC00, 0xD83c, 0xDC00,
     };
     const String& str = String::Handle(String::New(src));
     EXPECT(str.IsTwoByteString());
@@ -1635,8 +1620,9 @@ VM_TEST_CASE(StringEqualsUtf8) {
   EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0"));
   EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1"));
   EXPECT(fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1\xF0\x90\x8E\xA2"));
-  EXPECT(!fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1"
-                         "\xF0\x90\x8E\xA2\xF0\x90\x8E\xA3"));
+  EXPECT(
+      !fourstr.Equals("\xF0\x90\x8E\xA0\xF0\x90\x8E\xA1"
+                      "\xF0\x90\x8E\xA2\xF0\x90\x8E\xA3"));
 }
 
 
@@ -1658,12 +1644,11 @@ VM_TEST_CASE(StringEqualsUTF32) {
 
 
 VM_TEST_CASE(ExternalOneByteString) {
-  uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
+  uint8_t characters[] = {0xF6, 0xF1, 0xE9};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str =
-      String::Handle(
-          ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(
+      ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1690,13 +1675,12 @@ VM_TEST_CASE(ExternalOneByteString) {
 
 
 VM_TEST_CASE(EscapeSpecialCharactersOneByteString) {
-  uint8_t characters[] =
-      { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+  uint8_t characters[] = {'a',  '\n', '\f', '\b', '\t',
+                          '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str =
-      String::Handle(
-          OneByteString::New(characters, len, Heap::kNew));
+      String::Handle(OneByteString::New(characters, len, Heap::kNew));
   EXPECT(str.IsOneByteString());
   EXPECT_EQ(str.Length(), len);
   EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
@@ -1711,13 +1695,12 @@ VM_TEST_CASE(EscapeSpecialCharactersOneByteString) {
 
 
 VM_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
-  uint8_t characters[] =
-      { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+  uint8_t characters[] = {'a',  '\n', '\f', '\b', '\t',
+                          '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str =
-      String::Handle(
-          ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(
+      ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
   EXPECT(!str.IsOneByteString());
   EXPECT(str.IsExternalOneByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1726,9 +1709,8 @@ VM_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
       String::Handle(String::EscapeSpecialCharacters(str));
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
-  const String& empty_str =
-      String::Handle(
-          ExternalOneByteString::New(characters, 0, NULL, NULL, Heap::kNew));
+  const String& empty_str = String::Handle(
+      ExternalOneByteString::New(characters, 0, NULL, NULL, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1736,8 +1718,8 @@ VM_TEST_CASE(EscapeSpecialCharactersExternalOneByteString) {
 }
 
 VM_TEST_CASE(EscapeSpecialCharactersTwoByteString) {
-  uint16_t characters[] =
-      { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+  uint16_t characters[] = {'a',  '\n', '\f', '\b', '\t',
+                           '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
 
   const String& str =
@@ -1759,13 +1741,12 @@ VM_TEST_CASE(EscapeSpecialCharactersTwoByteString) {
 
 
 VM_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
-  uint16_t characters[] =
-      { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+  uint16_t characters[] = {'a',  '\n', '\f', '\b', '\t',
+                           '\v', '\r', '\\', '$',  'z'};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str =
-      String::Handle(
-          ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(
+      ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
   EXPECT(str.Equals("a\n\f\b\t\v\r\\$z"));
@@ -1773,9 +1754,8 @@ VM_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
       String::Handle(String::EscapeSpecialCharacters(str));
   EXPECT(escaped_str.Equals("a\\n\\f\\b\\t\\v\\r\\\\\\$z"));
 
-  const String& empty_str =
-      String::Handle(
-          ExternalTwoByteString::New(characters, 0, NULL, NULL, Heap::kNew));
+  const String& empty_str = String::Handle(
+      ExternalTwoByteString::New(characters, 0, NULL, NULL, Heap::kNew));
   const String& escaped_empty_str =
       String::Handle(String::EscapeSpecialCharacters(empty_str));
   EXPECT_EQ(empty_str.Length(), 0);
@@ -1784,12 +1764,11 @@ VM_TEST_CASE(EscapeSpecialCharactersExternalTwoByteString) {
 
 
 VM_TEST_CASE(ExternalTwoByteString) {
-  uint16_t characters[] = { 0x1E6B, 0x1E85, 0x1E53 };
+  uint16_t characters[] = {0x1E6B, 0x1E85, 0x1E53};
   intptr_t len = ARRAY_SIZE(characters);
 
-  const String& str =
-      String::Handle(
-          ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
+  const String& str = String::Handle(
+      ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
   EXPECT(!str.IsTwoByteString());
   EXPECT(str.IsExternalTwoByteString());
   EXPECT_EQ(str.Length(), len);
@@ -1805,8 +1784,9 @@ VM_TEST_CASE(ExternalTwoByteString) {
   EXPECT(!concat.IsExternalTwoByteString());
   EXPECT(concat.IsTwoByteString());
   EXPECT_EQ(len * 2, concat.Length());
-  EXPECT(concat.Equals("\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"
-                       "\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"));
+  EXPECT(
+      concat.Equals("\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"
+                    "\xE1\xB9\xAB\xE1\xBA\x85\xE1\xB9\x93"));
 
   const String& substr = String::Handle(String::SubString(str, 1, 1));
   EXPECT(!substr.IsExternalTwoByteString());
@@ -1867,9 +1847,9 @@ VM_TEST_CASE(Symbol) {
   EXPECT_EQ(one.raw(), ein_symbol.raw());
   EXPECT(one.raw() != eins.raw());
 
-  uint16_t char16[] = { 'E', 'l', 'f' };
+  uint16_t char16[] = {'E', 'l', 'f'};
   String& elf1 = String::Handle(Symbols::FromUTF16(thread, char16, 3));
-  int32_t char32[] = { 'E', 'l', 'f' };
+  int32_t char32[] = {'E', 'l', 'f'};
   String& elf2 = String::Handle(Symbols::FromUTF32(thread, char32, 3));
   EXPECT(elf1.IsSymbol());
   EXPECT(elf2.IsSymbol());
@@ -1879,7 +1859,7 @@ VM_TEST_CASE(Symbol) {
 
 
 VM_TEST_CASE(SymbolUnicode) {
-  uint16_t monkey_utf16[] = { 0xd83d, 0xdc35 };  // Unicode Monkey Face.
+  uint16_t monkey_utf16[] = {0xd83d, 0xdc35};  // Unicode Monkey Face.
   String& monkey = String::Handle(Symbols::FromUTF16(thread, monkey_utf16, 2));
   EXPECT(monkey.IsSymbol());
   const char monkey_utf8[] = {'\xf0', '\x9f', '\x90', '\xb5', 0};
@@ -1891,10 +1871,10 @@ VM_TEST_CASE(SymbolUnicode) {
 
   // Unicode cat face with tears of joy.
   int32_t kCatFaceWithTearsOfJoy = 0x1f639;
-  String& cat = String::Handle(Symbols::FromCharCode(thread,
-                                                     kCatFaceWithTearsOfJoy));
+  String& cat =
+      String::Handle(Symbols::FromCharCode(thread, kCatFaceWithTearsOfJoy));
 
-  uint16_t cat_utf16[] = { 0xd83d, 0xde39 };
+  uint16_t cat_utf16[] = {0xd83d, 0xde39};
   String& cat2 = String::Handle(Symbols::FromUTF16(thread, cat_utf16, 2));
   EXPECT(cat2.IsSymbol());
   EXPECT_EQ(cat2.raw(), cat.raw());
@@ -1954,24 +1934,29 @@ VM_TEST_CASE(Array) {
 static void TestIllegalArrayLength(intptr_t length) {
   char buffer[1024];
   OS::SNPrint(buffer, sizeof(buffer),
-      "main() {\n"
-      "  new List(%" Pd ");\n"
-      "}\n",
-      length);
+              "main() {\n"
+              "  new List(%" Pd
+              ");\n"
+              "}\n",
+              length);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   OS::SNPrint(buffer, sizeof(buffer),
-      "Unhandled exception:\n"
-      "RangeError (length): Invalid value: "
-      "Not in range 0..%" Pd ", inclusive: %" Pd,
-      Array::kMaxElements, length);
+              "Unhandled exception:\n"
+              "RangeError (length): Invalid value: "
+              "Not in range 0..%" Pd ", inclusive: %" Pd,
+              Array::kMaxElements, length);
   EXPECT_ERROR(result, buffer);
 }
 
 
-TEST_CASE(ArrayLengthNegativeOne) { TestIllegalArrayLength(-1); }
-TEST_CASE(ArrayLengthSmiMin) { TestIllegalArrayLength(kSmiMin); }
+TEST_CASE(ArrayLengthNegativeOne) {
+  TestIllegalArrayLength(-1);
+}
+TEST_CASE(ArrayLengthSmiMin) {
+  TestIllegalArrayLength(kSmiMin);
+}
 TEST_CASE(ArrayLengthOneTooMany) {
   const intptr_t kOneTooMany = Array::kMaxElements + 1;
   ASSERT(kOneTooMany >= 0);
@@ -1982,10 +1967,11 @@ TEST_CASE(ArrayLengthOneTooMany) {
 TEST_CASE(ArrayLengthMaxElements) {
   char buffer[1024];
   OS::SNPrint(buffer, sizeof(buffer),
-      "main() {\n"
-      "  return new List(%" Pd ");\n"
-      "}\n",
-      Array::kMaxElements);
+              "main() {\n"
+              "  return new List(%" Pd
+              ");\n"
+              "}\n",
+              Array::kMaxElements);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -2004,15 +1990,16 @@ static void TestIllegalTypedDataLength(const char* class_name,
                                        intptr_t length) {
   char buffer[1024];
   OS::SNPrint(buffer, sizeof(buffer),
-      "import 'dart:typed_data';\n"
-      "main() {\n"
-      "  new %s(%" Pd ");\n"
-      "}\n",
-      class_name, length);
+              "import 'dart:typed_data';\n"
+              "main() {\n"
+              "  new %s(%" Pd
+              ");\n"
+              "}\n",
+              class_name, length);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  OS::SNPrint(buffer, sizeof(buffer), "%" Pd,  length);
+  OS::SNPrint(buffer, sizeof(buffer), "%" Pd, length);
   EXPECT_ERROR(result, "Invalid argument(s)");
   EXPECT_ERROR(result, buffer);
 }
@@ -2036,11 +2023,12 @@ TEST_CASE(Int8ListLengthMaxElements) {
   const intptr_t max_elements = TypedData::MaxElements(kTypedDataInt8ArrayCid);
   char buffer[1024];
   OS::SNPrint(buffer, sizeof(buffer),
-      "import 'dart:typed_data';\n"
-      "main() {\n"
-      "  return new Int8List(%" Pd ");\n"
-      "}\n",
-      max_elements);
+              "import 'dart:typed_data';\n"
+              "main() {\n"
+              "  return new Int8List(%" Pd
+              ");\n"
+              "}\n",
+              max_elements);
   Dart_Handle lib = TestCase::LoadTestScript(buffer, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -2069,10 +2057,11 @@ VM_TEST_CASE(StringCodePointIterator) {
   EXPECT_EQ(' ', it1.Current());
   EXPECT(!it1.Next());
 
-  const String& str2 = String::Handle(String::New("\xD7\x92\xD7\x9C"
-                                                  "\xD7\xA2\xD7\x93"
-                                                  "\xD7\x91\xD7\xA8"
-                                                  "\xD7\x9B\xD7\x94"));
+  const String& str2 =
+      String::Handle(String::New("\xD7\x92\xD7\x9C"
+                                 "\xD7\xA2\xD7\x93"
+                                 "\xD7\x91\xD7\xA8"
+                                 "\xD7\x9B\xD7\x94"));
   String::CodePointIterator it2(str2);
   EXPECT(it2.Next());
   EXPECT_EQ(0x5D2, it2.Current());
@@ -2092,10 +2081,11 @@ VM_TEST_CASE(StringCodePointIterator) {
   EXPECT_EQ(0x5D4, it2.Current());
   EXPECT(!it2.Next());
 
-  const String& str3 = String::Handle(String::New("\xF0\x9D\x91\xA0"
-                                                  "\xF0\x9D\x91\xA1"
-                                                  "\xF0\x9D\x91\xA2"
-                                                  "\xF0\x9D\x91\xA3"));
+  const String& str3 =
+      String::Handle(String::New("\xF0\x9D\x91\xA0"
+                                 "\xF0\x9D\x91\xA1"
+                                 "\xF0\x9D\x91\xA2"
+                                 "\xF0\x9D\x91\xA3"));
   String::CodePointIterator it3(str3);
   EXPECT(it3.Next());
   EXPECT_EQ(0x1D460, it3.Current());
@@ -2249,7 +2239,7 @@ VM_TEST_CASE(GrowableObjectArray) {
 
 
 VM_TEST_CASE(InternalTypedData) {
-  uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
+  uint8_t data[] = {253, 254, 255, 0, 1, 2, 3, 4};
   intptr_t data_length = ARRAY_SIZE(data);
 
   const TypedData& int8_array =
@@ -2305,30 +2295,24 @@ VM_TEST_CASE(InternalTypedData) {
 
 
 VM_TEST_CASE(ExternalTypedData) {
-  uint8_t data[] = { 253, 254, 255, 0, 1, 2, 3, 4 };
+  uint8_t data[] = {253, 254, 255, 0, 1, 2, 3, 4};
   intptr_t data_length = ARRAY_SIZE(data);
 
   const ExternalTypedData& int8_array =
-      ExternalTypedData::Handle(
-          ExternalTypedData::New(kExternalTypedDataInt8ArrayCid,
-                                 data,
-                                 data_length));
+      ExternalTypedData::Handle(ExternalTypedData::New(
+          kExternalTypedDataInt8ArrayCid, data, data_length));
   EXPECT(!int8_array.IsNull());
   EXPECT_EQ(data_length, int8_array.Length());
 
   const ExternalTypedData& uint8_array =
-      ExternalTypedData::Handle(
-          ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
-                                  data,
-                                  data_length));
+      ExternalTypedData::Handle(ExternalTypedData::New(
+          kExternalTypedDataUint8ArrayCid, data, data_length));
   EXPECT(!uint8_array.IsNull());
   EXPECT_EQ(data_length, uint8_array.Length());
 
   const ExternalTypedData& uint8_clamped_array =
-      ExternalTypedData::Handle(
-          ExternalTypedData::New(kExternalTypedDataUint8ClampedArrayCid,
-                                 data,
-                                 data_length));
+      ExternalTypedData::Handle(ExternalTypedData::New(
+          kExternalTypedDataUint8ClampedArrayCid, data, data_length));
   EXPECT(!uint8_clamped_array.IsNull());
   EXPECT_EQ(data_length, uint8_clamped_array.Length());
 
@@ -2356,18 +2340,18 @@ VM_TEST_CASE(ExternalTypedData) {
   EXPECT_EQ(2, uint8_array.GetUint8(5));
   EXPECT_EQ(2, uint8_clamped_array.GetUint8(5));
 
-  for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
+  for (intptr_t i = 0; i < int8_array.Length(); ++i) {
     EXPECT_EQ(int8_array.GetUint8(i), uint8_array.GetUint8(i));
   }
 
   int8_array.SetInt8(2, -123);
   uint8_array.SetUint8(0, 123);
-  for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
+  for (intptr_t i = 0; i < int8_array.Length(); ++i) {
     EXPECT_EQ(int8_array.GetInt8(i), uint8_array.GetInt8(i));
   }
 
   uint8_clamped_array.SetUint8(0, 123);
-  for (intptr_t i = 0 ; i < int8_array.Length(); ++i) {
+  for (intptr_t i = 0; i < int8_array.Length(); ++i) {
     EXPECT_EQ(int8_array.GetUint8(i), uint8_clamped_array.GetUint8(i));
   }
 }
@@ -2378,9 +2362,8 @@ TEST_CASE(Script) {
   const char* source_chars = "This will not compile.";
   const String& url = String::Handle(String::New(url_chars));
   const String& source = String::Handle(String::New(source_chars));
-  const Script& script = Script::Handle(Script::New(url,
-                                                    source,
-                                                    RawScript::kScriptTag));
+  const Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   EXPECT(!script.IsNull());
   EXPECT(script.IsScript());
   String& str = String::Handle(script.url());
@@ -2408,11 +2391,16 @@ TEST_CASE(Script) {
 VM_TEST_CASE(EmbeddedScript) {
   const char* url_chars = "builtin:test-case";
   const char* text =
-      /* 1 */ "<!DOCTYPE html>\n"
-      /* 2 */ "  ... more junk ...\n"
-      /* 3 */ "  <script type='application/dart'>main() {\n"
-      /* 4 */ "    return 'foo';\n"
-      /* 5 */ "  }\n"
+      /* 1 */
+      "<!DOCTYPE html>\n"
+      /* 2 */
+      "  ... more junk ...\n"
+      /* 3 */
+      "  <script type='application/dart'>main() {\n"
+      /* 4 */
+      "    return 'foo';\n"
+      /* 5 */
+      "  }\n"
       /* 6 */ "</script>\n";
   const char* line1 = text;
   const char* line2 = strstr(line1, "\n") + 1;
@@ -2443,8 +2431,8 @@ VM_TEST_CASE(EmbeddedScript) {
 
   const String& url = String::Handle(String::New(url_chars));
   const String& source = String::Handle(String::New(src_chars));
-  const Script& script = Script::Handle(
-      Script::New(url, source, RawScript::kScriptTag));
+  const Script& script =
+      Script::Handle(Script::New(url, source, RawScript::kScriptTag));
   script.SetLocationOffset(line_offset, col_offset);
 
   String& str = String::Handle();
@@ -2534,27 +2522,18 @@ VM_TEST_CASE(ContextScope) {
 
   const Type& dynamic_type = Type::ZoneHandle(Type::DynamicType());
   const String& a = String::ZoneHandle(Symbols::New(thread, "a"));
-  LocalVariable* var_a =
-      new LocalVariable(TokenPosition::kNoSource,
-                        TokenPosition::kNoSource,
-                        a,
-                        dynamic_type);
+  LocalVariable* var_a = new LocalVariable(
+      TokenPosition::kNoSource, TokenPosition::kNoSource, a, dynamic_type);
   parent_scope->AddVariable(var_a);
 
   const String& b = String::ZoneHandle(Symbols::New(thread, "b"));
-  LocalVariable* var_b =
-      new LocalVariable(TokenPosition::kNoSource,
-                        TokenPosition::kNoSource,
-                        b,
-                        dynamic_type);
+  LocalVariable* var_b = new LocalVariable(
+      TokenPosition::kNoSource, TokenPosition::kNoSource, b, dynamic_type);
   local_scope->AddVariable(var_b);
 
   const String& c = String::ZoneHandle(Symbols::New(thread, "c"));
-  LocalVariable* var_c =
-      new LocalVariable(TokenPosition::kNoSource,
-                        TokenPosition::kNoSource,
-                        c,
-                        dynamic_type);
+  LocalVariable* var_c = new LocalVariable(
+      TokenPosition::kNoSource, TokenPosition::kNoSource, c, dynamic_type);
   parent_scope->AddVariable(var_c);
 
   bool test_only = false;  // Please, insert alias.
@@ -2579,18 +2558,16 @@ VM_TEST_CASE(ContextScope) {
   var_c = local_scope->LookupVariable(c, test_only);
   EXPECT(var_c->is_captured());
 
-  EXPECT_EQ(3, local_scope->num_variables());  // a, b, and c alias.
+  EXPECT_EQ(3, local_scope->num_variables());         // a, b, and c alias.
   EXPECT_EQ(2, local_scope->NumCapturedVariables());  // a, c alias.
 
   const int first_parameter_index = 0;
   const int num_parameters = 0;
   const int first_frame_index = -1;
   bool found_captured_vars = false;
-  int next_frame_index = parent_scope->AllocateVariables(first_parameter_index,
-                                                         num_parameters,
-                                                         first_frame_index,
-                                                         NULL,
-                                                         &found_captured_vars);
+  int next_frame_index = parent_scope->AllocateVariables(
+      first_parameter_index, num_parameters, first_frame_index, NULL,
+      &found_captured_vars);
   EXPECT_EQ(first_frame_index, next_frame_index);  // a and c not in frame.
   const intptr_t parent_scope_context_level = 1;
   EXPECT_EQ(parent_scope_context_level, parent_scope->context_level());
@@ -2629,16 +2606,16 @@ VM_TEST_CASE(Closure) {
   const Context& context = Context::Handle(Context::New(0));
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
-  parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls,
-                         TokenPosition::kMinSource);
+  parent =
+      Function::New(parent_name, RawFunction::kRegularFunction, false, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
   Function& function = Function::Handle();
   const String& function_name = String::Handle(Symbols::New(thread, "foo"));
-  function = Function::NewClosureFunction(
-      function_name, parent, TokenPosition::kMinSource);
+  function = Function::NewClosureFunction(function_name, parent,
+                                          TokenPosition::kMinSource);
   const Closure& closure = Closure::Handle(Closure::New(function, context));
   const Class& closure_class = Class::Handle(closure.clazz());
   EXPECT_EQ(closure_class.id(), kClosureCid);
@@ -2657,8 +2634,7 @@ VM_TEST_CASE(ObjectPrinting) {
   // bool class and true/false values.
   ObjectStore* object_store = Isolate::Current()->object_store();
   const Class& bool_class = Class::Handle(object_store->bool_class());
-  EXPECT_STREQ("Library:'dart:core' Class: bool",
-               bool_class.ToCString());
+  EXPECT_STREQ("Library:'dart:core' Class: bool", bool_class.ToCString());
   EXPECT_STREQ("true", Bool::True().ToCString());
   EXPECT_STREQ("false", Bool::False().ToCString());
 
@@ -2702,30 +2678,28 @@ static RawFunction* CreateFunction(const char* name) {
   const Script& script = Script::Handle();
   const Class& owner_class =
       Class::Handle(CreateDummyClass(class_name, script));
-  const Library& owner_library =
-      Library::Handle(CreateDummyLibrary(lib_name));
+  const Library& owner_library = Library::Handle(CreateDummyLibrary(lib_name));
   owner_class.set_library(owner_library);
   const String& function_name = String::ZoneHandle(Symbols::New(thread, name));
-  return Function::New(function_name, RawFunction::kRegularFunction,
-                       true, false, false, false, false, owner_class,
+  return Function::New(function_name, RawFunction::kRegularFunction, true,
+                       false, false, false, false, owner_class,
                        TokenPosition::kMinSource);
 }
 
 
 // Test for Code and Instruction object creation.
 VM_TEST_CASE(Code) {
-  extern void GenerateIncrement(Assembler* assembler);
+  extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
   Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
   function.AttachCode(code);
   const Instructions& instructions = Instructions::Handle(code.instructions());
-  uword entry_point = instructions.UncheckedEntryPoint();
-  EXPECT_EQ(instructions.raw(),
-            Instructions::FromUncheckedEntryPoint(entry_point));
-  const Object& result = Object::Handle(
-      DartEntry::InvokeFunction(function, Array::empty_array()));
+  uword payload_start = instructions.PayloadStart();
+  EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
+  const Object& result =
+      Object::Handle(DartEntry::InvokeFunction(function, Array::empty_array()));
   EXPECT_EQ(1, Smi::Cast(result).Value());
 }
 
@@ -2733,18 +2707,17 @@ VM_TEST_CASE(Code) {
 // Test for immutability of generated instructions. The test crashes with a
 // segmentation fault when writing into it.
 VM_TEST_CASE(CodeImmutability) {
-  extern void GenerateIncrement(Assembler* assembler);
+  extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   const Function& function = Function::Handle(CreateFunction("Test_Code"));
   Code& code = Code::Handle(Code::FinalizeCode(function, &_assembler_));
   function.AttachCode(code);
   Instructions& instructions = Instructions::Handle(code.instructions());
-  uword entry_point = instructions.UncheckedEntryPoint();
-  EXPECT_EQ(instructions.raw(),
-            Instructions::FromUncheckedEntryPoint(entry_point));
+  uword payload_start = instructions.PayloadStart();
+  EXPECT_EQ(instructions.raw(), Instructions::FromPayloadStart(payload_start));
   // Try writing into the generated code, expected to crash.
-  *(reinterpret_cast<char*>(entry_point) + 1) = 1;
+  *(reinterpret_cast<char*>(payload_start) + 1) = 1;
   if (!FLAG_write_protect_code) {
     // Since this test is expected to crash, crash if write protection of code
     // is switched off.
@@ -2756,7 +2729,7 @@ VM_TEST_CASE(CodeImmutability) {
 
 // Test for Embedded String object in the instructions.
 VM_TEST_CASE(EmbedStringInCode) {
-  extern void GenerateEmbedStringInCode(Assembler* assembler, const char* str);
+  extern void GenerateEmbedStringInCode(Assembler * assembler, const char* str);
   const char* kHello = "Hello World!";
   word expected_length = static_cast<word>(strlen(kHello));
   Assembler _assembler_;
@@ -2771,7 +2744,7 @@ VM_TEST_CASE(EmbedStringInCode) {
   String& string_object = String::Handle();
   string_object ^= result.raw();
   EXPECT(string_object.Length() == expected_length);
-  for (int i = 0; i < expected_length; i ++) {
+  for (int i = 0; i < expected_length; i++) {
     EXPECT(string_object.CharAt(i) == kHello[i]);
   }
 }
@@ -2779,7 +2752,7 @@ VM_TEST_CASE(EmbedStringInCode) {
 
 // Test for Embedded Smi object in the instructions.
 VM_TEST_CASE(EmbedSmiInCode) {
-  extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
+  extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
   const intptr_t kSmiTestValue = 5;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
@@ -2796,7 +2769,7 @@ VM_TEST_CASE(EmbedSmiInCode) {
 #if defined(ARCH_IS_64_BIT)
 // Test for Embedded Smi object in the instructions.
 VM_TEST_CASE(EmbedSmiIn64BitCode) {
-  extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
+  extern void GenerateEmbedSmiInCode(Assembler * assembler, intptr_t value);
   const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
@@ -2823,7 +2796,7 @@ VM_TEST_CASE(ExceptionHandlers) {
   exception_handlers.SetHandlerInfo(2, -1, 40u, kNoStacktrace, true);
   exception_handlers.SetHandlerInfo(3, 1, 150u, kNoStacktrace, true);
 
-  extern void GenerateIncrement(Assembler* assembler);
+  extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
@@ -2853,23 +2826,18 @@ VM_TEST_CASE(PcDescriptors) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         10, 1, TokenPosition(20), 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt,
-                         20, 2, TokenPosition(30), 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         30, 3, TokenPosition(40), 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         10, 4, TokenPosition(40), 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         10, 5, TokenPosition(80), 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         80, 6, TokenPosition(150), 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 1, TokenPosition(20), 1);
+  builder->AddDescriptor(RawPcDescriptors::kDeopt, 20, 2, TokenPosition(30), 0);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 30, 3, TokenPosition(40), 1);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 4, TokenPosition(40), 2);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 10, 5, TokenPosition(80), 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 80, 6, TokenPosition(150),
+                         3);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
 
-  extern void GenerateIncrement(Assembler* assembler);
+  extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
@@ -2916,23 +2884,22 @@ VM_TEST_CASE(PcDescriptorsLargeDeltas) {
   DescriptorList* builder = new DescriptorList(0);
 
   // kind, pc_offset, deopt_id, token_pos, try_index
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         100, 1, TokenPosition(200), 1);
-  builder->AddDescriptor(RawPcDescriptors::kDeopt,
-                         200, 2, TokenPosition(300), 0);
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         300, 3, TokenPosition(400), 1);
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         100, 4, TokenPosition(0), 2);
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         100, 5, TokenPosition(800), 3);
-  builder->AddDescriptor(RawPcDescriptors::kOther,
-                         800, 6, TokenPosition(150), 3);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 1, TokenPosition(200),
+                         1);
+  builder->AddDescriptor(RawPcDescriptors::kDeopt, 200, 2, TokenPosition(300),
+                         0);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 300, 3, TokenPosition(400),
+                         1);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 4, TokenPosition(0), 2);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 100, 5, TokenPosition(800),
+                         3);
+  builder->AddDescriptor(RawPcDescriptors::kOther, 800, 6, TokenPosition(150),
+                         3);
 
   PcDescriptors& descriptors = PcDescriptors::Handle();
   descriptors ^= builder->FinalizePcDescriptors(0);
 
-  extern void GenerateIncrement(Assembler* assembler);
+  extern void GenerateIncrement(Assembler * assembler);
   Assembler _assembler_;
   GenerateIncrement(&_assembler_);
   Code& code = Code::Handle(Code::FinalizeCode(
@@ -2976,21 +2943,21 @@ VM_TEST_CASE(PcDescriptorsLargeDeltas) {
 
 
 static RawClass* CreateTestClass(const char* name) {
-  const String& class_name = String::Handle(Symbols::New(Thread::Current(),
-                                                         name));
-  const Class& cls = Class::Handle(
-      CreateDummyClass(class_name, Script::Handle()));
+  const String& class_name =
+      String::Handle(Symbols::New(Thread::Current(), name));
+  const Class& cls =
+      Class::Handle(CreateDummyClass(class_name, Script::Handle()));
   return cls.raw();
 }
 
 
 static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
-  const String& field_name = String::Handle(Symbols::New(Thread::Current(),
-                                                         name));
-  const Field& field =
-      Field::Handle(Field::New(field_name, true, false, false, true, cls,
-          Object::dynamic_type(), TokenPosition::kMinSource));
+  const String& field_name =
+      String::Handle(Symbols::New(Thread::Current(), name));
+  const Field& field = Field::Handle(
+      Field::New(field_name, true, false, false, true, cls,
+                 Object::dynamic_type(), TokenPosition::kMinSource));
   return field.raw();
 }
 
@@ -3019,23 +2986,17 @@ VM_TEST_CASE(ClassDictionaryIterator) {
 
 
 static RawFunction* GetDummyTarget(const char* name) {
-  const String& function_name = String::Handle(Symbols::New(Thread::Current(),
-                                                            name));
-  const Class& cls = Class::Handle(
-       CreateDummyClass(function_name, Script::Handle()));
+  const String& function_name =
+      String::Handle(Symbols::New(Thread::Current(), name));
+  const Class& cls =
+      Class::Handle(CreateDummyClass(function_name, Script::Handle()));
   const bool is_static = false;
   const bool is_const = false;
   const bool is_abstract = false;
   const bool is_external = false;
   const bool is_native = false;
-  return Function::New(function_name,
-                       RawFunction::kRegularFunction,
-                       is_static,
-                       is_const,
-                       is_abstract,
-                       is_external,
-                       is_native,
-                       cls,
+  return Function::New(function_name, RawFunction::kRegularFunction, is_static,
+                       is_const, is_abstract, is_external, is_native, cls,
                        TokenPosition::kMinSource);
 }
 
@@ -3048,8 +3009,8 @@ VM_TEST_CASE(ICData) {
   const Array& args_descriptor =
       Array::Handle(ArgumentsDescriptor::New(1, Object::null_array()));
   ICData& o1 = ICData::Handle();
-  o1 = ICData::New(function, target_name, args_descriptor, id,
-                   num_args_tested, false);
+  o1 = ICData::New(function, target_name, args_descriptor, id, num_args_tested,
+                   false);
   EXPECT_EQ(1, o1.NumArgsTested());
   EXPECT_EQ(id, o1.deopt_id());
   EXPECT_EQ(function.raw(), o1.Owner());
@@ -3106,9 +3067,8 @@ VM_TEST_CASE(ICData) {
 
   // Check ICData for unoptimized static calls.
   const intptr_t kNumArgsChecked = 0;
-  const ICData& scall_icdata = ICData::Handle(
-      ICData::New(function, target_name, args_descriptor, 57,
-                  kNumArgsChecked, false));
+  const ICData& scall_icdata = ICData::Handle(ICData::New(
+      function, target_name, args_descriptor, 57, kNumArgsChecked, false));
   scall_icdata.AddTarget(target1);
   EXPECT_EQ(target1.raw(), scall_icdata.GetTargetAt(0));
 }
@@ -3131,8 +3091,8 @@ VM_TEST_CASE(SubtypeTestCache) {
   TypeArguments& test_targ_0 = TypeArguments::Handle();
   TypeArguments& test_targ_1 = TypeArguments::Handle();
   Bool& test_result = Bool::Handle();
-  cache.GetCheck(
-      0, &test_class_id_or_fun, &test_targ_0, &test_targ_1, &test_result);
+  cache.GetCheck(0, &test_class_id_or_fun, &test_targ_0, &test_targ_1,
+                 &test_result);
   EXPECT_EQ(class_id_or_fun.raw(), test_class_id_or_fun.raw());
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
@@ -3155,8 +3115,6 @@ VM_TEST_CASE(FieldTests) {
   EXPECT_STREQ(f.ToCString(),
                String::Handle(Field::NameFromSetter(setter_f)).ToCString());
 }
-
-
 
 
 // Expose helper function from object.cc for testing.
@@ -3273,9 +3231,9 @@ VM_TEST_CASE(EqualsIgnoringPrivate) {
       reinterpret_cast<const uint8_t*>(ext_mangled_str),
       strlen(ext_mangled_str), NULL, NULL, Heap::kNew);
   EXPECT(ext_mangled_name.IsExternalOneByteString());
-  ext_bare_name = ExternalOneByteString::New(
-      reinterpret_cast<const uint8_t*>(ext_bare_str),
-      strlen(ext_bare_str), NULL, NULL, Heap::kNew);
+  ext_bare_name =
+      ExternalOneByteString::New(reinterpret_cast<const uint8_t*>(ext_bare_str),
+                                 strlen(ext_bare_str), NULL, NULL, Heap::kNew);
   EXPECT(ext_bare_name.IsExternalOneByteString());
   ext_bad_bare_name = ExternalOneByteString::New(
       reinterpret_cast<const uint8_t*>(ext_bad_bare_str),
@@ -3291,8 +3249,8 @@ VM_TEST_CASE(EqualsIgnoringPrivate) {
 
   // str1 - ExternalOneByteString, str2 - ExternalOneByteString.
   EXPECT(String::EqualsIgnoringPrivateKey(ext_mangled_name, ext_bare_name));
-  EXPECT(!String::EqualsIgnoringPrivateKey(ext_mangled_name,
-                                           ext_bad_bare_name));
+  EXPECT(
+      !String::EqualsIgnoringPrivateKey(ext_mangled_name, ext_bad_bare_name));
 }
 
 
@@ -3344,21 +3302,20 @@ TEST_CASE(StackTraceFormat) {
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
-  EXPECT_ERROR(
-      result,
-      "Unhandled exception:\n"
-      "MyException\n"
-      "#0      baz (test-lib:2:3)\n"
-      "#1      _OtherClass._OtherClass._named (test-lib:7:5)\n"
-      "#2      globalVar= (test-lib:12:7)\n"
-      "#3      _bar (test-lib:16:3)\n"
-      "#4      MyClass.field (test-lib:25:5)\n"
-      "#5      MyClass.foo.fooHelper (test-lib:30:7)\n"
-      "#6      MyClass.foo (test-lib:32:14)\n"
-      "#7      MyClass.MyClass.<anonymous closure> (test-lib:21:12)\n"
-      "#8      MyClass.MyClass (test-lib:21:18)\n"
-      "#9      main.<anonymous closure> (test-lib:37:14)\n"
-      "#10     main (test-lib:37:24)");
+  EXPECT_ERROR(result,
+               "Unhandled exception:\n"
+               "MyException\n"
+               "#0      baz (test-lib:2:3)\n"
+               "#1      _OtherClass._OtherClass._named (test-lib:7:5)\n"
+               "#2      globalVar= (test-lib:12:7)\n"
+               "#3      _bar (test-lib:16:3)\n"
+               "#4      MyClass.field (test-lib:25:5)\n"
+               "#5      MyClass.foo.fooHelper (test-lib:30:7)\n"
+               "#6      MyClass.foo (test-lib:32:14)\n"
+               "#7      MyClass.MyClass.<anonymous closure> (test-lib:21:12)\n"
+               "#8      MyClass.MyClass (test-lib:21:18)\n"
+               "#9      main.<anonymous closure> (test-lib:37:14)\n"
+               "#10     main (test-lib:37:24)");
 }
 
 
@@ -3770,16 +3727,16 @@ VM_TEST_CASE(MirrorReference) {
 
 
 static RawFunction* GetFunction(const Class& cls, const char* name) {
-  const Function& result = Function::Handle(cls.LookupDynamicFunction(
-      String::Handle(String::New(name))));
+  const Function& result = Function::Handle(
+      cls.LookupDynamicFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
 
 
 static RawFunction* GetStaticFunction(const Class& cls, const char* name) {
-  const Function& result = Function::Handle(cls.LookupStaticFunction(
-      String::Handle(String::New(name))));
+  const Function& result = Function::Handle(
+      cls.LookupStaticFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.raw();
 }
@@ -3811,9 +3768,9 @@ VM_TEST_CASE(FindClosureIndex) {
 
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
-  parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls,
-                         TokenPosition::kMinSource);
+  parent =
+      Function::New(parent_name, RawFunction::kRegularFunction, false, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
@@ -3848,9 +3805,9 @@ VM_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
   const Array& functions = Array::Handle(Array::New(1));
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(Symbols::New(thread, "foo_papa"));
-  parent = Function::New(parent_name, RawFunction::kRegularFunction,
-                         false, false, false, false, false, cls,
-                         TokenPosition::kMinSource);
+  parent =
+      Function::New(parent_name, RawFunction::kRegularFunction, false, false,
+                    false, false, false, cls, TokenPosition::kMinSource);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
   cls.Finalize();
@@ -3860,10 +3817,9 @@ VM_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
       String::Handle(Symbols::New(thread, "myMethod"));
   const Array& args_desc = Array::Handle(ArgumentsDescriptor::New(1));
   Function& invocation_dispatcher = Function::Handle();
-  invocation_dispatcher ^=
-      cls.GetInvocationDispatcher(invocation_dispatcher_name, args_desc,
-                                  RawFunction::kNoSuchMethodDispatcher,
-                                  true /* create_if_absent */);
+  invocation_dispatcher ^= cls.GetInvocationDispatcher(
+      invocation_dispatcher_name, args_desc,
+      RawFunction::kNoSuchMethodDispatcher, true /* create_if_absent */);
   EXPECT(!invocation_dispatcher.IsNull());
   // Get index to function.
   intptr_t invocation_dispatcher_index =
@@ -3887,8 +3843,7 @@ VM_TEST_CASE(FindInvocationDispatcherFunctionIndex) {
 
 static void PrintMetadata(const char* name, const Object& data) {
   if (data.IsError()) {
-    OS::Print("Error in metadata evaluation for %s: '%s'\n",
-              name,
+    OS::Print("Error in metadata evaluation for %s: '%s'\n", name,
               Error::Cast(data).ToErrorCString());
   }
   EXPECT(data.IsArray());
@@ -3963,8 +3918,8 @@ TEST_CASE(Metadata) {
   res = lib.GetMetadata(func);
   PrintMetadata("main", res);
 
-  func = lib.LookupLocalFunction(String::Handle(Symbols::New(thread,
-                                                             "get:tlGetter")));
+  func = lib.LookupLocalFunction(
+      String::Handle(Symbols::New(thread, "get:tlGetter")));
   EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("tlGetter", res);
@@ -4020,10 +3975,10 @@ TEST_CASE(FunctionSourceFingerprint) {
   const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
 
-  const Class& class_a = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
-  const Class& class_b = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
+  const Class& class_a =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+  const Class& class_b =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
   const Function& a_test1 =
       Function::Handle(GetStaticFunction(class_a, "test1"));
   const Function& b_test1 =
@@ -4038,10 +3993,8 @@ TEST_CASE(FunctionSourceFingerprint) {
       Function::Handle(GetStaticFunction(class_a, "test5"));
   const Function& b_test5 =
       Function::Handle(GetStaticFunction(class_b, "test5"));
-  const Function& a_test6 =
-      Function::Handle(GetFunction(class_a, "test6"));
-  const Function& b_test6 =
-      Function::Handle(GetFunction(class_b, "test6"));
+  const Function& a_test6 = Function::Handle(GetFunction(class_a, "test6"));
+  const Function& b_test6 = Function::Handle(GetFunction(class_b, "test6"));
 
   EXPECT_EQ(a_test1.SourceFingerprint(), b_test1.SourceFingerprint());
   EXPECT_NE(a_test1.SourceFingerprint(), a_test2.SourceFingerprint());
@@ -4086,8 +4039,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   EXPECT(!vmlib.IsNull());
   const Class& class_a = Class::Handle(
       vmlib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
-  const Function& func_b =
-      Function::Handle(GetFunction(class_a, "b"));
+  const Function& func_b = Function::Handle(GetFunction(class_a, "b"));
   EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
@@ -4134,21 +4086,20 @@ VM_TEST_CASE(SpecialClassesHaveEmptyArrays) {
 class ObjectAccumulator : public ObjectVisitor {
  public:
   explicit ObjectAccumulator(GrowableArray<Object*>* objects)
-      : objects_(objects) { }
-  virtual ~ObjectAccumulator() { }
+      : objects_(objects) {}
+  virtual ~ObjectAccumulator() {}
   virtual void VisitObject(RawObject* obj) {
     if (obj->IsPseudoObject()) {
       return;  // Cannot be wrapped in handles.
     }
     Object& handle = Object::Handle(obj);
     // Skip some common simple objects to run in reasonable time.
-    if (handle.IsString() ||
-        handle.IsArray() ||
-        handle.IsLiteralToken()) {
+    if (handle.IsString() || handle.IsArray() || handle.IsLiteralToken()) {
       return;
     }
     objects_->Add(&handle);
   }
+
  private:
   GrowableArray<Object*>* objects_;
 };
@@ -4631,8 +4582,8 @@ static void CheckConcatAll(const String* data[], intptr_t n) {
     pieces.Add(*data[i]);
     array.SetAt(i, *data[i]);
   }
-  const String& res1 = String::Handle(zone, Symbols::FromConcatAll(thread,
-                                                                   pieces));
+  const String& res1 =
+      String::Handle(zone, Symbols::FromConcatAll(thread, pieces));
   const String& res2 = String::Handle(zone, String::ConcatAll(array));
   EXPECT(res1.Equals(res2));
 }
@@ -4640,65 +4591,63 @@ static void CheckConcatAll(const String* data[], intptr_t n) {
 
 VM_TEST_CASE(Symbols_FromConcatAll) {
   {
-    const String* data[3] = { &Symbols::FallThroughError(),
-                              &Symbols::Dot(),
-                              &Symbols::isPaused() };
+    const String* data[3] = {&Symbols::FallThroughError(), &Symbols::Dot(),
+                             &Symbols::isPaused()};
     CheckConcatAll(data, 3);
   }
 
   {
     const intptr_t kWideCharsLen = 7;
-    uint16_t wide_chars[kWideCharsLen] = { 'H', 'e', 'l', 'l', 'o', 256, '!' };
-    const String& two_str = String::Handle(String::FromUTF16(wide_chars,
-                                                             kWideCharsLen));
+    uint16_t wide_chars[kWideCharsLen] = {'H', 'e', 'l', 'l', 'o', 256, '!'};
+    const String& two_str =
+        String::Handle(String::FromUTF16(wide_chars, kWideCharsLen));
 
-    const String* data[3] = { &two_str, &Symbols::Dot(), &two_str };
+    const String* data[3] = {&two_str, &Symbols::Dot(), &two_str};
     CheckConcatAll(data, 3);
   }
 
   {
-    uint8_t characters[] = { 0xF6, 0xF1, 0xE9 };
+    uint8_t characters[] = {0xF6, 0xF1, 0xE9};
     intptr_t len = ARRAY_SIZE(characters);
 
     const String& str = String::Handle(
         ExternalOneByteString::New(characters, len, NULL, NULL, Heap::kNew));
-    const String* data[3] = { &str, &Symbols::Dot(), &str };
+    const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
 
   {
-    uint16_t characters[] =
-        { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+    uint16_t characters[] = {'a',  '\n', '\f', '\b', '\t',
+                             '\v', '\r', '\\', '$',  'z'};
     intptr_t len = ARRAY_SIZE(characters);
 
     const String& str = String::Handle(
         ExternalTwoByteString::New(characters, len, NULL, NULL, Heap::kNew));
-    const String* data[3] = { &str, &Symbols::Dot(), &str };
+    const String* data[3] = {&str, &Symbols::Dot(), &str};
     CheckConcatAll(data, 3);
   }
 
   {
-    uint8_t characters1[] = { 0xF6, 0xF1, 0xE9 };
+    uint8_t characters1[] = {0xF6, 0xF1, 0xE9};
     intptr_t len1 = ARRAY_SIZE(characters1);
 
     const String& str1 = String::Handle(
         ExternalOneByteString::New(characters1, len1, NULL, NULL, Heap::kNew));
 
-    uint16_t characters2[] =
-        { 'a', '\n', '\f', '\b', '\t', '\v', '\r', '\\', '$', 'z' };
+    uint16_t characters2[] = {'a',  '\n', '\f', '\b', '\t',
+                              '\v', '\r', '\\', '$',  'z'};
     intptr_t len2 = ARRAY_SIZE(characters2);
 
     const String& str2 = String::Handle(
         ExternalTwoByteString::New(characters2, len2, NULL, NULL, Heap::kNew));
-    const String* data[3] = { &str1, &Symbols::Dot(), &str2 };
+    const String* data[3] = {&str1, &Symbols::Dot(), &str2};
     CheckConcatAll(data, 3);
   }
 
   {
     const String& empty = String::Handle(String::New(""));
-    const String* data[3] = { &Symbols::FallThroughError(),
-                              &empty,
-                              &Symbols::isPaused() };
+    const String* data[3] = {&Symbols::FallThroughError(), &empty,
+                             &Symbols::isPaused()};
     CheckConcatAll(data, 3);
   }
 }
@@ -4712,19 +4661,20 @@ struct TestResult {
 
 VM_TEST_CASE(String_ScrubName) {
   TestResult tests[] = {
-    {"(dynamic, dynamic) => void", "(dynamic, dynamic) => void"},
-    {"_List@915557746", "_List"},
-    {"_HashMap@600006304<K, V>(dynamic) => V", "_HashMap<K, V>(dynamic) => V"},
-    {"set:foo", "foo="},
-    {"get:foo", "foo"},
-    {"_ReceivePortImpl@709387912", "_ReceivePortImpl"},
-    {"_ReceivePortImpl@709387912._internal@709387912",
-        "_ReceivePortImpl._internal"},
-    {"_C@6328321&_E@6328321&_F@6328321", "_C&_E&_F"},
-    {"List.", "List"},
-    {"get:foo@6328321", "foo"},
-    {"_MyClass@6328321.", "_MyClass"},
-    {"_MyClass@6328321.named", "_MyClass.named"},
+      {"(dynamic, dynamic) => void", "(dynamic, dynamic) => void"},
+      {"_List@915557746", "_List"},
+      {"_HashMap@600006304<K, V>(dynamic) => V",
+       "_HashMap<K, V>(dynamic) => V"},
+      {"set:foo", "foo="},
+      {"get:foo", "foo"},
+      {"_ReceivePortImpl@709387912", "_ReceivePortImpl"},
+      {"_ReceivePortImpl@709387912._internal@709387912",
+       "_ReceivePortImpl._internal"},
+      {"_C@6328321&_E@6328321&_F@6328321", "_C&_E&_F"},
+      {"List.", "List"},
+      {"get:foo@6328321", "foo"},
+      {"_MyClass@6328321.", "_MyClass"},
+      {"_MyClass@6328321.named", "_MyClass.named"},
   };
   String& test = String::Handle();
   String& result = String::Handle();
@@ -4741,9 +4691,8 @@ VM_TEST_CASE(String_EqualsUTF32) {
   // and utf32 arrays happens after conversion to utf16 instead of utf32, as
   // required for proper canonicalization of string literals with a lossy
   // utf32->utf16 conversion.
-  int32_t char_codes[] = {
-    0, 0x0a, 0x0d, 0x7f, 0xff, 0xffff, 0xd800, 0xdc00, 0xdbff, 0xdfff
-  };
+  int32_t char_codes[] = {0,      0x0a,   0x0d,   0x7f,   0xff,
+                          0xffff, 0xd800, 0xdc00, 0xdbff, 0xdfff};
 
   const String& str =
       String::Handle(String::FromUTF32(char_codes, ARRAY_SIZE(char_codes)));

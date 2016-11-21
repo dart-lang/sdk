@@ -4,6 +4,7 @@
 
 #include "vm/kernel.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 
 namespace kernel {
@@ -23,7 +24,9 @@ Node::~Node() {}
 TreeNode::~TreeNode() {}
 
 
-void TreeNode::AcceptVisitor(Visitor* visitor) { AcceptTreeVisitor(visitor); }
+void TreeNode::AcceptVisitor(Visitor* visitor) {
+  AcceptTreeVisitor(visitor);
+}
 
 
 Library::~Library() {}
@@ -1072,7 +1075,9 @@ void FunctionDeclaration::VisitChildren(Visitor* visitor) {
 Name::~Name() {}
 
 
-void Name::AcceptVisitor(Visitor* visitor) { visitor->VisitName(this); }
+void Name::AcceptVisitor(Visitor* visitor) {
+  visitor->VisitName(this);
+}
 
 
 void Name::VisitChildren(Visitor* visitor) {}
@@ -1203,3 +1208,4 @@ void Program::VisitChildren(Visitor* visitor) {
 }  // namespace kernel
 
 }  // namespace dart
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -245,6 +245,11 @@ class Driver implements ServerStarter {
   /**
    * The name of the option used to enable using pub summary manager.
    */
+  static const String ENABLE_NEW_ANALYSIS_DRIVER = 'enable-new-analysis-driver';
+
+  /**
+   * The name of the option used to enable using pub summary manager.
+   */
   static const String ENABLE_PUB_SUMMARY_MANAGER = 'enable-pub-summary-manager';
 
   /**
@@ -383,10 +388,12 @@ class Driver implements ServerStarter {
         results[ENABLE_INCREMENTAL_RESOLUTION_API];
     analysisServerOptions.enableIncrementalResolutionValidation =
         results[INCREMENTAL_RESOLUTION_VALIDATION];
+    analysisServerOptions.enableNewAnalysisDriver =
+        results[ENABLE_NEW_ANALYSIS_DRIVER];
     analysisServerOptions.enablePubSummaryManager =
         results[ENABLE_PUB_SUMMARY_MANAGER];
     analysisServerOptions.finerGrainedInvalidation =
-        true /*results[FINER_GRAINED_INVALIDATION]*/;
+        results[FINER_GRAINED_INVALIDATION];
     analysisServerOptions.noErrorNotification = results[NO_ERROR_NOTIFICATION];
     analysisServerOptions.noIndex = results[NO_INDEX];
     analysisServerOptions.useAnalysisHighlight2 =
@@ -421,7 +428,8 @@ class Driver implements ServerStarter {
           .defaultSdkDirectory(PhysicalResourceProvider.INSTANCE)
           .path;
     }
-    bool useSummaries = analysisServerOptions.fileReadMode == 'as-is';
+    bool useSummaries = analysisServerOptions.fileReadMode == 'as-is' ||
+        analysisServerOptions.enableNewAnalysisDriver;
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
@@ -530,6 +538,10 @@ class Driver implements ServerStarter {
         help: "set a destination for the incremental resolver's log");
     parser.addFlag(INCREMENTAL_RESOLUTION_VALIDATION,
         help: "enable validation of incremental resolution results (slow)",
+        defaultsTo: false,
+        negatable: false);
+    parser.addFlag(ENABLE_NEW_ANALYSIS_DRIVER,
+        help: "enable using new analysis driver",
         defaultsTo: false,
         negatable: false);
     parser.addFlag(ENABLE_PUB_SUMMARY_MANAGER,

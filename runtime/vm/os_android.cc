@@ -7,16 +7,16 @@
 
 #include "vm/os.h"
 
-#include <android/log.h>  // NOLINT
-#include <endian.h>  // NOLINT
-#include <errno.h>  // NOLINT
-#include <limits.h>  // NOLINT
-#include <malloc.h>  // NOLINT
-#include <time.h>  // NOLINT
+#include <android/log.h>   // NOLINT
+#include <endian.h>        // NOLINT
+#include <errno.h>         // NOLINT
+#include <limits.h>        // NOLINT
+#include <malloc.h>        // NOLINT
+#include <time.h>          // NOLINT
 #include <sys/resource.h>  // NOLINT
-#include <sys/time.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <sys/time.h>      // NOLINT
+#include <sys/types.h>     // NOLINT
+#include <unistd.h>        // NOLINT
 
 #include "platform/utils.h"
 #include "vm/code_observers.h"
@@ -31,8 +31,10 @@ namespace dart {
 
 #ifndef PRODUCT
 
-DEFINE_FLAG(bool, generate_perf_events_symbols, false,
-    "Generate events symbols for profiling with perf");
+DEFINE_FLAG(bool,
+            generate_perf_events_symbols,
+            false,
+            "Generate events symbols for profiling with perf");
 
 class PerfCodeObserver : public CodeObserver {
  public:
@@ -69,8 +71,9 @@ class PerfCodeObserver : public CodeObserver {
       return;
     }
     const char* marker = optimized ? "*" : "";
-    char* buffer = OS::SCreate(Thread::Current()->zone(),
-        "%" Px " %" Px " %s%s\n", base, size, marker, name);
+    char* buffer =
+        OS::SCreate(Thread::Current()->zone(), "%" Px " %" Px " %s%s\n", base,
+                    size, marker, name);
     (*file_write)(buffer, strlen(buffer), out_file_);
   }
 
@@ -184,7 +187,7 @@ int64_t OS::GetCurrentThreadCPUMicros() {
 // TODO(5411554):  May need to hoist these architecture dependent code
 // into a architecture specific file e.g: os_ia32_linux.cc
 intptr_t OS::ActivationFrameAlignment() {
-#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) || \
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
     defined(TARGET_ARCH_ARM64)
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_DBC)
@@ -203,10 +206,8 @@ intptr_t OS::ActivationFrameAlignment() {
 
 
 intptr_t OS::PreferredCodeAlignment() {
-#if defined(TARGET_ARCH_IA32) ||                                               \
-    defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM64) ||                                              \
-    defined(TARGET_ARCH_DBC)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64) ||                   \
+    defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 32;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   const int kMinimumAlignment = 16;
@@ -390,8 +391,7 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
   if (str[0] == '-') {
     i = 1;
   }
-  if ((str[i] == '0') &&
-      (str[i + 1] == 'x' || str[i + 1] == 'X') &&
+  if ((str[i] == '0') && (str[i + 1] == 'x' || str[i + 1] == 'X') &&
       (str[i + 2] != '\0')) {
     base = 16;
   }
@@ -430,8 +430,7 @@ void OS::InitOnce() {
 }
 
 
-void OS::Shutdown() {
-}
+void OS::Shutdown() {}
 
 
 void OS::Abort() {

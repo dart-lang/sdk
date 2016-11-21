@@ -36,6 +36,28 @@ E e() {
     verify([source]);
   }
 
+  void
+      test_abstractSuperMemberReference_superHasConcrete_mixinHasAbstract_method() {
+    Source source = addSource('''
+class A {
+  void method() {}
+}
+
+abstract class B {
+  void method();
+}
+
+class C extends A with B {
+  void method() {
+    super.method();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_abstractSuperMemberReference_superHasNoSuchMethod() {
     Source source = addSource('''
 abstract class A {
@@ -3718,15 +3740,6 @@ class B extends A {
     verify([source]);
   }
 
-  void test_nativeFunctionBodyInNonSDKCode_function() {
-    Source source = addSource(r'''
-import 'dart-ext:x';
-int m(a) native 'string';''');
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    // Cannot verify the AST because the import's URI cannot be resolved.
-  }
-
   void test_nativeConstConstructor() {
     Source source = addSource(r'''
 import 'dart-ext:x';
@@ -3734,6 +3747,15 @@ class Foo {
   const Foo() native 'Foo_Foo';
   const factory Foo.foo() native 'Foo_Foo_foo';
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    // Cannot verify the AST because the import's URI cannot be resolved.
+  }
+
+  void test_nativeFunctionBodyInNonSDKCode_function() {
+    Source source = addSource(r'''
+import 'dart-ext:x';
+int m(a) native 'string';''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     // Cannot verify the AST because the import's URI cannot be resolved.

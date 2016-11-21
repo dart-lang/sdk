@@ -1163,6 +1163,125 @@ main() {}
     expect(unit, isNotNull);
   }
 
+  void test_flushSingleResolvedUnit_instanceField() {
+    _checkFlushSingleResolvedUnit('class C { var x = 0; }',
+        (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(1), reason: reason);
+      ClassElement cls = unitElement.types[0];
+      expect(cls.fields, hasLength(1), reason: reason);
+      expect(cls.fields[0].type.toString(), 'int', reason: reason);
+      expect(cls.accessors, hasLength(2), reason: reason);
+      expect(cls.accessors[0].isGetter, isTrue, reason: reason);
+      expect(cls.accessors[0].returnType.toString(), 'int', reason: reason);
+      expect(cls.accessors[1].isSetter, isTrue, reason: reason);
+      expect(cls.accessors[1].returnType.toString(), 'void', reason: reason);
+      expect(cls.accessors[1].parameters, hasLength(1), reason: reason);
+      expect(cls.accessors[1].parameters[0].type.toString(), 'int',
+          reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_instanceGetter() {
+    _checkFlushSingleResolvedUnit(
+        '''
+abstract class B {
+  int get x;
+}
+class C extends B {
+  get x => null;
+}
+''', (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(2), reason: reason);
+      ClassElement cls = unitElement.types[1];
+      expect(cls.name, 'C', reason: reason);
+      expect(cls.accessors, hasLength(1), reason: reason);
+      expect(cls.accessors[0].returnType.toString(), 'int', reason: reason);
+      expect(cls.fields, hasLength(1), reason: reason);
+      expect(cls.fields[0].type.toString(), 'int', reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_instanceMethod() {
+    _checkFlushSingleResolvedUnit(
+        '''
+abstract class B {
+  int f(String s);
+}
+class C extends B {
+  f(s) => null;
+}
+''', (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(2), reason: reason);
+      ClassElement cls = unitElement.types[1];
+      expect(cls.name, 'C', reason: reason);
+      expect(cls.methods, hasLength(1), reason: reason);
+      expect(cls.methods[0].returnType.toString(), 'int', reason: reason);
+      expect(cls.methods[0].parameters, hasLength(1), reason: reason);
+      expect(cls.methods[0].parameters[0].type.toString(), 'String',
+          reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_instanceSetter() {
+    _checkFlushSingleResolvedUnit(
+        '''
+abstract class B {
+  set x(int value);
+}
+class C extends B {
+  set x(value) {}
+}
+''', (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(2), reason: reason);
+      ClassElement cls = unitElement.types[1];
+      expect(cls.name, 'C', reason: reason);
+      expect(cls.accessors, hasLength(1), reason: reason);
+      expect(cls.accessors[0].returnType.toString(), 'void', reason: reason);
+      expect(cls.accessors[0].parameters, hasLength(1), reason: reason);
+      expect(cls.accessors[0].parameters[0].type.toString(), 'int',
+          reason: reason);
+      expect(cls.fields, hasLength(1), reason: reason);
+      expect(cls.fields[0].type.toString(), 'int', reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_staticField() {
+    _checkFlushSingleResolvedUnit('class C { static var x = 0; }',
+        (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.types, hasLength(1), reason: reason);
+      ClassElement cls = unitElement.types[0];
+      expect(cls.fields, hasLength(1), reason: reason);
+      expect(cls.fields[0].type.toString(), 'int', reason: reason);
+      expect(cls.accessors, hasLength(2), reason: reason);
+      expect(cls.accessors[0].isGetter, isTrue, reason: reason);
+      expect(cls.accessors[0].returnType.toString(), 'int', reason: reason);
+      expect(cls.accessors[1].isSetter, isTrue, reason: reason);
+      expect(cls.accessors[1].returnType.toString(), 'void', reason: reason);
+      expect(cls.accessors[1].parameters, hasLength(1), reason: reason);
+      expect(cls.accessors[1].parameters[0].type.toString(), 'int',
+          reason: reason);
+    });
+  }
+
+  void test_flushSingleResolvedUnit_topLevelVariable() {
+    _checkFlushSingleResolvedUnit('var x = 0;',
+        (CompilationUnitElement unitElement, String reason) {
+      expect(unitElement.topLevelVariables, hasLength(1), reason: reason);
+      expect(unitElement.topLevelVariables[0].type.toString(), 'int',
+          reason: reason);
+      expect(unitElement.accessors, hasLength(2), reason: reason);
+      expect(unitElement.accessors[0].isGetter, isTrue, reason: reason);
+      expect(unitElement.accessors[0].returnType.toString(), 'int',
+          reason: reason);
+      expect(unitElement.accessors[1].isSetter, isTrue, reason: reason);
+      expect(unitElement.accessors[1].returnType.toString(), 'void',
+          reason: reason);
+      expect(unitElement.accessors[1].parameters, hasLength(1), reason: reason);
+      expect(unitElement.accessors[1].parameters[0].type.toString(), 'int',
+          reason: reason);
+    });
+  }
+
   void test_getAnalysisOptions() {
     expect(context.analysisOptions, isNotNull);
   }
@@ -2529,6 +2648,15 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
   }
 
+  void test_resolveCompilationUnit_library() {
+    Source source = addSource("/lib.dart", "library lib;");
+    LibraryElement library = context.computeLibraryElement(source);
+    CompilationUnit compilationUnit =
+        context.resolveCompilationUnit(source, library);
+    expect(compilationUnit, isNotNull);
+    expect(compilationUnit.element, isNotNull);
+  }
+
 //  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
 //    _context = new _AnalysisContext_sourceChangeDuringResolution();
 //    AnalysisContextFactory.initContextWithCore(_context);
@@ -2539,15 +2667,6 @@ void functionWithClosureAsDefaultParam([x = () => null]) {}
 //    expect(compilationUnit, isNotNull);
 //    expect(_context.getLineInfo(source), isNotNull);
 //  }
-
-  void test_resolveCompilationUnit_library() {
-    Source source = addSource("/lib.dart", "library lib;");
-    LibraryElement library = context.computeLibraryElement(source);
-    CompilationUnit compilationUnit =
-        context.resolveCompilationUnit(source, library);
-    expect(compilationUnit, isNotNull);
-    expect(compilationUnit.element, isNotNull);
-  }
 
   void test_resolveCompilationUnit_source() {
     Source source = addSource("/lib.dart", "library lib;");
@@ -2827,6 +2946,25 @@ int a = 0;''');
     ChangeSet changeSet = new ChangeSet();
     changeSet.changedSource(source);
     context.applyChanges(changeSet);
+  }
+
+  void _checkFlushSingleResolvedUnit(String code,
+      void validate(CompilationUnitElement unitElement, String reason)) {
+    prepareAnalysisContext(new AnalysisOptionsImpl()..strongMode = true);
+    String path = resourceProvider.convertPath('/test.dart');
+    Source source = resourceProvider.newFile(path, code).createSource();
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    CompilationUnitElement unitElement =
+        context.resolveCompilationUnit2(source, source).element;
+    validate(unitElement, 'initial state');
+    for (ResultDescriptor<CompilationUnit> descriptor
+        in RESOLVED_UNIT_RESULTS) {
+      context.analysisCache.flush(
+          (target, result) => target.source == source && result == descriptor);
+      context.computeResult(
+          new LibrarySpecificUnit(source, source), descriptor);
+      validate(unitElement, 'after flushing $descriptor');
+    }
   }
 
   /**
@@ -5257,8 +5395,7 @@ class _ElementComparer extends GeneralizingElementVisitor {
   @override
   void visitElement(Element element) {
     Element previousElement = previousElements[element];
-    bool expectIdentical = element is! LocalVariableElement;
-    bool ok = expectIdentical
+    bool ok = _expectedIdentical(element)
         ? identical(previousElement, element)
         : previousElement == element;
     if (!ok) {
@@ -5275,6 +5412,23 @@ class _ElementComparer extends GeneralizingElementVisitor {
       }
     }
     super.visitElement(element);
+  }
+
+  /**
+   * Return `true` if the given [element] should be the same as the previous
+   * element at the same position in the element model.
+   */
+  static bool _expectedIdentical(Element element) {
+    while (element != null) {
+      if (element is ConstructorElement ||
+          element is MethodElement ||
+          element is FunctionElement &&
+              element.enclosingElement is CompilationUnitElement) {
+        return false;
+      }
+      element = element.enclosingElement;
+    }
+    return true;
   }
 }
 

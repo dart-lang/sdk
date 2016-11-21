@@ -28,9 +28,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
   vsnprintf(buffer + file_and_line_length,
-            sizeof(buffer) - file_and_line_length,
-            format,
-            arguments);
+            sizeof(buffer) - file_and_line_length, format, arguments);
   va_end(arguments);
 
   // Print the buffer on stderr and/or syslog.

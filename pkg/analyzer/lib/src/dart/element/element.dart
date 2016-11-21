@@ -191,45 +191,61 @@ abstract class AbstractClassElementImpl extends ElementImpl
   @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpConcreteMethod(
-          methodName, library, true, new HashSet<ClassElement>());
+      _first(_implementationsOfMethod(methodName).where(
+          (MethodElement method) =>
+              !method.isAbstract && method.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement lookUpGetter(
           String getterName, LibraryElement library) =>
-      _internalLookUpGetter(getterName, library, true);
+      _first(_implementationsOfGetter(getterName).where(
+          (PropertyAccessorElement getter) => getter.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteGetter(
           String getterName, LibraryElement library) =>
-      _internalLookUpConcreteGetter(getterName, library, false);
+      _first(_implementationsOfGetter(getterName).where(
+          (PropertyAccessorElement getter) =>
+              !getter.isAbstract &&
+              getter.isAccessibleIn(library) &&
+              getter.enclosingElement != this));
 
   @override
   MethodElement lookUpInheritedConcreteMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpConcreteMethod(
-          methodName, library, false, new HashSet<ClassElement>());
+      _first(_implementationsOfMethod(methodName).where(
+          (MethodElement method) =>
+              !method.isAbstract &&
+              method.isAccessibleIn(library) &&
+              method.enclosingElement != this));
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteSetter(
           String setterName, LibraryElement library) =>
-      _internalLookUpConcreteSetter(setterName, library, false);
+      _first(_implementationsOfSetter(setterName).where(
+          (PropertyAccessorElement setter) =>
+              !setter.isAbstract &&
+              setter.isAccessibleIn(library) &&
+              setter.enclosingElement != this));
 
   @override
   MethodElement lookUpInheritedMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpMethod(
-          methodName, library, false, new HashSet<ClassElement>());
+      _first(_implementationsOfMethod(methodName).where(
+          (MethodElement method) =>
+              method.isAccessibleIn(library) &&
+              method.enclosingElement != this));
 
   @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) =>
-      _internalLookUpMethod(
-          methodName, library, true, new HashSet<ClassElement>());
+      _first(_implementationsOfMethod(methodName)
+          .where((MethodElement method) => method.isAccessibleIn(library)));
 
   @override
   PropertyAccessorElement lookUpSetter(
           String setterName, LibraryElement library) =>
-      _internalLookUpSetter(setterName, library, true);
+      _first(_implementationsOfSetter(setterName).where(
+          (PropertyAccessorElement setter) => setter.isAccessibleIn(library)));
 
   @override
   void visitChildren(ElementVisitor visitor) {
@@ -238,151 +254,110 @@ abstract class AbstractClassElementImpl extends ElementImpl
     safelyVisitChildren(fields, visitor);
   }
 
-  PropertyAccessorElement _internalLookUpConcreteGetter(
-      String getterName, LibraryElement library, bool includeThisClass) {
-    PropertyAccessorElement getter =
-        _internalLookUpGetter(getterName, library, includeThisClass);
-    while (getter != null && getter.isAbstract) {
-      Element definingClass = getter.enclosingElement;
-      if (definingClass is! ClassElement) {
-        return null;
-      }
-      getter = getImpl(definingClass)
-          ._internalLookUpGetter(getterName, library, false);
+  /**
+   * Return the first element from the given [iterable], or `null` if the
+   * iterable is empty.
+   */
+  Object/*=E*/ _first/*<E>*/(Iterable/*<E>*/ iterable) {
+    if (iterable.isEmpty) {
+      return null;
     }
-    return getter;
+    return iterable.first;
   }
 
-  MethodElement _internalLookUpConcreteMethod(
-      String methodName,
-      LibraryElement library,
-      bool includeThisClass,
-      HashSet<ClassElement> visitedClasses) {
-    MethodElement method = _internalLookUpMethod(
-        methodName, library, includeThisClass, visitedClasses);
-    while (method != null && method.isAbstract) {
-      ClassElement definingClass = method.enclosingElement;
-      if (definingClass == null) {
-        return null;
-      }
-      method = getImpl(definingClass)
-          ._internalLookUpMethod(methodName, library, false, visitedClasses);
-    }
-    return method;
-  }
-
-  PropertyAccessorElement _internalLookUpConcreteSetter(
-      String setterName, LibraryElement library, bool includeThisClass) {
-    PropertyAccessorElement setter =
-        _internalLookUpSetter(setterName, library, includeThisClass);
-    while (setter != null && setter.isAbstract) {
-      Element definingClass = setter.enclosingElement;
-      if (definingClass is ClassElementImpl) {
-        setter =
-            definingClass._internalLookUpSetter(setterName, library, false);
-      } else {
-        return null;
-      }
-    }
-    return setter;
-  }
-
-  PropertyAccessorElement _internalLookUpGetter(
-      String getterName, LibraryElement library, bool includeThisClass) {
+  /**
+   * Return an iterable containing all of the implementations of a getter with
+   * the given [getterName] that are defined in this class any any superclass of
+   * this class (but not in interfaces).
+   *
+   * The getters that are returned are not filtered in any way. In particular,
+   * they can include getters that are not visible in some context. Clients must
+   * perform any necessary filtering.
+   *
+   * The getters are returned based on the depth of their defining class; if
+   * this class contains a definition of the getter it will occur first, if
+   * Object contains a definition of the getter it will occur last.
+   */
+  Iterable<PropertyAccessorElement> _implementationsOfGetter(
+      String getterName) sync* {
+    ClassElement classElement = this;
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    ClassElement currentElement = this;
-    if (includeThisClass) {
-      PropertyAccessorElement element = currentElement.getGetter(getterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
+    while (classElement != null && visitedClasses.add(classElement)) {
+      PropertyAccessorElement getter = classElement.getGetter(getterName);
+      if (getter != null) {
+        yield getter;
       }
-    }
-    while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins.reversed) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          PropertyAccessorElement element = mixinElement.getGetter(getterName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        getter = mixin.element?.getGetter(getterName);
+        if (getter != null) {
+          yield getter;
         }
       }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-      PropertyAccessorElement element = currentElement.getGetter(getterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
+      classElement = classElement.supertype?.element;
     }
-    return null;
   }
 
-  MethodElement _internalLookUpMethod(String methodName, LibraryElement library,
-      bool includeThisClass, HashSet<ClassElement> visitedClasses) {
-    ClassElement currentElement = this;
-    if (includeThisClass) {
-      MethodElement element = currentElement.getMethod(methodName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-    }
-    while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins.reversed) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          MethodElement element = mixinElement.getMethod(methodName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
-        }
-      }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-      MethodElement element = currentElement.getMethod(methodName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
-    }
-    return null;
-  }
-
-  PropertyAccessorElement _internalLookUpSetter(
-      String setterName, LibraryElement library, bool includeThisClass) {
+  /**
+   * Return an iterable containing all of the implementations of a method with
+   * the given [methodName] that are defined in this class any any superclass of
+   * this class (but not in interfaces).
+   *
+   * The methods that are returned are not filtered in any way. In particular,
+   * they can include methods that are not visible in some context. Clients must
+   * perform any necessary filtering.
+   *
+   * The methods are returned based on the depth of their defining class; if
+   * this class contains a definition of the method it will occur first, if
+   * Object contains a definition of the method it will occur last.
+   */
+  Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
+    ClassElement classElement = this;
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    ClassElement currentElement = this;
-    if (includeThisClass) {
-      PropertyAccessorElement element = currentElement.getSetter(setterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
+    while (classElement != null && visitedClasses.add(classElement)) {
+      MethodElement method = classElement.getMethod(methodName);
+      if (method != null) {
+        yield method;
       }
-    }
-    while (currentElement != null && visitedClasses.add(currentElement)) {
-      for (InterfaceType mixin in currentElement.mixins.reversed) {
-        ClassElement mixinElement = mixin.element;
-        if (mixinElement != null) {
-          PropertyAccessorElement element = mixinElement.getSetter(setterName);
-          if (element != null && element.isAccessibleIn(library)) {
-            return element;
-          }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        method = mixin.element?.getMethod(methodName);
+        if (method != null) {
+          yield method;
         }
       }
-      InterfaceType supertype = currentElement.supertype;
-      if (supertype == null) {
-        return null;
-      }
-      currentElement = supertype.element;
-      PropertyAccessorElement element = currentElement.getSetter(setterName);
-      if (element != null && element.isAccessibleIn(library)) {
-        return element;
-      }
+      classElement = classElement.supertype?.element;
     }
-    return null;
+  }
+
+  /**
+   * Return an iterable containing all of the implementations of a setter with
+   * the given [setterName] that are defined in this class any any superclass of
+   * this class (but not in interfaces).
+   *
+   * The setters that are returned are not filtered in any way. In particular,
+   * they can include setters that are not visible in some context. Clients must
+   * perform any necessary filtering.
+   *
+   * The setters are returned based on the depth of their defining class; if
+   * this class contains a definition of the setter it will occur first, if
+   * Object contains a definition of the setter it will occur last.
+   */
+  Iterable<PropertyAccessorElement> _implementationsOfSetter(
+      String setterName) sync* {
+    ClassElement classElement = this;
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    while (classElement != null && visitedClasses.add(classElement)) {
+      PropertyAccessorElement setter = classElement.getSetter(setterName);
+      if (setter != null) {
+        yield setter;
+      }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        setter = mixin.element?.getSetter(setterName);
+        if (setter != null) {
+          yield setter;
+        }
+      }
+      classElement = classElement.supertype?.element;
+    }
   }
 
   /**
@@ -571,7 +546,7 @@ class ClassElementImpl extends AbstractClassElementImpl
       // Ensure at least implicit default constructor.
       if (_constructors.isEmpty) {
         ConstructorElementImpl constructor = new ConstructorElementImpl('', -1);
-        constructor.synthetic = true;
+        constructor.isSynthetic = true;
         constructor.enclosingElement = this;
         _constructors = <ConstructorElement>[constructor];
       }
@@ -1174,7 +1149,7 @@ class ClassElementImpl extends AbstractClassElementImpl
         .map((ConstructorElement superclassConstructor) {
       ConstructorElementImpl implicitConstructor =
           new ConstructorElementImpl(superclassConstructor.name, -1);
-      implicitConstructor.synthetic = true;
+      implicitConstructor.isSynthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
@@ -1185,10 +1160,10 @@ class ClassElementImpl extends AbstractClassElementImpl
           ParameterElement superParameter = superParameters[i];
           ParameterElementImpl implicitParameter =
               new ParameterElementImpl(superParameter.name, -1);
-          implicitParameter.const3 = superParameter.isConst;
-          implicitParameter.final2 = superParameter.isFinal;
+          implicitParameter.isConst = superParameter.isConst;
+          implicitParameter.isFinal = superParameter.isFinal;
           implicitParameter.parameterKind = superParameter.parameterKind;
-          implicitParameter.synthetic = true;
+          implicitParameter.isSynthetic = true;
           implicitParameter.type =
               superParameter.type.substitute2(argumentTypes, parameterTypes);
           implicitParameters[i] = implicitParameter;
@@ -1246,12 +1221,12 @@ class ClassElementImpl extends AbstractClassElementImpl
           field = new FieldElementImpl(fieldName, -1);
           implicitFields[fieldName] = field;
           field.enclosingElement = this;
-          field.synthetic = true;
-          field.final2 = e.kind == UnlinkedExecutableKind.getter;
+          field.isSynthetic = true;
+          field.isFinal = e.kind == UnlinkedExecutableKind.getter;
           field.type = fieldType;
-          field.static = e.isStatic;
+          field.isStatic = e.isStatic;
         } else {
-          field.final2 = false;
+          field.isFinal = false;
         }
         accessor.variable = field;
         if (e.kind == UnlinkedExecutableKind.getter) {
@@ -1882,7 +1857,7 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
 class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
   ConstFieldElementImpl_EnumValues(EnumElementImpl enumElement)
       : super(enumElement) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -1924,17 +1899,7 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   }
 
   @override
-  void set const3(bool isConst) {
-    assert(false);
-  }
-
-  @override
   void set evaluationResult(_) {
-    assert(false);
-  }
-
-  @override
-  void set final2(bool isFinal) {
     assert(false);
   }
 
@@ -1942,10 +1907,20 @@ abstract class ConstFieldElementImpl_ofEnum extends ConstFieldElementImpl {
   bool get isConst => true;
 
   @override
+  void set isConst(bool isConst) {
+    assert(false);
+  }
+
+  @override
+  void set isFinal(bool isFinal) {
+    assert(false);
+  }
+
+  @override
   bool get isStatic => true;
 
   @override
-  void set static(bool isStatic) {
+  void set isStatic(bool isStatic) {
     assert(false);
   }
 
@@ -2030,14 +2005,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       UnlinkedExecutable serializedExecutable, ClassElementImpl enclosingClass)
       : super.forSerialized(serializedExecutable, enclosingClass);
 
-  /**
-   * Set whether this constructor represents a 'const' constructor.
-   */
-  void set const2(bool isConst) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.CONST, isConst);
-  }
-
   List<ConstructorInitializer> get constantInitializers {
     if (serializedExecutable != null && _constantInitializers == null) {
       _constantInitializers ??= serializedExecutable.constantInitializers
@@ -2075,6 +2042,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return serializedExecutable.isConst;
     }
     return hasModifier(Modifier.CONST);
+  }
+
+  /**
+   * Set whether this constructor represents a 'const' constructor.
+   */
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.CONST, isConst);
   }
 
   bool get isCycleFree {
@@ -2361,7 +2336,7 @@ abstract class ConstVariableElement
    * If this element is resynthesized from the summary, return the unlinked
    * initializer, otherwise return `null`.
    */
-  UnlinkedConst get _unlinkedConst;
+  UnlinkedExpr get _unlinkedConst;
 
   /**
    * Return a representation of the value of this variable, forcing the value
@@ -2913,6 +2888,13 @@ abstract class ElementImpl implements Element {
   @override
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
 
+  /**
+   * Set whether this element is synthetic.
+   */
+  void set isSynthetic(bool isSynthetic) {
+    setModifier(Modifier.SYNTHETIC, isSynthetic);
+  }
+
   @override
   LibraryElement get library =>
       getAncestor((element) => element is LibraryElement);
@@ -2974,13 +2956,6 @@ abstract class ElementImpl implements Element {
       return null;
     }
     return _enclosingElement.source;
-  }
-
-  /**
-   * Set whether this element is synthetic.
-   */
-  void set synthetic(bool isSynthetic) {
-    setModifier(Modifier.SYNTHETIC, isSynthetic);
   }
 
   /**
@@ -3154,7 +3129,7 @@ abstract class ElementImpl implements Element {
    * Return annotations for the given [unlinkedConsts] in the [unit].
    */
   List<ElementAnnotation> _buildAnnotations(
-      CompilationUnitElementImpl unit, List<UnlinkedConst> unlinkedConsts) {
+      CompilationUnitElementImpl unit, List<UnlinkedExpr> unlinkedConsts) {
     int length = unlinkedConsts.length;
     if (length != 0) {
       List<ElementAnnotation> annotations = new List<ElementAnnotation>(length);
@@ -3168,7 +3143,7 @@ abstract class ElementImpl implements Element {
     }
   }
 
-  static int _findElementIndexUsingIdentical(List items, Object item) {
+  static int findElementIndexUsingIdentical(List items, Object item) {
     int length = items.length;
     for (int i = 0; i < length; i++) {
       if (identical(items[i], item)) {
@@ -3544,8 +3519,8 @@ class EnumElementImpl extends AbstractClassElementImpl {
     // Build the 'index' field.
     fields.add(new FieldElementImpl('index', -1)
       ..enclosingElement = this
-      ..synthetic = true
-      ..final2 = true
+      ..isSynthetic = true
+      ..isFinal = true
       ..type = context.typeProvider.intType);
     // Build the 'values' field.
     fields.add(new ConstFieldElementImpl_EnumValues(this));
@@ -3606,7 +3581,12 @@ abstract class ExecutableElementImpl extends ElementImpl
   List<TypeParameterElement> _typeParameters;
 
   /**
-   * The return type defined by this executable element.
+   * The declared return type of this executable element.
+   */
+  DartType _declaredReturnType;
+
+  /**
+   * The inferred return type of this executable element.
    */
   DartType _returnType;
 
@@ -3659,6 +3639,11 @@ abstract class ExecutableElementImpl extends ElementImpl
       return serializedExecutable.codeRange?.offset;
     }
     return super.codeOffset;
+  }
+
+  void set declaredReturnType(DartType returnType) {
+    _assertNotResynthesized(serializedExecutable);
+    _declaredReturnType = returnType;
   }
 
   @override
@@ -3872,17 +3857,18 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   DartType get returnType {
-    if (serializedExecutable != null && _returnType == null) {
+    if (serializedExecutable != null &&
+        _declaredReturnType == null &&
+        _returnType == null) {
       bool isSetter =
           serializedExecutable.kind == UnlinkedExecutableKind.setter;
       _returnType = enclosingUnit.resynthesizerContext.resolveLinkedType(
-              serializedExecutable.inferredReturnTypeSlot,
-              typeParameterContext) ??
-          enclosingUnit.resynthesizerContext.resolveTypeRef(
-              serializedExecutable.returnType, typeParameterContext,
-              defaultVoid: isSetter && context.analysisOptions.strongMode);
+          serializedExecutable.inferredReturnTypeSlot, typeParameterContext);
+      _declaredReturnType = enclosingUnit.resynthesizerContext.resolveTypeRef(
+          serializedExecutable.returnType, typeParameterContext,
+          defaultVoid: isSetter && context.analysisOptions.strongMode);
     }
-    return _returnType;
+    return _returnType ?? _declaredReturnType;
   }
 
   void set returnType(DartType returnType) {
@@ -4234,6 +4220,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this field is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(_unlinkedVariable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   bool get isVirtual {
     for (ElementAnnotationImpl annotation in metadata) {
@@ -4246,14 +4240,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   ElementKind get kind => ElementKind.FIELD;
-
-  /**
-   * Set whether this field is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(_unlinkedVariable);
-    setModifier(Modifier.STATIC, isStatic);
-  }
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
@@ -4384,7 +4370,7 @@ class FunctionElementImpl extends ExecutableElementImpl
   FunctionElementImpl.synthetic(
       List<ParameterElement> parameters, DartType returnType)
       : super("", -1) {
-    synthetic = true;
+    isSynthetic = true;
     this.returnType = returnType;
     this.parameters = parameters;
 
@@ -4401,8 +4387,8 @@ class FunctionElementImpl extends ExecutableElementImpl
     String identifier = super.identifier;
     Element enclosing = this.enclosingElement;
     if (enclosing is ExecutableElement) {
-      int id = ElementImpl._findElementIndexUsingIdentical(
-          enclosing.functions, this);
+      int id =
+          ElementImpl.findElementIndexUsingIdentical(enclosing.functions, this);
       identifier += "@$id";
     }
     return identifier;
@@ -5475,14 +5461,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
           _unlinkedDefiningUnit.exports.length == unlinkedPublicExports.length);
       int length = unlinkedNonPublicExports.length;
       if (length != 0) {
-        List<ExportElement> exports = new List<ExportElement>(length);
+        List<ExportElement> exports = new List<ExportElement>();
         for (int i = 0; i < length; i++) {
           UnlinkedExportPublic serializedExportPublic =
               unlinkedPublicExports[i];
-          UnlinkedExportNonPublic serializedExportNonPublic =
-              unlinkedNonPublicExports[i];
-          exports[i] = new ExportElementImpl.forSerialized(
-              serializedExportPublic, serializedExportNonPublic, library);
+          LibraryElement exportedLibrary = resynthesizerContext
+              .buildExportedLibrary(serializedExportPublic.uri);
+          if (exportedLibrary != null) {
+            UnlinkedExportNonPublic serializedExportNonPublic =
+                unlinkedNonPublicExports[i];
+            ExportElementImpl exportElement =
+                new ExportElementImpl.forSerialized(
+                    serializedExportPublic, serializedExportNonPublic, library);
+            exports.add(exportElement);
+          }
         }
         _exports = exports;
       } else {
@@ -5548,11 +5540,18 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       List<UnlinkedImport> unlinkedImports = _unlinkedDefiningUnit.imports;
       int length = unlinkedImports.length;
       if (length != 0) {
-        List<ImportElement> imports = new List<ImportElement>(length);
+        List<ImportElement> imports = new List<ImportElement>();
         LinkedLibrary linkedLibrary = resynthesizerContext.linkedLibrary;
         for (int i = 0; i < length; i++) {
-          imports[i] = new ImportElementImpl.forSerialized(
-              unlinkedImports[i], linkedLibrary.importDependencies[i], library);
+          int dependency = linkedLibrary.importDependencies[i];
+          LibraryElement importedLibrary =
+              resynthesizerContext.buildImportedLibrary(dependency);
+          if (importedLibrary != null) {
+            ImportElementImpl importElement =
+                new ImportElementImpl.forSerialized(
+                    unlinkedImports[i], dependency, library);
+            imports.add(importElement);
+          }
         }
         _imports = imports;
       } else {
@@ -5798,7 +5797,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   void createLoadLibraryFunction(TypeProvider typeProvider) {
     FunctionElementImpl function =
         new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-    function.synthetic = true;
+    function.isSynthetic = true;
     function.enclosingElement = this;
     function.returnType = typeProvider.futureDynamicType;
     function.type = new FunctionTypeImpl(function);
@@ -6047,7 +6046,7 @@ class LocalVariableElementImpl extends NonParameterVariableElementImpl
     String identifier = super.identifier;
     Element enclosing = this.enclosingElement;
     if (enclosing is ExecutableElement) {
-      int id = ElementImpl._findElementIndexUsingIdentical(
+      int id = ElementImpl.findElementIndexUsingIdentical(
           enclosing.localVariables, this);
       identifier += "@$id";
     }
@@ -6178,6 +6177,14 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this method is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   ElementKind get kind => ElementKind.METHOD;
 
@@ -6188,14 +6195,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
       return 'unary-';
     }
     return super.name;
-  }
-
-  /**
-   * Set whether this method is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.STATIC, isStatic);
   }
 
   @override
@@ -6607,7 +6606,7 @@ class MultiplyInheritedMethodElementImpl extends MethodElementImpl
   List<ExecutableElement> _elements = MethodElement.EMPTY_LIST;
 
   MultiplyInheritedMethodElementImpl(Identifier name) : super.forNode(name) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -6633,7 +6632,7 @@ class MultiplyInheritedPropertyAccessorElementImpl
 
   MultiplyInheritedPropertyAccessorElementImpl(Identifier name)
       : super.forNode(name) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   @override
@@ -6695,23 +6694,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   @override
-  void set const3(bool isConst) {
-    _assertNotResynthesized(_unlinkedVariable);
-    super.const3 = isConst;
-  }
-
-  @override
   String get documentationComment {
     if (_unlinkedVariable != null) {
       return _unlinkedVariable?.documentationComment?.text;
     }
     return super.documentationComment;
-  }
-
-  @override
-  void set final2(bool isFinal) {
-    _assertNotResynthesized(_unlinkedVariable);
-    super.final2 = isFinal;
   }
 
   @override
@@ -6734,7 +6721,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
       UnlinkedExecutable unlinkedInitializer = _unlinkedVariable.initializer;
       if (unlinkedInitializer != null) {
         _initializer = new FunctionElementImpl.forSerialized(
-            unlinkedInitializer, this)..synthetic = true;
+            unlinkedInitializer, this)..isSynthetic = true;
       } else {
         return null;
       }
@@ -6760,11 +6747,23 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   @override
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(_unlinkedVariable);
+    super.isConst = isConst;
+  }
+
+  @override
   bool get isFinal {
     if (_unlinkedVariable != null) {
       return _unlinkedVariable.isFinal;
     }
     return super.isFinal;
+  }
+
+  @override
+  void set isFinal(bool isFinal) {
+    _assertNotResynthesized(_unlinkedVariable);
+    super.isFinal = isFinal;
   }
 
   @override
@@ -6795,11 +6794,11 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
 
   @override
   DartType get type {
-    if (_unlinkedVariable != null && _type == null) {
+    if (_unlinkedVariable != null && _declaredType == null && _type == null) {
       _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
-              _unlinkedVariable.inferredTypeSlot, typeParameterContext) ??
-          enclosingUnit.resynthesizerContext
-              .resolveTypeRef(_unlinkedVariable.type, typeParameterContext);
+          _unlinkedVariable.inferredTypeSlot, typeParameterContext);
+      _declaredType = enclosingUnit.resynthesizerContext
+          .resolveTypeRef(_unlinkedVariable.type, typeParameterContext);
     }
     return super.type;
   }
@@ -6812,7 +6811,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   /**
    * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
    */
-  UnlinkedConst get _unlinkedConst => _unlinkedVariable?.initializer?.bodyExpr;
+  UnlinkedExpr get _unlinkedConst => _unlinkedVariable?.initializer?.bodyExpr;
 }
 
 /**
@@ -6909,7 +6908,7 @@ class ParameterElementImpl extends VariableElementImpl
             unlinkedParameter, enclosingElement);
       }
     }
-    element.synthetic = synthetic;
+    element.isSynthetic = synthetic;
     return element;
   }
 
@@ -6920,7 +6919,7 @@ class ParameterElementImpl extends VariableElementImpl
       String name, DartType type, ParameterKind kind) {
     ParameterElementImpl element = new ParameterElementImpl(name, -1);
     element.type = type;
-    element.synthetic = true;
+    element.isSynthetic = true;
     element.parameterKind = kind;
     return element;
   }
@@ -6942,12 +6941,6 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  void set const3(bool isConst) {
-    _assertNotResynthesized(_unlinkedParam);
-    super.const3 = isConst;
-  }
-
-  @override
   String get defaultValueCode {
     if (_unlinkedParam != null) {
       if (_unlinkedParam.initializer?.bodyExpr == null) {
@@ -6964,12 +6957,6 @@ class ParameterElementImpl extends VariableElementImpl
   void set defaultValueCode(String defaultValueCode) {
     _assertNotResynthesized(_unlinkedParam);
     this._defaultValueCode = StringUtilities.intern(defaultValueCode);
-  }
-
-  @override
-  void set final2(bool isFinal) {
-    _assertNotResynthesized(_unlinkedParam);
-    super.final2 = isFinal;
   }
 
   @override
@@ -7014,7 +7001,7 @@ class ParameterElementImpl extends VariableElementImpl
       UnlinkedExecutable unlinkedInitializer = _unlinkedParam.initializer;
       if (unlinkedInitializer != null) {
         _initializer = new FunctionElementImpl.forSerialized(
-            unlinkedInitializer, this)..synthetic = true;
+            unlinkedInitializer, this)..isSynthetic = true;
       } else {
         return null;
       }
@@ -7040,6 +7027,12 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
+  void set isConst(bool isConst) {
+    _assertNotResynthesized(_unlinkedParam);
+    super.isConst = isConst;
+  }
+
+  @override
   bool get isCovariant {
     if (inheritsCovariant) {
       return true;
@@ -7058,6 +7051,12 @@ class ParameterElementImpl extends VariableElementImpl
       return false;
     }
     return super.isFinal;
+  }
+
+  @override
+  void set isFinal(bool isFinal) {
+    _assertNotResynthesized(_unlinkedParam);
+    super.isFinal = isFinal;
   }
 
   @override
@@ -7179,7 +7178,7 @@ class ParameterElementImpl extends VariableElementImpl
   /**
    * Subclasses need this getter, see [ConstVariableElement._unlinkedConst].
    */
-  UnlinkedConst get _unlinkedConst => _unlinkedParam?.initializer?.bodyExpr;
+  UnlinkedExpr get _unlinkedConst => _unlinkedParam?.initializer?.bodyExpr;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
@@ -7239,7 +7238,7 @@ class ParameterElementImpl extends VariableElementImpl
    * been build yet, build them and remember in the corresponding fields.
    */
   void _resynthesizeTypeAndParameters() {
-    if (_unlinkedParam != null && _type == null) {
+    if (_unlinkedParam != null && _declaredType == null && _type == null) {
       if (_unlinkedParam.isFunctionTyped) {
         CompilationUnitElementImpl enclosingUnit = this.enclosingUnit;
         FunctionElementImpl parameterTypeElement =
@@ -7266,9 +7265,9 @@ class ParameterElementImpl extends VariableElementImpl
         _type = parameterType;
       } else {
         _type = enclosingUnit.resynthesizerContext.resolveLinkedType(
-                _unlinkedParam.inferredTypeSlot, typeParameterContext) ??
-            enclosingUnit.resynthesizerContext
-                .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
+            _unlinkedParam.inferredTypeSlot, typeParameterContext);
+        _declaredType = enclosingUnit.resynthesizerContext
+            .resolveTypeRef(_unlinkedParam.type, typeParameterContext);
       }
     }
   }
@@ -7305,7 +7304,7 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
       : setter = setter,
         super('_${setter.variable.name}', setter.variable.nameOffset) {
     enclosingElement = setter;
-    synthetic = true;
+    isSynthetic = true;
     parameterKind = ParameterKind.REQUIRED;
   }
 
@@ -7467,8 +7466,8 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElementImpl.forVariable(PropertyInducingElementImpl variable)
       : super(variable.name, variable.nameOffset) {
     this.variable = variable;
-    static = variable.isStatic;
-    synthetic = true;
+    isStatic = variable.isStatic;
+    isSynthetic = true;
   }
 
   /**
@@ -7558,6 +7557,14 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return hasModifier(Modifier.STATIC);
   }
 
+  /**
+   * Set whether this accessor is static.
+   */
+  void set isStatic(bool isStatic) {
+    _assertNotResynthesized(serializedExecutable);
+    setModifier(Modifier.STATIC, isStatic);
+  }
+
   @override
   ElementKind get kind {
     if (isGetter) {
@@ -7583,14 +7590,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   void set setter(bool isSetter) {
     _assertNotResynthesized(serializedExecutable);
     setModifier(Modifier.SETTER, isSetter);
-  }
-
-  /**
-   * Set whether this accessor is static.
-   */
-  void set static(bool isStatic) {
-    _assertNotResynthesized(serializedExecutable);
-    setModifier(Modifier.STATIC, isStatic);
   }
 
   @override
@@ -7761,14 +7760,14 @@ abstract class PropertyInducingElementImpl
  */
 abstract class ResynthesizerContext {
   /**
-   * Build [ElementAnnotationImpl] for the given [UnlinkedConst].
+   * Build [ElementAnnotationImpl] for the given [UnlinkedExpr].
    */
-  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedConst uc);
+  ElementAnnotationImpl buildAnnotation(ElementImpl context, UnlinkedExpr uc);
 
   /**
-   * Build [Expression] for the given [UnlinkedConst].
+   * Build [Expression] for the given [UnlinkedExpr].
    */
-  Expression buildExpression(ElementImpl context, UnlinkedConst uc);
+  Expression buildExpression(ElementImpl context, UnlinkedExpr uc);
 
   /**
    * Build explicit top-level property accessors.
@@ -8002,7 +8001,7 @@ class TypeParameterElementImpl extends ElementImpl
       : _unlinkedTypeParam = null,
         nestingLevel = null,
         super(name, -1) {
-    synthetic = true;
+    isSynthetic = true;
   }
 
   DartType get bound {
@@ -8327,6 +8326,11 @@ abstract class VariableElementImpl extends ElementImpl
   /**
    * The declared type of this variable.
    */
+  DartType _declaredType;
+
+  /**
+   * The inferred type of this variable.
+   */
   DartType _type;
 
   /**
@@ -8353,13 +8357,6 @@ abstract class VariableElementImpl extends ElementImpl
       : super.forSerialized(enclosingElement);
 
   /**
-   * Set whether this variable is const.
-   */
-  void set const3(bool isConst) {
-    setModifier(Modifier.CONST, isConst);
-  }
-
-  /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
    *
@@ -8372,6 +8369,10 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject get constantValue => evaluationResult?.value;
+
+  void set declaredType(DartType type) {
+    _declaredType = type;
+  }
 
   @override
   String get displayName => name;
@@ -8391,13 +8392,6 @@ abstract class VariableElementImpl extends ElementImpl
   void set evaluationResult(EvaluationResultImpl result) {
     throw new StateError(
         "Invalid attempt to set a compile-time constant result");
-  }
-
-  /**
-   * Set whether this variable is final.
-   */
-  void set final2(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
   }
 
   @override
@@ -8431,9 +8425,23 @@ abstract class VariableElementImpl extends ElementImpl
     return hasModifier(Modifier.CONST);
   }
 
+  /**
+   * Set whether this variable is const.
+   */
+  void set isConst(bool isConst) {
+    setModifier(Modifier.CONST, isConst);
+  }
+
   @override
   bool get isFinal {
     return hasModifier(Modifier.FINAL);
+  }
+
+  /**
+   * Set whether this variable is final.
+   */
+  void set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
   }
 
   @override
@@ -8446,7 +8454,7 @@ abstract class VariableElementImpl extends ElementImpl
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   @override
-  DartType get type => _type;
+  DartType get type => _type ?? _declaredType;
 
   void set type(DartType type) {
     _type = type;

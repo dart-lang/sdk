@@ -48,7 +48,7 @@ class SdkSummaryResultProvider extends ResynthesizerResultProvider {
 
   @override
   bool hasResultsForSource(Source source) {
-    return source.source != null && source.isInSystemLibrary;
+    return source != null && source.isInSystemLibrary;
   }
 
   void _buildAsyncLibrary() {

@@ -11,6 +11,7 @@ class _Platform {
   external static _localHostname();
   external static _executable();
   external static _resolvedExecutable();
+
   /**
    * Retrieve the entries of the process environment.
    *

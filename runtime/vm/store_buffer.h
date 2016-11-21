@@ -16,7 +16,7 @@ class Mutex;
 class RawObject;
 
 // A set of RawObject*. Must be emptied before destruction (using Pop/Reset).
-template<int Size>
+template <int Size>
 class PointerBlock {
  public:
   enum { kSize = Size };
@@ -68,7 +68,8 @@ class PointerBlock {
   int32_t top_;
   RawObject* pointers_[kSize];
 
-  template<int> friend class BlockStack;
+  template <int>
+  friend class BlockStack;
 
   DISALLOW_COPY_AND_ASSIGN(PointerBlock);
 };
@@ -77,7 +78,7 @@ class PointerBlock {
 // A synchronized collection of pointer blocks of a particular size.
 // This class is meant to be used as a base (note PushBlockImpl is protected).
 // The global list of cached empty blocks is currently per-size.
-template<int BlockSize>
+template <int BlockSize>
 class BlockStack {
  public:
   typedef PointerBlock<BlockSize> Block;
@@ -112,6 +113,7 @@ class BlockStack {
     intptr_t length() const { return length_; }
     bool IsEmpty() const { return head_ == NULL; }
     Block* PopAll();
+
    private:
     Block* head_;
     intptr_t length_;
@@ -144,10 +146,7 @@ class StoreBuffer : public BlockStack<kStoreBufferBlockSize> {
   // Interrupt when crossing this threshold of non-empty blocks in the buffer.
   static const intptr_t kMaxNonEmpty = 100;
 
-  enum ThresholdPolicy {
-    kCheckThreshold,
-    kIgnoreThreshold
-  };
+  enum ThresholdPolicy { kCheckThreshold, kIgnoreThreshold };
 
   // Adds and transfers ownership of the block to the buffer. Optionally
   // checks the number of non-empty blocks for overflow, and schedules an

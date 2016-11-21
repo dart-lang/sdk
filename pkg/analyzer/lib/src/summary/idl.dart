@@ -70,6 +70,12 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
    */
   @Id(0)
   List<AnalysisDriverUnitError> get errors;
+
+  /**
+   * The index of the unit.
+   */
+  @Id(1)
+  AnalysisDriverUnitIndex get index;
 }
 
 /**
@@ -105,6 +111,169 @@ abstract class AnalysisDriverUnitError extends base.SummaryClass {
    */
   @Id(2)
   String get uniqueName;
+}
+
+/**
+ * Information about a resolved unit.
+ */
+@TopLevel('ADUI')
+abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
+  factory AnalysisDriverUnitIndex.fromBuffer(List<int> buffer) =>
+      generated.readAnalysisDriverUnitIndex(buffer);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the kind of the synthetic element.
+   */
+  @Id(4)
+  List<IndexSyntheticElementKind> get elementKinds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the class member element name, or `null` if the element
+   * is a top-level element.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this index.
+   */
+  @Id(7)
+  List<int> get elementNameClassMemberIds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the named parameter name, or `null` if the element is not
+   * a named parameter.  The list is sorted in ascending order, so that the
+   * client can quickly check whether an element is referenced in this index.
+   */
+  @Id(8)
+  List<int> get elementNameParameterIds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the identifier of the top-level element name, or `null` if the element is
+   * the unit.  The list is sorted in ascending order, so that the client can
+   * quickly check whether an element is referenced in this index.
+   */
+  @Id(6)
+  List<int> get elementNameUnitMemberIds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
+   * specific unit where the element is declared.
+   */
+  @Id(5)
+  List<int> get elementUnits;
+
+  /**
+   * Identifier of the null string in [strings].
+   */
+  @Id(1)
+  int get nullStringId;
+
+  /**
+   * List of unique element strings used in this index.  The list is sorted in
+   * ascending order, so that the client can quickly check the presence of a
+   * string in this index.
+   */
+  @Id(0)
+  List<String> get strings;
+
+  /**
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the index.  It is an index into [strings] list.
+   */
+  @Id(2)
+  List<int> get unitLibraryUris;
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the index.  It is an index into [strings] list.
+   */
+  @Id(3)
+  List<int> get unitUnitUris;
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  @Id(13)
+  List<bool> get usedElementIsQualifiedFlags;
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  @Id(10)
+  List<IndexRelationKind> get usedElementKinds;
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  @Id(12)
+  List<int> get usedElementLengths;
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  @Id(11)
+  List<int> get usedElementOffsets;
+
+  /**
+   * Each item of this list is the index into [elementUnits],
+   * [elementNameUnitMemberIds], [elementNameClassMemberIds] and
+   * [elementNameParameterIds].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this index.
+   */
+  @Id(9)
+  List<int> get usedElements;
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  @Id(17)
+  List<bool> get usedNameIsQualifiedFlags;
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  @Id(15)
+  List<IndexRelationKind> get usedNameKinds;
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  @Id(16)
+  List<int> get usedNameOffsets;
+
+  /**
+   * Each item of this list is the index into [strings] for a used name.  The
+   * list is sorted in ascending order, so that the client can quickly find
+   * whether a name is used in this index.
+   */
+  @Id(14)
+  List<int> get usedNames;
+}
+
+/**
+ * Information about an unlinked unit.
+ */
+@TopLevel('ADUU')
+abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
+  factory AnalysisDriverUnlinkedUnit.fromBuffer(List<int> buffer) =>
+      generated.readAnalysisDriverUnlinkedUnit(buffer);
+
+  /**
+   * List of external names referenced by the unit.
+   */
+  @Id(0)
+  List<String> get referencedNames;
+
+  /**
+   * Unlinked information for the unit.
+   */
+  @Id(1)
+  UnlinkedUnit get unit;
 }
 
 /**
@@ -971,7 +1140,7 @@ abstract class UnlinkedClass extends base.SummaryClass {
    * Annotations for this class.
    */
   @Id(5)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * Code range of the class.
@@ -1119,481 +1288,6 @@ abstract class UnlinkedConfiguration extends base.SummaryClass {
 }
 
 /**
- * Unlinked summary information about a compile-time constant expression, or a
- * potentially constant expression.
- *
- * Constant expressions are represented using a simple stack-based language
- * where [operations] is a sequence of operations to execute starting with an
- * empty stack.  Once all operations have been executed, the stack should
- * contain a single value which is the value of the constant.  Note that some
- * operations consume additional data from the other fields of this class.
- */
-abstract class UnlinkedConst extends base.SummaryClass {
-  /**
-   * Sequence of operators used by assignment operations.
-   */
-  @Id(6)
-  List<UnlinkedExprAssignOperator> get assignmentOperators;
-
-  /**
-   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
-   */
-  @Id(4)
-  List<double> get doubles;
-
-  /**
-   * Sequence of unsigned 32-bit integers consumed by the operations
-   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
-   * `makeList`, and `makeMap`.
-   */
-  @Id(1)
-  List<int> get ints;
-
-  /**
-   * Indicates whether the expression is a valid potentially constant
-   * expression.
-   */
-  @Id(5)
-  bool get isValidConst;
-
-  /**
-   * Sequence of operations to execute (starting with an empty stack) to form
-   * the constant value.
-   */
-  @Id(0)
-  List<UnlinkedConstOperation> get operations;
-
-  /**
-   * Sequence of language constructs consumed by the operations
-   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
-   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
-   * actual entity being referred to may be something other than a type.
-   */
-  @Id(2)
-  List<EntityRef> get references;
-
-  /**
-   * Sequence of strings consumed by the operations `pushString` and
-   * `invokeConstructor`.
-   */
-  @Id(3)
-  List<String> get strings;
-}
-
-/**
- * Enum representing the various kinds of operations which may be performed to
- * produce a constant value.  These options are assumed to execute in the
- * context of a stack which is initially empty.
- */
-enum UnlinkedConstOperation {
-  /**
-   * Push the next value from [UnlinkedConst.ints] (a 32-bit unsigned integer)
-   * onto the stack.
-   *
-   * Note that Dart supports integers larger than 32 bits; these are
-   * represented by composing 32-bit values using the [pushLongInt] operation.
-   */
-  pushInt,
-
-  /**
-   * Get the number of components from [UnlinkedConst.ints], then do this number
-   * of times the following operations: multiple the current value by 2^32, "or"
-   * it with the next value in [UnlinkedConst.ints]. The initial value is zero.
-   * Push the result into the stack.
-   */
-  pushLongInt,
-
-  /**
-   * Push the next value from [UnlinkedConst.doubles] (a double precision
-   * floating point value) onto the stack.
-   */
-  pushDouble,
-
-  /**
-   * Push the constant `true` onto the stack.
-   */
-  pushTrue,
-
-  /**
-   * Push the constant `false` onto the stack.
-   */
-  pushFalse,
-
-  /**
-   * Push the next value from [UnlinkedConst.strings] onto the stack.
-   */
-  pushString,
-
-  /**
-   * Pop the top n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), convert them to strings (if they aren't already),
-   * concatenate them into a single string, and push it back onto the stack.
-   *
-   * This operation is used to represent constants whose value is a literal
-   * string containing string interpolations.
-   */
-  concatenate,
-
-  /**
-   * Get the next value from [UnlinkedConst.strings], convert it to a symbol,
-   * and push it onto the stack.
-   */
-  makeSymbol,
-
-  /**
-   * Push the constant `null` onto the stack.
-   */
-  pushNull,
-
-  /**
-   * Push the value of the function parameter with the name obtained from
-   * [UnlinkedConst.strings].
-   */
-  pushParameter,
-
-  /**
-   * Evaluate a (potentially qualified) identifier expression and push the
-   * resulting value onto the stack.  The identifier to be evaluated is
-   * obtained from [UnlinkedConst.references].
-   *
-   * This operation is used to represent the following kinds of constants
-   * (which are indistinguishable from an unresolved AST alone):
-   *
-   * - A qualified reference to a static constant variable (e.g. `C.v`, where
-   *   C is a class and `v` is a constant static variable in `C`).
-   * - An identifier expression referring to a constant variable.
-   * - A simple or qualified identifier denoting a class or type alias.
-   * - A simple or qualified identifier denoting a top-level function or a
-   *   static method.
-   */
-  pushReference,
-
-  /**
-   * Pop the top value from the stack, extract the value of the property with
-   * the name obtained from [UnlinkedConst.strings], and push the result back
-   * onto the stack.
-   */
-  extractProperty,
-
-  /**
-   * Pop the top `n` values from the stack (where `n` is obtained from
-   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
-   * `n` values from [UnlinkedConst.strings] and use the lists of names and
-   * values to create named arguments.  Then pop the top `m` values from the
-   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
-   * from the end) and use them as positional arguments.  Use the lists of
-   * positional and names arguments to invoke a constant constructor obtained
-   * from [UnlinkedConst.references], and push the resulting value back onto the
-   * stack.
-   *
-   * Note that for an invocation of the form `const a.b(...)` (where no type
-   * arguments are specified), it is impossible to tell from the unresolved AST
-   * alone whether `a` is a class name and `b` is a constructor name, or `a` is
-   * a prefix name and `b` is a class name.  For consistency between AST based
-   * and elements based summaries, references to default constructors are always
-   * recorded as references to corresponding classes.
-   */
-  invokeConstructor,
-
-  /**
-   * Pop the top n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), place them in a [List], and push the result back
-   * onto the stack.  The type parameter for the [List] is implicitly `dynamic`.
-   */
-  makeUntypedList,
-
-  /**
-   * Pop the top 2*n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), interpret them as key/value pairs, place them in a
-   * [Map], and push the result back onto the stack.  The two type parameters
-   * for the [Map] are implicitly `dynamic`.
-   */
-  makeUntypedMap,
-
-  /**
-   * Pop the top n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), place them in a [List], and push the result back
-   * onto the stack.  The type parameter for the [List] is obtained from
-   * [UnlinkedConst.references].
-   */
-  makeTypedList,
-
-  /**
-   * Pop the top 2*n values from the stack (where n is obtained from
-   * [UnlinkedConst.ints]), interpret them as key/value pairs, place them in a
-   * [Map], and push the result back onto the stack.  The two type parameters for
-   * the [Map] are obtained from [UnlinkedConst.references].
-   */
-  makeTypedMap,
-
-  /**
-   * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
-   * result back onto the stack.
-   */
-  equal,
-
-  /**
-   * Pop the top 2 values from the stack, evaluate `v1 != v2`, and push the
-   * result back onto the stack.
-   */
-  notEqual,
-
-  /**
-   * Pop the top value from the stack, compute its boolean negation, and push
-   * the result back onto the stack.
-   */
-  not,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 && v2`, and push the
-   * result back onto the stack.
-   */
-  and,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 || v2`, and push the
-   * result back onto the stack.
-   */
-  or,
-
-  /**
-   * Pop the top value from the stack, compute its integer complement, and push
-   * the result back onto the stack.
-   */
-  complement,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 ^ v2`, and push the
-   * result back onto the stack.
-   */
-  bitXor,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 & v2`, and push the
-   * result back onto the stack.
-   */
-  bitAnd,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 | v2`, and push the
-   * result back onto the stack.
-   */
-  bitOr,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 >> v2`, and push the
-   * result back onto the stack.
-   */
-  bitShiftRight,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 << v2`, and push the
-   * result back onto the stack.
-   */
-  bitShiftLeft,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 + v2`, and push the
-   * result back onto the stack.
-   */
-  add,
-
-  /**
-   * Pop the top value from the stack, compute its integer negation, and push
-   * the result back onto the stack.
-   */
-  negate,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 - v2`, and push the
-   * result back onto the stack.
-   */
-  subtract,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 * v2`, and push the
-   * result back onto the stack.
-   */
-  multiply,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 / v2`, and push the
-   * result back onto the stack.
-   */
-  divide,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 ~/ v2`, and push the
-   * result back onto the stack.
-   */
-  floorDivide,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 > v2`, and push the
-   * result back onto the stack.
-   */
-  greater,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 < v2`, and push the
-   * result back onto the stack.
-   */
-  less,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 >= v2`, and push the
-   * result back onto the stack.
-   */
-  greaterEqual,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 <= v2`, and push the
-   * result back onto the stack.
-   */
-  lessEqual,
-
-  /**
-   * Pop the top 2 values from the stack, compute `v1 % v2`, and push the
-   * result back onto the stack.
-   */
-  modulo,
-
-  /**
-   * Pop the top 3 values from the stack, compute `v1 ? v2 : v3`, and push the
-   * result back onto the stack.
-   */
-  conditional,
-
-  /**
-   * Pop from the stack `value` and get the next `target` reference from
-   * [UnlinkedConst.references] - a top-level variable (prefixed or not), an
-   * assignable field of a class (prefixed or not), or a sequence of getters
-   * ending with an assignable property `a.b.b.c.d.e`.  In general `a.b` cannot
-   * not be distinguished between: `a` is a prefix and `b` is a top-level
-   * variable; or `a` is an object and `b` is the name of a property.  Perform
-   * `reference op= value` where `op` is the next assignment operator from
-   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
-   *
-   * If the assignment operator is a prefix/postfix increment/decrement, then
-   * `value` is not present in the stack, so it should not be popped and the
-   * corresponding value of the `target` after/before update is pushed into the
-   * stack instead.
-   */
-  assignToRef,
-
-  /**
-   * Pop from the stack `target` and `value`.  Get the name of the property from
-   * `UnlinkedConst.strings` and assign the `value` to the named property of the
-   * `target`.  This operation is used when we know that the `target` is an
-   * object reference expression, e.g. `new Foo().a.b.c` or `a.b[0].c.d`.
-   * Perform `target.property op= value` where `op` is the next assignment
-   * operator from [UnlinkedConst.assignmentOperators].  Push `value` back into
-   * the stack.
-   *
-   * If the assignment operator is a prefix/postfix increment/decrement, then
-   * `value` is not present in the stack, so it should not be popped and the
-   * corresponding value of the `target` after/before update is pushed into the
-   * stack instead.
-   */
-  assignToProperty,
-
-  /**
-   * Pop from the stack `index`, `target` and `value`.  Perform
-   * `target[index] op= value`  where `op` is the next assignment operator from
-   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
-   *
-   * If the assignment operator is a prefix/postfix increment/decrement, then
-   * `value` is not present in the stack, so it should not be popped and the
-   * corresponding value of the `target` after/before update is pushed into the
-   * stack instead.
-   */
-  assignToIndex,
-
-  /**
-   * Pop from the stack `index` and `target`.  Push into the stack the result
-   * of evaluation of `target[index]`.
-   */
-  extractIndex,
-
-  /**
-   * Pop the top `n` values from the stack (where `n` is obtained from
-   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
-   * `n` values from [UnlinkedConst.strings] and use the lists of names and
-   * values to create named arguments.  Then pop the top `m` values from the
-   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
-   * from the end) and use them as positional arguments.  Use the lists of
-   * positional and names arguments to invoke a method (or a function) with
-   * the reference from [UnlinkedConst.references].  If `k` is nonzero (where
-   * `k` is obtained from [UnlinkedConst.ints]), obtain `k` type arguments from
-   * [UnlinkedConst.references] and use them as generic type arguments for the
-   * aforementioned method or function.  Push the result of the invocation onto
-   * the stack.
-   *
-   * In general `a.b` cannot not be distinguished between: `a` is a prefix and
-   * `b` is a top-level function; or `a` is an object and `b` is the name of a
-   * method.  This operation should be used for a sequence of identifiers
-   * `a.b.b.c.d.e` ending with an invokable result.
-   */
-  invokeMethodRef,
-
-  /**
-   * Pop the top `n` values from the stack (where `n` is obtained from
-   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
-   * `n` values from [UnlinkedConst.strings] and use the lists of names and
-   * values to create named arguments.  Then pop the top `m` values from the
-   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
-   * from the end) and use them as positional arguments.  Use the lists of
-   * positional and names arguments to invoke the method with the name from
-   * [UnlinkedConst.strings] of the target popped from the stack.  If `k` is
-   * nonzero (where `k` is obtained from [UnlinkedConst.ints]), obtain `k` type
-   * arguments from [UnlinkedConst.references] and use them as generic type
-   * arguments for the aforementioned method.  Push the result of the
-   * invocation onto the stack.
-   *
-   * This operation should be used for invocation of a method invocation
-   * where `target` is known to be an object instance.
-   */
-  invokeMethod,
-
-  /**
-   * Begin a new cascade section.  Duplicate the top value of the stack.
-   */
-  cascadeSectionBegin,
-
-  /**
-   * End a new cascade section.  Pop the top value from the stack and throw it
-   * away.
-   */
-  cascadeSectionEnd,
-
-  /**
-   * Pop the top value from the stack and cast it to the type with reference
-   * from [UnlinkedConst.references], push the result into the stack.
-   */
-  typeCast,
-
-  /**
-   * Pop the top value from the stack and check whether it is a subclass of the
-   * type with reference from [UnlinkedConst.references], push the result into
-   * the stack.
-   */
-  typeCheck,
-
-  /**
-   * Pop the top value from the stack and raise an exception with this value.
-   */
-  throwException,
-
-  /**
-   * Obtain two values `n` and `m` from [UnlinkedConst.ints].  Then, starting at
-   * the executable element for the expression being evaluated, if n > 0, pop to
-   * the nth enclosing function element.  Then, push the mth local function of
-   * that element onto the stack.
-   */
-  pushLocalFunctionReference,
-}
-
-/**
  * Unlinked summary information about a constructor initializer.
  */
 abstract class UnlinkedConstructorInitializer extends base.SummaryClass {
@@ -1610,14 +1304,14 @@ abstract class UnlinkedConstructorInitializer extends base.SummaryClass {
    * invocation.  Otherwise empty.
    */
   @Id(3)
-  List<UnlinkedConst> get arguments;
+  List<UnlinkedExpr> get arguments;
 
   /**
    * If [kind] is `field`, the expression of the field initializer.
    * Otherwise `null`.
    */
   @Id(1)
-  UnlinkedConst get expression;
+  UnlinkedExpr get expression;
 
   /**
    * The kind of the constructor initializer (field, redirect, super).
@@ -1692,7 +1386,7 @@ abstract class UnlinkedEnum extends base.SummaryClass {
    * Annotations for this enum.
    */
   @Id(4)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * Code range of the enum.
@@ -1765,7 +1459,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * Annotations for this executable.
    */
   @Id(6)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * If this executable's function body is declared using `=>`, the expression
@@ -1773,7 +1467,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    * constant evaluation depends on the function body.
    */
   @Id(29)
-  UnlinkedConst get bodyExpr;
+  UnlinkedExpr get bodyExpr;
 
   /**
    * Code range of the executable.
@@ -2022,7 +1716,7 @@ abstract class UnlinkedExportNonPublic extends base.SummaryClass {
    * Annotations for this export directive.
    */
   @Id(3)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * Offset of the "export" keyword.
@@ -2074,11 +1768,72 @@ abstract class UnlinkedExportPublic extends base.SummaryClass {
 }
 
 /**
+ * Unlinked summary information about an expression.
+ *
+ * Expressions are represented using a simple stack-based language
+ * where [operations] is a sequence of operations to execute starting with an
+ * empty stack.  Once all operations have been executed, the stack should
+ * contain a single value which is the value of the constant.  Note that some
+ * operations consume additional data from the other fields of this class.
+ */
+abstract class UnlinkedExpr extends base.SummaryClass {
+  /**
+   * Sequence of operators used by assignment operations.
+   */
+  @Id(6)
+  List<UnlinkedExprAssignOperator> get assignmentOperators;
+
+  /**
+   * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
+   */
+  @Id(4)
+  List<double> get doubles;
+
+  /**
+   * Sequence of unsigned 32-bit integers consumed by the operations
+   * `pushArgument`, `pushInt`, `shiftOr`, `concatenate`, `invokeConstructor`,
+   * `makeList`, and `makeMap`.
+   */
+  @Id(1)
+  List<int> get ints;
+
+  /**
+   * Indicates whether the expression is a valid potentially constant
+   * expression.
+   */
+  @Id(5)
+  bool get isValidConst;
+
+  /**
+   * Sequence of operations to execute (starting with an empty stack) to form
+   * the constant value.
+   */
+  @Id(0)
+  List<UnlinkedExprOperation> get operations;
+
+  /**
+   * Sequence of language constructs consumed by the operations
+   * `pushReference`, `invokeConstructor`, `makeList`, and `makeMap`.  Note
+   * that in the case of `pushReference` (and sometimes `invokeConstructor` the
+   * actual entity being referred to may be something other than a type.
+   */
+  @Id(2)
+  List<EntityRef> get references;
+
+  /**
+   * Sequence of strings consumed by the operations `pushString` and
+   * `invokeConstructor`.
+   */
+  @Id(3)
+  List<String> get strings;
+}
+
+/**
  * Enum representing the various kinds of assignment operations combined
  * with:
- *    [UnlinkedConstOperation.assignToRef],
- *    [UnlinkedConstOperation.assignToProperty],
- *    [UnlinkedConstOperation.assignToIndex].
+ *    [UnlinkedExprOperation.assignToRef],
+ *    [UnlinkedExprOperation.assignToProperty],
+ *    [UnlinkedExprOperation.assignToIndex].
  */
 enum UnlinkedExprAssignOperator {
   /**
@@ -2168,6 +1923,419 @@ enum UnlinkedExprAssignOperator {
 }
 
 /**
+ * Enum representing the various kinds of operations which may be performed to
+ * in an expression.  These options are assumed to execute in the
+ * context of a stack which is initially empty.
+ */
+enum UnlinkedExprOperation {
+  /**
+   * Push the next value from [UnlinkedExpr.ints] (a 32-bit unsigned integer)
+   * onto the stack.
+   *
+   * Note that Dart supports integers larger than 32 bits; these are
+   * represented by composing 32-bit values using the [pushLongInt] operation.
+   */
+  pushInt,
+
+  /**
+   * Get the number of components from [UnlinkedExpr.ints], then do this number
+   * of times the following operations: multiple the current value by 2^32, "or"
+   * it with the next value in [UnlinkedExpr.ints]. The initial value is zero.
+   * Push the result into the stack.
+   */
+  pushLongInt,
+
+  /**
+   * Push the next value from [UnlinkedExpr.doubles] (a double precision
+   * floating point value) onto the stack.
+   */
+  pushDouble,
+
+  /**
+   * Push the constant `true` onto the stack.
+   */
+  pushTrue,
+
+  /**
+   * Push the constant `false` onto the stack.
+   */
+  pushFalse,
+
+  /**
+   * Push the next value from [UnlinkedExpr.strings] onto the stack.
+   */
+  pushString,
+
+  /**
+   * Pop the top n values from the stack (where n is obtained from
+   * [UnlinkedExpr.ints]), convert them to strings (if they aren't already),
+   * concatenate them into a single string, and push it back onto the stack.
+   *
+   * This operation is used to represent constants whose value is a literal
+   * string containing string interpolations.
+   */
+  concatenate,
+
+  /**
+   * Get the next value from [UnlinkedExpr.strings], convert it to a symbol,
+   * and push it onto the stack.
+   */
+  makeSymbol,
+
+  /**
+   * Push the constant `null` onto the stack.
+   */
+  pushNull,
+
+  /**
+   * Push the value of the function parameter with the name obtained from
+   * [UnlinkedExpr.strings].
+   */
+  pushParameter,
+
+  /**
+   * Evaluate a (potentially qualified) identifier expression and push the
+   * resulting value onto the stack.  The identifier to be evaluated is
+   * obtained from [UnlinkedExpr.references].
+   *
+   * This operation is used to represent the following kinds of constants
+   * (which are indistinguishable from an unresolved AST alone):
+   *
+   * - A qualified reference to a static constant variable (e.g. `C.v`, where
+   *   C is a class and `v` is a constant static variable in `C`).
+   * - An identifier expression referring to a constant variable.
+   * - A simple or qualified identifier denoting a class or type alias.
+   * - A simple or qualified identifier denoting a top-level function or a
+   *   static method.
+   */
+  pushReference,
+
+  /**
+   * Pop the top value from the stack, extract the value of the property with
+   * the name obtained from [UnlinkedExpr.strings], and push the result back
+   * onto the stack.
+   */
+  extractProperty,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedExpr.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedExpr.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedExpr.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke a constant constructor obtained
+   * from [UnlinkedExpr.references], and push the resulting value back onto the
+   * stack.
+   *
+   * Note that for an invocation of the form `const a.b(...)` (where no type
+   * arguments are specified), it is impossible to tell from the unresolved AST
+   * alone whether `a` is a class name and `b` is a constructor name, or `a` is
+   * a prefix name and `b` is a class name.  For consistency between AST based
+   * and elements based summaries, references to default constructors are always
+   * recorded as references to corresponding classes.
+   */
+  invokeConstructor,
+
+  /**
+   * Pop the top n values from the stack (where n is obtained from
+   * [UnlinkedExpr.ints]), place them in a [List], and push the result back
+   * onto the stack.  The type parameter for the [List] is implicitly `dynamic`.
+   */
+  makeUntypedList,
+
+  /**
+   * Pop the top 2*n values from the stack (where n is obtained from
+   * [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
+   * [Map], and push the result back onto the stack.  The two type parameters
+   * for the [Map] are implicitly `dynamic`.
+   */
+  makeUntypedMap,
+
+  /**
+   * Pop the top n values from the stack (where n is obtained from
+   * [UnlinkedExpr.ints]), place them in a [List], and push the result back
+   * onto the stack.  The type parameter for the [List] is obtained from
+   * [UnlinkedExpr.references].
+   */
+  makeTypedList,
+
+  /**
+   * Pop the top 2*n values from the stack (where n is obtained from
+   * [UnlinkedExpr.ints]), interpret them as key/value pairs, place them in a
+   * [Map], and push the result back onto the stack.  The two type parameters for
+   * the [Map] are obtained from [UnlinkedExpr.references].
+   */
+  makeTypedMap,
+
+  /**
+   * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
+   * result back onto the stack.
+   */
+  equal,
+
+  /**
+   * Pop the top 2 values from the stack, evaluate `v1 != v2`, and push the
+   * result back onto the stack.
+   */
+  notEqual,
+
+  /**
+   * Pop the top value from the stack, compute its boolean negation, and push
+   * the result back onto the stack.
+   */
+  not,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 && v2`, and push the
+   * result back onto the stack.
+   */
+  and,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 || v2`, and push the
+   * result back onto the stack.
+   */
+  or,
+
+  /**
+   * Pop the top value from the stack, compute its integer complement, and push
+   * the result back onto the stack.
+   */
+  complement,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 ^ v2`, and push the
+   * result back onto the stack.
+   */
+  bitXor,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 & v2`, and push the
+   * result back onto the stack.
+   */
+  bitAnd,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 | v2`, and push the
+   * result back onto the stack.
+   */
+  bitOr,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 >> v2`, and push the
+   * result back onto the stack.
+   */
+  bitShiftRight,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 << v2`, and push the
+   * result back onto the stack.
+   */
+  bitShiftLeft,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 + v2`, and push the
+   * result back onto the stack.
+   */
+  add,
+
+  /**
+   * Pop the top value from the stack, compute its integer negation, and push
+   * the result back onto the stack.
+   */
+  negate,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 - v2`, and push the
+   * result back onto the stack.
+   */
+  subtract,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 * v2`, and push the
+   * result back onto the stack.
+   */
+  multiply,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 / v2`, and push the
+   * result back onto the stack.
+   */
+  divide,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 ~/ v2`, and push the
+   * result back onto the stack.
+   */
+  floorDivide,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 > v2`, and push the
+   * result back onto the stack.
+   */
+  greater,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 < v2`, and push the
+   * result back onto the stack.
+   */
+  less,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 >= v2`, and push the
+   * result back onto the stack.
+   */
+  greaterEqual,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 <= v2`, and push the
+   * result back onto the stack.
+   */
+  lessEqual,
+
+  /**
+   * Pop the top 2 values from the stack, compute `v1 % v2`, and push the
+   * result back onto the stack.
+   */
+  modulo,
+
+  /**
+   * Pop the top 3 values from the stack, compute `v1 ? v2 : v3`, and push the
+   * result back onto the stack.
+   */
+  conditional,
+
+  /**
+   * Pop from the stack `value` and get the next `target` reference from
+   * [UnlinkedExpr.references] - a top-level variable (prefixed or not), an
+   * assignable field of a class (prefixed or not), or a sequence of getters
+   * ending with an assignable property `a.b.b.c.d.e`.  In general `a.b` cannot
+   * not be distinguished between: `a` is a prefix and `b` is a top-level
+   * variable; or `a` is an object and `b` is the name of a property.  Perform
+   * `reference op= value` where `op` is the next assignment operator from
+   * [UnlinkedExpr.assignmentOperators].  Push `value` back into the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
+   */
+  assignToRef,
+
+  /**
+   * Pop from the stack `target` and `value`.  Get the name of the property from
+   * `UnlinkedConst.strings` and assign the `value` to the named property of the
+   * `target`.  This operation is used when we know that the `target` is an
+   * object reference expression, e.g. `new Foo().a.b.c` or `a.b[0].c.d`.
+   * Perform `target.property op= value` where `op` is the next assignment
+   * operator from [UnlinkedExpr.assignmentOperators].  Push `value` back into
+   * the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
+   */
+  assignToProperty,
+
+  /**
+   * Pop from the stack `index`, `target` and `value`.  Perform
+   * `target[index] op= value`  where `op` is the next assignment operator from
+   * [UnlinkedExpr.assignmentOperators].  Push `value` back into the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
+   */
+  assignToIndex,
+
+  /**
+   * Pop from the stack `index` and `target`.  Push into the stack the result
+   * of evaluation of `target[index]`.
+   */
+  extractIndex,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedExpr.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedExpr.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedExpr.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke a method (or a function) with
+   * the reference from [UnlinkedExpr.references].  If `k` is nonzero (where
+   * `k` is obtained from [UnlinkedExpr.ints]), obtain `k` type arguments from
+   * [UnlinkedExpr.references] and use them as generic type arguments for the
+   * aforementioned method or function.  Push the result of the invocation onto
+   * the stack.
+   *
+   * In general `a.b` cannot not be distinguished between: `a` is a prefix and
+   * `b` is a top-level function; or `a` is an object and `b` is the name of a
+   * method.  This operation should be used for a sequence of identifiers
+   * `a.b.b.c.d.e` ending with an invokable result.
+   */
+  invokeMethodRef,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedExpr.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedExpr.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedExpr.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke the method with the name from
+   * [UnlinkedExpr.strings] of the target popped from the stack.  If `k` is
+   * nonzero (where `k` is obtained from [UnlinkedExpr.ints]), obtain `k` type
+   * arguments from [UnlinkedExpr.references] and use them as generic type
+   * arguments for the aforementioned method.  Push the result of the
+   * invocation onto the stack.
+   *
+   * This operation should be used for invocation of a method invocation
+   * where `target` is known to be an object instance.
+   */
+  invokeMethod,
+
+  /**
+   * Begin a new cascade section.  Duplicate the top value of the stack.
+   */
+  cascadeSectionBegin,
+
+  /**
+   * End a new cascade section.  Pop the top value from the stack and throw it
+   * away.
+   */
+  cascadeSectionEnd,
+
+  /**
+   * Pop the top value from the stack and cast it to the type with reference
+   * from [UnlinkedExpr.references], push the result into the stack.
+   */
+  typeCast,
+
+  /**
+   * Pop the top value from the stack and check whether it is a subclass of the
+   * type with reference from [UnlinkedExpr.references], push the result into
+   * the stack.
+   */
+  typeCheck,
+
+  /**
+   * Pop the top value from the stack and raise an exception with this value.
+   */
+  throwException,
+
+  /**
+   * Obtain two values `n` and `m` from [UnlinkedExpr.ints].  Then, starting at
+   * the executable element for the expression being evaluated, if n > 0, pop to
+   * the nth enclosing function element.  Then, push the mth local function of
+   * that element onto the stack.
+   */
+  pushLocalFunctionReference,
+}
+
+/**
  * Unlinked summary information about an import declaration.
  */
 abstract class UnlinkedImport extends base.SummaryClass {
@@ -2175,7 +2343,7 @@ abstract class UnlinkedImport extends base.SummaryClass {
    * Annotations for this import declaration.
    */
   @Id(8)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * Combinators contained in this import declaration.
@@ -2289,7 +2457,7 @@ abstract class UnlinkedParam extends base.SummaryClass {
    * Annotations for this parameter.
    */
   @Id(9)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * Code range of the parameter.
@@ -2427,7 +2595,7 @@ abstract class UnlinkedPart extends base.SummaryClass {
    * Annotations for this part declaration.
    */
   @Id(2)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * End of the URI string (including quotes) relative to the beginning of the
@@ -2551,7 +2719,7 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
    * Annotations for this typedef.
    */
   @Id(4)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * Code range of the typedef.
@@ -2608,7 +2776,7 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
    * Annotations for this type parameter.
    */
   @Id(3)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * Bound of the type parameter, if a bound is explicitly declared.  Otherwise
@@ -2645,6 +2813,14 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
 abstract class UnlinkedUnit extends base.SummaryClass {
   factory UnlinkedUnit.fromBuffer(List<int> buffer) =>
       generated.readUnlinkedUnit(buffer);
+
+  /**
+   * MD5 hash of the non-informative fields of the [UnlinkedUnit] (not
+   * including this one) as 16 unsigned 8-bit integer values.  This can be used
+   * to identify when the API of a unit may have changed.
+   */
+  @Id(19)
+  List<int> get apiSignature;
 
   /**
    * Classes declared in the compilation unit.
@@ -2695,11 +2871,17 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   List<UnlinkedImport> get imports;
 
   /**
+   * Indicates whether the unit contains a "part of" declaration.
+   */
+  @Id(18)
+  bool get isPartOf;
+
+  /**
    * Annotations for the library declaration, or the empty list if there is no
    * library declaration.
    */
   @Id(14)
-  List<UnlinkedConst> get libraryAnnotations;
+  List<UnlinkedExpr> get libraryAnnotations;
 
   /**
    * Documentation comment for the library, or `null` if there is no
@@ -2782,7 +2964,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * Annotations for this variable.
    */
   @Id(8)
-  List<UnlinkedConst> get annotations;
+  List<UnlinkedExpr> get annotations;
 
   /**
    * Code range of the variable.

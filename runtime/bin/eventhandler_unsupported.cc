@@ -13,24 +13,22 @@
 namespace dart {
 namespace bin {
 
-void EventHandler::Start() {
-}
+void EventHandler::Start() {}
 
 
-void EventHandler::Stop() {
-}
+void EventHandler::Stop() {}
 
 
 void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
-        "EventHandler is not supported on this platform"));
+      "EventHandler is not supported on this platform"));
 }
 
 
 void FUNCTION_NAME(EventHandler_TimerMillisecondClock)(
     Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewInternalError(
-        "EventHandler is not supported on this platform"));
+      "EventHandler is not supported on this platform"));
 }
 
 }  // namespace bin

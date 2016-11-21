@@ -234,6 +234,13 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  String get processTestBinaryFileName {
+    String suffix = executableBinarySuffix;
+    String processTestExecutable = '$buildDir/process_test$suffix';
+    TestUtils.ensureExists(processTestExecutable, configuration);
+    return processTestExecutable;
+  }
+
   String get d8FileName {
     var suffix = getExecutableSuffix('d8');
     var d8Dir = TestUtils.dartDir.append('third_party/d8');

@@ -1449,7 +1449,7 @@ class ConstConstructorNode extends ConstNode {
             constructorElement.enclosingElement.enclosingElement;
         collectDependencies(
             dependencies, constructorInitializer.expression, compilationUnit);
-        for (UnlinkedConst unlinkedConst in constructorInitializer.arguments) {
+        for (UnlinkedExpr unlinkedConst in constructorInitializer.arguments) {
           collectDependencies(dependencies, unlinkedConst, compilationUnit);
         }
       }
@@ -1534,26 +1534,26 @@ abstract class ConstNode extends Node<ConstNode> {
    */
   void collectDependencies(
       List<ConstNode> dependencies,
-      UnlinkedConst unlinkedConst,
+      UnlinkedExpr unlinkedConst,
       CompilationUnitElementForLink compilationUnit) {
     if (unlinkedConst == null) {
       return;
     }
     int refPtr = 0;
     int intPtr = 0;
-    for (UnlinkedConstOperation operation in unlinkedConst.operations) {
+    for (UnlinkedExprOperation operation in unlinkedConst.operations) {
       switch (operation) {
-        case UnlinkedConstOperation.pushInt:
+        case UnlinkedExprOperation.pushInt:
           intPtr++;
           break;
-        case UnlinkedConstOperation.pushLongInt:
+        case UnlinkedExprOperation.pushLongInt:
           int numInts = unlinkedConst.ints[intPtr++];
           intPtr += numInts;
           break;
-        case UnlinkedConstOperation.concatenate:
+        case UnlinkedExprOperation.concatenate:
           intPtr++;
           break;
-        case UnlinkedConstOperation.pushReference:
+        case UnlinkedExprOperation.pushReference:
           EntityRef ref = unlinkedConst.references[refPtr++];
           ConstVariableNode variable =
               compilationUnit.resolveRef(ref.reference).asConstVariable;
@@ -1561,14 +1561,14 @@ abstract class ConstNode extends Node<ConstNode> {
             dependencies.add(variable);
           }
           break;
-        case UnlinkedConstOperation.makeUntypedList:
-        case UnlinkedConstOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedList:
+        case UnlinkedExprOperation.makeUntypedMap:
           intPtr++;
           break;
-        case UnlinkedConstOperation.assignToRef:
+        case UnlinkedExprOperation.assignToRef:
           refPtr++;
           break;
-        case UnlinkedConstOperation.invokeMethodRef:
+        case UnlinkedExprOperation.invokeMethodRef:
           EntityRef ref = unlinkedConst.references[refPtr++];
           ConstVariableNode variable =
               compilationUnit.resolveRef(ref.reference).asConstVariable;
@@ -1579,20 +1579,20 @@ abstract class ConstNode extends Node<ConstNode> {
           int numTypeArguments = unlinkedConst.ints[intPtr++];
           refPtr += numTypeArguments;
           break;
-        case UnlinkedConstOperation.invokeMethod:
+        case UnlinkedExprOperation.invokeMethod:
           intPtr += 2;
           int numTypeArguments = unlinkedConst.ints[intPtr++];
           refPtr += numTypeArguments;
           break;
-        case UnlinkedConstOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedList:
           refPtr++;
           intPtr++;
           break;
-        case UnlinkedConstOperation.makeTypedMap:
+        case UnlinkedExprOperation.makeTypedMap:
           refPtr += 2;
           intPtr++;
           break;
-        case UnlinkedConstOperation.invokeConstructor:
+        case UnlinkedExprOperation.invokeConstructor:
           EntityRef ref = unlinkedConst.references[refPtr++];
           ConstructorElementForLink element =
               compilationUnit.resolveRef(ref.reference).asConstructor;
@@ -1601,11 +1601,11 @@ abstract class ConstNode extends Node<ConstNode> {
           }
           intPtr += 2;
           break;
-        case UnlinkedConstOperation.typeCast:
-        case UnlinkedConstOperation.typeCheck:
+        case UnlinkedExprOperation.typeCast:
+        case UnlinkedExprOperation.typeCheck:
           refPtr++;
           break;
-        case UnlinkedConstOperation.pushLocalFunctionReference:
+        case UnlinkedExprOperation.pushLocalFunctionReference:
           intPtr += 2;
           break;
         default:
@@ -2072,7 +2072,7 @@ class ExprTypeComputer {
   final LibraryElementForLink library;
   final Linker linker;
   final TypeProvider typeProvider;
-  final UnlinkedConst unlinkedConst;
+  final UnlinkedExpr unlinkedConst;
 
   final List<DartType> stack = <DartType>[];
   int intPtr = 0;
@@ -2085,7 +2085,7 @@ class ExprTypeComputer {
     LibraryElementForLink library = unit.enclosingElement;
     Linker linker = library._linker;
     TypeProvider typeProvider = linker.typeProvider;
-    UnlinkedConst unlinkedConst = functionElement._unlinkedExecutable.bodyExpr;
+    UnlinkedExpr unlinkedConst = functionElement._unlinkedExecutable.bodyExpr;
     return new ExprTypeComputer._(
         functionElement, unit, library, linker, typeProvider, unlinkedConst);
   }
@@ -2100,169 +2100,169 @@ class ExprTypeComputer {
       return DynamicTypeImpl.instance;
     }
     // Perform RPN evaluation of the constant, using a stack of inferred types.
-    for (UnlinkedConstOperation operation in unlinkedConst.operations) {
+    for (UnlinkedExprOperation operation in unlinkedConst.operations) {
       switch (operation) {
-        case UnlinkedConstOperation.pushInt:
+        case UnlinkedExprOperation.pushInt:
           intPtr++;
           stack.add(typeProvider.intType);
           break;
-        case UnlinkedConstOperation.pushLongInt:
+        case UnlinkedExprOperation.pushLongInt:
           int numInts = _getNextInt();
           intPtr += numInts;
           stack.add(typeProvider.intType);
           break;
-        case UnlinkedConstOperation.pushDouble:
+        case UnlinkedExprOperation.pushDouble:
           stack.add(typeProvider.doubleType);
           break;
-        case UnlinkedConstOperation.pushTrue:
-        case UnlinkedConstOperation.pushFalse:
+        case UnlinkedExprOperation.pushTrue:
+        case UnlinkedExprOperation.pushFalse:
           stack.add(typeProvider.boolType);
           break;
-        case UnlinkedConstOperation.pushString:
+        case UnlinkedExprOperation.pushString:
           strPtr++;
           stack.add(typeProvider.stringType);
           break;
-        case UnlinkedConstOperation.concatenate:
+        case UnlinkedExprOperation.concatenate:
           stack.length -= _getNextInt();
           stack.add(typeProvider.stringType);
           break;
-        case UnlinkedConstOperation.makeSymbol:
+        case UnlinkedExprOperation.makeSymbol:
           strPtr++;
           stack.add(typeProvider.symbolType);
           break;
-        case UnlinkedConstOperation.pushNull:
+        case UnlinkedExprOperation.pushNull:
           stack.add(BottomTypeImpl.instance);
           break;
-        case UnlinkedConstOperation.pushReference:
+        case UnlinkedExprOperation.pushReference:
           _doPushReference();
           break;
-        case UnlinkedConstOperation.extractProperty:
+        case UnlinkedExprOperation.extractProperty:
           _doExtractProperty();
           break;
-        case UnlinkedConstOperation.invokeConstructor:
+        case UnlinkedExprOperation.invokeConstructor:
           _doInvokeConstructor();
           break;
-        case UnlinkedConstOperation.makeUntypedList:
+        case UnlinkedExprOperation.makeUntypedList:
           _doMakeUntypedList();
           break;
-        case UnlinkedConstOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedMap:
           _doMakeUntypedMap();
           break;
-        case UnlinkedConstOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedList:
           _doMakeTypedList();
           break;
-        case UnlinkedConstOperation.makeTypedMap:
+        case UnlinkedExprOperation.makeTypedMap:
           _doMakeTypeMap();
           break;
-        case UnlinkedConstOperation.not:
+        case UnlinkedExprOperation.not:
           stack.length -= 1;
           stack.add(typeProvider.boolType);
           break;
-        case UnlinkedConstOperation.complement:
+        case UnlinkedExprOperation.complement:
           _computePrefixExpressionType('~');
           break;
-        case UnlinkedConstOperation.negate:
+        case UnlinkedExprOperation.negate:
           _computePrefixExpressionType('unary-');
           break;
-        case UnlinkedConstOperation.and:
-        case UnlinkedConstOperation.or:
-        case UnlinkedConstOperation.equal:
-        case UnlinkedConstOperation.notEqual:
+        case UnlinkedExprOperation.and:
+        case UnlinkedExprOperation.or:
+        case UnlinkedExprOperation.equal:
+        case UnlinkedExprOperation.notEqual:
           stack.length -= 2;
           stack.add(typeProvider.boolType);
           break;
-        case UnlinkedConstOperation.bitXor:
+        case UnlinkedExprOperation.bitXor:
           _computeBinaryExpressionType(TokenType.CARET);
           break;
-        case UnlinkedConstOperation.bitAnd:
+        case UnlinkedExprOperation.bitAnd:
           _computeBinaryExpressionType(TokenType.AMPERSAND);
           break;
-        case UnlinkedConstOperation.bitOr:
+        case UnlinkedExprOperation.bitOr:
           _computeBinaryExpressionType(TokenType.BAR);
           break;
-        case UnlinkedConstOperation.bitShiftRight:
+        case UnlinkedExprOperation.bitShiftRight:
           _computeBinaryExpressionType(TokenType.GT_GT);
           break;
-        case UnlinkedConstOperation.bitShiftLeft:
+        case UnlinkedExprOperation.bitShiftLeft:
           _computeBinaryExpressionType(TokenType.LT_LT);
           break;
-        case UnlinkedConstOperation.add:
+        case UnlinkedExprOperation.add:
           _computeBinaryExpressionType(TokenType.PLUS);
           break;
-        case UnlinkedConstOperation.subtract:
+        case UnlinkedExprOperation.subtract:
           _computeBinaryExpressionType(TokenType.MINUS);
           break;
-        case UnlinkedConstOperation.multiply:
+        case UnlinkedExprOperation.multiply:
           _computeBinaryExpressionType(TokenType.STAR);
           break;
-        case UnlinkedConstOperation.divide:
+        case UnlinkedExprOperation.divide:
           _computeBinaryExpressionType(TokenType.SLASH);
           break;
-        case UnlinkedConstOperation.floorDivide:
+        case UnlinkedExprOperation.floorDivide:
           _computeBinaryExpressionType(TokenType.TILDE_SLASH);
           break;
-        case UnlinkedConstOperation.greater:
+        case UnlinkedExprOperation.greater:
           _computeBinaryExpressionType(TokenType.GT);
           break;
-        case UnlinkedConstOperation.less:
+        case UnlinkedExprOperation.less:
           _computeBinaryExpressionType(TokenType.LT);
           break;
-        case UnlinkedConstOperation.greaterEqual:
+        case UnlinkedExprOperation.greaterEqual:
           _computeBinaryExpressionType(TokenType.GT_EQ);
           break;
-        case UnlinkedConstOperation.lessEqual:
+        case UnlinkedExprOperation.lessEqual:
           _computeBinaryExpressionType(TokenType.LT_EQ);
           break;
-        case UnlinkedConstOperation.modulo:
+        case UnlinkedExprOperation.modulo:
           _computeBinaryExpressionType(TokenType.PERCENT);
           break;
-        case UnlinkedConstOperation.conditional:
+        case UnlinkedExprOperation.conditional:
           _doConditional();
           break;
-        case UnlinkedConstOperation.assignToRef:
+        case UnlinkedExprOperation.assignToRef:
           _doAssignToRef();
           break;
-        case UnlinkedConstOperation.assignToProperty:
+        case UnlinkedExprOperation.assignToProperty:
           _doAssignToProperty();
           break;
-        case UnlinkedConstOperation.assignToIndex:
+        case UnlinkedExprOperation.assignToIndex:
           _doAssignToIndex();
           break;
-        case UnlinkedConstOperation.extractIndex:
+        case UnlinkedExprOperation.extractIndex:
           _doExtractIndex();
           break;
-        case UnlinkedConstOperation.invokeMethodRef:
+        case UnlinkedExprOperation.invokeMethodRef:
           _doInvokeMethodRef();
           break;
-        case UnlinkedConstOperation.invokeMethod:
+        case UnlinkedExprOperation.invokeMethod:
           _doInvokeMethod();
           break;
-        case UnlinkedConstOperation.cascadeSectionBegin:
+        case UnlinkedExprOperation.cascadeSectionBegin:
           stack.add(stack.last);
           break;
-        case UnlinkedConstOperation.cascadeSectionEnd:
+        case UnlinkedExprOperation.cascadeSectionEnd:
           stack.removeLast();
           break;
-        case UnlinkedConstOperation.typeCast:
+        case UnlinkedExprOperation.typeCast:
           stack.removeLast();
           DartType type = _getNextTypeRef();
           stack.add(type);
           break;
-        case UnlinkedConstOperation.typeCheck:
+        case UnlinkedExprOperation.typeCheck:
           stack.removeLast();
           refPtr++;
           stack.add(typeProvider.boolType);
           break;
-        case UnlinkedConstOperation.throwException:
+        case UnlinkedExprOperation.throwException:
           stack.removeLast();
           stack.add(BottomTypeImpl.instance);
           break;
-        case UnlinkedConstOperation.pushLocalFunctionReference:
+        case UnlinkedExprOperation.pushLocalFunctionReference:
           int popCount = _getNextInt();
           assert(popCount == 0); // TODO(paulberry): handle the nonzero case.
           stack.add(function.functions[_getNextInt()].type);
           break;
-        case UnlinkedConstOperation.pushParameter:
+        case UnlinkedExprOperation.pushParameter:
           stack.add(_findParameterType(_getNextString()));
           break;
         default:
@@ -2962,6 +2962,9 @@ class FunctionElementForLink_Initializer extends Object
           .toList();
 
   @override
+  String get identifier => '';
+
+  @override
   DartType get returnType {
     // If this is a variable whose type needs inferring, infer it.
     if (_variable.hasImplicitType) {
@@ -3085,6 +3088,18 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
           .toList();
 
   @override
+  String get identifier {
+    String identifier = _unlinkedExecutable.name;
+    Element enclosing = this.enclosingElement;
+    if (enclosing is ExecutableElement) {
+      int id =
+          ElementImpl.findElementIndexUsingIdentical(enclosing.functions, this);
+      identifier += "@$id";
+    }
+    return identifier;
+  }
+
+  @override
   bool get _hasTypeBeenInferred => _inferredReturnType != null;
 
   @override
@@ -3104,8 +3119,10 @@ class FunctionElementForLink_Local_NonSynthetic extends ExecutableElementForLink
    * Store the results of type inference for this function in [compilationUnit].
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
-    compilationUnit._storeLinkedType(
-        _unlinkedExecutable.inferredReturnTypeSlot, inferredReturnType, this);
+    if (_unlinkedExecutable.returnType == null) {
+      compilationUnit._storeLinkedType(
+          _unlinkedExecutable.inferredReturnTypeSlot, inferredReturnType, this);
+    }
     for (FunctionElementForLink_Local_NonSynthetic function in functions) {
       function.link(compilationUnit);
     }
@@ -3986,9 +4003,9 @@ class ParameterElementForLink implements ParameterElementImpl {
     if (inheritsCovariant) {
       return true;
     }
-    for (UnlinkedConst annotation in _unlinkedParam.annotations) {
+    for (UnlinkedExpr annotation in _unlinkedParam.annotations) {
       if (annotation.operations.length == 1 &&
-          annotation.operations[0] == UnlinkedConstOperation.pushReference) {
+          annotation.operations[0] == UnlinkedExprOperation.pushReference) {
         ReferenceableElementForLink element =
             this.compilationUnit.resolveRef(annotation.references[0].reference);
         if (element is PropertyAccessorElementForLink &&
@@ -4661,26 +4678,26 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
       List<TypeInferenceNode> dependencies,
       UnlinkedExecutable unlinkedExecutable,
       CompilationUnitElementForLink compilationUnit) {
-    UnlinkedConst unlinkedConst = unlinkedExecutable?.bodyExpr;
+    UnlinkedExpr unlinkedConst = unlinkedExecutable?.bodyExpr;
     if (unlinkedConst == null) {
       return;
     }
     int refPtr = 0;
     int intPtr = 0;
 
-    for (UnlinkedConstOperation operation in unlinkedConst.operations) {
+    for (UnlinkedExprOperation operation in unlinkedConst.operations) {
       switch (operation) {
-        case UnlinkedConstOperation.pushInt:
+        case UnlinkedExprOperation.pushInt:
           intPtr++;
           break;
-        case UnlinkedConstOperation.pushLongInt:
+        case UnlinkedExprOperation.pushLongInt:
           int numInts = unlinkedConst.ints[intPtr++];
           intPtr += numInts;
           break;
-        case UnlinkedConstOperation.concatenate:
+        case UnlinkedExprOperation.concatenate:
           intPtr++;
           break;
-        case UnlinkedConstOperation.pushReference:
+        case UnlinkedExprOperation.pushReference:
           EntityRef ref = unlinkedConst.references[refPtr++];
           // TODO(paulberry): cache these resolved references for
           // later use by evaluate().
@@ -4690,28 +4707,28 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             dependencies.add(dependency);
           }
           break;
-        case UnlinkedConstOperation.invokeConstructor:
+        case UnlinkedExprOperation.invokeConstructor:
           refPtr++;
           intPtr += 2;
           break;
-        case UnlinkedConstOperation.makeUntypedList:
-        case UnlinkedConstOperation.makeUntypedMap:
+        case UnlinkedExprOperation.makeUntypedList:
+        case UnlinkedExprOperation.makeUntypedMap:
           intPtr++;
           break;
-        case UnlinkedConstOperation.makeTypedList:
+        case UnlinkedExprOperation.makeTypedList:
           refPtr++;
           intPtr++;
           break;
-        case UnlinkedConstOperation.makeTypedMap:
+        case UnlinkedExprOperation.makeTypedMap:
           refPtr += 2;
           intPtr++;
           break;
-        case UnlinkedConstOperation.assignToRef:
+        case UnlinkedExprOperation.assignToRef:
           // TODO(paulberry): if this reference refers to a variable, should it
           // be considered a type inference dependency?
           refPtr++;
           break;
-        case UnlinkedConstOperation.invokeMethodRef:
+        case UnlinkedExprOperation.invokeMethodRef:
           // TODO(paulberry): if this reference refers to a variable, should it
           // be considered a type inference dependency?
           refPtr++;
@@ -4719,16 +4736,16 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           int numTypeArguments = unlinkedConst.ints[intPtr++];
           refPtr += numTypeArguments;
           break;
-        case UnlinkedConstOperation.invokeMethod:
+        case UnlinkedExprOperation.invokeMethod:
           intPtr += 2;
           int numTypeArguments = unlinkedConst.ints[intPtr++];
           refPtr += numTypeArguments;
           break;
-        case UnlinkedConstOperation.typeCast:
-        case UnlinkedConstOperation.typeCheck:
+        case UnlinkedExprOperation.typeCast:
+        case UnlinkedExprOperation.typeCheck:
           refPtr++;
           break;
-        case UnlinkedConstOperation.pushLocalFunctionReference:
+        case UnlinkedExprOperation.pushLocalFunctionReference:
           int popCount = unlinkedConst.ints[intPtr++];
           assert(popCount == 0); // TODO(paulberry): handle the nonzero case.
           dependencies.add(functionElement
@@ -4978,6 +4995,9 @@ abstract class VariableElementForLink
 
   @override
   bool get hasImplicitType => unlinkedVariable.type == null;
+
+  @override
+  String get identifier => unlinkedVariable.name;
 
   /**
    * Return the inferred type of the variable element.  Should only be called if

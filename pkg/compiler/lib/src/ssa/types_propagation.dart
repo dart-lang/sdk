@@ -233,9 +233,9 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     Selector selector = (kind == HTypeConversion.RECEIVER_TYPE_CHECK)
         ? instruction.selector
         : null;
-    HTypeConversion converted =
-        new HTypeConversion(null, kind, type, input, selector)
-          ..sourceInformation = instruction.sourceInformation;
+    HTypeConversion converted = new HTypeConversion(null, kind, type, input,
+        receiverTypeCheckSelector: selector)
+      ..sourceInformation = instruction.sourceInformation;
     instruction.block.addBefore(instruction, converted);
     input.replaceAllUsersDominatedBy(instruction, converted);
   }
@@ -271,7 +271,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       Iterable<Element> targets = compiler.closedWorld.allFunctions
           .filter(instruction.selector, instruction.mask);
       if (targets.length == 1) {
-        Element target = targets.first;
+        MemberElement target = targets.first;
         ClassElement cls = target.enclosingClass;
         TypeMask type =
             new TypeMask.nonNullSubclass(cls.declaration, closedWorld);

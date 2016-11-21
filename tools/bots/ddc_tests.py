@@ -21,6 +21,12 @@ BUILD_OS = utils.GuessOS()
 CHANNEL = bot_utils.GetChannelFromName(bot_name)
 
 if __name__ == '__main__':
-  print "This step should run dartdevc tests"
-  print "Current directory when running on a bot should be"
-  print "/b/build/slave/[builder name]/build/sdk"
+  with utils.ChangedWorkingDirectory('pkg/dev_compiler'):
+    with bot.BuildStep('npm install'):
+      bot.RunProcess(['npm', 'install'])
+
+    with bot.BuildStep('Compile tests and run unit tests'):
+      bot.RunProcess([utils.CheckedInSdkExecutable(), 'test/all_tests.dart'])
+
+    with bot.BuildStep('Execute compiled tests'):
+      bot.RunProcess(['npm', 'test'])

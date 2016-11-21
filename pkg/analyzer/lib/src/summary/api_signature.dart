@@ -72,10 +72,12 @@ class ApiSignature {
    * `addBytes([1]); addBytes([2]);`.
    */
   void addBytes(List<int> bytes) {
-    _makeRoom(bytes.length);
-    new Uint8List.view(_data.buffer)
-        .setRange(_offset, _offset + bytes.length, bytes);
-    _offset += bytes.length;
+    int length = bytes.length;
+    _makeRoom(length);
+    for (int i = 0; i < length; i++) {
+      _data.setUint8(_offset + i, bytes[i]);
+    }
+    _offset += length;
   }
 
   /**
@@ -106,6 +108,13 @@ class ApiSignature {
   }
 
   /**
+   * Collect the given [Uint32List].
+   */
+  void addUint32List(Uint32List data) {
+    addBytes(data.buffer.asUint8List());
+  }
+
+  /**
    * For testing only: retrieve the internal representation of the data that
    * has been collected.
    */
@@ -114,11 +123,17 @@ class ApiSignature {
   }
 
   /**
+   * Return the bytes of the MD5 hash of the data collected so far.
+   */
+  List<int> toByteList() {
+    return md5.convert(new Uint8List.view(_data.buffer, 0, _offset)).bytes;
+  }
+
+  /**
    * Return a hex-encoded MD5 signature of the data collected so far.
    */
   String toHex() {
-    return hex.encode(
-        md5.convert(new Uint8List.view(_data.buffer, 0, _offset)).bytes);
+    return hex.encode(toByteList());
   }
 
   /**

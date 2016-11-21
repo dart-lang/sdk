@@ -573,10 +573,9 @@ class FlatTypeMask implements TypeMask {
             : (isSubclass ? ClassQuery.SUBCLASS : ClassQuery.SUBTYPE));
   }
 
-  Element locateSingleElement(Selector selector, Compiler compiler) {
+  Element locateSingleElement(Selector selector, ClosedWorld closedWorld) {
     if (isEmptyOrNull) return null;
-    Iterable<Element> targets =
-        compiler.closedWorld.allFunctions.filter(selector, this);
+    Iterable<Element> targets = closedWorld.allFunctions.filter(selector, this);
     if (targets.length != 1) return null;
     Element result = targets.first;
     ClassElement enclosing = result.enclosingClass.declaration;
@@ -584,7 +583,6 @@ class FlatTypeMask implements TypeMask {
     // all classes in the receiver type [this]. It could be found only in a
     // subclass or in an inheritance-wise unrelated class in case of subtype
     // selectors.
-    ClosedWorld closedWorld = compiler.closedWorld;
     if (isSubtype) {
       // if (closedWorld.isUsedAsMixin(enclosing)) {
       if (closedWorld.everySubtypeIsSubclassOfOrMixinUseOf(base, enclosing)) {

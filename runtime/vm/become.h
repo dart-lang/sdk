@@ -22,12 +22,8 @@ class Array;
 // representation as a FreeListElement.
 class ForwardingCorpse {
  public:
-  RawObject* target() const {
-    return target_;
-  }
-  void set_target(RawObject* target) {
-    target_ = target;
-  }
+  RawObject* target() const { return target_; }
+  void set_target(RawObject* target) { target_ = target; }
 
   intptr_t Size() {
     intptr_t size = RawObject::SizeTag::decode(tags_);
@@ -42,7 +38,7 @@ class ForwardingCorpse {
   // Used to allocate class for forwarding corpses in Object::InitOnce.
   class FakeInstance {
    public:
-    FakeInstance() { }
+    FakeInstance() {}
     static cpp_vtable vtable() { return 0; }
     static intptr_t InstanceSize() { return 0; }
     static intptr_t NextFieldOffset() { return -kWordSize; }

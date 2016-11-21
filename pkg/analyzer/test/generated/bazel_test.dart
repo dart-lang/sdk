@@ -570,10 +570,14 @@ class BazelWorkspaceTest extends _BaseTest {
   }
 
   void test_find_null_symlinkPrefix() {
+    String prefix = BazelWorkspace.defaultSymlinkPrefix;
     provider.newFile(_p('/workspace/WORKSPACE'), '');
     BazelWorkspace workspace =
         BazelWorkspace.find(provider, _p('/workspace/my/module'));
-    expect(workspace, isNull);
+    expect(workspace.root, _p('/workspace'));
+    expect(workspace.readonly, isNull);
+    expect(workspace.bin, _p('/workspace/$prefix-bin'));
+    expect(workspace.genfiles, _p('/workspace/$prefix-genfiles'));
   }
 
   void test_findFile_hasReadonlyFolder() {
@@ -610,6 +614,22 @@ class BazelWorkspaceTest extends _BaseTest {
             .findFile(_p('/Users/user/test/prime/other/module/test4.dart'))
             .path,
         _p('/Users/user/test/READONLY/prime/other/module/test4.dart'));
+  }
+
+  void test_findFile_main_overrides_readonly() {
+    provider.newFolder(_p('/Users/user/test/READONLY/prime'));
+    provider.newFolder(_p('/Users/user/test/prime'));
+    provider.newFolder(_p('/Users/user/test/prime/bazel-genfiles'));
+    provider.newFile(_p('/Users/user/test/prime/my/module/test.dart'), '');
+    provider.newFile(
+        _p('/Users/user/test/READONLY/prime/my/module/test.dart'), '');
+    BazelWorkspace workspace =
+        BazelWorkspace.find(provider, _p('/Users/user/test/prime/my/module'));
+    expect(
+        workspace
+            .findFile(_p('/Users/user/test/prime/my/module/test.dart'))
+            .path,
+        _p('/Users/user/test/prime/my/module/test.dart'));
   }
 
   void test_findFile_noReadOnly() {

@@ -58,9 +58,7 @@ class Simulator {
   int64_t get_dregister_bits(DRegister freg) const;
   double get_dregister(DRegister freg) const;
 
-  int32_t get_sp() const {
-    return get_register(SPREG);
-  }
+  int32_t get_sp() const { return get_register(SPREG); }
 
   // Accessor for the pc.
   void set_pc(int32_t value) { pc_ = value; }
@@ -88,9 +86,7 @@ class Simulator {
     }
   }
 
-  bool test_fcsr_bit(uint32_t cc) {
-    return fcsr_ & (1 << cc);
-  }
+  bool test_fcsr_bit(uint32_t cc) { return fcsr_ & (1 << cc); }
 
   // Accessors to the internal simulator stack base and top.
   uword StackBase() const { return reinterpret_cast<uword>(stack_); }
@@ -143,12 +139,7 @@ class Simulator {
 
   static uword FunctionForRedirect(uword redirect);
 
-  void Longjmp(uword pc,
-               uword sp,
-               uword fp,
-               RawObject* raw_exception,
-               RawObject* raw_stacktrace,
-               Thread* thread);
+  void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
  private:
   // A pc value used to signal the simulator to stop execution.  Generally
@@ -178,9 +169,7 @@ class Simulator {
   int32_t break_instr_;
 
   // Illegal memory access support.
-  static bool IsIllegalAddress(uword addr) {
-    return addr < 64*1024;
-  }
+  static bool IsIllegalAddress(uword addr) { return addr < 64 * 1024; }
   void HandleIllegalAccess(uword addr, Instr* instr);
 
   // Read and write memory.
@@ -196,7 +185,7 @@ class Simulator {
   inline int8_t ReadB(uword addr);
   inline uint8_t ReadBU(uword addr);
   inline int16_t ReadH(uword addr, Instr* instr);
-  inline uint16_t ReadHU(uword addr, Instr *instr);
+  inline uint16_t ReadHU(uword addr, Instr* instr);
   inline intptr_t ReadW(uword addr, Instr* instr);
 
   inline void WriteB(uword addr, uint8_t value);
@@ -238,7 +227,7 @@ class Simulator {
   static bool HasExclusiveAccessAndOpen(uword addr);
 
   void DoBranch(Instr* instr, bool taken, bool likely);
-  void DoBreak(Instr *instr);
+  void DoBreak(Instr* instr);
 
   void DecodeSpecial(Instr* instr);
   void DecodeSpecial2(Instr* instr);
@@ -253,9 +242,7 @@ class Simulator {
   bool IsTracingExecution() const;
 
   // Longjmp support for exceptions.
-  SimulatorSetjmpBuffer* last_setjmp_buffer() {
-    return last_setjmp_buffer_;
-  }
+  SimulatorSetjmpBuffer* last_setjmp_buffer() { return last_setjmp_buffer_; }
   void set_last_setjmp_buffer(SimulatorSetjmpBuffer* buffer) {
     last_setjmp_buffer_ = buffer;
   }

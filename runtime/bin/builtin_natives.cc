@@ -27,10 +27,7 @@ namespace bin {
 // using functions listed in io_natives.cc.
 #define BUILTIN_NATIVE_LIST(V)                                                 \
   V(Builtin_PrintString, 1)                                                    \
-  V(Builtin_LoadSource, 4)                                                     \
-  V(Builtin_AsyncLoadError, 3)                                                 \
-  V(Builtin_DoneLoading, 0)                                                    \
-  V(Builtin_GetCurrentDirectory, 0)                                            \
+  V(Builtin_GetCurrentDirectory, 0)
 
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);
@@ -39,15 +36,12 @@ static struct NativeEntries {
   const char* name_;
   Dart_NativeFunction function_;
   int argument_count_;
-} BuiltinEntries[] = {
-  BUILTIN_NATIVE_LIST(REGISTER_FUNCTION)
-};
+} BuiltinEntries[] = {BUILTIN_NATIVE_LIST(REGISTER_FUNCTION)};
 
 
 void Builtin_DummyNative(Dart_NativeArguments args) {
   UNREACHABLE();
 }
-
 
 
 /**
@@ -109,10 +103,9 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   fflush(stdout);
   if (ShouldCaptureStdout()) {
     // For now we report print output on the Stdout stream.
-    uint8_t newline[] = { '\n' };
+    uint8_t newline[] = {'\n'};
     Dart_ServiceSendDataEvent("Stdout", "WriteEvent", chars, length);
-    Dart_ServiceSendDataEvent("Stdout", "WriteEvent",
-                              newline, sizeof(newline));
+    Dart_ServiceSendDataEvent("Stdout", "WriteEvent", newline, sizeof(newline));
   }
 }
 

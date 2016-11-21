@@ -131,8 +131,8 @@ TEST_CASE(DirectoryRename) {
       snprintf(NULL, 0, "%s/%snewname", system_temp, kTempDirName);
   ASSERT(new_name_len > 0);
   char* new_name = new char[new_name_len + 1];
-  snprintf(new_name, new_name_len + 1, "%s/%snewname",
-      system_temp, kTempDirName);
+  snprintf(new_name, new_name_len + 1, "%s/%snewname", system_temp,
+           kTempDirName);
 
   EXPECT(dart::bin::Directory::Rename(name, new_name));
 

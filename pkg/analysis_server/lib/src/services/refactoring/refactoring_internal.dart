@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
 
 /**
@@ -68,8 +67,6 @@ class SourceReference {
 
   SourceReference(this._match);
 
-  AnalysisContext get context => _match.context;
-
   Element get element => _match.element;
 
   /**
@@ -106,7 +103,7 @@ class SourceReference {
    */
   void addEdit(SourceChange change, String newText, {String id}) {
     SourceEdit edit = createEdit(newText, id: id);
-    doSourceChange_addSourceEdit(change, context, unitSource, edit);
+    doSourceChange_addSourceEdit(change, unitSource, edit);
   }
 
   /**

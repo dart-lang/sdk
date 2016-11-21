@@ -70,6 +70,7 @@ script:
   - if [[ -z "$TEST" ]]; then ./tool/presubmit.sh ; fi
   - if [[ "$TEST" == coverage ]]; then ./tool/build_sdk.sh && ./tool/coverage.sh ; fi
   - if [[ "$TEST" == node ]]; then ./tool/node_test.sh ; fi
+  - if [[ "$TEST" == package ]]; then ./tool/build_sdk.sh && ./tool/build_pkgs.dart ; fi
 env:
   - ANALYZER=master
   - ANALYZER=master DDC_BROWSERS=Firefox
@@ -77,12 +78,11 @@ env:
   - ANALYZER=master CXX=g++
   - ANALYZER=master CXX=clang++
   - TEST=coverage
+  - TEST=package
 matrix:
   allow_failures:
-    - env: TEST=node
-    - env: ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
-    - env: ANALYZER=master DDC_BROWSERS=Firefox
     - env: ANALYZER=master CXX=g++
+    - env: ANALYZER=master DDC_BROWSERS=ChromeCanaryTravis
 notifications:
   email:
     recipients:

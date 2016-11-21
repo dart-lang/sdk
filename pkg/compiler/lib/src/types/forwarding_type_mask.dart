@@ -101,8 +101,8 @@ abstract class ForwardingTypeMask implements TypeMask {
     return forwardTo.canHit(element, selector, closedWorld);
   }
 
-  Element locateSingleElement(Selector selector, Compiler compiler) {
-    return forwardTo.locateSingleElement(selector, compiler);
+  Element locateSingleElement(Selector selector, ClosedWorld closedWorld) {
+    return forwardTo.locateSingleElement(selector, closedWorld);
   }
 
   bool equalsDisregardNull(other) {

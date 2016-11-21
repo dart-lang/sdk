@@ -25,7 +25,7 @@ namespace dart {
 class ObjectGraph::Stack : public ObjectPointerVisitor {
  public:
   explicit Stack(Isolate* isolate)
-      : ObjectPointerVisitor(isolate), data_(kInitialCapacity) { }
+      : ObjectPointerVisitor(isolate), data_(kInitialCapacity) {}
 
   // Marks and pushes. Used to initialize this stack with roots.
   virtual void VisitPointers(RawObject** first, RawObject** last) {
@@ -138,7 +138,7 @@ intptr_t ObjectGraph::StackIterator::OffsetFromParentInWords() const {
 
 class Unmarker : public ObjectVisitor {
  public:
-  Unmarker() { }
+  Unmarker() {}
 
   void VisitObject(RawObject* obj) {
     if (obj->IsMarked()) {
@@ -156,8 +156,7 @@ class Unmarker : public ObjectVisitor {
 };
 
 
-ObjectGraph::ObjectGraph(Thread* thread)
-    : StackResource(thread) {
+ObjectGraph::ObjectGraph(Thread* thread) : StackResource(thread) {
   // The VM isolate has all its objects pre-marked, so iterating over it
   // would be a no-op.
   ASSERT(thread->isolate() != Dart::vm_isolate());
@@ -193,7 +192,7 @@ void ObjectGraph::IterateObjectsFrom(const Object& root,
 class InstanceAccumulator : public ObjectVisitor {
  public:
   InstanceAccumulator(ObjectGraph::Stack* stack, intptr_t class_id)
-      : stack_(stack), class_id_(class_id) { }
+      : stack_(stack), class_id_(class_id) {}
 
   void VisitObject(RawObject* obj) {
     if (obj->GetClassId() == class_id_) {
@@ -225,7 +224,7 @@ void ObjectGraph::IterateObjectsFrom(intptr_t class_id,
 
 class SizeVisitor : public ObjectGraph::Visitor {
  public:
-  SizeVisitor() : size_(0) { }
+  SizeVisitor() : size_(0) {}
   intptr_t size() const { return size_; }
   virtual bool ShouldSkip(RawObject* obj) const { return false; }
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
@@ -236,6 +235,7 @@ class SizeVisitor : public ObjectGraph::Visitor {
     size_ += obj->Size();
     return kProceed;
   }
+
  private:
   intptr_t size_;
 };
@@ -243,8 +243,9 @@ class SizeVisitor : public ObjectGraph::Visitor {
 
 class SizeExcludingObjectVisitor : public SizeVisitor {
  public:
-  explicit SizeExcludingObjectVisitor(const Object& skip) : skip_(skip) { }
+  explicit SizeExcludingObjectVisitor(const Object& skip) : skip_(skip) {}
   virtual bool ShouldSkip(RawObject* obj) const { return obj == skip_.raw(); }
+
  private:
   const Object& skip_;
 };
@@ -252,10 +253,11 @@ class SizeExcludingObjectVisitor : public SizeVisitor {
 
 class SizeExcludingClassVisitor : public SizeVisitor {
  public:
-  explicit SizeExcludingClassVisitor(intptr_t skip) : skip_(skip) { }
+  explicit SizeExcludingClassVisitor(intptr_t skip) : skip_(skip) {}
   virtual bool ShouldSkip(RawObject* obj) const {
     return obj->GetClassId() == skip_;
   }
+
  private:
   const intptr_t skip_;
 };
@@ -312,10 +314,10 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
     // and it is less informative than its alternatives.
     intptr_t cid = obj->GetClassId();
     switch (cid) {
-    case kICDataCid:
-      return true;
-    default:
-      return false;
+      case kICDataCid:
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -328,9 +330,7 @@ class RetainingPathVisitor : public ObjectGraph::Visitor {
     return false;
   }
 
-  void StartList() {
-    was_last_array_ = false;
-  }
+  void StartList() { was_last_array_ = false; }
 
   intptr_t HideNDescendant(RawObject* obj) {
     // A GrowableObjectArray overwrites its internal storage.
@@ -408,8 +408,12 @@ class InboundReferencesVisitor : public ObjectVisitor,
                            RawObject* target,
                            const Array& references,
                            Object* scratch)
-    : ObjectPointerVisitor(isolate), source_(NULL),
-      target_(target), references_(references), scratch_(scratch), length_(0) {
+      : ObjectPointerVisitor(isolate),
+        source_(NULL),
+        target_(target),
+        references_(references),
+        scratch_(scratch),
+        length_(0) {
     ASSERT(Thread::Current()->no_safepoint_scope_depth() != 0);
   }
 
@@ -487,13 +491,14 @@ class WritePointerVisitor : public ObjectPointerVisitor {
       : ObjectPointerVisitor(isolate), stream_(stream), count_(0) {}
   virtual void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; ++current) {
-      if (!(*current)->IsHeapObject() || (*current == Object::null())) {
-        // Ignore smis and nulls for now.
+      RawObject* object = *current;
+      if (!object->IsHeapObject() || object->IsVMHeapObject()) {
+        // Ignore smis and objects in the VM isolate for now.
         // TODO(koda): To track which field each pointer corresponds to,
         // we'll need to encode which fields were omitted here.
         continue;
       }
-      WritePtr(*current, stream_);
+      WritePtr(object, stream_);
       ++count_;
     }
   }
@@ -506,8 +511,10 @@ class WritePointerVisitor : public ObjectPointerVisitor {
 };
 
 
-static void WriteHeader(RawObject* raw, intptr_t size, intptr_t cid,
-                 WriteStream* stream) {
+static void WriteHeader(RawObject* raw,
+                        intptr_t size,
+                        intptr_t cid,
+                        WriteStream* stream) {
   WritePtr(raw, stream);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   stream->WriteUnsigned(size);
@@ -518,7 +525,7 @@ static void WriteHeader(RawObject* raw, intptr_t size, intptr_t cid,
 class WriteGraphVisitor : public ObjectGraph::Visitor {
  public:
   WriteGraphVisitor(Isolate* isolate, WriteStream* stream)
-    : stream_(stream), ptr_writer_(isolate, stream), count_(0) {}
+      : stream_(stream), ptr_writer_(isolate, stream), count_(0) {}
 
   virtual Direction VisitObject(ObjectGraph::StackIterator* it) {
     RawObject* raw_obj = it->Get();

@@ -64,24 +64,18 @@ class Simulator {
                   const Array& arguments,
                   Thread* thread);
 
-  void Longjmp(uword pc,
-               uword sp,
-               uword fp,
-               RawObject* raw_exception,
-               RawObject* raw_stacktrace,
-               Thread* thread);
+  void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
   uword get_sp() const { return reinterpret_cast<uword>(sp_); }
   uword get_fp() const { return reinterpret_cast<uword>(fp_); }
   uword get_pc() const { return reinterpret_cast<uword>(pc_); }
 
   enum IntrinsicId {
-#define V(test_class_name, test_function_name, enum_name, type, fp) \
-    k##enum_name##Intrinsic,
-  ALL_INTRINSICS_LIST(V)
-  GRAPH_INTRINSICS_LIST(V)
+#define V(test_class_name, test_function_name, enum_name, type, fp)            \
+  k##enum_name##Intrinsic,
+    ALL_INTRINSICS_LIST(V) GRAPH_INTRINSICS_LIST(V)
 #undef V
-    kIntrinsicCount,
+        kIntrinsicCount,
   };
 
   static bool IsSupportedIntrinsic(IntrinsicId id) {
@@ -136,7 +130,8 @@ class Simulator {
                        RawObject** call_base,
                        RawObject** top,
                        uint32_t* pc,
-                       RawObject** FP, RawObject** SP);
+                       RawObject** FP,
+                       RawObject** SP);
 
   void InstanceCall1(Thread* thread,
                      RawICData* icdata,
@@ -145,7 +140,8 @@ class Simulator {
                      RawArray** argdesc,
                      RawObjectPool** pp,
                      uint32_t** pc,
-                     RawObject*** FP, RawObject*** SP,
+                     RawObject*** FP,
+                     RawObject*** SP,
                      bool optimized);
 
   void InstanceCall2(Thread* thread,
@@ -155,13 +151,12 @@ class Simulator {
                      RawArray** argdesc,
                      RawObjectPool** pp,
                      uint32_t** pc,
-                     RawObject*** FP, RawObject*** SP,
+                     RawObject*** FP,
+                     RawObject*** SP,
                      bool optimized);
 
   // Longjmp support for exceptions.
-  SimulatorSetjmpBuffer* last_setjmp_buffer() {
-    return last_setjmp_buffer_;
-  }
+  SimulatorSetjmpBuffer* last_setjmp_buffer() { return last_setjmp_buffer_; }
   void set_last_setjmp_buffer(SimulatorSetjmpBuffer* buffer) {
     last_setjmp_buffer_ = buffer;
   }

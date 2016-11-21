@@ -344,7 +344,7 @@ class ReferenceFinderTest {
     ConstLocalVariableElementImpl variableElement =
         ElementFactory.constLocalVariableElement(name);
     _tail = variableElement;
-    variableElement.const3 = isConst;
+    variableElement.isConst = isConst;
     AstFactory.variableDeclarationList2(
         isConst ? Keyword.CONST : Keyword.VAR, [variableDeclaration]);
     SimpleIdentifier identifier = AstFactory.identifier3(name);

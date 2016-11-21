@@ -675,7 +675,7 @@ class ProgramBuilder {
   }
 
   bool _methodCanBeApplied(FunctionElement method) {
-    return _compiler.enabledFunctionApply &&
+    return _compiler.hasFunctionApplySupport &&
         _compiler.closedWorld.getMightBePassedToApply(method);
   }
 

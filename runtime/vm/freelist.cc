@@ -77,10 +77,8 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
   if ((index != kNumLists) && free_map_.Test(index)) {
     FreeListElement* element = DequeueElement(index);
     if (is_protected) {
-      bool status =
-          VirtualMemory::Protect(reinterpret_cast<void*>(element),
-                                 size,
-                                 VirtualMemory::kReadWrite);
+      bool status = VirtualMemory::Protect(reinterpret_cast<void*>(element),
+                                           size, VirtualMemory::kReadWrite);
       ASSERT(status);
     }
     return reinterpret_cast<uword>(element);
@@ -103,8 +101,7 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
             size + FreeListElement::HeaderSizeFor(remainder_size);
         bool status =
             VirtualMemory::Protect(reinterpret_cast<void*>(element),
-                                   region_size,
-                                   VirtualMemory::kReadWrite);
+                                   region_size, VirtualMemory::kReadWrite);
         ASSERT(status);
       }
       SplitElementAfterAndEnqueue(element, size, is_protected);
@@ -127,8 +124,7 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
         // the call to SplitElementAfterAndEnqueue.
         bool status =
             VirtualMemory::Protect(reinterpret_cast<void*>(current),
-                                   region_size,
-                                   VirtualMemory::kReadWrite);
+                                   region_size, VirtualMemory::kReadWrite);
         ASSERT(status);
       }
 
@@ -151,16 +147,14 @@ uword FreeList::TryAllocateLocked(intptr_t size, bool is_protected) {
         if (target_is_protected) {
           bool status =
               VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
-                                     kWordSize,
-                                     VirtualMemory::kReadWrite);
+                                     kWordSize, VirtualMemory::kReadWrite);
           ASSERT(status);
         }
         previous->set_next(current->next());
         if (target_is_protected) {
           bool status =
               VirtualMemory::Protect(reinterpret_cast<void*>(target_address),
-                                     kWordSize,
-                                     VirtualMemory::kReadExecute);
+                                     kWordSize, VirtualMemory::kReadExecute);
           ASSERT(status);
         }
       }
@@ -220,8 +214,8 @@ void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
   FreeListElement* next = free_lists_[index];
   if (next == NULL && index != kNumLists) {
     free_map_.Set(index, true);
-    last_free_small_size_ = Utils::Maximum(last_free_small_size_,
-                                           index << kObjectAlignmentLog2);
+    last_free_small_size_ =
+        Utils::Maximum(last_free_small_size_, index << kObjectAlignmentLog2);
   }
   element->set_next(next);
   free_lists_[index] = element;
@@ -273,13 +267,12 @@ void FreeList::PrintSmall() const {
     small_objects += list_length;
     intptr_t list_bytes = list_length * i * kObjectAlignment;
     small_bytes += list_bytes;
-    OS::Print("small %3d [%8d bytes] : "
-              "%8" Pd " objs; %8.1f KB; %8.1f cum KB\n",
-              i,
-              i * kObjectAlignment,
-              list_length,
-              list_bytes / static_cast<double>(KB),
-              small_bytes / static_cast<double>(KB));
+    OS::Print(
+        "small %3d [%8d bytes] : "
+        "%8" Pd " objs; %8.1f KB; %8.1f cum KB\n",
+        i, i * kObjectAlignment, list_length,
+        list_bytes / static_cast<double>(KB),
+        small_bytes / static_cast<double>(KB));
   }
 }
 
@@ -333,11 +326,10 @@ void FreeList::PrintLarge() const {
     intptr_t list_length = pair->second();
     intptr_t list_bytes = list_length * size;
     large_bytes += list_bytes;
-    OS::Print("large %3" Pd " [%8" Pd " bytes] : "
+    OS::Print("large %3" Pd " [%8" Pd
+              " bytes] : "
               "%8" Pd " objs; %8.1f KB; %8.1f cum KB\n",
-              size / kObjectAlignment,
-              size,
-              list_length,
+              size / kObjectAlignment, size, list_length,
               list_bytes / static_cast<double>(KB),
               large_bytes / static_cast<double>(KB));
   }
@@ -373,8 +365,7 @@ void FreeList::SplitElementAfterAndEnqueue(FreeListElement* element,
       !VirtualMemory::InSamePage(remainder_address - 1, remainder_address)) {
     bool status =
         VirtualMemory::Protect(reinterpret_cast<void*>(remainder_address),
-                               remainder_size,
-                               VirtualMemory::kReadExecute);
+                               remainder_size, VirtualMemory::kReadExecute);
     ASSERT(status);
   }
 }

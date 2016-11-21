@@ -30,9 +30,9 @@ class StubEntry;
 
 class Immediate : public ValueObject {
  public:
-  explicit Immediate(int32_t value) : value_(value) { }
+  explicit Immediate(int32_t value) : value_(value) {}
 
-  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) { }
+  Immediate(const Immediate& other) : ValueObject(), value_(other.value_) {}
   Immediate& operator=(const Immediate& other) {
     value_ = other.value_;
     return *this;
@@ -50,13 +50,13 @@ class Immediate : public ValueObject {
 class Address : public ValueObject {
  public:
   explicit Address(Register base, int32_t offset = 0)
-      : ValueObject(), base_(base), offset_(offset) { }
+      : ValueObject(), base_(base), offset_(offset) {}
 
   // This addressing mode does not exist.
   Address(Register base, Register offset);
 
   Address(const Address& other)
-      : ValueObject(), base_(other.base_), offset_(other.offset_) { }
+      : ValueObject(), base_(other.base_), offset_(other.offset_) {}
   Address& operator=(const Address& other) {
     base_ = other.base_;
     offset_ = other.offset_;
@@ -85,9 +85,9 @@ class Address : public ValueObject {
 class FieldAddress : public Address {
  public:
   FieldAddress(Register base, int32_t disp)
-      : Address(base, disp - kHeapObjectTag) { }
+      : Address(base, disp - kHeapObjectTag) {}
 
-  FieldAddress(const FieldAddress& other) : Address(other) { }
+  FieldAddress(const FieldAddress& other) : Address(other) {}
 
   FieldAddress& operator=(const FieldAddress& other) {
     Address::operator=(other);
@@ -98,7 +98,7 @@ class FieldAddress : public Address {
 
 class Label : public ValueObject {
  public:
-  Label() : position_(0) { }
+  Label() : position_(0) {}
 
   ~Label() {
     // Assert if label is being destroyed with unresolved branches pending.
@@ -119,9 +119,7 @@ class Label : public ValueObject {
  private:
   intptr_t position_;
 
-  void Reinitialize() {
-    position_ = 0;
-  }
+  void Reinitialize() { position_ = 0; }
 
   void BindTo(intptr_t position) {
     ASSERT(!IsBound());
@@ -160,8 +158,8 @@ class Condition : public ValueObject {
 
   class LeftBits : public BitField<uword, Register, kLeftPos, kLeftSize> {};
   class RightBits : public BitField<uword, Register, kRightPos, kRightSize> {};
-  class RelOpBits :
-      public BitField<uword, RelationOperator, kRelOpPos, kRelOpSize> {};
+  class RelOpBits
+      : public BitField<uword, RelationOperator, kRelOpPos, kRelOpSize> {};
   class ImmBits : public BitField<uword, uint16_t, kImmPos, kImmSize> {};
 
   Register left() const { return LeftBits::decode(bits_); }
@@ -180,10 +178,10 @@ class Condition : public ValueObject {
   }
 
   // Uninitialized condition.
-  Condition() : ValueObject(), bits_(0) { }
+  Condition() : ValueObject(), bits_(0) {}
 
   // Copy constructor.
-  Condition(const Condition& other) : ValueObject(), bits_(other.bits_) { }
+  Condition(const Condition& other) : ValueObject(), bits_(other.bits_) {}
 
   // Copy assignment operator.
   Condition& operator=(const Condition& other) {
@@ -239,14 +237,13 @@ class Assembler : public ValueObject {
   explicit Assembler(bool use_far_branches = false)
       : buffer_(),
         prologue_offset_(-1),
+        has_single_entry_point_(true),
         use_far_branches_(use_far_branches),
         delay_slot_available_(false),
         in_delay_slot_(false),
         comments_(),
-        constant_pool_allowed_(true) {
-    MonomorphicCheckedEntry();
-  }
-  ~Assembler() { }
+        constant_pool_allowed_(true) {}
+  ~Assembler() {}
 
   void PopRegister(Register r) { Pop(r); }
 
@@ -256,12 +253,11 @@ class Assembler : public ValueObject {
   // Misc. functionality
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   // Count the fixups that produce a pointer offset, without processing
   // the fixups.
-  intptr_t CountPointerOffsets() const {
-    return buffer_.CountPointerOffsets();
-  }
+  intptr_t CountPointerOffsets() const { return buffer_.CountPointerOffsets(); }
 
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
@@ -281,9 +277,7 @@ class Assembler : public ValueObject {
     return FLAG_use_far_branches || use_far_branches_;
   }
 
-  void set_use_far_branches(bool b) {
-    use_far_branches_ = b;
-  }
+  void set_use_far_branches(bool b) { use_far_branches_ = b; }
 
   void EnterFrame();
   void LeaveFrameAndReturn();
@@ -296,7 +290,6 @@ class Assembler : public ValueObject {
   // the branch delay slot.
   void LeaveStubFrameAndReturn(Register ra = RA);
 
-  void NoMonomorphicCheckedEntry();
   void MonomorphicCheckedEntry();
 
   void UpdateAllocationStats(intptr_t cid,
@@ -309,9 +302,7 @@ class Assembler : public ValueObject {
                                      Heap::Space space);
 
 
-  void MaybeTraceAllocation(intptr_t cid,
-                            Register temp_reg,
-                            Label* trace);
+  void MaybeTraceAllocation(intptr_t cid, Register temp_reg, Label* trace);
 
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
@@ -357,7 +348,7 @@ class Assembler : public ValueObject {
   Assembler* delay_slot() {
     ASSERT(delay_slot_available_);
     ASSERT(buffer_.Load<int32_t>(buffer_.GetPosition() - sizeof(int32_t)) ==
-        Instr::kNopInstruction);
+           Instr::kNopInstruction);
     buffer_.Remit<int32_t>();
     delay_slot_available_ = false;
     in_delay_slot_ = true;
@@ -394,11 +385,9 @@ class Assembler : public ValueObject {
   }
 
   // Unconditional branch.
-  void b(Label* l) {
-    beq(R0, R0, l);
-  }
+  void b(Label* l) { beq(R0, R0, l); }
 
-  void bal(Label *l) {
+  void bal(Label* l) {
     ASSERT(!in_delay_slot_);
     EmitRegImmBranch(BGEZAL, R0, l);
     EmitBranchDelayNop();
@@ -508,19 +497,14 @@ class Assembler : public ValueObject {
 
   static int32_t BreakEncoding(int32_t code) {
     ASSERT(Utils::IsUint(20, code));
-    return SPECIAL << kOpcodeShift |
-           code << kBreakCodeShift |
+    return SPECIAL << kOpcodeShift | code << kBreakCodeShift |
            BREAK << kFunctionShift;
   }
 
 
-  void break_(int32_t code) {
-    Emit(BreakEncoding(code));
-  }
+  void break_(int32_t code) { Emit(BreakEncoding(code)); }
 
-  static uword GetBreakInstructionFiller() {
-    return BreakEncoding(0);
-  }
+  static uword GetBreakInstructionFiller() { return BreakEncoding(0); }
 
   // FPU compare, always false.
   void cfd(DRegister ds, DRegister dt) {
@@ -610,9 +594,7 @@ class Assembler : public ValueObject {
     EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_S);
   }
 
-  void div(Register rs, Register rt) {
-    EmitRType(SPECIAL, rs, rt, R0, 0, DIV);
-  }
+  void div(Register rs, Register rt) { EmitRType(SPECIAL, rs, rt, R0, 0, DIV); }
 
   void divd(DRegister dd, DRegister ds, DRegister dt) {
     FRegister fd = static_cast<FRegister>(dd * 2);
@@ -638,30 +620,20 @@ class Assembler : public ValueObject {
     EmitBranchDelayNop();
   }
 
-  void lb(Register rt, const Address& addr) {
-    EmitLoadStore(LB, rt, addr);
-  }
+  void lb(Register rt, const Address& addr) { EmitLoadStore(LB, rt, addr); }
 
-  void lbu(Register rt, const Address& addr) {
-    EmitLoadStore(LBU, rt, addr);
-  }
+  void lbu(Register rt, const Address& addr) { EmitLoadStore(LBU, rt, addr); }
 
   void ldc1(DRegister dt, const Address& addr) {
     FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuLoadStore(LDC1, ft, addr);
   }
 
-  void lh(Register rt, const Address& addr) {
-    EmitLoadStore(LH, rt, addr);
-  }
+  void lh(Register rt, const Address& addr) { EmitLoadStore(LH, rt, addr); }
 
-  void lhu(Register rt, const Address& addr) {
-    EmitLoadStore(LHU, rt, addr);
-  }
+  void lhu(Register rt, const Address& addr) { EmitLoadStore(LHU, rt, addr); }
 
-  void ll(Register rt, const Address& addr) {
-    EmitLoadStore(LL, rt, addr);
-  }
+  void ll(Register rt, const Address& addr) { EmitLoadStore(LL, rt, addr); }
 
   void lui(Register rt, const Immediate& imm) {
     ASSERT(Utils::IsUint(kImmBits, imm.value()));
@@ -669,9 +641,7 @@ class Assembler : public ValueObject {
     EmitIType(LUI, R0, rt, imm_value);
   }
 
-  void lw(Register rt, const Address& addr) {
-    EmitLoadStore(LW, rt, addr);
-  }
+  void lw(Register rt, const Address& addr) { EmitLoadStore(LW, rt, addr); }
 
   void lwc1(FRegister ft, const Address& addr) {
     EmitFpuLoadStore(LWC1, ft, addr);
@@ -686,23 +656,15 @@ class Assembler : public ValueObject {
   }
 
   void mfc1(Register rt, FRegister fs) {
-    Emit(COP1 << kOpcodeShift |
-         COP1_MF << kCop1SubShift |
-         rt << kRtShift |
+    Emit(COP1 << kOpcodeShift | COP1_MF << kCop1SubShift | rt << kRtShift |
          fs << kFsShift);
   }
 
-  void mfhi(Register rd) {
-    EmitRType(SPECIAL, R0, R0, rd, 0, MFHI);
-  }
+  void mfhi(Register rd) { EmitRType(SPECIAL, R0, R0, rd, 0, MFHI); }
 
-  void mflo(Register rd) {
-    EmitRType(SPECIAL, R0, R0, rd, 0, MFLO);
-  }
+  void mflo(Register rd) { EmitRType(SPECIAL, R0, R0, rd, 0, MFLO); }
 
-  void mov(Register rd, Register rs) {
-    or_(rd, rs, ZR);
-  }
+  void mov(Register rd, Register rs) { or_(rd, rs, ZR); }
 
   void movd(DRegister dd, DRegister ds) {
     FRegister fd = static_cast<FRegister>(dd * 2);
@@ -734,19 +696,13 @@ class Assembler : public ValueObject {
   }
 
   void mtc1(Register rt, FRegister fs) {
-    Emit(COP1 << kOpcodeShift |
-         COP1_MT << kCop1SubShift |
-         rt << kRtShift |
+    Emit(COP1 << kOpcodeShift | COP1_MT << kCop1SubShift | rt << kRtShift |
          fs << kFsShift);
   }
 
-  void mthi(Register rs) {
-    EmitRType(SPECIAL, rs, R0, R0, 0, MTHI);
-  }
+  void mthi(Register rs) { EmitRType(SPECIAL, rs, R0, R0, 0, MTHI); }
 
-  void mtlo(Register rs) {
-    EmitRType(SPECIAL, rs, R0, R0, 0, MTLO);
-  }
+  void mtlo(Register rs) { EmitRType(SPECIAL, rs, R0, R0, 0, MTLO); }
 
   void muld(DRegister dd, DRegister ds, DRegister dt) {
     FRegister fd = static_cast<FRegister>(dd * 2);
@@ -769,9 +725,7 @@ class Assembler : public ValueObject {
     EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_NEG);
   }
 
-  void nop() {
-    Emit(Instr::kNopInstruction);
-  }
+  void nop() { Emit(Instr::kNopInstruction); }
 
   void nor(Register rd, Register rs, Register rt) {
     EmitRType(SPECIAL, rs, rt, rd, 0, NOR);
@@ -787,23 +741,17 @@ class Assembler : public ValueObject {
     EmitIType(ORI, rs, rt, imm_value);
   }
 
-  void sb(Register rt, const Address& addr) {
-    EmitLoadStore(SB, rt, addr);
-  }
+  void sb(Register rt, const Address& addr) { EmitLoadStore(SB, rt, addr); }
 
   // rt = 1 on success, 0 on failure.
-  void sc(Register rt, const Address& addr) {
-    EmitLoadStore(SC, rt, addr);
-  }
+  void sc(Register rt, const Address& addr) { EmitLoadStore(SC, rt, addr); }
 
   void sdc1(DRegister dt, const Address& addr) {
     FRegister ft = static_cast<FRegister>(dt * 2);
     EmitFpuLoadStore(SDC1, ft, addr);
   }
 
-  void sh(Register rt, const Address& addr) {
-    EmitLoadStore(SH, rt, addr);
-  }
+  void sh(Register rt, const Address& addr) { EmitLoadStore(SH, rt, addr); }
 
   void sll(Register rd, Register rt, int sa) {
     EmitRType(SPECIAL, R0, rt, rd, sa, SLL);
@@ -869,9 +817,7 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, rd, 0, SUBU);
   }
 
-  void sw(Register rt, const Address& addr) {
-    EmitLoadStore(SW, rt, addr);
-  }
+  void sw(Register rt, const Address& addr) { EmitLoadStore(SW, rt, addr); }
 
   void swc1(FRegister ft, const Address& addr) {
     EmitFpuLoadStore(SWC1, ft, addr);
@@ -895,15 +841,21 @@ class Assembler : public ValueObject {
   // ro must be different from all the other registers.
   // If rd, rs, and rt are the same register, then a scratch register different
   // from the other registers is needed.
-  void AdduDetectOverflow(Register rd, Register rs, Register rt, Register ro,
+  void AdduDetectOverflow(Register rd,
+                          Register rs,
+                          Register rt,
+                          Register ro,
                           Register scratch = kNoRegister);
 
   // ro must be different from rd and rs.
   // rd and ro must not be TMP.
   // If rd and rs are the same, a scratch register different from the other
   // registers is needed.
-  void AddImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
-                                  Register ro, Register scratch = kNoRegister) {
+  void AddImmediateDetectOverflow(Register rd,
+                                  Register rs,
+                                  int32_t imm,
+                                  Register ro,
+                                  Register scratch = kNoRegister) {
     ASSERT(!in_delay_slot_);
     LoadImmediate(rd, imm);
     AdduDetectOverflow(rd, rs, rd, ro, scratch);
@@ -917,7 +869,9 @@ class Assembler : public ValueObject {
 
   // ro must be different from rd and rs.
   // None of rd, rs, rt, or ro may be TMP.
-  void SubImmediateDetectOverflow(Register rd, Register rs, int32_t imm,
+  void SubImmediateDetectOverflow(Register rd,
+                                  Register rs,
+                                  int32_t imm,
                                   Register ro) {
     ASSERT(!in_delay_slot_);
     LoadImmediate(rd, imm);
@@ -1087,8 +1041,11 @@ class Assembler : public ValueObject {
     Register right = cond.right();
     RelationOperator rel_op = cond.rel_op();
     switch (rel_op) {
-      case NV: return;
-      case AL: b(l); return;
+      case NV:
+        return;
+      case AL:
+        b(l);
+        return;
       case EQ:  // fall through.
       case NE: {
         if (left == IMM) {
@@ -1228,9 +1185,7 @@ class Assembler : public ValueObject {
     }
   }
 
-  void BranchEqual(Register rd, Register rn, Label* l) {
-    beq(rd, rn, l);
-  }
+  void BranchEqual(Register rd, Register rn, Label* l) { beq(rd, rn, l); }
 
   void BranchEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
@@ -1250,9 +1205,7 @@ class Assembler : public ValueObject {
     beq(rd, CMPRES2, l);
   }
 
-  void BranchNotEqual(Register rd, Register rn, Label* l) {
-    bne(rd, rn, l);
-  }
+  void BranchNotEqual(Register rd, Register rn, Label* l) { bne(rd, rn, l); }
 
   void BranchNotEqual(Register rd, const Immediate& imm, Label* l) {
     ASSERT(!in_delay_slot_);
@@ -1319,7 +1272,7 @@ class Assembler : public ValueObject {
   void BranchSignedGreaterEqual(Register rd, Register rs, Label* l) {
     ASSERT(!in_delay_slot_);
     slt(CMPRES2, rd, rs);  // CMPRES2 = rd < rs ? 1 : 0.
-    beq(CMPRES2, ZR, l);  // If CMPRES2 = 0, then rd >= rs.
+    beq(CMPRES2, ZR, l);   // If CMPRES2 = 0, then rd >= rs.
   }
 
   void BranchSignedGreaterEqual(Register rd, const Immediate& imm, Label* l) {
@@ -1456,25 +1409,15 @@ class Assembler : public ValueObject {
     addiu(SP, SP, Immediate(kWordSize));
   }
 
-  void Ret() {
-    jr(RA);
-  }
+  void Ret() { jr(RA); }
 
-  void SmiTag(Register reg) {
-    sll(reg, reg, kSmiTagSize);
-  }
+  void SmiTag(Register reg) { sll(reg, reg, kSmiTagSize); }
 
-  void SmiTag(Register dst, Register src) {
-    sll(dst, src, kSmiTagSize);
-  }
+  void SmiTag(Register dst, Register src) { sll(dst, src, kSmiTagSize); }
 
-  void SmiUntag(Register reg) {
-    sra(reg, reg, kSmiTagSize);
-  }
+  void SmiUntag(Register reg) { sra(reg, reg, kSmiTagSize); }
 
-  void SmiUntag(Register dst, Register src) {
-    sra(dst, src, kSmiTagSize);
-  }
+  void SmiUntag(Register dst, Register src) { sra(dst, src, kSmiTagSize); }
 
   void BranchIfNotSmi(Register reg, Label* label) {
     andi(CMPRES1, reg, Immediate(kSmiTagMask));
@@ -1558,9 +1501,9 @@ class Assembler : public ValueObject {
   void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
-  void StoreIntoObject(Register object,  // Object we are storing into.
+  void StoreIntoObject(Register object,      // Object we are storing into.
                        const Address& dest,  // Where we are storing into.
-                       Register value,  // Value we are storing.
+                       Register value,       // Value we are storing.
                        bool can_value_be_smi = true);
   void StoreIntoObjectOffset(Register object,
                              int32_t offset,
@@ -1599,12 +1542,31 @@ class Assembler : public ValueObject {
                                     intptr_t index_scale,
                                     Register array,
                                     intptr_t index) const;
+  void LoadElementAddressForIntIndex(Register address,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     intptr_t index);
   Address ElementAddressForRegIndex(bool is_load,
                                     bool is_external,
                                     intptr_t cid,
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+  void LoadElementAddressForRegIndex(Register address,
+                                     bool is_load,
+                                     bool is_external,
+                                     intptr_t cid,
+                                     intptr_t index_scale,
+                                     Register array,
+                                     Register index);
+
+  void LoadHalfWordUnaligned(Register dst, Register addr, Register tmp);
+  void LoadHalfWordUnsignedUnaligned(Register dst, Register addr, Register tmp);
+  void StoreHalfWordUnaligned(Register src, Register addr, Register tmp);
+  void LoadWordUnaligned(Register dst, Register addr, Register tmp);
+  void StoreWordUnaligned(Register src, Register addr, Register tmp);
 
   static Address VMTagAddress() {
     return Address(THR, Thread::vm_tag_offset());
@@ -1615,19 +1577,15 @@ class Assembler : public ValueObject {
   static bool IsSafe(const Object& object) { return true; }
   static bool IsSafeSmi(const Object& object) { return object.IsSmi(); }
 
-  bool constant_pool_allowed() const {
-    return constant_pool_allowed_;
-  }
-  void set_constant_pool_allowed(bool b) {
-    constant_pool_allowed_ = b;
-  }
+  bool constant_pool_allowed() const { return constant_pool_allowed_; }
+  void set_constant_pool_allowed(bool b) { constant_pool_allowed_ = b; }
 
  private:
   AssemblerBuffer buffer_;
   ObjectPoolWrapper object_pool_wrapper_;
 
   intptr_t prologue_offset_;
-
+  bool has_single_entry_point_;
   bool use_far_branches_;
   bool delay_slot_available_;
   bool in_delay_slot_;
@@ -1635,7 +1593,7 @@ class Assembler : public ValueObject {
   class CodeComment : public ZoneAllocated {
    public:
     CodeComment(intptr_t pc_offset, const String& comment)
-        : pc_offset_(pc_offset), comment_(comment) { }
+        : pc_offset_(pc_offset), comment_(comment) {}
 
     intptr_t pc_offset() const { return pc_offset_; }
     const String& comment() const { return comment_; }
@@ -1669,43 +1627,23 @@ class Assembler : public ValueObject {
 
   // Encode CPU instructions according to the types specified in
   // Figures 4-1, 4-2 and 4-3 in VolI-A.
-  void EmitIType(Opcode opcode,
-                 Register rs,
-                 Register rt,
-                 uint16_t imm) {
-    Emit(opcode << kOpcodeShift |
-         rs << kRsShift |
-         rt << kRtShift |
-         imm);
+  void EmitIType(Opcode opcode, Register rs, Register rt, uint16_t imm) {
+    Emit(opcode << kOpcodeShift | rs << kRsShift | rt << kRtShift | imm);
   }
 
-  void EmitLoadStore(Opcode opcode, Register rt,
-                     const Address &addr) {
-    Emit(opcode << kOpcodeShift |
-         rt << kRtShift |
-         addr.encoding());
+  void EmitLoadStore(Opcode opcode, Register rt, const Address& addr) {
+    Emit(opcode << kOpcodeShift | rt << kRtShift | addr.encoding());
   }
 
-  void EmitFpuLoadStore(Opcode opcode, FRegister ft,
-                        const Address &addr) {
-    Emit(opcode << kOpcodeShift |
-         ft << kFtShift |
-         addr.encoding());
+  void EmitFpuLoadStore(Opcode opcode, FRegister ft, const Address& addr) {
+    Emit(opcode << kOpcodeShift | ft << kFtShift | addr.encoding());
   }
 
-  void EmitRegImmType(Opcode opcode,
-                      Register rs,
-                      RtRegImm code,
-                      uint16_t imm) {
-    Emit(opcode << kOpcodeShift |
-         rs << kRsShift |
-         code << kRtShift |
-         imm);
+  void EmitRegImmType(Opcode opcode, Register rs, RtRegImm code, uint16_t imm) {
+    Emit(opcode << kOpcodeShift | rs << kRsShift | code << kRtShift | imm);
   }
 
-  void EmitJType(Opcode opcode, uint32_t destination) {
-    UNIMPLEMENTED();
-  }
+  void EmitJType(Opcode opcode, uint32_t destination) { UNIMPLEMENTED(); }
 
   void EmitRType(Opcode opcode,
                  Register rs,
@@ -1714,12 +1652,8 @@ class Assembler : public ValueObject {
                  int sa,
                  SpecialFunction func) {
     ASSERT(Utils::IsUint(5, sa));
-    Emit(opcode << kOpcodeShift |
-         rs << kRsShift |
-         rt << kRtShift |
-         rd << kRdShift |
-         sa << kSaShift |
-         func << kFunctionShift);
+    Emit(opcode << kOpcodeShift | rs << kRsShift | rt << kRtShift |
+         rd << kRdShift | sa << kSaShift | func << kFunctionShift);
   }
 
   void EmitFpuRType(Opcode opcode,
@@ -1728,12 +1662,8 @@ class Assembler : public ValueObject {
                     FRegister fs,
                     FRegister fd,
                     Cop1Function func) {
-    Emit(opcode << kOpcodeShift |
-         fmt << kFmtShift |
-         ft << kFtShift |
-         fs << kFsShift |
-         fd << kFdShift |
-         func << kCop1FnShift);
+    Emit(opcode << kOpcodeShift | fmt << kFmtShift | ft << kFtShift |
+         fs << kFsShift | fd << kFdShift | func << kCop1FnShift);
   }
 
   int32_t EncodeBranchOffset(int32_t offset, int32_t instr);
@@ -1744,7 +1674,7 @@ class Assembler : public ValueObject {
   void EmitFarFpuBranch(bool kind, int32_t offset);
   void EmitBranch(Opcode b, Register rs, Register rt, Label* label);
   void EmitRegImmBranch(RtRegImm b, Register rs, Label* label);
-  void EmitFpuBranch(bool kind, Label *label);
+  void EmitFpuBranch(bool kind, Label* label);
 
   void EmitBranchDelayNop() {
     Emit(Instr::kNopInstruction);  // Branch delay NOP.

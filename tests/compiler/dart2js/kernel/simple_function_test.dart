@@ -42,6 +42,6 @@ main() {
       main() {
         foo(1);
       }''';
-    return check(code, entry: 'foo');
+    return check(code, lookup: 'foo');
   });
 }

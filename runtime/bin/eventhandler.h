@@ -33,26 +33,28 @@ enum MessageFlags {
   kPipe = 17,
 };
 
-#define COMMAND_MASK ((1 << kCloseCommand) | \
-                      (1 << kShutdownReadCommand) | \
-                      (1 << kShutdownWriteCommand) | \
-                      (1 << kReturnTokenCommand) | \
+// clang-format off
+#define COMMAND_MASK ((1 << kCloseCommand) |                                   \
+                      (1 << kShutdownReadCommand) |                            \
+                      (1 << kShutdownWriteCommand) |                           \
+                      (1 << kReturnTokenCommand) |                             \
                       (1 << kSetEventMaskCommand))
-#define EVENT_MASK ((1 << kInEvent) | \
-                    (1 << kOutEvent) | \
-                    (1 << kErrorEvent) | \
-                    (1 << kCloseEvent) | \
+#define EVENT_MASK ((1 << kInEvent) |                                          \
+                    (1 << kOutEvent) |                                         \
+                    (1 << kErrorEvent) |                                       \
+                    (1 << kCloseEvent) |                                       \
                     (1 << kDestroyedEvent))
-#define IS_COMMAND(data, command_bit) \
+#define IS_COMMAND(data, command_bit)                                          \
     ((data & COMMAND_MASK) == (1 << command_bit))  // NOLINT
-#define IS_EVENT(data, event_bit) \
+#define IS_EVENT(data, event_bit)                                              \
     ((data & EVENT_MASK) == (1 << event_bit))  // NOLINT
-#define IS_IO_EVENT(data) \
-    ((data & (1 << kInEvent | 1 << kOutEvent | 1 << kCloseEvent)) != 0 && \
+#define IS_IO_EVENT(data)                                                      \
+    ((data & (1 << kInEvent | 1 << kOutEvent | 1 << kCloseEvent)) != 0 &&      \
      (data & ~(1 << kInEvent | 1 << kOutEvent | 1 << kCloseEvent)) == 0)
-#define IS_LISTENING_SOCKET(data) \
+#define IS_LISTENING_SOCKET(data)                                              \
     ((data & (1 << kListeningSocket)) != 0)  // NOLINT
 #define TOKEN_COUNT(data) (data & ((1 << kCloseCommand) - 1))
+// clang-format on
 
 class TimeoutQueue {
  private:
@@ -70,9 +72,7 @@ class TimeoutQueue {
     }
 
     Timeout* next() const { return next_; }
-    void set_next(Timeout* next) {
-      next_ = next;
-    }
+    void set_next(Timeout* next) { next_ = next; }
 
    private:
     Dart_Port port_;
@@ -84,7 +84,8 @@ class TimeoutQueue {
   TimeoutQueue() : next_timeout_(NULL), timeouts_(NULL) {}
 
   ~TimeoutQueue() {
-    while (HasTimeout()) RemoveCurrent();
+    while (HasTimeout())
+      RemoveCurrent();
   }
 
   bool HasTimeout() const { return next_timeout_ != NULL; }
@@ -99,9 +100,7 @@ class TimeoutQueue {
     return next_timeout_->port();
   }
 
-  void RemoveCurrent() {
-    UpdateTimeout(CurrentPort(), -1);
-  }
+  void RemoveCurrent() { UpdateTimeout(CurrentPort(), -1); }
 
   void UpdateTimeout(Dart_Port port, int64_t timeout);
 
@@ -127,12 +126,12 @@ static const int kTimerId = -1;
 static const int kShutdownId = -2;
 
 
-template<typename T>
+template <typename T>
 class CircularLinkedList {
  public:
   CircularLinkedList() : head_(NULL) {}
 
-  typedef void (*ClearFun) (void* value);
+  typedef void (*ClearFun)(void* value);
 
   // Returns true if the list was empty.
   bool Add(T t) {
@@ -180,11 +179,11 @@ class CircularLinkedList {
         return;
       }
     } else {
-      Entry *current = head_;
+      Entry* current = head_;
       do {
         if (current->t == item) {
-          Entry *next = current->next_;
-          Entry *prev = current->prev_;
+          Entry* next = current->next_;
+          Entry* prev = current->prev_;
           prev->next_ = next;
           next->prev_ = prev;
 
@@ -208,9 +207,7 @@ class CircularLinkedList {
 
   T head() const { return head_->t; }
 
-  bool HasHead() const {
-    return head_ != NULL;
-  }
+  bool HasHead() const { return head_ != NULL; }
 
   void Rotate() {
     if (head_ != NULL) {
@@ -235,9 +232,7 @@ class CircularLinkedList {
 
 class DescriptorInfoBase {
  public:
-  explicit DescriptorInfoBase(intptr_t fd) : fd_(fd) {
-    ASSERT(fd_ != -1);
-  }
+  explicit DescriptorInfoBase(intptr_t fd) : fd_(fd) { ASSERT(fd_ != -1); }
 
   virtual ~DescriptorInfoBase() {}
 
@@ -287,17 +282,20 @@ class DescriptorInfoBase {
 // windows) which is connected to a single Dart_Port.
 //
 // Subclasses of this class can be e.g. connected tcp sockets.
-template<typename DI>
+template <typename DI>
 class DescriptorInfoSingleMixin : public DI {
  private:
   static const int kTokenCount = 16;
 
  public:
   DescriptorInfoSingleMixin(intptr_t fd, bool disable_tokens)
-      : DI(fd), port_(0), tokens_(kTokenCount), mask_(0),
+      : DI(fd),
+        port_(0),
+        tokens_(kTokenCount),
+        mask_(0),
         disable_tokens_(disable_tokens) {}
 
-  virtual ~DescriptorInfoSingleMixin() { }
+  virtual ~DescriptorInfoSingleMixin() {}
 
   virtual bool IsListeningSocket() const { return false; }
 
@@ -332,8 +330,7 @@ class DescriptorInfoSingleMixin : public DI {
   virtual void NotifyAllDartPorts(uintptr_t events) {
     // Unexpected close, asynchronous destroy or error events are the only
     // ones we broadcast to all listeners.
-    ASSERT(IS_EVENT(events, kCloseEvent) ||
-           IS_EVENT(events, kErrorEvent) ||
+    ASSERT(IS_EVENT(events, kCloseEvent) || IS_EVENT(events, kErrorEvent) ||
            IS_EVENT(events, kDestroyedEvent));
 
     if (port_ != 0) {
@@ -359,9 +356,7 @@ class DescriptorInfoSingleMixin : public DI {
     return mask_;
   }
 
-  virtual void Close() {
-    DI::Close();
-  }
+  virtual void Close() { DI::Close(); }
 
  private:
   Dart_Port port_;
@@ -378,14 +373,14 @@ class DescriptorInfoSingleMixin : public DI {
 //
 // Subclasses of this class can be e.g. a listening socket which multiple
 // isolates are listening on.
-template<typename DI>
+template <typename DI>
 class DescriptorInfoMultipleMixin : public DI {
  private:
   static const int kTokenCount = 4;
 
   static bool SamePortValue(void* key1, void* key2) {
     return reinterpret_cast<Dart_Port>(key1) ==
-        reinterpret_cast<Dart_Port>(key2);
+           reinterpret_cast<Dart_Port>(key2);
   }
 
   static uint32_t GetHashmapHashFromPort(Dart_Port port) {
@@ -415,12 +410,11 @@ class DescriptorInfoMultipleMixin : public DI {
 
  public:
   DescriptorInfoMultipleMixin(intptr_t fd, bool disable_tokens)
-      : DI(fd), tokens_map_(&SamePortValue, kTokenCount),
+      : DI(fd),
+        tokens_map_(&SamePortValue, kTokenCount),
         disable_tokens_(disable_tokens) {}
 
-  virtual ~DescriptorInfoMultipleMixin() {
-    RemoveAllPorts();
-  }
+  virtual ~DescriptorInfoMultipleMixin() { RemoveAllPorts(); }
 
   virtual bool IsListeningSocket() const { return true; }
 
@@ -466,8 +460,7 @@ class DescriptorInfoMultipleMixin : public DI {
       } while (current != root);
     }
 
-    for (HashMap::Entry *entry = tokens_map_.Start();
-         entry != NULL;
+    for (HashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       if (pentry->IsReady()) {
@@ -487,8 +480,8 @@ class DescriptorInfoMultipleMixin : public DI {
       if (pentry->IsReady()) {
         active_readers_.Remove(pentry);
       }
-      tokens_map_.Remove(
-          GetHashmapKeyFromPort(port), GetHashmapHashFromPort(port));
+      tokens_map_.Remove(GetHashmapKeyFromPort(port),
+                         GetHashmapHashFromPort(port));
       delete pentry;
     } else {
       // NOTE: This is a listening socket which has been immediately closed.
@@ -504,8 +497,7 @@ class DescriptorInfoMultipleMixin : public DI {
   }
 
   virtual void RemoveAllPorts() {
-    for (HashMap::Entry *entry = tokens_map_.Start();
-         entry != NULL;
+    for (HashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       entry->value = NULL;
@@ -543,12 +535,10 @@ class DescriptorInfoMultipleMixin : public DI {
   virtual void NotifyAllDartPorts(uintptr_t events) {
     // Unexpected close, asynchronous destroy or error events are the only
     // ones we broadcast to all listeners.
-    ASSERT(IS_EVENT(events, kCloseEvent) ||
-           IS_EVENT(events, kErrorEvent) ||
+    ASSERT(IS_EVENT(events, kCloseEvent) || IS_EVENT(events, kErrorEvent) ||
            IS_EVENT(events, kDestroyedEvent));
 
-    for (HashMap::Entry *entry = tokens_map_.Start();
-         entry != NULL;
+    for (HashMap::Entry* entry = tokens_map_.Start(); entry != NULL;
          entry = tokens_map_.Next(entry)) {
       PortEntry* pentry = reinterpret_cast<PortEntry*>(entry->value);
       DartUtils::PostInt32(pentry->dart_port, events);
@@ -589,9 +579,7 @@ class DescriptorInfoMultipleMixin : public DI {
     return 0;
   }
 
-  virtual void Close() {
-    DI::Close();
-  }
+  virtual void Close() { DI::Close(); }
 
  private:
   static void DeletePortEntry(void* data) {
@@ -602,7 +590,7 @@ class DescriptorInfoMultipleMixin : public DI {
   // The [Dart_Port]s which are not paused (i.e. are interested in read events,
   // i.e. `mask == (1 << kInEvent)`) and we have enough tokens to communicate
   // with them.
-  CircularLinkedList<PortEntry *> active_readers_;
+  CircularLinkedList<PortEntry*> active_readers_;
 
   // A convenience mapping:
   //   Dart_Port -> struct PortEntry { dart_port, mask, token_count }

@@ -115,8 +115,10 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     return info;
   }
 
+  _resultOf(e) => compiler.globalInference.results.resultOf(e);
+
   FieldInfo visitFieldElement(FieldElement element, _) {
-    TypeMask inferredType = compiler.globalInference.results.typeOf(element);
+    TypeMask inferredType = _resultOf(element).type;
     // If a field has an empty inferred type it is never used.
     if (inferredType == null || inferredType.isEmpty) return null;
 
@@ -249,10 +251,8 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
     if (element.hasFunctionSignature) {
       FunctionSignature signature = element.functionSignature;
       signature.forEachParameter((parameter) {
-        parameters.add(new ParameterInfo(
-            parameter.name,
-            '${compiler.globalInference.results.typeOf(parameter)}',
-            '${parameter.node.type}'));
+        parameters.add(new ParameterInfo(parameter.name,
+            '${_resultOf(parameter).type}', '${parameter.node.type}'));
       });
     }
 
@@ -263,8 +263,7 @@ class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
         compiler.closedWorld.allFunctions.contains(element)) {
       returnType = '${element.type.returnType}';
     }
-    String inferredReturnType =
-        '${compiler.globalInference.results.returnTypeOf(element)}';
+    String inferredReturnType = '${_resultOf(element).returnType}';
     String sideEffects =
         '${compiler.closedWorld.getSideEffectsOfElement(element)}';
 
@@ -421,7 +420,9 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
 
   final Map<Element, Set<Element>> _dependencies = {};
   void registerDependency(Element source, Element target) {
-    _dependencies.putIfAbsent(source, () => new Set()).add(target);
+    if (compiler.options.dumpInfo) {
+      _dependencies.putIfAbsent(source, () => new Set()).add(target);
+    }
   }
 
   void registerImpact(Element element, WorldImpact impact) {

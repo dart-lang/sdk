@@ -57,51 +57,59 @@ class ThreadSignalBlocker {
 // errors (type long int changed to intptr_t and do/while split on
 // separate lines with body in {}s) and to also block signals.
 #define TEMP_FAILURE_RETRY(expression)                                         \
-    ({ ThreadSignalBlocker tsb(SIGPROF);                                       \
-       intptr_t __result;                                                      \
-       do {                                                                    \
-         __result = (expression);                                              \
-       } while ((__result == -1L) && (errno == EINTR));                        \
-       __result; })
+  ({                                                                           \
+    ThreadSignalBlocker tsb(SIGPROF);                                          \
+    intptr_t __result;                                                         \
+    do {                                                                       \
+      __result = (expression);                                                 \
+    } while ((__result == -1L) && (errno == EINTR));                           \
+    __result;                                                                  \
+  })
 
 // This is a version of TEMP_FAILURE_RETRY which does not use the value
 // returned from the expression.
 #define VOID_TEMP_FAILURE_RETRY(expression)                                    \
-    (static_cast<void>(TEMP_FAILURE_RETRY(expression)))
+  (static_cast<void>(TEMP_FAILURE_RETRY(expression)))
 
 // This macro can be used to insert checks that a call is made, that
 // was expected to not return EINTR, but did it anyway.
 #define NO_RETRY_EXPECTED(expression)                                          \
-    ({ intptr_t __result = (expression);                                       \
-       if (__result == -1L && errno == EINTR) {                                \
-         FATAL("Unexpected EINTR errno");                                      \
-       }                                                                       \
-       __result; })
+  ({                                                                           \
+    intptr_t __result = (expression);                                          \
+    if (__result == -1L && errno == EINTR) {                                   \
+      FATAL("Unexpected EINTR errno");                                         \
+    }                                                                          \
+    __result;                                                                  \
+  })
 
 #define VOID_NO_RETRY_EXPECTED(expression)                                     \
-    (static_cast<void>(NO_RETRY_EXPECTED(expression)))
+  (static_cast<void>(NO_RETRY_EXPECTED(expression)))
 
 // Define to check in debug mode, if a signal is currently being blocked.
 #define CHECK_IS_BLOCKING(signal)                                              \
-    ({ sigset_t signal_mask;                                                   \
-       int __r = pthread_sigmask(SIG_BLOCK, NULL, &signal_mask);               \
-       USE(__r);                                                               \
-       ASSERT(__r == 0);                                                       \
-       sigismember(&signal_mask, signal); })                                   \
+  ({                                                                           \
+    sigset_t signal_mask;                                                      \
+    int __r = pthread_sigmask(SIG_BLOCK, NULL, &signal_mask);                  \
+    USE(__r);                                                                  \
+    ASSERT(__r == 0);                                                          \
+    sigismember(&signal_mask, signal);                                         \
+  })
 
 
 // Versions of the above, that does not enter a signal blocking scope. Use only
 // when a signal blocking scope is entered manually.
 #define TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(expression)                       \
-    ({ intptr_t __result;                                                      \
-       ASSERT(CHECK_IS_BLOCKING(SIGPROF));                                     \
-       do {                                                                    \
-         __result = (expression);                                              \
-       } while ((__result == -1L) && (errno == EINTR));                        \
-       __result; })
+  ({                                                                           \
+    intptr_t __result;                                                         \
+    ASSERT(CHECK_IS_BLOCKING(SIGPROF));                                        \
+    do {                                                                       \
+      __result = (expression);                                                 \
+    } while ((__result == -1L) && (errno == EINTR));                           \
+    __result;                                                                  \
+  })
 
 #define VOID_TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(expression)                  \
-    (static_cast<void>(TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(expression)))
+  (static_cast<void>(TEMP_FAILURE_RETRY_NO_SIGNAL_BLOCKER(expression)))
 
 }  // namespace dart
 

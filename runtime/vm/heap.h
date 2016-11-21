@@ -33,17 +33,9 @@ class Heap {
     kCode,
   };
 
-  enum WeakSelector {
-    kPeers = 0,
-    kHashes,
-    kObjectIds,
-    kNumWeakSelectors
-  };
+  enum WeakSelector { kPeers = 0, kHashes, kObjectIds, kNumWeakSelectors };
 
-  enum ApiCallbacks {
-    kIgnoreApiCallbacks,
-    kInvokeApiCallbacks
-  };
+  enum ApiCallbacks { kIgnoreApiCallbacks, kInvokeApiCallbacks };
 
   enum GCReason {
     kNewSpace,
@@ -211,7 +203,7 @@ class Heap {
     if (space == kNew) {
       return new_weak_tables_[selector];
     }
-    ASSERT(space ==kOld);
+    ASSERT(space == kOld);
     return old_weak_tables_[selector];
   }
   void SetWeakTable(Space space, WeakSelector selector, WeakTable* value) {
@@ -272,13 +264,12 @@ class Heap {
       int64_t micros_;
       SpaceUsage new_;
       SpaceUsage old_;
+
      private:
       DISALLOW_COPY_AND_ASSIGN(Data);
     };
 
-    enum {
-      kDataEntries = 4
-    };
+    enum { kDataEntries = 4 };
 
     Data before_;
     Data after_;
@@ -312,10 +303,12 @@ class Heap {
   bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked) const;
 
   // Helper functions for garbage collection.
-  void CollectNewSpaceGarbage(
-      Thread* thread, ApiCallbacks api_callbacks, GCReason reason);
-  void CollectOldSpaceGarbage(
-      Thread* thread, ApiCallbacks api_callbacks, GCReason reason);
+  void CollectNewSpaceGarbage(Thread* thread,
+                              ApiCallbacks api_callbacks,
+                              GCReason reason);
+  void CollectOldSpaceGarbage(Thread* thread,
+                              ApiCallbacks api_callbacks,
+                              GCReason reason);
 
   // GC stats collection.
   void RecordBeforeGC(Space space, GCReason reason);
@@ -355,10 +348,10 @@ class Heap {
   bool gc_new_space_in_progress_;
   bool gc_old_space_in_progress_;
 
-  friend class Become;  // VisitObjectPointers
+  friend class Become;       // VisitObjectPointers
   friend class Precompiler;  // VisitObjects
   friend class ServiceEvent;
-  friend class PageSpace;  // VerifyGC
+  friend class PageSpace;             // VerifyGC
   friend class IsolateReloadContext;  // VisitObjects
 
   DISALLOW_COPY_AND_ASSIGN(Heap);
@@ -369,6 +362,7 @@ class HeapIterationScope : public StackResource {
  public:
   HeapIterationScope();
   ~HeapIterationScope();
+
  private:
   NoSafepointScope no_safepoint_scope_;
   PageSpace* old_space_;
@@ -381,6 +375,7 @@ class NoHeapGrowthControlScope : public StackResource {
  public:
   NoHeapGrowthControlScope();
   ~NoHeapGrowthControlScope();
+
  private:
   bool current_growth_controller_state_;
   DISALLOW_COPY_AND_ASSIGN(NoHeapGrowthControlScope);

@@ -14,8 +14,7 @@
 
 namespace dart {
 
-#if defined(TARGET_ARCH_ARM) ||                                                \
-    defined(TARGET_ARCH_ARM64) ||                                              \
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_MIPS)
 DECLARE_FLAG(bool, use_far_branches);
 #endif
@@ -78,29 +77,31 @@ class AssemblerBuffer : public ValueObject {
   ~AssemblerBuffer();
 
   // Basic support for emitting, loading, and storing.
-  template<typename T> void Emit(T value) {
+  template <typename T>
+  void Emit(T value) {
     ASSERT(HasEnsuredCapacity());
     *reinterpret_cast<T*>(cursor_) = value;
     cursor_ += sizeof(T);
   }
 
-  template<typename T> void Remit() {
+  template <typename T>
+  void Remit() {
     ASSERT(Size() >= static_cast<intptr_t>(sizeof(T)));
     cursor_ -= sizeof(T);
   }
 
   // Return address to code at |position| bytes.
-  uword Address(intptr_t position) {
-    return contents_ + position;
-  }
+  uword Address(intptr_t position) { return contents_ + position; }
 
-  template<typename T> T Load(intptr_t position) {
+  template <typename T>
+  T Load(intptr_t position) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));
     return *reinterpret_cast<T*>(contents_ + position);
   }
 
-  template<typename T> void Store(intptr_t position, T value) {
+  template <typename T>
+  void Store(intptr_t position, T value) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));
     *reinterpret_cast<T*>(contents_ + position) = value;
@@ -135,13 +136,13 @@ class AssemblerBuffer : public ValueObject {
   // and apply all fixups.
   void FinalizeInstructions(const MemoryRegion& region);
 
-  // To emit an instruction to the assembler buffer, the EnsureCapacity helper
-  // must be used to guarantee that the underlying data area is big enough to
-  // hold the emitted instruction. Usage:
-  //
-  //     AssemblerBuffer buffer;
-  //     AssemblerBuffer::EnsureCapacity ensured(&buffer);
-  //     ... emit bytes for single instruction ...
+// To emit an instruction to the assembler buffer, the EnsureCapacity helper
+// must be used to guarantee that the underlying data area is big enough to
+// hold the emitted instruction. Usage:
+//
+//     AssemblerBuffer buffer;
+//     AssemblerBuffer::EnsureCapacity ensured(&buffer);
+//     ... emit bytes for single instruction ...
 
 #if defined(DEBUG)
   class EnsureCapacity : public ValueObject {
@@ -215,14 +216,13 @@ class AssemblerBuffer : public ValueObject {
 
 
 struct ObjectPoolWrapperEntry {
-  ObjectPoolWrapperEntry()
-    : raw_value_(), type_(), equivalence_() { }
+  ObjectPoolWrapperEntry() : raw_value_(), type_(), equivalence_() {}
   explicit ObjectPoolWrapperEntry(const Object* obj)
-    : obj_(obj), type_(ObjectPool::kTaggedObject), equivalence_(obj) { }
+      : obj_(obj), type_(ObjectPool::kTaggedObject), equivalence_(obj) {}
   explicit ObjectPoolWrapperEntry(const Object* obj, const Object* eqv)
-    : obj_(obj), type_(ObjectPool::kTaggedObject), equivalence_(eqv) { }
+      : obj_(obj), type_(ObjectPool::kTaggedObject), equivalence_(eqv) {}
   ObjectPoolWrapperEntry(uword value, ObjectPool::EntryType info)
-    : raw_value_(value), type_(info), equivalence_() { }
+      : raw_value_(value), type_(info), equivalence_() {}
 
   union {
     const Object* obj_;
@@ -243,8 +243,9 @@ class ObjIndexPair {
 
   static const intptr_t kNoIndex = -1;
 
-  ObjIndexPair() : key_(static_cast<uword>(NULL), ObjectPool::kTaggedObject),
-                   value_(kNoIndex) { }
+  ObjIndexPair()
+      : key_(static_cast<uword>(NULL), ObjectPool::kTaggedObject),
+        value_(kNoIndex) {}
 
   ObjIndexPair(Key key, Value value) : value_(value) {
     key_.type_ = key.type_;
@@ -298,17 +299,14 @@ enum Patchability {
 
 class ObjectPoolWrapper : public ValueObject {
  public:
-  intptr_t AddObject(const Object& obj,
-                     Patchability patchable = kNotPatchable);
+  intptr_t AddObject(const Object& obj, Patchability patchable = kNotPatchable);
   intptr_t AddImmediate(uword imm);
 
   intptr_t FindObject(const Object& obj,
                       Patchability patchable = kNotPatchable);
-  intptr_t FindObject(const Object& obj,
-                      const Object& equivalence);
+  intptr_t FindObject(const Object& obj, const Object& equivalence);
   intptr_t FindImmediate(uword imm);
-  intptr_t FindNativeEntry(const ExternalLabel* label,
-                           Patchability patchable);
+  intptr_t FindNativeEntry(const ExternalLabel* label, Patchability patchable);
 
   RawObjectPool* MakeObjectPool();
 
@@ -324,10 +322,7 @@ class ObjectPoolWrapper : public ValueObject {
 };
 
 
-enum RestorePP {
-  kRestoreCallerPP,
-  kKeepCalleePP
-};
+enum RestorePP { kRestoreCallerPP, kKeepCalleePP };
 
 }  // namespace dart
 

@@ -15,17 +15,18 @@ namespace dart {
 static RawArray* Match(const String& pat, const String& str) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const RegExp& regexp = RegExp::Handle(
-      RegExpEngine::CreateRegExp(thread, pat, false, false));
+  const RegExp& regexp =
+      RegExp::Handle(RegExpEngine::CreateRegExp(thread, pat, false, false));
   const Smi& idx = Smi::Handle(Smi::New(0));
-  return IRRegExpMacroAssembler::Execute(regexp, str, idx, zone);
+  return IRRegExpMacroAssembler::Execute(regexp, str, idx, /*sticky=*/false,
+                                         zone);
 }
 
 TEST_CASE(RegExp_OneByteString) {
-  uint8_t chars[] = { 'a', 'b', 'c', 'b', 'a' };
+  uint8_t chars[] = {'a', 'b', 'c', 'b', 'a'};
   intptr_t len = ARRAY_SIZE(chars);
-  const String& str = String::Handle(
-      OneByteString::New(chars, len, Heap::kNew));
+  const String& str =
+      String::Handle(OneByteString::New(chars, len, Heap::kNew));
 
   const String& pat = String::Handle(String::New("bc"));
   const Array& res = Array::Handle(Match(pat, str));
@@ -43,10 +44,10 @@ TEST_CASE(RegExp_OneByteString) {
 }
 
 TEST_CASE(RegExp_TwoByteString) {
-  uint16_t chars[] = { 'a', 'b', 'c', 'b', 'a' };
+  uint16_t chars[] = {'a', 'b', 'c', 'b', 'a'};
   intptr_t len = ARRAY_SIZE(chars);
-  const String& str = String::Handle(
-      TwoByteString::New(chars, len, Heap::kNew));
+  const String& str =
+      String::Handle(TwoByteString::New(chars, len, Heap::kNew));
 
   const String& pat = String::Handle(String::New("bc"));
   const Array& res = Array::Handle(Match(pat, str));
@@ -64,7 +65,7 @@ TEST_CASE(RegExp_TwoByteString) {
 }
 
 TEST_CASE(RegExp_ExternalOneByteString) {
-  uint8_t chars[] = { 'a', 'b', 'c', 'b', 'a' };
+  uint8_t chars[] = {'a', 'b', 'c', 'b', 'a'};
   intptr_t len = ARRAY_SIZE(chars);
   const String& str = String::Handle(
       ExternalOneByteString::New(chars, len, NULL, NULL, Heap::kNew));
@@ -85,7 +86,7 @@ TEST_CASE(RegExp_ExternalOneByteString) {
 }
 
 TEST_CASE(RegExp_ExternalTwoByteString) {
-  uint16_t chars[] = { 'a', 'b', 'c', 'b', 'a' };
+  uint16_t chars[] = {'a', 'b', 'c', 'b', 'a'};
   intptr_t len = ARRAY_SIZE(chars);
   const String& str = String::Handle(
       ExternalTwoByteString::New(chars, len, NULL, NULL, Heap::kNew));

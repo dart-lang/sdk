@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -96,7 +97,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     } else {
       sourceRange = rangeStartLength(element.nameEnd, 0);
     }
-    return new SourceReference(new SearchMatch(
+    return new SourceReference(new SearchMatchImpl(
         element.context,
         element.library.source.uri.toString(),
         element.source.uri.toString(),

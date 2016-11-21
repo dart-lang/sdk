@@ -920,7 +920,7 @@ Future testPatchAndSelector() async {
       """,
       runCompiler: true,
       analyzeOnly: true);
-  ClosedWorld world = compiler.openWorld.closeWorld();
+  ClosedWorld world = compiler.openWorld.closeWorld(compiler.reporter);
 
   ClassElement cls = ensure(
       compiler, "A", compiler.commonElements.coreLibrary.find,

@@ -29,7 +29,9 @@ namespace dart {
 #define __ assembler->
 
 
-intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
+intptr_t Intrinsifier::ParameterSlotFromSp() {
+  return -1;
+}
 
 
 static bool IsABIPreservedRegister(Register reg) {
@@ -76,11 +78,9 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   // Note that T1 is Smi, i.e, times 2.
   ASSERT(kSmiTagShift == 1);
   __ lw(T2, Address(SP, 0 * kWordSize));  // Value.
-  __ sll(T1, T1, 1);  // T1 is Smi.
+  __ sll(T1, T1, 1);                      // T1 is Smi.
   __ addu(T1, T0, T1);
-  __ StoreIntoObject(T0,
-                     FieldAddress(T1, Array::data_offset()),
-                     T2);
+  __ StoreIntoObject(T0, FieldAddress(T1, Array::data_offset()), T2);
   // Caller is responsible for preserving the value if necessary.
   __ Ret();
   __ Bind(&fall_through);
@@ -104,21 +104,17 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
   __ lw(T1, Address(SP, kArrayOffset));  // Data argument.
   // V0 is new, no barrier needed.
   __ StoreIntoObjectNoBarrier(
-      V0,
-      FieldAddress(V0, GrowableObjectArray::data_offset()),
-      T1);
+      V0, FieldAddress(V0, GrowableObjectArray::data_offset()), T1);
 
   // V0: new growable array object start as a tagged pointer.
   // Store the type argument field in the growable array object.
   __ lw(T1, Address(SP, kTypeArgumentsOffset));  // Type argument.
   __ StoreIntoObjectNoBarrier(
-      V0,
-      FieldAddress(V0, GrowableObjectArray::type_arguments_offset()),
-      T1);
+      V0, FieldAddress(V0, GrowableObjectArray::type_arguments_offset()), T1);
   // Set the length field in the growable array object to 0.
   __ Ret();  // Returns the newly allocated object in V0.
   __ delay_slot()->sw(ZR,
-      FieldAddress(V0, GrowableObjectArray::length_offset()));
+                      FieldAddress(V0, GrowableObjectArray::length_offset()));
 
   __ Bind(&fall_through);
 }
@@ -148,9 +144,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   __ sll(T1, T1, 1);
   __ addu(T1, T2, T1);
-  __ StoreIntoObject(T2,
-                     FieldAddress(T1, Array::data_offset()),
-                     T0);
+  __ StoreIntoObject(T2, FieldAddress(T1, Array::data_offset()), T0);
   __ LoadObject(T7, Object::null_object());
   __ Ret();
   __ delay_slot()->mov(V0, T7);
@@ -162,7 +156,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, T2, &fall_through));             \
-  __ lw(T2, Address(SP, kArrayLengthStackOffset));  /* Array length. */        \
+  __ lw(T2, Address(SP, kArrayLengthStackOffset)); /* Array length. */         \
   /* Check that length is a positive Smi. */                                   \
   /* T2: requested array length argument. */                                   \
   __ andi(CMPRES1, T2, Immediate(kSmiTagMask));                                \
@@ -209,7 +203,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                              &size_tag_overflow);                              \
     __ b(&done);                                                               \
     __ delay_slot()->sll(T2, T2,                                               \
-        RawObject::kSizeTagPos - kObjectAlignmentLog2);                        \
+                         RawObject::kSizeTagPos - kObjectAlignmentLog2);       \
                                                                                \
     __ Bind(&size_tag_overflow);                                               \
     __ mov(T2, ZR);                                                            \
@@ -218,15 +212,14 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
     /* Get the class index and insert it into the tags. */                     \
     __ LoadImmediate(TMP, RawObject::ClassIdTag::encode(cid));                 \
     __ or_(T2, T2, TMP);                                                       \
-    __ sw(T2, FieldAddress(V0, type_name::tags_offset()));  /* Tags. */        \
+    __ sw(T2, FieldAddress(V0, type_name::tags_offset())); /* Tags. */         \
   }                                                                            \
   /* Set the length field. */                                                  \
   /* V0: new object start as a tagged pointer. */                              \
   /* T1: new object end address. */                                            \
-  __ lw(T2, Address(SP, kArrayLengthStackOffset));  /* Array length. */        \
-  __ StoreIntoObjectNoBarrier(V0,                                              \
-                              FieldAddress(V0, type_name::length_offset()),    \
-                              T2);                                             \
+  __ lw(T2, Address(SP, kArrayLengthStackOffset)); /* Array length. */         \
+  __ StoreIntoObjectNoBarrier(                                                 \
+      V0, FieldAddress(V0, type_name::length_offset()), T2);                   \
   /* Initialize all array elements to 0. */                                    \
   /* V0: new object start as a tagged pointer. */                              \
   /* T1: new object end address. */                                            \
@@ -242,16 +235,21 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ Bind(&done);                                                              \
                                                                                \
   __ Ret();                                                                    \
-  __ Bind(&fall_through);                                                      \
+  __ Bind(&fall_through);
 
 
 static int GetScaleFactor(intptr_t size) {
   switch (size) {
-    case 1: return 0;
-    case 2: return 1;
-    case 4: return 2;
-    case 8: return 3;
-    case 16: return 4;
+    case 1:
+      return 0;
+    case 2:
+      return 1;
+    case 4:
+      return 2;
+    case 8:
+      return 3;
+    case 16:
+      return 4;
   }
   UNREACHABLE();
   return -1;
@@ -259,12 +257,12 @@ static int GetScaleFactor(intptr_t size) {
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
-  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
-  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
-  int shift = GetScaleFactor(size);                                            \
-  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, shift);   \
-}
+  void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {       \
+    intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);     \
+    intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);         \
+    int shift = GetScaleFactor(size);                                          \
+    TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, shift); \
+  }
 CLASS_LIST_TYPED_DATA(TYPED_DATA_ALLOCATOR)
 #undef TYPED_DATA_ALLOCATOR
 
@@ -285,8 +283,8 @@ void Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   Label fall_through;
 
   TestBothArgumentsSmis(assembler, &fall_through);  // Checks two Smis.
-  __ AdduDetectOverflow(V0, T0, T1, CMPRES1);  // Add.
-  __ bltz(CMPRES1, &fall_through);  // Fall through on overflow.
+  __ AdduDetectOverflow(V0, T0, T1, CMPRES1);       // Add.
+  __ bltz(CMPRES1, &fall_through);                  // Fall through on overflow.
   __ Ret();  // Nothing in branch delay slot.
   __ Bind(&fall_through);
 }
@@ -302,7 +300,7 @@ void Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
 
   TestBothArgumentsSmis(assembler, &fall_through);
   __ SubuDetectOverflow(V0, T0, T1, CMPRES1);  // Subtract.
-  __ bltz(CMPRES1, &fall_through);  // Fall through on overflow.
+  __ bltz(CMPRES1, &fall_through);             // Fall through on overflow.
   __ Ret();
   __ Bind(&fall_through);
 }
@@ -313,8 +311,8 @@ void Intrinsifier::Integer_sub(Assembler* assembler) {
 
   TestBothArgumentsSmis(assembler, &fall_through);
   __ SubuDetectOverflow(V0, T1, T0, CMPRES1);  // Subtract.
-  __ bltz(CMPRES1, &fall_through);  // Fall through on overflow.
-  __ Ret();  // Nothing in branch delay slot.
+  __ bltz(CMPRES1, &fall_through);             // Fall through on overflow.
+  __ Ret();                                    // Nothing in branch delay slot.
   __ Bind(&fall_through);
 }
 
@@ -325,10 +323,10 @@ void Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   TestBothArgumentsSmis(assembler, &fall_through);  // checks two smis
   __ SmiUntag(T0);  // untags T0. only want result shifted by one
 
-  __ mult(T0, T1);  // HI:LO <- T0 * T1.
-  __ mflo(V0);  // V0 <- LO.
-  __ mfhi(T2);  // T2 <- HI.
-  __ sra(T3, V0, 31);  // T3 <- V0 >> 31.
+  __ mult(T0, T1);                // HI:LO <- T0 * T1.
+  __ mflo(V0);                    // V0 <- LO.
+  __ mfhi(T2);                    // T2 <- HI.
+  __ sra(T3, V0, 31);             // T3 <- V0 >> 31.
   __ bne(T2, T3, &fall_through);  // Fall through on overflow.
   __ Ret();
   __ Bind(&fall_through);
@@ -375,7 +373,7 @@ static void EmitRemainderOperation(Assembler* assembler) {
   __ SmiUntag(right);
   __ SmiUntag(left);
   __ div(left, right);  // Divide, remainder goes in HI.
-  __ mfhi(result);  // result <- HI.
+  __ mfhi(result);      // result <- HI.
   return;
 }
 
@@ -433,7 +431,7 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
   __ SmiUntag(T0);
   __ SmiUntag(T1);
   __ div(T1, T0);  // LO <- T1 / T0
-  __ mflo(V0);  // V0 <- LO
+  __ mflo(V0);     // V0 <- LO
   // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
   // cannot tag the result.
   __ BranchEqual(V0, Immediate(0x40000000), &fall_through);
@@ -446,9 +444,9 @@ void Intrinsifier::Integer_truncDivide(Assembler* assembler) {
 void Intrinsifier::Integer_negate(Assembler* assembler) {
   Label fall_through;
 
-  __ lw(T0, Address(SP, + 0 * kWordSize));  // Grabs first argument.
+  __ lw(T0, Address(SP, +0 * kWordSize));        // Grabs first argument.
   __ andi(CMPRES1, T0, Immediate(kSmiTagMask));  // Test for Smi.
-  __ bne(CMPRES1, ZR, &fall_through);  // Fall through if not a Smi.
+  __ bne(CMPRES1, ZR, &fall_through);            // Fall through if not a Smi.
   __ SubuDetectOverflow(V0, ZR, T0, CMPRES1);
   __ bltz(CMPRES1, &fall_through);  // There was overflow.
   __ Ret();
@@ -507,8 +505,8 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   Label fall_through, overflow;
 
   TestBothArgumentsSmis(assembler, &fall_through);
-  __ BranchUnsignedGreater(
-      T0, Immediate(Smi::RawValue(Smi::kBits)), &fall_through);
+  __ BranchUnsignedGreater(T0, Immediate(Smi::RawValue(Smi::kBits)),
+                           &fall_through);
   __ SmiUntag(T0);
 
   // Check for overflow by shifting left and shifting back arithmetically.
@@ -531,18 +529,18 @@ void Intrinsifier::Integer_shl(Assembler* assembler) {
   // high bits = (((1 << T0) - 1) << (32 - T0)) & T1) >> (32 - T0)
   // lo bits = T1 << T0
   __ LoadImmediate(T3, 1);
-  __ sllv(T3, T3, T0);  // T3 <- T3 << T0
+  __ sllv(T3, T3, T0);              // T3 <- T3 << T0
   __ addiu(T3, T3, Immediate(-1));  // T3 <- T3 - 1
-  __ subu(T4, ZR, T0);  // T4 <- -T0
+  __ subu(T4, ZR, T0);              // T4 <- -T0
   __ addiu(T4, T4, Immediate(32));  // T4 <- 32 - T0
-  __ sllv(T3, T3, T4);  // T3 <- T3 << T4
-  __ and_(T3, T3, T1);  // T3 <- T3 & T1
-  __ srlv(T3, T3, T4);  // T3 <- T3 >> T4
+  __ sllv(T3, T3, T4);              // T3 <- T3 << T4
+  __ and_(T3, T3, T1);              // T3 <- T3 & T1
+  __ srlv(T3, T3, T4);              // T3 <- T3 >> T4
   // Now T3 has the bits that fall off of T1 on a left shift.
   __ sllv(T0, T1, T0);  // T0 gets low bits.
 
-  const Class& mint_class = Class::Handle(
-      Isolate::Current()->object_store()->mint_class());
+  const Class& mint_class =
+      Class::Handle(Isolate::Current()->object_store()->mint_class());
   __ TryAllocate(mint_class, &fall_through, V0, T1);
 
   __ sw(T0, FieldAddress(V0, Mint::value_offset()));
@@ -585,10 +583,18 @@ static void CompareIntegers(Assembler* assembler, RelationOperator rel_op) {
   // T0 contains the right argument. T1 contains left argument
 
   switch (rel_op) {
-    case LT: __ BranchSignedLess(T1, T0, &is_true); break;
-    case LE: __ BranchSignedLessEqual(T1, T0, &is_true); break;
-    case GT: __ BranchSignedGreater(T1, T0, &is_true); break;
-    case GE: __ BranchSignedGreaterEqual(T1, T0, &is_true); break;
+    case LT:
+      __ BranchSignedLess(T1, T0, &is_true);
+      break;
+    case LE:
+      __ BranchSignedLessEqual(T1, T0, &is_true);
+      break;
+    case GT:
+      __ BranchSignedGreater(T1, T0, &is_true);
+      break;
+    case GE:
+      __ BranchSignedGreaterEqual(T1, T0, &is_true);
+      break;
     default:
       UNREACHABLE();
       break;
@@ -743,7 +749,7 @@ void Intrinsifier::Integer_sar(Assembler* assembler) {
   __ bltz(T0, &fall_through);
 
   __ LoadImmediate(T2, 0x1F);
-  __ slt(CMPRES1, T2, T0);  // CMPRES1 <- 0x1F < T0 ? 1 : 0
+  __ slt(CMPRES1, T2, T0);   // CMPRES1 <- 0x1F < T0 ? 1 : 0
   __ movn(T0, T2, CMPRES1);  // T0 <- 0x1F < T0 ? 0x1F : T0
 
   __ SmiUntag(T1);
@@ -1178,7 +1184,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
 
   // T5 = ajp = &a_digits[i]
   __ lw(T1, Address(SP, 1 * kWordSize));  // a_digits
-  __ sll(T0, T2, 2);  // j == 2*i, i is Smi.
+  __ sll(T0, T2, 2);                      // j == 2*i, i is Smi.
   __ addu(T1, T0, T1);
   __ addiu(T5, T1, Immediate(TypedData::data_offset() - kHeapObjectTag));
 
@@ -1239,7 +1245,7 @@ void Intrinsifier::Bigint_sqrAdd(Assembler* assembler) {
   __ sltu(T1, T0, T6);
   __ addu(T6, A1, T1);  // No carry out; A2:T6:T0 = 2*x*xi + aj + low32(c).
   __ addu(T6, T6, T7);  // No carry out; A2:T6:T0 = 2*x*xi + aj + c.
-  __ mov(T7, A2);  // T7:T6:T0 = 2*x*xi + aj + c.
+  __ mov(T7, A2);       // T7:T6:T0 = 2*x*xi + aj + c.
 
   // *ajp++ = low32(t) = T0
   __ sw(T0, Address(T5, 0));
@@ -1288,8 +1294,8 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
   __ lw(T4, Address(SP, 2 * kWordSize));  // args
 
   // T3 = rho = args[2]
-  __ lw(T3,
-        FieldAddress(T4, TypedData::data_offset() + 2*Bigint::kBytesPerDigit));
+  __ lw(T3, FieldAddress(
+                T4, TypedData::data_offset() + 2 * Bigint::kBytesPerDigit));
 
   // T2 = d = digits[i >> 1]
   __ lw(T0, Address(SP, 0 * kWordSize));  // T0 = i as Smi.
@@ -1303,8 +1309,8 @@ void Intrinsifier::Montgomery_mulMod(Assembler* assembler) {
 
   // args[4] = t mod DIGIT_BASE = low32(t)
   __ mflo(T0);
-  __ sw(T0,
-        FieldAddress(T4, TypedData::data_offset() + 4*Bigint::kBytesPerDigit));
+  __ sw(T0, FieldAddress(
+                T4, TypedData::data_offset() + 4 * Bigint::kBytesPerDigit));
 
   __ addiu(V0, ZR, Immediate(Smi::RawValue(1)));  // One digit processed.
   __ Ret();
@@ -1349,11 +1355,21 @@ static void CompareDoubles(Assembler* assembler, RelationOperator rel_op) {
   __ Bind(&no_NaN);
 
   switch (rel_op) {
-    case EQ: __ ceqd(D0, D1); break;
-    case LT: __ coltd(D0, D1); break;
-    case LE: __ coled(D0, D1); break;
-    case GT: __ coltd(D1, D0); break;
-    case GE: __ coled(D1, D0); break;
+    case EQ:
+      __ ceqd(D0, D1);
+      break;
+    case LT:
+      __ coltd(D0, D1);
+      break;
+    case LE:
+      __ coled(D0, D1);
+      break;
+    case GT:
+      __ coltd(D1, D0);
+      break;
+    case GE:
+      __ coled(D1, D0);
+      break;
     default: {
       // Only passing the above conditions to this function.
       UNREACHABLE();
@@ -1420,14 +1436,23 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
   __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
   switch (kind) {
-    case Token::kADD: __ addd(D0, D0, D1); break;
-    case Token::kSUB: __ subd(D0, D0, D1); break;
-    case Token::kMUL: __ muld(D0, D0, D1); break;
-    case Token::kDIV: __ divd(D0, D0, D1); break;
-    default: UNREACHABLE();
+    case Token::kADD:
+      __ addd(D0, D0, D1);
+      break;
+    case Token::kSUB:
+      __ subd(D0, D0, D1);
+      break;
+    case Token::kMUL:
+      __ muld(D0, D0, D1);
+      break;
+    case Token::kDIV:
+      __ divd(D0, D0, D1);
+      break;
+    default:
+      UNREACHABLE();
   }
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
+  const Class& double_class =
+      Class::Handle(Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, V0, T1);  // Result register.
   __ swc1(F0, FieldAddress(V0, Double::value_offset()));
   __ Ret();
@@ -1481,8 +1506,8 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
   __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
   __ muld(D0, D0, D1);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
+  const Class& double_class =
+      Class::Handle(Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, V0, T1);  // Result register.
   __ swc1(F0, FieldAddress(V0, Double::value_offset()));
   __ Ret();
@@ -1503,8 +1528,8 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   __ SmiUntag(T0);
   __ mtc1(T0, F4);
   __ cvtdw(D0, F4);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
+  const Class& double_class =
+      Class::Handle(Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, V0, T1);  // Result register.
   __ swc1(F0, FieldAddress(V0, Double::value_offset()));
   __ Ret();
@@ -1576,10 +1601,10 @@ void Intrinsifier::Double_getIsNegative(Assembler* assembler) {
 
   __ Bind(&is_zero);
   // Check for negative zero by looking at the sign bit.
-  __ mfc1(T0, F1);  // Moves bits 32...63 of D0 to T0.
-  __ srl(T0, T0, 31);  // Get the sign bit down to bit 0 of T0.
+  __ mfc1(T0, F1);                     // Moves bits 32...63 of D0 to T0.
+  __ srl(T0, T0, 31);                  // Get the sign bit down to bit 0 of T0.
   __ andi(CMPRES1, T0, Immediate(1));  // Check if the bit is set.
-  __ bne(T0, ZR, &is_true);  // Sign bit set. True.
+  __ bne(T0, ZR, &is_true);            // Sign bit set. True.
   __ b(&is_false);
 }
 
@@ -1610,8 +1635,8 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
   __ LoadDFromOffset(D1, T0, Double::value_offset() - kHeapObjectTag);
   __ Bind(&double_op);
   __ sqrtd(D0, D1);
-  const Class& double_class = Class::Handle(
-      Isolate::Current()->object_store()->double_class());
+  const Class& double_class =
+      Class::Handle(Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class, &fall_through, V0, T1);  // Result register.
   __ swc1(F0, FieldAddress(V0, Double::value_offset()));
   __ Ret();
@@ -1633,8 +1658,8 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
 void Intrinsifier::Random_nextState(Assembler* assembler) {
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
-  const Class& random_class = Class::Handle(
-      math_lib.LookupClassAllowPrivate(Symbols::_Random()));
+  const Class& random_class =
+      Class::Handle(math_lib.LookupClassAllowPrivate(Symbols::_Random()));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
       random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
@@ -1643,7 +1668,12 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       random_class.LookupStaticFieldAllowPrivate(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
-  const Instance& a_value = Instance::Handle(random_A_field.StaticValue());
+  Instance& a_value = Instance::Handle(random_A_field.StaticValue());
+  if (a_value.raw() == Object::sentinel().raw() ||
+      a_value.raw() == Object::transition_sentinel().raw()) {
+    random_A_field.EvaluateInitializer();
+    a_value = random_A_field.StaticValue();
+  }
   const int64_t a_int_value = Integer::Cast(a_value).AsInt64Value();
   // 'a_int_value' is a mask.
   ASSERT(Utils::IsUint(32, a_int_value));
@@ -1689,20 +1719,154 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+enum RangeCheckCondition { kIfNotInRange, kIfInRange };
+
+
+static void RangeCheck(Assembler* assembler,
+                       Register val,
+                       Register tmp,
+                       intptr_t low,
+                       intptr_t high,
+                       RangeCheckCondition cc,
+                       Label* target) {
+  __ AddImmediate(tmp, val, -low);
+  if (cc == kIfInRange) {
+    __ BranchUnsignedLessEqual(tmp, Immediate(high - low), target);
+  } else {
+    ASSERT(cc == kIfNotInRange);
+    __ BranchUnsignedGreater(tmp, Immediate(high - low), target);
+  }
+}
+
+
+static void JumpIfInteger(Assembler* assembler,
+                          Register cid,
+                          Register tmp,
+                          Label* target) {
+  RangeCheck(assembler, cid, tmp, kSmiCid, kBigintCid, kIfInRange, target);
+}
+
+
+static void JumpIfNotInteger(Assembler* assembler,
+                             Register cid,
+                             Register tmp,
+                             Label* target) {
+  RangeCheck(assembler, cid, tmp, kSmiCid, kBigintCid, kIfNotInRange, target);
+}
+
+
+static void JumpIfString(Assembler* assembler,
+                         Register cid,
+                         Register tmp,
+                         Label* target) {
+  RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+             kIfInRange, target);
+}
+
+
+static void JumpIfNotString(Assembler* assembler,
+                            Register cid,
+                            Register tmp,
+                            Label* target) {
+  RangeCheck(assembler, cid, tmp, kOneByteStringCid, kExternalTwoByteStringCid,
+             kIfNotInRange, target);
+}
+
+
 // Return type quickly for simple types (not parameterized and not signature).
 void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
-  Label fall_through;
+  Label fall_through, use_canonical_type, not_integer, not_double;
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(T1, T0);
-  __ BranchEqual(T1, Immediate(kClosureCid), &fall_through);
-  __ LoadClassById(T2, T1);
-  // T2: class of instance (T0).
 
+  // Closures are handled in the runtime.
+  __ BranchEqual(T1, Immediate(kClosureCid), &fall_through);
+
+  __ BranchUnsignedGreaterEqual(T1, Immediate(kNumPredefinedCids),
+                                &use_canonical_type);
+
+  __ BranchNotEqual(T1, Immediate(kDoubleCid), &not_double);
+  // Object is a double.
+  __ LoadIsolate(T1);
+  __ LoadFromOffset(T1, T1, Isolate::object_store_offset());
+  __ LoadFromOffset(V0, T1, ObjectStore::double_type_offset());
+  __ Ret();
+
+  __ Bind(&not_double);
+  JumpIfNotInteger(assembler, T1, T2, &not_integer);
+  // Object is an integer.
+  __ LoadIsolate(T1);
+  __ LoadFromOffset(T1, T1, Isolate::object_store_offset());
+  __ LoadFromOffset(V0, T1, ObjectStore::int_type_offset());
+  __ Ret();
+
+  __ Bind(&not_integer);
+  JumpIfNotString(assembler, T1, T2, &use_canonical_type);
+  // Object is a string.
+  __ LoadIsolate(T1);
+  __ LoadFromOffset(T1, T1, Isolate::object_store_offset());
+  __ LoadFromOffset(V0, T1, ObjectStore::string_type_offset());
+  __ Ret();
+
+  __ Bind(&use_canonical_type);
+  __ LoadClassById(T2, T1);
   __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
   __ BranchNotEqual(T1, Immediate(0), &fall_through);
 
   __ lw(V0, FieldAddress(T2, Class::canonical_type_offset()));
   __ BranchEqual(V0, Object::null_object(), &fall_through);
+  __ Ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void Intrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler) {
+  Label fall_through, different_cids, equal, not_equal, not_integer;
+
+  __ lw(T0, Address(SP, 0 * kWordSize));
+  __ LoadClassIdMayBeSmi(T1, T0);
+
+  // Closures are handled in the runtime.
+  __ BranchEqual(T1, Immediate(kClosureCid), &fall_through);
+
+  __ lw(T0, Address(SP, 1 * kWordSize));
+  __ LoadClassIdMayBeSmi(T2, T0);
+
+  // Check whether class ids match. If class ids don't match objects can still
+  // have the same runtime type (e.g. multiple string implementation classes
+  // map to a single String type).
+  __ BranchNotEqual(T1, T2, &different_cids);
+
+  // Objects have the same class and neither is a closure.
+  // Check if there are no type arguments. In this case we can return true.
+  // Otherwise fall through into the runtime to handle comparison.
+  __ LoadClassById(T2, T1);
+  __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
+  __ BranchNotEqual(T1, Immediate(0), &fall_through);
+
+  __ Bind(&equal);
+  __ LoadObject(V0, Bool::True());
+  __ Ret();
+
+  // Class ids are different. Check if we are comparing runtime types of
+  // two strings (with different representations) or two integers.
+  __ Bind(&different_cids);
+  __ BranchUnsignedGreaterEqual(T1, Immediate(kNumPredefinedCids), &not_equal);
+
+  // Check if both are integers.
+  JumpIfNotInteger(assembler, T1, T0, &not_integer);
+  JumpIfInteger(assembler, T2, T0, &equal);
+  __ b(&not_equal);
+
+  __ Bind(&not_integer);
+  // Check if both are strings.
+  JumpIfNotString(assembler, T1, T0, &not_equal);
+  JumpIfString(assembler, T2, T0, &equal);
+
+  // Neither strings nor integers and have different class ids.
+  __ Bind(&not_equal);
+  __ LoadObject(V0, Bool::False());
   __ Ret();
 
   __ Bind(&fall_through);
@@ -1803,20 +1967,16 @@ void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
   __ LoadClassId(CMPRES1, A0);
   __ BranchNotEqual(CMPRES1, Immediate(kOneByteStringCid), &try_two_byte);
 
-  GenerateSubstringMatchesSpecialization(assembler,
-                                         kOneByteStringCid,
-                                         kOneByteStringCid,
-                                         &return_true,
+  GenerateSubstringMatchesSpecialization(assembler, kOneByteStringCid,
+                                         kOneByteStringCid, &return_true,
                                          &return_false);
 
   __ Bind(&try_two_byte);
   __ LoadClassId(CMPRES1, A0);
   __ BranchNotEqual(CMPRES1, Immediate(kTwoByteStringCid), &fall_through);
 
-  GenerateSubstringMatchesSpecialization(assembler,
-                                         kTwoByteStringCid,
-                                         kOneByteStringCid,
-                                         &return_true,
+  GenerateSubstringMatchesSpecialization(assembler, kTwoByteStringCid,
+                                         kOneByteStringCid, &return_true,
                                          &return_false);
 
   __ Bind(&return_true);
@@ -1839,13 +1999,13 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
 
   // Checks.
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &fall_through);  // Index is not a Smi.
+  __ bne(CMPRES1, ZR, &fall_through);                    // Index is not a Smi.
   __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
   __ LoadClassId(CMPRES1, T0);  // Class ID check.
-  __ BranchNotEqual(
-      CMPRES1, Immediate(kOneByteStringCid), &try_two_byte_string);
+  __ BranchNotEqual(CMPRES1, Immediate(kOneByteStringCid),
+                    &try_two_byte_string);
 
   // Grab byte and return.
   __ SmiUntag(T1);
@@ -2008,8 +2168,8 @@ static void TryAllocateOnebyteString(Assembler* assembler,
     Label overflow, done;
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
 
-    __ BranchUnsignedGreater(
-        T2, Immediate(RawObject::SizeTag::kMaxSizeTag), &overflow);
+    __ BranchUnsignedGreater(T2, Immediate(RawObject::SizeTag::kMaxSizeTag),
+                             &overflow);
     __ b(&done);
     __ delay_slot()->sll(T2, T2, shift);
     __ Bind(&overflow);
@@ -2024,8 +2184,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
   }
 
   // Set the length field using the saved length (T6).
-  __ StoreIntoObjectNoBarrier(V0,
-                              FieldAddress(V0, String::length_offset()),
+  __ StoreIntoObjectNoBarrier(V0, FieldAddress(V0, String::length_offset()),
                               T6);
   // Clear hash.
   __ b(ok);
@@ -2128,7 +2287,7 @@ static void StringEquality(Assembler* assembler, intptr_t string_cid) {
   // Is other OneByteString?
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
   __ beq(CMPRES1, ZR, &fall_through);  // Other is Smi.
-  __ LoadClassId(CMPRES1, T1);  // Class ID check.
+  __ LoadClassId(CMPRES1, T1);         // Class ID check.
   __ BranchNotEqual(CMPRES1, Immediate(string_cid), &fall_through);
 
   // Have same length?
@@ -2180,7 +2339,8 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
+                                                bool sticky) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
@@ -2200,7 +2360,8 @@ void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   __ AddImmediate(T2, -kOneByteStringCid);
   __ sll(T2, T2, kWordSizeLog2);
   __ addu(T2, T2, T1);
-  __ lw(T0, FieldAddress(T2, RegExp::function_offset(kOneByteStringCid)));
+  __ lw(T0,
+        FieldAddress(T2, RegExp::function_offset(kOneByteStringCid, sticky)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in T0, the argument descriptor in S4, and IC-Data in S5.
@@ -2220,7 +2381,7 @@ void Intrinsifier::UserTag_makeCurrent(Assembler* assembler) {
   // V0: Current user tag.
   __ lw(V0, Address(T1, Isolate::current_tag_offset()));
   // T2: UserTag.
-  __ lw(T2, Address(SP, + 0 * kWordSize));
+  __ lw(T2, Address(SP, +0 * kWordSize));
   // Set Isolate::current_tag_.
   __ sw(T2, Address(T1, Isolate::current_tag_offset()));
   // T2: UserTag's tag.

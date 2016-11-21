@@ -52,8 +52,8 @@ static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
     return Dart_NewApiError("Could not allocate new dictionary");
   }
 
-  err = Dart_TypedDataAcquireData(
-      dictionary_obj, &type, reinterpret_cast<void**>(&src), &size);
+  err = Dart_TypedDataAcquireData(dictionary_obj, &type,
+                                  reinterpret_cast<void**>(&src), &size);
   if (!Dart_IsError(err)) {
     memmove(result, src, size);
     Dart_TypedDataReleaseData(dictionary_obj);
@@ -99,13 +99,13 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
       static_cast<int32_t>(window_bits), dictionary, dictionary_length, raw);
   if (filter == NULL) {
     delete[] dictionary;
-    Dart_PropagateError(Dart_NewApiError(
-        "Could not allocate ZLibInflateFilter"));
+    Dart_PropagateError(
+        Dart_NewApiError("Could not allocate ZLibInflateFilter"));
   }
   if (!filter->Init()) {
     delete filter;
-    Dart_ThrowException(DartUtils::NewInternalError(
-        "Failed to create ZLibInflateFilter"));
+    Dart_ThrowException(
+        DartUtils::NewInternalError("Failed to create ZLibInflateFilter"));
   }
   err = Filter::SetFilterAndCreateFinalizer(
       filter_obj, filter, sizeof(*filter) + dictionary_length);
@@ -121,8 +121,8 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   Dart_Handle gzip_obj = Dart_GetNativeArgument(args, 1);
   bool gzip = DartUtils::GetBooleanValue(gzip_obj);
   Dart_Handle level_obj = Dart_GetNativeArgument(args, 2);
-  int64_t level = DartUtils::GetInt64ValueCheckRange(level_obj, kMinInt32,
-      kMaxInt32);
+  int64_t level =
+      DartUtils::GetInt64ValueCheckRange(level_obj, kMinInt32, kMaxInt32);
   Dart_Handle window_bits_obj = Dart_GetNativeArgument(args, 3);
   int64_t window_bits = DartUtils::GetIntegerValue(window_bits_obj);
   Dart_Handle mLevel_obj = Dart_GetNativeArgument(args, 4);
@@ -151,21 +151,18 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
   }
 
   ZLibDeflateFilter* filter = new ZLibDeflateFilter(
-      gzip,
-      static_cast<int32_t>(level),
-      static_cast<int32_t>(window_bits),
-      static_cast<int32_t>(mem_level),
-      static_cast<int32_t>(strategy),
+      gzip, static_cast<int32_t>(level), static_cast<int32_t>(window_bits),
+      static_cast<int32_t>(mem_level), static_cast<int32_t>(strategy),
       dictionary, dictionary_length, raw);
   if (filter == NULL) {
     delete[] dictionary;
-    Dart_PropagateError(Dart_NewApiError(
-        "Could not allocate ZLibDeflateFilter"));
+    Dart_PropagateError(
+        Dart_NewApiError("Could not allocate ZLibDeflateFilter"));
   }
   if (!filter->Init()) {
     delete filter;
-    Dart_ThrowException(DartUtils::NewInternalError(
-        "Failed to create ZLibDeflateFilter"));
+    Dart_ThrowException(
+        DartUtils::NewInternalError("Failed to create ZLibDeflateFilter"));
   }
   Dart_Handle result = Filter::SetFilterAndCreateFinalizer(
       filter_obj, filter, sizeof(*filter) + dictionary_length);
@@ -247,13 +244,10 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
     Dart_PropagateError(err);
   }
 
-  intptr_t read = filter->Processed(filter->processed_buffer(),
-                                    filter->processed_buffer_size(),
-                                    flush,
-                                    end);
+  intptr_t read = filter->Processed(
+      filter->processed_buffer(), filter->processed_buffer_size(), flush, end);
   if (read < 0) {
-    Dart_ThrowException(DartUtils::NewInternalError(
-        "Filter error, bad data"));
+    Dart_ThrowException(DartUtils::NewInternalError("Filter error, bad data"));
   } else if (read == 0) {
     Dart_SetReturnValue(args, Dart_Null());
   } else {
@@ -265,10 +259,9 @@ void FUNCTION_NAME(Filter_Processed)(Dart_NativeArguments args) {
 }
 
 
-static void DeleteFilter(
-    void* isolate_data,
-    Dart_WeakPersistentHandle handle,
-    void* filter_pointer) {
+static void DeleteFilter(void* isolate_data,
+                         Dart_WeakPersistentHandle handle,
+                         void* filter_pointer) {
   Filter* filter = reinterpret_cast<Filter*>(filter_pointer);
   delete filter;
 }
@@ -277,17 +270,14 @@ static void DeleteFilter(
 Dart_Handle Filter::SetFilterAndCreateFinalizer(Dart_Handle filter,
                                                 Filter* filter_pointer,
                                                 intptr_t size) {
-  Dart_Handle err = Dart_SetNativeInstanceField(
-      filter,
-      kFilterPointerNativeField,
-      reinterpret_cast<intptr_t>(filter_pointer));
+  Dart_Handle err =
+      Dart_SetNativeInstanceField(filter, kFilterPointerNativeField,
+                                  reinterpret_cast<intptr_t>(filter_pointer));
   if (Dart_IsError(err)) {
     return err;
   }
-  Dart_NewWeakPersistentHandle(filter,
-                               reinterpret_cast<void*>(filter_pointer),
-                               size,
-                               DeleteFilter);
+  Dart_NewWeakPersistentHandle(filter, reinterpret_cast<void*>(filter_pointer),
+                               size, DeleteFilter);
   return err;
 }
 
@@ -295,8 +285,7 @@ Dart_Handle Filter::SetFilterAndCreateFinalizer(Dart_Handle filter,
 Dart_Handle Filter::GetFilterNativeField(Dart_Handle filter,
                                          Filter** filter_pointer) {
   return Dart_GetNativeInstanceField(
-      filter,
-      kFilterPointerNativeField,
+      filter, kFilterPointerNativeField,
       reinterpret_cast<intptr_t*>(filter_pointer));
 }
 
@@ -355,8 +344,8 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
   stream_.avail_out = length;
   stream_.next_out = buffer;
   bool error = false;
-  switch (deflate(&stream_,
-                  end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+  switch (
+      deflate(&stream_, end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
     case Z_STREAM_END:
     case Z_BUF_ERROR:
     case Z_OK: {
@@ -369,7 +358,7 @@ intptr_t ZLibDeflateFilter::Processed(uint8_t* buffer,
 
     default:
     case Z_STREAM_ERROR:
-        error = true;
+      error = true;
   }
 
   delete[] current_buffer_;
@@ -389,9 +378,8 @@ ZLibInflateFilter::~ZLibInflateFilter() {
 
 
 bool ZLibInflateFilter::Init() {
-  int window_bits = raw_ ?
-      -window_bits_ :
-      window_bits_ | kZLibFlagAcceptAnyHeader;
+  int window_bits =
+      raw_ ? -window_bits_ : window_bits_ | kZLibFlagAcceptAnyHeader;
 
   stream_.next_in = Z_NULL;
   stream_.avail_in = 0;
@@ -426,7 +414,7 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
   bool error = false;
   int v;
   switch (v = inflate(&stream_,
-                  end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
+                      end ? Z_FINISH : flush ? Z_SYNC_FLUSH : Z_NO_FLUSH)) {
     case Z_STREAM_END:
     case Z_BUF_ERROR:
     case Z_OK: {
@@ -441,8 +429,8 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
       if (dictionary_ == NULL) {
         error = true;
       } else {
-        int result = inflateSetDictionary(&stream_, dictionary_,
-                                          dictionary_length_);
+        int result =
+            inflateSetDictionary(&stream_, dictionary_, dictionary_length_);
         delete[] dictionary_;
         dictionary_ = NULL;
         error = result != Z_OK;

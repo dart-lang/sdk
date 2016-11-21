@@ -143,6 +143,16 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneNode(node.type));
 
   @override
+  AstNode visitAssertInitializer(AssertInitializer node) =>
+      new AssertInitializer(
+          cloneToken(node.assertKeyword),
+          cloneToken(node.leftParenthesis),
+          cloneNode(node.condition),
+          cloneToken(node.comma),
+          cloneNode(node.message),
+          cloneToken(node.rightParenthesis));
+
+  @override
   AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(
       cloneToken(node.assertKeyword),
       cloneToken(node.leftParenthesis),
@@ -1113,6 +1123,17 @@ class AstComparator implements AstVisitor<bool> {
     return isEqualNodes(node.expression, other.expression) &&
         isEqualTokens(node.asOperator, other.asOperator) &&
         isEqualNodes(node.type, other.type);
+  }
+
+  @override
+  bool visitAssertInitializer(AssertInitializer node) {
+    AssertStatement other = _other as AssertStatement;
+    return isEqualTokens(node.assertKeyword, other.assertKeyword) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        isEqualNodes(node.condition, other.condition) &&
+        isEqualTokens(node.comma, other.comma) &&
+        isEqualNodes(node.message, other.message) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   @override
@@ -2763,6 +2784,16 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   }
 
   @override
+  AstNode visitAssertInitializer(AssertInitializer node) =>
+      new AssertInitializer(
+          _mapToken(node.assertKeyword),
+          _mapToken(node.leftParenthesis),
+          _cloneNode(node.condition),
+          _mapToken(node.comma),
+          _cloneNode(node.message),
+          _mapToken(node.rightParenthesis));
+
+  @override
   AstNode visitAssertStatement(AssertStatement node) => new AssertStatement(
       _mapToken(node.assertKeyword),
       _mapToken(node.leftParenthesis),
@@ -4043,6 +4074,19 @@ class NodeReplacer implements AstVisitor<bool> {
   }
 
   @override
+  bool visitAssertInitializer(AssertInitializer node) {
+    if (identical(node.condition, _oldNode)) {
+      node.condition = _newNode as Expression;
+      return true;
+    }
+    if (identical(node.message, _oldNode)) {
+      node.message = _newNode as Expression;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitAssertStatement(AssertStatement node) {
     if (identical(node.condition, _oldNode)) {
       node.condition = _newNode as Expression;
@@ -5218,6 +5262,18 @@ class ResolutionCopier implements AstVisitor<bool> {
       return true;
     }
     return false;
+  }
+
+  @override
+  bool visitAssertInitializer(AssertInitializer node) {
+    AssertInitializer toNode = this._toNode as AssertInitializer;
+    return _and(
+        _isEqualTokens(node.assertKeyword, toNode.assertKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.comma, toNode.comma),
+        _isEqualNodes(node.message, toNode.message),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis));
   }
 
   @override
@@ -6817,6 +6873,18 @@ class ToSourceVisitor implements AstVisitor<Object> {
   }
 
   @override
+  bool visitAssertInitializer(AssertInitializer node) {
+    _writer.print("assert (");
+    _visitNode(node.condition);
+    if (node.message != null) {
+      _writer.print(', ');
+      _visitNode(node.message);
+    }
+    _writer.print(")");
+    return null;
+  }
+
+  @override
   Object visitAssertStatement(AssertStatement node) {
     _writer.print("assert (");
     _visitNode(node.condition);
@@ -8088,6 +8156,18 @@ class ToSourceVisitor2 implements AstVisitor<Object> {
     safelyVisitNode(node.expression);
     sink.write(" as ");
     safelyVisitNode(node.type);
+    return null;
+  }
+
+  @override
+  bool visitAssertInitializer(AssertInitializer node) {
+    sink.write("assert (");
+    safelyVisitNode(node.condition);
+    if (node.message != null) {
+      sink.write(', ');
+      safelyVisitNode(node.message);
+    }
+    sink.write(");");
     return null;
   }
 

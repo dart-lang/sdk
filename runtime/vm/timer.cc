@@ -6,8 +6,4 @@
 #include "vm/timer.h"
 #include "vm/json_stream.h"
 
-namespace dart {
-
-
-
-}  // namespace dart
+namespace dart {}  // namespace dart

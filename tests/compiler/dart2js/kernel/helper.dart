@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 import '../memory_compiler.dart';
 
 Future<String> compile(String code,
-    {String entry: 'main',
+    {dynamic lookup: 'main',
     bool useKernel: true,
     bool disableTypeInference: true,
     List<String> extraOptions: const <String>[]}) async {
@@ -25,29 +25,41 @@ Future<String> compile(String code,
   if (useKernel) options.add(Flags.useKernel);
   options.addAll(extraOptions);
 
-  if (entry != 'main' && !code.contains('main')) {
-    code = "$code\n\nmain() => $entry;";
+  if (lookup is String && lookup != 'main' && !code.contains('main')) {
+    code = "$code\n\nmain() => $lookup;";
   }
   CompilationResult result = await runCompiler(
       memorySourceFiles: {'main.dart': code}, options: options);
   expect(result.isSuccess, isTrue);
   Compiler compiler = result.compiler;
-  Element element = compiler.mainApp.find(entry);
+  Element element;
+  if (lookup is String) {
+    element = compiler.mainApp.find(lookup);
+  } else {
+    element = lookup(compiler);
+  }
   js.JavaScriptBackend backend = compiler.backend;
   return backend.getGeneratedCode(element);
 }
 
+/// Checks that the given Dart [code] compiles to the same JS in kernel and
+/// normal mode.
+///
+/// The function to check at the end is given by [lookup]. If [lookup] is a
+/// String, then the generated code for a top-level element named [lookup] is
+/// checked. Otherwise, [lookup] is a function that takes a [Compiler] and
+/// returns an [Element], and the returned [Element] is checked.
 Future check(String code,
-    {String entry: 'main',
+    {dynamic lookup: 'main',
     bool disableTypeInference: true,
     List<String> extraOptions: const <String>[]}) async {
   var original = await compile(code,
-      entry: entry,
+      lookup: lookup,
       useKernel: false,
       disableTypeInference: disableTypeInference,
       extraOptions: extraOptions);
   var kernel = await compile(code,
-      entry: entry,
+      lookup: lookup,
       useKernel: true,
       disableTypeInference: disableTypeInference,
       extraOptions: extraOptions);

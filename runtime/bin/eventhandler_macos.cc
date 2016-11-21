@@ -10,13 +10,13 @@
 #include "bin/eventhandler.h"
 #include "bin/eventhandler_macos.h"
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <pthread.h>  // NOLINT
-#include <stdio.h>  // NOLINT
-#include <string.h>  // NOLINT
+#include <errno.h>      // NOLINT
+#include <fcntl.h>      // NOLINT
+#include <pthread.h>    // NOLINT
+#include <stdio.h>      // NOLINT
+#include <string.h>     // NOLINT
 #include <sys/event.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <unistd.h>     // NOLINT
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -72,24 +72,12 @@ static void AddToKqueue(intptr_t kqueue_fd_, DescriptorInfo* di) {
 
   // Register or unregister READ filter if needed.
   if (di->HasReadEvent()) {
-    EV_SET(events + changes,
-           di->fd(),
-           EVFILT_READ,
-           flags,
-           0,
-           0,
-           di);
+    EV_SET(events + changes, di->fd(), EVFILT_READ, flags, 0, 0, di);
     ++changes;
   }
   // Register or unregister WRITE filter if needed.
   if (di->HasWriteEvent()) {
-    EV_SET(events + changes,
-           di->fd(),
-           EVFILT_WRITE,
-           flags,
-           0,
-           0,
-           di);
+    EV_SET(events + changes, di->fd(), EVFILT_WRITE, flags, 0, 0, di);
     ++changes;
   }
   ASSERT(changes > 0);
@@ -117,16 +105,24 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (result != 0) {
     FATAL("Pipe creation failed");
   }
-  FDUtils::SetNonBlocking(interrupt_fds_[0]);
-  FDUtils::SetCloseOnExec(interrupt_fds_[0]);
-  FDUtils::SetCloseOnExec(interrupt_fds_[1]);
+  if (!FDUtils::SetNonBlocking(interrupt_fds_[0])) {
+    FATAL("Failed to set pipe fd non-blocking\n");
+  }
+  if (!FDUtils::SetCloseOnExec(interrupt_fds_[0])) {
+    FATAL("Failed to set pipe fd close on exec\n");
+  }
+  if (!FDUtils::SetCloseOnExec(interrupt_fds_[1])) {
+    FATAL("Failed to set pipe fd close on exec\n");
+  }
   shutdown_ = false;
 
   kqueue_fd_ = NO_RETRY_EXPECTED(kqueue());
   if (kqueue_fd_ == -1) {
     FATAL("Failed creating kqueue");
   }
-  FDUtils::SetCloseOnExec(kqueue_fd_);
+  if (!FDUtils::SetCloseOnExec(kqueue_fd_)) {
+    FATAL("Failed to set kqueue fd close on exec\n");
+  }
   // Register the interrupt_fd with the kqueue.
   struct kevent event;
   EV_SET(&event, interrupt_fds_[0], EVFILT_READ, EV_ADD, 0, 0, NULL);
@@ -156,7 +152,7 @@ EventHandlerImplementation::~EventHandlerImplementation() {
 
 
 void EventHandlerImplementation::UpdateKQueueInstance(intptr_t old_mask,
-                                                      DescriptorInfo *di) {
+                                                      DescriptorInfo* di) {
   intptr_t new_mask = di->Mask();
   if (old_mask != 0 && new_mask == 0) {
     RemoveFromKqueue(kqueue_fd_, di);
@@ -171,13 +167,13 @@ void EventHandlerImplementation::UpdateKQueueInstance(intptr_t old_mask,
 
 
 DescriptorInfo* EventHandlerImplementation::GetDescriptorInfo(
-    intptr_t fd, bool is_listening) {
+    intptr_t fd,
+    bool is_listening) {
   ASSERT(fd >= 0);
-  HashMap::Entry* entry = socket_map_.Lookup(
-      GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd), true);
+  HashMap::Entry* entry = socket_map_.Lookup(GetHashmapKeyFromFd(fd),
+                                             GetHashmapHashFromFd(fd), true);
   ASSERT(entry != NULL);
-  DescriptorInfo* di =
-      reinterpret_cast<DescriptorInfo*>(entry->value);
+  DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(entry->value);
   if (di == NULL) {
     // If there is no data in the hash map for this file descriptor a
     // new DescriptorInfo for the file descriptor is inserted.
@@ -227,8 +223,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
     } else {
       ASSERT((msg[i].data & COMMAND_MASK) != 0);
 
-      DescriptorInfo* di = GetDescriptorInfo(
-          msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
+      DescriptorInfo* di =
+          GetDescriptorInfo(msg[i].id, IS_LISTENING_SOCKET(msg[i].data));
       if (IS_COMMAND(msg[i].data, kShutdownReadCommand)) {
         ASSERT(!di->IsListeningSocket());
         // Close the socket for reading.
@@ -251,7 +247,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
           // We only close the socket file descriptor from the operating
           // system if there are no other dart socket objects which
           // are listening on the same (address, port) combination.
-          ListeningSocketRegistry *registry =
+          ListeningSocketRegistry* registry =
               ListeningSocketRegistry::Instance();
 
           MutexLocker locker(registry->mutex());
@@ -265,8 +261,7 @@ void EventHandlerImplementation::HandleInterruptFd() {
           }
         } else {
           ASSERT(new_mask == 0);
-          socket_map_.Remove(
-              GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
+          socket_map_.Remove(GetHashmapKeyFromFd(fd), GetHashmapHashFromFd(fd));
           di->Close();
           delete di;
         }
@@ -379,8 +374,7 @@ intptr_t EventHandlerImplementation::GetEvents(struct kevent* event,
 }
 
 
-void EventHandlerImplementation::HandleEvents(struct kevent* events,
-                                              int size) {
+void EventHandlerImplementation::HandleEvents(struct kevent* events, int size) {
   bool interrupt_seen = false;
   for (int i = 0; i < size; i++) {
     // If flag EV_ERROR is set it indicates an error in kevent processing.
@@ -393,8 +387,7 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events,
     if (events[i].udata == NULL) {
       interrupt_seen = true;
     } else {
-      DescriptorInfo* di =
-          reinterpret_cast<DescriptorInfo*>(events[i].udata);
+      DescriptorInfo* di = reinterpret_cast<DescriptorInfo*>(events[i].udata);
       intptr_t event_mask = GetEvents(events + i, di);
       if ((event_mask & (1 << kErrorEvent)) != 0) {
         di->NotifyAllDartPorts(event_mask);
@@ -422,8 +415,8 @@ int64_t EventHandlerImplementation::GetTimeout() {
   if (!timeout_queue_.HasTimeout()) {
     return kInfinityTimeout;
   }
-  int64_t millis = timeout_queue_.CurrentTimeout() -
-      TimerUtils::GetCurrentMonotonicMillis();
+  int64_t millis =
+      timeout_queue_.CurrentTimeout() - TimerUtils::GetCurrentMonotonicMillis();
   return (millis < 0) ? 0 : millis;
 }
 
@@ -431,7 +424,7 @@ int64_t EventHandlerImplementation::GetTimeout() {
 void EventHandlerImplementation::HandleTimeout() {
   if (timeout_queue_.HasTimeout()) {
     int64_t millis = timeout_queue_.CurrentTimeout() -
-        TimerUtils::GetCurrentMonotonicMillis();
+                     TimerUtils::GetCurrentMonotonicMillis();
     if (millis <= 0) {
       DartUtils::PostNull(timeout_queue_.CurrentPort());
       timeout_queue_.RemoveCurrent();
@@ -483,9 +476,8 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 
 
 void EventHandlerImplementation::Start(EventHandler* handler) {
-  int result =
-      Thread::Start(&EventHandlerImplementation::EventHandlerEntry,
-                    reinterpret_cast<uword>(handler));
+  int result = Thread::Start(&EventHandlerImplementation::EventHandlerEntry,
+                             reinterpret_cast<uword>(handler));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }

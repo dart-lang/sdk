@@ -97,18 +97,175 @@ ASSEMBLER_TEST_RUN(LoadImmediate, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(LoadHalfWordUnaligned, assembler) {
+  __ LoadHalfWordUnaligned(R1, R0, TMP);
+  __ mov(R0, Operand(R1));
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(LoadHalfWordUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*LoadHalfWordUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[4] = {
+      0x89, 0xAB, 0xCD, 0xEF,
+  };
+
+  EXPECT_EQ(
+      static_cast<int16_t>(static_cast<uint16_t>(0xAB89)),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadHalfWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(
+      static_cast<int16_t>(static_cast<uint16_t>(0xCDAB)),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadHalfWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[1])));
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadHalfWordUnsignedUnaligned, assembler) {
+  __ LoadHalfWordUnsignedUnaligned(R1, R0, TMP);
+  __ mov(R0, Operand(R1));
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(LoadHalfWordUnsignedUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*LoadHalfWordUnsignedUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[4] = {
+      0x89, 0xAB, 0xCD, 0xEF,
+  };
+
+  EXPECT_EQ(0xAB89, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                        LoadHalfWordUnsignedUnaligned, test->entry(),
+                        reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(0xCDAB, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                        LoadHalfWordUnsignedUnaligned, test->entry(),
+                        reinterpret_cast<intptr_t>(&buffer[1])));
+}
+
+
+ASSEMBLER_TEST_GENERATE(StoreHalfWordUnaligned, assembler) {
+  __ LoadImmediate(R1, 0xABCD);
+  __ StoreWordUnaligned(R1, R0, TMP);
+  __ mov(R0, Operand(R1));
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(StoreHalfWordUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*StoreHalfWordUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[4] = {
+      0, 0, 0, 0,
+  };
+
+  EXPECT_EQ(0xABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                        StoreHalfWordUnaligned, test->entry(),
+                        reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(0xCD, buffer[0]);
+  EXPECT_EQ(0xAB, buffer[1]);
+  EXPECT_EQ(0, buffer[2]);
+
+  EXPECT_EQ(0xABCD, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                        StoreHalfWordUnaligned, test->entry(),
+                        reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_EQ(0xCD, buffer[1]);
+  EXPECT_EQ(0xAB, buffer[2]);
+  EXPECT_EQ(0, buffer[3]);
+}
+
+
+ASSEMBLER_TEST_GENERATE(LoadWordUnaligned, assembler) {
+  __ LoadWordUnaligned(R1, R0, TMP);
+  __ mov(R0, Operand(R1));
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(LoadWordUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*LoadWordUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[8] = {0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0};
+
+  EXPECT_EQ(
+      static_cast<intptr_t>(0x78563412),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0x9A785634),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0xBC9A7856),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[2])));
+  EXPECT_EQ(
+      static_cast<intptr_t>(0xDEBC9A78),
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(LoadWordUnaligned, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer[3])));
+}
+
+
+ASSEMBLER_TEST_GENERATE(StoreWordUnaligned, assembler) {
+  __ LoadImmediate(R1, 0x12345678);
+  __ StoreWordUnaligned(R1, R0, TMP);
+  __ mov(R0, Operand(R1));
+  __ bx(LR);
+}
+
+
+ASSEMBLER_TEST_RUN(StoreWordUnaligned, test) {
+  EXPECT(test != NULL);
+  typedef intptr_t (*StoreWordUnaligned)(intptr_t) DART_UNUSED;
+  uint8_t buffer[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+  EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[0])));
+  EXPECT_EQ(0x78, buffer[0]);
+  EXPECT_EQ(0x56, buffer[1]);
+  EXPECT_EQ(0x34, buffer[2]);
+  EXPECT_EQ(0x12, buffer[3]);
+
+  EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[1])));
+  EXPECT_EQ(0x78, buffer[1]);
+  EXPECT_EQ(0x56, buffer[2]);
+  EXPECT_EQ(0x34, buffer[3]);
+  EXPECT_EQ(0x12, buffer[4]);
+
+  EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[2])));
+  EXPECT_EQ(0x78, buffer[2]);
+  EXPECT_EQ(0x56, buffer[3]);
+  EXPECT_EQ(0x34, buffer[4]);
+  EXPECT_EQ(0x12, buffer[5]);
+
+  EXPECT_EQ(0x12345678, EXECUTE_TEST_CODE_INTPTR_INTPTR(
+                            StoreWordUnaligned, test->entry(),
+                            reinterpret_cast<intptr_t>(&buffer[3])));
+  EXPECT_EQ(0x78, buffer[3]);
+  EXPECT_EQ(0x56, buffer[4]);
+  EXPECT_EQ(0x34, buffer[5]);
+  EXPECT_EQ(0x12, buffer[6]);
+}
+
+
 ASSEMBLER_TEST_GENERATE(Vmov, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ mov(R3, Operand(43));
     __ mov(R1, Operand(41));
-    __ vmovsrr(S1, R1, R3);  // S1:S2 = 41:43
-    __ vmovs(S0, S2);  // S0 = S2, S0:S1 == 43:41
-    __ vmovd(D2, D0);  // D2 = D0, S4:S5 == 43:41
-    __ vmovrs(R3, S5);  // R3 = S5, R3 == 41
-    __ vmovrrs(R1, R2, S4);  // R1:R2 = S4:S5, R1:R2 == 43:41
-    __ vmovdrr(D3, R3, R2);  // D3 = R3:R2, S6:S7 == 41:41
-    __ vmovdr(D3, 1, R1);  // D3[1] == S7 = R1, S6:S7 == 41:43
-    __ vmovrrd(R0, R1, D3);  // R0:R1 = D3, R0:R1 == 41:43
+    __ vmovsrr(S1, R1, R3);       // S1:S2 = 41:43
+    __ vmovs(S0, S2);             // S0 = S2, S0:S1 == 43:41
+    __ vmovd(D2, D0);             // D2 = D0, S4:S5 == 43:41
+    __ vmovrs(R3, S5);            // R3 = S5, R3 == 41
+    __ vmovrrs(R1, R2, S4);       // R1:R2 = S4:S5, R1:R2 == 43:41
+    __ vmovdrr(D3, R3, R2);       // D3 = R3:R2, S6:S7 == 41:41
+    __ vmovdr(D3, 1, R1);         // D3[1] == S7 = R1, S6:S7 == 41:43
+    __ vmovrrd(R0, R1, D3);       // R0:R1 = D3, R0:R1 == 41:43
     __ sub(R0, R1, Operand(R0));  // 43-41
   }
   __ bx(LR);
@@ -143,7 +300,7 @@ ASSEMBLER_TEST_RUN(SingleVLoadStore, test) {
   if (TargetCPUFeatures::vfp_supported()) {
     typedef float (*SingleVLoadStore)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
-    EXPECT_FLOAT_EQ(2*12.3f, res, 0.001f);
+    EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
   }
 }
 
@@ -172,7 +329,7 @@ ASSEMBLER_TEST_RUN(SingleVShiftLoadStore, test) {
   if (TargetCPUFeatures::vfp_supported()) {
     typedef float (*SingleVLoadStore)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(SingleVLoadStore, test->entry());
-    EXPECT_FLOAT_EQ(2*12.3f, res, 0.001f);
+    EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
   }
 }
 
@@ -200,7 +357,7 @@ ASSEMBLER_TEST_RUN(DoubleVLoadStore, test) {
   if (TargetCPUFeatures::vfp_supported()) {
     typedef double (*DoubleVLoadStore)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_DOUBLE(DoubleVLoadStore, test->entry());
-    EXPECT_FLOAT_EQ(2*12.3f, res, 0.001f);
+    EXPECT_FLOAT_EQ(2 * 12.3f, res, 0.001f);
   }
 }
 
@@ -209,13 +366,13 @@ ASSEMBLER_TEST_GENERATE(SingleFPOperations, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ LoadSImmediate(S0, 12.3f);
     __ LoadSImmediate(S1, 3.4f);
-    __ vnegs(S0, S0);  // -12.3f
-    __ vabss(S0, S0);  // 12.3f
+    __ vnegs(S0, S0);      // -12.3f
+    __ vabss(S0, S0);      // 12.3f
     __ vadds(S0, S0, S1);  // 15.7f
     __ vmuls(S0, S0, S1);  // 53.38f
     __ vsubs(S0, S0, S1);  // 49.98f
     __ vdivs(S0, S0, S1);  // 14.7f
-    __ vsqrts(S0, S0);  // 3.8340579f
+    __ vsqrts(S0, S0);     // 3.8340579f
   }
   __ bx(LR);
 }
@@ -235,13 +392,13 @@ ASSEMBLER_TEST_GENERATE(DoubleFPOperations, assembler) {
   if (TargetCPUFeatures::vfp_supported()) {
     __ LoadDImmediate(D0, 12.3, R0);
     __ LoadDImmediate(D1, 3.4, R0);
-    __ vnegd(D0, D0);  // -12.3
-    __ vabsd(D0, D0);  // 12.3
+    __ vnegd(D0, D0);      // -12.3
+    __ vabsd(D0, D0);      // 12.3
     __ vaddd(D0, D0, D1);  // 15.7
     __ vmuld(D0, D0, D1);  // 53.38
     __ vsubd(D0, D0, D1);  // 49.98
     __ vdivd(D0, D0, D1);  // 14.7
-    __ vsqrtd(D0, D0);  // 3.8340579
+    __ vsqrtd(D0, D0);     // 3.8340579
   }
   __ bx(LR);
 }
@@ -294,8 +451,8 @@ ASSEMBLER_TEST_RUN(IntToDoubleConversion, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
     typedef double (*IntToDoubleConversionCode)() DART_UNUSED;
-    double res = EXECUTE_TEST_CODE_DOUBLE(IntToDoubleConversionCode,
-                                          test->entry());
+    double res =
+        EXECUTE_TEST_CODE_DOUBLE(IntToDoubleConversionCode, test->entry());
     EXPECT_FLOAT_EQ(6.0, res, 0.001);
   }
 }
@@ -321,8 +478,8 @@ ASSEMBLER_TEST_RUN(LongToDoubleConversion, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
     typedef double (*LongToDoubleConversionCode)() DART_UNUSED;
-    double res = EXECUTE_TEST_CODE_DOUBLE(LongToDoubleConversionCode,
-                                          test->entry());
+    double res =
+        EXECUTE_TEST_CODE_DOUBLE(LongToDoubleConversionCode, test->entry());
     EXPECT_FLOAT_EQ(60000000000.0, res, 0.001);
   }
 }
@@ -342,8 +499,8 @@ ASSEMBLER_TEST_RUN(IntToFloatConversion, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
     typedef float (*IntToFloatConversionCode)() DART_UNUSED;
-    float res = EXECUTE_TEST_CODE_FLOAT(IntToFloatConversionCode,
-                                        test->entry());
+    float res =
+        EXECUTE_TEST_CODE_FLOAT(IntToFloatConversionCode, test->entry());
     EXPECT_FLOAT_EQ(6.0, res, 0.001);
   }
 }
@@ -362,15 +519,12 @@ ASSEMBLER_TEST_RUN(FloatToIntConversion, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
     typedef int (*FloatToIntConversion)(float arg) DART_UNUSED;
-    EXPECT_EQ(12,
-              EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
-                                        12.8f));
-    EXPECT_EQ(INT_MIN,
-              EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
-                                        -FLT_MAX));
-    EXPECT_EQ(INT_MAX,
-              EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
-                                        FLT_MAX));
+    EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion, test->entry(),
+                                            12.8f));
+    EXPECT_EQ(INT_MIN, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
+                                                 test->entry(), -FLT_MAX));
+    EXPECT_EQ(INT_MAX, EXECUTE_TEST_CODE_INT32_F(FloatToIntConversion,
+                                                 test->entry(), FLT_MAX));
   }
 }
 
@@ -388,15 +542,12 @@ ASSEMBLER_TEST_RUN(DoubleToIntConversion, test) {
   if (TargetCPUFeatures::vfp_supported()) {
     typedef int (*DoubleToIntConversion)(double arg) DART_UNUSED;
     EXPECT(test != NULL);
-    EXPECT_EQ(12,
-              EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion, test->entry(),
-                                        12.8));
-    EXPECT_EQ(INT_MIN,
-              EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion, test->entry(),
-                                        -DBL_MAX));
-    EXPECT_EQ(INT_MAX,
-              EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion, test->entry(),
-                                        DBL_MAX));
+    EXPECT_EQ(12, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                            test->entry(), 12.8));
+    EXPECT_EQ(INT_MIN, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                                 test->entry(), -DBL_MAX));
+    EXPECT_EQ(INT_MAX, EXECUTE_TEST_CODE_INT32_D(DoubleToIntConversion,
+                                                 test->entry(), DBL_MAX));
   }
 }
 
@@ -414,8 +565,8 @@ ASSEMBLER_TEST_RUN(FloatToDoubleConversion, test) {
   if (TargetCPUFeatures::vfp_supported()) {
     typedef double (*FloatToDoubleConversionCode)() DART_UNUSED;
     EXPECT(test != NULL);
-    double res = EXECUTE_TEST_CODE_DOUBLE(FloatToDoubleConversionCode,
-                                          test->entry());
+    double res =
+        EXECUTE_TEST_CODE_DOUBLE(FloatToDoubleConversionCode, test->entry());
     EXPECT_FLOAT_EQ(12.8, res, 0.001);
   }
 }
@@ -434,8 +585,8 @@ ASSEMBLER_TEST_RUN(DoubleToFloatConversion, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
     typedef float (*DoubleToFloatConversionCode)() DART_UNUSED;
-    float res = EXECUTE_TEST_CODE_FLOAT(DoubleToFloatConversionCode,
-                                        test->entry());
+    float res =
+        EXECUTE_TEST_CODE_FLOAT(DoubleToFloatConversionCode, test->entry());
     EXPECT_FLOAT_EQ(12.8, res, 0.001);
   }
 }
@@ -622,7 +773,7 @@ ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
     __ strex(IP, R1, SP);  // IP == 0, success
     __ tst(IP, Operand(0));
     __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
-    __ Pop(R0);  // 42
+    __ Pop(R0);        // 42
   }
   __ bx(LR);
 }
@@ -643,9 +794,9 @@ ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
     __ mov(R1, Operand(42));
     __ Push(R0);
     __ ldrex(R0, SP);
-    __ clrex();  // Simulate a context switch.
+    __ clrex();            // Simulate a context switch.
     __ strex(IP, R1, SP);  // IP == 1, failure
-    __ Pop(R0);  // 40
+    __ Pop(R0);            // 40
     __ add(R0, R0, Operand(IP));
   }
   __ bx(LR);
@@ -701,7 +852,7 @@ ASSEMBLER_TEST_GENERATE(AddCarryInOut, assembler) {
   __ mov(R0, Operand(0));
   __ adds(IP, R2, Operand(R1));  // c_out = 1.
   __ adcs(IP, R2, Operand(R0));  // c_in = 1, c_out = 1.
-  __ adc(R0, R0, Operand(R0));  // c_in = 1.
+  __ adc(R0, R0, Operand(R0));   // c_in = 1.
   __ bx(LR);
 }
 
@@ -735,7 +886,7 @@ ASSEMBLER_TEST_GENERATE(SubCarryInOut, assembler) {
   __ mov(R0, Operand(0));
   __ subs(IP, R0, Operand(R1));  // c_out = 1.
   __ sbcs(IP, R0, Operand(R0));  // c_in = 1, c_out = 1.
-  __ sbc(R0, R0, Operand(R0));  // c_in = 1.
+  __ sbc(R0, R0, Operand(R0));   // c_in = 1.
   __ bx(LR);
 }
 
@@ -783,7 +934,7 @@ ASSEMBLER_TEST_RUN(AndOrr, test) {
 
 ASSEMBLER_TEST_GENERATE(Orrs, assembler) {
   __ mov(R0, Operand(0));
-  __ tst(R0, Operand(R1));  // Set zero-flag.
+  __ tst(R0, Operand(R1));      // Set zero-flag.
   __ orrs(R0, R0, Operand(1));  // Clear zero-flag.
   __ bx(LR, EQ);
   __ mov(R0, Operand(42));
@@ -824,7 +975,7 @@ ASSEMBLER_TEST_GENERATE(QuotientRemainder, assembler) {
     __ vcvtdi(D2, S4);
     __ vdivd(D0, D1, D2);
     __ vcvtid(S0, D0);
-    __ vmovrs(R1, S0);  // r1 = r0/r2
+    __ vmovrs(R1, S0);       // r1 = r0/r2
     __ mls(R0, R1, R2, R0);  // r0 = r0 - r1*r2
   }
   __ bx(LR);
@@ -834,8 +985,8 @@ ASSEMBLER_TEST_GENERATE(QuotientRemainder, assembler) {
 ASSEMBLER_TEST_RUN(QuotientRemainder, test) {
   EXPECT(test != NULL);
   if (TargetCPUFeatures::vfp_supported()) {
-    typedef int64_t (*QuotientRemainder)
-        (int64_t dividend, int64_t divisor) DART_UNUSED;
+    typedef int64_t (*QuotientRemainder)(int64_t dividend, int64_t divisor)
+        DART_UNUSED;
     EXPECT_EQ(0x1000400000da8LL,
               EXECUTE_TEST_CODE_INT64_LL(QuotientRemainder, test->entry(),
                                          0x12345678, 0x1234));
@@ -857,8 +1008,8 @@ ASSEMBLER_TEST_GENERATE(Multiply64To64, assembler) {
 
 ASSEMBLER_TEST_RUN(Multiply64To64, test) {
   EXPECT(test != NULL);
-  typedef int64_t (*Multiply64To64)
-      (int64_t operand0, int64_t operand1) DART_UNUSED;
+  typedef int64_t (*Multiply64To64)(int64_t operand0, int64_t operand1)
+      DART_UNUSED;
   EXPECT_EQ(6,
             EXECUTE_TEST_CODE_INT64_LL(Multiply64To64, test->entry(), -3, -2));
 }
@@ -872,8 +1023,8 @@ ASSEMBLER_TEST_GENERATE(Multiply32To64, assembler) {
 
 ASSEMBLER_TEST_RUN(Multiply32To64, test) {
   EXPECT(test != NULL);
-  typedef int64_t (*Multiply32To64)
-      (int64_t operand0, int64_t operand1) DART_UNUSED;
+  typedef int64_t (*Multiply32To64)(int64_t operand0, int64_t operand1)
+      DART_UNUSED;
   EXPECT_EQ(6,
             EXECUTE_TEST_CODE_INT64_LL(Multiply32To64, test->entry(), -3, -2));
 }
@@ -887,8 +1038,8 @@ ASSEMBLER_TEST_GENERATE(MultiplyAccumAccum32To64, assembler) {
 
 ASSEMBLER_TEST_RUN(MultiplyAccumAccum32To64, test) {
   EXPECT(test != NULL);
-  typedef int64_t (*MultiplyAccumAccum32To64)
-      (int64_t operand0, int64_t operand1) DART_UNUSED;
+  typedef int64_t (*MultiplyAccumAccum32To64)(int64_t operand0,
+                                              int64_t operand1) DART_UNUSED;
   EXPECT_EQ(3 + 7 + 5 * 11,
             EXECUTE_TEST_CODE_INT64_LL(MultiplyAccumAccum32To64, test->entry(),
                                        (3LL << 32) + 7, (5LL << 32) + 11));
@@ -1149,12 +1300,12 @@ ASSEMBLER_TEST_RUN(Ldrh1, test) {
 
 ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
   __ mov(IP, Operand(SP));
-  __ sub(SP, SP, Operand(kWordSize*30));
+  __ sub(SP, SP, Operand(kWordSize * 30));
   __ strd(R2, R3, SP, 0);
-  __ strd(R0, R1, IP, (-kWordSize*28));
-  __ ldrd(R2, R3, IP, (-kWordSize*28));
+  __ strd(R0, R1, IP, (-kWordSize * 28));
+  __ ldrd(R2, R3, IP, (-kWordSize * 28));
   __ ldrd(R0, R1, SP, 0);
-  __ add(SP, SP, Operand(kWordSize*30));
+  __ add(SP, SP, Operand(kWordSize * 30));
   __ sub(R0, R0, Operand(R2));
   __ add(R1, R1, Operand(R3));
   __ bx(LR);
@@ -1164,8 +1315,9 @@ ASSEMBLER_TEST_GENERATE(Ldrd, assembler) {
 ASSEMBLER_TEST_RUN(Ldrd, test) {
   EXPECT(test != NULL);
   typedef int64_t (*Tst)(int64_t r0r1, int64_t r2r3) DART_UNUSED;
-  EXPECT_EQ(0x0000444400002222LL, EXECUTE_TEST_CODE_INT64_LL(
-      Tst, test->entry(), 0x0000111100000000LL, 0x0000333300002222LL));
+  EXPECT_EQ(0x0000444400002222LL,
+            EXECUTE_TEST_CODE_INT64_LL(Tst, test->entry(), 0x0000111100000000LL,
+                                       0x0000333300002222LL));
 }
 
 
@@ -1184,23 +1336,23 @@ ASSEMBLER_TEST_GENERATE(Ldm_stm_da, assembler) {
   __ str(R2, Address(SP));                 // Should be a free slot.
   __ ldr(R9, Address(SP, 1 * kWordSize));  // R0.  R9 = +1.
   __ ldr(IP, Address(SP, 2 * kWordSize));  // R1.
-  __ sub(R9, R9, Operand(IP));      // -R1. R9 = -6.
+  __ sub(R9, R9, Operand(IP));             // -R1. R9 = -6.
   __ ldr(IP, Address(SP, 3 * kWordSize));  // R2.
-  __ add(R9, R9, Operand(IP));      // +R2. R9 = +5.
+  __ add(R9, R9, Operand(IP));             // +R2. R9 = +5.
   __ ldr(IP, Address(SP, 4 * kWordSize));  // R3.
-  __ sub(R9, R9, Operand(IP));      // -R3. R9 = -26.
+  __ sub(R9, R9, Operand(IP));             // -R3. R9 = -26.
   __ ldm(IB_W, SP, (1 << R0 | 1 << R1 | 1 << R2 | 1 << R3));
   // Same operations again. But this time from the restore registers.
   __ add(R9, R9, Operand(R0));
   __ sub(R9, R9, Operand(R1));
   __ add(R9, R9, Operand(R2));
   __ sub(R0, R9, Operand(R3));  // R0 = result = -52.
-  __ Pop(R1);  // Remove storage slot.
-  __ Pop(R9);  // Restore R9.
-  __ Pop(R9);  // Restore R9.
-  __ Pop(R9);  // Restore R9.
-  __ Pop(R9);  // Restore R9.
-  __ Pop(R9);  // Restore R9.
+  __ Pop(R1);                   // Remove storage slot.
+  __ Pop(R9);                   // Restore R9.
+  __ Pop(R9);                   // Restore R9.
+  __ Pop(R9);                   // Restore R9.
+  __ Pop(R9);                   // Restore R9.
+  __ Pop(R9);                   // Restore R9.
   __ bx(LR);
 }
 
@@ -2979,10 +3131,10 @@ ASSEMBLER_TEST_RUN(Vmovq, test) {
 ASSEMBLER_TEST_GENERATE(Vmvnq, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ LoadImmediate(R1, 42);  // R1 <- 42.
-    __ vmovsr(S2, R1);  // S2 <- R1.
-    __ vmvnq(Q1, Q0);  // Q1 <- ~Q0.
-    __ vmvnq(Q2, Q1);  // Q2 <- ~Q1.
-    __ vmovrs(R0, S10);  // Now R0 should be 42 again.
+    __ vmovsr(S2, R1);         // S2 <- R1.
+    __ vmvnq(Q1, Q0);          // Q1 <- ~Q0.
+    __ vmvnq(Q2, Q1);          // Q2 <- ~Q1.
+    __ vmovrs(R0, S10);        // Now R0 should be 42 again.
   }
   __ bx(LR);
 }
@@ -3517,9 +3669,12 @@ ASSEMBLER_TEST_RUN(Vmaxqs, test) {
 // This is the same function as in the Simulator.
 static float arm_recip_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-85.
-  if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
-  else if (a == 0.0) return kPosInfinity;
-  else if (isnan(a)) return a;
+  if (isinf(a) || (fabs(a) >= exp2f(126)))
+    return 0.0;
+  else if (a == 0.0)
+    return kPosInfinity;
+  else if (isnan(a))
+    return a;
 
   uint32_t a_bits = bit_cast<uint32_t, float>(a);
   // scaled = '0011 1111 1110' : a<22:0> : Zeros(29)
@@ -3539,7 +3694,7 @@ static float arm_recip_estimate(float a) {
   // r in units of 1/256 rounded to nearest.
   int32_t s = static_cast<int32_t>(256.0 * r + 0.5);
   double estimate = static_cast<double>(s) / 256.0;
-  ASSERT((estimate >= 1.0) && (estimate <= (511.0/256.0)));
+  ASSERT((estimate >= 1.0) && (estimate <= (511.0 / 256.0)));
 
   // result = sign : result_exp<7:0> : estimate<51:29>
   int32_t result_bits =
@@ -3623,16 +3778,19 @@ ASSEMBLER_TEST_RUN(Reciprocal, test) {
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Reciprocal)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Reciprocal, test->entry());
-    EXPECT_FLOAT_EQ(1.0/147000.0, res, 0.0001f);
+    EXPECT_FLOAT_EQ(1.0 / 147000.0, res, 0.0001f);
   }
 }
 
 
 static float arm_reciprocal_sqrt_estimate(float a) {
   // From the ARM Architecture Reference Manual A2-87.
-  if (isinf(a) || (fabs(a) >= exp2f(126))) return 0.0;
-  else if (a == 0.0) return kPosInfinity;
-  else if (isnan(a)) return a;
+  if (isinf(a) || (fabs(a) >= exp2f(126)))
+    return 0.0;
+  else if (a == 0.0)
+    return kPosInfinity;
+  else if (isnan(a))
+    return a;
 
   uint32_t a_bits = bit_cast<uint32_t, float>(a);
   uint64_t scaled;
@@ -3670,10 +3828,11 @@ static float arm_reciprocal_sqrt_estimate(float a) {
   // r in units of 1/256 rounded to nearest.
   int32_t s = static_cast<int>(256.0 * r + 0.5);
   double estimate = static_cast<double>(s) / 256.0;
-  ASSERT((estimate >= 1.0) && (estimate <= (511.0/256.0)));
+  ASSERT((estimate >= 1.0) && (estimate <= (511.0 / 256.0)));
 
   // result = 0 : result_exp<7:0> : estimate<51:29>
-  int32_t result_bits = ((result_exp & 0xff) << 23) |
+  int32_t result_bits =
+      ((result_exp & 0xff) << 23) |
       ((bit_cast<uint64_t, double>(estimate) >> 29) & 0x7fffff);
   return bit_cast<float, int32_t>(result_bits);
 }
@@ -3725,7 +3884,7 @@ ASSEMBLER_TEST_RUN(Vrsqrtsqs, test) {
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*Vrsqrtsqs)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(Vrsqrtsqs, test->entry());
-    EXPECT_FLOAT_EQ((3.0 - 10.0 * 5.0)/2.0, res, 0.0001f);
+    EXPECT_FLOAT_EQ((3.0 - 10.0 * 5.0) / 2.0, res, 0.0001f);
   }
 }
 
@@ -3741,9 +3900,9 @@ ASSEMBLER_TEST_GENERATE(ReciprocalSqrt, assembler) {
     __ vrsqrteqs(Q0, Q1);
     // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
     // First step.
-    __ vmulqs(Q2, Q0, Q0);  // Q2 <- xn^2
+    __ vmulqs(Q2, Q0, Q0);     // Q2 <- xn^2
     __ vrsqrtsqs(Q2, Q1, Q2);  // Q2 <- (3 - Q1*Q2) / 2.
-    __ vmulqs(Q0, Q0, Q2);  // xn+1 <- xn * Q2
+    __ vmulqs(Q0, Q0, Q2);     // xn+1 <- xn * Q2
     // Second step.
     __ vmulqs(Q2, Q0, Q0);
     __ vrsqrtsqs(Q2, Q1, Q2);
@@ -3758,7 +3917,7 @@ ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
   if (TargetCPUFeatures::neon_supported()) {
     typedef float (*ReciprocalSqrt)() DART_UNUSED;
     float res = EXECUTE_TEST_CODE_FLOAT(ReciprocalSqrt, test->entry());
-    EXPECT_FLOAT_EQ(1.0/sqrt(147000.0), res, 0.0001f);
+    EXPECT_FLOAT_EQ(1.0 / sqrt(147000.0), res, 0.0001f);
   }
 }
 
@@ -3774,9 +3933,9 @@ ASSEMBLER_TEST_GENERATE(SIMDSqrt, assembler) {
     __ vrsqrteqs(Q0, Q1);
     // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
     // First step.
-    __ vmulqs(Q2, Q0, Q0);  // Q2 <- xn^2
+    __ vmulqs(Q2, Q0, Q0);     // Q2 <- xn^2
     __ vrsqrtsqs(Q2, Q1, Q2);  // Q2 <- (3 - Q1*Q2) / 2.
-    __ vmulqs(Q0, Q0, Q2);  // xn+1 <- xn * Q2
+    __ vmulqs(Q0, Q0, Q2);     // xn+1 <- xn * Q2
     // Second step.
     __ vmulqs(Q2, Q0, Q0);
     __ vrsqrtsqs(Q2, Q1, Q2);
@@ -3817,9 +3976,9 @@ ASSEMBLER_TEST_GENERATE(SIMDSqrt2, assembler) {
     __ vrsqrteqs(Q0, Q1);
     // 2 Newton-Raphson steps. xn+1 = xn * (3 - Q1*xn^2) / 2.
     // First step.
-    __ vmulqs(Q2, Q0, Q0);  // Q2 <- xn^2
+    __ vmulqs(Q2, Q0, Q0);     // Q2 <- xn^2
     __ vrsqrtsqs(Q2, Q1, Q2);  // Q2 <- (3 - Q1*Q2) / 2.
-    __ vmulqs(Q0, Q0, Q2);  // xn+1 <- xn * Q2
+    __ vmulqs(Q0, Q0, Q2);     // xn+1 <- xn * Q2
     // Second step.
     __ vmulqs(Q2, Q0, Q0);
     __ vrsqrtsqs(Q2, Q1, Q2);
@@ -3954,8 +4113,7 @@ ASSEMBLER_TEST_RUN(Vnegqs, test) {
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ PushList((1 << LR) | (1 << THR));
   __ mov(THR, Operand(R2));
-  __ StoreIntoObject(R1,
-                     FieldAddress(R1, GrowableObjectArray::data_offset()),
+  __ StoreIntoObject(R1, FieldAddress(R1, GrowableObjectArray::data_offset()),
                      R0);
   __ PopList((1 << LR) | (1 << THR));
   __ Ret();

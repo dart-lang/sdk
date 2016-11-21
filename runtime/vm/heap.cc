@@ -39,9 +39,7 @@ Heap::Heap(Isolate* isolate,
       gc_new_space_in_progress_(false),
       gc_old_space_in_progress_(false) {
   UpdateGlobalMaxUsed();
-  for (int sel = 0;
-       sel < kNumWeakSelectors;
-       sel++) {
+  for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     new_weak_tables_[sel] = new WeakTable();
     old_weak_tables_[sel] = new WeakTable();
   }
@@ -53,9 +51,7 @@ Heap::~Heap() {
   delete barrier_;
   delete barrier_done_;
 
-  for (int sel = 0;
-       sel < kNumWeakSelectors;
-       sel++) {
+  for (int sel = 0; sel < kNumWeakSelectors; sel++) {
     delete new_weak_tables_[sel];
     delete old_weak_tables_[sel];
   }
@@ -139,8 +135,8 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
     return addr;
   }
   // Give up allocating this object.
-  OS::PrintErr(
-      "Exhausted heap space, trying to allocate %" Pd " bytes.\n", size);
+  OS::PrintErr("Exhausted heap space, trying to allocate %" Pd " bytes.\n",
+               size);
   return 0;
 }
 
@@ -179,8 +175,7 @@ void Heap::PromoteExternal(intptr_t size) {
 }
 
 bool Heap::Contains(uword addr) const {
-  return new_space_.Contains(addr) ||
-      old_space_.Contains(addr);
+  return new_space_.Contains(addr) || old_space_.Contains(addr);
 }
 
 
@@ -303,8 +298,7 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 bool Heap::BeginNewSpaceGC(Thread* thread) {
   MonitorLocker ml(&gc_in_progress_monitor_);
   bool start_gc_on_thread = true;
-  while (gc_new_space_in_progress_ ||
-         gc_old_space_in_progress_) {
+  while (gc_new_space_in_progress_ || gc_old_space_in_progress_) {
     start_gc_on_thread = !gc_new_space_in_progress_;
     ml.WaitWithSafepointCheck(thread);
   }
@@ -327,8 +321,7 @@ void Heap::EndNewSpaceGC() {
 bool Heap::BeginOldSpaceGC(Thread* thread) {
   MonitorLocker ml(&gc_in_progress_monitor_);
   bool start_gc_on_thread = true;
-  while (gc_new_space_in_progress_ ||
-         gc_old_space_in_progress_) {
+  while (gc_new_space_in_progress_ || gc_old_space_in_progress_) {
     start_gc_on_thread = !gc_old_space_in_progress_;
     ml.WaitWithSafepointCheck(thread);
   }
@@ -511,9 +504,7 @@ void Heap::Init(Isolate* isolate,
                 intptr_t max_old_gen_words,
                 intptr_t max_external_words) {
   ASSERT(isolate->heap() == NULL);
-  Heap* heap = new Heap(isolate,
-                        max_new_gen_words,
-                        max_old_gen_words,
+  Heap* heap = new Heap(isolate, max_new_gen_words, max_old_gen_words,
                         max_external_words);
   isolate->set_heap(heap);
 }
@@ -528,12 +519,12 @@ void Heap::AddRegionsToObjectSet(ObjectSet* set) const {
 ObjectSet* Heap::CreateAllocatedObjectSet(
     Zone* zone,
     MarkExpectation mark_expectation) const {
-  ObjectSet* allocated_set = new(zone) ObjectSet(zone);
+  ObjectSet* allocated_set = new (zone) ObjectSet(zone);
 
   this->AddRegionsToObjectSet(allocated_set);
   {
-    VerifyObjectVisitor object_visitor(
-        isolate(), allocated_set, mark_expectation);
+    VerifyObjectVisitor object_visitor(isolate(), allocated_set,
+                                       mark_expectation);
     this->VisitObjects(&object_visitor);
   }
 
@@ -541,8 +532,8 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
   vm_isolate->heap()->AddRegionsToObjectSet(allocated_set);
   {
     // VM isolate heap is premarked.
-    VerifyObjectVisitor vm_object_visitor(
-        isolate(), allocated_set, kRequireMarked);
+    VerifyObjectVisitor vm_object_visitor(isolate(), allocated_set,
+                                          kRequireMarked);
     vm_isolate->heap()->VisitObjects(&vm_object_visitor);
   }
 
@@ -558,8 +549,8 @@ bool Heap::Verify(MarkExpectation mark_expectation) const {
 
 bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   StackZone stack_zone(Thread::Current());
-  ObjectSet* allocated_set = CreateAllocatedObjectSet(stack_zone.GetZone(),
-                                                      mark_expectation);
+  ObjectSet* allocated_set =
+      CreateAllocatedObjectSet(stack_zone.GetZone(), mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
   VisitObjectPointers(&visitor);
 
@@ -569,12 +560,12 @@ bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
 
 
 void Heap::PrintSizes() const {
-  OS::PrintErr("New space (%" Pd64 "k of %" Pd64 "k) "
-               "Old space (%" Pd64 "k of %" Pd64 "k)\n",
-               (UsedInWords(kNew) / KBInWords),
-               (CapacityInWords(kNew) / KBInWords),
-               (UsedInWords(kOld) / KBInWords),
-               (CapacityInWords(kOld) / KBInWords));
+  OS::PrintErr(
+      "New space (%" Pd64 "k of %" Pd64
+      "k) "
+      "Old space (%" Pd64 "k of %" Pd64 "k)\n",
+      (UsedInWords(kNew) / KBInWords), (CapacityInWords(kNew) / KBInWords),
+      (UsedInWords(kOld) / KBInWords), (CapacityInWords(kOld) / KBInWords));
 }
 
 
@@ -584,14 +575,14 @@ int64_t Heap::UsedInWords(Space space) const {
 
 
 int64_t Heap::CapacityInWords(Space space) const {
-  return space == kNew ? new_space_.CapacityInWords() :
-                         old_space_.CapacityInWords();
+  return space == kNew ? new_space_.CapacityInWords()
+                       : old_space_.CapacityInWords();
 }
 
 
 int64_t Heap::ExternalInWords(Space space) const {
-  return space == kNew ? new_space_.ExternalInWords() :
-                         old_space_.ExternalInWords();
+  return space == kNew ? new_space_.ExternalInWords()
+                       : old_space_.ExternalInWords();
 }
 
 
@@ -639,13 +630,13 @@ int64_t Heap::PeerCount() const {
 
 int64_t Heap::HashCount() const {
   return new_weak_tables_[kHashes]->count() +
-      old_weak_tables_[kHashes]->count();
+         old_weak_tables_[kHashes]->count();
 }
 
 
 int64_t Heap::ObjectIdCount() const {
   return new_weak_tables_[kObjectIds]->count() +
-      old_weak_tables_[kObjectIds]->count();
+         old_weak_tables_[kObjectIds]->count();
 }
 
 
@@ -734,12 +725,14 @@ void Heap::PrintStats() {
 
   if ((FLAG_verbose_gc_hdr != 0) &&
       (((stats_.num_ - 1) % FLAG_verbose_gc_hdr) == 0)) {
-    OS::PrintErr("[    GC    |  space  | count | start | gc time | "
-                 "new gen (KB) | old gen (KB) | timers | data ]\n"
-                 "[ (isolate)| (reason)|       |  (s)  |   (ms)  | "
-                 "used,cap,ext | used,cap,ext |  (ms)  |      ]\n");
+    OS::PrintErr(
+        "[    GC    |  space  | count | start | gc time | "
+        "new gen (KB) | old gen (KB) | timers | data ]\n"
+        "[ (isolate)| (reason)|       |  (s)  |   (ms)  | "
+        "used,cap,ext | used,cap,ext |  (ms)  |      ]\n");
   }
 
+  // clang-format off
   const char* space_str = stats_.space_ == kNew ? "Scavenge" : "Mark-Sweep";
   OS::PrintErr(
     "[ GC(%" Pd64 "): %s(%s), "  // GC(isolate), space(reason)
@@ -780,6 +773,7 @@ void Heap::PrintStats() {
     stats_.data_[1],
     stats_.data_[2],
     stats_.data_[3]);
+  // clang-format on
 }
 
 
@@ -789,55 +783,31 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
     return;
   }
   event->SetNumArguments(12);
-  event->FormatArgument(0,
-                        "Before.New.Used (kB)",
-                        "%" Pd "",
+  event->FormatArgument(0, "Before.New.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.used_in_words));
-  event->FormatArgument(1,
-                        "After.New.Used (kB)",
-                        "%" Pd "",
+  event->FormatArgument(1, "After.New.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.used_in_words));
-  event->FormatArgument(2,
-                        "Before.Old.Used (kB)",
-                        "%" Pd "",
+  event->FormatArgument(2, "Before.Old.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.used_in_words));
-  event->FormatArgument(3,
-                        "After.Old.Used (kB)",
-                        "%" Pd "",
+  event->FormatArgument(3, "After.Old.Used (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.used_in_words));
 
-  event->FormatArgument(4,
-                        "Before.New.Capacity (kB)",
-                        "%" Pd "",
+  event->FormatArgument(4, "Before.New.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.capacity_in_words));
-  event->FormatArgument(5,
-                        "After.New.Capacity (kB)",
-                        "%" Pd "",
+  event->FormatArgument(5, "After.New.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.capacity_in_words));
-  event->FormatArgument(6,
-                        "Before.Old.Capacity (kB)",
-                        "%" Pd "",
+  event->FormatArgument(6, "Before.Old.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.capacity_in_words));
-  event->FormatArgument(7,
-                        "After.Old.Capacity (kB)",
-                        "%" Pd "",
+  event->FormatArgument(7, "After.Old.Capacity (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.capacity_in_words));
 
-  event->FormatArgument(8,
-                        "Before.New.External (kB)",
-                        "%" Pd "",
+  event->FormatArgument(8, "Before.New.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.new_.external_in_words));
-  event->FormatArgument(9,
-                        "After.New.External (kB)",
-                        "%" Pd "",
+  event->FormatArgument(9, "After.New.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.new_.external_in_words));
-  event->FormatArgument(10,
-                        "Before.Old.External (kB)",
-                        "%" Pd "",
+  event->FormatArgument(10, "Before.Old.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.before_.old_.external_in_words));
-  event->FormatArgument(11,
-                        "After.Old.External (kB)",
-                        "%" Pd "",
+  event->FormatArgument(11, "After.Old.External (kB)", "%" Pd "",
                         RoundWordsToKB(stats_.after_.old_.external_in_words));
 #endif  // !defined(PRODUCT)
 }
@@ -845,15 +815,15 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event) {
 
 NoHeapGrowthControlScope::NoHeapGrowthControlScope()
     : StackResource(Thread::Current()) {
-    Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
-    current_growth_controller_state_ = heap->GrowthControlState();
-    heap->DisableGrowthControl();
+  Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
+  current_growth_controller_state_ = heap->GrowthControlState();
+  heap->DisableGrowthControl();
 }
 
 
 NoHeapGrowthControlScope::~NoHeapGrowthControlScope() {
-    Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
-    heap->SetGrowthControlState(current_growth_controller_state_);
+  Heap* heap = reinterpret_cast<Isolate*>(isolate())->heap();
+  heap->SetGrowthControlState(current_growth_controller_state_);
 }
 
 

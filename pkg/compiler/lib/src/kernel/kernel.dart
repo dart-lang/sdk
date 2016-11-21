@@ -27,10 +27,12 @@ import '../elements/elements.dart'
         ImportElement,
         LibraryElement,
         LocalFunctionElement,
+        MetadataAnnotation,
         MixinApplicationElement,
         TypeVariableElement;
 import '../elements/modelx.dart' show ErroneousFieldElementX;
 import '../tree/tree.dart' show FunctionExpression, Node;
+import 'constant_visitor.dart';
 import 'kernel_visitor.dart' show IrFunction, KernelVisitor;
 
 typedef void WorkAction();
@@ -192,6 +194,10 @@ class Kernel {
         if (cls.supertype != null) {
           classNode.supertype = interfaceTypeToIr(cls.supertype);
         }
+        if (cls.isMixinApplication) {
+          MixinApplicationElement mixinApplication = cls;
+          classNode.mixedInType = interfaceTypeToIr(mixinApplication.mixinType);
+        }
         classNode.parent = libraryToIr(cls.library);
         if (cls.isUnnamedMixinApplication) {
           classNode.enclosingLibrary.addClass(classNode);
@@ -201,9 +207,13 @@ class Kernel {
           if (member.enclosingClass.declaration != cls) {
             // TODO(het): figure out why impact_test triggers this
             //internalError(cls, "`$member` isn't mine.");
-          } else if (member.isFunction ||
-              member.isAccessor ||
-              member.isConstructor) {
+          } else if (member.isConstructor) {
+            ConstructorElement constructor = member;
+            ir.Member memberNode = functionToIr(member);
+            if (!constructor.isRedirectingFactory) {
+              classNode.addMember(memberNode);
+            }
+          } else if (member.isFunction || member.isAccessor) {
             classNode.addMember(functionToIr(member));
           } else if (member.isField) {
             classNode.addMember(fieldToIr(member));
@@ -214,11 +224,53 @@ class Kernel {
         classNode.typeParameters.addAll(typeVariablesToIr(cls.typeVariables));
         for (ir.InterfaceType interface
             in typesToIr(cls.interfaces.reverse().toList())) {
-          classNode.implementedTypes.add(interface);
+          if (interface != classNode.mixedInType) {
+            classNode.implementedTypes.add(interface);
+          }
+        }
+        addWork(cls, () {
+          addDefaultInstanceFieldInitializers(classNode);
+        });
+      });
+      addWork(cls.declaration, () {
+        for (MetadataAnnotation metadata in cls.declaration.metadata) {
+          classNode.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
         }
       });
       return classNode;
     });
+  }
+
+  /// Adds initializers to instance fields that are have no initializer and are
+  /// not initialized by all constructors in the class.
+  ///
+  /// This is more or less copied directly from `ast_from_analyzer.dart` in
+  /// dartk.
+  void addDefaultInstanceFieldInitializers(ir.Class node) {
+    List<ir.Field> uninitializedFields = new List<ir.Field>();
+    for (ir.Field field in node.fields) {
+      if (field.initializer != null || field.isStatic) continue;
+      uninitializedFields.add(field);
+    }
+    if (uninitializedFields.isEmpty) return;
+    constructorLoop:
+    for (ir.Constructor constructor in node.constructors) {
+      Set<ir.Field> remainingFields = uninitializedFields.toSet();
+      for (ir.Initializer initializer in constructor.initializers) {
+        if (initializer is ir.FieldInitializer) {
+          remainingFields.remove(initializer.field);
+        } else if (initializer is ir.RedirectingInitializer) {
+          // The target constructor will be checked in another iteration.
+          continue constructorLoop;
+        }
+      }
+      for (ir.Field field in remainingFields) {
+        if (field.initializer == null) {
+          field.initializer = new ir.NullLiteral()..parent = field;
+        }
+      }
+    }
   }
 
   bool hasHierarchyProblem(ClassElement cls) => cls.hasIncompleteHierarchy;
@@ -391,6 +443,12 @@ class Kernel {
           return true;
         });
       });
+      addWork(function.declaration, () {
+        for (MetadataAnnotation metadata in function.declaration.metadata) {
+          member.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
+        }
+      });
       return member;
     });
   }
@@ -445,11 +503,21 @@ class Kernel {
           isConst: field.isConst);
       addWork(field, () {
         setParent(fieldNode, field);
-        if (!field.isMalformed && field.initializer != null) {
-          KernelVisitor visitor =
-              new KernelVisitor(field, field.treeElements, this);
-          fieldNode.initializer = visitor.buildInitializer()
-            ..parent = fieldNode;
+        if (!field.isMalformed) {
+          if (field.initializer != null) {
+            KernelVisitor visitor =
+                new KernelVisitor(field, field.treeElements, this);
+            fieldNode.initializer = visitor.buildInitializer()
+              ..parent = fieldNode;
+          } else if (!field.isInstanceMember) {
+            fieldNode.initializer = new ir.NullLiteral()..parent = fieldNode;
+          }
+        }
+      });
+      addWork(field.declaration, () {
+        for (MetadataAnnotation metadata in field.declaration.metadata) {
+          fieldNode.addAnnotation(
+              const ConstantVisitor().visit(metadata.constant, this));
         }
       });
       return fieldNode;

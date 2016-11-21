@@ -103,7 +103,7 @@ class _CastError extends Error implements CastError {
 
   static _throwNew(int case_clause_pos) native "FallThroughError_throwNew";
 
-  @patch String toString() {
+  String toString() {
     return "'$_url': Switch case fall-through at line $_line.";
   }
 
@@ -273,6 +273,7 @@ class _InternalError {
     }
 
     StringBuffer msg_buf = new StringBuffer("NoSuchMethodError: ");
+    bool is_type_call = false;
     switch (level) {
       case _InvocationMirror._DYNAMIC: {
         if (_receiver == null) {
@@ -286,6 +287,13 @@ class _InternalError {
           if (_receiver is Function) {
             msg_buf.writeln("Closure call with mismatched arguments: "
                 "function '$memberName'");
+          } else if (_receiver is _Type && memberName == "call") {
+            is_type_call = true;
+            String name = _receiver.toString();
+            msg_buf.writeln("Attempted to use type '$name' as a function. "
+                "Since types do not define a method 'call', this is not "
+                "possible. Did you intend to call the $name constructor and "
+                "forget the 'new' operator?");
           } else {
             msg_buf.writeln("Class '${_receiver.runtimeType}' has no instance "
                 "$type_str '$memberName'$args_message.");
@@ -324,7 +332,8 @@ class _InternalError {
     }
 
     if (type == _InvocationMirror._METHOD) {
-      msg_buf.write("Tried calling: $memberName($arguments)");
+      String m = is_type_call ? "$_receiver" : "$memberName";
+      msg_buf.write("Tried calling: $m($arguments)");
     } else if (argumentCount == 0) {
       msg_buf.write("Tried calling: $memberName");
     } else if (type == _InvocationMirror._SETTER) {

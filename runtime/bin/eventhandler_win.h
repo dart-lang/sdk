@@ -33,7 +33,13 @@ class ListenSocket;
 class OverlappedBuffer {
  public:
   enum Operation {
-    kAccept, kRead, kRecvFrom, kWrite, kSendTo, kDisconnect, kConnect
+    kAccept,
+    kRead,
+    kRecvFrom,
+    kWrite,
+    kSendTo,
+    kDisconnect,
+    kConnect
   };
 
   static OverlappedBuffer* AllocateAcceptBuffer(int buffer_size);
@@ -68,7 +74,9 @@ class OverlappedBuffer {
   SOCKET client() { return client_; }
   char* GetBufferStart() { return reinterpret_cast<char*>(&buffer_data_); }
   int GetBufferSize() { return buflen_; }
-  struct sockaddr* from() { return from_; }
+  struct sockaddr* from() {
+    return from_;
+  }
   socklen_t* from_len_addr() { return from_len_addr_; }
   socklen_t from_len() { return from_ == NULL ? 0 : *from_len_addr_; }
 
@@ -99,8 +107,8 @@ class OverlappedBuffer {
           sizeof(struct sockaddr_storage) + sizeof(socklen_t);
       ASSERT(buflen_ > kAdditionalSize);
       buflen_ -= kAdditionalSize;
-      from_len_addr_ = reinterpret_cast<socklen_t*>(
-          GetBufferStart() + GetBufferSize());
+      from_len_addr_ =
+          reinterpret_cast<socklen_t*>(GetBufferStart() + GetBufferSize());
       *from_len_addr_ = sizeof(struct sockaddr_storage);
       from_ = reinterpret_cast<struct sockaddr*>(from_len_addr_ + 1);
     } else {
@@ -118,22 +126,19 @@ class OverlappedBuffer {
     return malloc(size + buffer_size);
   }
 
-  void operator delete(void* buffer) {
-    free(buffer);
-  }
+  void operator delete(void* buffer) { free(buffer); }
 
   // Allocate an overlapped buffer for thse specified amount of data and
   // operation. Some operations need additional buffer space, which is
   // handled by this method.
-  static OverlappedBuffer* AllocateBuffer(int buffer_size,
-                                          Operation operation);
+  static OverlappedBuffer* AllocateBuffer(int buffer_size, Operation operation);
 
   OVERLAPPED overlapped_;  // OVERLAPPED structure for overlapped IO.
-  SOCKET client_;  // Used for AcceptEx client socket.
-  int buflen_;  // Length of the buffer.
-  Operation operation_;  // Type of operation issued.
+  SOCKET client_;          // Used for AcceptEx client socket.
+  int buflen_;             // Length of the buffer.
+  Operation operation_;    // Type of operation issued.
 
-  int index_;  // Index for next read from read buffer.
+  int index_;        // Index for next read from read buffer.
   int data_length_;  // Length of the actual data in the buffer.
 
   WSABUF wbuf_;  // Structure for passing buffer to WSA functions.
@@ -141,7 +146,7 @@ class OverlappedBuffer {
   // For the recvfrom operation additional storace is allocated for the
   // source sockaddr.
   socklen_t* from_len_addr_;  // Pointer to source sockaddr size storage.
-  struct sockaddr* from_;  // Pointer to source sockaddr storage.
+  struct sockaddr* from_;     // Pointer to source sockaddr storage.
 
   // Buffer for recv/send/AcceptEx. This must be at the end of the
   // object as the object is allocated larger than it's definition
@@ -200,8 +205,7 @@ class Handle : public DescriptorInfoBase {
   void MarkClosedWrite() { flags_ |= (1 << kCloseWrite); }
   void MarkError() { flags_ |= (1 << kError); }
 
-  virtual void EnsureInitialized(
-    EventHandlerImplementation* event_handler) = 0;
+  virtual void EnsureInitialized(EventHandlerImplementation* event_handler) = 0;
 
   HANDLE handle() { return handle_; }
 
@@ -215,9 +219,10 @@ class Handle : public DescriptorInfoBase {
 
   Type type() { return type_; }
   bool is_file() { return type_ == kFile; }
-  bool is_socket() { return type_ == kListenSocket ||
-                            type_ == kClientSocket ||
-                            type_ == kDatagramSocket; }
+  bool is_socket() {
+    return type_ == kListenSocket || type_ == kClientSocket ||
+           type_ == kDatagramSocket;
+  }
   bool is_listen_socket() { return type_ == kListenSocket; }
   bool is_client_socket() { return type_ == kClientSocket; }
   bool is_datagram_socket() { return type_ == kDatagramSocket; }
@@ -256,8 +261,8 @@ class Handle : public DescriptorInfoBase {
   HANDLE completion_port_;
   EventHandlerImplementation* event_handler_;
 
-  OverlappedBuffer* data_ready_;  // Buffer for data ready to be read.
-  OverlappedBuffer* pending_read_;  // Buffer for pending read.
+  OverlappedBuffer* data_ready_;     // Buffer for data ready to be read.
+  OverlappedBuffer* pending_read_;   // Buffer for pending read.
   OverlappedBuffer* pending_write_;  // Buffer for pending write
 
   DWORD last_error_;
@@ -352,9 +357,7 @@ class SocketHandle : public Handle {
   SOCKET socket() const { return socket_; }
 
  protected:
-  explicit SocketHandle(intptr_t s)
-      : Handle(s),
-        socket_(s) {}
+  explicit SocketHandle(intptr_t s) : Handle(s), socket_(s) {}
 
   virtual void HandleIssueError();
 
@@ -368,12 +371,13 @@ class SocketHandle : public Handle {
 // Information on listen sockets.
 class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
  public:
-  explicit ListenSocket(intptr_t s) : DescriptorInfoMultipleMixin(s, true),
-                                      AcceptEx_(NULL),
-                                      pending_accept_count_(0),
-                                      accepted_head_(NULL),
-                                      accepted_tail_(NULL),
-                                      accepted_count_(0) {
+  explicit ListenSocket(intptr_t s)
+      : DescriptorInfoMultipleMixin(s, true),
+        AcceptEx_(NULL),
+        pending_accept_count_(0),
+        accepted_head_(NULL),
+        accepted_tail_(NULL),
+        accepted_count_(0) {
     type_ = kListenSocket;
   }
   virtual ~ListenSocket() {
@@ -391,8 +395,7 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
   bool IssueAccept();
   void AcceptComplete(OverlappedBuffer* buffer, HANDLE completion_port);
 
-  virtual void EnsureInitialized(
-    EventHandlerImplementation* event_handler);
+  virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual void DoClose();
   virtual bool IsClosed();
 
@@ -425,11 +428,12 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
 // Information on connected sockets.
 class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
  public:
-  explicit ClientSocket(intptr_t s) : DescriptorInfoSingleMixin(s, true),
-                                      DisconnectEx_(NULL),
-                                      next_(NULL),
-                                      connected_(false),
-                                      closed_(false) {
+  explicit ClientSocket(intptr_t s)
+      : DescriptorInfoSingleMixin(s, true),
+        DisconnectEx_(NULL),
+        next_(NULL),
+        connected_(false),
+        closed_(false) {
     LoadDisconnectEx();
     type_ = kClientSocket;
   }
@@ -452,22 +456,17 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
 
   void ConnectComplete(OverlappedBuffer* buffer);
 
-  virtual void EnsureInitialized(
-    EventHandlerImplementation* event_handler);
+  virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual void DoClose();
   virtual bool IsClosed();
 
   ClientSocket* next() { return next_; }
   void set_next(ClientSocket* next) { next_ = next; }
 
-  void mark_connected() {
-    connected_ = true;
-  }
+  void mark_connected() { connected_ = true; }
   bool is_connected() const { return connected_; }
 
-  void mark_closed() {
-    closed_ = true;
-  }
+  void mark_closed() { closed_ = true; }
 
  private:
   bool LoadDisconnectEx();
@@ -522,7 +521,7 @@ class EventHandlerImplementation {
   void HandleInterrupt(InterruptMessage* msg);
   void HandleTimeout();
   void HandleAccept(ListenSocket* listen_socket, OverlappedBuffer* buffer);
-  void TryDispatchingPendingAccepts(ListenSocket *listen_socket);
+  void TryDispatchingPendingAccepts(ListenSocket* listen_socket);
   void HandleRead(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleRecvFrom(Handle* handle, int bytes, OverlappedBuffer* buffer);
   void HandleWrite(Handle* handle, int bytes, OverlappedBuffer* buffer);

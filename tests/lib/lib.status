@@ -189,6 +189,7 @@ async/stream_transformation_broadcast_test: RuntimeError # Timer interface not s
 async/stream_controller_test: Fail # Timer interface not supported: Issue 7728.
 async/stream_subscription_cancel_test: Fail # Timer interface not supported: Issue 7728.
 async/future_constructor2_test: Fail # Timer interface not supported: Issue 7728.
+async/stream_take_test: Fail # Timer interface not supported: Issue 7728.
 mirrors/mirrors_reader_test: Skip # Running in v8 suffices. Issue 16589 - RuntimeError.  Issue 22130 - Crash (out of memory).
 
 [ $compiler == dart2js && $checked ]
@@ -394,11 +395,6 @@ mirrors/*: SkipByDesign
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
 
-[ $arch == simdbc || $arch == simdbc64 ]
-# TODO(vegorov) LoadField bytecode supports only up to 256 fields. Need a long
-# version.
-mirrors/accessor_cache_overflow_test: Skip
-
 [ $hot_reload || $hot_reload_rollback ]
 async/multiple_timer_test: Pass, Fail # Timing related
 async/stream_transformer_test: Pass, Fail # Closure identity
@@ -415,7 +411,7 @@ mirrors/deferred_mirrors_metatarget_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 
 [ $hot_reload ]
-mirrors/metadata_scope_test/none: Fail # Constant equality - Issue 26868
 mirrors/generic_bounded_test/02: Fail # Type equality - Issue 26869
 mirrors/typedef_reflected_type_test/01: Fail # Type equality - Issue 26869
 mirrors/generic_bounded_by_type_parameter_test/02: Fail # Type equality - Issue 26869
+async/timer_regress22626_test: Pass, RuntimeError # Timing dependent.

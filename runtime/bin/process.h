@@ -19,12 +19,8 @@ class ProcessResult {
  public:
   ProcessResult() : exit_code_(0) {}
 
-  void set_stdout_data(Dart_Handle stdout_data) {
-    stdout_data_ = stdout_data;
-  }
-  void set_stderr_data(Dart_Handle stderr_data) {
-    stderr_data_ = stderr_data;
-  }
+  void set_stdout_data(Dart_Handle stdout_data) { stdout_data_ = stdout_data; }
+  void set_stderr_data(Dart_Handle stderr_data) { stderr_data_ = stderr_data; }
 
   void set_exit_code(intptr_t exit_code) { exit_code_ = exit_code; }
 
@@ -126,6 +122,14 @@ class Process {
     global_exit_code_ = exit_code;
   }
 
+  typedef void (*ExitHook)(int64_t exit_code);
+  static void SetExitHook(ExitHook hook) { exit_hook_ = hook; }
+  static void RunExitHook(int64_t exit_code) {
+    if (exit_hook_ != NULL) {
+      exit_hook_(exit_code);
+    }
+  }
+
   static intptr_t CurrentProcessId();
 
   static intptr_t SetSignalHandler(intptr_t signal);
@@ -133,12 +137,12 @@ class Process {
 
   static Dart_Handle GetProcessIdNativeField(Dart_Handle process,
                                              intptr_t* pid);
-  static Dart_Handle SetProcessIdNativeField(Dart_Handle process,
-                                             intptr_t pid);
+  static Dart_Handle SetProcessIdNativeField(Dart_Handle process, intptr_t pid);
 
  private:
   static int global_exit_code_;
   static Mutex* global_exit_code_mutex_;
+  static ExitHook exit_hook_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
@@ -203,9 +207,7 @@ class BufferListBase {
       next_ = NULL;
     }
 
-    ~BufferListNode() {
-      delete[] data_;
-    }
+    ~BufferListNode() { delete[] data_; }
 
     uint8_t* data_;
     BufferListNode* next_;
@@ -231,8 +233,7 @@ class BufferListBase {
       Free();
       return result;
     }
-    for (BufferListNode* current = head_;
-         current != NULL;
+    for (BufferListNode* current = head_; current != NULL;
          current = current->next_) {
       intptr_t to_copy = dart::Utils::Minimum(data_size_, kBufferSize);
       memmove(buffer + buffer_position, current->data_, to_copy);

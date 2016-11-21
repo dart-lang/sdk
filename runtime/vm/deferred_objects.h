@@ -22,8 +22,8 @@ class DeoptContext;
 class DeferredSlot {
  public:
   DeferredSlot(RawObject** slot, DeferredSlot* next)
-      : slot_(slot), next_(next) { }
-  virtual ~DeferredSlot() { }
+      : slot_(slot), next_(next) {}
+  virtual ~DeferredSlot() {}
 
   RawObject** slot() const { return slot_; }
   DeferredSlot* next() const { return next_; }
@@ -41,7 +41,7 @@ class DeferredSlot {
 class DeferredDouble : public DeferredSlot {
  public:
   DeferredDouble(double value, RawObject** slot, DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
+      : DeferredSlot(slot, next), value_(value) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -57,7 +57,7 @@ class DeferredDouble : public DeferredSlot {
 class DeferredMint : public DeferredSlot {
  public:
   DeferredMint(int64_t value, RawObject** slot, DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
+      : DeferredSlot(slot, next), value_(value) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -72,9 +72,8 @@ class DeferredMint : public DeferredSlot {
 
 class DeferredFloat32x4 : public DeferredSlot {
  public:
-  DeferredFloat32x4(simd128_value_t value, RawObject** slot,
-                    DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
+  DeferredFloat32x4(simd128_value_t value, RawObject** slot, DeferredSlot* next)
+      : DeferredSlot(slot, next), value_(value) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -89,9 +88,8 @@ class DeferredFloat32x4 : public DeferredSlot {
 
 class DeferredFloat64x2 : public DeferredSlot {
  public:
-  DeferredFloat64x2(simd128_value_t value, RawObject** slot,
-                    DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
+  DeferredFloat64x2(simd128_value_t value, RawObject** slot, DeferredSlot* next)
+      : DeferredSlot(slot, next), value_(value) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -106,9 +104,8 @@ class DeferredFloat64x2 : public DeferredSlot {
 
 class DeferredInt32x4 : public DeferredSlot {
  public:
-  DeferredInt32x4(simd128_value_t value, RawObject** slot,
-                   DeferredSlot* next)
-      : DeferredSlot(slot, next), value_(value) { }
+  DeferredInt32x4(simd128_value_t value, RawObject** slot, DeferredSlot* next)
+      : DeferredSlot(slot, next), value_(value) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -127,7 +124,7 @@ class DeferredInt32x4 : public DeferredSlot {
 class DeferredObjectRef : public DeferredSlot {
  public:
   DeferredObjectRef(intptr_t index, RawObject** slot, DeferredSlot* next)
-      : DeferredSlot(slot, next), index_(index) { }
+      : DeferredSlot(slot, next), index_(index) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -146,7 +143,7 @@ class DeferredRetAddr : public DeferredSlot {
                   intptr_t deopt_id,
                   RawObject** slot,
                   DeferredSlot* next)
-      : DeferredSlot(slot, next), index_(index), deopt_id_(deopt_id) { }
+      : DeferredSlot(slot, next), index_(index), deopt_id_(deopt_id) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -163,7 +160,7 @@ class DeferredRetAddr : public DeferredSlot {
 class DeferredPcMarker : public DeferredSlot {
  public:
   DeferredPcMarker(intptr_t index, RawObject** slot, DeferredSlot* next)
-      : DeferredSlot(slot, next), index_(index) { }
+      : DeferredSlot(slot, next), index_(index) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -179,7 +176,7 @@ class DeferredPcMarker : public DeferredSlot {
 class DeferredPp : public DeferredSlot {
  public:
   DeferredPp(intptr_t index, RawObject** slot, DeferredSlot* next)
-      : DeferredSlot(slot, next), index_(index) { }
+      : DeferredSlot(slot, next), index_(index) {}
 
   virtual void Materialize(DeoptContext* deopt_context);
 
@@ -201,7 +198,7 @@ class DeferredObject {
   DeferredObject(intptr_t field_count, intptr_t* args)
       : field_count_(field_count),
         args_(reinterpret_cast<RawObject**>(args)),
-        object_(NULL) { }
+        object_(NULL) {}
 
   intptr_t ArgumentCount() const {
     return kFieldsStartIndex + kFieldEntrySize * field_count_;
@@ -239,13 +236,9 @@ class DeferredObject {
 #endif
   }
 
-  RawObject* GetClass() const {
-    return GetArg(kClassIndex);
-  }
+  RawObject* GetClass() const { return GetArg(kClassIndex); }
 
-  RawObject* GetLength() const {
-    return GetArg(kLengthIndex);
-  }
+  RawObject* GetLength() const { return GetArg(kLengthIndex); }
 
   RawObject* GetFieldOffset(intptr_t index) const {
     return GetArg(kFieldsStartIndex + kFieldEntrySize * index + kOffsetIndex);

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
@@ -64,13 +63,12 @@ class TypeVariableHandler {
     return impactBuilder.flush();
   }
 
-  void registerClassWithTypeVariables(
-      ClassElement cls, Enqueuer enqueuer, Registry registry) {
+  void registerClassWithTypeVariables(ClassElement cls, Enqueuer enqueuer) {
     if (enqueuer.isResolutionQueue) {
       // On first encounter, we have to ensure that the support classes get
       // resolved.
       if (!_seenClassesWithTypeVariables) {
-        _backend.enqueueClass(enqueuer, _typeVariableClass, registry);
+        _backend.enqueueClass(enqueuer, _typeVariableClass);
         _typeVariableClass.ensureResolved(_compiler.resolution);
         Link constructors = _typeVariableClass.constructors;
         if (constructors.isEmpty && constructors.tail.isEmpty) {
@@ -78,9 +76,8 @@ class TypeVariableHandler {
               "Class '$_typeVariableClass' should only have one constructor");
         }
         _typeVariableConstructor = _typeVariableClass.constructors.head;
-        _backend.enqueueInResolution(_typeVariableConstructor, registry);
-        _backend.registerInstantiatedType(
-            _typeVariableClass.rawType, enqueuer, registry);
+        _backend.enqueue(enqueuer, _typeVariableConstructor);
+        enqueuer.registerInstantiatedType(_typeVariableClass.rawType);
         enqueuer.registerStaticUse(new StaticUse.staticInvoke(
             _backend.registerBackendUse(_backend.helpers.createRuntimeType),
             CallStructure.ONE_ARG));

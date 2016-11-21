@@ -141,12 +141,18 @@ large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) && ( $arch == simarm || $arch == arm || $arch == simarmv6 || $arch == armv6 || $arch == simarmv5te || $arch == armv5te || $arch == simarm64 || $arch == arm64 || $arch == simmips || $arch == mips) ]
 vm/load_to_load_unaligned_forwarding_vm_test: Pass, Crash # Unaligned offset. Issue 22151
+vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
+vm/unaligned_float_access_literal_index_test: Pass, Crash # Unaligned offset. Issue 22151
+
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 issue23244_test: Fail # Issue 23244
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app || $compiler == dart2appjit) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_app) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
+
+[ $compiler == precompiler && $runtime == dart_precompiled ]
+vm/regress_27671_test: Skip # Unsupported
 
 [ $noopt || $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
@@ -290,6 +296,10 @@ regress_22443_test: Crash # Requires deferred libraries
 tearoff_basic_test: Crash # Requires deferred libraries
 conditional_import_test: Crash # Requires deferred libraries
 conditional_import_string_test: Crash # Requires deferred libraries
+override_field_method1_negative_test: Pass, Crash # Issue 27835
+override_field_method2_negative_test: Pass, Crash # Issue 27835
+override_field_method4_negative_test: Pass, Crash # Issue 27835
+override_field_method5_negative_test: Pass, Crash # Issue 27835
 
 [$runtime != vm || $compiler != none]
 assert_initializer_test: SKIP  # not implemented yet, experiment is VM only.

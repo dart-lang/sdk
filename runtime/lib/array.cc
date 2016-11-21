@@ -54,20 +54,14 @@ DEFINE_NATIVE_ENTRY(List_slice, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, needs_type_arg, arguments->NativeArgAt(3));
   intptr_t istart = start.Value();
   if ((istart < 0) || (istart > src.Length())) {
-    Exceptions::ThrowRangeError(
-        "start",
-        start,
-        0,
-        src.Length());
+    Exceptions::ThrowRangeError("start", start, 0, src.Length());
   }
   intptr_t icount = count.Value();
   // Zero count should be handled outside already.
   if ((icount <= 0) || (icount > src.Length())) {
-    Exceptions::ThrowRangeError(
-        "count",
-        count,
-        0,                        // This is the limit the user sees.
-        src.Length() - istart);
+    Exceptions::ThrowRangeError("count", count,
+                                0,  // This is the limit the user sees.
+                                src.Length() - istart);
   }
 
   return src.Slice(istart, icount, needs_type_arg.value());

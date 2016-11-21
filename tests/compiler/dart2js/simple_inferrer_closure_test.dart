@@ -118,7 +118,7 @@ void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
   asyncTest(() => compiler.run(uri).then((_) {
-        var typesInferrer = compiler.globalInference.typesInferrer;
+        var typesInferrer = compiler.globalInference.typesInferrerInternal;
 
         checkReturn(String name, type) {
           var element = findElement(compiler, name);
@@ -128,20 +128,20 @@ void main() {
               name);
         }
 
-        checkReturn('returnInt1', compiler.commonMasks.uint31Type);
-        checkReturn('returnInt2', compiler.commonMasks.uint31Type);
-        checkReturn('returnInt3', compiler.commonMasks.uint31Type);
-        checkReturn('returnInt4', compiler.commonMasks.uint31Type);
-        checkReturn(
-            'returnIntOrNull', compiler.commonMasks.uint31Type.nullable());
+        checkReturn('returnInt1', compiler.closedWorld.commonMasks.uint31Type);
+        checkReturn('returnInt2', compiler.closedWorld.commonMasks.uint31Type);
+        checkReturn('returnInt3', compiler.closedWorld.commonMasks.uint31Type);
+        checkReturn('returnInt4', compiler.closedWorld.commonMasks.uint31Type);
+        checkReturn('returnIntOrNull',
+            compiler.closedWorld.commonMasks.uint31Type.nullable());
 
-        checkReturn(
-            'returnDyn1', compiler.commonMasks.dynamicType.nonNullable());
-        checkReturn(
-            'returnDyn2', compiler.commonMasks.dynamicType.nonNullable());
-        checkReturn(
-            'returnDyn3', compiler.commonMasks.dynamicType.nonNullable());
-        checkReturn('returnNum1', compiler.commonMasks.numType);
+        checkReturn('returnDyn1',
+            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn('returnDyn2',
+            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn('returnDyn3',
+            compiler.closedWorld.commonMasks.dynamicType.nonNullable());
+        checkReturn('returnNum1', compiler.closedWorld.commonMasks.numType);
 
         checkReturnInClass(String className, String methodName, type) {
           var cls = findElement(compiler, className);

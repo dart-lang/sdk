@@ -37,7 +37,7 @@ class Utf8Codec extends Encoding {
    * The optional [allowMalformed] argument defines how [decoder] (and [decode])
    * deal with invalid or unterminated character sequences.
    *
-   * If it is `true` (and not overriden at the method invocation) [decode] and
+   * If it is `true` (and not overridden at the method invocation) [decode] and
    * the [decoder] replace invalid (or unterminated) octet
    * sequences with the Unicode Replacement character `U+FFFD` (�). Otherwise
    * they throw a [FormatException].

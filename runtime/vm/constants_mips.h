@@ -10,16 +10,16 @@
 namespace dart {
 
 enum Register {
-  R0  =  0,
-  R1  =  1,  // AT aka TMP
-  R2  =  2,
-  R3  =  3,
-  R4  =  4,
-  R5  =  5,
-  R6  =  6,
-  R7  =  7,
-  R8  =  8,
-  R9  =  9,
+  R0 = 0,
+  R1 = 1,  // AT aka TMP
+  R2 = 2,
+  R3 = 3,
+  R4 = 4,
+  R5 = 5,
+  R6 = 6,
+  R7 = 7,
+  R8 = 8,
+  R9 = 9,
   R10 = 10,
   R11 = 11,
   R12 = 12,
@@ -93,16 +93,16 @@ enum Register {
 // Values for floating point registers.
 // Double-precision values use register pairs.
 enum FRegister {
-  F0  =  0,
-  F1  =  1,
-  F2  =  2,
-  F3  =  3,
-  F4  =  4,
-  F5  =  5,
-  F6  =  6,
-  F7  =  7,
-  F8  =  8,
-  F9  =  9,
+  F0 = 0,
+  F1 = 1,
+  F2 = 2,
+  F3 = 3,
+  F4 = 4,
+  F5 = 5,
+  F6 = 6,
+  F7 = 7,
+  F8 = 8,
+  F9 = 9,
   F10 = 10,
   F11 = 11,
   F12 = 12,
@@ -135,16 +135,16 @@ enum FRegister {
 // convert to the single precision registers when needed in the mips-specific
 // code.
 enum DRegister {
-  D0  =  0,  // Function return value 1.
-  D1  =  1,  // Function return value 2.
-  D2  =  2,  // Not preserved.
-  D3  =  3,  // Not preserved.
-  D4  =  4,  // Not preserved.
-  D5  =  5,  // Not preserved.
-  D6  =  6,  // Argument 1.
-  D7  =  7,  // Argument 2.
-  D8  =  8,  // Not preserved.
-  D9  =  9,  // Not preserved.
+  D0 = 0,    // Function return value 1.
+  D1 = 1,    // Function return value 2.
+  D2 = 2,    // Not preserved.
+  D3 = 3,    // Not preserved.
+  D4 = 4,    // Not preserved.
+  D5 = 5,    // Not preserved.
+  D6 = 6,    // Argument 1.
+  D7 = 7,    // Argument 2.
+  D8 = 8,    // Not preserved.
+  D9 = 9,    // Not preserved.
   D10 = 10,  // Preserved.
   D11 = 11,  // Preserved.
   D12 = 12,  // Preserved.
@@ -175,11 +175,11 @@ const FpuRegister kNoFpuRegister = kNoDRegister;
 
 
 // Register aliases.
-const Register TMP = AT;  // Used as scratch register by assembler.
+const Register TMP = AT;            // Used as scratch register by assembler.
 const Register TMP2 = kNoRegister;  // No second assembler scratch register.
 const Register CTX = S6;  // Location of current context at method entry.
 const Register CODE_REG = S6;
-const Register PP = S7;  // Caches object pool pointer in generated code.
+const Register PP = S7;     // Caches object pool pointer in generated code.
 const Register SPREG = SP;  // Stack pointer register.
 const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = RA;  // Link register.
@@ -209,9 +209,9 @@ const RegList kAllCpuRegistersList = 0xFFFFFFFF;
 
 const RegList kAbiArgumentCpuRegs =
     (1 << A0) | (1 << A1) | (1 << A2) | (1 << A3);
-const RegList kAbiPreservedCpuRegs =
-    (1 << S0) | (1 << S1) | (1 << S2) | (1 << S3) |
-    (1 << S4) | (1 << S5) | (1 << S6) | (1 << S7);
+const RegList kAbiPreservedCpuRegs = (1 << S0) | (1 << S1) | (1 << S2) |
+                                     (1 << S3) | (1 << S4) | (1 << S5) |
+                                     (1 << S6) | (1 << S7);
 const int kAbiPreservedCpuRegCount = 8;
 
 // FPU registers 20 - 31 are preserved across calls.
@@ -221,19 +221,9 @@ const FRegister kAbiLastPreservedFpuReg =
 const int kAbiPreservedFpuRegCount = 12;
 
 const RegList kReservedCpuRegisters =
-    (1 << SPREG)   |
-    (1 << FPREG)   |
-    (1 << TMP)     |
-    (1 << PP)      |
-    (1 << THR)     |
-    (1 << CTX)     |
-    (1 << ZR)      |
-    (1 << CMPRES1) |
-    (1 << CMPRES2) |
-    (1 << K0)      |
-    (1 << K1)      |
-    (1 << GP)      |
-    (1 << RA);
+    (1 << SPREG) | (1 << FPREG) | (1 << TMP) | (1 << PP) | (1 << THR) |
+    (1 << CTX) | (1 << ZR) | (1 << CMPRES1) | (1 << CMPRES2) | (1 << K0) |
+    (1 << K1) | (1 << GP) | (1 << RA);
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -254,14 +244,14 @@ const int kDartVolatileFpuRegCount = 20;
 // code, type Condition (see assembler_mips.h) represents a pair of operands and
 // a relation operator between them.
 enum RelationOperator {
-  AL,  // always
-  NV,  // never
-  EQ,  // equal
-  NE,  // not equal
-  GT,  // greater than
-  GE,  // greater equal
-  LT,  // less than
-  LE,  // less equal
+  AL,   // always
+  NV,   // never
+  EQ,   // equal
+  NE,   // not equal
+  GT,   // greater than
+  GE,   // greater equal
+  LT,   // less than
+  LE,   // less equal
   UGT,  // unsigned greater than
   UGE,  // unsigned greater equal
   ULT,  // unsigned less than
@@ -479,8 +469,8 @@ class Instr {
   static const int32_t kNopInstruction = 0;
 
   // Reserved break instruction codes.
-  static const int32_t kBreakPointCode = 0xdeb0;  // For breakpoint.
-  static const int32_t kStopMessageCode = 0xdeb1;  // For Stop(message).
+  static const int32_t kBreakPointCode = 0xdeb0;      // For breakpoint.
+  static const int32_t kStopMessageCode = 0xdeb1;     // For Stop(message).
   static const int32_t kSimulatorBreakCode = 0xdeb2;  // For breakpoint in sim.
   static const int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
 
@@ -511,29 +501,24 @@ class Instr {
     *reinterpret_cast<int32_t*>(this) = value;
   }
 
-  inline void SetImmInstrBits(Opcode op, Register rs, Register rt,
+  inline void SetImmInstrBits(Opcode op,
+                              Register rs,
+                              Register rt,
                               uint16_t imm) {
-    SetInstructionBits(
-        op << kOpcodeShift |
-        rs << kRsShift |
-        rt << kRtShift |
-        imm << kImmShift);
+    SetInstructionBits(op << kOpcodeShift | rs << kRsShift | rt << kRtShift |
+                       imm << kImmShift);
   }
 
   inline void SetSpecialInstrBits(SpecialFunction f,
-                                  Register rs, Register rt, Register rd) {
-    SetInstructionBits(
-        SPECIAL << kOpcodeShift |
-        f << kFunctionShift |
-        rs << kRsShift |
-        rt << kRtShift |
-        rd << kRdShift);
+                                  Register rs,
+                                  Register rt,
+                                  Register rd) {
+    SetInstructionBits(SPECIAL << kOpcodeShift | f << kFunctionShift |
+                       rs << kRsShift | rt << kRtShift | rd << kRdShift);
   }
 
   // Read one particular bit out of the instruction bits.
-  inline int32_t Bit(int nr) const {
-    return (InstructionBits() >> nr) & 1;
-  }
+  inline int32_t Bit(int nr) const { return (InstructionBits() >> nr) & 1; }
 
   // Read a bit field out of the instruction bits.
   inline int32_t Bits(int shift, int count) const {
@@ -575,13 +560,9 @@ class Instr {
     return static_cast<FRegister>(Bits(kFdShift, kFdBits));
   }
 
-  inline int SaField() const {
-    return Bits(kSaShift, kSaBits);
-  }
+  inline int SaField() const { return Bits(kSaShift, kSaBits); }
 
-  inline int32_t UImmField() const {
-    return Bits(kImmShift, kImmBits);
-  }
+  inline int32_t UImmField() const { return Bits(kImmShift, kImmBits); }
 
   inline int32_t SImmField() const {
     // Sign-extend the imm field.
@@ -626,9 +607,7 @@ class Instr {
     return static_cast<Format>(Bits(kFmtShift, kFmtBits));
   }
 
-  inline int32_t FpuCCField() const {
-    return Bits(kFpuCCShift, kFpuCCBits);
-  }
+  inline int32_t FpuCCField() const { return Bits(kFpuCCShift, kFpuCCBits); }
 
   // Instructions are read out of a code stream. The only way to get a
   // reference to an instruction is to convert a pc. There is no way
@@ -637,17 +616,20 @@ class Instr {
   static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
 #if defined(DEBUG)
-  inline void AssertIsImmInstr(Opcode op, Register rs, Register rt,
-                              int32_t imm) {
+  inline void AssertIsImmInstr(Opcode op,
+                               Register rs,
+                               Register rt,
+                               int32_t imm) {
     ASSERT((OpcodeField() == op) && (RsField() == rs) && (RtField() == rt) &&
            (SImmField() == imm));
   }
 
-  inline void AssertIsSpecialInstr(SpecialFunction f, Register rs, Register rt,
+  inline void AssertIsSpecialInstr(SpecialFunction f,
+                                   Register rs,
+                                   Register rt,
                                    Register rd) {
     ASSERT((OpcodeField() == SPECIAL) && (FunctionField() == f) &&
-           (RsField() == rs) && (RtField() == rt) &&
-           (RdField() == rd));
+           (RsField() == rs) && (RtField() == rt) && (RdField() == rd));
   }
 #endif  // defined(DEBUG)
 

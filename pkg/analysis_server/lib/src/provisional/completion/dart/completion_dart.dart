@@ -100,6 +100,11 @@ abstract class DartCompletionRequest extends CompletionRequest {
   DartType get objectType;
 
   /**
+   * Return the [SourceFactory] of the request.
+   */
+  SourceFactory get sourceFactory;
+
+  /**
    * Return the completion target.  This determines what part of the parse tree
    * will receive the newly inserted text.
    * At a minimum, all declarations in the completion scope in [target.unit]

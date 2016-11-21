@@ -38,7 +38,7 @@ class Thread {
   static const ThreadLocalKey kUnsetThreadLocalKey;
   static const ThreadId kInvalidThreadId;
 
-  typedef void (*ThreadStartFunction) (uword parameter);
+  typedef void (*ThreadStartFunction)(uword parameter);
 
   // Start a thread running the specified function. Returns 0 if the
   // thread started successfuly and a system specific error code if
@@ -83,10 +83,7 @@ class Mutex {
 
 class Monitor {
  public:
-  enum WaitResult {
-    kNotified,
-    kTimedOut
-  };
+  enum WaitResult { kNotified, kTimedOut };
 
   static const int64_t kNoTimeout = 0;
 

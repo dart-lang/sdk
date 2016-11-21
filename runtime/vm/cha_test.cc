@@ -34,20 +34,20 @@ TEST_CASE(ClassHierarchyAnalysis) {
   const Library& lib = Library::Handle(Library::LookupLibrary(thread, name));
   EXPECT(!lib.IsNull());
 
-  const Class& class_a = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
+  const Class& class_a =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!class_a.IsNull());
 
-  const Class& class_b = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
+  const Class& class_b =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "B"))));
   EXPECT(!class_b.IsNull());
 
-  const Class& class_c = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "C"))));
+  const Class& class_c =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "C"))));
   EXPECT(!class_c.IsNull());
 
-  const Class& class_d = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(thread, "D"))));
+  const Class& class_d =
+      Class::Handle(lib.LookupClass(String::Handle(Symbols::New(thread, "D"))));
   EXPECT(!class_d.IsNull());
 
   const String& function_foo_name = String::Handle(String::New("foo"));

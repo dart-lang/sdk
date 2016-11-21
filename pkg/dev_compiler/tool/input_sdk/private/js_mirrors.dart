@@ -147,6 +147,9 @@ dynamic _unwrap(obj) => JS('', '#.unwrapType(#)', _dart, obj);
 
 dynamic _wrap(obj) => JS('', '#.wrapType(#)', _dart, obj);
 
+dynamic _runtimeType(obj) =>
+  _wrap(JS('', '#.getReifiedType(#)', _dart, obj));
+
 _unimplemented(Type t, Invocation i) {
   throw new UnimplementedError('$t.${getName(i.memberName)} unimplemented');
 }
@@ -190,7 +193,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     // The spec guarantees that `null` is the singleton instance of the `Null`
     // class.
     if (reflectee == null) return reflectClass(Null);
-    return reflectType(reflectee.runtimeType);
+    return reflectType(_runtimeType(reflectee));
   }
 
   JsInstanceMirror._(this.reflectee);

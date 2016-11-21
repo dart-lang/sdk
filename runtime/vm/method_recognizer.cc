@@ -27,8 +27,9 @@ bool MethodRecognizer::PolymorphicTarget(const Function& function) {
 
 intptr_t MethodRecognizer::ResultCid(const Function& function) {
   switch (function.recognized_kind()) {
-#define DEFINE_CASE(cname, fname, ename, result_type, fingerprint) \
-    case k##ename: return k##result_type##Cid;
+#define DEFINE_CASE(cname, fname, ename, result_type, fingerprint)             \
+  case k##ename:                                                               \
+    return k##result_type##Cid;
     RECOGNIZED_LIST(DEFINE_CASE)
 #undef DEFINE_CASE
     default:
@@ -118,12 +119,10 @@ intptr_t MethodRecognizer::MethodKindToReceiverCid(Kind kind) {
 }
 
 
-#define KIND_TO_STRING(class_name, function_name, enum_name, type, fp) \
+#define KIND_TO_STRING(class_name, function_name, enum_name, type, fp)         \
   #enum_name,
 static const char* recognized_list_method_name[] = {
-  "Unknown",
-  RECOGNIZED_LIST(KIND_TO_STRING)
-};
+    "Unknown", RECOGNIZED_LIST(KIND_TO_STRING)};
 #undef KIND_TO_STRING
 
 const char* MethodRecognizer::KindToCString(Kind kind) {
@@ -133,7 +132,7 @@ const char* MethodRecognizer::KindToCString(Kind kind) {
 }
 
 
-#if defined(DART_NO_SNAPSHOT)
+#if !defined(DART_PRECOMPILED_RUNTIME)
 void MethodRecognizer::InitializeState() {
   GrowableArray<Library*> libs(3);
   libs.Add(&Library::ZoneHandle(Library::CoreLibrary()));
@@ -183,6 +182,7 @@ void MethodRecognizer::InitializeState() {
 #undef SET_IS_POLYMORPHIC_TARGET
 #undef SET_FUNCTION_BIT
 }
-#endif  // defined(DART_NO_SNAPSHOT).
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 
 }  // namespace dart

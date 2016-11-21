@@ -77,14 +77,12 @@ class ContextBuilder {
    * The resolver provider used to create a package: URI resolver, or `null` if
    * the normal (Package Specification DEP) lookup mechanism is to be used.
    */
-  @deprecated
   ResolverProvider packageResolverProvider;
 
   /**
    * The resolver provider used to create a file: URI resolver, or `null` if
    * the normal file URI resolver is to be used.
    */
-  @deprecated
   ResolverProvider fileResolverProvider;
 
   /**
@@ -336,9 +334,20 @@ class ContextBuilder {
     if (optionsFile != null) {
       List<OptionsProcessor> optionsProcessors =
           AnalysisEngine.instance.optionsPlugin.optionsProcessors;
+      // TODO(danrubel) restructure so that we don't recalculate the package map
+      // more than once per path.
+      Packages packages = createPackageMap(path);
+      Map<String, List<Folder>> packageMap = convertPackagesToMap(packages);
+      List<UriResolver> resolvers = <UriResolver>[
+        new ResourceUriResolver(resourceProvider),
+        new PackageMapUriResolver(resourceProvider, packageMap),
+      ];
+      SourceFactory sourceFactory =
+          new SourceFactory(resolvers, packages, resourceProvider);
       try {
         Map<String, YamlNode> optionMap =
-            new AnalysisOptionsProvider().getOptionsFromFile(optionsFile);
+            new AnalysisOptionsProvider(sourceFactory)
+                .getOptionsFromFile(optionsFile);
         optionsProcessors.forEach(
             (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
         applyToAnalysisOptions(options, optionMap);

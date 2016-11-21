@@ -4,9 +4,7 @@
 
 // Properties on hidden native classes.
 
-import "package:expect/expect.dart";
-import "dart:_js_helper";
-import 'dart:_foreign_helper' show JS;
+import 'native_testing.dart';
 
 @Native("A")
 class A {
@@ -36,10 +34,13 @@ Object.defineProperty(A.prototype, "X", {
 });
 
 makeA = function(){return new A;};
+
+self.nativeConstructor(A);
 """;
 
 
 main() {
+  nativeTesting();
   setup();
 
   var a = makeA();
@@ -54,4 +55,11 @@ main() {
   Expect.equals(10, a.X);
   Expect.equals(20, a.Y);
   Expect.equals(30, a.Z);
+
+  confuse(a).setX(6);
+  Expect.equals(6, confuse(a).getX());
+
+  Expect.equals(6, confuse(a).X);
+  Expect.equals(20, confuse(a).Y);
+  Expect.equals(30, confuse(a).Z);
 }

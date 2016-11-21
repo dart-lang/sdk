@@ -32,7 +32,7 @@ typedef MallocGrowableArray<FinalizablePersistentHandle*> FinalizationQueue;
 class BackgroundFinalizer : public ThreadPool::Task {
  public:
   BackgroundFinalizer(Isolate* isolate, FinalizationQueue* queue);
-  virtual ~BackgroundFinalizer() { }
+  virtual ~BackgroundFinalizer() {}
 
   void Run();
 
@@ -88,7 +88,9 @@ class ApiZone {
   // 'ElementType'.  Checks for integer overflow when performing the
   // size computation.
   template <class ElementType>
-  ElementType* Alloc(intptr_t len) { return zone_.Alloc<ElementType>(len); }
+  ElementType* Alloc(intptr_t len) {
+    return zone_.Alloc<ElementType>(len);
+  }
 
   // Allocates an array sized to hold 'len' elements of type
   // 'ElementType'.  The new array is initialized from the memory of
@@ -133,7 +135,8 @@ class ApiZone {
  private:
   Zone zone_;
 
-  template<typename T> friend class ApiGrowableArray;
+  template <typename T>
+  friend class ApiGrowableArray;
   DISALLOW_COPY_AND_ASSIGN(ApiZone);
 };
 
@@ -148,13 +151,11 @@ class LocalHandle {
   void set_raw(RawObject* raw) { raw_ = raw; }
   static intptr_t raw_offset() { return OFFSET_OF(LocalHandle, raw_); }
 
-  Dart_Handle apiHandle() {
-    return reinterpret_cast<Dart_Handle>(this);
-  }
+  Dart_Handle apiHandle() { return reinterpret_cast<Dart_Handle>(this); }
 
  private:
-  LocalHandle() { }
-  ~LocalHandle() { }
+  LocalHandle() {}
+  ~LocalHandle() {}
 
   RawObject* raw_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
@@ -188,21 +189,17 @@ class PersistentHandle {
  private:
   friend class PersistentHandles;
 
-  PersistentHandle() { }
-  ~PersistentHandle() { }
+  PersistentHandle() {}
+  ~PersistentHandle() {}
 
   // Overload the raw_ field as a next pointer when adding freed
   // handles to the free list.
-  PersistentHandle* Next() {
-    return reinterpret_cast<PersistentHandle*>(raw_);
-  }
+  PersistentHandle* Next() { return reinterpret_cast<PersistentHandle*>(raw_); }
   void SetNext(PersistentHandle* free_list) {
     raw_ = reinterpret_cast<RawObject*>(free_list);
     ASSERT(!raw_->IsHeapObject());
   }
-  void FreeHandle(PersistentHandle* free_list) {
-    SetNext(free_list);
-  }
+  void FreeHandle(PersistentHandle* free_list) { SetNext(free_list); }
 
   RawObject* raw_;
   DISALLOW_ALLOCATION();  // Allocated through AllocateHandle methods.
@@ -293,19 +290,16 @@ class FinalizablePersistentHandle {
                                                   kExternalSizeBitsSize> {};
   // This bit of external_data_ is true if the referent was created in new
   // space and UpdateRelocated has not yet detected any promotion.
-  class ExternalNewSpaceBit :
-      public BitField<uword, bool, kExternalNewSpaceBit, 1> {};
-  class QueuedForFinalizationBit :
-      public BitField<uword, bool, kQueuedForFinalizationBit, 1> {};
+  class ExternalNewSpaceBit
+      : public BitField<uword, bool, kExternalNewSpaceBit, 1> {};
+  class QueuedForFinalizationBit
+      : public BitField<uword, bool, kQueuedForFinalizationBit, 1> {};
 
   friend class FinalizablePersistentHandles;
 
   FinalizablePersistentHandle()
-      : raw_(NULL),
-        peer_(NULL),
-        external_data_(0),
-        callback_(NULL) { }
-  ~FinalizablePersistentHandle() { }
+      : raw_(NULL), peer_(NULL), external_data_(0), callback_(NULL) {}
+  ~FinalizablePersistentHandle() {}
 
   static void Finalize(Isolate* isolate, FinalizablePersistentHandle* handle);
 
@@ -348,8 +342,8 @@ class FinalizablePersistentHandle {
   void set_external_size(intptr_t size) {
     intptr_t size_in_words = Utils::RoundUp(size, kObjectAlignment) / kWordSize;
     ASSERT(ExternalSizeInWordsBits::is_valid(size_in_words));
-    external_data_ = ExternalSizeInWordsBits::update(size_in_words,
-                                                     external_data_);
+    external_data_ =
+        ExternalSizeInWordsBits::update(size_in_words, external_data_);
   }
 
   bool is_queued_for_finalization() const {
@@ -374,8 +368,8 @@ class FinalizablePersistentHandle {
   // Returns the space to charge for the external size.
   Heap::Space SpaceForExternal() const {
     // Non-heap and VM-heap objects count as old space here.
-    return (raw_->IsHeapObject() && raw_->IsNewObject()) ?
-           Heap::kNew : Heap::kOld;
+    return (raw_->IsHeapObject() && raw_->IsNewObject()) ? Heap::kNew
+                                                         : Heap::kOld;
   }
 
   friend class BackgroundFinalizer;
@@ -398,9 +392,10 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
                              kLocalHandlesPerChunk,
                              kOffsetOfRawPtrInLocalHandle> {
  public:
-  LocalHandles() : Handles<kLocalHandleSizeInWords,
-                           kLocalHandlesPerChunk,
-                           kOffsetOfRawPtrInLocalHandle>() {
+  LocalHandles()
+      : Handles<kLocalHandleSizeInWords,
+                kLocalHandlesPerChunk,
+                kOffsetOfRawPtrInLocalHandle>() {
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new Local handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
@@ -409,8 +404,7 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
   ~LocalHandles() {
     if (FLAG_trace_handles) {
       OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
-                   reinterpret_cast<intptr_t>(this),
-                   CountHandles());
+                   reinterpret_cast<intptr_t>(this), CountHandles());
       OS::PrintErr("*** Deleting Local handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
@@ -419,15 +413,13 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
-    Handles<kLocalHandleSizeInWords,
-            kLocalHandlesPerChunk,
+    Handles<kLocalHandleSizeInWords, kLocalHandlesPerChunk,
             kOffsetOfRawPtrInLocalHandle>::VisitObjectPointers(visitor);
   }
 
   // Reset the local handles block for reuse.
   void Reset() {
-    Handles<kLocalHandleSizeInWords,
-            kLocalHandlesPerChunk,
+    Handles<kLocalHandleSizeInWords, kLocalHandlesPerChunk,
             kOffsetOfRawPtrInLocalHandle>::Reset();
   }
 
@@ -444,9 +436,7 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
   }
 
   // Returns a count of active handles (used for testing purposes).
-  int CountHandles() const {
-    return CountScopedHandles();
-  }
+  int CountHandles() const { return CountScopedHandles(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(LocalHandles);
@@ -462,9 +452,10 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
                                   kPersistentHandlesPerChunk,
                                   kOffsetOfRawPtrInPersistentHandle> {
  public:
-  PersistentHandles() : Handles<kPersistentHandleSizeInWords,
-                                kPersistentHandlesPerChunk,
-                                kOffsetOfRawPtrInPersistentHandle>(),
+  PersistentHandles()
+      : Handles<kPersistentHandleSizeInWords,
+                kPersistentHandlesPerChunk,
+                kOffsetOfRawPtrInPersistentHandle>(),
         free_list_(NULL) {
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new Persistent handle block 0x%" Px "\n",
@@ -475,8 +466,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     free_list_ = NULL;
     if (FLAG_trace_handles) {
       OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
-                   reinterpret_cast<intptr_t>(this),
-                   CountHandles());
+                   reinterpret_cast<intptr_t>(this), CountHandles());
       OS::PrintErr("*** Deleting Persistent handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
@@ -488,15 +478,13 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
-    Handles<kPersistentHandleSizeInWords,
-            kPersistentHandlesPerChunk,
+    Handles<kPersistentHandleSizeInWords, kPersistentHandlesPerChunk,
             kOffsetOfRawPtrInPersistentHandle>::VisitObjectPointers(visitor);
   }
 
   // Visit all the handles.
   void Visit(HandleVisitor* visitor) {
-    Handles<kPersistentHandleSizeInWords,
-            kPersistentHandlesPerChunk,
+    Handles<kPersistentHandleSizeInWords, kPersistentHandlesPerChunk,
             kOffsetOfRawPtrInPersistentHandle>::Visit(visitor);
   }
 
@@ -525,9 +513,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
   }
 
   // Returns a count of active handles (used for testing purposes).
-  int CountHandles() const {
-    return CountScopedHandles();
-  }
+  int CountHandles() const { return CountScopedHandles(); }
 
  private:
   PersistentHandle* free_list_;
@@ -537,7 +523,7 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
 
 // Finalizable persistent handles repository structure.
 static const int kFinalizablePersistentHandleSizeInWords =
-     sizeof(FinalizablePersistentHandle) / kWordSize;
+    sizeof(FinalizablePersistentHandle) / kWordSize;
 static const int kFinalizablePersistentHandlesPerChunk = 64;
 static const int kOffsetOfRawPtrInFinalizablePersistentHandle = 0;
 class FinalizablePersistentHandles
@@ -549,7 +535,8 @@ class FinalizablePersistentHandles
       : Handles<kFinalizablePersistentHandleSizeInWords,
                 kFinalizablePersistentHandlesPerChunk,
                 kOffsetOfRawPtrInFinalizablePersistentHandle>(),
-      free_list_(NULL), mutex_(new Mutex()) { }
+        free_list_(NULL),
+        mutex_(new Mutex()) {}
   ~FinalizablePersistentHandles() {
     free_list_ = NULL;
     delete mutex_;
@@ -564,16 +551,15 @@ class FinalizablePersistentHandles
   void VisitHandles(HandleVisitor* visitor) {
     Handles<kFinalizablePersistentHandleSizeInWords,
             kFinalizablePersistentHandlesPerChunk,
-            kOffsetOfRawPtrInFinalizablePersistentHandle>::Visit(
-                visitor);
+            kOffsetOfRawPtrInFinalizablePersistentHandle>::Visit(visitor);
   }
 
   // Visit all object pointers stored in the various handles.
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
     Handles<kFinalizablePersistentHandleSizeInWords,
             kFinalizablePersistentHandlesPerChunk,
-            kOffsetOfRawPtrInFinalizablePersistentHandle>::VisitObjectPointers(
-                visitor);
+            kOffsetOfRawPtrInFinalizablePersistentHandle>::
+        VisitObjectPointers(visitor);
   }
 
   // Allocates a persistent handle, these have to be destroyed explicitly
@@ -590,8 +576,8 @@ class FinalizablePersistentHandles
       }
     }
 
-    handle = reinterpret_cast<FinalizablePersistentHandle*>(
-          AllocateScopedHandle());
+    handle =
+        reinterpret_cast<FinalizablePersistentHandle*>(AllocateScopedHandle());
     handle->Clear();
     return handle;
   }
@@ -609,9 +595,7 @@ class FinalizablePersistentHandles
   }
 
   // Returns a count of active handles (used for testing purposes).
-  int CountHandles() const {
-    return CountScopedHandles();
-  }
+  int CountHandles() const { return CountScopedHandles(); }
 
  private:
   FinalizablePersistentHandle* free_list_;
@@ -624,11 +608,9 @@ class FinalizablePersistentHandles
 // These local scopes manage handles and memory allocated in the scope.
 class ApiLocalScope {
  public:
-  ApiLocalScope(ApiLocalScope* previous, uword stack_marker) :
-      previous_(previous), stack_marker_(stack_marker) { }
-  ~ApiLocalScope() {
-    previous_ = NULL;
-  }
+  ApiLocalScope(ApiLocalScope* previous, uword stack_marker)
+      : previous_(previous), stack_marker_(stack_marker) {}
+  ~ApiLocalScope() { previous_ = NULL; }
 
   // Reinit the ApiLocalScope to new values.
   void Reinit(Thread* thread, ApiLocalScope* previous, uword stack_marker) {
@@ -668,7 +650,7 @@ class ApiNativeScope {
     // Currently no support for nesting native scopes.
     ASSERT(Current() == NULL);
     OSThread::SetThreadLocal(Api::api_native_key_,
-                                reinterpret_cast<uword>(this));
+                             reinterpret_cast<uword>(this));
   }
 
   ~ApiNativeScope() {
@@ -697,16 +679,14 @@ class ApiNativeScope {
 // picks the zone from the current isolate if in an isolate
 // environment. When outside an isolate environment it picks the zone
 // from the current native scope.
-template<typename T>
+template <typename T>
 class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
  public:
   explicit ApiGrowableArray(int initial_capacity)
-      : BaseGrowableArray<T, ValueObject>(
-          initial_capacity,
-          ApiNativeScope::Current()->zone()) {}
+      : BaseGrowableArray<T, ValueObject>(initial_capacity,
+                                          ApiNativeScope::Current()->zone()) {}
   ApiGrowableArray()
-      : BaseGrowableArray<T, ValueObject>(
-          ApiNativeScope::Current()->zone()) {}
+      : BaseGrowableArray<T, ValueObject>(ApiNativeScope::Current()->zone()) {}
   ApiGrowableArray(intptr_t initial_capacity, Zone* zone)
       : BaseGrowableArray<T, ValueObject>(initial_capacity, zone) {}
 };
@@ -717,12 +697,13 @@ class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
 // basis and destroyed when the isolate is shutdown.
 class ApiState {
  public:
-  ApiState() : persistent_handles_(),
-               weak_persistent_handles_(),
-               null_(NULL),
-               true_(NULL),
-               false_(NULL),
-               acquired_error_(NULL) {}
+  ApiState()
+      : persistent_handles_(),
+        weak_persistent_handles_(),
+        null_(NULL),
+        true_(NULL),
+        false_(NULL),
+        acquired_error_(NULL) {}
   ~ApiState() {
     if (null_ != NULL) {
       persistent_handles().FreeHandle(null_);

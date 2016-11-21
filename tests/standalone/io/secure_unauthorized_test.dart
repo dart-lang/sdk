@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=certificates/untrusted_server_chain.pem
+// OtherResources=certificates/untrusted_server_key.pem
+// OtherResources=certificates/untrusted_server_chain.pem
+// OtherResources=certificates/trusted_certs.pem
+// OtherResources=secure_unauthorized_client.dart
+
 // This test verifies that failing secure connection attempts always complete
 // their returned future.
 
@@ -32,9 +38,7 @@ Future<SecureServerSocket> runServer() {
 }
 
 void main() {
-  var clientScript = Platform.script
-                             .resolve('secure_unauthorized_client.dart')
-                             .toFilePath();
+  var clientScript = localFile('secure_unauthorized_client.dart');
 
   Future clientProcess(int port) {
     return Process.run(Platform.executable,

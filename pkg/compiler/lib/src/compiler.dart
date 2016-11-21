@@ -13,7 +13,6 @@ import 'common/backend_api.dart' show Backend;
 import 'common/codegen.dart' show CodegenWorkItem;
 import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
-import 'common/registry.dart' show Registry;
 import 'common/resolution.dart'
     show
         ParsingContext,
@@ -76,7 +75,12 @@ import 'universe/selector.dart' show Selector;
 import 'universe/world_builder.dart'
     show ResolutionWorldBuilder, CodegenWorldBuilder;
 import 'universe/use.dart' show StaticUse;
-import 'universe/world_impact.dart' show ImpactStrategy, WorldImpact;
+import 'universe/world_impact.dart'
+    show
+        ImpactStrategy,
+        WorldImpact,
+        WorldImpactBuilder,
+        WorldImpactBuilderImpl;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show ClosedWorld, ClosedWorldRefiner, OpenWorld, WorldImpl;
 
@@ -89,7 +93,7 @@ abstract class Compiler implements LibraryLoaderListener {
   Measurer get measurer;
 
   final IdGenerator idGenerator = new IdGenerator();
-  WorldImpl _world;
+  WorldImpl get _world => resolverWorld.openWorld;
   Types types;
   _CompilerCoreTypes _coreTypes;
   CompilerDiagnosticReporter _reporter;
@@ -113,16 +117,6 @@ abstract class Compiler implements LibraryLoaderListener {
    * associated with a particular element.
    */
   GlobalDependencyRegistry globalDependencies;
-
-  /**
-   * Dependencies that are only included due to mirrors.
-   *
-   * We should get rid of this and ensure that all dependencies are
-   * associated with a particular element.
-   */
-  // TODO(johnniwinther): This should not be a [ResolutionRegistry].
-  final Registry mirrorDependencies =
-      new ResolutionRegistry(null, new TreeElementMapping(null));
 
   /// Options provided from command-line arguments.
   final CompilerOptions options;
@@ -149,7 +143,6 @@ abstract class Compiler implements LibraryLoaderListener {
   CommonElements get commonElements => _coreTypes;
   CoreClasses get coreClasses => _coreTypes;
   CoreTypes get coreTypes => _coreTypes;
-  CommonMasks get commonMasks => globalInference.masks;
   Resolution get resolution => _resolution;
   ParsingContext get parsingContext => _parsingContext;
 
@@ -194,10 +187,8 @@ abstract class Compiler implements LibraryLoaderListener {
   /// A customizable filter that is applied to enqueued work items.
   QueueFilter enqueuerFilter = new QueueFilter();
 
-  bool enabledRuntimeType = false;
-  bool enabledFunctionApply = false;
-  bool enabledInvokeOn = false;
-  bool hasIsolateSupport = false;
+  bool get hasFunctionApplySupport => resolverWorld.hasFunctionApplySupport;
+  bool get hasIsolateSupport => resolverWorld.hasIsolateSupport;
 
   bool get hasCrashed => _reporter.hasCrashed;
 
@@ -226,7 +217,6 @@ abstract class Compiler implements LibraryLoaderListener {
         this.userOutputProvider = outputProvider == null
             ? const NullCompilerOutput()
             : outputProvider {
-    _world = new WorldImpl(this);
     if (makeReporter != null) {
       _reporter = makeReporter(this, options);
     } else {
@@ -258,6 +248,7 @@ abstract class Compiler implements LibraryLoaderListener {
           useKernel: options.useKernel);
       backend = jsBackend;
     }
+    enqueuer = backend.makeEnqueuer();
 
     if (options.dumpInfo && options.useStartupEmitter) {
       throw new ArgumentError(
@@ -289,7 +280,9 @@ abstract class Compiler implements LibraryLoaderListener {
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
-      enqueuer = backend.makeEnqueuer(),
+      // [enqueuer] is created earlier because it contains the resolution world
+      // objects needed by other tasks.
+      enqueuer,
       dumpInfoTask = new DumpInfoTask(this),
       selfTask = new GenericTask('self', measurer),
     ];
@@ -656,7 +649,7 @@ abstract class Compiler implements LibraryLoaderListener {
         // something to the resolution queue.  So we cannot wait with
         // this until after the resolution queue is processed.
         deferredLoadTask.beforeResolution(this);
-        impactStrategy = backend.createImpactStrategy(
+        ImpactStrategy impactStrategy = backend.createImpactStrategy(
             supportDeferredLoad: deferredLoadTask.isProgramSplit,
             supportDumpInfo: options.dumpInfo,
             supportSerialization: serialization.supportSerialization);
@@ -687,9 +680,13 @@ abstract class Compiler implements LibraryLoaderListener {
         }
         // Elements required by enqueueHelpers are global dependencies
         // that are not pulled in by a particular element.
-        backend.enqueueHelpers(enqueuer.resolution, globalDependencies);
+        backend.enqueueHelpers(enqueuer.resolution);
         resolveLibraryMetadata();
         reporter.log('Resolving...');
+        if (mainFunction != null && !mainFunction.isMalformed) {
+          mainFunction.computeType(resolution);
+        }
+
         processQueue(enqueuer.resolution, mainFunction);
         enqueuer.resolution.logSummary(reporter.log);
 
@@ -737,7 +734,6 @@ abstract class Compiler implements LibraryLoaderListener {
         reporter.log('Compiling...');
         phase = PHASE_COMPILING;
         backend.onCodegenStart();
-        // TODO(johnniwinther): Move these to [CodegenEnqueuer].
         if (hasIsolateSupport) {
           backend.enableIsolateSupport(enqueuer.codegen);
         }
@@ -765,7 +761,7 @@ abstract class Compiler implements LibraryLoaderListener {
   void closeResolution() {
     phase = PHASE_DONE_RESOLVING;
 
-    openWorld.closeWorld();
+    openWorld.closeWorld(reporter);
     // Compute whole-program-knowledge that the backend needs. (This might
     // require the information computed in [world.closeWorld].)
     backend.onResolutionComplete();
@@ -817,7 +813,7 @@ abstract class Compiler implements LibraryLoaderListener {
       ClassElement cls = element;
       cls.ensureResolved(resolution);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-      backend.registerInstantiatedType(cls.rawType, world, globalDependencies);
+      world.registerInstantiatedType(cls.rawType);
     } else {
       world.addToWorkList(element);
     }
@@ -837,59 +833,47 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   /**
-   * Empty the [world] queue.
+   * Empty the [enqueuer] queue.
    */
-  void emptyQueue(Enqueuer world) =>
-      selfTask.measureSubtask("Compiler.emptyQueue", () {
-        world.forEach((WorkItem work) {
-          reporter.withCurrentElement(
-              work.element,
-              () => selfTask.measureSubtask("world.applyImpact", () {
-                    world.applyImpact(
-                        selfTask.measureSubtask(
-                            "work.run", () => work.run(this, world)),
-                        impactSource: work.element);
-                  }));
-        });
+  void emptyQueue(Enqueuer enqueuer) {
+    selfTask.measureSubtask("Compiler.emptyQueue", () {
+      enqueuer.forEach((WorkItem work) {
+        reporter.withCurrentElement(
+            work.element,
+            () => selfTask.measureSubtask("world.applyImpact", () {
+                  enqueuer.applyImpact(
+                      impactStrategy,
+                      selfTask.measureSubtask(
+                          "work.run", () => work.run(this, enqueuer)),
+                      impactSource: work.element);
+                }));
       });
+    });
+  }
 
-  void processQueue(Enqueuer world, Element main) =>
-      selfTask.measureSubtask("Compiler.processQueue", () {
-        world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
-        if (main != null && !main.isMalformed) {
-          FunctionElement mainMethod = main;
-          mainMethod.computeType(resolution);
-          if (mainMethod.functionSignature.parameterCount != 0) {
-            // The first argument could be a list of strings.
-            backend.backendClasses.listImplementation
-                .ensureResolved(resolution);
-            backend.registerInstantiatedType(
-                backend.backendClasses.listImplementation.rawType,
-                world,
-                globalDependencies);
-            backend.backendClasses.stringImplementation
-                .ensureResolved(resolution);
-            backend.registerInstantiatedType(
-                backend.backendClasses.stringImplementation.rawType,
-                world,
-                globalDependencies);
-
-            backend.registerMainHasArguments(world);
-          }
-          world.addToWorkList(main);
-        }
-        if (options.verbose) {
-          progress.reset();
-        }
-        emptyQueue(world);
-        world.queueIsClosed = true;
-        // Notify the impact strategy impacts are no longer needed for this
-        // enqueuer.
-        impactStrategy.onImpactUsed(world.impactUse);
-        backend.onQueueClosed();
-        assert(
-            compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
-      });
+  void processQueue(Enqueuer enqueuer, MethodElement mainMethod) {
+    selfTask.measureSubtask("Compiler.processQueue", () {
+      enqueuer.applyImpact(
+          impactStrategy,
+          enqueuer.nativeEnqueuer
+              .processNativeClasses(libraryLoader.libraries));
+      if (mainMethod != null && !mainMethod.isMalformed) {
+        enqueuer.applyImpact(
+            impactStrategy, backend.computeMainImpact(enqueuer, mainMethod));
+      }
+      if (options.verbose) {
+        progress.reset();
+      }
+      emptyQueue(enqueuer);
+      enqueuer.queueIsClosed = true;
+      // Notify the impact strategy impacts are no longer needed for this
+      // enqueuer.
+      impactStrategy.onImpactUsed(enqueuer.impactUse);
+      backend.onQueueClosed();
+      assert(compilationFailed ||
+          enqueuer.checkNoEnqueuedInvokedInstanceMethods());
+    });
+  }
 
   /**
    * Perform various checks of the queues. This includes checking that
@@ -2050,6 +2034,13 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
+  void ensureClassMembers(ClassElement element) {
+    if (!compiler.serialization.isDeserialized(element)) {
+      compiler.resolver.checkClass(element);
+    }
+  }
+
+  @override
   void registerCompileTimeError(Element element, DiagnosticMessage message) =>
       compiler.registerCompileTimeError(element, message);
 
@@ -2150,7 +2141,8 @@ class _CompilerResolution implements Resolution {
   WorldImpact transformResolutionImpact(
       Element element, ResolutionImpact resolutionImpact) {
     WorldImpact worldImpact = compiler.backend.impactTransformer
-        .transformResolutionImpact(resolutionImpact);
+        .transformResolutionImpact(
+            compiler.enqueuer.resolution, resolutionImpact);
     _worldImpactCache[element] = worldImpact;
     return worldImpact;
   }
@@ -2211,7 +2203,7 @@ class _CompilerResolution implements Resolution {
   }
 }
 
-class GlobalDependencyRegistry extends Registry {
+class GlobalDependencyRegistry {
   Setlet<Element> _otherDependencies;
 
   GlobalDependencyRegistry();

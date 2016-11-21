@@ -1,8 +1,10 @@
+# Source files should not be normalized to avoid confusing clang-format-diff.py
+*.c text eol=lf
+*.cc text eol=lf
+*.cpp text eol=lf
+*.h text eol=lf
+
 # Explicitly declare text files we want to be normalized.
-*.c text
-*.cc text
-*.cpp text
-*.h text
 *.gyp text
 *.gypi text
 *.dart text

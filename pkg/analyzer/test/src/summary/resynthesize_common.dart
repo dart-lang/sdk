@@ -2590,6 +2590,27 @@ class C<T, U> {
 ''');
   }
 
+  test_constructor_redirected_factory_named_unresolved_class() {
+    checkLibrary(
+        '''
+class C<E> {
+  factory C() = D.named<E>;
+}
+''',
+        allowErrors: true);
+  }
+
+  test_constructor_redirected_factory_named_unresolved_constructor() {
+    checkLibrary(
+        '''
+class D {}
+class C<E> {
+  factory C() = D.named<E>;
+}
+''',
+        allowErrors: true);
+  }
+
   test_constructor_redirected_factory_unnamed() {
     checkLibrary('''
 class C {
@@ -2684,6 +2705,16 @@ class C<T, U> {
   C._();
 }
 ''');
+  }
+
+  test_constructor_redirected_factory_unnamed_unresolved() {
+    checkLibrary(
+        '''
+class C<E> {
+  factory C() = D<E>;
+}
+''',
+        allowErrors: true);
   }
 
   test_constructor_redirected_thisInvocation_named() {
@@ -3400,6 +3431,12 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(resynthesized.imports[0].importedLibrary.location,
         resynthesized.location);
     expect(resynthesized.imports[1].importedLibrary.isDartCore, true);
+  }
+
+  test_import_short_absolute() {
+    testFile = '/my/project/bin/test.dart';
+    addLibrarySource('/a.dart', 'class C {}');
+    checkLibrary('import "/a.dart"; C c;');
   }
 
   test_import_show() {

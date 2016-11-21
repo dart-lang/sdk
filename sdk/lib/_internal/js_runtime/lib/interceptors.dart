@@ -168,24 +168,69 @@ getNativeInterceptor(object) {
     }
   }
 
-  var interceptor = lookupAndCacheInterceptor(object);
-  if (interceptor == null) {
-    // JavaScript Objects created via object literals and `Object.create(null)`
-    // are 'plain' Objects.  This test could be simplified and the dispatch path
-    // be faster if Object.prototype was pre-patched with a non-leaf dispatch
-    // record.
-    if (JS('bool', 'typeof # == "function"', object)) {
-      return JS_INTERCEPTOR_CONSTANT(JavaScriptFunction);
-    }
-    var proto = JS('', 'Object.getPrototypeOf(#)', object);
-    if (JS('bool', '# == null || # === Object.prototype', proto, proto)) {
-      return JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
-    } else {
-      return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
-    }
-  }
+  // Check for cached UnknownJavaScriptObject. This avoids doing the slow
+  // dispatch-record based lookup for repeated js-interop classes.
+  var constructor = JS('', '#.constructor', object);
+  var interceptor = lookupInterceptorByConstructor(constructor);
+  if (interceptor != null) return interceptor;
 
-  return interceptor;
+  // This takes care of dispatch-record based caching, but not constructor based
+  // caching of [UnknownJavaScriptObject]s.
+  interceptor = lookupAndCacheInterceptor(object);
+  if (interceptor != null) return interceptor;
+
+  // JavaScript Objects created via object literals and `Object.create(null)`
+  // are 'plain' Objects.  This test could be simplified and the dispatch path
+  // be faster if Object.prototype was pre-patched with a non-leaf dispatch
+  // record.
+  if (JS('bool', 'typeof # == "function"', object)) {
+    interceptor = JS_INTERCEPTOR_CONSTANT(JavaScriptFunction);
+    // TODO(sra): Investigate caching on `Function`. It might be impossible if
+    // some HTML embedded objects on some browsers are (still) JS functions.
+    return interceptor;
+  }
+  var proto = JS('', 'Object.getPrototypeOf(#)', object);
+  if (JS('bool', '# == null', proto)) {
+    // Nowhere to cache output.
+    return JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
+  }
+  interceptor = JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
+  if (JS('bool', '# === Object.prototype', proto)) {
+    interceptor = JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
+    // TODO(sra): Investigate caching on 'Object'. It might be impossible if
+    // some native class is plain Object (e.g. like Firefox's ImageData).
+    return interceptor;
+  }
+  if (JS('bool', 'typeof # == "function"', constructor)) {
+    cacheInterceptorOnConstructor(constructor, interceptor);
+    return interceptor;
+  }
+  return JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
+}
+
+
+// A JS String or Symbol.
+final JS_INTEROP_INTERCEPTOR_TAG = getIsolateAffinityTag(r'_$dart_js');
+
+lookupInterceptorByConstructor(constructor) {
+  return constructor == null
+      ? null
+      : JS('', '#[#]', constructor, JS_INTEROP_INTERCEPTOR_TAG);
+}
+
+void cacheInterceptorOnConstructor(constructor, interceptor) {
+  defineProperty(constructor, JS_INTEROP_INTERCEPTOR_TAG, interceptor);
+}
+
+var constructorToInterceptor =
+    JS('', 'typeof(self.WeakMap) == "undefined" ? new Map() : new WeakMap()');
+
+XlookupInterceptorByConstructor(constructor) {
+  return JS('', '#.get(#)', constructorToInterceptor, constructor);
+}
+
+void XcacheInterceptorOnConstructor(constructor, interceptor) {
+  JS('', '#.set(#, #)', constructorToInterceptor, constructor, interceptor);
 }
 
 /**

@@ -12,6 +12,7 @@
 #include "vm/parser.h"
 #include "vm/symbols.h"
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
 namespace dart {
 namespace kernel {
 
@@ -81,22 +82,28 @@ class SimpleExpressionConverter : public ExpressionVisitor {
   dart::Instance* simple_value_;
 };
 
-void BuildingTranslationHelper::SetFinalize(bool finalize) {
-  reader_->finalize_ = finalize;
-}
 
 RawLibrary* BuildingTranslationHelper::LookupLibraryByKernelLibrary(
     Library* library) {
   return reader_->LookupLibrary(library).raw();
 }
 
+
 RawClass* BuildingTranslationHelper::LookupClassByKernelClass(Class* klass) {
   return reader_->LookupClass(klass).raw();
 }
 
-Object& KernelReader::ReadProgram() {
-  ASSERT(!bootstrapping_);
+Program* KernelReader::ReadPrecompiledProgram() {
   Program* program = ReadPrecompiledKernelFromBuffer(buffer_, buffer_length_);
+  if (program == NULL) return NULL;
+  intptr_t source_file_count = program->line_starting_table().size();
+  scripts_ = Array::New(source_file_count);
+  program_ = program;
+  return program;
+}
+
+Object& KernelReader::ReadProgram() {
+  Program* program = ReadPrecompiledProgram();
   if (program == NULL) {
     const dart::String& error = H.DartString("Failed to read .kernell file");
     return Object::Handle(Z, ApiError::New(error));
@@ -113,29 +120,13 @@ Object& KernelReader::ReadProgram() {
       ReadLibrary(kernel_library);
     }
 
-    // We finalize classes after we've constructed all classes since we
-    // currently don't construct them in pre-order of the class hierarchy (and
-    // finalization of a class needs all of its superclasses to be finalized).
-    dart::String& name = dart::String::Handle(Z);
     for (intptr_t i = 0; i < length; i++) {
-      Library* kernel_library = program->libraries()[i];
-      dart::Library& library = LookupLibrary(kernel_library);
-      name = library.url();
+      dart::Library& library = LookupLibrary(program->libraries()[i]);
+      if (!library.Loaded()) library.SetLoaded();
+    }
 
-      // TODO(27590) unskip this library when we fix underlying issue.
-      if (name.Equals("dart:vmservice_io")) {
-        continue;
-      }
-
-      if (!library.Loaded()) {
-        dart::Class& klass = dart::Class::Handle(Z);
-        for (intptr_t i = 0; i < kernel_library->classes().length(); i++) {
-          klass = LookupClass(kernel_library->classes()[i]).raw();
-          ClassFinalizer::FinalizeTypesInClass(klass);
-          ClassFinalizer::FinalizeClass(klass);
-        }
-        library.SetLoaded();
-      }
+    if (!ClassFinalizer::ProcessPendingClasses(/*from_kernel=*/true)) {
+      FATAL("Error in class finalization during bootstrapping.");
     }
 
     dart::Library& library = LookupLibrary(kernel_main_library);
@@ -161,6 +152,7 @@ Object& KernelReader::ReadProgram() {
   }
 }
 
+
 void KernelReader::ReadLibrary(Library* kernel_library) {
   dart::Library& library = LookupLibrary(kernel_library);
   if (library.Loaded()) return;
@@ -175,20 +167,12 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
   }
   // Setup toplevel class (which contains library fields/procedures).
 
-  // TODO(27590): Figure out why we need this script stuff here.
-  Script& script = Script::Handle(
-      Z,
-      Script::New(H.DartString(""), H.DartString(""), RawScript::kScriptTag));
-  script.SetLocationOffset(0, 0);
-  script.Tokenize(H.DartString("nop() {}"));
-  dart::Class& toplevel_class = dart::Class::Handle(Z, dart::Class::New(
-      library, Symbols::TopLevel(), script, TokenPosition::kNoSource));
+  Script& script = ScriptAt(kernel_library->source_uri_index());
+  dart::Class& toplevel_class = dart::Class::Handle(
+      Z, dart::Class::New(library, Symbols::TopLevel(), script,
+                          TokenPosition::kNoSource));
   toplevel_class.set_is_cycle_free();
   library.set_toplevel_class(toplevel_class);
-  if (bootstrapping_) {
-    GrowableObjectArray::Handle(Z, I->object_store()->pending_classes())
-        .Add(toplevel_class, Heap::kOld);
-  }
 
   ActiveClassScope active_class_scope(&active_class_, NULL, &toplevel_class);
   // Load toplevel fields.
@@ -197,10 +181,12 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
 
     ActiveMemberScope active_member_scope(&active_class_, kernel_field);
     const dart::String& name = H.DartFieldName(kernel_field->name());
+    const Object& script_class =
+        ClassForScriptAt(toplevel_class, kernel_field->source_uri_index());
     dart::Field& field = dart::Field::Handle(
         Z, dart::Field::NewTopLevel(name, kernel_field->IsFinal(),
-                                    kernel_field->IsConst(), toplevel_class,
-                                    TokenPosition::kNoSource));
+                                    kernel_field->IsConst(), script_class,
+                                    kernel_field->position()));
     field.set_kernel_field(kernel_field);
     const AbstractType& type = T.TranslateType(kernel_field->type());
     field.SetFieldType(type);
@@ -216,15 +202,24 @@ void KernelReader::ReadLibrary(Library* kernel_library) {
     ReadProcedure(library, toplevel_class, kernel_procedure);
   }
 
+  const GrowableObjectArray& classes =
+      GrowableObjectArray::Handle(I->object_store()->pending_classes());
+
   // Load all classes.
   for (intptr_t i = 0; i < kernel_library->classes().length(); i++) {
     Class* kernel_klass = kernel_library->classes()[i];
-    ReadClass(library, kernel_klass);
+    classes.Add(ReadClass(library, kernel_klass), Heap::kOld);
   }
+
+  classes.Add(toplevel_class, Heap::kOld);
 }
+
 
 void KernelReader::ReadPreliminaryClass(dart::Class* klass,
                                         Class* kernel_klass) {
+  ASSERT(kernel_klass->IsNormalClass());
+  NormalClass* kernel_normal_class = NormalClass::Cast(kernel_klass);
+
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, klass);
 
   // First setup the type parameters, so if any of the following code uses it
@@ -250,8 +245,8 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
     // Step b) Fill in the bounds of all [TypeParameter]s.
     for (intptr_t i = 0; i < num_type_parameters; i++) {
       TypeParameter* kernel_parameter = kernel_klass->type_parameters()[i];
-      // There is no dynamic bound, only Object.
-      // TODO(27590): Should we fix this in the kernel IR generator?
+      // TODO(github.com/dart-lang/kernel/issues/42): This should be handled
+      // by the frontend.
       if (kernel_parameter->bound()->IsDynamicType()) {
         parameter ^= type_parameters.TypeAt(i);
         parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
@@ -268,40 +263,18 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
     }
   }
 
-  if (kernel_klass->IsNormalClass()) {
-    NormalClass* kernel_normal_class = NormalClass::Cast(kernel_klass);
-
-    // Set super type.  Some classes (e.g., Object) do not have one.
-    if (kernel_normal_class->super_class() != NULL) {
-      AbstractType& super_type = T.TranslateTypeWithoutFinalization(
-          kernel_normal_class->super_class());
-      if (super_type.IsMalformed()) H.ReportError("Malformed super type");
-      klass->set_super_type(super_type);
-    }
-  } else {
-    MixinClass* kernel_mixin = MixinClass::Cast(kernel_klass);
-
-    // Set super type.
+  // Set super type.  Some classes (e.g., Object) do not have one.
+  if (kernel_normal_class->super_class() != NULL) {
     AbstractType& super_type =
-        T.TranslateTypeWithoutFinalization(kernel_mixin->first());
-    if (super_type.IsMalformed()) H.ReportError("Malformed super type.");
+        T.TranslateTypeWithoutFinalization(kernel_normal_class->super_class());
+    if (super_type.IsMalformed()) H.ReportError("Malformed super type");
     klass->set_super_type(super_type);
-
-    // Tell the rest of the system there is nothing to resolve.
-    super_type.SetIsResolved();
-
-    // Set mixin type.
-    AbstractType& mixin_type =
-        T.TranslateTypeWithoutFinalization(kernel_mixin->second());
-    if (mixin_type.IsMalformed()) H.ReportError("Malformed mixin type.");
-    klass->set_mixin(Type::Cast(mixin_type));
   }
 
   // Build implemented interface types
   intptr_t interface_count = kernel_klass->implemented_classes().length();
   const dart::Array& interfaces =
       dart::Array::Handle(Z, dart::Array::New(interface_count));
-  dart::Class& interface_class = dart::Class::Handle(Z);
   for (intptr_t i = 0; i < interface_count; i++) {
     InterfaceType* kernel_interface_type =
         kernel_klass->implemented_classes()[i];
@@ -309,39 +282,18 @@ void KernelReader::ReadPreliminaryClass(dart::Class* klass,
         T.TranslateTypeWithoutFinalization(kernel_interface_type);
     if (type.IsMalformed()) H.ReportError("Malformed interface type.");
     interfaces.SetAt(i, type);
-
-    // NOTE: Normally the DartVM keeps a list of pending classes and iterates
-    // through them later on using `ClassFinalizer::ProcessPendingClasses()`.
-    // This involes calling `ClassFinalizer::ResolveSuperTypeAndInterfaces()`
-    // which does a lot of error validation (e.g. cycle checks) which we don't
-    // need here.  But we do need to do one thing which this resolving phase
-    // normally does for us: set the `is_implemented` boolean.
-
-    // TODO(27590): Maybe we can do this differently once we have
-    // "bootstrapping from kernel"-support.
-    interface_class = type.type_class();
-    interface_class.set_is_implemented();
   }
   klass->set_interfaces(interfaces);
   if (kernel_klass->is_abstract()) klass->set_is_abstract();
-  klass->set_is_cycle_free();
-
-  // When bootstrapping we should not finalize types yet because they will be
-  // finalized when the object store's pending_classes list is drained by
-  // ClassFinalizer::ProcessPendingClasses.  Even when not bootstrapping we are
-  // careful not to eagerly finalize types that may introduce a circularity
-  // (such as type arguments, interface types, field types, etc.).
-  if (finalize_) ClassFinalizer::FinalizeTypesInClass(*klass);
 }
 
-void KernelReader::ReadClass(const dart::Library& library,
-                             Class* kernel_klass) {
+
+dart::Class& KernelReader::ReadClass(const dart::Library& library,
+                                     Class* kernel_klass) {
   // This will trigger a call to [ReadPreliminaryClass] if not already done.
   dart::Class& klass = LookupClass(kernel_klass);
 
   ActiveClassScope active_class_scope(&active_class_, kernel_klass, &klass);
-
-  TokenPosition pos(0);
 
   for (intptr_t i = 0; i < kernel_klass->fields().length(); i++) {
     Field* kernel_field = kernel_klass->fields()[i];
@@ -358,7 +310,7 @@ void KernelReader::ReadClass(const dart::Library& library,
                             kernel_field->IsFinal() || kernel_field->IsConst(),
                             kernel_field->IsConst(),
                             false,  // is_reflectable
-                            klass, type, pos));
+                            klass, type, kernel_field->position()));
     field.set_kernel_field(kernel_field);
     field.set_has_initializer(kernel_field->initializer() != NULL);
     GenerateFieldAccessors(klass, field, kernel_field);
@@ -379,7 +331,7 @@ void KernelReader::ReadClass(const dart::Library& library,
                                false,  // is_abstract
                                kernel_constructor->IsExternal(),
                                false,  // is_native
-                               klass, pos));
+                               klass, TokenPosition::kNoSource));
     klass.AddFunction(function);
     function.set_kernel_function(kernel_constructor);
     function.set_result_type(T.ReceiverType(klass));
@@ -395,12 +347,13 @@ void KernelReader::ReadClass(const dart::Library& library,
     ReadProcedure(library, klass, kernel_procedure, kernel_klass);
   }
 
-  if (bootstrapping_ && !klass.is_marked_for_parsing()) {
+  if (!klass.is_marked_for_parsing()) {
     klass.set_is_marked_for_parsing();
-    GrowableObjectArray::Handle(Z, I->object_store()->pending_classes())
-        .Add(klass, Heap::kOld);
   }
+
+  return klass;
 }
+
 
 void KernelReader::ReadProcedure(const dart::Library& library,
                                  const dart::Class& owner,
@@ -412,7 +365,6 @@ void KernelReader::ReadProcedure(const dart::Library& library,
                                             kernel_procedure->function());
 
   const dart::String& name = H.DartProcedureName(kernel_procedure);
-  TokenPosition pos(0);
   bool is_method = kernel_klass != NULL && !kernel_procedure->IsStatic();
   bool is_abstract = kernel_procedure->IsAbstract();
   bool is_external = kernel_procedure->IsExternal();
@@ -448,13 +400,15 @@ void KernelReader::ReadProcedure(const dart::Library& library,
       break;
     }
   }
+  const Object& script_class =
+      ClassForScriptAt(owner, kernel_procedure->source_uri_index());
   dart::Function& function = dart::Function::ZoneHandle(
       Z, Function::New(name, GetFunctionType(kernel_procedure),
                        !is_method,  // is_static
                        false,       // is_const
                        is_abstract, is_external,
                        native_name != NULL,  // is_native
-                       owner, pos));
+                       script_class, TokenPosition::kNoSource));
   owner.AddFunction(function);
   function.set_kernel_function(kernel_procedure);
   function.set_is_debuggable(false);
@@ -474,11 +428,42 @@ void KernelReader::ReadProcedure(const dart::Library& library,
   }
 }
 
+const Object& KernelReader::ClassForScriptAt(const dart::Class& klass,
+                                             intptr_t source_uri_index) {
+  Script& correct_script = ScriptAt(source_uri_index);
+  if (klass.script() != correct_script.raw()) {
+    // TODO(jensj): We could probably cache this so we don't create
+    // new PatchClasses all the time
+    return PatchClass::ZoneHandle(Z, PatchClass::New(klass, correct_script));
+  }
+  return klass;
+}
+
+Script& KernelReader::ScriptAt(intptr_t source_uri_index) {
+  Script& script = Script::ZoneHandle(Z);
+  script ^= scripts_.At(source_uri_index);
+  if (script.IsNull()) {
+    String* uri = program_->source_uri_table().strings()[source_uri_index];
+    script = Script::New(H.DartString(uri), dart::String::ZoneHandle(Z),
+                         RawScript::kKernelTag);
+    scripts_.SetAt(source_uri_index, script);
+    intptr_t* line_starts =
+        program_->line_starting_table().valuesFor(source_uri_index);
+    intptr_t line_count = line_starts[0];
+    Array& array_object = Array::Handle(Z, Array::New(line_count));
+    Smi& value = Smi::Handle(Z);
+    for (intptr_t i = 0; i < line_count; ++i) {
+      value = Smi::New(line_starts[i + 1]);
+      array_object.SetAt(i, value);
+    }
+    script.set_line_starts(array_object);
+  }
+  return script;
+}
+
 void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                                           const dart::Field& field,
                                           Field* kernel_field) {
-  TokenPosition pos(0);
-
   if (kernel_field->IsStatic() && kernel_field->initializer() != NULL) {
     // Static fields with initializers either have the static value set to the
     // initializer value if it is simple enough or else set to an uninitialized
@@ -494,6 +479,8 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   }
 
   const dart::String& getter_name = H.DartGetterName(kernel_field->name());
+  const Object& script_class =
+      ClassForScriptAt(klass, kernel_field->source_uri_index());
   Function& getter = Function::ZoneHandle(
       Z,
       Function::New(
@@ -510,7 +497,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
           false,  // is_abstract
           false,  // is_external
           false,  // is_native
-          klass, pos));
+          script_class, kernel_field->position()));
   klass.AddFunction(getter);
   if (klass.IsTopLevel()) {
     dart::Library& library = dart::Library::Handle(Z, klass.library());
@@ -532,7 +519,7 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
                          false,  // is_abstract
                          false,  // is_external
                          false,  // is_native
-                         klass, pos));
+                         script_class, kernel_field->position()));
     klass.AddFunction(setter);
     setter.set_kernel_function(kernel_field);
     setter.set_result_type(Object::void_type());
@@ -541,11 +528,13 @@ void KernelReader::GenerateFieldAccessors(const dart::Class& klass,
   }
 }
 
+
 void KernelReader::SetupFunctionParameters(TranslationHelper translation_helper,
                                            DartTypeTranslator type_translator,
                                            const dart::Class& klass,
                                            const dart::Function& function,
-                                           FunctionNode* node, bool is_method,
+                                           FunctionNode* node,
+                                           bool is_method,
                                            bool is_closure) {
   dart::Zone* zone = translation_helper.zone();
 
@@ -587,8 +576,8 @@ void KernelReader::SetupFunctionParameters(TranslationHelper translation_helper,
   }
   for (intptr_t i = 0; i < node->positional_parameters().length(); i++, pos++) {
     VariableDeclaration* kernel_variable = node->positional_parameters()[i];
-    const AbstractType& type =
-        type_translator.TranslateType(kernel_variable->type());
+    const AbstractType& type = type_translator.TranslateTypeWithoutFinalization(
+        kernel_variable->type());
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
     function.SetParameterNameAt(
@@ -596,19 +585,23 @@ void KernelReader::SetupFunctionParameters(TranslationHelper translation_helper,
   }
   for (intptr_t i = 0; i < node->named_parameters().length(); i++, pos++) {
     VariableDeclaration* named_expression = node->named_parameters()[i];
-    const AbstractType& type =
-        type_translator.TranslateType(named_expression->type());
+    const AbstractType& type = type_translator.TranslateTypeWithoutFinalization(
+        named_expression->type());
     function.SetParameterTypeAt(
         pos, type.IsMalformed() ? Type::dynamic_type() : type);
     function.SetParameterNameAt(
         pos, translation_helper.DartSymbol(named_expression->name()));
   }
 
-  const AbstractType& return_type =
-      type_translator.TranslateType(node->return_type());
-  function.set_result_type(return_type.IsMalformed() ? Type::dynamic_type()
-                                                     : return_type);
+  // The result type for generative constructors has already been set.
+  if (!function.IsGenerativeConstructor()) {
+    const AbstractType& return_type =
+        type_translator.TranslateTypeWithoutFinalization(node->return_type());
+    function.set_result_type(return_type.IsMalformed() ? Type::dynamic_type()
+                                                       : return_type);
+  }
 }
+
 
 void KernelReader::SetupFieldAccessorFunction(const dart::Class& klass,
                                               const dart::Function& function) {
@@ -662,38 +655,28 @@ dart::Class& KernelReader::LookupClass(Class* klass) {
       // The class needs to have a script because all the functions in the class
       // will inherit it.  The predicate Function::IsOptimizable uses the
       // absence of a script to detect test functions that should not be
-      // optimized.  Use a dummy script.
-      //
-      // TODO(27590): We shouldn't need a dummy script per class.  At the
-      // least we could have a singleton.  At best, we'd change IsOptimizable to
-      // detect test functions some other way (like simply not setting the
-      // optimizable bit on those functions in the first place).
-      TokenPosition pos(0);
-      Script& script =
-          Script::Handle(Z, Script::New(H.DartString(""), H.DartString(""),
-                                        RawScript::kScriptTag));
-      handle =
-          &dart::Class::Handle(Z, dart::Class::New(library, name, script, pos));
+      // optimized.
+      Script& script = ScriptAt(klass->source_uri_index());
+      handle = &dart::Class::Handle(
+          Z, dart::Class::New(library, name, script, TokenPosition::kNoSource));
       library.AddClass(*handle);
     } else if (handle->script() == Script::null()) {
       // When bootstrapping we can encounter classes that do not yet have a
       // dummy script.
-      TokenPosition pos(0);
-      Script& script =
-          Script::Handle(Z, Script::New(H.DartString(""), H.DartString(""),
-                                        RawScript::kScriptTag));
+      Script& script = ScriptAt(klass->source_uri_index());
       handle->set_script(script);
     }
     // Insert the class in the cache before calling ReadPreliminaryClass so
     // we do not risk allocating the class again by calling LookupClass
     // recursively from ReadPreliminaryClass for the same class.
     classes_.Insert(klass, handle);
-    if (!handle->is_type_finalized()) {
+    if (!handle->is_cycle_free()) {
       ReadPreliminaryClass(handle, klass);
     }
   }
   return *handle;
 }
+
 
 RawFunction::Kind KernelReader::GetFunctionType(Procedure* kernel_procedure) {
   intptr_t lookuptable[] = {
@@ -712,5 +695,36 @@ RawFunction::Kind KernelReader::GetFunctionType(Procedure* kernel_procedure) {
   }
 }
 
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
+                                            const dart::Field& field) {
+  Thread* thread = Thread::Current();
+  kernel::Field* kernel_field = kernel::Field::Cast(
+      reinterpret_cast<kernel::Node*>(field.kernel_field()));
+
+  dart::String& init_name = dart::String::Handle(zone, field.name());
+  init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
+
+  // Create a static initializer.
+  const dart::Class& owner = dart::Class::Handle(zone, field.Owner());
+  const Function& initializer_fun = Function::ZoneHandle(
+      zone,
+      dart::Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,
+                          true,   // is_static
+                          false,  // is_const
+                          false,  // is_abstract
+                          false,  // is_external
+                          false,  // is_native
+                          owner, TokenPosition::kNoSource));
+  initializer_fun.set_kernel_function(kernel_field);
+  initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
+  initializer_fun.set_is_debuggable(false);
+  initializer_fun.set_is_reflectable(false);
+  initializer_fun.set_is_inlinable(false);
+  return new (zone) ParsedFunction(thread, initializer_fun);
+}
+
+
 }  // namespace kernel
 }  // namespace dart
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)

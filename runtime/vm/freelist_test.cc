@@ -11,8 +11,7 @@ namespace dart {
 static uword Allocate(FreeList* free_list, intptr_t size, bool is_protected) {
   uword result = free_list->TryAllocate(size, is_protected);
   if (result && is_protected) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(result),
-                                         size,
+    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(result), size,
                                          VirtualMemory::kReadExecute);
     ASSERT(status);
   }
@@ -25,15 +24,13 @@ static void Free(FreeList* free_list,
                  intptr_t size,
                  bool is_protected) {
   if (is_protected) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                                         size,
+    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
                                          VirtualMemory::kReadWrite);
     ASSERT(status);
   }
   free_list->Free(address, size);
   if (is_protected) {
-    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address),
-                                         size,
+    bool status = VirtualMemory::Protect(reinterpret_cast<void*>(address), size,
                                          VirtualMemory::kReadExecute);
     ASSERT(status);
   }
@@ -133,9 +130,7 @@ TEST_CASE(FreeListProtectedTinyObjects) {
 
   // Allocate small objects.
   for (intptr_t i = 0; i < blob->size() / kObjectSize; i++) {
-    objects[i] = Allocate(free_list,
-                          kObjectSize,
-                          true);  // is_protected
+    objects[i] = Allocate(free_list, kObjectSize, true);  // is_protected
   }
 
   // All space is occupied. Expect failed allocation.

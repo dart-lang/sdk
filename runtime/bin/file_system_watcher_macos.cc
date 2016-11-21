@@ -11,9 +11,9 @@
 
 #if !TARGET_OS_IOS
 
-#include <errno.h>  // NOLINT
-#include <fcntl.h>  // NOLINT
-#include <unistd.h>  // NOLINT
+#include <errno.h>                      // NOLINT
+#include <fcntl.h>                      // NOLINT
+#include <unistd.h>                     // NOLINT
 #include <CoreServices/CoreServices.h>  // NOLINT
 
 #include "bin/eventhandler.h"
@@ -24,9 +24,7 @@
 #include "platform/signal_blocker.h"
 
 #ifndef MAC_OS_X_VERSION_10_7
-enum {
-  kFSEventStreamCreateFlagFileEvents = 0x00000010
-};
+enum { kFSEventStreamCreateFlagFileEvents = 0x00000010 };
 enum {
   kFSEventStreamEventFlagItemCreated = 0x00000100,
   kFSEventStreamEventFlagItemRemoved = 0x00000200,
@@ -59,13 +57,17 @@ class FSEventsWatcher {
  public:
   class Node {
    public:
-    Node(FSEventsWatcher* watcher, char* base_path, int read_fd,
-         int write_fd, bool recursive)
+    Node(FSEventsWatcher* watcher,
+         char* base_path,
+         int read_fd,
+         int write_fd,
+         bool recursive)
         : watcher_(watcher),
           ready_(false),
           base_path_length_(strlen(base_path)),
-          path_ref_(CFStringCreateWithCString(
-              NULL, base_path, kCFStringEncodingUTF8)),
+          path_ref_(CFStringCreateWithCString(NULL,
+                                              base_path,
+                                              kCFStringEncodingUTF8)),
           read_fd_(read_fd),
           write_fd_(write_fd),
           recursive_(recursive),
@@ -79,17 +81,15 @@ class FSEventsWatcher {
       CFRelease(path_ref_);
     }
 
-    void set_ref(FSEventStreamRef ref) {
-      ref_ = ref;
-    }
+    void set_ref(FSEventStreamRef ref) { ref_ = ref; }
 
     void Start() {
       // Schedule StartCallback to be executed in the RunLoop.
       CFRunLoopTimerContext context;
       memset(&context, 0, sizeof(context));
       context.info = this;
-      CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
-          NULL, 0, 0, 0, 0, Node::StartCallback, &context);
+      CFRunLoopTimerRef timer =
+          CFRunLoopTimerCreate(NULL, 0, 0, 0, 0, Node::StartCallback, &context);
       CFRunLoopAddTimer(watcher_->run_loop_, timer, kCFRunLoopCommonModes);
       CFRelease(timer);
       watcher_->monitor_.Enter();
@@ -109,21 +109,14 @@ class FSEventsWatcher {
       CFArrayRef array = CFArrayCreate(
           NULL, reinterpret_cast<const void**>(&node->path_ref_), 1, NULL);
       FSEventStreamRef ref = FSEventStreamCreate(
-          NULL,
-          Callback,
-          &context,
-          array,
-          kFSEventStreamEventIdSinceNow,
-          0.10,
+          NULL, Callback, &context, array, kFSEventStreamEventIdSinceNow, 0.10,
           kFSEventStreamCreateFlagFileEvents);
       CFRelease(array);
 
       node->set_ref(ref);
 
-      FSEventStreamScheduleWithRunLoop(
-          node->ref_,
-          node->watcher_->run_loop_,
-          kCFRunLoopDefaultMode);
+      FSEventStreamScheduleWithRunLoop(node->ref_, node->watcher_->run_loop_,
+                                       kCFRunLoopDefaultMode);
 
       FSEventStreamStart(node->ref_);
       FSEventStreamFlushSync(node->ref_);
@@ -140,8 +133,8 @@ class FSEventsWatcher {
       CFRunLoopTimerContext context;
       memset(&context, 0, sizeof(context));
       context.info = this;
-      CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
-          NULL, 0, 0, 0, 0, StopCallback, &context);
+      CFRunLoopTimerRef timer =
+          CFRunLoopTimerCreate(NULL, 0, 0, 0, 0, StopCallback, &context);
       CFRunLoopAddTimer(watcher_->run_loop_, timer, kCFRunLoopCommonModes);
       CFRelease(timer);
       watcher_->monitor_.Enter();
@@ -185,9 +178,7 @@ class FSEventsWatcher {
   };
 
 
-  FSEventsWatcher() : run_loop_(0) {
-    Start();
-  }
+  FSEventsWatcher() : run_loop_(0) { Start(); }
 
   void Start() {
     Thread::Start(Run, reinterpret_cast<uword>(this));
@@ -211,13 +202,7 @@ class FSEventsWatcher {
     watcher->monitor().Exit();
 
     CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
-        NULL,
-        CFAbsoluteTimeGetCurrent() + 1,
-        1,
-        0,
-        0,
-        TimerCallback,
-        NULL);
+        NULL, CFAbsoluteTimeGetCurrent() + 1, 1, 0, 0, TimerCallback, NULL);
     CFRunLoopAddTimer(watcher->run_loop_, timer, kCFRunLoopCommonModes);
     CFRelease(timer);
 
@@ -235,8 +220,8 @@ class FSEventsWatcher {
     CFRunLoopTimerContext context;
     memset(&context, 0, sizeof(context));
     context.info = this;
-    CFRunLoopTimerRef timer = CFRunLoopTimerCreate(
-        NULL, 0, 0, 0, 0, StopCallback, &context);
+    CFRunLoopTimerRef timer =
+        CFRunLoopTimerCreate(NULL, 0, 0, 0, 0, StopCallback, &context);
     CFRunLoopAddTimer(run_loop_, timer, kCFRunLoopCommonModes);
     CFRelease(timer);
     monitor_.Enter();
@@ -248,14 +233,11 @@ class FSEventsWatcher {
 
   static void StopCallback(CFRunLoopTimerRef timer, void* info) {
     FSEventsWatcher* watcher = reinterpret_cast<FSEventsWatcher*>(info);
-    ASSERT(Thread::Compare(watcher->threadId_,
-                           Thread::GetCurrentThreadId()));
+    ASSERT(Thread::Compare(watcher->threadId_, Thread::GetCurrentThreadId()));
     CFRunLoopStop(watcher->run_loop_);
   }
 
-  ~FSEventsWatcher() {
-    Stop();
-  }
+  ~FSEventsWatcher() { Stop(); }
 
   Monitor& monitor() { return monitor_; }
 
@@ -293,7 +275,7 @@ class FSEventsWatcher {
       return;
     }
     for (size_t i = 0; i < num_events; i++) {
-      char *path = reinterpret_cast<char**>(event_paths)[i];
+      char* path = reinterpret_cast<char**>(event_paths)[i];
       FSEvent event;
       event.data.exists = File::GetType(path, false) != File::kDoesNotExist;
       path += node->base_path_length();
@@ -318,7 +300,7 @@ class FSEventsWatcher {
 };
 
 
-#define kCFCoreFoundationVersionNumber10_7      635.00
+#define kCFCoreFoundationVersionNumber10_7 635.00
 bool FileSystemWatcher::IsSupported() {
   return kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber10_7;
 }
@@ -402,8 +384,9 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     }
     Dart_ListSetAt(event, 0, Dart_NewInteger(mask));
     Dart_ListSetAt(event, 1, Dart_NewInteger(1));
-    Dart_ListSetAt(event, 2, Dart_NewStringFromUTF8(
-        reinterpret_cast<uint8_t*>(e.data.path), path_len));
+    Dart_ListSetAt(event, 2,
+                   Dart_NewStringFromUTF8(
+                       reinterpret_cast<uint8_t*>(e.data.path), path_len));
     Dart_ListSetAt(event, 3, Dart_NewBoolean(true));
     Dart_ListSetAt(event, 4, Dart_NewInteger(path_id));
     Dart_ListSetAt(events, i, event);
@@ -435,8 +418,7 @@ bool FileSystemWatcher::IsSupported() {
 }
 
 
-void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
-}
+void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {}
 
 
 intptr_t FileSystemWatcher::Init() {
@@ -444,8 +426,7 @@ intptr_t FileSystemWatcher::Init() {
 }
 
 
-void FileSystemWatcher::Close(intptr_t id) {
-}
+void FileSystemWatcher::Close(intptr_t id) {}
 
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,

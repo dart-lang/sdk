@@ -11,12 +11,10 @@
 
 namespace dart {
 
-void NativeSymbolResolver::InitOnce() {
-}
+void NativeSymbolResolver::InitOnce() {}
 
 
-void NativeSymbolResolver::ShutdownOnce() {
-}
+void NativeSymbolResolver::ShutdownOnce() {}
 
 
 char* NativeSymbolResolver::LookupSymbolName(uintptr_t pc, uintptr_t* start) {

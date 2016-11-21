@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
 import '../common.dart';
 import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
 import '../common/tasks.dart' show CompilerTask;
@@ -11,6 +12,7 @@ import '../constants/values.dart';
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../elements/elements.dart';
+import '../elements/entities.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -209,8 +211,59 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
+  // Returns the number of bits occupied by the value computed by [instruction].
+  // Returns `32` if the value is negative or does not fit in a smaller number
+  // of bits.
+  int bitWidth(HInstruction instruction) {
+    const int MAX = 32;
+    int constant(HInstruction insn) {
+      if (insn is HConstant && insn.isConstantInteger()) {
+        IntConstantValue constant = insn.constant;
+        return constant.primitiveValue;
+      }
+      return null;
+    }
+
+    if (instruction.isConstantInteger()) {
+      int value = constant(instruction);
+      if (value < 0) return MAX;
+      if (value > ((1 << 31) - 1)) return MAX;
+      return value.bitLength;
+    }
+    if (instruction is HBitAnd) {
+      return math.min(bitWidth(instruction.left), bitWidth(instruction.right));
+    }
+    if (instruction is HBitOr || instruction is HBitXor) {
+      HBinaryBitOp bitOp = instruction;
+      int leftWidth = bitWidth(bitOp.left);
+      if (leftWidth == MAX) return MAX;
+      return math.max(leftWidth, bitWidth(bitOp.right));
+    }
+    if (instruction is HShiftLeft) {
+      int shiftCount = constant(instruction.right);
+      if (shiftCount == null || shiftCount < 0 || shiftCount > 31) return MAX;
+      int leftWidth = bitWidth(instruction.left);
+      int width = leftWidth + shiftCount;
+      return math.min(width, MAX);
+    }
+    if (instruction is HShiftRight) {
+      int shiftCount = constant(instruction.right);
+      if (shiftCount == null || shiftCount < 0 || shiftCount > 31) return MAX;
+      int leftWidth = bitWidth(instruction.left);
+      if (leftWidth >= MAX) return MAX;
+      return math.max(leftWidth - shiftCount, 0);
+    }
+    if (instruction is HAdd) {
+      return math.min(
+          1 + math.max(bitWidth(instruction.left), bitWidth(instruction.right)),
+          MAX);
+    }
+    return MAX;
+  }
+
   bool requiresUintConversion(instruction) {
     if (instruction.isUInt31(compiler)) return false;
+    if (bitWidth(instruction) <= 31) return false;
     // If the result of a bit-operation is only used by other bit
     // operations, we do not have to convert to an unsigned integer.
     return hasNonBitOpUser(instruction, new Set<HPhi>());
@@ -1582,7 +1635,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     js.Expression object = pop();
     String methodName;
     List<js.Expression> arguments = visitArguments(node.inputs);
-    Element target = node.element;
+    MemberElement target = node.element;
 
     // TODO(herhut): The namer should return the appropriate backendname here.
     if (target != null && !node.isInterceptedCall) {
@@ -1680,7 +1733,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // If we don't know what we're calling or if we are calling a getter,
     // we need to register that fact that we may be calling a closure
     // with the same arguments.
-    Element target = node.element;
+    MemberElement target = node.element;
     if (target == null || target.isGetter) {
       // TODO(kasperl): If we have a typed selector for the call, we
       // may know something about the types of closures that need
@@ -1762,7 +1815,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    Element element = node.element;
+    MemberElement element = node.element;
     List<DartType> instantiatedTypes = node.instantiatedTypes;
 
     if (instantiatedTypes != null && !instantiatedTypes.isEmpty) {
@@ -1809,7 +1862,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeSuper(HInvokeSuper node) {
-    Element superElement = node.element;
+    MemberElement superElement = node.element;
     ClassElement superClass = superElement.enclosingClass;
     if (superElement.isField) {
       js.Name fieldName = backend.namer.instanceFieldPropertyName(superElement);
@@ -1867,7 +1920,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitFieldGet(HFieldGet node) {
     use(node.receiver);
-    Element element = node.element;
+    MemberElement element = node.element;
     if (node.isNullCheck) {
       // We access a JavaScript member we know all objects besides
       // null and undefined have: V8 does not like accessing a member
@@ -1889,7 +1942,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    Element element = node.element;
+    MemberElement element = node.element;
     registry.registerStaticUse(new StaticUse.fieldSet(element));
     js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
@@ -1900,7 +1953,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitReadModifyWrite(HReadModifyWrite node) {
-    Element element = node.element;
+    FieldElement element = node.element;
     registry.registerStaticUse(new StaticUse.fieldGet(element));
     registry.registerStaticUse(new StaticUse.fieldSet(element));
     js.Name name = backend.namer.instanceFieldPropertyName(element);
@@ -1932,7 +1985,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerForeignTypes(HForeign node) {
     native.NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
-    nativeEnqueuer.registerNativeBehavior(nativeBehavior, node);
+    nativeEnqueuer.registerNativeBehavior(
+        registry.worldImpact, nativeBehavior, node);
   }
 
   visitForeignCode(HForeignCode node) {
@@ -2279,7 +2333,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitStatic(HStatic node) {
-    Element element = node.element;
+    MemberEntity element = node.element;
     assert(element.isFunction || element.isField);
     if (element.isFunction) {
       push(backend.emitter
@@ -2295,7 +2349,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitLazyStatic(HLazyStatic node) {
-    Element element = node.element;
+    FieldEntity element = node.element;
     registry.registerStaticUse(new StaticUse.staticInit(element));
     js.Expression lazyGetter =
         backend.emitter.isolateLazyInitializerAccess(element);
@@ -2823,8 +2877,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     if (helper == null) {
       assert(type.isFunctionType);
-      use(node.inputs[0]);
+      assert(node.usesMethodOnType);
+
+      String name = node.isCastTypeCheck ? '_asCheck' : '_assertCheck';
+      HInstruction reifiedType = node.inputs[0];
+      HInstruction checkedInput = node.inputs[1];
+      use(reifiedType);
+      js.Expression receiver = pop();
+      use(checkedInput);
+      Selector selector = new Selector.call(
+          new Name(name, helpers.jsHelperLibrary), CallStructure.ONE_ARG);
+      registry.registerDynamicUse(
+          new DynamicUse(selector, reifiedType.instructionType));
+      js.Name methodLiteral = backend.namer.invocationName(selector);
+      push(js.js('#.#(#)', [receiver, methodLiteral, pop()]));
     } else {
+      assert(!node.usesMethodOnType);
       push(helper.generateCall(this, node));
     }
   }

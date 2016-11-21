@@ -120,8 +120,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   // For the innermost environment, set outgoing arguments and the locals.
   for (intptr_t i = current->Length() - 1;
-       i >= current->fixed_parameter_count();
-       i--) {
+       i >= current->fixed_parameter_count(); i--) {
     builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
   }
 
@@ -132,10 +131,9 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   while (current != NULL) {
     // For any outer environment the deopt id is that of the call instruction
     // which is recorded in the outer environment.
-    builder->AddReturnAddress(
-        current->function(),
-        Thread::ToDeoptAfter(current->deopt_id()),
-        slot_ix++);
+    builder->AddReturnAddress(current->function(),
+                              Thread::ToDeoptAfter(current->deopt_id()),
+                              slot_ix++);
 
     builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddConstant(previous->function(), slot_ix++);
@@ -143,18 +141,14 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
     // The values of outgoing arguments can be changed from the inlined call so
     // we must read them from the previous environment.
     for (intptr_t i = previous->fixed_parameter_count() - 1; i >= 0; i--) {
-      builder->AddCopy(previous->ValueAt(i),
-                       previous->LocationAt(i),
+      builder->AddCopy(previous->ValueAt(i), previous->LocationAt(i),
                        slot_ix++);
     }
 
     // Set the locals, note that outgoing arguments are not in the environment.
     for (intptr_t i = current->Length() - 1;
-         i >= current->fixed_parameter_count();
-         i--) {
-      builder->AddCopy(current->ValueAt(i),
-                       current->LocationAt(i),
-                       slot_ix++);
+         i >= current->fixed_parameter_count(); i--) {
+      builder->AddCopy(current->ValueAt(i), current->LocationAt(i), slot_ix++);
     }
 
     builder->AddCallerFp(slot_ix++);
@@ -182,28 +176,34 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 }
 
 
-void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
-  RecordSafepoint(instr->locs());
+void FlowGraphCompiler::RecordAfterCallHelper(TokenPosition token_pos,
+                                              intptr_t deopt_id,
+                                              intptr_t argument_count,
+                                              LocationSummary* locs) {
+  RecordSafepoint(locs);
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Thread::ToDeoptAfter(instr->deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (is_optimizing()) {
     // Return/ReturnTOS instruction drops incoming arguments so
     // we have to drop outgoing arguments from the innermost environment.
     // On all other architectures caller drops outgoing arguments itself
     // hence the difference.
-    pending_deoptimization_env_->DropArguments(instr->ArgumentCount());
+    pending_deoptimization_env_->DropArguments(argument_count);
     AddDeoptIndexAtCall(deopt_id_after);
     // This descriptor is needed for exception handling in optimized code.
-    AddCurrentDescriptor(RawPcDescriptors::kOther,
-                         deopt_id_after, instr->token_pos());
+    AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id_after, token_pos);
   } else {
     // Add deoptimization continuation point after the call and before the
     // arguments are removed.
-    AddCurrentDescriptor(RawPcDescriptors::kDeopt,
-                         deopt_id_after,
-                         instr->token_pos());
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
+}
+
+
+void FlowGraphCompiler::RecordAfterCall(Instruction* instr) {
+  RecordAfterCallHelper(instr->token_pos(), instr->deopt_id(),
+                        instr->ArgumentCount(), instr->locs());
 }
 
 
@@ -244,12 +244,9 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
       const Class& type_class = Class::Handle(zone(), dst_type.type_class());
       if (type_class.NumTypeArguments() == 0) {
         const Class& smi_class = Class::Handle(zone(), Smi::Class());
-        may_be_smi = smi_class.IsSubtypeOf(TypeArguments::Handle(zone()),
-                                           type_class,
-                                           TypeArguments::Handle(zone()),
-                                           NULL,
-                                           NULL,
-                                           Heap::kOld);
+        may_be_smi = smi_class.IsSubtypeOf(
+            TypeArguments::Handle(zone()), type_class,
+            TypeArguments::Handle(zone()), NULL, NULL, Heap::kOld);
       }
     }
     __ AssertAssignable(may_be_smi ? 1 : 0, __ AddConstant(test_cache));
@@ -265,8 +262,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
     // visits it.
     locs->SetStackBit(locs->out(0).reg());
   }
-  RecordSafepoint(locs);
   AddCurrentDescriptor(RawPcDescriptors::kOther, deopt_id, token_pos);
+  RecordAfterCallHelper(token_pos, deopt_id, 0, locs);
   if (is_optimizing()) {
     // Assert assignable keeps the instance on the stack as the result,
     // all other arguments are popped.
@@ -279,14 +276,12 @@ void FlowGraphCompiler::GenerateAssertAssignable(TokenPosition token_pos,
 void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
   if (!is_optimizing()) {
     Definition* defn = instr->AsDefinition();
-    if ((defn != NULL) &&
-        (defn->tag() != Instruction::kPushArgument) &&
+    if ((defn != NULL) && (defn->tag() != Instruction::kPushArgument) &&
         (defn->tag() != Instruction::kStoreIndexed) &&
         (defn->tag() != Instruction::kStoreStaticField) &&
         (defn->tag() != Instruction::kStoreLocal) &&
         (defn->tag() != Instruction::kStoreInstanceField) &&
-        (defn->tag() != Instruction::kDropTemps) &&
-        !defn->HasTemp()) {
+        (defn->tag() != Instruction::kDropTemps) && !defn->HasTemp()) {
       __ Drop1();
     }
   }
@@ -296,7 +291,7 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
 void FlowGraphCompiler::GenerateInlinedGetter(intptr_t offset) {
   __ Move(0, -(1 + kParamEndSlotFromFp));
   ASSERT(offset % kWordSize == 0);
-  if (Utils::IsInt(8, offset/ kWordSize)) {
+  if (Utils::IsInt(8, offset / kWordSize)) {
     __ LoadField(0, 0, offset / kWordSize);
   } else {
     __ LoadFieldExt(0, 0);
@@ -310,7 +305,7 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
   __ Move(0, -(2 + kParamEndSlotFromFp));
   __ Move(1, -(1 + kParamEndSlotFromFp));
   ASSERT(offset % kWordSize == 0);
-  if (Utils::IsInt(8, offset/ kWordSize)) {
+  if (Utils::IsInt(8, offset / kWordSize)) {
     __ StoreField(0, offset / kWordSize, 1);
   } else {
     __ StoreFieldExt(0, 1);
@@ -328,21 +323,19 @@ void FlowGraphCompiler::EmitFrameEntry() {
   const int num_opt_named_params = function.NumOptionalNamedParameters();
   const int num_params =
       num_fixed_params + num_opt_pos_params + num_opt_named_params;
-  const bool has_optional_params = (num_opt_pos_params != 0) ||
-      (num_opt_named_params != 0);
+  const bool has_optional_params =
+      (num_opt_pos_params != 0) || (num_opt_named_params != 0);
   const int num_locals = parsed_function().num_stack_locals();
   const intptr_t context_index =
       -parsed_function().current_context_var()->index() - 1;
 
-  if (CanOptimizeFunction() &&
-      function.IsOptimizable() &&
+  if (CanOptimizeFunction() && function.IsOptimizable() &&
       (!is_optimizing() || may_reoptimize())) {
     __ HotCheck(!is_optimizing(), GetOptimizationThreshold());
   }
 
   if (has_optional_params) {
-    __ EntryOptional(num_fixed_params,
-                     num_opt_pos_params,
+    __ EntryOptional(num_fixed_params, num_opt_pos_params,
                      num_opt_named_params);
   } else if (!is_optimizing()) {
     __ Entry(num_fixed_params, num_locals, context_index);
@@ -392,17 +385,17 @@ void FlowGraphCompiler::EmitFrameEntry() {
   if (has_optional_params) {
     if (!is_optimizing()) {
       ASSERT(num_locals > 0);  // There is always at least context_var.
-      __ Frame(num_locals);  // Reserve space for locals.
+      __ Frame(num_locals);    // Reserve space for locals.
     } else if (flow_graph_.graph_entry()->spill_slot_count() >
-                   flow_graph_.num_copied_params()) {
+               flow_graph_.num_copied_params()) {
       __ Frame(flow_graph_.graph_entry()->spill_slot_count() -
-          flow_graph_.num_copied_params());
+               flow_graph_.num_copied_params());
     }
   }
 
   if (function.IsClosureFunction()) {
-    Register reg = is_optimizing() ? flow_graph_.num_copied_params()
-                                   : context_index;
+    Register reg =
+        is_optimizing() ? flow_graph_.num_copied_params() : context_index;
     Register closure_reg = reg;
     LocalScope* scope = parsed_function().node_sequence()->scope();
     LocalVariable* local = scope->VariableAt(0);
@@ -414,7 +407,7 @@ void FlowGraphCompiler::EmitFrameEntry() {
     __ LoadField(reg, closure_reg, Closure::context_offset() / kWordSize);
   } else if (has_optional_params && !is_optimizing()) {
     __ LoadConstant(context_index,
-        Object::Handle(isolate()->object_store()->empty_context()));
+                    Object::Handle(isolate()->object_store()->empty_context()));
   }
 }
 

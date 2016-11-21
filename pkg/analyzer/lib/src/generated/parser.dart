@@ -298,8 +298,9 @@ class Parser {
    * parameters, followed by a left-parenthesis. This is used by
    * [parseTypeAlias] to determine whether or not to parse a return type.
    */
-  @deprecated
   bool get hasReturnTypeInTypeAlias {
+    // TODO(brianwilkerson) This is too expensive as implemented and needs to be
+    // re-implemented or removed.
     Token next = skipReturnType(_currentToken);
     if (next == null) {
       return false;
@@ -2799,6 +2800,7 @@ class Parser {
       if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP, parameter);
+        kind = ParameterKind.POSITIONAL;
       }
       return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -2812,6 +2814,7 @@ class Parser {
       } else if (kind == ParameterKind.REQUIRED) {
         _reportErrorForNode(
             ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP, parameter);
+        kind = ParameterKind.NAMED;
       }
       return new DefaultFormalParameter(
           parameter, kind, separator, defaultValue);
@@ -4269,6 +4272,9 @@ class Parser {
         _inInitializer = wasInInitializer;
       }
     } else if (type == TokenType.LT || _injectGenericCommentTypeList()) {
+      if (isFunctionExpression(currentToken)) {
+        return parseFunctionExpression();
+      }
       return parseListOrMapLiteral(null);
     } else if (type == TokenType.OPEN_CURLY_BRACKET) {
       return parseMapLiteral(null, null);
@@ -5976,9 +5982,7 @@ class Parser {
    *     assertInitializer ::=
    *         'assert' '(' expression [',' expression] ')'
    */
-  void _parseAssertInitializer() {
-    // TODO(brianwilkerson) Capture the syntax in the AST using a new class,
-    // such as AssertInitializer
+  AssertInitializer _parseAssertInitializer() {
     Token keyword = getAndAdvance();
     Token leftParen = _expect(TokenType.OPEN_PAREN);
     Expression expression = parseExpression2();
@@ -5989,8 +5993,8 @@ class Parser {
       message = parseExpression2();
     }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
-//    return new AssertInitializer(
-//        keyword, leftParen, expression, comma, message, rightParen);
+    return new AssertInitializer(
+        keyword, leftParen, expression, comma, message, rightParen);
   }
 
   /**
@@ -6225,7 +6229,7 @@ class Parser {
           _reportErrorForCurrentToken(ParserErrorCode.MISSING_INITIALIZER);
         } else if (_enableAssertInitializer &&
             _matchesKeyword(Keyword.ASSERT)) {
-          _parseAssertInitializer();
+          initializers.add(_parseAssertInitializer());
         } else {
           initializers.add(parseConstructorFieldInitializer(false));
         }

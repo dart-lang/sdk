@@ -17,20 +17,20 @@ DECLARE_FLAG(bool, trace_reload_verbose);
 
 // 'Trace Isolate Reload' TIR_Print
 #if defined(_MSC_VER)
-#define TIR_Print(format, ...) \
-    if (FLAG_trace_reload) Log::Current()->Print(format, __VA_ARGS__)
+#define TIR_Print(format, ...)                                                 \
+  if (FLAG_trace_reload) Log::Current()->Print(format, __VA_ARGS__)
 #else
-#define TIR_Print(format, ...) \
-    if (FLAG_trace_reload) Log::Current()->Print(format, ##__VA_ARGS__)
+#define TIR_Print(format, ...)                                                 \
+  if (FLAG_trace_reload) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
 // 'Verbose Trace Isolate Reload' VTIR_Print
 #if defined(_MSC_VER)
-#define VTIR_Print(format, ...) \
-    if (FLAG_trace_reload_verbose) Log::Current()->Print(format, __VA_ARGS__)
+#define VTIR_Print(format, ...)                                                \
+  if (FLAG_trace_reload_verbose) Log::Current()->Print(format, __VA_ARGS__)
 #else
-#define VTIR_Print(format, ...) \
-    if (FLAG_trace_reload_verbose) Log::Current()->Print(format, ##__VA_ARGS__)
+#define VTIR_Print(format, ...)                                                \
+  if (FLAG_trace_reload_verbose) Log::Current()->Print(format, ##__VA_ARGS__)
 #endif
 
 namespace dart {
@@ -58,6 +58,8 @@ class InstanceMorpher : public ZoneAllocated {
   // Called on each instance that needs to be morphed.
   RawInstance* Morph(const Instance& instance) const;
 
+  void RunNewFieldInitializers() const;
+
   // Adds an object to be morphed.
   void AddObject(RawObject* object) const;
 
@@ -74,6 +76,8 @@ class InstanceMorpher : public ZoneAllocated {
   ZoneGrowableArray<const Instance*>* before() const { return before_; }
   // Returns the list of morphed objects (matches order in before()).
   ZoneGrowableArray<const Instance*>* after() const { return after_; }
+  // Returns the list of new fields.
+  ZoneGrowableArray<const Field*>* new_fields() const { return new_fields_; }
 
   // Returns the cid associated with the from_ and to_ class.
   intptr_t cid() const { return cid_; }
@@ -84,6 +88,7 @@ class InstanceMorpher : public ZoneAllocated {
   ZoneGrowableArray<intptr_t> mapping_;
   ZoneGrowableArray<const Instance*>* before_;
   ZoneGrowableArray<const Instance*>* after_;
+  ZoneGrowableArray<const Field*>* new_fields_;
   intptr_t cid_;
 
   void ComputeMapping();
@@ -128,11 +133,12 @@ class ClassReasonForCancelling : public ReasonForCancelling {
 
 class IsolateReloadContext {
  public:
-  explicit IsolateReloadContext(Isolate* isolate,
-                                JSONStream* js);
+  explicit IsolateReloadContext(Isolate* isolate, JSONStream* js);
   ~IsolateReloadContext();
 
-  void Reload(bool force_reload);
+  void Reload(bool force_reload,
+              const char* root_script_url = NULL,
+              const char* packages_url = NULL);
 
   // All zone allocated objects must be allocated from this zone.
   Zone* zone() const { return zone_; }
@@ -191,9 +197,7 @@ class IsolateReloadContext {
   void AddInstanceMorpher(InstanceMorpher* morpher);
 
   // Tells whether instance in the heap must be morphed.
-  bool HasInstanceMorphers() const {
-    return !instance_morphers_.is_empty();
-  }
+  bool HasInstanceMorphers() const { return !instance_morphers_.is_empty(); }
 
   // NOTE: FinalizeLoading will be called *before* Reload() returns. This
   // function will not be called if the embedder does not call
@@ -235,6 +239,8 @@ class IsolateReloadContext {
   // Transforms the heap based on instance_morphers_.
   void MorphInstances();
 
+  void RunNewFieldInitializers();
+
   bool ValidateReload();
 
   void Rollback();
@@ -249,6 +255,8 @@ class IsolateReloadContext {
   void Commit();
 
   void PostCommit();
+
+  void RehashConstants();
 
   void ClearReplacedObjectBits();
 
@@ -305,10 +313,12 @@ class IsolateReloadContext {
   RawClass* OldClassOrNull(const Class& replacement_or_new);
 
   RawLibrary* OldLibraryOrNull(const Library& replacement_or_new);
+
+  RawLibrary* OldLibraryOrNullBaseMoved(const Library& replacement_or_new);
+
   void BuildLibraryMapping();
 
-  void AddClassMapping(const Class& replacement_or_new,
-                       const Class& original);
+  void AddClassMapping(const Class& replacement_or_new, const Class& original);
 
   void AddLibraryMapping(const Library& replacement_or_new,
                          const Library& original);
@@ -323,8 +333,8 @@ class IsolateReloadContext {
   RawClass* MappedClass(const Class& replacement_or_new);
   RawLibrary* MappedLibrary(const Library& replacement_or_new);
 
-  RawObject** from() { return reinterpret_cast<RawObject**>(&script_uri_); }
-  RawString* script_uri_;
+  RawObject** from() { return reinterpret_cast<RawObject**>(&script_url_); }
+  RawString* script_url_;
   RawError* error_;
   RawArray* old_classes_set_storage_;
   RawArray* class_map_storage_;
@@ -334,7 +344,11 @@ class IsolateReloadContext {
   RawGrowableObjectArray* become_enum_mappings_;
   RawLibrary* saved_root_library_;
   RawGrowableObjectArray* saved_libraries_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&saved_libraries_); }
+  RawString* root_url_prefix_;
+  RawString* old_root_url_prefix_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&old_root_url_prefix_);
+  }
 
   friend class Isolate;
   friend class Class;  // AddStaticFieldMapping, AddEnumBecomeMapping.
@@ -348,4 +362,4 @@ class IsolateReloadContext {
 
 }  // namespace dart
 
-#endif   // RUNTIME_VM_ISOLATE_RELOAD_H_
+#endif  // RUNTIME_VM_ISOLATE_RELOAD_H_

@@ -18,7 +18,7 @@ namespace dart {
 // additionally mock the options needed for the target architecture so that
 // they may be altered for testing.
 
-class HostCPUFeatures: public AllStatic {
+class HostCPUFeatures : public AllStatic {
  public:
   static void InitOnce();
   static void Cleanup();
@@ -36,18 +36,10 @@ class HostCPUFeatures: public AllStatic {
 
 class TargetCPUFeatures : public AllStatic {
  public:
-  static void InitOnce() {
-    HostCPUFeatures::InitOnce();
-  }
-  static void Cleanup() {
-    HostCPUFeatures::Cleanup();
-  }
-  static const char* hardware() {
-    return HostCPUFeatures::hardware();
-  }
-  static bool double_truncate_round_supported() {
-    return false;
-  }
+  static void InitOnce() { HostCPUFeatures::InitOnce(); }
+  static void Cleanup() { HostCPUFeatures::Cleanup(); }
+  static const char* hardware() { return HostCPUFeatures::hardware(); }
+  static bool double_truncate_round_supported() { return false; }
 };
 
 }  // namespace dart

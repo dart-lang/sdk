@@ -121,9 +121,7 @@ class ReturnPattern : public ValueObject {
   // jr(RA) = 1
   static const int kLengthInBytes = 1 * Instr::kInstrSize;
 
-  int pattern_length_in_bytes() const {
-    return kLengthInBytes;
-  }
+  int pattern_length_in_bytes() const { return kLengthInBytes; }
 
   bool IsValid() const;
 

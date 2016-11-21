@@ -332,7 +332,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         ListConstantValue constant = constantInput.constant;
         return graph.addConstantInt(constant.length, compiler);
       }
-      Element element = helpers.jsIndexableLength;
+      MemberElement element = helpers.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
       TypeMask actualType = node.instructionType;
       ClosedWorld closedWorld = compiler.closedWorld;
@@ -383,7 +383,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     if (selector.isCall || selector.isOperator) {
-      Element target;
+      MethodElement target;
       if (input.isExtendableArray(compiler)) {
         if (applies(helpers.jsArrayRemoveLast)) {
           target = helpers.jsArrayRemoveLast;
@@ -453,7 +453,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // [:noSuchMethod:] we just ignore it.
         &&
         node.selector.applies(element)) {
-      FunctionElement method = element;
+      MethodElement method = element;
 
       if (backend.isNative(method)) {
         HInstruction folded = tryInlineNativeMethod(node, method);
@@ -464,7 +464,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         FunctionSignature parameters = method.functionSignature;
         if (parameters.optionalParameterCount == 0 ||
             parameters.parameterCount == node.selector.argumentCount) {
-          node.element = element;
+          node.element = method;
         }
       }
       return node;
@@ -477,11 +477,11 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (element != null &&
         element.isField &&
         element.name == node.selector.name) {
-      if (!backend.isNative(element) && !node.isCallOnInterceptor(compiler)) {
+      FieldElement field = element;
+      if (!backend.isNative(field) && !node.isCallOnInterceptor(compiler)) {
         HInstruction receiver = node.getDartReceiver(compiler);
-        TypeMask type =
-            TypeMaskFactory.inferredTypeForElement(element, compiler);
-        HInstruction load = new HFieldGet(element, receiver, type);
+        TypeMask type = TypeMaskFactory.inferredTypeForElement(field, compiler);
+        HInstruction load = new HFieldGet(field, receiver, type);
         node.block.addBefore(node, load);
         Selector callSelector = new Selector.callClosureFrom(node.selector);
         List<HInstruction> inputs = <HInstruction>[load]
@@ -498,7 +498,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction tryInlineNativeMethod(
-      HInvokeDynamicMethod node, FunctionElement method) {
+      HInvokeDynamicMethod node, MethodElement method) {
     // Enable direct calls to a native method only if we don't run in checked
     // mode, where the Dart version may have type annotations on parameters and
     // return type that it should check.
@@ -800,11 +800,25 @@ class SsaInstructionSimplifier extends HBaseVisitor
         // throw a type error at runtime.
         return node;
       }
-      if (!type.treatAsRaw || type.isTypeVariable) {
+      if (type.isTypeVariable) {
+        return node;
+      }
+      if (!type.treatAsRaw) {
+        HInstruction input = node.checkedInput;
+        // `null` always passes type conversion.
+        if (input.isNull()) return input;
+        // TODO(sra): We can statically check [input] if it is a constructor.
+        // TODO(sra): We can statically check [input] if it is load from a field
+        // of the same ground type, or load from a field of a parameterized type
+        // with the same receiver.
         return node;
       }
       if (type.isFunctionType) {
+        HInstruction input = node.checkedInput;
+        // `null` always passes type conversion.
+        if (input.isNull()) return input;
         // TODO(johnniwinther): Optimize function type conversions.
+        // TODO(sra): We can statically check [input] if it is a closure getter.
         return node;
       }
     }
@@ -825,7 +839,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction removeCheck(HCheck node) => node.checkedInput;
 
-  VariableElement findConcreteFieldForDynamicAccess(
+  FieldElement findConcreteFieldForDynamicAccess(
       HInstruction receiver, Selector selector) {
     TypeMask receiverType = receiver.instructionType;
     return compiler.closedWorld.locateSingleField(selector, receiverType);
@@ -900,11 +914,12 @@ class SsaInstructionSimplifier extends HBaseVisitor
       if (folded != node) return folded;
     }
     HInstruction receiver = node.getDartReceiver(compiler);
-    Element field = findConcreteFieldForDynamicAccess(receiver, node.selector);
+    FieldElement field =
+        findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field != null) return directFieldGet(receiver, field);
 
     if (node.element == null) {
-      Element element = compiler.closedWorld
+      MemberElement element = compiler.closedWorld
           .locateSingleElement(node.selector, receiver.instructionType);
       if (element != null && element.name == node.selector.name) {
         node.element = element;
@@ -919,7 +934,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     return node;
   }
 
-  HInstruction directFieldGet(HInstruction receiver, Element field) {
+  HInstruction directFieldGet(HInstruction receiver, FieldElement field) {
     bool isAssignable = !compiler.closedWorld.fieldNeverChanges(field);
 
     TypeMask type;
@@ -940,18 +955,21 @@ class SsaInstructionSimplifier extends HBaseVisitor
     }
 
     HInstruction receiver = node.getDartReceiver(compiler);
-    VariableElement field =
+    FieldElement field =
         findConcreteFieldForDynamicAccess(receiver, node.selector);
     if (field == null || !field.isAssignable) return node;
-    // Use [:node.inputs.last:] in case the call follows the
-    // interceptor calling convention, but is not a call on an
-    // interceptor.
+    // Use `node.inputs.last` in case the call follows the interceptor calling
+    // convention, but is not a call on an interceptor.
     HInstruction value = node.inputs.last;
     if (compiler.options.enableTypeAssertions) {
       DartType type = field.type;
-      if (!type.treatAsRaw || type.isTypeVariable) {
+      if (!type.treatAsRaw ||
+          type.isTypeVariable ||
+          type.unaliased.isFunctionType) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
+        // TODO(sra): If the input is such that we don't need a type check, we
+        // can skip the test an generate the HFieldSet.
         return node;
       }
       HInstruction other =
@@ -966,7 +984,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
   HInstruction visitInvokeStatic(HInvokeStatic node) {
     propagateConstantValueToUses(node);
-    Element element = node.element;
+    MemberElement element = node.element;
 
     if (element == backend.helpers.checkConcurrentModificationError) {
       if (node.inputs.length == 2) {
@@ -1338,7 +1356,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    Element element = node.element;
+    MemberElement element = node.element;
     if (node.isInterceptedCall) return;
     if (element != helpers.jsArrayRemoveLast) return;
     if (boundsChecked.contains(node)) return;
@@ -2162,7 +2180,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 
   collectTargets(HInstruction instruction, List<HBasicBlock> trueTargets,
-                 List<HBasicBlock> falseTargets) {
+      List<HBasicBlock> falseTargets) {
     for (HInstruction user in instruction.usedBy) {
       if (user is HIf) {
         trueTargets?.add(user.thenBlock);
@@ -2259,7 +2277,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
 
   void visitFieldGet(HFieldGet instruction) {
     if (instruction.isNullCheck) return;
-    Element element = instruction.element;
+    MemberElement element = instruction.element;
     HInstruction receiver = instruction.getDartReceiver(compiler).nonCheck();
     HInstruction existing = memorySet.lookupFieldValue(element, receiver);
     if (existing != null) {
@@ -2280,7 +2298,7 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
     memorySet.registerAllocation(instruction);
     if (shouldTrackInitialValues(instruction)) {
       int argumentIndex = 0;
-      instruction.element.forEachInstanceField((_, Element member) {
+      instruction.element.forEachInstanceField((_, FieldElement member) {
         if (compiler.elementHasCompileTimeError(member)) return;
         memorySet.registerFieldValue(
             member, instruction, instruction.inputs[argumentIndex++]);
@@ -2337,10 +2355,11 @@ class SsaLoadElimination extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitLazyStatic(HLazyStatic instruction) {
-    handleStaticLoad(instruction.element, instruction);
+    FieldElement field = instruction.element;
+    handleStaticLoad(field, instruction);
   }
 
-  void handleStaticLoad(Element element, HInstruction instruction) {
+  void handleStaticLoad(MemberElement element, HInstruction instruction) {
     HInstruction existing = memorySet.lookupFieldValue(element, null);
     if (existing != null) {
       instruction.block.rewriteWithBetterUser(instruction, existing);
@@ -2487,7 +2506,7 @@ class MemorySet {
    * may be affected by this update.
    */
   void registerFieldValueUpdate(
-      Element element, HInstruction receiver, HInstruction value) {
+      MemberElement element, HInstruction receiver, HInstruction value) {
     assert(receiver == null || receiver == receiver.nonCheck());
     if (backend.isNative(element)) {
       return; // TODO(14955): Remove this restriction?
@@ -2507,7 +2526,7 @@ class MemorySet {
    * Registers that `receiver.element` is now [value].
    */
   void registerFieldValue(
-      Element element, HInstruction receiver, HInstruction value) {
+      MemberElement element, HInstruction receiver, HInstruction value) {
     assert(receiver == null || receiver == receiver.nonCheck());
     if (backend.isNative(element)) {
       return; // TODO(14955): Remove this restriction?

@@ -99,9 +99,7 @@ class Event {
 // A simple event queue for our test.
 class EventQueue {
  public:
-  EventQueue() {
-    head_ = NULL;
-  }
+  EventQueue() { head_ = NULL; }
 
   void Add(Event* event) {
     if (head_ == NULL) {
@@ -163,6 +161,7 @@ class StartEvent : public Event {
       : Event(isolate), main_(main) {}
 
   virtual void Process();
+
  private:
   const char* main_;
 };
@@ -193,8 +192,7 @@ class MessageEvent : public Event {
  public:
   explicit MessageEvent(Dart_Isolate isolate) : Event(isolate) {}
 
-  ~MessageEvent() {
-  }
+  ~MessageEvent() {}
 
   virtual void Process();
 };
@@ -289,8 +287,8 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
   // Reload all the test classes here.
   //
   // TODO(turnidge): Use the create isolate callback instead?
-  Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars,
-                                             NativeLookup);
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kCustomIsolateScriptChars, NativeLookup);
   EXPECT_VALID(lib);
 
   Dart_Handle main_send_port = Dart_GetField(lib, NewString("mainSendPort"));
@@ -323,10 +321,6 @@ UNIT_TEST_CASE(CustomIsolates) {
   FLAG_verify_handles = true;
 #ifdef DEBUG
   FLAG_verify_on_transition = true;
-  // Cannot verify heap while running compilation in background. Issue #26149.
-  FLAG_background_compilation = false;
-  // Issue #26150.
-  FLAG_use_osr = false;
 #endif
   event_queue = new EventQueue();
 
@@ -337,8 +331,8 @@ UNIT_TEST_CASE(CustomIsolates) {
   Dart_Handle result;
 
   // Create a test library.
-  Dart_Handle lib = TestCase::LoadTestScript(kCustomIsolateScriptChars,
-                                             NativeLookup);
+  Dart_Handle lib =
+      TestCase::LoadTestScript(kCustomIsolateScriptChars, NativeLookup);
   EXPECT_VALID(lib);
 
   // Run main.

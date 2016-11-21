@@ -2,6 +2,10 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/executable_suffix.gni")
+import("../../build/prebuilt_dart_sdk.gni")
+import("gypi_contents.gni")
+
 config("libdart_vm_config") {
   if (defined(is_fuchsia) && is_fuchsia) {
     libs = [ "magenta" ]
@@ -29,30 +33,12 @@ static_library("libdart_platform") {
   ]
   public_configs = [ ":libdart_vm_config" ]
 
-  platform_headers_gypi =
-      exec_script("../../tools/gypi_to_gn.py",
-                  [ rebase_path("../platform/platform_headers.gypi") ],
-                  "scope",
-                  [ "../platform/platform_headers.gypi" ])
-  platform_headers =
-      rebase_path(platform_headers_gypi.sources, ".", "../platform")
+  sources = rebase_path(processed_gypis.platform_sources, ".", "../platform")
 
-  platform_sources_gypi =
-      exec_script("../../tools/gypi_to_gn.py",
-                  [ rebase_path("../platform/platform_sources.gypi") ],
-                  "scope",
-                  [ "../platform/platform_sources.gypi" ])
-  platform_sources =
-      rebase_path(platform_sources_gypi.sources, ".", "../platform")
-
-  sources = platform_headers + platform_sources
   include_dirs = [ ".." ]
 }
 
-vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
-                              [ rebase_path("vm_sources.gypi") ],
-                              "scope",
-                              [ "vm_sources.gypi" ])
+vm_sources_list = processed_gypis.vm_sources
 
 static_library("libdart_vm") {
   configs += [
@@ -65,7 +51,7 @@ static_library("libdart_vm") {
                                   "*_test.cc",
                                   "*_test.h",
                                 ])
-  sources = vm_sources_list.sources
+  sources = vm_sources_list
   include_dirs = [ ".." ]
 }
 
@@ -81,7 +67,7 @@ static_library("libdart_vm_noopt") {
                                   "*_test.cc",
                                   "*_test.h",
                                 ])
-  sources = vm_sources_list.sources
+  sources = vm_sources_list
   include_dirs = [ ".." ]
 }
 
@@ -96,7 +82,7 @@ static_library("libdart_vm_precompiled_runtime") {
                                   "*_test.cc",
                                   "*_test.h",
                                 ])
-  sources = vm_sources_list.sources
+  sources = vm_sources_list
   include_dirs = [ ".." ]
 }
 
@@ -104,7 +90,6 @@ static_library("libdart_vm_nosnapshot") {
   configs += [
     "..:dart_config",
     "..:dart_maybe_product_config",
-    "..:dart_maybe_precompiled_runtime_config",
     "..:dart_no_snapshot_config",
   ]
   public_configs = [ ":libdart_vm_config" ]
@@ -112,23 +97,7 @@ static_library("libdart_vm_nosnapshot") {
                                   "*_test.cc",
                                   "*_test.h",
                                 ])
-  sources = vm_sources_list.sources
-  include_dirs = [ ".." ]
-}
-
-static_library("libdart_vm_nosnapshot_precompiled_runtime") {
-  configs += [
-    "..:dart_config",
-    "..:dart_maybe_product_config",
-    "..:dart_precompiled_runtime_config",
-    "..:dart_no_snapshot_config",
-  ]
-  public_configs = [ ":libdart_vm_config" ]
-  set_sources_assignment_filter([
-                                  "*_test.cc",
-                                  "*_test.h",
-                                ])
-  sources = vm_sources_list.sources
+  sources = vm_sources_list
   include_dirs = [ ".." ]
 }
 
@@ -144,53 +113,41 @@ static_library("libdart_vm_nosnapshot_with_precompiler") {
                                   "*_test.cc",
                                   "*_test.h",
                                 ])
-  sources = vm_sources_list.sources
+  sources = vm_sources_list
   include_dirs = [ ".." ]
 }
 
 template("process_library_source") {
-  assert(defined(invoker.filename), "Need filename in $target_name")
+  assert(defined(invoker.libsources), "Need libsources in $target_name")
   assert(defined(invoker.output), "Need output in $target_name")
-  assert(defined(invoker.path), "Need path in $target_name")
   action(target_name) {
     visibility = [ ":*" ]  # Only targets in this file can see this.
-    filename = invoker.filename
-    path = invoker.path
-
-    lib_sources_gypi =
-        exec_script("../../tools/gypi_to_gn.py",
-                    [ rebase_path("${path}/${filename}_sources.gypi") ],
-                    "scope",
-                    [ "${path}/${filename}_sources.gypi" ])
-    lib_sources = rebase_path(lib_sources_gypi.sources, ".", path)
+    libsources = invoker.libsources
 
     script = invoker.script
-    inputs = invoker.inputs + [ script ]
-    inputs += lib_sources
+    inputs = invoker.inputs + libsources
     outputs = [
       invoker.output,
     ]
-    args = invoker.args + rebase_path(lib_sources, root_build_dir)
+    args = invoker.args + rebase_path(libsources, root_build_dir)
   }
 }
 
 template("generate_library_source") {
   assert(defined(invoker.libname), "Need libname in $target_name")
-  assert(defined(invoker.filename), "Need a filename in $target_name")
+  assert(defined(invoker.libsources), "Need libsources in $target_name")
   assert(defined(invoker.kind), "Need kind in $target_name")
   assert(defined(invoker.output), "Need output in $target_name")
-  assert(defined(invoker.path), "Need path in $target_name")
 
   process_library_source(target_name) {
     libname = invoker.libname
-    filename = invoker.filename
+    libsources = invoker.libsources
     kind = invoker.kind
-    output = invoker.output
-    path = invoker.path
     script = "../tools/gen_library_src_paths.py"
     inputs = [
       "../lib/libgen_in.cc",
     ]
+    output = invoker.output
     args = [
       "--output",
       rebase_path(invoker.output, root_build_dir),
@@ -206,51 +163,45 @@ template("generate_library_source") {
   }
 }
 
-# This templates expects invoker.sources to be a list of pairs of strings.
-# The pairs of strings mean the following.
-# library name, file name
-# e.g. for the "internal" library named "dart:_internal",
-# with sources listed at sdk/lib/internal/internal_sources.gypi and
-# lib/internal_sources.gypi, we have: ["_internal", "internal"]
+# This templates expects invoker.sources to be a list of lists.
+# The lists contain the following information about each library:
+#   library name (string)
+#   library sources (list of strings)
+#   library source base path (string)
+#   filename (string)
+#   do_patch (boolean)
+#
+# If do_patch is true, the lists additionally contains
+#   patch sources (list of strings)
+#   patch source base path (string)
 #
 # The template iterates over the list, and generates generate_library_source
 # actions for each. After that, it generates targets to compile the generated
-# sources to make libdart_lib_nosnapshot and libdart_lib.
+# sources to make libdart_lib_*.
 template("generate_core_libraries") {
   assert(defined(invoker.sources), "Need sources in $target_name")
+  assert(defined(invoker.allsources), "Need allsources in $target_name")
   liboutputs = []
-  libsources = []
   libdeps = []
   foreach(lib, invoker.sources) {
     libname = lib[0]
-    filename = lib[1]
-    do_patch = lib[2]
-    source_path = lib[3]
+    filename = lib[3]
+    do_patch = lib[4]
     generate_library_source("generate_${filename}_cc_file") {
       libname = libname
-      filename = filename
+      libsources = rebase_path(lib[1], ".", lib[2])
       kind = "source"
-      path = source_path
       output = "$target_gen_dir/${filename}_gen.cc"
     }
     if (do_patch) {
-      patch_path = lib[4]
       generate_library_source("generate_${filename}_patch_cc_file") {
         libname = libname
-        filename = filename
+        libsources = rebase_path(lib[5], ".", lib[6])
         kind = "patch"
-        path = patch_path
         output = "$target_gen_dir/${filename}_patch_gen.cc"
       }
     }
-    lib_sources_gypi = {
-    }
-    lib_sources_gypi =
-        exec_script("../../tools/gypi_to_gn.py",
-                    [ rebase_path("../lib/${filename}_sources.gypi") ],
-                    "scope",
-                    [ "../lib/${filename}_sources.gypi" ])
-    libsources += rebase_path(lib_sources_gypi.sources, ".", "../lib")
+
     liboutputs += [ "$target_gen_dir/${filename}_gen.cc" ]
     libdeps += [ ":generate_${filename}_cc_file" ]
     if (do_patch) {
@@ -259,6 +210,8 @@ template("generate_core_libraries") {
     }
   }
 
+  all_libsources = rebase_path(invoker.allsources, ".", "../lib")
+
   static_library("libdart_lib_nosnapshot") {
     configs += [
       "..:dart_config",
@@ -266,17 +219,7 @@ template("generate_core_libraries") {
       "..:dart_maybe_precompiled_runtime_config",
     ]
     deps = libdeps
-    sources = libsources + [ "bootstrap.cc" ] + liboutputs
-    include_dirs = [ ".." ]
-  }
-  static_library("libdart_lib_nosnapshot_precompiled_runtime") {
-    configs += [
-      "..:dart_config",
-      "..:dart_maybe_product_config",
-      "..:dart_precompiled_runtime_config",
-    ]
-    deps = libdeps
-    sources = libsources + [ "bootstrap.cc" ] + liboutputs
+    sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
     include_dirs = [ ".." ]
   }
   static_library("libdart_lib_nosnapshot_with_precompiler") {
@@ -286,7 +229,7 @@ template("generate_core_libraries") {
       "..:dart_precompiler_config",
     ]
     deps = libdeps
-    sources = libsources + [ "bootstrap.cc" ] + liboutputs
+    sources = all_libsources + [ "bootstrap.cc" ] + liboutputs
     include_dirs = [ ".." ]
   }
   static_library("libdart_lib") {
@@ -295,7 +238,7 @@ template("generate_core_libraries") {
       "..:dart_maybe_product_config",
       "..:dart_maybe_precompiled_runtime_config",
     ]
-    sources = libsources + [ "bootstrap_nocore.cc" ]
+    sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]
   }
   static_library("libdart_lib_precompiled_runtime") {
@@ -304,7 +247,7 @@ template("generate_core_libraries") {
       "..:dart_maybe_product_config",
       "..:dart_precompiled_runtime_config",
     ]
-    sources = libsources + [ "bootstrap_nocore.cc" ]
+    sources = all_libsources + [ "bootstrap_nocore.cc" ]
     include_dirs = [ ".." ]
   }
 }
@@ -313,228 +256,276 @@ generate_core_libraries("core_libraries") {
   sources = [
     [
       "async",
+      processed_gypis.async_sdk_sources,
+      "../../sdk/lib/async",
       "async",
       true,
-      "../../sdk/lib/async",
+      processed_gypis.async_runtime_sources,
       "../lib",
     ],
     [
       "core",
-      "core",
-      true,
+      processed_gypis.core_sdk_sources,
       "../../sdk/lib/core",
+      "core",
+      true,
+      processed_gypis.core_runtime_sources,
       "../lib",
     ],
     [
       "collection",
-      "collection",
-      true,
+      processed_gypis.collection_sdk_sources,
       "../../sdk/lib/collection",
+      "collection",
+      true,
+      processed_gypis.collection_runtime_sources,
       "../lib",
     ],
     [
       "convert",
-      "convert",
-      true,
+      processed_gypis.convert_sdk_sources,
       "../../sdk/lib/convert",
+      "convert",
+      true,
+      processed_gypis.convert_runtime_sources,
       "../lib",
     ],
     [
       "developer",
+      processed_gypis.developer_sdk_sources,
+      "../../sdk/lib/developer",
       "developer",
       true,
-      "../../sdk/lib/developer",
+      processed_gypis.developer_runtime_sources,
       "../lib",
     ],
     [
       "_internal",
+      processed_gypis.internal_sdk_sources,
+      "../../sdk/lib/internal",
       "internal",
       true,
-      "../../sdk/lib/internal",
+      processed_gypis.internal_runtime_sources,
       "../lib",
     ],
     [
       "isolate",
-      "isolate",
-      true,
+      processed_gypis.isolate_sdk_sources,
       "../../sdk/lib/isolate",
+      "isolate",
+      true,
+      processed_gypis.isolate_runtime_sources,
       "../lib",
     ],
     [
       "math",
-      "math",
-      true,
+      processed_gypis.math_sdk_sources,
       "../../sdk/lib/math",
+      "math",
+      true,
+      processed_gypis.math_runtime_sources,
       "../lib",
     ],
     [
       "mirrors",
+      processed_gypis.mirrors_sdk_sources,
+      "../../sdk/lib/mirrors",
       "mirrors",
       true,
-      "../../sdk/lib/mirrors",
+      processed_gypis.mirrors_runtime_sources,
       "../lib",
     ],
     [
       "profiler",
-      "profiler",
-      false,
+      processed_gypis.profiler_sdk_sources,
       "../../sdk/lib/profiler",
+      "profiler",
+      false,
     ],
     [
       "typed_data",
+      processed_gypis.typed_data_runtime_sources,
+      "../lib",
       "typed_data",
       false,
-      "../lib",
     ],
     [
       "_vmservice",
+      processed_gypis.vmservice_sdk_sources,
+      "../../sdk/lib/vmservice",
       "vmservice",
       true,
-      "../../sdk/lib/vmservice",
+      processed_gypis.vmservice_runtime_sources,
       "../lib",
     ],
   ]
+  allsources = processed_gypis.allsources
 }
 
 template("concatenate_patch") {
-  assert(defined(invoker.libname), "Need a name in $target_name")
-  assert(defined(invoker.dir), "Need a dir in $target_name")
+  assert(defined(invoker.libsources), "Need a sources in $target_name")
   assert(defined(invoker.output), "Need an output in $target_name")
 
   process_library_source(target_name) {
+    libsources = invoker.libsources
+    inputs = []
     output = invoker.output
-    path = "../${invoker.dir}"
-    filename = invoker.libname
     script = "../tools/concatenate_patches.py"
     args = [
       "--output",
       rebase_path(output, root_build_dir),
     ]
-    inputs = []
   }
 }
 
-template("generate_patched_sdk") {
-  assert(defined(invoker.libraries), "Need libraries in $target_name")
+if (!defined(is_fuchsia) || !is_fuchsia) {
+  template("generate_patched_sdk") {
+    assert(defined(invoker.libraries), "Need libraries in $target_name")
 
-  concatenation_target_names = []
-  concatenation_files = []
+    concatenation_target_names = []
+    concatenation_files = []
 
-  # Concatenate vm library patches.
-  foreach(library, invoker.libraries) {
-    name = library[1]
+    # Concatenate vm library patches.
+    foreach(library, invoker.libraries) {
+      name = library[0]
 
-    target_output = "$target_gen_dir/patches/${name}_patch.dart"
-    concatenate_patch("concatenate_${name}_patch") {
-      libname = name
-      dir = library[0]
-      output = target_output
+      target_output = "$target_gen_dir/patches/${name}_patch.dart"
+      concatenate_patch("concatenate_${name}_patch") {
+        libsources = rebase_path(library[1], ".", library[2])
+        output = target_output
+      }
+      concatenation_target_names += [ ":concatenate_${name}_patch" ]
+      concatenation_files += [ target_output ]
     }
-    concatenation_target_names += [ ":concatenate_${name}_patch" ]
-    concatenation_files += [ target_output ]
+
+    # Build the patched sdk out of the concatenated patches and the special
+    # libraries.
+    action(target_name) {
+      deps = concatenation_target_names
+      if (!prebuilt_dart_exe_works) {
+        deps += [ "../bin:dart_bootstrap($host_toolchain)" ]
+      }
+
+      patches_dir = "$target_gen_dir/patches"
+      patched_sdk_dir = "$root_out_dir/patched_sdk"
+
+      script = "../../tools/patch_sdk.py"
+
+      # We list all files which make up the sdk (modulo patches) and get them back
+      # as a GN list object.
+      shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
+                                       [ "../../sdk/lib" ],
+                                       "list lines")
+
+      # We list the `patch_sdk.dart` tool here because the [script] (which is
+      # implicitly an input) will call it.
+      inputs = [
+        "../../tools/patch_sdk.dart",
+      ]
+
+      # Files below are not patches, they will not be in [concatenation_files] but
+      # the `patch_sdk.dart` script will copy them into the patched sdk.
+      inputs += [
+        "../lib/typed_data.dart",
+        "../bin/builtin.dart",
+        "../bin/vmservice/vmservice_io.dart",
+        "../bin/vmservice/loader.dart",
+        "../bin/vmservice/server.dart",
+      ]
+
+      # Add all the normal sdk sources.
+      inputs += shared_sdk_sources
+
+      # Add all the concatenated patch files.
+      inputs += concatenation_files
+
+      outputs = [
+        # Instead of listing all outputs we list a single well-known one.
+        "${patched_sdk_dir}/lib/core/core.dart",
+      ]
+
+      args = []
+      if (!prebuilt_dart_exe_works) {
+        dart_out_dir = get_label_info("../bin:dart_bootstrap($host_toolchain)",
+                                      "root_out_dir")
+        dart_bootstrap =
+            rebase_path("$dart_out_dir/dart_bootstrap$executable_suffix")
+        args += [
+          "--dart-executable",
+          dart_bootstrap,
+        ]
+      }
+      args += [
+        "vm",
+        rebase_path("../../sdk"),
+        rebase_path(patches_dir, root_build_dir),
+        rebase_path(patched_sdk_dir, root_build_dir),
+      ]
+    }
   }
 
-  # Build the patched sdk out of the concatenated patches and the special
-  # libraries.
-  action(target_name) {
-    deps = concatenation_target_names
-
-    patches_dir = "$target_gen_dir/patches"
-    patched_sdk_dir = "$target_gen_dir/patched_sdk"
-
-    script = "../../tools/patch_sdk.py"
-
-    # We list all files which make up the sdk (modulo patches) and get them back
-    # as a GN list object.
-    shared_sdk_sources = exec_script("../../tools/list_dart_files.py",
-                                     [ "../../sdk/lib" ],
-                                     "list lines")
-
-    # We list the `patch_sdk.dart` tool here because the [script] (which is
-    # implicitly an input) will call it.
-    inputs = [
-      "../../tools/patch_sdk.dart",
-    ]
-
-    # Files below are not patches, they will not be in [concatenation_files] but
-    # the `patch_sdk.dart` script will copy them into the patched sdk.
-    inputs += [
-      "../lib/typed_data.dart",
-      "../bin/builtin.dart",
-      "../bin/vmservice/vmservice_io.dart",
-      "../bin/vmservice/loader.dart",
-      "../bin/vmservice/server.dart",
-    ]
-
-    # Add all the normal sdk sources.
-    inputs += shared_sdk_sources
-
-    # Add all the concatenated patch files.
-    inputs += concatenation_files
-
-    outputs = [
-      # Instead of listing all outputs we list a single well-known one.
-      "${patched_sdk_dir}/lib/core/core.dart",
-    ]
-
-    args = [
-      "vm",
-      rebase_path("../../sdk"),
-      rebase_path(patches_dir, root_build_dir),
-      rebase_path(patched_sdk_dir, root_build_dir),
+  generate_patched_sdk("patched_sdk") {
+    libraries = [
+      [
+        "async",
+        processed_gypis.async_runtime_sources,
+        "../lib",
+      ],
+      [
+        "collection",
+        processed_gypis.collection_runtime_sources,
+        "../lib",
+      ],
+      [
+        "convert",
+        processed_gypis.convert_runtime_sources,
+        "../lib",
+      ],
+      [
+        "core",
+        processed_gypis.core_runtime_sources,
+        "../lib",
+      ],
+      [
+        "developer",
+        processed_gypis.developer_runtime_sources,
+        "../lib",
+      ],
+      [
+        "internal",
+        processed_gypis.internal_runtime_sources,
+        "../lib",
+      ],
+      [
+        "isolate",
+        processed_gypis.isolate_runtime_sources,
+        "../lib",
+      ],
+      [
+        "math",
+        processed_gypis.math_runtime_sources,
+        "../lib",
+      ],
+      [
+        "mirrors",
+        processed_gypis.mirrors_runtime_sources,
+        "../lib",
+      ],
+      [
+        "profiler",
+        processed_gypis.profiler_runtime_sources,
+        "../lib",
+      ],
+      [
+        "vmservice",
+        processed_gypis.vmservice_runtime_sources,
+        "../lib",
+      ],
+      [
+        "io",
+        processed_gypis.bin_io_sources,
+        "../bin",
+      ],
     ]
   }
-}
-
-generate_patched_sdk("patched_sdk") {
-  libraries = [
-    [
-      "lib",
-      "async",
-    ],
-    [
-      "lib",
-      "collection",
-    ],
-    [
-      "lib",
-      "convert",
-    ],
-    [
-      "lib",
-      "core",
-    ],
-    [
-      "lib",
-      "developer",
-    ],
-    [
-      "lib",
-      "internal",
-    ],
-    [
-      "lib",
-      "isolate",
-    ],
-    [
-      "lib",
-      "math",
-    ],
-    [
-      "lib",
-      "mirrors",
-    ],
-    [
-      "lib",
-      "profiler",
-    ],
-    [
-      "lib",
-      "vmservice",
-    ],
-    [
-      "bin",
-      "io",
-    ],
-  ]
 }

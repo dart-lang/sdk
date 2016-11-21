@@ -55,8 +55,8 @@ void Benchmark::RunBenchmark() {
   if ((run_filter == kAllBenchmarks) ||
       (strcmp(run_filter, this->name()) == 0)) {
     this->Run();
-    OS::Print("%s(%s): %" Pd64 "\n",
-              this->name(), this->score_kind(), this->score());
+    OS::Print("%s(%s): %" Pd64 "\n", this->name(), this->score_kind(),
+              this->score());
     run_matches++;
   } else if (run_filter == kList) {
     fprintf(stdout, "%s\n", this->name());
@@ -66,8 +66,9 @@ void Benchmark::RunBenchmark() {
 
 
 static void PrintUsage() {
-  fprintf(stderr, "run_vm_tests [--list | --benchmarks | "
-                  "<test name> | <benchmark name>]\n");
+  fprintf(stderr,
+          "run_vm_tests [--list | --benchmarks | "
+          "<test name> | <benchmark name>]\n");
   fprintf(stderr, "run_vm_tests [vm-flags ...] <test name>\n");
   fprintf(stderr, "run_vm_tests [vm-flags ...] <benchmark name>\n");
 }
@@ -103,19 +104,14 @@ static int Main(int argc, const char** argv) {
     dart_argc = argc - 2;
     dart_argv = &argv[1];
   }
-  bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc,
-                                                             dart_argv);
+  bool set_vm_flags_success =
+      Flags::ProcessCommandLineFlags(dart_argc, dart_argv);
   ASSERT(set_vm_flags_success);
-  const char* err_msg = Dart::InitOnce(dart::bin::vm_isolate_snapshot_buffer,
-                                       NULL, NULL,
-                                       NULL, NULL,
-                                       NULL,
-                                       dart::bin::DartUtils::OpenFile,
-                                       dart::bin::DartUtils::ReadFile,
-                                       dart::bin::DartUtils::WriteFile,
-                                       dart::bin::DartUtils::CloseFile,
-                                       NULL,
-                                       NULL);
+  const char* err_msg = Dart::InitOnce(
+      dart::bin::vm_isolate_snapshot_buffer, NULL, NULL, NULL, NULL, NULL,
+      dart::bin::DartUtils::OpenFile, dart::bin::DartUtils::ReadFile,
+      dart::bin::DartUtils::WriteFile, dart::bin::DartUtils::CloseFile, NULL,
+      NULL);
   ASSERT(err_msg == NULL);
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();

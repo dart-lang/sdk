@@ -334,9 +334,11 @@ class HInstructionStringifier implements HVisitor<String> {
     return handleGenericInvoke("InvokeConstructorBody", target, invoke.inputs);
   }
 
-  String visitForeignCode(HForeignCode foreign) {
-    return handleGenericInvoke(
-        "ForeignCode", "${foreign.codeTemplate.ast}", foreign.inputs);
+  String visitForeignCode(HForeignCode node) {
+    var template = node.codeTemplate;
+    String code = '${template.ast}';
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "ForeignCode: $code ($inputs)";
   }
 
   String visitLess(HLess node) => handleInvokeBinary(node, 'Less');
@@ -482,11 +484,19 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeConversion(HTypeConversion node) {
-    assert(node.inputs.length <= 2);
-    String otherInput =
-        (node.inputs.length == 2) ? temporaryId(node.inputs[1]) : '';
-    return "TypeConversion: ${temporaryId(node.checkedInput)} to "
-        "${node.instructionType} $otherInput";
+    String checkedInput = temporaryId(node.checkedInput);
+    String rest;
+    if (node.usesMethodOnType) {
+      assert(node.inputs.length == 2);
+      assert(identical(node.checkedInput, node.inputs.last));
+      rest = " ${temporaryId(node.inputs.first)}";
+    } else if (node.inputs.length == 2) {
+      rest = " ${temporaryId(node.inputs.last)}";
+    } else {
+      assert(node.inputs.length == 1);
+      rest = "";
+    }
+    return "TypeConversion: $checkedInput to ${node.instructionType}$rest";
   }
 
   String visitTypeKnown(HTypeKnown node) {
@@ -504,23 +514,29 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeInfoReadRaw(HTypeInfoReadRaw node) {
-    return "TypeInfoReadRaw";
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "TypeInfoReadRaw: $inputs";
   }
 
   String visitTypeInfoReadVariable(HTypeInfoReadVariable node) {
-    return "TypeInfoReadVariable ${node.variable}";
+    return "TypeInfoReadVariable: "
+        "${temporaryId(node.inputs.single)}.${node.variable}";
   }
 
   String visitTypeInfoExpression(HTypeInfoExpression node) {
-    return "TypeInfoExpression ${node.kindAsString} ${node.dartType}";
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "TypeInfoExpression: ${node.kindAsString} ${node.dartType}"
+        " ($inputs)";
   }
 
   String visitReadTypeVariable(HReadTypeVariable node) {
-    return "ReadTypeVariable: ${node.dartType} ${node.hasReceiver}";
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "ReadTypeVariable: ${node.dartType} ${node.hasReceiver} $inputs";
   }
 
   String visitFunctionType(HFunctionType node) {
-    return "FunctionType: ${node.dartType}";
+    var inputs = node.inputs.map(temporaryId).join(', ');
+    return "FunctionType: ${node.dartType} $inputs";
   }
 
   String visitVoidType(HVoidType node) {

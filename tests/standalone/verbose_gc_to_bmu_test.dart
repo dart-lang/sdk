@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=verbose_gc_to_bmu_script.dart
+
 // This test forks a second vm process that runs the BMU tool and verifies that
 // it produces some output. This test is mainly here to ensure that the BMU
 // tool compiles and runs.
@@ -13,13 +15,15 @@ import "dart:io";
 import "package:path/path.dart";
 
 // Tool script relative to the path of this test.
-var toolScript = "../../runtime/tools/verbose_gc_to_bmu.dart";
+var toolScript = Uri.parse(Platform.executable)
+    .resolve("../../runtime/tools/verbose_gc_to_bmu.dart").toFilePath();
 
 // Target script relative to this test.
-var targetScript = "../language/gc_test.dart";
+var targetScript = Platform.script
+    .resolve("verbose_gc_to_bmu_script.dart").toFilePath();
 const minOutputLines = 20;
 
-void checkExitCode(exitCode) {
+void checkExitCode(targetResult) {
   if (exitCode != 0) {
     print("Process terminated with exit code ${exitCode}.");
     exit(-1);
@@ -28,14 +32,11 @@ void checkExitCode(exitCode) {
 
 void main() {
   // Compute paths for tool and target relative to the path of this script.
-  var scriptDir = dirname(Platform.script.toFilePath());
-  var targPath = normalize(join(scriptDir, targetScript));
   var targetResult =
-      Process.runSync(Platform.executable, ["--verbose_gc", targPath]);
-  checkExitCode(targetResult.exitCode);
+      Process.runSync(Platform.executable, ["--verbose_gc", targetScript]);
+  checkExitCode(targetResult);
   var gcLog = targetResult.stderr;
-  var toolPath = normalize(join(scriptDir, toolScript));
-  Process.start(Platform.executable, [toolPath]).then((Process process) {
+  Process.start(Platform.executable, [toolScript]).then((Process process) {
     // Feed the GC log of the target to the BMU tool.
     process.stdin.write(gcLog);
     process.stdin.close();

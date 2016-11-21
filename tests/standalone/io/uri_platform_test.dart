@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import 'package:path/path.dart' as path;
 import "dart:io";
 
 main() {
@@ -36,7 +37,12 @@ main() {
     Expect.equals("a/b", new Uri.file("a/b").toFilePath());
     Expect.equals("a\\b", new Uri.file("a\\b").toFilePath());
   }
-
-  Expect.equals(Uri.base,
-                new Uri.file(Directory.current.path + Platform.pathSeparator));
+  // If the current path is only the root prefix (/ (or c:\), then don't add a
+  // separator at the end.
+  Expect.equals(
+      Uri.base,
+      (Directory.current.path.toString() !=
+       path.rootPrefix(Directory.current.path.toString()))
+      ? new Uri.file(Directory.current.path + Platform.pathSeparator)
+      : new Uri.file(Directory.current.path));
 }

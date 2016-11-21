@@ -10,7 +10,7 @@
 
 namespace dart {
 
-class BytecodeRegExpMacroAssembler: public RegExpMacroAssembler {
+class BytecodeRegExpMacroAssembler : public RegExpMacroAssembler {
  public:
   // Create an assembler. Instructions and relocation information are emitted
   // into a buffer, with the instructions starting from the beginning and the
@@ -25,8 +25,7 @@ class BytecodeRegExpMacroAssembler: public RegExpMacroAssembler {
   // for code generation and assumes its size to be buffer_size. If the buffer
   // is too small, a fatal error occurs. No deallocation of the buffer is done
   // upon destruction of the assembler.
-  BytecodeRegExpMacroAssembler(ZoneGrowableArray<uint8_t>* buffer,
-                               Zone* zone);
+  BytecodeRegExpMacroAssembler(ZoneGrowableArray<uint8_t>* buffer, Zone* zone);
   virtual ~BytecodeRegExpMacroAssembler();
 
   // The byte-code interpreter checks on each push anyway.
@@ -101,13 +100,14 @@ class BytecodeRegExpMacroAssembler: public RegExpMacroAssembler {
     // extra goto.
     return true;
   }
-  virtual void Print(const char* str)  { UNIMPLEMENTED(); }
+  virtual void Print(const char* str) { UNIMPLEMENTED(); }
   virtual void PrintBlocks() { UNIMPLEMENTED(); }
   /////
 
   static RawInstance* Interpret(const RegExp& regexp,
                                 const String& str,
                                 const Smi& start_index,
+                                bool is_sticky,
                                 Zone* zone);
 
  private:

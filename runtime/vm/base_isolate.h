@@ -31,9 +31,7 @@ class BaseIsolate {
 #endif
 
  protected:
-  BaseIsolate()
-      : mutator_thread_(NULL) {
-  }
+  BaseIsolate() : mutator_thread_(NULL) {}
 
   ~BaseIsolate() {
     // Do not delete stack resources: top_resource_ and current_zone_.

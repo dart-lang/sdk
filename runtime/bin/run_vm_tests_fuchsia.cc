@@ -23,8 +23,9 @@
 // tests, and then runs them.
 
 // TODO(zra): Make this a command line argument
-const char* kRunVmTestsPath = "/boot/bin/dart_vm_tests";
+const char* kRunVmTestsPath = "/system/bin/dart_vm_tests";
 
+// clang-format off
 // Tests that are invalid, wedge, or cause panics.
 const char* kSkip[] = {
   // These expect a file to exist that we aren't putting in the image.
@@ -107,7 +108,7 @@ const char* kBugs[] = {
   // Needs read of RSS.
   "InitialRSS",
 };
-
+// clang-format on
 
 static bool contains(const char** list, intptr_t len, const char* str) {
   for (intptr_t i = 0; i < len; i++) {
@@ -120,14 +121,13 @@ static bool contains(const char** list, intptr_t len, const char* str) {
 
 
 static bool isSkip(const char* test) {
-  return contains(
-      kSkip, sizeof(kSkip) / sizeof(kSkip[0]), test);
+  return contains(kSkip, sizeof(kSkip) / sizeof(kSkip[0]), test);
 }
 
 
 static bool isExpectFail(const char* test) {
-  return contains(
-      kExpectFail, sizeof(kExpectFail) / sizeof(kExpectFail[0]), test);
+  return contains(kExpectFail, sizeof(kExpectFail) / sizeof(kExpectFail[0]),
+                  test);
 }
 
 
@@ -145,15 +145,18 @@ static bool isBug(const char* test) {
 
 // This is mostly taken from //magenta/system/uapp/mxsh with the addtion of
 // launchpad_add_pipe calls to setup pipes for stdout and stderr.
-static mx_status_t lp_setup(launchpad_t** lp_out, mx_handle_t binary_vmo,
-                            int argc, const char* const* argv,
-                            int *stdout_out, int *stderr_out) {
+static mx_status_t lp_setup(launchpad_t** lp_out,
+                            mx_handle_t binary_vmo,
+                            int argc,
+                            const char* const* argv,
+                            int* stdout_out,
+                            int* stderr_out) {
   if ((lp_out == NULL) || (stdout_out == NULL) || (stderr_out == NULL)) {
     return ERR_INVALID_ARGS;
   }
   launchpad_t* lp;
   mx_status_t status;
-  status = launchpad_create(argv[0], &lp);
+  status = launchpad_create(0, argv[0], &lp);
   RETURN_IF_ERROR(status);
   status = launchpad_arguments(lp, argc, argv);
   RETURN_IF_ERROR(status);
@@ -176,8 +179,10 @@ static mx_status_t lp_setup(launchpad_t** lp_out, mx_handle_t binary_vmo,
 
 // Start the test running and return file descriptors for the stdout and stderr
 // pipes.
-static mx_handle_t start_test(mx_handle_t binary_vmo, const char* test_name,
-                              int* stdout_out, int* stderr_out) {
+static mx_handle_t start_test(mx_handle_t binary_vmo,
+                              const char* test_name,
+                              int* stdout_out,
+                              int* stderr_out) {
   const intptr_t kArgc = 2;
   const char* argv[kArgc];
 
@@ -187,8 +192,8 @@ static mx_handle_t start_test(mx_handle_t binary_vmo, const char* test_name,
   launchpad_t* lp = NULL;
   int stdout_pipe = -1;
   int stderr_pipe = -1;
-  mx_status_t status = lp_setup(
-      &lp, binary_vmo, kArgc, argv, &stdout_pipe, &stderr_pipe);
+  mx_status_t status =
+      lp_setup(&lp, binary_vmo, kArgc, argv, &stdout_pipe, &stderr_pipe);
   if (status != NO_ERROR) {
     if (lp != NULL) {
       launchpad_destroy(lp);
@@ -254,8 +259,10 @@ static intptr_t drain_fd(int fd, char** buffer) {
 
 // Runs test 'test_name' and gives stdout and stderr for the test in
 // 'test_stdout' and 'test_stderr'. Returns the exit code from the test.
-static int run_test(mx_handle_t binary_vmo, const char* test_name,
-                    char** test_stdout, char** test_stderr) {
+static int run_test(mx_handle_t binary_vmo,
+                    const char* test_name,
+                    char** test_stdout,
+                    char** test_stderr) {
   int stdout_pipe = -1;
   int stderr_pipe = -1;
   mx_handle_t p = start_test(binary_vmo, test_name, &stdout_pipe, &stderr_pipe);
@@ -264,36 +271,38 @@ static int run_test(mx_handle_t binary_vmo, const char* test_name,
   drain_fd(stdout_pipe, test_stdout);
   drain_fd(stderr_pipe, test_stderr);
 
-  mx_signals_state_t state;
-  mx_status_t r = mx_handle_wait_one(
-      p, MX_SIGNAL_SIGNALED, MX_TIME_INFINITE, &state);
+  mx_status_t r =
+      mx_handle_wait_one(p, MX_SIGNAL_SIGNALED, MX_TIME_INFINITE, NULL);
   RETURN_IF_ERROR(r);
 
   mx_info_process_t proc_info;
-  mx_ssize_t info_size = mx_object_get_info(
-      p, MX_INFO_PROCESS, sizeof(proc_info.rec), &proc_info, sizeof(proc_info));
-  RETURN_IF_ERROR(info_size);
+  mx_status_t status = mx_object_get_info(p, MX_INFO_PROCESS, &proc_info,
+                                          sizeof(proc_info), nullptr, nullptr);
+  RETURN_IF_ERROR(status);
 
   r = mx_handle_close(p);
   RETURN_IF_ERROR(r);
-  return proc_info.rec.return_code;
+  return proc_info.return_code;
 }
 
 
-static void handle_result(
-    intptr_t result, char* test_stdout, char* test_stderr, const char* test) {
+static void handle_result(intptr_t result,
+                          char* test_stdout,
+                          char* test_stderr,
+                          const char* test) {
   if (result != 0) {
     if (!isExpectFail(test) && !isBug(test)) {
-      printf("**** Test %s FAILED\n\nstdout:\n%s\nstderr:\n%s\n",
-          test, test_stdout, test_stderr);
+      printf("**** Test %s FAILED\n\nstdout:\n%s\nstderr:\n%s\n", test,
+             test_stdout, test_stderr);
     } else {
       printf("Test %s FAILED and is expected to fail\n", test);
     }
   } else {
     if (isExpectFail(test)) {
-      printf("**** Test %s is expected to fail, but PASSED\n\n"
-             "stdout:\n%s\nstderr:\n%s\n",
-             test, test_stdout, test_stderr);
+      printf(
+          "**** Test %s is expected to fail, but PASSED\n\n"
+          "stdout:\n%s\nstderr:\n%s\n",
+          test, test_stdout, test_stderr);
     } else if (isBug(test)) {
       printf("**** Test %s is marked as a bug, but PASSED\n", test);
     } else {
@@ -325,7 +334,8 @@ static void* test_runner_thread(void* arg) {
     const char* test = args->test_list[index];
     char* test_stdout = NULL;
     char* test_stderr = NULL;
-    mx_handle_t vmo_dup = mx_handle_duplicate(binary_vmo, MX_RIGHT_SAME_RIGHTS);
+    mx_handle_t vmo_dup = MX_HANDLE_INVALID;
+    mx_handle_duplicate(binary_vmo, MX_RIGHT_SAME_RIGHTS, &vmo_dup);
     int test_status = run_test(vmo_dup, test, &test_stdout, &test_stderr);
     handle_result(test_status, test_stdout, test_stderr, test);
     free(test_stdout);
@@ -393,8 +403,10 @@ int main(int argc, char** argv) {
   // Run with --list to grab the list of tests.
   char* list_stdout = NULL;
   char* list_stderr = NULL;
-  mx_handle_t list_vmo = mx_handle_duplicate(binary_vmo, MX_RIGHT_SAME_RIGHTS);
-  RETURN_IF_ERROR(list_vmo);
+  mx_handle_t list_vmo = MX_HANDLE_INVALID;
+  mx_status_t status =
+      mx_handle_duplicate(binary_vmo, MX_RIGHT_SAME_RIGHTS, &list_vmo);
+  RETURN_IF_ERROR(status);
   int list_result = run_test(list_vmo, "--list", &list_stdout, &list_stderr);
   if (list_result != 0) {
     fprintf(stderr, "Failed to list tests: %s\n%s\n", list_stdout, list_stderr);
@@ -431,7 +443,7 @@ int main(int argc, char** argv) {
   }
   free(test_list);
   pthread_mutex_destroy(&args_mutex);
-  mx_status_t status = mx_handle_close(binary_vmo);
+  status = mx_handle_close(binary_vmo);
   RETURN_IF_ERROR(status);
 
   // Complain if we didn't try to run all of the tests.

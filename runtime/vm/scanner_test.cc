@@ -15,9 +15,8 @@ typedef ZoneGrowableArray<Scanner::TokenDescriptor> GrowableTokenStream;
 
 
 static void LogTokenDesc(Scanner::TokenDescriptor token) {
-  OS::Print("pos %2d:%d-%d token %s  ",
-            token.position.line, token.position.column,
-            token.position.column,
+  OS::Print("pos %2d:%d-%d token %s  ", token.position.line,
+            token.position.column, token.position.column,
             Token::Name(token.kind));
   if (token.literal != NULL) {
     OS::Print("%s", token.literal->ToCString());
@@ -39,73 +38,73 @@ static void LogTokenStream(const GrowableTokenStream& token_stream) {
 }
 
 
-static void CheckKind(const GrowableTokenStream &token_stream,
-               int index,
-               Token::Kind kind) {
+static void CheckKind(const GrowableTokenStream& token_stream,
+                      int index,
+                      Token::Kind kind) {
   if (token_stream[index].kind != kind) {
     OS::PrintErr("Token %d: expected kind %s but got %s\n", index,
-        Token::Name(kind), Token::Name(token_stream[index].kind));
+                 Token::Name(kind), Token::Name(token_stream[index].kind));
   }
   EXPECT_EQ(kind, token_stream[index].kind);
 }
 
 
 static void CheckLiteral(const GrowableTokenStream& token_stream,
-                 int index,
-                 const char* literal) {
+                         int index,
+                         const char* literal) {
   if (token_stream[index].literal == NULL) {
-    OS::PrintErr("Token %d: expected literal \"%s\" but got nothing\n",
-                 index, literal);
+    OS::PrintErr("Token %d: expected literal \"%s\" but got nothing\n", index,
+                 literal);
   } else if (strcmp(literal, token_stream[index].literal->ToCString())) {
-    OS::PrintErr("Token %d: expected literal \"%s\" but got \"%s\"\n",
-                 index, literal, token_stream[index].literal->ToCString());
+    OS::PrintErr("Token %d: expected literal \"%s\" but got \"%s\"\n", index,
+                 literal, token_stream[index].literal->ToCString());
   }
 }
 
 
 static void CheckIdent(const GrowableTokenStream& token_stream,
-               int index,
-               const char* literal) {
+                       int index,
+                       const char* literal) {
   CheckKind(token_stream, index, Token::kIDENT);
   CheckLiteral(token_stream, index, literal);
 }
 
 
 static void CheckInteger(const GrowableTokenStream& token_stream,
-                 int index,
-                 const char* literal) {
+                         int index,
+                         const char* literal) {
   CheckKind(token_stream, index, Token::kINTEGER);
   CheckLiteral(token_stream, index, literal);
 }
 
 
 static void CheckLineNumber(const GrowableTokenStream& token_stream,
-                     int index,
-                     int line_number) {
+                            int index,
+                            int line_number) {
   if (token_stream[index].position.line != line_number) {
-    OS::PrintErr("Token %d: expected line number %d but got %d\n",
-        index, line_number, token_stream[index].position.line);
+    OS::PrintErr("Token %d: expected line number %d but got %d\n", index,
+                 line_number, token_stream[index].position.line);
   }
 }
 
 
-static void CheckNumTokens(const GrowableTokenStream& token_stream,
-                    int index) {
+static void CheckNumTokens(const GrowableTokenStream& token_stream, int index) {
   if (token_stream.length() != index) {
-    OS::PrintErr("Expected %d tokens but got only %" Pd ".\n",
-        index, token_stream.length());
+    OS::PrintErr("Expected %d tokens but got only %" Pd ".\n", index,
+                 token_stream.length());
   }
 }
 
 
 class Collector : public Scanner::TokenCollector {
  public:
-  explicit Collector(GrowableTokenStream* ts) : ts_(ts) { }
-  virtual ~Collector() { }
+  explicit Collector(GrowableTokenStream* ts) : ts_(ts) {}
+  virtual ~Collector() {}
 
   virtual void AddToken(const Scanner::TokenDescriptor& token) {
     ts_->Add(token);
   }
+
  private:
   GrowableTokenStream* ts_;
 };
@@ -138,9 +137,9 @@ static void BoringTest() {
 
 
 static void CommentTest() {
-  const GrowableTokenStream& tokens =
-      Scan("Foo( /*block \n"
-           "comment*/ 0xff) // line comment;");
+  const GrowableTokenStream& tokens = Scan(
+      "Foo( /*block \n"
+      "comment*/ 0xff) // line comment;");
 
   CheckNumTokens(tokens, 6);
   CheckIdent(tokens, 0, "Foo");
@@ -192,15 +191,13 @@ static void StringEscapes() {
 
 
 static void InvalidStringEscapes() {
-  const GrowableTokenStream& out_of_range_low =
-      Scan("\"\\u{110000}\"");
+  const GrowableTokenStream& out_of_range_low = Scan("\"\\u{110000}\"");
   EXPECT_EQ(2, out_of_range_low.length());
   CheckKind(out_of_range_low, 0, Token::kERROR);
   EXPECT(out_of_range_low[0].literal->Equals("invalid code point"));
   CheckKind(out_of_range_low, 1, Token::kEOS);
 
-  const GrowableTokenStream& out_of_range_high =
-      Scan("\"\\u{FFFFFF}\"");
+  const GrowableTokenStream& out_of_range_high = Scan("\"\\u{FFFFFF}\"");
   EXPECT_EQ(2, out_of_range_high.length());
   CheckKind(out_of_range_high, 0, Token::kERROR);
   EXPECT(out_of_range_high[0].literal->Equals("invalid code point"));
@@ -223,7 +220,7 @@ static void RawString() {
 
   EXPECT_EQ('\\', litchars[0]);
   EXPECT_EQ('\'', litchars[1]);
-  EXPECT_EQ(' ',  litchars[2]);
+  EXPECT_EQ(' ', litchars[2]);
   EXPECT_EQ('\\', litchars[3]);
   EXPECT_EQ('\\', litchars[4]);
 }
@@ -248,12 +245,12 @@ static void MultilineString() {
   const char* litchars = (tokens)[2].literal->ToCString();
   EXPECT_EQ(6, (tokens)[2].literal->Length());
 
-  EXPECT_EQ('1',  litchars[0]);  // First newline is dropped.
+  EXPECT_EQ('1', litchars[0]);  // First newline is dropped.
   EXPECT_EQ('\'', litchars[1]);
-  EXPECT_EQ(' ',  litchars[2]);
-  EXPECT_EQ('x',  litchars[3]);
+  EXPECT_EQ(' ', litchars[2]);
+  EXPECT_EQ('x', litchars[3]);
   EXPECT_EQ('\n', litchars[4]);
-  EXPECT_EQ('2',  litchars[5]);
+  EXPECT_EQ('2', litchars[5]);
 }
 
 
@@ -285,8 +282,7 @@ static void EmptyMultilineString() {
 
 
 static void NumberLiteral() {
-  const GrowableTokenStream& tokens =
-      Scan("5 0x5d 0.3 0.33 1E+12 .42 +5");
+  const GrowableTokenStream& tokens = Scan("5 0x5d 0.3 0.33 1E+12 .42 +5");
 
   CheckKind(tokens, 0, Token::kINTEGER);
   CheckKind(tokens, 1, Token::kINTEGER);
@@ -365,8 +361,7 @@ static void ScanLargeText() {
 
 
 void InvalidText() {
-  const GrowableTokenStream& tokens =
-      Scan("\\");
+  const GrowableTokenStream& tokens = Scan("\\");
 
   EXPECT_EQ(2, tokens.length());
   CheckKind(tokens, 0, Token::kERROR);
@@ -400,9 +395,9 @@ void NewlinesTest() {
 
   EXPECT_EQ(4, (tokens)[5].literal->Length());
   const char* litchars = (tokens)[5].literal->ToCString();
-  EXPECT_EQ('c',  litchars[0]);  // First newline is dropped.
+  EXPECT_EQ('c', litchars[0]);  // First newline is dropped.
   EXPECT_EQ('\n', litchars[1]);
-  EXPECT_EQ('d',  litchars[2]);
+  EXPECT_EQ('d', litchars[2]);
   EXPECT_EQ('\n', litchars[3]);
 }
 

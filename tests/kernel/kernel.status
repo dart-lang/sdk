@@ -14,6 +14,7 @@ unsorted/super_mixin_test: CompileTimeError
 
 [ $compiler == dart2js ]
 unsorted/invocation_errors_test: Pass
+unsorted/nsm_dispatcher_test: Skip # The test uses Symbol without MirrorsUsed
 unsorted/super_initializer_test: Skip
 unsorted/super_mixin_test: CompileTimeError
 unsorted/loop_test: Skip

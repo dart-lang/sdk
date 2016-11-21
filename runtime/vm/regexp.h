@@ -25,8 +25,8 @@ class BoyerMooreLookahead;
 // inclusive.
 class CharacterRange {
  public:
-  CharacterRange() : from_(0), to_(0) { }
-  CharacterRange(uint16_t from, uint16_t to) : from_(from), to_(to) { }
+  CharacterRange() : from_(0), to_(0) {}
+  CharacterRange(uint16_t from, uint16_t to) : from_(from), to_(to) {}
 
   static void AddClassEscape(uint16_t type,
                              ZoneGrowableArray<CharacterRange>* ranges);
@@ -81,9 +81,9 @@ class CharacterRange {
 
 // A set of unsigned integers that behaves especially well on small
 // integers (< 32).  May do zone-allocation.
-class OutSet: public ZoneAllocated {
+class OutSet : public ZoneAllocated {
  public:
-  OutSet() : first_(0), remaining_(NULL), successors_(NULL) { }
+  OutSet() : first_(0), remaining_(NULL), successors_(NULL) {}
   OutSet* Extend(unsigned value, Zone* zone);
   bool Get(unsigned value) const;
   static const unsigned kFirstLimit = 32;
@@ -100,7 +100,7 @@ class OutSet: public ZoneAllocated {
   ZoneGrowableArray<OutSet*>* successors() { return successors_; }
 
   OutSet(uint32_t first, ZoneGrowableArray<unsigned>* remaining)
-      : first_(first), remaining_(remaining), successors_(NULL) { }
+      : first_(first), remaining_(remaining), successors_(NULL) {}
   uint32_t first_;
   ZoneGrowableArray<unsigned>* remaining_;
   ZoneGrowableArray<OutSet*>* successors_;
@@ -108,26 +108,26 @@ class OutSet: public ZoneAllocated {
 };
 
 
-#define FOR_EACH_NODE_TYPE(VISIT)                                    \
-  VISIT(End)                                                         \
-  VISIT(Action)                                                      \
-  VISIT(Choice)                                                      \
-  VISIT(BackReference)                                               \
-  VISIT(Assertion)                                                   \
+#define FOR_EACH_NODE_TYPE(VISIT)                                              \
+  VISIT(End)                                                                   \
+  VISIT(Action)                                                                \
+  VISIT(Choice)                                                                \
+  VISIT(BackReference)                                                         \
+  VISIT(Assertion)                                                             \
   VISIT(Text)
 
 
-#define FOR_EACH_REG_EXP_TREE_TYPE(VISIT)                            \
-  VISIT(Disjunction)                                                 \
-  VISIT(Alternative)                                                 \
-  VISIT(Assertion)                                                   \
-  VISIT(CharacterClass)                                              \
-  VISIT(Atom)                                                        \
-  VISIT(Quantifier)                                                  \
-  VISIT(Capture)                                                     \
-  VISIT(Lookahead)                                                   \
-  VISIT(BackReference)                                               \
-  VISIT(Empty)                                                       \
+#define FOR_EACH_REG_EXP_TREE_TYPE(VISIT)                                      \
+  VISIT(Disjunction)                                                           \
+  VISIT(Alternative)                                                           \
+  VISIT(Assertion)                                                             \
+  VISIT(CharacterClass)                                                        \
+  VISIT(Atom)                                                                  \
+  VISIT(Quantifier)                                                            \
+  VISIT(Capture)                                                               \
+  VISIT(Lookahead)                                                             \
+  VISIT(BackReference)                                                         \
+  VISIT(Empty)                                                                 \
   VISIT(Text)
 
 
@@ -138,10 +138,7 @@ FOR_EACH_REG_EXP_TREE_TYPE(FORWARD_DECLARE)
 
 class TextElement {
  public:
-  enum TextType {
-    ATOM,
-    CHAR_CLASS
-  };
+  enum TextType { ATOM, CHAR_CLASS };
 
   static TextElement Atom(RegExpAtom* atom);
   static TextElement CharClass(RegExpCharacterClass* char_class);
@@ -190,7 +187,7 @@ struct NodeInfo {
         follows_start_interest(false),
         at_end(false),
         visited(false),
-        replacement_calculated(false) { }
+        replacement_calculated(false) {}
 
   // Returns true if the interests and assumptions of this node
   // matches the given one.
@@ -211,8 +208,7 @@ struct NodeInfo {
   }
 
   bool HasLookbehind() {
-    return follows_word_interest ||
-           follows_newline_interest ||
+    return follows_word_interest || follows_newline_interest ||
            follows_start_interest;
   }
 
@@ -229,18 +225,18 @@ struct NodeInfo {
     been_analyzed = false;
   }
 
-  bool being_analyzed: 1;
-  bool been_analyzed: 1;
+  bool being_analyzed : 1;
+  bool been_analyzed : 1;
 
   // These bits are set of this node has to know what the preceding
   // character was.
-  bool follows_word_interest: 1;
-  bool follows_newline_interest: 1;
-  bool follows_start_interest: 1;
+  bool follows_word_interest : 1;
+  bool follows_newline_interest : 1;
+  bool follows_start_interest : 1;
 
-  bool at_end: 1;
-  bool visited: 1;
-  bool replacement_calculated: 1;
+  bool at_end : 1;
+  bool visited : 1;
+  bool replacement_calculated : 1;
 };
 
 
@@ -249,15 +245,9 @@ struct NodeInfo {
 class QuickCheckDetails {
  public:
   QuickCheckDetails()
-      : characters_(0),
-        mask_(0),
-        value_(0),
-        cannot_match_(false) { }
+      : characters_(0), mask_(0), value_(0), cannot_match_(false) {}
   explicit QuickCheckDetails(intptr_t characters)
-      : characters_(characters),
-        mask_(0),
-        value_(0),
-        cannot_match_(false) { }
+      : characters_(characters), mask_(0), value_(0), cannot_match_(false) {}
   bool Rationalize(bool one_byte);
   // Merge in the information from another branch of an alternation.
   void Merge(QuickCheckDetails* other, intptr_t from_index);
@@ -267,7 +257,7 @@ class QuickCheckDetails {
   bool cannot_match() { return cannot_match_; }
   void set_cannot_match() { cannot_match_ = true; }
   struct Position {
-    Position() : mask(0), value(0), determines_perfectly(false) { }
+    Position() : mask(0), value(0), determines_perfectly(false) {}
     uint16_t mask;
     uint16_t value;
     bool determines_perfectly;
@@ -298,10 +288,10 @@ class QuickCheckDetails {
 };
 
 
-class RegExpNode: public ZoneAllocated {
+class RegExpNode : public ZoneAllocated {
  public:
   explicit RegExpNode(Zone* zone)
-  : replacement_(NULL), trace_count_(0), zone_(zone) {
+      : replacement_(NULL), trace_count_(0), zone_(zone) {
     bm_info_[0] = bm_info_[1] = NULL;
   }
   virtual ~RegExpNode();
@@ -315,7 +305,8 @@ class RegExpNode: public ZoneAllocated {
   // used to indicate that we know we are not at the start of the input.  In
   // this case anchored branches will always fail and can be ignored when
   // determining how many characters are consumed on success.
-  virtual intptr_t EatsAtLeast(intptr_t still_to_find, intptr_t budget,
+  virtual intptr_t EatsAtLeast(intptr_t still_to_find,
+                               intptr_t budget,
                                bool not_at_start) = 0;
   // Emits some quick code that checks whether the preloaded characters match.
   // Falls through on certain failure, jumps to the label on possible success.
@@ -372,7 +363,7 @@ class RegExpNode: public ZoneAllocated {
   }
   RegExpNode* set_replacement(RegExpNode* replacement) {
     info()->replacement_calculated = true;
-    replacement_ =  replacement;
+    replacement_ = replacement;
     return replacement;  // For convenience.
   }
 
@@ -428,8 +419,8 @@ class RegExpNode: public ZoneAllocated {
 // A simple closed interval.
 class Interval {
  public:
-  Interval() : from_(kNone), to_(kNone) { }
-  Interval(intptr_t from, intptr_t to) : from_(from), to_(to) { }
+  Interval() : from_(kNone), to_(kNone) {}
+  Interval(intptr_t from, intptr_t to) : from_(from), to_(to) {}
 
   Interval Union(Interval that) {
     if (that.from_ == kNone)
@@ -457,10 +448,10 @@ class Interval {
 };
 
 
-class SeqRegExpNode: public RegExpNode {
+class SeqRegExpNode : public RegExpNode {
  public:
   explicit SeqRegExpNode(RegExpNode* on_success)
-      : RegExpNode(on_success->zone()), on_success_(on_success) { }
+      : RegExpNode(on_success->zone()), on_success_(on_success) {}
   RegExpNode* on_success() { return on_success_; }
   void set_on_success(RegExpNode* node) { on_success_ = node; }
   virtual RegExpNode* FilterOneByte(intptr_t depth, bool ignore_case);
@@ -480,7 +471,7 @@ class SeqRegExpNode: public RegExpNode {
 };
 
 
-class ActionNode: public SeqRegExpNode {
+class ActionNode : public SeqRegExpNode {
  public:
   enum ActionType {
     SET_REGISTER,
@@ -491,7 +482,8 @@ class ActionNode: public SeqRegExpNode {
     EMPTY_MATCH_CHECK,
     CLEAR_CAPTURES
   };
-  static ActionNode* SetRegister(intptr_t reg, intptr_t val,
+  static ActionNode* SetRegister(intptr_t reg,
+                                 intptr_t val,
                                  RegExpNode* on_success);
   static ActionNode* IncrementRegister(intptr_t reg, RegExpNode* on_success);
   static ActionNode* StorePosition(intptr_t reg,
@@ -512,14 +504,15 @@ class ActionNode: public SeqRegExpNode {
                                      RegExpNode* on_success);
   virtual void Accept(NodeVisitor* visitor);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
-  virtual intptr_t EatsAtLeast(intptr_t still_to_find, intptr_t budget,
+  virtual intptr_t EatsAtLeast(intptr_t still_to_find,
+                               intptr_t budget,
                                bool not_at_start);
   virtual void GetQuickCheckDetails(QuickCheckDetails* details,
                                     RegExpCompiler* compiler,
                                     intptr_t filled_in,
                                     bool not_at_start) {
-    return on_success()->GetQuickCheckDetails(
-        details, compiler, filled_in, not_at_start);
+    return on_success()->GetQuickCheckDetails(details, compiler, filled_in,
+                                              not_at_start);
   }
   virtual void FillInBMInfo(intptr_t offset,
                             intptr_t budget,
@@ -561,28 +554,25 @@ class ActionNode: public SeqRegExpNode {
     } u_clear_captures;
   } data_;
   ActionNode(ActionType action_type, RegExpNode* on_success)
-      : SeqRegExpNode(on_success),
-        action_type_(action_type) { }
+      : SeqRegExpNode(on_success), action_type_(action_type) {}
   ActionType action_type_;
   friend class DotPrinter;
 };
 
 
-class TextNode: public SeqRegExpNode {
+class TextNode : public SeqRegExpNode {
  public:
-  TextNode(ZoneGrowableArray<TextElement>* elms,
-           RegExpNode* on_success)
+  TextNode(ZoneGrowableArray<TextElement>* elms, RegExpNode* on_success)
+      : SeqRegExpNode(on_success), elms_(elms) {}
+  TextNode(RegExpCharacterClass* that, RegExpNode* on_success)
       : SeqRegExpNode(on_success),
-        elms_(elms) { }
-  TextNode(RegExpCharacterClass* that,
-           RegExpNode* on_success)
-      : SeqRegExpNode(on_success),
-        elms_(new(zone()) ZoneGrowableArray<TextElement>(1)) {
+        elms_(new (zone()) ZoneGrowableArray<TextElement>(1)) {
     elms_->Add(TextElement::CharClass(that));
   }
   virtual void Accept(NodeVisitor* visitor);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
-  virtual intptr_t EatsAtLeast(intptr_t still_to_find, intptr_t budget,
+  virtual intptr_t EatsAtLeast(intptr_t still_to_find,
+                               intptr_t budget,
                                bool not_at_start);
   virtual void GetQuickCheckDetails(QuickCheckDetails* details,
                                     RegExpCompiler* compiler,
@@ -622,7 +612,7 @@ class TextNode: public SeqRegExpNode {
 };
 
 
-class AssertionNode: public SeqRegExpNode {
+class AssertionNode : public SeqRegExpNode {
  public:
   enum AssertionType {
     AT_END,
@@ -632,24 +622,24 @@ class AssertionNode: public SeqRegExpNode {
     AFTER_NEWLINE
   };
   static AssertionNode* AtEnd(RegExpNode* on_success) {
-    return new(on_success->zone()) AssertionNode(AT_END, on_success);
+    return new (on_success->zone()) AssertionNode(AT_END, on_success);
   }
   static AssertionNode* AtStart(RegExpNode* on_success) {
-    return new(on_success->zone()) AssertionNode(AT_START, on_success);
+    return new (on_success->zone()) AssertionNode(AT_START, on_success);
   }
   static AssertionNode* AtBoundary(RegExpNode* on_success) {
-    return new(on_success->zone()) AssertionNode(AT_BOUNDARY, on_success);
+    return new (on_success->zone()) AssertionNode(AT_BOUNDARY, on_success);
   }
   static AssertionNode* AtNonBoundary(RegExpNode* on_success) {
-    return new(on_success->zone()) AssertionNode(AT_NON_BOUNDARY,
-                                                    on_success);
+    return new (on_success->zone()) AssertionNode(AT_NON_BOUNDARY, on_success);
   }
   static AssertionNode* AfterNewline(RegExpNode* on_success) {
-    return new(on_success->zone()) AssertionNode(AFTER_NEWLINE, on_success);
+    return new (on_success->zone()) AssertionNode(AFTER_NEWLINE, on_success);
   }
   virtual void Accept(NodeVisitor* visitor);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
-  virtual intptr_t EatsAtLeast(intptr_t still_to_find, intptr_t budget,
+  virtual intptr_t EatsAtLeast(intptr_t still_to_find,
+                               intptr_t budget,
                                bool not_at_start);
   virtual void GetQuickCheckDetails(QuickCheckDetails* details,
                                     RegExpCompiler* compiler,
@@ -668,19 +658,17 @@ class AssertionNode: public SeqRegExpNode {
                            Trace* trace,
                            IfPrevious backtrack_if_previous);
   AssertionNode(AssertionType t, RegExpNode* on_success)
-      : SeqRegExpNode(on_success), assertion_type_(t) { }
+      : SeqRegExpNode(on_success), assertion_type_(t) {}
   AssertionType assertion_type_;
 };
 
 
-class BackReferenceNode: public SeqRegExpNode {
+class BackReferenceNode : public SeqRegExpNode {
  public:
   BackReferenceNode(intptr_t start_reg,
                     intptr_t end_reg,
                     RegExpNode* on_success)
-      : SeqRegExpNode(on_success),
-        start_reg_(start_reg),
-        end_reg_(end_reg) { }
+      : SeqRegExpNode(on_success), start_reg_(start_reg), end_reg_(end_reg) {}
   virtual void Accept(NodeVisitor* visitor);
   intptr_t start_register() { return start_reg_; }
   intptr_t end_register() { return end_reg_; }
@@ -705,16 +693,18 @@ class BackReferenceNode: public SeqRegExpNode {
 };
 
 
-class EndNode: public RegExpNode {
+class EndNode : public RegExpNode {
  public:
   enum Action { ACCEPT, BACKTRACK, NEGATIVE_SUBMATCH_SUCCESS };
   explicit EndNode(Action action, Zone* zone)
-      : RegExpNode(zone), action_(action) { }
+      : RegExpNode(zone), action_(action) {}
   virtual void Accept(NodeVisitor* visitor);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
   virtual intptr_t EatsAtLeast(intptr_t still_to_find,
-                          intptr_t recursion_depth,
-                          bool not_at_start) { return 0; }
+                               intptr_t recursion_depth,
+                               bool not_at_start) {
+    return 0;
+  }
   virtual void GetQuickCheckDetails(QuickCheckDetails* details,
                                     RegExpCompiler* compiler,
                                     intptr_t characters_filled_in,
@@ -735,7 +725,7 @@ class EndNode: public RegExpNode {
 };
 
 
-class NegativeSubmatchSuccess: public EndNode {
+class NegativeSubmatchSuccess : public EndNode {
  public:
   NegativeSubmatchSuccess(intptr_t stack_pointer_reg,
                           intptr_t position_reg,
@@ -746,7 +736,7 @@ class NegativeSubmatchSuccess: public EndNode {
         stack_pointer_register_(stack_pointer_reg),
         current_position_register_(position_reg),
         clear_capture_count_(clear_capture_count),
-        clear_capture_start_(clear_capture_start) { }
+        clear_capture_start_(clear_capture_start) {}
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
 
  private:
@@ -757,13 +747,11 @@ class NegativeSubmatchSuccess: public EndNode {
 };
 
 
-class Guard: public ZoneAllocated {
+class Guard : public ZoneAllocated {
  public:
   enum Relation { LT, GEQ };
   Guard(intptr_t reg, Relation op, intptr_t value)
-      : reg_(reg),
-        op_(op),
-        value_(value) { }
+      : reg_(reg), op_(op), value_(value) {}
   intptr_t reg() { return reg_; }
   Relation op() { return op_; }
   intptr_t value() { return value_; }
@@ -777,7 +765,7 @@ class Guard: public ZoneAllocated {
 
 class GuardedAlternative {
  public:
-  explicit GuardedAlternative(RegExpNode* node) : node_(node), guards_(NULL) { }
+  explicit GuardedAlternative(RegExpNode* node) : node_(node), guards_(NULL) {}
   void AddGuard(Guard* guard, Zone* zone);
   RegExpNode* node() { return node_; }
   void set_node(RegExpNode* node) { node_ = node; }
@@ -794,23 +782,22 @@ class GuardedAlternative {
 struct AlternativeGeneration;
 
 
-class ChoiceNode: public RegExpNode {
+class ChoiceNode : public RegExpNode {
  public:
   explicit ChoiceNode(intptr_t expected_size, Zone* zone)
       : RegExpNode(zone),
-        alternatives_(new(zone)
-                      ZoneGrowableArray<GuardedAlternative>(expected_size)),
+        alternatives_(new (zone)
+                          ZoneGrowableArray<GuardedAlternative>(expected_size)),
         not_at_start_(false),
-        being_calculated_(false) { }
+        being_calculated_(false) {}
   virtual void Accept(NodeVisitor* visitor);
-  void AddAlternative(GuardedAlternative node) {
-    alternatives()->Add(node);
-  }
+  void AddAlternative(GuardedAlternative node) { alternatives()->Add(node); }
   ZoneGrowableArray<GuardedAlternative>* alternatives() {
     return alternatives_;
   }
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
-  virtual intptr_t EatsAtLeast(intptr_t still_to_find, intptr_t budget,
+  virtual intptr_t EatsAtLeast(intptr_t still_to_find,
+                               intptr_t budget,
                                bool not_at_start);
   intptr_t EatsAtLeastHelper(intptr_t still_to_find,
                              intptr_t budget,
@@ -875,7 +862,7 @@ class ChoiceNode: public RegExpNode {
 };
 
 
-class NegativeLookaheadChoiceNode: public ChoiceNode {
+class NegativeLookaheadChoiceNode : public ChoiceNode {
  public:
   explicit NegativeLookaheadChoiceNode(GuardedAlternative this_must_fail,
                                        GuardedAlternative then_do_this,
@@ -884,7 +871,8 @@ class NegativeLookaheadChoiceNode: public ChoiceNode {
     AddAlternative(this_must_fail);
     AddAlternative(then_do_this);
   }
-  virtual intptr_t EatsAtLeast(intptr_t still_to_find, intptr_t budget,
+  virtual intptr_t EatsAtLeast(intptr_t still_to_find,
+                               intptr_t budget,
                                bool not_at_start);
   virtual void GetQuickCheckDetails(QuickCheckDetails* details,
                                     RegExpCompiler* compiler,
@@ -894,8 +882,8 @@ class NegativeLookaheadChoiceNode: public ChoiceNode {
                             intptr_t budget,
                             BoyerMooreLookahead* bm,
                             bool not_at_start) {
-    (*alternatives_)[1].node()->FillInBMInfo(
-        offset, budget - 1, bm, not_at_start);
+    (*alternatives_)[1].node()->FillInBMInfo(offset, budget - 1, bm,
+                                             not_at_start);
     if (offset == 0) set_bm_info(not_at_start, bm);
   }
   // For a negative lookahead we don't emit the quick check for the
@@ -910,17 +898,18 @@ class NegativeLookaheadChoiceNode: public ChoiceNode {
 };
 
 
-class LoopChoiceNode: public ChoiceNode {
+class LoopChoiceNode : public ChoiceNode {
  public:
   explicit LoopChoiceNode(bool body_can_be_zero_length, Zone* zone)
       : ChoiceNode(2, zone),
         loop_node_(NULL),
         continue_node_(NULL),
-        body_can_be_zero_length_(body_can_be_zero_length) { }
+        body_can_be_zero_length_(body_can_be_zero_length) {}
   void AddLoopAlternative(GuardedAlternative alt);
   void AddContinueAlternative(GuardedAlternative alt);
   virtual void Emit(RegExpCompiler* compiler, Trace* trace);
-  virtual intptr_t EatsAtLeast(intptr_t still_to_find,  intptr_t budget,
+  virtual intptr_t EatsAtLeast(intptr_t still_to_find,
+                               intptr_t budget,
                                bool not_at_start);
   virtual void GetQuickCheckDetails(QuickCheckDetails* details,
                                     RegExpCompiler* compiler,
@@ -997,15 +986,15 @@ ContainedInLattice AddRange(ContainedInLattice a,
 class BoyerMoorePositionInfo : public ZoneAllocated {
  public:
   explicit BoyerMoorePositionInfo(Zone* zone)
-      : map_(new(zone) ZoneGrowableArray<bool>(kMapSize)),
+      : map_(new (zone) ZoneGrowableArray<bool>(kMapSize)),
         map_count_(0),
         w_(kNotYet),
         s_(kNotYet),
         d_(kNotYet),
         surrogate_(kNotYet) {
-     for (intptr_t i = 0; i < kMapSize; i++) {
-       map_->Add(false);
-     }
+    for (intptr_t i = 0; i < kMapSize; i++) {
+      map_->Add(false);
+    }
   }
 
   bool& at(intptr_t i) { return (*map_)[i]; }
@@ -1023,18 +1012,17 @@ class BoyerMoorePositionInfo : public ZoneAllocated {
 
  private:
   ZoneGrowableArray<bool>* map_;
-  intptr_t map_count_;  // Number of set bits in the map.
-  ContainedInLattice w_;  // The \w character class.
-  ContainedInLattice s_;  // The \s character class.
-  ContainedInLattice d_;  // The \d character class.
+  intptr_t map_count_;            // Number of set bits in the map.
+  ContainedInLattice w_;          // The \w character class.
+  ContainedInLattice s_;          // The \s character class.
+  ContainedInLattice d_;          // The \d character class.
   ContainedInLattice surrogate_;  // Surrogate UTF-16 code units.
 };
 
 
-class BoyerMooreLookahead : public ZoneAllocated{
+class BoyerMooreLookahead : public ZoneAllocated {
  public:
-  BoyerMooreLookahead(intptr_t length, RegExpCompiler* compiler,
-                      Zone* Zone);
+  BoyerMooreLookahead(intptr_t length, RegExpCompiler* compiler, Zone* Zone);
 
   intptr_t length() { return length_; }
   intptr_t max_char() { return max_char_; }
@@ -1062,12 +1050,11 @@ class BoyerMooreLookahead : public ZoneAllocated{
     }
   }
 
-  void SetAll(intptr_t map_number) {
-    bitmaps_->At(map_number)->SetAll();
-  }
+  void SetAll(intptr_t map_number) { bitmaps_->At(map_number)->SetAll(); }
 
   void SetRest(intptr_t from_map) {
-    for (intptr_t i = from_map; i < length_; i++) SetAll(i);
+    for (intptr_t i = from_map; i < length_; i++)
+      SetAll(i);
   }
   void EmitSkipInstructions(RegExpMacroAssembler* masm);
 
@@ -1086,10 +1073,10 @@ class BoyerMooreLookahead : public ZoneAllocated{
                         intptr_t max_lookahead,
                         const TypedData& boolean_skip_table);
   bool FindWorthwhileInterval(intptr_t* from, intptr_t* to);
-  intptr_t FindBestInterval(
-      intptr_t max_number_of_chars,
-      intptr_t old_biggest_points,
-      intptr_t* from, intptr_t* to);
+  intptr_t FindBestInterval(intptr_t max_number_of_chars,
+                            intptr_t old_biggest_points,
+                            intptr_t* from,
+                            intptr_t* to);
 };
 
 
@@ -1108,18 +1095,17 @@ class Trace {
  public:
   // A value for a property that is either known to be true, know to be false,
   // or not known.
-  enum TriBool {
-    UNKNOWN = -1, FALSE_VALUE = 0, TRUE_VALUE = 1
-  };
+  enum TriBool { UNKNOWN = -1, FALSE_VALUE = 0, TRUE_VALUE = 1 };
 
   class DeferredAction {
    public:
     DeferredAction(ActionNode::ActionType action_type, intptr_t reg)
-        : action_type_(action_type), reg_(reg), next_(NULL) { }
+        : action_type_(action_type), reg_(reg), next_(NULL) {}
     DeferredAction* next() { return next_; }
     bool Mentions(intptr_t reg);
     intptr_t reg() { return reg_; }
     ActionNode::ActionType action_type() { return action_type_; }
+
    private:
     ActionNode::ActionType action_type_;
     intptr_t reg_;
@@ -1134,9 +1120,10 @@ class Trace {
     DeferredCapture(intptr_t reg, bool is_capture, Trace* trace)
         : DeferredAction(ActionNode::STORE_POSITION, reg),
           cp_offset_(trace->cp_offset()),
-          is_capture_(is_capture) { }
+          is_capture_(is_capture) {}
     intptr_t cp_offset() { return cp_offset_; }
     bool is_capture() { return is_capture_; }
+
    private:
     intptr_t cp_offset_;
     bool is_capture_;
@@ -1146,9 +1133,9 @@ class Trace {
   class DeferredSetRegister : public DeferredAction {
    public:
     DeferredSetRegister(intptr_t reg, intptr_t value)
-        : DeferredAction(ActionNode::SET_REGISTER, reg),
-          value_(value) { }
+        : DeferredAction(ActionNode::SET_REGISTER, reg), value_(value) {}
     intptr_t value() { return value_; }
+
    private:
     intptr_t value_;
   };
@@ -1156,9 +1143,9 @@ class Trace {
   class DeferredClearCaptures : public DeferredAction {
    public:
     explicit DeferredClearCaptures(Interval range)
-        : DeferredAction(ActionNode::CLEAR_CAPTURES, -1),
-          range_(range) { }
+        : DeferredAction(ActionNode::CLEAR_CAPTURES, -1), range_(range) {}
     Interval range() { return range_; }
+
    private:
     Interval range_;
   };
@@ -1166,7 +1153,7 @@ class Trace {
   class DeferredIncrementRegister : public DeferredAction {
    public:
     explicit DeferredIncrementRegister(intptr_t reg)
-        : DeferredAction(ActionNode::INCREMENT_REGISTER, reg) { }
+        : DeferredAction(ActionNode::INCREMENT_REGISTER, reg) {}
   };
 
   Trace()
@@ -1178,7 +1165,7 @@ class Trace {
         characters_preloaded_(0),
         bound_checked_up_to_(0),
         flush_budget_(100),
-        at_start_(UNKNOWN) { }
+        at_start_(UNKNOWN) {}
 
   // End the trace.  This involves flushing the deferred actions in the trace
   // and pushing a backtrack location onto the backtrack stack.  Once this is
@@ -1198,13 +1185,9 @@ class Trace {
   // a trivial trace is recorded in a label in the node so that gotos can be
   // generated to that code.
   bool is_trivial() {
-    return backtrack_ == NULL &&
-           actions_ == NULL &&
-           cp_offset_ == 0 &&
-           characters_preloaded_ == 0 &&
-           bound_checked_up_to_ == 0 &&
-           quick_check_performed_.characters() == 0 &&
-           at_start_ == UNKNOWN;
+    return backtrack_ == NULL && actions_ == NULL && cp_offset_ == 0 &&
+           characters_preloaded_ == 0 && bound_checked_up_to_ == 0 &&
+           quick_check_performed_.characters() == 0 && at_start_ == UNKNOWN;
   }
   TriBool at_start() { return at_start_; }
   void set_at_start(bool at_start) {
@@ -1289,9 +1272,7 @@ struct PreloadState {
   bool preload_has_checked_bounds_;
   intptr_t preload_characters_;
   intptr_t eats_at_least_;
-  void init() {
-    eats_at_least_ = kEatsAtLeastNotYetInitialized;
-  }
+  void init() { eats_at_least_ = kEatsAtLeastNotYetInitialized; }
 
   DISALLOW_ALLOCATION();
 };
@@ -1299,10 +1280,9 @@ struct PreloadState {
 
 class NodeVisitor : public ValueObject {
  public:
-  virtual ~NodeVisitor() { }
-#define DECLARE_VISIT(Type)                                          \
-  virtual void Visit##Type(Type##Node* that) = 0;
-FOR_EACH_NODE_TYPE(DECLARE_VISIT)
+  virtual ~NodeVisitor() {}
+#define DECLARE_VISIT(Type) virtual void Visit##Type(Type##Node* that) = 0;
+  FOR_EACH_NODE_TYPE(DECLARE_VISIT)
 #undef DECLARE_VISIT
   virtual void VisitLoopChoice(LoopChoiceNode* that) { VisitChoice(that); }
 };
@@ -1320,17 +1300,16 @@ FOR_EACH_NODE_TYPE(DECLARE_VISIT)
 //   +-------+  --->  +------------+
 //   | word? |        | check word |
 //   +-------+        +------------+
-class Analysis: public NodeVisitor {
+class Analysis : public NodeVisitor {
  public:
   Analysis(bool ignore_case, bool is_one_byte)
       : ignore_case_(ignore_case),
         is_one_byte_(is_one_byte),
-        error_message_(NULL) { }
+        error_message_(NULL) {}
   void EnsureAnalyzed(RegExpNode* node);
 
-#define DECLARE_VISIT(Type)                                          \
-  virtual void Visit##Type(Type##Node* that);
-FOR_EACH_NODE_TYPE(DECLARE_VISIT)
+#define DECLARE_VISIT(Type) virtual void Visit##Type(Type##Node* that);
+  FOR_EACH_NODE_TYPE(DECLARE_VISIT)
 #undef DECLARE_VISIT
   virtual void VisitLoopChoice(LoopChoiceNode* that);
 
@@ -1339,9 +1318,7 @@ FOR_EACH_NODE_TYPE(DECLARE_VISIT)
     ASSERT(error_message_ != NULL);
     return error_message_;
   }
-  void fail(const char* error_message) {
-    error_message_ = error_message;
-  }
+  void fail(const char* error_message) { error_message_ = error_message; }
 
  private:
   bool ignore_case_;
@@ -1354,12 +1331,12 @@ FOR_EACH_NODE_TYPE(DECLARE_VISIT)
 
 struct RegExpCompileData : public ZoneAllocated {
   RegExpCompileData()
-    : tree(NULL),
-      node(NULL),
-      simple(true),
-      contains_anchor(false),
-      error(String::Handle(String::null())),
-      capture_count(0) { }
+      : tree(NULL),
+        node(NULL),
+        simple(true),
+        contains_anchor(false),
+        error(String::Handle(String::null())),
+        capture_count(0) {}
   RegExpTree* tree;
   RegExpNode* node;
   bool simple;
@@ -1369,7 +1346,7 @@ struct RegExpCompileData : public ZoneAllocated {
 };
 
 
-class RegExpEngine: public AllStatic {
+class RegExpEngine : public AllStatic {
  public:
   struct CompilationResult {
     explicit CompilationResult(const char* error_message)
@@ -1395,12 +1372,12 @@ class RegExpEngine: public AllStatic {
                       intptr_t num_blocks,
                       intptr_t num_stack_locals,
                       intptr_t num_registers)
-      : backtrack_goto(backtrack_goto),
-        graph_entry(graph_entry),
-        num_blocks(num_blocks),
-        num_stack_locals(num_stack_locals),
-        error_message(NULL),
-        bytecode(NULL) {}
+        : backtrack_goto(backtrack_goto),
+          graph_entry(graph_entry),
+          num_blocks(num_blocks),
+          num_stack_locals(num_stack_locals),
+          error_message(NULL),
+          bytecode(NULL) {}
 
     IndirectGotoInstr* backtrack_goto;
     GraphEntryInstr* graph_entry;
@@ -1418,17 +1395,16 @@ class RegExpEngine: public AllStatic {
       const ParsedFunction* parsed_function,
       const ZoneGrowableArray<const ICData*>& ic_data_array);
 
-  static CompilationResult CompileBytecode(
-      RegExpCompileData* data,
-      const RegExp& regexp,
-      bool is_one_byte,
-      Zone* zone);
+  static CompilationResult CompileBytecode(RegExpCompileData* data,
+                                           const RegExp& regexp,
+                                           bool is_one_byte,
+                                           bool sticky,
+                                           Zone* zone);
 
-  static RawRegExp* CreateRegExp(
-      Thread* thread,
-      const String& pattern,
-      bool multi_line,
-      bool ignore_case);
+  static RawRegExp* CreateRegExp(Thread* thread,
+                                 const String& pattern,
+                                 bool multi_line,
+                                 bool ignore_case);
 
   static void DotPrint(const char* label, RegExpNode* node, bool ignore_case);
 };

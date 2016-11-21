@@ -700,4 +700,19 @@ abstract class TypeParameterType implements DartType {
 
   @override
   TypeParameterElement get element;
+
+  /**
+   * Return the type representing the bound associated with this parameter,
+   * or `dynamic` if there was no explicit bound.
+   */
+  DartType get bound;
+
+  /**
+   * An object that can be used to identify this type parameter with `==`.
+   *
+   * Depending on the use, [bound] may also need to be taken into account.
+   * A given type parameter, it may have different bounds in different scopes.
+   * Always consult the bound if that could be relevant.
+   */
+  ElementLocation get definition;
 }

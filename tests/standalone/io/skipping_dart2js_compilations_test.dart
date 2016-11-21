@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// OtherResources=skipping_dart2js_compilations_helper.dart
+
 /*
  * This test makes sure that the "skipping Dart2Js compilations if the output is
  * already up to date" feature does work as it should.

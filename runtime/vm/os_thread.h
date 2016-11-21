@@ -70,9 +70,7 @@ class OSThread : public BaseThread {
   }
 #endif
 
-  const char* name() const {
-    return name_;
-  }
+  const char* name() const { return name_; }
 
   void SetName(const char* name);
 
@@ -83,14 +81,10 @@ class OSThread : public BaseThread {
     name_ = strdup(name);
   }
 
-  Mutex* timeline_block_lock() const {
-    return timeline_block_lock_;
-  }
+  Mutex* timeline_block_lock() const { return timeline_block_lock_; }
 
   // Only safe to access when holding |timeline_block_lock_|.
-  TimelineEventBlock* timeline_block() const {
-    return timeline_block_;
-  }
+  TimelineEventBlock* timeline_block() const { return timeline_block_; }
 
   // Only safe to access when holding |timeline_block_lock_|.
   void set_timeline_block(TimelineEventBlock* block) {
@@ -147,18 +141,17 @@ class OSThread : public BaseThread {
   static BaseThread* GetCurrentTLS() {
     return reinterpret_cast<BaseThread*>(OSThread::GetThreadLocal(thread_key_));
   }
-  static void SetCurrentTLS(uword value) {
-    SetThreadLocal(thread_key_, value);
-  }
+  static void SetCurrentTLS(uword value) { SetThreadLocal(thread_key_, value); }
 
-  typedef void (*ThreadStartFunction) (uword parameter);
-  typedef void (*ThreadDestructor) (void* parameter);
+  typedef void (*ThreadStartFunction)(uword parameter);
+  typedef void (*ThreadDestructor)(void* parameter);
 
   // Start a thread running the specified function. Returns 0 if the
   // thread started successfuly and a system specific error code if
   // the thread failed to start.
-  static int Start(
-      const char* name, ThreadStartFunction function, uword parameter);
+  static int Start(const char* name,
+                   ThreadStartFunction function,
+                   uword parameter);
 
   static ThreadLocalKey CreateThreadLocal(ThreadDestructor destructor = NULL);
   static void DeleteThreadLocal(ThreadLocalKey key);
@@ -202,9 +195,7 @@ class OSThread : public BaseThread {
   // We could eliminate this requirement if the windows thread interrupter
   // is implemented differently.
   Thread* thread() const { return thread_; }
-  void set_thread(Thread* value) {
-    thread_ = value;
-  }
+  void set_thread(Thread* value) { thread_ = value; }
 
   static void Cleanup();
 #ifndef PRODUCT
@@ -311,10 +302,7 @@ class Mutex {
 
 class Monitor {
  public:
-  enum WaitResult {
-    kNotified,
-    kTimedOut
-  };
+  enum WaitResult { kNotified, kTimedOut };
 
   static const int64_t kNoTimeout = 0;
 

@@ -31,20 +31,19 @@ bool TokenPosition::IsSynthetic() const {
 
 
 #define DEFINE_VALUES(name, value)                                             \
-const TokenPosition TokenPosition::k##name = TokenPosition(value);
-  SENTINEL_TOKEN_DESCRIPTORS(DEFINE_VALUES);
+  const TokenPosition TokenPosition::k##name = TokenPosition(value);
+SENTINEL_TOKEN_DESCRIPTORS(DEFINE_VALUES);
 #undef DEFINE_VALUES
-const TokenPosition TokenPosition::kMinSource =
-    TokenPosition(kMinSourcePos);
+const TokenPosition TokenPosition::kMinSource = TokenPosition(kMinSourcePos);
 
-const TokenPosition TokenPosition::kMaxSource =
-    TokenPosition(kMaxSourcePos);
+const TokenPosition TokenPosition::kMaxSource = TokenPosition(kMaxSourcePos);
 
 
 const char* TokenPosition::ToCString() const {
   switch (value_) {
 #define DEFINE_CASE(name, value)                                               \
-    case value: return #name;
+  case value:                                                                  \
+    return #name;
     SENTINEL_TOKEN_DESCRIPTORS(DEFINE_CASE);
 #undef DEFINE_CASE
     default: {

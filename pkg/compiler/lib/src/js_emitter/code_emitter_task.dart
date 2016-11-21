@@ -60,7 +60,7 @@ class CodeEmitterTask extends CompilerTask {
   String get patchVersion => emitter.patchVersion;
 
   /// Returns the closure expression of a static function.
-  jsAst.Expression isolateStaticClosureAccess(FunctionElement element) {
+  jsAst.Expression isolateStaticClosureAccess(MethodElement element) {
     return emitter.isolateStaticClosureAccess(element);
   }
 
@@ -87,7 +87,7 @@ class CodeEmitterTask extends CompilerTask {
   /// Returns the JS function representing the given function.
   ///
   /// The function must be invoked and can not be used as closure.
-  jsAst.Expression staticFunctionAccess(FunctionElement e) {
+  jsAst.Expression staticFunctionAccess(MethodElement e) {
     return emitter.staticFunctionAccess(e);
   }
 

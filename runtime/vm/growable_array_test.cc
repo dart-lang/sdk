@@ -8,7 +8,7 @@
 
 namespace dart {
 
-template<class GrowableArrayInt, class GrowableArrayInt64>
+template <class GrowableArrayInt, class GrowableArrayInt64>
 void TestGrowableArray() {
   GrowableArrayInt g;
   EXPECT_EQ(0, g.length());
@@ -64,14 +64,12 @@ void TestGrowableArray() {
 
 
 TEST_CASE(GrowableArray) {
-  TestGrowableArray<GrowableArray<int>,
-                    GrowableArray<int64_t> >();
+  TestGrowableArray<GrowableArray<int>, GrowableArray<int64_t> >();
 }
 
 
 TEST_CASE(MallocGrowableArray) {
-  TestGrowableArray<MallocGrowableArray<int>,
-                    MallocGrowableArray<int64_t> >();
+  TestGrowableArray<MallocGrowableArray<int>, MallocGrowableArray<int64_t> >();
 }
 
 

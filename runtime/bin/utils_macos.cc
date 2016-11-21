@@ -5,16 +5,16 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
-#include <errno.h>  // NOLINT
-#include <mach/clock.h>  // NOLINT
-#include <mach/mach.h>  // NOLINT
+#include <errno.h>           // NOLINT
+#include <mach/clock.h>      // NOLINT
+#include <mach/mach.h>       // NOLINT
 #include <mach/mach_time.h>  // NOLINT
-#include <netdb.h>  // NOLINT
+#include <netdb.h>           // NOLINT
 #if TARGET_OS_IOS
 #include <sys/sysctl.h>  // NOLINT
 #endif
 #include <sys/time.h>  // NOLINT
-#include <time.h>  // NOLINT
+#include <time.h>      // NOLINT
 
 #include "bin/utils.h"
 #include "platform/assert.h"
@@ -49,38 +49,42 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
 }
 
 
-const char* StringUtils::ConsoleStringToUtf8(
-    const char* str, intptr_t len, intptr_t* result_len) {
+const char* StringUtils::ConsoleStringToUtf8(const char* str,
+                                             intptr_t len,
+                                             intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-const char* StringUtils::Utf8ToConsoleString(
-    const char* utf8, intptr_t len, intptr_t* result_len) {
+const char* StringUtils::Utf8ToConsoleString(const char* utf8,
+                                             intptr_t len,
+                                             intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-char* StringUtils::ConsoleStringToUtf8(
-    char* str, intptr_t len, intptr_t* result_len) {
+char* StringUtils::ConsoleStringToUtf8(char* str,
+                                       intptr_t len,
+                                       intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
-char* StringUtils::Utf8ToConsoleString(
-    char* utf8, intptr_t len, intptr_t* result_len) {
+char* StringUtils::Utf8ToConsoleString(char* utf8,
+                                       intptr_t len,
+                                       intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
 
 
 char* StringUtils::StrNDup(const char* s, intptr_t n) {
-  // strndup has only been added to Mac OS X in 10.7. We are supplying
-  // our own copy here if needed.
-#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || \
+// strndup has only been added to Mac OS X in 10.7. We are supplying
+// our own copy here if needed.
+#if !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) ||                 \
     __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ <= 1060
   intptr_t len = strlen(s);
   if ((n < 0) || (len < 0)) {
@@ -95,7 +99,7 @@ char* StringUtils::StrNDup(const char* s, intptr_t n) {
   }
   result[len] = '\0';
   return reinterpret_cast<char*>(memmove(result, s, len));
-#else  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
+#else   // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
   return strndup(s, n);
 #endif  // !defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) || ...
 }

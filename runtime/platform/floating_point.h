@@ -5,7 +5,11 @@
 #ifndef RUNTIME_PLATFORM_FLOATING_POINT_H_
 #define RUNTIME_PLATFORM_FLOATING_POINT_H_
 
-inline double fmod_ieee(double x, double y) { return fmod(x, y); }
-inline double atan2_ieee(double y, double x) { return atan2(y, x); }
+inline double fmod_ieee(double x, double y) {
+  return fmod(x, y);
+}
+inline double atan2_ieee(double y, double x) {
+  return atan2(y, x);
+}
 
 #endif  // RUNTIME_PLATFORM_FLOATING_POINT_H_

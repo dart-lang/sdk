@@ -71,7 +71,7 @@ class Zone;
   V(Smi)                                                                       \
   V(String)                                                                    \
   V(TypeArguments)                                                             \
-  V(TypeParameter)                                                             \
+  V(TypeParameter)
 
 
 #if defined(TARGET_ARCH_DBC)
@@ -86,8 +86,8 @@ class Zone;
     StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
   V(RawCode*, invoke_dart_code_stub_,                                          \
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
-  V(RawCode*, call_to_runtime_stub_,                                           \
-    StubCode::CallToRuntime_entry()->code(), NULL)                             \
+  V(RawCode*, call_to_runtime_stub_, StubCode::CallToRuntime_entry()->code(),  \
+    NULL)                                                                      \
   V(RawCode*, monomorphic_miss_stub_,                                          \
     StubCode::MonomorphicMiss_entry()->code(), NULL)                           \
   V(RawCode*, ic_lookup_through_code_stub_,                                    \
@@ -95,7 +95,7 @@ class Zone;
   V(RawCode*, lazy_deopt_from_return_stub_,                                    \
     StubCode::DeoptimizeLazyFromReturn_entry()->code(), NULL)                  \
   V(RawCode*, lazy_deopt_from_throw_stub_,                                     \
-    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)                   \
+    StubCode::DeoptimizeLazyFromThrow_entry()->code(), NULL)
 
 #endif
 
@@ -104,7 +104,7 @@ class Zone;
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
   V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
-  CACHED_VM_STUBS_LIST(V)                                                      \
+  CACHED_VM_STUBS_LIST(V)
 
 #if defined(TARGET_ARCH_DBC)
 #define CACHED_VM_STUBS_ADDRESSES_LIST(V)
@@ -115,9 +115,9 @@ class Zone;
   V(uword, call_to_runtime_entry_point_,                                       \
     StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
   V(uword, megamorphic_call_checked_entry_,                                    \
-    StubCode::MegamorphicCall_entry()->CheckedEntryPoint(), 0)                 \
+    StubCode::MegamorphicCall_entry()->EntryPoint(), 0)                        \
   V(uword, monomorphic_miss_entry_,                                            \
-    StubCode::MonomorphicMiss_entry()->EntryPoint(), 0)                        \
+    StubCode::MonomorphicMiss_entry()->EntryPoint(), 0)
 
 #endif
 
@@ -125,24 +125,24 @@ class Zone;
   CACHED_VM_STUBS_ADDRESSES_LIST(V)                                            \
   V(uword, native_call_wrapper_entry_point_,                                   \
     NativeEntry::NativeCallWrapperEntry(), 0)                                  \
-  V(RawString**, predefined_symbols_address_,                                  \
-    Symbols::PredefinedAddress(), NULL)                                        \
+  V(RawString**, predefined_symbols_address_, Symbols::PredefinedAddress(),    \
+    NULL)                                                                      \
   V(uword, double_negate_address_,                                             \
     reinterpret_cast<uword>(&double_negate_constant), 0)                       \
-  V(uword, double_abs_address_,                                                \
-    reinterpret_cast<uword>(&double_abs_constant), 0)                          \
-  V(uword, float_not_address_,                                                 \
-    reinterpret_cast<uword>(&float_not_constant), 0)                           \
+  V(uword, double_abs_address_, reinterpret_cast<uword>(&double_abs_constant), \
+    0)                                                                         \
+  V(uword, float_not_address_, reinterpret_cast<uword>(&float_not_constant),   \
+    0)                                                                         \
   V(uword, float_negate_address_,                                              \
     reinterpret_cast<uword>(&float_negate_constant), 0)                        \
   V(uword, float_absolute_address_,                                            \
     reinterpret_cast<uword>(&float_absolute_constant), 0)                      \
   V(uword, float_zerow_address_,                                               \
-    reinterpret_cast<uword>(&float_zerow_constant), 0)                         \
+    reinterpret_cast<uword>(&float_zerow_constant), 0)
 
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \
-  CACHED_ADDRESSES_LIST(V)                                                     \
+  CACHED_ADDRESSES_LIST(V)
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
@@ -210,9 +210,7 @@ class Thread : public BaseThread {
 
 #if defined(TARGET_ARCH_DBC)
   // Access to the current stack limit for DBC interpreter.
-  uword stack_limit() const {
-    return stack_limit_;
-  }
+  uword stack_limit() const { return stack_limit_; }
 #endif
 
   // Stack overflow flags
@@ -231,9 +229,7 @@ class Thread : public BaseThread {
     return ++stack_overflow_count_;
   }
 
-  TaskKind task_kind() const {
-    return task_kind_;
-  }
+  TaskKind task_kind() const { return task_kind_; }
 
   // Retrieves and clears the stack overflow flags.  These are set by
   // the generated code before the slow path runtime routine for a
@@ -255,9 +251,7 @@ class Thread : public BaseThread {
 
   // OSThread corresponding to this thread.
   OSThread* os_thread() const { return os_thread_; }
-  void set_os_thread(OSThread* os_thread) {
-    os_thread_ = os_thread;
-  }
+  void set_os_thread(OSThread* os_thread) { os_thread_ = os_thread; }
 
   // Monitor corresponding to this thread.
   Monitor* thread_lock() const { return thread_lock_; }
@@ -281,9 +275,7 @@ class Thread : public BaseThread {
 
   // The isolate that this thread is operating on, or NULL if none.
   Isolate* isolate() const { return isolate_; }
-  static intptr_t isolate_offset() {
-    return OFFSET_OF(Thread, isolate_);
-  }
+  static intptr_t isolate_offset() { return OFFSET_OF(Thread, isolate_); }
   bool IsMutatorThread() const;
   bool CanCollectGarbage() const;
 
@@ -314,9 +306,7 @@ class Thread : public BaseThread {
     type_range_cache_ = value;
   }
 
-  int32_t no_callback_scope_depth() const {
-    return no_callback_scope_depth_;
-  }
+  int32_t no_callback_scope_depth() const { return no_callback_scope_depth_; }
 
   void IncrementNoCallbackScopeDepth() {
     ASSERT(no_callback_scope_depth_ < INT_MAX);
@@ -340,9 +330,7 @@ class Thread : public BaseThread {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
-  uword top_exit_frame_info() const {
-    return top_exit_frame_info_;
-  }
+  uword top_exit_frame_info() const { return top_exit_frame_info_; }
   void set_top_exit_frame_info(uword top_exit_frame_info) {
     top_exit_frame_info_ = top_exit_frame_info;
   }
@@ -351,18 +339,14 @@ class Thread : public BaseThread {
   }
 
   StackResource* top_resource() const { return top_resource_; }
-  void set_top_resource(StackResource* value) {
-    top_resource_ = value;
-  }
+  void set_top_resource(StackResource* value) { top_resource_ = value; }
   static intptr_t top_resource_offset() {
     return OFFSET_OF(Thread, top_resource_);
   }
 
   // Heap of the isolate that this thread is operating on.
   Heap* heap() const { return heap_; }
-  static intptr_t heap_offset() {
-    return OFFSET_OF(Thread, heap_);
-  }
+  static intptr_t heap_offset() { return OFFSET_OF(Thread, heap_); }
 
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
@@ -426,21 +410,21 @@ class Thread : public BaseThread {
   static intptr_t member_name##offset() {                                      \
     return OFFSET_OF(Thread, member_name);                                     \
   }
-CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
+  CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
 #define DEFINE_OFFSET_METHOD(name)                                             \
   static intptr_t name##_entry_point_offset() {                                \
     return OFFSET_OF(Thread, name##_entry_point_);                             \
   }
-RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
+  RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
 #define DEFINE_OFFSET_METHOD(returntype, name, ...)                            \
   static intptr_t name##_entry_point_offset() {                                \
     return OFFSET_OF(Thread, name##_entry_point_);                             \
   }
-LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
+  LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 #undef DEFINE_OFFSET_METHOD
 
   static bool CanLoadFromThread(const Object& object);
@@ -478,22 +462,30 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   }
 
   LongJumpScope* long_jump_base() const { return long_jump_base_; }
-  void set_long_jump_base(LongJumpScope* value) {
-    long_jump_base_ = value;
-  }
+  void set_long_jump_base(LongJumpScope* value) { long_jump_base_ = value; }
 
-  uword vm_tag() const {
-    return vm_tag_;
-  }
-  void set_vm_tag(uword tag) {
-    vm_tag_ = tag;
-  }
-  static intptr_t vm_tag_offset() {
-    return OFFSET_OF(Thread, vm_tag_);
-  }
+  uword vm_tag() const { return vm_tag_; }
+  void set_vm_tag(uword tag) { vm_tag_ = tag; }
+  static intptr_t vm_tag_offset() { return OFFSET_OF(Thread, vm_tag_); }
 
   RawGrowableObjectArray* pending_functions();
   void clear_pending_functions();
+
+  RawObject* active_exception() const { return active_exception_; }
+  void set_active_exception(const Object& value);
+  static intptr_t active_exception_offset() {
+    return OFFSET_OF(Thread, active_exception_);
+  }
+
+  RawObject* active_stacktrace() const { return active_stacktrace_; }
+  void set_active_stacktrace(const Object& value);
+  static intptr_t active_stacktrace_offset() {
+    return OFFSET_OF(Thread, active_stacktrace_);
+  }
+
+  uword resume_pc() const { return resume_pc_; }
+  void set_resume_pc(uword value) { resume_pc_ = value; }
+  static uword resume_pc_offset() { return OFFSET_OF(Thread, resume_pc_); }
 
   RawError* sticky_error() const;
   void set_sticky_error(const Error& value);
@@ -514,7 +506,9 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
 
   bool IsAnyReusableHandleScopeActive() const {
 #define IS_REUSABLE_HANDLE_SCOPE_ACTIVE(object)                                \
-    if (reusable_##object##_handle_scope_active_) return true;
+  if (reusable_##object##_handle_scope_active_) {                              \
+    return true;                                                               \
+  }
     REUSABLE_HANDLE_LIST(IS_REUSABLE_HANDLE_SCOPE_ACTIVE)
     return false;
 #undef IS_REUSABLE_HANDLE_SCOPE_ACTIVE
@@ -524,9 +518,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   void ClearReusableHandles();
 
 #define REUSABLE_HANDLE(object)                                                \
-  object& object##Handle() const {                                             \
-    return *object##_handle_;                                                  \
-  }
+  object& object##Handle() const { return *object##_handle_; }
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
 #undef REUSABLE_HANDLE
 
@@ -577,9 +569,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     do {
       old_state = safepoint_state_;
       new_state = SafepointRequestedField::update(value, old_state);
-    } while (AtomicOperations::CompareAndSwapUint32(&safepoint_state_,
-                                                    old_state,
-                                                    new_state) != old_state);
+    } while (AtomicOperations::CompareAndSwapUint32(
+                 &safepoint_state_, old_state, new_state) != old_state);
     return old_state;
   }
   static bool IsBlockedForSafepoint(uint32_t state) {
@@ -656,7 +647,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   void InitVMConstants();
 
  private:
-  template<class T> T* AllocateReusableHandle();
+  template <class T>
+  T* AllocateReusableHandle();
 
   // Accessed from generated code:
   uword stack_limit_;
@@ -667,20 +659,18 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   StoreBufferBlock* store_buffer_block_;
   uword vm_tag_;
   TaskKind task_kind_;
-  // State that is cached in the TLS for fast access in generated code.
+// State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
-CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
+  CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-#define DECLARE_MEMBERS(name)      \
-  uword name##_entry_point_;
-RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
+#define DECLARE_MEMBERS(name) uword name##_entry_point_;
+  RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-#define DECLARE_MEMBERS(returntype, name, ...)      \
-  uword name##_entry_point_;
-LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
+#define DECLARE_MEMBERS(returntype, name, ...) uword name##_entry_point_;
+  LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
   TimelineStream* dart_stream_;
@@ -710,13 +700,17 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
   intptr_t deopt_id_;  // Compilation specific counter.
   RawGrowableObjectArray* pending_functions_;
 
+  // JumpToExceptionHandler state:
+  RawObject* active_exception_;
+  RawObject* active_stacktrace_;
+  uword resume_pc_;
+
   RawError* sticky_error_;
 
   CompilerStats* compiler_stats_;
 
-  // Reusable handles support.
-#define REUSABLE_HANDLE_FIELDS(object)                                         \
-  object* object##_handle_;
+// Reusable handles support.
+#define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_FIELDS)
 #undef REUSABLE_HANDLE_FIELDS
 
@@ -741,13 +735,9 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
 
-  void set_zone(Zone* zone) {
-    zone_ = zone;
-  }
+  void set_zone(Zone* zone) { zone_ = zone; }
 
-  void set_safepoint_state(uint32_t value) {
-    safepoint_state_ = value;
-  }
+  void set_safepoint_state(uint32_t value) { safepoint_state_ = value; }
   void EnterSafepointUsingLock();
   void ExitSafepointUsingLock();
   void BlockForSafepoint();
@@ -761,7 +751,7 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
-REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
+  REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
