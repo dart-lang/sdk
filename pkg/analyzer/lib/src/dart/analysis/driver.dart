@@ -176,11 +176,6 @@ class AnalysisDriver {
   final _resultController = new StreamController<AnalysisResult>();
 
   /**
-   * Mapping from library URIs to the dependency signature of the library.
-   */
-  final _dependencySignatureMap = <Uri, String>{};
-
-  /**
    * The instance of the status helper.
    */
   final StatusSupport _statusSupport = new StatusSupport();
@@ -202,8 +197,15 @@ class AnalysisDriver {
       : _sourceFactory = sourceFactory.clone() {
     _fillSalt();
     _sdkBundle = sourceFactory.dartSdk.getLinkedBundle();
-    _fsState = new FileSystemState(_logger, _byteStore, _contentOverlay,
-        _resourceProvider, _sourceFactory, _analysisOptions, _salt);
+    _fsState = new FileSystemState(
+        _logger,
+        _byteStore,
+        _contentOverlay,
+        _resourceProvider,
+        _sourceFactory,
+        _analysisOptions,
+        _salt,
+        _sdkBundle.apiSignature);
     _scheduler._add(this);
   }
 
@@ -687,15 +689,11 @@ class AnalysisDriver {
    * not known yet.
    */
   String _getResolvedUnitKey(FileState library, FileState file) {
-    String dependencyHash = _dependencySignatureMap[library.uri];
-    if (dependencyHash != null) {
-      ApiSignature signature = new ApiSignature();
-      signature.addUint32List(_salt);
-      signature.addString(dependencyHash);
-      signature.addString(file.contentHash);
-      return '${signature.toHex()}.resolved';
-    }
-    return null;
+    ApiSignature signature = new ApiSignature();
+    signature.addUint32List(_salt);
+    signature.addString(library.transitiveSignature);
+    signature.addString(file.contentHash);
+    return '${signature.toHex()}.resolved';
   }
 
   /**
@@ -799,7 +797,7 @@ class AnalysisDriver {
       }
       if (anyApiChanged) {
         _logger.writeln('API signatures mismatch found for $path');
-        _dependencySignatureMap.clear();
+        // TODO(scheglov) schedule analysis of only affected files
         _filesToAnalyze.addAll(_explicitFiles);
       }
       return files[0];
@@ -1139,26 +1137,10 @@ class _LibraryNode {
   final FileState file;
   final Uri uri;
 
-  String _dependencySignature;
-
   _LibraryNode(this.driver, this.file, this.uri);
 
   String get dependencySignature {
-    return _dependencySignature ??=
-        driver._dependencySignatureMap.putIfAbsent(uri, () {
-      ApiSignature signature = new ApiSignature();
-      signature.addUint32List(driver._salt);
-      signature.addString(driver._sdkBundle.apiSignature);
-
-      // Add all unlinked API signatures.
-      file.transitiveFiles
-          .map((file) => file.apiSignature)
-          .forEach(signature.addBytes);
-
-      // Combine into a single hash.
-      signature.addString(uri.toString());
-      return signature.toHex();
-    });
+    return file.transitiveSignature;
   }
 
   @override

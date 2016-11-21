@@ -54,7 +54,7 @@ class FileSystemStateTest {
     AnalysisOptions analysisOptions = new AnalysisOptionsImpl()
       ..strongMode = true;
     fileSystemState = new FileSystemState(logger, byteStore, contentOverlay,
-        provider, sourceFactory, analysisOptions, new Uint32List(0));
+        provider, sourceFactory, analysisOptions, new Uint32List(0), '');
   }
 
   test_getFileForPath_doesNotExist() {
@@ -281,7 +281,7 @@ class C {
     fb.transitiveFiles;
     fc.transitiveFiles;
     fd.transitiveFiles;
-    expect(fileSystemState.test.filesWithoutTransitive, isEmpty);
+    expect(fileSystemState.test.filesWithoutTransitiveFiles, isEmpty);
 
     // No imports, so just a single file.
     provider.newFile(pa, "");
@@ -290,29 +290,29 @@ class C {
     // Import b.dart into a.dart, two files now.
     provider.newFile(pa, "import 'b.dart';");
     fa.refresh();
-    _assertFilesWithoutTransitive([fa]);
+    _assertFilesWithoutTransitiveFiles([fa]);
     _assertTransitiveFiles(fa, [fa, fb]);
 
     // Update b.dart so that it imports c.dart now.
     provider.newFile(pb, "import 'c.dart';");
     fb.refresh();
-    _assertFilesWithoutTransitive([fa, fb]);
+    _assertFilesWithoutTransitiveFiles([fa, fb]);
     _assertTransitiveFiles(fa, [fa, fb, fc]);
     _assertTransitiveFiles(fb, [fb, fc]);
-    _assertFilesWithoutTransitive([]);
+    _assertFilesWithoutTransitiveFiles([]);
 
     // Update b.dart so that it exports d.dart instead.
     provider.newFile(pb, "export 'd.dart';");
     fb.refresh();
-    _assertFilesWithoutTransitive([fa, fb]);
+    _assertFilesWithoutTransitiveFiles([fa, fb]);
     _assertTransitiveFiles(fa, [fa, fb, fd]);
     _assertTransitiveFiles(fb, [fb, fd]);
-    _assertFilesWithoutTransitive([]);
+    _assertFilesWithoutTransitiveFiles([]);
 
     // Update a.dart so that it does not import b.dart anymore.
     provider.newFile(pa, "");
     fa.refresh();
-    _assertFilesWithoutTransitive([fa]);
+    _assertFilesWithoutTransitiveFiles([fa]);
     _assertTransitiveFiles(fa, [fa]);
   }
 
@@ -329,7 +329,7 @@ class C {
     // Compute transitive closures for all files.
     fa.transitiveFiles;
     fb.transitiveFiles;
-    _assertFilesWithoutTransitive([]);
+    _assertFilesWithoutTransitiveFiles([]);
 
     // It's a cycle.
     _assertTransitiveFiles(fa, [fa, fb]);
@@ -338,13 +338,54 @@ class C {
     // Update a.dart so that it does not import b.dart anymore.
     provider.newFile(pa, "");
     fa.refresh();
-    _assertFilesWithoutTransitive([fa, fb]);
+    _assertFilesWithoutTransitiveFiles([fa, fb]);
     _assertTransitiveFiles(fa, [fa]);
     _assertTransitiveFiles(fb, [fa, fb]);
   }
 
-  void _assertFilesWithoutTransitive(List<FileState> expected) {
-    var actual = fileSystemState.test.filesWithoutTransitive;
+  test_transitiveSignature() {
+    String pa = _p('/aaa/lib/a.dart');
+    String pb = _p('/aaa/lib/b.dart');
+    String pc = _p('/aaa/lib/c.dart');
+    String pd = _p('/aaa/lib/d.dart');
+
+    provider.newFile(pa, "class A {}");
+    provider.newFile(pb, "import 'a.dart';");
+    provider.newFile(pc, "import 'b.dart';");
+    provider.newFile(pd, "class D {}");
+
+    FileState fa = fileSystemState.getFileForPath(pa);
+    FileState fb = fileSystemState.getFileForPath(pb);
+    FileState fc = fileSystemState.getFileForPath(pc);
+    FileState fd = fileSystemState.getFileForPath(pd);
+
+    // Compute transitive closures for all files.
+    expect(fa.transitiveSignature, isNotNull);
+    expect(fb.transitiveSignature, isNotNull);
+    expect(fc.transitiveSignature, isNotNull);
+    expect(fd.transitiveSignature, isNotNull);
+    expect(fileSystemState.test.filesWithoutTransitiveFiles, isEmpty);
+
+    // Make an update to a.dart that does not change its API signature.
+    // All transitive signatures are still valid.
+    provider.newFile(pa, "class A {} // the same API signature");
+    fa.refresh();
+    expect(fileSystemState.test.filesWithoutTransitiveFiles, isEmpty);
+
+    // Change a.dart API signature, also flush signatures of b.dart and c.dart,
+    // but d.dart is still OK.
+    provider.newFile(pa, "class A2 {}");
+    fa.refresh();
+    _assertFilesWithoutTransitiveSignatures([fa, fb, fc]);
+  }
+
+  void _assertFilesWithoutTransitiveFiles(List<FileState> expected) {
+    var actual = fileSystemState.test.filesWithoutTransitiveFiles;
+    expect(actual, unorderedEquals(expected));
+  }
+
+  void _assertFilesWithoutTransitiveSignatures(List<FileState> expected) {
+    var actual = fileSystemState.test.filesWithoutTransitiveSignature;
     expect(actual, unorderedEquals(expected));
   }
 

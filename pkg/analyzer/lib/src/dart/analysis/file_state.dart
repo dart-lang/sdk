@@ -93,6 +93,7 @@ class FileState {
   List<FileState> _partedFiles;
   Set<FileState> _directReferencedFiles = new Set<FileState>();
   Set<FileState> _transitiveFiles;
+  String _transitiveSignature;
 
   FileState._(this._fsState, this.path, this.uri, this.source);
 
@@ -176,6 +177,24 @@ class FileState {
       appendReferenced(this);
     }
     return _transitiveFiles;
+  }
+
+  /**
+   * Return the signature of the file, based on the [transitiveFiles].
+   */
+  String get transitiveSignature {
+    if (_transitiveSignature == null) {
+      ApiSignature signature = new ApiSignature();
+      signature.addUint32List(_fsState._salt);
+      signature.addString(_fsState._sdkApiSignature);
+      signature.addInt(transitiveFiles.length);
+      transitiveFiles
+          .map((file) => file.apiSignature)
+          .forEach(signature.addBytes);
+      signature.addString(uri.toString());
+      _transitiveSignature = signature.toHex();
+    }
+    return _transitiveSignature;
   }
 
   /**
@@ -266,6 +285,16 @@ class FileState {
     bool apiSignatureChanged = _apiSignature != null &&
         !_equalByteLists(_apiSignature, newApiSignature);
     _apiSignature = newApiSignature;
+
+    // If the API signature changed, flush transitive signatures.
+    if (apiSignatureChanged) {
+      for (FileState file in _fsState._uriToFile.values) {
+        if (file._transitiveFiles != null &&
+            file._transitiveFiles.contains(this)) {
+          file._transitiveSignature = null;
+        }
+      }
+    }
 
     // This file is potentially not a library for its previous parts anymore.
     if (_partedFiles != null) {
@@ -382,6 +411,7 @@ class FileSystemState {
   final SourceFactory _sourceFactory;
   final AnalysisOptions _analysisOptions;
   final Uint32List _salt;
+  final String _sdkApiSignature;
 
   /**
    * Mapping from a URI to the corresponding [FileState].
@@ -412,7 +442,8 @@ class FileSystemState {
       this._resourceProvider,
       this._sourceFactory,
       this._analysisOptions,
-      this._salt) {
+      this._salt,
+      this._sdkApiSignature) {
     _testView = new FileSystemStateTestView(this);
   }
 
@@ -502,9 +533,15 @@ class FileSystemStateTestView {
 
   FileSystemStateTestView(this.state);
 
-  Set<FileState> get filesWithoutTransitive {
+  Set<FileState> get filesWithoutTransitiveFiles {
     return state._uriToFile.values
         .where((f) => f._transitiveFiles == null)
+        .toSet();
+  }
+
+  Set<FileState> get filesWithoutTransitiveSignature {
+    return state._uriToFile.values
+        .where((f) => f._transitiveSignature == null)
         .toSet();
   }
 }
