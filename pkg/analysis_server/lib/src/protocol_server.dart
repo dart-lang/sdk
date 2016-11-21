@@ -52,23 +52,22 @@ List<AnalysisError> doAnalysisError_listFromEngine(
 }
 
 /**
- * Adds [edit] to the [FileEdit] for the given [element].
+ * Adds [edit] to the file containing the given [element].
  */
 void doSourceChange_addElementEdit(
     SourceChange change, engine.Element element, SourceEdit edit) {
-  engine.AnalysisContext context = element.context;
   engine.Source source = element.source;
-  doSourceChange_addSourceEdit(change, context, source, edit);
+  doSourceChange_addSourceEdit(change, source, edit);
 }
 
 /**
- * Adds [edit] to the [FileEdit] for the given [source].
+ * Adds [edit] for the given [source] to the [change].
  */
-void doSourceChange_addSourceEdit(SourceChange change,
-    engine.AnalysisContext context, engine.Source source, SourceEdit edit) {
+void doSourceChange_addSourceEdit(
+    SourceChange change, engine.Source source, SourceEdit edit,
+    {bool isNewFile: false}) {
   String file = source.fullName;
-  int fileStamp = context.getModificationStamp(source);
-  change.addEdit(file, fileStamp, edit);
+  change.addEdit(file, isNewFile ? -1 : 0, edit);
 }
 
 String getReturnTypeString(engine.Element element) {

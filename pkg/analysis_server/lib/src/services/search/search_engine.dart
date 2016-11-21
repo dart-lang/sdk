@@ -7,11 +7,7 @@ library services.search_engine;
 import 'dart:async';
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_general.dart';
 
 /**
  * Instances of the enum [MatchKind] represent the kind of reference that was
@@ -110,138 +106,53 @@ abstract class SearchEngine {
  * Instances of the class [SearchMatch] represent a match found by
  * [SearchEngine].
  */
-class SearchMatch {
-  /**
-   * The [AnalysisContext] containing the match.
-   */
-  final AnalysisContext context;
-
-  /**
-   * The URI of the source of the library containing the match.
-   */
-  final String libraryUri;
-
-  /**
-   * The URI of the source of the unit containing the match.
-   */
-  final String unitUri;
-
-  /**
-   * The kind of the match.
-   */
-  final MatchKind kind;
-
-  /**
-   * The source range that was matched.
-   */
-  final SourceRange sourceRange;
-
-  /**
-   * Is `true` if the match is a resolved reference to some [Element].
-   */
-  final bool isResolved;
-
-  /**
-   * Is `true` if field or method access is done using qualifier.
-   */
-  final bool isQualified;
-
-  Source _librarySource;
-  Source _unitSource;
-  LibraryElement _libraryElement;
-  Element _element;
-
-  SearchMatch(this.context, this.libraryUri, this.unitUri, this.kind,
-      this.sourceRange, this.isResolved, this.isQualified);
-
+abstract class SearchMatch {
   /**
    * Return the [Element] containing the match. Can return `null` if the unit
    * does not exist, or its element was invalidated, or the element cannot be
    * found, etc.
    */
-  Element get element {
-    if (_element == null) {
-      CompilationUnitElement unitElement =
-          context.getCompilationUnitElement(unitSource, librarySource);
-      if (unitElement != null) {
-        _ContainingElementFinder finder =
-            new _ContainingElementFinder(sourceRange.offset);
-        unitElement.accept(finder);
-        _element = finder.containingElement;
-      }
-    }
-    return _element;
-  }
+  Element get element;
 
   /**
    * The absolute path of the file containing the match.
    */
-  String get file => unitSource.fullName;
+  String get file;
 
-  @override
-  int get hashCode {
-    return JenkinsSmiHash.hash4(libraryUri.hashCode, unitUri.hashCode,
-        kind.hashCode, sourceRange.hashCode);
-  }
+  /**
+   * Is `true` if field or method access is done using qualifier.
+   */
+  bool get isQualified;
+
+  /**
+   * Is `true` if the match is a resolved reference to some [Element].
+   */
+  bool get isResolved;
+
+  /**
+   * The kind of the match.
+   */
+  MatchKind get kind;
 
   /**
    * Return the [LibraryElement] for the [libraryUri] in the [context].
    */
-  LibraryElement get libraryElement {
-    _libraryElement ??= context.getLibraryElement(librarySource);
-    return _libraryElement;
-  }
+  LibraryElement get libraryElement;
 
   /**
    * The library [Source] of the reference.
    */
-  Source get librarySource {
-    _librarySource ??= context.sourceFactory.forUri(libraryUri);
-    return _librarySource;
-  }
+  Source get librarySource;
+
+  /**
+   * The source range that was matched.
+   */
+  SourceRange get sourceRange;
 
   /**
    * The unit [Source] of the reference.
    */
-  Source get unitSource {
-    _unitSource ??= context.sourceFactory.forUri(unitUri);
-    return _unitSource;
-  }
-
-  @override
-  bool operator ==(Object object) {
-    if (identical(object, this)) {
-      return true;
-    }
-    if (object is SearchMatch) {
-      return kind == object.kind &&
-          libraryUri == object.libraryUri &&
-          unitUri == object.unitUri &&
-          isResolved == object.isResolved &&
-          isQualified == object.isQualified &&
-          sourceRange == object.sourceRange;
-    }
-    return false;
-  }
-
-  @override
-  String toString() {
-    StringBuffer buffer = new StringBuffer();
-    buffer.write("SearchMatch(kind=");
-    buffer.write(kind);
-    buffer.write(", libraryUri=");
-    buffer.write(libraryUri);
-    buffer.write(", unitUri=");
-    buffer.write(unitUri);
-    buffer.write(", range=");
-    buffer.write(sourceRange);
-    buffer.write(", isResolved=");
-    buffer.write(isResolved);
-    buffer.write(", isQualified=");
-    buffer.write(isQualified);
-    buffer.write(")");
-    return buffer.toString();
-  }
+  Source get unitSource;
 
   /**
    * Return elements of [matches] which has not-null elements.
@@ -251,26 +162,5 @@ class SearchMatch {
    */
   static List<SearchMatch> withNotNullElement(List<SearchMatch> matches) {
     return matches.where((match) => match.element != null).toList();
-  }
-}
-
-/**
- * A visitor that finds the deep-most [Element] that contains the [offset].
- */
-class _ContainingElementFinder extends GeneralizingElementVisitor {
-  final int offset;
-  Element containingElement;
-
-  _ContainingElementFinder(this.offset);
-
-  visitElement(Element element) {
-    if (element is ElementImpl) {
-      if (element.codeOffset != null &&
-          element.codeOffset <= offset &&
-          offset <= element.codeOffset + element.codeLength) {
-        containingElement = element;
-        super.visitElement(element);
-      }
-    }
   }
 }
