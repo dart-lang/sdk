@@ -82,33 +82,6 @@ class IndexTest extends BaseAnalysisDriverTest {
     return findChildElement(testUnitElement, name, kind);
   }
 
-  int findOffset(String search) {
-    int offset = testCode.indexOf(search);
-    expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
-    return offset;
-  }
-
-  int getLeadingIdentifierLength(String search) {
-    int length = 0;
-    while (length < search.length) {
-      int c = search.codeUnitAt(length);
-      if (c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0)) {
-        length++;
-        continue;
-      }
-      if (c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0)) {
-        length++;
-        continue;
-      }
-      if (c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0)) {
-        length++;
-        continue;
-      }
-      break;
-    }
-    return length;
-  }
-
   CompilationUnitElement importedUnit({int index: 0}) {
     List<ImportElement> imports = testLibraryElement.imports;
     return imports[index].importedLibrary.definingCompilationUnit;

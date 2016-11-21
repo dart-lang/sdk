@@ -14,6 +14,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
+import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
@@ -182,6 +183,11 @@ class AnalysisDriver {
   final StatusSupport _statusSupport = new StatusSupport();
 
   /**
+   * The instance of the [Search] helper.
+   */
+  Search _search;
+
+  /**
    * Create a new instance of [AnalysisDriver].
    *
    * The given [SourceFactory] is cloned to ensure that it does not contain a
@@ -208,6 +214,7 @@ class AnalysisDriver {
         _salt,
         _sdkBundle.apiSignature);
     _scheduler._add(this);
+    _search = new Search(this);
   }
 
   /**
@@ -259,6 +266,11 @@ class AnalysisDriver {
    * using [addFile], for example when [getResult] was called for a file.
    */
   Stream<AnalysisResult> get results => _resultController.stream;
+
+  /**
+   * Return the search support for the driver.
+   */
+  Search get search => _search;
 
   /**
    * Return the stream that produces [AnalysisStatus] events.

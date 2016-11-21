@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:test/test.dart';
 
 import '../../context/mock_sdk.dart';
 
@@ -43,6 +44,35 @@ class BaseAnalysisDriverTest {
     if (priority) {
       driver.priorityFiles = [testFile];
     }
+  }
+
+  int findOffset(String search) {
+    int offset = testCode.indexOf(search);
+    if (offset < 0) {
+      fail("Did not find '$search' in\n$testCode");
+    }
+    return offset;
+  }
+
+  int getLeadingIdentifierLength(String search) {
+    int length = 0;
+    while (length < search.length) {
+      int c = search.codeUnitAt(length);
+      if (c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0)) {
+        length++;
+        continue;
+      }
+      if (c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0)) {
+        length++;
+        continue;
+      }
+      if (c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0)) {
+        length++;
+        continue;
+      }
+      break;
+    }
+    return length;
   }
 
   void setUp() {
