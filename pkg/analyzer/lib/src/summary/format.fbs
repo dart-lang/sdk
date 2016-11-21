@@ -789,6 +789,11 @@ table AnalysisDriverResolvedUnit {
    * The full list of analysis errors, both syntactic and semantic.
    */
   errors:[AnalysisDriverUnitError] (id: 0);
+
+  /**
+   * The index of the unit.
+   */
+  index:AnalysisDriverUnitIndex (id: 1);
 }
 
 /**

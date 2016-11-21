@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
@@ -435,6 +436,24 @@ main() {
       expect(error.message, "The value of the local variable 'vv' isn't used.");
       expect(error.correction, "Try removing the variable, or using it.");
     }
+  }
+
+  test_getResult_hasIndex() async {
+    String content = r'''
+foo(int p) {}
+main() {
+  foo(42);
+}
+''';
+    addTestFile(content);
+
+    AnalysisResult result = await driver.getResult(testFile);
+
+    AnalysisDriverUnitIndex index = result.index;
+    int unitId = index.strings.indexOf('package:test/test.dart');
+    int fooId = index.strings.indexOf('foo');
+    expect(unitId, isNonNegative);
+    expect(fooId, isNonNegative);
   }
 
   test_getResult_inferTypes_finalField() async {
@@ -1068,6 +1087,7 @@ var A = B;
     expect(result.contentHash, _md5(content));
     expect(result.unit, isNull);
     expect(result.errors, hasLength(0));
+    expect(result.index, isNotNull);
   }
 
   test_results_status() async {

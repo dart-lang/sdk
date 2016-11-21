@@ -70,6 +70,12 @@ abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
    */
   @Id(0)
   List<AnalysisDriverUnitError> get errors;
+
+  /**
+   * The index of the unit.
+   */
+  @Id(1)
+  AnalysisDriverUnitIndex get index;
 }
 
 /**

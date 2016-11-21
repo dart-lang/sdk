@@ -131,6 +131,7 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
 
 class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverResolvedUnit {
   List<AnalysisDriverUnitErrorBuilder> _errors;
+  AnalysisDriverUnitIndexBuilder _index;
 
   @override
   List<AnalysisDriverUnitErrorBuilder> get errors => _errors ??= <AnalysisDriverUnitErrorBuilder>[];
@@ -142,14 +143,26 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
     this._errors = value;
   }
 
-  AnalysisDriverResolvedUnitBuilder({List<AnalysisDriverUnitErrorBuilder> errors})
-    : _errors = errors;
+  @override
+  AnalysisDriverUnitIndexBuilder get index => _index;
+
+  /**
+   * The index of the unit.
+   */
+  void set index(AnalysisDriverUnitIndexBuilder value) {
+    this._index = value;
+  }
+
+  AnalysisDriverResolvedUnitBuilder({List<AnalysisDriverUnitErrorBuilder> errors, AnalysisDriverUnitIndexBuilder index})
+    : _errors = errors,
+      _index = index;
 
   /**
    * Flush [informative] data recursively.
    */
   void flushInformative() {
     _errors?.forEach((b) => b.flushInformative());
+    _index?.flushInformative();
   }
 
   /**
@@ -164,6 +177,8 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
         x?.collectApiSignature(signature);
       }
     }
+    signature.addBool(this._index != null);
+    this._index?.collectApiSignature(signature);
   }
 
   List<int> toBuffer() {
@@ -173,12 +188,19 @@ class AnalysisDriverResolvedUnitBuilder extends Object with _AnalysisDriverResol
 
   fb.Offset finish(fb.Builder fbBuilder) {
     fb.Offset offset_errors;
+    fb.Offset offset_index;
     if (!(_errors == null || _errors.isEmpty)) {
       offset_errors = fbBuilder.writeList(_errors.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_index != null) {
+      offset_index = _index.finish(fbBuilder);
     }
     fbBuilder.startTable();
     if (offset_errors != null) {
       fbBuilder.addOffset(0, offset_errors);
+    }
+    if (offset_index != null) {
+      fbBuilder.addOffset(1, offset_index);
     }
     return fbBuilder.endTable();
   }
@@ -203,11 +225,18 @@ class _AnalysisDriverResolvedUnitImpl extends Object with _AnalysisDriverResolve
   _AnalysisDriverResolvedUnitImpl(this._bc, this._bcOffset);
 
   List<idl.AnalysisDriverUnitError> _errors;
+  idl.AnalysisDriverUnitIndex _index;
 
   @override
   List<idl.AnalysisDriverUnitError> get errors {
     _errors ??= const fb.ListReader<idl.AnalysisDriverUnitError>(const _AnalysisDriverUnitErrorReader()).vTableGet(_bc, _bcOffset, 0, const <idl.AnalysisDriverUnitError>[]);
     return _errors;
+  }
+
+  @override
+  idl.AnalysisDriverUnitIndex get index {
+    _index ??= const _AnalysisDriverUnitIndexReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _index;
   }
 }
 
@@ -216,12 +245,14 @@ abstract class _AnalysisDriverResolvedUnitMixin implements idl.AnalysisDriverRes
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (errors.isNotEmpty) _result["errors"] = errors.map((_value) => _value.toJson()).toList();
+    if (index != null) _result["index"] = index.toJson();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
     "errors": errors,
+    "index": index,
   };
 
   @override

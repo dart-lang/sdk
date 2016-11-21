@@ -13,6 +13,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, ChangeSet;
@@ -67,7 +68,7 @@ class AnalysisDriver {
   /**
    * The version of data format, should be incremented on every format change.
    */
-  static const int DATA_VERSION = 6;
+  static const int DATA_VERSION = 7;
 
   /**
    * The name of the driver, e.g. the name of the folder.
@@ -474,9 +475,9 @@ class AnalysisDriver {
       }
 
       // Check for the cached result.
-      AnalysisResult result = _getCachedAnalysisResult(file, key);
-      if (result != null) {
-        return result;
+      List<int> bytes = _byteStore.get(key);
+      if (bytes != null) {
+        return _getAnalysisResultFromBytes(file, bytes);
       }
     }
 
@@ -494,16 +495,15 @@ class AnalysisDriver {
       AnalysisContext analysisContext = _createAnalysisContext(libraryContext);
       try {
         analysisContext.setContents(file.source, file.content);
-        // TODO(scheglov) Add support for parts.
-        CompilationUnit resolvedUnit = withUnit
-            ? analysisContext.resolveCompilationUnit2(
-                file.source, libraryFile.source)
-            : null;
+        CompilationUnit resolvedUnit = analysisContext.resolveCompilationUnit2(
+            file.source, libraryFile.source);
         List<AnalysisError> errors = analysisContext.computeErrors(file.source);
+        AnalysisDriverUnitIndexBuilder index = indexUnit(resolvedUnit);
 
         // Store the result into the cache.
+        List<int> bytes;
         {
-          List<int> bytes = new AnalysisDriverResolvedUnitBuilder(
+          bytes = new AnalysisDriverResolvedUnitBuilder(
                   errors: errors
                       .map((error) => new AnalysisDriverUnitErrorBuilder(
                           offset: error.offset,
@@ -511,7 +511,8 @@ class AnalysisDriver {
                           uniqueName: error.errorCode.uniqueName,
                           message: error.message,
                           correction: error.correction))
-                      .toList())
+                      .toList(),
+                  index: index)
               .toBuffer();
           String key = _getResolvedUnitKey(libraryFile, file);
           _byteStore.put(key, bytes);
@@ -519,15 +520,9 @@ class AnalysisDriver {
 
         // Return the result, full or partial.
         _logger.writeln('Computed new analysis result.');
-        return new AnalysisResult(
-            _sourceFactory,
-            file.path,
-            file.uri,
-            withUnit ? file.content : null,
-            file.contentHash,
-            file.lineInfo,
-            resolvedUnit,
-            errors);
+        return _getAnalysisResultFromBytes(file, bytes,
+            content: withUnit ? file.content : null,
+            resolvedUnit: withUnit ? resolvedUnit : null);
       } finally {
         analysisContext.dispose();
       }
@@ -661,26 +656,23 @@ class AnalysisDriver {
   }
 
   /**
-   * If we know the result [key] for the [file], try to load the analysis
-   * result from the cache. Return `null` if not found.
+   * Load the [AnalysisResult] for the given [file] from the [bytes]. Set
+   * optional [content] and [resolvedUnit].
    */
-  AnalysisResult _getCachedAnalysisResult(FileState file, String key) {
-    List<int> bytes = _byteStore.get(key);
-    if (bytes != null) {
-      var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
-      List<AnalysisError> errors = unit.errors
-          .map((error) => new AnalysisError.forValues(
-              file.source,
-              error.offset,
-              error.length,
-              errorCodeByUniqueName(error.uniqueName),
-              error.message,
-              error.correction))
-          .toList();
-      return new AnalysisResult(_sourceFactory, file.path, file.uri, null,
-          file.contentHash, file.lineInfo, null, errors);
-    }
-    return null;
+  AnalysisResult _getAnalysisResultFromBytes(FileState file, List<int> bytes,
+      {String content, CompilationUnit resolvedUnit}) {
+    var unit = new AnalysisDriverResolvedUnit.fromBuffer(bytes);
+    List<AnalysisError> errors = unit.errors
+        .map((error) => new AnalysisError.forValues(
+            file.source,
+            error.offset,
+            error.length,
+            errorCodeByUniqueName(error.uniqueName),
+            error.message,
+            error.correction))
+        .toList();
+    return new AnalysisResult(_sourceFactory, file.path, file.uri, content,
+        file.contentHash, file.lineInfo, resolvedUnit, errors, unit.index);
   }
 
   /**
@@ -997,8 +989,13 @@ class AnalysisResult {
    */
   final List<AnalysisError> errors;
 
+  /**
+   * The index of the unit.
+   */
+  final AnalysisDriverUnitIndex index;
+
   AnalysisResult(this.sourceFactory, this.path, this.uri, this.content,
-      this.contentHash, this.lineInfo, this.unit, this.errors);
+      this.contentHash, this.lineInfo, this.unit, this.errors, this.index);
 }
 
 /**
