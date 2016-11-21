@@ -3503,10 +3503,6 @@ class Script : public Object {
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
 
-  RawArray* line_starts() const { return raw_ptr()->line_starts_; }
-
-  void set_line_starts(const Array& value) const;
-
   void Tokenize(const String& private_key, bool use_shared_tokens = true) const;
 
   RawLibrary* FindLibrary() const;
