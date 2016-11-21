@@ -1156,18 +1156,8 @@ abstract class _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIn
 }
 
 class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
-  UnlinkedUnitBuilder _unit;
   List<String> _referencedNames;
-
-  @override
-  UnlinkedUnitBuilder get unit => _unit;
-
-  /**
-   * Unlinked information for the unit.
-   */
-  void set unit(UnlinkedUnitBuilder value) {
-    this._unit = value;
-  }
+  UnlinkedUnitBuilder _unit;
 
   @override
   List<String> get referencedNames => _referencedNames ??= <String>[];
@@ -1179,9 +1169,19 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
     this._referencedNames = value;
   }
 
-  AnalysisDriverUnlinkedUnitBuilder({UnlinkedUnitBuilder unit, List<String> referencedNames})
-    : _unit = unit,
-      _referencedNames = referencedNames;
+  @override
+  UnlinkedUnitBuilder get unit => _unit;
+
+  /**
+   * Unlinked information for the unit.
+   */
+  void set unit(UnlinkedUnitBuilder value) {
+    this._unit = value;
+  }
+
+  AnalysisDriverUnlinkedUnitBuilder({List<String> referencedNames, UnlinkedUnitBuilder unit})
+    : _referencedNames = referencedNames,
+      _unit = unit;
 
   /**
    * Flush [informative] data recursively.
@@ -1212,20 +1212,20 @@ class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlin
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset offset_unit;
     fb.Offset offset_referencedNames;
-    if (_unit != null) {
-      offset_unit = _unit.finish(fbBuilder);
-    }
+    fb.Offset offset_unit;
     if (!(_referencedNames == null || _referencedNames.isEmpty)) {
       offset_referencedNames = fbBuilder.writeList(_referencedNames.map((b) => fbBuilder.writeString(b)).toList());
     }
-    fbBuilder.startTable();
-    if (offset_unit != null) {
-      fbBuilder.addOffset(1, offset_unit);
+    if (_unit != null) {
+      offset_unit = _unit.finish(fbBuilder);
     }
+    fbBuilder.startTable();
     if (offset_referencedNames != null) {
       fbBuilder.addOffset(0, offset_referencedNames);
+    }
+    if (offset_unit != null) {
+      fbBuilder.addOffset(1, offset_unit);
     }
     return fbBuilder.endTable();
   }
@@ -1249,19 +1249,19 @@ class _AnalysisDriverUnlinkedUnitImpl extends Object with _AnalysisDriverUnlinke
 
   _AnalysisDriverUnlinkedUnitImpl(this._bc, this._bcOffset);
 
-  idl.UnlinkedUnit _unit;
   List<String> _referencedNames;
-
-  @override
-  idl.UnlinkedUnit get unit {
-    _unit ??= const _UnlinkedUnitReader().vTableGet(_bc, _bcOffset, 1, null);
-    return _unit;
-  }
+  idl.UnlinkedUnit _unit;
 
   @override
   List<String> get referencedNames {
     _referencedNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 0, const <String>[]);
     return _referencedNames;
+  }
+
+  @override
+  idl.UnlinkedUnit get unit {
+    _unit ??= const _UnlinkedUnitReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _unit;
   }
 }
 
@@ -1269,15 +1269,15 @@ abstract class _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnl
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
-    if (unit != null) _result["unit"] = unit.toJson();
     if (referencedNames.isNotEmpty) _result["referencedNames"] = referencedNames;
+    if (unit != null) _result["unit"] = unit.toJson();
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
-    "unit": unit,
     "referencedNames": referencedNames,
+    "unit": unit,
   };
 
   @override

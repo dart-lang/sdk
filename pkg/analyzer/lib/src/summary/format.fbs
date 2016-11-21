@@ -946,14 +946,14 @@ table AnalysisDriverUnitIndex {
  */
 table AnalysisDriverUnlinkedUnit {
   /**
-   * Unlinked information for the unit.
-   */
-  unit:UnlinkedUnit (id: 1);
-
-  /**
    * List of external names referenced by the unit.
    */
   referencedNames:[string] (id: 0);
+
+  /**
+   * Unlinked information for the unit.
+   */
+  unit:UnlinkedUnit (id: 1);
 }
 
 /**
