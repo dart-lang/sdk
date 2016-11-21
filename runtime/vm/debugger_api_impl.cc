@@ -173,6 +173,8 @@ static void DebuggerEventHandler(ServiceEvent* event) {
     if (isolate_event_handler != NULL) {
       (*isolate_event_handler)(event->isolate_id(), kShutdown);
     }
+  } else if (event->kind() == ServiceEvent::kPausePostRequest) {
+    // Ignore.
   } else {
     UNIMPLEMENTED();
   }
