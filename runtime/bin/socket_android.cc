@@ -25,13 +25,6 @@
 namespace dart {
 namespace bin {
 
-static void FDUtils::SaveErrorAndClose(intptr_t fd) {
-  int err = errno;
-  VOID_TEMP_FAILURE_RETRY(close(fd));
-  errno = err;
-}
-
-
 SocketAddress::SocketAddress(struct sockaddr* sa) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   if (!Socket::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa), as_string_,
