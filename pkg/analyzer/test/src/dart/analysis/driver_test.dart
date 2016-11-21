@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -26,6 +25,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../context/mock_sdk.dart';
+import 'base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -216,55 +216,7 @@ class AnalysisDriverSchedulerTest {
 }
 
 @reflectiveTest
-class AnalysisDriverTest {
-  static final MockSdk sdk = new MockSdk();
-
-  final MemoryResourceProvider provider = new MemoryResourceProvider();
-  final ByteStore byteStore = new MemoryByteStore();
-  final FileContentOverlay contentOverlay = new FileContentOverlay();
-
-  final StringBuffer logBuffer = new StringBuffer();
-  PerformanceLog logger;
-
-  AnalysisDriverScheduler scheduler;
-  AnalysisDriver driver;
-  final _Monitor idleStatusMonitor = new _Monitor();
-  final List<AnalysisStatus> allStatuses = <AnalysisStatus>[];
-  final List<AnalysisResult> allResults = <AnalysisResult>[];
-
-  String testProject;
-  String testFile;
-
-  void setUp() {
-    new MockSdk();
-    testProject = _p('/test/lib');
-    testFile = _p('/test/lib/test.dart');
-    logger = new PerformanceLog(logBuffer);
-    scheduler = new AnalysisDriverScheduler(logger);
-    driver = new AnalysisDriver(
-        scheduler,
-        logger,
-        provider,
-        byteStore,
-        contentOverlay,
-        new SourceFactory([
-          new DartUriResolver(sdk),
-          new PackageMapUriResolver(provider, <String, List<Folder>>{
-            'test': [provider.getFolder(testProject)]
-          }),
-          new ResourceUriResolver(provider)
-        ], null, provider),
-        new AnalysisOptionsImpl()..strongMode = true);
-    scheduler.start();
-    driver.status.lastWhere((status) {
-      allStatuses.add(status);
-      if (status.isIdle) {
-        idleStatusMonitor.notify();
-      }
-    });
-    driver.results.listen(allResults.add);
-  }
-
+class AnalysisDriverTest extends BaseAnalysisDriverTest {
   test_addedFiles() async {
     var a = _p('/test/lib/a.dart');
     var b = _p('/test/lib/b.dart');
@@ -394,7 +346,7 @@ var A2 = B1;
   }
 
   test_changeFile_single() async {
-    _addTestFile('var V = 1;', priority: true);
+    addTestFile('var V = 1;', priority: true);
 
     // Initial analysis.
     {
@@ -428,7 +380,7 @@ var A2 = B1;
 
   test_getResult() async {
     String content = 'int f() => 42;';
-    _addTestFile(content, priority: true);
+    addTestFile(content, priority: true);
 
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
@@ -470,7 +422,7 @@ main() {
 
   test_getResult_errors() async {
     String content = 'main() { int vv; }';
-    _addTestFile(content, priority: true);
+    addTestFile(content, priority: true);
 
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
@@ -486,7 +438,7 @@ main() {
   }
 
   test_getResult_inferTypes_finalField() async {
-    _addTestFile(
+    addTestFile(
         r'''
 class C {
   final f = 42;
@@ -500,7 +452,7 @@ class C {
   }
 
   test_getResult_inferTypes_instanceMethod() async {
-    _addTestFile(
+    addTestFile(
         r'''
 class A {
   int m(double p) => 1;
@@ -523,7 +475,7 @@ export 'dart:async';
 export 'dart:noSuchLib';
 export 'dart:math';
 ''';
-    _addTestFile(content, priority: true);
+    addTestFile(content, priority: true);
 
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
@@ -540,7 +492,7 @@ import 'dart:async';
 import 'dart:noSuchLib';
 import 'dart:math';
 ''';
-    _addTestFile(content, priority: true);
+    addTestFile(content, priority: true);
 
     AnalysisResult result = await driver.getResult(testFile);
     expect(result.path, testFile);
@@ -699,7 +651,7 @@ var A2 = B1;
   }
 
   test_getResult_thenRemove() async {
-    _addTestFile('main() {}', priority: true);
+    addTestFile('main() {}', priority: true);
 
     Future<AnalysisResult> resultFuture = driver.getResult(testFile);
     driver.removeFile(testFile);
@@ -712,7 +664,7 @@ var A2 = B1;
 
   test_getResult_twoPendingFutures() async {
     String content = 'main() {}';
-    _addTestFile(content, priority: true);
+    addTestFile(content, priority: true);
 
     Future<AnalysisResult> future1 = driver.getResult(testFile);
     Future<AnalysisResult> future2 = driver.getResult(testFile);
@@ -1044,7 +996,7 @@ var A = B;
   }
 
   test_removeFile_changeFile_notAnalyzed() async {
-    _addTestFile('main() {}');
+    addTestFile('main() {}');
 
     // We have a result.
     await _waitForIdle();
@@ -1064,7 +1016,7 @@ var A = B;
 
   test_results_priority() async {
     String content = 'int f() => 42;';
-    _addTestFile(content, priority: true);
+    addTestFile(content, priority: true);
 
     await _waitForIdle();
 
@@ -1105,7 +1057,7 @@ var A = B;
 
   test_results_regular() async {
     String content = 'int f() => 42;';
-    _addTestFile(content);
+    addTestFile(content);
     await _waitForIdle();
 
     expect(allResults, hasLength(1));
@@ -1119,7 +1071,7 @@ var A = B;
   }
 
   test_results_status() async {
-    _addTestFile('int f() => 42;');
+    addTestFile('int f() => 42;');
     await _waitForIdle();
 
     expect(allStatuses, hasLength(2));
@@ -1127,14 +1079,6 @@ var A = B;
     expect(allStatuses[0].isIdle, isFalse);
     expect(allStatuses[1].isAnalyzing, isFalse);
     expect(allStatuses[1].isIdle, isTrue);
-  }
-
-  void _addTestFile(String content, {bool priority: false}) {
-    provider.newFile(testFile, content);
-    driver.addFile(testFile);
-    if (priority) {
-      driver.priorityFiles = [testFile];
-    }
   }
 
   ClassDeclaration _getClass(CompilationUnit unit, String name) {
@@ -1231,20 +1175,5 @@ var A = B;
 
   static String _md5(String content) {
     return hex.encode(md5.convert(UTF8.encode(content)).bytes);
-  }
-}
-
-class _Monitor {
-  Completer<Null> _completer = new Completer<Null>();
-
-  Future<Null> get signal async {
-    await _completer.future;
-    _completer = new Completer<Null>();
-  }
-
-  void notify() {
-    if (!_completer.isCompleted) {
-      _completer.complete(null);
-    }
   }
 }

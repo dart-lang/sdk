@@ -8,21 +8,14 @@ import 'dart:convert';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../context/mock_sdk.dart';
+import 'base.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -69,23 +62,7 @@ class ExpectedLocation {
 }
 
 @reflectiveTest
-class IndexTest {
-  static final MockSdk sdk = new MockSdk();
-
-  final MemoryResourceProvider provider = new MemoryResourceProvider();
-  final ByteStore byteStore = new MemoryByteStore();
-  final FileContentOverlay contentOverlay = new FileContentOverlay();
-
-  final StringBuffer logBuffer = new StringBuffer();
-  PerformanceLog logger;
-
-  AnalysisDriverScheduler scheduler;
-  AnalysisDriver driver;
-
-  String testProject;
-  String testFile;
-
-  String testCode;
+class IndexTest extends BaseAnalysisDriverTest {
   CompilationUnit testUnit;
   CompilationUnitElement testUnitElement;
   LibraryElement testLibraryElement;
@@ -135,29 +112,6 @@ class IndexTest {
   CompilationUnitElement importedUnit({int index: 0}) {
     List<ImportElement> imports = testLibraryElement.imports;
     return imports[index].importedLibrary.definingCompilationUnit;
-  }
-
-  void setUp() {
-    new MockSdk();
-    testProject = _p('/test/lib');
-    testFile = _p('/test/lib/test.dart');
-    logger = new PerformanceLog(logBuffer);
-    scheduler = new AnalysisDriverScheduler(logger);
-    driver = new AnalysisDriver(
-        scheduler,
-        logger,
-        provider,
-        byteStore,
-        contentOverlay,
-        new SourceFactory([
-          new DartUriResolver(sdk),
-          new PackageMapUriResolver(provider, <String, List<Folder>>{
-            'test': [provider.getFolder(testProject)]
-          }),
-          new ResourceUriResolver(provider)
-        ], null, provider),
-        new AnalysisOptionsImpl()..strongMode = true);
-    scheduler.start();
   }
 
   test_hasAncestor_ClassDeclaration() async {
@@ -1061,11 +1015,6 @@ main() {
       ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  void _addTestFile(String content) {
-    provider.newFile(testFile, content);
-    driver.addFile(testFile);
-  }
-
   /**
    * Asserts that [index] has an item with the expected properties.
    */
@@ -1211,8 +1160,7 @@ main() {
   }
 
   Future<Null> _indexTestUnit(String code) async {
-    testCode = code;
-    _addTestFile(testCode);
+    addTestFile(code);
 
     AnalysisResult result = await driver.getResult(testFile);
     testUnit = result.unit;
