@@ -698,6 +698,35 @@ RawFunction::Kind KernelReader::GetFunctionType(Procedure* kernel_procedure) {
 }
 
 
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
+                                            const dart::Field& field) {
+  Thread* thread = Thread::Current();
+  kernel::Field* kernel_field = kernel::Field::Cast(
+      reinterpret_cast<kernel::Node*>(field.kernel_field()));
+
+  dart::String& init_name = dart::String::Handle(zone, field.name());
+  init_name = Symbols::FromConcat(thread, Symbols::InitPrefix(), init_name);
+
+  // Create a static initializer.
+  const dart::Class& owner = dart::Class::Handle(zone, field.Owner());
+  const Function& initializer_fun = Function::ZoneHandle(
+      zone,
+      dart::Function::New(init_name, RawFunction::kImplicitStaticFinalGetter,
+                          true,   // is_static
+                          false,  // is_const
+                          false,  // is_abstract
+                          false,  // is_external
+                          false,  // is_native
+                          owner, TokenPosition::kNoSource));
+  initializer_fun.set_kernel_function(kernel_field);
+  initializer_fun.set_result_type(AbstractType::Handle(zone, field.type()));
+  initializer_fun.set_is_debuggable(false);
+  initializer_fun.set_is_reflectable(false);
+  initializer_fun.set_is_inlinable(false);
+  return new (zone) ParsedFunction(thread, initializer_fun);
+}
+
+
 }  // namespace kernel
 }  // namespace dart
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

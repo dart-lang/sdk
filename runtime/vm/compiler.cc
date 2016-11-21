@@ -1714,29 +1714,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
       // Create a one-time-use function to evaluate the initializer and invoke
       // it immediately.
       if (field.kernel_field() != NULL) {
-        // kImplicitStaticFinalGetter is used for both implicit static getters
-        // and static initializers.  The Kernel graph builder will tell the
-        // difference by pattern matching on the name.
-        const String& name = String::Handle(
-            zone, Symbols::FromConcat(thread, Symbols::InitPrefix(),
-                                      String::Handle(zone, field.name())));
-        const Script& script = Script::Handle(zone, field.Script());
-        Object& owner = Object::Handle(zone, field.Owner());
-        owner = PatchClass::New(Class::Cast(owner), script);
-        const Function& function = Function::ZoneHandle(
-            zone, Function::New(name, RawFunction::kImplicitStaticFinalGetter,
-                                true,   // is_static
-                                false,  // is_const
-                                false,  // is_abstract
-                                false,  // is_external
-                                false,  // is_native
-                                owner, TokenPosition::kNoSource));
-        function.set_kernel_function(field.kernel_field());
-        function.set_result_type(AbstractType::Handle(zone, field.type()));
-        function.set_is_reflectable(false);
-        function.set_is_debuggable(false);
-        function.set_is_inlinable(false);
-        parsed_function = new (zone) ParsedFunction(thread, function);
+        parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
       } else {
         parsed_function = Parser::ParseStaticFieldInitializer(field);
         parsed_function->AllocateVariables();

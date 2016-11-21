@@ -1118,12 +1118,20 @@ RawFunction* Precompiler::CompileStaticInitializer(const Field& field,
                                                    bool compute_type) {
   ASSERT(field.is_static());
   Thread* thread = Thread::Current();
-  StackZone zone(thread);
+  StackZone stack_zone(thread);
+  Zone* zone = stack_zone.GetZone();
 
-  ParsedFunction* parsed_function = Parser::ParseStaticFieldInitializer(field);
+  ParsedFunction* parsed_function;
+  // Check if this field is comming from the Kernel binary.
+  if (field.kernel_field() != NULL) {
+    parsed_function = kernel::ParseStaticFieldInitializer(zone, field);
+  } else {
+    parsed_function = Parser::ParseStaticFieldInitializer(field);
+    parsed_function->AllocateVariables();
+  }
 
-  parsed_function->AllocateVariables();
-  DartPrecompilationPipeline pipeline(zone.GetZone());
+
+  DartPrecompilationPipeline pipeline(zone);
   PrecompileParsedFunctionHelper helper(/* precompiler = */ NULL,
                                         parsed_function,
                                         /* optimized = */ true);

@@ -126,6 +126,10 @@
 
 namespace dart {
 
+class Field;
+class ParsedFunction;
+class Zone;
+
 namespace kernel {
 
 
@@ -3236,6 +3240,9 @@ IT* List<T>::GetOrCreate(int index, PT* parent) {
   }
   return IT::Cast(member);
 }
+
+ParsedFunction* ParseStaticFieldInitializer(Zone* zone,
+                                            const dart::Field& field);
 
 }  // namespace kernel
 
