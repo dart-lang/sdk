@@ -39,6 +39,9 @@ class FDUtils {
   // descriptor must be in blocking mode.
   static ssize_t WriteToBlocking(int fd, const void* buffer, size_t count);
 
+  // Closes fd without modifying errno.
+  static void SaveErrorAndClose(intptr_t fd);
+
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(FDUtils);

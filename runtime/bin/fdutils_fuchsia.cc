@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS)
+#if defined(TARGET_OS_FUCHSIA)
 
 #include "bin/fdutils.h"
 
@@ -71,6 +71,8 @@ bool FDUtils::IsBlocking(intptr_t fd, bool* is_blocking) {
 
 
 intptr_t FDUtils::AvailableBytes(intptr_t fd) {
+// TODO(MG-364): Enable this code when it is supported.
+#if 0
   int available;  // ioctl for FIONREAD expects an 'int*' argument.
   int result = NO_RETRY_EXPECTED(ioctl(fd, FIONREAD, &available));
   if (result < 0) {
@@ -78,6 +80,9 @@ intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   }
   ASSERT(available >= 0);
   return static_cast<intptr_t>(available);
+#endif
+  errno = ENOTSUP;
+  return -1;
 }
 
 
@@ -90,7 +95,7 @@ ssize_t FDUtils::ReadFromBlocking(int fd, void* buffer, size_t count) {
   size_t remaining = count;
   char* buffer_pos = reinterpret_cast<char*>(buffer);
   while (remaining > 0) {
-    ssize_t bytes_read = TEMP_FAILURE_RETRY(read(fd, buffer_pos, remaining));
+    ssize_t bytes_read = NO_RETRY_EXPECTED(read(fd, buffer_pos, remaining));
     if (bytes_read == 0) {
       return count - remaining;
     } else if (bytes_read == -1) {
@@ -118,8 +123,7 @@ ssize_t FDUtils::WriteToBlocking(int fd, const void* buffer, size_t count) {
   size_t remaining = count;
   char* buffer_pos = const_cast<char*>(reinterpret_cast<const char*>(buffer));
   while (remaining > 0) {
-    ssize_t bytes_written =
-        TEMP_FAILURE_RETRY(write(fd, buffer_pos, remaining));
+    ssize_t bytes_written = NO_RETRY_EXPECTED(write(fd, buffer_pos, remaining));
     if (bytes_written == 0) {
       return count - remaining;
     } else if (bytes_written == -1) {
@@ -140,11 +144,11 @@ ssize_t FDUtils::WriteToBlocking(int fd, const void* buffer, size_t count) {
 
 void FDUtils::SaveErrorAndClose(intptr_t fd) {
   int err = errno;
-  VOID_TEMP_FAILURE_RETRY(close(fd));
+  NO_RETRY_EXPECTED(close(fd));
   errno = err;
 }
 
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS)
+#endif  // defined(TARGET_OS_FUCHSIA)

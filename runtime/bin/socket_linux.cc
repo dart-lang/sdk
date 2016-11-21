@@ -28,13 +28,6 @@
 namespace dart {
 namespace bin {
 
-static void SaveErrorAndClose(intptr_t fd) {
-  int err = errno;
-  VOID_TEMP_FAILURE_RETRY(close(fd));
-  errno = err;
-}
-
-
 SocketAddress::SocketAddress(struct sockaddr* sa) {
   ASSERT(INET6_ADDRSTRLEN >= INET_ADDRSTRLEN);
   if (!Socket::FormatNumericAddress(*reinterpret_cast<RawAddr*>(sa), as_string_,
@@ -76,7 +69,7 @@ static intptr_t Connect(intptr_t fd, const RawAddr& addr) {
   if ((result == 0) || (errno == EINPROGRESS)) {
     return fd;
   }
-  SaveErrorAndClose(fd);
+  FDUtils::FDUtils::SaveErrorAndClose(fd);
   return -1;
 }
 
@@ -100,7 +93,7 @@ intptr_t Socket::CreateBindConnect(const RawAddr& addr,
   intptr_t result = TEMP_FAILURE_RETRY(
       bind(fd, &source_addr.addr, SocketAddress::GetAddrLength(source_addr)));
   if ((result != 0) && (errno != EINPROGRESS)) {
-    SaveErrorAndClose(fd);
+    FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
@@ -329,7 +322,7 @@ intptr_t Socket::CreateBindDatagram(const RawAddr& addr, bool reuseAddress) {
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
-    SaveErrorAndClose(fd);
+    FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
   return fd;
@@ -415,7 +408,7 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
 
   if (NO_RETRY_EXPECTED(
           bind(fd, &addr.addr, SocketAddress::GetAddrLength(addr))) < 0) {
-    SaveErrorAndClose(fd);
+    FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
@@ -425,12 +418,12 @@ intptr_t ServerSocket::CreateBindListen(const RawAddr& addr,
     // Don't close the socket until we have created a new socket, ensuring
     // that we do not get the bad port number again.
     intptr_t new_fd = CreateBindListen(addr, backlog, v6_only);
-    SaveErrorAndClose(fd);
+    FDUtils::SaveErrorAndClose(fd);
     return new_fd;
   }
 
   if (NO_RETRY_EXPECTED(listen(fd, backlog > 0 ? backlog : SOMAXCONN)) != 0) {
-    SaveErrorAndClose(fd);
+    FDUtils::SaveErrorAndClose(fd);
     return -1;
   }
 
@@ -469,11 +462,11 @@ intptr_t ServerSocket::Accept(intptr_t fd) {
     }
   } else {
     if (!FDUtils::SetCloseOnExec(socket)) {
-      SaveErrorAndClose(socket);
+      FDUtils::SaveErrorAndClose(socket);
       return -1;
     }
     if (!FDUtils::SetNonBlocking(socket)) {
-      SaveErrorAndClose(socket);
+      FDUtils::SaveErrorAndClose(socket);
       return -1;
     }
   }
