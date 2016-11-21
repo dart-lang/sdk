@@ -321,8 +321,8 @@ static RawError* BootstrapFromKernel(Thread* thread,
                                      const uint8_t* buffer,
                                      intptr_t buffer_size) {
   Zone* zone = thread->zone();
-  kernel::Program* program =
-      ReadPrecompiledKernelFromBuffer(buffer, buffer_size);
+  kernel::KernelReader reader(buffer, buffer_size, true);
+  kernel::Program* program = reader.ReadPrecompiledProgram();
   if (program == NULL) {
     const String& message =
         String::Handle(zone, String::New("Failed to read Kernel file"));
@@ -343,7 +343,6 @@ static RawError* BootstrapFromKernel(Thread* thread,
   Library& library = Library::Handle(zone);
   String& dart_name = String::Handle(zone);
   String& kernel_name = String::Handle(zone);
-  kernel::KernelReader reader(NULL, -1, true);
   for (intptr_t i = 0; i < kBootstrapLibraryCount; ++i) {
     ObjectStore::BootstrapLibraryId id = bootstrap_libraries[i].index;
     library = isolate->object_store()->bootstrap_library(id);
