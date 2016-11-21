@@ -16,7 +16,6 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/source/config.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
@@ -1104,17 +1103,6 @@ class ContextManagerImpl implements ContextManager {
         pubspec = child;
       }
     }
-    if (pubspec != null) {
-      File pubSource = resourceProvider.getFile(pubspec.path);
-      if (enableNewAnalysisDriver) {
-        // TODO(scheglov) implement for the new analysis driver
-      } else {
-        setConfiguration(
-            info.context,
-            new AnalysisConfiguration.fromPubspec(
-                pubSource, resourceProvider, disposition.packages));
-      }
-    }
 
     if (enableNewAnalysisDriver) {
       // TODO(scheglov) implement for the new analysis driver
@@ -1271,18 +1259,6 @@ class ContextManagerImpl implements ContextManager {
     Iterable<YamlMap> maps = locator.embedderYamls.values;
     if (maps.length == 1) {
       embeddedOptions = maps.first;
-    }
-
-    AnalysisConfiguration configuration = getConfiguration(info.context);
-    if (configuration != null) {
-      Map configMap = configuration.options;
-      if (configMap != null) {
-        if (embeddedOptions != null) {
-          embeddedOptions = new Merger().merge(embeddedOptions, configMap);
-        } else {
-          embeddedOptions = configMap;
-        }
-      }
     }
     return embeddedOptions;
   }
