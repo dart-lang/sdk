@@ -343,6 +343,15 @@ vm/reflect_core_vm_test: CompileTimeError
 vm/type_cast_vm_test: RuntimeError
 vm/type_vm_test: RuntimeError
 
+# dartk: JIT failures (debug)
+[ $compiler == dartk && $runtime == vm && $mode == debug ]
+async_star_regression_fisk_test: Crash  # Stack mismatch during expression translation.
+async_star_test: Crash  # Stack mismatch during expression translation.
+issue23244_test: Crash  # Class finalization issue
+not_enough_positional_arguments_test/02: Crash  # Crash
+not_enough_positional_arguments_test/05: Crash  # Crash
+vm/optimized_guarded_field_isolates_test: Crash  # Class finalization issue
+
 # dartk: precompilation failures
 [ $compiler == dartkp && $runtime == dart_precompiled ]
 accessor_conflict_export2_test: RuntimeError
