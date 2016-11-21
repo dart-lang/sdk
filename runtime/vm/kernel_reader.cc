@@ -103,7 +103,7 @@ Program* KernelReader::ReadPrecompiledProgram() {
 }
 
 Object& KernelReader::ReadProgram() {
-  Program* program = ReadPrecompiledKernelFromBuffer(buffer_, buffer_length_);
+  Program* program = ReadPrecompiledProgram();
   if (program == NULL) {
     const dart::String& error = H.DartString("Failed to read .kernell file");
     return Object::Handle(Z, ApiError::New(error));
