@@ -107,14 +107,11 @@ class CompletionDomainHandler implements RequestHandler {
     if (server.searchEngine == null) {
       return new Response.noIndexGenerated(request);
     }
-    runZoned(() {
-      try {
-        String requestName = request.method;
-        if (requestName == COMPLETION_GET_SUGGESTIONS) {
-          processRequest(request);
-        }
-      } on RequestFailure catch (exception) {
-        return exception.response;
+    return runZoned(() {
+      String requestName = request.method;
+      if (requestName == COMPLETION_GET_SUGGESTIONS) {
+        processRequest(request);
+        return Response.DELAYED_RESPONSE;
       }
       return null;
     }, onError: (exception, stackTrace) {
@@ -123,7 +120,6 @@ class CompletionDomainHandler implements RequestHandler {
           exception,
           stackTrace);
     });
-    return Response.DELAYED_RESPONSE;
   }
 
   /**
