@@ -4608,6 +4608,37 @@ var v = new C().f(/*info:INFERRED_TYPE_CLOSURE*/() { return 1; });
     expect(v.name, 'v');
     expect(v.type.toString(), 'double');
   }
+
+  void test_voidReturnTypeSubtypesDynamic() {
+    var unit = checkFile(r'''
+/*=T*/ run/*<T>*/(/*=T*/ f()) {
+  print("running");
+  var t = f();
+  print("done running");
+  return t;
+}
+
+
+void printRunning() { print("running"); }
+var x = run/*<dynamic>*/(printRunning);
+var y = run(printRunning);
+
+main() {
+  void printRunning() { print("running"); }
+  var x = run/*<dynamic>*/(printRunning);
+  var y = run(printRunning);
+  x = 123;
+  x = 'hi';
+  y = 123;
+  y = 'hi';
+}
+    ''');
+
+    var x = unit.topLevelVariables[0];
+    var y = unit.topLevelVariables[1];
+    expect(x.type.toString(), 'dynamic');
+    expect(y.type.toString(), 'dynamic');
+  }
 }
 
 @reflectiveTest
