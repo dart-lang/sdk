@@ -108,6 +108,27 @@ abstract class AnalysisDriverUnitError extends base.SummaryClass {
 }
 
 /**
+ * Information about an unlinked unit.
+ */
+@TopLevel('ADUU')
+abstract class AnalysisDriverUnlinkedUnit extends base.SummaryClass {
+  factory AnalysisDriverUnlinkedUnit.fromBuffer(List<int> buffer) =>
+      generated.readAnalysisDriverUnlinkedUnit(buffer);
+
+  /**
+   * List of external names referenced by the unit.
+   */
+  @Id(0)
+  List<String> get referencedNames;
+
+  /**
+   * Unlinked information for the unit.
+   */
+  @Id(1)
+  UnlinkedUnit get unit;
+}
+
+/**
  * Information about an element code range.
  */
 abstract class CodeRange extends base.SummaryClass {

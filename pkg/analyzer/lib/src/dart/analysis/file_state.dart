@@ -11,6 +11,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -85,6 +86,7 @@ class FileState {
   String _content;
   String _contentHash;
   LineInfo _lineInfo;
+  Set<String> _referencedNames;
   UnlinkedUnit _unlinked;
   List<int> _apiSignature;
 
@@ -159,6 +161,11 @@ class FileState {
    * The list of files this library file references as parts.
    */
   List<FileState> get partedFiles => _partedFiles;
+
+  /**
+   * The external names referenced by the file.
+   */
+  Set<String> get referencedNames => _referencedNames;
 
   /**
    * Return the set of transitive files - the file itself and all of the
@@ -272,14 +279,19 @@ class FileState {
         CompilationUnit unit = parse(AnalysisErrorListener.NULL_LISTENER);
         _fsState._logger.run('Create unlinked for $path', () {
           UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
-          bytes = unlinkedUnit.toBuffer();
+          List<String> referencedNames = computeReferencedNames(unit).toList();
+          bytes = new AnalysisDriverUnlinkedUnitBuilder(
+                  unit: unlinkedUnit, referencedNames: referencedNames)
+              .toBuffer();
           _fsState._byteStore.put(unlinkedKey, bytes);
         });
       }
     }
 
     // Read the unlinked bundle.
-    _unlinked = new UnlinkedUnit.fromBuffer(bytes);
+    var driverUnlinkedUnit = new AnalysisDriverUnlinkedUnit.fromBuffer(bytes);
+    _referencedNames = new Set<String>.from(driverUnlinkedUnit.referencedNames);
+    _unlinked = driverUnlinkedUnit.unit;
     _lineInfo = new LineInfo(_unlinked.lineStarts);
     List<int> newApiSignature = _unlinked.apiSignature;
     bool apiSignatureChanged = _apiSignature != null &&

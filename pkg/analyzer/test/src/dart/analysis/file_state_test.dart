@@ -211,6 +211,21 @@ part 'not-a2.dart';
     expect(files, [filePackageUri, fileFileUri]);
   }
 
+  test_referencedNames() {
+    String path = _p('/aaa/lib/a.dart');
+    provider.newFile(
+        path,
+        r'''
+A foo(B p) {
+  foo(null);
+  C c = new C(p);
+  return c;
+}
+''');
+    FileState file = fileSystemState.getFileForPath(path);
+    expect(file.referencedNames, unorderedEquals(['A', 'B', 'C']));
+  }
+
   test_refresh_differentApiSignature() {
     String path = _p('/aaa/lib/a.dart');
     provider.newFile(

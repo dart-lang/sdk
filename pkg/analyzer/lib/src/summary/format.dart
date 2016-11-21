@@ -419,6 +419,135 @@ abstract class _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitEr
   String toString() => convert.JSON.encode(toJson());
 }
 
+class AnalysisDriverUnlinkedUnitBuilder extends Object with _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+  UnlinkedUnitBuilder _unit;
+  List<String> _referencedNames;
+
+  @override
+  UnlinkedUnitBuilder get unit => _unit;
+
+  /**
+   * Unlinked information for the unit.
+   */
+  void set unit(UnlinkedUnitBuilder value) {
+    this._unit = value;
+  }
+
+  @override
+  List<String> get referencedNames => _referencedNames ??= <String>[];
+
+  /**
+   * List of external names referenced by the unit.
+   */
+  void set referencedNames(List<String> value) {
+    this._referencedNames = value;
+  }
+
+  AnalysisDriverUnlinkedUnitBuilder({UnlinkedUnitBuilder unit, List<String> referencedNames})
+    : _unit = unit,
+      _referencedNames = referencedNames;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _unit?.flushInformative();
+  }
+
+  /**
+   * Accumulate non-[informative] data into [signature].
+   */
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._referencedNames == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._referencedNames.length);
+      for (var x in this._referencedNames) {
+        signature.addString(x);
+      }
+    }
+    signature.addBool(this._unit != null);
+    this._unit?.collectApiSignature(signature);
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "ADUU");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_unit;
+    fb.Offset offset_referencedNames;
+    if (_unit != null) {
+      offset_unit = _unit.finish(fbBuilder);
+    }
+    if (!(_referencedNames == null || _referencedNames.isEmpty)) {
+      offset_referencedNames = fbBuilder.writeList(_referencedNames.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_unit != null) {
+      fbBuilder.addOffset(1, offset_unit);
+    }
+    if (offset_referencedNames != null) {
+      fbBuilder.addOffset(0, offset_referencedNames);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.AnalysisDriverUnlinkedUnit readAnalysisDriverUnlinkedUnit(List<int> buffer) {
+  fb.BufferContext rootRef = new fb.BufferContext.fromBytes(buffer);
+  return const _AnalysisDriverUnlinkedUnitReader().read(rootRef, 0);
+}
+
+class _AnalysisDriverUnlinkedUnitReader extends fb.TableReader<_AnalysisDriverUnlinkedUnitImpl> {
+  const _AnalysisDriverUnlinkedUnitReader();
+
+  @override
+  _AnalysisDriverUnlinkedUnitImpl createObject(fb.BufferContext bc, int offset) => new _AnalysisDriverUnlinkedUnitImpl(bc, offset);
+}
+
+class _AnalysisDriverUnlinkedUnitImpl extends Object with _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _AnalysisDriverUnlinkedUnitImpl(this._bc, this._bcOffset);
+
+  idl.UnlinkedUnit _unit;
+  List<String> _referencedNames;
+
+  @override
+  idl.UnlinkedUnit get unit {
+    _unit ??= const _UnlinkedUnitReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _unit;
+  }
+
+  @override
+  List<String> get referencedNames {
+    _referencedNames ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _referencedNames;
+  }
+}
+
+abstract class _AnalysisDriverUnlinkedUnitMixin implements idl.AnalysisDriverUnlinkedUnit {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (unit != null) _result["unit"] = unit.toJson();
+    if (referencedNames.isNotEmpty) _result["referencedNames"] = referencedNames;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "unit": unit,
+    "referencedNames": referencedNames,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRange {
   int _length;
   int _offset;
