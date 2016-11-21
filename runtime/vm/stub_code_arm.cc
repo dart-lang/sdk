@@ -1850,23 +1850,19 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
-// Jump to the exception or error handler.
+// Jump to a frame on the call stack.
 // LR: return address.
 // R0: program_counter.
 // R1: stack_pointer.
 // R2: frame_pointer.
-// R3: error object.
-// SP + 0: address of stacktrace object.
-// SP + 4: thread.
+// R3: thread.
 // Does not return.
-void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
+void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
   __ mov(IP, Operand(R1));      // Copy Stack pointer into IP.
   __ mov(LR, Operand(R0));      // Program counter.
-  __ mov(R0, Operand(R3));      // Exception object.
-  __ ldr(R1, Address(SP, 0));   // StackTrace object.
-  __ ldr(THR, Address(SP, 4));  // Thread.
+  __ mov(THR, Operand(R3));     // Thread.
   __ mov(FP, Operand(R2));      // Frame_pointer.
   __ mov(SP, Operand(IP));      // Set Stack pointer.
   // Set the tag.
@@ -1878,6 +1874,27 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   // Restore the pool pointer.
   __ RestoreCodePointer();
   __ LoadPoolPointer();
+  __ bx(LR);  // Jump to continuation point.
+}
+
+
+// Run an exception handler.  Execution comes from JumpToFrame
+// stub or from the simulator.
+//
+// The arguments are stored in the Thread object.
+// Does not return.
+void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
+  __ LoadFromOffset(kWord, LR, THR, Thread::resume_pc_offset());
+  __ LoadImmediate(R2, 0);
+
+  // Exception object.
+  __ LoadFromOffset(kWord, R0, THR, Thread::active_exception_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::active_exception_offset());
+
+  // Stacktrace object.
+  __ LoadFromOffset(kWord, R1, THR, Thread::active_stacktrace_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::active_stacktrace_offset());
+
   __ bx(LR);  // Jump to the exception handler code.
 }
 

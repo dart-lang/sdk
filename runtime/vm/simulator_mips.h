@@ -139,12 +139,7 @@ class Simulator {
 
   static uword FunctionForRedirect(uword redirect);
 
-  void Longjmp(uword pc,
-               uword sp,
-               uword fp,
-               RawObject* raw_exception,
-               RawObject* raw_stacktrace,
-               Thread* thread);
+  void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
  private:
   // A pc value used to signal the simulator to stop execution.  Generally

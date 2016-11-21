@@ -204,18 +204,9 @@ static void FindErrorHandler(uword* handler_pc,
 }
 
 
-static void JumpToExceptionHandler(Thread* thread,
-                                   uword program_counter,
-                                   uword stack_pointer,
-                                   uword frame_pointer,
-                                   const Object& exception_object,
-                                   const Object& stacktrace_object) {
-  // The no_gc StackResource is unwound through the tear down of
-  // stack resources below.
-  NoSafepointScope no_safepoint;
-  RawObject* raw_exception = exception_object.raw();
-  RawObject* raw_stacktrace = stacktrace_object.raw();
-
+static uword RemapExceptionPCForDeopt(Thread* thread,
+                                      uword program_counter,
+                                      uword frame_pointer) {
 #if !defined(TARGET_ARCH_DBC)
   MallocGrowableArray<PendingLazyDeopt>* pending_deopts =
       thread->isolate()->pending_deopts();
@@ -273,8 +264,31 @@ static void JumpToExceptionHandler(Thread* thread,
 #endif
   }
 #endif  // !DBC
+  return program_counter;
+}
 
 
+static void JumpToExceptionHandler(Thread* thread,
+                                   uword program_counter,
+                                   uword stack_pointer,
+                                   uword frame_pointer,
+                                   const Object& exception_object,
+                                   const Object& stacktrace_object) {
+  uword remapped_pc =
+      RemapExceptionPCForDeopt(thread, program_counter, frame_pointer);
+  thread->set_active_exception(exception_object);
+  thread->set_active_stacktrace(stacktrace_object);
+  thread->set_resume_pc(remapped_pc);
+  uword run_exception_pc = StubCode::RunExceptionHandler_entry()->EntryPoint();
+  Exceptions::JumpToFrame(thread, run_exception_pc, stack_pointer,
+                          frame_pointer);
+}
+
+
+void Exceptions::JumpToFrame(Thread* thread,
+                             uword program_counter,
+                             uword stack_pointer,
+                             uword frame_pointer) {
 #if defined(USING_SIMULATOR)
   // Unwinding of the C++ frames and destroying of their stack resources is done
   // by the simulator, because the target stack_pointer is a simulated stack
@@ -284,8 +298,8 @@ static void JumpToExceptionHandler(Thread* thread,
   // exception object in the kExceptionObjectReg register and the stacktrace
   // object (may be raw null) in the kStackTraceObjectReg register.
 
-  Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
-                                raw_exception, raw_stacktrace, thread);
+  Simulator::Current()->JumpToFrame(program_counter, stack_pointer,
+                                    frame_pointer, thread);
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
@@ -294,18 +308,16 @@ static void JumpToExceptionHandler(Thread* thread,
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
   // continue execution at the given pc in the given frame.
-  typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*,
-                              Thread*);
+  typedef void (*ExcpHandler)(uword, uword, uword, Thread*);
   ExcpHandler func = reinterpret_cast<ExcpHandler>(
-      StubCode::JumpToExceptionHandler_entry()->EntryPoint());
+      StubCode::JumpToFrame_entry()->EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
   uword current_sp = Thread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
                 stack_pointer - current_sp);
 
-  func(program_counter, stack_pointer, frame_pointer, raw_exception,
-       raw_stacktrace, thread);
+  func(program_counter, stack_pointer, frame_pointer, thread);
 #endif
   UNREACHABLE();
 }

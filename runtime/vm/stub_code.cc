@@ -91,8 +91,8 @@ void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {}
 
 bool StubCode::HasBeenInitialized() {
 #if !defined(TARGET_ARCH_DBC)
-  // Use JumpToExceptionHandler and InvokeDart as canaries.
-  const StubEntry* entry_1 = StubCode::JumpToExceptionHandler_entry();
+  // Use JumpToHandler and InvokeDart as canaries.
+  const StubEntry* entry_1 = StubCode::JumpToFrame_entry();
   const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
   return (entry_1 != NULL) && (entry_2 != NULL);
 #else
@@ -115,11 +115,11 @@ bool StubCode::InInvocationStub(uword pc) {
 }
 
 
-bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
+bool StubCode::InJumpToFrameStub(uword pc) {
 #if !defined(TARGET_ARCH_DBC)
   ASSERT(HasBeenInitialized());
-  uword entry = StubCode::JumpToExceptionHandler_entry()->EntryPoint();
-  uword size = StubCode::JumpToExceptionHandlerSize();
+  uword entry = StubCode::JumpToFrame_entry()->EntryPoint();
+  uword size = StubCode::JumpToFrameSize();
   return (pc >= entry) && (pc < (entry + size));
 #else
   // This stub does not exist on DBC.

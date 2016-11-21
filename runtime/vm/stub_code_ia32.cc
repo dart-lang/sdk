@@ -1792,21 +1792,15 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 }
 
 
-// Jump to the exception or error handler.
+// Jump to a frame on the call stack.
 // TOS + 0: return address
 // TOS + 1: program_counter
 // TOS + 2: stack_pointer
 // TOS + 3: frame_pointer
-// TOS + 4: exception object
-// TOS + 5: stacktrace object
-// TOS + 6: thread
+// TOS + 4: thread
 // No Result.
-void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
-  ASSERT(kExceptionObjectReg == EAX);
-  ASSERT(kStackTraceObjectReg == EDX);
-  __ movl(THR, Address(ESP, 6 * kWordSize));  // Load target thread.
-  __ movl(kStackTraceObjectReg, Address(ESP, 5 * kWordSize));
-  __ movl(kExceptionObjectReg, Address(ESP, 4 * kWordSize));
+void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
+  __ movl(THR, Address(ESP, 4 * kWordSize));  // Load target thread.
   __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
@@ -1815,6 +1809,29 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   // Clear top exit frame.
   __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
   __ jmp(EBX);  // Jump to the exception handler code.
+}
+
+
+// Run an exception handler.  Execution comes from JumpToFrame stub.
+//
+// The arguments are stored in the Thread object.
+// No result.
+void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
+  ASSERT(kExceptionObjectReg == EAX);
+  ASSERT(kStackTraceObjectReg == EDX);
+  __ movl(EBX, Address(THR, Thread::resume_pc_offset()));
+
+  // Load the exception from the current thread.
+  Address exception_addr(THR, Thread::active_exception_offset());
+  __ movl(kExceptionObjectReg, exception_addr);
+  __ movl(exception_addr, Immediate(0));
+
+  // Load the stacktrace from the current thread.
+  Address stacktrace_addr(THR, Thread::active_stacktrace_offset());
+  __ movl(kStackTraceObjectReg, stacktrace_addr);
+  __ movl(stacktrace_addr, Immediate(0));
+
+  __ jmp(EBX);  // Jump to continuation point.
 }
 
 

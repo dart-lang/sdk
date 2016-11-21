@@ -3602,12 +3602,7 @@ int64_t Simulator::Call(int64_t entry,
 }
 
 
-void Simulator::Longjmp(uword pc,
-                        uword sp,
-                        uword fp,
-                        RawObject* raw_exception,
-                        RawObject* raw_stacktrace,
-                        Thread* thread) {
+void Simulator::JumpToFrame(uword pc, uword sp, uword fp, Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
   // and try to find the setjmp associated with the simulated stack pointer.
   SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
@@ -3630,10 +3625,6 @@ void Simulator::Longjmp(uword pc,
   thread->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.
   thread->set_top_exit_frame_info(0);
-
-  ASSERT(raw_exception != Object::null());
-  set_register(NULL, kExceptionObjectReg, bit_cast<int64_t>(raw_exception));
-  set_register(NULL, kStackTraceObjectReg, bit_cast<int64_t>(raw_stacktrace));
   // Restore pool pointer.
   int64_t code =
       *reinterpret_cast<int64_t*>(fp + kPcMarkerSlotFromFp * kWordSize);

@@ -1985,19 +1985,13 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // A0: program_counter.
 // A1: stack_pointer.
 // A2: frame_pointer.
-// A3: error object.
-// SP + 4*kWordSize: address of stacktrace object.
-// SP + 5*kWordSize: address of thread.
+// A3: thread.
 // Does not return.
-void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
+void StubCode::GenerateJumpToFrameStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == V0);
   ASSERT(kStackTraceObjectReg == V1);
-  __ mov(V0, A3);  // Exception object.
-  // MIPS ABI reserves stack space for all arguments. The StackTrace object is
-  // the last of five arguments, so it is first pushed on the stack.
-  __ lw(V1, Address(SP, 4 * kWordSize));   // StackTrace object.
-  __ mov(FP, A2);                          // Frame_pointer.
-  __ lw(THR, Address(SP, 5 * kWordSize));  // Thread.
+  __ mov(FP, A2);   // Frame_pointer.
+  __ mov(THR, A3);  // Thread.
   // Set tag.
   __ LoadImmediate(A2, VMTag::kDartTagId);
   __ sw(A2, Assembler::VMTagAddress());
@@ -2006,8 +2000,31 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   // Restore pool pointer.
   __ RestoreCodePointer();
   __ LoadPoolPointer();
-  __ jr(A0);                     // Jump to the exception handler code.
+  __ jr(A0);                     // Jump to the program counter.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.
+}
+
+
+// Run an exception handler.  Execution comes from JumpToFrame
+// stub or from the simulator.
+//
+// The arguments are stored in the Thread object.
+// Does not return.
+void StubCode::GenerateRunExceptionHandlerStub(Assembler* assembler) {
+  __ lw(A0, Address(THR, Thread::resume_pc_offset()));
+  __ LoadImmediate(A2, 0);
+
+  // Load the exception from the current thread.
+  Address exception_addr(THR, Thread::active_exception_offset());
+  __ lw(V0, exception_addr);
+  __ sw(A2, exception_addr);
+
+  // Load the stacktrace from the current thread.
+  Address stacktrace_addr(THR, Thread::active_stacktrace_offset());
+  __ lw(V1, stacktrace_addr);
+
+  __ jr(A0);  // Jump to continuation point.
+  __ delay_slot()->sw(A2, stacktrace_addr);
 }
 
 

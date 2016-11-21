@@ -93,6 +93,9 @@ Thread::Thread(Isolate* isolate)
       type_range_cache_(NULL),
       deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
+      active_exception_(Object::null()),
+      active_stacktrace_(Object::null()),
+      resume_pc_(0),
       sticky_error_(Error::null()),
       compiler_stats_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
@@ -212,6 +215,17 @@ RawGrowableObjectArray* Thread::pending_functions() {
 
 void Thread::clear_pending_functions() {
   pending_functions_ = GrowableObjectArray::null();
+}
+
+
+void Thread::set_active_exception(const Object& value) {
+  ASSERT(!value.IsNull());
+  active_exception_ = value.raw();
+}
+
+
+void Thread::set_active_stacktrace(const Object& value) {
+  active_stacktrace_ = value.raw();
 }
 
 
@@ -606,6 +620,8 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   reusable_handles_.VisitObjectPointers(visitor);
 
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&pending_functions_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_exception_));
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&active_stacktrace_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&sticky_error_));
 
   // Visit the api local scope as it has all the api local handles.

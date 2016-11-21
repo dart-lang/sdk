@@ -64,12 +64,7 @@ class Simulator {
                   const Array& arguments,
                   Thread* thread);
 
-  void Longjmp(uword pc,
-               uword sp,
-               uword fp,
-               RawObject* raw_exception,
-               RawObject* raw_stacktrace,
-               Thread* thread);
+  void JumpToFrame(uword pc, uword sp, uword fp, Thread* thread);
 
   uword get_sp() const { return reinterpret_cast<uword>(sp_); }
   uword get_fp() const { return reinterpret_cast<uword>(fp_); }
