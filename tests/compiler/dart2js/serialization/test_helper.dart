@@ -476,7 +476,17 @@ void checkSets(
     void onSameElement(a, b),
     void onUnfoundElement(a),
     void onExtraElement(b),
+    bool elementFilter(element),
+    elementConverter(element),
     String elementToString(key): defaultToString}) {
+  if (elementFilter != null) {
+    set1 = set1.where(elementFilter);
+    set2 = set2.where(elementFilter);
+  }
+  if (elementConverter != null) {
+    set1 = set1.map(elementConverter);
+    set2 = set2.map(elementConverter);
+  }
   List<List> common = <List>[];
   List unfound = [];
   Set remaining = computeSetDifference(set1, set2, common, unfound,

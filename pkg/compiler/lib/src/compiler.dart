@@ -683,6 +683,10 @@ abstract class Compiler implements LibraryLoaderListener {
         backend.enqueueHelpers(enqueuer.resolution);
         resolveLibraryMetadata();
         reporter.log('Resolving...');
+        if (mainFunction != null && !mainFunction.isMalformed) {
+          mainFunction.computeType(resolution);
+        }
+
         processQueue(enqueuer.resolution, mainFunction);
         enqueuer.resolution.logSummary(reporter.log);
 
@@ -847,28 +851,15 @@ abstract class Compiler implements LibraryLoaderListener {
     });
   }
 
-  void processQueue(Enqueuer enqueuer, Element main) {
+  void processQueue(Enqueuer enqueuer, MethodElement mainMethod) {
     selfTask.measureSubtask("Compiler.processQueue", () {
       enqueuer.applyImpact(
           impactStrategy,
           enqueuer.nativeEnqueuer
               .processNativeClasses(libraryLoader.libraries));
-      if (main != null && !main.isMalformed) {
-        FunctionElement mainMethod = main;
-        mainMethod.computeType(resolution);
-        if (mainMethod.functionSignature.parameterCount != 0) {
-          // The first argument could be a list of strings.
-          backend.backendClasses.listImplementation.ensureResolved(resolution);
-          enqueuer.registerInstantiatedType(
-              backend.backendClasses.listImplementation.rawType);
-          backend.backendClasses.stringImplementation
-              .ensureResolved(resolution);
-          enqueuer.registerInstantiatedType(
-              backend.backendClasses.stringImplementation.rawType);
-
-          backend.registerMainHasArguments(enqueuer);
-        }
-        enqueuer.addToWorkList(main);
+      if (mainMethod != null && !mainMethod.isMalformed) {
+        enqueuer.applyImpact(
+            impactStrategy, backend.computeMainImpact(enqueuer, mainMethod));
       }
       if (options.verbose) {
         progress.reset();

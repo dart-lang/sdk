@@ -109,77 +109,35 @@ void checkResolutionEnqueuers(
     ResolutionEnqueuer enqueuer1, ResolutionEnqueuer enqueuer2,
     {bool typeEquivalence(DartType a, DartType b): areTypesEquivalent,
     bool elementFilter(Element element),
-    bool checkInstantiatedTypesAndClasses: true,
     bool verbose: false}) {
-  Iterable<Element> processedElements1 = enqueuer1.processedElements;
-  Iterable<Element> processedElements2 = enqueuer2.processedElements;
-  if (elementFilter != null) {
-    processedElements1 = processedElements1.where(elementFilter);
-    processedElements2 = processedElements2.where(elementFilter);
-  }
-
-  checkSets(processedElements1, processedElements2,
+  checkSets(enqueuer1.processedElements, enqueuer2.processedElements,
       "Processed element mismatch", areElementsEquivalent,
-      verbose: verbose);
+      elementFilter: elementFilter, verbose: verbose);
 
-  /// Normalize the instantiation map by removing redirections and converting
-  /// redirecting factories to their effective target.
-  Map<ClassElement, InstantiationInfo> createInstantiationMap(
-      ResolutionWorldBuilder worldBuilder) {
-    Map<ClassElement, InstantiationInfo> instantiationMap =
-        <ClassElement, InstantiationInfo>{};
-
-    InstantiationInfo infoFor(ClassElement cls) {
-      return instantiationMap.putIfAbsent(cls, () => new InstantiationInfo());
-    }
-
-    worldBuilder.forEachInstantiatedClass((cls, info) {
-      if (info.instantiationMap != null) {
-        info.instantiationMap
-            .forEach((ConstructorElement constructor, Set<Instance> set) {
-          for (Instance instance in set) {
-            if (instance.isRedirection) {
-              continue;
-            }
-            if (constructor == null || !constructor.isRedirectingFactory) {
-              infoFor(cls)
-                  .addInstantiation(constructor, instance.type, instance.kind);
-            } else {
-              ConstructorElement target = constructor.effectiveTarget;
-              InterfaceType targetType =
-                  constructor.computeEffectiveTargetType(instance.type);
-              infoFor(targetType.element).addInstantiation(
-                  target, targetType, Instantiation.DIRECTLY_INSTANTIATED);
-            }
-          }
-        });
-      }
-    });
-    return instantiationMap;
-  }
+  ResolutionWorldBuilderImpl worldBuilder1 = enqueuer1.universe;
+  ResolutionWorldBuilderImpl worldBuilder2 = enqueuer2.universe;
 
   checkMaps(
-      createInstantiationMap(enqueuer1.universe),
-      createInstantiationMap(enqueuer2.universe),
+      worldBuilder1.getInstantiationMap(),
+      worldBuilder2.getInstantiationMap(),
       "Instantiated classes mismatch",
       areElementsEquivalent,
       (a, b) => areInstantiationInfosEquivalent(a, b, typeEquivalence),
       verbose: verbose);
-  if (checkInstantiatedTypesAndClasses) {
-    checkSets(
-        enqueuer1.universe.directlyInstantiatedClasses,
-        enqueuer2.universe.directlyInstantiatedClasses,
-        "Directly instantiated classes mismatch",
-        areElementsEquivalent,
-        verbose: verbose);
 
-    checkSets(
-        enqueuer1.universe.instantiatedTypes,
-        enqueuer2.universe.instantiatedTypes,
-        "Instantiated types mismatch",
-        typeEquivalence,
-        verbose: verbose);
-  }
+  checkSets(
+      enqueuer1.universe.directlyInstantiatedClasses,
+      enqueuer2.universe.directlyInstantiatedClasses,
+      "Directly instantiated classes mismatch",
+      areElementsEquivalent,
+      verbose: verbose);
+
+  checkSets(
+      enqueuer1.universe.instantiatedTypes,
+      enqueuer2.universe.instantiatedTypes,
+      "Instantiated types mismatch",
+      typeEquivalence,
+      verbose: verbose);
 
   checkSets(enqueuer1.universe.isChecks, enqueuer2.universe.isChecks,
       "Is-check mismatch", typeEquivalence,
@@ -474,7 +432,7 @@ bool areInstantiationInfosEquivalent(InstantiationInfo info1,
       info1.instantiationMap,
       info2.instantiationMap,
       'instantiationMap of\n   '
-          '${info1.instantiationMap}\nvs ${info2.instantiationMap}',
+      '${info1.instantiationMap}\nvs ${info2.instantiationMap}',
       areElementsEquivalent,
       (a, b) => areSetsEquivalent(
           a, b, (a, b) => areInstancesEquivalent(a, b, typeEquivalence)));

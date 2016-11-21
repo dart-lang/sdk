@@ -241,7 +241,8 @@ Future testSwitch() {
     compiler.resolveStatement("Foo foo;");
     ClassElement fooElement = compiler.mainApp.find("Foo");
     FunctionElement funElement = fooElement.lookupLocalMember("foo");
-    compiler.processQueue(compiler.enqueuer.resolution, funElement);
+    compiler.enqueuer.resolution.addToWorkList(funElement);
+    compiler.processQueue(compiler.enqueuer.resolution, null);
     DiagnosticCollector collector = compiler.diagnosticCollector;
     Expect.equals(0, collector.warnings.length);
     Expect.equals(1, collector.errors.length);

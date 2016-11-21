@@ -407,6 +407,10 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   bool hasIsolateSupport = false;
   bool hasFunctionApplySupport = false;
 
+  /// Used for testing the new more precise computation of instantiated types
+  /// and classes.
+  bool useInstantiationMap = false;
+
   OpenWorld _openWorld;
 
   ResolutionWorldBuilderImpl(Backend backend, CoreClasses coreClasses,
@@ -422,7 +426,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<ClassElement> get directlyInstantiatedClasses {
     Set<ClassElement> classes = new Set<ClassElement>();
-    _instantiationInfo.forEach((ClassElement cls, InstantiationInfo info) {
+    getInstantiationMap().forEach((ClassElement cls, InstantiationInfo info) {
       if (info.hasInstantiation) {
         classes.add(cls);
       }
@@ -437,7 +441,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
   // TODO(johnniwinther): Improve semantic precision.
   Iterable<DartType> get instantiatedTypes {
     Set<InterfaceType> types = new Set<InterfaceType>();
-    _instantiationInfo.forEach((_, InstantiationInfo info) {
+    getInstantiationMap().forEach((_, InstantiationInfo info) {
       if (info.instantiationMap != null) {
         for (Set<Instance> instances in info.instantiationMap.values) {
           for (Instance instance in instances) {
@@ -509,7 +513,7 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
 
   @override
   void forEachInstantiatedClass(f(ClassElement cls, InstantiationInfo info)) {
-    _instantiationInfo.forEach(f);
+    getInstantiationMap().forEach(f);
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
@@ -524,6 +528,50 @@ class ResolutionWorldBuilderImpl implements ResolutionWorldBuilder {
       }
     }
     return false;
+  }
+
+  /// Returns the instantiation map used for computing the closed world.
+  ///
+  /// If [useInstantiationMap] is `true`, redirections are removed and
+  /// redirecting factories are converted to their effective target and type.
+  Map<ClassElement, InstantiationInfo> getInstantiationMap() {
+    if (!useInstantiationMap) return _instantiationInfo;
+
+    Map<ClassElement, InstantiationInfo> instantiationMap =
+        <ClassElement, InstantiationInfo>{};
+
+    InstantiationInfo infoFor(ClassElement cls) {
+      return instantiationMap.putIfAbsent(cls, () => new InstantiationInfo());
+    }
+
+    _instantiationInfo.forEach((cls, info) {
+      if (info.instantiationMap != null) {
+        info.instantiationMap
+            .forEach((ConstructorElement constructor, Set<Instance> set) {
+          for (Instance instance in set) {
+            if (instance.isRedirection) {
+              continue;
+            }
+            if (constructor == null || !constructor.isRedirectingFactory) {
+              infoFor(cls)
+                  .addInstantiation(constructor, instance.type, instance.kind);
+            } else {
+              ConstructorElement target = constructor.effectiveTarget;
+              InterfaceType targetType =
+                  constructor.computeEffectiveTargetType(instance.type);
+              Instantiation kind = Instantiation.DIRECTLY_INSTANTIATED;
+              if (target.enclosingClass.isAbstract) {
+                // If target is a factory constructor on an abstract class.
+                kind = Instantiation.UNINSTANTIATED;
+              }
+              infoFor(targetType.element)
+                  .addInstantiation(target, targetType, kind);
+            }
+          }
+        });
+      }
+    });
+    return instantiationMap;
   }
 
   bool hasInvocation(Element member, OpenWorld world) {
