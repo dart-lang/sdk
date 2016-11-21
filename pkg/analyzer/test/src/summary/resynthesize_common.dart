@@ -3433,6 +3433,12 @@ class D extends p.C {} // Prevent "unused import" warning
     expect(resynthesized.imports[1].importedLibrary.isDartCore, true);
   }
 
+  test_import_short_absolute() {
+    testFile = '/my/project/bin/test.dart';
+    addLibrarySource('/a.dart', 'class C {}');
+    checkLibrary('import "/a.dart"; C c;');
+  }
+
   test_import_show() {
     addLibrary('dart:async');
     checkLibrary('''
