@@ -234,6 +234,10 @@ IsolateTest stoppedAtLine(int line) {
   return (Isolate isolate) async {
     print("Checking we are at line $line");
 
+    // Make sure that the isolate has stopped.
+    isolate.reload();
+    expect(isolate.pauseEvent is! M.ResumeEvent, isTrue);
+
     ServiceMap stack = await isolate.getStack();
     expect(stack.type, equals('Stack'));
 

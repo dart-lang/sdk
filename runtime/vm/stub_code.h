@@ -27,6 +27,7 @@ class Deserializer;
   V(GetStackPointer)                                                           \
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
+  V(DeoptForRewind)                                                            \
   V(UpdateStoreBuffer)                                                         \
   V(PrintStopMessage)                                                          \
   V(CallToRuntime)                                                             \
@@ -75,6 +76,7 @@ class Deserializer;
   V(LazyCompile)                                                               \
   V(OptimizeFunction)                                                          \
   V(RunExceptionHandler)                                                       \
+  V(DeoptForRewind)                                                            \
   V(FixCallersTarget)                                                          \
   V(Deoptimize)                                                                \
   V(DeoptimizeLazyFromReturn)                                                  \
@@ -194,6 +196,12 @@ class StubCode : public AllStatic {
 
 
 enum DeoptStubKind { kLazyDeoptFromReturn, kLazyDeoptFromThrow, kEagerDeopt };
+
+// Zap value used to indicate unused CODE_REG in deopt.
+static const int64_t kZapCodeReg = 0xf1f1f1f1;
+
+// Zap value used to indicate unused return address in deopt.
+static const int64_t kZapReturnAddress = 0xe1e1e1e1;
 
 }  // namespace dart
 
