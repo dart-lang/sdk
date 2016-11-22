@@ -11,6 +11,7 @@ LibTest/isolate/*: Skip # No support for isolates ATM.
 # Override tests marked as failing elsewhere.
 [ $compiler == dartk || $compiler == dartkp ]
 Language/Libraries_and_Scripts/Exports/reexport_t01: Pass
+Language/Functions/Formal_Parameters/Optional_Formals/syntax_t14: Pass
 
 # dartk: JIT failures
 [ $compiler == dartk && $runtime == vm ]
@@ -36,9 +37,6 @@ Language/Classes/definition_t23: Crash
 Language/Enums/declaration_equivalent_t01: RuntimeError
 Language/Enums/syntax_t08: MissingCompileTimeError
 Language/Enums/syntax_t09: MissingCompileTimeError
-Language/Expressions/Await_Expressions/syntax_t01: RuntimeError
-Language/Expressions/Await_Expressions/syntax_t02: RuntimeError
-Language/Expressions/Await_Expressions/syntax_t10: RuntimeError
 Language/Expressions/Constants/exception_t01: MissingCompileTimeError
 Language/Expressions/Constants/exception_t02: MissingCompileTimeError
 Language/Expressions/Constants/string_length_t01: Crash
@@ -49,15 +47,11 @@ Language/Expressions/Function_Invocation/Unqualified_Invocation/function_expr_in
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t03: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/instance_context_invocation_t04: MissingCompileTimeError
 Language/Expressions/Function_Invocation/Unqualified_Invocation/static_method_invocation_t02: RuntimeError
-Language/Expressions/Function_Invocation/async_cleanup_t01: RuntimeError
-Language/Expressions/Function_Invocation/async_cleanup_t02: RuntimeError
-Language/Expressions/Function_Invocation/async_cleanup_t04: Crash
 Language/Expressions/Function_Invocation/async_cleanup_t07: Fail
 Language/Expressions/Function_Invocation/async_cleanup_t08: Fail
 Language/Expressions/Function_Invocation/async_generator_invokation_t05: RuntimeError
 Language/Expressions/Function_Invocation/async_generator_invokation_t06: RuntimeError
 Language/Expressions/Function_Invocation/async_generator_invokation_t09: RuntimeError
-Language/Expressions/Function_Invocation/async_invokation_t05: RuntimeError
 Language/Expressions/Identifier_Reference/built_in_identifier_t35: Pass
 Language/Expressions/Identifier_Reference/built_in_identifier_t36: Pass
 Language/Expressions/Identifier_Reference/built_in_identifier_t37: Pass
@@ -244,6 +238,7 @@ Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t01/01: MissingRunti
 Language/Libraries_and_Scripts/Imports/invalid_uri_deferred_t02: CompileTimeError
 Language/Libraries_and_Scripts/Imports/invalid_uri_t02: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01: RuntimeError
+Language/Libraries_and_Scripts/Parts/compilation_t02: Crash
 Language/Libraries_and_Scripts/Parts/syntax_t06: Pass
 Language/Libraries_and_Scripts/Scripts/top_level_main_t01: Crash
 Language/Libraries_and_Scripts/Scripts/top_level_main_t02: Crash
@@ -327,6 +322,19 @@ Language/Libraries_and_Scripts/Imports/static_type_t01/05: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/03: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/07: Pass
 Language/Libraries_and_Scripts/Imports/static_type_t01/02: Pass
+LibTest/core/Match/operator_subscript_A01_t01: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A01_t01: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A02_t01: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Assertion_A03_t01: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A03_t01: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A06_t01: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClass_A02_t01: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Disjunction_A01_t01: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t02: RuntimeError
+LibTest/core/RegExp/Pattern_semantics/firstMatch_Quantifier_A03_t01: RuntimeError
+LibTest/core/RegExp/firstMatch_A02_t01: RuntimeError
+LibTest/core/RegExp/hasMatch_A01_t02: RuntimeError
+LibTest/core/RegExp/stringMatch_A01_t01: RuntimeError
 
 # dartk: JIT failures (debug)
 [ $compiler == dartk && $runtime == vm && $mode == debug ]
