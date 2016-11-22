@@ -272,7 +272,7 @@ abstract class UnresolvedVisitor {
       Send node, MethodElement getter, Element element, Node rhs, _) {
     var accessor = new ClassStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildNullAwareAssignment(visitForValue(rhs), null,
+    return accessor.buildNullAwareAssignment(visitForValue(rhs),
         voidContext: isVoidContext);
   }
 
@@ -457,7 +457,7 @@ abstract class UnresolvedVisitor {
   ir.Expression visitUnresolvedSuperSetterSetIfNull(
       Send node, MethodElement getter, Element element, Node rhs, _) {
     return buildUnresolvedSuperPropertyAccessor('${node.selector}', getter)
-        .buildNullAwareAssignment(visitForValue(rhs), null);
+        .buildNullAwareAssignment(visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperUnary(
@@ -533,26 +533,26 @@ abstract class UnresolvedVisitor {
       Send node, MethodElement getter, Element element, Node rhs, _) {
     var accessor = new TopLevelStaticAccessor(
         this, getter.name, possiblyErroneousFunctionToIr(getter), null);
-    return accessor.buildNullAwareAssignment(visitForValue(rhs), null,
+    return accessor.buildNullAwareAssignment(visitForValue(rhs),
         voidContext: isVoidContext);
   }
 
   ir.Expression visitUnresolvedSuperGetterIndexSetIfNull(Send node,
       Element element, MethodElement setter, Node index, Node rhs, _) {
     return buildUnresolvedSuperIndexAccessor(index, element)
-        .buildNullAwareAssignment(visitForValue(rhs), null);
+        .buildNullAwareAssignment(visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperSetterIndexSetIfNull(Send node,
       MethodElement getter, Element element, Node index, Node rhs, _) {
     return buildUnresolvedSuperIndexAccessor(index, element)
-        .buildNullAwareAssignment(visitForValue(rhs), null);
+        .buildNullAwareAssignment(visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperIndexSetIfNull(
       Send node, Element element, Node index, Node rhs, _) {
     return buildUnresolvedSuperIndexAccessor(index, element)
-        .buildNullAwareAssignment(visitForValue(rhs), null);
+        .buildNullAwareAssignment(visitForValue(rhs));
   }
 
   ir.Expression visitUnresolvedSuperSet(

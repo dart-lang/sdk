@@ -649,8 +649,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
         visitTypes(node.positionalParameters
             .skip(node.requiredParameterCount)
             .toList()),
-        node.namedParameters.map((n) => n.name).toList(),
-        node.namedParameters.map((n) => visitType(n.type)).toList());
+        node.namedParameters.keys.toList(),
+        visitTypes(node.namedParameters.values.toList()));
   }
 
   @override
