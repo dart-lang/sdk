@@ -201,7 +201,7 @@ class EditDomainHandler implements RequestHandler {
         }
       }
     } else {
-      CompilationUnit unit = server.getResolvedCompilationUnit(file);
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       engine.AnalysisErrorInfo errorInfo = server.getErrors(file);
       if (errorInfo != null) {
         LineInfo lineInfo = errorInfo.lineInfo;
@@ -285,7 +285,7 @@ class EditDomainHandler implements RequestHandler {
       errors = result.errors;
     } else {
       // prepare resolved unit
-      unit = server.getResolvedCompilationUnit(file);
+      unit = await server.getResolvedCompilationUnit(file);
       if (unit == null) {
         server.sendResponse(new Response.fileNotAnalyzed(request, file));
         return;
@@ -397,7 +397,7 @@ class EditDomainHandler implements RequestHandler {
     }
     // check elements
     {
-      Element element = server.getElementAtOffset(file, offset);
+      Element element = await server.getElementAtOffset(file, offset);
       if (element != null) {
         // try CONVERT_METHOD_TO_GETTER
         if (element is ExecutableElement) {
@@ -704,7 +704,7 @@ class _RefactoringManager {
     }
     // create a new Refactoring instance
     if (kind == RefactoringKind.CONVERT_GETTER_TO_METHOD) {
-      Element element = server.getElementAtOffset(file, offset);
+      Element element = await server.getElementAtOffset(file, offset);
       if (element != null) {
         if (element is ExecutableElement) {
           _resetOnAnalysisStarted();
@@ -714,7 +714,7 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.CONVERT_METHOD_TO_GETTER) {
-      Element element = server.getElementAtOffset(file, offset);
+      Element element = await server.getElementAtOffset(file, offset);
       if (element != null) {
         if (element is ExecutableElement) {
           _resetOnAnalysisStarted();
@@ -724,7 +724,7 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
-      CompilationUnit unit = server.getResolvedCompilationUnit(file);
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnFileResolutionChanged(file);
         refactoring = new ExtractLocalRefactoring(unit, offset, length);
@@ -735,7 +735,7 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
-      CompilationUnit unit = server.getResolvedCompilationUnit(file);
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
         refactoring =
@@ -745,14 +745,14 @@ class _RefactoringManager {
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
-      CompilationUnit unit = server.getResolvedCompilationUnit(file);
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnFileResolutionChanged(file);
         refactoring = new InlineLocalRefactoring(searchEngine, unit, offset);
       }
     }
     if (kind == RefactoringKind.INLINE_METHOD) {
-      CompilationUnit unit = server.getResolvedCompilationUnit(file);
+      CompilationUnit unit = await server.getResolvedCompilationUnit(file);
       if (unit != null) {
         _resetOnAnalysisStarted();
         refactoring = new InlineMethodRefactoring(searchEngine, unit, offset);
@@ -767,7 +767,7 @@ class _RefactoringManager {
           server.resourceProvider, searchEngine, context, source, file);
     }
     if (kind == RefactoringKind.RENAME) {
-      AstNode node = server.getNodeAtOffset(file, offset);
+      AstNode node = await server.getNodeAtOffset(file, offset);
       Element element = server.getElementOfNode(node);
       if (node != null && element != null) {
         if (element is FieldFormalParameterElement) {

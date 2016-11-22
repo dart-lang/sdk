@@ -357,7 +357,7 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the [Future] that completes with a [AnalysisResult] for the Dart
+   * Return a [Future] that completes with a [AnalysisResult] for the Dart
    * file with the given [path]. If the file is not a Dart file, the [Future]
    * completes with `null`.
    *
@@ -385,7 +385,7 @@ class AnalysisDriver {
   }
 
   /**
-   * Return the [Future] that completes with a [ParseResult] for the file
+   * Return a [Future] that completes with a [ParseResult] for the file
    * with the given [path].
    *
    * The [path] must be absolute and normalized.

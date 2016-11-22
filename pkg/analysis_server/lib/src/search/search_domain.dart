@@ -60,9 +60,10 @@ class SearchDomainHandler implements protocol.RequestHandler {
     }
     var params =
         new protocol.SearchFindElementReferencesParams.fromRequest(request);
+    String file = params.file;
     await server.onAnalysisComplete;
     // prepare element
-    Element element = server.getElementAtOffset(params.file, params.offset);
+    Element element = await server.getElementAtOffset(file, params.offset);
     if (element is ImportElement) {
       element = (element as ImportElement).prefix;
     }
@@ -162,7 +163,7 @@ class SearchDomainHandler implements protocol.RequestHandler {
       await server.onAnalysisComplete;
     }
     // prepare element
-    Element element = server.getElementAtOffset(file, params.offset);
+    Element element = await server.getElementAtOffset(file, params.offset);
     if (element == null) {
       _sendTypeHierarchyNull(request);
       return;

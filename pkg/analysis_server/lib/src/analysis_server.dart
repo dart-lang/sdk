@@ -706,11 +706,12 @@ class AnalysisServer {
   }
 
   /**
-   * Return the [Element] at the given [offset] of the given [file], or `null`
-   * if there is no node at the [offset] or the node does not have an element.
+   * Return a [Future] that completes with the [Element] at the given
+   * [offset] of the given [file], or with `null` if there is no node at the
+   * [offset] or the node does not have an element.
    */
-  Element getElementAtOffset(String file, int offset) {
-    AstNode node = getNodeAtOffset(file, offset);
+  Future<Element> getElementAtOffset(String file, int offset) async {
+    AstNode node = await getNodeAtOffset(file, offset);
     return getElementOfNode(node);
   }
 
@@ -765,11 +766,12 @@ class AnalysisServer {
   }
 
   /**
-   * Return the resolved [AstNode]s at the given [offset] of the given [file],
-   * or `null` if there is no node as the [offset].
+   * Return a [Future] that completes with the resolved [AstNode] at the
+   * given [offset] of the given [file], or with `null` if there is no node as
+   * the [offset].
    */
-  AstNode getNodeAtOffset(String file, int offset) {
-    CompilationUnit unit = getResolvedCompilationUnit(file);
+  Future<AstNode> getNodeAtOffset(String file, int offset) async {
+    CompilationUnit unit = await getResolvedCompilationUnit(file);
     if (unit != null) {
       return new NodeLocator(offset).searchWithin(unit);
     }
@@ -777,10 +779,11 @@ class AnalysisServer {
   }
 
   /**
-   * Return the resolved [CompilationUnit] for the Dart file with the given
-   * [path], or `null` if the file is not a Dart file or cannot be resolved.
+   * Return a [Future] that completes with the resolved [CompilationUnit] for
+   * the Dart file with the given [path], or with `null` if the file is not a
+   * Dart file or cannot be resolved.
    */
-  CompilationUnit getResolvedCompilationUnit(String path) {
+  Future<CompilationUnit> getResolvedCompilationUnit(String path) async {
     ContextSourcePair contextSource = getContextSourcePair(path);
     AnalysisContext context = contextSource.context;
     if (context == null) {

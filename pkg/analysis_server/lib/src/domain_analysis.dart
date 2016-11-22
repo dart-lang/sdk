@@ -95,7 +95,7 @@ class AnalysisDomainHandler implements RequestHandler {
       AnalysisResult result = await server.getAnalysisResult(params.file);
       unit = result?.unit;
     } else {
-      unit = server.getResolvedCompilationUnit(params.file);
+      unit = await server.getResolvedCompilationUnit(params.file);
     }
 
     // Prepare the hovers.
@@ -144,10 +144,10 @@ class AnalysisDomainHandler implements RequestHandler {
     if (analysisFuture == null) {
       return new Response.getNavigationInvalidFile(request);
     }
-    analysisFuture.then((AnalysisDoneReason reason) {
+    analysisFuture.then((AnalysisDoneReason reason) async {
       switch (reason) {
         case AnalysisDoneReason.COMPLETE:
-          CompilationUnit unit = server.getResolvedCompilationUnit(file);
+          CompilationUnit unit = await server.getResolvedCompilationUnit(file);
           if (unit == null) {
             server.sendResponse(new Response.getNavigationInvalidFile(request));
           } else {
