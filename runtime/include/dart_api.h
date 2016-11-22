@@ -2931,6 +2931,13 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
  */
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library);
 
+
+/**
+ * \return An array of libraries.
+ */
+DART_EXPORT Dart_Handle Dart_GetLoadedLibraries();
+
+
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url);
 /* TODO(turnidge): Consider returning Dart_Null() when the library is
  * not found to distinguish that from a true error case. */

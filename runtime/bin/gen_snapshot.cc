@@ -741,15 +741,11 @@ static void SetupStubNativeResolver(size_t lib_index,
 // run after |SetupStubNativeResolversForPrecompilation| because the former
 // loads some libraries.
 static void SetupStubNativeResolvers() {
-  Dart_Handle library_ids = Dart_GetLibraryIds();
-  intptr_t library_ids_length;
-  Dart_ListLength(library_ids, &library_ids_length);
-  for (intptr_t i = 0; i < library_ids_length; i++) {
-    Dart_Handle library_id_handle = Dart_ListGetAt(library_ids, i);
-    DART_CHECK_VALID(library_id_handle);
-    int64_t library_id;
-    Dart_IntegerToInt64(library_id_handle, &library_id);
-    Dart_Handle library = Dart_GetLibraryFromId(library_id);
+  Dart_Handle libraries = Dart_GetLoadedLibraries();
+  intptr_t libraries_length;
+  Dart_ListLength(libraries, &libraries_length);
+  for (intptr_t i = 0; i < libraries_length; i++) {
+    Dart_Handle library = Dart_ListGetAt(libraries, i);
     DART_CHECK_VALID(library);
     Dart_NativeEntryResolver old_resolver = NULL;
     Dart_GetNativeResolver(library, &old_resolver);

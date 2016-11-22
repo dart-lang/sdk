@@ -5514,6 +5514,26 @@ DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetLoadedLibraries() {
+  DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
+
+  const GrowableObjectArray& libs =
+      GrowableObjectArray::Handle(Z, I->object_store()->libraries());
+  int num_libs = libs.Length();
+
+  // Create new list and populate with the loaded libraries.
+  Library& lib = Library::Handle();
+  const Array& library_list = Array::Handle(Z, Array::New(num_libs));
+  for (int i = 0; i < num_libs; i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    library_list.SetAt(i, lib);
+  }
+  return Api::NewHandle(T, library_list.raw());
+}
+
+
 DART_EXPORT Dart_Handle Dart_LookupLibrary(Dart_Handle url) {
   DARTSCOPE(Thread::Current());
   const String& url_str = Api::UnwrapStringHandle(Z, url);
