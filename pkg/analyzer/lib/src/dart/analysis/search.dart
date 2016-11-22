@@ -21,47 +21,46 @@ class Search {
   Search(this._driver);
 
   /**
-   * Returns references to the element at the given [offset] in the file with
-   * the given [path].
+   * Returns references to the [element].
    */
-  Future<List<SearchResult>> references(String path, int offset) async {
-    // Search only in added files.
-    if (!_driver.addedFiles.contains(path)) {
-      return const <SearchResult>[];
-    }
-
-    AnalysisResult analysisResult = await _driver.getResult(path);
-    CompilationUnit unit = analysisResult.unit;
-
-    // Prepare the node.
-    AstNode node = new NodeLocator(offset).searchWithin(unit);
-    if (node == null) {
-      return const <SearchResult>[];
-    }
-
-    // Prepare the element.
-    Element element = ElementLocator.locate(node);
+  Future<List<SearchResult>> references(Element element) async {
     if (element == null) {
       return const <SearchResult>[];
     }
 
     ElementKind kind = element.kind;
     if (kind == ElementKind.LABEL || kind == ElementKind.LOCAL_VARIABLE) {
-      Block block = node.getAncestor((n) => n is Block);
-      return _searchReferences_Local(element, unit.element, block);
+      return _searchReferences_Local(element, (n) => n is Block);
     }
     // TODO(scheglov) support other kinds
-    return [];
+    return const <SearchResult>[];
   }
 
   Future<List<SearchResult>> _searchReferences_Local(
-      Element element,
-      CompilationUnitElement enclosingUnitElement,
-      AstNode enclosingNode) async {
+      Element element, bool isRootNode(AstNode n)) async {
+    String path = element.source.fullName;
+
+    // Prepare the unit.
+    AnalysisResult analysisResult = await _driver.getResult(path);
+    CompilationUnit unit = analysisResult.unit;
+    if (unit == null) {
+      return const <SearchResult>[];
+    }
+
+    // Prepare the node.
+    AstNode node = new NodeLocator(element.nameOffset).searchWithin(unit);
+    if (node == null) {
+      return const <SearchResult>[];
+    }
+
+    // Prepare the enclosing node.
+    AstNode enclosingNode = node.getAncestor(isRootNode);
+
+    // Find the matches.
     _LocalReferencesVisitor visitor =
-        new _LocalReferencesVisitor(element, enclosingUnitElement);
-    enclosingNode?.accept(visitor);
-    return visitor.matches;
+        new _LocalReferencesVisitor(element, unit.element);
+    enclosingNode.accept(visitor);
+    return visitor.results;
   }
 }
 
@@ -159,7 +158,7 @@ class _ContainingElementFinder extends GeneralizingElementVisitor {
  * type parameters, import prefixes.
  */
 class _LocalReferencesVisitor extends RecursiveAstVisitor {
-  final List<SearchResult> matches = <SearchResult>[];
+  final List<SearchResult> results = <SearchResult>[];
 
   final Element element;
   final CompilationUnitElement enclosingUnitElement;
@@ -193,15 +192,15 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
           kind = SearchResultKind.WRITE;
         }
       }
-      _addMatch(node, kind);
+      _addResult(node, kind);
     }
   }
 
-  void _addMatch(AstNode node, SearchResultKind kind) {
+  void _addResult(AstNode node, SearchResultKind kind) {
     bool isQualified = node.parent is Label;
     var finder = new _ContainingElementFinder(node.offset);
     enclosingUnitElement.accept(finder);
-    matches.add(new SearchResult._(element, finder.containingElement, kind,
+    results.add(new SearchResult._(element, finder.containingElement, kind,
         node.offset, node.length, true, isQualified));
   }
 }

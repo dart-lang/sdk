@@ -4,8 +4,11 @@
 
 import 'dart:async';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -90,13 +93,13 @@ label:
   }
 }
 ''');
-    int offset = findOffset('label:');
+    Element element = await _findElementAtString('label:');
     List<String> main = [testUri, 'main'];
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'label; // 1'),
       _expectId(main, SearchResultKind.REFERENCE, 'label; // 2')
     ];
-    await _verifyReferences(offset, expected);
+    await _verifyReferences(element, expected);
   }
 
   test_searchReferences_localVariable() async {
@@ -109,7 +112,7 @@ main() {
   v();
 }
 ''');
-    int offset = findOffset('v;');
+    Element element = await _findElementAtString('v;');
     List<String> main = [testUri, 'main'];
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -117,7 +120,7 @@ main() {
       _expectId(main, SearchResultKind.READ, 'v);'),
       _expectId(main, SearchResultKind.INVOCATION, 'v();')
     ];
-    await _verifyReferences(offset, expected);
+    await _verifyReferences(element, expected);
   }
 
   test_searchReferences_localVariable_inForEachLoop() async {
@@ -131,7 +134,7 @@ main() {
   }
 }
 ''');
-    int offset = findOffset('v in []');
+    Element element = await _findElementAtString('v in []');
     List<String> main = [testUri, 'main'];
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -139,7 +142,7 @@ main() {
       _expectId(main, SearchResultKind.READ, 'v);'),
       _expectId(main, SearchResultKind.INVOCATION, 'v();')
     ];
-    await _verifyReferences(offset, expected);
+    await _verifyReferences(element, expected);
   }
 
   ExpectedResult _expectId(
@@ -153,10 +156,16 @@ main() {
         isResolved: isResolved, isQualified: isQualified);
   }
 
+  Future<Element> _findElementAtString(String search) async {
+    AnalysisResult result = await driver.getResult(testFile);
+    int offset = findOffset(search);
+    AstNode node = new NodeLocator(offset).searchWithin(result.unit);
+    return ElementLocator.locate(node);
+  }
+
   Future _verifyReferences(
-      int offset, List<ExpectedResult> expectedMatches) async {
-    List<SearchResult> results =
-        await driver.search.references(testFile, offset);
+      Element element, List<ExpectedResult> expectedMatches) async {
+    List<SearchResult> results = await driver.search.references(element);
     _assertResults(results, expectedMatches);
     expect(results, hasLength(expectedMatches.length));
   }
