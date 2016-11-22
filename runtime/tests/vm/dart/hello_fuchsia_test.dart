@@ -5,6 +5,20 @@
 import "dart:async";
 import "dart:io";
 
+testAddressParse() async {
+  print(new InternetAddress("1.0.2.3").rawAddress);
+  print(new InternetAddress("1.0.2.3").type);
+
+  print(new InternetAddress("::1").rawAddress);
+  print(new InternetAddress("::1").type);
+
+  try {
+    print(new InternetAddress("localhost"));
+  } catch (e) {
+    print(e);
+  }
+}
+
 testSimpleBind() async {
   var s = await RawServerSocket.bind(InternetAddress.LOOPBACK_IP_V4, 0);
   print("port = ${s.port}");
@@ -20,6 +34,13 @@ testSimpleConnect() async {
   });
   var socket = await RawSocket.connect("127.0.0.1", server.port);
   print("socket port = ${socket.port}");
+  if (socket.remoteAddress.address != "127.0.0.1" ||
+      socket.remoteAddress.type != InternetAddressType.IP_V4) {
+    throw "Bad remote address ${socket.remoteAddress}";
+  }
+  if (socket.remotePort is! int) {
+    throw "Bad remote port ${socket.remotePort}";
+  }
   await server.close();
   await socket.close();
 }
@@ -197,6 +218,10 @@ Future testGoogleUrl(SecurityContext context, String outcome) async {
 main() async {
   print("Hello, Fuchsia!");
 
+  print("testAddressParse");
+  await testAddressParse();
+  print("testAddressParse done");
+
   print("testSimpleBind");
   await testSimpleBind();
   print("testSimpleBind done");
@@ -205,13 +230,14 @@ main() async {
   await testSimpleConnect();
   print("testSimpleConnect done");
 
+  // TODO(US-81): Enable.
   // print("testSimpleReadWrite");
   // await testSimpleReadWrite(dropReads: false);
   // print("testSimpleReadWrite done");
 
-  // print("testGoogleUrl");
-  // await testGoogleUrl(null, 'pass');
-  // print("testGoogleUrl done");
+  print("testGoogleUrl");
+  await testGoogleUrl(null, 'pass');
+  print("testGoogleUrl done");
 
   print("Goodbyte, Fuchsia!");
 }

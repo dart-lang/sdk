@@ -242,9 +242,14 @@ intptr_t Socket::GetPort(intptr_t fd) {
 
 
 SocketAddress* Socket::GetRemotePeer(intptr_t fd, intptr_t* port) {
-  LOG_ERR("Socket::GetRemotePeer is unimplemented\n");
-  UNIMPLEMENTED();
-  return NULL;
+  ASSERT(fd >= 0);
+  RawAddr raw;
+  socklen_t size = sizeof(raw);
+  if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
+    return NULL;
+  }
+  *port = SocketAddress::GetAddrPort(raw);
+  return new SocketAddress(&raw.addr);
 }
 
 
@@ -324,9 +329,15 @@ bool Socket::ReverseLookup(const RawAddr& addr,
 
 
 bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
-  LOG_ERR("Socket::ParseAddress is unimplemented\n");
-  UNIMPLEMENTED();
-  return false;
+  int result;
+  if (type == SocketAddress::TYPE_IPV4) {
+    result = NO_RETRY_EXPECTED(inet_pton(AF_INET, address, &addr->in.sin_addr));
+  } else {
+    ASSERT(type == SocketAddress::TYPE_IPV6);
+    result =
+        NO_RETRY_EXPECTED(inet_pton(AF_INET6, address, &addr->in6.sin6_addr));
+  }
+  return (result == 1);
 }
 
 
@@ -478,10 +489,15 @@ bool Socket::GetNoDelay(intptr_t fd, bool* enabled) {
 
 
 bool Socket::SetNoDelay(intptr_t fd, bool enabled) {
+// TODO(US-94): Enable.
+#if 0
   int on = enabled ? 1 : 0;
   return NO_RETRY_EXPECTED(setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
                                       reinterpret_cast<char*>(&on),
                                       sizeof(on))) == 0;
+#else
+  return true;
+#endif
 }
 
 
