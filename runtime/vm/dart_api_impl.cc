@@ -5888,6 +5888,9 @@ Dart_SetNativeResolver(Dart_Handle library,
 DART_EXPORT Dart_Handle
 Dart_GetNativeResolver(Dart_Handle library,
                        Dart_NativeEntryResolver* resolver) {
+  if (resolver == NULL) {
+    RETURN_NULL_ERROR(resolver);
+  }
   *resolver = NULL;
   DARTSCOPE(Thread::Current());
   const Library& lib = Api::UnwrapLibraryHandle(Z, library);
@@ -5901,6 +5904,9 @@ Dart_GetNativeResolver(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
                                              Dart_NativeEntrySymbol* resolver) {
+  if (resolver == NULL) {
+    RETURN_NULL_ERROR(resolver);
+  }
   *resolver = NULL;
   DARTSCOPE(Thread::Current());
   const Library& lib = Api::UnwrapLibraryHandle(Z, library);
