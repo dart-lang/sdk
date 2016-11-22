@@ -4351,6 +4351,9 @@ class PropertyAccessorElementForLink_Variable extends Object
   TypeInferenceNode get asTypeInferenceNode => variable._typeInferenceNode;
 
   @override
+  String get displayName => variable.displayName;
+
+  @override
   Element get enclosingElement => variable.enclosingElement;
 
   @override
@@ -4999,6 +5002,9 @@ abstract class VariableElementForLink
           unlinkedVariable.type, _typeParameterContext);
     }
   }
+
+  @override
+  String get displayName => unlinkedVariable.name;
 
   @override
   PropertyAccessorElementForLink_Variable get getter =>
