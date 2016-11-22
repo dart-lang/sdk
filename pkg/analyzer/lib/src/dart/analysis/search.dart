@@ -39,6 +39,9 @@ class Search {
   Future<List<SearchResult>> _searchReferences_Local(
       Element element, bool isRootNode(AstNode n)) async {
     String path = element.source.fullName;
+    if (!_driver.addedFiles.contains(path)) {
+      return const <SearchResult>[];
+    }
 
     // Prepare the unit.
     AnalysisResult analysisResult = await _driver.getResult(path);

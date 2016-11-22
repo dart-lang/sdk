@@ -24,6 +24,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analysis_server/src/single_context_manager.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -119,7 +120,7 @@ class AnalysisServer {
   /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
    */
-  final SearchEngine searchEngine;
+  SearchEngine searchEngine;
 
   /**
    * The plugin associated with this analysis server.
@@ -346,7 +347,7 @@ class AnalysisServer {
       this.channel,
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
-      Index _index,
+      this.index,
       this.serverPlugin,
       this.options,
       this.sdkManager,
@@ -354,9 +355,7 @@ class AnalysisServer {
       {ResolverProvider fileResolverProvider: null,
       ResolverProvider packageResolverProvider: null,
       bool useSingleContextManager: false,
-      this.rethrowExceptions: true})
-      : index = _index,
-        searchEngine = _index != null ? new SearchEngineImpl(_index) : null {
+      this.rethrowExceptions: true}) {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
@@ -414,6 +413,11 @@ class AnalysisServer {
       });
     });
     _setupIndexInvalidation();
+    if (options.enableNewAnalysisDriver) {
+      searchEngine = new SearchEngineImpl2(driverMap.values);
+    } else if (index != null) {
+      searchEngine = new SearchEngineImpl(index);
+    }
     pubSummaryManager =
         new PubSummaryManager(resourceProvider, '${io.pid}.temp');
     Notification notification = new ServerConnectedParams(VERSION, io.pid,
@@ -602,11 +606,13 @@ class AnalysisServer {
    * otherwise in the first driver, otherwise `null` is returned.
    */
   Future<nd.AnalysisResult> getAnalysisResult(String path) async {
+    print('[getAnalysisResult] path: $path');
     nd.AnalysisResult result = priorityFileResults[path];
     if (result != null) {
       return result;
     }
     nd.AnalysisDriver driver = getAnalysisDriver(path);
+    print('[getAnalysisResult] driver: ${driver.name}');
     return driver?.getResult(path);
   }
 
@@ -771,7 +777,13 @@ class AnalysisServer {
    * the [offset].
    */
   Future<AstNode> getNodeAtOffset(String file, int offset) async {
-    CompilationUnit unit = await getResolvedCompilationUnit(file);
+    CompilationUnit unit;
+    if (options.enableNewAnalysisDriver) {
+      nd.AnalysisResult result = await getAnalysisResult(file);
+      unit = result?.unit;
+    } else {
+      unit = await getResolvedCompilationUnit(file);
+    }
     if (unit != null) {
       return new NodeLocator(offset).searchWithin(unit);
     }

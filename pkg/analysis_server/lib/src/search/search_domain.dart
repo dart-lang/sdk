@@ -49,20 +49,13 @@ class SearchDomainHandler implements protocol.RequestHandler {
         searchEngine = server.searchEngine;
 
   Future findElementReferences(protocol.Request request) async {
-    if (server.options.enableNewAnalysisDriver) {
-      // TODO(scheglov) implement for the new analysis driver
-      String searchId = (_nextSearchId++).toString();
-      var result = new protocol.SearchFindElementReferencesResult();
-      result.id = searchId;
-      _sendSearchResult(request, result);
-      _sendSearchNotification(searchId, true, <protocol.SearchResult>[]);
-      return;
-    }
     var params =
         new protocol.SearchFindElementReferencesParams.fromRequest(request);
     String file = params.file;
-    await server.onAnalysisComplete;
     // prepare element
+    if (!server.options.enableNewAnalysisDriver) {
+      await server.onAnalysisComplete;
+    }
     Element element = await server.getElementAtOffset(file, params.offset);
     if (element is ImportElement) {
       element = (element as ImportElement).prefix;
