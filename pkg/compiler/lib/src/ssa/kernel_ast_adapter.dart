@@ -255,6 +255,11 @@ class KernelAstAdapter {
     return constantValue;
   }
 
+  ConstantValue getConstantForType(ir.DartType irType) {
+    DartType type = getDartType(irType);
+    return _backend.constantSystem.createType(_compiler, type.asRaw());
+  }
+
   bool isIntercepted(ir.Node node) {
     Selector selector = getSelector(node);
     return _backend.isInterceptedSelector(selector);
