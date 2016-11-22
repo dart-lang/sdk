@@ -1240,14 +1240,23 @@ static bool ReadAppSnapshotBlobs(const char* script_name,
     return false;
   }
 
+  int64_t vmisolate_size = header[1];
   int64_t vmisolate_position =
       Utils::RoundUp(file->Position(), kAppSnapshotPageSize);
+  int64_t isolate_size = header[2];
   int64_t isolate_position =
-      Utils::RoundUp(vmisolate_position + header[1], kAppSnapshotPageSize);
-  int64_t rodata_position =
-      Utils::RoundUp(isolate_position + header[2], kAppSnapshotPageSize);
-  int64_t instructions_position =
-      Utils::RoundUp(rodata_position + header[3], kAppSnapshotPageSize);
+      Utils::RoundUp(vmisolate_position + vmisolate_size, kAppSnapshotPageSize);
+  int64_t rodata_size = header[3];
+  int64_t rodata_position = isolate_position + isolate_size;
+  if (rodata_size != 0) {
+    rodata_position = Utils::RoundUp(rodata_position, kAppSnapshotPageSize);
+  }
+  int64_t instructions_size = header[4];
+  int64_t instructions_position = rodata_position + rodata_size;
+  if (instructions_size != 0) {
+    instructions_position =
+        Utils::RoundUp(instructions_position, kAppSnapshotPageSize);
+  }
 
   void* read_only_buffer =
       file->Map(File::kReadOnly, vmisolate_position,
@@ -1261,14 +1270,14 @@ static bool ReadAppSnapshotBlobs(const char* script_name,
                       (vmisolate_position - vmisolate_position);
   *isolate_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer) +
                     (isolate_position - vmisolate_position);
-  if (header[3] == 0) {
+  if (rodata_size == 0) {
     *rodata_buffer = NULL;
   } else {
     *rodata_buffer = reinterpret_cast<const uint8_t*>(read_only_buffer) +
                      (rodata_position - vmisolate_position);
   }
 
-  if (header[4] == 0) {
+  if (instructions_size == 0) {
     *instructions_buffer = NULL;
   } else {
     *instructions_buffer = reinterpret_cast<const uint8_t*>(
