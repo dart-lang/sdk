@@ -22,6 +22,7 @@
 #include "bin/vmservice_impl.h"
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 
 #include "platform/hashmap.h"
 #include "platform/globals.h"
@@ -684,7 +685,8 @@ static const char StubNativeFunctionName[] = "StubNativeFunction";
 
 void StubNativeFunction(Dart_NativeArguments arguments) {
   // This is a stub function for the resolver
-  UNREACHABLE();
+  Dart_SetReturnValue(
+      arguments, Dart_NewApiError("<EMBEDDER DID NOT SETUP NATIVE RESOLVER>"));
 }
 
 
@@ -732,6 +734,31 @@ static void SetupStubNativeResolver(size_t lib_index,
   Dart_Handle result =
       Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
   DART_CHECK_VALID(result);
+}
+
+
+// Iterate over all libraries and setup the stub native lookup. This must be
+// run after |SetupStubNativeResolversForPrecompilation| because the former
+// loads some libraries.
+static void SetupStubNativeResolvers() {
+  Dart_Handle library_ids = Dart_GetLibraryIds();
+  intptr_t library_ids_length;
+  Dart_ListLength(library_ids, &library_ids_length);
+  for (intptr_t i = 0; i < library_ids_length; i++) {
+    Dart_Handle library_id_handle = Dart_ListGetAt(library_ids, i);
+    DART_CHECK_VALID(library_id_handle);
+    int64_t library_id;
+    Dart_IntegerToInt64(library_id_handle, &library_id);
+    Dart_Handle library = Dart_GetLibraryFromId(library_id);
+    DART_CHECK_VALID(library);
+    Dart_NativeEntryResolver old_resolver = NULL;
+    Dart_GetNativeResolver(library, &old_resolver);
+    if (old_resolver == NULL) {
+      Dart_Handle result =
+          Dart_SetNativeResolver(library, &StubNativeLookup, &StubNativeSymbol);
+      DART_CHECK_VALID(result);
+    }
+  }
 }
 
 
@@ -1305,6 +1332,8 @@ int main(int argc, char** argv) {
     }
 
     SetupStubNativeResolversForPrecompilation(entry_points);
+
+    SetupStubNativeResolvers();
 
     if (!is_kernel_file) {
       // Load the specified script.

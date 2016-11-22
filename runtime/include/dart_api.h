@@ -2703,6 +2703,30 @@ Dart_SetNativeResolver(Dart_Handle library,
 /* TODO(turnidge): Rename to Dart_LibrarySetNativeResolver? */
 
 
+/**
+ * Returns the callback used to resolve native functions for a library.
+ *
+ * \param library A library.
+ * \param resolver a pointer to a Dart_NativeEntryResolver
+ *
+ * \return A valid handle if the library was found.
+ */
+DART_EXPORT Dart_Handle
+Dart_GetNativeResolver(Dart_Handle library, Dart_NativeEntryResolver* resolver);
+
+
+/**
+ * Returns the callback used to resolve native function symbols for a library.
+ *
+ * \param library A library.
+ * \param resolver a pointer to a Dart_NativeEntrySymbol.
+ *
+ * \return A valid handle if the library was found.
+ */
+DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
+                                             Dart_NativeEntrySymbol* resolver);
+
+
 /*
  * =====================
  * Scripts and Libraries

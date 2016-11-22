@@ -5865,6 +5865,32 @@ Dart_SetNativeResolver(Dart_Handle library,
 }
 
 
+DART_EXPORT Dart_Handle
+Dart_GetNativeResolver(Dart_Handle library,
+                       Dart_NativeEntryResolver* resolver) {
+  *resolver = NULL;
+  DARTSCOPE(Thread::Current());
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+  *resolver = lib.native_entry_resolver();
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetNativeSymbol(Dart_Handle library,
+                                             Dart_NativeEntrySymbol* resolver) {
+  *resolver = NULL;
+  DARTSCOPE(Thread::Current());
+  const Library& lib = Api::UnwrapLibraryHandle(Z, library);
+  if (lib.IsNull()) {
+    RETURN_TYPE_ERROR(Z, library, Library);
+  }
+  *resolver = lib.native_entry_symbol_resolver();
+  return Api::Success();
+}
+
 // --- Peer support ---
 
 DART_EXPORT Dart_Handle Dart_GetPeer(Dart_Handle object, void** peer) {
