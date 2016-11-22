@@ -81,7 +81,24 @@ class ExpectedResult {
 class SearchTest extends BaseAnalysisDriverTest {
   static const testUri = 'package:test/test.dart';
 
-  test_searchReferences_Label() async {
+  test_searchReferences_FunctionElement_local() async {
+    addTestFile('''
+main() {
+  test() {}
+  test();
+  print(test);
+}
+''');
+    FunctionElement element = await _findElement('test');
+    List<String> main = [testUri, 'main'];
+    var expected = [
+      _expectId(main, SearchResultKind.INVOCATION, 'test();'),
+      _expectId(main, SearchResultKind.REFERENCE, 'test);')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_LabelElement() async {
     addTestFile('''
 main() {
 label:
@@ -93,7 +110,7 @@ label:
   }
 }
 ''');
-    Element element = await _findElementAtString('label:');
+    Element element = await _findElement('label');
     List<String> main = [testUri, 'main'];
     var expected = [
       _expectId(main, SearchResultKind.REFERENCE, 'label; // 1'),
@@ -102,7 +119,7 @@ label:
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_localVariable() async {
+  test_searchReferences_LocalVariableElement() async {
     addTestFile(r'''
 main() {
   var v;
@@ -112,7 +129,7 @@ main() {
   v();
 }
 ''');
-    Element element = await _findElementAtString('v;');
+    Element element = await _findElement('v');
     List<String> main = [testUri, 'main'];
     var expected = [
       _expectId(main, SearchResultKind.WRITE, 'v = 1;'),
@@ -123,7 +140,7 @@ main() {
     await _verifyReferences(element, expected);
   }
 
-  test_searchReferences_localVariable_inForEachLoop() async {
+  test_searchReferences_localVariableElement_inForEachLoop() async {
     addTestFile('''
 main() {
   for (var v in []) {
@@ -145,6 +162,67 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_TypeParameterElement_ofClass() async {
+    addTestFile('''
+class A<T> {
+  foo(T a) {}
+  bar(T b) {}
+}
+''');
+    TypeParameterElement element = await _findElement('T');
+    var expected = [
+      _expectId([testUri, 'A', 'foo', 'a'], SearchResultKind.REFERENCE, 'T a'),
+      _expectId([testUri, 'A', 'bar', 'b'], SearchResultKind.REFERENCE, 'T b'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_TypeParameterElement_ofLocalFunction() async {
+    addTestFile('''
+main() {
+  void foo<T>(T a) {
+    void bar(T b) {}
+  }
+}
+''');
+    TypeParameterElement element = await _findElement('T');
+    var expected = [
+      _expectId(
+          [testUri, 'main', 'foo', 'a'], SearchResultKind.REFERENCE, 'T a'),
+      _expectId([testUri, 'main', 'foo', 'bar', 'b'],
+          SearchResultKind.REFERENCE, 'T b'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_TypeParameterElement_ofMethod() async {
+    addTestFile('''
+class A {
+  foo<T>(T p) {}
+}
+''');
+    TypeParameterElement element = await _findElement('T');
+    var expected = [
+      _expectId([testUri, 'A', 'foo', 'p'], SearchResultKind.REFERENCE, 'T p'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_TypeParameterElement_ofTopLevelFunction() async {
+    addTestFile('''
+foo<T>(T a) {
+  bar(T b) {}
+}
+''');
+    TypeParameterElement element = await _findElement('T');
+    var expected = [
+      _expectId([testUri, 'foo', 'a'], SearchResultKind.REFERENCE, 'T a'),
+      _expectId(
+          [testUri, 'foo', 'bar', 'b'], SearchResultKind.REFERENCE, 'T b'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   ExpectedResult _expectId(
       List<String> enclosingComponents, SearchResultKind kind, String search,
       {int length, bool isResolved: true, bool isQualified: false}) {
@@ -154,6 +232,11 @@ main() {
     }
     return new ExpectedResult(enclosingComponents, kind, offset, length,
         isResolved: isResolved, isQualified: isQualified);
+  }
+
+  Future<Element> _findElement(String name) async {
+    AnalysisResult result = await driver.getResult(testFile);
+    return findChildElement(result.unit.element, name);
   }
 
   Future<Element> _findElementAtString(String search) async {

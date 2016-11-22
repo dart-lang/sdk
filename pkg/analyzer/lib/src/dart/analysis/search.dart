@@ -29,8 +29,17 @@ class Search {
     }
 
     ElementKind kind = element.kind;
-    if (kind == ElementKind.LABEL || kind == ElementKind.LOCAL_VARIABLE) {
+    if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
+      if (element.enclosingElement is ExecutableElement) {
+        return _searchReferences_Local(element, (n) => n is Block);
+      }
+//      return _searchReferences_Function(element);
+    } else if (kind == ElementKind.LABEL ||
+        kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(element, (n) => n is Block);
+    } else if (kind == ElementKind.TYPE_PARAMETER) {
+      return _searchReferences_Local(
+          element, (n) => n.parent is CompilationUnit);
     }
     // TODO(scheglov) support other kinds
     return const <SearchResult>[];
@@ -58,6 +67,9 @@ class Search {
 
     // Prepare the enclosing node.
     AstNode enclosingNode = node.getAncestor(isRootNode);
+    if (enclosingNode == null) {
+      return const <SearchResult>[];
+    }
 
     // Find the matches.
     _LocalReferencesVisitor visitor =

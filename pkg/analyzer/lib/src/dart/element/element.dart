@@ -1051,7 +1051,7 @@ class ClassElementImpl extends AbstractClassElementImpl
     super.visitChildren(visitor);
     safelyVisitChildren(_constructors, visitor);
     safelyVisitChildren(methods, visitor);
-    safelyVisitChildren(_typeParameters, visitor);
+    safelyVisitChildren(typeParameters, visitor);
   }
 
   void _collectAllSupertypes(List<InterfaceType> supertypes) {
